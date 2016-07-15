@@ -483,7 +483,7 @@ typedef struct
 typedef struct
 {
     tBTA_GATTS_IF       server_if;
-    UINT16              service_id;
+    uint16_t            service_id;
     tBTA_GATT_STATUS    status;
 }tBTA_GATTS_SRVC_OPER;
 

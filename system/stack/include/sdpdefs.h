@@ -276,7 +276,7 @@
 
 #define UUID_SERVCLASS_TEST_SERVER              0x9000      /* Test Group UUID */
 
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
 #define UUID_CODEC_CVSD                         0x0001   /* CVSD */
 #define UUID_CODEC_MSBC                         0x0002   /* mSBC */
 #endif
@@ -308,8 +308,8 @@
 #define  SIZE_IN_NEXT_LONG            7
 
 /* Language Encoding Constants */
-#define LANG_ID_CODE_ENGLISH            ((UINT16) 0x656e)   /* "en" */
-#define LANG_ID_CHAR_ENCODE_UTF8        ((UINT16) 0x006a)   /* UTF-8 */
+#define LANG_ID_CODE_ENGLISH            ((uint16_t) 0x656e)   /* "en" */
+#define LANG_ID_CHAR_ENCODE_UTF8        ((uint16_t) 0x006a)   /* UTF-8 */
 
 /* Constants used for display purposes only.  These define ovelapping attribute values */
 #define  ATTR_ID_VERS_OR_GRP_OR_DRELNUM_OR_IPSUB_OR_SPECID  0x0200

@@ -92,15 +92,15 @@
 
 typedef struct
 {
-    UINT8   use;
-    UINT8   idx;
+    uint8_t use;
+    uint8_t idx;
 } tA2D_SBC_FR_CB;
 
 typedef struct
 {
     tA2D_SBC_FR_CB  fr[2];
-    UINT8           index;
-    UINT8           base;
+    uint8_t         index;
+    uint8_t         base;
 } tA2D_SBC_DS_CB;
 
 static tA2D_SBC_DS_CB a2d_sbc_ds_cb;
@@ -113,15 +113,15 @@ static tA2D_SBC_DS_CB a2d_sbc_ds_cb;
 **
 ** Returns          nothing.
 ******************************************************************************/
-void A2D_SbcChkFrInit(UINT8 *p_pkt)
+void A2D_SbcChkFrInit(uint8_t *p_pkt)
 {
-    UINT8   fmt;
-    UINT8   num_chnl = 1;
-    UINT8   num_subband = 4;
+    uint8_t fmt;
+    uint8_t num_chnl = 1;
+    uint8_t num_subband = 4;
 
     if((p_pkt[0] & A2D_SBC_SYNC_MASK) == 0)
     {
-        a2d_cb.use_desc = TRUE;
+        a2d_cb.use_desc = true;
         fmt = p_pkt[1];
         p_pkt[0] |= A2D_SBC_SYNC_MASK;
         memset(&a2d_sbc_ds_cb, 0, sizeof(tA2D_SBC_DS_CB));
@@ -143,10 +143,10 @@ void A2D_SbcChkFrInit(UINT8 *p_pkt)
 **
 ** Returns          nothing.
 ******************************************************************************/
-void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len)
+void A2D_SbcDescramble(uint8_t *p_pkt, uint16_t len)
 {
     tA2D_SBC_FR_CB *p_cur, *p_last;
-    UINT32   idx, tmp, tmp2;
+    uint32_t idx, tmp, tmp2;
 
     if(a2d_cb.use_desc)
     {
@@ -185,10 +185,10 @@ void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len)
             {
                 tmp2        = p_pkt[idx];
                 tmp         = (tmp2>>3)+(tmp2<<5);
-                p_pkt[idx]  = (UINT8)tmp;
+                p_pkt[idx]  = (uint8_t)tmp;
                 /*
                 printf("tmp: x%02x, len: %d, idx: %d(cmp:%d)\n",
-                    (UINT8)tmp2, len, a2d_sbc_ds_cb.fr[a2d_sbc_ds_cb.index].idx,
+                    (uint8_t)tmp2, len, a2d_sbc_ds_cb.fr[a2d_sbc_ds_cb.index].idx,
                     (a2d_sbc_ds_cb.base+(idx<<1)));
                     */
             }
@@ -220,7 +220,7 @@ void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len)
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result)
+tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, tA2D_SBC_CIE *p_ie, uint8_t *p_result)
 {
     tA2D_STATUS status;
 
@@ -267,7 +267,7 @@ tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result
 **                  Input Parameters:
 **                      p_info:  the byte sequence to parse.
 **
-**                      for_caps:  TRUE, if the byte sequence is for get capabilities response.
+**                      for_caps:  true, if the byte sequence is for get capabilities response.
 **
 **                  Output Parameters:
 **                      p_ie:  The SBC Codec Information Element information.
@@ -275,11 +275,11 @@ tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
-                            BOOLEAN for_caps)
+tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const uint8_t *p_info,
+                            bool for_caps)
 {
     tA2D_STATUS status = A2D_SUCCESS;
-    UINT8 losc;
+    uint8_t losc;
 
     if (p_ie == NULL || p_info == NULL)
         return A2D_INVALID_PARAMS;
@@ -308,7 +308,7 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
          p_ie->max_bitpool < p_ie->min_bitpool)
         status = A2D_BAD_MAX_BITPOOL;
 
-    if (for_caps != FALSE)
+    if (for_caps != false)
         return status;
 
     if (A2D_BitsSet(p_ie->samp_freq) != A2D_SET_ONE_BIT)
@@ -347,7 +347,7 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
 **
 ** Returns          void.
 ******************************************************************************/
-void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start, BOOLEAN last, UINT8 num)
+void A2D_BldSbcMplHdr(uint8_t *p_dst, bool frag, bool start, bool last, uint8_t num)
 {
     if(p_dst)
     {
@@ -384,13 +384,13 @@ void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start, BOOLEAN last, U
 **
 ** Returns          void.
 ******************************************************************************/
-void A2D_ParsSbcMplHdr(UINT8 *p_src, BOOLEAN *p_frag, BOOLEAN *p_start, BOOLEAN *p_last, UINT8 *p_num)
+void A2D_ParsSbcMplHdr(uint8_t *p_src, bool *p_frag, bool *p_start, bool *p_last, uint8_t *p_num)
 {
     if(p_src && p_frag && p_start && p_last && p_num)
     {
-        *p_frag = (*p_src & A2D_SBC_HDR_F_MSK) ? TRUE: FALSE;
-        *p_start= (*p_src & A2D_SBC_HDR_S_MSK) ? TRUE: FALSE;
-        *p_last = (*p_src & A2D_SBC_HDR_L_MSK) ? TRUE: FALSE;
+        *p_frag = (*p_src & A2D_SBC_HDR_F_MSK) ? true: false;
+        *p_start= (*p_src & A2D_SBC_HDR_S_MSK) ? true: false;
+        *p_last = (*p_src & A2D_SBC_HDR_L_MSK) ? true: false;
         *p_num  = (*p_src & A2D_SBC_HDR_NUM_MSK);
     }
 }

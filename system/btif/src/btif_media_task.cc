@@ -3174,7 +3174,7 @@ static void btif_media_send_aa_frame(uint64_t timestamp_us)
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
 
-#endif /* BTA_AV_INCLUDED == true */
+#endif /* BTA_AV_INCLUDED == TRUE */
 
 /*******************************************************************************
  **

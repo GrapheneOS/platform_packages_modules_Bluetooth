@@ -24,7 +24,7 @@
 #include "bt_target.h"
 #include "bt_utils.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 #include <string.h>
 #include "bt_common.h"
 
@@ -38,21 +38,21 @@
 **
 ** Description      This function sign the data for write command.
 **
-** Returns          TRUE if encrypted, otherwise FALSE.
+** Returns          true if encrypted, otherwise false.
 **
 *******************************************************************************/
-static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
+static bool    gatt_sign_data (tGATT_CLCB *p_clcb)
 {
     tGATT_VALUE         *p_attr = (tGATT_VALUE *)p_clcb->p_attr_buf;
-    UINT8               *p_data = NULL, *p;
-    UINT16              payload_size = p_clcb->p_tcb->payload_size;
-    BOOLEAN             status = FALSE;
-    UINT8                *p_signature;
+    uint8_t             *p_data = NULL, *p;
+    uint16_t            payload_size = p_clcb->p_tcb->payload_size;
+    bool                status = false;
+    uint8_t              *p_signature;
 
     /* do not need to mark channel securoty activity for data signing */
     gatt_set_sec_act(p_clcb->p_tcb, GATT_SEC_OK);
 
-    p_data = (UINT8 *)osi_malloc(p_attr->len + 3); /* 3 = 2 byte handle + opcode */
+    p_data = (uint8_t *)osi_malloc(p_attr->len + 3); /* 3 = 2 byte handle + opcode */
 
     p = p_data;
     UINT8_TO_STREAM(p, GATT_SIGN_CMD_WRITE);
@@ -66,7 +66,7 @@ static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
     p_signature = p_attr->value + p_attr->len;
     if (BTM_BleDataSignature(p_clcb->p_tcb->peer_bda,
                              p_data,
-                             (UINT16)(p_attr->len + 3), /* 3 = 2 byte handle + opcode */
+                             (uint16_t)(p_attr->len + 3), /* 3 = 2 byte handle + opcode */
                              p_signature)) {
         p_attr->len += BTM_BLE_AUTH_SIGN_LEN;
         gatt_set_ch_state(p_clcb->p_tcb, GATT_CH_OPEN);
@@ -92,10 +92,10 @@ static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
 *******************************************************************************/
 void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
 {
-    UINT16  cmd_len;
-    UINT8   op_code;
-    UINT8   *p, *p_orig = (UINT8 *)(p_buf + 1) + p_buf->offset;
-    UINT32  counter;
+    uint16_t cmd_len;
+    uint8_t op_code;
+    uint8_t *p, *p_orig = (uint8_t *)(p_buf + 1) + p_buf->offset;
+    uint32_t counter;
 
     if (p_buf->len < GATT_AUTH_SIGN_LEN + 4) {
         GATT_TRACE_ERROR("%s: Data length %u less than expected %u",
@@ -109,7 +109,7 @@ void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
     if (BTM_BleVerifySignature(p_tcb->peer_bda, p_orig, cmd_len, counter, p))
     {
         STREAM_TO_UINT8(op_code, p_orig);
-        gatt_server_handle_client_req (p_tcb, op_code, (UINT16)(p_buf->len - 1), p_orig);
+        gatt_server_handle_client_req (p_tcb, op_code, (uint16_t)(p_buf->len - 1), p_orig);
     }
     else
     {
@@ -128,7 +128,7 @@ void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
 ** Returns          void.
 **
 *******************************************************************************/
-void gatt_sec_check_complete(BOOLEAN sec_check_ok, tGATT_CLCB   *p_clcb, UINT8 sec_act)
+void gatt_sec_check_complete(bool    sec_check_ok, tGATT_CLCB   *p_clcb, uint8_t sec_act)
 {
     if (p_clcb && p_clcb->p_tcb &&
         fixed_queue_is_empty(p_clcb->p_tcb->pending_enc_clcb)) {
@@ -160,8 +160,8 @@ void gatt_sec_check_complete(BOOLEAN sec_check_ok, tGATT_CLCB   *p_clcb, UINT8 s
 void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, tBTM_STATUS result)
 {
     tGATT_TCB   *p_tcb;
-    UINT8       sec_flag;
-    BOOLEAN     status = FALSE;
+    uint8_t     sec_flag;
+    bool        status = false;
     UNUSED(p_ref_data);
 
     GATT_TRACE_DEBUG("gatt_enc_cmpl_cback");
@@ -182,12 +182,12 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
 
                     if (sec_flag & BTM_SEC_FLAG_LKEY_AUTHED)
                     {
-                        status = TRUE;
+                        status = true;
                     }
                 }
                 else
                 {
-                    status = TRUE;
+                    status = true;
                 }
             }
             gatt_sec_check_complete(status, p_buf->p_clcb, p_tcb->sec_act);
@@ -230,7 +230,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
 void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
 {
     tGATT_TCB   *p_tcb;
-    UINT8        i = 0;
+    uint8_t      i = 0;
 
     if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE)) != NULL)
     {
@@ -314,13 +314,13 @@ tGATT_SEC_ACTION gatt_get_sec_act(tGATT_TCB *p_tcb)
 tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
 {
     tGATT_SEC_ACTION    act = GATT_SEC_OK;
-    UINT8               sec_flag;
+    uint8_t             sec_flag;
     tGATT_TCB           *p_tcb = p_clcb->p_tcb;
     tGATT_AUTH_REQ      auth_req = p_clcb->auth_req;
-    BOOLEAN             is_link_encrypted= FALSE;
-    BOOLEAN             is_link_key_known=FALSE;
-    BOOLEAN             is_key_mitm=FALSE;
-    UINT8               key_type;
+    bool                is_link_encrypted= false;
+    bool                is_link_key_known=false;
+    bool                is_key_mitm=false;
+    uint8_t             key_type;
     tBTM_BLE_SEC_REQ_ACT    sec_act = BTM_LE_SEC_NONE;
 
     if (auth_req == GATT_AUTH_REQ_NONE )
@@ -338,12 +338,12 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
     if (sec_flag & (BTM_SEC_FLAG_ENCRYPTED| BTM_SEC_FLAG_LKEY_KNOWN))
     {
         if (sec_flag & BTM_SEC_FLAG_ENCRYPTED)
-            is_link_encrypted = TRUE;
+            is_link_encrypted = true;
 
-        is_link_key_known = TRUE;
+        is_link_key_known = true;
 
         if (sec_flag & BTM_SEC_FLAG_LKEY_AUTHED)
-            is_key_mitm = TRUE;
+            is_key_mitm = true;
     }
 
     /* first check link key upgrade required or not */
@@ -418,7 +418,7 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
 tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
 {
     tGATT_STATUS    encrypt_status = GATT_NOT_ENCRYPTED;
-    UINT8           sec_flag=0;
+    uint8_t         sec_flag=0;
 
     BTM_GetSecurityFlagsByTransport(p_tcb->peer_bda, &sec_flag, p_tcb->transport);
 
@@ -440,12 +440,12 @@ tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
 **
 ** Description      Convert GATT security action enum into equivalent BTM BLE security action enum
 **
-** Returns          BOOLEAN TRUE - conversation is successful
+** Returns          bool    true - conversation is successful
 **
 *******************************************************************************/
-static BOOLEAN gatt_convert_sec_action(tGATT_SEC_ACTION gatt_sec_act, tBTM_BLE_SEC_ACT *p_btm_sec_act )
+static bool    gatt_convert_sec_action(tGATT_SEC_ACTION gatt_sec_act, tBTM_BLE_SEC_ACT *p_btm_sec_act )
 {
-    BOOLEAN status = TRUE;
+    bool    status = true;
     switch (gatt_sec_act)
     {
         case GATT_SEC_ENCRYPT:
@@ -458,7 +458,7 @@ static BOOLEAN gatt_convert_sec_action(tGATT_SEC_ACTION gatt_sec_act, tBTM_BLE_S
             *p_btm_sec_act = BTM_BLE_SEC_ENCRYPT_MITM;
             break;
         default:
-            status = FALSE;
+            status = false;
             break;
     }
 
@@ -470,15 +470,15 @@ static BOOLEAN gatt_convert_sec_action(tGATT_SEC_ACTION gatt_sec_act, tBTM_BLE_S
 **
 ** Description      check link security.
 **
-** Returns          TRUE if encrypted, otherwise FALSE.
+** Returns          true if encrypted, otherwise false.
 **
 *******************************************************************************/
-BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
+bool    gatt_security_check_start(tGATT_CLCB *p_clcb)
 {
     tGATT_TCB           *p_tcb = p_clcb->p_tcb;
     tGATT_SEC_ACTION    gatt_sec_act;
     tBTM_BLE_SEC_ACT    btm_ble_sec_act;
-    BOOLEAN             status = TRUE;
+    bool                status = true;
     tBTM_STATUS         btm_status;
     tGATT_SEC_ACTION    sec_act_old =  gatt_get_sec_act(p_tcb);
 
@@ -505,7 +505,7 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
                 if ( (btm_status != BTM_SUCCESS) && (btm_status != BTM_CMD_STARTED))
                 {
                     GATT_TRACE_ERROR("gatt_security_check_start BTM_SetEncryption failed btm_status=%d", btm_status);
-                    status = FALSE;
+                    status = false;
                 }
             }
             if (status)
@@ -516,11 +516,11 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
             /* wait for link encrypotion to finish */
             break;
         default:
-            gatt_sec_check_complete(TRUE, p_clcb, gatt_sec_act);
+            gatt_sec_check_complete(true, p_clcb, gatt_sec_act);
             break;
     }
 
-    if (status == FALSE)
+    if (status == false)
     {
         gatt_set_sec_act(p_tcb, GATT_SEC_NONE);
         gatt_set_ch_state(p_tcb, GATT_CH_OPEN);

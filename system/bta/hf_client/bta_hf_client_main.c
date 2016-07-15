@@ -29,10 +29,10 @@
 #include "bta_hf_client_int.h"
 
 /* uncomment to enable extra debug */
-/* #define BTA_HF_CLIENT_DEBUG true */
+/* #define BTA_HF_CLIENT_DEBUG TRUE */
 
 #ifndef BTA_HF_CLIENT_DEBUG
-#define BTA_HF_CLIENT_DEBUG false
+#define BTA_HF_CLIENT_DEBUG FALSE
 #endif
 
 extern fixed_queue_t *btu_bta_alarm_queue;

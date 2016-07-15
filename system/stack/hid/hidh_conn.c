@@ -48,21 +48,21 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-static UINT8 find_conn_by_cid (UINT16 cid);
-static void hidh_conn_retry (UINT8 dhandle);
+static uint8_t find_conn_by_cid (uint16_t cid);
+static void hidh_conn_retry (uint8_t dhandle);
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid,
-                                    UINT16 psm, UINT8 l2cap_id);
-static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result);
-static void hidh_l2cif_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
-static void hidh_l2cif_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
-static void hidh_l2cif_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed);
-static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg);
-static void hidh_l2cif_disconnect_cfm (UINT16 l2cap_cid, UINT16 result);
-static void hidh_l2cif_cong_ind (UINT16 l2cap_cid, BOOLEAN congested);
+static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
+                                    uint16_t psm, uint8_t l2cap_id);
+static void hidh_l2cif_connect_cfm (uint16_t l2cap_cid, uint16_t result);
+static void hidh_l2cif_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
+static void hidh_l2cif_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
+static void hidh_l2cif_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed);
+static void hidh_l2cif_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg);
+static void hidh_l2cif_disconnect_cfm (uint16_t l2cap_cid, uint16_t result);
+static void hidh_l2cif_cong_ind (uint16_t l2cap_cid, bool    congested);
 
 static const tL2CAP_APPL_INFO hst_reg_info =
 {
@@ -95,9 +95,9 @@ tHID_STATUS hidh_conn_reg (void)
     /* Initialize the L2CAP configuration. We only care about MTU and flush */
     memset(&hh_cb.l2cap_cfg, 0, sizeof(tL2CAP_CFG_INFO));
 
-    hh_cb.l2cap_cfg.mtu_present          = TRUE;
+    hh_cb.l2cap_cfg.mtu_present          = true;
     hh_cb.l2cap_cfg.mtu                  = HID_HOST_MTU;
-    hh_cb.l2cap_cfg.flush_to_present     = TRUE;
+    hh_cb.l2cap_cfg.flush_to_present     = true;
     hh_cb.l2cap_cfg.flush_to             = HID_HOST_FLUSH_TO;
 
     /* Now, register with L2CAP */
@@ -115,7 +115,7 @@ tHID_STATUS hidh_conn_reg (void)
 
     for (xx = 0; xx < HID_HOST_MAX_DEVICES; xx++)
     {
-        hh_cb.devices[xx].in_use = FALSE ;
+        hh_cb.devices[xx].in_use = false ;
         hh_cb.devices[xx].conn.conn_state = HID_CONN_STATE_UNUSED;
     }
 
@@ -128,10 +128,10 @@ tHID_STATUS hidh_conn_reg (void)
 **
 ** Description      This function disconnects a connection.
 **
-** Returns          TRUE if disconnect started, FALSE if already disconnected
+** Returns          true if disconnect started, false if already disconnected
 **
 *******************************************************************************/
-tHID_STATUS hidh_conn_disconnect (UINT8 dhandle)
+tHID_STATUS hidh_conn_disconnect (uint8_t dhandle)
 {
     tHID_CONN *p_hcon = &hh_cb.devices[dhandle].conn;
 
@@ -168,7 +168,7 @@ tHID_STATUS hidh_conn_disconnect (UINT8 dhandle)
 **                  send security block L2C connection response.
 **
 *******************************************************************************/
-void hidh_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
+void hidh_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
 {
     tHID_HOST_DEV_CTB *p_dev= (tHID_HOST_DEV_CTB *) p_ref_data;
     UNUSED(bd_addr);
@@ -207,11 +207,11 @@ void hidh_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UINT8 l2cap_id)
+static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id)
 {
     tHID_CONN    *p_hcon;
-    BOOLEAN      bAccept = TRUE;
-    UINT8        i = HID_HOST_MAX_DEVICES;
+    bool         bAccept = true;
+    uint8_t      i = HID_HOST_MAX_DEVICES;
     tHID_HOST_DEV_CTB *p_dev;
 
     HIDH_TRACE_EVENT ("HID-Host Rcvd L2CAP conn ind, PSM: 0x%04x  CID 0x%x", psm, l2cap_cid);
@@ -232,18 +232,18 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
         if (p_hcon->ctrl_cid == 0)
         {
             HIDH_TRACE_WARNING ("HID-Host Rcvd INTR L2CAP conn ind, but no CTL channel");
-            bAccept = FALSE;
+            bAccept = false;
         }
         if (p_hcon->conn_state != HID_CONN_STATE_CONNECTING_INTR)
         {
             HIDH_TRACE_WARNING ("HID-Host Rcvd INTR L2CAP conn ind, wrong state: %d",
                                  p_hcon->conn_state);
-            bAccept = FALSE;
+            bAccept = false;
         }
     }
     else /* CTRL channel */
     {
-#if defined(HID_HOST_ACPT_NEW_CONN) && (HID_HOST_ACPT_NEW_CONN == TRUE)
+#if (HID_HOST_ACPT_NEW_CONN == TRUE)
         p_hcon->ctrl_cid = p_hcon->intr_cid = 0;
         p_hcon->conn_state = HID_CONN_STATE_UNUSED;
 #else
@@ -251,7 +251,7 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
         {
             HIDH_TRACE_WARNING ("HID-Host - Rcvd CTL L2CAP conn ind, wrong state: %d",
                                  p_hcon->conn_state);
-            bAccept = FALSE;
+            bAccept = false;
         }
 #endif
     }
@@ -271,7 +271,7 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
 
         p_hcon->conn_state = HID_CONN_STATE_SECURITY;
         if(btm_sec_mx_access_request (p_dev->addr, HID_PSM_CONTROL,
-            FALSE, BTM_SEC_PROTO_HID,
+            false, BTM_SEC_PROTO_HID,
             (p_dev->attr_mask & HID_SEC_REQUIRED) ? HID_SEC_CHN : HID_NOSEC_CHN,
             &hidh_sec_check_complete_term, p_dev) == BTM_CMD_STARTED)
         {
@@ -310,7 +310,7 @@ void hidh_process_repage_timer_timeout(void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void hidh_try_repage(UINT8 dhandle)
+void hidh_try_repage(uint8_t dhandle)
 {
     tHID_HOST_DEV_CTB *device;
 
@@ -333,10 +333,10 @@ void hidh_try_repage(UINT8 dhandle)
 ** Returns          void
 **
 *******************************************************************************/
-void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
+void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
 {
     tHID_HOST_DEV_CTB *p_dev = (tHID_HOST_DEV_CTB *) p_ref_data;
-    UINT8 dhandle;
+    uint8_t dhandle;
     UNUSED(bd_addr);
     UNUSED (transport);
 
@@ -384,11 +384,11 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
+static void hidh_l2cif_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
-    UINT8 dhandle;
+    uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
-    UINT32  reason;
+    uint32_t reason;
     tHID_HOST_DEV_CTB *p_dev = NULL;
 
     /* Find CCB based on CID, and verify we are in a state to accept this message */
@@ -427,7 +427,7 @@ static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
         else
 #endif
         {
-            reason = HID_L2CAP_CONN_FAIL | (UINT32) result ;
+            reason = HID_L2CAP_CONN_FAIL | (uint32_t) result ;
             hh_cb.callback( dhandle, hh_cb.devices[dhandle].addr, HID_HDEV_EVT_CLOSE, reason, NULL ) ;
         }
         return;
@@ -440,7 +440,7 @@ static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
         p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;  /* In case disconnection occurs before security is completed, then set CLOSE_EVT reason code to "connection failure" */
 
         btm_sec_mx_access_request (p_dev->addr, HID_PSM_CONTROL,
-            TRUE, BTM_SEC_PROTO_HID,
+            true, BTM_SEC_PROTO_HID,
             (p_dev->attr_mask & HID_SEC_REQUIRED) ? HID_SEC_CHN : HID_NOSEC_CHN,
             &hidh_sec_check_complete_orig, p_dev);
     }
@@ -465,11 +465,11 @@ static void hidh_l2cif_connect_cfm (UINT16 l2cap_cid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
+static void hidh_l2cif_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
-    UINT8 dhandle;
+    uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
-    UINT32  reason;
+    uint32_t reason;
 
     /* Find CCB based on CID */
     if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
@@ -492,8 +492,8 @@ static void hidh_l2cif_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
         p_hcon->rem_mtu_size = p_cfg->mtu;
 
     /* For now, always accept configuration from the other side */
-    p_cfg->flush_to_present = FALSE;
-    p_cfg->mtu_present      = FALSE;
+    p_cfg->flush_to_present = false;
+    p_cfg->mtu_present      = false;
     p_cfg->result           = L2CAP_CFG_OK;
 
     L2CA_ConfigRsp (l2cap_cid, p_cfg);
@@ -549,11 +549,11 @@ static void hidh_l2cif_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
+static void hidh_l2cif_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
-    UINT8 dhandle;
+    uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
-    UINT32  reason;
+    uint32_t reason;
 
     HIDH_TRACE_EVENT ("HID-Host Rcvd cfg cfm, CID: 0x%x  Result: %d", l2cap_cid, p_cfg->result);
 
@@ -571,7 +571,7 @@ static void hidh_l2cif_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     if (p_cfg->result != L2CAP_CFG_OK)
     {
         hidh_conn_disconnect (dhandle);
-        reason = HID_L2CAP_CFG_FAIL | (UINT32) p_cfg->result ;
+        reason = HID_L2CAP_CFG_FAIL | (uint32_t) p_cfg->result ;
         hh_cb.callback( dhandle, hh_cb.devices[dhandle].addr, HID_HDEV_EVT_CLOSE, reason, NULL ) ;
         return;
     }
@@ -627,12 +627,12 @@ static void hidh_l2cif_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
+static void hidh_l2cif_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 {
-    UINT8 dhandle;
+    uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
-    UINT16 disc_res = HCI_SUCCESS;
-    UINT16 hid_close_evt_reason;
+    uint16_t disc_res = HCI_SUCCESS;
+    uint16_t hid_close_evt_reason;
 
     /* Find CCB based on CID */
     if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
@@ -710,9 +710,9 @@ static void hidh_l2cif_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
+static void hidh_l2cif_disconnect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
-    UINT8 dhandle;
+    uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
     UNUSED(result);
 
@@ -758,9 +758,9 @@ static void hidh_l2cif_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_cong_ind (UINT16 l2cap_cid, BOOLEAN congested)
+static void hidh_l2cif_cong_ind (uint16_t l2cap_cid, bool    congested)
 {
-    UINT8 dhandle;
+    uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
 
     /* Find CCB based on CID */
@@ -800,11 +800,11 @@ static void hidh_l2cif_cong_ind (UINT16 l2cap_cid, BOOLEAN congested)
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
+static void hidh_l2cif_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 {
-    UINT8           *p_data = (UINT8 *)(p_msg + 1) + p_msg->offset;
-    UINT8           ttype, param, rep_type, evt;
-    UINT8 dhandle;
+    uint8_t         *p_data = (uint8_t *)(p_msg + 1) + p_msg->offset;
+    uint8_t         ttype, param, rep_type, evt;
+    uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
 
     HIDH_TRACE_DEBUG ("HID-Host hidh_l2cif_data_ind [l2cap_cid=0x%04x]", l2cap_cid);
@@ -880,19 +880,19 @@ static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
-                                UINT16 data, UINT8 report_id, BT_HDR *buf)
+tHID_STATUS hidh_conn_snd_data (uint8_t dhandle, uint8_t trans_type, uint8_t param,
+                                uint16_t data, uint8_t report_id, BT_HDR *buf)
 {
     tHID_CONN   *p_hcon = &hh_cb.devices[dhandle].conn;
     BT_HDR      *p_buf;
-    UINT8       *p_out;
-    UINT16      bytes_copied;
-    BOOLEAN     seg_req = FALSE;
-    UINT16      data_size;
-    UINT16      cid;
-    UINT16      buf_size;
-    UINT8       use_data = 0 ;
-    BOOLEAN     blank_datc = FALSE;
+    uint8_t     *p_out;
+    uint16_t    bytes_copied;
+    bool        seg_req = false;
+    uint16_t    data_size;
+    uint16_t    cid;
+    uint16_t    buf_size;
+    uint8_t     use_data = 0 ;
+    bool        blank_datc = false;
 
     if (!BTM_IsAclConnectionUp(hh_cb.devices[dhandle].addr, BT_TRANSPORT_BR_EDR))
     {
@@ -938,17 +938,17 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
             p_buf = (BT_HDR *)osi_malloc(buf_size);
 
             p_buf->offset = L2CAP_MIN_OFFSET;
-            seg_req = FALSE;
+            seg_req = false;
             data_size = 0;
             bytes_copied = 0;
-            blank_datc = FALSE;
+            blank_datc = false;
         }
         else if ( (buf->len > (p_hcon->rem_mtu_size - 1)))
         {
             p_buf = (BT_HDR *)osi_malloc(buf_size);
 
             p_buf->offset = L2CAP_MIN_OFFSET;
-            seg_req = TRUE;
+            seg_req = true;
             data_size = buf->len;
             bytes_copied = p_hcon->rem_mtu_size - 1;
         }
@@ -956,12 +956,12 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
         {
             p_buf = buf ;
             p_buf->offset -= 1;
-            seg_req = FALSE;
+            seg_req = false;
             data_size = buf->len;
             bytes_copied = buf->len;
         }
 
-        p_out         = (UINT8 *)(p_buf + 1) + p_buf->offset;
+        p_out         = (uint8_t *)(p_buf + 1) + p_buf->offset;
         *p_out++      = HID_BUILD_HDR(trans_type, param);
 
         /* If report ID required for this device */
@@ -974,7 +974,7 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
 
         if (seg_req)
         {
-            memcpy (p_out, (((UINT8 *)(buf+1)) + buf->offset), bytes_copied);
+            memcpy (p_out, (((uint8_t *)(buf+1)) + buf->offset), bytes_copied);
             buf->offset += bytes_copied;
             buf->len -= bytes_copied;
         }
@@ -1000,7 +1000,7 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
         else if( bytes_copied == (p_hcon->rem_mtu_size - 1) )
         {
             trans_type = HID_TRANS_DATAC;
-            blank_datc = TRUE;
+            blank_datc = true;
         }
 
     } while ((data_size != 0) || blank_datc ) ;
@@ -1016,10 +1016,10 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
 ** Returns          void
 **
 *******************************************************************************/
-tHID_STATUS hidh_conn_initiate (UINT8 dhandle)
+tHID_STATUS hidh_conn_initiate (uint8_t dhandle)
 {
-    UINT8   service_id = BTM_SEC_SERVICE_HIDH_NOSEC_CTRL;
-    UINT32  mx_chan_id = HID_NOSEC_CHN;
+    uint8_t service_id = BTM_SEC_SERVICE_HIDH_NOSEC_CTRL;
+    uint32_t mx_chan_id = HID_NOSEC_CHN;
 
     tHID_HOST_DEV_CTB *p_dev = &hh_cb.devices[dhandle];
 
@@ -1066,9 +1066,9 @@ tHID_STATUS hidh_conn_initiate (UINT8 dhandle)
 ** Returns          address of control block, or NULL if not found
 **
 *******************************************************************************/
-static UINT8 find_conn_by_cid (UINT16 cid)
+static uint8_t find_conn_by_cid (uint16_t cid)
 {
-    UINT8      xx;
+    uint8_t    xx;
 
     for (xx = 0; xx < HID_HOST_MAX_DEVICES; xx++)
     {
@@ -1095,7 +1095,7 @@ void hidh_conn_dereg( void )
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_conn_retry(  UINT8 dhandle )
+static void hidh_conn_retry(  uint8_t dhandle )
 {
     tHID_HOST_DEV_CTB *p_dev = &hh_cb.devices[dhandle];
 

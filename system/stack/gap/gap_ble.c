@@ -17,7 +17,7 @@
  ******************************************************************************/
 #include "bt_target.h"
 
-#if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE)
 
 #include "bt_utils.h"
 #include <string.h>
@@ -41,12 +41,12 @@
 #define GAP_ATTR_DB_SIZE      GATT_DB_MEM_SIZE(GAP_MAX_NUM_INC_SVR, GAP_MAX_CHAR_NUM, GAP_MAX_CHAR_VALUE_SIZE)
 #endif
 
-static void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE op_code, tGATTS_DATA *p_data);
+static void gap_ble_s_attr_request_cback (uint16_t conn_id, uint32_t trans_id, tGATTS_REQ_TYPE op_code, tGATTS_DATA *p_data);
 
 /* client connection callback */
-static void  gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected,
+static void  gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id, bool    connected,
                                             tGATT_DISCONN_REASON reason, tGATT_TRANSPORT transport);
-static void  gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
+static void  gap_ble_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
 
 static tGATT_CBACK gap_cback =
 {
@@ -72,7 +72,7 @@ static tGATT_CBACK gap_cback =
 *******************************************************************************/
 tGAP_CLCB *gap_find_clcb_by_bd_addr(BD_ADDR bda)
 {
-    UINT8 i_clcb;
+    uint8_t i_clcb;
     tGAP_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= gap_cb.clcb; i_clcb < GAP_MAX_CL; i_clcb++, p_clcb++)
@@ -95,9 +95,9 @@ tGAP_CLCB *gap_find_clcb_by_bd_addr(BD_ADDR bda)
 ** Returns          total number of clcb found.
 **
 *******************************************************************************/
-tGAP_CLCB *gap_ble_find_clcb_by_conn_id(UINT16 conn_id)
+tGAP_CLCB *gap_ble_find_clcb_by_conn_id(uint16_t conn_id)
 {
-    UINT8 i_clcb;
+    uint8_t i_clcb;
     tGAP_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= gap_cb.clcb; i_clcb < GAP_MAX_CL; i_clcb++, p_clcb++)
@@ -122,7 +122,7 @@ tGAP_CLCB *gap_ble_find_clcb_by_conn_id(UINT16 conn_id)
 *******************************************************************************/
 tGAP_CLCB *gap_clcb_alloc (BD_ADDR bda)
 {
-    UINT8         i_clcb = 0;
+    uint8_t       i_clcb = 0;
     tGAP_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= gap_cb.clcb; i_clcb < GAP_MAX_CL; i_clcb++, p_clcb++)
@@ -131,7 +131,7 @@ tGAP_CLCB *gap_clcb_alloc (BD_ADDR bda)
         {
             fixed_queue_free(p_clcb->pending_req_q, NULL);
             memset(p_clcb, 0, sizeof(tGAP_CLCB));
-            p_clcb->in_use = TRUE;
+            p_clcb->in_use = true;
             memcpy (p_clcb->bda, bda, BD_ADDR_LEN);
             p_clcb->pending_req_q = fixed_queue_new(SIZE_MAX);
             break;
@@ -157,7 +157,7 @@ void gap_ble_dealloc_clcb(tGAP_CLCB *p_clcb)
     {
          /* send callback to all pending requests if being removed*/
          if (p_q->p_cback != NULL)
-            (*p_q->p_cback)(FALSE, p_clcb->bda, 0, NULL);
+            (*p_q->p_cback)(false, p_clcb->bda, 0, NULL);
 
          osi_free(p_q);
     }
@@ -172,10 +172,10 @@ void gap_ble_dealloc_clcb(tGAP_CLCB *p_clcb)
 **
 ** Description      The function enqueue a GAP client request
 **
-** Returns           TRUE is successul; FALSE otherwise
+** Returns           true is successul; false otherwise
 **
 *******************************************************************************/
-BOOLEAN gap_ble_enqueue_request (tGAP_CLCB *p_clcb, UINT16 uuid, tGAP_BLE_CMPL_CBACK *p_cback)
+bool    gap_ble_enqueue_request (tGAP_CLCB *p_clcb, uint16_t uuid, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     tGAP_BLE_REQ *p_q = (tGAP_BLE_REQ *)osi_malloc(sizeof(tGAP_BLE_REQ));
 
@@ -183,7 +183,7 @@ BOOLEAN gap_ble_enqueue_request (tGAP_CLCB *p_clcb, UINT16 uuid, tGAP_BLE_CMPL_C
     p_q->uuid = uuid;
     fixed_queue_enqueue(p_clcb->pending_req_q, p_q);
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -192,10 +192,10 @@ BOOLEAN gap_ble_enqueue_request (tGAP_CLCB *p_clcb, UINT16 uuid, tGAP_BLE_CMPL_C
 **
 ** Description      The function dequeue a GAP client request if any
 **
-** Returns           TRUE is successul; FALSE otherwise
+** Returns           true is successul; false otherwise
 **
 *******************************************************************************/
-BOOLEAN gap_ble_dequeue_request (tGAP_CLCB *p_clcb, UINT16 * p_uuid, tGAP_BLE_CMPL_CBACK **p_cback)
+bool    gap_ble_dequeue_request (tGAP_CLCB *p_clcb, uint16_t * p_uuid, tGAP_BLE_CMPL_CBACK **p_cback)
 {
     tGAP_BLE_REQ *p_q = (tGAP_BLE_REQ *)fixed_queue_try_dequeue(p_clcb->pending_req_q);;
 
@@ -204,28 +204,28 @@ BOOLEAN gap_ble_dequeue_request (tGAP_CLCB *p_clcb, UINT16 * p_uuid, tGAP_BLE_CM
         *p_cback    = p_q->p_cback;
         *p_uuid     = p_q->uuid;
         osi_free(p_q);
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
 **   GAP Attributes Database Request callback
 *******************************************************************************/
-tGATT_STATUS gap_read_attr_value (UINT16 handle, tGATT_VALUE *p_value, BOOLEAN is_long)
+tGATT_STATUS gap_read_attr_value (uint16_t handle, tGATT_VALUE *p_value, bool    is_long)
 {
     tGAP_ATTR   *p_db_attr = gap_cb.gatt_attr;
-    UINT8       *p = p_value->value, i;
-    UINT16      offset = p_value->offset;
-    UINT8       *p_dev_name = NULL;
+    uint8_t     *p = p_value->value, i;
+    uint16_t    offset = p_value->offset;
+    uint8_t     *p_dev_name = NULL;
 
     for (i = 0; i < GAP_MAX_CHAR_NUM; i ++, p_db_attr ++)
     {
         if (handle == p_db_attr->handle)
         {
             if (p_db_attr->uuid != GATT_UUID_GAP_DEVICE_NAME &&
-                is_long == TRUE)
+                is_long == true)
                 return GATT_NOT_LONG;
 
             switch (p_db_attr->uuid)
@@ -235,7 +235,7 @@ tGATT_STATUS gap_read_attr_value (UINT16 handle, tGATT_VALUE *p_value, BOOLEAN i
                     if (strlen ((char *)p_dev_name) > GATT_MAX_ATTR_LEN)
                         p_value->len = GATT_MAX_ATTR_LEN;
                     else
-                        p_value->len = (UINT16)strlen ((char *)p_dev_name);
+                        p_value->len = (uint16_t)strlen ((char *)p_dev_name);
 
                     if (offset > p_value->len)
                         return GATT_INVALID_OFFSET;
@@ -300,10 +300,10 @@ tGATT_STATUS gap_proc_read (tGATTS_REQ_TYPE type, tGATT_READ_REQ *p_data, tGATTS
 ** Returns          void.
 **
 *******************************************************************************/
-UINT8 gap_proc_write_req( tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_data)
+uint8_t gap_proc_write_req( tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_data)
 {
     tGAP_ATTR   *p_db_attr = gap_cb.gatt_attr;
-    UINT8   i;
+    uint8_t i;
     UNUSED(type);
 
     for (i = 0; i < GAP_MAX_CHAR_NUM; i ++, p_db_attr ++)
@@ -326,12 +326,12 @@ UINT8 gap_proc_write_req( tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id,
+void gap_ble_s_attr_request_cback (uint16_t conn_id, uint32_t trans_id,
                                    tGATTS_REQ_TYPE type, tGATTS_DATA *p_data)
 {
-    UINT8       status = GATT_INVALID_PDU;
+    uint8_t     status = GATT_INVALID_PDU;
     tGATTS_RSP  rsp_msg;
-    BOOLEAN     ignore = FALSE;
+    bool        ignore = false;
 
     GAP_TRACE_EVENT("gap_ble_s_attr_request_cback : recv type (0x%02x)", type);
 
@@ -347,19 +347,19 @@ void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id,
         case GATTS_REQ_TYPE_WRITE_CHARACTERISTIC:
         case GATTS_REQ_TYPE_WRITE_DESCRIPTOR:
             if (!p_data->write_req.need_rsp)
-                ignore = TRUE;
+                ignore = true;
 
             status = gap_proc_write_req(type, &p_data->write_req);
             break;
 
         case GATTS_REQ_TYPE_WRITE_EXEC:
-            ignore = TRUE;
+            ignore = true;
             GAP_TRACE_EVENT("Ignore GATTS_REQ_TYPE_WRITE_EXEC"  );
             break;
 
         case GATTS_REQ_TYPE_MTU:
             GAP_TRACE_EVENT("Get MTU exchange new mtu size: %d", p_data->mtu);
-            ignore = TRUE;
+            ignore = true;
             break;
 
         default:
@@ -383,7 +383,7 @@ void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id,
 void gap_attr_db_init(void)
 {
     tBT_UUID        app_uuid = {LEN_UUID_128,{0}};
-    UINT16          service_handle;
+    uint16_t        service_handle;
 
     /* Fill our internal UUID with a fixed pattern 0x82 */
     memset (&app_uuid.uu.uuid128, 0x82, LEN_UUID_128);
@@ -405,7 +405,7 @@ void gap_attr_db_init(void)
         {.type = BTGATT_DB_CHARACTERISTIC, .uuid = name_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ},
         {.type = BTGATT_DB_CHARACTERISTIC, .uuid = icon_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ},
         {.type = BTGATT_DB_CHARACTERISTIC, .uuid = addr_res_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ}
-#if BTM_PERIPHERAL_ENABLED == TRUE       /* Only needed for peripheral testing */
+#if (BTM_PERIPHERAL_ENABLED == TRUE)       /* Only needed for peripheral testing */
         ,{.type = BTGATT_DB_CHARACTERISTIC, .uuid = pref_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ}
 #endif
     };
@@ -426,7 +426,7 @@ void gap_attr_db_init(void)
     gap_cb.gatt_attr[2].handle = service[3].attribute_handle;
     gap_cb.gatt_attr[2].attr_value.addr_resolution = 0;
 
-#if BTM_PERIPHERAL_ENABLED == TRUE      /*  Only needed for peripheral testing */
+#if (BTM_PERIPHERAL_ENABLED == TRUE)     /*  Only needed for peripheral testing */
 
     gap_cb.gatt_attr[3].uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
     gap_cb.gatt_attr[3].attr_value.conn_param.int_max = GAP_PREFER_CONN_INT_MAX; /* 6 */
@@ -446,10 +446,10 @@ void gap_attr_db_init(void)
 ** Returns          void.
 **
 *******************************************************************************/
-void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
+void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
 {
     tGAP_ATTR  *p_db_attr = gap_cb.gatt_attr;
-    UINT8       i = 0;
+    uint8_t     i = 0;
 
     GAP_TRACE_EVENT("GAP_BleAttrDBUpdate attr_uuid=0x%04x", attr_uuid);
 
@@ -492,14 +492,14 @@ void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
 **
 ** Description      utility function to send a read request for a GAP charactersitic
 **
-** Returns          TRUE if read started, else FALSE if GAP is busy
+** Returns          true if read started, else false if GAP is busy
 **
 *******************************************************************************/
-BOOLEAN gap_ble_send_cl_read_request(tGAP_CLCB *p_clcb)
+bool    gap_ble_send_cl_read_request(tGAP_CLCB *p_clcb)
 {
     tGATT_READ_PARAM        param;
-    UINT16                  uuid = 0;
-    BOOLEAN                 started = FALSE;
+    uint16_t                uuid = 0;
+    bool                    started = false;
 
     if (gap_ble_dequeue_request(p_clcb, &uuid, &p_clcb->p_cback))
     {
@@ -514,7 +514,7 @@ BOOLEAN gap_ble_send_cl_read_request(tGAP_CLCB *p_clcb)
         if (GATTC_Read(p_clcb->conn_id, GATT_READ_BY_TYPE, &param) == GATT_SUCCESS)
         {
             p_clcb->cl_op_uuid = uuid;
-            started = TRUE;
+            started = true;
         }
     }
 
@@ -530,10 +530,10 @@ BOOLEAN gap_ble_send_cl_read_request(tGAP_CLCB *p_clcb)
 ** Returns          void
 **
 *******************************************************************************/
-void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_name)
+void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, bool    status, uint16_t len, uint8_t *p_name)
 {
     tGAP_BLE_CMPL_CBACK *p_cback = p_clcb->p_cback;
-    UINT16                  op = p_clcb->cl_op_uuid;
+    uint16_t                op = p_clcb->cl_op_uuid;
 
     GAP_TRACE_EVENT("gap_ble_cl_op_cmpl status: %d", status);
 
@@ -566,8 +566,8 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                     BOOLEAN connected, tGATT_DISCONN_REASON reason,
+static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+                                     bool    connected, tGATT_DISCONN_REASON reason,
                                      tGATT_TRANSPORT transport)
 {
     tGAP_CLCB   *p_clcb = gap_find_clcb_by_bd_addr (bda);
@@ -580,14 +580,14 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
         if (connected)
         {
             p_clcb->conn_id = conn_id;
-            p_clcb->connected = TRUE;
+            p_clcb->connected = true;
             /* start operation is pending */
             gap_ble_send_cl_read_request(p_clcb);
         }
         else
         {
-            p_clcb->connected = FALSE;
-            gap_ble_cl_op_cmpl(p_clcb, FALSE, 0, NULL);
+            p_clcb->connected = false;
+            gap_ble_cl_op_cmpl(p_clcb, false, 0, NULL);
             /* clean up clcb */
             gap_ble_dealloc_clcb(p_clcb);
         }
@@ -603,14 +603,14 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
+static void gap_ble_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
 
 {
     tGAP_CLCB   *p_clcb = gap_ble_find_clcb_by_conn_id(conn_id);
-    UINT16      op_type;
-    UINT16      min, max, latency, tout;
-    UINT16      len;
-    UINT8       *pp;
+    uint16_t    op_type;
+    uint16_t    min, max, latency, tout;
+    uint16_t    len;
+    uint8_t     *pp;
 
     if (p_clcb == NULL)
         return;
@@ -624,7 +624,7 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 
     if (status != GATT_SUCCESS)
     {
-        gap_ble_cl_op_cmpl(p_clcb, FALSE, 0, NULL);
+        gap_ble_cl_op_cmpl(p_clcb, false, 0, NULL);
         return;
     }
 
@@ -643,19 +643,19 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 
             BTM_BleSetPrefConnParams (p_clcb->bda, min, max, latency, tout);
             /* release the connection here */
-            gap_ble_cl_op_cmpl(p_clcb, TRUE, 0, NULL);
+            gap_ble_cl_op_cmpl(p_clcb, true, 0, NULL);
             break;
 
         case GATT_UUID_GAP_DEVICE_NAME:
             GAP_TRACE_EVENT ("GATT_UUID_GAP_DEVICE_NAME");
-            len = (UINT16)strlen((char *)pp);
+            len = (uint16_t)strlen((char *)pp);
             if (len > GAP_CHAR_DEV_NAME_SIZE)
                 len = GAP_CHAR_DEV_NAME_SIZE;
-            gap_ble_cl_op_cmpl(p_clcb, TRUE, len, pp);
+            gap_ble_cl_op_cmpl(p_clcb, true, len, pp);
             break;
 
         case GATT_UUID_GAP_CENTRAL_ADDR_RESOL:
-            gap_ble_cl_op_cmpl(p_clcb, TRUE, 1, pp);
+            gap_ble_cl_op_cmpl(p_clcb, true, 1, pp);
             break;
     }
 }
@@ -667,13 +667,13 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 **
 ** Description      Start a process to read peer address resolution capability
 **
-** Returns          TRUE if request accepted
+** Returns          true if request accepted
 **
 *******************************************************************************/
-BOOLEAN gap_ble_accept_cl_operation(BD_ADDR peer_bda, UINT16 uuid, tGAP_BLE_CMPL_CBACK *p_cback)
+bool    gap_ble_accept_cl_operation(BD_ADDR peer_bda, uint16_t uuid, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     tGAP_CLCB *p_clcb;
-    BOOLEAN started = FALSE;
+    bool    started = false;
 
     if (p_cback == NULL && uuid != GATT_UUID_GAP_PREF_CONN_PARAM)
         return(started);
@@ -688,15 +688,15 @@ BOOLEAN gap_ble_accept_cl_operation(BD_ADDR peer_bda, UINT16 uuid, tGAP_BLE_CMPL
     }
 
     GAP_TRACE_EVENT ("%s() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
-                      __FUNCTION__,
+                      __func__,
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
                       (peer_bda[4]<<8)+peer_bda[5], uuid);
 
     if (GATT_GetConnIdIfConnected(gap_cb.gatt_if, peer_bda, &p_clcb->conn_id, BT_TRANSPORT_LE))
-        p_clcb->connected = TRUE;
+        p_clcb->connected = true;
 
     /* hold the link here */
-    if (!GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE))
+    if (!GATT_Connect(gap_cb.gatt_if, p_clcb->bda, true, BT_TRANSPORT_LE))
         return started;
 
     /* enqueue the request */
@@ -705,7 +705,7 @@ BOOLEAN gap_ble_accept_cl_operation(BD_ADDR peer_bda, UINT16 uuid, tGAP_BLE_CMPL
     if (p_clcb->connected && p_clcb->cl_op_uuid == 0)
         started = gap_ble_send_cl_read_request(p_clcb);
     else /* wait for connection up or pending operation to finish */
-        started = TRUE;
+        started = true;
 
    return started;
 }
@@ -716,10 +716,10 @@ BOOLEAN gap_ble_accept_cl_operation(BD_ADDR peer_bda, UINT16 uuid, tGAP_BLE_CMPL
 ** Description      Start a process to read a connected peripheral's preferred
 **                  connection parameters
 **
-** Returns          TRUE if read started, else FALSE if GAP is busy
+** Returns          true if read started, else false if GAP is busy
 **
 *******************************************************************************/
-BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
+bool    GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 {
     return gap_ble_accept_cl_operation (peer_bda, GATT_UUID_GAP_PREF_CONN_PARAM, NULL);
 }
@@ -730,10 +730,10 @@ BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 **
 ** Description      Start a process to read a connected peripheral's device name.
 **
-** Returns          TRUE if request accepted
+** Returns          true if request accepted
 **
 *******************************************************************************/
-BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
+bool    GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     return gap_ble_accept_cl_operation (peer_bda, GATT_UUID_GAP_DEVICE_NAME, p_cback);
 }
@@ -744,10 +744,10 @@ BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
 **
 ** Description      Start a process to read peer address resolution capability
 **
-** Returns          TRUE if request accepted
+** Returns          true if request accepted
 **
 *******************************************************************************/
-BOOLEAN GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
+bool    GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     return gap_ble_accept_cl_operation(peer_bda, GATT_UUID_GAP_CENTRAL_ADDR_RESOL, p_cback);
 }
@@ -758,10 +758,10 @@ BOOLEAN GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBA
 **
 ** Description      Cancel reading a peripheral's device name.
 **
-** Returns          TRUE if request accepted
+** Returns          true if request accepted
 **
 *******************************************************************************/
-BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
+bool    GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
 {
     tGAP_CLCB *p_clcb = gap_find_clcb_by_bd_addr (peer_bda);
 
@@ -772,21 +772,21 @@ BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
     if (p_clcb == NULL)
     {
         GAP_TRACE_ERROR ("Cannot cancel current op is not get dev name");
-        return FALSE;
+        return false;
     }
 
     if (!p_clcb->connected)
     {
-        if (!GATT_CancelConnect(gap_cb.gatt_if, peer_bda, TRUE))
+        if (!GATT_CancelConnect(gap_cb.gatt_if, peer_bda, true))
         {
             GAP_TRACE_ERROR ("Cannot cancel where No connection id");
-            return FALSE;
+            return false;
         }
     }
 
-    gap_ble_cl_op_cmpl(p_clcb, FALSE, 0, NULL);
+    gap_ble_cl_op_cmpl(p_clcb, false, 0, NULL);
 
-    return(TRUE);
+    return(true);
 }
 
 #endif  /* BLE_INCLUDED */

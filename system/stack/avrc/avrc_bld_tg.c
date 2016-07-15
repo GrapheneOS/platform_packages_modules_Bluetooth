@@ -40,11 +40,11 @@
 *******************************************************************************/
 static tAVRC_STS avrc_bld_get_capability_rsp (tAVRC_GET_CAPS_RSP *p_rsp, BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start, *p_len, *p_count;
-    UINT16  len = 0;
-    UINT8   xx;
-    UINT32  *p_company_id;
-    UINT8   *p_event_id;
+    uint8_t *p_data, *p_start, *p_len, *p_count;
+    uint16_t len = 0;
+    uint8_t xx;
+    uint32_t *p_company_id;
+    uint8_t *p_event_id;
     tAVRC_STS status = AVRC_STS_NO_ERROR;
 
     if (!(AVRC_IS_VALID_CAP_ID(p_rsp->capability_id)))
@@ -56,7 +56,7 @@ static tAVRC_STS avrc_bld_get_capability_rsp (tAVRC_GET_CAPS_RSP *p_rsp, BT_HDR 
 
     AVRC_TRACE_API("%s", __func__);
     /* get the existing length, if any, and also the num attributes */
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
 
     BE_STREAM_TO_UINT16(len, p_data);
@@ -118,13 +118,13 @@ static tAVRC_STS avrc_bld_get_capability_rsp (tAVRC_GET_CAPS_RSP *p_rsp, BT_HDR 
 *******************************************************************************/
 static tAVRC_STS avrc_bld_list_app_settings_attr_rsp (tAVRC_LIST_APP_ATTR_RSP *p_rsp, BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start, *p_len, *p_num;
-    UINT16  len = 0;
-    UINT8   xx;
+    uint8_t *p_data, *p_start, *p_len, *p_num;
+    uint16_t len = 0;
+    uint8_t xx;
 
     AVRC_TRACE_API("%s", __func__);
     /* get the existing length, if any, and also the num attributes */
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
 
     BE_STREAM_TO_UINT16(len, p_data);
@@ -170,13 +170,13 @@ static tAVRC_STS avrc_bld_list_app_settings_attr_rsp (tAVRC_LIST_APP_ATTR_RSP *p
 static tAVRC_STS avrc_bld_list_app_settings_values_rsp (tAVRC_LIST_APP_VALUES_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start, *p_len, *p_num;
-    UINT8   xx;
-    UINT16  len;
+    uint8_t *p_data, *p_start, *p_len, *p_num;
+    uint8_t xx;
+    uint16_t len;
 
     AVRC_TRACE_API("%s", __func__);
 
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
 
     /* get the existing length, if any, and also the num attributes */
@@ -220,9 +220,9 @@ static tAVRC_STS avrc_bld_list_app_settings_values_rsp (tAVRC_LIST_APP_VALUES_RS
 static tAVRC_STS avrc_bld_get_cur_app_setting_value_rsp (tAVRC_GET_CUR_APP_VALUE_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start, *p_len, *p_count;
-    UINT16  len;
-    UINT8   xx;
+    uint8_t *p_data, *p_start, *p_len, *p_count;
+    uint16_t len;
+    uint8_t xx;
 
     if (!p_rsp->p_vals)
     {
@@ -232,7 +232,7 @@ static tAVRC_STS avrc_bld_get_cur_app_setting_value_rsp (tAVRC_GET_CUR_APP_VALUE
 
     AVRC_TRACE_API("%s", __func__);
     /* get the existing length, if any, and also the num attributes */
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
 
     BE_STREAM_TO_UINT16(len, p_data);
@@ -298,11 +298,11 @@ static tAVRC_STS avrc_bld_set_app_setting_value_rsp (tAVRC_RSP *p_rsp, BT_HDR *p
 *******************************************************************************/
 static tAVRC_STS avrc_bld_app_setting_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rsp, BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start, *p_len, *p_count;
-    UINT16  len, len_left;
-    UINT8   xx;
+    uint8_t *p_data, *p_start, *p_len, *p_count;
+    uint16_t len, len_left;
+    uint8_t xx;
     tAVRC_STS   sts = AVRC_STS_NO_ERROR;
-    UINT8       num_added = 0;
+    uint8_t     num_added = 0;
 
     if (!p_rsp->p_attrs)
     {
@@ -310,7 +310,7 @@ static tAVRC_STS avrc_bld_app_setting_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rs
         return AVRC_STS_BAD_PARAM;
     }
     /* get the existing length, if any, and also the num attributes */
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
 
     /*
@@ -452,9 +452,9 @@ static tAVRC_STS avrc_bld_inform_battery_status_rsp (tAVRC_RSP *p_rsp, BT_HDR *p
 *******************************************************************************/
 static tAVRC_STS avrc_bld_get_elem_attrs_rsp (tAVRC_GET_ELEM_ATTRS_RSP *p_rsp, BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start, *p_len, *p_count;
-    UINT16  len;
-    UINT8   xx;
+    uint8_t *p_data, *p_start, *p_len, *p_count;
+    uint16_t len;
+    uint8_t xx;
 
     AVRC_TRACE_API("%s", __func__);
     if (!p_rsp->p_attrs)
@@ -464,7 +464,7 @@ static tAVRC_STS avrc_bld_get_elem_attrs_rsp (tAVRC_GET_ELEM_ATTRS_RSP *p_rsp, B
     }
 
     /* get the existing length, if any, and also the num attributes */
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
 
     BE_STREAM_TO_UINT16(len, p_data);
@@ -517,10 +517,10 @@ static tAVRC_STS avrc_bld_get_elem_attrs_rsp (tAVRC_GET_ELEM_ATTRS_RSP *p_rsp, B
 *******************************************************************************/
 static tAVRC_STS avrc_bld_get_play_status_rsp (tAVRC_GET_PLAY_STATUS_RSP *p_rsp, BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start;
+    uint8_t *p_data, *p_start;
 
     AVRC_TRACE_API("avrc_bld_get_play_status_rsp");
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_start + 2;
 
     /* add fixed lenth - song len(4) + song position(4) + status(1) */
@@ -545,15 +545,15 @@ static tAVRC_STS avrc_bld_get_play_status_rsp (tAVRC_GET_PLAY_STATUS_RSP *p_rsp,
 *******************************************************************************/
 static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
 {
-    UINT8   *p_data, *p_start;
-    UINT8   *p_len;
-    UINT16  len = 0;
-    UINT8   xx;
+    uint8_t *p_data, *p_start;
+    uint8_t *p_len;
+    uint16_t len = 0;
+    uint8_t xx;
     tAVRC_STS status = AVRC_STS_NO_ERROR;
 
     AVRC_TRACE_API("%s event_id %d", __func__, p_rsp->event_id);
 
-    p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
     p_data += 2;
 
@@ -561,7 +561,7 @@ static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
     switch (p_rsp->event_id)
     {
     case AVRC_EVT_PLAY_STATUS_CHANGE:       /* 0x01 */
-        /* p_rsp->param.play_status >= AVRC_PLAYSTATE_STOPPED is always TRUE */
+        /* p_rsp->param.play_status >= AVRC_PLAYSTATE_STOPPED is always true */
         if ((p_rsp->param.play_status <= AVRC_PLAYSTATE_REV_SEEK) ||
             (p_rsp->param.play_status == AVRC_PLAYSTATE_ERROR) )
         {
@@ -577,7 +577,7 @@ static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
 
     case AVRC_EVT_TRACK_CHANGE:             /* 0x02 */
         ARRAY_TO_BE_STREAM(p_data, p_rsp->param.track, AVRC_UID_SIZE);
-        len = (UINT8)(AVRC_UID_SIZE + 1);
+        len = (uint8_t)(AVRC_UID_SIZE + 1);
         break;
 
     case AVRC_EVT_TRACK_REACHED_END:        /* 0x03 */
@@ -694,9 +694,9 @@ static tAVRC_STS avrc_bld_next_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 static tAVRC_STS avrc_bld_set_address_player_rsp(tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
     AVRC_TRACE_API("%s", __func__);
-    UINT8 *p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     /* To calculate length */
-    UINT8 *p_data = p_start + 2;
+    uint8_t *p_data = p_start + 2;
     /* add fixed lenth status(1) */
     UINT16_TO_BE_STREAM(p_data, 1);
     UINT8_TO_BE_STREAM(p_data, p_rsp->status);
@@ -716,9 +716,9 @@ static tAVRC_STS avrc_bld_set_address_player_rsp(tAVRC_RSP *p_rsp, BT_HDR *p_pkt
 static tAVRC_STS avrc_bld_play_item_rsp(tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
     AVRC_TRACE_API("%s", __func__);
-    UINT8 *p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     /* To calculate length */
-    UINT8 *p_data = p_start + 2;
+    uint8_t *p_data = p_start + 2;
     /* add fixed lenth status(1) */
     UINT16_TO_BE_STREAM(p_data, 1);
     UINT8_TO_BE_STREAM(p_data, p_rsp->status);
@@ -738,9 +738,9 @@ static tAVRC_STS avrc_bld_play_item_rsp(tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 static tAVRC_STS avrc_bld_set_absolute_volume_rsp(uint8_t abs_vol, BT_HDR *p_pkt)
 {
     AVRC_TRACE_API("%s", __func__);
-    UINT8 *p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     /* To calculate length */
-    UINT8 *p_data = p_start + 2;
+    uint8_t *p_data = p_start + 2;
     /* add fixed lenth status(1) */
     UINT16_TO_BE_STREAM(p_data, 1);
     UINT8_TO_BE_STREAM(p_data, abs_vol);
@@ -759,7 +759,7 @@ static tAVRC_STS avrc_bld_set_absolute_volume_rsp(uint8_t abs_vol, BT_HDR *p_pkt
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-tAVRC_STS avrc_bld_group_navigation_rsp (UINT16 navi_id, BT_HDR *p_pkt)
+tAVRC_STS avrc_bld_group_navigation_rsp (uint16_t navi_id, BT_HDR *p_pkt)
 {
     if (!AVRC_IS_VALID_GROUP(navi_id))
     {
@@ -767,7 +767,7 @@ tAVRC_STS avrc_bld_group_navigation_rsp (UINT16 navi_id, BT_HDR *p_pkt)
         return AVRC_STS_BAD_PARAM;
     }
     AVRC_TRACE_API("%s", __func__);
-    UINT8 *p_data = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    uint8_t *p_data = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     UINT16_TO_BE_STREAM(p_data, navi_id);
     p_pkt->len = 2;
     return AVRC_STS_NO_ERROR;
@@ -786,8 +786,8 @@ static tAVRC_STS avrc_bld_rejected_rsp( tAVRC_RSP *p_rsp, BT_HDR *p_pkt )
 {
     AVRC_TRACE_API("%s: status=%d, pdu:x%x", __func__, p_rsp->status, p_rsp->pdu);
 
-    UINT8 *p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
-    UINT8 *p_data = p_start + 2;
+    uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
+    uint8_t *p_data = p_start + 2;
     AVRC_TRACE_DEBUG("%s pdu:x%x", __func__, *p_start);
 
     UINT16_TO_BE_STREAM(p_data, 1);
@@ -809,9 +809,9 @@ static tAVRC_STS avrc_bld_rejected_rsp( tAVRC_RSP *p_rsp, BT_HDR *p_pkt )
 *******************************************************************************/
 static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 {
-    UINT16 offset = AVRC_MSG_PASS_THRU_OFFSET;
-    UINT16 chnl = AVCT_DATA_CTRL;
-    UINT8  opcode = avrc_opcode_from_pdu(p_rsp->pdu);
+    uint16_t offset = AVRC_MSG_PASS_THRU_OFFSET;
+    uint16_t chnl = AVCT_DATA_CTRL;
+    uint8_t opcode = avrc_opcode_from_pdu(p_rsp->pdu);
 
     AVRC_TRACE_API("%s: pdu=%x, opcode=%x/%x", __func__, p_rsp->pdu, opcode, p_rsp->rsp.opcode);
     if (opcode != p_rsp->rsp.opcode && p_rsp->rsp.status != AVRC_STS_NO_ERROR &&
@@ -834,12 +834,12 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 
     /* allocate and initialize the buffer */
     BT_HDR *p_pkt = (BT_HDR *)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
-    UINT8 *p_data, *p_start;
+    uint8_t *p_data, *p_start;
 
     p_pkt->layer_specific = chnl;
     p_pkt->event    = opcode;
     p_pkt->offset   = offset;
-    p_data = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_data = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     p_start = p_data;
 
     /* pass thru - group navigation - has a two byte op_id, so dont do it here */
@@ -873,11 +873,11 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt)
+tAVRC_STS AVRC_BldResponse( uint8_t handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt)
 {
     tAVRC_STS status = AVRC_STS_BAD_PARAM;
     BT_HDR *p_pkt;
-    BOOLEAN alloc = FALSE;
+    bool    alloc = false;
     UNUSED(handle);
 
     if (!p_rsp || !pp_pkt)
@@ -894,7 +894,7 @@ tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt
             AVRC_TRACE_API("%s Failed to initialize response buffer", __func__);
             return AVRC_STS_INTERNAL_ERR;
         }
-        alloc = TRUE;
+        alloc = true;
     }
     status = AVRC_STS_NO_ERROR;
     p_pkt = *pp_pkt;

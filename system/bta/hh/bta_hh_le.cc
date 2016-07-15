@@ -1043,7 +1043,7 @@ static void get_protocol_mode_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t
         p_dev_cb->mode = hs_data.rsp_data.proto_mode;
     }
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("LE GET_PROTOCOL Mode = [%s]",
                         (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)? "Report" : "Boot");
 #endif
@@ -2016,7 +2016,7 @@ static void write_report_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t hand
     if (cb_evt == 0)
         return;
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hh_le_write_cmpl w4_evt: %d", p_dev_cb->w4_evt);
 #endif
 

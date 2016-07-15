@@ -40,9 +40,9 @@ int multiprecision_compare(DWORD *a, DWORD *b, uint32_t keyLength);
 int multiprecision_iszero(DWORD *a, uint32_t keyLength);
 void multiprecision_init(DWORD *c, uint32_t keyLength);
 void multiprecision_copy(DWORD *c, DWORD *a, uint32_t keyLength);
-UINT32 multiprecision_dword_bits (DWORD a);
-UINT32 multiprecision_most_signdwords(DWORD *a, uint32_t keyLength);
-UINT32 multiprecision_most_signbits(DWORD *a, uint32_t keyLength);
+uint32_t multiprecision_dword_bits (DWORD a);
+uint32_t multiprecision_most_signdwords(DWORD *a, uint32_t keyLength);
+uint32_t multiprecision_most_signbits(DWORD *a, uint32_t keyLength);
 void multiprecision_inv_mod(DWORD *aminus, DWORD *a, uint32_t keyLength);
 DWORD multiprecision_add(DWORD *c, DWORD *a, DWORD *b, uint32_t keyLength); // c=a+b
 void multiprecision_add_mod(DWORD *c, DWORD *a, DWORD *b, uint32_t keyLength);

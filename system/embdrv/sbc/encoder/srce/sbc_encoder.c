@@ -85,16 +85,16 @@ SINT16 EncMaxShiftCounter;
 #define SBC_PRTC_LIDX           1
 typedef struct
 {
-    UINT8   use;
-    UINT8   idx;
+    uint8_t use;
+    uint8_t idx;
 } tSBC_FR_CB;
 
 typedef struct
 {
     tSBC_FR_CB      fr[2];
-    UINT8           init;
-    UINT8           index;
-    UINT8           base;
+    uint8_t         init;
+    uint8_t         index;
+    uint8_t         base;
 } tSBC_PRTC_CB;
 tSBC_PRTC_CB sbc_prtc_cb;
 
@@ -108,7 +108,7 @@ tSBC_PRTC_CB sbc_prtc_cb;
 #define SBC_PRTC_SCRMB(ar) {idx = sbc_prtc_cb.fr[sbc_prtc_cb.index].idx; \
     if(idx > 0){if((idx&1)&&(pstrEncParams->u16PacketLength > (sbc_prtc_cb.base+(idx<<1)))) \
                 {tmp2=idx<<1; tmp=(ar)[idx];(ar)[idx]=(ar)[tmp2];(ar)[tmp2]=tmp;} \
-                else{tmp2=(ar)[idx]; tmp=(tmp2>>5)+(tmp2<<3);(ar)[idx]=(UINT8)tmp;}}}
+                else{tmp2=(ar)[idx]; tmp=(tmp2>>5)+(tmp2<<3);(ar)[idx]=(uint8_t)tmp;}}}
 
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
 SINT32   s32LRDiff[SBC_MAX_NUM_OF_BLOCKS]    = {0};
@@ -119,7 +119,7 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
 {
     SINT32 s32Ch;                               /* counter for ch*/
     SINT32 s32Sb;                               /* counter for sub-band*/
-    UINT32 u32Count, maxBit = 0;                          /* loop count*/
+    uint32_t u32Count, maxBit = 0;                          /* loop count*/
     SINT32 s32MaxValue;                         /* temp variable to store max value */
 
     SINT16 *ps16ScfL;
@@ -128,12 +128,12 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
     SINT32  s32NumOfBlocks   = pstrEncParams->s16NumOfBlocks;
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
     SINT32 s32MaxValue2;
-    UINT32 u32CountSum,u32CountDiff;
+    uint32_t u32CountSum,u32CountDiff;
     SINT32 *pSum, *pDiff;
 #endif
-    UINT8  *pu8;
+    uint8_t  *pu8;
     tSBC_FR_CB  *p_cur, *p_last;
-    UINT32       idx, tmp, tmp2;
+    uint32_t     idx, tmp, tmp2;
     register SINT32  s32NumOfSubBands = pstrEncParams->s16NumOfSubBands;
 
     pstrEncParams->pu8NextPacket = pstrEncParams->pu8Packet;
@@ -295,11 +295,11 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
 */
 void SBC_Encoder_Init(SBC_ENC_PARAMS *pstrEncParams)
 {
-    UINT16 s16SamplingFreq; /*temp variable to store smpling freq*/
+    uint16_t s16SamplingFreq; /*temp variable to store smpling freq*/
     SINT16 s16Bitpool;      /*to store bit pool value*/
     SINT16 s16BitRate;      /*to store bitrate*/
     SINT16 s16FrameLen;     /*to store frame length*/
-    UINT16 HeaderParams;
+    uint16_t HeaderParams;
 
     pstrEncParams->u8NumPacketToEncode = 1; /* default is one for retrocompatibility purpose */
 

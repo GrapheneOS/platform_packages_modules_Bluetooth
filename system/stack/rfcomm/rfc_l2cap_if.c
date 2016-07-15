@@ -40,14 +40,14 @@
 /*
 ** Define Callback functions to be called by L2CAP
 */
-static void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id);
-static void RFCOMM_ConnectCnf (UINT16  lcid, UINT16 err);
-static void RFCOMM_ConfigInd (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-static void RFCOMM_ConfigCnf (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-static void RFCOMM_DisconnectInd (UINT16 lcid, BOOLEAN is_clear);
+static void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
+static void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t err);
+static void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
+static void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
+static void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_clear);
 static void RFCOMM_QoSViolationInd (BD_ADDR bd_addr);
-static void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf);
-static void RFCOMM_CongestionStatusInd (UINT16 lcid, BOOLEAN is_congested);
+static void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf);
+static void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested);
 
 
 /*******************************************************************************
@@ -88,9 +88,9 @@ void rfcomm_l2cap_if_init (void)
 **                  and dispatch the event to it.
 **
 *******************************************************************************/
-void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
+void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
 {
-    tRFC_MCB *p_mcb = rfc_alloc_multiplexer_channel(bd_addr, FALSE);
+    tRFC_MCB *p_mcb = rfc_alloc_multiplexer_channel(bd_addr, false);
     UNUSED(psm);
 
     if ((p_mcb)&&(p_mcb->state != RFC_MX_STATE_IDLE))
@@ -107,7 +107,7 @@ void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
             RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectInd start timer for collision, initiator's LCID(0x%x), acceptor's LCID(0x%x)",
                                   p_mcb->lcid, p_mcb->pending_lcid);
 
-            rfc_timer_start(p_mcb, (UINT16)(time_get_os_boottime_ms() % 10 + 2));
+            rfc_timer_start(p_mcb, (uint16_t)(time_get_os_boottime_ms() % 10 + 2));
             return;
         }
         else
@@ -143,7 +143,7 @@ void RFCOMM_ConnectInd (BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 **                  event to the FSM.
 **
 *******************************************************************************/
-void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
+void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t result)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
 
@@ -158,8 +158,8 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
         /* if peer rejects our connect request but peer's connect request is pending */
         if (result != L2CAP_CONN_OK )
         {
-            UINT16 i;
-            UINT8  idx;
+            uint16_t i;
+            uint8_t idx;
 
             RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectCnf retry as acceptor on pending LCID(0x%x)", p_mcb->pending_lcid);
 
@@ -167,7 +167,7 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
             rfc_save_lcid_mcb (NULL, p_mcb->lcid);
 
             p_mcb->lcid         = p_mcb->pending_lcid;
-            p_mcb->is_initiator = FALSE;
+            p_mcb->is_initiator = false;
             p_mcb->state        = RFC_MX_STATE_IDLE;
 
             /* store mcb into mapping table */
@@ -215,7 +215,7 @@ void RFCOMM_ConnectCnf (UINT16 lcid, UINT16 result)
 **                  block and dispatch event to the FSM.
 **
 *******************************************************************************/
-void RFCOMM_ConfigInd (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
 
@@ -238,7 +238,7 @@ void RFCOMM_ConfigInd (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 **                  event to the FSM.
 **
 *******************************************************************************/
-void RFCOMM_ConfigCnf (UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
 
@@ -274,7 +274,7 @@ void RFCOMM_QoSViolationInd (BD_ADDR bd_addr)
 **                  L2CA_DisconnectInd received.  Dispatch event to the FSM.
 **
 *******************************************************************************/
-void RFCOMM_DisconnectInd (UINT16 lcid, BOOLEAN is_conf_needed)
+void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_conf_needed)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
 
@@ -303,11 +303,11 @@ void RFCOMM_DisconnectInd (UINT16 lcid, BOOLEAN is_conf_needed)
 **                  state machine depending on the frame destination.
 **
 *******************************************************************************/
-void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
+void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
     tPORT    *p_port;
-    UINT8    event;
+    uint8_t  event;
 
 
     if (!p_mcb)
@@ -357,7 +357,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
 
         if ((p_port = port_find_dlci_port (rfc_cb.rfc.rx_frame.dlci)) == NULL)
         {
-            rfc_send_dm (p_mcb, rfc_cb.rfc.rx_frame.dlci, TRUE);
+            rfc_send_dm (p_mcb, rfc_cb.rfc.rx_frame.dlci, true);
             osi_free(p_buf);
             return;
         }
@@ -390,7 +390,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
 **                  data RFCOMM L2CAP congestion status changes
 **
 *******************************************************************************/
-void RFCOMM_CongestionStatusInd (UINT16 lcid, BOOLEAN is_congested)
+void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
 
@@ -413,7 +413,7 @@ void RFCOMM_CongestionStatusInd (UINT16 lcid, BOOLEAN is_congested)
 ** Description      This function returns MCB block supporting local cid
 **
 *******************************************************************************/
-tRFC_MCB *rfc_find_lcid_mcb (UINT16 lcid)
+tRFC_MCB *rfc_find_lcid_mcb (uint16_t lcid)
 {
     tRFC_MCB *p_mcb;
 
@@ -444,7 +444,7 @@ tRFC_MCB *rfc_find_lcid_mcb (UINT16 lcid)
 ** Description      This function returns MCB block supporting local cid
 **
 *******************************************************************************/
-void rfc_save_lcid_mcb(tRFC_MCB *p_mcb, UINT16 lcid)
+void rfc_save_lcid_mcb(tRFC_MCB *p_mcb, uint16_t lcid)
 {
     if (lcid < L2CAP_BASE_APPL_CID)
         return;

@@ -21,7 +21,7 @@
 #include <string.h>
 #include "smp_int.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 
 const char *const smp_br_state_name [SMP_BR_STATE_MAX+1] =
 {
@@ -69,7 +69,7 @@ const char *smp_get_br_state_name(tSMP_BR_STATE state);
 #define SMP_BR_NUM_ACTIONS     2
 #define SMP_BR_SME_NEXT_STATE  2
 #define SMP_BR_SM_NUM_COLS     3
-typedef const UINT8 (*tSMP_BR_SM_TBL)[SMP_BR_SM_NUM_COLS];
+typedef const uint8_t (*tSMP_BR_SM_TBL)[SMP_BR_SM_NUM_COLS];
 
 enum
 {
@@ -114,7 +114,7 @@ static const tSMP_ACT smp_br_sm_action[] =
     smp_idle_terminate
 };
 
-static const UINT8 smp_br_all_table[][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_all_table[][SMP_BR_SM_NUM_COLS] =
 {
 /*                               Event                    Action           Next State */
 /* BR_PAIRING_FAILED        */  {SMP_PROC_PAIR_FAIL,  SMP_BR_PAIRING_COMPLETE, SMP_BR_STATE_IDLE},
@@ -123,7 +123,7 @@ static const UINT8 smp_br_all_table[][SMP_BR_SM_NUM_COLS] =
 };
 
 /************ SMP Master FSM State/Event Indirection Table **************/
-static const UINT8 smp_br_master_entry_map[][SMP_BR_STATE_MAX] =
+static const uint8_t smp_br_master_entry_map[][SMP_BR_STATE_MAX] =
 {
 /* br_state name:               Idle      WaitApp  Pair    Bond
                                           Rsp      ReqRsp  Pend       */
@@ -154,27 +154,27 @@ static const UINT8 smp_br_master_entry_map[][SMP_BR_STATE_MAX] =
 /* BR_DISCARD_SEC_REQ       */  { 0,       0,       0,      0     }
 };
 
-static const UINT8 smp_br_master_idle_table[][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_master_idle_table[][SMP_BR_SM_NUM_COLS] =
 {
 /*                                Event               Action               Next State */
 /* BR_L2CAP_CONN        */  {SMP_SEND_APP_CBACK, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_WAIT_APP_RSP},
 /* BR_L2CAP_DISCONN   */  {SMP_IDLE_TERMINATE,  SMP_BR_SM_NO_ACTION, SMP_BR_STATE_IDLE}
 };
 
-static const UINT8 smp_br_master_wait_appln_response_table[][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_master_wait_appln_response_table[][SMP_BR_SM_NUM_COLS] =
 {
 /*                                Event               Action              Next State */
 /* BR_KEYS_RSP           */{SMP_SEND_PAIR_REQ, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_PAIR_REQ_RSP}
 };
 
-static const UINT8 smp_br_master_pair_request_response_table [][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_master_pair_request_response_table [][SMP_BR_SM_NUM_COLS] =
 {
 /*                        Event               Action                  Next State */
 /* BR_PAIRING_RSP   */  {SMP_BR_PROC_PAIR_CMD, SMP_BR_CHECK_AUTH_REQ, SMP_BR_STATE_PAIR_REQ_RSP},
 /* BR_BOND_REQ      */  {SMP_BR_SM_NO_ACTION, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
 };
 
-static const UINT8 smp_br_master_bond_pending_table[][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_master_bond_pending_table[][SMP_BR_SM_NUM_COLS] =
 {
 /*                                Event               Action              Next State */
 /* BR_ID_INFO               */{SMP_PROC_ID_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
@@ -182,7 +182,7 @@ static const UINT8 smp_br_master_bond_pending_table[][SMP_BR_SM_NUM_COLS] =
 /* BR_SIGN_INFO             */{SMP_PROC_SRK_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
 };
 
-static const UINT8 smp_br_slave_entry_map[][SMP_BR_STATE_MAX] =
+static const uint8_t smp_br_slave_entry_map[][SMP_BR_STATE_MAX] =
 {
 /* br_state name:               Idle      WaitApp  Pair    Bond
                                           Rsp      ReqRsp  Pend      */
@@ -213,13 +213,13 @@ static const UINT8 smp_br_slave_entry_map[][SMP_BR_STATE_MAX] =
 /* BR_DISCARD_SEC_REQ       */  { 0,       0,       0,      0    }
 };
 
-static const UINT8 smp_br_slave_idle_table[][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_slave_idle_table[][SMP_BR_SM_NUM_COLS] =
 {
 /*                               Event                Action              Next State */
 /* BR_PAIRING_REQ    */ {SMP_BR_PROC_PAIR_CMD, SMP_SEND_APP_CBACK, SMP_BR_STATE_WAIT_APP_RSP}
 };
 
-static const UINT8 smp_br_slave_wait_appln_response_table [][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_slave_wait_appln_response_table [][SMP_BR_SM_NUM_COLS] =
 {
 /*                               Event                 Action             Next State */
 /* BR_API_SEC_GRANT */ {SMP_BR_PROC_SEC_GRANT, SMP_SEND_APP_CBACK, SMP_BR_STATE_WAIT_APP_RSP},
@@ -227,7 +227,7 @@ static const UINT8 smp_br_slave_wait_appln_response_table [][SMP_BR_SM_NUM_COLS]
 /* BR_BOND_REQ        */ {SMP_BR_KEY_DISTRIBUTION, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
 };
 
-static const UINT8 smp_br_slave_bond_pending_table[][SMP_BR_SM_NUM_COLS] =
+static const uint8_t smp_br_slave_bond_pending_table[][SMP_BR_SM_NUM_COLS] =
 {
 /*                                Event               Action               Next State */
 /* BR_ID_INFO               */  {SMP_PROC_ID_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
@@ -250,7 +250,7 @@ static const tSMP_BR_SM_TBL smp_br_state_table[][2] =
     {smp_br_master_bond_pending_table, smp_br_slave_bond_pending_table},
 };
 
-typedef const UINT8 (*tSMP_BR_ENTRY_TBL)[SMP_BR_STATE_MAX];
+typedef const uint8_t (*tSMP_BR_ENTRY_TBL)[SMP_BR_STATE_MAX];
 
 static const tSMP_BR_ENTRY_TBL smp_br_entry_table[] =
 {
@@ -275,7 +275,7 @@ void smp_set_br_state(tSMP_BR_STATE br_state)
     }
     else
     {
-        SMP_TRACE_DEBUG("%s invalid br_state =%d", __FUNCTION__,br_state );
+        SMP_TRACE_DEBUG("%s invalid br_state =%d", __func__,br_state );
     }
 }
 
@@ -334,7 +334,7 @@ void smp_br_state_machine_event(tSMP_CB *p_cb, tSMP_BR_EVENT event, void *p_data
 {
     tSMP_BR_STATE       curr_state = p_cb->br_state;
     tSMP_BR_SM_TBL      state_table;
-    UINT8               action, entry;
+    uint8_t             action, entry;
     tSMP_BR_ENTRY_TBL   entry_table =  smp_br_entry_table[p_cb->role];
 
     SMP_TRACE_EVENT("main %s", __func__);
@@ -382,7 +382,7 @@ void smp_br_state_machine_event(tSMP_CB *p_cb, tSMP_BR_EVENT event, void *p_data
      * The action function may set the Param for cback.
      * Depending on param, call cback or free buffer. */
     /* execute action functions */
-    for (UINT8 i = 0; i < SMP_BR_NUM_ACTIONS; i++)
+    for (uint8_t i = 0; i < SMP_BR_NUM_ACTIONS; i++)
     {
         if ((action = state_table[entry - 1][i]) != SMP_BR_SM_NO_ACTION)
         {

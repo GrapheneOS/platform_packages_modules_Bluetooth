@@ -38,20 +38,20 @@
 
 
 #ifndef SDP_DEBUG_RAW
-#define SDP_DEBUG_RAW       FALSE
+#define SDP_DEBUG_RAW       false
 #endif
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-#if SDP_CLIENT_ENABLED == TRUE
-static void          process_service_search_rsp (tCONN_CB *p_ccb, UINT8 *p_reply);
-static void          process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply);
-static void          process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply);
-static UINT8         *save_attr_seq (tCONN_CB *p_ccb, UINT8 *p, UINT8 *p_msg_end);
+#if (SDP_CLIENT_ENABLED == TRUE)
+static void          process_service_search_rsp (tCONN_CB *p_ccb, uint8_t *p_reply);
+static void          process_service_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply);
+static void          process_service_search_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply);
+static uint8_t       *save_attr_seq (tCONN_CB *p_ccb, uint8_t *p, uint8_t *p_msg_end);
 static tSDP_DISC_REC *add_record (tSDP_DISCOVERY_DB *p_db, BD_ADDR p_bda);
-static UINT8         *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
-                                UINT16 attr_id, tSDP_DISC_ATTR *p_parent_attr, UINT8 nest_level);
+static uint8_t       *add_attr (uint8_t *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
+                                uint16_t attr_id, tSDP_DISC_ATTR *p_parent_attr, uint8_t nest_level);
 
 /* Safety check in case we go crazy */
 #define MAX_NEST_LEVELS     5
@@ -69,10 +69,10 @@ extern fixed_queue_t *btu_general_alarm_queue;
 ** Returns          Pointer to next byte in the output buffer.
 **
 *******************************************************************************/
-static UINT8 *sdpu_build_uuid_seq (UINT8 *p_out, UINT16 num_uuids, tSDP_UUID *p_uuid_list)
+static uint8_t *sdpu_build_uuid_seq (uint8_t *p_out, uint16_t num_uuids, tSDP_UUID *p_uuid_list)
 {
-    UINT16  xx;
-    UINT8   *p_len;
+    uint16_t xx;
+    uint8_t *p_len;
 
     /* First thing is the data element header */
     UINT8_TO_BE_STREAM  (p_out, (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
@@ -102,7 +102,7 @@ static UINT8 *sdpu_build_uuid_seq (UINT8 *p_out, UINT16 num_uuids, tSDP_UUID *p_
     }
 
     /* Now, put in the length */
-    xx = (UINT16)(p_out - p_len - 1);
+    xx = (uint16_t)(p_out - p_len - 1);
     UINT8_TO_BE_STREAM (p_len, xx);
 
     return (p_out);
@@ -117,15 +117,15 @@ static UINT8 *sdpu_build_uuid_seq (UINT8 *p_out, UINT16 num_uuids, tSDP_UUID *p_
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_snd_service_search_req(tCONN_CB *p_ccb, UINT8 cont_len, UINT8 * p_cont)
+static void sdp_snd_service_search_req(tCONN_CB *p_ccb, uint8_t cont_len, uint8_t * p_cont)
 {
-    UINT8           *p, *p_start, *p_param_len;
+    uint8_t         *p, *p_start, *p_param_len;
     BT_HDR          *p_cmd = (BT_HDR *) osi_malloc(SDP_DATA_BUF_SIZE);
-    UINT16          param_len;
+    uint16_t        param_len;
 
     /* Prepare the buffer for sending the packet to L2CAP */
     p_cmd->offset = L2CAP_MIN_OFFSET;
-    p = p_start = (UINT8 *)(p_cmd + 1) + L2CAP_MIN_OFFSET;
+    p = p_start = (uint8_t *)(p_cmd + 1) + L2CAP_MIN_OFFSET;
 
     /* Build a service search request packet */
     UINT8_TO_BE_STREAM  (p, SDP_PDU_SERVICE_SEARCH_REQ);
@@ -137,7 +137,7 @@ static void sdp_snd_service_search_req(tCONN_CB *p_ccb, UINT8 cont_len, UINT8 * 
     p += 2;
 
     /* Build the UID sequence. */
-#if (defined(SDP_BROWSE_PLUS) && SDP_BROWSE_PLUS == TRUE)
+#if (SDP_BROWSE_PLUS == TRUE)
     p = sdpu_build_uuid_seq (p, 1, &p_ccb->p_db->uuid_filters[p_ccb->cur_uuid_idx]);
 #else
     p = sdpu_build_uuid_seq (p, p_ccb->p_db->num_uuid_filters, p_ccb->p_db->uuid_filters);
@@ -157,13 +157,13 @@ static void sdp_snd_service_search_req(tCONN_CB *p_ccb, UINT8 cont_len, UINT8 * 
     }
 
     /* Go back and put the parameter length into the buffer */
-    param_len = (UINT16)(p - p_param_len - 2);
+    param_len = (uint16_t)(p - p_param_len - 2);
     UINT16_TO_BE_STREAM (p_param_len, param_len);
 
     p_ccb->disc_state = SDP_DISC_WAIT_HANDLES;
 
     /* Set the length of the SDP data in the buffer */
-    p_cmd->len = (UINT16)(p - p_start);
+    p_cmd->len = (uint16_t)(p - p_start);
 
 #if (SDP_DEBUG_RAW == TRUE)
     SDP_TRACE_WARNING("sdp_snd_service_search_req cont_len :%d disc_state:%d",cont_len, p_ccb->disc_state);
@@ -219,8 +219,8 @@ void sdp_disc_connected (tCONN_CB *p_ccb)
 *******************************************************************************/
 void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
 {
-    UINT8           *p, rsp_pdu;
-    BOOLEAN         invalid_pdu = TRUE;
+    uint8_t         *p, rsp_pdu;
+    bool            invalid_pdu = true;
 
 #if (SDP_DEBUG_RAW == TRUE)
     SDP_TRACE_WARNING("sdp_disc_server_rsp disc_state:%d", p_ccb->disc_state);
@@ -230,7 +230,7 @@ void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
     alarm_cancel(p_ccb->sdp_conn_timer);
 
     /* Got a reply!! Check what we got back */
-    p = (UINT8 *)(p_msg + 1) + p_msg->offset;
+    p = (uint8_t *)(p_msg + 1) + p_msg->offset;
 
     BE_STREAM_TO_UINT8 (rsp_pdu, p);
 
@@ -242,7 +242,7 @@ void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
         if (p_ccb->disc_state == SDP_DISC_WAIT_HANDLES)
         {
             process_service_search_rsp (p_ccb, p);
-            invalid_pdu = FALSE;
+            invalid_pdu = false;
         }
         break;
 
@@ -250,7 +250,7 @@ void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
         if (p_ccb->disc_state == SDP_DISC_WAIT_ATTR)
         {
             process_service_attr_rsp (p_ccb, p);
-            invalid_pdu = FALSE;
+            invalid_pdu = false;
         }
         break;
 
@@ -258,7 +258,7 @@ void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
         if (p_ccb->disc_state == SDP_DISC_WAIT_SEARCH_ATTR)
         {
             process_service_search_attr_rsp (p_ccb, p);
-            invalid_pdu = FALSE;
+            invalid_pdu = false;
         }
         break;
     }
@@ -280,11 +280,11 @@ void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-static void process_service_search_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
+static void process_service_search_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 {
-    UINT16      xx;
-    UINT16      total, cur_handles, orig;
-    UINT8       cont_len;
+    uint16_t    xx;
+    uint16_t    total, cur_handles, orig;
+    uint8_t     cont_len;
 
     /* Skip transaction, and param len */
     p_reply += 4;
@@ -341,20 +341,20 @@ static void process_service_search_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
 **
 *******************************************************************************/
 #if (SDP_RAW_DATA_INCLUDED == TRUE)
-static void sdp_copy_raw_data (tCONN_CB *p_ccb, BOOLEAN offset)
+static void sdp_copy_raw_data (tCONN_CB *p_ccb, bool    offset)
 {
     unsigned int    cpy_len;
-    UINT32          list_len;
-    UINT8           *p;
-    UINT8           type;
+    uint32_t        list_len;
+    uint8_t         *p;
+    uint8_t         type;
 
 #if (SDP_DEBUG_RAW == TRUE)
-    UINT8 num_array[SDP_MAX_LIST_BYTE_COUNT];
-    UINT32 i;
+    uint8_t num_array[SDP_MAX_LIST_BYTE_COUNT];
+    uint32_t i;
 
     for (i = 0; i < p_ccb->list_len; i++)
     {
-        sprintf((char *)&num_array[i*2],"%02X",(UINT8)(p_ccb->rsp_list[i]));
+        sprintf((char *)&num_array[i*2],"%02X",(uint8_t)(p_ccb->rsp_list[i]));
     }
     SDP_TRACE_WARNING("result :%s",num_array);
 #endif
@@ -394,11 +394,11 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, BOOLEAN offset)
 ** Returns          void
 **
 *******************************************************************************/
-static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
+static void process_service_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 {
-    UINT8           *p_start, *p_param_len;
-    UINT16          param_len, list_byte_count;
-    BOOLEAN         cont_request_needed = FALSE;
+    uint8_t         *p_start, *p_param_len;
+    uint16_t        param_len, list_byte_count;
+    bool            cont_request_needed = false;
 
 #if (SDP_DEBUG_RAW == TRUE)
     SDP_TRACE_WARNING("process_service_attr_rsp raw inc:%d",
@@ -431,7 +431,7 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
             p_ccb->list_len, list_byte_count);
 #endif
         if (p_ccb->rsp_list == NULL)
-            p_ccb->rsp_list = (UINT8 *)osi_malloc(SDP_MAX_LIST_BYTE_COUNT);
+            p_ccb->rsp_list = (uint8_t *)osi_malloc(SDP_MAX_LIST_BYTE_COUNT);
         memcpy(&p_ccb->rsp_list[p_ccb->list_len], p_reply, list_byte_count);
         p_ccb->list_len += list_byte_count;
         p_reply         += list_byte_count;
@@ -448,14 +448,14 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
                 sdp_disconnect (p_ccb, SDP_INVALID_CONT_STATE);
                 return;
             }
-            cont_request_needed = TRUE;
+            cont_request_needed = true;
         }
         else
         {
 
 #if (SDP_RAW_DATA_INCLUDED == TRUE)
             SDP_TRACE_WARNING("process_service_attr_rsp");
-            sdp_copy_raw_data (p_ccb, FALSE);
+            sdp_copy_raw_data (p_ccb, false);
 #endif
 
             /* Save the response in the database. Stop on any error */
@@ -473,10 +473,10 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
     if (p_ccb->cur_handle < p_ccb->num_handles)
     {
         BT_HDR  *p_msg = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
-        UINT8   *p;
+        uint8_t *p;
 
         p_msg->offset = L2CAP_MIN_OFFSET;
-        p = p_start = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+        p = p_start = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET;
 
         /* Get all the attributes from the server */
         UINT8_TO_BE_STREAM  (p, SDP_PDU_SERVICE_ATTR_REQ);
@@ -508,11 +508,11 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
             UINT8_TO_BE_STREAM (p, 0);
 
         /* Go back and put the parameter length into the buffer */
-        param_len = (UINT16)(p - p_param_len - 2);
+        param_len = (uint16_t)(p - p_param_len - 2);
         UINT16_TO_BE_STREAM (p_param_len, param_len);
 
         /* Set the length of the SDP data in the buffer */
-        p_msg->len = (UINT16)(p - p_start);
+        p_msg->len = (uint16_t)(p - p_start);
 
 
         L2CA_DataWrite (p_ccb->connection_id, p_msg);
@@ -540,13 +540,13 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
 ** Returns          void
 **
 *******************************************************************************/
-static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
+static void process_service_search_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 {
-    UINT8           *p, *p_start, *p_end, *p_param_len;
-    UINT8           type;
-    UINT32          seq_len;
-    UINT16          param_len, lists_byte_count = 0;
-    BOOLEAN         cont_request_needed = FALSE;
+    uint8_t         *p, *p_start, *p_end, *p_param_len;
+    uint8_t         type;
+    uint32_t        seq_len;
+    uint16_t        param_len, lists_byte_count = 0;
+    bool            cont_request_needed = false;
 
 #if (SDP_DEBUG_RAW == TRUE)
     SDP_TRACE_WARNING("process_service_search_attr_rsp");
@@ -578,7 +578,7 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
             p_ccb->list_len, lists_byte_count);
 #endif
         if (p_ccb->rsp_list == NULL)
-            p_ccb->rsp_list = (UINT8 *)osi_malloc(SDP_MAX_LIST_BYTE_COUNT);
+            p_ccb->rsp_list = (uint8_t *)osi_malloc(SDP_MAX_LIST_BYTE_COUNT);
         memcpy (&p_ccb->rsp_list[p_ccb->list_len], p_reply, lists_byte_count);
         p_ccb->list_len += lists_byte_count;
         p_reply         += lists_byte_count;
@@ -596,7 +596,7 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
                 return;
             }
 
-            cont_request_needed = TRUE;
+            cont_request_needed = true;
         }
     }
 
@@ -607,10 +607,10 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
     if ((cont_request_needed) || (!p_reply))
     {
         BT_HDR  *p_msg = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
-        UINT8   *p;
+        uint8_t *p;
 
         p_msg->offset = L2CAP_MIN_OFFSET;
-        p = p_start = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+        p = p_start = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET;
 
         /* Build a service search request packet */
         UINT8_TO_BE_STREAM  (p, SDP_PDU_SERVICE_SEARCH_ATTR_REQ);
@@ -622,7 +622,7 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
         p += 2;
 
         /* Build the UID sequence. */
-#if (defined(SDP_BROWSE_PLUS) && SDP_BROWSE_PLUS == TRUE)
+#if (SDP_BROWSE_PLUS == TRUE)
         p = sdpu_build_uuid_seq (p, 1, &p_ccb->p_db->uuid_filters[p_ccb->cur_uuid_idx]);
 #else
         p = sdpu_build_uuid_seq (p, p_ccb->p_db->num_uuid_filters, p_ccb->p_db->uuid_filters);
@@ -671,7 +671,7 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
 
 #if (SDP_RAW_DATA_INCLUDED == TRUE)
     SDP_TRACE_WARNING("process_service_search_attr_rsp");
-    sdp_copy_raw_data (p_ccb, TRUE);
+    sdp_copy_raw_data (p_ccb, true);
 #endif
 
     p = &p_ccb->rsp_list[0];
@@ -718,11 +718,11 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
 ** Returns          pointer to next byte or NULL if error
 **
 *******************************************************************************/
-static UINT8 *save_attr_seq (tCONN_CB *p_ccb, UINT8 *p, UINT8 *p_msg_end)
+static uint8_t *save_attr_seq (tCONN_CB *p_ccb, uint8_t *p, uint8_t *p_msg_end)
 {
-    UINT32      seq_len, attr_len;
-    UINT16      attr_id;
-    UINT8       type, *p_seq_end;
+    uint32_t    seq_len, attr_len;
+    uint16_t    attr_id;
+    uint8_t     type, *p_seq_end;
     tSDP_DISC_REC *p_rec;
 
     type = *p++;
@@ -829,17 +829,17 @@ tSDP_DISC_REC *add_record (tSDP_DISCOVERY_DB *p_db, BD_ADDR p_bda)
 ** Returns          pointer to next byte in data stream
 **
 *******************************************************************************/
-static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
-                        UINT16 attr_id, tSDP_DISC_ATTR *p_parent_attr, UINT8 nest_level)
+static uint8_t *add_attr (uint8_t *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
+                        uint16_t attr_id, tSDP_DISC_ATTR *p_parent_attr, uint8_t nest_level)
 {
     tSDP_DISC_ATTR  *p_attr;
-    UINT32          attr_len;
-    UINT32          total_len;
-    UINT16          attr_type;
-    UINT16          id;
-    UINT8           type;
-    UINT8           *p_end;
-    UINT8           is_additional_list = nest_level & SDP_ADDITIONAL_LIST_MASK;
+    uint32_t        attr_len;
+    uint32_t        total_len;
+    uint16_t        attr_type;
+    uint16_t        id;
+    uint8_t         type;
+    uint8_t         *p_end;
+    uint8_t         is_additional_list = nest_level & SDP_ADDITIONAL_LIST_MASK;
 
     nest_level &= ~(SDP_ADDITIONAL_LIST_MASK);
 
@@ -851,7 +851,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
 
     /* See if there is enough space in the database */
     if (attr_len > 4)
-        total_len = attr_len - 4 + (UINT16)sizeof (tSDP_DISC_ATTR);
+        total_len = attr_len - 4 + (uint16_t)sizeof (tSDP_DISC_ATTR);
     else
         total_len = sizeof (tSDP_DISC_ATTR);
 
@@ -864,7 +864,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
 
     p_attr                = (tSDP_DISC_ATTR *) p_db->p_free_mem;
     p_attr->attr_id       = attr_id;
-    p_attr->attr_len_type = (UINT16)attr_len | (attr_type << 12);
+    p_attr->attr_len_type = (uint16_t)attr_len | (attr_type << 12);
     p_attr->p_next_attr = NULL;
 
     /* Store the attribute value */
@@ -892,7 +892,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
                 }
 
                 /* Now, add the list entry */
-                p = add_attr (p, p_db, p_rec, ATTR_ID_PROTOCOL_DESC_LIST, p_attr, (UINT8)(nest_level + 1));
+                p = add_attr (p, p_db, p_rec, ATTR_ID_PROTOCOL_DESC_LIST, p_attr, (uint8_t)(nest_level + 1));
 
                 break;
             }
@@ -912,7 +912,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
             BE_STREAM_TO_UINT32 (p_attr->attr_value.v.u32, p);
             break;
         default:
-            BE_STREAM_TO_ARRAY (p, p_attr->attr_value.v.array, (INT32)attr_len);
+            BE_STREAM_TO_ARRAY (p, p_attr->attr_value.v.array, (int32_t)attr_len);
             break;
         }
         break;
@@ -928,8 +928,8 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
             if (p_attr->attr_value.v.u32 < 0x10000)
             {
                 attr_len = 2;
-                p_attr->attr_len_type = (UINT16)attr_len | (attr_type << 12);
-                p_attr->attr_value.v.u16 = (UINT16) p_attr->attr_value.v.u32;
+                p_attr->attr_len_type = (uint16_t)attr_len | (attr_type << 12);
+                p_attr->attr_value.v.u16 = (uint16_t) p_attr->attr_value.v.u32;
 
             }
             break;
@@ -960,7 +960,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
                     The actual size of tSDP_DISC_ATVAL does not matter.
                     If the array size in tSDP_DISC_ATVAL is increase, we would increase the system RAM usage unnecessarily
                 */
-                BE_STREAM_TO_ARRAY (p, p_attr->attr_value.v.array, (INT32)attr_len);
+                BE_STREAM_TO_ARRAY (p, p_attr->attr_value.v.array, (int32_t)attr_len);
             }
             break;
         default:
@@ -990,7 +990,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
         while (p < p_end)
         {
             /* Now, add the list entry */
-            p = add_attr (p, p_db, p_rec, 0, p_attr, (UINT8)(nest_level + 1));
+            p = add_attr (p, p_db, p_rec, 0, p_attr, (uint8_t)(nest_level + 1));
 
             if (!p)
                 return (NULL);
@@ -999,7 +999,7 @@ static UINT8 *add_attr (UINT8 *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
 
     case TEXT_STR_DESC_TYPE:
     case URL_DESC_TYPE:
-        BE_STREAM_TO_ARRAY (p, p_attr->attr_value.v.array, (INT32)attr_len);
+        BE_STREAM_TO_ARRAY (p, p_attr->attr_value.v.array, (int32_t)attr_len);
         break;
 
     case BOOLEAN_DESC_TYPE:

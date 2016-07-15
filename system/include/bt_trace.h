@@ -351,7 +351,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define SMP_TRACE_EVENT(...)                     {if (smp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_SMP, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
 #define SMP_TRACE_DEBUG(...)                     {if (smp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_SMP, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
-extern UINT8 btif_trace_level;
+extern uint8_t btif_trace_level;
 
 /* define traces for application */
 #define BTIF_TRACE_ERROR(...)                    {if (btif_trace_level >= BT_TRACE_LEVEL_ERROR) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_ERROR, ##__VA_ARGS__);}
@@ -374,50 +374,50 @@ extern UINT8 btif_trace_level;
 #define bdld(fmt, ...) \
     do{\
         if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_DEBUG, "%s(L%d): " fmt, __FUNCTION__, __LINE__,  ## __VA_ARGS__); \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_DEBUG, "%s(L%d): " fmt, __func__, __LINE__,  ## __VA_ARGS__); \
     }while(0)
 
 #define bdlw(fmt, ...) \
     do{\
         if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_WARNING, "%s(L%d): " fmt, __FUNCTION__, __LINE__,  ## __VA_ARGS__); \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_WARNING, "%s(L%d): " fmt, __func__, __LINE__,  ## __VA_ARGS__); \
     }while(0)
 
 #define bdle(fmt, ...) \
     do{\
         if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): " fmt, __FUNCTION__, __LINE__,  ## __VA_ARGS__); \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): " fmt, __func__, __LINE__,  ## __VA_ARGS__); \
     }while(0)
 
 #define bdla(assert_if) \
     do{\
         if(((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_ERROR) && !(assert_if)) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): assert failed: " #assert_if, __FUNCTION__, __LINE__); \
+            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): assert failed: " #assert_if, __func__, __LINE__); \
     }while(0)
 
-typedef UINT8 tBTTRC_PARAM_TYPE;
-typedef UINT8 tBTTRC_LAYER_ID;
-typedef UINT8 tBTTRC_TYPE;
+typedef uint8_t tBTTRC_PARAM_TYPE;
+typedef uint8_t tBTTRC_LAYER_ID;
+typedef uint8_t tBTTRC_TYPE;
 
 typedef struct {
     tBTTRC_LAYER_ID layer_id;
     tBTTRC_TYPE     type;      /* TODO: use tBTTRC_TYPE instead of "classical level 0-5" */
 } tBTTRC_LEVEL;
 
-typedef UINT8 (tBTTRC_SET_TRACE_LEVEL)( UINT8 );
+typedef uint8_t (tBTTRC_SET_TRACE_LEVEL)( uint8_t );
 
 typedef struct {
     const tBTTRC_LAYER_ID         layer_id_start;
     const tBTTRC_LAYER_ID         layer_id_end;
     tBTTRC_SET_TRACE_LEVEL        *p_f;
     const char                    *trc_name;
-    UINT8                         trace_level;
+    uint8_t                       trace_level;
 } tBTTRC_FUNC_MAP;
 
 /* External declaration for appl_trace_level here to avoid to add the declaration in all the files using APPL_TRACExxx macros */
-extern UINT8 appl_trace_level;
+extern uint8_t appl_trace_level;
 
-void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
+void LogMsg (uint32_t trace_set_mask, const char *fmt_str, ...);
 
 #ifdef __cplusplus
 }

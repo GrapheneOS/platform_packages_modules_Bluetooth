@@ -41,7 +41,7 @@
 #define HCI_GRP_VENDOR_SPECIFIC         (0x3F << 10)            /* 0xFC00 */
 
 /* Group occupies high 6 bits of the HCI command rest is opcode itself */
-#define HCI_OGF(p)  (UINT8)((0xFC00 & (p)) >> 10)
+#define HCI_OGF(p)  (uint8_t)((0xFC00 & (p)) >> 10)
 #define HCI_OCF(p)  ( 0x3FF & (p))
 
 /*
@@ -796,38 +796,38 @@
 /*
 ** Definitions for HCI enable event
 */
-#define HCI_INQUIRY_COMPLETE_EV(p)          (*((UINT32 *)(p)) & 0x00000001)
-#define HCI_INQUIRY_RESULT_EV(p)            (*((UINT32 *)(p)) & 0x00000002)
-#define HCI_CONNECTION_COMPLETE_EV(p)       (*((UINT32 *)(p)) & 0x00000004)
-#define HCI_CONNECTION_REQUEST_EV(p)        (*((UINT32 *)(p)) & 0x00000008)
-#define HCI_DISCONNECTION_COMPLETE_EV(p)    (*((UINT32 *)(p)) & 0x00000010)
-#define HCI_AUTHENTICATION_COMPLETE_EV(p)   (*((UINT32 *)(p)) & 0x00000020)
-#define HCI_RMT_NAME_REQUEST_COMPL_EV(p)    (*((UINT32 *)(p)) & 0x00000040)
-#define HCI_CHANGE_CONN_ENCRPT_ENABLE_EV(p) (*((UINT32 *)(p)) & 0x00000080)
-#define HCI_CHANGE_CONN_LINK_KEY_EV(p)      (*((UINT32 *)(p)) & 0x00000100)
-#define HCI_MASTER_LINK_KEY_COMPLETE_EV(p)  (*((UINT32 *)(p)) & 0x00000200)
-#define HCI_READ_RMT_FEATURES_COMPL_EV(p)   (*((UINT32 *)(p)) & 0x00000400)
-#define HCI_READ_RMT_VERSION_COMPL_EV(p)    (*((UINT32 *)(p)) & 0x00000800)
-#define HCI_QOS_SETUP_COMPLETE_EV(p)        (*((UINT32 *)(p)) & 0x00001000)
-#define HCI_COMMAND_COMPLETE_EV(p)          (*((UINT32 *)(p)) & 0x00002000)
-#define HCI_COMMAND_STATUS_EV(p)            (*((UINT32 *)(p)) & 0x00004000)
-#define HCI_HARDWARE_ERROR_EV(p)            (*((UINT32 *)(p)) & 0x00008000)
-#define HCI_FLASH_OCCURED_EV(p)             (*((UINT32 *)(p)) & 0x00010000)
-#define HCI_ROLE_CHANGE_EV(p)               (*((UINT32 *)(p)) & 0x00020000)
-#define HCI_NUM_COMPLETED_PKTS_EV(p)        (*((UINT32 *)(p)) & 0x00040000)
-#define HCI_MODE_CHANGE_EV(p)               (*((UINT32 *)(p)) & 0x00080000)
-#define HCI_RETURN_LINK_KEYS_EV(p)          (*((UINT32 *)(p)) & 0x00100000)
-#define HCI_PIN_CODE_REQUEST_EV(p)          (*((UINT32 *)(p)) & 0x00200000)
-#define HCI_LINK_KEY_REQUEST_EV(p)          (*((UINT32 *)(p)) & 0x00400000)
-#define HCI_LINK_KEY_NOTIFICATION_EV(p)     (*((UINT32 *)(p)) & 0x00800000)
-#define HCI_LOOPBACK_COMMAND_EV(p)          (*((UINT32 *)(p)) & 0x01000000)
-#define HCI_DATA_BUF_OVERFLOW_EV(p)         (*((UINT32 *)(p)) & 0x02000000)
-#define HCI_MAX_SLOTS_CHANGE_EV(p)          (*((UINT32 *)(p)) & 0x04000000)
-#define HCI_READ_CLOCK_OFFSET_COMP_EV(p)    (*((UINT32 *)(p)) & 0x08000000)
-#define HCI_CONN_PKT_TYPE_CHANGED_EV(p)     (*((UINT32 *)(p)) & 0x10000000)
-#define HCI_QOS_VIOLATION_EV(p)             (*((UINT32 *)(p)) & 0x20000000)
-#define HCI_PAGE_SCAN_MODE_CHANGED_EV(p)    (*((UINT32 *)(p)) & 0x40000000)
-#define HCI_PAGE_SCAN_REP_MODE_CHNG_EV(p)   (*((UINT32 *)(p)) & 0x80000000)
+#define HCI_INQUIRY_COMPLETE_EV(p)          (*((uint32_t *)(p)) & 0x00000001)
+#define HCI_INQUIRY_RESULT_EV(p)            (*((uint32_t *)(p)) & 0x00000002)
+#define HCI_CONNECTION_COMPLETE_EV(p)       (*((uint32_t *)(p)) & 0x00000004)
+#define HCI_CONNECTION_REQUEST_EV(p)        (*((uint32_t *)(p)) & 0x00000008)
+#define HCI_DISCONNECTION_COMPLETE_EV(p)    (*((uint32_t *)(p)) & 0x00000010)
+#define HCI_AUTHENTICATION_COMPLETE_EV(p)   (*((uint32_t *)(p)) & 0x00000020)
+#define HCI_RMT_NAME_REQUEST_COMPL_EV(p)    (*((uint32_t *)(p)) & 0x00000040)
+#define HCI_CHANGE_CONN_ENCRPT_ENABLE_EV(p) (*((uint32_t *)(p)) & 0x00000080)
+#define HCI_CHANGE_CONN_LINK_KEY_EV(p)      (*((uint32_t *)(p)) & 0x00000100)
+#define HCI_MASTER_LINK_KEY_COMPLETE_EV(p)  (*((uint32_t *)(p)) & 0x00000200)
+#define HCI_READ_RMT_FEATURES_COMPL_EV(p)   (*((uint32_t *)(p)) & 0x00000400)
+#define HCI_READ_RMT_VERSION_COMPL_EV(p)    (*((uint32_t *)(p)) & 0x00000800)
+#define HCI_QOS_SETUP_COMPLETE_EV(p)        (*((uint32_t *)(p)) & 0x00001000)
+#define HCI_COMMAND_COMPLETE_EV(p)          (*((uint32_t *)(p)) & 0x00002000)
+#define HCI_COMMAND_STATUS_EV(p)            (*((uint32_t *)(p)) & 0x00004000)
+#define HCI_HARDWARE_ERROR_EV(p)            (*((uint32_t *)(p)) & 0x00008000)
+#define HCI_FLASH_OCCURED_EV(p)             (*((uint32_t *)(p)) & 0x00010000)
+#define HCI_ROLE_CHANGE_EV(p)               (*((uint32_t *)(p)) & 0x00020000)
+#define HCI_NUM_COMPLETED_PKTS_EV(p)        (*((uint32_t *)(p)) & 0x00040000)
+#define HCI_MODE_CHANGE_EV(p)               (*((uint32_t *)(p)) & 0x00080000)
+#define HCI_RETURN_LINK_KEYS_EV(p)          (*((uint32_t *)(p)) & 0x00100000)
+#define HCI_PIN_CODE_REQUEST_EV(p)          (*((uint32_t *)(p)) & 0x00200000)
+#define HCI_LINK_KEY_REQUEST_EV(p)          (*((uint32_t *)(p)) & 0x00400000)
+#define HCI_LINK_KEY_NOTIFICATION_EV(p)     (*((uint32_t *)(p)) & 0x00800000)
+#define HCI_LOOPBACK_COMMAND_EV(p)          (*((uint32_t *)(p)) & 0x01000000)
+#define HCI_DATA_BUF_OVERFLOW_EV(p)         (*((uint32_t *)(p)) & 0x02000000)
+#define HCI_MAX_SLOTS_CHANGE_EV(p)          (*((uint32_t *)(p)) & 0x04000000)
+#define HCI_READ_CLOCK_OFFSET_COMP_EV(p)    (*((uint32_t *)(p)) & 0x08000000)
+#define HCI_CONN_PKT_TYPE_CHANGED_EV(p)     (*((uint32_t *)(p)) & 0x10000000)
+#define HCI_QOS_VIOLATION_EV(p)             (*((uint32_t *)(p)) & 0x20000000)
+#define HCI_PAGE_SCAN_MODE_CHANGED_EV(p)    (*((uint32_t *)(p)) & 0x40000000)
+#define HCI_PAGE_SCAN_REP_MODE_CHNG_EV(p)   (*((uint32_t *)(p)) & 0x80000000)
 
 /* the default event mask for 2.1+EDR (Lisbon) does not include Lisbon events */
 #define HCI_DEFAULT_EVENT_MASK_0            0xFFFFFFFF
@@ -893,7 +893,7 @@
     0x0000000000200000 Connectionless Broadcast Channel Map Change Event
     0x0000000000400000 Inquiry Response Notification Event
 */
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
 /* BLE event mask */
 #define HCI_BLE_EVENT_MASK_DEF               "\x00\x00\x00\x00\x00\x00\x07\xff"
 #else
@@ -1338,12 +1338,12 @@
 /* Define the extended flow specification fields used by AMP */
 typedef struct
 {
-    UINT8       id;
-    UINT8       stype;
-    UINT16      max_sdu_size;
-    UINT32      sdu_inter_time;
-    UINT32      access_latency;
-    UINT32      flush_timeout;
+    uint8_t     id;
+    uint8_t     stype;
+    uint16_t    max_sdu_size;
+    uint32_t    sdu_inter_time;
+    uint32_t    access_latency;
+    uint32_t    flush_timeout;
 } tHCI_EXT_FLOW_SPEC;
 
 

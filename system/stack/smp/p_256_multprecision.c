@@ -60,7 +60,7 @@ int multiprecision_iszero(DWORD *a, uint32_t keyLength)
     return 1;
 }
 
-UINT32 multiprecision_dword_bits(DWORD a)
+uint32_t multiprecision_dword_bits(DWORD a)
 {
     uint32_t i;
     for (i = 0; i < DWORD_BITS; i++, a >>= 1)
@@ -70,7 +70,7 @@ UINT32 multiprecision_dword_bits(DWORD a)
     return i;
 }
 
-UINT32 multiprecision_most_signdwords(DWORD *a, uint32_t keyLength)
+uint32_t multiprecision_most_signdwords(DWORD *a, uint32_t keyLength)
 {
     int  i;
     for (i = keyLength - 1; i >= 0; i--)
@@ -79,7 +79,7 @@ UINT32 multiprecision_most_signdwords(DWORD *a, uint32_t keyLength)
     return (i + 1);
 }
 
-UINT32 multiprecision_most_signbits(DWORD *a, uint32_t keyLength)
+uint32_t multiprecision_most_signbits(DWORD *a, uint32_t keyLength)
 {
     int aMostSignDWORDs;
 
@@ -282,7 +282,7 @@ void multiprecision_mult(DWORD *c, DWORD *a, DWORD *b, uint32_t keyLength)
         for (uint32_t j = 0; j < keyLength; j++)
         {
             uint64_t result;
-            result = ((UINT64)a[i]) * ((uint64_t) b[j]);
+            result = ((uint64_t)a[i]) * ((uint64_t) b[j]);
             W = result >> 32;
             V = a[i] * b[j];
             V = V + U;

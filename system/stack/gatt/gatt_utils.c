@@ -24,7 +24,7 @@
 #include "bt_target.h"
 #include "bt_utils.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     #include <string.h>
     #include "stdio.h"
     #include "bt_common.h"
@@ -76,7 +76,7 @@ const char * const op_code_name[] =
     "ATT_OP_CODE_MAX"
 };
 
-static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
+static const uint8_t base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 extern fixed_queue_t *btu_general_alarm_queue;
@@ -159,7 +159,7 @@ void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
 **
 ** Function         gatt_set_srv_chg
 **
-** Description      Set the service changed flag to TRUE
+** Description      Set the service changed flag to true
 **
 ** Returns        None
 **
@@ -179,8 +179,8 @@ void gatt_set_srv_chg(void)
         tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)list_node(node);
         if (!p_buf->srv_changed)
         {
-            GATT_TRACE_DEBUG("set srv_changed to TRUE");
-            p_buf->srv_changed = TRUE;
+            GATT_TRACE_DEBUG("set srv_changed to true");
+            p_buf->srv_changed = true;
             tGATTS_SRV_CHG_REQ req;
             memcpy(&req.srv_chg, p_buf, sizeof(tGATTS_SRV_CHG));
             if (gatt_cb.cb_info.p_srv_chg_callback)
@@ -244,7 +244,7 @@ tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 *******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_alloc_hdl_buffer(void)
 {
-    UINT8 i;
+    uint8_t i;
     tGATT_CB    *p_cb = &gatt_cb;
     tGATT_HDL_LIST_ELEM * p_elem= &p_cb->hdl_list[0];
 
@@ -253,7 +253,7 @@ tGATT_HDL_LIST_ELEM *gatt_alloc_hdl_buffer(void)
         if (!p_cb->hdl_list[i].in_use)
         {
             memset(p_elem, 0, sizeof(tGATT_HDL_LIST_ELEM));
-            p_elem->in_use = TRUE;
+            p_elem->in_use = true;
             p_elem->svc_db.svc_buffer = fixed_queue_new(SIZE_MAX);
             return p_elem;
         }
@@ -271,7 +271,7 @@ tGATT_HDL_LIST_ELEM *gatt_alloc_hdl_buffer(void)
 ** Returns    Pointer to the buffer, NULL no buffer available
 **
 *******************************************************************************/
-tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(UINT16 handle)
+tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(uint16_t handle)
 {
     tGATT_HDL_LIST_INFO *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM      *p_list = NULL;
@@ -299,7 +299,7 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(UINT16 handle)
 *******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
                                                      tBT_UUID *p_svc_uuid,
-                                                     UINT16 start_handle)
+                                                     uint16_t start_handle)
 {
     tGATT_HDL_LIST_INFO *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM      *p_list = NULL;
@@ -352,7 +352,7 @@ void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
 void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
 {
     tGATT_HDL_LIST_ELEM *p_elem =  &gatt_cb.hdl_list[0];
-    UINT8   i;
+    uint8_t i;
 
     for (i = 0; i < GATT_MAX_SR_PROFILES; i ++, p_elem ++)
     {
@@ -374,13 +374,13 @@ void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
 **
 ** Description     Check this is the last attribute of the specified value or not
 **
-** Returns       TRUE - yes this is the last attribute
+** Returns       true - yes this is the last attribute
 **
 *******************************************************************************/
-BOOLEAN gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_start, tBT_UUID value)
+bool    gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_start, tBT_UUID value)
 {
     tGATT_SRV_LIST_ELEM *p_srv= p_start->p_next;
-    BOOLEAN              is_last_attribute = TRUE;
+    bool                 is_last_attribute = true;
     tGATT_SR_REG        *p_rcb = NULL;
     tBT_UUID            *p_svc_uuid;
 
@@ -394,7 +394,7 @@ BOOLEAN gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 
         if (gatt_uuid_compare(value, *p_svc_uuid))
         {
-            is_last_attribute = FALSE;
+            is_last_attribute = false;
             break;
 
         }
@@ -439,11 +439,11 @@ void gatt_update_last_pri_srv_info(tGATT_SRV_LIST_INFO *p_list)
 ** Returns          None.
 **
 *******************************************************************************/
-void gatts_update_srv_list_elem(UINT8 i_sreg, UINT16 handle, BOOLEAN is_primary)
+void gatts_update_srv_list_elem(uint8_t i_sreg, uint16_t handle, bool    is_primary)
 {
     UNUSED(handle);
 
-    gatt_cb.srv_list[i_sreg].in_use         = TRUE;
+    gatt_cb.srv_list[i_sreg].in_use         = true;
     gatt_cb.srv_list[i_sreg].i_sreg    = i_sreg;
     gatt_cb.srv_list[i_sreg].s_hdl          = gatt_cb.sr_reg[i_sreg].s_hdl;
     gatt_cb.srv_list[i_sreg].is_primary     = is_primary;
@@ -457,17 +457,17 @@ void gatts_update_srv_list_elem(UINT8 i_sreg, UINT16 handle, BOOLEAN is_primary)
 ** Description  add an service to the list in ascending
 **              order of the start handle
 **
-** Returns   BOOLEAN TRUE-if add is successful
+** Returns   bool    true-if add is successful
 **
 *******************************************************************************/
-BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_new)
+bool    gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_new)
 {
     tGATT_SRV_LIST_ELEM *p_old;
 
     if (!p_new)
     {
         GATT_TRACE_DEBUG("p_new==NULL");
-        return FALSE;
+        return false;
     }
 
     if (!p_list->p_first)
@@ -513,7 +513,7 @@ BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
     p_list->count++;
 
     gatt_update_last_pri_srv_info(p_list);
-    return TRUE;
+    return true;
 
 }
 
@@ -523,15 +523,15 @@ BOOLEAN gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 **
 ** Description  Remove a service from the list
 **
-** Returns   BOOLEAN TRUE-if remove is successful
+** Returns   bool    true-if remove is successful
 **
 *******************************************************************************/
-BOOLEAN gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_remove)
+bool    gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_remove)
 {
     if (!p_remove || !p_list->p_first)
     {
         GATT_TRACE_DEBUG("p_remove==NULL || p_list->p_first==NULL");
-        return FALSE;
+        return false;
     }
 
     if (p_remove->p_prev == NULL)
@@ -552,7 +552,7 @@ BOOLEAN gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_
     }
     p_list->count--;
     gatt_update_last_pri_srv_info(p_list);
-    return TRUE;
+    return true;
 
 }
 
@@ -563,16 +563,16 @@ BOOLEAN gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_
 ** Description  add an service handle range to the list in decending
 **              order of the start handle
 **
-** Returns   BOOLEAN TRUE-if add is successful
+** Returns   bool    true-if add is successful
 **
 *******************************************************************************/
-BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_new)
+bool    gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_new)
 {
     tGATT_HDL_LIST_ELEM *p_old;
     if (!p_new)
     {
         GATT_TRACE_DEBUG("p_new==NULL");
-        return FALSE;
+        return false;
     }
 
     if (!p_list->p_first)
@@ -617,7 +617,7 @@ BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELE
         }
     }
     p_list->count++;
-    return TRUE;
+    return true;
 
 }
 
@@ -627,15 +627,15 @@ BOOLEAN gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELE
 **
 ** Description  Remove an service handle range from the list
 **
-** Returns   BOOLEAN TRUE-if remove is successful
+** Returns   bool    true-if remove is successful
 **
 *******************************************************************************/
-BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_remove)
+bool    gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_remove)
 {
     if (!p_remove || !p_list->p_first)
     {
         GATT_TRACE_DEBUG("p_remove==NULL || p_list->p_first==NULL");
-        return FALSE;
+        return false;
     }
 
     if (p_remove->p_prev == NULL)
@@ -655,7 +655,7 @@ BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIS
         p_remove->p_prev->p_next = p_remove->p_next;
     }
     p_list->count--;
-    return TRUE;
+    return true;
 
 }
 
@@ -665,14 +665,14 @@ BOOLEAN gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIS
 **
 ** Description      This function find the connected bda
 **
-** Returns           TRUE if found
+** Returns           true if found
 **
 *******************************************************************************/
-BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found_idx,
+bool    gatt_find_the_connected_bda(uint8_t start_idx, BD_ADDR bda, uint8_t *p_found_idx,
                                     tBT_TRANSPORT *p_transport)
 {
-    UINT8 i;
-    BOOLEAN found = FALSE;
+    uint8_t i;
+    bool    found = false;
     GATT_TRACE_DEBUG("gatt_find_the_connected_bda start_idx=%d",start_idx);
 
     for (i = start_idx ; i < GATT_MAX_PHY_CHANNEL; i ++)
@@ -682,7 +682,7 @@ BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found
             memcpy( bda, gatt_cb.tcb[i].peer_bda, BD_ADDR_LEN);
             *p_found_idx = i;
             *p_transport = gatt_cb.tcb[i].transport;
-            found = TRUE;
+            found = true;
             GATT_TRACE_DEBUG("gatt_find_the_connected_bda bda :%02x-%02x-%02x-%02x-%02x-%02x",
                               bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
             break;
@@ -701,19 +701,19 @@ BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *p_found
 ** Description      Check whether a service chnaged is in the indication pending queue
 **                  or waiting for an Ack already
 **
-** Returns         BOOLEAN
+** Returns         bool
 **
 *******************************************************************************/
-BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
+bool    gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
 {
-    BOOLEAN srv_chg_ind_pending = FALSE;
+    bool    srv_chg_ind_pending = false;
 
     GATT_TRACE_DEBUG("gatt_is_srv_chg_ind_pending is_queue_empty=%d",
                      fixed_queue_is_empty(p_tcb->pending_ind_q));
 
     if (p_tcb->indicate_handle == gatt_cb.handle_of_h_r)
     {
-        srv_chg_ind_pending = TRUE;
+        srv_chg_ind_pending = true;
     }
     else if (! fixed_queue_is_empty(p_tcb->pending_ind_q))
     {
@@ -724,7 +724,7 @@ BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
             tGATT_VALUE *p_buf = (tGATT_VALUE *)list_node(node);
             if (p_buf->handle == gatt_cb.handle_of_h_r)
             {
-                srv_chg_ind_pending = TRUE;
+                srv_chg_ind_pending = true;
                 break;
             }
         }
@@ -778,17 +778,17 @@ tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
 ** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
 **
 *******************************************************************************/
-BOOLEAN gatt_is_bda_connected(BD_ADDR bda)
+bool    gatt_is_bda_connected(BD_ADDR bda)
 {
-    UINT8 i = 0;
-    BOOLEAN connected=FALSE;
+    uint8_t i = 0;
+    bool    connected=false;
 
     for ( i=0; i < GATT_MAX_PHY_CHANNEL; i ++)
     {
         if (gatt_cb.tcb[i].in_use &&
             !memcmp(gatt_cb.tcb[i].peer_bda, bda, BD_ADDR_LEN))
         {
-            connected = TRUE;
+            connected = true;
             break;
         }
     }
@@ -804,9 +804,9 @@ BOOLEAN gatt_is_bda_connected(BD_ADDR bda)
 ** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
 **
 *******************************************************************************/
-UINT8 gatt_find_i_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
+uint8_t gatt_find_i_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
-    UINT8 i = 0;
+    uint8_t i = 0;
 
     for ( ; i < GATT_MAX_PHY_CHANNEL; i ++)
     {
@@ -829,7 +829,7 @@ UINT8 gatt_find_i_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 ** Returns           NULL if not found. Otherwise index to the tcb.
 **
 *******************************************************************************/
-tGATT_TCB * gatt_get_tcb_by_idx(UINT8 tcb_idx)
+tGATT_TCB * gatt_get_tcb_by_idx(uint8_t tcb_idx)
 {
     tGATT_TCB   *p_tcb = NULL;
 
@@ -851,7 +851,7 @@ tGATT_TCB * gatt_get_tcb_by_idx(UINT8 tcb_idx)
 tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     tGATT_TCB   *p_tcb = NULL;
-    UINT8 i = 0;
+    uint8_t i = 0;
 
     if ((i = gatt_find_i_tcb_by_addr(bda, transport)) != GATT_INDEX_INVALID)
         p_tcb = &gatt_cb.tcb[i];
@@ -867,9 +867,9 @@ tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 ** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
 **
 *******************************************************************************/
-UINT8 gatt_find_i_tcb_free(void)
+uint8_t gatt_find_i_tcb_free(void)
 {
-    UINT8 i = 0, j = GATT_INDEX_INVALID;
+    uint8_t i = 0, j = GATT_INDEX_INVALID;
 
     for (i = 0; i < GATT_MAX_PHY_CHANNEL; i ++)
     {
@@ -892,8 +892,8 @@ UINT8 gatt_find_i_tcb_free(void)
 *******************************************************************************/
 tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
-    UINT8 i = 0;
-    BOOLEAN allocated = FALSE;
+    uint8_t i = 0;
+    bool    allocated = false;
     tGATT_TCB    *p_tcb = NULL;
 
     /* search for existing tcb with matching bda    */
@@ -902,7 +902,7 @@ tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
     if (i == GATT_INDEX_INVALID)
     {
         i = gatt_find_i_tcb_free();
-        allocated = TRUE;
+        allocated = true;
     }
     if (i != GATT_INDEX_INVALID)
     {
@@ -915,7 +915,7 @@ tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
             p_tcb->pending_ind_q = fixed_queue_new(SIZE_MAX);
             p_tcb->conf_timer = alarm_new("gatt.conf_timer");
             p_tcb->ind_ack_timer = alarm_new("gatt.ind_ack_timer");
-            p_tcb->in_use = TRUE;
+            p_tcb->in_use = true;
             p_tcb->tcb_idx = i;
             p_tcb->transport = transport;
         }
@@ -930,12 +930,12 @@ tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
 **
 ** Description      Convert a 16 bits UUID to be an standard 128 bits one.
 **
-** Returns          TRUE if two uuid match; FALSE otherwise.
+** Returns          true if two uuid match; false otherwise.
 **
 *******************************************************************************/
-void gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16)
+void gatt_convert_uuid16_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint16_t uuid_16)
 {
-    UINT8   *p = &uuid_128[LEN_UUID_128 - 4];
+    uint8_t *p = &uuid_128[LEN_UUID_128 - 4];
 
     memcpy (uuid_128, base_uuid, LEN_UUID_128);
 
@@ -948,12 +948,12 @@ void gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16
 **
 ** Description      Convert a 32 bits UUID to be an standard 128 bits one.
 **
-** Returns          TRUE if two uuid match; FALSE otherwise.
+** Returns          true if two uuid match; false otherwise.
 **
 *******************************************************************************/
-void gatt_convert_uuid32_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT32 uuid_32)
+void gatt_convert_uuid32_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint32_t uuid_32)
 {
-    UINT8   *p = &uuid_128[LEN_UUID_128 - 4];
+    uint8_t *p = &uuid_128[LEN_UUID_128 - 4];
 
     memcpy (uuid_128, base_uuid, LEN_UUID_128);
 
@@ -965,18 +965,18 @@ void gatt_convert_uuid32_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT32 uuid_32
 **
 ** Description      Compare two UUID to see if they are the same.
 **
-** Returns          TRUE if two uuid match; FALSE otherwise.
+** Returns          true if two uuid match; false otherwise.
 **
 *******************************************************************************/
-BOOLEAN gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
+bool    gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
 {
-    UINT8  su[LEN_UUID_128], tu[LEN_UUID_128];
-    UINT8  *ps, *pt;
+    uint8_t su[LEN_UUID_128], tu[LEN_UUID_128];
+    uint8_t *ps, *pt;
 
     /* any of the UUID is unspecified */
     if (src.len == 0 || tar.len == 0)
     {
-        return TRUE;
+        return true;
     }
 
     /* If both are 16-bit, we can do a simple compare */
@@ -1033,10 +1033,10 @@ BOOLEAN gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
 ** Returns          UUID length.
 **
 *******************************************************************************/
-UINT8 gatt_build_uuid_to_stream(UINT8 **p_dst, tBT_UUID uuid)
+uint8_t gatt_build_uuid_to_stream(uint8_t **p_dst, tBT_UUID uuid)
 {
-    UINT8   *p = *p_dst;
-    UINT8   len = 0;
+    uint8_t *p = *p_dst;
+    uint8_t len = 0;
 
     if (uuid.len == LEN_UUID_16)
     {
@@ -1065,14 +1065,14 @@ UINT8 gatt_build_uuid_to_stream(UINT8 **p_dst, tBT_UUID uuid)
 **
 ** Description      Convert a 128 bits UUID into a 16 bits UUID.
 **
-** Returns          TRUE if command sent, otherwise FALSE.
+** Returns          true if command sent, otherwise false.
 **
 *******************************************************************************/
-BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 **p_data)
+bool    gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, uint16_t uuid_size, uint8_t **p_data)
 {
-    BOOLEAN is_base_uuid, ret = TRUE;
-    UINT8  xx;
-    UINT8 *p_uuid = *p_data;
+    bool    is_base_uuid, ret = true;
+    uint8_t xx;
+    uint8_t *p_uuid = *p_data;
 
     memset(p_uuid_rec, 0, sizeof(tBT_UUID));
 
@@ -1086,12 +1086,12 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
 
         case LEN_UUID_128:
             /* See if we can compress his UUID down to 16 or 32bit UUIDs */
-            is_base_uuid = TRUE;
+            is_base_uuid = true;
             for (xx = 0; xx < LEN_UUID_128 - 4; xx++)
             {
                 if (p_uuid[xx] != base_uuid[xx])
                 {
-                    is_base_uuid = FALSE;
+                    is_base_uuid = false;
                     break;
                 }
             }
@@ -1123,7 +1123,7 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
             GATT_TRACE_ERROR("DO NOT ALLOW 32 BITS UUID IN ATT PDU");
         case 0:
         default:
-            if (uuid_size != 0) ret = FALSE;
+            if (uuid_size != 0) ret = false;
             GATT_TRACE_WARNING("gatt_parse_uuid_from_cmd invalid uuid size");
             break;
     }
@@ -1140,7 +1140,7 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_start_rsp_timer(UINT16 clcb_idx)
+void gatt_start_rsp_timer(uint16_t clcb_idx)
 {
     tGATT_CLCB *p_clcb = &gatt_cb.clcb[clcb_idx];
     period_ms_t timeout_ms = GATT_WAIT_FOR_RSP_TIMEOUT_MS;
@@ -1213,7 +1213,7 @@ void gatt_rsp_timeout(void *data)
         p_clcb->op_subtype == GATT_DISC_SRVC_ALL &&
         p_clcb->retry_count < GATT_REQ_RETRY_LIMIT)
     {
-        UINT8 rsp_code;
+        uint8_t rsp_code;
         GATT_TRACE_WARNING("%s retry discovery primary service", __func__);
         if (p_clcb != gatt_cmd_dequeue(p_clcb->p_tcb, &rsp_code))
         {
@@ -1278,9 +1278,9 @@ void gatt_ind_ack_timeout(void *data)
 ** Returns          GATT_MAX_SR_PROFILES if not found. Otherwise index of th eservice.
 **
 *******************************************************************************/
-UINT8 gatt_sr_find_i_rcb_by_handle(UINT16 handle)
+uint8_t gatt_sr_find_i_rcb_by_handle(uint16_t handle)
 {
-    UINT8  i_rcb = 0;
+    uint8_t i_rcb = 0;
 
     for ( ; i_rcb < GATT_MAX_SR_PROFILES; i_rcb++)
     {
@@ -1303,9 +1303,9 @@ UINT8 gatt_sr_find_i_rcb_by_handle(UINT16 handle)
 ** Returns          0 if not found. Otherwise index of th eservice.
 **
 *******************************************************************************/
-UINT8 gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 start_handle)
+uint8_t gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, uint16_t start_handle)
 {
-    UINT8           i_rcb = 0;
+    uint8_t         i_rcb = 0;
     tGATT_SR_REG    *p_sreg;
     tBT_UUID        *p_this_uuid;
 
@@ -1338,9 +1338,9 @@ UINT8 gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid
 ** Returns          0 if not found. Otherwise index of th eservice.
 **
 *******************************************************************************/
-UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
+uint8_t gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
 {
-    UINT8   ii = 0;
+    uint8_t ii = 0;
     tGATT_SR_REG    *p_sreg = NULL;
 
     /*this is a new application servoce start */
@@ -1350,7 +1350,7 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
         {
             memset (p_sreg, 0, sizeof(tGATT_SR_REG));
 
-            p_sreg->in_use = TRUE;
+            p_sreg->in_use = true;
             memcpy (&p_sreg->app_uuid, &p_list->asgn_range.app_uuid128, sizeof(tBT_UUID));
 
             p_sreg->type                = p_list->asgn_range.is_primary ? GATT_UUID_PRI_SERVICE: GATT_UUID_SEC_SERVICE;
@@ -1376,9 +1376,9 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, UINT8 *p_sec_flag, UINT8 *p_key_size)
+void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, uint8_t *p_sec_flag, uint8_t *p_key_size)
 {
-    UINT8           sec_flag = 0;
+    uint8_t         sec_flag = 0;
 
     BTM_GetSecurityFlagsByTransport(rem_bda, &sec_flag, transport);
 
@@ -1397,8 +1397,8 @@ void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, UINT8 *p_sec
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_sr_send_req_callback(UINT16 conn_id,
-                               UINT32 trans_id,
+void gatt_sr_send_req_callback(uint16_t conn_id,
+                               uint32_t trans_id,
                                tGATTS_REQ_TYPE type, tGATTS_DATA *p_data)
 {
     tGATT_IF        gatt_if = GATT_GET_GATT_IF(conn_id);
@@ -1431,8 +1431,8 @@ void gatt_sr_send_req_callback(UINT16 conn_id,
 ** Returns          void
 **
 *******************************************************************************/
-tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, UINT8 err_code, UINT8 op_code,
-                                  UINT16 handle, BOOLEAN deq)
+tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, uint8_t err_code, uint8_t op_code,
+                                  uint16_t handle, bool    deq)
 {
     tGATT_ERROR      error;
     tGATT_STATUS     status;
@@ -1465,13 +1465,13 @@ tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, UINT8 err_code, UINT8 op_cod
 ** Returns          0 if error else sdp handle for the record.
 **
 *******************************************************************************/
-UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
+uint32_t gatt_add_sdp_record (tBT_UUID *p_uuid, uint16_t start_hdl, uint16_t end_hdl)
 {
     tSDP_PROTOCOL_ELEM  proto_elem_list[2];
-    UINT32              sdp_handle;
-    UINT16              list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    UINT8               buff[60];
-    UINT8               *p = buff;
+    uint32_t            sdp_handle;
+    uint16_t            list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    uint8_t             buff[60];
+    uint8_t             *p = buff;
 
     GATT_TRACE_DEBUG("gatt_add_sdp_record s_hdl=0x%x  s_hdl=0x%x",start_hdl, end_hdl);
 
@@ -1488,14 +1488,14 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
             UINT8_TO_BE_STREAM (p, (UUID_DESC_TYPE << 3) | SIZE_FOUR_BYTES);
             UINT32_TO_BE_STREAM (p, p_uuid->uu.uuid32);
             SDP_AddAttribute (sdp_handle, ATTR_ID_SERVICE_CLASS_ID_LIST, DATA_ELE_SEQ_DESC_TYPE,
-                              (UINT32) (p - buff), buff);
+                              (uint32_t) (p - buff), buff);
             break;
 
         case LEN_UUID_128:
             UINT8_TO_BE_STREAM (p, (UUID_DESC_TYPE << 3) | SIZE_SIXTEEN_BYTES);
             ARRAY_TO_BE_STREAM_REVERSE (p, p_uuid->uu.uuid128, LEN_UUID_128);
             SDP_AddAttribute (sdp_handle, ATTR_ID_SERVICE_CLASS_ID_LIST, DATA_ELE_SEQ_DESC_TYPE,
-                              (UINT32) (p - buff), buff);
+                              (uint32_t) (p - buff), buff);
             break;
 
         default:
@@ -1523,7 +1523,7 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
 }
 
 
-    #if GATT_CONFORMANCE_TESTING == TRUE
+    #if GATT_CONFORMANCE_TESTING == true
 /*******************************************************************************
 **
 ** Function         gatt_set_err_rsp
@@ -1533,7 +1533,7 @@ UINT32 gatt_add_sdp_record (tBT_UUID *p_uuid, UINT16 start_hdl, UINT16 end_hdl)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_set_err_rsp(BOOLEAN enable, UINT8 req_op_code, UINT8 err_status)
+void gatt_set_err_rsp(bool    enable, uint8_t req_op_code, uint8_t err_status)
 {
     GATT_TRACE_DEBUG("gatt_set_err_rsp enable=%d op_code=%d, err_status=%d", enable, req_op_code, err_status);
     gatt_cb.enable_err_rsp  = enable;
@@ -1555,7 +1555,7 @@ void gatt_set_err_rsp(BOOLEAN enable, UINT8 req_op_code, UINT8 err_status)
 *******************************************************************************/
 tGATT_REG *gatt_get_regcb (tGATT_IF gatt_if)
 {
-    UINT8           ii = (UINT8)gatt_if;
+    uint8_t         ii = (uint8_t)gatt_if;
     tGATT_REG       *p_reg = NULL;
 
     if (ii < 1 || ii > GATT_MAX_APPS) {
@@ -1585,16 +1585,16 @@ tGATT_REG *gatt_get_regcb (tGATT_IF gatt_if)
 **
 *******************************************************************************/
 
-BOOLEAN gatt_is_clcb_allocated (UINT16 conn_id)
+bool    gatt_is_clcb_allocated (uint16_t conn_id)
 {
-    UINT8         i = 0;
-    BOOLEAN       is_allocated= FALSE;
+    uint8_t       i = 0;
+    bool          is_allocated= false;
 
     for (i = 0; i < GATT_CL_MAX_LCB; i++)
     {
         if (gatt_cb.clcb[i].in_use && (gatt_cb.clcb[i].conn_id == conn_id))
         {
-            is_allocated = TRUE;
+            is_allocated = true;
             break;
         }
     }
@@ -1611,12 +1611,12 @@ BOOLEAN gatt_is_clcb_allocated (UINT16 conn_id)
 ** Returns           NULL if not found. Otherwise pointer to the connection link block.
 **
 *******************************************************************************/
-tGATT_CLCB *gatt_clcb_alloc (UINT16 conn_id)
+tGATT_CLCB *gatt_clcb_alloc (uint16_t conn_id)
 {
-    UINT8           i = 0;
+    uint8_t         i = 0;
     tGATT_CLCB      *p_clcb = NULL;
     tGATT_IF        gatt_if=GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
@@ -1626,7 +1626,7 @@ tGATT_CLCB *gatt_clcb_alloc (UINT16 conn_id)
         {
             p_clcb = &gatt_cb.clcb[i];
 
-            p_clcb->in_use      = TRUE;
+            p_clcb->in_use      = true;
             p_clcb->conn_id     = conn_id;
             p_clcb->clcb_idx    = i;
             p_clcb->p_reg       = p_reg;
@@ -1667,9 +1667,9 @@ void gatt_clcb_dealloc (tGATT_CLCB *p_clcb)
 ** Returns           NULL if not found. Otherwise pointer to the rcb.
 **
 *******************************************************************************/
-tGATT_TCB * gatt_find_tcb_by_cid (UINT16 lcid)
+tGATT_TCB * gatt_find_tcb_by_cid (uint16_t lcid)
 {
-    UINT16       xx = 0;
+    uint16_t     xx = 0;
     tGATT_TCB    *p_tcb = NULL;
 
     for (xx = 0; xx < GATT_MAX_PHY_CHANNEL; xx++)
@@ -1693,9 +1693,9 @@ tGATT_TCB * gatt_find_tcb_by_cid (UINT16 lcid)
 ** Returns          total number of applications holding this acl link.
 **
 *******************************************************************************/
-UINT8 gatt_num_apps_hold_link(tGATT_TCB *p_tcb)
+uint8_t gatt_num_apps_hold_link(tGATT_TCB *p_tcb)
 {
-    UINT8 i, num = 0;
+    uint8_t i, num = 0;
 
     for (i = 0; i < GATT_MAX_APPS; i ++)
     {
@@ -1717,9 +1717,9 @@ UINT8 gatt_num_apps_hold_link(tGATT_TCB *p_tcb)
 ** Returns          total number of clcb found.
 **
 *******************************************************************************/
-UINT8 gatt_num_clcb_by_bd_addr(BD_ADDR bda)
+uint8_t gatt_num_clcb_by_bd_addr(BD_ADDR bda)
 {
-    UINT8 i, num = 0;
+    uint8_t i, num = 0;
 
     for (i = 0; i < GATT_CL_MAX_LCB; i ++)
     {
@@ -1740,7 +1740,7 @@ UINT8 gatt_num_clcb_by_bd_addr(BD_ADDR bda)
 *******************************************************************************/
 void gatt_sr_copy_prep_cnt_to_cback_cnt(tGATT_TCB *p_tcb )
 {
-    UINT8 i;
+    uint8_t i;
 
     if (p_tcb)
     {
@@ -1764,10 +1764,10 @@ void gatt_sr_copy_prep_cnt_to_cback_cnt(tGATT_TCB *p_tcb )
 ** Returns          True if thetotal application callback count is zero
 **
 *******************************************************************************/
-BOOLEAN gatt_sr_is_cback_cnt_zero(tGATT_TCB *p_tcb )
+bool    gatt_sr_is_cback_cnt_zero(tGATT_TCB *p_tcb )
 {
-    BOOLEAN status = TRUE;
-    UINT8   i;
+    bool    status = true;
+    uint8_t i;
 
     if (p_tcb)
     {
@@ -1775,14 +1775,14 @@ BOOLEAN gatt_sr_is_cback_cnt_zero(tGATT_TCB *p_tcb )
         {
             if (p_tcb->sr_cmd.cback_cnt[i])
             {
-                status = FALSE;
+                status = false;
                 break;
             }
         }
     }
     else
     {
-        status = FALSE;
+        status = false;
     }
     return status;
 }
@@ -1796,10 +1796,10 @@ BOOLEAN gatt_sr_is_cback_cnt_zero(tGATT_TCB *p_tcb )
 ** Returns          True no prepare write request
 **
 *******************************************************************************/
-BOOLEAN gatt_sr_is_prep_cnt_zero(tGATT_TCB *p_tcb)
+bool    gatt_sr_is_prep_cnt_zero(tGATT_TCB *p_tcb)
 {
-    BOOLEAN status = TRUE;
-    UINT8   i;
+    bool    status = true;
+    uint8_t i;
 
     if (p_tcb)
     {
@@ -1807,14 +1807,14 @@ BOOLEAN gatt_sr_is_prep_cnt_zero(tGATT_TCB *p_tcb)
         {
             if (p_tcb->prep_cnt[i])
             {
-                status = FALSE;
+                status = false;
                 break;
             }
         }
     }
     else
     {
-        status = FALSE;
+        status = false;
     }
     return status;
 }
@@ -1831,7 +1831,7 @@ BOOLEAN gatt_sr_is_prep_cnt_zero(tGATT_TCB *p_tcb)
 *******************************************************************************/
 void gatt_sr_reset_cback_cnt(tGATT_TCB *p_tcb )
 {
-    UINT8 i;
+    uint8_t i;
 
     if (p_tcb)
     {
@@ -1853,7 +1853,7 @@ void gatt_sr_reset_cback_cnt(tGATT_TCB *p_tcb )
 *******************************************************************************/
 void gatt_sr_reset_prep_cnt(tGATT_TCB *p_tcb )
 {
-    UINT8 i;
+    uint8_t i;
     if (p_tcb)
     {
         for (i = 0; i < GATT_MAX_APPS; i ++)
@@ -1873,10 +1873,10 @@ void gatt_sr_reset_prep_cnt(tGATT_TCB *p_tcb )
 ** Returns           None
 **
 *******************************************************************************/
-void gatt_sr_update_cback_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc, BOOLEAN is_reset_first)
+void gatt_sr_update_cback_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, bool    is_inc, bool    is_reset_first)
 {
 
-    UINT8 idx = ((UINT8) gatt_if) - 1 ;
+    uint8_t idx = ((uint8_t) gatt_if) - 1 ;
 
     if (p_tcb)
     {
@@ -1908,9 +1908,9 @@ void gatt_sr_update_cback_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc
 ** Returns           None
 **
 *******************************************************************************/
-void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc, BOOLEAN is_reset_first)
+void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, bool    is_inc, bool    is_reset_first)
 {
-    UINT8 idx = ((UINT8) gatt_if) - 1 ;
+    uint8_t idx = ((uint8_t) gatt_if) - 1 ;
 
     GATT_TRACE_DEBUG("gatt_sr_update_prep_cnt tcb idx=%d gatt_if=%d is_inc=%d is_reset_first=%d",
                       p_tcb->tcb_idx, gatt_if, is_inc, is_reset_first);
@@ -1943,10 +1943,10 @@ void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, BOOLEAN is_inc,
 ** Returns         Boolean
 **
 *******************************************************************************/
-BOOLEAN gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
+bool    gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
 {
     tGATT_TCB *p_tcb=NULL;
-    BOOLEAN status= TRUE;
+    bool    status= true;
 
     p_tcb = gatt_find_tcb_by_addr(bda, BT_TRANSPORT_LE);
 
@@ -1955,11 +1955,11 @@ BOOLEAN gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
         if (gatt_get_ch_state(p_tcb) == GATT_CH_OPEN)
         {
             GATT_TRACE_ERROR("GATT_CancelConnect - link connected Too late to cancel");
-            status = FALSE;
+            status = false;
         }
         else
         {
-            gatt_update_app_use_link_flag(gatt_if, p_tcb, FALSE, FALSE);
+            gatt_update_app_use_link_flag(gatt_if, p_tcb, false, false);
             if (!gatt_num_apps_hold_link(p_tcb))
             {
                 gatt_disconnect(p_tcb);
@@ -1979,10 +1979,10 @@ BOOLEAN gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
 ** Returns         Boolean
 **
 *******************************************************************************/
-BOOLEAN gatt_find_app_hold_link(tGATT_TCB *p_tcb, UINT8 start_idx, UINT8 *p_found_idx, tGATT_IF *p_gatt_if)
+bool    gatt_find_app_hold_link(tGATT_TCB *p_tcb, uint8_t start_idx, uint8_t *p_found_idx, tGATT_IF *p_gatt_if)
 {
-    UINT8 i;
-    BOOLEAN found= FALSE;
+    uint8_t i;
+    bool    found= false;
 
     for (i = start_idx; i < GATT_MAX_APPS; i ++)
     {
@@ -1990,7 +1990,7 @@ BOOLEAN gatt_find_app_hold_link(tGATT_TCB *p_tcb, UINT8 start_idx, UINT8 *p_foun
         {
             *p_gatt_if = gatt_cb.clcb[i].p_reg->gatt_if;
             *p_found_idx = i;
-            found = TRUE;
+            found = true;
             break;
         }
     }
@@ -2006,7 +2006,7 @@ BOOLEAN gatt_find_app_hold_link(tGATT_TCB *p_tcb, UINT8 start_idx, UINT8 *p_foun
 ** Returns          None.
 **
 *******************************************************************************/
-BOOLEAN gatt_cmd_enq(tGATT_TCB *p_tcb, UINT16 clcb_idx, BOOLEAN to_send, UINT8 op_code, BT_HDR *p_buf)
+bool    gatt_cmd_enq(tGATT_TCB *p_tcb, uint16_t clcb_idx, bool    to_send, uint8_t op_code, BT_HDR *p_buf)
 {
     tGATT_CMD_Q  *p_cmd = &p_tcb->cl_cmd_q[p_tcb->next_slot_inq];
 
@@ -2023,7 +2023,7 @@ BOOLEAN gatt_cmd_enq(tGATT_TCB *p_tcb, UINT16 clcb_idx, BOOLEAN to_send, UINT8 o
     p_tcb->next_slot_inq ++;
     p_tcb->next_slot_inq %= GATT_CL_MAX_LCB;
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -2035,7 +2035,7 @@ BOOLEAN gatt_cmd_enq(tGATT_TCB *p_tcb, UINT16 clcb_idx, BOOLEAN to_send, UINT8 o
 ** Returns          total number of clcb found.
 **
 *******************************************************************************/
-tGATT_CLCB * gatt_cmd_dequeue(tGATT_TCB *p_tcb, UINT8 *p_op_code)
+tGATT_CLCB * gatt_cmd_dequeue(tGATT_TCB *p_tcb, uint8_t *p_op_code)
 {
     tGATT_CMD_Q  *p_cmd = &p_tcb->cl_cmd_q[p_tcb->pending_cl_req];
     tGATT_CLCB *p_clcb = NULL;
@@ -2062,9 +2062,9 @@ tGATT_CLCB * gatt_cmd_dequeue(tGATT_TCB *p_tcb, UINT8 *p_op_code)
 ** Returns          status code
 **
 *******************************************************************************/
-UINT8 gatt_send_write_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code,
-                           UINT16 handle, UINT16 len,
-                           UINT16 offset, UINT8 *p_data)
+uint8_t gatt_send_write_msg (tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t op_code,
+                           uint16_t handle, uint16_t len,
+                           uint16_t offset, uint8_t *p_data)
 {
     tGATT_CL_MSG     msg;
 
@@ -2088,8 +2088,8 @@ UINT8 gatt_send_write_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code,
 ** Returns          status code
 **
 *******************************************************************************/
-UINT8 gatt_act_send_browse(tGATT_TCB *p_tcb, UINT16 index, UINT8 op, UINT16 s_handle,
-                           UINT16 e_handle, tBT_UUID uuid)
+uint8_t gatt_act_send_browse(tGATT_TCB *p_tcb, uint16_t index, uint8_t op, uint16_t s_handle,
+                           uint16_t e_handle, tBT_UUID uuid)
 {
     tGATT_CL_MSG     msg;
 
@@ -2115,10 +2115,10 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 {
     tGATT_CL_COMPLETE   cb_data;
     tGATT_CMPL_CBACK    *p_cmpl_cb = (p_clcb->p_reg) ? p_clcb->p_reg->app_cb.p_cmpl_cb : NULL;
-    UINT8               op = p_clcb->operation, disc_type=GATT_DISC_MAX;
+    uint8_t             op = p_clcb->operation, disc_type=GATT_DISC_MAX;
     tGATT_DISC_CMPL_CB  *p_disc_cmpl_cb = (p_clcb->p_reg) ? p_clcb->p_reg->app_cb.p_disc_cmpl_cb : NULL;
-    UINT16              conn_id;
-    UINT8               operation;
+    uint16_t            conn_id;
+    uint8_t             operation;
 
     GATT_TRACE_DEBUG ("gatt_end_operation status=%d op=%d subtype=%d",
                        status, p_clcb->operation, p_clcb->op_subtype);
@@ -2189,12 +2189,12 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 ** Returns          16 bits uuid.
 **
 *******************************************************************************/
-void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
+void gatt_cleanup_upon_disc(BD_ADDR bda, uint16_t reason, tBT_TRANSPORT transport)
 {
     tGATT_TCB       *p_tcb = NULL;
     tGATT_CLCB      *p_clcb;
-    UINT8           i;
-    UINT16          conn_id;
+    uint8_t         i;
+    uint16_t        conn_id;
     tGATT_REG        *p_reg=NULL;
 
 
@@ -2235,7 +2235,7 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
             {
                 conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
                 GATT_TRACE_DEBUG ("found p_reg tcb_idx=%d gatt_if=%d  conn_id=0x%x", p_tcb->tcb_idx, p_reg->gatt_if, conn_id);
-                (*p_reg->app_cb.p_conn_cb)(p_reg->gatt_if,  bda, conn_id, FALSE, reason, transport);
+                (*p_reg->app_cb.p_conn_cb)(p_reg->gatt_if,  bda, conn_id, false, reason, transport);
             }
         }
         memset(p_tcb, 0, sizeof(tGATT_TCB));
@@ -2249,12 +2249,12 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
 **
 ** Description      Get op code description name, for debug information.
 **
-** Returns          UINT8 *: name of the operation.
+** Returns          uint8_t *: name of the operation.
 **
 *******************************************************************************/
-UINT8 * gatt_dbg_op_name(UINT8 op_code)
+uint8_t * gatt_dbg_op_name(uint8_t op_code)
 {
-    UINT8 pseduo_op_code_idx = op_code & (~GATT_WRITE_CMD_MASK);
+    uint8_t pseduo_op_code_idx = op_code & (~GATT_WRITE_CMD_MASK);
 
     if (op_code == GATT_CMD_WRITE )
     {
@@ -2268,9 +2268,9 @@ UINT8 * gatt_dbg_op_name(UINT8 op_code)
     }
 
     if (pseduo_op_code_idx <= GATT_OP_CODE_MAX)
-        return(UINT8*) op_code_name[pseduo_op_code_idx];
+        return(uint8_t*) op_code_name[pseduo_op_code_idx];
     else
-        return(UINT8 *)"Op Code Exceed Max";
+        return(uint8_t *)"Op Code Exceed Max";
 }
 
 /*******************************************************************************
@@ -2321,21 +2321,21 @@ void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
 **
 ** Description      find is this one of the background devices for the application
 **
-** Returns          TRUE this is one of the background devices for the  application
+** Returns          true this is one of the background devices for the  application
 **
 *******************************************************************************/
-BOOLEAN gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if)
+bool    gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if)
 {
-    UINT8   i;
+    uint8_t i;
 
     for (i = 0; i < GATT_MAX_APPS; i ++ )
     {
         if (p_dev->in_use && (p_dev->gatt_if[i] == gatt_if))
         {
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 /*******************************************************************************
 **
@@ -2349,7 +2349,7 @@ BOOLEAN gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if)
 tGATT_BG_CONN_DEV * gatt_find_bg_dev(BD_ADDR remote_bda)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
-    UINT8   i;
+    uint8_t i;
 
     for (i = 0; i < GATT_MAX_BG_CONN_DEV; i ++, p_dev_list ++)
     {
@@ -2372,13 +2372,13 @@ tGATT_BG_CONN_DEV * gatt_find_bg_dev(BD_ADDR remote_bda)
 tGATT_BG_CONN_DEV * gatt_alloc_bg_dev(BD_ADDR remote_bda)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
-    UINT8   i;
+    uint8_t i;
 
     for (i = 0; i < GATT_MAX_BG_CONN_DEV; i ++, p_dev_list ++)
     {
         if (!p_dev_list->in_use)
         {
-            p_dev_list->in_use = TRUE;
+            p_dev_list->in_use = true;
             memcpy(p_dev_list->remote_bda, remote_bda, BD_ADDR_LEN);
 
             return p_dev_list;
@@ -2393,15 +2393,15 @@ tGATT_BG_CONN_DEV * gatt_alloc_bg_dev(BD_ADDR remote_bda)
 **
 ** Description      add/remove device from the back ground connection device list
 **
-** Returns          TRUE if device added to the list; FALSE failed
+** Returns          true if device added to the list; false failed
 **
 *******************************************************************************/
-BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_initator)
+bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, bool    is_initator)
 {
     tGATT_IF gatt_if =  p_reg->gatt_if;
     tGATT_BG_CONN_DEV   *p_dev = NULL;
-    UINT8       i;
-    BOOLEAN      ret = FALSE;
+    uint8_t     i;
+    bool         ret = false;
 
     if ((p_dev = gatt_find_bg_dev(bd_addr)) == NULL)
     {
@@ -2417,15 +2417,15 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
                 if (p_dev->gatt_if[i] == gatt_if)
                 {
                     GATT_TRACE_ERROR("device already in iniator white list");
-                    return TRUE;
+                    return true;
                 }
                 else if (p_dev->gatt_if[i] == 0)
                 {
                     p_dev->gatt_if[i] = gatt_if;
                     if (i == 0)
-                        ret = BTM_BleUpdateBgConnDev(TRUE, bd_addr);
+                        ret = BTM_BleUpdateBgConnDev(true, bd_addr);
                     else
-                        ret = TRUE;
+                        ret = true;
                     break;
                 }
             }
@@ -2434,7 +2434,7 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
                 if (p_dev->listen_gif[i] == gatt_if)
                 {
                     GATT_TRACE_ERROR("device already in adv white list");
-                    return TRUE;
+                    return true;
                 }
                 else if (p_dev->listen_gif[i] == 0)
                 {
@@ -2445,9 +2445,9 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
                     p_dev->listen_gif[i] = gatt_if;
 
                     if (i == 0)
-                        ret = BTM_BleUpdateAdvWhitelist(TRUE, bd_addr);
+                        ret = BTM_BleUpdateAdvWhitelist(true, bd_addr);
                     else
-                        ret = TRUE;
+                        ret = true;
                     break;
                 }
             }
@@ -2470,14 +2470,14 @@ BOOLEAN gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, BOOLEAN is_init
 ** Returns          Boolean
 **
 *******************************************************************************/
-BOOLEAN gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
+bool    gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
 {
     tGATT_TCB    *p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
-    BOOLEAN       status;
+    bool          status;
 
     if (p_tcb)
-        gatt_update_app_use_link_flag(gatt_if, p_tcb, FALSE, FALSE);
-    status = gatt_update_auto_connect_dev(gatt_if, FALSE, bd_addr, TRUE);
+        gatt_update_app_use_link_flag(gatt_if, p_tcb, false, false);
+    status = gatt_update_auto_connect_dev(gatt_if, false, bd_addr, true);
     return status;
 }
 
@@ -2488,14 +2488,14 @@ BOOLEAN gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
 **
 ** Description      Gte the number of applciations for the specified background device
 **
-** Returns          UINT8 total number fo applications
+** Returns          uint8_t total number fo applications
 **
 *******************************************************************************/
-UINT8 gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr)
+uint8_t gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr)
 {
     tGATT_BG_CONN_DEV   *p_dev = NULL;
-    UINT8   i;
-    UINT8   cnt = 0;
+    uint8_t i;
+    uint8_t cnt = 0;
 
     if ((p_dev = gatt_find_bg_dev(bd_addr)) != NULL)
     {
@@ -2517,11 +2517,11 @@ UINT8 gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr)
 ** Returns          Boolean
 **
 *******************************************************************************/
-BOOLEAN gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
+bool    gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
 {
     tGATT_BG_CONN_DEV   *p_dev = NULL;
-    UINT8   i;
-    BOOLEAN ret = FALSE;
+    uint8_t i;
+    bool    ret = false;
 
     if ((p_dev = gatt_find_bg_dev(bd_addr)) == NULL)
     {
@@ -2533,7 +2533,7 @@ BOOLEAN gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
         if (p_dev->gatt_if[i] != 0 )
         {
             *p_gatt_if = p_dev->gatt_if[i];
-            ret = TRUE;
+            ret = true;
             break;
         }
     }
@@ -2551,12 +2551,12 @@ BOOLEAN gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
 ** Returns          pointer to the device record
 **
 *******************************************************************************/
-BOOLEAN gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr, BOOLEAN is_initiator)
+bool    gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr, bool    is_initiator)
 {
     tGATT_IF gatt_if = p_reg->gatt_if;
     tGATT_BG_CONN_DEV   *p_dev = NULL;
-    UINT8   i, j;
-    BOOLEAN ret = FALSE;
+    uint8_t i, j;
+    bool    ret = false;
 
     if ((p_dev = gatt_find_bg_dev(bd_addr)) == NULL)
     {
@@ -2575,9 +2575,9 @@ BOOLEAN gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr, BOOLEAN 
                     p_dev->gatt_if[j - 1] = p_dev->gatt_if[j];
 
                 if (p_dev->gatt_if[0] == 0)
-                    ret = BTM_BleUpdateBgConnDev(FALSE, p_dev->remote_bda);
+                    ret = BTM_BleUpdateBgConnDev(false, p_dev->remote_bda);
                 else
-                    ret = TRUE;
+                    ret = true;
 
                 break;
             }
@@ -2593,9 +2593,9 @@ BOOLEAN gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr, BOOLEAN 
                     p_dev->listen_gif[j - 1] = p_dev->listen_gif[j];
 
                 if (p_dev->listen_gif[0] == 0)
-                    ret = BTM_BleUpdateAdvWhitelist(FALSE, p_dev->remote_bda);
+                    ret = BTM_BleUpdateAdvWhitelist(false, p_dev->remote_bda);
                 else
-                    ret = TRUE;
+                    ret = true;
                 break;
             }
         }
@@ -2620,7 +2620,7 @@ BOOLEAN gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr, BOOLEAN 
 void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
-    UINT8 i , j, k;
+    uint8_t i , j, k;
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
     /* update the BG conn device list */
@@ -2639,7 +2639,7 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
                         p_dev_list->gatt_if[k - 1] = p_dev_list->gatt_if[k];
 
                     if (p_dev_list->gatt_if[0] == 0)
-                        BTM_BleUpdateBgConnDev(FALSE, p_dev_list->remote_bda);
+                        BTM_BleUpdateBgConnDev(false, p_dev_list->remote_bda);
                 }
 
                 if (p_dev_list->listen_gif[j] == gatt_if)
@@ -2654,7 +2654,7 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
                         p_dev_list->listen_gif[k - 1] = p_dev_list->listen_gif[k];
 
                     if (p_dev_list->listen_gif[0] == 0)
-                        BTM_BleUpdateAdvWhitelist(FALSE, p_dev_list->remote_bda);
+                        BTM_BleUpdateAdvWhitelist(false, p_dev_list->remote_bda);
                 }
             }
         }
@@ -2687,12 +2687,12 @@ void gatt_reset_bgdev_list(void)
 **                  add: add peer device
 **                  bd_addr: peer device address.
 **
-** Returns          TRUE if connection started; FALSE if connection start failure.
+** Returns          true if connection started; false if connection start failure.
 **
 *******************************************************************************/
-BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_addr, BOOLEAN is_initator)
+bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_addr, bool    is_initator)
 {
-    BOOLEAN         ret = FALSE;
+    bool            ret = false;
     tGATT_REG        *p_reg;
     tGATT_TCB       *p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
 
@@ -2701,7 +2701,7 @@ BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_
     if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
     {
         GATT_TRACE_ERROR("gatt_update_auto_connect_dev - gatt_if is not registered", gatt_if);
-        return(FALSE);
+        return(false);
     }
 
     if (add)
@@ -2711,7 +2711,7 @@ BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_
         if (ret && p_tcb != NULL)
         {
             /* if a connected device, update the link holding number */
-            gatt_update_app_use_link_flag(gatt_if, p_tcb, TRUE, TRUE);
+            gatt_update_app_use_link_flag(gatt_if, p_tcb, true, true);
         }
     }
     else
@@ -2754,13 +2754,13 @@ tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGAT
 ** Returns    Pointer to the new service start buffer, NULL no buffer available
 **
 *******************************************************************************/
-BOOLEAN gatt_update_listen_mode(void)
+bool    gatt_update_listen_mode(void)
 {
-    UINT8           ii = 0;
+    uint8_t         ii = 0;
     tGATT_REG       *p_reg = &gatt_cb.cl_rcb[0];
-    UINT8           listening = 0;
-    UINT16          connectability, window, interval;
-    BOOLEAN         rt = TRUE;
+    uint8_t         listening = 0;
+    uint16_t        connectability, window, interval;
+    bool            rt = true;
 
     for (; ii < GATT_MAX_APPS; ii ++, p_reg ++)
     {

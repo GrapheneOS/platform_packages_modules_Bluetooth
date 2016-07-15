@@ -40,7 +40,7 @@
 #include "btcore/include/module.h"
 #include "osi/include/thread.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 #include "gatt_int.h"
 #endif /* BLE_INCLUDED */
 
@@ -64,7 +64,7 @@ extern thread_t *bt_workqueue_thread;
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
 
-static void btm_decode_ext_features_page (UINT8 page_number, const BD_FEATURES p_features);
+static void btm_decode_ext_features_page (uint8_t page_number, const BD_FEATURES p_features);
 
 /*******************************************************************************
 **
@@ -186,7 +186,7 @@ static void reset_complete(void *result) {
   l2c_link_processs_num_bufs(controller->get_acl_buffer_count_classic());
 #if (BLE_INCLUDED == TRUE)
 
-#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+#if (BLE_PRIVACY_SPT == TRUE)
   /* Set up the BLE privacy settings */
   if (controller->supports_ble() && controller->supports_ble_privacy() &&
       controller->get_ble_resolving_list_max_size() > 0) {
@@ -232,10 +232,10 @@ void BTM_DeviceReset (UNUSED_ATTR tBTM_CMPL_CB *p_cb) {
 **
 ** Description      This function is called to check if the device is up.
 **
-** Returns          TRUE if device is up, else FALSE
+** Returns          true if device is up, else false
 **
 *******************************************************************************/
-BOOLEAN BTM_IsDeviceUp (void)
+bool    BTM_IsDeviceUp (void)
 {
     return controller_get_interface()->get_is_ready();
 }
@@ -266,7 +266,7 @@ void btm_read_local_name_timeout(UNUSED_ATTR void *data)
 ** Returns          void
 **
 *******************************************************************************/
-static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_features)
+static void btm_decode_ext_features_page (uint8_t page_number, const uint8_t *p_features)
 {
     BTM_TRACE_DEBUG ("btm_decode_ext_features_page page: %d", page_number);
     switch (page_number)
@@ -319,8 +319,8 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
 
         /* Create (e)SCO supported packet types mask */
         btm_cb.btm_sco_pkt_types_supported = 0;
-#if BTM_SCO_INCLUDED == TRUE
-        btm_cb.sco_cb.esco_supported = FALSE;
+#if (BTM_SCO_INCLUDED == TRUE)
+        btm_cb.sco_cb.esco_supported = false;
 #endif
         if (HCI_SCO_LINK_SUPPORTED(p_features))
         {
@@ -341,10 +341,10 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
 
         if (HCI_ESCO_EV5_SUPPORTED(p_features))
             btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV5;
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
         if (btm_cb.btm_sco_pkt_types_supported & BTM_ESCO_LINK_ONLY_MASK)
         {
-            btm_cb.sco_cb.esco_supported = TRUE;
+            btm_cb.sco_cb.esco_supported = true;
 
             /* Add in EDR related eSCO types */
             if (HCI_EDR_ESCO_2MPS_SUPPORTED(p_features))
@@ -405,11 +405,11 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
                 BTM_SetInquiryMode (BTM_INQ_RESULT_WITH_RSSI);
         }
 
-#if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
+#if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
         if( HCI_NON_FLUSHABLE_PB_SUPPORTED(p_features))
-            l2cu_set_non_flushable_pbf(TRUE);
+            l2cu_set_non_flushable_pbf(true);
         else
-            l2cu_set_non_flushable_pbf(FALSE);
+            l2cu_set_non_flushable_pbf(false);
 #endif
         BTM_SetPageScanType (BTM_DEFAULT_SCAN_TYPE);
         BTM_SetInquiryScanType (BTM_DEFAULT_SCAN_TYPE);
@@ -443,7 +443,7 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
 *******************************************************************************/
 tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 {
-    UINT8    *p;
+    uint8_t  *p;
 
     if (!p_name || !p_name[0] || (strlen ((char *)p_name) > BD_NAME_LEN))
         return (BTM_ILLEGAL_VALUE);
@@ -453,11 +453,11 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 
 #if BTM_MAX_LOC_BD_NAME_LEN > 0
     /* Save the device name if local storage is enabled */
-    p = (UINT8 *)btm_cb.cfg.bd_name;
-    if (p != (UINT8 *)p_name)
+    p = (uint8_t *)btm_cb.cfg.bd_name;
+    if (p != (uint8_t *)p_name)
         strlcpy(btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN);
 #else
-    p = (UINT8 *)p_name;
+    p = (uint8_t *)p_name;
 #endif
 
     if (btsnd_hcic_change_name(p))
@@ -531,10 +531,10 @@ tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cbac
 ** Returns          void
 **
 *******************************************************************************/
-void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len)
+void btm_read_local_name_complete (uint8_t *p, uint16_t evt_len)
 {
     tBTM_CMPL_CB   *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
-    UINT8           status;
+    uint8_t         status;
     UNUSED(evt_len);
 
     alarm_cancel(btm_cb.devcb.read_local_name_timer);
@@ -588,9 +588,9 @@ tBTM_STATUS BTM_SetDeviceClass (DEV_CLASS dev_class)
 ** Returns          pointer to the device class
 **
 *******************************************************************************/
-UINT8 *BTM_ReadDeviceClass (void)
+uint8_t *BTM_ReadDeviceClass (void)
 {
-    return ((UINT8 *)btm_cb.devcb.dev_class);
+    return ((uint8_t *)btm_cb.devcb.dev_class);
 }
 
 
@@ -604,10 +604,10 @@ UINT8 *BTM_ReadDeviceClass (void)
 **
 *******************************************************************************/
 // TODO(zachoverflow): get rid of this function
-UINT8 *BTM_ReadLocalFeatures (void)
+uint8_t *BTM_ReadLocalFeatures (void)
 {
     // Discarding const modifier for now, until this function dies
-    return (UINT8 *)controller_get_interface()->get_features_classic(0)->as_array;
+    return (uint8_t *)controller_get_interface()->get_features_classic(0)->as_array;
 }
 
 /*******************************************************************************
@@ -647,8 +647,8 @@ tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
 **      Opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC.
 **
 *******************************************************************************/
-tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode, UINT8 param_len,
-                                      UINT8 *p_param_buf, tBTM_VSC_CMPL_CB *p_cb)
+tBTM_STATUS BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
+                                      uint8_t *p_param_buf, tBTM_VSC_CMPL_CB *p_cb)
 {
     /* Allocate a buffer to hold HCI command plus the callback function */
     void *p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB *) +
@@ -678,7 +678,7 @@ tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode, UINT8 param_len,
 ** Returns          void
 **
 *******************************************************************************/
-void btm_vsc_complete (UINT8 *p, UINT16 opcode, UINT16 evt_len,
+void btm_vsc_complete (uint8_t *p, uint16_t opcode, uint16_t evt_len,
                        tBTM_CMPL_CB *p_vsc_cplt_cback)
 {
     tBTM_VSC_CMPL   vcs_cplt_params;
@@ -701,18 +701,18 @@ void btm_vsc_complete (UINT8 *p, UINT16 opcode, UINT16 evt_len,
 ** Description      This function is called to register/deregister for vendor
 **                  specific HCI events.
 **
-**                  If is_register=TRUE, then the function will be registered;
-**                  if is_register=FALSE, then the function will be deregistered.
+**                  If is_register=true, then the function will be registered;
+**                  if is_register=false, then the function will be deregistered.
 **
 ** Returns          BTM_SUCCESS if successful,
 **                  BTM_BUSY if maximum number of callbacks have already been
 **                           registered.
 **
 *******************************************************************************/
-tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_register)
+tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, bool    is_register)
 {
     tBTM_STATUS retval = BTM_SUCCESS;
-    UINT8 i, free_idx = BTM_MAX_VSE_CALLBACKS;
+    uint8_t i, free_idx = BTM_MAX_VSE_CALLBACKS;
 
     /* See if callback is already registered */
     for (i=0; i<BTM_MAX_VSE_CALLBACKS; i++)
@@ -725,7 +725,7 @@ tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_register)
         else if (btm_cb.devcb.p_vend_spec_cb[i] == p_cb)
         {
             /* Found callback in lookup table. If deregistering, clear the entry. */
-            if (is_register == FALSE)
+            if (is_register == false)
             {
                 btm_cb.devcb.p_vend_spec_cb[i] = NULL;
                 BTM_TRACE_EVENT("BTM Deregister For VSEvents is successfully");
@@ -766,9 +766,9 @@ tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_register)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_vendor_specific_evt (UINT8 *p, UINT8 evt_len)
+void btm_vendor_specific_evt (uint8_t *p, uint8_t evt_len)
 {
-    UINT8 i;
+    uint8_t i;
 
     BTM_TRACE_DEBUG ("BTM Event: Vendor Specific event from controller");
 
@@ -792,7 +792,7 @@ void btm_vendor_specific_evt (UINT8 *p, UINT8 evt_len)
 **
 **
 *******************************************************************************/
-tBTM_STATUS BTM_WritePageTimeout(UINT16 timeout)
+tBTM_STATUS BTM_WritePageTimeout(uint16_t timeout)
 {
     BTM_TRACE_EVENT ("BTM: BTM_WritePageTimeout: Timeout: %d.", timeout);
 
@@ -816,12 +816,12 @@ tBTM_STATUS BTM_WritePageTimeout(UINT16 timeout)
 **
 **
 *******************************************************************************/
-tBTM_STATUS BTM_WriteVoiceSettings(UINT16 settings)
+tBTM_STATUS BTM_WriteVoiceSettings(uint16_t settings)
 {
     BTM_TRACE_EVENT ("BTM: BTM_WriteVoiceSettings: Settings: 0x%04x.", settings);
 
     /* Send the HCI command */
-    if (btsnd_hcic_write_voice_settings ((UINT16)(settings & 0x03ff)))
+    if (btsnd_hcic_write_voice_settings ((uint16_t)(settings & 0x03ff)))
         return (BTM_SUCCESS);
 
     return (BTM_NO_RESOURCES);
@@ -844,7 +844,7 @@ tBTM_STATUS BTM_WriteVoiceSettings(UINT16 settings)
 *******************************************************************************/
 tBTM_STATUS BTM_EnableTestMode(void)
 {
-    UINT8   cond;
+    uint8_t cond;
 
     BTM_TRACE_EVENT ("BTM: BTM_EnableTestMode");
 
@@ -901,7 +901,7 @@ tBTM_STATUS BTM_EnableTestMode(void)
 tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
 {
     BD_ADDR local_bd_addr;
-    BOOLEAN delete_all_flag = FALSE;
+    bool    delete_all_flag = false;
 
     /* Check if the previous command is completed */
     if (btm_cb.devcb.p_stored_link_key_cmpl_cb)
@@ -910,14 +910,14 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
     if (!bd_addr)
     {
         /* This is to delete all link keys */
-        delete_all_flag = TRUE;
+        delete_all_flag = true;
 
         /* We don't care the BD address. Just pass a non zero pointer */
         bd_addr = local_bd_addr;
     }
 
     BTM_TRACE_EVENT ("BTM: BTM_DeleteStoredLinkKey: delete_all_flag: %s",
-                        delete_all_flag ? "TRUE" : "FALSE");
+                        delete_all_flag ? "true" : "false");
 
     /* Send the HCI command */
     btm_cb.devcb.p_stored_link_key_cmpl_cb = p_cb;
@@ -939,7 +939,7 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_delete_stored_link_key_complete (UINT8 *p)
+void btm_delete_stored_link_key_complete (uint8_t *p)
 {
     tBTM_CMPL_CB         *p_cb = btm_cb.devcb.p_stored_link_key_cmpl_cb;
     tBTM_DELETE_STORED_LINK_KEY_COMPLETE  result;

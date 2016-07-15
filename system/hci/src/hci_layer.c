@@ -253,7 +253,7 @@ static future_t *start_up(void) {
   }
 
   int power_state = BT_VND_PWR_OFF;
-#if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
+#if (BT_CLEAN_TURN_ON_DISABLED == TRUE)
   LOG_WARN(LOG_TAG, "%s not turning off the chip before turning on.", __func__);
   // So apparently this hack was needed in the past because a Wingray kernel driver
   // didn't handle power off commands in a powered off state correctly.

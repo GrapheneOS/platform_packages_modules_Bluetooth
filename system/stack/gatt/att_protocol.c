@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 
 #include "gatt_int.h"
 #include "l2c_api.h"
@@ -45,13 +45,13 @@
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_mtu_cmd(UINT8 op_code, UINT16 rx_mtu)
+BT_HDR *attp_build_mtu_cmd(uint8_t op_code, uint16_t rx_mtu)
 {
-    UINT8 *p;
+    uint8_t *p;
     BT_HDR *p_buf =
         (BT_HDR *)osi_malloc(sizeof(BT_HDR) + GATT_HDR_SIZE + L2CAP_MIN_OFFSET);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     UINT8_TO_STREAM(p, op_code);
     UINT16_TO_STREAM(p, rx_mtu);
 
@@ -69,12 +69,12 @@ BT_HDR *attp_build_mtu_cmd(UINT8 op_code, UINT16 rx_mtu)
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_exec_write_cmd (UINT8 op_code, UINT8 flag)
+BT_HDR *attp_build_exec_write_cmd (uint8_t op_code, uint8_t flag)
 {
     BT_HDR      *p_buf = (BT_HDR *)osi_malloc(GATT_DATA_BUF_SIZE);
-    UINT8       *p;
+    uint8_t     *p;
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_buf->len = GATT_OP_CODE_SIZE;
@@ -99,12 +99,12 @@ BT_HDR *attp_build_exec_write_cmd (UINT8 op_code, UINT8 flag)
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_err_cmd(UINT8 cmd_code, UINT16 err_handle, UINT8 reason)
+BT_HDR *attp_build_err_cmd(uint8_t cmd_code, uint16_t err_handle, uint8_t reason)
 {
-    UINT8 *p;
+    uint8_t *p;
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + 5);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     UINT8_TO_STREAM(p, GATT_RSP_ERROR);
     UINT8_TO_STREAM(p, cmd_code);
     UINT16_TO_STREAM(p, err_handle);
@@ -125,12 +125,12 @@ BT_HDR *attp_build_err_cmd(UINT8 cmd_code, UINT16 err_handle, UINT8 reason)
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_browse_cmd(UINT8 op_code, UINT16 s_hdl, UINT16 e_hdl, tBT_UUID uuid)
+BT_HDR *attp_build_browse_cmd(uint8_t op_code, uint16_t s_hdl, uint16_t e_hdl, tBT_UUID uuid)
 {
     const size_t payload_size = (GATT_OP_CODE_SIZE) + (GATT_START_END_HANDLE_SIZE) + (LEN_UUID_128);
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET);
 
-    UINT8 *p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    uint8_t *p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     /* Describe the built message location and size */
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_buf->len = GATT_OP_CODE_SIZE + 4;
@@ -152,14 +152,14 @@ BT_HDR *attp_build_browse_cmd(UINT8 op_code, UINT16 s_hdl, UINT16 e_hdl, tBT_UUI
 ** Returns          pointer to the command buffer.
 **
 *******************************************************************************/
-BT_HDR *attp_build_read_by_type_value_cmd (UINT16 payload_size, tGATT_FIND_TYPE_VALUE *p_value_type)
+BT_HDR *attp_build_read_by_type_value_cmd (uint16_t payload_size, tGATT_FIND_TYPE_VALUE *p_value_type)
 {
-    UINT8 *p;
-    UINT16 len = p_value_type->value_len;
+    uint8_t *p;
+    uint16_t len = p_value_type->value_len;
     BT_HDR *p_buf =
         (BT_HDR *)osi_malloc(sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_buf->len = 5; /* opcode + s_handle + e_handle */
 
@@ -187,13 +187,13 @@ BT_HDR *attp_build_read_by_type_value_cmd (UINT16 payload_size, tGATT_FIND_TYPE_
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_read_multi_cmd(UINT16 payload_size, UINT16 num_handle, UINT16 *p_handle)
+BT_HDR *attp_build_read_multi_cmd(uint16_t payload_size, uint16_t num_handle, uint16_t *p_handle)
 {
-    UINT8 *p, i = 0;
+    uint8_t *p, i = 0;
     BT_HDR *p_buf =
         (BT_HDR *)osi_malloc(sizeof(BT_HDR) + num_handle * 2 + 1 + L2CAP_MIN_OFFSET);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_buf->len = 1;
 
@@ -215,13 +215,13 @@ BT_HDR *attp_build_read_multi_cmd(UINT16 payload_size, UINT16 num_handle, UINT16
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_handle_cmd(UINT8 op_code, UINT16 handle, UINT16 offset)
+BT_HDR *attp_build_handle_cmd(uint8_t op_code, uint16_t handle, uint16_t offset)
 {
-    UINT8 *p;
+    uint8_t *p;
     BT_HDR *p_buf =
         (BT_HDR *)osi_malloc(sizeof(BT_HDR) + 5 + L2CAP_MIN_OFFSET);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     p_buf->offset = L2CAP_MIN_OFFSET;
 
     UINT8_TO_STREAM(p, op_code);
@@ -247,13 +247,13 @@ BT_HDR *attp_build_handle_cmd(UINT8 op_code, UINT16 handle, UINT16 offset)
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_opcode_cmd(UINT8 op_code)
+BT_HDR *attp_build_opcode_cmd(uint8_t op_code)
 {
-    UINT8 *p;
+    uint8_t *p;
     BT_HDR *p_buf =
         (BT_HDR *)osi_malloc(sizeof(BT_HDR) + 1 + L2CAP_MIN_OFFSET);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     p_buf->offset = L2CAP_MIN_OFFSET;
 
     UINT8_TO_STREAM(p, op_code);
@@ -271,14 +271,14 @@ BT_HDR *attp_build_opcode_cmd(UINT8 op_code)
 ** Returns          None.
 **
 *******************************************************************************/
-BT_HDR *attp_build_value_cmd (UINT16 payload_size, UINT8 op_code, UINT16 handle,
-                              UINT16 offset, UINT16 len, UINT8 *p_data)
+BT_HDR *attp_build_value_cmd (uint16_t payload_size, uint8_t op_code, uint16_t handle,
+                              uint16_t offset, uint16_t len, uint8_t *p_data)
 {
-    UINT8 *p, *pp, pair_len, *p_pair_len;
+    uint8_t *p, *pp, pair_len, *p_pair_len;
     BT_HDR *p_buf =
         (BT_HDR *)osi_malloc(sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET);
 
-    p = pp = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p = pp = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     UINT8_TO_STREAM(p, op_code);
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_buf->len = 1;
@@ -326,18 +326,18 @@ BT_HDR *attp_build_value_cmd (UINT16 payload_size, UINT8 op_code, UINT16 handle,
 *******************************************************************************/
 tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
 {
-    UINT16      l2cap_ret;
+    uint16_t    l2cap_ret;
 
 
     if (p_tcb->att_lcid == L2CAP_ATT_CID)
         l2cap_ret = L2CA_SendFixedChnlData (L2CAP_ATT_CID, p_tcb->peer_bda, p_toL2CAP);
     else
-        l2cap_ret = (UINT16) L2CA_DataWrite (p_tcb->att_lcid, p_toL2CAP);
+        l2cap_ret = (uint16_t) L2CA_DataWrite (p_tcb->att_lcid, p_toL2CAP);
 
     if (l2cap_ret == L2CAP_DW_FAILED)
     {
         GATT_TRACE_ERROR("ATT   failed to pass msg:0x%0x to L2CAP",
-            *((UINT8 *)(p_toL2CAP + 1) + p_toL2CAP->offset));
+            *((uint8_t *)(p_toL2CAP + 1) + p_toL2CAP->offset));
         return GATT_INTERNAL_ERROR;
     }
     else if (l2cap_ret == L2CAP_DW_CONGESTED)
@@ -355,10 +355,10 @@ tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
 ** Description      Build ATT Server PDUs.
 **
 *******************************************************************************/
-BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, UINT8 op_code, tGATT_SR_MSG *p_msg)
+BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, uint8_t op_code, tGATT_SR_MSG *p_msg)
 {
     BT_HDR          *p_cmd = NULL;
-    UINT16          offset = 0;
+    uint16_t        offset = 0;
 
     switch (op_code)
     {
@@ -450,7 +450,7 @@ tGATT_STATUS attp_send_sr_msg (tGATT_TCB *p_tcb, BT_HDR *p_msg)
 **                  GATT_ERROR if command sending failure
 **
 *******************************************************************************/
-tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code, BT_HDR *p_cmd)
+tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t cmd_code, BT_HDR *p_cmd)
 {
     tGATT_STATUS att_ret = GATT_SUCCESS;
 
@@ -469,7 +469,7 @@ tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code,
                 if (cmd_code != GATT_HANDLE_VALUE_CONF && cmd_code != GATT_CMD_WRITE)
                 {
                     gatt_start_rsp_timer (clcb_idx);
-                    gatt_cmd_enq(p_tcb, clcb_idx, FALSE, cmd_code, NULL);
+                    gatt_cmd_enq(p_tcb, clcb_idx, false, cmd_code, NULL);
                 }
             }
             else
@@ -478,7 +478,7 @@ tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code,
         else
         {
             att_ret = GATT_CMD_STARTED;
-            gatt_cmd_enq(p_tcb, clcb_idx, TRUE, cmd_code, p_cmd);
+            gatt_cmd_enq(p_tcb, clcb_idx, true, cmd_code, p_cmd);
         }
     }
     else
@@ -502,11 +502,11 @@ tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 cmd_code,
 **
 **
 *******************************************************************************/
-tGATT_STATUS attp_send_cl_msg (tGATT_TCB *p_tcb, UINT16 clcb_idx, UINT8 op_code, tGATT_CL_MSG *p_msg)
+tGATT_STATUS attp_send_cl_msg (tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t op_code, tGATT_CL_MSG *p_msg)
 {
     tGATT_STATUS     status = GATT_NO_RESOURCES;
     BT_HDR          *p_cmd = NULL;
-    UINT16          offset = 0, handle;
+    uint16_t        offset = 0, handle;
 
     if (p_tcb != NULL)
     {

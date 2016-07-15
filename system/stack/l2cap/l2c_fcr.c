@@ -47,7 +47,7 @@ extern fixed_queue_t *btu_general_alarm_queue;
 /* this is the minimal offset required by OBX to process incoming packets */
 static const uint16_t OBX_BUF_MIN_OFFSET = 4;
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
 static char *SAR_types[] = { "Unsegmented", "Start", "End", "Continuation" };
 static char *SUP_types[] = { "RR", "REJ", "RNR", "SREJ" };
 #endif
@@ -92,16 +92,16 @@ static const unsigned short crctab[256] = {
 /*******************************************************************************
 **  Static local functions
 */
-static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word);
-static void    process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word);
-static void    process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, BOOLEAN delay_ack);
-static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq);
-static void    prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransmission);
+static bool    process_reqseq (tL2C_CCB *p_ccb, uint16_t ctrl_word);
+static void    process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word);
+static void    process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word, bool    delay_ack);
+static bool    retransmit_i_frames (tL2C_CCB *p_ccb, uint8_t tx_seq);
+static void    prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, bool    is_retransmission);
 static void    process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf);
-static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word);
+static bool    do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word);
 
 #if (L2CAP_ERTM_STATS == TRUE)
-static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked);
+static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, uint8_t num_bufs_acked);
 #endif
 
 /*******************************************************************************
@@ -137,9 +137,9 @@ static unsigned short l2c_fcr_updcrc(unsigned short icrc, unsigned char *icp, in
 ** Returns          CRC
 **
 *******************************************************************************/
-static UINT16 l2c_fcr_tx_get_fcs (BT_HDR *p_buf)
+static uint16_t l2c_fcr_tx_get_fcs (BT_HDR *p_buf)
 {
-    UINT8   *p = ((UINT8 *) (p_buf + 1)) + p_buf->offset;
+    uint8_t *p = ((uint8_t *) (p_buf + 1)) + p_buf->offset;
 
     return (l2c_fcr_updcrc (L2CAP_FCR_INIT_CRC, p, p_buf->len));
 }
@@ -153,9 +153,9 @@ static UINT16 l2c_fcr_tx_get_fcs (BT_HDR *p_buf)
 ** Returns          CRC
 **
 *******************************************************************************/
-static UINT16 l2c_fcr_rx_get_fcs (BT_HDR *p_buf)
+static uint16_t l2c_fcr_rx_get_fcs (BT_HDR *p_buf)
 {
-    UINT8   *p = ((UINT8 *) (p_buf + 1)) + p_buf->offset;
+    uint8_t *p = ((uint8_t *) (p_buf + 1)) + p_buf->offset;
 
     /* offset points past the L2CAP header, but the CRC check includes it */
     p -= L2CAP_PKT_OVERHEAD;
@@ -175,16 +175,16 @@ static UINT16 l2c_fcr_rx_get_fcs (BT_HDR *p_buf)
 void l2c_fcr_start_timer (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
-    UINT32  tout;
+    uint32_t tout;
 
     /* The timers which are in milliseconds */
     if (p_ccb->fcrb.wait_ack)
     {
-        tout = (UINT32)p_ccb->our_cfg.fcr.mon_tout;
+        tout = (uint32_t)p_ccb->our_cfg.fcr.mon_tout;
     }
     else
     {
-        tout = (UINT32)p_ccb->our_cfg.fcr.rtrans_tout;
+        tout = (uint32_t)p_ccb->our_cfg.fcr.rtrans_tout;
     }
 
     /* Only start a timer that was not started */
@@ -243,10 +243,10 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 #if (L2CAP_ERTM_STATS == TRUE)
     if ( (p_ccb->local_cid >= L2CAP_BASE_APPL_CID) && (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) )
     {
-        UINT32  dur = time_get_os_boottime_ms() - p_ccb->fcrb.connect_tick_count;
+        uint32_t dur = time_get_os_boottime_ms() - p_ccb->fcrb.connect_tick_count;
         char    *p_str = (char *)osi_malloc(120);
-        UINT16  i;
-        UINT32  throughput_avg, ack_delay_avg, ack_q_count_avg;
+        uint16_t i;
+        uint32_t throughput_avg, ack_delay_avg, ack_q_count_avg;
 
         BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "---  L2CAP ERTM  Stats for CID: 0x%04x   Duration: %08ums", p_ccb->local_cid, dur);
@@ -323,7 +323,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 ** Returns          pointer to new buffer
 **
 *******************************************************************************/
-BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes)
+BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, uint16_t new_offset, uint16_t no_of_bytes)
 {
     assert(p_buf != NULL);
     /*
@@ -342,8 +342,8 @@ BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes)
 
     p_buf2->offset = new_offset;
     p_buf2->len = no_of_bytes;
-    memcpy(((UINT8 *)(p_buf2 + 1)) + p_buf2->offset,
-           ((UINT8 *)(p_buf + 1))  + p_buf->offset,
+    memcpy(((uint8_t *)(p_buf2 + 1)) + p_buf2->offset,
+           ((uint8_t *)(p_buf + 1))  + p_buf->offset,
            no_of_bytes);
 
     return (p_buf2);
@@ -358,13 +358,13 @@ BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes)
 ** Returns          The control word
 **
 *******************************************************************************/
-BOOLEAN l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb)
+bool    l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
     {
         /* Check if remote side flowed us off or the transmit window is full */
-        if ( (p_ccb->fcrb.remote_busy == TRUE)
+        if ( (p_ccb->fcrb.remote_busy == true)
          ||  (fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q) >= p_ccb->peer_cfg.fcr.tx_win_sz) )
         {
 #if (L2CAP_ERTM_STATS == TRUE)
@@ -376,10 +376,10 @@ BOOLEAN l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb)
                     p_ccb->fcrb.controller_idle++;
             }
 #endif
-            return (TRUE);
+            return (true);
         }
     }
-    return (FALSE);
+    return (false);
 }
 
 /*******************************************************************************
@@ -393,22 +393,22 @@ BOOLEAN l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb)
 ** Returns          -
 **
 *******************************************************************************/
-static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransmission)
+static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, bool    is_retransmission)
 {
     assert(p_ccb != NULL);
     assert(p_buf != NULL);
     tL2C_FCRB   *p_fcrb = &p_ccb->fcrb;
-    UINT8       *p;
-    UINT16      fcs;
-    UINT16      ctrl_word;
-    BOOLEAN     set_f_bit = p_fcrb->send_f_rsp;
+    uint8_t     *p;
+    uint16_t    fcs;
+    uint16_t    ctrl_word;
+    bool        set_f_bit = p_fcrb->send_f_rsp;
 
-    p_fcrb->send_f_rsp = FALSE;
+    p_fcrb->send_f_rsp = false;
 
     if (is_retransmission)
     {
         /* Get the old control word and clear out the old req_seq and F bits */
-        p = ((UINT8 *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
+        p = ((uint8_t *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
 
         STREAM_TO_UINT16 (ctrl_word, p);
 
@@ -436,7 +436,7 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
     }
 
     /* Set the control word */
-    p = ((UINT8 *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
+    p = ((uint8_t *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
 
     UINT16_TO_STREAM (p, ctrl_word);
 
@@ -444,7 +444,7 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
     if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
     {
         /* length field in l2cap header has to include FCS length */
-        p = ((UINT8 *) (p_buf+1)) + p_buf->offset;
+        p = ((uint8_t *) (p_buf+1)) + p_buf->offset;
         UINT16_TO_STREAM (p, p_buf->len + L2CAP_FCS_LEN - L2CAP_PKT_OVERHEAD);
 
         /* Calculate the FCS */
@@ -455,14 +455,14 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
          * NOTE: Here we assume the allocated buffer is large enough
          * to include extra L2CAP_FCS_LEN octets at the end.
          */
-        p = ((UINT8 *) (p_buf+1)) + p_buf->offset + p_buf->len;
+        p = ((uint8_t *) (p_buf+1)) + p_buf->offset + p_buf->len;
 
         UINT16_TO_STREAM (p, fcs);
 
         p_buf->len += L2CAP_FCS_LEN;
     }
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
     if (is_retransmission)
     {
         L2CAP_TRACE_EVENT ("L2CAP eRTM ReTx I-frame  CID: 0x%04x  Len: %u  SAR: %s  TxSeq: %u  ReqSeq: %u  F: %u",
@@ -497,12 +497,12 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
 ** Returns          -
 **
 *******************************************************************************/
-void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
+void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, uint16_t function_code, uint16_t pf_bit)
 {
     assert(p_ccb != NULL);
-    UINT8       *p;
-    UINT16      ctrl_word;
-    UINT16      fcs;
+    uint8_t     *p;
+    uint16_t    ctrl_word;
+    uint16_t    fcs;
 
     if ((!p_ccb->in_use) || (p_ccb->chnl_state != CST_OPEN))
         return;
@@ -513,7 +513,7 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
 
     if (pf_bit == L2CAP_FCR_P_BIT)
     {
-        p_ccb->fcrb.wait_ack = TRUE;
+        p_ccb->fcrb.wait_ack = true;
 
         l2c_fcr_stop_timer (p_ccb);         /* Restart the monitor timer */
         l2c_fcr_start_timer (p_ccb);
@@ -529,7 +529,7 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
     p_buf->len    = L2CAP_PKT_OVERHEAD + L2CAP_FCR_OVERHEAD;
 
     /* Set the pointer to the beginning of the data */
-    p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     /* Put in the L2CAP header */
     UINT16_TO_STREAM(p, L2CAP_FCR_OVERHEAD + L2CAP_FCS_LEN);
@@ -552,7 +552,7 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
     p_buf->layer_specific = L2CAP_NON_FLUSHABLE_PKT;
     l2cu_set_acl_hci_header (p_buf, p_ccb);
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
     if ((((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 1)
         || (((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 3)) {
         L2CAP_TRACE_WARNING("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
@@ -595,14 +595,14 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 {
     assert(p_ccb != NULL);
     assert(p_buf != NULL);
-    UINT8       *p;
-    UINT16      fcs;
-    UINT16      min_pdu_len;
-    UINT16      ctrl_word;
+    uint8_t     *p;
+    uint16_t    fcs;
+    uint16_t    min_pdu_len;
+    uint16_t    ctrl_word;
 
     /* Check the length */
     min_pdu_len = (p_ccb->bypass_fcs == L2CAP_BYPASS_FCS) ?
-                  (UINT16)L2CAP_FCR_OVERHEAD : (UINT16)(L2CAP_FCS_LEN + L2CAP_FCR_OVERHEAD);
+                  (uint16_t)L2CAP_FCR_OVERHEAD : (uint16_t)(L2CAP_FCS_LEN + L2CAP_FCR_OVERHEAD);
 
     if (p_buf->len < min_pdu_len)
     {
@@ -617,9 +617,9 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         return;
     }
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
     /* Get the control word */
-    p = ((UINT8 *)(p_buf+1)) + p_buf->offset;
+    p = ((uint8_t *)(p_buf+1)) + p_buf->offset;
     STREAM_TO_UINT16 (ctrl_word, p);
 
     if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
@@ -667,7 +667,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     /* Verify FCS if using */
     if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
     {
-        p = ((UINT8 *)(p_buf+1)) + p_buf->offset + p_buf->len - L2CAP_FCS_LEN;
+        p = ((uint8_t *)(p_buf+1)) + p_buf->offset + p_buf->len - L2CAP_FCS_LEN;
 
         /* Extract and drop the FCS from the packet */
         STREAM_TO_UINT16 (fcs, p);
@@ -682,7 +682,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     }
 
     /* Get the control word */
-    p = ((UINT8 *)(p_buf+1)) + p_buf->offset;
+    p = ((uint8_t *)(p_buf+1)) + p_buf->offset;
 
     STREAM_TO_UINT16 (ctrl_word, p);
 
@@ -717,7 +717,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
             return;
         }
 
-        p_ccb->fcrb.wait_ack  = FALSE;
+        p_ccb->fcrb.wait_ack  = false;
 
         /* P and F are mutually exclusive */
         if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
@@ -745,7 +745,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
         process_s_frame (p_ccb, p_buf, ctrl_word);
     else
-        process_i_frame (p_ccb, p_buf, ctrl_word, FALSE);
+        process_i_frame (p_ccb, p_buf, ctrl_word, false);
 
     /* Return if the channel got disconnected by a bad packet or max retransmissions */
     if ( (!p_ccb->in_use) || (p_ccb->chnl_state != CST_OPEN) )
@@ -763,7 +763,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
             if (p_ccb->in_use && (p_ccb->chnl_state == CST_OPEN))
             {
                 /* Get the control word */
-                p = ((UINT8 *)(p_buf+1)) + p_buf->offset - L2CAP_FCR_OVERHEAD;
+                p = ((uint8_t *)(p_buf+1)) + p_buf->offset - L2CAP_FCR_OVERHEAD;
 
                 STREAM_TO_UINT16 (ctrl_word, p);
 
@@ -772,7 +772,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                                     p_ccb->fcrb.next_seq_expected);
 
                 /* Process the SREJ held I-frame, but do not send an RR for each individual frame */
-                process_i_frame (p_ccb, p_buf, ctrl_word, TRUE);
+                process_i_frame (p_ccb, p_buf, ctrl_word, true);
             }
             else
                 osi_free(p_buf);
@@ -780,8 +780,8 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
             /* If more frames were lost during SREJ, send a REJ */
             if (p_ccb->fcrb.rej_after_srej)
             {
-                p_ccb->fcrb.rej_after_srej = FALSE;
-                p_ccb->fcrb.rej_sent       = TRUE;
+                p_ccb->fcrb.rej_after_srej = false;
+                p_ccb->fcrb.rej_sent       = true;
 
                 l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_REJ, 0);
             }
@@ -803,8 +803,8 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     /* If a window has opened, check if we can send any more packets */
     if ( (!fixed_queue_is_empty(p_ccb->fcrb.retrans_q) ||
           !fixed_queue_is_empty(p_ccb->xmit_hold_q))
-      && (p_ccb->fcrb.wait_ack == FALSE)
-      && (l2c_fcr_is_flow_controlled (p_ccb) == FALSE) )
+      && (p_ccb->fcrb.wait_ack == false)
+      && (l2c_fcr_is_flow_controlled (p_ccb) == false) )
     {
         l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
     }
@@ -825,8 +825,8 @@ void l2c_lcc_proc_pdu(tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
     assert(p_ccb != NULL);
     assert(p_buf != NULL);
-    UINT8  *p = (UINT8*)(p_buf + 1) + p_buf->offset;
-    UINT16 sdu_length;
+    uint8_t *p = (uint8_t*)(p_buf + 1) + p_buf->offset;
+    uint16_t sdu_length;
     BT_HDR *p_data = NULL;
 
     /* Buffer length should not exceed local mps */
@@ -867,19 +867,19 @@ void l2c_lcc_proc_pdu(tL2C_CCB *p_ccb, BT_HDR *p_buf)
     else
         p_data = p_ccb->ble_sdu;
 
-    memcpy((UINT8*)(p_data + 1) + p_data->offset + p_data->len, (UINT8*)(p_buf + 1) + p_buf->offset, p_buf->len);
+    memcpy((uint8_t*)(p_data + 1) + p_data->offset + p_data->len, (uint8_t*)(p_buf + 1) + p_buf->offset, p_buf->len);
     p_data->len += p_buf->len;
-    p = (UINT8*)(p_data+1) + p_data->offset;
+    p = (uint8_t*)(p_data+1) + p_data->offset;
     if (p_data->len == p_ccb->ble_sdu_length)
     {
         l2c_csm_execute (p_ccb, L2CEVT_L2CAP_DATA, p_data);
-        p_ccb->is_first_seg = TRUE;
+        p_ccb->is_first_seg = true;
         p_ccb->ble_sdu = NULL;
         p_ccb->ble_sdu_length = 0;
     }
     else if (p_data->len < p_ccb->ble_sdu_length)
     {
-        p_ccb->is_first_seg = FALSE;
+        p_ccb->is_first_seg = false;
     }
     else
     {
@@ -968,13 +968,13 @@ void l2c_fcr_proc_ack_tout (tL2C_CCB *p_ccb)
 ** Returns          -
 **
 *******************************************************************************/
-static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
+static bool    process_reqseq (tL2C_CCB *p_ccb, uint16_t ctrl_word)
 {
     assert(p_ccb != NULL);
     tL2C_FCRB   *p_fcrb = &p_ccb->fcrb;
-    UINT8       req_seq, num_bufs_acked, xx;
-    UINT16      ls;
-    UINT16      full_sdus_xmitted;
+    uint8_t     req_seq, num_bufs_acked, xx;
+    uint16_t    ls;
+    uint16_t    full_sdus_xmitted;
 
     /* Receive sequence number does not ack anything for SREJ with P-bit set to zero */
     if ( (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
@@ -985,7 +985,7 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
         if (!fixed_queue_is_empty(p_fcrb->waiting_for_ack_q))
             l2c_fcr_start_timer(p_ccb);
 
-        return (TRUE);
+        return (true);
     }
 
     /* Extract the receive sequence number from the control word */
@@ -1002,7 +1002,7 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
                              fixed_queue_length(p_fcrb->waiting_for_ack_q));
 
         l2cu_disconnect_chnl (p_ccb);
-        return (FALSE);
+        return (false);
     }
 
     p_fcrb->last_rx_ack = req_seq;
@@ -1048,7 +1048,7 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
     /* If anything still waiting for ack, restart the timer if it was stopped */
     if (!fixed_queue_is_empty(p_fcrb->waiting_for_ack_q))
         l2c_fcr_start_timer(p_ccb);
-    return (TRUE);
+    return (true);
 }
 
 
@@ -1061,15 +1061,15 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
 ** Returns          -
 **
 *******************************************************************************/
-static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
+static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word)
 {
     assert(p_ccb != NULL);
     assert(p_buf != NULL);
 
     tL2C_FCRB   *p_fcrb      = &p_ccb->fcrb;
-    UINT16      s_frame_type = (ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT;
-    BOOLEAN     remote_was_busy;
-    BOOLEAN     all_ok = TRUE;
+    uint16_t    s_frame_type = (ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT;
+    bool        remote_was_busy;
+    bool        all_ok = true;
 
     if (p_buf->len != 0)
     {
@@ -1084,33 +1084,33 @@ static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
 
     if (ctrl_word & L2CAP_FCR_P_BIT)
     {
-        p_fcrb->rej_sent   = FALSE;             /* After checkpoint, we can send anoher REJ */
-        p_fcrb->send_f_rsp = TRUE;              /* Set a flag in case an I-frame is pending */
+        p_fcrb->rej_sent   = false;             /* After checkpoint, we can send anoher REJ */
+        p_fcrb->send_f_rsp = true;              /* Set a flag in case an I-frame is pending */
     }
 
     switch (s_frame_type)
     {
     case L2CAP_FCR_SUP_RR:
         remote_was_busy     = p_fcrb->remote_busy;
-        p_fcrb->remote_busy = FALSE;
+        p_fcrb->remote_busy = false;
 
         if ( (ctrl_word & L2CAP_FCR_F_BIT) || (remote_was_busy) )
             all_ok = retransmit_i_frames (p_ccb, L2C_FCR_RETX_ALL_PKTS);
         break;
 
     case L2CAP_FCR_SUP_REJ:
-        p_fcrb->remote_busy = FALSE;
+        p_fcrb->remote_busy = false;
         all_ok = retransmit_i_frames (p_ccb, L2C_FCR_RETX_ALL_PKTS);
         break;
 
     case L2CAP_FCR_SUP_RNR:
-        p_fcrb->remote_busy = TRUE;
+        p_fcrb->remote_busy = true;
         l2c_fcr_stop_timer (p_ccb);
         break;
 
     case L2CAP_FCR_SUP_SREJ:
-        p_fcrb->remote_busy = FALSE;
-        all_ok = retransmit_i_frames (p_ccb, (UINT8)((ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT));
+        p_fcrb->remote_busy = false;
+        all_ok = retransmit_i_frames (p_ccb, (uint8_t)((ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT));
         break;
     }
 
@@ -1126,7 +1126,7 @@ static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
             else
                 l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_RR, L2CAP_FCR_F_BIT);
 
-            p_fcrb->send_f_rsp = FALSE;
+            p_fcrb->send_f_rsp = false;
         }
     }
     else
@@ -1147,13 +1147,13 @@ static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
 ** Returns          -
 **
 *******************************************************************************/
-static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, BOOLEAN delay_ack)
+static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word, bool    delay_ack)
 {
     assert(p_ccb != NULL);
     assert(p_buf != NULL);
 
     tL2C_FCRB   *p_fcrb = &p_ccb->fcrb;
-    UINT8       tx_seq, num_lost, num_to_ack, next_srej;
+    uint8_t     tx_seq, num_lost, num_to_ack, next_srej;
 
     /* If we were doing checkpoint recovery, first retransmit all unacked I-frames */
     if (ctrl_word & L2CAP_FCR_F_BIT)
@@ -1237,7 +1237,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                     L2CAP_TRACE_WARNING ("process_i_frame() CID: 0x%04x  frame dropped in Srej Sent next_srej:%u  hold_q.count:%u  win_sz:%u",
                                          p_ccb->local_cid, next_srej, fixed_queue_length(p_fcrb->srej_rcv_hold_q), p_ccb->our_cfg.fcr.tx_win_sz);
 
-                    p_fcrb->rej_after_srej = TRUE;
+                    p_fcrb->rej_after_srej = true;
                     osi_free(p_buf);
                 }
             }
@@ -1258,7 +1258,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                 if (num_lost > 1)
                 {
                     osi_free(p_buf);
-                    p_fcrb->rej_sent = TRUE;
+                    p_fcrb->rej_sent = true;
                     l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_REJ, 0);
                 }
                 else
@@ -1270,7 +1270,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                     }
                     p_buf->layer_specific = tx_seq;
                     fixed_queue_enqueue(p_fcrb->srej_rcv_hold_q, p_buf);
-                    p_fcrb->srej_sent = TRUE;
+                    p_fcrb->srej_sent = true;
                     l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_SREJ, 0);
                 }
                 alarm_cancel(p_ccb->fcrb.ack_timer);
@@ -1280,7 +1280,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
     }
 
     /* Seq number is the next expected. Clear possible reject exception in case it occured */
-    p_fcrb->rej_sent = p_fcrb->srej_sent = FALSE;
+    p_fcrb->rej_sent = p_fcrb->srej_sent = false;
 
     /* Adjust the next_seq, so that if the upper layer sends more data in the callback
        context, the received frame is acked by an I-frame. */
@@ -1298,7 +1298,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
     num_to_ack = (p_fcrb->next_seq_expected - p_fcrb->last_ack_sent) & L2CAP_FCR_SEQ_MODULO;
 
     if ( (num_to_ack < p_ccb->fcrb.max_held_acks) && (!p_fcrb->local_busy) )
-        delay_ack = TRUE;
+        delay_ack = true;
 
     /* We should neve never ack frame if we are not in OPEN state */
     if ((num_to_ack != 0) && p_ccb->in_use && (p_ccb->chnl_state == CST_OPEN))
@@ -1341,15 +1341,15 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     assert(p_ccb != NULL);
     assert(p_buf != NULL);
 
-    UINT16      ctrl_word;
-    UINT16      fcs;
-    UINT8       *p;
-    UINT8       tx_seq;
+    uint16_t    ctrl_word;
+    uint16_t    fcs;
+    uint8_t     *p;
+    uint8_t     tx_seq;
 
     /* Verify FCS if using */
     if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
     {
-        p = ((UINT8 *)(p_buf+1)) + p_buf->offset + p_buf->len - L2CAP_FCS_LEN;
+        p = ((uint8_t *)(p_buf+1)) + p_buf->offset + p_buf->len - L2CAP_FCS_LEN;
 
         /* Extract and drop the FCS from the packet */
         STREAM_TO_UINT16 (fcs, p);
@@ -1364,7 +1364,7 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     }
 
     /* Get the control word */
-    p = ((UINT8 *)(p_buf+1)) + p_buf->offset;
+    p = ((uint8_t *)(p_buf+1)) + p_buf->offset;
 
     STREAM_TO_UINT16 (ctrl_word, p);
 
@@ -1379,7 +1379,7 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         return;
     }
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP eRTM Rx I-frame: cid: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
                         p_ccb->local_cid, p_buf->len,
                         SAR_types[(ctrl_word & L2CAP_FCR_SAR_BITS) >> L2CAP_FCR_SAR_BITS_SHIFT],
@@ -1417,18 +1417,18 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 **
 ** Description      Process SAR bits and re-assemble frame
 **
-** Returns          TRUE if all OK, else FALSE
+** Returns          true if all OK, else false
 **
 *******************************************************************************/
-static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
+static bool    do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word)
 {
     assert(p_ccb != NULL);
     assert(p_buf != NULL);
 
     tL2C_FCRB   *p_fcrb = &p_ccb->fcrb;
-    UINT16      sar_type = ctrl_word & L2CAP_FCR_SEG_BITS;
-    BOOLEAN     packet_ok = TRUE;
-    UINT8       *p;
+    uint16_t    sar_type = ctrl_word & L2CAP_FCR_SEG_BITS;
+    bool        packet_ok = true;
+    uint8_t     *p;
 
     /* Check if the SAR state is correct */
     if ((sar_type == L2CAP_FCR_UNSEG_SDU) || (sar_type == L2CAP_FCR_START_SDU))
@@ -1438,13 +1438,13 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
             L2CAP_TRACE_WARNING ("SAR - got unexpected unsegmented or start SDU  Expected len: %u  Got so far: %u",
                                   p_fcrb->rx_sdu_len, p_fcrb->p_rx_sdu->len);
 
-            packet_ok = FALSE;
+            packet_ok = false;
         }
         /* Check the length of the packet */
         if ( (sar_type == L2CAP_FCR_START_SDU) && (p_buf->len < L2CAP_SDU_LEN_OVERHEAD) )
         {
             L2CAP_TRACE_WARNING ("SAR start packet too short: %u", p_buf->len);
-            packet_ok = FALSE;
+            packet_ok = false;
         }
     }
     else
@@ -1452,13 +1452,13 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
         if (p_fcrb->p_rx_sdu == NULL)
         {
             L2CAP_TRACE_WARNING ("SAR - got unexpected cont or end SDU");
-            packet_ok = FALSE;
+            packet_ok = false;
         }
     }
 
     if ( (packet_ok) && (sar_type != L2CAP_FCR_UNSEG_SDU) )
     {
-        p = ((UINT8 *)(p_buf + 1)) + p_buf->offset;
+        p = ((uint8_t *)(p_buf + 1)) + p_buf->offset;
 
         /* For start SDU packet, extract the SDU length */
         if (sar_type == L2CAP_FCR_START_SDU)
@@ -1471,7 +1471,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
             if (p_fcrb->rx_sdu_len > p_ccb->max_rx_mtu)
             {
                 L2CAP_TRACE_WARNING ("SAR - SDU len: %u  larger than MTU: %u", p_fcrb->rx_sdu_len, p_fcrb->rx_sdu_len);
-                packet_ok = FALSE;
+                packet_ok = false;
             } else {
                 p_fcrb->p_rx_sdu = (BT_HDR *)osi_malloc(L2CAP_MAX_BUF_SIZE);
                 p_fcrb->p_rx_sdu->offset = OBX_BUF_MIN_OFFSET;
@@ -1485,17 +1485,17 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
             {
                 L2CAP_TRACE_ERROR ("SAR - SDU len exceeded  Type: %u   Lengths: %u %u %u",
                                     sar_type, p_fcrb->p_rx_sdu->len, p_buf->len, p_fcrb->rx_sdu_len);
-                packet_ok = FALSE;
+                packet_ok = false;
             }
             else if ( (sar_type == L2CAP_FCR_END_SDU) && ((p_fcrb->p_rx_sdu->len + p_buf->len) != p_fcrb->rx_sdu_len) )
             {
                 L2CAP_TRACE_WARNING ("SAR - SDU end rcvd but SDU incomplete: %u %u %u",
                                       p_fcrb->p_rx_sdu->len, p_buf->len, p_fcrb->rx_sdu_len);
-                packet_ok = FALSE;
+                packet_ok = false;
             }
             else
             {
-                memcpy (((UINT8 *) (p_fcrb->p_rx_sdu + 1)) + p_fcrb->p_rx_sdu->offset + p_fcrb->p_rx_sdu->len, p, p_buf->len);
+                memcpy (((uint8_t *) (p_fcrb->p_rx_sdu + 1)) + p_fcrb->p_rx_sdu->offset + p_fcrb->p_rx_sdu->len, p, p_buf->len);
 
                 p_fcrb->p_rx_sdu->len += p_buf->len;
 
@@ -1511,7 +1511,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
         }
     }
 
-    if (packet_ok == FALSE)
+    if (packet_ok == false)
     {
         osi_free(p_buf);
     }
@@ -1540,17 +1540,17 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
 **
 ** Description      This function retransmits i-frames awaiting acks.
 **
-** Returns          BOOLEAN - TRUE if retransmitted
+** Returns          bool    - true if retransmitted
 **
 *******************************************************************************/
-static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
+static bool    retransmit_i_frames (tL2C_CCB *p_ccb, uint8_t tx_seq)
 {
     assert(p_ccb != NULL);
 
     BT_HDR      *p_buf = NULL;
-    UINT8       *p;
-    UINT8       buf_seq;
-    UINT16      ctrl_word;
+    uint8_t     *p;
+    uint8_t     buf_seq;
+    uint16_t    ctrl_word;
 
     if ( (!fixed_queue_is_empty(p_ccb->fcrb.waiting_for_ack_q))
      &&  (p_ccb->peer_cfg.fcr.max_transmit != 0)
@@ -1561,7 +1561,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
                 fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
 
         l2cu_disconnect_chnl (p_ccb);
-        return (FALSE);
+        return (false);
     }
 
     /* tx_seq indicates whether to retransmit a specific sequence or all (if == L2C_FCR_RETX_ALL_PKTS) */
@@ -1579,7 +1579,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
             for ( ; node_ack != list_end(list_ack); node_ack = list_next(node_ack)) {
                 p_buf = (BT_HDR *)list_node(node_ack);
                 /* Get the old control word */
-                p = ((UINT8 *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
+                p = ((uint8_t *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
 
                 STREAM_TO_UINT16 (ctrl_word, p);
 
@@ -1597,7 +1597,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
             L2CAP_TRACE_ERROR ("retransmit_i_frames() UNKNOWN seq: %u  q_count: %u",
                                tx_seq,
                                fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
-            return (TRUE);
+            return (true);
         }
     }
     else
@@ -1651,7 +1651,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
         l2c_fcr_start_timer (p_ccb);
     }
 
-    return (TRUE);
+    return (true);
 }
 
 
@@ -1664,17 +1664,17 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
 ** Returns          pointer to buffer with segment or NULL
 **
 *******************************************************************************/
-BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length)
+BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_length)
 {
     assert(p_ccb != NULL);
 
-    BOOLEAN     first_seg    = FALSE,       /* The segment is the first part of data  */
-                mid_seg      = FALSE,       /* The segment is the middle part of data */
-                last_seg     = FALSE;       /* The segment is the last part of data   */
-    UINT16      sdu_len = 0;
+    bool        first_seg    = false,       /* The segment is the first part of data  */
+                mid_seg      = false,       /* The segment is the middle part of data */
+                last_seg     = false;       /* The segment is the last part of data   */
+    uint16_t    sdu_len = 0;
     BT_HDR      *p_buf, *p_xmit;
-    UINT8       *p;
-    UINT16      max_pdu = p_ccb->tx_mps /* Needed? - L2CAP_MAX_HEADER_FCS*/;
+    uint8_t     *p;
+    uint16_t    max_pdu = p_ccb->tx_mps /* Needed? - L2CAP_MAX_HEADER_FCS*/;
 
     /* If there is anything in the retransmit queue, that goes first
     */
@@ -1682,7 +1682,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     if (p_buf != NULL)
     {
         /* Update Rx Seq and FCS if we acked some packets while this one was queued */
-        prepare_I_frame (p_ccb, p_buf, TRUE);
+        prepare_I_frame (p_ccb, p_buf, true);
 
         p_buf->event = p_ccb->local_cid;
 
@@ -1710,11 +1710,11 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         /* We are using the "event" field to tell is if we already started segmentation */
         if (p_buf->event == 0)
         {
-            first_seg = TRUE;
+            first_seg = true;
             sdu_len   = p_buf->len;
         }
         else
-            mid_seg = TRUE;
+            mid_seg = true;
 
         /* Get a new buffer and copy the data that can be sent in a PDU */
         p_xmit = l2c_fcr_clone_buf(p_buf, L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET,
@@ -1742,7 +1742,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         p_xmit = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
 
         if (p_xmit->event != 0)
-            last_seg = TRUE;
+            last_seg = true;
 
         p_xmit->event = p_ccb->local_cid;
     }
@@ -1758,7 +1758,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     }
 
     /* Set the pointer to the beginning of the data */
-    p = (UINT8 *)(p_xmit + 1) + p_xmit->offset;
+    p = (uint8_t *)(p_xmit + 1) + p_xmit->offset;
 
     /* Now the L2CAP header */
 
@@ -1777,7 +1777,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         /* layer_specific is shared with flushable flag(bits 0-1), don't clear it */
         p_xmit->layer_specific |= L2CAP_FCR_START_SDU;
 
-        first_seg = FALSE;
+        first_seg = false;
     }
     else if (mid_seg)
         p_xmit->layer_specific |= L2CAP_FCR_CONT_SDU;
@@ -1786,7 +1786,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     else
         p_xmit->layer_specific |= L2CAP_FCR_UNSEG_SDU;
 
-    prepare_I_frame (p_ccb, p_xmit, FALSE);
+    prepare_I_frame (p_ccb, p_xmit, false);
 
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
     {
@@ -1813,7 +1813,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
              * NOTE: Here we assume the allocate buffer is large enough
              * to include extra 4 octets at the end.
              */
-            p = ((UINT8 *) (p_wack+1)) + p_wack->offset + p_wack->len;
+            p = ((uint8_t *) (p_wack+1)) + p_wack->offset + p_wack->len;
             UINT32_TO_STREAM (p, time_get_os_boottime_ms());
 #endif
             /* We will not save the FCS in case we reconfigure and change options */
@@ -1843,26 +1843,26 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
 ** Returns          pointer to buffer with segment or NULL
 **
 *******************************************************************************/
-BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length)
+BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_length)
 {
-    BOOLEAN     first_seg    = FALSE;       /* The segment is the first part of data  */
-    BOOLEAN     last_seg     = FALSE;       /* The segment is the last part of data  */
-    UINT16      no_of_bytes_to_send = 0;
-    UINT16      sdu_len = 0;
+    bool        first_seg    = false;       /* The segment is the first part of data  */
+    bool        last_seg     = false;       /* The segment is the last part of data  */
+    uint16_t    no_of_bytes_to_send = 0;
+    uint16_t    sdu_len = 0;
     BT_HDR      *p_buf, *p_xmit;
-    UINT8       *p;
-    UINT16      max_pdu = p_ccb->peer_conn_cfg.mps;
+    uint8_t     *p;
+    uint16_t    max_pdu = p_ccb->peer_conn_cfg.mps;
 
     p_buf = (BT_HDR *)fixed_queue_try_peek_first(p_ccb->xmit_hold_q);
 
     /* We are using the "event" field to tell is if we already started segmentation */
     if (p_buf->event == 0)
     {
-        first_seg = TRUE;
+        first_seg = true;
         sdu_len   = p_buf->len;
         if (p_buf->len <= (max_pdu - L2CAP_LCC_SDU_LENGTH))
         {
-            last_seg = TRUE;
+            last_seg = true;
             no_of_bytes_to_send = p_buf->len;
         }
         else
@@ -1870,7 +1870,7 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     }
     else if (p_buf->len <= max_pdu)
     {
-        last_seg = TRUE;
+        last_seg = true;
         no_of_bytes_to_send = p_buf->len;
     }
     else
@@ -1880,7 +1880,7 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     }
 
     /* Get a new buffer and copy the data that can be sent in a PDU */
-    if (first_seg == TRUE)
+    if (first_seg == true)
         p_xmit = l2c_fcr_clone_buf (p_buf, L2CAP_LCC_OFFSET,
                     no_of_bytes_to_send);
     else
@@ -1892,10 +1892,10 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         p_buf->event  = p_ccb->local_cid;
         p_xmit->event = p_ccb->local_cid;
 
-        if (first_seg == TRUE)
+        if (first_seg == true)
         {
             p_xmit->offset -= L2CAP_LCC_SDU_LENGTH;  /* for writing the SDU length. */
-            p = (UINT8 *)(p_xmit + 1) + p_xmit->offset;
+            p = (uint8_t *)(p_xmit + 1) + p_xmit->offset;
             UINT16_TO_STREAM(p, sdu_len);
             p_xmit->len += L2CAP_LCC_SDU_LENGTH;
         }
@@ -1913,7 +1913,7 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         return (NULL);
     }
 
-    if (last_seg == TRUE)
+    if (last_seg == true)
     {
         p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
         osi_free(p_buf);
@@ -1924,7 +1924,7 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     p_xmit->len    += L2CAP_PKT_OVERHEAD ;
 
     /* Set the pointer to the beginning of the data */
-    p = (UINT8 *)(p_xmit + 1) + p_xmit->offset;
+    p = (uint8_t *)(p_xmit + 1) + p_xmit->offset;
 
     /* Note: if FCS has to be included then the length is recalculated later */
     UINT16_TO_STREAM (p, p_xmit->len - L2CAP_PKT_OVERHEAD);
@@ -1950,10 +1950,10 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
 **                  Note: This assumes peer EXT Features have been received.
 **                      Basic mode is used if FCR Options have not been received
 **
-** Returns          UINT8 - nonzero if can continue, '0' if no compatible channels
+** Returns          uint8_t - nonzero if can continue, '0' if no compatible channels
 **
 *******************************************************************************/
-UINT8 l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)
+uint8_t l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
 
@@ -1980,10 +1980,10 @@ UINT8 l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)
 ** Description      Validates and sets up the FCR options passed in from
 **                  L2CA_ConfigReq based on remote device's features.
 **
-** Returns          TRUE if no errors, Otherwise FALSE
+** Returns          true if no errors, Otherwise false
 **
 *******************************************************************************/
-BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
+bool    l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     assert(p_ccb != NULL);
     assert(p_cfg != NULL);
@@ -2019,16 +2019,16 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         {
             /* Two channels have incompatible supported types */
             l2cu_disconnect_chnl (p_ccb);
-            return (FALSE);
+            return (false);
         }
 
         /* Basic is the only common channel mode between the two devices */
         else if (p_ccb->ertm_info.allowed_modes == L2CAP_FCR_CHAN_OPT_BASIC)
         {
             /* We only want to try Basic, so bypass sending the FCR options entirely */
-            p_cfg->fcr_present = FALSE;
-            p_cfg->fcs_present = FALSE;             /* Illegal to use FCS option in basic mode */
-            p_cfg->ext_flow_spec_present = FALSE;   /* Illegal to use extended flow spec in basic mode */
+            p_cfg->fcr_present = false;
+            p_cfg->fcs_present = false;             /* Illegal to use FCS option in basic mode */
+            p_cfg->ext_flow_spec_present = false;   /* Illegal to use extended flow spec in basic mode */
         }
 
         /* We have at least one non-basic mode available
@@ -2057,7 +2057,7 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             if ( (p_cfg->mtu_present) && (p_cfg->mtu > p_ccb->max_rx_mtu) )
             {
                 L2CAP_TRACE_WARNING ("L2CAP - MTU: %u  larger than buf size: %u", p_cfg->mtu, p_ccb->max_rx_mtu);
-                return (FALSE);
+                return (false);
             }
 
             /* application want to use the default MPS */
@@ -2069,7 +2069,7 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             else if (p_fcr->mps > p_ccb->max_rx_mtu)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - MPS  %u  invalid  MTU: %u", p_fcr->mps, p_ccb->max_rx_mtu);
-                return (FALSE);
+                return (false);
             }
 
             /* We always initially read into the HCI buffer pool, so make sure it fits */
@@ -2078,18 +2078,18 @@ BOOLEAN l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         }
         else
         {
-            p_cfg->fcs_present = FALSE;             /* Illegal to use FCS option in basic mode */
-            p_cfg->ext_flow_spec_present = FALSE;   /* Illegal to use extended flow spec in basic mode */
+            p_cfg->fcs_present = false;             /* Illegal to use FCS option in basic mode */
+            p_cfg->ext_flow_spec_present = false;   /* Illegal to use extended flow spec in basic mode */
         }
 
         p_ccb->our_cfg.fcr = *p_fcr;
     }
     else    /* Not sure how to send a reconfiguration(??) should fcr be included? */
     {
-        p_ccb->our_cfg.fcr_present = FALSE;
+        p_ccb->our_cfg.fcr_present = false;
     }
 
-    return (TRUE);
+    return (true);
 }
 
 
@@ -2158,7 +2158,7 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         /* Note: peer is not guaranteed to obey our adjustment */
         if (p_ccb->peer_cfg.fcr.tx_win_sz > p_ccb->our_cfg.fcr.tx_win_sz)
         {
-            L2CAP_TRACE_DEBUG ("%s: adjusting requested tx_win_sz from %i to %i", __FUNCTION__, p_ccb->peer_cfg.fcr.tx_win_sz, p_ccb->our_cfg.fcr.tx_win_sz);
+            L2CAP_TRACE_DEBUG ("%s: adjusting requested tx_win_sz from %i to %i", __func__, p_ccb->peer_cfg.fcr.tx_win_sz, p_ccb->our_cfg.fcr.tx_win_sz);
             p_ccb->peer_cfg.fcr.tx_win_sz = p_ccb->our_cfg.fcr.tx_win_sz;
         }
 
@@ -2179,21 +2179,21 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 **                  If the error is because of the channel mode, it will try
 **                  to resend using another supported optional channel.
 **
-** Returns          TRUE if resent configuration, False if channel matches or
+** Returns          true if resent configuration, False if channel matches or
 **                  cannot match.
 **
 *******************************************************************************/
-BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
+bool    l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     assert(p_ccb != NULL);
     assert(p_cfg != NULL);
 
-    UINT8   peer_mode = p_ccb->our_cfg.fcr.mode;
-    BOOLEAN can_renegotiate;
+    uint8_t peer_mode = p_ccb->our_cfg.fcr.mode;
+    bool    can_renegotiate;
 
     /* Skip if this is a reconfiguration from OPEN STATE or if FCR is not returned */
     if (!p_cfg->fcr_present || (p_ccb->config_done & RECONFIG_FLAG))
-        return (FALSE);
+        return (false);
 
     /* Only retry if there are more channel options to try */
     if (p_cfg->result == L2CAP_CFG_UNACCEPTABLE_PARAMS)
@@ -2209,7 +2209,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                 L2CAP_TRACE_WARNING ("l2c_fcr_renegotiate_chan (Max retries exceeded)");
             }
 
-            can_renegotiate = FALSE;
+            can_renegotiate = false;
 
             /* Try another supported mode if available based on our last attempted channel */
             switch (p_ccb->our_cfg.fcr.mode)
@@ -2221,7 +2221,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                 {
                     L2CAP_TRACE_DEBUG ("l2c_fcr_renegotiate_chan(Trying ERTM)");
                     p_ccb->our_cfg.fcr.mode = L2CAP_FCR_ERTM_MODE;
-                    can_renegotiate = TRUE;
+                    can_renegotiate = true;
                 }
                 else    /* Falls through */
 
@@ -2231,7 +2231,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                     if (p_ccb->ertm_info.allowed_modes & L2CAP_FCR_CHAN_OPT_BASIC)
                     {
                         L2CAP_TRACE_DEBUG ("l2c_fcr_renegotiate_chan(Trying Basic)");
-                        can_renegotiate = TRUE;
+                        can_renegotiate = true;
                         p_ccb->our_cfg.fcr.mode = L2CAP_FCR_BASIC_MODE;
                     }
                 }
@@ -2244,12 +2244,12 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
             if (can_renegotiate)
             {
-                p_ccb->our_cfg.fcr_present = TRUE;
+                p_ccb->our_cfg.fcr_present = true;
 
                 if (p_ccb->our_cfg.fcr.mode == L2CAP_FCR_BASIC_MODE)
                 {
-                    p_ccb->our_cfg.fcs_present = FALSE;
-                    p_ccb->our_cfg.ext_flow_spec_present = FALSE;
+                    p_ccb->our_cfg.fcs_present = false;
+                    p_ccb->our_cfg.ext_flow_spec_present = false;
 
                     /* Basic Mode uses ACL Data Pool, make sure the MTU fits */
                     if ( (p_cfg->mtu_present) && (p_cfg->mtu > L2CAP_MTU_SIZE) )
@@ -2265,7 +2265,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                                    L2CAP_CHNL_CFG_TIMEOUT_MS,
                                    l2c_ccb_timer_timeout, p_ccb,
                                    btu_general_alarm_queue);
-                return (TRUE);
+                return (true);
             }
         }
     }
@@ -2278,7 +2278,7 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         l2cu_disconnect_chnl (p_ccb);
     }
 
-    return (FALSE);
+    return (false);
 }
 
 
@@ -2289,19 +2289,19 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 ** Description      This function is called to process the FCR options passed
 **                  in the peer's configuration request.
 **
-** Returns          UINT8 - L2CAP_PEER_CFG_OK, L2CAP_PEER_CFG_UNACCEPTABLE,
+** Returns          uint8_t - L2CAP_PEER_CFG_OK, L2CAP_PEER_CFG_UNACCEPTABLE,
 **                          or L2CAP_PEER_CFG_DISCONNECT.
 **
 *******************************************************************************/
-UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
+uint8_t l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     assert(p_ccb != NULL);
     assert(p_cfg != NULL);
 
-    UINT16 max_retrans_size;
-    UINT8  fcr_ok = L2CAP_PEER_CFG_OK;
+    uint16_t max_retrans_size;
+    uint8_t fcr_ok = L2CAP_PEER_CFG_OK;
 
-    p_ccb->p_lcb->w4_info_rsp = FALSE;      /* Handles T61x SonyEricsson Bug in Info Request */
+    p_ccb->p_lcb->w4_info_rsp = false;      /* Handles T61x SonyEricsson Bug in Info Request */
 
     L2CAP_TRACE_EVENT ("l2c_fcr_process_peer_cfg_req() CFG fcr_present:%d fcr.mode:%d CCB FCR mode:%d preferred: %u allowed:%u",
                         p_cfg->fcr_present, p_cfg->fcr.mode, p_ccb->our_cfg.fcr.mode, p_ccb->ertm_info.preferred_mode,
@@ -2355,7 +2355,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
     if (fcr_ok == L2CAP_PEER_CFG_OK)
     {
         /* by default don't need to send params in the response */
-        p_ccb->out_cfg_fcr_present = FALSE;
+        p_ccb->out_cfg_fcr_present = false;
 
         /* Make any needed adjustments for the response to the peer */
         if (p_cfg->fcr_present && p_cfg->fcr.mode != L2CAP_FCR_BASIC_MODE)
@@ -2376,7 +2376,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             if ( (p_cfg->fcr.mps == 0) || (p_cfg->fcr.mps > p_ccb->peer_cfg.mtu) )
             {
                 p_cfg->fcr.mps = p_ccb->peer_cfg.mtu;
-                p_ccb->out_cfg_fcr_present = TRUE;
+                p_ccb->out_cfg_fcr_present = true;
             }
 
             /* Ensure the MPS is not bigger than our retransmission buffer */
@@ -2385,13 +2385,13 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                 L2CAP_TRACE_DEBUG("CFG: Overriding MPS to %d (orig %d)", max_retrans_size, p_cfg->fcr.mps);
 
                 p_cfg->fcr.mps = max_retrans_size;
-                p_ccb->out_cfg_fcr_present = TRUE;
+                p_ccb->out_cfg_fcr_present = true;
             }
 
             if (p_cfg->fcr.mode == L2CAP_FCR_ERTM_MODE || p_cfg->fcr.mode == L2CAP_FCR_STREAM_MODE)
             {
                 /* Always respond with FCR ERTM parameters */
-                p_ccb->out_cfg_fcr_present = TRUE;
+                p_ccb->out_cfg_fcr_present = true;
             }
         }
 
@@ -2407,7 +2407,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
         if (p_ccb->peer_cfg_already_rejected)
             fcr_ok = L2CAP_PEER_CFG_DISCONNECT;
         else
-            p_ccb->peer_cfg_already_rejected = TRUE;
+            p_ccb->peer_cfg_already_rejected = true;
     }
 
     return (fcr_ok);
@@ -2426,14 +2426,14 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
+static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, uint8_t num_bufs_acked)
 {
-    UINT32  index;
+    uint32_t index;
     BT_HDR *p_buf;
-    UINT8  *p;
-    UINT32  timestamp, delay;
-    UINT8   xx;
-    UINT8   str[120];
+    uint8_t *p;
+    uint32_t timestamp, delay;
+    uint8_t xx;
+    uint8_t str[120];
 
     index = p_ccb->fcrb.ack_delay_avg_index;
 
@@ -2462,7 +2462,7 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
             if ( xx == num_bufs_acked - 1 )
             {
                 /* get timestamp from tx I-frame that receiver is acking */
-                p = ((UINT8 *) (p_buf+1)) + p_buf->offset + p_buf->len;
+                p = ((uint8_t *) (p_buf+1)) + p_buf->offset + p_buf->len;
                 if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
                 {
                     p += L2CAP_FCS_LEN;

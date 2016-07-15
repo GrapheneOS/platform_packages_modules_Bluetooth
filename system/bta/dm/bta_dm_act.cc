@@ -3816,7 +3816,7 @@ static void bta_dm_set_eir (char *local_name)
             free_eir_length -= num_uuid * LEN_UUID_16;
         }
     }
-#else /* (BTA_EIR_CANNED_UUID_LIST == true) */
+#else /* (BTA_EIR_CANNED_UUID_LIST == TRUE) */
     /* if UUID list is dynamic */
     if ( free_eir_length >= 2)
     {
@@ -3858,7 +3858,7 @@ static void bta_dm_set_eir (char *local_name)
         UINT8_TO_STREAM(p_type, data_type);
         free_eir_length -= num_uuid * LEN_UUID_16 + 2;
     }
-#endif /* (BTA_EIR_CANNED_UUID_LIST == true) */
+#endif /* (BTA_EIR_CANNED_UUID_LIST == TRUE) */
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE && BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     /* Adding 32-bit UUID list */
@@ -3926,7 +3926,7 @@ static void bta_dm_set_eir (char *local_name)
         UINT8_TO_STREAM(p_type, data_type);
         free_eir_length -= num_uuid * LEN_UUID_128 + 2;
     }
-#endif /* ( BTA_EIR_CANNED_UUID_LIST != true )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0) */
+#endif /* ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0) */
 
     /* if Flags are provided in configuration */
     if(( p_bta_dm_eir_cfg->bta_dm_eir_flag_len > 0 )
@@ -4431,7 +4431,7 @@ static uint8_t bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT
     }
     return status;
 }
-#endif  /* SMP_INCLUDED == true */
+#endif  /* SMP_INCLUDED == TRUE */
 
 /*******************************************************************************
 **

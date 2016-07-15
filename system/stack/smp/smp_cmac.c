@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if SMP_INCLUDED == TRUE
+#if (SMP_INCLUDED == TRUE)
     #include <stdio.h>
     #include <string.h>
 
@@ -34,9 +34,9 @@
 
 typedef struct
 {
-    UINT8               *text;
-    UINT16              len;
-    UINT16              round;
+    uint8_t             *text;
+    uint16_t            len;
+    uint16_t            round;
 }tCMAC_CB;
 
 tCMAC_CB    cmac_cb;
@@ -47,11 +47,11 @@ BT_OCTET16 const_Rb = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-void print128(BT_OCTET16 x, const UINT8 *key_name)
+void print128(BT_OCTET16 x, const uint8_t *key_name)
 {
-#if SMP_DEBUG == TRUE && SMP_DEBUG_VERBOSE == TRUE
-    UINT8  *p = (UINT8 *)x;
-    UINT8  i;
+#if (SMP_DEBUG == TRUE && SMP_DEBUG_VERBOSE == TRUE)
+    uint8_t *p = (uint8_t *)x;
+    uint8_t i;
 
     SMP_TRACE_WARNING("%s(MSB ~ LSB) = ", key_name);
 
@@ -76,9 +76,9 @@ void print128(BT_OCTET16 x, const UINT8 *key_name)
 ** Returns          void
 **
 *******************************************************************************/
-static void padding ( BT_OCTET16 dest, UINT8 length )
+static void padding ( BT_OCTET16 dest, uint8_t length )
 {
-    UINT8   i, *p = dest;
+    uint8_t i, *p = dest;
     /* original last block */
     for ( i = length ; i < BT_OCTET16_LEN; i++ )
         p[BT_OCTET16_LEN - i - 1] = ( i == length ) ? 0x80 : 0;
@@ -92,9 +92,9 @@ static void padding ( BT_OCTET16 dest, UINT8 length )
 ** Returns          void
 **
 *******************************************************************************/
-static void leftshift_onebit(UINT8 *input, UINT8 *output)
+static void leftshift_onebit(uint8_t *input, uint8_t *output)
 {
-    UINT8   i, overflow = 0 , next_overflow = 0;
+    uint8_t i, overflow = 0 , next_overflow = 0;
     SMP_TRACE_EVENT ("leftshift_onebit ");
     /* input[0] is LSB */
     for ( i = 0; i < BT_OCTET16_LEN ; i ++ )
@@ -129,12 +129,12 @@ static void cmac_aes_cleanup(void)
 ** Returns          void
 **
 *******************************************************************************/
-static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 tlen)
+static bool    cmac_aes_k_calculate(BT_OCTET16 key, uint8_t *p_signature, uint16_t tlen)
 {
     tSMP_ENC output;
-    UINT8    i = 1, err = 0;
-    UINT8    x[16] = {0};
-    UINT8   *p_mac;
+    uint8_t  i = 1, err = 0;
+    uint8_t  x[16] = {0};
+    uint8_t *p_mac;
 
     SMP_TRACE_EVENT ("cmac_aes_k_calculate ");
 
@@ -163,11 +163,11 @@ static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 t
         SMP_TRACE_DEBUG("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x",
                          *(p_mac + 4), *(p_mac + 5), *(p_mac + 6), *(p_mac + 7));
 
-        return TRUE;
+        return true;
 
     }
     else
-        return FALSE;
+        return false;
 }
 /*******************************************************************************
 **
@@ -181,12 +181,12 @@ static BOOLEAN cmac_aes_k_calculate(BT_OCTET16 key, UINT8 *p_signature, UINT16 t
 *******************************************************************************/
 static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
 {
-//    UINT8       x[16] = {0};
-    BOOLEAN      flag;
+//    uint8_t     x[16] = {0};
+    bool         flag;
 
     SMP_TRACE_EVENT ("cmac_prepare_last_block ");
     /* last block is a complete block set flag to 1 */
-    flag = ((cmac_cb.len % BT_OCTET16_LEN) == 0 && cmac_cb.len != 0)  ? TRUE : FALSE;
+    flag = ((cmac_cb.len % BT_OCTET16_LEN) == 0 && cmac_cb.len != 0)  ? true : false;
 
     SMP_TRACE_WARNING("flag = %d round = %d", flag, cmac_cb.round);
 
@@ -196,7 +196,7 @@ static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
     }
     else /* padding then xor with k2 */
     {
-        padding(&cmac_cb.text[0], (UINT8)(cmac_cb.len % 16));
+        padding(&cmac_cb.text[0], (uint8_t)(cmac_cb.len % 16));
 
         smp_xor_128(&cmac_cb.text[0], k2);
     }
@@ -212,10 +212,10 @@ static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
 *******************************************************************************/
 static void cmac_subkey_cont(tSMP_ENC *p)
 {
-    UINT8 k1[BT_OCTET16_LEN], k2[BT_OCTET16_LEN];
-    UINT8 *pp = p->param_buf;
+    uint8_t k1[BT_OCTET16_LEN], k2[BT_OCTET16_LEN];
+    uint8_t *pp = p->param_buf;
     SMP_TRACE_EVENT ("cmac_subkey_cont ");
-    print128(pp, (const UINT8 *)"K1 before shift");
+    print128(pp, (const uint8_t *)"K1 before shift");
 
     /* If MSB(L) = 0, then K1 = L << 1 */
     if ( (pp[BT_OCTET16_LEN - 1] & 0x80) != 0 )
@@ -241,8 +241,8 @@ static void cmac_subkey_cont(tSMP_ENC *p)
         leftshift_onebit(k1, k2);
     }
 
-    print128(k1, (const UINT8 *)"K1");
-    print128(k2, (const UINT8 *)"K2");
+    print128(k1, (const uint8_t *)"K1");
+    print128(k2, (const uint8_t *)"K2");
 
     cmac_prepare_last_block (k1, k2);
 }
@@ -257,10 +257,10 @@ static void cmac_subkey_cont(tSMP_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-static BOOLEAN cmac_generate_subkey(BT_OCTET16 key)
+static bool    cmac_generate_subkey(BT_OCTET16 key)
 {
     BT_OCTET16 z = {0};
-    BOOLEAN     ret = TRUE;
+    bool        ret = true;
     tSMP_ENC output;
     SMP_TRACE_EVENT (" cmac_generate_subkey");
 
@@ -269,7 +269,7 @@ static BOOLEAN cmac_generate_subkey(BT_OCTET16 key)
         cmac_subkey_cont(&output);;
     }
     else
-        ret = FALSE;
+        ret = false;
 
     return ret;
 }
@@ -285,15 +285,15 @@ static BOOLEAN cmac_generate_subkey(BT_OCTET16 key)
 **                  tlen - lenth of mac desired
 **                  p_signature - data pointer to where signed data to be stored, tlen long.
 **
-** Returns          FALSE if out of resources, TRUE in other cases.
+** Returns          false if out of resources, true in other cases.
 **
 *******************************************************************************/
-BOOLEAN aes_cipher_msg_auth_code(BT_OCTET16 key, UINT8 *input, UINT16 length,
-                                 UINT16 tlen, UINT8 *p_signature)
+bool    aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t length,
+                                 uint16_t tlen, uint8_t *p_signature)
 {
-    UINT16  len, diff;
-    UINT16  n = (length + BT_OCTET16_LEN - 1) / BT_OCTET16_LEN;       /* n is number of rounds */
-    BOOLEAN ret = FALSE;
+    uint16_t len, diff;
+    uint16_t n = (length + BT_OCTET16_LEN - 1) / BT_OCTET16_LEN;       /* n is number of rounds */
+    bool    ret = false;
 
     SMP_TRACE_EVENT ("%s", __func__);
 
@@ -302,7 +302,7 @@ BOOLEAN aes_cipher_msg_auth_code(BT_OCTET16 key, UINT8 *input, UINT16 length,
 
     SMP_TRACE_WARNING("AES128_CMAC started, allocate buffer size = %d", len);
     /* allocate a memory space of multiple of 16 bytes to hold text  */
-    cmac_cb.text = (UINT8 *)osi_calloc(len);
+    cmac_cb.text = (uint8_t *)osi_calloc(len);
     cmac_cb.round = n;
     diff = len - length;
 
@@ -325,7 +325,7 @@ BOOLEAN aes_cipher_msg_auth_code(BT_OCTET16 key, UINT8 *input, UINT16 length,
 }
 
     #if 0 /* testing code, sample data from spec */
-void test_cmac_cback(UINT8 *p_mac, UINT16 tlen)
+void test_cmac_cback(uint8_t *p_mac, uint16_t tlen)
 {
     SMP_TRACE_EVENT ("test_cmac_cback ");
     SMP_TRACE_ERROR("test_cmac_cback");
@@ -334,7 +334,7 @@ void test_cmac_cback(UINT8 *p_mac, UINT16 tlen)
 void test_cmac(void)
 {
     SMP_TRACE_EVENT ("test_cmac ");
-    UINT8 M[64] = {
+    uint8_t M[64] = {
         0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96,
         0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a,
         0xae, 0x2d, 0x8a, 0x57, 0x1e, 0x03, 0xac, 0x9c,
@@ -345,12 +345,12 @@ void test_cmac(void)
         0xad, 0x2b, 0x41, 0x7b, 0xe6, 0x6c, 0x37, 0x10
     };
 
-    UINT8 key[16] = {
+    uint8_t key[16] = {
         0x3c, 0x4f, 0xcf, 0x09, 0x88, 0x15, 0xf7, 0xab,
         0xa6, 0xd2, 0xae, 0x28, 0x16, 0x15, 0x7e, 0x2b
     };
-    UINT8 i =0, tmp;
-    UINT16 len;
+    uint8_t i =0, tmp;
+    uint16_t len;
 
     len = 64;
 

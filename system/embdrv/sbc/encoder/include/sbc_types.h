@@ -44,7 +44,7 @@ typedef long long SINT64;
 typedef int64_t SINT64;
 #endif
 
-#elif (SBC_IS_64_MULT_IN_WINDOW_ACCU == TRUE) || (SBC_IS_64_MULT_IN_IDCT == TRUE)
+#elif (SBC_IS_64_MULT_IN_WINDOW_ACCU == TRUE || SBC_IS_64_MULT_IN_IDCT == TRUE)
 
 #if (SBC_FOR_EMBEDDED_LINUX == TRUE)
 typedef long long SINT64;

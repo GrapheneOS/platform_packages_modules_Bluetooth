@@ -50,93 +50,93 @@ extern "C" {
 #define RFCOMM_MAX_MTU          32767
 
 extern void RFCOMM_StartReq (tRFC_MCB *p_mcb);
-extern void RFCOMM_StartRsp (tRFC_MCB *p_mcb, UINT16 result);
+extern void RFCOMM_StartRsp (tRFC_MCB *p_mcb, uint16_t result);
 
-extern void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu);
-extern void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 result);
+extern void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu);
+extern void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint16_t result);
 
-extern void RFCOMM_DataReq (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf);
+extern void RFCOMM_DataReq (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf);
 
-extern void RFCOMM_DlcReleaseReq (tRFC_MCB *p_mcb, UINT8 dlci);
+extern void RFCOMM_DlcReleaseReq (tRFC_MCB *p_mcb, uint8_t dlci);
 
-extern void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu);
-extern void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k);
+extern void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu);
+extern void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k);
 
-extern void RFCOMM_TestReq (UINT8 *p_data, UINT16 len);
+extern void RFCOMM_TestReq (uint8_t *p_data, uint16_t len);
 
 #define RFCOMM_FLOW_STATE_DISABLE       0
 #define RFCOMM_FLOW_STATE_ENABLE        1
 
-extern void RFCOMM_FlowReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 state);
+extern void RFCOMM_FlowReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t state);
 
-extern void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars);
-extern void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 param_mask);
+extern void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars);
+extern void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars, uint16_t param_mask);
 
-extern void RFCOMM_ControlReq (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars);
-extern void RFCOMM_ControlRsp (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars);
+extern void RFCOMM_ControlReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars);
+extern void RFCOMM_ControlRsp (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars);
 
-extern void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 line_status);
+extern void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t line_status);
 /*
 ** Define logical struct used for sending and decoding MX frames
 */
 typedef struct
 {
-    UINT8   dlci;
-    UINT8   type;
-    UINT8   cr;
-    UINT8   ea;
-    UINT8   pf;
-    UINT8   credit;
+    uint8_t dlci;
+    uint8_t type;
+    uint8_t cr;
+    uint8_t ea;
+    uint8_t pf;
+    uint8_t credit;
 
     union
     {
         struct
         {
-            UINT8 dlci;
-            UINT8 frame_type;
-            UINT8 conv_layer;
-            UINT8 priority;
-            UINT8 t1;
-            UINT16 mtu;
-            UINT8 n2;
-            UINT8 k;
+            uint8_t dlci;
+            uint8_t frame_type;
+            uint8_t conv_layer;
+            uint8_t priority;
+            uint8_t t1;
+            uint16_t mtu;
+            uint8_t n2;
+            uint8_t k;
         } pn;
         struct
         {
-            UINT8   *p_data;
-            UINT16  data_len;
+            uint8_t *p_data;
+            uint16_t data_len;
         } test;
         struct
         {
-            UINT8 dlci;
-            UINT8 signals;
-            UINT8 break_present;
-            UINT8 break_duration;
+            uint8_t dlci;
+            uint8_t signals;
+            uint8_t break_present;
+            uint8_t break_duration;
         } msc;
         struct
         {
-            UINT8 ea;
-            UINT8 cr;
-            UINT8 type;
+            uint8_t ea;
+            uint8_t cr;
+            uint8_t type;
         } nsc;
         struct
         {
-            UINT8 dlci;
-            UINT8 is_request;
-            UINT8 baud_rate;
-            UINT8 byte_size;
-            UINT8 stop_bits;
-            UINT8 parity;
-            UINT8 parity_type;
-            UINT8 fc_type;
-            UINT8 xon_char;
-            UINT8 xoff_char;
-            UINT16 param_mask;
+            uint8_t dlci;
+            uint8_t is_request;
+            uint8_t baud_rate;
+            uint8_t byte_size;
+            uint8_t stop_bits;
+            uint8_t parity;
+            uint8_t parity_type;
+            uint8_t fc_type;
+            uint8_t xon_char;
+            uint8_t xoff_char;
+            uint16_t param_mask;
         } rpn;
         struct
         {
-            UINT8 dlci;
-            UINT8 line_status;
+            uint8_t dlci;
+            uint8_t line_status;
         } rls;
     } u;
 } MX_FRAME;
@@ -222,9 +222,9 @@ typedef struct
     MX_FRAME  rx_frame;
     tL2CAP_APPL_INFO  reg_info;              /* L2CAP Registration info */
     tRFC_MCB *p_rfc_lcid_mcb[MAX_L2CAP_CHANNELS];     /* MCB based on the L2CAP's lcid */
-    BOOLEAN   peer_rx_disabled;              /* If TRUE peer sent FCOFF */
-    UINT8     last_mux;                      /* Last mux allocated */
-    UINT8     last_port;                     /* Last port allocated */
+    bool      peer_rx_disabled;              /* If true peer sent FCOFF */
+    uint8_t   last_mux;                      /* Last mux allocated */
+    uint8_t   last_port;                     /* Last port allocated */
 } tRFCOMM_CB;
 
 /* Main Control Block for the RFCOMM Layer (PORT and RFC) */
@@ -232,11 +232,11 @@ typedef struct
 {
     tRFCOMM_CB  rfc;
     tPORT_CB    port;
-    UINT8       trace_level;
+    uint8_t     trace_level;
 } tRFC_CB;
 
 
-#if RFC_DYNAMIC_MEMORY == FALSE
+#if (RFC_DYNAMIC_MEMORY == FALSE)
 extern tRFC_CB  rfc_cb;
 #else
 extern tRFC_CB *rfc_cb_ptr;
@@ -268,7 +268,7 @@ extern tRFC_CB *rfc_cb_ptr;
 
 #else
 
-extern  UINT8 rfc_calc_fcs (UINT16 len, UINT8 *p);
+extern  uint8_t rfc_calc_fcs (uint16_t len, uint8_t *p);
 
 #define RFCOMM_SABME_FCS(p_data, cr, dlci) rfc_calc_fcs(3, p_data)
 #define RFCOMM_UA_FCS(p_data, cr, dlci)    rfc_calc_fcs(3, p_data)
@@ -278,66 +278,66 @@ extern  UINT8 rfc_calc_fcs (UINT16 len, UINT8 *p);
 
 #endif
 
-extern void rfc_mx_sm_execute (tRFC_MCB *p_mcb, UINT16 event, void *p_data);
+extern void rfc_mx_sm_execute (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 
 /*
 ** Functions provided by the rfc_port_fsm.c
 */
-extern void rfc_port_sm_execute (tPORT *p_port, UINT16 event, void *p_data);
+extern void rfc_port_sm_execute (tPORT *p_port, uint16_t event, void *p_data);
 
 
-extern void rfc_process_pn (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command, MX_FRAME *p_frame);
-extern void rfc_process_msc (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command, MX_FRAME *p_frame);
-extern void rfc_process_rpn (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command, BOOLEAN is_request, MX_FRAME *p_frame);
-extern void rfc_process_rls (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command, MX_FRAME *p_frame);
+extern void rfc_process_pn (tRFC_MCB *p_rfc_mcb, bool    is_command, MX_FRAME *p_frame);
+extern void rfc_process_msc (tRFC_MCB *p_rfc_mcb, bool    is_command, MX_FRAME *p_frame);
+extern void rfc_process_rpn (tRFC_MCB *p_rfc_mcb, bool    is_command, bool    is_request, MX_FRAME *p_frame);
+extern void rfc_process_rls (tRFC_MCB *p_rfc_mcb, bool    is_command, MX_FRAME *p_frame);
 extern void rfc_process_nsc (tRFC_MCB *p_rfc_mcb, MX_FRAME *p_frame);
 extern void rfc_process_test_rsp (tRFC_MCB *p_rfc_mcb, BT_HDR *p_buf);
-extern void rfc_process_fcon (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command);
-extern void rfc_process_fcoff (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command);
-extern void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, BOOLEAN is_congested);
+extern void rfc_process_fcon (tRFC_MCB *p_rfc_mcb, bool    is_command);
+extern void rfc_process_fcoff (tRFC_MCB *p_rfc_mcb, bool    is_command);
+extern void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, bool    is_congested);
 
 /*
 ** Functions provided by the rfc_utils.c
 */
-tRFC_MCB  *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, BOOLEAN is_initiator);
+tRFC_MCB  *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, bool    is_initiator);
 extern void      rfc_release_multiplexer_channel (tRFC_MCB *p_rfc_mcb);
-extern void      rfc_timer_start (tRFC_MCB *p_rfc_mcb, UINT16 timeout);
+extern void      rfc_timer_start (tRFC_MCB *p_rfc_mcb, uint16_t timeout);
 extern void      rfc_timer_stop (tRFC_MCB *p_rfc_mcb);
-extern void      rfc_port_timer_start (tPORT *p_port, UINT16 tout);
+extern void      rfc_port_timer_start (tPORT *p_port, uint16_t tout);
 extern void      rfc_port_timer_stop (tPORT *p_port);
 
-BOOLEAN   rfc_check_uih_fcs (UINT8 dlci, UINT8 received_fcs);
-BOOLEAN   rfc_check_fcs (UINT16 len, UINT8 *p, UINT8 received_fcs);
-tRFC_MCB  *rfc_find_lcid_mcb (UINT16 lcid);
-extern void      rfc_save_lcid_mcb (tRFC_MCB *p_rfc_mcb, UINT16 lcid);
+bool      rfc_check_uih_fcs (uint8_t dlci, uint8_t received_fcs);
+bool      rfc_check_fcs (uint16_t len, uint8_t *p, uint8_t received_fcs);
+tRFC_MCB  *rfc_find_lcid_mcb (uint16_t lcid);
+extern void      rfc_save_lcid_mcb (tRFC_MCB *p_rfc_mcb, uint16_t lcid);
 extern void      rfc_check_mcb_active (tRFC_MCB *p_mcb);
 extern void      rfc_port_closed (tPORT *p_port);
-extern void      rfc_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport,void *p_ref_data, UINT8 res);
-extern void      rfc_inc_credit (tPORT *p_port, UINT8 credit);
+extern void      rfc_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport,void *p_ref_data, uint8_t res);
+extern void      rfc_inc_credit (tPORT *p_port, uint8_t credit);
 extern void      rfc_dec_credit (tPORT *p_port);
 extern void      rfc_check_send_cmd(tRFC_MCB *p_mcb, BT_HDR *p_buf);
 
 /*
 ** Functions provided by the rfc_ts_frames.c
 */
-extern void     rfc_send_sabme (tRFC_MCB *p_rfc_mcb, UINT8 dlci);
-extern void     rfc_send_ua (tRFC_MCB *p_rfc_mcb, UINT8 dlci);
-extern void     rfc_send_dm (tRFC_MCB *p_rfc_mcb, UINT8 dlci, BOOLEAN pf);
-extern void     rfc_send_disc (tRFC_MCB *p_rfc_mcb, UINT8 dlci);
-extern void     rfc_send_pn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT16 mtu,
-                             UINT8 cl, UINT8 k);
-extern void     rfc_send_test (tRFC_MCB *p_rfc_mcb, BOOLEAN is_command, BT_HDR *p_buf);
-extern void     rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
+extern void     rfc_send_sabme (tRFC_MCB *p_rfc_mcb, uint8_t dlci);
+extern void     rfc_send_ua (tRFC_MCB *p_rfc_mcb, uint8_t dlci);
+extern void     rfc_send_dm (tRFC_MCB *p_rfc_mcb, uint8_t dlci, bool    pf);
+extern void     rfc_send_disc (tRFC_MCB *p_rfc_mcb, uint8_t dlci);
+extern void     rfc_send_pn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint16_t mtu,
+                             uint8_t cl, uint8_t k);
+extern void     rfc_send_test (tRFC_MCB *p_rfc_mcb, bool    is_command, BT_HDR *p_buf);
+extern void     rfc_send_msc (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
                               tPORT_CTRL *p_pars);
-extern void     rfc_send_rls (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT8 status);
-extern void     rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
-                              tPORT_STATE *p_pars, UINT16 mask);
-extern void     rfc_send_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command);
-extern void     rfc_send_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command);
-extern void     rfc_send_buf_uih (tRFC_MCB *p_rfc_mcb, UINT8 dlci, BT_HDR *p_buf);
-extern void     rfc_send_credit(tRFC_MCB *p_mcb, UINT8 dlci, UINT8 credit);
+extern void     rfc_send_rls (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint8_t status);
+extern void     rfc_send_rpn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
+                              tPORT_STATE *p_pars, uint16_t mask);
+extern void     rfc_send_fcon (tRFC_MCB *p_mcb, bool    is_command);
+extern void     rfc_send_fcoff (tRFC_MCB *p_mcb, bool    is_command);
+extern void     rfc_send_buf_uih (tRFC_MCB *p_rfc_mcb, uint8_t dlci, BT_HDR *p_buf);
+extern void     rfc_send_credit(tRFC_MCB *p_mcb, uint8_t dlci, uint8_t credit);
 extern void     rfc_process_mx_message (tRFC_MCB *p_rfc_mcb, BT_HDR *p_buf);
-extern UINT8    rfc_parse_data (tRFC_MCB *p_rfc_mcb, MX_FRAME *p_frame, BT_HDR *p_buf);
+extern uint8_t  rfc_parse_data (tRFC_MCB *p_rfc_mcb, MX_FRAME *p_frame, BT_HDR *p_buf);
 
 /*
 ** Functions provided by the rfc_disp.c
@@ -349,32 +349,32 @@ extern UINT8    rfc_parse_data (tRFC_MCB *p_rfc_mcb, MX_FRAME *p_frame, BT_HDR *
 extern void rfcomm_l2cap_if_init (void);
 
 extern void PORT_StartInd (tRFC_MCB *p_mcb);
-extern void PORT_StartCnf (tRFC_MCB *p_mcb, UINT16 result);
+extern void PORT_StartCnf (tRFC_MCB *p_mcb, uint16_t result);
 
 extern void PORT_CloseInd (tRFC_MCB *p_mcb);
 extern void Port_TimeOutCloseMux (tRFC_MCB *p_mcb);
 
-extern void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu);
-extern void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 result);
+extern void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu);
+extern void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint16_t result);
 
-extern void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf);
+extern void PORT_DataInd (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf);
 
-extern void PORT_DlcReleaseInd (tRFC_MCB *p_mcb, UINT8 dlci);
+extern void PORT_DlcReleaseInd (tRFC_MCB *p_mcb, uint8_t dlci);
 
-extern void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k);
-extern void PORT_ParNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k);
+extern void PORT_ParNegInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k);
+extern void PORT_ParNegCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k);
 
-extern void PORT_TestCnf (tRFC_MCB *p_mcb, UINT8 *p_data, UINT16 len);
+extern void PORT_TestCnf (tRFC_MCB *p_mcb, uint8_t *p_data, uint16_t len);
 
-extern void PORT_FlowInd (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN fc);
+extern void PORT_FlowInd (tRFC_MCB *p_mcb, uint8_t dlci, bool    fc);
 
-extern void PORT_PortNegInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 param_mask);
-extern void PORT_PortNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 result);
+extern void PORT_PortNegInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars, uint16_t param_mask);
+extern void PORT_PortNegCnf (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars, uint16_t result);
 
-extern void PORT_ControlInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars);
-extern void PORT_ControlCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars);
+extern void PORT_ControlInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars);
+extern void PORT_ControlCnf (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars);
 
-extern void PORT_LineStatusInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 line_status);
+extern void PORT_LineStatusInd (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t line_status);
 
 #ifdef __cplusplus
 }

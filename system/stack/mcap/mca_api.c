@@ -96,7 +96,7 @@ void MCA_Init(void)
 **                  the input parameter is 0xff.
 **
 *******************************************************************************/
-UINT8 MCA_SetTraceLevel (UINT8 level)
+uint8_t MCA_SetTraceLevel (uint8_t level)
 {
     if (level != 0xFF)
         mca_cb.trace_level = level;
@@ -147,14 +147,14 @@ tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback)
                 L2CA_Register(p_reg->data_psm, (tL2CAP_APPL_INFO *) &l2c_dacp_appl))
             {
                 /* set security level */
-                BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_MCAP_CTRL, p_reg->sec_mask,
+                BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_MCAP_CTRL, p_reg->sec_mask,
                     p_reg->ctrl_psm, BTM_SEC_PROTO_MCA, MCA_CTRL_TCID);
 
                 /* in theory, we do not need this one for data_psm
                  * If we don't, L2CAP rejects with security block (3),
                  * which is different reject code from what MCAP spec suggests.
                  * we set this one, so mca_l2c_dconn_ind_cback can reject /w no resources (4) */
-                BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_MCAP_DATA, p_reg->sec_mask,
+                BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_MCAP_DATA, p_reg->sec_mask,
                     p_reg->data_psm, BTM_SEC_PROTO_MCA, MCA_CTRL_TCID);
             }
             else
@@ -331,7 +331,7 @@ tMCA_RESULT MCA_DeleteDep(tMCA_HANDLE handle, tMCA_DEP dep)
 **
 *******************************************************************************/
 tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
-                           UINT16 ctrl_psm, UINT16 sec_mask)
+                           uint16_t ctrl_psm, uint16_t sec_mask)
 {
     tMCA_RESULT result = MCA_BAD_HANDLE;
     tMCA_CCB    *p_ccb;
@@ -352,7 +352,7 @@ tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
         result = MCA_NO_RESOURCES;
         if (p_ccb->ctrl_vpsm)
         {
-            BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_MCAP_CTRL, sec_mask,
+            BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_MCAP_CTRL, sec_mask,
                 p_ccb->ctrl_vpsm, BTM_SEC_PROTO_MCA, MCA_CTRL_TCID);
             p_ccb->lcid = mca_l2c_open_req(bd_addr, p_ccb->ctrl_vpsm, NULL);
             if (p_ccb->lcid)
@@ -418,9 +418,9 @@ tMCA_RESULT MCA_DisconnectReq(tMCA_CL mcl)
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
-                                         UINT16 mdl_id, UINT8 peer_dep_id,
-                                         UINT8 cfg, const tMCA_CHNL_CFG *p_chnl_cfg)
+tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, uint16_t data_psm,
+                                         uint16_t mdl_id, uint8_t peer_dep_id,
+                                         uint8_t cfg, const tMCA_CHNL_CFG *p_chnl_cfg)
 {
     tMCA_RESULT     result = MCA_BAD_HANDLE;
     tMCA_CCB        *p_ccb = mca_ccb_by_hdl(mcl);
@@ -465,7 +465,7 @@ tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
                 p_evt_data->param       = cfg;
                 p_evt_data->op_code     = MCA_OP_MDL_CREATE_REQ;
                 p_evt_data->hdr.event   = MCA_CCB_API_REQ_EVT;
-                p_evt_data->hdr.layer_specific   = FALSE;
+                p_evt_data->hdr.layer_specific   = false;
                 mca_ccb_event(p_ccb, MCA_CCB_API_REQ_EVT, (tMCA_CCB_EVT *)p_evt_data);
                 return MCA_SUCCESS;
             } else {
@@ -494,7 +494,7 @@ tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
 **
 *******************************************************************************/
 tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
-                                            UINT16 mdl_id, UINT8 cfg, UINT8 rsp_code,
+                                            uint16_t mdl_id, uint8_t cfg, uint8_t rsp_code,
                                             const tMCA_CHNL_CFG *p_chnl_cfg)
 {
     tMCA_RESULT     result = MCA_BAD_HANDLE;
@@ -591,8 +591,8 @@ tMCA_RESULT MCA_CloseReq(tMCA_DL mdl)
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
-                                            UINT16 mdl_id, const tMCA_CHNL_CFG *p_chnl_cfg)
+tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, uint16_t data_psm,
+                                            uint16_t mdl_id, const tMCA_CHNL_CFG *p_chnl_cfg)
 {
     tMCA_RESULT     result = MCA_BAD_HANDLE;
     tMCA_CCB        *p_ccb = mca_ccb_by_hdl(mcl);
@@ -656,7 +656,7 @@ tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
 **
 *******************************************************************************/
 tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
-                                               UINT16 mdl_id, UINT8 rsp_code,
+                                               uint16_t mdl_id, uint8_t rsp_code,
                                                const tMCA_CHNL_CFG *p_chnl_cfg)
 {
     tMCA_RESULT     result = MCA_BAD_HANDLE;
@@ -742,7 +742,7 @@ tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG *p_chnl_cfg)
         }
 
         p_dcb->p_chnl_cfg       = p_chnl_cfg;
-        BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_MCAP_DATA, p_ccb->sec_mask,
+        BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_MCAP_DATA, p_ccb->sec_mask,
             p_ccb->data_vpsm, BTM_SEC_PROTO_MCA, p_ccb->p_tx_req->dcb_idx);
         p_dcb->lcid = mca_l2c_open_req(p_ccb->peer_addr, p_ccb->data_vpsm, p_dcb->p_chnl_cfg);
         if (p_dcb->lcid)
@@ -814,7 +814,7 @@ tMCA_RESULT MCA_Abort(tMCA_CL mcl)
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id)
+tMCA_RESULT MCA_Delete(tMCA_CL mcl, uint16_t mdl_id)
 {
     tMCA_RESULT     result = MCA_BAD_HANDLE;
     tMCA_CCB        *p_ccb = mca_ccb_by_hdl(mcl);
@@ -893,9 +893,9 @@ tMCA_RESULT MCA_WriteReq(tMCA_DL mdl, BT_HDR *p_pkt)
 ** Returns          L2CAP channel ID if successful, otherwise 0.
 **
 *******************************************************************************/
-UINT16 MCA_GetL2CapChannel (tMCA_DL mdl)
+uint16_t MCA_GetL2CapChannel (tMCA_DL mdl)
 {
-    UINT16  lcid = 0;
+    uint16_t lcid = 0;
     tMCA_DCB *p_dcb = mca_dcb_by_hdl(mdl);
 
     MCA_TRACE_API ("MCA_GetL2CapChannel: %d ", mdl);

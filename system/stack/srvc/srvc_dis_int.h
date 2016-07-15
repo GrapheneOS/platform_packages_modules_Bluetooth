@@ -32,8 +32,8 @@ extern "C" {
 
 typedef struct
 {
-    UINT16      uuid;
-    UINT16      handle;
+    uint16_t    uuid;
+    uint16_t    handle;
 }tDIS_DB_ENTRY;
 
 #define DIS_SYSTEM_ID_SIZE      8
@@ -46,28 +46,28 @@ typedef struct
 
     tDIS_READ_CBACK         *p_read_dis_cback;
 
-    UINT16                  service_handle;
-    UINT16                  max_handle;
+    uint16_t                service_handle;
+    uint16_t                max_handle;
 
-    BOOLEAN                 enabled;
+    bool                    enabled;
 
-    UINT8                   dis_read_uuid_idx;
+    uint8_t                 dis_read_uuid_idx;
 
     tDIS_ATTR_MASK          request_mask;
 }tDIS_CB;
 
 /* Global GATT data */
-#if GATT_DYNAMIC_MEMORY == FALSE
+#if (GATT_DYNAMIC_MEMORY == FALSE)
 extern tDIS_CB dis_cb;
 #else
 extern tDIS_CB *dis_cb_ptr;
 #define dis_cb (*dis_cb_ptr)
 #endif
 
-extern BOOLEAN dis_valid_handle_range(UINT16 handle);
-extern UINT8 dis_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_value,
-                           BOOLEAN is_long, tGATT_STATUS *p_status);
-extern UINT8 dis_write_attr_value(tGATT_WRITE_REQ * p_data, tGATT_STATUS *p_status);
+extern bool    dis_valid_handle_range(uint16_t handle);
+extern uint8_t dis_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALUE *p_value,
+                           bool    is_long, tGATT_STATUS *p_status);
+extern uint8_t dis_write_attr_value(tGATT_WRITE_REQ * p_data, tGATT_STATUS *p_status);
 
 extern void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
                                     tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);

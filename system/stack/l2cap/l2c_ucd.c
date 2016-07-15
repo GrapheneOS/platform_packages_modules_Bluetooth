@@ -40,7 +40,7 @@
 
 extern fixed_queue_t *btu_bta_alarm_queue;
 
-static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda );
+static bool    l2c_ucd_connect ( BD_ADDR rem_bda );
 
 /*******************************************************************************
 **
@@ -51,10 +51,10 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda );
 ** Returns          void
 **
 *******************************************************************************/
-static void l2c_ucd_discover_cback (BD_ADDR rem_bda, UINT8 info_type, UINT32 data)
+static void l2c_ucd_discover_cback (BD_ADDR rem_bda, uint8_t info_type, uint32_t data)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
-    UINT16      xx;
+    uint16_t    xx;
 
     L2CAP_TRACE_DEBUG ("L2CAP - l2c_ucd_discover_cback");
 
@@ -92,13 +92,13 @@ static void l2c_ucd_discover_cback (BD_ADDR rem_bda, UINT8 info_type, UINT32 dat
 *******************************************************************************/
 static void l2c_ucd_data_ind_cback (BD_ADDR rem_bda, BT_HDR *p_buf)
 {
-    UINT8 *p;
-    UINT16 psm;
+    uint8_t *p;
+    uint16_t psm;
     tL2C_RCB    *p_rcb;
 
     L2CAP_TRACE_DEBUG ("L2CAP - l2c_ucd_data_ind_cback");
 
-    p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p = (uint8_t *)(p_buf + 1) + p_buf->offset;
     STREAM_TO_UINT16(psm, p)
 
     p_buf->offset += L2CAP_UCD_OVERHEAD;
@@ -124,10 +124,10 @@ static void l2c_ucd_data_ind_cback (BD_ADDR rem_bda, BT_HDR *p_buf)
 ** Returns          void
 **
 *******************************************************************************/
-static void l2c_ucd_congestion_status_cback (BD_ADDR rem_bda, BOOLEAN is_congested)
+static void l2c_ucd_congestion_status_cback (BD_ADDR rem_bda, bool    is_congested)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
-    UINT16      xx;
+    uint16_t    xx;
 
     L2CAP_TRACE_DEBUG ("L2CAP - l2c_ucd_congestion_status_cback");
 
@@ -158,7 +158,7 @@ static void l2c_ucd_congestion_status_cback (BD_ADDR rem_bda, BOOLEAN is_congest
 ** Returns          void
 **
 *******************************************************************************/
-static void l2c_ucd_disconnect_ind_cback (UINT16 cid, BOOLEAN result)
+static void l2c_ucd_disconnect_ind_cback (uint16_t cid, bool    result)
 {
     /* do nothing */
 }
@@ -172,7 +172,7 @@ static void l2c_ucd_disconnect_ind_cback (UINT16 cid, BOOLEAN result)
 ** Returns          void
 **
 *******************************************************************************/
-static void l2c_ucd_config_ind_cback (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
+static void l2c_ucd_config_ind_cback (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
 {
     /* do nothing */
 }
@@ -186,7 +186,7 @@ static void l2c_ucd_config_ind_cback (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void l2c_ucd_config_cfm_cback (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
+static void l2c_ucd_config_cfm_cback (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
 {
     /* do nothing */
 }
@@ -199,10 +199,10 @@ static void l2c_ucd_config_cfm_cback (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 **
 **  Parameters:     tL2CAP_UCD_CB_INFO
 **
-**  Return value:   TRUE if successs
+**  Return value:   true if successs
 **
 *******************************************************************************/
-BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_info )
+bool    L2CA_UcdRegister ( uint16_t psm, tL2CAP_UCD_CB_INFO *p_cb_info )
 {
     tL2C_RCB             *p_rcb;
 
@@ -212,13 +212,13 @@ BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_info )
      || (!p_cb_info->pL2CA_UCD_Data_Cb))
     {
         L2CAP_TRACE_ERROR ("L2CAP - no callback registering PSM(0x%04x) on UCD", psm);
-        return (FALSE);
+        return (false);
     }
 
     if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CAP - no RCB for L2CA_UcdRegister, PSM: 0x%04x", psm);
-        return (FALSE);
+        return (false);
     }
 
     p_rcb->ucd.state   = L2C_UCD_STATE_W4_DATA;
@@ -230,7 +230,7 @@ BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_info )
         if ((p_rcb = l2cu_allocate_rcb (L2C_UCD_RCB_ID)) == NULL)
         {
             L2CAP_TRACE_ERROR ("L2CAP - no RCB available for L2CA_UcdRegister");
-            return (FALSE);
+            return (false);
         }
         else
         {
@@ -251,7 +251,7 @@ BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_info )
         }
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -262,21 +262,21 @@ BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_info )
 **
 **  Parameters:     PSM
 **
-**  Return value:   TRUE if successs
+**  Return value:   true if successs
 **
 *******************************************************************************/
-BOOLEAN L2CA_UcdDeregister ( UINT16 psm )
+bool    L2CA_UcdDeregister ( uint16_t psm )
 {
     tL2C_CCB    *p_ccb;
     tL2C_RCB    *p_rcb;
-    UINT16      xx;
+    uint16_t    xx;
 
     L2CAP_TRACE_API  ("L2CA_UcdDeregister()  PSM: 0x%04x", psm);
 
     if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CAP - no RCB for L2CA_UcdDeregister, PSM: 0x%04x", psm);
-        return (FALSE);
+        return (false);
     }
 
     p_rcb->ucd.state = L2C_UCD_STATE_UNUSED;
@@ -287,7 +287,7 @@ BOOLEAN L2CA_UcdDeregister ( UINT16 psm )
     for (xx = 0; xx < MAX_L2CAP_CLIENTS; xx++, p_rcb++)
     {
         if ((p_rcb->in_use) && (p_rcb->ucd.state != L2C_UCD_STATE_UNUSED))
-            return (TRUE);
+            return (true);
     }
 
     /* delete master rcb for UCD */
@@ -308,7 +308,7 @@ BOOLEAN L2CA_UcdDeregister ( UINT16 psm )
         p_ccb++;
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -323,10 +323,10 @@ BOOLEAN L2CA_UcdDeregister ( UINT16 psm )
 **                              L2CAP_UCD_INFO_TYPE_MTU
 **
 **
-**  Return value:   TRUE if successs
+**  Return value:   true if successs
 **
 *******************************************************************************/
-BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type )
+bool    L2CA_UcdDiscover ( uint16_t psm, BD_ADDR rem_bda, uint8_t info_type )
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
@@ -341,7 +341,7 @@ BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type )
         ||( p_rcb->ucd.state == L2C_UCD_STATE_UNUSED ))
     {
         L2CAP_TRACE_WARNING ("L2CAP - no RCB for L2CA_UcdDiscover, PSM: 0x%04x", psm);
-        return (FALSE);
+        return (false);
     }
 
     /* First, see if we already have a link to the remote */
@@ -349,9 +349,9 @@ BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type )
     if (((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_BR_EDR)) == NULL)
       ||((p_ccb = l2cu_find_ccb_by_cid (p_lcb, L2CAP_CONNECTIONLESS_CID)) == NULL))
     {
-        if ( l2c_ucd_connect (rem_bda) == FALSE )
+        if ( l2c_ucd_connect (rem_bda) == false )
         {
-            return (FALSE);
+            return (false);
         }
     }
 
@@ -372,7 +372,7 @@ BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type )
         }
         l2c_ucd_check_pending_info_req(p_ccb);
     }
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -392,12 +392,12 @@ BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type )
 **                  L2CAP_DW_FAILED,  if error
 **
 *******************************************************************************/
-UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 flags)
+uint16_t L2CA_UcdDataWrite (uint16_t psm, BD_ADDR rem_bda, BT_HDR *p_buf, uint16_t flags)
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
     tL2C_RCB        *p_rcb;
-    UINT8           *p;
+    uint8_t         *p;
 
     L2CAP_TRACE_API ("L2CA_UcdDataWrite()  PSM: 0x%04x  BDA: %08x%04x", psm,
                       (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
@@ -417,7 +417,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
     if (((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_BR_EDR)) == NULL)
       ||((p_ccb = l2cu_find_ccb_by_cid (p_lcb, L2CAP_CONNECTIONLESS_CID)) == NULL))
     {
-        if ( l2c_ucd_connect (rem_bda) == FALSE )
+        if ( l2c_ucd_connect (rem_bda) == false )
         {
             osi_free(p_buf);
             return (L2CAP_DW_FAILED);
@@ -435,7 +435,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
     /* write PSM */
     p_buf->offset -= L2CAP_UCD_OVERHEAD;
     p_buf->len += L2CAP_UCD_OVERHEAD;
-    p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     UINT16_TO_STREAM (p, psm);
 
@@ -480,10 +480,10 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
 **  Parameters:     BD Addr
 **                  Timeout in second
 **
-**  Return value:   TRUE if successs
+**  Return value:   true if successs
 **
 *******************************************************************************/
-BOOLEAN L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, UINT16 timeout )
+bool    L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, uint16_t timeout )
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
@@ -498,12 +498,12 @@ BOOLEAN L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, UINT16 timeout )
       ||((p_ccb = l2cu_find_ccb_by_cid (p_lcb, L2CAP_CONNECTIONLESS_CID)) == NULL))
     {
         L2CAP_TRACE_WARNING ("L2CAP - no UCD channel");
-        return (FALSE);
+        return (false);
     }
     else
     {
         p_ccb->fixed_chnl_idle_tout = timeout;
-        return (TRUE);
+        return (true);
     }
 }
 
@@ -513,10 +513,10 @@ BOOLEAN L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, UINT16 timeout )
 **
 ** Description      Sets the transmission priority for a connectionless channel.
 **
-** Returns          TRUE if a valid channel, else FALSE
+** Returns          true if a valid channel, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
+bool    L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
@@ -528,20 +528,20 @@ BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_BR_EDR)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_UCDSetTxPriority");
-        return (FALSE);
+        return (false);
     }
 
     /* Find the channel control block */
     if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, L2CAP_CONNECTIONLESS_CID)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_UCDSetTxPriority");
-        return (FALSE);
+        return (false);
     }
 
     /* it will update the order of CCB in LCB by priority and update round robin service variables */
     l2cu_change_pri_ccb (p_ccb, priority);
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -552,10 +552,10 @@ BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
 **
 **  Parameters:     BD_ADDR of remote device
 **
-**  Return value:   TRUE if successs
+**  Return value:   true if successs
 **
 *******************************************************************************/
-static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
+static bool    l2c_ucd_connect ( BD_ADDR rem_bda )
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
@@ -569,18 +569,18 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
     if (!BTM_IsDeviceUp())
     {
         L2CAP_TRACE_WARNING ("l2c_ucd_connect - BTU not ready");
-        return (FALSE);
+        return (false);
     }
 
     /* First, see if we already have a link to the remote */
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_BR_EDR)) == NULL)
     {
         /* No link. Get an LCB and start link establishment */
-        if ( ((p_lcb = l2cu_allocate_lcb (rem_bda, FALSE, BT_TRANSPORT_BR_EDR)) == NULL)
-         ||  (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == FALSE) )
+        if ( ((p_lcb = l2cu_allocate_lcb (rem_bda, false, BT_TRANSPORT_BR_EDR)) == NULL)
+         ||  (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == false) )
         {
             L2CAP_TRACE_WARNING ("L2CAP - conn not started l2c_ucd_connect");
-            return (FALSE);
+            return (false);
         }
     }
     else if ( p_lcb->info_rx_bits & (1 << L2CAP_EXTENDED_FEATURES_INFO_TYPE) )
@@ -588,7 +588,7 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
         if (!(p_lcb->peer_ext_fea & L2CAP_EXTFEA_UCD_RECEPTION))
         {
             L2CAP_TRACE_WARNING ("L2CAP - UCD is not supported by peer, l2c_ucd_connect");
-            return (FALSE);
+            return (false);
         }
     }
 
@@ -599,7 +599,7 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
         if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - no CCB for l2c_ucd_connect");
-            return (FALSE);
+            return (false);
         }
         else
         {
@@ -616,7 +616,7 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
             if ((p_rcb = l2cu_find_rcb_by_psm (L2C_UCD_RCB_ID)) == NULL)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - no UCD registered, l2c_ucd_connect");
-                return (FALSE);
+                return (false);
             }
             /* Save UCD registration info */
             p_ccb->p_rcb = p_rcb;
@@ -629,7 +629,7 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
         }
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -661,19 +661,19 @@ void l2c_ucd_delete_sec_pending_q(tL2C_LCB  *p_lcb)
 **
 ** Description      check if any application is waiting for UCD information
 **
-**  Return          TRUE if any pending UCD info request
+**  Return          true if any pending UCD info request
 **
 *******************************************************************************/
-BOOLEAN l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
+bool    l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
-    UINT16      xx;
-    BOOLEAN     pending = FALSE;
+    uint16_t    xx;
+    bool        pending = false;
 
     if (p_ccb == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CAP - NULL p_ccb in l2c_ucd_check_pending_info_req");
-        return (FALSE);
+        return (false);
     }
 
     for (xx = 0; xx < MAX_L2CAP_CLIENTS; xx++, p_rcb++)
@@ -700,8 +700,8 @@ BOOLEAN l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
                 }
                 else
                 {
-                    pending = TRUE;
-                    if (p_ccb->p_lcb->w4_info_rsp == FALSE)
+                    pending = true;
+                    if (p_ccb->p_lcb->w4_info_rsp == false)
                     {
                         l2cu_send_peer_info_req (p_ccb->p_lcb, L2CAP_EXTENDED_FEATURES_INFO_TYPE);
                     }
@@ -720,8 +720,8 @@ BOOLEAN l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
                 }
                 else
                 {
-                    pending = TRUE;
-                    if (p_ccb->p_lcb->w4_info_rsp == FALSE)
+                    pending = true;
+                    if (p_ccb->p_lcb->w4_info_rsp == false)
                     {
                         l2cu_send_peer_info_req (p_ccb->p_lcb, L2CAP_CONNLESS_MTU_INFO_TYPE);
                     }
@@ -754,17 +754,17 @@ void l2c_ucd_enqueue_pending_out_sec_q(tL2C_CCB  *p_ccb, void *p_data)
 **
 **  Description     check outgoing security
 **
-**  Return          TRUE if any UCD packet for security
+**  Return          true if any UCD packet for security
 **
 *******************************************************************************/
-BOOLEAN l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
+bool    l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_peek_first(p_ccb->p_lcb->ucd_out_sec_pending_q);
 
     if (p_buf != NULL)
     {
-        UINT16 psm;
-        UINT8 *p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+        uint16_t psm;
+        uint8_t *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
         STREAM_TO_UINT16(psm, p)
 
@@ -772,9 +772,9 @@ BOOLEAN l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
         btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, psm,
                                   p_ccb->p_lcb->handle, CONNLESS_ORIG, &l2c_link_sec_comp, p_ccb);
 
-        return (TRUE);
+        return (true);
     }
-    return (FALSE);
+    return (false);
 }
 
 /*******************************************************************************
@@ -822,26 +822,26 @@ void l2c_ucd_discard_pending_out_sec_q(tL2C_CCB  *p_ccb)
 **
 **  Description     check incoming security
 **
-**  Return          TRUE if any UCD packet for security
+**  Return          true if any UCD packet for security
 **
 *******************************************************************************/
-BOOLEAN l2c_ucd_check_pending_in_sec_q(tL2C_CCB  *p_ccb)
+bool    l2c_ucd_check_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q);
 
     if (p_buf != NULL)
     {
-        UINT16 psm;
-        UINT8 *p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+        uint16_t psm;
+        uint8_t *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
         STREAM_TO_UINT16(psm, p)
 
         p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
         btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, psm,
                                   p_ccb->p_lcb->handle, CONNLESS_TERM, &l2c_link_sec_comp, p_ccb);
 
-        return (TRUE);
+        return (true);
     }
-    return (FALSE);
+    return (false);
 }
 
 /*******************************************************************************
@@ -887,10 +887,10 @@ void l2c_ucd_discard_pending_in_sec_q(tL2C_CCB  *p_ccb)
 **  Description     Check if UCD reception is registered.
 **                  Process received UCD packet if application is expecting.
 **
-**  Return          TRUE if UCD reception is registered
+**  Return          true if UCD reception is registered
 **
 *******************************************************************************/
-BOOLEAN l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
+bool    l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
 {
     tL2C_CCB   *p_ccb;
     tL2C_RCB   *p_rcb;
@@ -905,7 +905,7 @@ BOOLEAN l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - no CCB for UCD reception");
                 osi_free(p_msg);
-                return TRUE;
+                return true;
             }
             else
             {
@@ -926,10 +926,10 @@ BOOLEAN l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
             }
         }
         l2c_csm_execute(p_ccb, L2CEVT_L2CAP_DATA, p_msg);
-        return TRUE;
+        return true;
     }
     else
-        return FALSE;
+        return false;
 }
 
 /*******************************************************************************
@@ -939,14 +939,14 @@ BOOLEAN l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
 **  Description     This is called from main state machine when LCID is connectionless
 **                  Process the event if it is for UCD.
 **
-**  Return          TRUE if the event is consumed by UCD
-**                  FALSE if the event needs to be processed by main state machine
+**  Return          true if the event is consumed by UCD
+**                  false if the event needs to be processed by main state machine
 **
 *******************************************************************************/
-BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
+bool    l2c_ucd_process_event(tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
-    /* if the event is not processed by this function, this variable will be set to FALSE */
-    BOOLEAN done = TRUE;
+    /* if the event is not processed by this function, this variable will be set to false */
+    bool    done = true;
 
     switch (p_ccb->chnl_state)
     {
@@ -986,7 +986,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
 
         default:
-            done = FALSE;   /* main state machine continues to process event */
+            done = false;   /* main state machine continues to process event */
             break;
         }
         break;
@@ -1049,7 +1049,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
 
         default:
-            done = FALSE;   /* main state machine continues to process event */
+            done = false;   /* main state machine continues to process event */
             break;
         }
         break;
@@ -1083,7 +1083,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         case L2CEVT_SEC_COMP_NEG:
             if (((tL2C_CONN_INFO *)p_data)->status == BTM_DELAY_CHECK)
             {
-                done = FALSE;
+                done = false;
                 break;
             }
             p_ccb->chnl_state = CST_OPEN;
@@ -1118,7 +1118,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
 
         default:
-            done = FALSE;   /* main state machine continues to process event */
+            done = false;   /* main state machine continues to process event */
             break;
         }
         break;
@@ -1160,13 +1160,13 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
 
         default:
-            done = FALSE;   /* main state machine continues to process event */
+            done = false;   /* main state machine continues to process event */
             break;
         }
         break;
 
     default:
-        done = FALSE;   /* main state machine continues to process event */
+        done = false;   /* main state machine continues to process event */
         break;
     }
 

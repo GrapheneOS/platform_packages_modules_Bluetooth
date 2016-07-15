@@ -23,22 +23,12 @@
 #include <stdbool.h>
 
 #ifndef FALSE
-#  define FALSE  false
+#  define FALSE false
 #endif
 
 #ifndef TRUE
-#  define TRUE   true
+#  define TRUE true
 #endif
-
-typedef uint8_t UINT8;
-typedef uint16_t UINT16;
-typedef uint32_t UINT32;
-typedef uint64_t UINT64;
-
-typedef int8_t INT8;
-typedef int16_t INT16;
-typedef int32_t INT32;
-typedef bool BOOLEAN;
 
 #ifdef __arm
 #  define PACKED  __packed
@@ -221,45 +211,45 @@ typedef struct
 
 /* These macros extract the HCI opcodes from a buffer
 */
-#define HCI_GET_CMD_HDR_OPCODE(p)    (UINT16)((*((UINT8 *)((p) + 1) + (p)->offset) + \
-                                              (*((UINT8 *)((p) + 1) + (p)->offset + 1) << 8)))
-#define HCI_GET_CMD_HDR_PARAM_LEN(p) (UINT8)  (*((UINT8 *)((p) + 1) + (p)->offset + 2))
+#define HCI_GET_CMD_HDR_OPCODE(p)    (uint16_t)((*((uint8_t *)((p) + 1) + (p)->offset) + \
+                                              (*((uint8_t *)((p) + 1) + (p)->offset + 1) << 8)))
+#define HCI_GET_CMD_HDR_PARAM_LEN(p) (uint8_t)  (*((uint8_t *)((p) + 1) + (p)->offset + 2))
 
-#define HCI_GET_EVT_HDR_OPCODE(p)    (UINT8)(*((UINT8 *)((p) + 1) + (p)->offset))
-#define HCI_GET_EVT_HDR_PARAM_LEN(p) (UINT8)  (*((UINT8 *)((p) + 1) + (p)->offset + 1))
+#define HCI_GET_EVT_HDR_OPCODE(p)    (uint8_t)(*((uint8_t *)((p) + 1) + (p)->offset))
+#define HCI_GET_EVT_HDR_PARAM_LEN(p) (uint8_t)  (*((uint8_t *)((p) + 1) + (p)->offset + 1))
 
 
 /********************************************************************************
 ** Macros to get and put bytes to and from a stream (Little Endian format).
 */
-#define UINT64_TO_BE_STREAM(p, u64) {*(p)++ = (UINT8)((u64) >> 56);  *(p)++ = (UINT8)((u64) >> 48); *(p)++ = (UINT8)((u64) >> 40); *(p)++ = (UINT8)((u64) >> 32); \
-                                     *(p)++ = (UINT8)((u64) >> 24);  *(p)++ = (UINT8)((u64) >> 16); *(p)++ = (UINT8)((u64) >> 8); *(p)++ = (UINT8)(u64); }
-#define UINT32_TO_STREAM(p, u32) {*(p)++ = (UINT8)(u32); *(p)++ = (UINT8)((u32) >> 8); *(p)++ = (UINT8)((u32) >> 16); *(p)++ = (UINT8)((u32) >> 24);}
-#define UINT24_TO_STREAM(p, u24) {*(p)++ = (UINT8)(u24); *(p)++ = (UINT8)((u24) >> 8); *(p)++ = (UINT8)((u24) >> 16);}
-#define UINT16_TO_STREAM(p, u16) {*(p)++ = (UINT8)(u16); *(p)++ = (UINT8)((u16) >> 8);}
-#define UINT8_TO_STREAM(p, u8)   {*(p)++ = (UINT8)(u8);}
-#define INT8_TO_STREAM(p, u8)    {*(p)++ = (INT8)(u8);}
-#define ARRAY32_TO_STREAM(p, a)  {int ijk; for (ijk = 0; ijk < 32;           ijk++) *(p)++ = (UINT8) (a)[31 - ijk];}
-#define ARRAY16_TO_STREAM(p, a)  {int ijk; for (ijk = 0; ijk < 16;           ijk++) *(p)++ = (UINT8) (a)[15 - ijk];}
-#define ARRAY8_TO_STREAM(p, a)   {int ijk; for (ijk = 0; ijk < 8;            ijk++) *(p)++ = (UINT8) (a)[7 - ijk];}
-#define BDADDR_TO_STREAM(p, a)   {int ijk; for (ijk = 0; ijk < BD_ADDR_LEN;  ijk++) *(p)++ = (UINT8) (a)[BD_ADDR_LEN - 1 - ijk];}
-#define LAP_TO_STREAM(p, a)      {int ijk; for (ijk = 0; ijk < LAP_LEN;      ijk++) *(p)++ = (UINT8) (a)[LAP_LEN - 1 - ijk];}
-#define DEVCLASS_TO_STREAM(p, a) {int ijk; for (ijk = 0; ijk < DEV_CLASS_LEN;ijk++) *(p)++ = (UINT8) (a)[DEV_CLASS_LEN - 1 - ijk];}
-#define ARRAY_TO_STREAM(p, a, len) {int ijk; for (ijk = 0; ijk < (len);        ijk++) *(p)++ = (UINT8) (a)[ijk];}
-#define REVERSE_ARRAY_TO_STREAM(p, a, len)  {int ijk; for (ijk = 0; ijk < (len); ijk++) *(p)++ = (UINT8) (a)[(len) - 1 - ijk];}
+#define UINT64_TO_BE_STREAM(p, u64) {*(p)++ = (uint8_t)((u64) >> 56);  *(p)++ = (uint8_t)((u64) >> 48); *(p)++ = (uint8_t)((u64) >> 40); *(p)++ = (uint8_t)((u64) >> 32); \
+                                     *(p)++ = (uint8_t)((u64) >> 24);  *(p)++ = (uint8_t)((u64) >> 16); *(p)++ = (uint8_t)((u64) >> 8); *(p)++ = (uint8_t)(u64); }
+#define UINT32_TO_STREAM(p, u32) {*(p)++ = (uint8_t)(u32); *(p)++ = (uint8_t)((u32) >> 8); *(p)++ = (uint8_t)((u32) >> 16); *(p)++ = (uint8_t)((u32) >> 24);}
+#define UINT24_TO_STREAM(p, u24) {*(p)++ = (uint8_t)(u24); *(p)++ = (uint8_t)((u24) >> 8); *(p)++ = (uint8_t)((u24) >> 16);}
+#define UINT16_TO_STREAM(p, u16) {*(p)++ = (uint8_t)(u16); *(p)++ = (uint8_t)((u16) >> 8);}
+#define UINT8_TO_STREAM(p, u8)   {*(p)++ = (uint8_t)(u8);}
+#define INT8_TO_STREAM(p, u8)    {*(p)++ = (int8_t)(u8);}
+#define ARRAY32_TO_STREAM(p, a)  {int ijk; for (ijk = 0; ijk < 32;           ijk++) *(p)++ = (uint8_t) (a)[31 - ijk];}
+#define ARRAY16_TO_STREAM(p, a)  {int ijk; for (ijk = 0; ijk < 16;           ijk++) *(p)++ = (uint8_t) (a)[15 - ijk];}
+#define ARRAY8_TO_STREAM(p, a)   {int ijk; for (ijk = 0; ijk < 8;            ijk++) *(p)++ = (uint8_t) (a)[7 - ijk];}
+#define BDADDR_TO_STREAM(p, a)   {int ijk; for (ijk = 0; ijk < BD_ADDR_LEN;  ijk++) *(p)++ = (uint8_t) (a)[BD_ADDR_LEN - 1 - ijk];}
+#define LAP_TO_STREAM(p, a)      {int ijk; for (ijk = 0; ijk < LAP_LEN;      ijk++) *(p)++ = (uint8_t) (a)[LAP_LEN - 1 - ijk];}
+#define DEVCLASS_TO_STREAM(p, a) {int ijk; for (ijk = 0; ijk < DEV_CLASS_LEN;ijk++) *(p)++ = (uint8_t) (a)[DEV_CLASS_LEN - 1 - ijk];}
+#define ARRAY_TO_STREAM(p, a, len) {int ijk; for (ijk = 0; ijk < (len);        ijk++) *(p)++ = (uint8_t) (a)[ijk];}
+#define REVERSE_ARRAY_TO_STREAM(p, a, len)  {int ijk; for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t) (a)[(len) - 1 - ijk];}
 
-#define STREAM_TO_UINT8(u8, p)   {(u8) = (UINT8)(*(p)); (p) += 1;}
-#define STREAM_TO_UINT16(u16, p) {(u16) = ((UINT16)(*(p)) + (((UINT16)(*((p) + 1))) << 8)); (p) += 2;}
-#define STREAM_TO_UINT24(u32, p) {(u32) = (((UINT32)(*(p))) + ((((UINT32)(*((p) + 1)))) << 8) + ((((UINT32)(*((p) + 2)))) << 16) ); (p) += 3;}
-#define STREAM_TO_UINT32(u32, p) {(u32) = (((UINT32)(*(p))) + ((((UINT32)(*((p) + 1)))) << 8) + ((((UINT32)(*((p) + 2)))) << 16) + ((((UINT32)(*((p) + 3)))) << 24)); (p) += 4;}
-#define STREAM_TO_BDADDR(a, p)   {int ijk; UINT8 *pbda = (UINT8 *)(a) + BD_ADDR_LEN - 1; for (ijk = 0; ijk < BD_ADDR_LEN; ijk++) *pbda-- = *(p)++;}
-#define STREAM_TO_ARRAY32(a, p)  {int ijk; UINT8 *_pa = (UINT8 *)(a) + 31; for (ijk = 0; ijk < 32; ijk++) *_pa-- = *(p)++;}
-#define STREAM_TO_ARRAY16(a, p)  {int ijk; UINT8 *_pa = (UINT8 *)(a) + 15; for (ijk = 0; ijk < 16; ijk++) *_pa-- = *(p)++;}
-#define STREAM_TO_ARRAY8(a, p)   {int ijk; UINT8 *_pa = (UINT8 *)(a) + 7; for (ijk = 0; ijk < 8; ijk++) *_pa-- = *(p)++;}
-#define STREAM_TO_DEVCLASS(a, p) {int ijk; UINT8 *_pa = (UINT8 *)(a) + DEV_CLASS_LEN - 1; for (ijk = 0; ijk < DEV_CLASS_LEN; ijk++) *_pa-- = *(p)++;}
-#define STREAM_TO_LAP(a, p)      {int ijk; UINT8 *plap = (UINT8 *)(a) + LAP_LEN - 1; for (ijk = 0; ijk < LAP_LEN; ijk++) *plap-- = *(p)++;}
-#define STREAM_TO_ARRAY(a, p, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) ((UINT8 *) (a))[ijk] = *(p)++;}
-#define REVERSE_STREAM_TO_ARRAY(a, p, len) {int ijk; UINT8 *_pa = (UINT8 *)(a) + (len) - 1; for (ijk = 0; ijk < (len); ijk++) *_pa-- = *(p)++;}
+#define STREAM_TO_UINT8(u8, p)   {(u8) = (uint8_t)(*(p)); (p) += 1;}
+#define STREAM_TO_UINT16(u16, p) {(u16) = ((uint16_t)(*(p)) + (((uint16_t)(*((p) + 1))) << 8)); (p) += 2;}
+#define STREAM_TO_UINT24(u32, p) {(u32) = (((uint32_t)(*(p))) + ((((uint32_t)(*((p) + 1)))) << 8) + ((((uint32_t)(*((p) + 2)))) << 16) ); (p) += 3;}
+#define STREAM_TO_UINT32(u32, p) {(u32) = (((uint32_t)(*(p))) + ((((uint32_t)(*((p) + 1)))) << 8) + ((((uint32_t)(*((p) + 2)))) << 16) + ((((uint32_t)(*((p) + 3)))) << 24)); (p) += 4;}
+#define STREAM_TO_BDADDR(a, p)   {int ijk; uint8_t *pbda = (uint8_t *)(a) + BD_ADDR_LEN - 1; for (ijk = 0; ijk < BD_ADDR_LEN; ijk++) *pbda-- = *(p)++;}
+#define STREAM_TO_ARRAY32(a, p)  {int ijk; uint8_t *_pa = (uint8_t *)(a) + 31; for (ijk = 0; ijk < 32; ijk++) *_pa-- = *(p)++;}
+#define STREAM_TO_ARRAY16(a, p)  {int ijk; uint8_t *_pa = (uint8_t *)(a) + 15; for (ijk = 0; ijk < 16; ijk++) *_pa-- = *(p)++;}
+#define STREAM_TO_ARRAY8(a, p)   {int ijk; uint8_t *_pa = (uint8_t *)(a) + 7; for (ijk = 0; ijk < 8; ijk++) *_pa-- = *(p)++;}
+#define STREAM_TO_DEVCLASS(a, p) {int ijk; uint8_t *_pa = (uint8_t *)(a) + DEV_CLASS_LEN - 1; for (ijk = 0; ijk < DEV_CLASS_LEN; ijk++) *_pa-- = *(p)++;}
+#define STREAM_TO_LAP(a, p)      {int ijk; uint8_t *plap = (uint8_t *)(a) + LAP_LEN - 1; for (ijk = 0; ijk < LAP_LEN; ijk++) *plap-- = *(p)++;}
+#define STREAM_TO_ARRAY(a, p, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) ((uint8_t *) (a))[ijk] = *(p)++;}
+#define REVERSE_STREAM_TO_ARRAY(a, p, len) {int ijk; uint8_t *_pa = (uint8_t *)(a) + (len) - 1; for (ijk = 0; ijk < (len); ijk++) *_pa-- = *(p)++;}
 
 #define STREAM_SKIP_UINT8(p)  do { (p) += 1; } while (0)
 #define STREAM_SKIP_UINT16(p) do { (p) += 2; } while (0)
@@ -268,112 +258,112 @@ typedef struct
 ** Macros to get and put bytes to and from a field (Little Endian format).
 ** These are the same as to stream, except the pointer is not incremented.
 */
-#define UINT32_TO_FIELD(p, u32) {*(UINT8 *)(p) = (UINT8)(u32); *((UINT8 *)(p)+1) = (UINT8)((u32) >> 8); *((UINT8 *)(p)+2) = (UINT8)((u32) >> 16); *((UINT8 *)(p)+3) = (UINT8)((u32) >> 24);}
-#define UINT24_TO_FIELD(p, u24) {*(UINT8 *)(p) = (UINT8)(u24); *((UINT8 *)(p)+1) = (UINT8)((u24) >> 8); *((UINT8 *)(p)+2) = (UINT8)((u24) >> 16);}
-#define UINT16_TO_FIELD(p, u16) {*(UINT8 *)(p) = (UINT8)(u16); *((UINT8 *)(p)+1) = (UINT8)((u16) >> 8);}
-#define UINT8_TO_FIELD(p, u8)   {*(UINT8 *)(p) = (UINT8)(u8);}
+#define UINT32_TO_FIELD(p, u32) {*(uint8_t *)(p) = (uint8_t)(u32); *((uint8_t *)(p)+1) = (uint8_t)((u32) >> 8); *((uint8_t *)(p)+2) = (uint8_t)((u32) >> 16); *((uint8_t *)(p)+3) = (uint8_t)((u32) >> 24);}
+#define UINT24_TO_FIELD(p, u24) {*(uint8_t *)(p) = (uint8_t)(u24); *((uint8_t *)(p)+1) = (uint8_t)((u24) >> 8); *((uint8_t *)(p)+2) = (uint8_t)((u24) >> 16);}
+#define UINT16_TO_FIELD(p, u16) {*(uint8_t *)(p) = (uint8_t)(u16); *((uint8_t *)(p)+1) = (uint8_t)((u16) >> 8);}
+#define UINT8_TO_FIELD(p, u8)   {*(uint8_t *)(p) = (uint8_t)(u8);}
 
 
 /********************************************************************************
 ** Macros to get and put bytes to and from a stream (Big Endian format)
 */
-#define UINT32_TO_BE_STREAM(p, u32) {*(p)++ = (UINT8)((u32) >> 24);  *(p)++ = (UINT8)((u32) >> 16); *(p)++ = (UINT8)((u32) >> 8); *(p)++ = (UINT8)(u32); }
-#define UINT24_TO_BE_STREAM(p, u24) {*(p)++ = (UINT8)((u24) >> 16); *(p)++ = (UINT8)((u24) >> 8); *(p)++ = (UINT8)(u24);}
-#define UINT16_TO_BE_STREAM(p, u16) {*(p)++ = (UINT8)((u16) >> 8); *(p)++ = (UINT8)(u16);}
-#define UINT8_TO_BE_STREAM(p, u8)   {*(p)++ = (UINT8)(u8);}
-#define ARRAY_TO_BE_STREAM(p, a, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) *(p)++ = (UINT8) (a)[ijk];}
-#define ARRAY_TO_BE_STREAM_REVERSE(p, a, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) *(p)++ = (UINT8) (a)[(len) - ijk - 1];}
+#define UINT32_TO_BE_STREAM(p, u32) {*(p)++ = (uint8_t)((u32) >> 24);  *(p)++ = (uint8_t)((u32) >> 16); *(p)++ = (uint8_t)((u32) >> 8); *(p)++ = (uint8_t)(u32); }
+#define UINT24_TO_BE_STREAM(p, u24) {*(p)++ = (uint8_t)((u24) >> 16); *(p)++ = (uint8_t)((u24) >> 8); *(p)++ = (uint8_t)(u24);}
+#define UINT16_TO_BE_STREAM(p, u16) {*(p)++ = (uint8_t)((u16) >> 8); *(p)++ = (uint8_t)(u16);}
+#define UINT8_TO_BE_STREAM(p, u8)   {*(p)++ = (uint8_t)(u8);}
+#define ARRAY_TO_BE_STREAM(p, a, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t) (a)[ijk];}
+#define ARRAY_TO_BE_STREAM_REVERSE(p, a, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t) (a)[(len) - ijk - 1];}
 
-#define BE_STREAM_TO_UINT8(u8, p)   {(u8) = (UINT8)(*(p)); (p) += 1;}
-#define BE_STREAM_TO_UINT16(u16, p) {(u16) = (UINT16)(((UINT16)(*(p)) << 8) + (UINT16)(*((p) + 1))); (p) += 2;}
-#define BE_STREAM_TO_UINT24(u32, p) {(u32) = (((UINT32)(*((p) + 2))) + ((UINT32)(*((p) + 1)) << 8) + ((UINT32)(*(p)) << 16)); (p) += 3;}
-#define BE_STREAM_TO_UINT32(u32, p) {(u32) = ((UINT32)(*((p) + 3)) + ((UINT32)(*((p) + 2)) << 8) + ((UINT32)(*((p) + 1)) << 16) + ((UINT32)(*(p)) << 24)); (p) += 4;}
-#define BE_STREAM_TO_UINT64(u64, p) {(u64) = ((UINT64)(*((p) + 7)) + ((UINT64)(*((p) + 6)) << 8) + \
-                                    ((UINT64)(*((p) + 5)) << 16) + ((UINT64)(*((p) + 4)) << 24) + \
-                                    ((UINT64)(*((p) + 3)) << 32) + ((UINT64)(*((p) + 2)) << 40) + \
-                                    ((UINT64)(*((p) + 1)) << 48) + ((UINT64)(*(p)) << 56)); \
+#define BE_STREAM_TO_UINT8(u8, p)   {(u8) = (uint8_t)(*(p)); (p) += 1;}
+#define BE_STREAM_TO_UINT16(u16, p) {(u16) = (uint16_t)(((uint16_t)(*(p)) << 8) + (uint16_t)(*((p) + 1))); (p) += 2;}
+#define BE_STREAM_TO_UINT24(u32, p) {(u32) = (((uint32_t)(*((p) + 2))) + ((uint32_t)(*((p) + 1)) << 8) + ((uint32_t)(*(p)) << 16)); (p) += 3;}
+#define BE_STREAM_TO_UINT32(u32, p) {(u32) = ((uint32_t)(*((p) + 3)) + ((uint32_t)(*((p) + 2)) << 8) + ((uint32_t)(*((p) + 1)) << 16) + ((uint32_t)(*(p)) << 24)); (p) += 4;}
+#define BE_STREAM_TO_UINT64(u64, p) {(u64) = ((uint64_t)(*((p) + 7)) + ((uint64_t)(*((p) + 6)) << 8) + \
+                                    ((uint64_t)(*((p) + 5)) << 16) + ((uint64_t)(*((p) + 4)) << 24) + \
+                                    ((uint64_t)(*((p) + 3)) << 32) + ((uint64_t)(*((p) + 2)) << 40) + \
+                                    ((uint64_t)(*((p) + 1)) << 48) + ((uint64_t)(*(p)) << 56)); \
                                     (p) += 8;}
-#define BE_STREAM_TO_ARRAY(p, a, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) ((UINT8 *) (a))[ijk] = *(p)++;}
+#define BE_STREAM_TO_ARRAY(p, a, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) ((uint8_t *) (a))[ijk] = *(p)++;}
 
 
 /********************************************************************************
 ** Macros to get and put bytes to and from a field (Big Endian format).
 ** These are the same as to stream, except the pointer is not incremented.
 */
-#define UINT32_TO_BE_FIELD(p, u32) {*(UINT8 *)(p) = (UINT8)((u32) >> 24);  *((UINT8 *)(p)+1) = (UINT8)((u32) >> 16); *((UINT8 *)(p)+2) = (UINT8)((u32) >> 8); *((UINT8 *)(p)+3) = (UINT8)(u32); }
-#define UINT24_TO_BE_FIELD(p, u24) {*(UINT8 *)(p) = (UINT8)((u24) >> 16); *((UINT8 *)(p)+1) = (UINT8)((u24) >> 8); *((UINT8 *)(p)+2) = (UINT8)(u24);}
-#define UINT16_TO_BE_FIELD(p, u16) {*(UINT8 *)(p) = (UINT8)((u16) >> 8); *((UINT8 *)(p)+1) = (UINT8)(u16);}
-#define UINT8_TO_BE_FIELD(p, u8)   {*(UINT8 *)(p) = (UINT8)(u8);}
+#define UINT32_TO_BE_FIELD(p, u32) {*(uint8_t *)(p) = (uint8_t)((u32) >> 24);  *((uint8_t *)(p)+1) = (uint8_t)((u32) >> 16); *((uint8_t *)(p)+2) = (uint8_t)((u32) >> 8); *((uint8_t *)(p)+3) = (uint8_t)(u32); }
+#define UINT24_TO_BE_FIELD(p, u24) {*(uint8_t *)(p) = (uint8_t)((u24) >> 16); *((uint8_t *)(p)+1) = (uint8_t)((u24) >> 8); *((uint8_t *)(p)+2) = (uint8_t)(u24);}
+#define UINT16_TO_BE_FIELD(p, u16) {*(uint8_t *)(p) = (uint8_t)((u16) >> 8); *((uint8_t *)(p)+1) = (uint8_t)(u16);}
+#define UINT8_TO_BE_FIELD(p, u8)   {*(uint8_t *)(p) = (uint8_t)(u8);}
 
 
 /* Common Bluetooth field definitions */
 #define BD_ADDR_LEN     6                   /* Device address length */
-typedef UINT8 BD_ADDR[BD_ADDR_LEN];         /* Device address */
-typedef UINT8 *BD_ADDR_PTR;                 /* Pointer to Device Address */
+typedef uint8_t BD_ADDR[BD_ADDR_LEN];         /* Device address */
+typedef uint8_t *BD_ADDR_PTR;                 /* Pointer to Device Address */
 
 #define AMP_KEY_TYPE_GAMP       0
 #define AMP_KEY_TYPE_WIFI       1
 #define AMP_KEY_TYPE_UWB        2
-typedef UINT8 tAMP_KEY_TYPE;
+typedef uint8_t tAMP_KEY_TYPE;
 
 #define BT_OCTET8_LEN    8
-typedef UINT8 BT_OCTET8[BT_OCTET8_LEN];   /* octet array: size 16 */
+typedef uint8_t BT_OCTET8[BT_OCTET8_LEN];   /* octet array: size 16 */
 
 #define LINK_KEY_LEN    16
-typedef UINT8 LINK_KEY[LINK_KEY_LEN];       /* Link Key */
+typedef uint8_t LINK_KEY[LINK_KEY_LEN];       /* Link Key */
 
 #define AMP_LINK_KEY_LEN        32
-typedef UINT8 AMP_LINK_KEY[AMP_LINK_KEY_LEN];   /* Dedicated AMP and GAMP Link Keys */
+typedef uint8_t AMP_LINK_KEY[AMP_LINK_KEY_LEN];   /* Dedicated AMP and GAMP Link Keys */
 
 #define BT_OCTET16_LEN    16
-typedef UINT8 BT_OCTET16[BT_OCTET16_LEN];   /* octet array: size 16 */
+typedef uint8_t BT_OCTET16[BT_OCTET16_LEN];   /* octet array: size 16 */
 
 #define PIN_CODE_LEN    16
-typedef UINT8 PIN_CODE[PIN_CODE_LEN];       /* Pin Code (upto 128 bits) MSB is 0 */
-typedef UINT8 *PIN_CODE_PTR;                /* Pointer to Pin Code */
+typedef uint8_t PIN_CODE[PIN_CODE_LEN];       /* Pin Code (upto 128 bits) MSB is 0 */
+typedef uint8_t *PIN_CODE_PTR;                /* Pointer to Pin Code */
 
 #define BT_OCTET32_LEN    32
-typedef UINT8 BT_OCTET32[BT_OCTET32_LEN];   /* octet array: size 32 */
+typedef uint8_t BT_OCTET32[BT_OCTET32_LEN];   /* octet array: size 32 */
 
 #define DEV_CLASS_LEN   3
-typedef UINT8 DEV_CLASS[DEV_CLASS_LEN];     /* Device class */
-typedef UINT8 *DEV_CLASS_PTR;               /* Pointer to Device class */
+typedef uint8_t DEV_CLASS[DEV_CLASS_LEN];     /* Device class */
+typedef uint8_t *DEV_CLASS_PTR;               /* Pointer to Device class */
 
 #define EXT_INQ_RESP_LEN   3
-typedef UINT8 EXT_INQ_RESP[EXT_INQ_RESP_LEN];/* Extended Inquiry Response */
-typedef UINT8 *EXT_INQ_RESP_PTR;             /* Pointer to Extended Inquiry Response */
+typedef uint8_t EXT_INQ_RESP[EXT_INQ_RESP_LEN];/* Extended Inquiry Response */
+typedef uint8_t *EXT_INQ_RESP_PTR;             /* Pointer to Extended Inquiry Response */
 
 #define BD_NAME_LEN     248
-typedef UINT8 BD_NAME[BD_NAME_LEN + 1];         /* Device name */
-typedef UINT8 *BD_NAME_PTR;                 /* Pointer to Device name */
+typedef uint8_t BD_NAME[BD_NAME_LEN + 1];         /* Device name */
+typedef uint8_t *BD_NAME_PTR;                 /* Pointer to Device name */
 
 #define BD_FEATURES_LEN 8
-typedef UINT8 BD_FEATURES[BD_FEATURES_LEN]; /* LMP features supported by device */
+typedef uint8_t BD_FEATURES[BD_FEATURES_LEN]; /* LMP features supported by device */
 
 #define BT_EVENT_MASK_LEN  8
-typedef UINT8 BT_EVENT_MASK[BT_EVENT_MASK_LEN];   /* Event Mask */
+typedef uint8_t BT_EVENT_MASK[BT_EVENT_MASK_LEN];   /* Event Mask */
 
 #define LAP_LEN         3
-typedef UINT8 LAP[LAP_LEN];                 /* IAC as passed to Inquiry (LAP) */
-typedef UINT8 INQ_LAP[LAP_LEN];             /* IAC as passed to Inquiry (LAP) */
+typedef uint8_t LAP[LAP_LEN];                 /* IAC as passed to Inquiry (LAP) */
+typedef uint8_t INQ_LAP[LAP_LEN];             /* IAC as passed to Inquiry (LAP) */
 
 #define RAND_NUM_LEN    16
-typedef UINT8 RAND_NUM[RAND_NUM_LEN];
+typedef uint8_t RAND_NUM[RAND_NUM_LEN];
 
 #define ACO_LEN         12
-typedef UINT8 ACO[ACO_LEN];                 /* Authenticated ciphering offset */
+typedef uint8_t ACO[ACO_LEN];                 /* Authenticated ciphering offset */
 
 #define COF_LEN         12
-typedef UINT8 COF[COF_LEN];                 /* ciphering offset number */
+typedef uint8_t COF[COF_LEN];                 /* ciphering offset number */
 
 typedef struct {
-    UINT8               qos_flags;          /* TBD */
-    UINT8               service_type;       /* see below */
-    UINT32              token_rate;         /* bytes/second */
-    UINT32              token_bucket_size;  /* bytes */
-    UINT32              peak_bandwidth;     /* bytes/second */
-    UINT32              latency;            /* microseconds */
-    UINT32              delay_variation;    /* microseconds */
+    uint8_t             qos_flags;          /* TBD */
+    uint8_t             service_type;       /* see below */
+    uint32_t            token_rate;         /* bytes/second */
+    uint32_t            token_bucket_size;  /* bytes */
+    uint32_t            peak_bandwidth;     /* bytes/second */
+    uint32_t            latency;            /* microseconds */
+    uint32_t            delay_variation;    /* microseconds */
 } FLOW_SPEC;
 
 /* Values for service_type */
@@ -398,7 +388,7 @@ typedef struct {
 #define ACCESS_CODE_BYTE_LEN            9
 #define SHORTENED_ACCESS_CODE_BIT_LEN   68
 
-typedef UINT8 ACCESS_CODE[ACCESS_CODE_BYTE_LEN];
+typedef uint8_t ACCESS_CODE[ACCESS_CODE_BYTE_LEN];
 
 #define SYNTH_TX                1           /* want synth code to TRANSMIT at this freq */
 #define SYNTH_RX                2           /* want synth code to RECEIVE at this freq */
@@ -415,13 +405,13 @@ typedef struct
 #define LEN_UUID_32     4
 #define LEN_UUID_128    16
 
-    UINT16          len;
+    uint16_t        len;
 
     union
     {
-        UINT16      uuid16;
-        UINT32      uuid32;
-        UINT8       uuid128[MAX_UUID_SIZE];
+        uint16_t    uuid16;
+        uint32_t    uuid32;
+        uint8_t     uuid128[MAX_UUID_SIZE];
     } uu;
 
 } tBT_UUID;
@@ -479,11 +469,11 @@ typedef struct
 
 typedef struct
 {
-    UINT32   is_connected;
-    INT32    rssi;
-    UINT32   bytes_sent;
-    UINT32   bytes_rcvd;
-    UINT32   duration;
+    uint32_t is_connected;
+    int32_t  rssi;
+    uint32_t bytes_sent;
+    uint32_t bytes_rcvd;
+    uint32_t duration;
 } tBT_CONN_STATS;
 
 #endif
@@ -498,13 +488,13 @@ typedef struct
 #define BLE_ADDR_RANDOM         0x01
 #define BLE_ADDR_PUBLIC_ID      0x02
 #define BLE_ADDR_RANDOM_ID      0x03
-typedef UINT8 tBLE_ADDR_TYPE;
+typedef uint8_t tBLE_ADDR_TYPE;
 #define BLE_ADDR_TYPE_MASK      (BLE_ADDR_RANDOM | BLE_ADDR_PUBLIC)
 
 #define BT_TRANSPORT_INVALID   0
 #define BT_TRANSPORT_BR_EDR    1
 #define BT_TRANSPORT_LE        2
-typedef UINT8 tBT_TRANSPORT;
+typedef uint8_t tBT_TRANSPORT;
 
 #define BLE_ADDR_IS_STATIC(x)   (((x)[0] & 0xC0) == 0xC0)
 
@@ -519,7 +509,7 @@ typedef struct
 #define BT_DEVICE_TYPE_BREDR   0x01
 #define BT_DEVICE_TYPE_BLE     0x02
 #define BT_DEVICE_TYPE_DUMO    0x03
-typedef UINT8 tBT_DEVICE_TYPE;
+typedef uint8_t tBT_DEVICE_TYPE;
 /*****************************************************************************/
 
 
@@ -538,7 +528,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 /* Define New Trace Type Definition */
 /* TRACE_CTRL_TYPE                  0x^^000000*/
 #define TRACE_CTRL_MASK             0xff000000
-#define TRACE_GET_CTRL(x)           ((((UINT32)(x)) & TRACE_CTRL_MASK) >> 24)
+#define TRACE_GET_CTRL(x)           ((((uint32_t)(x)) & TRACE_CTRL_MASK) >> 24)
 
 #define TRACE_CTRL_GENERAL          0x00000000
 #define TRACE_CTRL_STR_RESOURCE     0x01000000
@@ -547,7 +537,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 
 /* LAYER SPECIFIC                   0x00^^0000*/
 #define TRACE_LAYER_MASK            0x00ff0000
-#define TRACE_GET_LAYER(x)          ((((UINT32)(x)) & TRACE_LAYER_MASK) >> 16)
+#define TRACE_GET_LAYER(x)          ((((uint32_t)(x)) & TRACE_LAYER_MASK) >> 16)
 
 #define TRACE_LAYER_NONE            0x00000000
 #define TRACE_LAYER_USB             0x00010000
@@ -604,7 +594,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 
 /* TRACE_ORIGINATOR                 0x0000^^00*/
 #define TRACE_ORG_MASK              0x0000ff00
-#define TRACE_GET_ORG(x)            ((((UINT32)(x)) & TRACE_ORG_MASK) >> 8)
+#define TRACE_GET_ORG(x)            ((((uint32_t)(x)) & TRACE_ORG_MASK) >> 8)
 
 #define TRACE_ORG_STACK             0x00000000
 #define TRACE_ORG_HCI_TRANS         0x00000100
@@ -626,7 +616,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 
 /* TRACE_TYPE                       0x000000^^*/
 #define TRACE_TYPE_MASK             0x000000ff
-#define TRACE_GET_TYPE(x)           (((UINT32)(x)) & TRACE_TYPE_MASK)
+#define TRACE_GET_TYPE(x)           (((uint32_t)(x)) & TRACE_TYPE_MASK)
 
 #define TRACE_TYPE_ERROR            0x00000000
 #define TRACE_TYPE_WARNING          0x00000001

@@ -62,7 +62,7 @@ const tMCA_DCB_ACTION mca_dcb_action[] = {
 #define MCA_DCB_NUM_COLS           2       /* number of columns in state tables */
 
 /* state table for opening state */
-const UINT8 mca_dcb_st_opening[][MCA_DCB_NUM_COLS] = {
+const uint8_t mca_dcb_st_opening[][MCA_DCB_NUM_COLS] = {
 /* Event                            Action              Next State */
 /* MCA_DCB_API_CLOSE_EVT    */   {MCA_DCB_DO_DISCONN,   MCA_DCB_CLOSING_ST},
 /* MCA_DCB_API_WRITE_EVT    */   {MCA_DCB_IGNORE,       MCA_DCB_OPENING_ST},
@@ -73,7 +73,7 @@ const UINT8 mca_dcb_st_opening[][MCA_DCB_NUM_COLS] = {
 };
 
 /* state table for open state */
-const UINT8 mca_dcb_st_open[][MCA_DCB_NUM_COLS] = {
+const uint8_t mca_dcb_st_open[][MCA_DCB_NUM_COLS] = {
 /* Event                            Action              Next State */
 /* MCA_DCB_API_CLOSE_EVT    */   {MCA_DCB_DO_DISCONN,   MCA_DCB_CLOSING_ST},
 /* MCA_DCB_API_WRITE_EVT    */   {MCA_DCB_SND_DATA,     MCA_DCB_OPEN_ST},
@@ -84,7 +84,7 @@ const UINT8 mca_dcb_st_open[][MCA_DCB_NUM_COLS] = {
 };
 
 /* state table for closing state */
-const UINT8 mca_dcb_st_closing[][MCA_DCB_NUM_COLS] = {
+const uint8_t mca_dcb_st_closing[][MCA_DCB_NUM_COLS] = {
 /* Event                            Action              Next State */
 /* MCA_DCB_API_CLOSE_EVT    */   {MCA_DCB_IGNORE,       MCA_DCB_CLOSING_ST},
 /* MCA_DCB_API_WRITE_EVT    */   {MCA_DCB_IGNORE,       MCA_DCB_CLOSING_ST},
@@ -95,7 +95,7 @@ const UINT8 mca_dcb_st_closing[][MCA_DCB_NUM_COLS] = {
 };
 
 /* type for state table */
-typedef const UINT8 (*tMCA_DCB_ST_TBL)[MCA_DCB_NUM_COLS];
+typedef const uint8_t (*tMCA_DCB_ST_TBL)[MCA_DCB_NUM_COLS];
 
 /* state table */
 const tMCA_DCB_ST_TBL mca_dcb_st_tbl[] = {
@@ -134,10 +134,10 @@ const char * const mca_dcb_st_str[] = {
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_dcb_event(tMCA_DCB *p_dcb, UINT8 event, tMCA_DCB_EVT *p_data)
+void mca_dcb_event(tMCA_DCB *p_dcb, uint8_t event, tMCA_DCB_EVT *p_data)
 {
     tMCA_DCB_ST_TBL    state_table;
-    UINT8              action;
+    uint8_t            action;
 
     if (p_dcb == NULL)
         return;
@@ -190,7 +190,7 @@ tMCA_DCB *mca_dcb_alloc(tMCA_CCB*p_ccb, tMCA_DEP dep)
             {
                 p_dcb_tmp->p_ccb = p_ccb;
                 p_dcb_tmp->state = MCA_DCB_OPENING_ST;
-                p_dcb_tmp->cong  = TRUE;
+                p_dcb_tmp->cong  = true;
                 p_dcb_tmp->p_cs  = p_cs;
                 p_dcb = p_dcb_tmp;
                 break;
@@ -210,14 +210,14 @@ tMCA_DCB *mca_dcb_alloc(tMCA_CCB*p_ccb, tMCA_DEP dep)
 ** Returns          the number of free mdl for the given dep
 **
 *******************************************************************************/
-UINT8 mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
+uint8_t mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
 {
     tMCA_DCB *p_dcb;
     tMCA_RCB *p_rcb = p_ccb->p_rcb;
     tMCA_CS  *p_cs;
     int       i, max;
-    UINT8   count = 0;
-    UINT8   left;
+    uint8_t count = 0;
+    uint8_t left;
 
     if (dep < MCA_NUM_DEPS)
     {
@@ -256,7 +256,7 @@ UINT8 mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
 void mca_dcb_dealloc(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     tMCA_CCB *p_ccb = p_dcb->p_ccb;
-    UINT8    event = MCA_CLOSE_IND_EVT;
+    uint8_t  event = MCA_CLOSE_IND_EVT;
     tMCA_CTRL   evt_data;
 
     MCA_TRACE_DEBUG("mca_dcb_dealloc");
@@ -288,7 +288,7 @@ void mca_dcb_dealloc(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 *******************************************************************************/
 tMCA_DL mca_dcb_to_hdl(tMCA_DCB *p_dcb)
 {
-    return (UINT8) (p_dcb - mca_cb.dcb + 1);
+    return (uint8_t) (p_dcb - mca_cb.dcb + 1);
 }
 
 /*******************************************************************************
@@ -320,7 +320,7 @@ tMCA_DCB *mca_dcb_by_hdl(tMCA_DL hdl)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_dcb_close_by_mdl_id(tMCA_CCB*p_ccb, UINT16 mdl_id)
+void mca_dcb_close_by_mdl_id(tMCA_CCB*p_ccb, uint16_t mdl_id)
 {
     tMCA_DCB *p_dcb;
     int       i;
