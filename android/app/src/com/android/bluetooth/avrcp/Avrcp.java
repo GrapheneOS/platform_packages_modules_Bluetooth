@@ -984,44 +984,6 @@ public final class Avrcp {
     }
 
     /**
-     * Sends a play position notification, or schedules one to be
-     * sent later at an appropriate time. If |requested| is true,
-     * does both because this was called in reponse to a request from the
-     * TG.
-     */
-    private void sendPlayPosNotificationRsp(boolean requested) {
-        long playPositionMs = getPlayPosition();
-
-        // mNextPosMs is set to -1 when the previous position was invalid
-        // so this will be true if the new position is valid & old was invalid.
-        // mPlayPositionMs is set to -1 when the new position is invalid,
-        // and the old mPrevPosMs is >= 0 so this is true when the new is invalid
-        // and the old was valid.
-        if (requested || ((mPlayPosChangedNT == NOTIFICATION_TYPE_INTERIM) &&
-             ((playPositionMs >= mNextPosMs) || (playPositionMs <= mPrevPosMs)))) {
-            if (!requested) mPlayPosChangedNT = NOTIFICATION_TYPE_CHANGED;
-            registerNotificationRspPlayPosNative(mPlayStatusChangedNT, (int)playPositionMs);
-            if (playPositionMs != PlaybackState.PLAYBACK_POSITION_UNKNOWN) {
-                mNextPosMs = playPositionMs + mPlaybackIntervalMs;
-                mPrevPosMs = playPositionMs - mPlaybackIntervalMs;
-            } else {
-                mNextPosMs = -1;
-                mPrevPosMs = -1;
-            }
-        }
-
-        mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
-        if (mPlayStatusChangedNT == NOTIFICATION_TYPE_INTERIM) {
-            Message msg = mHandler.obtainMessage(MESSAGE_PLAY_INTERVAL_TIMEOUT);
-            long delay = mPlaybackIntervalMs;
-            if (mNextPosMs != -1) {
-                delay = mNextPosMs - (playPositionMs > 0 ? playPositionMs : 0);
-            }
-            mHandler.sendMessageDelayed(msg, delay);
-        }
-    }
-
-    /**
      * This is called from AudioService. It will return whether this device supports abs volume.
      * NOT USED AT THE MOMENT.
      */
