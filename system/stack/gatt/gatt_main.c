@@ -349,7 +349,8 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB *p_tcb, BOOLEAN i
 ** Returns          void.
 **
 *******************************************************************************/
-BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr, tBT_TRANSPORT transport)
+BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr,
+                          tBT_TRANSPORT transport, BOOLEAN opportunistic)
 {
     BOOLEAN     ret = FALSE;
     tGATT_TCB   *p_tcb;
@@ -396,7 +397,11 @@ BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr, tBT_TRANSPORT trans
 
     if (ret)
     {
-        gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, TRUE, FALSE);
+        if (!opportunistic)
+            gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, TRUE, FALSE);
+        else
+            GATT_TRACE_DEBUG("%s: connection is opportunistic, not updating app usage",
+                            __func__);
     }
 
     return ret;
