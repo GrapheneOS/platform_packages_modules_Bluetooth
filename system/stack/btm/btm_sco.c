@@ -59,7 +59,7 @@ static const tBTM_ESCO_PARAMS btm_esco_defaults =
 {
     BTM_64KBITS_RATE,               /* TX Bandwidth (64 kbits/sec)              */
     BTM_64KBITS_RATE,               /* RX Bandwidth (64 kbits/sec)              */
-    0x000a,                         /* 10 ms (HS/HF can use EV3, 2-EV3, 3-EV3)  */
+    0x000c,                         /* 12 ms (HS/HF can use EV3, 2-EV3, 3-EV3)  */
     0x0060,                         /* Inp Linear, Air CVSD, 2s Comp, 16bit     */
     (BTM_SCO_PKT_TYPES_MASK_HV1 +   /* Packet Types                             */
      BTM_SCO_PKT_TYPES_MASK_HV2 +
@@ -67,7 +67,7 @@ static const tBTM_ESCO_PARAMS btm_esco_defaults =
      BTM_SCO_PKT_TYPES_MASK_EV3 +
      BTM_SCO_PKT_TYPES_MASK_EV4 +
      BTM_SCO_PKT_TYPES_MASK_EV5),
-     BTM_ESCO_RETRANS_POWER        /* Retransmission Effort (Power)   */
+   BTM_ESCO_RETRANS_QUALITY         /* Retransmission Effort */
 };
 
 /*******************************************************************************
