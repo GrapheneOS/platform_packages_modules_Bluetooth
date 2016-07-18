@@ -423,7 +423,7 @@ static void event_finish_startup(UNUSED_ATTR void *context) {
   vendor->send_async_command(VENDOR_CONFIGURE_FIRMWARE, NULL);
 }
 
-static void firmware_config_callback(UNUSED_ATTR bool success) {
+static void firmware_config_callback(bool success) {
   LOG_INFO(LOG_TAG, "%s", __func__);
 
   alarm_cancel(startup_timer);
@@ -435,9 +435,8 @@ static void firmware_config_callback(UNUSED_ATTR bool success) {
     pthread_mutex_unlock(&commands_pending_response_lock);
     return;
   }
-
-  firmware_is_configured = true;
-  future_ready(startup_future, FUTURE_SUCCESS);
+  firmware_is_configured = success;
+  future_ready(startup_future, success ? FUTURE_SUCCESS : FUTURE_FAIL);
   startup_future = NULL;
 
   pthread_mutex_unlock(&commands_pending_response_lock);
