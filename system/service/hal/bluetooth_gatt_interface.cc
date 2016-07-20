@@ -88,7 +88,7 @@ void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) {
   VLOG(2) << __func__ << " - BD_ADDR: " << BtAddrString(bda)
           << " RSSI: " << rssi;
   FOR_EACH_CLIENT_OBSERVER(
-    ScanResultCallback(g_interface, *bda, rssi, std::move(adv_data)));
+    ScanResultCallback(g_interface, *bda, rssi, adv_data));
 }
 
 void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
@@ -388,7 +388,7 @@ void RequestWriteCallback(int conn_id, int trans_id,
 
   FOR_EACH_SERVER_OBSERVER(RequestWriteCallback(
       g_interface, conn_id, trans_id, *bda, attr_handle, offset,
-      need_rsp, is_prep, std::move(value)));
+      need_rsp, is_prep, value));
 }
 
 void RequestExecWriteCallback(int conn_id, int trans_id,
