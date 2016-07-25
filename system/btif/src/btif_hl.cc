@@ -4128,15 +4128,14 @@ static bt_status_t register_application(bthl_reg_param_t *p_reg_param, int *app_
                 p_sup->app_role_mask |=  BTA_HL_MDEP_ROLE_MASK_SOURCE;
 
             if ( (p_sup->app_role_mask & BTA_HL_MDEP_ROLE_MASK_SINK) &&
-                 (p_sup->app_role_mask & BTA_HL_MDEP_ROLE_MASK_SINK) )
+                 (p_sup->app_role_mask & BTA_HL_MDEP_ROLE_MASK_SOURCE) )
             {
                 p_acb->dev_type = BTA_HL_DEVICE_TYPE_DUAL;
-            }
-            else if ( p_sup->app_role_mask & BTA_HL_MDEP_ROLE_MASK_SINK )
+            } else if (p_sup->app_role_mask & BTA_HL_MDEP_ROLE_MASK_SINK) {
                 p_acb->dev_type = BTA_HL_DEVICE_TYPE_SINK;
-            else
-
+            } else {
                 p_acb->dev_type = BTA_HL_DEVICE_TYPE_SOURCE;
+            }
 
             p_data->data_type = (uint16_t) p_mdep_cfg->data_type;
             p_data->max_rx_apdu_size = btif_hl_get_max_rx_apdu_size(p_cfg->mdep_role, p_data->data_type);
