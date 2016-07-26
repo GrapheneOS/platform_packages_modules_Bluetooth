@@ -32,7 +32,15 @@ LOCAL_SHARED_LIBRARIES := \
     libchrome
 
 LOCAL_CPP_EXTENSION := .cc
+# On some devices this is the actual vendor library. On other devices build
+# as a test library.
+ifneq (,$(BOARD_BLUETOOTH_USE_TEST_AS_VENDOR))
+LOCAL_MODULE := libbt-vendor
+LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
+LOCAL_CFLAGS += -DBLUETOOTH_USE_TEST_AS_VENDOR
+else
 LOCAL_MODULE := test-vendor
+endif
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
