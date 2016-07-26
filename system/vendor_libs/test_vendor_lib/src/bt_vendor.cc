@@ -99,6 +99,9 @@ static void TestVendorCleanUp(void) {
 }  // namespace test_vendor_lib
 
 // Entry point of DLib.
+#ifdef BLUETOOTH_USE_TEST_AS_VENDOR
+EXPORT_SYMBOL
+#endif
 const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
     sizeof(bt_vendor_interface_t),
     test_vendor_lib::TestVendorInitialize,
