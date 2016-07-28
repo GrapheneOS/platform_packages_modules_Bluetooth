@@ -2517,7 +2517,7 @@ extern UINT8 *BTM_ReadAllRemoteFeatures (BD_ADDR addr);
 ** Returns          pointer to entry, or NULL if not found
 **
 *******************************************************************************/
-extern tBTM_INQ_INFO *BTM_InqDbRead (BD_ADDR p_bda);
+extern tBTM_INQ_INFO *BTM_InqDbRead (const BD_ADDR p_bda);
 
 
 /*******************************************************************************
