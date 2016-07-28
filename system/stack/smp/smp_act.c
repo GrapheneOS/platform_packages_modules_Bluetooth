@@ -187,7 +187,7 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
         callback_rc = (*p_cb->p_callback)(p_cb->cb_evt, p_cb->pairing_bda, &cb_data);
 
-        SMP_TRACE_DEBUG("callback_rc=%d  p_cb->cb_evt=%d",callback_rc, p_cb->cb_evt );
+        SMP_TRACE_DEBUG("%s: callback_rc=%d  p_cb->cb_evt=%d", __func__, callback_rc, p_cb->cb_evt );
 
         if (callback_rc == SMP_SUCCESS)
         {
@@ -1905,13 +1905,13 @@ void smp_process_secure_connection_oob_data(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
     }
     else
     {
-        SMP_TRACE_EVENT ("local OOB randomizer is absent");
+        SMP_TRACE_EVENT ("%s: local OOB randomizer is absent", __func__);
         memset(p_cb->local_random, 0, sizeof (p_cb->local_random));
     }
 
     if (!p_sc_oob_data->peer_oob_data.present)
     {
-        SMP_TRACE_EVENT ("peer OOB data is absent");
+        SMP_TRACE_EVENT ("%s: peer OOB data is absent", __func__);
         memset(p_cb->peer_random, 0, sizeof (p_cb->peer_random));
     }
     else
@@ -1933,7 +1933,8 @@ void smp_process_secure_connection_oob_data(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
         if (p_cb->peer_oob_flag != SMP_OOB_PRESENT)
         {
             /* the peer doesn't have local randomiser */
-            SMP_TRACE_EVENT ("peer didn't receive local OOB data, set local randomizer to 0");
+            SMP_TRACE_EVENT ("%s: peer didn't receive local OOB data, set local randomizer to 0",
+                             __func__);
             memset(p_cb->local_random, 0, sizeof (p_cb->local_random));
         }
     }
