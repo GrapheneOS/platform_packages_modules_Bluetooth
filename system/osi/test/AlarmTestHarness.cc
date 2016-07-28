@@ -43,7 +43,7 @@ void AlarmTestHarness::SetUp() {
   AllocationTestHarness::SetUp();
 
   current_harness = this;
-  TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 100;
+  TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 500;
 
   struct sigevent sigevent;
   memset(&sigevent, 0, sizeof(sigevent));
