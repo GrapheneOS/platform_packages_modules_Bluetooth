@@ -32,7 +32,7 @@ static semaphore_t *semaphore;
 static int cb_counter;
 static int cb_misordered_counter;
 
-static const uint64_t EPSILON_MS = 5;
+static const uint64_t EPSILON_MS = 50;
 
 static void msleep(uint64_t ms) {
   usleep(ms * 1000);
