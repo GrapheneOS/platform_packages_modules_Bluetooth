@@ -1440,11 +1440,11 @@ BOOLEAN smp_check_commitment(tSMP_CB *p_cb)
 
     if (memcmp(p_cb->remote_commitment, expected, BT_OCTET16_LEN))
     {
-        SMP_TRACE_WARNING("Commitment check fails");
+        SMP_TRACE_WARNING("%s: Commitment check fails", __func__);
         return FALSE;
     }
 
-    SMP_TRACE_DEBUG("Commitment check succeeds");
+    SMP_TRACE_DEBUG("%s: Commitment check succeeds", __func__);
     return TRUE;
 }
 
