@@ -120,6 +120,14 @@ public class GattService extends ProfileService {
 
     private int mMaxScanFilters;
 
+    /**
+     * Pending service declaration queue
+     */
+    private List<ServiceDeclaration> mServiceDeclarations = new ArrayList<ServiceDeclaration>();
+
+    private Map<Integer, List<BluetoothGattService>> gattClientDatabases =
+            new HashMap<Integer, List<BluetoothGattService>>();
+
     static final int NUM_SCAN_EVENTS_KEPT = 20;
     /**
      * Internal list of scan events to use with the proto
@@ -127,8 +135,35 @@ public class GattService extends ProfileService {
     ArrayList<BluetoothProto.ScanEvent> mScanEvents =
         new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
 
-    private Map<Integer, List<BluetoothGattService>> gattClientDatabases =
-            new HashMap<Integer, List<BluetoothGattService>>();
+    private ServiceDeclaration addDeclaration() {
+        synchronized (mServiceDeclarations) {
+            mServiceDeclarations.add(new ServiceDeclaration());
+        }
+        return getActiveDeclaration();
+    }
+
+    private ServiceDeclaration getActiveDeclaration() {
+        synchronized (mServiceDeclarations) {
+            if (mServiceDeclarations.size() > 0)
+                return mServiceDeclarations.get(mServiceDeclarations.size() - 1);
+        }
+        return null;
+    }
+
+    private ServiceDeclaration getPendingDeclaration() {
+        synchronized (mServiceDeclarations) {
+            if (mServiceDeclarations.size() > 0)
+                return mServiceDeclarations.get(0);
+        }
+        return null;
+    }
+
+    private void removePendingDeclaration() {
+        synchronized (mServiceDeclarations) {
+            if (mServiceDeclarations.size() > 0)
+                mServiceDeclarations.remove(0);
+        }
+    }
 
     private AdvertiseManager mAdvertiseManager;
     private ScanManager mScanManager;
