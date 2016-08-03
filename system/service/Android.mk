@@ -42,10 +42,12 @@ btserviceCommonSrc := \
 	common/bluetooth/adapter_state.cc \
 	common/bluetooth/advertise_data.cc \
 	common/bluetooth/advertise_settings.cc \
-	common/bluetooth/gatt_identifier.cc \
+	common/bluetooth/descriptor.cc \
+	common/bluetooth/characteristic.cc \
 	common/bluetooth/scan_filter.cc \
 	common/bluetooth/scan_result.cc \
 	common/bluetooth/scan_settings.cc \
+	common/bluetooth/service.cc \
 	common/bluetooth/util/address_helper.cc \
 	common/bluetooth/util/atomic_string.cc \
 	common/bluetooth/uuid.cc
@@ -61,7 +63,10 @@ btserviceCommonBinderSrc := \
 	common/android/bluetooth/IBluetoothLowEnergyCallback.aidl \
 	common/android/bluetooth/advertise_data.cc \
 	common/android/bluetooth/advertise_settings.cc \
-	common/android/bluetooth/gatt_identifier.cc \
+	common/android/bluetooth/bluetooth_gatt_characteristic.cc \
+	common/android/bluetooth/bluetooth_gatt_descriptor.cc \
+	common/android/bluetooth/bluetooth_gatt_included_service.cc \
+	common/android/bluetooth/bluetooth_gatt_service.cc \
 	common/android/bluetooth/scan_filter.cc \
 	common/android/bluetooth/scan_result.cc \
 	common/android/bluetooth/scan_settings.cc \
@@ -77,7 +82,6 @@ btserviceDaemonSrc := \
 	gatt_client.cc \
 	gatt_server.cc \
 	gatt_server_old.cc \
-	hal/gatt_helpers.cc \
 	hal/bluetooth_gatt_interface.cc \
 	hal/bluetooth_interface.cc \
 	ipc/ipc_handler.cc \
@@ -115,7 +119,6 @@ btserviceBaseTestSrc := \
 	test/advertise_data_unittest.cc \
 	test/fake_hal_util.cc \
 	test/gatt_client_unittest.cc \
-	test/gatt_identifier_unittest.cc \
 	test/gatt_server_unittest.cc \
 	test/low_energy_client_unittest.cc \
 	test/settings_unittest.cc \

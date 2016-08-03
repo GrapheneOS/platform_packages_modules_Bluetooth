@@ -25,6 +25,7 @@
 #include "osi/include/log.h"
 #include "srvc_dis_int.h"
 #include "srvc_eng_int.h"
+#include "btcore/include/uuid.h"
 
 #if BLE_INCLUDED == TRUE
 
@@ -342,46 +343,54 @@ void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
 *******************************************************************************/
 tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask)
 {
-    tBT_UUID          uuid = {LEN_UUID_16, {UUID_SERVCLASS_DEVICE_INFO}};
-    UINT16            i = 0;
     tGATT_STATUS      status;
-    tDIS_DB_ENTRY        *p_db_attr = &dis_cb.dis_attr[0];
 
-    if (dis_cb.enabled)
-    {
+    if (dis_cb.enabled) {
         GATT_TRACE_ERROR("DIS already initalized");
         return DIS_SUCCESS;
     }
 
     memset(&dis_cb, 0, sizeof(tDIS_CB));
 
-    dis_cb.service_handle = GATTS_CreateService (srvc_eng_cb.gatt_if , &uuid, 0, DIS_MAX_ATTR_NUM, TRUE);
+    btgatt_db_element_t service[DIS_MAX_ATTR_NUM] = { };
 
-    if (dis_cb.service_handle == 0)
-    {
-        GATT_TRACE_ERROR("Can not create service, DIS_Init failed!");
-        return GATT_ERROR;
-    }
-    dis_cb.max_handle = dis_cb.service_handle + DIS_MAX_ATTR_NUM;
+    bt_uuid_t svc_uuid;
+    uuid_128_from_16(&svc_uuid, UUID_SERVCLASS_DEVICE_INFO);
+    service[0].type = BTGATT_DB_PRIMARY_SERVICE;
+    service[0].uuid = svc_uuid;
 
-    while (dis_attr_mask != 0 && i < DIS_MAX_CHAR_NUM)
-    {
-        /* add Manufacturer name
-        */
-        uuid.uu.uuid16 = p_db_attr->uuid = dis_attr_uuid[i];
-        p_db_attr->handle  = GATTS_AddCharacteristic(dis_cb.service_handle, &uuid, GATT_PERM_READ, GATT_CHAR_PROP_BIT_READ);
-        GATT_TRACE_DEBUG ("DIS_SrInit:  handle of new attribute 0x%04 = x%d", uuid.uu.uuid16, p_db_attr->handle  );
-        p_db_attr ++;
-        i ++;
+    for(int i=0; dis_attr_mask != 0 && i < DIS_MAX_CHAR_NUM; i++) {
+        dis_cb.dis_attr[i].uuid = dis_attr_uuid[i];
+
+        bt_uuid_t char_uuid;
+        uuid_128_from_16(&char_uuid, dis_cb.dis_attr[i].uuid);
+        /* index 0 is service, so characteristics start from 1 */
+        service[i+1].type = BTGATT_DB_CHARACTERISTIC;
+        service[i+1].uuid = char_uuid;
+        service[i+1].properties = GATT_CHAR_PROP_BIT_READ;
+        service[i+1].permissions = GATT_PERM_READ;
+
         dis_attr_mask >>= 1;
     }
 
-    /* start service
-    */
-    status = GATTS_StartService (srvc_eng_cb.gatt_if, dis_cb.service_handle, GATT_TRANSPORT_LE_BR_EDR);
+    /* Add a GAP service */
+    status = GATTS_AddService(srvc_eng_cb.gatt_if, service, sizeof(service)/sizeof(btgatt_db_element_t));
+    if (status != GATT_SERVICE_STARTED) {
+        GATT_TRACE_ERROR("Can not create service, DIS_Init failed!");
+        return GATT_ERROR;
+    }
+
+    dis_cb.service_handle = service[0].attribute_handle;
+    dis_cb.max_handle = dis_cb.service_handle + DIS_MAX_ATTR_NUM;
+
+    for (int i = 0; i < DIS_MAX_CHAR_NUM; i++) {
+        dis_cb.dis_attr[i].handle = service[i+1].attribute_handle;
+
+        GATT_TRACE_DEBUG ("%s:  handle of new attribute 0x%04 = x%d", __func__,
+            dis_cb.dis_attr[i].uuid, dis_cb.dis_attr[i].handle);
+    }
 
     dis_cb.enabled = TRUE;
-
     return (tDIS_STATUS) status;
 }
 /*******************************************************************************

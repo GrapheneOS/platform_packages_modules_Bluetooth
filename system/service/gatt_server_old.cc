@@ -31,6 +31,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <hardware/bluetooth.h>
@@ -47,8 +48,8 @@ extern "C" {
 namespace {
 
 const size_t kMaxGattAttributeSize = 512;
-// TODO(icoolidge): Difficult to generalize without knowing how many attributes.
-const int kNumBlueDroidHandles = 60;
+std::vector<btgatt_db_element_t> pending_svc_decl;
+std::unordered_set<int> blob_index;
 
 // TODO(icoolidge): Support multiple instances
 // TODO(armansito): Remove this variable. No point of having this if
@@ -97,8 +98,8 @@ struct ServerInternals {
   int Initialize();
   bt_status_t AddCharacteristic(
       const UUID& uuid,
-      int properties,
-      int permissions);
+      uint8_t properties,
+      uint16_t permissions);
 
   // This maps API attribute UUIDs to BlueDroid handles.
   std::map<UUID, int> uuid_to_attribute;
@@ -116,7 +117,6 @@ struct ServerInternals {
   int server_if;
   int client_if;
   int service_handle;
-  btgatt_srvc_id_t service_id;
   std::set<int> connections;
 
   std::mutex lock;
@@ -135,27 +135,70 @@ void RegisterServerCallback(int status, int server_if, bt_uuid_t *app_uuid) {
            server_if, app_uuid);
 
   g_internal->server_if = server_if;
-
-  btgatt_srvc_id_t service_id;
-  service_id.id.uuid = *app_uuid;
-  service_id.id.inst_id = 0;
-  service_id.is_primary = true;
-
-  g_internal->gatt->server->add_service(
-      server_if, &service_id, kNumBlueDroidHandles);
+  pending_svc_decl.push_back({.type = BTGATT_DB_PRIMARY_SERVICE, .uuid = *app_uuid});
 }
 
-void ServiceAddedCallback(int status, int server_if, btgatt_srvc_id_t *srvc_id,
-                          int srvc_handle) {
-  LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d gatt_srvc_id:%u srvc_handle:%d",
-           __func__, status, server_if, srvc_id->id.inst_id, srvc_handle);
+void ServiceAddedCallback(int status, int server_if, vector<btgatt_db_element_t> service) {
+  LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d count:%zu svc_handle:%d",
+           __func__, status, server_if, service.size(), service[0].attribute_handle);
 
   std::lock_guard<std::mutex> lock(g_internal->lock);
   g_internal->server_if = server_if;
-  g_internal->service_handle = srvc_handle;
-  g_internal->service_id = *srvc_id;
-  // This finishes the Initialize call.
-  g_internal->api_synchronize.notify_one();
+
+  g_internal->service_handle = service[0].attribute_handle;
+
+  uint16_t prev_char_handle = 0;
+  uint16_t prev_char_properties = 0;
+  for (size_t i = 1; i<service.size(); i++) {
+    const btgatt_db_element_t &el = service[i];
+    if (el.type == BTGATT_DB_CHARACTERISTIC) {
+      LOG_INFO(LOG_TAG, "%s: descr_handle:%d", __func__, el.attribute_handle);
+    } else if (el.type == BTGATT_DB_CHARACTERISTIC) {
+      bluetooth::UUID id(el.uuid);
+      uint16_t char_handle = el.attribute_handle;
+
+      LOG_INFO(LOG_TAG, "%s: char_handle:%d", __func__, char_handle);
+
+      g_internal->uuid_to_attribute[id] = char_handle;
+      g_internal->characteristics[char_handle].uuid = id;
+      g_internal->characteristics[char_handle].blob_section = 0;
+
+      // If the added characteristic is blob
+      if (blob_index.find(i) != blob_index.end()) {
+        // Finally, associate the control attribute with the value attribute.
+        // Also, initialize the control attribute to a readable zero.
+        const uint16_t control_attribute = char_handle;
+        const uint16_t blob_attribute = prev_char_handle;
+        g_internal->controlled_blobs[control_attribute] = blob_attribute;
+        g_internal->characteristics[blob_attribute].notify =
+            prev_char_properties & bluetooth::gatt::kPropertyNotify;
+
+        bluetooth::gatt::Characteristic &ctrl =
+            g_internal->characteristics[control_attribute];
+        ctrl.next_blob.clear();
+        ctrl.next_blob.push_back(0);
+        ctrl.next_blob_pending = true;
+        ctrl.blob_section = 0;
+        ctrl.notify = false;
+      }
+      prev_char_handle = char_handle;
+      prev_char_properties = el.properties;
+    }
+  }
+
+  pending_svc_decl.clear();
+  blob_index.clear();
+
+  // The UUID provided here is unimportant, and is only used to satisfy
+  // BlueDroid.
+  // It must be different than any other registered UUID.
+  bt_uuid_t client_id = service[0].uuid;
+  ++client_id.uu[15];
+
+  bt_status_t btstat = g_internal->gatt->client->register_client(&client_id);
+  if (btstat != BT_STATUS_SUCCESS) {
+    LOG_ERROR(LOG_TAG, "%s: Failed to register client", __func__);
+  }
 }
 
 void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
@@ -294,48 +337,6 @@ void ConnectionCallback(int conn_id, int server_if, int connected,
   }
 }
 
-void CharacteristicAddedCallback(int status, int server_if, bt_uuid_t *uuid,
-                                 int srvc_handle, int char_handle) {
-  LOG_INFO(LOG_TAG,
-      "%s: status:%d server_if:%d service_handle:%d char_handle:%d", __func__,
-      status, server_if, srvc_handle, char_handle);
-
-  bluetooth::UUID id(*uuid);
-
-  std::lock_guard<std::mutex> lock(g_internal->lock);
-
-  g_internal->uuid_to_attribute[id] = char_handle;
-  g_internal->characteristics[char_handle].uuid = id;
-  g_internal->characteristics[char_handle].blob_section = 0;
-
-  // This terminates an AddCharacteristic.
-  g_internal->api_synchronize.notify_one();
-}
-
-void DescriptorAddedCallback(int status, int server_if, bt_uuid_t *uuid,
-                             int srvc_handle, int descr_handle) {
-  LOG_INFO(LOG_TAG,
-      "%s: status:%d server_if:%d service_handle:%d uuid[0]:%u "
-      "descr_handle:%d",
-      __func__, status, server_if, srvc_handle, uuid->uu[0], descr_handle);
-}
-
-void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
-  LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d srvc_handle:%d", __func__,
-      status, server_if, srvc_handle);
-
-  // The UUID provided here is unimportant, and is only used to satisfy
-  // BlueDroid.
-  // It must be different than any other registered UUID.
-  bt_uuid_t client_id = g_internal->service_id.id.uuid;
-  ++client_id.uu[15];
-
-  bt_status_t btstat = g_internal->gatt->client->register_client(&client_id);
-  if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR(LOG_TAG, "%s: Failed to register client", __func__);
-  }
-}
-
 void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   LOG_INFO(LOG_TAG, "%s: status:%d client_if:%d uuid[0]:%u", __func__, status,
       client_if, app_uuid->uu[0]);
@@ -415,13 +416,11 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     RegisterServerCallback,
     ConnectionCallback,
     ServiceAddedCallback,
-    nullptr, /* included_service_added_cb */
-    CharacteristicAddedCallback,
-    DescriptorAddedCallback,
-    ServiceStartedCallback,
     ServiceStoppedCallback,
     nullptr, /* service_deleted_cb */
     RequestReadCallback,
+    RequestReadCallback,
+    RequestWriteCallback,
     RequestWriteCallback,
     RequestExecWriteCallback,
     ResponseConfirmationCallback,
@@ -510,11 +509,13 @@ int ServerInternals::Initialize() {
 
 bt_status_t ServerInternals::AddCharacteristic(
     const UUID& uuid,
-    int properties,
-    int permissions) {
+    uint8_t properties,
+    uint16_t permissions) {
   bt_uuid_t c_uuid = uuid.GetBlueDroid();
-  return gatt->server->add_characteristic(
-      server_if, service_handle, &c_uuid, properties, permissions);
+
+  pending_svc_decl.push_back({.type = BTGATT_DB_CHARACTERISTIC, .uuid = c_uuid,
+                        .properties = properties, .permissions = permissions});
+  return BT_STATUS_SUCCESS;
 }
 
 ServerInternals::ServerInternals()
@@ -666,37 +667,22 @@ bool Server::AddBlob(const UUID &id, const UUID &control_id, int properties,
     return false;
   }
 
-  internal_->api_synchronize.wait(lock);
-
   // Next, add the secondary attribute (blob control).
   // Control attributes have fixed permissions/properties.
+  // Remember position at which blob was added.
+  blob_index.insert(pending_svc_decl.size());
   btstat = internal_->AddCharacteristic(
       control_id,
       kPropertyRead | kPropertyWrite,
       kPermissionRead | kPermissionWrite);
-  internal_->api_synchronize.wait(lock);
 
-  // Finally, associate the control attribute with the value attribute.
-  // Also, initialize the control attribute to a readable zero.
-  const int control_attribute = internal_->uuid_to_attribute[control_id];
-  const int blob_attribute = internal_->uuid_to_attribute[id];
-  internal_->controlled_blobs[control_attribute] = blob_attribute;
-  internal_->characteristics[blob_attribute].notify =
-      properties & kPropertyNotify;
-
-  Characteristic &ctrl = internal_->characteristics[control_attribute];
-  ctrl.next_blob.clear();
-  ctrl.next_blob.push_back(0);
-  ctrl.next_blob_pending = true;
-  ctrl.blob_section = 0;
-  ctrl.notify = false;
   return true;
 }
 
 bool Server::Start() {
   std::unique_lock<std::mutex> lock(internal_->lock);
-  bt_status_t btstat = internal_->gatt->server->start_service(
-      internal_->server_if, internal_->service_handle, GATT_TRANSPORT_LE);
+  bt_status_t btstat = internal_->gatt->server->add_service(
+      internal_->server_if, pending_svc_decl);
   if (btstat != BT_STATUS_SUCCESS) {
     LOG_ERROR(LOG_TAG, "Failed to start service with handle: 0x%04x",
               internal_->service_handle);

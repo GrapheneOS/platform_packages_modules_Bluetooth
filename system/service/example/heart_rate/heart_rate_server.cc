@@ -32,6 +32,7 @@ using android::String8;
 using android::String16;
 
 using android::bluetooth::IBluetoothLowEnergy;
+using android::bluetooth::BluetoothGattService;
 
 namespace heart_rate {
 
@@ -181,7 +182,7 @@ void HeartRateServer::SendHeartRateMeasurement() {
 
     bool status;
     gatt_->SendNotification(server_if_, String16(String8(iter.first.c_str())),
-                            hr_measurement_id_, false, value, &status);
+                            hr_measurement_handle_, false, value, &status);
     if (status) pending_notification_map_[iter.first] = true;
   }
 
@@ -243,87 +244,35 @@ Status HeartRateServer::OnServerRegistered(int status, int server_if) {
   server_if_ = server_if;
 
   LOG(INFO) << "Heart Rate server registered - server_if: " << server_if_;
-  LOG(INFO) << "Populating attributes";
 
-  bool op_status;
-  // Start service declaration.
-  android::bluetooth::GattIdentifier gatt_id;
-  gatt_->BeginServiceDeclaration(server_if_, true, kHRServiceUUID, &gatt_id,
-                                 &op_status);
-  if (!op_status) {
-    LOG(ERROR) << "Failed to begin service declaration";
+  bluetooth::Service hrService(0, true, kHRServiceUUID, {
+    {0, kHRMeasurementUUID, bluetooth::kCharacteristicPropertyNotify, 0,
+      { {0, kCCCDescriptorUUID, (bluetooth::kAttributePermissionRead | bluetooth::kAttributePermissionWrite)}} },
+    {0, kBodySensorLocationUUID, bluetooth::kCharacteristicPropertyRead, bluetooth::kAttributePermissionRead, {}},
+    {0, kHRControlPointUUID, bluetooth::kCharacteristicPropertyWrite, bluetooth::kAttributePermissionWrite, {}}
+    }, {});
+
+  bool op_status = true;
+
+  Status stat = gatt_->AddService(server_if_, (BluetoothGattService)hrService, &op_status);
+  if (!stat.isOk()) {
+    LOG(ERROR) << "Failed to add service, status is: " /*<< stat*/;
     pending_run_cb_(false);
     return Status::ok();
   }
 
-  hr_service_id_ = gatt_id;
-
-  // Add Heart Rate Measurement characteristic.
-  gatt_->AddCharacteristic(server_if_, kHRMeasurementUUID,
-                           bluetooth::kCharacteristicPropertyNotify, 0,
-                           &gatt_id, &op_status);
   if (!op_status) {
-    LOG(ERROR) << "Failed to add heart rate measurement characteristic";
+    LOG(ERROR) << "Failed to add service";
     pending_run_cb_(false);
     return Status::ok();
   }
 
-  hr_measurement_id_ = gatt_id;
-
-  // Add Client Characteristic Configuration descriptor for the Heart Rate
-  // Measurement characteristic.
-  gatt_->AddDescriptor(server_if_, kCCCDescriptorUUID,
-                       bluetooth::kAttributePermissionRead |
-                           bluetooth::kAttributePermissionWrite,
-                       &gatt_id, &op_status);
-  if (!op_status) {
-    LOG(ERROR) << "Failed to add CCC descriptor";
-    pending_run_cb_(false);
-    return Status::ok();
-  }
-
-  hr_measurement_cccd_id_ = gatt_id;
-
-  // Add Body Sensor Location characteristic.
-  gatt_->AddCharacteristic(server_if_, kBodySensorLocationUUID,
-                           bluetooth::kCharacteristicPropertyRead,
-                           bluetooth::kAttributePermissionRead, &gatt_id,
-                           &op_status);
-  if (!op_status) {
-    LOG(ERROR) << "Failed to add body sensor location characteristic";
-    pending_run_cb_(false);
-    return Status::ok();
-  }
-
-  body_sensor_loc_id_ = gatt_id;
-
-  // Add Heart Rate Control Point characteristic.
-  gatt_->AddCharacteristic(
-      server_if_, kHRControlPointUUID, bluetooth::kCharacteristicPropertyWrite,
-      bluetooth::kAttributePermissionWrite, &gatt_id, &op_status);
-  if (!op_status) {
-    LOG(ERROR) << "Failed to add heart rate control point characteristic";
-    pending_run_cb_(false);
-    return Status::ok();
-  }
-
-  hr_control_point_id_ = gatt_id;
-
-  // End service declaration. We will be notified whether or not this succeeded
-  // via the OnServiceAdded callback.
-  gatt_->EndServiceDeclaration(server_if_, &op_status);
-  if (!op_status) {
-    LOG(ERROR) << "Failed to end service declaration";
-    pending_run_cb_(false);
-    return Status::ok();
-  }
-
-  LOG(INFO) << "Initiated EndServiceDeclaration request";
+  LOG(INFO) << "Initiated AddService request";
   return Status::ok();
 }
 
 Status HeartRateServer::OnServiceAdded(
-    int status, const android::bluetooth::GattIdentifier& service_id) {
+    int status, const android::bluetooth::BluetoothGattService& service) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (status != bluetooth::BLE_STATUS_SUCCESS) {
@@ -332,14 +281,12 @@ Status HeartRateServer::OnServiceAdded(
     return Status::ok();
   }
 
-  if (service_id != hr_service_id_) {
-    LOG(ERROR) << "Received callback for the wrong service ID";
-    pending_run_cb_(false);
-    return Status::ok();
-  }
-
-  // EndServiceDeclaration succeeded! Our Heart Rate service is now discoverable
-  // over GATT connections.
+  hr_service_handle_ = service.handle();
+  hr_measurement_handle_ = service.characteristics()[0].handle();
+  hr_measurement_cccd_handle_ =
+      service.characteristics()[0].descriptors()[0].handle();
+  body_sensor_loc_handle_ = service.characteristics()[1].handle();
+  hr_control_point_handle_ = service.characteristics()[2].handle();
 
   LOG(INFO) << "Heart Rate service added";
   pending_run_cb_(true);
@@ -356,13 +303,13 @@ Status HeartRateServer::OnServiceAdded(
 
 Status HeartRateServer::OnCharacteristicReadRequest(
     const String16& device_address, int request_id, int offset,
-    bool /* is_long */,
-    const android::bluetooth::GattIdentifier& characteristic_id) {
+    bool /* is_long */, int handle) {
+
   std::lock_guard<std::mutex> lock(mutex_);
 
   // This is where we handle an incoming characteristic read. Only the body
   // sensor location characteristic is readable.
-  CHECK(characteristic_id == body_sensor_loc_id_);
+  CHECK(handle == body_sensor_loc_handle_);
 
   std::vector<uint8_t> value;
   bluetooth::GATTError error = bluetooth::GATT_ERROR_NONE;
@@ -379,13 +326,12 @@ Status HeartRateServer::OnCharacteristicReadRequest(
 
 Status HeartRateServer::OnDescriptorReadRequest(
     const String16& device_address, int request_id, int offset,
-    bool /* is_long */,
-    const android::bluetooth::GattIdentifier& descriptor_id) {
+    bool /* is_long */, int handle) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // This is where we handle an incoming characteristic descriptor read. There
   // is only one descriptor.
-  if (descriptor_id != hr_measurement_cccd_id_) {
+  if (handle != hr_measurement_cccd_handle_) {
     std::vector<uint8_t> value;
     bool status;
     gatt_->SendResponse(server_if_, device_address, request_id,
@@ -414,8 +360,7 @@ Status HeartRateServer::OnDescriptorReadRequest(
 Status HeartRateServer::OnCharacteristicWriteRequest(
     const String16& device_address, int request_id, int offset,
     bool is_prepare_write, bool need_response,
-    const std::vector<uint8_t>& value,
-    const android::bluetooth::GattIdentifier& characteristic_id) {
+    const std::vector<uint8_t>& value, int handle) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   std::vector<uint8_t> dummy;
@@ -432,7 +377,7 @@ Status HeartRateServer::OnCharacteristicWriteRequest(
   }
 
   // Heart Rate Control point is the only writable characteristic.
-  CHECK(characteristic_id == hr_control_point_id_);
+  CHECK(handle == hr_control_point_handle_);
 
   // Writes to the Heart Rate Control Point characteristic must contain a single
   // byte with the value 0x01.
@@ -458,8 +403,7 @@ Status HeartRateServer::OnCharacteristicWriteRequest(
 Status HeartRateServer::OnDescriptorWriteRequest(
     const String16& device_address, int request_id, int offset,
     bool is_prepare_write, bool need_response,
-    const std::vector<uint8_t>& value,
-    const android::bluetooth::GattIdentifier& descriptor_id) {
+    const std::vector<uint8_t>& value, int handle) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   std::vector<uint8_t> dummy;
@@ -476,7 +420,7 @@ Status HeartRateServer::OnDescriptorWriteRequest(
   }
 
   // CCC is the only descriptor we have.
-  CHECK(descriptor_id == hr_measurement_cccd_id_);
+  CHECK(handle == hr_measurement_cccd_handle_);
 
   // CCC must contain 2 bytes for a 16-bit value in little-endian. The only
   // allowed values here are 0x0000 and 0x0001.

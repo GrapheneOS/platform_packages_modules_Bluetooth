@@ -16,28 +16,26 @@
 
 package android.bluetooth;
 
-import android.bluetooth.GattIdentifier;
+import android.bluetooth.BluetoothGattService;
 
 oneway interface IBluetoothGattServerCallback {
   void OnServerRegistered(int status, int server_id);
 
-  void OnServiceAdded(int status, in GattIdentifier service_id);
+  void OnServiceAdded(int status, in BluetoothGattService service);
 
   void OnCharacteristicReadRequest(String device_address,
-    int request_id, int offset, boolean is_long,
-    in GattIdentifier characteristic_id);
+    int request_id, int offset, boolean is_long, int handle);
 
   void OnDescriptorReadRequest(String device_address,
-    int request_id, int offset, boolean is_long,
-    in GattIdentifier descriptor_id);
+    int request_id, int offset, boolean is_long, int handle);
 
   void OnCharacteristicWriteRequest(String device_address,
     int request_id, int offset, boolean is_prepare_write, boolean need_response,
-    in byte[] value, in GattIdentifier characteristic_id);
+    in byte[] value, int handle);
 
   void OnDescriptorWriteRequest(String device_address,
     int request_id, int offset, boolean is_prepare_write, boolean need_response,
-    in byte[] value, in GattIdentifier descriptor_id);
+    in byte[] value, int handle);
 
   void OnExecuteWriteRequest(String device_address,
     int request_id, boolean is_execute);

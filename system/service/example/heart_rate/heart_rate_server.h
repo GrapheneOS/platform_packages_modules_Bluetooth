@@ -25,7 +25,6 @@
 
 #include <android/bluetooth/BnBluetoothGattServerCallback.h>
 #include <android/bluetooth/IBluetooth.h>
-#include <bluetooth/gatt_identifier.h>
 
 using android::binder::Status;
 using android::String16;
@@ -57,23 +56,21 @@ class HeartRateServer
   // ipc::binder::IBluetoothGattServerCallback override:
   Status OnServerRegistered(int status, int server_id) override;
   Status OnServiceAdded(
-      int status, const android::bluetooth::GattIdentifier& service_id) override;
+      int status, const android::bluetooth::BluetoothGattService& service) override;
   Status OnCharacteristicReadRequest(
       const String16& device_address, int request_id, int offset, bool is_long,
-      const android::bluetooth::GattIdentifier& characteristic_id) override;
+      int handle) override;
   Status OnDescriptorReadRequest(
       const String16& device_address, int request_id, int offset, bool is_long,
-      const android::bluetooth::GattIdentifier& descriptor_id) override;
+      int handle) override;
   Status OnCharacteristicWriteRequest(
       const String16& device_address, int request_id, int offset,
       bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value,
-      const android::bluetooth::GattIdentifier& characteristic_id) override;
+      const std::vector<uint8_t>& value, int handle) override;
   Status OnDescriptorWriteRequest(
       const String16& device_address, int request_id, int offset,
       bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value,
-      const android::bluetooth::GattIdentifier& descriptor_id) override;
+      const std::vector<uint8_t>& value, int handle) override;
   Status OnExecuteWriteRequest(const String16& device_address, int request_id,
                                bool is_execute) override;
   Status OnNotificationSent(const String16& device_address,
@@ -112,13 +109,13 @@ class HeartRateServer
   // The Energy Expended value we use in our notifications.
   uint16_t energy_expended_;
 
-  // The unique IDs that refer to each of the Heart Rate Service GATT objects.
+  // Handles that refer to Heart Rate Service GATT objects.
   // These returned to us from the Bluetooth daemon as we populate the database.
-  bluetooth::GattIdentifier hr_service_id_;
-  bluetooth::GattIdentifier hr_measurement_id_;
-  bluetooth::GattIdentifier hr_measurement_cccd_id_;
-  bluetooth::GattIdentifier body_sensor_loc_id_;
-  bluetooth::GattIdentifier hr_control_point_id_;
+  uint16_t hr_service_handle_;
+  uint16_t hr_measurement_handle_;
+  uint16_t hr_measurement_cccd_handle_;
+  uint16_t body_sensor_loc_handle_;
+  uint16_t hr_control_point_handle_;
 
   // The daemon itself doesn't maintain a Client Characteristic Configuration
   // mapping, so we do it ourselves here.

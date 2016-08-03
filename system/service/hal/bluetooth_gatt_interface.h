@@ -158,27 +158,7 @@ class BluetoothGattInterface {
     virtual void ServiceAddedCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,
-        const btgatt_srvc_id_t& srvc_id,
-        int srvc_handle);
-
-    virtual void CharacteristicAddedCallback(
-        BluetoothGattInterface* gatt_iface,
-        int status, int server_if,
-        const bt_uuid_t& uuid,
-        int srvc_handle,
-        int char_handle);
-
-    virtual void DescriptorAddedCallback(
-        BluetoothGattInterface* gatt_iface,
-        int status, int server_if,
-        const bt_uuid_t& uuid,
-        int srvc_handle,
-        int desc_handle);
-
-    virtual void ServiceStartedCallback(
-        BluetoothGattInterface* gatt_iface,
-        int status, int server_if,
-        int srvc_handle);
+        vector<btgatt_db_element_t> service);
 
     virtual void ServiceStoppedCallback(
         BluetoothGattInterface* gatt_iface,
@@ -190,14 +170,29 @@ class BluetoothGattInterface {
         int status, int server_if,
         int srvc_handle);
 
-    virtual void RequestReadCallback(
+    virtual void RequestReadCharacteristicCallback(
         BluetoothGattInterface* gatt_iface,
         int conn_id, int trans_id,
         const bt_bdaddr_t& bda,
         int attr_handle, int offset,
         bool is_long);
 
-    virtual void RequestWriteCallback(
+    virtual void RequestReadDescriptorCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int trans_id,
+        const bt_bdaddr_t& bda,
+        int attr_handle, int offset,
+        bool is_long);
+
+    virtual void RequestWriteCharacteristicCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int trans_id,
+        const bt_bdaddr_t& bda,
+        int attr_handle, int offset,
+        bool need_rsp, bool is_prep,
+        vector<uint8_t> value);
+
+    virtual void RequestWriteDescriptorCallback(
         BluetoothGattInterface* gatt_iface,
         int conn_id, int trans_id,
         const bt_bdaddr_t& bda,
