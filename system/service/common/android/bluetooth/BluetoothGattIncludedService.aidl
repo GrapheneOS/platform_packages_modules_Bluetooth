@@ -16,4 +16,4 @@
 
 package android.bluetooth;
 
-parcelable GattIdentifier cpp_header "android/bluetooth/gatt_identifier.h";
+parcelable BluetoothGattIncludedService cpp_header "android/bluetooth/bluetooth_gatt_included_service.h";

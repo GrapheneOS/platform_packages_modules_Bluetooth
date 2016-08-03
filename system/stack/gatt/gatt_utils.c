@@ -191,39 +191,6 @@ void gatt_set_srv_chg(void)
 
 /*******************************************************************************
 **
-** Function         gatt_sr_is_new_srv_chg
-**
-** Description     Find the app id in on the new service changed list
-**
-** Returns     Pointer to the found new service changed item othwerwise NULL
-**
-*******************************************************************************/
-tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst)
-{
-    tGATTS_PENDING_NEW_SRV_START *p_buf = NULL;
-
-    if (fixed_queue_is_empty(gatt_cb.pending_new_srv_start_q))
-        return NULL;
-
-    list_t *list = fixed_queue_get_list(gatt_cb.pending_new_srv_start_q);
-    for (const list_node_t *node = list_begin(list); node != list_end(list);
-         node = list_next(node)) {
-        p_buf = (tGATTS_PENDING_NEW_SRV_START *)list_node(node);
-        tGATTS_HNDL_RANGE *p = p_buf->p_new_srv_start;
-        if (gatt_uuid_compare(*p_app_uuid128, p->app_uuid128)
-            && gatt_uuid_compare (*p_svc_uuid, p->svc_uuid)
-            && (svc_inst == p->svc_inst)) {
-            GATT_TRACE_DEBUG("gatt_sr_is_new_srv_chg: Yes");
-            break;
-        }
-    }
-
-    return p_buf;
-}
-
-
-/*******************************************************************************
-**
 ** Function     gatt_add_pending_ind
 **
 ** Description  Add a pending indication
@@ -243,30 +210,6 @@ tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 
     return p_buf;
 }
-
-/*******************************************************************************
-**
-** Function     gatt_add_pending_new_srv_start
-**
-** Description  Add a pending new srv start to the new service start queue
-**
-** Returns    Pointer to the new service start buffer, NULL no buffer available
-**
-*******************************************************************************/
-tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *p_new_srv_start)
-{
-    tGATTS_PENDING_NEW_SRV_START *p_buf =
-        (tGATTS_PENDING_NEW_SRV_START *)osi_malloc(sizeof(tGATTS_PENDING_NEW_SRV_START));
-
-    GATT_TRACE_DEBUG("%s", __func__);
-    GATT_TRACE_DEBUG("enqueue a new pending new srv start");
-
-    p_buf->p_new_srv_start = p_new_srv_start;
-    fixed_queue_enqueue(gatt_cb.pending_new_srv_start_q, p_buf);
-
-    return p_buf;
-}
-
 
 /*******************************************************************************
 **
@@ -356,7 +299,7 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(UINT16 handle)
 *******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
                                                      tBT_UUID *p_svc_uuid,
-                                                     UINT16 svc_inst)
+                                                     UINT16 start_handle)
 {
     tGATT_HDL_LIST_INFO *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM      *p_list = NULL;
@@ -367,7 +310,7 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
     {
         if ( gatt_uuid_compare (*p_app_uuid128, p_list->asgn_range.app_uuid128)
              &&  gatt_uuid_compare (*p_svc_uuid,    p_list->asgn_range.svc_uuid)
-             &&  (svc_inst == p_list->asgn_range.svc_inst) )
+             &&  (start_handle == p_list->asgn_range.s_handle) )
         {
             GATT_TRACE_DEBUG ("Already allocated handles for this service before!!");
             return(p_list);
@@ -1360,7 +1303,7 @@ UINT8 gatt_sr_find_i_rcb_by_handle(UINT16 handle)
 ** Returns          0 if not found. Otherwise index of th eservice.
 **
 *******************************************************************************/
-UINT8 gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst)
+UINT8 gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 start_handle)
 {
     UINT8           i_rcb = 0;
     tGATT_SR_REG    *p_sreg;
@@ -1375,7 +1318,7 @@ UINT8 gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid
             if (p_this_uuid &&
                 gatt_uuid_compare (*p_app_uuid128, p_sreg->app_uuid ) &&
                 gatt_uuid_compare (*p_svc_uuid, *p_this_uuid) &&
-                (svc_inst == p_sreg->service_instance))
+                (start_handle == p_sreg->s_hdl))
             {
                 GATT_TRACE_ERROR ("Active Service Found ");
                 gatt_dbg_display_uuid(*p_svc_uuid);
@@ -1410,7 +1353,6 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
             p_sreg->in_use = TRUE;
             memcpy (&p_sreg->app_uuid, &p_list->asgn_range.app_uuid128, sizeof(tBT_UUID));
 
-            p_sreg->service_instance    = p_list->asgn_range.svc_inst;
             p_sreg->type                = p_list->asgn_range.is_primary ? GATT_UUID_PRI_SERVICE: GATT_UUID_SEC_SERVICE;
             p_sreg->s_hdl               = p_list->asgn_range.s_handle;
             p_sreg->e_hdl               = p_list->asgn_range.e_handle;

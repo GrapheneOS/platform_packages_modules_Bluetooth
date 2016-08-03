@@ -125,6 +125,15 @@ bool uuid_128_to_32(const bt_uuid_t *uuid, uint32_t *uuid32) {
   return true;
 }
 
+void uuid_128_from_16(bt_uuid_t *uuid, uint16_t uuid16) {
+  assert(uuid != NULL);
+
+  memcpy(uuid, &base_uuid, sizeof(bt_uuid_t));
+
+  uuid->uu[2] = (uint8_t)((0xFF00 & uuid16)>>8);
+  uuid->uu[3] = (uint8_t)(0x00FF & uuid16);
+}
+
 void uuid_to_string(const bt_uuid_t *uuid, uuid_string_t *uuid_string) {
   assert(uuid != NULL);
   assert(uuid_string != NULL);

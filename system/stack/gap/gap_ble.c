@@ -28,6 +28,7 @@
 #include "gatt_int.h"
 #include "btm_int.h"
 #include "hcimsgs.h"
+#include "btcore/include/uuid.h"
 
 #define GAP_CHAR_ICON_SIZE          2
 #define GAP_CHAR_DEV_NAME_SIZE      248
@@ -338,11 +339,13 @@ void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id,
 
     switch (type)
     {
-        case GATTS_REQ_TYPE_READ:
+        case GATTS_REQ_TYPE_READ_CHARACTERISTIC:
+        case GATTS_REQ_TYPE_READ_DESCRIPTOR:
             status = gap_proc_read(type, &p_data->read_req, &rsp_msg);
             break;
 
-        case GATTS_REQ_TYPE_WRITE:
+        case GATTS_REQ_TYPE_WRITE_CHARACTERISTIC:
+        case GATTS_REQ_TYPE_WRITE_DESCRIPTOR:
             if (!p_data->write_req.need_rsp)
                 ignore = TRUE;
 
@@ -380,10 +383,7 @@ void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id,
 void gap_attr_db_init(void)
 {
     tBT_UUID        app_uuid = {LEN_UUID_128,{0}};
-    tBT_UUID        uuid     = {LEN_UUID_16,{UUID_SERVCLASS_GAP_SERVER}};
     UINT16          service_handle;
-    tGAP_ATTR       *p_db_attr = &gap_cb.gatt_attr[0];
-    tGATT_STATUS    status;
 
     /* Fill our internal UUID with a fixed pattern 0x82 */
     memset (&app_uuid.uu.uuid128, 0x82, LEN_UUID_128);
@@ -393,60 +393,48 @@ void gap_attr_db_init(void)
 
     GATT_StartIf(gap_cb.gatt_if);
 
-    /* Create a GAP service */
-    service_handle = GATTS_CreateService (gap_cb.gatt_if, &uuid, 0, GAP_MAX_ATTR_NUM, TRUE);
+    bt_uuid_t svc_uuid, name_uuid, icon_uuid, pref_uuid, addr_res_uuid;
+    uuid_128_from_16(&svc_uuid, UUID_SERVCLASS_GAP_SERVER);
+    uuid_128_from_16(&name_uuid, GATT_UUID_GAP_DEVICE_NAME);
+    uuid_128_from_16(&icon_uuid, GATT_UUID_GAP_ICON);
+    uuid_128_from_16(&pref_uuid, GATT_UUID_GAP_PREF_CONN_PARAM);
+    uuid_128_from_16(&addr_res_uuid, GATT_UUID_GAP_CENTRAL_ADDR_RESOL);
 
-    GAP_TRACE_EVENT ("gap_attr_db_init service_handle = %d", service_handle);
-
-    /* add Device Name Characteristic
-    */
-    uuid.len = LEN_UUID_16;
-    uuid.uu.uuid16 = p_db_attr->uuid = GATT_UUID_GAP_DEVICE_NAME;
-    p_db_attr->handle = GATTS_AddCharacteristic(service_handle, &uuid, GATT_PERM_READ, GATT_CHAR_PROP_BIT_READ);
-    p_db_attr ++;
-
-    /* add Icon characteristic
-    */
-    uuid.uu.uuid16   = p_db_attr->uuid = GATT_UUID_GAP_ICON;
-    p_db_attr->handle = GATTS_AddCharacteristic(service_handle,
-                                                &uuid,
-                                                GATT_PERM_READ,
-                                                GATT_CHAR_PROP_BIT_READ);
-    p_db_attr ++;
-
+    btgatt_db_element_t service[] = {
+        {.type = BTGATT_DB_PRIMARY_SERVICE, .uuid = svc_uuid},
+        {.type = BTGATT_DB_CHARACTERISTIC, .uuid = name_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ},
+        {.type = BTGATT_DB_CHARACTERISTIC, .uuid = icon_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ},
+        {.type = BTGATT_DB_CHARACTERISTIC, .uuid = addr_res_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ}
 #if BTM_PERIPHERAL_ENABLED == TRUE       /* Only needed for peripheral testing */
-    /* add preferred connection parameter characteristic
-    */
-    uuid.uu.uuid16 = p_db_attr->uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
-    p_db_attr->attr_value.conn_param.int_max = GAP_PREFER_CONN_INT_MAX; /* 6 */
-    p_db_attr->attr_value.conn_param.int_min = GAP_PREFER_CONN_INT_MIN; /* 0 */
-    p_db_attr->attr_value.conn_param.latency = GAP_PREFER_CONN_LATENCY; /* 0 */
-    p_db_attr->attr_value.conn_param.sp_tout = GAP_PREFER_CONN_SP_TOUT; /* 2000 */
-    p_db_attr->handle = GATTS_AddCharacteristic(service_handle,
-                                                &uuid,
-                                                GATT_PERM_READ,
-                                                GATT_CHAR_PROP_BIT_READ);
-    p_db_attr ++;
+        ,{.type = BTGATT_DB_CHARACTERISTIC, .uuid = pref_uuid, .properties = GATT_CHAR_PROP_BIT_READ, .permissions = GATT_PERM_READ}
 #endif
+    };
 
-    /* add Central address resolution Characteristic */
-    uuid.len = LEN_UUID_16;
-    uuid.uu.uuid16 = p_db_attr->uuid = GATT_UUID_GAP_CENTRAL_ADDR_RESOL;
-    p_db_attr->handle = GATTS_AddCharacteristic(service_handle, &uuid,
-                                                GATT_PERM_READ, GATT_CHAR_PROP_BIT_READ);
-    p_db_attr->attr_value.addr_resolution = 0;
-    p_db_attr++;
+    /* Add a GAP service */
+    GATTS_AddService(gap_cb.gatt_if, service, sizeof(service)/sizeof(btgatt_db_element_t));
+    service_handle = service[0].attribute_handle;
 
-    /* start service now */
-    memset (&app_uuid.uu.uuid128, 0x81, LEN_UUID_128);
+    GAP_TRACE_EVENT("%s: service_handle = %d",__func__, service_handle);
 
-    status = GATTS_StartService(gap_cb.gatt_if, service_handle, GAP_TRANSPORT_SUPPORTED );
+    gap_cb.gatt_attr[0].uuid = GATT_UUID_GAP_DEVICE_NAME;
+    gap_cb.gatt_attr[0].handle = service[1].attribute_handle;
 
-    GAP_TRACE_EVENT ("GAP App gatt_if: %d  s_hdl = %d start_status=%d",
-                      gap_cb.gatt_if, service_handle, status);
+    gap_cb.gatt_attr[1].uuid = GATT_UUID_GAP_ICON;
+    gap_cb.gatt_attr[1].handle = service[2].attribute_handle;
 
+    gap_cb.gatt_attr[2].uuid = GATT_UUID_GAP_CENTRAL_ADDR_RESOL;
+    gap_cb.gatt_attr[2].handle = service[3].attribute_handle;
+    gap_cb.gatt_attr[2].attr_value.addr_resolution = 0;
 
+#if BTM_PERIPHERAL_ENABLED == TRUE      /*  Only needed for peripheral testing */
 
+    gap_cb.gatt_attr[3].uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
+    gap_cb.gatt_attr[3].attr_value.conn_param.int_max = GAP_PREFER_CONN_INT_MAX; /* 6 */
+    gap_cb.gatt_attr[3].attr_value.conn_param.int_min = GAP_PREFER_CONN_INT_MIN; /* 0 */
+    gap_cb.gatt_attr[3].attr_value.conn_param.latency = GAP_PREFER_CONN_LATENCY; /* 0 */
+    gap_cb.gatt_attr[3].attr_value.conn_param.sp_tout = GAP_PREFER_CONN_SP_TOUT; /* 2000 */
+    gap_cb.gatt_attr[3].handle = service[4].attribute_handle;
+#endif
 }
 
 /*******************************************************************************

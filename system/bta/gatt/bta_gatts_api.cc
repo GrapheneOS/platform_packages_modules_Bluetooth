@@ -32,6 +32,8 @@
 #include "bta_gatt_api.h"
 #include "bta_gatts_int.h"
 
+void btif_to_bta_uuid(tBT_UUID *p_dest, const bt_uuid_t *p_src);
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -123,127 +125,47 @@ void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if)
 
 /*******************************************************************************
 **
-** Function         BTA_GATTS_CreateService
+** Function         BTA_GATTS_AddService
 **
-** Description      Create a service. When service creation is done, a callback
-**                  event BTA_GATTS_CREATE_SRVC_EVT is called to report status
-**                  and service ID to the profile. The service ID obtained in
-**                  the callback function needs to be used when adding included
-**                  service and characteristics/descriptors into the service.
+** Description      Add the given |service| and all included elements to the
+**                  GATT database. a |BTA_GATTS_ADD_SRVC_EVT| is triggered to
+**                  report the status and attribute handles.
 **
-** Parameters       app_id: Profile ID this service is belonged to.
-**                  p_service_uuid: service UUID.
-**                  inst: instance ID number of this service.
-**                  num_handle: numble of handle requessted for this service.
-**                  is_primary: is this service a primary one or not.
+** Parameters       server_if: server interface.
+**                  service: pointer vector describing service.
 **
-** Returns          void
+** Returns          Returns |BTA_GATT_OK| on success or |BTA_GATT_ERROR| if the
+**                  service cannot be added.
 **
 *******************************************************************************/
-void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid, uint8_t inst,
-                             uint16_t num_handle, bool is_primary)
+extern uint16_t BTA_GATTS_AddService(tBTA_GATTS_IF server_if, vector<btgatt_db_element_t> &service)
 {
-    tBTA_GATTS_API_CREATE_SRVC *p_buf =
-        (tBTA_GATTS_API_CREATE_SRVC *)osi_malloc(sizeof(tBTA_GATTS_API_CREATE_SRVC));
+    uint8_t rcb_idx = bta_gatts_find_app_rcb_idx_by_app_if(&bta_gatts_cb, server_if);
 
-    p_buf->hdr.event = BTA_GATTS_API_CREATE_SRVC_EVT;
-    p_buf->server_if = server_if;
-    p_buf->inst = inst;
-    memcpy(&p_buf->service_uuid, p_service_uuid, sizeof(tBT_UUID));
-    p_buf->num_handle = num_handle;
-    p_buf->is_pri = is_primary;
+    APPL_TRACE_ERROR("%s: rcb_idx = %d", __func__, rcb_idx);
 
-    bta_sys_sendmsg(p_buf);
-}
-/*******************************************************************************
-**
-** Function         BTA_GATTS_AddIncludeService
-**
-** Description      This function is called to add an included service. After included
-**                  service is included, a callback event BTA_GATTS_ADD_INCL_SRVC_EVT
-**                  is reported the included service ID.
-**
-** Parameters       service_id: service ID to which this included service is to
-**                              be added.
-**                  included_service_id: the service ID to be included.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_GATTS_AddIncludeService(uint16_t service_id, uint16_t included_service_id)
-{
-    tBTA_GATTS_API_ADD_INCL_SRVC *p_buf =
-        (tBTA_GATTS_API_ADD_INCL_SRVC *)osi_malloc(sizeof(tBTA_GATTS_API_ADD_INCL_SRVC));
+    if (rcb_idx == BTA_GATTS_INVALID_APP)
+        return BTA_GATT_ERROR;
 
-    p_buf->hdr.event = BTA_GATTS_API_ADD_INCL_SRVC_EVT;
-    p_buf->hdr.layer_specific = service_id;
-    p_buf->included_service_id = included_service_id;
+    uint8_t srvc_idx = bta_gatts_alloc_srvc_cb(&bta_gatts_cb, rcb_idx);
+    if (srvc_idx == BTA_GATTS_INVALID_APP)
+        return BTA_GATT_ERROR;
 
-    bta_sys_sendmsg(p_buf);
-}
+    uint16_t status = GATTS_AddService(server_if, service.data(), service.size());
 
-/*******************************************************************************
-**
-** Function         BTA_GATTS_AddCharacteristic
-**
-** Description      This function is called to add a characteristic into a service.
-**
-** Parameters       service_id: service ID to which this included service is to
-**                              be added.
-**                  p_char_uuid : Characteristic UUID.
-**                  perm      : Characteristic value declaration attribute permission.
-**                  property  : Characteristic Properties
-**
-** Returns          None
-**
-*******************************************************************************/
-void BTA_GATTS_AddCharacteristic (uint16_t service_id,  tBT_UUID  *p_char_uuid,
-                                  tBTA_GATT_PERM perm, tBTA_GATT_CHAR_PROP property)
-{
-    tBTA_GATTS_API_ADD_CHAR *p_buf =
-        (tBTA_GATTS_API_ADD_CHAR *)osi_calloc(sizeof(tBTA_GATTS_API_ADD_CHAR));
+    if (status == GATT_SERVICE_STARTED) {
+        btif_to_bta_uuid(&bta_gatts_cb.srvc_cb[srvc_idx].service_uuid, &service[0].uuid);
 
-    p_buf->hdr.event = BTA_GATTS_API_ADD_CHAR_EVT;
-    p_buf->hdr.layer_specific = service_id;
-    p_buf->perm = perm;
-    p_buf->property = property;
+        // service_id is equal to service start handle
+        bta_gatts_cb.srvc_cb[srvc_idx].service_id   = service[0].attribute_handle;
+        bta_gatts_cb.srvc_cb[srvc_idx].idx          = srvc_idx;
 
-    if (p_char_uuid)
-        memcpy(&p_buf->char_uuid, p_char_uuid, sizeof(tBT_UUID));
-
-    bta_sys_sendmsg(p_buf);
-}
-
-/*******************************************************************************
-**
-** Function         BTA_GATTS_AddCharDescriptor
-**
-** Description      This function is called to add characteristic descriptor. When
-**                  it's done, a callback event BTA_GATTS_ADD_DESCR_EVT is called
-**                  to report the status and an ID number for this descriptor.
-**
-** Parameters       service_id: service ID to which this charatceristic descriptor is to
-**                              be added.
-**                  perm: descriptor access permission.
-**                  p_descr_uuid: descriptor UUID.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-void BTA_GATTS_AddCharDescriptor (uint16_t service_id,
-                                  tBTA_GATT_PERM perm,
-                                  tBT_UUID  * p_descr_uuid)
-{
-    tBTA_GATTS_API_ADD_DESCR *p_buf =
-        (tBTA_GATTS_API_ADD_DESCR *)osi_calloc(sizeof(tBTA_GATTS_API_ADD_DESCR));
-
-    p_buf->hdr.event = BTA_GATTS_API_ADD_DESCR_EVT;
-    p_buf->hdr.layer_specific = service_id;
-    p_buf->perm = perm;
-    if (p_descr_uuid)
-        memcpy(&p_buf->descr_uuid, p_descr_uuid, sizeof(tBT_UUID));
-
-    bta_sys_sendmsg(p_buf);
+        return BTA_GATT_OK;
+    }else {
+        memset(&bta_gatts_cb.srvc_cb[srvc_idx], 0, sizeof(tBTA_GATTS_SRVC_CB));
+        APPL_TRACE_ERROR("%s: service creation failed.", __func__);
+        return BTA_GATT_ERROR;
+    }
 }
 
 /*******************************************************************************
@@ -264,30 +186,6 @@ void BTA_GATTS_DeleteService(uint16_t service_id)
 
     p_buf->event = BTA_GATTS_API_DEL_SRVC_EVT;
     p_buf->layer_specific = service_id;
-
-    bta_sys_sendmsg(p_buf);
-}
-
-/*******************************************************************************
-**
-** Function         BTA_GATTS_StartService
-**
-** Description      This function is called to start a service.
-**
-** Parameters       service_id: the service ID to be started.
-**                  sup_transport: supported trasnport.
-**
-** Returns          None.
-**
-*******************************************************************************/
-void BTA_GATTS_StartService(uint16_t service_id, tBTA_GATT_TRANSPORT sup_transport)
-{
-    tBTA_GATTS_API_START *p_buf =
-        (tBTA_GATTS_API_START *)osi_malloc(sizeof(tBTA_GATTS_API_START));
-
-    p_buf->hdr.event = BTA_GATTS_API_START_SRVC_EVT;
-    p_buf->hdr.layer_specific = service_id;
-    p_buf->transport = sup_transport;
 
     bta_sys_sendmsg(p_buf);
 }
