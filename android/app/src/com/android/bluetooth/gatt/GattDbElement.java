@@ -50,4 +50,43 @@ public class GattDbElement {
      * the characteristic.
      */
     public int properties;
+    public int permissions;
+
+    public static GattDbElement createPrimaryService(UUID uuid) {
+        GattDbElement el = new GattDbElement();
+        el.type = TYPE_PRIMARY_SERVICE;
+        el.uuid = uuid;
+        return el;
+    }
+
+    public static GattDbElement createSecondaryService(UUID uuid) {
+        GattDbElement el = new GattDbElement();
+        el.type = TYPE_SECONDARY_SERVICE;
+        el.uuid = uuid;
+        return el;
+    }
+
+    public static GattDbElement createCharacteristic(UUID uuid, int properties, int permissions) {
+        GattDbElement el = new GattDbElement();
+        el.type = TYPE_CHARACTERISTIC;
+        el.uuid = uuid;
+        el.properties = properties;
+        el.permissions = permissions;
+        return el;
+    }
+
+    public static GattDbElement createDescriptor(UUID uuid, int permissions) {
+        GattDbElement el = new GattDbElement();
+        el.type = TYPE_DESCRIPTOR;
+        el.uuid = uuid;
+        el.permissions = permissions;
+        return el;
+    }
+
+    public static GattDbElement createIncludedService(int attributeHandle) {
+        GattDbElement el = new GattDbElement();
+        el.type = TYPE_INCLUDED_SERVICE;
+        el.attributeHandle = attributeHandle;
+        return el;
+    }
 }
