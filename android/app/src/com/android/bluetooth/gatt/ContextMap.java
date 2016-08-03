@@ -320,7 +320,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         Iterator<Connection> i = mConnections.iterator();
         while (i.hasNext()) {
             Connection connection = i.next();
-            if (connection.address.equals(address) && connection.appId == id)
+            if (connection.address.equalsIgnoreCase(address) && connection.appId == id)
                 return connection.connId;
         }
         return null;
