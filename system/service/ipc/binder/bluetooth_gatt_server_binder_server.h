@@ -51,20 +51,8 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
       bool* _aidl_return) override;
   Status UnregisterServer(int32_t server_id) override;
   Status UnregisterAll() override;
-  Status BeginServiceDeclaration(int32_t server_id, bool is_primary,
-                                 const ::android::bluetooth::UUID& uuid,
-                                 ::android::bluetooth::GattIdentifier* out_id,
-                                 bool* _aidl_return) override;
-  Status AddCharacteristic(int32_t server_id,
-                           const ::android::bluetooth::UUID& uuid,
-                           int32_t properties, int32_t permissions,
-                           ::android::bluetooth::GattIdentifier* out_id,
-                           bool* _aidl_return) override;
-  Status AddDescriptor(int32_t server_id, const ::android::bluetooth::UUID& uuid,
-                       int32_t permissions,
-                       ::android::bluetooth::GattIdentifier* out_id,
-                       bool* _aidl_return) override;
-  Status EndServiceDeclaration(int32_t server_id, bool* _aidl_return) override;
+  Status AddService(int32_t server_id, const ::android::bluetooth::BluetoothGattService& service,
+                    bool* _aidl_return) override;
   Status SendResponse(int32_t server_id,
                       const ::android::String16& device_address,
                       int32_t request_id, int32_t status, int32_t offset,
@@ -72,29 +60,24 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
                       bool* _aidl_return) override;
   Status SendNotification(
       int32_t server_id, const ::android::String16& device_address,
-      const ::android::bluetooth::GattIdentifier& characteristic_id,
-      bool confirm, const ::std::vector<uint8_t>& value,
+      int handle, bool confirm, const ::std::vector<uint8_t>& value,
       bool* _aidl_return) override;
 
   // bluetooth::GattServer::Delegate overrides:
   void OnCharacteristicReadRequest(
       bluetooth::GattServer* gatt_server, const std::string& device_address,
-      int request_id, int offset, bool is_long,
-      const bluetooth::GattIdentifier& characteristic_id) override;
+      int request_id, int offset, bool is_long, uint16_t handle) override;
   void OnDescriptorReadRequest(
       bluetooth::GattServer* gatt_server, const std::string& device_address,
-      int request_id, int offset, bool is_long,
-      const bluetooth::GattIdentifier& descriptor_id) override;
+      int request_id, int offset, bool is_long, uint16_t handle) override;
   void OnCharacteristicWriteRequest(
       bluetooth::GattServer* gatt_server, const std::string& device_address,
       int request_id, int offset, bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value,
-      const bluetooth::GattIdentifier& characteristic_id) override;
+      const std::vector<uint8_t>& value, uint16_t handle) override;
   void OnDescriptorWriteRequest(
       bluetooth::GattServer* gatt_server, const std::string& device_address,
       int request_id, int offset, bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value,
-      const bluetooth::GattIdentifier& descriptor_id) override;
+      const std::vector<uint8_t>& value, uint16_t handle) override;
   void OnExecuteWriteRequest(bluetooth::GattServer* gatt_server,
                              const std::string& device_address, int request_id,
                              bool is_execute) override;

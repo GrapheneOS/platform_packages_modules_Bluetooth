@@ -22,6 +22,7 @@
 #include "gatt_int.h"
 #include "srvc_eng_int.h"
 #include "srvc_battery_int.h"
+#include "btcore/include/uuid.h"
 
 #if BLE_INCLUDED == TRUE
 
@@ -197,11 +198,9 @@ void battery_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
 *******************************************************************************/
 UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
 {
-    tBT_UUID            uuid = {LEN_UUID_16, {UUID_SERVCLASS_BATTERY}};
-    UINT16              srvc_hdl;
+    UINT16              srvc_hdl = 0;
     tGATT_STATUS        status = GATT_ERROR;
     tBA_INST            *p_inst;
-    tGATT_CHAR_PROP     prop = GATT_CHAR_PROP_BIT_READ;
 
     if (battery_cb.inst_id == BA_MAX_INT_NUM)
     {
@@ -211,16 +210,59 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
 
     p_inst = &battery_cb.battery_inst[battery_cb.inst_id];
 
-    srvc_hdl = GATTS_CreateService (srvc_eng_cb.gatt_if ,
-                                            &uuid,
-                                            battery_cb.inst_id ,
-                                            BA_MAX_ATTR_NUM,
-                                            p_reg_info->is_pri);
+    btgatt_db_element_t service[BA_MAX_ATTR_NUM] = {};
 
-    if (srvc_hdl == 0)
-    {
-        GATT_TRACE_ERROR("Can not create service, Battery_Instantiate() failed!");
-        return 0;
+    bt_uuid_t service_uuid;
+    uuid_128_from_16(&service_uuid, UUID_SERVCLASS_BATTERY);
+    service[0].type = /* p_reg_info->is_pri */ BTGATT_DB_PRIMARY_SERVICE;
+    service[0].uuid = service_uuid;
+
+    bt_uuid_t char_uuid;
+    uuid_128_from_16(&char_uuid, GATT_UUID_BATTERY_LEVEL);
+    service[1].type = BTGATT_DB_CHARACTERISTIC;
+    service[1].uuid = char_uuid;
+    service[1].properties = GATT_CHAR_PROP_BIT_READ;
+    if (p_reg_info->ba_level_descr & BA_LEVEL_NOTIFY)
+        service[1].properties |= GATT_CHAR_PROP_BIT_NOTIFY;
+
+    int i=2;
+    if (p_reg_info->ba_level_descr & BA_LEVEL_NOTIFY) {
+        bt_uuid_t desc_uuid;
+        uuid_128_from_16(&desc_uuid, GATT_UUID_CHAR_CLIENT_CONFIG);
+
+        service[i].type = BTGATT_DB_DESCRIPTOR;
+        service[i].uuid = desc_uuid;
+        service[i].permissions = (GATT_PERM_READ|GATT_PERM_WRITE);
+        i++;
+    }
+
+    /* need presentation format descriptor? */
+    if (p_reg_info->ba_level_descr & BA_LEVEL_PRE_FMT) {
+        bt_uuid_t desc_uuid;
+        uuid_128_from_16(&desc_uuid, GATT_UUID_CHAR_PRESENT_FORMAT);
+
+        service[i].type = BTGATT_DB_DESCRIPTOR;
+        service[i].uuid = desc_uuid;
+        service[i].permissions = GATT_PERM_READ;
+        i++;
+    }
+
+    /* need presentation format descriptor? */
+    if (p_reg_info->ba_level_descr & BA_LEVEL_RPT_REF) {
+        bt_uuid_t desc_uuid;
+        uuid_128_from_16(&desc_uuid, GATT_UUID_RPT_REF_DESCR);
+
+        service[i].type = BTGATT_DB_DESCRIPTOR;
+        service[i].uuid = desc_uuid;
+        service[i].permissions = GATT_PERM_READ;
+        i++;
+    }
+
+    GATTS_AddService(srvc_eng_cb.gatt_if, service, i);
+
+    if (status != GATT_SUCCESS) {
+        battery_cb.inst_id --;
+        GATT_TRACE_ERROR("%s: Failed to add battery servuce!", __func__);
     }
 
     battery_cb.inst_id ++;
@@ -228,71 +270,23 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
     p_inst->app_id  =   app_id;
     p_inst->p_cback =   p_reg_info->p_cback;
 
-    /* add battery level
-    */
-    uuid.uu.uuid16 = GATT_UUID_BATTERY_LEVEL;
+    srvc_hdl = service[0].attribute_handle;
+    p_inst->ba_level_hdl = service[1].attribute_handle;
 
-    if (p_reg_info->ba_level_descr & BA_LEVEL_NOTIFY)
-        prop |= GATT_CHAR_PROP_BIT_NOTIFY;
-
-    if ((p_inst->ba_level_hdl  = GATTS_AddCharacteristic(srvc_hdl,
-                                                &uuid,
-                                                BATTER_LEVEL_PERM,
-                                                prop)) == 0)
-    {
-        GATT_TRACE_ERROR("Can not add Battery Level, Battery_Instantiate() failed!");
-        status = GATT_ERROR;
-    }
-    else
-    {
-        if (p_reg_info->ba_level_descr & BA_LEVEL_NOTIFY)
-        {
-            uuid.uu.uuid16 = GATT_UUID_CHAR_CLIENT_CONFIG;
-            p_inst->clt_cfg_hdl  = GATTS_AddCharDescriptor(srvc_hdl,
-                                                           (GATT_PERM_READ|GATT_PERM_WRITE),
-                                                           &uuid);
-            if (p_inst->clt_cfg_hdl == 0)
-            {
-                GATT_TRACE_ERROR("Add battery level client notification FAILED!");
-            }
-        }
-        /* need presentation format descriptor? */
-        if (p_reg_info->ba_level_descr & BA_LEVEL_PRE_FMT)
-        {
-            uuid.uu.uuid16 = GATT_UUID_CHAR_PRESENT_FORMAT;
-            if ( (p_inst->pres_fmt_hdl = GATTS_AddCharDescriptor(srvc_hdl,
-                                                                 GATT_PERM_READ,
-                                                                 &uuid))
-                                       == 0)
-            {
-                GATT_TRACE_ERROR("Add battery level presentation format descriptor FAILED!");
-            }
-
-        }
-        /* need presentation format descriptor? */
-        if (p_reg_info->ba_level_descr & BA_LEVEL_RPT_REF)
-        {
-            uuid.uu.uuid16 = GATT_UUID_RPT_REF_DESCR;
-            if ( (p_inst->rpt_ref_hdl = GATTS_AddCharDescriptor(srvc_hdl,
-                                                                GATT_PERM_READ,
-                                                                &uuid))
-                                       == 0)
-            {
-                GATT_TRACE_ERROR("Add battery level report reference descriptor FAILED!");
-            }
-
-        }
-        /* start service
-        */
-        status = GATTS_StartService (srvc_eng_cb.gatt_if, srvc_hdl, p_reg_info->transport);
+    i=2;
+    if (p_reg_info->ba_level_descr & BA_LEVEL_NOTIFY) {
+        p_inst->clt_cfg_hdl = service[i].attribute_handle;
+        i++;
     }
 
-    if (status != GATT_SUCCESS)
-    {
-        battery_cb.inst_id --;
-        uuid.uu.uuid16 = UUID_SERVCLASS_BATTERY;
-        GATTS_DeleteService(srvc_eng_cb.gatt_if, &uuid, battery_cb.inst_id);
-        srvc_hdl = 0;
+    if (p_reg_info->ba_level_descr & BA_LEVEL_PRE_FMT) {
+        p_inst->pres_fmt_hdl = service[i].attribute_handle;
+        i++;
+    }
+
+    if (p_reg_info->ba_level_descr & BA_LEVEL_RPT_REF) {
+        p_inst->rpt_ref_hdl = service[i].attribute_handle;
+        i++;
     }
 
     return srvc_hdl;

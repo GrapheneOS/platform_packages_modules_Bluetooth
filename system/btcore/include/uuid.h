@@ -73,3 +73,5 @@ void uuid_to_string(const bt_uuid_t *uuid, uuid_string_t *uuid_string);
 // |uuid|, |uuid16| and |uuid32| must not be NULL.
 bool uuid_128_to_16(const bt_uuid_t *uuid, uint16_t *uuid16);
 bool uuid_128_to_32(const bt_uuid_t *uuid, uint32_t *uuid32);
+
+void uuid_128_from_16(bt_uuid_t *uuid, uint16_t uuid16);

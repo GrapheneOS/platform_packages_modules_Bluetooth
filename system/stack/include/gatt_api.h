@@ -349,6 +349,7 @@ typedef struct
     UINT16        handle;
     UINT16        offset;
     BOOLEAN       is_long;
+    bt_gatt_db_attribute_type_t gatt_type; /* are we writing characteristic or descriptor */
 } tGATT_READ_REQ;
 
 /* write request data */
@@ -360,6 +361,7 @@ typedef struct
     UINT8           value[GATT_MAX_ATTR_LEN];  /* the actual attribute value */
     BOOLEAN         need_rsp;   /* need write response */
     BOOLEAN         is_prep;    /* is prepare write */
+    bt_gatt_db_attribute_type_t gatt_type; /* are we writing characteristic or descriptor */
 } tGATT_WRITE_REQ;
 
 /* callback data for server access request from client */
@@ -379,8 +381,10 @@ typedef UINT8 tGATT_SERV_IF;               /* GATT Service Interface */
 
 enum
 {
-    GATTS_REQ_TYPE_READ = 1,        /* Attribute read request */
-    GATTS_REQ_TYPE_WRITE,           /* Attribute write request */
+    GATTS_REQ_TYPE_READ_CHARACTERISTIC = 1, /* Char read request */
+    GATTS_REQ_TYPE_READ_DESCRIPTOR,         /* Desc read request */
+    GATTS_REQ_TYPE_WRITE_CHARACTERISTIC,    /* Char write request */
+    GATTS_REQ_TYPE_WRITE_DESCRIPTOR,        /* Desc write request */
     GATTS_REQ_TYPE_WRITE_EXEC,      /* Execute write */
     GATTS_REQ_TYPE_MTU,             /* MTU exchange information */
     GATTS_REQ_TYPE_CONF             /* handle value confirmation */
@@ -608,7 +612,6 @@ typedef struct
 {
     tBT_UUID app_uuid128;
     tBT_UUID svc_uuid;
-    UINT16   svc_inst;
     UINT16   s_handle;
     UINT16   e_handle;
     BOOLEAN  is_primary;      /* primary service or secondary */
@@ -641,13 +644,6 @@ typedef union
     tGATTS_SRV_CHG srv_chg;
     UINT8 num_clients;
 } tGATTS_SRV_CHG_RSP;
-
-
-
-typedef struct
-{
-    tGATTS_HNDL_RANGE   *p_new_srv_start;
-} tGATTS_PENDING_NEW_SRV_START;
 
 /* Attibute server handle ranges NV storage callback functions
 */
@@ -719,84 +715,22 @@ extern BOOLEAN  GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info);
 
 /*******************************************************************************
 **
-** Function         GATTS_CreateService
+** Function         BTA_GATTS_AddService
 **
-** Description      This function is called to reserve a block of handles for a service.
+** Description      Add a service. When service is ready, a callback
+**                  event BTA_GATTS_ADD_SRVC_EVT is called to report status
+**                  and handles to the profile.
 **
-**                  *** It should be called only once per service instance  ***
+** Parameters       server_if: server interface.
+**                  service: pointer array describing service.
+**                  count: number of elements in service array.
 **
-** Parameter        gatt_if       : application if
-**                  p_svc_uuid    : service UUID
-**                  svc_inst      : instance of the service inside the application
-**                  num_handles   : number of handles needed by the service.
-**                  is_pri        : is a primary service or not.
-**
-** Returns          service handle if sucessful, otherwise 0.
-**
-*******************************************************************************/
-extern UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
-                                   UINT16 svc_inst, UINT16 num_handles, BOOLEAN is_pri);
-
-
-/*******************************************************************************
-**
-** Function         GATTS_AddIncludeService
-**
-** Description      This function is called to add an included service.
-**
-** Parameter        service_handle : To which service this included service is added to.
-**                  include_svc_handle    : included service handle.
-**
-** Returns          included service attribute handle. If 0, add included service
-**                  fail.
+** Returns          on success GATT_SERVICE_STARTED is returned, and
+**                  attribute_handle field inside service elements are filled.
+**                  on error error status is returned.
 **
 *******************************************************************************/
-extern UINT16 GATTS_AddIncludeService (UINT16 service_handle,
-                                       UINT16 include_svc_handle);
-
-
-/*******************************************************************************
-**
-** Function         GATTS_AddCharacteristic
-**
-** Description      This function is called to add a characteristic into a service.
-**                  It will add a characteristic declaration and characteristic
-**                  value declaration into the service database identified by the
-**                  service handle.
-**
-** Parameter        service_handle : To which service this included service is added to.
-**                  char_uuid : Characteristic UUID.
-**                  perm      : Characteristic value declaration attribute permission.
-**                  property  : Characteristic Properties
-**
-** Returns          Characteristic value declaration attribute handle. 0 if add
-**                  characteristic failed.
-**
-*******************************************************************************/
-extern UINT16 GATTS_AddCharacteristic (UINT16 service_handle, tBT_UUID *char_uuid,
-                                       tGATT_PERM perm,tGATT_CHAR_PROP property);
-
-/*******************************************************************************
-**
-** Function         GATTS_AddCharDescriptor
-**
-** Description      This function is called to add a characteristic descriptor
-**                  into a service database. Add descriptor should follow add char
-**                  to which it belongs, and next add char should be done only
-**                  after all add descriptors for the previous char.
-**
-** Parameter        service_handle  : To which service this characteristic descriptor
-**                                    is added to.
-**                  perm            : Characteristic value declaration attribute
-**                                    permission.
-**                  p_descr_uuid    : Characteristic descriptor UUID.
-**
-** Returns         Characteristic descriptor attribute handle. 0 if add
-**                 characteristic descriptor failed.
-**
-*******************************************************************************/
-extern UINT16 GATTS_AddCharDescriptor (UINT16 service_handle, tGATT_PERM perm,
-                                       tBT_UUID * p_descr_uuid);
+extern UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int count);
 
 /*******************************************************************************
 **
@@ -813,22 +747,6 @@ extern UINT16 GATTS_AddCharDescriptor (UINT16 service_handle, tGATT_PERM perm,
 *******************************************************************************/
 extern BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
                                     UINT16 svc_inst);
-
-/*******************************************************************************
-**
-** Function         GATTS_StartService
-**
-** Description      This function is called to start a service with GATT
-**
-** Parameter        gatt_if : service handle.
-**                  p_cback       : application service callback functions.
-**                  sup_transport : supported transport(s) for this primary service
-**
-** return           GATT_SUCCESS if sucessfully started; otherwise error code.
-**
-*******************************************************************************/
-extern tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
-                                        tGATT_TRANSPORT sup_transport);
 
 
 /*******************************************************************************

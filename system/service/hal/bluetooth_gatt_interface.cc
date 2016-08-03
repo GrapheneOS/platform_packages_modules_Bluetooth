@@ -288,56 +288,15 @@ void ConnectionCallback(int conn_id, int server_if, int connected,
 void ServiceAddedCallback(
     int status,
     int server_if,
-    btgatt_srvc_id_t* srvc_id,
-    int srvc_handle) {
+    vector<btgatt_db_element_t> service) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
-          << " handle: " << srvc_handle;
+          << " count: " << service.size();
   VERIFY_INTERFACE_OR_RETURN();
-  CHECK(srvc_id);
+  CHECK(service.size());
 
   FOR_EACH_SERVER_OBSERVER(ServiceAddedCallback(
-      g_interface, status, server_if, *srvc_id, srvc_handle));
-}
-
-void CharacteristicAddedCallback(
-    int status, int server_if,
-    bt_uuid_t* uuid,
-    int srvc_handle,
-    int char_handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
-          << " srvc_handle: " << srvc_handle << " char_handle: " << char_handle;
-  VERIFY_INTERFACE_OR_RETURN();
-  CHECK(uuid);
-
-  FOR_EACH_SERVER_OBSERVER(CharacteristicAddedCallback(
-      g_interface, status, server_if, *uuid, srvc_handle, char_handle));
-}
-
-void DescriptorAddedCallback(
-    int status, int server_if,
-    bt_uuid_t* uuid,
-    int srvc_handle,
-    int desc_handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
-          << " srvc_handle: " << srvc_handle << " desc_handle: " << desc_handle;
-  VERIFY_INTERFACE_OR_RETURN();
-  CHECK(uuid);
-
-  FOR_EACH_SERVER_OBSERVER(DescriptorAddedCallback(
-      g_interface, status, server_if, *uuid, srvc_handle, desc_handle));
-}
-
-void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
-          << " handle: " << srvc_handle;
-  VERIFY_INTERFACE_OR_RETURN();
-
-  FOR_EACH_SERVER_OBSERVER(ServiceStartedCallback(
-      g_interface, status, server_if, srvc_handle));
+      g_interface, status, server_if, service));
 }
 
 void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
@@ -360,7 +319,7 @@ void ServiceDeletedCallback(int status, int server_if, int srvc_handle) {
       g_interface, status, server_if, srvc_handle));
 }
 
-void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
+void RequestReadCharacteristicCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
                          int attr_handle, int offset, bool is_long) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
@@ -369,11 +328,24 @@ void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
-  FOR_EACH_SERVER_OBSERVER(RequestReadCallback(
+  FOR_EACH_SERVER_OBSERVER(RequestReadCharacteristicCallback(
       g_interface, conn_id, trans_id, *bda, attr_handle, offset, is_long));
 }
 
-void RequestWriteCallback(int conn_id, int trans_id,
+void RequestReadDescriptorCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
+                         int attr_handle, int offset, bool is_long) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
+          << " attr_handle: " << attr_handle << " offset: " << offset
+          << " is_long: " << is_long;
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(bda);
+
+  FOR_EACH_SERVER_OBSERVER(RequestReadDescriptorCallback(
+      g_interface, conn_id, trans_id, *bda, attr_handle, offset, is_long));
+}
+
+void RequestWriteCharacteristicCallback(int conn_id, int trans_id,
                           bt_bdaddr_t* bda,
                           int attr_handle, int offset,
                           bool need_rsp, bool is_prep,
@@ -386,7 +358,25 @@ void RequestWriteCallback(int conn_id, int trans_id,
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
-  FOR_EACH_SERVER_OBSERVER(RequestWriteCallback(
+  FOR_EACH_SERVER_OBSERVER(RequestWriteCharacteristicCallback(
+      g_interface, conn_id, trans_id, *bda, attr_handle, offset,
+      need_rsp, is_prep, std::move(value)));
+}
+
+void RequestWriteDescriptorCallback(int conn_id, int trans_id,
+                          bt_bdaddr_t* bda,
+                          int attr_handle, int offset,
+                          bool need_rsp, bool is_prep,
+                          vector<uint8_t> value) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
+          << " attr_handle: " << attr_handle << " offset: " << offset
+          << " length: " << value.size() << " need_rsp: " << need_rsp
+          << " is_prep: " << is_prep;
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(bda);
+
+  FOR_EACH_SERVER_OBSERVER(RequestWriteDescriptorCallback(
       g_interface, conn_id, trans_id, *bda, attr_handle, offset,
       need_rsp, is_prep, value));
 }
@@ -470,14 +460,12 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     RegisterServerCallback,
     ConnectionCallback,
     ServiceAddedCallback,
-    nullptr,  // included_service_added_cb
-    CharacteristicAddedCallback,
-    DescriptorAddedCallback,
-    ServiceStartedCallback,
     ServiceStoppedCallback,
     ServiceDeletedCallback,
-    RequestReadCallback,
-    RequestWriteCallback,
+    RequestReadCharacteristicCallback,
+    RequestReadDescriptorCallback,
+    RequestWriteCharacteristicCallback,
+    RequestWriteDescriptorCallback,
     RequestExecWriteCallback,
     ResponseConfirmationCallback,
     IndicationSentCallback,
@@ -754,36 +742,7 @@ void BluetoothGattInterface::ServerObserver::ServiceAddedCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* server_if */,
-    const btgatt_srvc_id_t& /* srvc_id */,
-    int /* srvc_handle */) {
-  // Do nothing.
-}
-
-void BluetoothGattInterface::ServerObserver::CharacteristicAddedCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* server_if */,
-    const bt_uuid_t& /* uuid */,
-    int /* srvc_handle */,
-    int /* char_handle */) {
-  // Do nothing.
-}
-
-void BluetoothGattInterface::ServerObserver::DescriptorAddedCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* server_if */,
-    const bt_uuid_t& /* uuid */,
-    int /* srvc_handle */,
-    int /* desc_handle */) {
-  // Do nothing.
-}
-
-void BluetoothGattInterface::ServerObserver::ServiceStartedCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* server_if */,
-    int /* srvc_handle */) {
+    vector<btgatt_db_element_t> /* service */) {
   // Do nothing.
 }
 
@@ -803,7 +762,7 @@ void BluetoothGattInterface::ServerObserver::ServiceDeletedCallback(
   // Do nothing.
 }
 
-void BluetoothGattInterface::ServerObserver::RequestReadCallback(
+void BluetoothGattInterface::ServerObserver::RequestReadCharacteristicCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* conn_id */,
     int /* trans_id */,
@@ -814,7 +773,31 @@ void BluetoothGattInterface::ServerObserver::RequestReadCallback(
   // Do nothing.
 }
 
-void BluetoothGattInterface::ServerObserver::RequestWriteCallback(
+void BluetoothGattInterface::ServerObserver::RequestReadDescriptorCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* trans_id */,
+    const bt_bdaddr_t& /* bda */,
+    int /* attr_handle */,
+    int /* offset */,
+    bool /* is_long */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::RequestWriteCharacteristicCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* trans_id */,
+    const bt_bdaddr_t& /* bda */,
+    int /* attr_handle */,
+    int /* offset */,
+    bool /* need_rsp */,
+    bool /* is_prep */,
+    vector<uint8_t> /* value */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::RequestWriteDescriptorCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* conn_id */,
     int /* trans_id */,

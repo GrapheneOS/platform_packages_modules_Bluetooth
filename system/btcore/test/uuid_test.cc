@@ -138,6 +138,31 @@ TEST_F(UuidTest, uuid_128_to_32) {
   EXPECT_EQ((uint32_t)0, uuid32);
 }
 
+TEST_F(UuidTest, uuid_128_from_16) {
+  bt_uuid_t *uuid = NULL;
+  uint16_t uuid16 = 0x1234;
+
+  uuid = uuid_new(UUID_ONES);
+  uuid_128_from_16(uuid, uuid16);
+  EXPECT_EQ(0x00, uuid->uu[0]);
+  EXPECT_EQ(0x00, uuid->uu[1]);
+  EXPECT_EQ(0x12, uuid->uu[2]);
+  EXPECT_EQ(0x34, uuid->uu[3]);
+  EXPECT_EQ(0x00, uuid->uu[4]);
+  EXPECT_EQ(0x00, uuid->uu[5]);
+  EXPECT_EQ(0x10, uuid->uu[6]);
+  EXPECT_EQ(0x00, uuid->uu[7]);
+  EXPECT_EQ(0x80, uuid->uu[8]);
+  EXPECT_EQ(0x00, uuid->uu[9]);
+  EXPECT_EQ(0x00, uuid->uu[10]);
+  EXPECT_EQ(0x80, uuid->uu[11]);
+  EXPECT_EQ(0x5f, uuid->uu[12]);
+  EXPECT_EQ(0x9b, uuid->uu[13]);
+  EXPECT_EQ(0x34, uuid->uu[14]);
+  EXPECT_EQ(0xfb, uuid->uu[15]);
+  uuid_free(uuid);
+}
+
 TEST_F(UuidTest, uuid_to_string) {
   bt_uuid_t *uuid = NULL;
 
