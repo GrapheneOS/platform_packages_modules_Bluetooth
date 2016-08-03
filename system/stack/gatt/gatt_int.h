@@ -183,6 +183,7 @@ typedef struct
     tGATT_PERM                          permission;
     UINT16                              handle;
     tBT_UUID                            uuid;
+    bt_gatt_db_attribute_type_t         gatt_type;
 } tGATT_ATTR;
 
 /* Service Database definition
@@ -207,7 +208,6 @@ typedef struct
     tGATT_SVC_DB    *p_db;      /* pointer to the service database */
     tBT_UUID        app_uuid;           /* applicatino UUID */
     UINT32          sdp_handle; /* primamry service SDP handle */
-    UINT16          service_instance;   /* service instance number */
     UINT16          type;       /* service type UUID, primary or secondary */
     UINT16          s_hdl;      /* service starting handle */
     UINT16          e_hdl;      /* service ending handle */
@@ -452,7 +452,6 @@ typedef struct
     tGATT_SRV_LIST_ELEM srv_list[GATT_MAX_SR_PROFILES];
 
     fixed_queue_t       *srv_chg_clt_q; /* service change clients queue */
-    fixed_queue_t       *pending_new_srv_start_q; /* pending new service start queue */
     tGATT_REG           cl_rcb[GATT_MAX_APPS];
     tGATT_CLCB          clcb[GATT_CL_MAX_LCB];  /* connection link control block*/
     tGATT_SCCB          sccb[GATT_MAX_SCCB];    /* sign complete callback function GATT_MAX_SCCB <= GATT_CL_MAX_LCB */
@@ -545,8 +544,6 @@ extern tGATT_STATUS gatt_send_error_rsp(tGATT_TCB *p_tcb, UINT8 err_code, UINT8 
 extern void gatt_dbg_display_uuid(tBT_UUID bt_uuid);
 extern tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb );
 
-extern tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst);
-
 extern BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb);
 extern tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda);
 
@@ -554,7 +551,6 @@ extern BOOLEAN gatt_find_the_connected_bda(UINT8 start_idx, BD_ADDR bda, UINT8 *
 extern void gatt_set_srv_chg(void);
 extern void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr);
 extern tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind);
-extern tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start( tGATTS_HNDL_RANGE *p_new_srv_start);
 extern void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id);
 extern BOOLEAN gatt_update_listen_mode(void);
 extern BOOLEAN gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb);

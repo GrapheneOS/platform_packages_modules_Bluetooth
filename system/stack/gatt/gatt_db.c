@@ -45,7 +45,8 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
 
 static BOOLEAN gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_service, BOOLEAN is_pri);
 static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
-                                                UINT16 handle, UINT16 offset, UINT32 trans_id);
+                                                UINT16 handle, UINT16 offset, UINT32 trans_id,
+                                                bt_gatt_db_attribute_type_t gatt_type);
 
 /*******************************************************************************
 **
@@ -133,32 +134,32 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
 
     if (!(perm & GATT_READ_ALLOWED))
     {
-        GATT_TRACE_ERROR( "GATT_READ_NOT_PERMIT");
+        GATT_TRACE_ERROR("%s: GATT_READ_NOT_PERMIT", __func__);
         return GATT_READ_NOT_PERMIT;
     }
 
     if ((perm & GATT_READ_AUTH_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_UNAUTHED) &&
         !(sec_flag & BTM_SEC_FLAG_ENCRYPTED))
     {
-        GATT_TRACE_ERROR( "GATT_INSUF_AUTHENTICATION");
+        GATT_TRACE_ERROR("%s: GATT_INSUF_AUTHENTICATION", __func__);
         return GATT_INSUF_AUTHENTICATION;
     }
 
     if ((perm & GATT_READ_MITM_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_AUTHED))
     {
-        GATT_TRACE_ERROR( "GATT_INSUF_AUTHENTICATION: MITM Required");
+        GATT_TRACE_ERROR("%s: GATT_INSUF_AUTHENTICATION: MITM Required", __func__);
         return GATT_INSUF_AUTHENTICATION;
     }
 
     if ((perm & GATT_READ_ENCRYPTED_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_ENCRYPTED))
     {
-        GATT_TRACE_ERROR( "GATT_INSUF_ENCRYPTION");
+        GATT_TRACE_ERROR("%s: GATT_INSUF_ENCRYPTION", __func__);
         return GATT_INSUF_ENCRYPTION;
     }
 
     if ( (perm & GATT_READ_ENCRYPTED_REQUIRED) && (sec_flag & GATT_SEC_FLAG_ENCRYPTED) && (key_size < min_key_size))
     {
-        GATT_TRACE_ERROR( "GATT_INSUF_KEY_SIZE");
+        GATT_TRACE_ERROR("%s: GATT_INSUF_KEY_SIZE", __func__);
         return GATT_INSUF_KEY_SIZE;
     }
 
@@ -175,7 +176,7 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
             case GATT_UUID_CHAR_CLIENT_CONFIG:
             case GATT_UUID_CHAR_SRVR_CONFIG:
             case GATT_UUID_CHAR_PRESENT_FORMAT:
-                GATT_TRACE_ERROR("GATT_NOT_LONG");
+                GATT_TRACE_ERROR("%s: GATT_NOT_LONG", __func__);
                 return GATT_NOT_LONG;
 
             default:
@@ -218,7 +219,7 @@ static tGATT_STATUS read_attr_value (void *p_attr,
     tGATT_STATUS    status;
     tGATT_ATTR    *p_attr16  = (tGATT_ATTR  *)p_attr;
 
-    GATT_TRACE_DEBUG("read_attr_value uuid=0x%04x perm=0x%0x sec_flag=0x%x offset=%d read_long=%d",
+    GATT_TRACE_DEBUG("read_attr_value uuid=0x%04x perm=0x%02x sec_flag=0x%x offset=%d read_long=%d",
                       p_attr16->uuid,
                       p_attr16->permission,
                       sec_flag,
@@ -359,7 +360,8 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 
                 if (status == GATT_PENDING)
                 {
-                    status = gatts_send_app_read_request(p_tcb, op_code, p_attr->handle, 0, trans_id);
+                    status = gatts_send_app_read_request(p_tcb, op_code, p_attr->handle, 0,
+                                                         trans_id, p_attr->gatt_type);
 
                     /* one callback at a time */
                     break;
@@ -479,7 +481,7 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
     tGATT_ATTR     *p_char_decl, *p_char_val;
     tBT_UUID        uuid = {LEN_UUID_16, {GATT_UUID_CHAR_DECLARE}};
 
-    GATT_TRACE_DEBUG("gatts_add_characteristic perm=0x%0x property=0x%0x", perm, property);
+    GATT_TRACE_DEBUG("%s: perm=0x%0x property=0x%0x", __func__, perm, property);
 
     if ((p_char_decl = (tGATT_ATTR *)allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
     {
@@ -500,6 +502,7 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
         p_char_decl->p_value->char_decl.property = property;
         p_char_decl->p_value->char_decl.char_val_handle  = p_char_val->handle;
 
+        p_char_val->gatt_type = BTGATT_DB_CHARACTERISTIC;
         p_char_val->p_value = NULL;
 
         return p_char_val->handle;
@@ -584,6 +587,7 @@ UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
     }
     else
     {
+        p_char_dscptr->gatt_type = BTGATT_DB_DESCRIPTOR;
         return p_char_dscptr->handle;
     }
 }
@@ -638,7 +642,8 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
 
                 if (status == GATT_PENDING)
                 {
-                    status = gatts_send_app_read_request(p_tcb, op_code, p_attr->handle, offset, trans_id);
+                    status = gatts_send_app_read_request(p_tcb, op_code, p_attr->handle, offset,
+                                                         trans_id, p_attr->gatt_type);
                 }
                 break;
             }
@@ -724,8 +729,8 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
     tGATT_PERM      perm;
     UINT16          min_key_size;
 
-    GATT_TRACE_DEBUG( "gatts_write_attr_perm_check op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x key_size=%d",
-                       op_code, handle, offset, len, sec_flag, key_size);
+    GATT_TRACE_DEBUG( "%s: op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x key_size=%d",
+                       __func__, op_code, handle, offset, len, sec_flag, key_size);
 
     if (p_db != NULL)
     {
@@ -741,9 +746,8 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                 {
                     min_key_size +=6;
                 }
-                GATT_TRACE_DEBUG( "gatts_write_attr_perm_check p_attr->permission =0x%04x min_key_size==0x%04x",
-                                   p_attr->permission,
-                                   min_key_size);
+                GATT_TRACE_DEBUG( "%s: p_attr->permission =0x%04x min_key_size==0x%04x",
+                                   __func__, p_attr->permission, min_key_size);
 
                 if ((op_code == GATT_CMD_WRITE || op_code == GATT_REQ_WRITE)
                     && (perm & GATT_WRITE_SIGNED_PERM))
@@ -768,45 +772,45 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                 if ((op_code == GATT_SIGN_CMD_WRITE) && !(perm & GATT_WRITE_SIGNED_PERM))
                 {
                     status = GATT_WRITE_NOT_PERMIT;
-                    GATT_TRACE_DEBUG( "gatts_write_attr_perm_check - sign cmd write not allowed");
+                    GATT_TRACE_DEBUG( "%s: sign cmd write not allowed", __func__);
                 }
                  if ((op_code == GATT_SIGN_CMD_WRITE) && (sec_flag & GATT_SEC_FLAG_ENCRYPTED))
                 {
                     status = GATT_INVALID_PDU;
-                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - Error!! sign cmd write sent on a encypted link");
+                    GATT_TRACE_ERROR( "%s: Error!! sign cmd write sent on a encypted link", __func__);
                 }
                 else if (!(perm & GATT_WRITE_ALLOWED))
                 {
                     status = GATT_WRITE_NOT_PERMIT;
-                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_WRITE_NOT_PERMIT");
+                    GATT_TRACE_ERROR( "%s: GATT_WRITE_NOT_PERMIT", __func__);
                 }
                 /* require authentication, but not been authenticated */
                 else if ((perm & GATT_WRITE_AUTH_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_UNAUTHED))
                 {
                     status = GATT_INSUF_AUTHENTICATION;
-                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION");
+                    GATT_TRACE_ERROR( "%s: GATT_INSUF_AUTHENTICATION", __func__);
                 }
                 else if ((perm & GATT_WRITE_MITM_REQUIRED ) && !(sec_flag & GATT_SEC_FLAG_LKEY_AUTHED))
                 {
                     status = GATT_INSUF_AUTHENTICATION;
-                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION: MITM required");
+                    GATT_TRACE_ERROR( "%s: GATT_INSUF_AUTHENTICATION: MITM required", __func__);
                 }
                 else if ((perm & GATT_WRITE_ENCRYPTED_PERM ) && !(sec_flag & GATT_SEC_FLAG_ENCRYPTED))
                 {
                     status = GATT_INSUF_ENCRYPTION;
-                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_ENCRYPTION");
+                    GATT_TRACE_ERROR( "%s: GATT_INSUF_ENCRYPTION", __func__);
                 }
                 else if ((perm & GATT_WRITE_ENCRYPTED_PERM ) && (sec_flag & GATT_SEC_FLAG_ENCRYPTED) && (key_size < min_key_size))
                 {
                     status = GATT_INSUF_KEY_SIZE;
-                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_KEY_SIZE");
+                    GATT_TRACE_ERROR( "%s: GATT_INSUF_KEY_SIZE", __func__);
                 }
                 /* LE security mode 2 attribute  */
                 else if (perm & GATT_WRITE_SIGNED_PERM && op_code != GATT_SIGN_CMD_WRITE && !(sec_flag & GATT_SEC_FLAG_ENCRYPTED)
                     &&  (perm & GATT_WRITE_ALLOWED) == 0)
                 {
                     status = GATT_INSUF_AUTHENTICATION;
-                    GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INSUF_AUTHENTICATION: LE security mode 2 required");
+                    GATT_TRACE_ERROR( "%s: GATT_INSUF_AUTHENTICATION: LE security mode 2 required", __func__);
                 }
                 else /* writable: must be char value declaration or char descritpors */
                 {
@@ -855,12 +859,12 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                         if (op_code == GATT_REQ_PREPARE_WRITE && offset != 0) /* does not allow write blob */
                         {
                             status = GATT_NOT_LONG;
-                            GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_NOT_LONG");
+                            GATT_TRACE_ERROR( "%s: GATT_NOT_LONG", __func__);
                         }
                         else if (len != max_size)    /* data does not match the required format */
                         {
                             status = GATT_INVALID_ATTR_LEN;
-                            GATT_TRACE_ERROR( "gatts_write_attr_perm_check - GATT_INVALID_PDU");
+                            GATT_TRACE_ERROR( "%s: GATT_INVALID_PDU", __func__);
                         }
                         else
                         {
@@ -1086,7 +1090,8 @@ static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 **
 *******************************************************************************/
 static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
-                                                UINT16 handle, UINT16 offset, UINT32 trans_id)
+                                                UINT16 handle, UINT16 offset, UINT32 trans_id,
+                                                bt_gatt_db_attribute_type_t gatt_type)
 {
     tGATTS_DATA   sr_data;
     UINT8       i_rcb;
@@ -1111,8 +1116,19 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
         sr_data.read_req.is_long = (BOOLEAN)(op_code == GATT_REQ_READ_BLOB);
         sr_data.read_req.offset = offset;
 
+        UINT8 opcode;
+        if (gatt_type == BTGATT_DB_DESCRIPTOR) {
+            opcode = GATTS_REQ_TYPE_READ_DESCRIPTOR;
+        } else if (gatt_type == BTGATT_DB_CHARACTERISTIC) {
+            opcode = GATTS_REQ_TYPE_READ_CHARACTERISTIC;
+        } else {
+            GATT_TRACE_ERROR("%s: Attempt to read attribute that's not tied with"
+                             " characteristic or descriptor value.", __func__);
+            return GATT_ERROR;
+        }
+
         gatt_sr_send_req_callback(conn_id,
-                                  trans_id, GATTS_REQ_TYPE_READ, &sr_data);
+                                  trans_id, opcode, &sr_data);
         return(tGATT_STATUS) GATT_PENDING;
     }
     else

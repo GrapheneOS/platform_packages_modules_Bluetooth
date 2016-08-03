@@ -278,11 +278,13 @@ static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_RE
 
     switch (type)
     {
-        case GATTS_REQ_TYPE_READ:
+        case GATTS_REQ_TYPE_READ_CHARACTERISTIC:
+        case GATTS_REQ_TYPE_READ_DESCRIPTOR:
             act = srvc_eng_process_read_req(clcb_idx, &p_data->read_req, &rsp_msg, &status);
             break;
 
-        case GATTS_REQ_TYPE_WRITE:
+        case GATTS_REQ_TYPE_WRITE_CHARACTERISTIC:
+        case GATTS_REQ_TYPE_WRITE_DESCRIPTOR:
             act = srvc_eng_process_write_req(clcb_idx, &p_data->write_req, &rsp_msg, &status);
             if (!p_data->write_req.need_rsp)
                 act = SRVC_ACT_IGNORE;

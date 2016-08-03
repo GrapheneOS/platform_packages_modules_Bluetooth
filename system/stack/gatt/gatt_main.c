@@ -106,7 +106,6 @@ void gatt_init (void)
     gatt_cb.def_mtu_size = GATT_DEF_BLE_MTU_SIZE;
     gatt_cb.sign_op_queue = fixed_queue_new(SIZE_MAX);
     gatt_cb.srv_chg_clt_q = fixed_queue_new(SIZE_MAX);
-    gatt_cb.pending_new_srv_start_q = fixed_queue_new(SIZE_MAX);
     /* First, register fixed L2CAP channel for ATT over BLE */
     fixed_reg.fixed_chnl_opts.mode         = L2CAP_FCR_BASIC_MODE;
     fixed_reg.fixed_chnl_opts.max_transmit = 0xFF;
@@ -157,8 +156,6 @@ void gatt_free(void)
     gatt_cb.sign_op_queue = NULL;
     fixed_queue_free(gatt_cb.srv_chg_clt_q, NULL);
     gatt_cb.srv_chg_clt_q = NULL;
-    fixed_queue_free(gatt_cb.pending_new_srv_start_q, NULL);
-    gatt_cb.pending_new_srv_start_q = NULL;
     for (i = 0; i < GATT_MAX_PHY_CHANNEL; i++)
     {
         fixed_queue_free(gatt_cb.tcb[i].pending_enc_clcb, NULL);
@@ -978,7 +975,6 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
     UINT8   *p = (UINT8 *)(p_buf + 1) + p_buf->offset;
     UINT8   op_code, pseudo_op_code;
     UINT16  msg_len;
-
 
     if (p_buf->len > 0)
     {

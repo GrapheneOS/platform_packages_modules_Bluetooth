@@ -92,8 +92,10 @@ static void btapp_gatts_copy_req_data(uint16_t event, char *p_dest, char *p_src)
     // Allocate buffer for request data if necessary
     switch (event)
     {
-        case BTA_GATTS_READ_EVT:
-        case BTA_GATTS_WRITE_EVT:
+        case BTA_GATTS_READ_CHARACTERISTIC_EVT:
+        case BTA_GATTS_READ_DESCRIPTOR_EVT:
+        case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
+        case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
         case BTA_GATTS_EXEC_WRITE_EVT:
         case BTA_GATTS_MTU_EVT:
             p_dest_data->req_data.p_data = (tBTA_GATTS_REQ_DATA *)osi_malloc(sizeof(tBTA_GATTS_REQ_DATA));
@@ -110,8 +112,10 @@ static void btapp_gatts_free_req_data(uint16_t event, tBTA_GATTS *p_data)
 {
     switch (event)
     {
-        case BTA_GATTS_READ_EVT:
-        case BTA_GATTS_WRITE_EVT:
+        case BTA_GATTS_READ_CHARACTERISTIC_EVT:
+        case BTA_GATTS_READ_DESCRIPTOR_EVT:
+        case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
+        case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
         case BTA_GATTS_EXEC_WRITE_EVT:
         case BTA_GATTS_MTU_EVT:
             if (p_data != NULL)
@@ -167,63 +171,6 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             break;
         }
 
-        case BTA_GATTS_CREATE_EVT:
-        {
-            btgatt_srvc_id_t srvc_id;
-            srvc_id.is_primary = p_data->create.is_primary;
-            srvc_id.id.inst_id = p_data->create.svc_instance;
-            bta_to_btif_uuid(&srvc_id.id.uuid, &p_data->create.uuid);
-
-            HAL_CBACK(bt_gatt_callbacks, server->service_added_cb,
-                      p_data->create.status, p_data->create.server_if, &srvc_id,
-                      p_data->create.service_id
-            );
-        }
-        break;
-
-        case BTA_GATTS_ADD_INCL_SRVC_EVT:
-            HAL_CBACK(bt_gatt_callbacks, server->included_service_added_cb,
-                      p_data->add_result.status,
-                      p_data->add_result.server_if,
-                      p_data->add_result.service_id,
-                      p_data->add_result.attr_id);
-            break;
-
-        case BTA_GATTS_ADD_CHAR_EVT:
-        {
-            bt_uuid_t uuid;
-            bta_to_btif_uuid(&uuid, &p_data->add_result.char_uuid);
-
-            HAL_CBACK(bt_gatt_callbacks, server->characteristic_added_cb,
-                      p_data->add_result.status,
-                      p_data->add_result.server_if,
-                      &uuid,
-                      p_data->add_result.service_id,
-                      p_data->add_result.attr_id);
-            break;
-        }
-
-        case BTA_GATTS_ADD_CHAR_DESCR_EVT:
-        {
-            bt_uuid_t uuid;
-            bta_to_btif_uuid(&uuid, &p_data->add_result.char_uuid);
-
-            HAL_CBACK(bt_gatt_callbacks, server->descriptor_added_cb,
-                      p_data->add_result.status,
-                      p_data->add_result.server_if,
-                      &uuid,
-                      p_data->add_result.service_id,
-                      p_data->add_result.attr_id);
-            break;
-        }
-
-        case BTA_GATTS_START_EVT:
-            HAL_CBACK(bt_gatt_callbacks, server->service_started_cb,
-                      p_data->srvc_oper.status,
-                      p_data->srvc_oper.server_if,
-                      p_data->srvc_oper.service_id);
-            break;
-
         case BTA_GATTS_STOP_EVT:
             HAL_CBACK(bt_gatt_callbacks, server->service_stopped_cb,
                       p_data->srvc_oper.status,
@@ -238,12 +185,12 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
                       p_data->srvc_oper.service_id);
             break;
 
-        case BTA_GATTS_READ_EVT:
+        case BTA_GATTS_READ_CHARACTERISTIC_EVT:
         {
             bt_bdaddr_t bda;
             bdcpy(bda.address, p_data->req_data.remote_bda);
 
-            HAL_CBACK(bt_gatt_callbacks, server->request_read_cb,
+            HAL_CBACK(bt_gatt_callbacks, server->request_read_characteristic_cb,
                       p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
                       p_data->req_data.p_data->read_req.handle,
                       p_data->req_data.p_data->read_req.offset,
@@ -251,13 +198,38 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             break;
         }
 
-        case BTA_GATTS_WRITE_EVT:
+        case BTA_GATTS_READ_DESCRIPTOR_EVT:
+        {
+            bt_bdaddr_t bda;
+            bdcpy(bda.address, p_data->req_data.remote_bda);
+
+            HAL_CBACK(bt_gatt_callbacks, server->request_read_descriptor_cb,
+                      p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
+                      p_data->req_data.p_data->read_req.handle,
+                      p_data->req_data.p_data->read_req.offset,
+                      p_data->req_data.p_data->read_req.is_long);
+            break;
+        }
+
+        case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
         {
             bt_bdaddr_t bda;
             bdcpy(bda.address, p_data->req_data.remote_bda);
             const auto &req = p_data->req_data.p_data->write_req;
             vector<uint8_t> value(req.value, req.value + req.len);
-            HAL_CBACK(bt_gatt_callbacks, server->request_write_cb,
+            HAL_CBACK(bt_gatt_callbacks, server->request_write_characteristic_cb,
+                      p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
+                      req.handle, req.offset, req.need_rsp, req.is_prep, value);
+            break;
+        }
+
+        case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
+        {
+            bt_bdaddr_t bda;
+            bdcpy(bda.address, p_data->req_data.remote_bda);
+            const auto &req = p_data->req_data.p_data->write_req;
+            vector<uint8_t> value(req.value, req.value + req.len);
+            HAL_CBACK(bt_gatt_callbacks, server->request_write_descriptor_cb,
                       p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
                       req.handle, req.offset, req.need_rsp, req.is_prep, value);
             break;
@@ -408,54 +380,15 @@ static bt_status_t btif_gatts_close(int server_if, const bt_bdaddr_t *bd_addr,
       Bind(&btif_gatts_close_impl, server_if, base::Owned(address), conn_id));
 }
 
+static void add_service_impl(int server_if, vector<btgatt_db_element_t> service) {
+  int status = BTA_GATTS_AddService(server_if, service);
+  HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, status, server_if, std::move(service));
+}
+
 static bt_status_t btif_gatts_add_service(int server_if,
-                                          btgatt_srvc_id_t *srvc_id,
-                                          int num_handles) {
+                                          vector<btgatt_db_element_t> service) {
   CHECK_BTGATT_INIT();
-  tBT_UUID *bt_uuid = new tBT_UUID;
-  btif_to_bta_uuid(bt_uuid, &srvc_id->id.uuid);
-
-  return do_in_jni_thread(
-      Bind(base::IgnoreResult(&BTA_GATTS_CreateService), server_if,
-           base::Owned(bt_uuid), (uint8_t)srvc_id->id.inst_id,
-           (uint16_t)num_handles, (bool)srvc_id->is_primary));
-}
-
-static bt_status_t btif_gatts_add_included_service(int server_if,
-                                                   int service_handle,
-                                                   int included_handle) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(Bind(&BTA_GATTS_AddIncludeService, service_handle, included_handle));
-}
-
-static bt_status_t btif_gatts_add_characteristic(int server_if,
-                                                 int service_handle,
-                                                 bt_uuid_t *uuid,
-                                                 int properties,
-                                                 int permissions) {
-  CHECK_BTGATT_INIT();
-  tBT_UUID *bt_uuid = new tBT_UUID;
-  btif_to_bta_uuid(bt_uuid, uuid);
-
-  return do_in_jni_thread(Bind(&BTA_GATTS_AddCharacteristic, service_handle,
-                               base::Owned(bt_uuid), permissions, properties));
-}
-
-static bt_status_t btif_gatts_add_descriptor(int server_if, int service_handle,
-                                             bt_uuid_t *uuid, int permissions) {
-  CHECK_BTGATT_INIT();
-  tBT_UUID *bt_uuid = new tBT_UUID;
-  btif_to_bta_uuid(bt_uuid, uuid);
-
-  return do_in_jni_thread(Bind(&BTA_GATTS_AddCharDescriptor, service_handle,
-                               permissions, base::Owned(bt_uuid)));
-}
-
-static bt_status_t btif_gatts_start_service(int server_if, int service_handle,
-                                            int transport) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(
-      Bind(&BTA_GATTS_StartService, service_handle, transport));
+  return do_in_jni_thread(Bind(&add_service_impl, server_if, std::move(service)));
 }
 
 static bt_status_t btif_gatts_stop_service(int server_if, int service_handle)
@@ -510,10 +443,6 @@ const btgatt_server_interface_t btgattServerInterface = {
     btif_gatts_open,
     btif_gatts_close,
     btif_gatts_add_service,
-    btif_gatts_add_included_service,
-    btif_gatts_add_characteristic,
-    btif_gatts_add_descriptor,
-    btif_gatts_start_service,
     btif_gatts_stop_service,
     btif_gatts_delete_service,
     btif_gatts_send_indication,
