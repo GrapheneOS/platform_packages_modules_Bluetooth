@@ -353,18 +353,15 @@ typedef void (tBTA_GATTC_CBACK)(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
 /* GATT Server Data Structure */
 /* Server callback function events */
 #define BTA_GATTS_REG_EVT                               0
-#define BTA_GATTS_READ_EVT                              GATTS_REQ_TYPE_READ         /* 1 */
-#define BTA_GATTS_WRITE_EVT                             GATTS_REQ_TYPE_WRITE        /* 2 */
-#define BTA_GATTS_EXEC_WRITE_EVT                        GATTS_REQ_TYPE_WRITE_EXEC   /* 3 */
-#define BTA_GATTS_MTU_EVT                               GATTS_REQ_TYPE_MTU          /* 4 */
-#define BTA_GATTS_CONF_EVT                              GATTS_REQ_TYPE_CONF         /* 5 */
-#define BTA_GATTS_DEREG_EVT                             6
-#define BTA_GATTS_CREATE_EVT                            7
-#define BTA_GATTS_ADD_INCL_SRVC_EVT                     8
-#define BTA_GATTS_ADD_CHAR_EVT                          9
-#define BTA_GATTS_ADD_CHAR_DESCR_EVT                    10
+#define BTA_GATTS_READ_CHARACTERISTIC_EVT               GATTS_REQ_TYPE_READ_CHARACTERISTIC     /* 1 */
+#define BTA_GATTS_READ_DESCRIPTOR_EVT                   GATTS_REQ_TYPE_READ_DESCRIPTOR         /* 2 */
+#define BTA_GATTS_WRITE_CHARACTERISTIC_EVT              GATTS_REQ_TYPE_WRITE_CHARACTERISTIC    /* 3 */
+#define BTA_GATTS_WRITE_DESCRIPTOR_EVT                  GATTS_REQ_TYPE_WRITE_DESCRIPTOR        /* 4 */
+#define BTA_GATTS_EXEC_WRITE_EVT                        GATTS_REQ_TYPE_WRITE_EXEC   /* 5 */
+#define BTA_GATTS_MTU_EVT                               GATTS_REQ_TYPE_MTU          /* 6 */
+#define BTA_GATTS_CONF_EVT                              GATTS_REQ_TYPE_CONF         /* 7 */
+#define BTA_GATTS_DEREG_EVT                             8
 #define BTA_GATTS_DELELTE_EVT                           11
-#define BTA_GATTS_START_EVT                             12
 #define BTA_GATTS_STOP_EVT                              13
 #define BTA_GATTS_CONNECT_EVT                           14
 #define BTA_GATTS_DISCONNECT_EVT                        15
@@ -486,16 +483,7 @@ typedef struct
 typedef struct
 {
     tBTA_GATTS_IF       server_if;
-    uint16_t              service_id;
-    uint16_t              attr_id;
-    tBTA_GATT_STATUS    status;
-    tBT_UUID            char_uuid;
-}tBTA_GATTS_ADD_RESULT;
-
-typedef struct
-{
-    tBTA_GATTS_IF       server_if;
-    uint16_t              service_id;
+    UINT16              service_id;
     tBTA_GATT_STATUS    status;
 }tBTA_GATTS_SRVC_OPER;
 
@@ -528,9 +516,6 @@ typedef union
     tBTA_GATTS_CREATE       create;
     tBTA_GATTS_SRVC_OPER    srvc_oper;
     tBTA_GATT_STATUS        status;      /* BTA_GATTS_LISTEN_EVT */
-    tBTA_GATTS_ADD_RESULT   add_result;  /* add included service: BTA_GATTS_ADD_INCL_SRVC_EVT
-                                           add char : BTA_GATTS_ADD_CHAR_EVT
-                                           add char descriptor: BTA_GATTS_ADD_CHAR_DESCR_EVT */
     tBTA_GATTS_REQ          req_data;
     tBTA_GATTS_CONN         conn;       /* BTA_GATTS_CONN_EVT */
     tBTA_GATTS_CONGEST      congest;    /* BTA_GATTS_CONGEST_EVT callback data */
@@ -1048,81 +1033,20 @@ extern void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if);
 
 /*******************************************************************************
 **
-** Function         BTA_GATTS_CreateService
+** Function         BTA_GATTS_AddService
 **
-** Description      Create a service. When service creation is done, a callback
-**                  event BTA_GATTS_CREATE_SRVC_EVT is called to report status
-**                  and service ID to the profile. The service ID obtained in
-**                  the callback function needs to be used when adding included
-**                  service and characteristics/descriptors into the service.
+** Description      Add the given |service| and all included elements to the
+**                  GATT database. a |BTA_GATTS_ADD_SRVC_EVT| is triggered to
+**                  report the status and attribute handles.
 **
 ** Parameters       server_if: server interface.
-**                  p_service_uuid: service UUID.
-**                  inst: instance ID number of this service.
-**                  num_handle: numble of handle requessted for this service.
-**                  is_primary: is this service a primary one or not.
+**                  service: pointer to vector describing service.
 **
-** Returns          void
+** Returns          Returns |BTA_GATT_OK| on success or |BTA_GATT_ERROR| if the
+**                  service cannot be added.
 **
 *******************************************************************************/
-extern void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid,
-                                    uint8_t inst, uint16_t num_handle, bool is_primary);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTS_AddIncludeService
-**
-** Description      This function is called to add an included service. After included
-**                  service is included, a callback event BTA_GATTS_ADD_INCL_SRVC_EVT
-**                  is reported the included service ID.
-**
-** Parameters       service_id: service ID to which this included service is to
-**                              be added.
-**                  included_service_id: the service ID to be included.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_GATTS_AddIncludeService(uint16_t service_id, uint16_t included_service_id);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTS_AddCharacteristic
-**
-** Description      This function is called to add a characteristic into a service.
-**
-** Parameters       service_id: service ID to which this included service is to
-**                              be added.
-**                  p_char_uuid : Characteristic UUID.
-**                  perm      : Characteristic value declaration attribute permission.
-**                  property  : Characteristic Properties
-**
-** Returns          None
-**
-*******************************************************************************/
-extern void BTA_GATTS_AddCharacteristic (uint16_t service_id,  tBT_UUID   *p_char_uuid,
-                                         tBTA_GATT_PERM perm, tBTA_GATT_CHAR_PROP property);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTS_AddCharDescriptor
-**
-** Description      This function is called to add characteristic descriptor. When
-**                  it's done, a callback event BTA_GATTS_ADD_DESCR_EVT is called
-**                  to report the status and an ID number for this descriptor.
-**
-** Parameters       service_id: service ID to which this charatceristic descriptor is to
-**                              be added.
-**                  perm: descriptor access permission.
-**                  p_descr_uuid: descriptor UUID.
-**                  p_descr_params: descriptor value if it's read only descriptor.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-extern void BTA_GATTS_AddCharDescriptor (uint16_t service_id,
-                                         tBTA_GATT_PERM perm,
-                                         tBT_UUID  * p_descr_uuid);
+extern uint16_t BTA_GATTS_AddService(tBTA_GATTS_IF server_if, vector<btgatt_db_element_t> &service);
 
 /*******************************************************************************
 **
@@ -1137,20 +1061,6 @@ extern void BTA_GATTS_AddCharDescriptor (uint16_t service_id,
 **
 *******************************************************************************/
 extern void  BTA_GATTS_DeleteService(uint16_t service_id);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTS_StartService
-**
-** Description      This function is called to start a service.
-**
-** Parameters       service_id: the service ID to be started.
-**                  sup_transport: supported trasnport.
-**
-** Returns          None.
-**
-*******************************************************************************/
-extern void  BTA_GATTS_StartService(uint16_t service_id, tBTA_GATT_TRANSPORT sup_transport);
 
 /*******************************************************************************
 **

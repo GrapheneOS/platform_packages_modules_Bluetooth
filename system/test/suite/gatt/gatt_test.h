@@ -69,19 +69,7 @@ class GattTest : public BluetoothTest,
       int status, int server_if, const bt_uuid_t& uuid) override;
   void ServiceAddedCallback(
       bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, const btgatt_srvc_id_t& srvc_id,
-      int srvc_handle) override;
-  void CharacteristicAddedCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, const bt_uuid_t& char_id,
-      int srvc_handle, int char_handle) override;
-  void DescriptorAddedCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, const bt_uuid_t& descr_id,
-      int srvc_handle, int descr_handle) override;
-  void ServiceStartedCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, int srvc_handle) override;
+      int status, int server_if, vector<btgatt_db_element_t> service) override;
   void ServiceStoppedCallback(
       bluetooth::hal::BluetoothGattInterface* /* unused */,
       int status, int server_if, int srvc_handle) override;

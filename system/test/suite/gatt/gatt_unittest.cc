@@ -107,10 +107,8 @@ TEST_F(GattTest, GattServerBuild) {
     << "Error registering GATT server app callback.";
 
   // Service UUID.
-  btgatt_srvc_id_t srvc_id;
-  srvc_id.id.inst_id = 0;   // there is only one instance of this service.
-  srvc_id.is_primary = 1;   // this service is primary.
-  create_random_uuid(&srvc_id.id.uuid, -1);
+  bt_uuid_t srvc_uuid;
+  create_random_uuid(&srvc_uuid, -1);
 
   // Characteristics UUID.
   bt_uuid_t char_uuid;
@@ -122,37 +120,25 @@ TEST_F(GattTest, GattServerBuild) {
 
   // Adds service.
   int server_if = server_interface_id();
-  gatt_server_interface()->add_service(server_if, &srvc_id, 4 /* # handles */);
+
+  vector<btgatt_db_element_t> service = {
+    {.type = BTGATT_DB_PRIMARY_SERVICE, .uuid=srvc_uuid},
+    {.type = BTGATT_DB_CHARACTERISTIC, .uuid=char_uuid,
+     .properties = 0x10 /* notification */, .permissions = 0x01  /* read only */},
+    {.type = BTGATT_DB_DESCRIPTOR, .uuid=desc_uuid, .permissions = 0x01}
+  };
+
+  gatt_server_interface()->add_service(server_if, service);
   semaphore_wait(service_added_callback_sem_);
   EXPECT_TRUE(status() == BT_STATUS_SUCCESS) << "Error adding service.";
 
-  // Adds characteristics.
-  int srvc_handle = service_handle();
-  gatt_server_interface()->add_characteristic(server_if, srvc_handle,
-      &char_uuid, 0x10 /* notification */, 0x01 /* read only */);
-  semaphore_wait(characteristic_added_callback_sem_);
-  EXPECT_TRUE(status() == BT_STATUS_SUCCESS)
-      << "Error adding characteristics.";
-
-  // Adds descriptor.
-  gatt_server_interface()->add_descriptor(server_if, srvc_handle,
-                                          &desc_uuid, 0x01);
-  semaphore_wait(descriptor_added_callback_sem_);
-  EXPECT_TRUE(status() == BT_STATUS_SUCCESS)
-      << "Error adding descriptor.";
-
-  // Starts server.
-  gatt_server_interface()->start_service(server_if, srvc_handle, 2 /*BREDR/LE*/);
-  semaphore_wait(service_started_callback_sem_);
-  EXPECT_TRUE(status() == BT_STATUS_SUCCESS) << "Error starting server.";
-
   // Stops server.
-  gatt_server_interface()->stop_service(server_if, srvc_handle);
+  gatt_server_interface()->stop_service(server_if, service_handle());
   semaphore_wait(service_stopped_callback_sem_);
   EXPECT_TRUE(status() == BT_STATUS_SUCCESS) << "Error stopping server.";
 
   // Deletes service.
-  gatt_server_interface()->delete_service(server_if, srvc_handle);
+  gatt_server_interface()->delete_service(server_if, service_handle());
   semaphore_wait(service_deleted_callback_sem_);
   EXPECT_TRUE(status() == BT_STATUS_SUCCESS) << "Error deleting service.";
 

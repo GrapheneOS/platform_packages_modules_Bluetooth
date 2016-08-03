@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "bluetooth/gatt_identifier.h"
+#include "bluetooth/descriptor.h"
 
 #include <binder/Parcel.h>
 #include <binder/Parcelable.h>
@@ -28,13 +28,12 @@ using android::status_t;
 namespace android {
 namespace bluetooth {
 
-class GattIdentifier : public Parcelable, public ::bluetooth::GattIdentifier {
+class BluetoothGattDescriptor : public Parcelable, public ::bluetooth::Descriptor {
  public:
-  GattIdentifier() = default;
-  // NOLINT, implicit converter
-  GattIdentifier(const ::bluetooth::GattIdentifier& gatt_identifier)  // NOLINT
-      : ::bluetooth::GattIdentifier(gatt_identifier){};
-  ~GattIdentifier() = default;
+  BluetoothGattDescriptor() = default;
+  BluetoothGattDescriptor(const ::bluetooth::Descriptor& characteristic)
+      : ::bluetooth::Descriptor(characteristic){};
+  ~BluetoothGattDescriptor() = default;
 
   // Write |this| parcelable to the given |parcel|.  Keep in mind that
   // implementations of writeToParcel must be manually kept in sync

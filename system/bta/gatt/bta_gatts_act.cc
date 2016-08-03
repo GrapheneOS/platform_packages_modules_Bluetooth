@@ -316,176 +316,7 @@ void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
         APPL_TRACE_ERROR("application not registered.");
     }
 }
-/*******************************************************************************
-**
-** Function         bta_gatts_create_srvc
-**
-** Description      action function to create a service.
-**
-** Returns          none.
-**
-*******************************************************************************/
-void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
-{
-    uint8_t               rcb_idx;
-    tBTA_GATTS          cb_data;
-    uint8_t               srvc_idx;
-    uint16_t              service_id = 0;
 
-    cb_data.create.status = BTA_GATT_ERROR;
-
-    rcb_idx = bta_gatts_find_app_rcb_idx_by_app_if(p_cb, p_msg->api_create_svc.server_if);
-
-    APPL_TRACE_ERROR("create service rcb_idx = %d", rcb_idx);
-
-    if (rcb_idx != BTA_GATTS_INVALID_APP)
-    {
-        if ((srvc_idx = bta_gatts_alloc_srvc_cb(p_cb, rcb_idx)) != BTA_GATTS_INVALID_APP)
-        {
-            /* create the service now */
-            service_id = GATTS_CreateService (p_cb->rcb[rcb_idx].gatt_if,
-                                              &p_msg->api_create_svc.service_uuid,
-                                              p_msg->api_create_svc.inst,
-                                              p_msg->api_create_svc.num_handle,
-                                              p_msg->api_create_svc.is_pri);
-
-            if (service_id != 0)
-            {
-                memcpy(&p_cb->srvc_cb[srvc_idx].service_uuid,
-                    &p_msg->api_create_svc.service_uuid, sizeof(tBT_UUID));
-                p_cb->srvc_cb[srvc_idx].service_id   = service_id;
-                p_cb->srvc_cb[srvc_idx].inst_num     = p_msg->api_create_svc.inst;
-                p_cb->srvc_cb[srvc_idx].idx          = srvc_idx;
-
-                cb_data.create.status      = BTA_GATT_OK;
-                cb_data.create.service_id  = service_id;
-                cb_data.create.is_primary  = p_msg->api_create_svc.is_pri;
-                cb_data.create.server_if   = p_cb->rcb[rcb_idx].gatt_if;
-            }
-            else
-            {
-                cb_data.status  = BTA_GATT_ERROR;
-                memset(&p_cb->srvc_cb[srvc_idx], 0, sizeof(tBTA_GATTS_SRVC_CB));
-                APPL_TRACE_ERROR("service creation failed.");
-            }
-            memcpy(&cb_data.create.uuid, &p_msg->api_create_svc.service_uuid, sizeof(tBT_UUID));
-            cb_data.create.svc_instance= p_msg->api_create_svc.inst;
-        }
-        if (p_cb->rcb[rcb_idx].p_cback)
-            (* p_cb->rcb[rcb_idx].p_cback)(BTA_GATTS_CREATE_EVT, &cb_data);
-    }
-    else /* application not registered */
-    {
-        APPL_TRACE_ERROR("Application not registered");
-    }
-}
-/*******************************************************************************
-**
-** Function         bta_gatts_add_include_srvc
-**
-** Description      action function to add an included service.
-**
-** Returns          none.
-**
-*******************************************************************************/
-void bta_gatts_add_include_srvc(tBTA_GATTS_SRVC_CB *p_srvc_cb,tBTA_GATTS_DATA * p_msg)
-{
-    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    uint16_t          attr_id = 0;
-    tBTA_GATTS      cb_data;
-
-    attr_id = GATTS_AddIncludeService(p_msg->api_add_incl_srvc.hdr.layer_specific,
-                                      p_msg->api_add_incl_srvc.included_service_id);
-
-    cb_data.add_result.server_if = p_rcb->gatt_if;
-    cb_data.add_result.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
-    cb_data.add_result.attr_id = attr_id;
-
-    if (attr_id)
-    {
-        cb_data.add_result.status = BTA_GATT_OK;
-    }
-    else
-    {
-        cb_data.add_result.status = BTA_GATT_ERROR;
-    }
-
-    if (p_rcb->p_cback)
-        (*p_rcb->p_cback)(BTA_GATTS_ADD_INCL_SRVC_EVT, &cb_data);
-}
-/*******************************************************************************
-**
-** Function         bta_gatts_add_char
-**
-** Description      action function to add characteristic.
-**
-** Returns          none.
-**
-*******************************************************************************/
-void bta_gatts_add_char(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
-{
-    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    uint16_t          attr_id = 0;
-    tBTA_GATTS      cb_data;
-
-    attr_id = GATTS_AddCharacteristic(p_msg->api_add_char.hdr.layer_specific,
-                                      &p_msg->api_add_char.char_uuid,
-                                      p_msg->api_add_char.perm,
-                                      p_msg->api_add_char.property);
-    cb_data.add_result.server_if = p_rcb->gatt_if;
-    cb_data.add_result.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
-    cb_data.add_result.attr_id = attr_id;
-    memcpy(&cb_data.add_result.char_uuid, &p_msg->api_add_char.char_uuid, sizeof(tBT_UUID));
-
-    if (attr_id)
-    {
-        cb_data.add_result.status = BTA_GATT_OK;
-    }
-    else
-    {
-        cb_data.add_result.status = BTA_GATT_ERROR;
-    }
-
-    if (p_rcb->p_cback)
-        (*p_rcb->p_cback)(BTA_GATTS_ADD_CHAR_EVT, &cb_data);
-}
-/*******************************************************************************
-**
-** Function         bta_gatts_add_char_descr
-**
-** Description      action function to add characteristic descriptor.
-**
-** Returns          none.
-**
-*******************************************************************************/
-void bta_gatts_add_char_descr(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
-{
-    tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    uint16_t          attr_id = 0;
-    tBTA_GATTS      cb_data;
-
-    attr_id = GATTS_AddCharDescriptor(p_msg->api_add_char_descr.hdr.layer_specific,
-                                       p_msg->api_add_char_descr.perm,
-                                       &p_msg->api_add_char_descr.descr_uuid);
-
-    cb_data.add_result.server_if = p_rcb->gatt_if;
-    cb_data.add_result.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
-    cb_data.add_result.attr_id = attr_id;
-    memcpy(&cb_data.add_result.char_uuid, &p_msg->api_add_char_descr.descr_uuid, sizeof(tBT_UUID));
-
-    if (attr_id)
-    {
-        cb_data.add_result.status = BTA_GATT_OK;
-    }
-    else
-    {
-        cb_data.add_result.status = BTA_GATT_ERROR;
-    }
-
-    if (p_rcb->p_cback)
-        (*p_rcb->p_cback)(BTA_GATTS_ADD_CHAR_DESCR_EVT, &cb_data);
-
-}
 /*******************************************************************************
 **
 ** Function         bta_gatts_delete_service
@@ -501,11 +332,11 @@ void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p
     tBTA_GATTS      cb_data;
 
     cb_data.srvc_oper.server_if = p_rcb->gatt_if;
-    cb_data.srvc_oper.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
+    // cb_data.srvc_oper.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
 
     if (GATTS_DeleteService(p_rcb->gatt_if,
                             &p_srvc_cb->service_uuid,
-                            p_srvc_cb->inst_num))
+                            p_srvc_cb->service_id))
     {
         cb_data.srvc_oper.status = BTA_GATT_OK;
         memset(p_srvc_cb, 0, sizeof(tBTA_GATTS_SRVC_CB));
@@ -519,39 +350,7 @@ void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p
         (*p_rcb->p_cback)(BTA_GATTS_DELELTE_EVT, &cb_data);
 
 }
-/*******************************************************************************
-**
-** Function         bta_gatts_start_service
-**
-** Description      action function to start a service.
-**
-** Returns          none.
-**
-*******************************************************************************/
-void bta_gatts_start_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
-{
-    tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    tBTA_GATTS      cb_data;
 
-    cb_data.srvc_oper.server_if = p_rcb->gatt_if;
-    cb_data.srvc_oper.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
-
-    if (GATTS_StartService(p_rcb->gatt_if,
-                           p_srvc_cb->service_id,
-                           p_msg->api_start.transport) ==  GATT_SUCCESS)
-    {
-        APPL_TRACE_DEBUG("bta_gatts_start_service service_id= %d", p_srvc_cb->service_id);
-        cb_data.srvc_oper.status = BTA_GATT_OK;
-    }
-    else
-    {
-        cb_data.srvc_oper.status = BTA_GATT_ERROR;
-    }
-
-    if (p_rcb->p_cback)
-        (*p_rcb->p_cback)(BTA_GATTS_START_EVT, &cb_data);
-
-}
 /*******************************************************************************
 **
 ** Function         bta_gatts_stop_service
@@ -850,8 +649,8 @@ static void bta_gatts_send_request_cback (uint16_t conn_id,
     {
         p_rcb = bta_gatts_find_app_rcb_by_app_if(gatt_if);
 
-        APPL_TRACE_DEBUG ("bta_gatts_send_request_cback conn_id=%d trans_id=%d req_type=%d",
-                            conn_id, trans_id, req_type);
+        APPL_TRACE_DEBUG("%s: conn_id=%d trans_id=%d req_type=%d",
+                         __func__, conn_id, trans_id, req_type);
 
         if (p_rcb && p_rcb->p_cback)
         {

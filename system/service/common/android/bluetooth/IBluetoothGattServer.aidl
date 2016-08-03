@@ -16,9 +16,8 @@
 
 package android.bluetooth;
 
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.IBluetoothGattServerCallback;
-
-import android.bluetooth.GattIdentifier;
 import android.bluetooth.UUID;
 
 interface IBluetoothGattServer {
@@ -27,17 +26,7 @@ interface IBluetoothGattServer {
   void UnregisterServer(int server_id);
   void UnregisterAll();
 
-  boolean BeginServiceDeclaration(
-      int server_id, boolean is_primary, in UUID uuid,
-      out GattIdentifier id);
-  boolean AddCharacteristic(
-      int server_id, in UUID uuid,
-      int properties, int permissions,
-      out GattIdentifier id);
-  boolean AddDescriptor(
-      int server_id, in UUID uuid, int permissions,
-      out GattIdentifier id);
-  boolean EndServiceDeclaration(int server_id);
+  boolean AddService(int server_id, in BluetoothGattService service);
 
   boolean SendResponse(
       int server_id,
@@ -49,7 +38,7 @@ interface IBluetoothGattServer {
   boolean SendNotification(
       int server_id,
       String device_address,
-      in GattIdentifier characteristic_id,
+      int handle,
       boolean confirm,
       in byte[] value);
 }

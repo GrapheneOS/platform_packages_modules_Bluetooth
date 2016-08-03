@@ -39,14 +39,9 @@ enum
     BTA_GATTS_API_REG_EVT  = BTA_SYS_EVT_START(BTA_ID_GATTS),
     BTA_GATTS_INT_START_IF_EVT,
     BTA_GATTS_API_DEREG_EVT,
-    BTA_GATTS_API_CREATE_SRVC_EVT,
     BTA_GATTS_API_INDICATION_EVT,
 
-    BTA_GATTS_API_ADD_INCL_SRVC_EVT,
-    BTA_GATTS_API_ADD_CHAR_EVT,
-    BTA_GATTS_API_ADD_DESCR_EVT,
     BTA_GATTS_API_DEL_SRVC_EVT,
-    BTA_GATTS_API_START_SRVC_EVT,
     BTA_GATTS_API_STOP_SRVC_EVT,
     BTA_GATTS_API_RSP_EVT,
     BTA_GATTS_API_OPEN_EVT,
@@ -83,35 +78,9 @@ typedef struct
 {
     BT_HDR                  hdr;
     tBTA_GATTS_IF           server_if;
-    tBT_UUID                service_uuid;
-    uint16_t                  num_handle;
-    uint8_t                   inst;
-    bool                 is_pri;
-
-} tBTA_GATTS_API_CREATE_SRVC;
-
-typedef struct
-{
-    BT_HDR                  hdr;
-    tBT_UUID                char_uuid;
-    tBTA_GATT_PERM          perm;
-    tBTA_GATT_CHAR_PROP     property;
-
-}tBTA_GATTS_API_ADD_CHAR;
-
-typedef struct
-{
-    BT_HDR                  hdr;
-    uint16_t                  included_service_id;
-
-}tBTA_GATTS_API_ADD_INCL_SRVC;
-
-typedef struct
-{
-    BT_HDR                      hdr;
-    tBT_UUID                    descr_uuid;
-    tBTA_GATT_PERM              perm;
-}tBTA_GATTS_API_ADD_DESCR;
+    btgatt_db_element_t    *service;
+    UINT16                  count;
+} tBTA_GATTS_API_ADD_SERVICE;
 
 typedef struct
 {
@@ -162,11 +131,7 @@ typedef union
     BT_HDR                          hdr;
     tBTA_GATTS_API_REG              api_reg;
     tBTA_GATTS_API_DEREG            api_dereg;
-    tBTA_GATTS_API_CREATE_SRVC      api_create_svc;
-    tBTA_GATTS_API_ADD_INCL_SRVC    api_add_incl_srvc;
-    tBTA_GATTS_API_ADD_CHAR         api_add_char;
-    tBTA_GATTS_API_ADD_DESCR        api_add_char_descr;
-    tBTA_GATTS_API_START            api_start;
+    tBTA_GATTS_API_ADD_SERVICE      api_add_service;
     tBTA_GATTS_API_INDICATION       api_indicate;
     tBTA_GATTS_API_RSP              api_rsp;
     tBTA_GATTS_API_OPEN             api_open;
@@ -190,12 +155,10 @@ typedef struct
 typedef struct
 {
     tBT_UUID    service_uuid;   /* service UUID */
-    uint16_t      service_id;     /* service handle */
-    uint8_t       inst_num;       /* instance ID */
+    uint16_t      service_id;     /* service start handle */
     uint8_t       rcb_idx;
     uint8_t       idx;            /* self index of serviec CB */
     bool     in_use;
-
 }tBTA_GATTS_SRVC_CB;
 
 
@@ -226,12 +189,7 @@ extern void bta_gatts_api_enable(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_data);
 extern void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg);
 extern void bta_gatts_start_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg);
 extern void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg);
-extern void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);
-extern void bta_gatts_add_include_srvc(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg);
-extern void bta_gatts_add_char(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg);
-extern void bta_gatts_add_char_descr(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg);
 extern void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg);
-extern void bta_gatts_start_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg);
 extern void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg);
 
 extern void bta_gatts_send_rsp(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);

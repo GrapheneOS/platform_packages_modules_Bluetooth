@@ -14,7 +14,8 @@
 //  limitations under the License.
 //
 
-#include "service/common/android/bluetooth/gatt_identifier.h"
+#include "service/common/android/bluetooth/bluetooth_gatt_characteristic.h"
+#include "service/common/android/bluetooth/bluetooth_gatt_descriptor.h"
 #include "service/common/android/bluetooth/uuid.h"
 
 #include <utils/String16.h>
@@ -27,58 +28,55 @@ using android::String16;
 namespace android {
 namespace bluetooth {
 
-status_t GattIdentifier::writeToParcel(Parcel* parcel) const {
-  status_t status =
-      parcel->writeString16(String16(String8(device_address_.c_str())));
+status_t BluetoothGattCharacteristic::writeToParcel(Parcel* parcel) const {
+  status_t status = parcel->writeInt32(handle_);
   if (status != OK) return status;
 
-  status = parcel->writeBool(is_primary_);
+  status = parcel->writeParcelable((UUID)uuid_);
   if (status != OK) return status;
 
-  parcel->writeParcelable((UUID)service_uuid_);
-  parcel->writeParcelable((UUID)char_uuid_);
-  parcel->writeParcelable((UUID)desc_uuid_);
-
-  status = parcel->writeInt32(service_instance_id_);
+  status = parcel->writeInt32(properties_);
   if (status != OK) return status;
 
-  status = parcel->writeInt32(char_instance_id_);
+  status = parcel->writeInt32(permissions_);
   if (status != OK) return status;
 
-  status = parcel->writeInt32(desc_instance_id_);
+  std::vector<BluetoothGattDescriptor> descriptors;
+  for (const auto& desc : descriptors_) {
+    descriptors.push_back(desc);
+  }
+
+  status = parcel->writeParcelableVector(descriptors);
   return status;
 }
 
-status_t GattIdentifier::readFromParcel(const Parcel* parcel) {
-  String16 addr;
-  status_t status = parcel->readString16(&addr);
+status_t BluetoothGattCharacteristic::readFromParcel(const Parcel* parcel) {
+  int32_t tmp;
+  status_t status = parcel->readInt32(&tmp);
   if (status != OK) return status;
-
-  device_address_ = std::string(String8(addr).string());
-
-  status = parcel->readBool(&is_primary_);
-  if (status != OK) return status;
+  handle_ = tmp;
 
   UUID uuid;
   status = parcel->readParcelable(&uuid);
   if (status != OK) return status;
-  service_uuid_ = uuid;
+  uuid_ = uuid;
 
-  status = parcel->readParcelable(&uuid);
+  status = parcel->readInt32(&tmp);
   if (status != OK) return status;
-  char_uuid_ = uuid;
+  properties_ = tmp;
 
-  status = parcel->readParcelable(&uuid);
+  status = parcel->readInt32(&tmp);
   if (status != OK) return status;
-  desc_uuid_ = uuid;
+  permissions_ = tmp;
 
-  status = parcel->readInt32(&service_instance_id_);
-  if (status != OK) return status;
-
-  status = parcel->readInt32(&char_instance_id_);
+  std::vector<BluetoothGattDescriptor> descriptors;
+  status = parcel->readParcelableVector(&descriptors);
   if (status != OK) return status;
 
-  status = parcel->readInt32(&desc_instance_id_);
+  for (const auto& desc : descriptors) {
+    descriptors_.push_back(desc);
+  }
+
   return status;
 }
 

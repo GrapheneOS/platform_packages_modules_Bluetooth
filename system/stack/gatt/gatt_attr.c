@@ -28,6 +28,7 @@
 
 #include "gatt_api.h"
 #include "gatt_int.h"
+#include "btcore/include/uuid.h"
 
 #if BLE_INCLUDED == TRUE
 
@@ -191,11 +192,13 @@ static void gatt_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE
 
     switch (type)
     {
-        case GATTS_REQ_TYPE_READ:
+        case GATTS_REQ_TYPE_READ_CHARACTERISTIC:
+        case GATTS_REQ_TYPE_READ_DESCRIPTOR:
             status = GATT_READ_NOT_PERMIT;
             break;
 
-        case GATTS_REQ_TYPE_WRITE:
+        case GATTS_REQ_TYPE_WRITE_CHARACTERISTIC:
+        case GATTS_REQ_TYPE_WRITE_DESCRIPTOR:
             status = GATT_WRITE_NOT_PERMIT;
             break;
 
@@ -266,35 +269,33 @@ static void gatt_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
 void gatt_profile_db_init (void)
 {
     tBT_UUID          app_uuid = {LEN_UUID_128, {0}};
-    tBT_UUID          uuid = {LEN_UUID_16, {UUID_SERVCLASS_GATT_SERVER}};
     UINT16            service_handle = 0;
-    tGATT_STATUS      status;
 
     /* Fill our internal UUID with a fixed pattern 0x81 */
     memset (&app_uuid.uu.uuid128, 0x81, LEN_UUID_128);
-
 
     /* Create a GATT profile service */
     gatt_cb.gatt_if = GATT_Register(&app_uuid, &gatt_profile_cback);
     GATT_StartIf(gatt_cb.gatt_if);
 
-    service_handle = GATTS_CreateService (gatt_cb.gatt_if , &uuid, 0, GATTP_MAX_ATTR_NUM, TRUE);
-    /* add Service Changed characteristic
-    */
-    uuid.uu.uuid16 = gatt_cb.gattp_attr.uuid = GATT_UUID_GATT_SRV_CHGD;
-    gatt_cb.gattp_attr.service_change = 0;
-    gatt_cb.gattp_attr.handle   =
-    gatt_cb.handle_of_h_r       = GATTS_AddCharacteristic(service_handle, &uuid, 0, GATT_CHAR_PROP_BIT_INDICATE);
+    bt_uuid_t service_uuid;
+    uuid_128_from_16(&service_uuid, UUID_SERVCLASS_GATT_SERVER);
 
-    GATT_TRACE_DEBUG ("gatt_profile_db_init:  handle of service changed%d",
-                       gatt_cb.handle_of_h_r  );
+    bt_uuid_t char_uuid;
+    uuid_128_from_16(&char_uuid, GATT_UUID_GATT_SRV_CHGD);
 
-    /* start service
-    */
-    status = GATTS_StartService (gatt_cb.gatt_if, service_handle, GATTP_TRANSPORT_SUPPORTED );
+    btgatt_db_element_t service[] = {
+        {.type = BTGATT_DB_PRIMARY_SERVICE, .uuid = service_uuid},
+        {.type = BTGATT_DB_CHARACTERISTIC, .uuid = char_uuid,
+            .properties = GATT_CHAR_PROP_BIT_INDICATE, .permissions = 0}
+    };
 
-    GATT_TRACE_DEBUG ("gatt_profile_db_init:  gatt_if=%d   start status%d",
-                       gatt_cb.gatt_if,  status);
+    GATTS_AddService(gatt_cb.gatt_if, service, sizeof(service)/sizeof(btgatt_db_element_t));
+
+    service_handle = service[0].attribute_handle;
+    gatt_cb.handle_of_h_r = service[1].attribute_handle;
+
+    GATT_TRACE_ERROR("gatt_profile_db_init:  gatt_if=%d", gatt_cb.gatt_if);
 }
 
 /*******************************************************************************
