@@ -18,11 +18,11 @@
 #include "base/memory/weak_ptr.h"
 #include "base/threading/thread.h"
 #include "base/time/time.h"
+#include "dual_mode_controller.h"
+#include "event_packet.h"
 #include "hci/include/bt_vendor_lib.h"
-#include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
-#include "vendor_libs/test_vendor_lib/include/event_packet.h"
-#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
-#include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
+#include "hci_transport.h"
+#include "test_channel_transport.h"
 
 #include <memory>
 

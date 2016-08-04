@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
-#include "vendor_libs/test_vendor_lib/include/command_packet.h"
+#include "hci_transport.h"
+#include "command_packet.h"
 
 #include "base/bind.h"
 #include "base/message_loop/message_loop.h"

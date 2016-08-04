@@ -28,10 +28,10 @@ extern "C" {
 #include "base/memory/weak_ptr.h"
 #include "base/message_loop/message_loop.h"
 #include "base/time/time.h"
-#include "vendor_libs/test_vendor_lib/include/command_packet.h"
-#include "vendor_libs/test_vendor_lib/include/event_packet.h"
-#include "vendor_libs/test_vendor_lib/include/packet.h"
-#include "vendor_libs/test_vendor_lib/include/packet_stream.h"
+#include "command_packet.h"
+#include "event_packet.h"
+#include "packet.h"
+#include "packet_stream.h"
 
 namespace test_vendor_lib {
 
