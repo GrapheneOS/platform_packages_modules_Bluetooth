@@ -1054,7 +1054,7 @@ static void gattClientExecuteWriteNative(JNIEnv* env, jobject object,
 }
 
 static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
-    jint conn_id, jint handle, jint write_type, jint auth_req, jbyteArray value)
+    jint conn_id, jint handle, jint auth_req, jbyteArray value)
 {
     if (!sGattIf) return;
 
@@ -1070,7 +1070,7 @@ static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
     std::vector<uint8_t> vect_val(p_value, p_value + len);
     env->ReleaseByteArrayElements(value, p_value, 0);
 
-    sGattIf->client->write_descriptor(conn_id, handle, write_type, auth_req,
+    sGattIf->client->write_descriptor(conn_id, handle, auth_req,
                                       std::move(vect_val));
 }
 
@@ -1684,7 +1684,7 @@ static JNINativeMethod sMethods[] = {
     {"gattClientReadCharacteristicNative", "(III)V", (void *) gattClientReadCharacteristicNative},
     {"gattClientReadDescriptorNative", "(III)V", (void *) gattClientReadDescriptorNative},
     {"gattClientWriteCharacteristicNative", "(IIII[B)V", (void *) gattClientWriteCharacteristicNative},
-    {"gattClientWriteDescriptorNative", "(IIII[B)V", (void *) gattClientWriteDescriptorNative},
+    {"gattClientWriteDescriptorNative", "(III[B)V", (void *) gattClientWriteDescriptorNative},
     {"gattClientExecuteWriteNative", "(IZ)V", (void *) gattClientExecuteWriteNative},
     {"gattClientRegisterForNotificationsNative", "(ILjava/lang/String;IZ)V", (void *) gattClientRegisterForNotificationsNative},
     {"gattClientReadRemoteRssiNative", "(ILjava/lang/String;)V", (void *) gattClientReadRemoteRssiNative},
