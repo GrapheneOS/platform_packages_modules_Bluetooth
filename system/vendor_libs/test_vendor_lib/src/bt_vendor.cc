@@ -80,7 +80,35 @@ static int TestVendorOp(bt_vendor_opcode_t opcode, void* param) {
 
     case BT_VND_OP_FW_CFG:
       LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_FW_CFG");
-      manager->GetVendorCallbacks().fwcfg_cb(BT_VND_OP_RESULT_FAIL);
+      manager->GetVendorCallbacks().fwcfg_cb(BT_VND_OP_RESULT_SUCCESS);
+      return -1;
+
+    case BT_VND_OP_SCO_CFG:
+      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SCO_CFG");
+      manager->GetVendorCallbacks().scocfg_cb(BT_VND_OP_RESULT_SUCCESS);
+      return -1;
+
+    case BT_VND_OP_GET_LPM_IDLE_TIMEOUT:
+      LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_SCO_CFG");
+      *((uint32_t*)param) = 1000;
+      return 0;
+
+    case BT_VND_OP_LPM_SET_MODE:
+      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_SET_MODE");
+      manager->GetVendorCallbacks().lpm_cb(BT_VND_OP_RESULT_SUCCESS);
+      return -1;
+
+    case BT_VND_OP_LPM_WAKE_SET_STATE:
+      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_WAKE_SET_STATE");
+      return -1;
+
+    case BT_VND_OP_SET_AUDIO_STATE:
+      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SET_AUDIO_STATE");
+      return -1;
+
+    case BT_VND_OP_EPILOG:
+      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_EPILOG");
+      manager->GetVendorCallbacks().epilog_cb(BT_VND_OP_RESULT_SUCCESS);
       return -1;
 
     default:
