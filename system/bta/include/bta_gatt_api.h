@@ -797,7 +797,6 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
 **
 ** Parameters       conn_id - connection ID
 **                  handle - descriptor handle to write.
-**                  write_type - type of write.
 **                  value - the value to be written.
 **
 ** Returns          None
@@ -805,7 +804,6 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
 *******************************************************************************/
 void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
                                uint16_t handle,
-                               tBTA_GATTC_WRITE_TYPE  write_type,
                                vector<uint8_t> value,
                                tBTA_GATT_AUTH_REQ auth_req,
                                GATT_WRITE_OP_CB callback,
