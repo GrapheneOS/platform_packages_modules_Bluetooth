@@ -362,6 +362,16 @@ class DualModeController {
   void HciLeSetRandomAddress(const vector<uint8_t>& args);
 
   // OGF: 0x0008
+  // OCF: 0x0006
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.5
+  void HciLeSetAdvertisingParameters(const vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x0008
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.7
+  void HciLeSetAdvertisingData(const vector<uint8_t>& args);
+
+  // OGF: 0x0008
   // OCF: 0x000B
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.10
   void HciLeSetScanParameters(const vector<uint8_t>& args);

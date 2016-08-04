@@ -135,6 +135,8 @@ DualModeController::DualModeController()
   SET_HANDLER(HCI_BLE_READ_BUFFER_SIZE, HciLeReadBufferSize);
   SET_HANDLER(HCI_BLE_READ_LOCAL_SPT_FEAT, HciLeReadLocalSupportedFeatures);
   SET_HANDLER(HCI_BLE_WRITE_RANDOM_ADDR, HciLeSetRandomAddress);
+  SET_HANDLER(HCI_BLE_WRITE_ADV_DATA, HciLeSetAdvertisingData);
+  SET_HANDLER(HCI_BLE_WRITE_ADV_PARAMS, HciLeSetAdvertisingParameters);
   SET_HANDLER(HCI_BLE_WRITE_SCAN_PARAMS, HciLeSetScanParameters);
   SET_HANDLER(HCI_BLE_WRITE_SCAN_ENABLE, HciLeSetScanEnable);
   SET_HANDLER(HCI_BLE_READ_WHITE_LIST_SIZE, HciLeReadWhiteListSize);
@@ -535,6 +537,16 @@ void DualModeController::HciLeSetRandomAddress(const vector<uint8_t>& args) {
   LogCommand("LE SetRandomAddress");
   le_random_address_ = args;
   SendCommandCompleteSuccess(HCI_BLE_WRITE_RANDOM_ADDR);
+}
+
+void DualModeController::HciLeSetAdvertisingParameters(const vector<uint8_t>& args){
+  LogCommand("LE SetAdvertisingParameters");
+  SendCommandCompleteSuccess(HCI_BLE_WRITE_ADV_PARAMS);
+}
+
+void DualModeController::HciLeSetAdvertisingData(const vector<uint8_t>& args){
+  LogCommand("LE SetAdvertisingData");
+  SendCommandCompleteSuccess(HCI_BLE_WRITE_ADV_DATA);
 }
 
 void DualModeController::HciLeSetScanParameters(const vector<uint8_t>& args) {
