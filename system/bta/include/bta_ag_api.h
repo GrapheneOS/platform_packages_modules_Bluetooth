@@ -88,9 +88,9 @@ typedef uint8_t tBTA_AG_PARSE_MODE;
 #define BTA_AG_FAIL_RFCOMM      2 /* Open failed due to RFCOMM */
 #define BTA_AG_FAIL_RESOURCES   3 /* out of resources failure  */
 
-/*Status to disallow passing AT Events after BTIF */
-
+/* Status to disallow passing AT Events after BTIF */
 #define BTA_AG_DISALLOW_AT      5
+
 typedef uint8_t tBTA_AG_STATUS;
 
 /* handle values used with BTA_AgResult */
@@ -354,7 +354,7 @@ typedef struct
     char                str[BTA_AG_AT_MAX_LEN+1];
     uint16_t            num;
     uint8_t             idx;    /* call number used by CLCC and CHLD */
-    uint16_t            lidx;    /* long index, ex, HF indicator */
+    uint16_t            lidx;   /* long index, ex, HF indicator */
 } tBTA_AG_VAL;
 
 /* union of data associated with AG callback */
