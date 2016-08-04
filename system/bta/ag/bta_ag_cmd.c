@@ -901,6 +901,222 @@ static bool bta_ag_parse_biev_response(tBTA_AG_SCB *p_scb, tBTA_AG_VAL *val)
 
 /*******************************************************************************
 **
+** Function         bta_ag_find_empty_hf_ind)
+**
+** Description      This function returns the index of an empty HF indicator
+**                  structure.
+**
+** Returns          int : index of the empty HF indicator structure or
+**                            -1 if no empty indicator
+**                            is available.
+**
+*******************************************************************************/
+static int bta_ag_find_empty_hf_ind(tBTA_AG_SCB *p_scb)
+{
+    for (int index = 0; index < BTA_AG_MAX_NUM_PEER_HF_IND; index++)
+    {
+        if (p_scb->peer_hf_indicators[index].ind_id == 0)
+            return index;
+    }
+
+    return -1;
+}
+
+
+/*******************************************************************************
+**
+** Function         bta_ag_find_hf_ind_by_id
+**
+** Description      This function returns the index of the HF indicator
+**                  structure by the indicator id
+**
+** Returns          int : index of the HF indicator structure
+**                            -1 if the indicator
+**                            was not found.
+**
+*******************************************************************************/
+static int bta_ag_find_hf_ind_by_id(tBTA_AG_HF_IND *p_hf_ind, int size, uint32_t ind_id)
+{
+    for (int index = 0; index < size; index++)
+    {
+        if (p_hf_ind[index].ind_id == ind_id)
+            return index;
+    }
+
+    return -1;
+}
+
+/*******************************************************************************
+**
+** Function         bta_ag_parse_bind_set
+**
+** Description      Parse AT+BIND set command and save the indicators
+**
+** Returns          true if successful
+**
+*******************************************************************************/
+static bool bta_ag_parse_bind_set(tBTA_AG_SCB *p_scb, tBTA_AG_VAL val)
+{
+    char *p_token = strtok(val.str, ",");
+    if (p_token == NULL)
+        return false;
+
+    while (p_token != NULL)
+    {
+        uint16_t rcv_ind_id = atoi(p_token);
+        int index = bta_ag_find_empty_hf_ind(p_scb);
+        if (index == -1)
+        {
+            APPL_TRACE_WARNING("%s Can't save more indicators", __func__);
+            return false;
+        }
+
+        p_scb->peer_hf_indicators[index].ind_id = rcv_ind_id;
+        APPL_TRACE_DEBUG("%s peer_hf_ind[%d] = %d", __func__, index, rcv_ind_id);
+
+        p_token = strtok(NULL, ",");
+    }
+
+    return true;
+}
+
+/*******************************************************************************
+**
+** Function         bta_ag_bind_response
+**
+** Description      Send response for the AT+BIND command (HFP 1.7) received
+**                  from the headset based on the argument types.
+**
+** Returns          Void
+**
+*******************************************************************************/
+static void bta_ag_bind_response(tBTA_AG_SCB *p_scb, uint8_t arg_type)
+{
+    char buffer[BTA_AG_AT_MAX_LEN];
+    memset(buffer, 0, BTA_AG_AT_MAX_LEN);
+
+    if (arg_type == BTA_AG_AT_TEST)
+    {
+        int index = 0;
+        buffer[index++] = '(';
+
+        for (uint32_t i = 0; i < bta_ag_local_hf_ind_cfg[0].ind_id; i++)
+        {
+            if (bta_ag_local_hf_ind_cfg[i+1].is_supported == true)
+            {
+                /* Add ',' from second indicator */
+                if (index > 1)
+                    buffer[index++] = ',';
+                sprintf(&buffer[index++], "%d", bta_ag_local_hf_ind_cfg[i+1].ind_id);
+            }
+        }
+
+        buffer[index++] = ')';
+
+        bta_ag_send_result(p_scb, BTA_AG_RES_BIND, buffer, 0);
+        bta_ag_send_ok(p_scb);
+    }
+    else if (arg_type == BTA_AG_AT_READ)
+    {
+        char *p = buffer;
+
+        /* bta_ag_local_hf_ind_cfg[0].ind_id is used as BTA_AG_NUM_LOCAL_HF_IND */
+        for (uint32_t i = 0; i < bta_ag_local_hf_ind_cfg[0].ind_id; i++)
+        {
+            if (i == BTA_AG_MAX_NUM_LOCAL_HF_IND)
+            {
+                APPL_TRACE_WARNING("%s No space for more HF indicators", __func__);
+                break;
+            }
+
+            p_scb->local_hf_indicators[i].ind_id = bta_ag_local_hf_ind_cfg[i+1].ind_id;
+            p_scb->local_hf_indicators[i].is_supported = bta_ag_local_hf_ind_cfg[i+1].is_supported;
+            p_scb->local_hf_indicators[i].is_enable = bta_ag_local_hf_ind_cfg[i+1].is_enable;
+
+            int peer_index = bta_ag_find_hf_ind_by_id(p_scb->peer_hf_indicators,
+                                                    BTA_AG_MAX_NUM_PEER_HF_IND,
+                                                    p_scb->local_hf_indicators[i].ind_id);
+
+            /* Check whether local and peer sides support this indicator */
+            if (p_scb->local_hf_indicators[i].is_supported == true && peer_index != -1)
+            {
+                /* In the format of ind, state */
+                p += utl_itoa((uint16_t) p_scb->local_hf_indicators[i].ind_id, p);
+                *p++ = ',';
+                p += utl_itoa((uint16_t) p_scb->local_hf_indicators[i].is_enable, p);
+
+                bta_ag_send_result(p_scb, BTA_AG_RES_BIND, buffer, 0);
+
+                memset(buffer, 0, sizeof(buffer));
+                p = buffer;
+            } else {
+                /* If indicator is not supported, also set it to disable */
+                p_scb->local_hf_indicators[i].is_enable = false;
+            }
+        }
+
+        bta_ag_send_ok(p_scb);
+
+        /* If the service level connection wan't already open, now it's open */
+        if (!p_scb->svc_conn)
+            bta_ag_svc_conn_open(p_scb, NULL);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         bta_ag_parse_biev_response
+**
+** Description      Send response for AT+BIEV command (HFP 1.7) received from
+**                  the headset based on the argument types.
+**
+** Returns          true if the response was parsed successfully
+**
+*******************************************************************************/
+static bool bta_ag_parse_biev_response(tBTA_AG_SCB *p_scb, tBTA_AG_VAL *val)
+{
+    char *p_token = strtok(val->str, ",");
+    uint16_t rcv_ind_id = atoi(p_token);
+
+    p_token = strtok(NULL, ",");
+    uint16_t rcv_ind_val = atoi(p_token);
+
+    APPL_TRACE_DEBUG("%s BIEV indicator id %d, value %d", __func__, rcv_ind_id, rcv_ind_val);
+
+    /* Check whether indicator ID is valid or not */
+    if (rcv_ind_id > BTA_AG_NUM_LOCAL_HF_IND)
+    {
+        APPL_TRACE_WARNING("%s received invalid indicator id %d", __func__, rcv_ind_id);
+        return false;
+    }
+
+    /* Check this indicator is support or not and enabled or not */
+    int local_index = bta_ag_find_hf_ind_by_id(p_scb->local_hf_indicators,
+                                BTA_AG_MAX_NUM_LOCAL_HF_IND, rcv_ind_id);
+    if (local_index == -1 ||
+        p_scb->local_hf_indicators[local_index].is_supported != true ||
+        p_scb->local_hf_indicators[local_index].is_enable != true)
+    {
+        APPL_TRACE_WARNING("%s indicator id %d not supported or disabled", __func__, rcv_ind_id);
+        return false;
+    }
+
+    /* For each indicator ID, check whether the indicator value is in range */
+    if (rcv_ind_val < bta_ag_local_hf_ind_cfg[rcv_ind_id].ind_min_val ||
+        rcv_ind_val > bta_ag_local_hf_ind_cfg[rcv_ind_id].ind_max_val)
+    {
+        APPL_TRACE_WARNING("%s invalid ind_val %d", __func__, rcv_ind_val);
+        return false;
+    }
+
+    val->lidx = rcv_ind_id;
+    val->num = rcv_ind_val;
+
+    return true;
+}
+
+/*******************************************************************************
+**
 ** Function         bta_ag_at_hfp_cback
 **
 ** Description      AT command processing callback for HFP.
@@ -1100,7 +1316,38 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
             }
             break;
 
-        case BTA_AG_AT_CIND_EVT:
+        case BTA_AG_HF_CMD_BIND:
+            APPL_TRACE_DEBUG("%s BTA_AG_HF_CMD_BIND arg_type: %d", __func__, arg_type);
+            if (arg_type == BTA_AG_AT_SET)
+            {
+                if (bta_ag_parse_bind_set(p_scb, val))
+                {
+                    bta_ag_send_ok(p_scb);
+                } else {
+                    event = 0;/* don't call callback */
+                    bta_ag_send_error(p_scb, BTA_AG_ERR_INVALID_INDEX);
+                }
+            } else {
+                bta_ag_bind_response(p_scb, arg_type);
+
+                /* Need not pass this command beyond BTIF.*/
+                /* Stack handles it internally */
+                event = 0;/* don't call callback */
+            }
+            break;
+
+        case BTA_AG_HF_CMD_BIEV:
+            if (bta_ag_parse_biev_response(p_scb, &val))
+            {
+                bta_ag_send_ok(p_scb);
+            } else {
+                bta_ag_send_error(p_scb, BTA_AG_ERR_INVALID_INDEX);
+                /* don't call callback receiving invalid indicator */
+                event = 0;
+            }
+            break;
+
+        case BTA_AG_HF_CMD_CIND:
             if (arg_type == BTA_AG_AT_TEST)
             {
                 /* don't call callback */
