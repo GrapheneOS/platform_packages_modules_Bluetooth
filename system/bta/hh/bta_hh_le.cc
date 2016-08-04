@@ -190,9 +190,8 @@ static void gatt_execute_next_op(uint16_t conn_id) {
         const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, op.handle);
         act_write_cb = op.write_cb;
         act_write_cb_data = op.write_cb_data;
-        BTA_GATTC_WriteCharDescr(conn_id, p_desc->handle, BTA_GATTC_TYPE_WRITE,
-                                 std::move(op.value), BTA_GATT_AUTH_REQ_NONE,
-                                 gatt_write_op_finished, NULL);
+        BTA_GATTC_WriteCharDescr(conn_id, p_desc->handle, std::move(op.value),
+                                 BTA_GATT_AUTH_REQ_NONE, gatt_write_op_finished, NULL);
     }
 
     gatt_ops.pop_front();

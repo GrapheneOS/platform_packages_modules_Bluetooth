@@ -458,7 +458,6 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
 **
 ** Parameters       conn_id - connection ID
 **                  handle - descriptor hadle to write.
-**                  write_type - write type.
 **                  value - the value to be written.
 **
 ** Returns          None
@@ -466,7 +465,6 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
 *******************************************************************************/
 void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
                                uint16_t handle,
-                               tBTA_GATTC_WRITE_TYPE  write_type,
                                std::vector<uint8_t> value,
                                tBTA_GATT_AUTH_REQ auth_req,
                                GATT_WRITE_OP_CB callback,
@@ -479,7 +477,6 @@ void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
     p_buf->handle = handle;
-    p_buf->write_type = write_type;
     p_buf->write_cb = callback;
     p_buf->write_cb_data = cb_data;
 
