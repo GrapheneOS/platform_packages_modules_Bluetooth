@@ -809,15 +809,14 @@ void write_descr_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
 }
 
 bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
-                                        int write_type, int auth_req,
-                                        vector<uint8_t> value) {
+                                        int auth_req, vector<uint8_t> value) {
   CHECK_BTGATT_INIT();
 
   if (value.size() > BTGATT_MAX_ATTR_LEN)
     value.resize(BTGATT_MAX_ATTR_LEN);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharDescr, conn_id, handle,
-                               write_type, std::move(value), auth_req,
+                               std::move(value), auth_req,
                                write_descr_cb, nullptr));
 }
 
