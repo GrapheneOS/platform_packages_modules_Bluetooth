@@ -382,10 +382,10 @@ public class GattService extends ProfileService {
         }
 
         public void writeDescriptor(int clientIf, String address, int handle,
-                                    int writeType, int authReq, byte[] value) {
+                                    int authReq, byte[] value) {
             GattService service = getService();
             if (service == null) return;
-            service.writeDescriptor(clientIf, address, handle, writeType, authReq, value);
+            service.writeDescriptor(clientIf, address, handle, authReq, value);
         }
 
         public void beginReliableWrite(int clientIf, String address) {
@@ -1444,7 +1444,7 @@ public class GattService extends ProfileService {
     };
 
     void writeDescriptor(int clientIf, String address, int handle,
-                            int writeType, int authReq, byte[] value) {
+                            int authReq, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (VDBG) Log.d(TAG, "writeDescriptor() - address=" + address);
 
@@ -1459,7 +1459,7 @@ public class GattService extends ProfileService {
             return;
         }
 
-        gattClientWriteDescriptorNative(connId, handle, writeType, authReq, value);
+        gattClientWriteDescriptorNative(connId, handle, authReq, value);
     }
 
     void beginReliableWrite(int clientIf, String address) {
@@ -2149,7 +2149,7 @@ public class GattService extends ProfileService {
             int handle, int write_type, int auth_req, byte[] value);
 
     private native void gattClientWriteDescriptorNative(int conn_id, int handle,
-            int write_type, int auth_req, byte[] value);
+            int auth_req, byte[] value);
 
     private native void gattClientExecuteWriteNative(int conn_id, boolean execute);
 
