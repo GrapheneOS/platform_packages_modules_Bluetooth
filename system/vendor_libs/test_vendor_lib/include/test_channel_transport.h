@@ -73,7 +73,8 @@ class TestChannelTransport : public base::MessageLoopForIO::Watcher {
   bool enabled_;
   int port_;
 
-  DISALLOW_COPY_AND_ASSIGN(TestChannelTransport);
+  TestChannelTransport(const TestChannelTransport& cmdPckt) = delete;
+  TestChannelTransport& operator=(const TestChannelTransport& cmdPckt) = delete;
 };
 
 }  // namespace test_vendor_lib
