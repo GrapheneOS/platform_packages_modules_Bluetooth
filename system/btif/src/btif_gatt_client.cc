@@ -501,6 +501,9 @@ void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA *p_track_adv_data) {
 }
 
 void btm_read_rssi_cb(tBTM_RSSI_RESULTS *p_result) {
+  if (!p_result)
+    return;
+
   bt_bdaddr_t *addr = new bt_bdaddr_t;
   bdcpy(addr->address, p_result->rem_bda);
   CLI_CBACK_IN_JNI(read_remote_rssi_cb, rssi_request_client_if,
