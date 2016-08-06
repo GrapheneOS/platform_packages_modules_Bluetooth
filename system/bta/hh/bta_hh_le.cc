@@ -823,7 +823,7 @@ void bta_hh_le_deregister_input_notif(tBTA_HH_DEV_CB *p_dev_cb)
 {
     tBTA_HH_LE_RPT  *p_rpt = &p_dev_cb->hid_srvc.report[0];
 
-    for (UINT8 i = 0; i < BTA_HH_LE_RPT_MAX; i++, p_rpt++)
+    for (uint8_t i = 0; i < BTA_HH_LE_RPT_MAX; i++, p_rpt++)
     {
         if (p_rpt->rpt_type == BTA_HH_RPTT_INPUT)
         {
