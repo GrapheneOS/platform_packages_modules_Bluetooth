@@ -82,7 +82,7 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
     if (bnep_register_with_l2cap ())
         return BNEP_SECURITY_FAIL;
 
-    bnep_cb.profile_registered  = TRUE;
+    bnep_cb.profile_registered  = true;
     return BNEP_SUCCESS;
 }
 
@@ -110,7 +110,7 @@ void BNEP_Deregister (void)
     bnep_cb.p_filter_ind_cb     = NULL;
     bnep_cb.p_mfilter_ind_cb    = NULL;
 
-    bnep_cb.profile_registered  = FALSE;
+    bnep_cb.profile_registered  = false;
     L2CA_Deregister (BT_PSM_BNEP);
 }
 
@@ -134,9 +134,9 @@ void BNEP_Deregister (void)
 tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
                            tBT_UUID *src_uuid,
                            tBT_UUID *dst_uuid,
-                           UINT16 *p_handle)
+                           uint16_t *p_handle)
 {
-    UINT16          cid;
+    uint16_t        cid;
     tBNEP_CONN      *p_bcb = bnepu_find_bcb_by_bd_addr (p_rem_bda);
 
     BNEP_TRACE_API ("BNEP_Connect()  BDA: %02x-%02x-%02x-%02x-%02x-%02x",
@@ -160,15 +160,15 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
     else
     {
         /* Backup current UUID values to restore if role change fails */
-        memcpy ((UINT8 *)&(p_bcb->prv_src_uuid), (UINT8 *)&(p_bcb->src_uuid), sizeof (tBT_UUID));
-        memcpy ((UINT8 *)&(p_bcb->prv_dst_uuid), (UINT8 *)&(p_bcb->dst_uuid), sizeof (tBT_UUID));
+        memcpy ((uint8_t *)&(p_bcb->prv_src_uuid), (uint8_t *)&(p_bcb->src_uuid), sizeof (tBT_UUID));
+        memcpy ((uint8_t *)&(p_bcb->prv_dst_uuid), (uint8_t *)&(p_bcb->dst_uuid), sizeof (tBT_UUID));
     }
 
     /* We are the originator of this connection */
     p_bcb->con_flags |= BNEP_FLAGS_IS_ORIG;
 
-    memcpy ((UINT8 *)&(p_bcb->src_uuid), (UINT8 *)src_uuid, sizeof (tBT_UUID));
-    memcpy ((UINT8 *)&(p_bcb->dst_uuid), (UINT8 *)dst_uuid, sizeof (tBT_UUID));
+    memcpy ((uint8_t *)&(p_bcb->src_uuid), (uint8_t *)src_uuid, sizeof (tBT_UUID));
+    memcpy ((uint8_t *)&(p_bcb->dst_uuid), (uint8_t *)dst_uuid, sizeof (tBT_UUID));
 
     if (p_bcb->con_state == BNEP_STATE_CONNECTED)
     {
@@ -178,8 +178,8 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
         BNEP_TRACE_API ("BNEP initiating security procedures for src uuid 0x%x",
             p_bcb->src_uuid.uu.uuid16);
 
-#if (defined (BNEP_DO_AUTH_FOR_ROLE_SWITCH) && BNEP_DO_AUTH_FOR_ROLE_SWITCH == TRUE)
-        btm_sec_mx_access_request (p_bcb->rem_bda, BT_PSM_BNEP, TRUE,
+#if (BNEP_DO_AUTH_FOR_ROLE_SWITCH == TRUE)
+        btm_sec_mx_access_request (p_bcb->rem_bda, BT_PSM_BNEP, true,
                                    BTM_SEC_PROTO_BNEP,
                                    bnep_get_uuid32(src_uuid),
                                    &bnep_sec_check_complete, p_bcb);
@@ -202,7 +202,7 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
         {
             BNEP_TRACE_ERROR ("BNEP - Originate failed");
             if (bnep_cb.p_conn_state_cb)
-                (*bnep_cb.p_conn_state_cb) (p_bcb->handle, p_bcb->rem_bda, BNEP_CONN_FAILED, FALSE);
+                (*bnep_cb.p_conn_state_cb) (p_bcb->handle, p_bcb->rem_bda, BNEP_CONN_FAILED, false);
             bnepu_release_bcb (p_bcb);
             return BNEP_CONN_FAILED;
         }
@@ -233,10 +233,10 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 **                  BNEP_WRONG_STATE            if the responce is not expected
 **
 *******************************************************************************/
-tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
+tBNEP_RESULT BNEP_ConnectResp (uint16_t handle, tBNEP_RESULT resp)
 {
     tBNEP_CONN      *p_bcb;
-    UINT16          resp_code = BNEP_SETUP_CONN_OK;
+    uint16_t        resp_code = BNEP_SETUP_CONN_OK;
 
     if ((!handle) || (handle > BNEP_MAX_CONNECTIONS))
         return (BNEP_WRONG_HANDLE);
@@ -267,18 +267,18 @@ tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
         p_bcb->con_state = BNEP_STATE_CONNECTED;
         p_bcb->con_flags &= (~BNEP_FLAGS_SETUP_RCVD);
 
-        memcpy ((UINT8 *)&(p_bcb->src_uuid), (UINT8 *)&(p_bcb->prv_src_uuid), sizeof (tBT_UUID));
-        memcpy ((UINT8 *)&(p_bcb->dst_uuid), (UINT8 *)&(p_bcb->prv_dst_uuid), sizeof (tBT_UUID));
+        memcpy ((uint8_t *)&(p_bcb->src_uuid), (uint8_t *)&(p_bcb->prv_src_uuid), sizeof (tBT_UUID));
+        memcpy ((uint8_t *)&(p_bcb->dst_uuid), (uint8_t *)&(p_bcb->prv_dst_uuid), sizeof (tBT_UUID));
     }
 
     /* Process remaining part of the setup message (extension headers) */
     if (p_bcb->p_pending_data)
     {
-        UINT8   extension_present = TRUE, *p, ext_type;
-        UINT16  rem_len;
+        uint8_t extension_present = true, *p, ext_type;
+        uint16_t rem_len;
 
         rem_len = p_bcb->p_pending_data->len;
-        p       = (UINT8 *)(p_bcb->p_pending_data + 1) + p_bcb->p_pending_data->offset;
+        p       = (uint8_t *)(p_bcb->p_pending_data + 1) + p_bcb->p_pending_data->offset;
         while (extension_present && p && rem_len)
         {
             ext_type = *p++;
@@ -289,7 +289,7 @@ tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
             if (ext_type)
                 break;
 
-            p = bnep_process_control_packet (p_bcb, p, &rem_len, TRUE);
+            p = bnep_process_control_packet (p_bcb, p, &rem_len, true);
         }
 
         osi_free_and_reset((void **)&p_bcb->p_pending_data);
@@ -310,7 +310,7 @@ tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
 **                  BNEP_WRONG_HANDLE           if no connection is not found
 **
 *******************************************************************************/
-tBNEP_RESULT BNEP_Disconnect (UINT16 handle)
+tBNEP_RESULT BNEP_Disconnect (uint16_t handle)
 {
     tBNEP_CONN      *p_bcb;
 
@@ -353,15 +353,15 @@ tBNEP_RESULT BNEP_Disconnect (UINT16 handle)
 **                  BNEP_SUCCESS            - If written successfully
 **
 *******************************************************************************/
-tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
-                            UINT8 *p_dest_addr,
+tBNEP_RESULT BNEP_WriteBuf (uint16_t handle,
+                            uint8_t *p_dest_addr,
                             BT_HDR *p_buf,
-                            UINT16 protocol,
-                            UINT8 *p_src_addr,
-                            BOOLEAN fw_ext_present)
+                            uint16_t protocol,
+                            uint8_t *p_src_addr,
+                            bool    fw_ext_present)
 {
     tBNEP_CONN      *p_bcb;
-    UINT8           *p_data;
+    uint8_t         *p_data;
 
     if ((!handle) || (handle > BNEP_MAX_CONNECTIONS))
     {
@@ -379,7 +379,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     }
 
     /* Check if the packet should be filtered out */
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
     if (bnep_is_packet_allowed (p_bcb, p_dest_addr, protocol, fw_ext_present, p_data) != BNEP_SUCCESS)
     {
         /*
@@ -388,8 +388,8 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
         */
         if (fw_ext_present)
         {
-            UINT8       ext, length;
-            UINT16      org_len, new_len;
+            uint8_t     ext, length;
+            uint16_t    org_len, new_len;
             /* parse the extension headers and findout the new packet len */
             org_len = p_buf->len;
             new_len = 0;
@@ -465,16 +465,16 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
 **                  BNEP_SUCCESS            - If written successfully
 **
 *******************************************************************************/
-tBNEP_RESULT  BNEP_Write (UINT16 handle,
-                          UINT8 *p_dest_addr,
-                          UINT8 *p_data,
-                          UINT16 len,
-                          UINT16 protocol,
-                          UINT8 *p_src_addr,
-                          BOOLEAN fw_ext_present)
+tBNEP_RESULT  BNEP_Write (uint16_t handle,
+                          uint8_t *p_dest_addr,
+                          uint8_t *p_data,
+                          uint16_t len,
+                          uint16_t protocol,
+                          uint8_t *p_src_addr,
+                          bool    fw_ext_present)
 {
     tBNEP_CONN   *p_bcb;
-    UINT8        *p;
+    uint8_t      *p;
 
     /* Check MTU size. Consider the possibility of having extension headers */
     if (len > BNEP_MTU_SIZE)
@@ -497,8 +497,8 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
         */
         if (fw_ext_present)
         {
-            UINT8       ext, length;
-            UINT16      org_len, new_len;
+            uint8_t     ext, length;
+            uint16_t    org_len, new_len;
             /* parse the extension headers and findout the new packet len */
             org_len = len;
             new_len = 0;
@@ -540,7 +540,7 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
 
     p_buf->len = len;
     p_buf->offset = BNEP_MINIMUM_OFFSET;
-    p = (UINT8 *)(p_buf + 1) + BNEP_MINIMUM_OFFSET;
+    p = (uint8_t *)(p_buf + 1) + BNEP_MINIMUM_OFFSET;
 
     memcpy (p, p_data, len);
 
@@ -571,12 +571,12 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
 **                  BNEP_SUCCESS                - if request sent successfully
 **
 *******************************************************************************/
-tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
-                                      UINT16 num_filters,
-                                      UINT16 *p_start_array,
-                                      UINT16 *p_end_array)
+tBNEP_RESULT BNEP_SetProtocolFilters (uint16_t handle,
+                                      uint16_t num_filters,
+                                      uint16_t *p_start_array,
+                                      uint16_t *p_end_array)
 {
-    UINT16          xx;
+    uint16_t        xx;
     tBNEP_CONN     *p_bcb;
 
     if ((!handle) || (handle > BNEP_MAX_CONNECTIONS))
@@ -630,12 +630,12 @@ tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
 **                  BNEP_SUCCESS                - if request sent successfully
 **
 *******************************************************************************/
-tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
-                                       UINT16 num_filters,
-                                       UINT8 *p_start_array,
-                                       UINT8 *p_end_array)
+tBNEP_RESULT BNEP_SetMulticastFilters (uint16_t handle,
+                                       uint16_t num_filters,
+                                       uint8_t *p_start_array,
+                                       uint8_t *p_end_array)
 {
-    UINT16          xx;
+    uint16_t        xx;
     tBNEP_CONN     *p_bcb;
 
     if ((!handle) || (handle > BNEP_MAX_CONNECTIONS))
@@ -682,7 +682,7 @@ tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-UINT8 BNEP_SetTraceLevel (UINT8 new_level)
+uint8_t BNEP_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         bnep_cb.trace_level = new_level;
@@ -703,9 +703,9 @@ UINT8 BNEP_SetTraceLevel (UINT8 new_level)
 **                  BNEP_WRONG_STATE        - if not in connected state
 **
 *******************************************************************************/
-tBNEP_RESULT BNEP_GetStatus (UINT16 handle, tBNEP_STATUS *p_status)
+tBNEP_RESULT BNEP_GetStatus (uint16_t handle, tBNEP_STATUS *p_status)
 {
-#if (defined (BNEP_SUPPORTS_STATUS_API) && BNEP_SUPPORTS_STATUS_API == TRUE)
+#if (BNEP_SUPPORTS_STATUS_API == TRUE)
     tBNEP_CONN     *p_bcb;
 
     if (!p_status)

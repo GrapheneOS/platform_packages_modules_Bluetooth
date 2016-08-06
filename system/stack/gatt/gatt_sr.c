@@ -25,7 +25,7 @@
 #include "bt_target.h"
 #include "bt_utils.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 #include <string.h>
 #include "gatt_int.h"
 #include "l2c_api.h"
@@ -43,10 +43,10 @@
 ** Returns          void
 **
 *******************************************************************************/
-UINT32 gatt_sr_enqueue_cmd (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 handle)
+uint32_t gatt_sr_enqueue_cmd (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t handle)
 {
     tGATT_SR_CMD   *p_cmd = &p_tcb->sr_cmd;
-    UINT32          trans_id = 0;
+    uint32_t        trans_id = 0;
 
     if ( (p_cmd->op_code == 0) ||
          (op_code == GATT_HANDLE_VALUE_CONF)) /* no pending request */
@@ -78,10 +78,10 @@ UINT32 gatt_sr_enqueue_cmd (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 handle)
 **
 ** Description      This function check the server command queue is empty or not.
 **
-** Returns          TRUE if empty, FALSE if there is pending command.
+** Returns          true if empty, false if there is pending command.
 **
 *******************************************************************************/
-BOOLEAN gatt_sr_cmd_empty (tGATT_TCB *p_tcb)
+bool    gatt_sr_cmd_empty (tGATT_TCB *p_tcb)
 {
     return(p_tcb->sr_cmd.op_code == 0);
 }
@@ -115,15 +115,15 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
 **
 ** Description      This function check the read multiple response.
 **
-** Returns          BOOLEAN if all replies have been received
+** Returns          bool    if all replies have been received
 **
 *******************************************************************************/
-static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
-                                       tGATTS_RSP *p_msg, UINT16 mtu)
+static bool    process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
+                                       tGATTS_RSP *p_msg, uint16_t mtu)
 {
-    UINT16          ii, total_len, len;
-    UINT8           *p;
-    BOOLEAN         is_overflow = FALSE;
+    uint16_t        ii, total_len, len;
+    uint8_t         *p;
+    bool            is_overflow = false;
 
     GATT_TRACE_DEBUG ("%s status=%d mtu=%d", __func__, status, mtu);
 
@@ -147,7 +147,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
             len = sizeof(BT_HDR) + L2CAP_MIN_OFFSET + mtu;
             p_buf = (BT_HDR *)osi_calloc(len);
             p_buf->offset = L2CAP_MIN_OFFSET;
-            p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+            p = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
             /* First byte in the response is the opcode */
             *p++ = GATT_RSP_READ_MULTI;
@@ -180,7 +180,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
                     {
                         /* just send the partial response for the overflow case */
                         len = p_rsp->attr_value.len - (total_len - mtu);
-                        is_overflow = TRUE;
+                        is_overflow = true;
                         GATT_TRACE_DEBUG ("multi read overflow available len=%d val_len=%d", len, p_rsp->attr_value.len );
                     }
                     else
@@ -231,16 +231,16 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
                 p_cmd->p_rsp_msg = p_buf;
             }
 
-            return(TRUE);
+            return(true);
         }
     }
     else    /* any handle read exception occurs, return error */
     {
-        return(TRUE);
+        return(true);
     }
 
     /* If here, still waiting */
-    return(FALSE);
+    return(false);
 }
 
 /*******************************************************************************
@@ -254,7 +254,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
 **
 *******************************************************************************/
 tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
-                                      UINT32 trans_id, UINT8 op_code,
+                                      uint32_t trans_id, uint8_t op_code,
                                       tGATT_STATUS status, tGATTS_RSP *p_msg)
 {
     tGATT_STATUS    ret_code = GATT_SUCCESS;
@@ -262,7 +262,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
 
     GATT_TRACE_DEBUG("gatt_sr_process_app_rsp gatt_if=%d", gatt_if);
 
-    gatt_sr_update_cback_cnt(p_tcb, gatt_if, FALSE, FALSE);
+    gatt_sr_update_cback_cnt(p_tcb, gatt_if, false, false);
 
     if (op_code == GATT_REQ_READ_MULTI)
     {
@@ -273,7 +273,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
     else
     {
         if (op_code == GATT_REQ_PREPARE_WRITE && status == GATT_SUCCESS)
-            gatt_sr_update_prep_cnt(p_tcb, gatt_if, TRUE, FALSE);
+            gatt_sr_update_prep_cnt(p_tcb, gatt_if, true, false);
 
         if (op_code == GATT_REQ_EXEC_WRITE && status != GATT_SUCCESS)
             gatt_sr_reset_cback_cnt(p_tcb);
@@ -285,7 +285,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
         {
             if (p_tcb->sr_cmd.p_rsp_msg == NULL)
             {
-                p_tcb->sr_cmd.p_rsp_msg = attp_build_sr_msg (p_tcb, (UINT8)(op_code + 1), (tGATT_SR_MSG *)p_msg);
+                p_tcb->sr_cmd.p_rsp_msg = attp_build_sr_msg (p_tcb, (uint8_t)(op_code + 1), (tGATT_SR_MSG *)p_msg);
             }
             else
             {
@@ -302,7 +302,7 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
         }
         else
         {
-            ret_code = gatt_send_error_rsp (p_tcb, status, op_code, p_tcb->sr_cmd.handle, FALSE);
+            ret_code = gatt_send_error_rsp (p_tcb, status, op_code, p_tcb->sr_cmd.handle, false);
         }
 
         gatt_dequeue_sr_cmd(p_tcb);
@@ -323,22 +323,22 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
+void gatt_process_exec_write_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
-    UINT8   *p = p_data, flag, i = 0;
-    UINT32  trans_id = 0;
+    uint8_t *p = p_data, flag, i = 0;
+    uint32_t trans_id = 0;
     tGATT_IF gatt_if;
-    UINT16  conn_id;
+    uint16_t conn_id;
 
     UNUSED(len);
 
-#if GATT_CONFORMANCE_TESTING == TRUE
+#if (GATT_CONFORMANCE_TESTING == TRUE)
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
         GATT_TRACE_DEBUG("Conformance tst: forced err rspv for Execute Write: error status=%d",
         gatt_cb.err_status);
 
-        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, gatt_cb.handle, FALSE);
+        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, gatt_cb.handle, false);
 
         return;
     }
@@ -373,7 +373,7 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
     else /* nothing needs to be executed , send response now */
     {
         GATT_TRACE_ERROR("gatt_process_exec_write_req: no prepare write pending");
-        gatt_send_error_rsp(p_tcb, GATT_ERROR, GATT_REQ_EXEC_WRITE, 0, FALSE);
+        gatt_send_error_rsp(p_tcb, GATT_ERROR, GATT_REQ_EXEC_WRITE, 0, false);
     }
 }
 
@@ -387,13 +387,13 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
+void gatt_process_read_multi_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
-    UINT32          trans_id;
-    UINT16          handle = 0, ll = len;
-    UINT8           *p = p_data, i_rcb;
+    uint32_t        trans_id;
+    uint16_t        handle = 0, ll = len;
+    uint8_t         *p = p_data, i_rcb;
     tGATT_STATUS    err = GATT_SUCCESS;
-    UINT8           sec_flag, key_size;
+    uint8_t         sec_flag, key_size;
 
     GATT_TRACE_DEBUG("gatt_process_read_multi_req" );
     p_tcb->sr_cmd.multi_req.num_handles = 0;
@@ -403,14 +403,14 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
                          &sec_flag,
                          &key_size);
 
-#if GATT_CONFORMANCE_TESTING == TRUE
+#if (GATT_CONFORMANCE_TESTING == TRUE)
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
         GATT_TRACE_DEBUG("Conformance tst: forced err rspvofr ReadMultiple: error status=%d", gatt_cb.err_status);
 
         STREAM_TO_UINT16(handle, p);
 
-        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, handle, FALSE);
+        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, handle, false);
 
         return;
     }
@@ -426,7 +426,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 
             /* check read permission */
             if ((err = gatts_read_attr_perm_check(   gatt_cb.sr_reg[i_rcb].p_db,
-                                                     FALSE,
+                                                     false,
                                                      handle,
                                                      sec_flag,
                                                      key_size))
@@ -490,7 +490,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 
     /* in theroy BUSY is not possible(should already been checked), protected check */
     if (err != GATT_SUCCESS && err != GATT_PENDING && err != GATT_BUSY)
-        gatt_send_error_rsp(p_tcb, err, op_code, handle, FALSE);
+        gatt_send_error_rsp(p_tcb, err, op_code, handle, false);
 }
 
 /*******************************************************************************
@@ -504,11 +504,11 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 **
 *******************************************************************************/
 static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_tcb,
-                                                    UINT8 op_code, UINT16 s_hdl,
-                                                    UINT16 e_hdl, UINT8 *p_data, tBT_UUID value)
+                                                    uint8_t op_code, uint16_t s_hdl,
+                                                    uint16_t e_hdl, uint8_t *p_data, tBT_UUID value)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
-    UINT8           handle_len =4, *p ;
+    uint8_t         handle_len =4, *p ;
     tGATT_SR_REG    *p_rcb;
     tGATT_SRV_LIST_INFO *p_list= &gatt_cb.srv_list_info;
     tGATT_SRV_LIST_ELEM  *p_srv=NULL;
@@ -516,7 +516,7 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
 
     UNUSED(p_data);
 
-    p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET;
 
     p_srv = p_list->p_first;
 
@@ -543,7 +543,7 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
 
                     if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
                     {
-                        *p ++ =  (UINT8)p_msg->offset; /* length byte */
+                        *p ++ =  (uint8_t)p_msg->offset; /* length byte */
                         p_msg->len ++;
                     }
                 }
@@ -592,18 +592,18 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
 ** Description      fill the find information response information in the given
 **                  buffer.
 **
-** Returns          TRUE: if data filled sucessfully.
-**                  FALSE: packet full, or format mismatch.
+** Returns          true: if data filled sucessfully.
+**                  false: packet full, or format mismatch.
 **
 *******************************************************************************/
-static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg, UINT16 *p_len,
-                                             UINT16 s_hdl, UINT16 e_hdl)
+static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg, uint16_t *p_len,
+                                             uint16_t s_hdl, uint16_t e_hdl)
 {
     tGATT_STATUS        status = GATT_NOT_FOUND;
-    UINT8               *p;
-    UINT16              len = *p_len;
+    uint8_t             *p;
+    uint16_t            len = *p_len;
     tGATT_ATTR        *p_attr = NULL;
-    UINT8               info_pair_len[2] = {4, 18};
+    uint8_t             info_pair_len[2] = {4, 18};
 
     if (!p_rcb->p_db || !p_rcb->p_db->p_attr_list)
         return status;
@@ -611,7 +611,7 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
     /* check the attribute database */
     p_attr = (tGATT_ATTR *) p_rcb->p_db->p_attr_list;
 
-    p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET + p_msg->len;
+    p = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET + p_msg->len;
 
     while (p_attr)
     {
@@ -677,14 +677,14 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
 ** Returns          void
 **
 *******************************************************************************/
-static tGATT_STATUS gatts_validate_packet_format(UINT8 op_code, UINT16 *p_len,
-                                                 UINT8 **p_data, tBT_UUID *p_uuid_filter,
-                                                 UINT16 *p_s_hdl, UINT16 *p_e_hdl)
+static tGATT_STATUS gatts_validate_packet_format(uint8_t op_code, uint16_t *p_len,
+                                                 uint8_t **p_data, tBT_UUID *p_uuid_filter,
+                                                 uint16_t *p_s_hdl, uint16_t *p_e_hdl)
 {
     tGATT_STATUS    reason = GATT_SUCCESS;
-    UINT16          uuid_len, s_hdl = 0, e_hdl = 0;
-    UINT16          len = *p_len;
-    UINT8           *p = *p_data;
+    uint16_t        uuid_len, s_hdl = 0, e_hdl = 0;
+    uint16_t        len = *p_len;
+    uint8_t         *p = *p_data;
 
     if (len >= 4)
     {
@@ -707,7 +707,7 @@ static tGATT_STATUS gatts_validate_packet_format(UINT8 op_code, UINT16 *p_len,
                 uuid_len = (op_code == GATT_REQ_FIND_TYPE_VALUE) ? 2 : len;
 
                 /* parse uuid now */
-                if (gatt_parse_uuid_from_cmd (p_uuid_filter, uuid_len, &p) == FALSE ||
+                if (gatt_parse_uuid_from_cmd (p_uuid_filter, uuid_len, &p) == false ||
                     p_uuid_filter->len == 0)
                 {
                     GATT_TRACE_DEBUG("UUID filter does not exsit");
@@ -741,13 +741,13 @@ static tGATT_STATUS gatts_validate_packet_format(UINT8 op_code, UINT16 *p_len,
 ** Returns          void
 **
 *******************************************************************************/
-void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
+void gatts_process_primary_service_req(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
-    UINT8           reason = GATT_INVALID_PDU;
-    UINT16          s_hdl = 0, e_hdl = 0;
+    uint8_t         reason = GATT_INVALID_PDU;
+    uint16_t        s_hdl = 0, e_hdl = 0;
     tBT_UUID        uuid, value, primary_service = {LEN_UUID_16, {GATT_UUID_PRI_SERVICE}};
     BT_HDR          *p_msg = NULL;
-    UINT16          msg_len = (UINT16)(sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET);
+    uint16_t        msg_len = (uint16_t)(sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET);
 
     memset (&value, 0, sizeof(tBT_UUID));
     reason = gatts_validate_packet_format(op_code, &len, &p_data, &uuid, &s_hdl, &e_hdl);
@@ -758,7 +758,7 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
         {
             if (op_code == GATT_REQ_FIND_TYPE_VALUE)
             {
-                if (gatt_parse_uuid_from_cmd(&value, len, &p_data) == FALSE)
+                if (gatt_parse_uuid_from_cmd(&value, len, &p_data) == false)
                     reason = GATT_INVALID_PDU;
             }
 
@@ -788,7 +788,7 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
     if (reason != GATT_SUCCESS)
     {
         osi_free(p_msg);
-        gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, FALSE);
+        gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, false);
     }
     else
         attp_send_sr_msg(p_tcb, p_msg);
@@ -805,10 +805,10 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
 ** Returns          void
 **
 *******************************************************************************/
-static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
+static void gatts_process_find_info(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
-    UINT8           reason = GATT_INVALID_PDU, *p;
-    UINT16          s_hdl = 0, e_hdl = 0, buf_len;
+    uint8_t         reason = GATT_INVALID_PDU, *p;
+    uint16_t        s_hdl = 0, e_hdl = 0, buf_len;
     BT_HDR          *p_msg = NULL;
     tGATT_SR_REG    *p_rcb;
     tGATT_SRV_LIST_INFO *p_list= &gatt_cb.srv_list_info;
@@ -818,12 +818,12 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 
     if (reason == GATT_SUCCESS)
     {
-        buf_len = (UINT16)(sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET);
+        buf_len = (uint16_t)(sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET);
 
         p_msg = (BT_HDR *)osi_calloc(buf_len);
         reason = GATT_NOT_FOUND;
 
-        p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+        p = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET;
         *p ++ = op_code + 1;
         p_msg->len = 2;
 
@@ -845,7 +845,7 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
             }
             p_srv = p_srv->p_next;
         }
-        *p = (UINT8)p_msg->offset;
+        *p = (uint8_t)p_msg->offset;
 
         p_msg->offset = L2CAP_MIN_OFFSET;
     }
@@ -853,7 +853,7 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
     if (reason != GATT_SUCCESS)
     {
         osi_free(p_msg);
-        gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, FALSE);
+        gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, false);
     }
     else
         attp_send_sr_msg(p_tcb, p_msg);
@@ -870,22 +870,22 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 ** Returns          void
 **
 *******************************************************************************/
-static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
+static void gatts_process_mtu_req (tGATT_TCB *p_tcb, uint16_t len, uint8_t *p_data)
 {
-    UINT16        mtu = 0;
-    UINT8         *p = p_data, i;
+    uint16_t      mtu = 0;
+    uint8_t       *p = p_data, i;
     BT_HDR        *p_buf;
-    UINT16   conn_id;
+    uint16_t conn_id;
 
     /* BR/EDR conenction, send error response */
     if (p_tcb->att_lcid != L2CAP_ATT_CID)
     {
-        gatt_send_error_rsp (p_tcb, GATT_REQ_NOT_SUPPORTED, GATT_REQ_MTU, 0, FALSE);
+        gatt_send_error_rsp (p_tcb, GATT_REQ_NOT_SUPPORTED, GATT_REQ_MTU, 0, false);
     }
     else if (len < GATT_MTU_REQ_MIN_LEN)
     {
         GATT_TRACE_ERROR("invalid MTU request PDU received.");
-        gatt_send_error_rsp (p_tcb, GATT_INVALID_PDU, GATT_REQ_MTU, 0, FALSE);
+        gatt_send_error_rsp (p_tcb, GATT_INVALID_PDU, GATT_REQ_MTU, 0, false);
     }
     else
     {
@@ -938,27 +938,27 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, UINT8 *p_data)
+void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
     tBT_UUID            uuid;
     tGATT_SR_REG        *p_rcb;
     size_t              msg_len = sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET;
-    UINT16              buf_len, s_hdl, e_hdl, err_hdl = 0;
+    uint16_t            buf_len, s_hdl, e_hdl, err_hdl = 0;
     BT_HDR              *p_msg = NULL;
     tGATT_STATUS        reason, ret;
-    UINT8               *p;
-    UINT8               sec_flag, key_size;
+    uint8_t             *p;
+    uint8_t             sec_flag, key_size;
     tGATT_SRV_LIST_INFO *p_list= &gatt_cb.srv_list_info;
     tGATT_SRV_LIST_ELEM  *p_srv=NULL;
 
     reason = gatts_validate_packet_format(op_code, &len, &p_data, &uuid, &s_hdl, &e_hdl);
 
-#if GATT_CONFORMANCE_TESTING == TRUE
+#if (GATT_CONFORMANCE_TESTING == TRUE)
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
         GATT_TRACE_DEBUG("Conformance tst: forced err rsp for ReadByType: error status=%d", gatt_cb.err_status);
 
-        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, s_hdl, FALSE);
+        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, s_hdl, false);
 
         return;
     }
@@ -967,7 +967,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
     if (reason == GATT_SUCCESS)
     {
         p_msg = (BT_HDR *)osi_calloc(msg_len);
-        p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+        p = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET;
 
         *p ++ = op_code + 1;
         /* reserve length byte */
@@ -1011,7 +1011,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
             }
             p_srv = p_srv->p_next;
         }
-        *p = (UINT8)p_msg->offset;
+        *p = (uint8_t)p_msg->offset;
         p_msg->offset = L2CAP_MIN_OFFSET;
     }
     if (reason != GATT_SUCCESS)
@@ -1020,7 +1020,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 
         /* in theroy BUSY is not possible(should already been checked), protected check */
         if (reason != GATT_PENDING && reason != GATT_BUSY)
-            gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, FALSE);
+            gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, false);
     }
     else
         attp_send_sr_msg(p_tcb, p_msg);
@@ -1037,16 +1037,16 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 ** Returns          void
 **
 *******************************************************************************/
-void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
-                              UINT8 op_code, UINT16 len, UINT8 *p_data,
+void gatts_process_write_req (tGATT_TCB *p_tcb, uint8_t i_rcb, uint16_t handle,
+                              uint8_t op_code, uint16_t len, uint8_t *p_data,
                               bt_gatt_db_attribute_type_t gatt_type)
 {
     tGATTS_DATA     sr_data;
-    UINT32          trans_id;
+    uint32_t        trans_id;
     tGATT_STATUS    status;
-    UINT8           sec_flag, key_size, *p = p_data;
+    uint8_t         sec_flag, key_size, *p = p_data;
     tGATT_SR_REG    *p_sreg;
-    UINT16          conn_id;
+    uint16_t        conn_id;
 
     memset(&sr_data, 0, sizeof(tGATTS_DATA));
 
@@ -1055,10 +1055,10 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
         case GATT_REQ_PREPARE_WRITE:
             if (len < 2) {
                 GATT_TRACE_ERROR("%s: Prepare write request was invalid - missing offset, sending error response", __func__);
-                gatt_send_error_rsp(p_tcb, GATT_INVALID_PDU, op_code, handle, FALSE);
+                gatt_send_error_rsp(p_tcb, GATT_INVALID_PDU, op_code, handle, false);
                 return;
             }
-            sr_data.write_req.is_prep = TRUE;
+            sr_data.write_req.is_prep = true;
             STREAM_TO_UINT16(sr_data.write_req.offset, p);
             len -= 2;
             /* fall through */
@@ -1072,7 +1072,7 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
         case GATT_CMD_WRITE:
         case GATT_REQ_WRITE:
             if (op_code == GATT_REQ_WRITE || op_code == GATT_REQ_PREPARE_WRITE)
-                sr_data.write_req.need_rsp = TRUE;
+                sr_data.write_req.need_rsp = true;
             sr_data.write_req.handle = handle;
             sr_data.write_req.len = len;
             if (len != 0 && p != NULL)
@@ -1103,7 +1103,7 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
             p_sreg = &gatt_cb.sr_reg[i_rcb];
             conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_sreg->gatt_if);
 
-            UINT8 opcode = 0;
+            uint8_t opcode = 0;
             if (gatt_type == BTGATT_DB_DESCRIPTOR) {
                 opcode = GATTS_REQ_TYPE_WRITE_DESCRIPTOR;
             } else if (gatt_type == BTGATT_DB_CHARACTERISTIC) {
@@ -1130,7 +1130,7 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
     if (status != GATT_PENDING && status != GATT_BUSY &&
         (op_code == GATT_REQ_PREPARE_WRITE || op_code == GATT_REQ_WRITE))
     {
-        gatt_send_error_rsp (p_tcb, status, op_code, handle, FALSE);
+        gatt_send_error_rsp (p_tcb, status, op_code, handle, false);
     }
     return;
 }
@@ -1145,13 +1145,13 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
 ** Returns          void
 **
 *******************************************************************************/
-static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 op_code,
-                                   UINT16 handle, UINT16 len, UINT8 *p_data)
+static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, uint8_t op_code,
+                                   uint16_t handle, uint16_t len, uint8_t *p_data)
 {
     size_t          buf_len = sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET;
     tGATT_STATUS    reason;
-    UINT8           sec_flag, key_size, *p;
-    UINT16          offset = 0, value_len = 0;
+    uint8_t         sec_flag, key_size, *p;
+    uint16_t        offset = 0, value_len = 0;
     BT_HDR          *p_msg = (BT_HDR *)osi_calloc(buf_len);
 
     UNUSED(len);
@@ -1159,7 +1159,7 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
     if (op_code == GATT_REQ_READ_BLOB)
         STREAM_TO_UINT16(offset, p_data);
 
-    p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+    p = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET;
     *p ++ = op_code + 1;
     p_msg->len = 1;
     buf_len = p_tcb->payload_size - 1;
@@ -1187,7 +1187,7 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
 
         /* in theroy BUSY is not possible(should already been checked), protected check */
         if (reason != GATT_PENDING && reason != GATT_BUSY)
-            gatt_send_error_rsp (p_tcb, reason, op_code, handle, FALSE);
+            gatt_send_error_rsp (p_tcb, reason, op_code, handle, false);
     }
     else
         attp_send_sr_msg(p_tcb, p_msg);
@@ -1204,11 +1204,11 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
 ** Returns          void
 **
 *******************************************************************************/
-void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
-                                  UINT16 len, UINT8 *p_data)
+void gatts_process_attribute_req (tGATT_TCB *p_tcb, uint8_t op_code,
+                                  uint16_t len, uint8_t *p_data)
 {
-    UINT16          handle = 0;
-    UINT8           *p = p_data, i;
+    uint16_t        handle = 0;
+    uint8_t         *p = p_data, i;
     tGATT_SR_REG    *p_rcb = gatt_cb.sr_reg;
     tGATT_STATUS    status = GATT_INVALID_HANDLE;
     tGATT_ATTR    *p_attr;
@@ -1224,13 +1224,13 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
         len -= 2;
     }
 
-#if GATT_CONFORMANCE_TESTING == TRUE
+#if (GATT_CONFORMANCE_TESTING == TRUE)
     gatt_cb.handle = handle;
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
     {
         GATT_TRACE_DEBUG("Conformance tst: forced err rsp: error status=%d", gatt_cb.err_status);
 
-        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, handle, FALSE);
+        gatt_send_error_rsp (p_tcb, gatt_cb.err_status, gatt_cb.req_op_code, handle, false);
 
         return;
     }
@@ -1276,7 +1276,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
     }
 
     if (status != GATT_SUCCESS && op_code != GATT_CMD_WRITE && op_code != GATT_SIGN_CMD_WRITE)
-        gatt_send_error_rsp (p_tcb, status, op_code, handle, FALSE);
+        gatt_send_error_rsp (p_tcb, status, op_code, handle, false);
 }
 
 /*******************************************************************************
@@ -1297,8 +1297,8 @@ static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
 
     if ((p_buf = gatt_is_bda_in_the_srv_chg_clt_list(p_tcb->peer_bda)) != NULL)
     {
-        GATT_TRACE_DEBUG("NV update set srv chg = FALSE");
-        p_buf->srv_changed = FALSE;
+        GATT_TRACE_DEBUG("NV update set srv chg = false");
+        p_buf->srv_changed = false;
         memcpy(&req.srv_chg, p_buf, sizeof(tGATTS_SRV_CHG));
         if (gatt_cb.cb_info.p_srv_chg_callback)
             (*gatt_cb.cb_info.p_srv_chg_callback)(GATTS_SRV_CHG_CMD_UPDATE_CLIENT,&req, NULL);
@@ -1337,13 +1337,13 @@ static void gatts_chk_pending_ind(tGATT_TCB *p_tcb )
 **
 ** Description      This function process the Indication ack
 **
-** Returns          TRUE continue to process the indication ack by the aaplication
+** Returns          true continue to process the indication ack by the aaplication
 **                  if the ACk is not a Service Changed Indication Ack
 **
 *******************************************************************************/
-static BOOLEAN gatts_proc_ind_ack(tGATT_TCB *p_tcb, UINT16 ack_handle)
+static bool    gatts_proc_ind_ack(tGATT_TCB *p_tcb, uint16_t ack_handle)
 {
-    BOOLEAN continue_processing = TRUE;
+    bool    continue_processing = true;
 
     GATT_TRACE_DEBUG ("gatts_proc_ind_ack ack handle=%d", ack_handle);
 
@@ -1351,7 +1351,7 @@ static BOOLEAN gatts_proc_ind_ack(tGATT_TCB *p_tcb, UINT16 ack_handle)
     {
         gatts_proc_srv_chg_ind_ack(p_tcb);
         /* there is no need to inform the application since srv chg is handled internally by GATT */
-        continue_processing = FALSE;
+        continue_processing = false;
     }
 
     gatts_chk_pending_ind(p_tcb);
@@ -1367,14 +1367,14 @@ static BOOLEAN gatts_proc_ind_ack(tGATT_TCB *p_tcb, UINT16 ack_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void gatts_process_value_conf(tGATT_TCB *p_tcb, UINT8 op_code)
+void gatts_process_value_conf(tGATT_TCB *p_tcb, uint8_t op_code)
 {
-    UINT16          handle = p_tcb->indicate_handle;
-    UINT32          trans_id;
-    UINT8           i;
+    uint16_t        handle = p_tcb->indicate_handle;
+    uint32_t        trans_id;
+    uint8_t         i;
     tGATT_SR_REG    *p_rcb = gatt_cb.sr_reg;
-    BOOLEAN         continue_processing;
-    UINT16          conn_id;
+    bool            continue_processing;
+    uint16_t        conn_id;
 
     alarm_cancel(p_tcb->conf_timer);
     if (GATT_HANDLE_IS_VALID(handle))
@@ -1413,8 +1413,8 @@ void gatts_process_value_conf(tGATT_TCB *p_tcb, UINT8 op_code)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_server_handle_client_req (tGATT_TCB *p_tcb, UINT8 op_code,
-                                    UINT16 len, UINT8 *p_data)
+void gatt_server_handle_client_req (tGATT_TCB *p_tcb, uint8_t op_code,
+                                    uint16_t len, uint8_t *p_data)
 {
     /* there is pending command, discard this one */
     if (!gatt_sr_cmd_empty(p_tcb) && op_code != GATT_HANDLE_VALUE_CONF)
@@ -1430,7 +1430,7 @@ void gatt_server_handle_client_req (tGATT_TCB *p_tcb, UINT8 op_code,
             op_code != GATT_SIGN_CMD_WRITE &&
             op_code != GATT_HANDLE_VALUE_CONF)
         {
-            gatt_send_error_rsp (p_tcb, GATT_INVALID_PDU, op_code, 0, FALSE);
+            gatt_send_error_rsp (p_tcb, GATT_INVALID_PDU, op_code, 0, false);
         }
         /* otherwise, ignore the pkt */
     }

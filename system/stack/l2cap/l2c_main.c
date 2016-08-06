@@ -45,12 +45,12 @@ extern fixed_queue_t *btu_general_alarm_queue;
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len);
+static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len);
 
 /********************************************************************************/
 /*                 G L O B A L      L 2 C A P       D A T A                     */
 /********************************************************************************/
-#if L2C_DYNAMIC_MEMORY == FALSE
+#if (L2C_DYNAMIC_MEMORY == FALSE)
 tL2C_CB l2cb;
 #endif
 
@@ -66,13 +66,13 @@ tL2C_CB l2cb;
 *******************************************************************************/
 void l2c_rcv_acl_data (BT_HDR *p_msg)
 {
-    UINT8       *p = (UINT8 *)(p_msg + 1) + p_msg->offset;
-    UINT16      handle, hci_len;
-    UINT8       pkt_type;
+    uint8_t     *p = (uint8_t *)(p_msg + 1) + p_msg->offset;
+    uint16_t    handle, hci_len;
+    uint8_t     pkt_type;
     tL2C_LCB    *p_lcb;
     tL2C_CCB    *p_ccb = NULL;
-    UINT16      l2cap_len, rcv_cid, psm;
-    UINT16      credit;
+    uint16_t    l2cap_len, rcv_cid, psm;
+    uint16_t    credit;
 
     /* Extract the handle */
     STREAM_TO_UINT16 (handle, p);
@@ -86,7 +86,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
         /* Find the LCB based on the handle */
         if ((p_lcb = l2cu_find_lcb_by_handle (handle)) == NULL)
         {
-            UINT8       cmd_code;
+            uint8_t     cmd_code;
 
             /* There is a slight possibility (specifically with USB) that we get an */
             /* L2CAP connection request before we get the HCI connection complete.  */
@@ -136,7 +136,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     STREAM_TO_UINT16 (l2cap_len, p);
     STREAM_TO_UINT16 (rcv_cid, p);
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
    /* for BLE channel, always notify connection when ACL data received on the link */
    if (p_lcb && p_lcb->transport == BT_TRANSPORT_LE && p_lcb->link_state != LST_DISCONNECTING)
       /* only process fixed channel data as channel open indication when link is not in disconnecting mode */
@@ -268,21 +268,21 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
+static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
 {
-    UINT8           *p_pkt_end, *p_next_cmd, *p_cfg_end, *p_cfg_start;
-    UINT8           cmd_code, cfg_code, cfg_len, id;
+    uint8_t         *p_pkt_end, *p_next_cmd, *p_cfg_end, *p_cfg_start;
+    uint8_t         cmd_code, cfg_code, cfg_len, id;
     tL2C_CONN_INFO  con_info;
     tL2CAP_CFG_INFO cfg_info;
-    UINT16          rej_reason, rej_mtu, lcid, rcid, info_type;
+    uint16_t        rej_reason, rej_mtu, lcid, rcid, info_type;
     tL2C_CCB        *p_ccb;
     tL2C_RCB        *p_rcb;
-    BOOLEAN         cfg_rej, pkt_size_rej = FALSE;
-    UINT16          cfg_rej_len, cmd_len;
-    UINT16          result;
+    bool            cfg_rej, pkt_size_rej = false;
+    uint16_t        cfg_rej_len, cmd_len;
+    uint16_t        result;
     tL2C_CONN_INFO  ci;
 
-#if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE)
     /* if l2cap command received in CID 1 on top of an LE link, ignore this command */
     if (p_lcb->transport == BT_TRANSPORT_LE)
         return;
@@ -295,7 +295,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
         ** L2cap packet.  If only responses in the packet, then it will be ignored.
         ** Here we simply mark the bad packet and decide which cmd ID to reject later
         */
-        pkt_size_rej = TRUE;
+        pkt_size_rej = true;
         L2CAP_TRACE_ERROR ("L2CAP SIG MTU Pkt Len Exceeded (672) -> pkt_len: %d", pkt_len);
     }
 
@@ -305,7 +305,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
     memset (&cfg_info, 0, sizeof(cfg_info));
 
     /* An L2CAP packet may contain multiple commands */
-    while (TRUE)
+    while (true)
     {
         /* Smallest command is 4 bytes */
         if ((p = p_next_cmd) > (p_pkt_end - 4))
@@ -368,7 +368,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             {
                 alarm_cancel(p_lcb->info_resp_timer);
 
-                p_lcb->w4_info_rsp = FALSE;
+                p_lcb->w4_info_rsp = false;
                 ci.status = HCI_SUCCESS;
                 memcpy (ci.bd_addr, p_lcb->remote_bd_addr, sizeof(BD_ADDR));
 
@@ -441,7 +441,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 
         case L2CAP_CMD_CONFIG_REQ:
             p_cfg_end = p + cmd_len;
-            cfg_rej = FALSE;
+            cfg_rej = false;
             cfg_rej_len = 0;
 
             STREAM_TO_UINT16 (lcid, p);
@@ -450,7 +450,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             p_cfg_start = p;
 
             cfg_info.flush_to_present = cfg_info.mtu_present = cfg_info.qos_present =
-                cfg_info.fcr_present = cfg_info.fcs_present = FALSE;
+                cfg_info.fcr_present = cfg_info.fcs_present = false;
 
             while (p < p_cfg_end)
             {
@@ -460,17 +460,17 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                 switch (cfg_code & 0x7F)
                 {
                 case L2CAP_CFG_TYPE_MTU:
-                    cfg_info.mtu_present = TRUE;
+                    cfg_info.mtu_present = true;
                     STREAM_TO_UINT16 (cfg_info.mtu, p);
                     break;
 
                 case L2CAP_CFG_TYPE_FLUSH_TOUT:
-                    cfg_info.flush_to_present = TRUE;
+                    cfg_info.flush_to_present = true;
                     STREAM_TO_UINT16 (cfg_info.flush_to, p);
                     break;
 
                 case L2CAP_CFG_TYPE_QOS:
-                    cfg_info.qos_present = TRUE;
+                    cfg_info.qos_present = true;
                     STREAM_TO_UINT8  (cfg_info.qos.qos_flags, p);
                     STREAM_TO_UINT8  (cfg_info.qos.service_type, p);
                     STREAM_TO_UINT32 (cfg_info.qos.token_rate, p);
@@ -481,7 +481,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                     break;
 
                 case L2CAP_CFG_TYPE_FCR:
-                    cfg_info.fcr_present = TRUE;
+                    cfg_info.fcr_present = true;
                     STREAM_TO_UINT8 (cfg_info.fcr.mode, p);
                     STREAM_TO_UINT8 (cfg_info.fcr.tx_win_sz, p);
                     STREAM_TO_UINT8 (cfg_info.fcr.max_transmit, p);
@@ -491,12 +491,12 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                     break;
 
                 case L2CAP_CFG_TYPE_FCS:
-                    cfg_info.fcs_present = TRUE;
+                    cfg_info.fcs_present = true;
                     STREAM_TO_UINT8 (cfg_info.fcs, p);
                     break;
 
                 case L2CAP_CFG_TYPE_EXT_FLOW:
-                    cfg_info.ext_flow_spec_present = TRUE;
+                    cfg_info.ext_flow_spec_present = true;
                     STREAM_TO_UINT8  (cfg_info.ext_flow_spec.id, p);
                     STREAM_TO_UINT8  (cfg_info.ext_flow_spec.stype, p);
                     STREAM_TO_UINT16 (cfg_info.ext_flow_spec.max_sdu_size, p);
@@ -513,14 +513,14 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                         if ((cfg_code & 0x80) == 0)
                         {
                             cfg_rej_len += cfg_len + L2CAP_CFG_OPTION_OVERHEAD;
-                            cfg_rej = TRUE;
+                            cfg_rej = true;
                         }
                     }
                     /* bad length; force loop exit */
                     else
                     {
                         p = p_cfg_end;
-                        cfg_rej = TRUE;
+                        cfg_rej = true;
                     }
                     break;
                 }
@@ -531,7 +531,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                 p_ccb->remote_id = id;
                 if (cfg_rej)
                 {
-                    l2cu_send_peer_config_rej (p_ccb, p_cfg_start, (UINT16) (cmd_len - L2CAP_CONFIG_REQ_LEN), cfg_rej_len);
+                    l2cu_send_peer_config_rej (p_ccb, p_cfg_start, (uint16_t) (cmd_len - L2CAP_CONFIG_REQ_LEN), cfg_rej_len);
                 }
                 else
                 {
@@ -552,7 +552,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             STREAM_TO_UINT16 (cfg_info.result, p);
 
             cfg_info.flush_to_present = cfg_info.mtu_present = cfg_info.qos_present =
-                cfg_info.fcr_present = cfg_info.fcs_present = FALSE;
+                cfg_info.fcr_present = cfg_info.fcs_present = false;
 
             while (p < p_cfg_end)
             {
@@ -562,17 +562,17 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                 switch (cfg_code & 0x7F)
                 {
                 case L2CAP_CFG_TYPE_MTU:
-                    cfg_info.mtu_present = TRUE;
+                    cfg_info.mtu_present = true;
                     STREAM_TO_UINT16 (cfg_info.mtu, p);
                     break;
 
                 case L2CAP_CFG_TYPE_FLUSH_TOUT:
-                    cfg_info.flush_to_present = TRUE;
+                    cfg_info.flush_to_present = true;
                     STREAM_TO_UINT16 (cfg_info.flush_to, p);
                     break;
 
                 case L2CAP_CFG_TYPE_QOS:
-                    cfg_info.qos_present = TRUE;
+                    cfg_info.qos_present = true;
                     STREAM_TO_UINT8  (cfg_info.qos.qos_flags, p);
                     STREAM_TO_UINT8  (cfg_info.qos.service_type, p);
                     STREAM_TO_UINT32 (cfg_info.qos.token_rate, p);
@@ -583,7 +583,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                     break;
 
                 case L2CAP_CFG_TYPE_FCR:
-                    cfg_info.fcr_present = TRUE;
+                    cfg_info.fcr_present = true;
                     STREAM_TO_UINT8 (cfg_info.fcr.mode, p);
                     STREAM_TO_UINT8 (cfg_info.fcr.tx_win_sz, p);
                     STREAM_TO_UINT8 (cfg_info.fcr.max_transmit, p);
@@ -593,12 +593,12 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
                     break;
 
                 case L2CAP_CFG_TYPE_FCS:
-                    cfg_info.fcs_present = TRUE;
+                    cfg_info.fcs_present = true;
                     STREAM_TO_UINT8 (cfg_info.fcs, p);
                     break;
 
                 case L2CAP_CFG_TYPE_EXT_FLOW:
-                    cfg_info.ext_flow_spec_present = TRUE;
+                    cfg_info.ext_flow_spec_present = true;
                     STREAM_TO_UINT8  (cfg_info.ext_flow_spec.id, p);
                     STREAM_TO_UINT8  (cfg_info.ext_flow_spec.stype, p);
                     STREAM_TO_UINT16 (cfg_info.ext_flow_spec.max_sdu_size, p);
@@ -684,7 +684,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             if (p_lcb->w4_info_rsp)
             {
                 alarm_cancel(p_lcb->info_resp_timer);
-                p_lcb->w4_info_rsp = FALSE;
+                p_lcb->w4_info_rsp = false;
             }
 
             STREAM_TO_UINT16 (info_type, p);
@@ -758,7 +758,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 ** Returns          void
 **
 *******************************************************************************/
-void l2c_process_held_packets(BOOLEAN timed_out) {
+void l2c_process_held_packets(bool    timed_out) {
     if (list_is_empty(l2cb.rcv_pending_q))
         return;
 
@@ -800,7 +800,7 @@ void l2c_process_held_packets(BOOLEAN timed_out) {
 *******************************************************************************/
 void l2c_init (void)
 {
-    INT16  xx;
+    int16_t xx;
 
     memset (&l2cb, 0, sizeof (tL2C_CB));
     /* the psm is increased by 2 before being used */
@@ -835,17 +835,17 @@ void l2c_init (void)
     l2cb.l2cap_trace_level = BT_TRACE_LEVEL_NONE;    /* No traces */
 #endif
 
-#if L2CAP_CONFORMANCE_TESTING == TRUE
+#if (L2CAP_CONFORMANCE_TESTING == TRUE)
      /* Conformance testing needs a dynamic response */
     l2cb.test_info_resp = L2CAP_EXTFEA_SUPPORTED_MASK;
 #endif
 
     /* Number of ACL buffers to use for high priority channel */
-#if (defined(L2CAP_HIGH_PRI_CHAN_QUOTA_IS_CONFIGURABLE) && (L2CAP_HIGH_PRI_CHAN_QUOTA_IS_CONFIGURABLE == TRUE))
+#if (L2CAP_HIGH_PRI_CHAN_QUOTA_IS_CONFIGURABLE == TRUE)
     l2cb.high_pri_min_xmit_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA;
 #endif
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     l2cb.l2c_ble_fixed_chnls_mask =
          L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 #endif
@@ -864,7 +864,7 @@ void l2c_free(void) {
 void l2c_receive_hold_timer_timeout(UNUSED_ATTR void *data)
 {
     /* Update the timeouts in the hold queue */
-    l2c_process_held_packets(TRUE);
+    l2c_process_held_packets(true);
 }
 
 void l2c_ccb_timer_timeout(void *data)
@@ -894,12 +894,12 @@ void l2c_lcb_timer_timeout(void *data)
 **
 ** Description      API functions call this function to write data.
 **
-** Returns          L2CAP_DW_SUCCESS, if data accepted, else FALSE
+** Returns          L2CAP_DW_SUCCESS, if data accepted, else false
 **                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
 **                  L2CAP_DW_FAILED, if error
 **
 *******************************************************************************/
-UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
+uint8_t l2c_data_write (uint16_t cid, BT_HDR *p_data, uint16_t flags)
 {
     tL2C_CCB        *p_ccb;
 
@@ -913,7 +913,7 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
 
 #ifndef TESTER /* Tester may send any amount of data. otherwise sending message
                   bigger than mtu size of peer is a violation of protocol */
-    UINT16 mtu;
+    uint16_t mtu;
 
     if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
         mtu = p_ccb->peer_conn_cfg.mtu;

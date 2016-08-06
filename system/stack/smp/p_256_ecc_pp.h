@@ -60,6 +60,6 @@ void ECC_PointMult_Bin_NAF(Point *q, Point *p, DWORD *n, uint32_t keyLength);
 
 #define ECC_PointMult(q, p, n, keyLength)  ECC_PointMult_Bin_NAF(q, p, n, keyLength)
 
-void p_256_init_curve(UINT32 keyLength);
+void p_256_init_curve(uint32_t keyLength);
 
 

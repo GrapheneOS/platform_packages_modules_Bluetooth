@@ -38,21 +38,21 @@
 ** Description      This function sends SABME frame.
 **
 *******************************************************************************/
-void rfc_send_sabme (tRFC_MCB *p_mcb, UINT8 dlci)
+void rfc_send_sabme (tRFC_MCB *p_mcb, uint8_t dlci)
 {
-    UINT8   *p_data;
-    UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, TRUE);
+    uint8_t *p_data;
+    uint8_t cr = RFCOMM_CR(p_mcb->is_initiator, true);
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_data = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p_data = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     /* SABME frame, command, PF = 1, dlci */
     *p_data++ = RFCOMM_EA | cr | (dlci << RFCOMM_SHIFT_DLCI);
     *p_data++ = RFCOMM_SABME | RFCOMM_PF;
     *p_data++ = RFCOMM_EA | 0;
 
-    *p_data   = RFCOMM_SABME_FCS ((UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
+    *p_data   = RFCOMM_SABME_FCS ((uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
 
     p_buf->len = 4;
 
@@ -67,21 +67,21 @@ void rfc_send_sabme (tRFC_MCB *p_mcb, UINT8 dlci)
 ** Description      This function sends UA frame.
 **
 *******************************************************************************/
-void rfc_send_ua (tRFC_MCB *p_mcb, UINT8 dlci)
+void rfc_send_ua (tRFC_MCB *p_mcb, uint8_t dlci)
 {
-    UINT8   *p_data;
-    UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, FALSE);
+    uint8_t *p_data;
+    uint8_t cr = RFCOMM_CR(p_mcb->is_initiator, false);
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_data = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p_data = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     /* ua frame, response, PF = 1, dlci */
     *p_data++ = RFCOMM_EA | cr | (dlci << RFCOMM_SHIFT_DLCI);
     *p_data++ = RFCOMM_UA | RFCOMM_PF;
     *p_data++ = RFCOMM_EA | 0;
 
-    *p_data   = RFCOMM_UA_FCS ((UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
+    *p_data   = RFCOMM_UA_FCS ((uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
 
     p_buf->len = 4;
 
@@ -96,21 +96,21 @@ void rfc_send_ua (tRFC_MCB *p_mcb, UINT8 dlci)
 ** Description      This function sends DM frame.
 **
 *******************************************************************************/
-void rfc_send_dm (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN pf)
+void rfc_send_dm (tRFC_MCB *p_mcb, uint8_t dlci, bool    pf)
 {
-    UINT8   *p_data;
-    UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, FALSE);
+    uint8_t *p_data;
+    uint8_t cr = RFCOMM_CR(p_mcb->is_initiator, false);
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_data = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p_data = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     /* DM frame, response, PF = 1, dlci */
     *p_data++ = RFCOMM_EA | cr | (dlci << RFCOMM_SHIFT_DLCI);
     *p_data++ = RFCOMM_DM | ((pf) ? RFCOMM_PF : 0);
     *p_data++ = RFCOMM_EA | 0;
 
-    *p_data   = RFCOMM_DM_FCS ((UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
+    *p_data   = RFCOMM_DM_FCS ((uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
 
     p_buf->len = 4;
 
@@ -125,21 +125,21 @@ void rfc_send_dm (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN pf)
 ** Description      This function sends DISC frame.
 **
 *******************************************************************************/
-void rfc_send_disc (tRFC_MCB *p_mcb, UINT8 dlci)
+void rfc_send_disc (tRFC_MCB *p_mcb, uint8_t dlci)
 {
-    UINT8   *p_data;
-    UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, TRUE);
+    uint8_t *p_data;
+    uint8_t cr = RFCOMM_CR(p_mcb->is_initiator, true);
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_data = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p_data = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     /* DISC frame, command, PF = 1, dlci */
     *p_data++ = RFCOMM_EA | cr | (dlci << RFCOMM_SHIFT_DLCI);
     *p_data++ = RFCOMM_DISC | RFCOMM_PF;
     *p_data++ = RFCOMM_EA | 0;
 
-    *p_data   = RFCOMM_DISC_FCS ((UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
+    *p_data   = RFCOMM_DISC_FCS ((uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET, cr, dlci);
 
     p_buf->len = 4;
 
@@ -154,25 +154,25 @@ void rfc_send_disc (tRFC_MCB *p_mcb, UINT8 dlci)
 ** Description      This function sends UIH frame.
 **
 *******************************************************************************/
-void rfc_send_buf_uih (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
+void rfc_send_buf_uih (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
 {
-    UINT8   *p_data;
-    UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, TRUE);
-    UINT8   credits;
+    uint8_t *p_data;
+    uint8_t cr = RFCOMM_CR(p_mcb->is_initiator, true);
+    uint8_t credits;
 
     p_buf->offset -= RFCOMM_CTRL_FRAME_LEN;
     if (p_buf->len > 127)
         p_buf->offset--;
 
     if (dlci)
-        credits = (UINT8)p_buf->layer_specific;
+        credits = (uint8_t)p_buf->layer_specific;
     else
         credits = 0;
 
     if (credits)
         p_buf->offset--;
 
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     /* UIH frame, command, PF = 0, dlci */
     *p_data++ = RFCOMM_EA | cr | (dlci << RFCOMM_SHIFT_DLCI);
@@ -195,9 +195,9 @@ void rfc_send_buf_uih (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
         p_buf->len++;
     }
 
-    p_data  = (UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len++;
+    p_data  = (uint8_t *)(p_buf + 1) + p_buf->offset + p_buf->len++;
 
-    *p_data = RFCOMM_UIH_FCS ((UINT8 *)(p_buf + 1) + p_buf->offset, dlci);
+    *p_data = RFCOMM_UIH_FCS ((uint8_t *)(p_buf + 1) + p_buf->offset, dlci);
 
     if (dlci == RFCOMM_MX_DLCI)
     {
@@ -217,13 +217,13 @@ void rfc_send_buf_uih (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 ** Description      This function sends DLC Parameters Negotiation Frame.
 **
 *******************************************************************************/
-void rfc_send_pn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT16 mtu, UINT8 cl, UINT8 k)
+void rfc_send_pn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint16_t mtu, uint8_t cl, uint8_t k)
 {
-    UINT8    *p_data;
+    uint8_t  *p_data;
     BT_HDR   *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(is_command) | RFCOMM_MX_PN;
     *p_data++ = RFCOMM_EA | (RFCOMM_MX_PN_LEN << 1);
@@ -259,13 +259,13 @@ void rfc_send_pn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT16 mtu, U
 ** Description      This function sends Flow Control On Command.
 **
 *******************************************************************************/
-void rfc_send_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command)
+void rfc_send_fcon (tRFC_MCB *p_mcb, bool    is_command)
 {
-    UINT8   *p_data;
+    uint8_t *p_data;
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(is_command) | RFCOMM_MX_FCON;
     *p_data++ = RFCOMM_EA | (RFCOMM_MX_FCON_LEN << 1);
@@ -284,13 +284,13 @@ void rfc_send_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command)
 ** Description      This function sends Flow Control Off Command.
 **
 *******************************************************************************/
-void rfc_send_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command)
+void rfc_send_fcoff (tRFC_MCB *p_mcb, bool    is_command)
 {
-    UINT8   *p_data;
+    uint8_t *p_data;
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(is_command) | RFCOMM_MX_FCOFF;
     *p_data++ = RFCOMM_EA | (RFCOMM_MX_FCOFF_LEN << 1);
@@ -309,20 +309,20 @@ void rfc_send_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command)
 ** Description      This function sends Modem Status Command Frame.
 **
 *******************************************************************************/
-void rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
+void rfc_send_msc (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
                    tPORT_CTRL *p_pars)
 {
-    UINT8   *p_data;
-    UINT8   signals;
-    UINT8   break_duration;
-    UINT8   len;
+    uint8_t *p_data;
+    uint8_t signals;
+    uint8_t break_duration;
+    uint8_t len;
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     signals        = p_pars->modem_signal;
     break_duration = p_pars->break_signal;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     if (break_duration)
         len = RFCOMM_MX_MSC_LEN_WITH_BREAK;
@@ -360,13 +360,13 @@ void rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
 ** Description      This function sends Remote Line Status Command Frame.
 **
 *******************************************************************************/
-void rfc_send_rls (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT8 status)
+void rfc_send_rls (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint8_t status)
 {
-    UINT8   *p_data;
+    uint8_t *p_data;
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(is_command) | RFCOMM_MX_RLS;
     *p_data++ = RFCOMM_EA | (RFCOMM_MX_RLS_LEN << 1);
@@ -390,13 +390,13 @@ void rfc_send_rls (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT8 status
 *******************************************************************************/
 void rfc_send_nsc (tRFC_MCB *p_mcb)
 {
-    UINT8   *p_data;
+    uint8_t *p_data;
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
-    *p_data++ = RFCOMM_EA | RFCOMM_I_CR(FALSE) | RFCOMM_MX_NSC;
+    *p_data++ = RFCOMM_EA | RFCOMM_I_CR(false) | RFCOMM_MX_NSC;
     *p_data++ = RFCOMM_EA | (RFCOMM_MX_NSC_LEN << 1);
 
     *p_data++ =  rfc_cb.rfc.rx_frame.ea |
@@ -417,14 +417,14 @@ void rfc_send_nsc (tRFC_MCB *p_mcb)
 ** Description      This function sends Remote Port Negotiation Command
 **
 *******************************************************************************/
-void rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
-                   tPORT_STATE *p_pars, UINT16 mask)
+void rfc_send_rpn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
+                   tPORT_STATE *p_pars, uint16_t mask)
 {
-    UINT8    *p_data;
+    uint8_t  *p_data;
     BT_HDR   *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(is_command) | RFCOMM_MX_RPN;
 
@@ -467,21 +467,21 @@ void rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
 ** Description      This function sends Test frame.
 **
 *******************************************************************************/
-void rfc_send_test (tRFC_MCB *p_mcb, BOOLEAN is_command, BT_HDR *p_buf)
+void rfc_send_test (tRFC_MCB *p_mcb, bool    is_command, BT_HDR *p_buf)
 {
     /* Shift buffer to give space for header */
     if (p_buf->offset < (L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2))
     {
-        UINT8 *p_src  = (UINT8 *) (p_buf + 1) + p_buf->offset + p_buf->len - 1;
+        uint8_t *p_src  = (uint8_t *) (p_buf + 1) + p_buf->offset + p_buf->len - 1;
         BT_HDR *p_new_buf = (BT_HDR *) osi_malloc(p_buf->len + (L2CAP_MIN_OFFSET +
                             RFCOMM_MIN_OFFSET + 2 + sizeof(BT_HDR) + 1));
 
         p_new_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;
         p_new_buf->len = p_buf->len;
 
-        UINT8 *p_dest = (UINT8 *) (p_new_buf + 1) + p_new_buf->offset + p_new_buf->len - 1;
+        uint8_t *p_dest = (uint8_t *) (p_new_buf + 1) + p_new_buf->offset + p_new_buf->len - 1;
 
-        for (UINT16 xx = 0; xx < p_buf->len; xx++)
+        for (uint16_t xx = 0; xx < p_buf->len; xx++)
             *p_dest-- = *p_src--;
 
         osi_free(p_buf);
@@ -490,7 +490,7 @@ void rfc_send_test (tRFC_MCB *p_mcb, BOOLEAN is_command, BT_HDR *p_buf)
 
     /* Adjust offset by number of bytes we are going to fill */
     p_buf->offset -= 2;
-    UINT8 *p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    uint8_t *p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(is_command) | RFCOMM_MX_TEST;
     *p_data++ = RFCOMM_EA | (p_buf->len << 1);
@@ -507,20 +507,20 @@ void rfc_send_test (tRFC_MCB *p_mcb, BOOLEAN is_command, BT_HDR *p_buf)
 ** Description      This function sends a flow control credit in UIH frame.
 **
 *******************************************************************************/
-void rfc_send_credit(tRFC_MCB *p_mcb, UINT8 dlci, UINT8 credit)
+void rfc_send_credit(tRFC_MCB *p_mcb, uint8_t dlci, uint8_t credit)
 {
-    UINT8    *p_data;
-    UINT8    cr = RFCOMM_CR(p_mcb->is_initiator, TRUE);
+    uint8_t  *p_data;
+    uint8_t  cr = RFCOMM_CR(p_mcb->is_initiator, true);
     BT_HDR   *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
 
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | cr | (dlci << RFCOMM_SHIFT_DLCI);
     *p_data++ = RFCOMM_UIH | RFCOMM_PF;
     *p_data++ = RFCOMM_EA | 0;
     *p_data++ = credit;
-    *p_data   = RFCOMM_UIH_FCS ((UINT8 *)(p_buf + 1) + p_buf->offset, dlci);
+    *p_data   = RFCOMM_UIH_FCS ((uint8_t *)(p_buf + 1) + p_buf->offset, dlci);
 
     p_buf->len = 5;
 
@@ -535,12 +535,12 @@ void rfc_send_credit(tRFC_MCB *p_mcb, UINT8 dlci, UINT8 credit)
 ** Description      This function processes data packet received from L2CAP
 **
 *******************************************************************************/
-UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
+uint8_t rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
 {
-    UINT8     ead, eal, fcs;
-    UINT8     *p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
-    UINT8     *p_start = p_data;
-    UINT16    len;
+    uint8_t   ead, eal, fcs;
+    uint8_t   *p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
+    uint8_t   *p_start = p_data;
+    uint16_t  len;
 
     if (p_buf->len < RFCOMM_CTRL_FRAME_LEN)
     {
@@ -664,11 +664,11 @@ UINT8 rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
 *******************************************************************************/
 void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
 {
-    UINT8       *p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    uint8_t     *p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
     MX_FRAME    *p_rx_frame = &rfc_cb.rfc.rx_frame;
-    UINT16       length  = p_buf->len;
-    UINT8        ea, cr, mx_len;
-    BOOLEAN      is_command;
+    uint16_t     length  = p_buf->len;
+    uint8_t      ea, cr, mx_len;
+    bool         is_command;
 
     p_rx_frame->ea   = *p_data & RFCOMM_EA;
     p_rx_frame->cr   = (*p_data & RFCOMM_CR_MASK) >> RFCOMM_SHIFT_CR;
@@ -744,7 +744,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
         p_buf->len    -= 2;
 
         if (is_command)
-            rfc_send_test (p_mcb, FALSE, p_buf);
+            rfc_send_test (p_mcb, false, p_buf);
         else
             rfc_process_test_rsp (p_mcb, p_buf);
         return;
@@ -789,7 +789,7 @@ void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
         }
         else
         {
-            p_rx_frame->u.msc.break_present  = FALSE;
+            p_rx_frame->u.msc.break_present  = false;
             p_rx_frame->u.msc.break_duration = 0;
         }
         osi_free(p_buf);

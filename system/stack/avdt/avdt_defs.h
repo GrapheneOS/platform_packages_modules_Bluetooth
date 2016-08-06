@@ -178,26 +178,26 @@
     (m_pt) = *(p)++ & 0x7F;
 
 #define AVDT_MSG_BLD_HDR(p, lbl, pkt, msg) \
-    *(p)++ = (UINT8) ((lbl) << 4) | ((pkt) << 2) | (msg);
+    *(p)++ = (uint8_t) ((lbl) << 4) | ((pkt) << 2) | (msg);
 
 #define AVDT_MSG_BLD_DISC(p, seid, in_use, type, tsep) \
-    *(p)++ = (UINT8) (((seid) << 2) | ((in_use) << 1)); \
-    *(p)++ = (UINT8) (((type) << 4) | ((tsep) << 3));
+    *(p)++ = (uint8_t) (((seid) << 2) | ((in_use) << 1)); \
+    *(p)++ = (uint8_t) (((type) << 4) | ((tsep) << 3));
 
 #define AVDT_MSG_BLD_SIG(p, sig) \
-    *(p)++ = (UINT8) (sig);
+    *(p)++ = (uint8_t) (sig);
 
 #define AVDT_MSG_BLD_SEID(p, seid) \
-    *(p)++ = (UINT8) ((seid) << 2);
+    *(p)++ = (uint8_t) ((seid) << 2);
 
 #define AVDT_MSG_BLD_ERR(p, err) \
-    *(p)++ = (UINT8) (err);
+    *(p)++ = (uint8_t) (err);
 
 #define AVDT_MSG_BLD_PARAM(p, param) \
-    *(p)++ = (UINT8) (param);
+    *(p)++ = (uint8_t) (param);
 
 #define AVDT_MSG_BLD_NOSP(p, nosp) \
-    *(p)++ = (UINT8) (nosp);
+    *(p)++ = (uint8_t) (nosp);
 
 #endif /* AVDT_DEFS_H */
 

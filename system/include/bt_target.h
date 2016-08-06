@@ -791,14 +791,14 @@
 **
 ******************************************************************************/
 #ifndef SMP_INCLUDED
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 #define SMP_INCLUDED         TRUE
 #else
 #define SMP_INCLUDED         FALSE
 #endif
 #endif
 
-#if SMP_INCLUDED == TRUE && BLE_INCLUDED == FALSE
+#if (SMP_INCLUDED == TRUE && BLE_INCLUDED == FALSE)
 #error "can't have SMP without BLE"
 #endif
 

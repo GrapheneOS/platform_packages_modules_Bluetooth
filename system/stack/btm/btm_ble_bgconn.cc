@@ -105,8 +105,8 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
 
-    UINT32 scan_interval = !p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval;
-    UINT32 scan_window = !p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window;
+    uint32_t scan_interval = !p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval;
+    uint32_t scan_window = !p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window;
 
     BTM_TRACE_EVENT ("%s", __func__);
 
@@ -115,8 +115,8 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
 
     if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0)
     {
-        btsnd_hcic_ble_set_scan_params(p_inq->scan_type, (UINT16)scan_interval,
-                                       (UINT16)scan_window,
+        btsnd_hcic_ble_set_scan_params(p_inq->scan_type, (uint16_t)scan_interval,
+                                       (uint16_t)scan_window,
                                        btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
                                        scan_policy);
     }
@@ -133,10 +133,10 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
 **
 ** Description      This function load the device into controller white list
 *******************************************************************************/
-BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr)
+bool    btm_add_dev_to_controller (bool    to_add, BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (bd_addr);
-    BOOLEAN             started = FALSE;
+    bool                started = false;
     BD_ADDR             dummy_bda = {0};
 
     if (p_dev_rec != NULL && p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) {
@@ -162,7 +162,7 @@ BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr)
         }
     } else {
         /* not a known device, i.e. attempt to connect to device never seen before */
-        UINT8 addr_type = BTM_IS_PUBLIC_BDA(bd_addr) ? BLE_ADDR_PUBLIC : BLE_ADDR_RANDOM;
+        uint8_t addr_type = BTM_IS_PUBLIC_BDA(bd_addr) ? BLE_ADDR_PUBLIC : BLE_ADDR_RANDOM;
         started = btsnd_hcic_ble_remove_from_white_list(addr_type, bd_addr);
         if (to_add)
             started = btsnd_hcic_ble_add_white_list(addr_type, bd_addr);
@@ -177,11 +177,11 @@ BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr)
 **
 ** Description      execute the pending whitelist device operation(loading or removing)
 *******************************************************************************/
-BOOLEAN btm_execute_wl_dev_operation(void)
+bool    btm_execute_wl_dev_operation(void)
 {
     tBTM_BLE_WL_OP *p_dev_op = btm_cb.ble_ctr_cb.wl_op_q;
-    UINT8   i = 0;
-    BOOLEAN rt = TRUE;
+    uint8_t i = 0;
+    bool    rt = true;
 
     for (i = 0; i < BTM_BLE_MAX_BG_CONN_DEV_NUM && rt; i ++, p_dev_op ++)
     {
@@ -201,10 +201,10 @@ BOOLEAN btm_execute_wl_dev_operation(void)
 **
 ** Description      enqueue the pending whitelist device operation(loading or removing).
 *******************************************************************************/
-void btm_enq_wl_dev_operation(BOOLEAN to_add, BD_ADDR bd_addr)
+void btm_enq_wl_dev_operation(bool    to_add, BD_ADDR bd_addr)
 {
     tBTM_BLE_WL_OP *p_dev_op = btm_cb.ble_ctr_cb.wl_op_q;
-    UINT8   i = 0;
+    uint8_t i = 0;
 
     for (i = 0; i < BTM_BLE_MAX_BG_CONN_DEV_NUM; i ++, p_dev_op ++)
     {
@@ -218,7 +218,7 @@ void btm_enq_wl_dev_operation(BOOLEAN to_add, BD_ADDR bd_addr)
     }
     if (i != BTM_BLE_MAX_BG_CONN_DEV_NUM)
     {
-        p_dev_op->in_use = TRUE;
+        p_dev_op->in_use = true;
         p_dev_op->to_add = to_add;
         memcpy(p_dev_op->bd_addr, bd_addr, BD_ADDR_LEN);
     }
@@ -237,14 +237,14 @@ void btm_enq_wl_dev_operation(BOOLEAN to_add, BD_ADDR bd_addr)
 **                  the white list.
 **
 *******************************************************************************/
-BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr)
+bool    btm_update_dev_to_white_list(bool    to_add, BD_ADDR bd_addr)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
 
     if (to_add && p_cb->white_list_avail_size == 0)
     {
         BTM_TRACE_ERROR("%s Whitelist full, unable to add device", __func__);
-        return FALSE;
+        return false;
     }
 
     if (to_add)
@@ -255,7 +255,7 @@ BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr)
     btm_suspend_wl_activity(p_cb->wl_state);
     btm_enq_wl_dev_operation(to_add, bd_addr);
     btm_resume_wl_activity(p_cb->wl_state);
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -279,10 +279,10 @@ void btm_ble_clear_white_list (void)
 ** Description      Indicates white list cleared.
 **
 *******************************************************************************/
-void btm_ble_clear_white_list_complete(UINT8 *p_data, UINT16 evt_len)
+void btm_ble_clear_white_list_complete(uint8_t *p_data, uint16_t evt_len)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT8       status;
+    uint8_t     status;
     UNUSED(evt_len);
 
     BTM_TRACE_EVENT ("btm_ble_clear_white_list_complete");
@@ -299,7 +299,7 @@ void btm_ble_clear_white_list_complete(UINT8 *p_data, UINT16 evt_len)
 ** Description      Initialize white list size
 **
 *******************************************************************************/
-void btm_ble_white_list_init(UINT8 white_list_size)
+void btm_ble_white_list_init(uint8_t white_list_size)
 {
     BTM_TRACE_DEBUG("%s white_list_size = %d", __func__, white_list_size);
     btm_cb.ble_ctr_cb.white_list_avail_size = white_list_size;
@@ -312,7 +312,7 @@ void btm_ble_white_list_init(UINT8 white_list_size)
 ** Description      White list element added
 **
 *******************************************************************************/
-void btm_ble_add_2_white_list_complete(UINT8 status)
+void btm_ble_add_2_white_list_complete(uint8_t status)
 {
     BTM_TRACE_EVENT("%s status=%d", __func__, status);
     if (status == HCI_SUCCESS)
@@ -326,7 +326,7 @@ void btm_ble_add_2_white_list_complete(UINT8 status)
 ** Description      White list element removal complete
 **
 *******************************************************************************/
-void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len)
+void btm_ble_remove_from_white_list_complete(uint8_t *p, uint16_t evt_len)
 {
     UNUSED(evt_len);
     BTM_TRACE_EVENT ("%s status=%d", __func__, *p);
@@ -340,20 +340,20 @@ void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len)
 **
 ** Description      This function is to start/stop auto connection procedure.
 **
-** Parameters       start: TRUE to start; FALSE to stop.
+** Parameters       start: true to start; false to stop.
 **
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
+bool    btm_ble_start_auto_conn(bool    start)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
     BD_ADDR dummy_bda = {0};
-    BOOLEAN exec = TRUE;
-    UINT16 scan_int;
-    UINT16 scan_win;
-    UINT8 own_addr_type = p_cb->addr_mgnt_cb.own_addr_type;
-    UINT8 peer_addr_type = BLE_ADDR_PUBLIC;
+    bool    exec = true;
+    uint16_t scan_int;
+    uint16_t scan_win;
+    uint8_t own_addr_type = p_cb->addr_mgnt_cb.own_addr_type;
+    uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
 
     if (start)
     {
@@ -364,7 +364,7 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
 
             btm_execute_wl_dev_operation();
 
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
             btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_INIT);
 #endif
             scan_int = (p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF) ?
@@ -372,7 +372,7 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
             scan_win = (p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF) ?
                                           BTM_BLE_SCAN_SLOW_WIN_1 : p_cb->scan_win;
 
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
             if (btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE
                     && controller_get_interface()->supports_ble_privacy())
             {
@@ -381,21 +381,21 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
             }
 #endif
 
-            if (!btsnd_hcic_ble_create_ll_conn (scan_int,  /* UINT16 scan_int      */
-                                                scan_win,    /* UINT16 scan_win      */
-                                                0x01,                   /* UINT8 white_list     */
-                                                peer_addr_type,        /* UINT8 addr_type_peer */
+            if (!btsnd_hcic_ble_create_ll_conn (scan_int,  /* uint16_t scan_int      */
+                                                scan_win,    /* uint16_t scan_win      */
+                                                0x01,                   /* uint8_t white_list     */
+                                                peer_addr_type,        /* uint8_t addr_type_peer */
                                                 dummy_bda,              /* BD_ADDR bda_peer     */
-                                                own_addr_type,          /* UINT8 addr_type_own */
-                                                BTM_BLE_CONN_INT_MIN_DEF,   /* UINT16 conn_int_min  */
-                                                BTM_BLE_CONN_INT_MAX_DEF,   /* UINT16 conn_int_max  */
-                                                BTM_BLE_CONN_SLAVE_LATENCY_DEF,  /* UINT16 conn_latency  */
-                                                BTM_BLE_CONN_TIMEOUT_DEF,        /* UINT16 conn_timeout  */
-                                                0,                       /* UINT16 min_len       */
-                                                0))                      /* UINT16 max_len       */
+                                                own_addr_type,          /* uint8_t addr_type_own */
+                                                BTM_BLE_CONN_INT_MIN_DEF,   /* uint16_t conn_int_min  */
+                                                BTM_BLE_CONN_INT_MAX_DEF,   /* uint16_t conn_int_max  */
+                                                BTM_BLE_CONN_SLAVE_LATENCY_DEF,  /* uint16_t conn_latency  */
+                                                BTM_BLE_CONN_TIMEOUT_DEF,        /* uint16_t conn_timeout  */
+                                                0,                       /* uint16_t min_len       */
+                                                0))                      /* uint16_t max_len       */
             {
                 /* start auto connection failed */
-                exec =  FALSE;
+                exec =  false;
                 p_cb->wl_state &= ~BTM_BLE_WL_INIT;
             }
             else
@@ -405,7 +405,7 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
         }
         else
         {
-            exec = FALSE;
+            exec = false;
         }
     }
     else
@@ -419,7 +419,7 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
         else
         {
             BTM_TRACE_DEBUG("conn_st = %d, not in auto conn state, cannot stop", p_cb->conn_state);
-            exec = FALSE;
+            exec = false;
         }
     }
     return exec;
@@ -431,18 +431,18 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
 **
 ** Description      This function is to start/stop selective connection procedure.
 **
-** Parameters       start: TRUE to start; FALSE to stop.
+** Parameters       start: true to start; false to stop.
 **                  p_select_cback: callback function to return application
 **                                  selection.
 **
-** Returns          BOOLEAN: selective connectino procedure is started.
+** Returns          bool   : selective connectino procedure is started.
 **
 *******************************************************************************/
-BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cback)
+bool    btm_ble_start_select_conn(bool    start, tBTM_BLE_SEL_CBACK *p_select_cback)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT32 scan_int = p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
-    UINT32 scan_win = p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
+    uint32_t scan_int = p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
+    uint32_t scan_win = p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
 
     BTM_TRACE_EVENT ("%s", __func__);
 
@@ -468,7 +468,7 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cb
                                                     p_cb->addr_mgnt_cb.own_addr_type,
                                                     SP_ADV_WL))
                 {
-                    return FALSE;
+                    return false;
                 }
             }
             else
@@ -479,22 +479,22 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cb
                                                        p_cb->addr_mgnt_cb.own_addr_type,
                                                        SP_ADV_WL))
                 {
-                    return FALSE;
+                    return false;
                 }
             }
 
             if (!btm_ble_topology_check(BTM_BLE_STATE_PASSIVE_SCAN))
             {
                 BTM_TRACE_ERROR("peripheral device cannot initiate passive scan for a selective connection");
-                return FALSE;
+                return false;
             }
             else if (background_connections_pending())
             {
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
                 btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
 #endif
-                if (!btsnd_hcic_ble_set_scan_enable(TRUE, TRUE)) /* duplicate filtering enabled */
-                     return FALSE;
+                if (!btsnd_hcic_ble_set_scan_enable(true, true)) /* duplicate filtering enabled */
+                     return false;
 
                  /* mark up inquiry status flag */
                  p_cb->scan_activity |= BTM_LE_SELECT_CONN_ACTIVE;
@@ -504,7 +504,7 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cb
         else
         {
             BTM_TRACE_ERROR("scan active, can not start selective connection procedure");
-            return FALSE;
+            return false;
         }
     }
     else /* disable selective connection mode */
@@ -517,7 +517,7 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cb
         if (!BTM_BLE_IS_SCAN_ACTIVE(p_cb->scan_activity))
             btm_ble_stop_scan(); /* duplicate filtering enabled */
     }
-    return TRUE;
+    return true;
 }
 /*******************************************************************************
 **
@@ -525,11 +525,11 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cb
 **
 ** Description      This function is to start/stop selective connection procedure.
 **
-** Parameters       start: TRUE to start; FALSE to stop.
+** Parameters       start: true to start; false to stop.
 **                  p_select_cback: callback function to return application
 **                                  selection.
 **
-** Returns          BOOLEAN: selective connectino procedure is started.
+** Returns          bool   : selective connectino procedure is started.
 **
 *******************************************************************************/
 void btm_ble_initiate_select_conn(BD_ADDR bda)
@@ -554,16 +554,16 @@ void btm_ble_initiate_select_conn(BD_ADDR bda)
 ** Returns          none.
 **
 *******************************************************************************/
-BOOLEAN btm_ble_suspend_bg_conn(void)
+bool    btm_ble_suspend_bg_conn(void)
 {
     BTM_TRACE_EVENT ("%s", __func__);
 
     if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_AUTO)
-        return btm_ble_start_auto_conn(FALSE);
+        return btm_ble_start_auto_conn(false);
     else if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE)
-        return btm_ble_start_select_conn(FALSE, NULL);
+        return btm_ble_start_select_conn(false, NULL);
 
-    return FALSE;
+    return false;
 }
 /*******************************************************************************
 **
@@ -578,11 +578,11 @@ static void btm_suspend_wl_activity(tBTM_BLE_WL_STATE wl_state)
 {
     if (wl_state & BTM_BLE_WL_INIT)
     {
-        btm_ble_start_auto_conn(FALSE);
+        btm_ble_start_auto_conn(false);
     }
     if (wl_state & BTM_BLE_WL_SCAN)
     {
-        btm_ble_start_select_conn(FALSE, NULL);
+        btm_ble_start_select_conn(false, NULL);
     }
     if (wl_state & BTM_BLE_WL_ADV)
     {
@@ -621,18 +621,18 @@ static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state)
 ** Returns          none.
 **
 *******************************************************************************/
-BOOLEAN btm_ble_resume_bg_conn(void)
+bool    btm_ble_resume_bg_conn(void)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    BOOLEAN ret = FALSE;
+    bool    ret = false;
 
     if (p_cb->bg_conn_type != BTM_BLE_CONN_NONE)
     {
         if (p_cb->bg_conn_type == BTM_BLE_CONN_AUTO)
-            ret = btm_ble_start_auto_conn(TRUE);
+            ret = btm_ble_start_auto_conn(true);
 
         if (p_cb->bg_conn_type == BTM_BLE_CONN_SELECTIVE)
-            ret = btm_ble_start_select_conn(TRUE, btm_cb.ble_ctr_cb.p_select_cback);
+            ret = btm_ble_start_select_conn(true, btm_cb.ble_ctr_cb.p_select_cback);
     }
 
     return ret;
@@ -692,13 +692,13 @@ void btm_ble_enqueue_direct_conn_req(void *p_param)
 **
 ** Description      This function send the pending direct connection request in queue
 **
-** Returns          TRUE if started, FALSE otherwise
+** Returns          true if started, false otherwise
 **
 *******************************************************************************/
-BOOLEAN btm_send_pending_direct_conn(void)
+bool    btm_send_pending_direct_conn(void)
 {
     tBTM_BLE_CONN_REQ *p_req;
-    BOOLEAN     rt = FALSE;
+    bool        rt = false;
 
     p_req = (tBTM_BLE_CONN_REQ*)fixed_queue_try_dequeue(btm_cb.ble_ctr_cb.conn_pending_q);
     if (p_req != NULL) {

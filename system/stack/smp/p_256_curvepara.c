@@ -25,7 +25,7 @@
 #include <string.h>
 #include "p_256_ecc_pp.h"
 
-void p_256_init_curve(UINT32 keyLength)
+void p_256_init_curve(uint32_t keyLength)
 {
     elliptic_curve_t *ec;
 
@@ -45,7 +45,7 @@ void p_256_init_curve(UINT32 keyLength)
         memset(ec->omega, 0, KEY_LENGTH_DWORDS_P256);
         memset(ec->a, 0, KEY_LENGTH_DWORDS_P256);
 
-        ec->a_minus3 = TRUE;
+        ec->a_minus3 = true;
 
         //b
         ec->b[7] =  0x5ac635d8;

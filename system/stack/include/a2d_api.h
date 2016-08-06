@@ -89,7 +89,7 @@ extern "C" {
 #define A2D_BAD_CP_TYPE       0xE0  /* The requested CP Type is not supported. */
 #define A2D_BAD_CP_FORMAT     0xE1  /* The format of Content Protection Service Capability/Content Protection Scheme Dependent Data is not correct. */
 
-typedef UINT8 tA2D_STATUS;
+typedef uint8_t tA2D_STATUS;
 
 /* the return values from A2D_BitsSet() */
 #define A2D_SET_ONE_BIT         1   /* one and only one bit is set */
@@ -104,9 +104,9 @@ typedef UINT8 tA2D_STATUS;
  * to hold the result service search. */
 typedef struct
 {
-    UINT32              db_len;  /* Length, in bytes, of the discovery database */
-    UINT16              num_attr;/* The number of attributes in p_attrs */
-    UINT16             *p_attrs; /* The attributes filter. If NULL, A2DP API sets the attribute filter
+    uint32_t            db_len;  /* Length, in bytes, of the discovery database */
+    uint16_t            num_attr;/* The number of attributes in p_attrs */
+    uint16_t           *p_attrs; /* The attributes filter. If NULL, A2DP API sets the attribute filter
                                   * to be ATTR_ID_SERVICE_CLASS_ID_LIST, ATTR_ID_BT_PROFILE_DESC_LIST,
                                   * ATTR_ID_SUPPORTED_FEATURES, ATTR_ID_SERVICE_NAME and ATTR_ID_PROVIDER_NAME.
                                   * If not NULL, the input is taken as the filter. */
@@ -115,18 +115,18 @@ typedef struct
 /* This data type is used in tA2D_FIND_CBACK to report the result of the SDP discovery process. */
 typedef struct
 {
-    UINT16  service_len;    /* Length, in bytes, of the service name */
-    UINT16  provider_len;   /* Length, in bytes, of the provider name */
-    char *  p_service_name; /* Pointer the service name.  This character string may not be null terminated.
-                             * Use the service_len parameter to safely copy this string */
-    char *  p_provider_name;/* Pointer the provider name.  This character string may not be null terminated.
-                             * Use the provider_len parameter to safely copy this string */
-    UINT16  features;       /* Profile supported features */
-    UINT16  avdt_version;   /* AVDTP protocol version */
+    uint16_t service_len;    /* Length, in bytes, of the service name */
+    uint16_t provider_len;   /* Length, in bytes, of the provider name */
+    char *   p_service_name; /* Pointer the service name.  This character string may not be null terminated.
+                              * Use the service_len parameter to safely copy this string */
+    char *   p_provider_name;/* Pointer the provider name.  This character string may not be null terminated.
+                              * Use the provider_len parameter to safely copy this string */
+    uint16_t features;       /* Profile supported features */
+    uint16_t avdt_version;   /* AVDTP protocol version */
 } tA2D_Service;
 
 /* This is the callback to notify the result of the SDP discovery process. */
-typedef void (tA2D_FIND_CBACK)(BOOLEAN found, tA2D_Service * p_service);
+typedef void (tA2D_FIND_CBACK)(bool    found, tA2D_Service * p_service);
 
 
 /*****************************************************************************
@@ -162,8 +162,8 @@ typedef void (tA2D_FIND_CBACK)(BOOLEAN found, tA2D_Service * p_service);
 **                  A2D_FAIL if function execution failed.
 **
 ******************************************************************************/
-extern tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_provider_name,
-        UINT16 features, UINT32 sdp_handle);
+extern tA2D_STATUS A2D_AddRecord(uint16_t service_uuid, char *p_service_name, char *p_provider_name,
+        uint16_t features, uint32_t sdp_handle);
 
 /******************************************************************************
 **
@@ -200,7 +200,7 @@ extern tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char
 **                  A2D_FAIL if function execution failed.
 **
 ******************************************************************************/
-extern tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
+extern tA2D_STATUS A2D_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                                    tA2D_SDP_DB_PARAMS *p_db, tA2D_FIND_CBACK *p_cback);
 
 /******************************************************************************
@@ -224,7 +224,7 @@ extern tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **                  the input parameter is 0xff.
 **
 ******************************************************************************/
-extern UINT8 A2D_SetTraceLevel (UINT8 new_level);
+extern uint8_t A2D_SetTraceLevel (uint8_t new_level);
 
 /******************************************************************************
 ** Function         A2D_BitsSet
@@ -234,7 +234,7 @@ extern UINT8 A2D_SetTraceLevel (UINT8 new_level);
 **                  A2D_SET_ZERO_BIT, if all bits clear
 **                  A2D_SET_MULTL_BIT, if multiple bits are set
 ******************************************************************************/
-extern UINT8 A2D_BitsSet(UINT8 num);
+extern uint8_t A2D_BitsSet(uint8_t num);
 
 #ifdef __cplusplus
 }

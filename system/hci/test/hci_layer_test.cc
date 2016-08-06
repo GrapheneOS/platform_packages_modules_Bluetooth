@@ -402,7 +402,7 @@ STUB_FUNCTION(void, vendor_set_callback, (vendor_async_opcode_t opcode, UNUSED_A
 
 STUB_FUNCTION(int, vendor_send_command, (vendor_opcode_t opcode, void *param))
   DURING(start_up_async) {
-#if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
+#if (BT_CLEAN_TURN_ON_DISABLED == TRUE)
     AT_CALL(0) {
       EXPECT_EQ(VENDOR_CHIP_POWER_CONTROL, opcode);
       EXPECT_EQ(BT_VND_PWR_ON, *(int *)param);

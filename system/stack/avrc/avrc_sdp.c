@@ -28,17 +28,17 @@
 #include "avrc_int.h"
 
 #ifndef SDP_AVRCP_1_4
-#define SDP_AVRCP_1_4      TRUE
+#define SDP_AVRCP_1_4      true
 #endif
 
 #ifndef SDP_AVCTP_1_4
-#define SDP_AVCTP_1_4      TRUE
+#define SDP_AVCTP_1_4      true
 #endif
 
 /*****************************************************************************
 **  Global data
 *****************************************************************************/
-#if AVRC_DYNAMIC_MEMORY == FALSE
+#if (AVRC_DYNAMIC_MEMORY == FALSE)
 tAVRC_CB avrc_cb;
 #endif
 
@@ -57,7 +57,7 @@ tAVRC_CB avrc_cb;
 ** Returns          Nothing.
 **
 ******************************************************************************/
-static void avrc_sdp_cback(UINT16 status)
+static void avrc_sdp_cback(uint16_t status)
 {
     AVRC_TRACE_API("avrc_sdp_cback status: %d", status);
 
@@ -107,12 +107,12 @@ static void avrc_sdp_cback(UINT16 status)
 **                                    perform the service search.
 **
 ******************************************************************************/
-UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
+uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                 tAVRC_SDP_DB_PARAMS *p_db, tAVRC_FIND_CBACK *p_cback)
 {
     tSDP_UUID   uuid_list;
-    BOOLEAN     result = TRUE;
-    UINT16      a2d_attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, /* update AVRC_NUM_ATTR, if changed */
+    bool        result = true;
+    uint16_t    a2d_attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, /* update AVRC_NUM_ATTR, if changed */
                                    ATTR_ID_PROTOCOL_DESC_LIST,
                                    ATTR_ID_BT_PROFILE_DESC_LIST,
                                    ATTR_ID_SERVICE_NAME,
@@ -142,7 +142,7 @@ UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
     result = SDP_InitDiscoveryDb(p_db->p_db, p_db->db_len, 1, &uuid_list, p_db->num_attr,
                                  p_db->p_attrs);
 
-    if (result == TRUE)
+    if (result == true)
     {
         /* store service_uuid and discovery db pointer */
         avrc_cb.p_db = p_db->p_db;
@@ -191,17 +191,17 @@ UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **                  AVRC_NO_RESOURCES if not enough resources to build the SDP record.
 **
 ******************************************************************************/
-UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
-                char *p_provider_name, UINT16 categories, UINT32 sdp_handle,
-                BOOLEAN browse_supported, UINT16 profile_version)
+uint16_t AVRC_AddRecord(uint16_t service_uuid, char *p_service_name,
+                char *p_provider_name, uint16_t categories, uint32_t sdp_handle,
+                bool    browse_supported, uint16_t profile_version)
 {
-    UINT16      browse_list[1];
-    BOOLEAN     result = TRUE;
-    UINT8       temp[8];
-    UINT8       *p;
-    UINT16      count = 1;
-    UINT8       index = 0;
-    UINT16      class_list[2];
+    uint16_t    browse_list[1];
+    bool        result = true;
+    uint8_t     temp[8];
+    uint8_t     *p;
+    uint16_t    count = 1;
+    uint8_t     index = 0;
+    uint16_t    class_list[2];
 
 
     AVRC_TRACE_API("AVRC_AddRecord uuid: %x", service_uuid);
@@ -257,20 +257,20 @@ UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
     p = temp;
     UINT16_TO_BE_STREAM(p, categories);
     result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
-              (UINT32)2, (UINT8*)temp);
+              (uint32_t)2, (uint8_t*)temp);
 
     /* add provider name */
     if (p_provider_name != NULL)
     {
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_PROVIDER_NAME, TEXT_STR_DESC_TYPE,
-                    (UINT32)(strlen(p_provider_name)+1), (UINT8 *) p_provider_name);
+                    (uint32_t)(strlen(p_provider_name)+1), (uint8_t *) p_provider_name);
     }
 
     /* add service name */
     if (p_service_name != NULL)
     {
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
-                    (UINT32)(strlen(p_service_name)+1), (UINT8 *) p_service_name);
+                    (uint32_t)(strlen(p_service_name)+1), (uint8_t *) p_service_name);
     }
 
     /* add browse group list */
@@ -304,7 +304,7 @@ UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
 **                  the input parameter is 0xff.
 **
 ******************************************************************************/
-UINT8 AVRC_SetTraceLevel (UINT8 new_level)
+uint8_t AVRC_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         avrc_cb.trace_level = new_level;

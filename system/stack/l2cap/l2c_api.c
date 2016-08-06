@@ -57,10 +57,10 @@ extern fixed_queue_t *btu_general_alarm_queue;
 **                  L2CA_ErtmConnectReq() and L2CA_Deregister()
 **
 *******************************************************************************/
-UINT16 L2CA_Register (UINT16 psm, tL2CAP_APPL_INFO *p_cb_info)
+uint16_t L2CA_Register (uint16_t psm, tL2CAP_APPL_INFO *p_cb_info)
 {
     tL2C_RCB    *p_rcb;
-    UINT16      vpsm = psm;
+    uint16_t    vpsm = psm;
 
     L2CAP_TRACE_API ("L2CAP - L2CA_Register() called for PSM: 0x%04x", psm);
 
@@ -124,7 +124,7 @@ UINT16 L2CA_Register (UINT16 psm, tL2CAP_APPL_INFO *p_cb_info)
 ** Returns          void
 **
 *******************************************************************************/
-void L2CA_Deregister (UINT16 psm)
+void L2CA_Deregister (uint16_t psm)
 {
     tL2C_RCB    *p_rcb;
     tL2C_CCB    *p_ccb;
@@ -171,10 +171,10 @@ void L2CA_Deregister (UINT16 psm)
 ** Returns          PSM to use.
 **
 *******************************************************************************/
-UINT16 L2CA_AllocatePSM(void)
+uint16_t L2CA_AllocatePSM(void)
 {
-    BOOLEAN done = FALSE;
-    UINT16 psm = l2cb.dyn_psm;
+    bool    done = false;
+    uint16_t psm = l2cb.dyn_psm;
 
     L2CAP_TRACE_API( "L2CA_AllocatePSM");
     while (!done)
@@ -196,7 +196,7 @@ UINT16 L2CA_AllocatePSM(void)
 
         /* make sure the newlly allocated psm is not used right now */
         if ((l2cu_find_rcb_by_psm (psm)) == NULL)
-            done = TRUE;
+            done = true;
     }
     l2cb.dyn_psm = psm;
 
@@ -215,7 +215,7 @@ UINT16 L2CA_AllocatePSM(void)
 ** Returns          the CID of the connection, or 0 if it failed to start
 **
 *******************************************************************************/
-UINT16 L2CA_ConnectReq (UINT16 psm, BD_ADDR p_bd_addr)
+uint16_t L2CA_ConnectReq (uint16_t psm, BD_ADDR p_bd_addr)
 {
     return L2CA_ErtmConnectReq (psm, p_bd_addr, NULL);
 }
@@ -236,7 +236,7 @@ UINT16 L2CA_ConnectReq (UINT16 psm, BD_ADDR p_bd_addr)
 ** Returns          the CID of the connection, or 0 if it failed to start
 **
 *******************************************************************************/
-UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_ertm_info)
+uint16_t L2CA_ErtmConnectReq (uint16_t psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_ertm_info)
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
@@ -266,9 +266,9 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
     {
         /* No link. Get an LCB and start link establishment */
-        if ( ((p_lcb = l2cu_allocate_lcb (p_bd_addr, FALSE, BT_TRANSPORT_BR_EDR)) == NULL)
+        if ( ((p_lcb = l2cu_allocate_lcb (p_bd_addr, false, BT_TRANSPORT_BR_EDR)) == NULL)
              /* currently use BR/EDR for ERTM mode l2cap connection */
-         ||  (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == FALSE) )
+         ||  (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == false) )
         {
             L2CAP_TRACE_WARNING ("L2CAP - conn not started for PSM: 0x%04x  p_lcb: 0x%08x", psm, p_lcb);
             return (0);
@@ -346,7 +346,7 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
 **                  and L2CA_DeregisterLECoc()
 **
 *******************************************************************************/
-UINT16 L2CA_RegisterLECoc(UINT16 psm, tL2CAP_APPL_INFO *p_cb_info)
+uint16_t L2CA_RegisterLECoc(uint16_t psm, tL2CAP_APPL_INFO *p_cb_info)
 {
     L2CAP_TRACE_API("%s called for LE PSM: 0x%04x", __func__, psm);
 
@@ -370,7 +370,7 @@ UINT16 L2CA_RegisterLECoc(UINT16 psm, tL2CAP_APPL_INFO *p_cb_info)
     }
 
     tL2C_RCB    *p_rcb;
-    UINT16      vpsm = psm;
+    uint16_t    vpsm = psm;
 
     /* Check if this is a registration for an outgoing-only connection to */
     /* a dynamic PSM. If so, allocate a "virtual" PSM for the app to use. */
@@ -415,7 +415,7 @@ UINT16 L2CA_RegisterLECoc(UINT16 psm, tL2CAP_APPL_INFO *p_cb_info)
 ** Returns          void
 **
 *******************************************************************************/
-void L2CA_DeregisterLECoc(UINT16 psm)
+void L2CA_DeregisterLECoc(uint16_t psm)
 {
     L2CAP_TRACE_API("%s called for PSM: 0x%04x", __func__, psm);
 
@@ -464,7 +464,7 @@ void L2CA_DeregisterLECoc(UINT16 psm)
 ** Returns          the CID of the connection, or 0 if it failed to start
 **
 *******************************************************************************/
-UINT16 L2CA_ConnectLECocReq(UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_LE_CFG_INFO *p_cfg)
+uint16_t L2CA_ConnectLECocReq(uint16_t psm, BD_ADDR p_bd_addr, tL2CAP_LE_CFG_INFO *p_cfg)
 {
     L2CAP_TRACE_API("%s PSM: 0x%04x BDA: %02x:%02x:%02x:%02x:%02x:%02x", __func__, psm,
         p_bd_addr[0], p_bd_addr[1], p_bd_addr[2], p_bd_addr[3], p_bd_addr[4], p_bd_addr[5]);
@@ -489,10 +489,10 @@ UINT16 L2CA_ConnectLECocReq(UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_LE_CFG_INFO *p
     if (p_lcb == NULL)
     {
         /* No link. Get an LCB and start link establishment */
-        p_lcb = l2cu_allocate_lcb(p_bd_addr, FALSE, BT_TRANSPORT_LE);
+        p_lcb = l2cu_allocate_lcb(p_bd_addr, false, BT_TRANSPORT_LE);
         if ((p_lcb == NULL)
              /* currently use BR/EDR for ERTM mode l2cap connection */
-         || (l2cu_create_conn(p_lcb, BT_TRANSPORT_LE) == FALSE) )
+         || (l2cu_create_conn(p_lcb, BT_TRANSPORT_LE) == false) )
         {
             L2CAP_TRACE_WARNING("%s conn not started for PSM: 0x%04x  p_lcb: 0x%08x",
                 __func__, psm, p_lcb);
@@ -553,11 +553,11 @@ UINT16 L2CA_ConnectLECocReq(UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_LE_CFG_INFO *p
 **                  L2CAP COC connection, for which they had gotten an connect
 **                  indication callback.
 **
-** Returns          TRUE for success, FALSE for failure
+** Returns          true for success, false for failure
 **
 *******************************************************************************/
-BOOLEAN L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 result,
-                             UINT16 status, tL2CAP_LE_CFG_INFO *p_cfg)
+bool    L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid, uint16_t result,
+                             uint16_t status, tL2CAP_LE_CFG_INFO *p_cfg)
 {
     L2CAP_TRACE_API("%s CID: 0x%04x Result: %d Status: %d BDA: %02x:%02x:%02x:%02x:%02x:%02x",
         __func__, lcid, result, status,
@@ -570,7 +570,7 @@ BOOLEAN L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 r
     {
         /* No link. Get an LCB and start link establishment */
         L2CAP_TRACE_WARNING("%s no LCB", __func__);
-        return FALSE;
+        return false;
     }
 
     /* Now, find the channel control block */
@@ -578,14 +578,14 @@ BOOLEAN L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 r
     if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING("%s no CCB", __func__);
-        return FALSE;
+        return false;
     }
 
     /* The IDs must match */
     if (p_ccb->remote_id != id)
     {
         L2CAP_TRACE_WARNING("%s bad id. Expected: %d  Got: %d", __func__, p_ccb->remote_id, id);
-        return FALSE;
+        return false;
     }
 
     if (p_cfg)
@@ -602,7 +602,7 @@ BOOLEAN L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 r
         l2c_csm_execute(p_ccb, L2CEVT_L2CA_CONNECT_RSP_NEG, &conn_info);
     }
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -614,10 +614,10 @@ BOOLEAN L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 r
 **  Parameters:      local channel id
 **                   Pointers to peers configuration storage area
 **
-**  Return value:    TRUE if peer is connected
+**  Return value:    true if peer is connected
 **
 *******************************************************************************/
-BOOLEAN L2CA_GetPeerLECocConfig (UINT16 lcid, tL2CAP_LE_CFG_INFO* peer_cfg)
+bool    L2CA_GetPeerLECocConfig (uint16_t lcid, tL2CAP_LE_CFG_INFO* peer_cfg)
 {
     L2CAP_TRACE_API ("%s CID: 0x%04x", __func__, lcid);
 
@@ -625,13 +625,13 @@ BOOLEAN L2CA_GetPeerLECocConfig (UINT16 lcid, tL2CAP_LE_CFG_INFO* peer_cfg)
     if (p_ccb == NULL)
     {
         L2CAP_TRACE_ERROR("%s No CCB for CID:0x%04x", __func__, lcid);
-        return FALSE;
+        return false;
     }
 
     if (peer_cfg != NULL)
         memcpy(peer_cfg, &p_ccb->peer_conn_cfg, sizeof(tL2CAP_LE_CFG_INFO));
 
-    return TRUE;
+    return true;
 }
 
 bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *callbacks) {
@@ -677,11 +677,11 @@ bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *cal
 **                  L2CAP connection, for which they had gotten an connect
 **                  indication callback.
 **
-** Returns          TRUE for success, FALSE for failure
+** Returns          true for success, false for failure
 **
 *******************************************************************************/
-BOOLEAN L2CA_ConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
-                              UINT16 result, UINT16 status)
+bool    L2CA_ConnectRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid,
+                              uint16_t result, uint16_t status)
 {
     return L2CA_ErtmConnectRsp (p_bd_addr, id, lcid, result, status, NULL);
 }
@@ -694,11 +694,11 @@ BOOLEAN L2CA_ConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
 **                  L2CAP connection, for which they had gotten an connect
 **                  indication callback.
 **
-** Returns          TRUE for success, FALSE for failure
+** Returns          true for success, false for failure
 **
 *******************************************************************************/
-BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 result,
-                             UINT16 status, tL2CAP_ERTM_INFO *p_ertm_info)
+bool    L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid, uint16_t result,
+                             uint16_t status, tL2CAP_ERTM_INFO *p_ertm_info)
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
@@ -713,21 +713,21 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
     {
         /* No link. Get an LCB and start link establishment */
         L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_conn_rsp");
-        return (FALSE);
+        return (false);
     }
 
     /* Now, find the channel control block */
     if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_conn_rsp");
-        return (FALSE);
+        return (false);
     }
 
     /* The IDs must match */
     if (p_ccb->remote_id != id)
     {
         L2CAP_TRACE_WARNING ("L2CAP - bad id in L2CA_conn_rsp. Exp: %d  Got: %d", p_ccb->remote_id, id);
-        return (FALSE);
+        return (false);
     }
 
     if (p_ertm_info)
@@ -768,7 +768,7 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
             l2c_csm_execute (p_ccb, L2CEVT_L2CA_CONNECT_RSP_NEG, &conn_info);
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -779,10 +779,10 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
 **
 **                  Note:  The FCR options of p_cfg are not used.
 **
-** Returns          TRUE if configuration sent, else FALSE
+** Returns          true if configuration sent, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
+bool    L2CA_ConfigReq (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
@@ -793,19 +793,19 @@ BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_cfg_req, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     /* We need to have at least one mode type common with the peer */
     if (!l2c_fcr_adj_our_req_options(p_ccb, p_cfg))
-        return (FALSE);
+        return (false);
 
     /* Don't adjust FCR options if not used */
     if ((!p_cfg->fcr_present)||(p_cfg->fcr.mode == L2CAP_FCR_BASIC_MODE))
     {
         /* FCR and FCS options are not used in basic mode */
-        p_cfg->fcs_present = FALSE;
-        p_cfg->ext_flow_spec_present = FALSE;
+        p_cfg->fcs_present = false;
+        p_cfg->ext_flow_spec_present = false;
 
         if ( (p_cfg->mtu_present) && (p_cfg->mtu > L2CAP_MTU_SIZE) )
         {
@@ -819,7 +819,7 @@ BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 
     l2c_csm_execute (p_ccb, L2CEVT_L2CA_CONFIG_REQ, p_cfg);
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -829,10 +829,10 @@ BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 ** Description      Higher layers call this function to send a configuration
 **                  response.
 **
-** Returns          TRUE if configuration response sent, else FALSE
+** Returns          true if configuration response sent, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
+bool    L2CA_ConfigRsp (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
@@ -843,27 +843,27 @@ BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_cfg_rsp, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     if ( (p_cfg->result == L2CAP_CFG_OK) || (p_cfg->result == L2CAP_CFG_PENDING) )
         l2c_csm_execute (p_ccb, L2CEVT_L2CA_CONFIG_RSP, p_cfg);
     else
     {
-        p_cfg->fcr_present = FALSE; /* FCR options already negotiated before this point */
+        p_cfg->fcr_present = false; /* FCR options already negotiated before this point */
 
         /* Clear out any cached options that are being returned as an error (excluding FCR) */
         if (p_cfg->mtu_present)
-            p_ccb->peer_cfg.mtu_present = FALSE;
+            p_ccb->peer_cfg.mtu_present = false;
         if (p_cfg->flush_to_present)
-            p_ccb->peer_cfg.flush_to_present = FALSE;
+            p_ccb->peer_cfg.flush_to_present = false;
         if (p_cfg->qos_present)
-            p_ccb->peer_cfg.qos_present = FALSE;
+            p_ccb->peer_cfg.qos_present = false;
 
         l2c_csm_execute (p_ccb, L2CEVT_L2CA_CONFIG_RSP_NEG, p_cfg);
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -872,10 +872,10 @@ BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 **
 ** Description      Higher layers call this function to disconnect a channel.
 **
-** Returns          TRUE if disconnect sent, else FALSE
+** Returns          true if disconnect sent, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_DisconnectReq (UINT16 cid)
+bool    L2CA_DisconnectReq (uint16_t cid)
 {
     tL2C_CCB        *p_ccb;
 
@@ -885,12 +885,12 @@ BOOLEAN L2CA_DisconnectReq (UINT16 cid)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_disc_req, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     l2c_csm_execute (p_ccb, L2CEVT_L2CA_DISCONNECT_REQ, NULL);
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -903,7 +903,7 @@ BOOLEAN L2CA_DisconnectReq (UINT16 cid)
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN L2CA_DisconnectRsp (UINT16 cid)
+bool    L2CA_DisconnectRsp (uint16_t cid)
 {
     tL2C_CCB        *p_ccb;
 
@@ -913,12 +913,12 @@ BOOLEAN L2CA_DisconnectRsp (UINT16 cid)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_disc_rsp, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     l2c_csm_execute (p_ccb, L2CEVT_L2CA_DISCONNECT_RSP, NULL);
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -927,10 +927,10 @@ BOOLEAN L2CA_DisconnectRsp (UINT16 cid)
 **
 ** Description      Higher layers call this function to send an echo request.
 **
-** Returns          TRUE if echo request sent, else FALSE.
+** Returns          true if echo request sent, else false.
 **
 *******************************************************************************/
-BOOLEAN  L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_callback)
+bool     L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_callback)
 {
     tL2C_LCB        *p_lcb;
 
@@ -939,39 +939,39 @@ BOOLEAN  L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_callback)
 
     /* Fail if we have not established communications with the controller */
     if (!BTM_IsDeviceUp())
-        return (FALSE);
+        return (false);
 
     /* First, see if we already have a link to the remote */
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
     {
         /* No link. Get an LCB and start link establishment */
-        if ((p_lcb = l2cu_allocate_lcb (p_bd_addr, FALSE, BT_TRANSPORT_BR_EDR)) == NULL)
+        if ((p_lcb = l2cu_allocate_lcb (p_bd_addr, false, BT_TRANSPORT_BR_EDR)) == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_ping");
-            return (FALSE);
+            return (false);
         }
-        if (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == FALSE)
+        if (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == false)
         {
-            return (FALSE);
+            return (false);
         }
 
         p_lcb->p_echo_rsp_cb = p_callback;
 
-        return (TRUE);
+        return (true);
     }
 
     /* We only allow 1 ping outstanding at a time */
     if (p_lcb->p_echo_rsp_cb != NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - rejected second L2CA_ping");
-        return (FALSE);
+        return (false);
     }
 
     /* Have a link control block. If link is disconnecting, tell user to retry later */
     if (p_lcb->link_state == LST_DISCONNECTING)
     {
         L2CAP_TRACE_WARNING ("L2CAP - L2CA_ping rejected - link disconnecting");
-        return (FALSE);
+        return (false);
     }
 
     /* Save address of callback */
@@ -987,7 +987,7 @@ BOOLEAN  L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_callback)
                            btu_general_alarm_queue);
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -997,13 +997,13 @@ BOOLEAN  L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_callback)
 ** Description      Higher layers call this function to send an echo request
 **                  with application-specific data.
 **
-** Returns          TRUE if echo request sent, else FALSE.
+** Returns          true if echo request sent, else false.
 **
 *******************************************************************************/
-BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_callback)
+bool     L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_callback)
 {
     tL2C_LCB    *p_lcb;
-    UINT8       *pp;
+    uint8_t     *pp;
 
     L2CAP_TRACE_API ("L2CA_Echo() BDA: %08X%04X",
             ((p_bd_addr[0] << 24) + (p_bd_addr[1] << 16) + (p_bd_addr[2] <<  8) + (p_bd_addr[3])),
@@ -1011,37 +1011,37 @@ BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_cal
 
     /* Fail if we have not established communications with the controller */
     if (!BTM_IsDeviceUp())
-        return (FALSE);
+        return (false);
 
     if ((memcmp(BT_BD_ANY, p_bd_addr, BD_ADDR_LEN) == 0) && (p_data == NULL))
     {
         /* Only register callback without sending message. */
         l2cb.p_echo_data_cb = p_callback;
-        return TRUE;
+        return true;
     }
 
     /* We assume the upper layer will call this function only when the link is established. */
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CA_Echo ERROR : link not established");
-        return FALSE;
+        return false;
     }
 
     if (p_lcb->link_state != LST_CONNECTED)
     {
         L2CAP_TRACE_ERROR ("L2CA_Echo ERROR : link is not connected");
-        return FALSE;
+        return false;
     }
 
     /* Save address of callback */
     l2cb.p_echo_data_cb = p_callback;
 
     /* Set the pointer to the beginning of the data */
-    pp = (UINT8 *)(p_data + 1) + p_data->offset;
+    pp = (uint8_t *)(p_data + 1) + p_data->offset;
     l2cu_adj_id(p_lcb, L2CAP_ADJ_BRCM_ID);  /* Make sure not using Broadcom ID */
     l2cu_send_peer_echo_req (p_lcb, pp, p_data->len);
 
-    return (TRUE);
+    return (true);
 
 }
 
@@ -1070,14 +1070,14 @@ bool L2CA_GetIdentifiers(uint16_t lcid, uint16_t *rcid, uint16_t *handle) {
 **                  is removed. A timeout of 0xFFFF means no timeout. Values are
 **                  in seconds.
 **
-** Returns          TRUE if command succeeded, FALSE if failed
+** Returns          true if command succeeded, false if failed
 **
 ** NOTE             This timeout takes effect after at least 1 channel has been
 **                  established and removed. L2CAP maintains its own timer from
 **                  whan a connection is established till the first channel is
 **                  set up.
 *******************************************************************************/
-BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout, BOOLEAN is_global)
+bool    L2CA_SetIdleTimeout (uint16_t cid, uint16_t timeout, bool    is_global)
 {
     tL2C_CCB        *p_ccb;
     tL2C_LCB        *p_lcb;
@@ -1092,7 +1092,7 @@ BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout, BOOLEAN is_global)
         if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetIdleTimeout, CID: %d", cid);
-            return (FALSE);
+            return (false);
         }
 
         p_lcb = p_ccb->p_lcb;
@@ -1100,10 +1100,10 @@ BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout, BOOLEAN is_global)
         if ((p_lcb) && (p_lcb->in_use) && (p_lcb->link_state == LST_CONNECTED))
             p_lcb->idle_timeout = timeout;
         else
-            return (FALSE);
+            return (false);
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1120,12 +1120,12 @@ BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout, BOOLEAN is_global)
 **                  then the idle timeouts for all active l2cap links will be
 **                  changed.
 **
-** Returns          TRUE if command succeeded, FALSE if failed
+** Returns          true if command succeeded, false if failed
 **
 ** NOTE             This timeout applies to all logical channels active on the
 **                  ACL link.
 *******************************************************************************/
-BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout, tBT_TRANSPORT transport)
+bool    L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, uint16_t timeout, tBT_TRANSPORT transport)
 {
     tL2C_LCB        *p_lcb;
 
@@ -1140,7 +1140,7 @@ BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout, tBT_TRANSPO
                 l2cu_no_dynamic_ccbs (p_lcb);
         }
         else
-            return FALSE;
+            return false;
     }
     else
     {
@@ -1159,7 +1159,7 @@ BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout, tBT_TRANSPO
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -1172,7 +1172,7 @@ BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout, tBT_TRANSPO
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-UINT8 L2CA_SetTraceLevel (UINT8 new_level)
+uint8_t L2CA_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         l2cb.l2cap_trace_level = new_level;
@@ -1196,7 +1196,7 @@ UINT8 L2CA_SetTraceLevel (UINT8 new_level)
 ** Returns      the new (current) role
 **
 *******************************************************************************/
-UINT8 L2CA_SetDesireRole (UINT8 new_role)
+uint8_t L2CA_SetDesireRole (uint8_t new_role)
 {
     L2CAP_TRACE_API ("L2CA_SetDesireRole() new:x%x, disallow_switch:%d",
         new_role, l2cb.disallow_switch);
@@ -1206,11 +1206,11 @@ UINT8 L2CA_SetDesireRole (UINT8 new_role)
         /* do not process the allow_switch when both bits are set */
         if (new_role & L2CAP_ROLE_ALLOW_SWITCH)
         {
-            l2cb.disallow_switch = FALSE;
+            l2cb.disallow_switch = false;
         }
         if (new_role & L2CAP_ROLE_DISALLOW_SWITCH)
         {
-            l2cb.disallow_switch = TRUE;
+            l2cb.disallow_switch = true;
         }
     }
 
@@ -1229,7 +1229,7 @@ UINT8 L2CA_SetDesireRole (UINT8 new_role)
 ** Returns      CID of 0 if none.
 **
 *******************************************************************************/
-UINT16 L2CA_LocalLoopbackReq (UINT16 psm, UINT16 handle, BD_ADDR p_bd_addr)
+uint16_t L2CA_LocalLoopbackReq (uint16_t psm, uint16_t handle, BD_ADDR p_bd_addr)
 {
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
@@ -1251,7 +1251,7 @@ UINT16 L2CA_LocalLoopbackReq (UINT16 psm, UINT16 handle, BD_ADDR p_bd_addr)
         return (0);
     }
 
-    if ((p_lcb = l2cu_allocate_lcb (p_bd_addr, FALSE, BT_TRANSPORT_BR_EDR)) == NULL)
+    if ((p_lcb = l2cu_allocate_lcb (p_bd_addr, false, BT_TRANSPORT_BR_EDR)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_conn_req");
         return (0);
@@ -1285,16 +1285,16 @@ UINT16 L2CA_LocalLoopbackReq (UINT16 psm, UINT16 handle, BD_ADDR p_bd_addr)
 **                  (For initial implementation only two values are valid.
 **                  L2CAP_PRIORITY_NORMAL and L2CAP_PRIORITY_HIGH).
 **
-** Returns          TRUE if a valid channel, else FALSE
+** Returns          true if a valid channel, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_SetAclPriority (BD_ADDR bd_addr, UINT8 priority)
+bool    L2CA_SetAclPriority (BD_ADDR bd_addr, uint8_t priority)
 {
     L2CAP_TRACE_API ("L2CA_SetAclPriority()  bdaddr: %02x%02x%02x%02x%04x, priority:%d",
                     bd_addr[0], bd_addr[1], bd_addr[2],
                     bd_addr[3], (bd_addr[4] << 8) + bd_addr[5], priority);
 
-    return (l2cu_set_acl_priority(bd_addr, priority, FALSE));
+    return (l2cu_set_acl_priority(bd_addr, priority, false));
 }
 
 /*******************************************************************************
@@ -1303,15 +1303,15 @@ BOOLEAN L2CA_SetAclPriority (BD_ADDR bd_addr, UINT8 priority)
 **
 ** Description      Higher layers call this function to flow control a channel.
 **
-**                  data_enabled - TRUE data flows, FALSE data is stopped
+**                  data_enabled - true data flows, false data is stopped
 **
-** Returns          TRUE if valid channel, else FALSE
+** Returns          true if valid channel, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled)
+bool    L2CA_FlowControl (uint16_t cid, bool    data_enabled)
 {
     tL2C_CCB  *p_ccb;
-    BOOLEAN   on_off = !data_enabled;
+    bool      on_off = !data_enabled;
 
     L2CAP_TRACE_API ("L2CA_FlowControl(%d)  CID: 0x%04x", on_off, cid);
 
@@ -1319,13 +1319,13 @@ BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_FlowControl, CID: 0x%04x  data_enabled: %d", cid, data_enabled);
-        return (FALSE);
+        return (false);
     }
 
     if (p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_ERTM_MODE)
     {
         L2CAP_TRACE_EVENT ("L2CA_FlowControl()  invalid mode:%d", p_ccb->peer_cfg.fcr.mode);
-        return (FALSE);
+        return (false);
     }
     if (p_ccb->fcrb.local_busy != on_off)
     {
@@ -1340,7 +1340,7 @@ BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled)
         }
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1349,10 +1349,10 @@ BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled)
 **
 ** Description      Higher layers call this function to send a test S-frame.
 **
-** Returns          TRUE if valid Channel, else FALSE
+** Returns          true if valid Channel, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type, UINT8 back_track)
+bool    L2CA_SendTestSFrame (uint16_t cid, uint8_t sup_type, uint8_t back_track)
 {
     tL2C_CCB        *p_ccb;
 
@@ -1362,17 +1362,17 @@ BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type, UINT8 back_track)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SendTestSFrame, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     if ( (p_ccb->chnl_state != CST_OPEN) || (p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_ERTM_MODE) )
-        return (FALSE);
+        return (false);
 
     p_ccb->fcrb.next_seq_expected -= back_track;
 
-    l2c_fcr_send_S_frame (p_ccb, (UINT16)(sup_type & 3), (UINT16)(sup_type & (L2CAP_FCR_P_BIT | L2CAP_FCR_F_BIT)));
+    l2c_fcr_send_S_frame (p_ccb, (uint16_t)(sup_type & 3), (uint16_t)(sup_type & (L2CAP_FCR_P_BIT | L2CAP_FCR_F_BIT)));
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1381,10 +1381,10 @@ BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type, UINT8 back_track)
 **
 ** Description      Sets the transmission priority for a channel.
 **
-** Returns          TRUE if a valid channel, else FALSE
+** Returns          true if a valid channel, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_SetTxPriority (UINT16 cid, tL2CAP_CHNL_PRIORITY priority)
+bool    L2CA_SetTxPriority (uint16_t cid, tL2CAP_CHNL_PRIORITY priority)
 {
     tL2C_CCB        *p_ccb;
 
@@ -1394,13 +1394,13 @@ BOOLEAN L2CA_SetTxPriority (UINT16 cid, tL2CAP_CHNL_PRIORITY priority)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetTxPriority, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     /* it will update the order of CCB in LCB by priority and update round robin service variables */
     l2cu_change_pri_ccb (p_ccb, priority);
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1409,10 +1409,10 @@ BOOLEAN L2CA_SetTxPriority (UINT16 cid, tL2CAP_CHNL_PRIORITY priority)
 **
 ** Description      Sets the tx/rx data rate for a channel.
 **
-** Returns          TRUE if a valid channel, else FALSE
+** Returns          true if a valid channel, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_SetChnlDataRate (UINT16 cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_DATA_RATE rx)
+bool    L2CA_SetChnlDataRate (uint16_t cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_DATA_RATE rx)
 {
     tL2C_CCB        *p_ccb;
 
@@ -1422,7 +1422,7 @@ BOOLEAN L2CA_SetChnlDataRate (UINT16 cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetChnlDataRate, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     p_ccb->tx_data_rate = tx;
@@ -1431,7 +1431,7 @@ BOOLEAN L2CA_SetChnlDataRate (UINT16 cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_
     /* Adjust channel buffer allocation */
     l2c_link_adjust_chnl_allocation ();
 
-    return(TRUE);
+    return(true);
 }
 
 /*******************************************************************************
@@ -1447,19 +1447,19 @@ BOOLEAN L2CA_SetChnlDataRate (UINT16 cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_
 **                           L2CAP_NO_RETRANSMISSION : No retransmission
 **                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5)
 **                                    <= HCI_MAX_AUTO_FLUSH_TOUT (in 625us slot).
-**                                    Otherwise, return FALSE.
+**                                    Otherwise, return false.
 **                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush
 **
-** Returns          TRUE if command succeeded, FALSE if failed
+** Returns          true if command succeeded, false if failed
 **
 ** NOTE             This flush timeout applies to all logical channels active on the
 **                  ACL link.
 *******************************************************************************/
-BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
+bool    L2CA_SetFlushTimeout (BD_ADDR bd_addr, uint16_t flush_tout)
 {
     tL2C_LCB    *p_lcb;
-    UINT16      hci_flush_to;
-    UINT32      temp;
+    uint16_t    hci_flush_to;
+    uint32_t    temp;
 
     /* no automatic flush (infinite timeout) */
     if (flush_tout == 0x0000)
@@ -1483,17 +1483,17 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
     else
     {
         /* convert L2CAP flush_to to 0.625 ms units, with round */
-        temp = (((UINT32)flush_tout * 8) + 3) / 5;
+        temp = (((uint32_t)flush_tout * 8) + 3) / 5;
 
         /* if L2CAP flush_to within range of HCI, set HCI flush timeout */
         if (temp > HCI_MAX_AUTO_FLUSH_TOUT)
         {
             L2CAP_TRACE_WARNING("WARNING L2CA_SetFlushTimeout timeout(0x%x) is out of range", flush_tout);
-            return FALSE;
+            return false;
         }
         else
         {
-            hci_flush_to = (UINT16)temp;
+            hci_flush_to = (uint16_t)temp;
         }
     }
 
@@ -1511,14 +1511,14 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
                                   flush_tout, bd_addr[3], bd_addr[4], bd_addr[5]);
 
                 if (!btsnd_hcic_write_auto_flush_tout (p_lcb->handle, hci_flush_to))
-                    return (FALSE);
+                    return (false);
             }
         }
         else
         {
             L2CAP_TRACE_WARNING ("WARNING L2CA_SetFlushTimeout No lcb for bd_addr [...;%02x%02x%02x]",
                                   bd_addr[3], bd_addr[4], bd_addr[5]);
-            return (FALSE);
+            return (false);
         }
     }
     else
@@ -1539,13 +1539,13 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
                                       p_lcb->remote_bd_addr[4], p_lcb->remote_bd_addr[5]);
 
                     if (!btsnd_hcic_write_auto_flush_tout(p_lcb->handle, hci_flush_to))
-                        return (FALSE);
+                        return (false);
                 }
             }
         }
     }
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1557,10 +1557,10 @@ BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
 **  Parameters:      BD address of the peer
 **                   Pointers to features and channel mask storage area
 **
-**  Return value:    TRUE if peer is connected
+**  Return value:    true if peer is connected
 **
 *******************************************************************************/
-BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat, UINT8 *p_chnl_mask)
+bool    L2CA_GetPeerFeatures (BD_ADDR bd_addr, uint32_t *p_ext_feat, uint8_t *p_chnl_mask)
 {
     tL2C_LCB        *p_lcb;
 
@@ -1570,7 +1570,7 @@ BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat, UINT8 *p_chnl
         L2CAP_TRACE_WARNING ("L2CA_GetPeerFeatures() No BDA: %08x%04x",
                               (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3],
                               (bd_addr[4]<<8)+bd_addr[5]);
-        return (FALSE);
+        return (false);
     }
 
     L2CAP_TRACE_API ("L2CA_GetPeerFeatures() BDA: %08x%04x  ExtFea: 0x%08x  Chnl_Mask[0]: 0x%02x",
@@ -1581,7 +1581,7 @@ BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat, UINT8 *p_chnl
 
     memcpy (p_chnl_mask, p_lcb->peer_chnl_mask, L2CAP_FIXED_CHNL_ARRAY_SIZE);
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1593,18 +1593,18 @@ BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat, UINT8 *p_chnl
 **  Parameters:      HCI handle
 **                   BD address of the peer
 **
-**  Return value:    TRUE if found lcb for the given handle, FALSE otherwise
+**  Return value:    true if found lcb for the given handle, false otherwise
 **
 *******************************************************************************/
-BOOLEAN L2CA_GetBDAddrbyHandle (UINT16 handle, BD_ADDR bd_addr)
+bool    L2CA_GetBDAddrbyHandle (uint16_t handle, BD_ADDR bd_addr)
 {
     tL2C_LCB *p_lcb = NULL;
-    BOOLEAN found_dev = FALSE;
+    bool    found_dev = false;
 
     p_lcb = l2cu_find_lcb_by_handle (handle);
     if (p_lcb)
     {
-        found_dev = TRUE;
+        found_dev = true;
         memcpy (bd_addr, p_lcb->remote_bd_addr, BD_ADDR_LEN);
     }
 
@@ -1622,7 +1622,7 @@ BOOLEAN L2CA_GetBDAddrbyHandle (UINT16 handle, BD_ADDR bd_addr)
 **  Return value:    Channel mode
 **
 *******************************************************************************/
-UINT8 L2CA_GetChnlFcrMode (UINT16 lcid)
+uint8_t L2CA_GetChnlFcrMode (uint16_t lcid)
 {
     tL2C_CCB    *p_ccb = l2cu_find_ccb_by_cid (NULL, lcid);
 
@@ -1649,17 +1649,17 @@ UINT8 L2CA_GetChnlFcrMode (UINT16 lcid)
 **  Return value:   -
 **
 *******************************************************************************/
-BOOLEAN  L2CA_RegisterFixedChannel (UINT16 fixed_cid, tL2CAP_FIXED_CHNL_REG *p_freg)
+bool     L2CA_RegisterFixedChannel (uint16_t fixed_cid, tL2CAP_FIXED_CHNL_REG *p_freg)
 {
     if ( (fixed_cid < L2CAP_FIRST_FIXED_CHNL) || (fixed_cid > L2CAP_LAST_FIXED_CHNL) )
     {
         L2CAP_TRACE_ERROR ("L2CA_RegisterFixedChannel()  Invalid CID: 0x%04x", fixed_cid);
 
-        return (FALSE);
+        return (false);
     }
 
     l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL] = *p_freg;
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1671,10 +1671,10 @@ BOOLEAN  L2CA_RegisterFixedChannel (UINT16 fixed_cid, tL2CAP_FIXED_CHNL_REG *p_f
 **  Parameters:     Fixed CID
 **                  BD Address of remote
 **
-**  Return value:   TRUE if connection started
+**  Return value:   true if connection started
 **
 *******************************************************************************/
-BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
+bool    L2CA_ConnectFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
 {
     tL2C_LCB *p_lcb;
     tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
@@ -1687,17 +1687,17 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
      ||  (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb == NULL) )
     {
         L2CAP_TRACE_ERROR ("%s() Invalid CID: 0x%04x", __func__, fixed_cid);
-        return (FALSE);
+        return (false);
     }
 
     // Fail if BT is not yet up
     if (!BTM_IsDeviceUp())
     {
         L2CAP_TRACE_WARNING ("%s(0x%04x) - BTU not ready", __func__, fixed_cid);
-        return (FALSE);
+        return (false);
     }
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
 #endif
@@ -1710,7 +1710,7 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
         // Fixed channels are mandatory on LE transports so ignore the received
         // channel mask and use the locally cached LE channel mask.
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
         if (transport == BT_TRANSPORT_LE)
             peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
         else
@@ -1723,7 +1723,7 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
             L2CAP_TRACE_EVENT  ("%s() CID:0x%04x  BDA: %08x%04x not supported", __func__,
                 fixed_cid,(rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                 (rem_bda[4]<<8)+rem_bda[5]);
-            return FALSE;
+            return false;
         }
 
         // Get a CCB and link the lcb to it
@@ -1731,7 +1731,7 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
             &l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
         {
             L2CAP_TRACE_WARNING ("%s(0x%04x) - LCB but no CCB", __func__, fixed_cid);
-            return FALSE;
+            return false;
         }
 
         // racing with disconnecting, queue the connection request
@@ -1740,24 +1740,24 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
             L2CAP_TRACE_DEBUG ("$s() - link disconnecting: RETRY LATER", __func__);
             /* Save ccb so it can be started after disconnect is finished */
             p_lcb->p_pending_ccb = p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL];
-            return TRUE;
+            return true;
         }
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
         (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedConn_Cb)
-        (fixed_cid,p_lcb->remote_bd_addr, TRUE, 0, p_lcb->transport);
+        (fixed_cid,p_lcb->remote_bd_addr, true, 0, p_lcb->transport);
 #else
         (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedConn_Cb)
-        (fixed_cid, p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
+        (fixed_cid, p_lcb->remote_bd_addr, true, 0, BT_TRANSPORT_BR_EDR);
 #endif
-        return TRUE;
+        return true;
     }
 
     // No link. Get an LCB and start link establishment
-    if ((p_lcb = l2cu_allocate_lcb (rem_bda, FALSE, transport)) == NULL)
+    if ((p_lcb = l2cu_allocate_lcb (rem_bda, false, transport)) == NULL)
     {
         L2CAP_TRACE_WARNING ("%s(0x%04x) - no LCB", __func__, fixed_cid);
-        return FALSE;
+        return false;
     }
 
     // Get a CCB and link the lcb to it
@@ -1767,16 +1767,16 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
         p_lcb->disc_reason = L2CAP_CONN_NO_RESOURCES;
         L2CAP_TRACE_WARNING ("%s(0x%04x) - no CCB", __func__, fixed_cid);
         l2cu_release_lcb (p_lcb);
-        return FALSE;
+        return false;
     }
 
     if (!l2cu_create_conn(p_lcb, transport))
     {
         L2CAP_TRACE_WARNING ("%s() - create_conn failed", __func__);
         l2cu_release_lcb (p_lcb);
-        return FALSE;
+        return false;
     }
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -1793,7 +1793,7 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 **                  L2CAP_DW_FAILED,  if error
 **
 *******************************************************************************/
-UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
+uint16_t L2CA_SendFixedChnlData (uint16_t fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
 {
     tL2C_LCB        *p_lcb;
     tBT_TRANSPORT   transport = BT_TRANSPORT_BR_EDR;
@@ -1801,7 +1801,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     L2CAP_TRACE_API ("L2CA_SendFixedChnlData()  CID: 0x%04x  BDA: %08x%04x", fixed_cid,
                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
 #endif
@@ -1836,7 +1836,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     tL2C_BLE_FIXED_CHNLS_MASK peer_channel_mask;
 
     // Select peer channels mask to use depending on transport
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     if (transport == BT_TRANSPORT_LE)
         peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
     else
@@ -1900,10 +1900,10 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
 **                  BD Address of remote
 **                  Idle timeout to use (or 0xFFFF if don't care)
 **
-**  Return value:   TRUE if channel removed
+**  Return value:   true if channel removed
 **
 *******************************************************************************/
-BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
+bool    L2CA_RemoveFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
 {
     tL2C_LCB    *p_lcb;
     tL2C_CCB    *p_ccb;
@@ -1914,10 +1914,10 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
      ||  (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb == NULL) )
     {
         L2CAP_TRACE_ERROR ("L2CA_RemoveFixedChnl()  Invalid CID: 0x%04x", fixed_cid);
-        return (FALSE);
+        return (false);
     }
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
 #endif
@@ -1929,7 +1929,7 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
     {
         L2CAP_TRACE_WARNING ("L2CA_RemoveFixedChnl()  CID: 0x%04x  BDA: %08x%04x not connected", fixed_cid,
                              (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
-        return (FALSE);
+        return (false);
     }
 
     L2CAP_TRACE_API ("L2CA_RemoveFixedChnl()  CID: 0x%04x  BDA: %08x%04x", fixed_cid,
@@ -1941,7 +1941,7 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
     p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL] = NULL;
     p_lcb->disc_reason = HCI_ERR_CONN_CAUSE_LOCAL_HOST;
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     // Retain the link for a few more seconds after SMP pairing is done, since the Android
     // platform always does service discovery after pairing is complete. This will avoid
     // the link down (pairing is complete) and an immediate re-connection for service
@@ -1954,7 +1954,7 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 
     l2cu_release_ccb (p_ccb);
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -1971,15 +1971,15 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 **                  then the idle timeouts for all active l2cap links will be
 **                  changed.
 **
-** Returns          TRUE if command succeeded, FALSE if failed
+** Returns          true if command succeeded, false if failed
 **
 *******************************************************************************/
-BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle_tout)
+bool    L2CA_SetFixedChannelTout (BD_ADDR rem_bda, uint16_t fixed_cid, uint16_t idle_tout)
 {
     tL2C_LCB        *p_lcb;
     tBT_TRANSPORT   transport = BT_TRANSPORT_BR_EDR;
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
 #endif
@@ -1990,7 +1990,7 @@ BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle
     {
         L2CAP_TRACE_WARNING ("L2CA_SetFixedChannelTout()  CID: 0x%04x  BDA: %08x%04x not connected", fixed_cid,
                              (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
-        return (FALSE);
+        return (false);
     }
 
     p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->fixed_chnl_idle_tout = idle_tout;
@@ -2001,7 +2001,7 @@ BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle
         l2cu_no_dynamic_ccbs (p_lcb);
     }
 
-    return TRUE;
+    return true;
 }
 
 #endif /* #if (L2CAP_NUM_FIXED_CHNLS > 0) */
@@ -2016,10 +2016,10 @@ BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle
 **              pp_peer_cfg: pointer of peer's saved configuration options
 **              p_peer_cfg_bits : valid config in bitmap
 **
-** Returns      TRUE if successful
+** Returns      true if successful
 **
 *******************************************************************************/
-BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
+bool    L2CA_GetCurrentConfig (uint16_t lcid,
                                tL2CAP_CFG_INFO **pp_our_cfg,  tL2CAP_CH_CFG_BITS *p_our_cfg_bits,
                                tL2CAP_CFG_INFO **pp_peer_cfg, tL2CAP_CH_CFG_BITS *p_peer_cfg_bits)
 {
@@ -2051,12 +2051,12 @@ BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
         *pp_peer_cfg = &(p_ccb->peer_cfg);
         *p_peer_cfg_bits = p_ccb->peer_cfg_bits;
 
-        return TRUE;
+        return true;
     }
     else
     {
         L2CAP_TRACE_ERROR ("No CCB for CID:0x%04x", lcid);
-        return FALSE;
+        return false;
     }
 }
 
@@ -2067,10 +2067,10 @@ BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
 ** Description  This function returns configurations of L2CAP channel
 **              pp_l2c_ccb : pointer to this channels L2CAP ccb data.
 **
-** Returns      TRUE if successful
+** Returns      true if successful
 **
 *******************************************************************************/
-BOOLEAN L2CA_GetConnectionConfig(UINT16 lcid, UINT16 *mtu, UINT16 *rcid, UINT16 *handle)
+bool    L2CA_GetConnectionConfig(uint16_t lcid, uint16_t *mtu, uint16_t *rcid, uint16_t *handle)
 {
     tL2C_CCB *p_ccb = l2cu_find_ccb_by_cid(NULL, lcid);;
 
@@ -2084,11 +2084,11 @@ BOOLEAN L2CA_GetConnectionConfig(UINT16 lcid, UINT16 *mtu, UINT16 *rcid, UINT16 
 
         *rcid  = p_ccb->remote_cid;
         *handle= p_ccb->p_lcb->handle;
-        return TRUE;
+        return true;
     }
 
     L2CAP_TRACE_ERROR ("%s No CCB for CID:0x%04x", __func__, lcid);
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -2100,10 +2100,10 @@ BOOLEAN L2CA_GetConnectionConfig(UINT16 lcid, UINT16 *mtu, UINT16 *rcid, UINT16 
 ** Input Param      p_cb - callback for Number of completed packets event
 **                  p_bda - BT address of remote device
 **
-** Returns          TRUE if registered OK, else FALSE
+** Returns          true if registered OK, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda)
+bool    L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda)
 {
     tL2C_LCB        *p_lcb;
 
@@ -2112,11 +2112,11 @@ BOOLEAN L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda)
 
     /* If no link for this handle, nothing to do. */
     if (!p_lcb)
-        return FALSE;
+        return false;
 
     p_lcb->p_nocp_cb = p_cb;
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -2125,12 +2125,12 @@ BOOLEAN L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda)
 **
 ** Description      Higher layers call this function to write data.
 **
-** Returns          L2CAP_DW_SUCCESS, if data accepted, else FALSE
+** Returns          L2CAP_DW_SUCCESS, if data accepted, else false
 **                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
 **                  L2CAP_DW_FAILED, if error
 **
 *******************************************************************************/
-UINT8 L2CA_DataWrite (UINT16 cid, BT_HDR *p_data)
+uint8_t L2CA_DataWrite (uint16_t cid, BT_HDR *p_data)
 {
     L2CAP_TRACE_API ("L2CA_DataWrite()  CID: 0x%04x  Len: %d", cid, p_data->len);
     return l2c_data_write (cid, p_data, L2CAP_FLUSHABLE_CH_BASED);
@@ -2143,10 +2143,10 @@ UINT8 L2CA_DataWrite (UINT16 cid, BT_HDR *p_data)
 ** Description      Higher layers call this function to set a channels
 **                  flushability flags
 **
-** Returns          TRUE if CID found, else FALSE
+** Returns          true if CID found, else false
 **
 *******************************************************************************/
-BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushable)
+bool    L2CA_SetChnlFlushability (uint16_t cid, bool    is_flushable)
 {
 #if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
 
@@ -2156,7 +2156,7 @@ BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushable)
     if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetChnlFlushability, CID: %d", cid);
-        return (FALSE);
+        return (false);
     }
 
     p_ccb->is_flushable = is_flushable;
@@ -2165,7 +2165,7 @@ BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushable)
 
 #endif
 
-    return (TRUE);
+    return (true);
 }
 
 /*******************************************************************************
@@ -2178,12 +2178,12 @@ BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushable)
 **                          L2CAP_FLUSHABLE_PKT
 **                          L2CAP_NON_FLUSHABLE_PKT
 **
-** Returns          L2CAP_DW_SUCCESS, if data accepted, else FALSE
+** Returns          L2CAP_DW_SUCCESS, if data accepted, else false
 **                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
 **                  L2CAP_DW_FAILED, if error
 **
 *******************************************************************************/
-UINT8 L2CA_DataWriteEx (UINT16 cid, BT_HDR *p_data, UINT16 flags)
+uint8_t L2CA_DataWriteEx (uint16_t cid, BT_HDR *p_data, uint16_t flags)
 {
     L2CAP_TRACE_API ("L2CA_DataWriteEx()  CID: 0x%04x  Len: %d Flags:0x%04X",
                        cid, p_data->len, flags);
@@ -2204,11 +2204,11 @@ UINT8 L2CA_DataWriteEx (UINT16 cid, BT_HDR *p_data, UINT16 flags)
 ** Returns      Number of buffers left queued for that CID
 **
 *******************************************************************************/
-UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
+uint16_t L2CA_FlushChannel (uint16_t lcid, uint16_t num_to_flush)
 {
     tL2C_CCB        *p_ccb;
     tL2C_LCB        *p_lcb;
-    UINT16          num_left = 0,
+    uint16_t        num_left = 0,
                     num_flushed1 = 0,
                     num_flushed2 = 0;
 
@@ -2235,16 +2235,16 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     /* Cannot flush eRTM buffers once they have a sequence number */
     if (p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_ERTM_MODE)
     {
-#if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
+#if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
         if (num_to_flush != L2CAP_FLUSH_CHANS_GET)
         {
             /* If the controller supports enhanced flush, flush the data queued at the controller */
             if ( (HCI_NON_FLUSHABLE_PB_SUPPORTED(BTM_ReadLocalFeatures ()))
              && (BTM_GetNumScoLinks() == 0) )
             {
-                if ( l2cb.is_flush_active == FALSE )
+                if ( l2cb.is_flush_active == false )
                 {
-                    l2cb.is_flush_active = TRUE;
+                    l2cb.is_flush_active = true;
 
                     /* The only packet type defined - 0 - Automatically-Flushable Only */
                     btsnd_hcic_enhanced_flush (p_lcb->handle, 0);

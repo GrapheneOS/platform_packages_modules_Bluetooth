@@ -133,7 +133,7 @@ extern tBTA_HH_RPT_CACHE_ENTRY *bta_hh_le_co_cache_load (BD_ADDR remote_bda,
 *******************************************************************************/
 extern void bta_hh_le_co_reset_rpt_cache (BD_ADDR remote_bda, uint8_t app_id);
 
-#endif /* #if (BLE_INCLUDED == true && BTA_HH_LE_INCLUDED == true) */
+#endif /* #if (BLE_INCLUDED == true && BTA_HH_LE_INCLUDED == TRUE) */
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,7 @@
 tGAP_INFO *gap_allocate_cb (void)
 {
     tGAP_INFO     *p_cb = &gap_cb.blk[0];
-    UINT8        x;
+    uint8_t      x;
 
     for (x = 0; x < GAP_MAX_BLOCKS; x++, p_cb++)
     {
@@ -41,7 +41,7 @@ tGAP_INFO *gap_allocate_cb (void)
         {
             memset (p_cb, 0, sizeof (tGAP_INFO));
 
-            p_cb->in_use = TRUE;
+            p_cb->in_use = true;
             p_cb->index = x;
             p_cb->p_data = (void *)NULL;
             return (p_cb);
@@ -67,7 +67,7 @@ void gap_free_cb (tGAP_INFO *p_cb)
     if (p_cb)
     {
         p_cb->gap_cback = NULL;
-        p_cb->in_use = FALSE;
+        p_cb->in_use = false;
     }
 }
 
@@ -80,23 +80,23 @@ void gap_free_cb (tGAP_INFO *p_cb)
 **                  and check to see if the event waiting for is the command
 **                  requested.
 **
-** Returns          TRUE if already in use
-**                  FALSE if not busy
+** Returns          true if already in use
+**                  false if not busy
 **
 *******************************************************************************/
-BOOLEAN gap_is_service_busy (UINT16 request)
+bool    gap_is_service_busy (uint16_t request)
 {
     tGAP_INFO   *p_cb = &gap_cb.blk[0];
-    UINT8        x;
+    uint8_t      x;
 
     for (x = 0; x < GAP_MAX_BLOCKS; x++, p_cb++)
     {
         if (p_cb->in_use && p_cb->event == request)
-            return (TRUE);
+            return (true);
     }
 
     /* If here, service is not busy */
-    return (FALSE);
+    return (false);
 }
 
 
@@ -110,7 +110,7 @@ BOOLEAN gap_is_service_busy (UINT16 request)
 ** Returns          GAP_UNKNOWN_BTM_STATUS is returned if not recognized
 **
 *******************************************************************************/
-UINT16 gap_convert_btm_status (tBTM_STATUS btm_status)
+uint16_t gap_convert_btm_status (tBTM_STATUS btm_status)
 {
     switch (btm_status)
     {

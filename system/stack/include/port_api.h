@@ -51,29 +51,29 @@ typedef struct
 #define PORT_BAUD_RATE_115200     0x07
 #define PORT_BAUD_RATE_230400     0x08
 
-    UINT8  baud_rate;
+    uint8_t baud_rate;
 
 #define PORT_5_BITS               0x00
 #define PORT_6_BITS               0x01
 #define PORT_7_BITS               0x02
 #define PORT_8_BITS               0x03
 
-    UINT8  byte_size;
+    uint8_t byte_size;
 
 #define PORT_ONESTOPBIT           0x00
 #define PORT_ONE5STOPBITS         0x01
-    UINT8   stop_bits;
+    uint8_t stop_bits;
 
 #define PORT_PARITY_NO            0x00
 #define PORT_PARITY_YES           0x01
-    UINT8   parity;
+    uint8_t parity;
 
 #define PORT_ODD_PARITY           0x00
 #define PORT_EVEN_PARITY          0x01
 #define PORT_MARK_PARITY          0x02
 #define PORT_SPACE_PARITY         0x03
 
-    UINT8   parity_type;
+    uint8_t parity_type;
 
 #define PORT_FC_OFF               0x00
 #define PORT_FC_XONXOFF_ON_INPUT  0x01
@@ -83,15 +83,15 @@ typedef struct
 #define PORT_FC_DSR_ON_INPUT      0x10
 #define PORT_FC_DSR_ON_OUTPUT     0x20
 
-    UINT8 fc_type;
+    uint8_t fc_type;
 
-    UINT8 rx_char1;
+    uint8_t rx_char1;
 
 #define PORT_XON_DC1              0x11
-    UINT8 xon_char;
+    uint8_t xon_char;
 
 #define PORT_XOFF_DC3             0x13
-    UINT8 xoff_char;
+    uint8_t xoff_char;
 
 } tPORT_STATE;
 
@@ -100,14 +100,14 @@ typedef struct
 ** Define the callback function prototypes.  Parameters are specific
 ** to each event and are described bellow
 */
-typedef int  (tPORT_DATA_CALLBACK) (UINT16 port_handle, void *p_data, UINT16 len);
+typedef int  (tPORT_DATA_CALLBACK) (uint16_t port_handle, void *p_data, uint16_t len);
 
 #define DATA_CO_CALLBACK_TYPE_INCOMING          1
 #define DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE     2
 #define DATA_CO_CALLBACK_TYPE_OUTGOING          3
-typedef int  (tPORT_DATA_CO_CALLBACK) (UINT16 port_handle, UINT8* p_buf, UINT16 len, int type);
+typedef int  (tPORT_DATA_CO_CALLBACK) (uint16_t port_handle, uint8_t* p_buf, uint16_t len, int type);
 
-typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
+typedef void (tPORT_CALLBACK) (uint32_t code, uint16_t port_handle);
 
 /*
 ** Define events that registered application can receive in the callback
@@ -197,7 +197,7 @@ typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
 ** Parameters:      scn          - Service Channel Number as registered with
 **                                 the SDP (server) or obtained using SDP from
 **                                 the peer device (client).
-**                  is_server    - TRUE if requesting application is a server
+**                  is_server    - true if requesting application is a server
 **                  mtu          - Maximum frame size the application can accept
 **                  bd_addr      - BD_ADDR of the peer (client)
 **                  mask         - specifies events to be enabled.  A value
@@ -216,9 +216,9 @@ typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
 ** (scn * 2 + 1) dlci.
 **
 *******************************************************************************/
-extern int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn,
-                                            BOOLEAN is_server, UINT16 mtu,
-                                            BD_ADDR bd_addr, UINT16 *p_handle,
+extern int RFCOMM_CreateConnection (uint16_t uuid, uint8_t scn,
+                                            bool    is_server, uint16_t mtu,
+                                            BD_ADDR bd_addr, uint16_t *p_handle,
                                             tPORT_CALLBACK *p_mgmt_cb);
 
 
@@ -231,7 +231,7 @@ extern int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn,
 ** Parameters:      handle     - Handle of the port returned in the Open
 **
 *******************************************************************************/
-extern int RFCOMM_RemoveConnection (UINT16 handle);
+extern int RFCOMM_RemoveConnection (uint16_t handle);
 
 
 /*******************************************************************************
@@ -243,7 +243,7 @@ extern int RFCOMM_RemoveConnection (UINT16 handle);
 ** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
-extern int RFCOMM_RemoveServer (UINT16 handle);
+extern int RFCOMM_RemoveServer (uint16_t handle);
 
 
 /*******************************************************************************
@@ -258,7 +258,7 @@ extern int RFCOMM_RemoveServer (UINT16 handle);
 **                                 specified in the mask occurs.
 **
 *******************************************************************************/
-extern int PORT_SetEventCallback (UINT16 port_handle,
+extern int PORT_SetEventCallback (uint16_t port_handle,
                                   tPORT_CALLBACK *p_port_cb);
 
 /*******************************************************************************
@@ -270,7 +270,7 @@ extern int PORT_SetEventCallback (UINT16 port_handle,
 ** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
-int PORT_ClearKeepHandleFlag (UINT16 port_handle);
+int PORT_ClearKeepHandleFlag (uint16_t port_handle);
 
 /*******************************************************************************
 **
@@ -284,10 +284,10 @@ int PORT_ClearKeepHandleFlag (UINT16 port_handle);
 **                                 packet is received.
 **
 *******************************************************************************/
-extern int PORT_SetDataCallback (UINT16 port_handle,
+extern int PORT_SetDataCallback (uint16_t port_handle,
                                  tPORT_DATA_CALLBACK *p_cb);
 
-extern int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb);
+extern int PORT_SetDataCOCallback (uint16_t port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb);
 /*******************************************************************************
 **
 ** Function         PORT_SetEventMask
@@ -299,7 +299,7 @@ extern int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p
 **                           of zero disables all events.
 **
 *******************************************************************************/
-extern int PORT_SetEventMask (UINT16 port_handle, UINT32 mask);
+extern int PORT_SetEventMask (uint16_t port_handle, uint32_t mask);
 
 
 /*******************************************************************************
@@ -314,21 +314,21 @@ extern int PORT_SetEventMask (UINT16 port_handle, UINT32 mask);
 **                  p_lcid     - OUT L2CAP's LCID
 **
 *******************************************************************************/
-extern int PORT_CheckConnection (UINT16 handle, BD_ADDR bd_addr,
-                                 UINT16 *p_lcid);
+extern int PORT_CheckConnection (uint16_t handle, BD_ADDR bd_addr,
+                                 uint16_t *p_lcid);
 
 /*******************************************************************************
 **
 ** Function         PORT_IsOpening
 **
-** Description      This function returns TRUE if there is any RFCOMM connection
+** Description      This function returns true if there is any RFCOMM connection
 **                  opening in process.
 **
-** Parameters:      TRUE if any connection opening is found
+** Parameters:      true if any connection opening is found
 **                  bd_addr    - bd_addr of the peer
 **
 *******************************************************************************/
-extern BOOLEAN PORT_IsOpening (BD_ADDR bd_addr);
+extern bool    PORT_IsOpening (BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -342,7 +342,7 @@ extern BOOLEAN PORT_IsOpening (BD_ADDR bd_addr);
 **                               configuration information for the connection.
 **
 *******************************************************************************/
-extern int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings);
+extern int PORT_SetState (uint16_t handle, tPORT_STATE *p_settings);
 
 /*******************************************************************************
 **
@@ -354,7 +354,7 @@ extern int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings);
 **                  p_rx_queue_count - Pointer to return queue count in.
 **
 *******************************************************************************/
-extern int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count);
+extern int PORT_GetRxQueueCnt (uint16_t handle, uint16_t *p_rx_queue_count);
 
 /*******************************************************************************
 **
@@ -368,7 +368,7 @@ extern int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count);
 **                               configuration information is returned.
 **
 *******************************************************************************/
-extern int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings);
+extern int PORT_GetState (uint16_t handle, tPORT_STATE *p_settings);
 
 
 /*******************************************************************************
@@ -392,7 +392,7 @@ extern int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings);
 #define PORT_CLR_DCD            0x08        /* DCE only */
 #define PORT_BREAK              0x09        /* Break event */
 
-extern int PORT_Control (UINT16 handle, UINT8 signal);
+extern int PORT_Control (uint16_t handle, uint8_t signal);
 
 
 /*******************************************************************************
@@ -407,7 +407,7 @@ extern int PORT_Control (UINT16 handle, UINT8 signal);
 **                  enable     - enables data flow
 **
 *******************************************************************************/
-extern int PORT_FlowControl (UINT16 handle, BOOLEAN enable);
+extern int PORT_FlowControl (uint16_t handle, bool    enable);
 
 
 /*******************************************************************************
@@ -437,7 +437,7 @@ extern int PORT_FlowControl (UINT16 handle, BOOLEAN enable);
 #define PORT_PPP_DEFAULT_SIGNAL_STATE   (PORT_DTRDSR_ON | PORT_CTSRTS_ON | PORT_DCD_ON)
 #define PORT_DUN_DEFAULT_SIGNAL_STATE   (PORT_DTRDSR_ON | PORT_CTSRTS_ON)
 
-extern int PORT_GetModemStatus (UINT16 handle, UINT8 *p_control_signal);
+extern int PORT_GetModemStatus (uint16_t handle, uint8_t *p_control_signal);
 
 
 /*******************************************************************************
@@ -469,14 +469,14 @@ typedef struct
 #define PORT_FLAG_DSR_HOLD  0x02    /* Tx is waiting for DSR signal */
 #define PORT_FLAG_RLSD_HOLD 0x04    /* Tx is waiting for RLSD signal */
 
-    UINT16  flags;
-    UINT16  in_queue_size;          /* Number of bytes in the input queue */
-    UINT16  out_queue_size;         /* Number of bytes in the output queue */
-    UINT16  mtu_size;               /* peer MTU size */
+    uint16_t flags;
+    uint16_t in_queue_size;          /* Number of bytes in the input queue */
+    uint16_t out_queue_size;         /* Number of bytes in the output queue */
+    uint16_t mtu_size;               /* peer MTU size */
 } tPORT_STATUS;
 
 
-extern int PORT_ClearError (UINT16 handle, UINT16 *p_errors,
+extern int PORT_ClearError (uint16_t handle, uint16_t *p_errors,
                             tPORT_STATUS *p_status);
 
 
@@ -490,7 +490,7 @@ extern int PORT_ClearError (UINT16 handle, UINT16 *p_errors,
 **                  errors     - receive error codes
 **
 *******************************************************************************/
-extern int PORT_SendError (UINT16 handle, UINT8 errors);
+extern int PORT_SendError (uint16_t handle, uint8_t errors);
 
 
 /*******************************************************************************
@@ -504,7 +504,7 @@ extern int PORT_SendError (UINT16 handle, UINT8 errors);
 **                               connection status
 **
 *******************************************************************************/
-extern int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status);
+extern int PORT_GetQueueStatus (uint16_t handle, tPORT_STATUS *p_status);
 
 
 /*******************************************************************************
@@ -521,7 +521,7 @@ extern int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status);
 #define PORT_PURGE_TXCLEAR  0x01
 #define PORT_PURGE_RXCLEAR  0x02
 
-extern int PORT_Purge (UINT16 handle, UINT8 purge_flags);
+extern int PORT_Purge (uint16_t handle, uint8_t purge_flags);
 
 
 /*******************************************************************************
@@ -539,7 +539,7 @@ extern int PORT_Purge (UINT16 handle, UINT8 purge_flags);
 **                  pp_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
-extern int PORT_Read (UINT16 handle, BT_HDR **pp_buf);
+extern int PORT_Read (uint16_t handle, BT_HDR **pp_buf);
 
 
 /*******************************************************************************
@@ -556,8 +556,8 @@ extern int PORT_Read (UINT16 handle, BT_HDR **pp_buf);
 **                  p_len       - Byte count received
 **
 *******************************************************************************/
-extern int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len,
-                          UINT16 *p_len);
+extern int PORT_ReadData (uint16_t handle, char *p_data, uint16_t max_len,
+                          uint16_t *p_len);
 
 
 /*******************************************************************************
@@ -571,7 +571,7 @@ extern int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len,
 **                  p_buf       - pointer to the buffer with data,
 **
 *******************************************************************************/
-extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
+extern int PORT_Write (uint16_t handle, BT_HDR *p_buf);
 
 
 /*******************************************************************************
@@ -587,8 +587,8 @@ extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
 **                  p_len       - Bytes written
 **
 *******************************************************************************/
-extern int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len,
-                           UINT16 *p_len);
+extern int PORT_WriteData (uint16_t handle, char *p_data, uint16_t max_len,
+                           uint16_t *p_len);
 
 /*******************************************************************************
 **
@@ -600,7 +600,7 @@ extern int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len,
 ** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
-extern int PORT_WriteDataCO (UINT16 handle, int* p_len);
+extern int PORT_WriteDataCO (uint16_t handle, int* p_len);
 
 /*******************************************************************************
 **
@@ -613,7 +613,7 @@ extern int PORT_WriteDataCO (UINT16 handle, int* p_len);
 **                  max_len     - Byte count requested
 **
 *******************************************************************************/
-extern int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len);
+extern int PORT_Test (uint16_t handle, uint8_t *p_data, uint16_t len);
 
 
 /*******************************************************************************
@@ -636,7 +636,7 @@ extern void RFCOMM_Init (void);
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-extern UINT8 PORT_SetTraceLevel (UINT8 new_level);
+extern uint8_t PORT_SetTraceLevel (uint8_t new_level);
 
 
 /*******************************************************************************

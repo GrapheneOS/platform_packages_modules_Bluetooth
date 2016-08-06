@@ -43,10 +43,10 @@ tBTM_BLE_ENERGY_INFO_CB ble_energy_info_cb;
 *******************************************************************************/
 void btm_ble_cont_energy_cmpl_cback (tBTM_VSC_CMPL *p_params)
 {
-    UINT8  *p = p_params->p_param_buf;
-    UINT16  len = p_params->param_len;
-    UINT8  status = 0;
-    UINT32 total_tx_time = 0, total_rx_time = 0, total_idle_time = 0, total_energy_used = 0;
+    uint8_t *p = p_params->p_param_buf;
+    uint16_t len = p_params->param_len;
+    uint8_t status = 0;
+    uint32_t total_tx_time = 0, total_rx_time = 0, total_idle_time = 0, total_energy_used = 0;
 
     if (len < 17)
     {

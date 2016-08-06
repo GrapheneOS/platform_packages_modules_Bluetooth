@@ -43,10 +43,10 @@
 static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result)
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
-    UINT8   *p;
-    UINT16  len;
+    uint8_t *p;
+    uint16_t len;
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
-    UINT8 eventid=0;
+    uint8_t eventid=0;
 #endif
 
     /* Check the vendor data */
@@ -106,7 +106,7 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p
     return status;
 }
 
-void avrc_parse_notification_rsp (UINT8 *p_stream, tAVRC_REG_NOTIF_RSP *p_rsp)
+void avrc_parse_notification_rsp (uint8_t *p_stream, tAVRC_REG_NOTIF_RSP *p_rsp)
 {
     BE_STREAM_TO_UINT8(p_rsp->event_id, p_stream);
     switch (p_rsp->event_id)
@@ -163,13 +163,13 @@ void avrc_parse_notification_rsp (UINT8 *p_stream, tAVRC_REG_NOTIF_RSP *p_rsp)
 **
 *******************************************************************************/
 static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
-    tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result, UINT8* p_buf, UINT16* buf_len)
+    tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result, uint8_t* p_buf, uint16_t* buf_len)
 {
-    UINT8   *p = p_msg->p_vendor_data;
+    uint8_t *p = p_msg->p_vendor_data;
     BE_STREAM_TO_UINT8 (p_result->pdu, p);
     p++; /* skip the reserved/packe_type byte */
 
-    UINT16  len;
+    uint16_t len;
     BE_STREAM_TO_UINT16 (len, p);
     AVRC_TRACE_DEBUG("%s ctype:0x%x pdu:0x%x, len:%d",
                      __func__, p_msg->hdr.ctype, p_result->pdu, len);
@@ -270,7 +270,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
     case AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT:
     {
         tAVRC_APP_SETTING_TEXT   *p_setting_text;
-        UINT8                    num_attrs;
+        uint8_t                  num_attrs;
 
         if (len == 0)
         {
@@ -288,7 +288,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
             BE_STREAM_TO_UINT8(p_result->get_app_attr_txt.p_attrs[xx].str_len, p);
             if (p_result->get_app_attr_txt.p_attrs[xx].str_len != 0)
             {
-                UINT8 *p_str = (UINT8 *)osi_malloc(p_result->get_app_attr_txt.p_attrs[xx].str_len);
+                uint8_t *p_str = (uint8_t *)osi_malloc(p_result->get_app_attr_txt.p_attrs[xx].str_len);
                 BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_attr_txt.p_attrs[xx].str_len);
                 p_result->get_app_attr_txt.p_attrs[xx].p_str = p_str;
             } else {
@@ -301,7 +301,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
     case AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT:
     {
         tAVRC_APP_SETTING_TEXT   *p_setting_text;
-        UINT8                    num_vals;
+        uint8_t                  num_vals;
 
         if (len == 0)
         {
@@ -318,7 +318,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
             BE_STREAM_TO_UINT16(p_result->get_app_val_txt.p_attrs[i].charset_id, p);
             BE_STREAM_TO_UINT8(p_result->get_app_val_txt.p_attrs[i].str_len, p);
             if (p_result->get_app_val_txt.p_attrs[i].str_len != 0) {
-                UINT8 *p_str = (UINT8 *)osi_malloc(p_result->get_app_val_txt.p_attrs[i].str_len);
+                uint8_t *p_str = (uint8_t *)osi_malloc(p_result->get_app_val_txt.p_attrs[i].str_len);
                 BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_val_txt.p_attrs[i].str_len);
                 p_result->get_app_val_txt.p_attrs[i].p_str = p_str;
             } else {
@@ -334,7 +334,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
 
     case AVRC_PDU_GET_ELEMENT_ATTR:
     {
-        UINT8               num_attrs;
+        uint8_t             num_attrs;
 
         if (len <= 0)
         {
@@ -352,7 +352,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
                 BE_STREAM_TO_UINT16(p_attrs[i].name.charset_id, p);
                 BE_STREAM_TO_UINT16(p_attrs[i].name.str_len, p);
                 if (p_attrs[i].name.str_len > 0) {
-                    p_attrs[i].name.p_str = (UINT8 *)osi_malloc(p_attrs[i].name.str_len);
+                    p_attrs[i].name.p_str = (uint8_t *)osi_malloc(p_attrs[i].name.str_len);
                     BE_STREAM_TO_ARRAY(p, p_attrs[i].name.p_str, p_attrs[i].name.str_len);
                 }
             }
@@ -387,7 +387,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UINT8 *p_buf, UINT16* buf_len)
+tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, uint8_t *p_buf, uint16_t* buf_len)
 {
     tAVRC_STS  status = AVRC_STS_INTERNAL_ERR;
     if (p_msg && p_result)
@@ -418,10 +418,10 @@ tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UI
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UINT8 *p_buf, UINT16 buf_len)
+tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, uint8_t *p_buf, uint16_t buf_len)
 {
     tAVRC_STS  status = AVRC_STS_INTERNAL_ERR;
-    UINT16  id;
+    uint16_t id;
     UNUSED(p_buf);
     UNUSED(buf_len);
 
@@ -437,7 +437,7 @@ tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UINT8 *
             status = avrc_pars_pass_thru(&p_msg->pass, &id);
             if (status == AVRC_STS_NO_ERROR)
             {
-                p_result->pdu = (UINT8)id;
+                p_result->pdu = (uint8_t)id;
             }
             break;
 

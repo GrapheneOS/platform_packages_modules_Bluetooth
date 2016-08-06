@@ -24,7 +24,7 @@
 #include "bt_target.h"
 
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include "bt_common.h"
 #include <stdio.h>
@@ -54,7 +54,7 @@
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-UINT8 GATT_SetTraceLevel (UINT8 new_level)
+uint8_t GATT_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         gatt_cb.trace_level = new_level;
@@ -76,14 +76,14 @@ UINT8 GATT_SetTraceLevel (UINT8 new_level)
 **
 ** Parameter        p_hndl_range:   pointer to allocated handles information
 **
-** Returns          TRUE if handle range is added sucessfully; otherwise FALSE.
+** Returns          true if handle range is added sucessfully; otherwise false.
 **
 *******************************************************************************/
 
-BOOLEAN GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range)
+bool    GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range)
 {
     tGATT_HDL_LIST_ELEM *p_buf;
-    BOOLEAN status= FALSE;
+    bool    status= false;
 
     if ((p_buf = gatt_alloc_hdl_buffer()) != NULL)
     {
@@ -104,16 +104,16 @@ BOOLEAN GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range)
 **
 ** Parameter        p_cb_info : callback informaiton
 **
-** Returns          TRUE if registered OK, else FALSE
+** Returns          true if registered OK, else false
 **
 *******************************************************************************/
-BOOLEAN  GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info)
+bool     GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info)
 {
-    BOOLEAN status= FALSE;
+    bool    status= false;
     if (p_cb_info)
     {
         gatt_cb.cb_info = *p_cb_info;
-        status = TRUE;
+        status = true;
         gatt_init_srv_chg();
     }
 
@@ -168,7 +168,7 @@ static void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
     }
 }
 
-static UINT16 compute_service_size(btgatt_db_element_t *service, int count) {
+static uint16_t compute_service_size(btgatt_db_element_t *service, int count) {
     int db_size = 0;
     btgatt_db_element_t *el = service;
 
@@ -187,7 +187,7 @@ static UINT16 compute_service_size(btgatt_db_element_t *service, int count) {
 }
 /*******************************************************************************
 **
-** Function         GATTS_CreateService
+** Function         GATTS_AddService
 **
 ** Description      This function is called to add GATT service.
 **
@@ -200,11 +200,11 @@ static UINT16 compute_service_size(btgatt_db_element_t *service, int count) {
 **                  on error error status is returned.
 **
 *******************************************************************************/
-UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int count) {
+uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int count) {
     tGATT_HDL_LIST_INFO     *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM     *p_list=NULL;
-    UINT16                  s_hdl=0;
-    BOOLEAN                 save_hdl=FALSE;
+    uint16_t                s_hdl=0;
+    bool                    save_hdl=false;
     tGATT_REG              *p_reg = gatt_get_regcb(gatt_if);
     tBT_UUID     *p_app_uuid128;
 
@@ -222,7 +222,7 @@ UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int coun
 
     p_app_uuid128 = &p_reg->app_uuid128;
 
-    UINT16 num_handles = compute_service_size(service, count);
+    uint16_t num_handles = compute_service_size(service, count);
 
     if ( (svc_uuid.len == LEN_UUID_16) && (svc_uuid.uu.uuid16 == UUID_SERVCLASS_GATT_SERVER)) {
             s_hdl=  gatt_cb.hdl_cfg.gatt_start_hdl;
@@ -235,9 +235,9 @@ UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int coun
             s_hdl = p_list->asgn_range.e_handle + 1;
 
         if (s_hdl < gatt_cb.hdl_cfg.app_start_hdl)
-            s_hdl= gatt_cb.hdl_cfg.app_start_hdl;
+            s_hdl = gatt_cb.hdl_cfg.app_start_hdl;
 
-        save_hdl = TRUE;
+        save_hdl = true;
     }
 
     /* check for space */
@@ -262,7 +262,7 @@ UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int coun
 
     if (save_hdl) {
         if (gatt_cb.cb_info.p_nv_save_callback)
-            (*gatt_cb.cb_info.p_nv_save_callback)(TRUE, &p_list->asgn_range);
+            (*gatt_cb.cb_info.p_nv_save_callback)(true, &p_list->asgn_range);
     }
 
     if (!gatts_init_service_db(&p_list->svc_db, &svc_uuid, is_pri, s_hdl , num_handles))
@@ -315,11 +315,11 @@ UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int coun
         }
     }
 
-    tGATT_SR_REG            *p_sreg;
-    UINT8                    i_sreg;
-    tBT_UUID                *p_uuid;
+    tGATT_SR_REG *p_sreg;
+    uint8_t       i_sreg;
+    tBT_UUID     *p_uuid;
 
-    GATT_TRACE_API ("%s: service parsed correctly, now starting", __func__);
+    GATT_TRACE_API("%s: service parsed correctly, now starting", __func__);
 
     /*this is a new application servoce start */
     if ((i_sreg = gatt_sr_alloc_rcb(p_list)) ==  GATT_MAX_SR_PROFILES) {
@@ -340,8 +340,8 @@ UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int coun
 
     gatt_add_a_srv_to_list(&gatt_cb.srv_list_info, &gatt_cb.srv_list[i_sreg]);
 
-    GATT_TRACE_DEBUG ("%s: allocated i_sreg=%d ",__func__, i_sreg);
-    GATT_TRACE_DEBUG ("%s: s_hdl=%d e_hdl=%d type=0x%x sdp_hdl=0x%x", __func__,
+    GATT_TRACE_DEBUG("%s: allocated i_sreg=%d ",__func__, i_sreg);
+    GATT_TRACE_DEBUG("%s: s_hdl=%d e_hdl=%d type=0x%x sdp_hdl=0x%x", __func__,
                        p_sreg->s_hdl,p_sreg->e_hdl,
                        p_sreg->type,
                        p_sreg->sdp_handle);
@@ -361,15 +361,15 @@ UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int coun
 **                  p_svc_uuid    : service UUID
 **                  start_handle  : start handle of the service
 **
-** Returns          TRUE if operation succeed, FALSE if handle block was not found.
+** Returns          true if operation succeed, false if handle block was not found.
 **
 *******************************************************************************/
-BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_inst)
+bool    GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, uint16_t svc_inst)
 {
 
     tGATT_HDL_LIST_INFO             *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM             *p_list=NULL;
-    UINT8                           i_sreg;
+    uint8_t                           i_sreg;
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tBT_UUID *p_app_uuid128;
 
@@ -378,14 +378,14 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
     if (p_reg == NULL)
     {
         GATT_TRACE_ERROR ("Applicaiton not foud");
-        return(FALSE);
+        return false;
     }
     p_app_uuid128 = &p_reg->app_uuid128;
 
     if ((p_list = gatt_find_hdl_buffer_by_app_id(p_app_uuid128, p_svc_uuid, svc_inst)) == NULL)
     {
         GATT_TRACE_ERROR ("No Service found");
-        return(FALSE);
+        return false;
     }
 
     gatt_proc_srv_chg();
@@ -402,12 +402,12 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
 
     if ( (p_list->asgn_range.s_handle >= gatt_cb.hdl_cfg.app_start_hdl)
          && gatt_cb.cb_info.p_nv_save_callback)
-        (*gatt_cb.cb_info.p_nv_save_callback)(FALSE, &p_list->asgn_range);
+        (*gatt_cb.cb_info.p_nv_save_callback)(false, &p_list->asgn_range);
 
     gatt_remove_an_item_from_list(p_list_info, p_list);
     gatt_free_hdl_buffer(p_list);
 
-    return(TRUE);
+    return true;
 }
 
 /*******************************************************************************
@@ -421,9 +421,9 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
 ** Returns          None.
 **
 *******************************************************************************/
-void GATTS_StopService (UINT16 service_handle)
+void GATTS_StopService (uint16_t service_handle)
 {
-    UINT8           ii = gatt_sr_find_i_rcb_by_handle(service_handle);
+    uint8_t         ii = gatt_sr_find_i_rcb_by_handle(service_handle);
 
     GATT_TRACE_API("GATTS_StopService %u", service_handle);
 
@@ -435,7 +435,7 @@ void GATTS_StopService (UINT16 service_handle)
             SDP_DeleteRecord(gatt_cb.sr_reg[ii].sdp_handle);
         }
         gatt_remove_a_srv_from_list(&gatt_cb.srv_list_info, &gatt_cb.srv_list[ii]);
-        gatt_cb.srv_list[ii].in_use = FALSE;
+        gatt_cb.srv_list[ii].in_use = false;
         memset (&gatt_cb.sr_reg[ii], 0, sizeof(tGATT_SR_REG));
     }
     else
@@ -457,7 +457,7 @@ void GATTS_StopService (UINT16 service_handle)
 ** Returns          GATT_SUCCESS if sucessfully sent or queued; otherwise error code.
 **
 *******************************************************************************/
-tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,  UINT16 attr_handle, UINT16 val_len, UINT8 *p_val)
+tGATT_STATUS GATTS_HandleValueIndication (uint16_t conn_id,  uint16_t attr_handle, uint16_t val_len, uint8_t *p_val)
 {
     tGATT_STATUS    cmd_status = GATT_NO_RESOURCES;
 
@@ -465,7 +465,7 @@ tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,  UINT16 attr_handle, U
     BT_HDR          *p_msg;
     tGATT_VALUE     *p_buf;
     tGATT_IF         gatt_if = GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
 
@@ -529,14 +529,14 @@ tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,  UINT16 attr_handle, U
 ** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
 **
 *******************************************************************************/
-tGATT_STATUS GATTS_HandleValueNotification (UINT16 conn_id, UINT16 attr_handle,
-                                            UINT16 val_len, UINT8 *p_val)
+tGATT_STATUS GATTS_HandleValueNotification (uint16_t conn_id, uint16_t attr_handle,
+                                            uint16_t val_len, uint8_t *p_val)
 {
     tGATT_STATUS    cmd_sent = GATT_ILLEGAL_PARAMETER;
     BT_HDR          *p_buf;
     tGATT_VALUE     notif;
     tGATT_IF         gatt_if = GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
 
@@ -580,12 +580,12 @@ tGATT_STATUS GATTS_HandleValueNotification (UINT16 conn_id, UINT16 attr_handle,
 ** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
 **
 *******************************************************************************/
-tGATT_STATUS GATTS_SendRsp (UINT16 conn_id,  UINT32 trans_id,
+tGATT_STATUS GATTS_SendRsp (uint16_t conn_id,  uint32_t trans_id,
                             tGATT_STATUS status, tGATTS_RSP *p_msg)
 {
     tGATT_STATUS cmd_sent = GATT_ILLEGAL_PARAMETER;
     tGATT_IF         gatt_if = GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
 
@@ -634,11 +634,11 @@ tGATT_STATUS GATTS_SendRsp (UINT16 conn_id,  UINT32 trans_id,
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
+tGATT_STATUS GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu)
 {
-    UINT8           ret = GATT_NO_RESOURCES;
+    uint8_t         ret = GATT_NO_RESOURCES;
     tGATT_IF        gatt_if=GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
@@ -687,13 +687,13 @@ tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 ** Returns          GATT_SUCCESS if command received/sent successfully.
 **
 *******************************************************************************/
-tGATT_STATUS GATTC_Discover (UINT16 conn_id, tGATT_DISC_TYPE disc_type,
+tGATT_STATUS GATTC_Discover (uint16_t conn_id, tGATT_DISC_TYPE disc_type,
                              tGATT_DISC_PARAM *p_param)
 {
     tGATT_STATUS    status = GATT_SUCCESS;
     tGATT_CLCB      *p_clcb;
     tGATT_IF        gatt_if=GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
@@ -756,12 +756,12 @@ tGATT_STATUS GATTC_Discover (UINT16 conn_id, tGATT_DISC_TYPE disc_type,
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM *p_read)
+tGATT_STATUS GATTC_Read (uint16_t conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM *p_read)
 {
     tGATT_STATUS status = GATT_SUCCESS;
     tGATT_CLCB          *p_clcb;
     tGATT_IF            gatt_if=GATT_GET_GATT_IF(conn_id);
-    UINT8               tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t             tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB           *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     tGATT_REG           *p_reg = gatt_get_regcb(gatt_if);
 
@@ -800,7 +800,7 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
                 /* copy multiple handles in CB */
                 tGATT_READ_MULTI *p_read_multi =
                     (tGATT_READ_MULTI *)osi_malloc(sizeof(tGATT_READ_MULTI));
-                p_clcb->p_attr_buf = (UINT8*)p_read_multi;
+                p_clcb->p_attr_buf = (uint8_t*)p_read_multi;
                 memcpy(p_read_multi, &p_read->read_multiple, sizeof(tGATT_READ_MULTI));
             case GATT_READ_BY_HANDLE:
             case GATT_READ_PARTIAL:
@@ -817,7 +817,7 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
                 break;
         }
         /* start security check */
-        if (gatt_security_check_start(p_clcb) == FALSE)
+        if (gatt_security_check_start(p_clcb) == false)
         {
             status = GATT_NO_RESOURCES;
             gatt_clcb_dealloc(p_clcb);
@@ -844,13 +844,13 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_write)
+tGATT_STATUS GATTC_Write (uint16_t conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_write)
 {
     tGATT_STATUS status = GATT_SUCCESS;
     tGATT_CLCB      *p_clcb;
     tGATT_VALUE     *p;
     tGATT_IF        gatt_if=GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
@@ -873,7 +873,7 @@ tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_
         p_clcb->op_subtype = type;
         p_clcb->auth_req = p_write->auth_req;
 
-        p_clcb->p_attr_buf = (UINT8 *)osi_malloc(sizeof(tGATT_VALUE));
+        p_clcb->p_attr_buf = (uint8_t *)osi_malloc(sizeof(tGATT_VALUE));
         memcpy(p_clcb->p_attr_buf, (void *)p_write, sizeof(tGATT_VALUE));
 
         p = (tGATT_VALUE *)p_clcb->p_attr_buf;
@@ -882,7 +882,7 @@ tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_
             p->offset = 0;
         }
 
-        if (gatt_security_check_start(p_clcb) == FALSE) {
+        if (gatt_security_check_start(p_clcb) == false) {
             status = GATT_NO_RESOURCES;
         }
 
@@ -908,13 +908,13 @@ tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-tGATT_STATUS GATTC_ExecuteWrite (UINT16 conn_id, BOOLEAN is_execute)
+tGATT_STATUS GATTC_ExecuteWrite (uint16_t conn_id, bool    is_execute)
 {
     tGATT_STATUS status = GATT_SUCCESS;
     tGATT_CLCB      *p_clcb;
     tGATT_EXEC_FLAG flag;
     tGATT_IF        gatt_if=GATT_GET_GATT_IF(conn_id);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB       *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
@@ -959,7 +959,7 @@ tGATT_STATUS GATTC_ExecuteWrite (UINT16 conn_id, BOOLEAN is_execute)
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle)
+tGATT_STATUS GATTC_SendHandleValueConfirm (uint16_t conn_id, uint16_t handle)
 {
     tGATT_STATUS    ret = GATT_ILLEGAL_PARAMETER;
     tGATT_TCB     *p_tcb=gatt_get_tcb_by_idx(GATT_GET_TCB_IDX(conn_id));
@@ -1011,10 +1011,10 @@ tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout, tBT_TRANSPORT transport)
+void GATT_SetIdleTimeout (BD_ADDR bd_addr, uint16_t idle_tout, tBT_TRANSPORT transport)
 {
     tGATT_TCB       *p_tcb;
-    BOOLEAN         status = FALSE;
+    bool            status = false;
 
     if ((p_tcb = gatt_find_tcb_by_addr (bd_addr, transport)) != NULL)
     {
@@ -1028,7 +1028,7 @@ void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout, tBT_TRANSPORT trans
         }
         else
         {
-            status = L2CA_SetIdleTimeout (p_tcb->att_lcid, idle_tout, FALSE);
+            status = L2CA_SetIdleTimeout (p_tcb->att_lcid, idle_tout, false);
         }
     }
 
@@ -1053,7 +1053,7 @@ void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout, tBT_TRANSPORT trans
 tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
 {
     tGATT_REG    *p_reg;
-    UINT8        i_gatt_if=0;
+    uint8_t      i_gatt_if=0;
     tGATT_IF     gatt_if=0;
 
     GATT_TRACE_API ("%s", __func__);
@@ -1078,7 +1078,7 @@ tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
             gatt_if            =
             p_reg->gatt_if     = (tGATT_IF)i_gatt_if;
             p_reg->app_cb      = *p_cb_info;
-            p_reg->in_use      = TRUE;
+            p_reg->in_use      = true;
 
             GATT_TRACE_API ("%s: allocated gatt_if=%d", __func__, gatt_if);
             return gatt_if;
@@ -1106,7 +1106,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tGATT_TCB       *p_tcb;
     tGATT_CLCB       *p_clcb;
-    UINT8           i, ii, j;
+    uint8_t         i, ii, j;
     tGATT_SR_REG    *p_sreg;
 
     GATT_TRACE_API ("GATT_Deregister gatt_if=%d", gatt_if);
@@ -1141,7 +1141,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
         {
             if (gatt_get_ch_state(p_tcb) != GATT_CH_CLOSE)
             {
-                gatt_update_app_use_link_flag(gatt_if, p_tcb,  FALSE, TRUE);
+                gatt_update_app_use_link_flag(gatt_if, p_tcb,  false, true);
             }
 
             for (j = 0, p_clcb= &gatt_cb.clcb[j]; j < GATT_CL_MAX_LCB; j++, p_clcb++)
@@ -1160,8 +1160,8 @@ void GATT_Deregister (tGATT_IF gatt_if)
 
     gatt_deregister_bgdev_list(gatt_if);
     /* update the listen mode */
-#if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && (BLE_PERIPHERAL_MODE_SUPPORT == TRUE))
-    GATT_Listen(gatt_if, FALSE, NULL);
+#if (BLE_PERIPHERAL_MODE_SUPPORT == TRUE)
+    GATT_Listen(gatt_if, false, NULL);
 #endif
 
     memset (p_reg, 0, sizeof(tGATT_REG));
@@ -1186,8 +1186,8 @@ void GATT_StartIf (tGATT_IF gatt_if)
     tGATT_REG   *p_reg;
     tGATT_TCB   *p_tcb;
     BD_ADDR     bda;
-    UINT8       start_idx, found_idx;
-    UINT16      conn_id;
+    uint8_t     start_idx, found_idx;
+    uint16_t    conn_id;
     tGATT_TRANSPORT transport ;
 
     GATT_TRACE_API ("GATT_StartIf gatt_if=%d", gatt_if);
@@ -1200,7 +1200,7 @@ void GATT_StartIf (tGATT_IF gatt_if)
             if (p_reg->app_cb.p_conn_cb && p_tcb)
             {
                 conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, gatt_if);
-                (*p_reg->app_cb.p_conn_cb)(gatt_if, bda, conn_id, TRUE, 0, transport);
+                (*p_reg->app_cb.p_conn_cb)(gatt_if, bda, conn_id, true, 0, transport);
             }
             start_idx = ++found_idx;
         }
@@ -1219,13 +1219,13 @@ void GATT_StartIf (tGATT_IF gatt_if)
 **                  bd_addr: peer device address.
 **                  is_direct: is a direct conenection or a background auto connection
 **
-** Returns          TRUE if connection started; FALSE if connection start failure.
+** Returns          true if connection started; false if connection start failure.
 **
 *******************************************************************************/
-BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct, tBT_TRANSPORT transport)
+bool    GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool    is_direct, tBT_TRANSPORT transport)
 {
     tGATT_REG    *p_reg;
-    BOOLEAN status = FALSE;
+    bool    status = false;
 
     GATT_TRACE_API ("GATT_Connect gatt_if=%d", gatt_if);
 
@@ -1233,7 +1233,7 @@ BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct, tBT_
     if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
     {
         GATT_TRACE_ERROR("GATT_Connect - gatt_if =%d is not registered", gatt_if);
-        return(FALSE);
+        return(false);
     }
 
     if (is_direct)
@@ -1241,7 +1241,7 @@ BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct, tBT_
     else
     {
         if (transport == BT_TRANSPORT_LE)
-        status = gatt_update_auto_connect_dev(gatt_if,TRUE, bd_addr, TRUE);
+        status = gatt_update_auto_connect_dev(gatt_if,true, bd_addr, true);
         else
         {
             GATT_TRACE_ERROR("Unsupported transport for background connection");
@@ -1263,22 +1263,22 @@ BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct, tBT_
 **                          typically used for direct connection cancellation.
 **                  bd_addr: peer device address.
 **
-** Returns          TRUE if connection started; FALSE if connection start failure.
+** Returns          true if connection started; false if connection start failure.
 **
 *******************************************************************************/
-BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct){
+bool    GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool    is_direct){
     tGATT_REG     *p_reg;
     tGATT_TCB     *p_tcb;
-    BOOLEAN       status = TRUE;
+    bool          status = true;
     tGATT_IF      temp_gatt_if;
-    UINT8         start_idx, found_idx;
+    uint8_t       start_idx, found_idx;
 
     GATT_TRACE_API ("GATT_CancelConnect gatt_if=%d", gatt_if);
 
     if ((gatt_if != 0) && ((p_reg = gatt_get_regcb(gatt_if)) == NULL))
     {
         GATT_TRACE_ERROR("GATT_CancelConnect - gatt_if =%d is not registered", gatt_if);
-        return(FALSE);
+        return(false);
     }
 
     if (is_direct)
@@ -1300,7 +1300,7 @@ BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct
             else
             {
                 GATT_TRACE_ERROR("GATT_CancelConnect - no app found");
-                status = FALSE;
+                status = false;
             }
         }
         else
@@ -1320,7 +1320,7 @@ BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct
             else
             {
                 GATT_TRACE_ERROR("GATT_CancelConnect -no app associated with the bg device for unconditional removal");
-                status = FALSE;
+                status = false;
             }
         }
         else
@@ -1344,12 +1344,12 @@ BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, BOOLEAN is_direct
 ** Returns          GATT_SUCCESS if disconnected.
 **
 *******************************************************************************/
-tGATT_STATUS GATT_Disconnect (UINT16 conn_id)
+tGATT_STATUS GATT_Disconnect (uint16_t conn_id)
 {
     tGATT_STATUS    ret = GATT_ILLEGAL_PARAMETER;
     tGATT_TCB       *p_tcb=NULL;
     tGATT_IF        gatt_if=GATT_GET_GATT_IF(conn_id);
-    UINT8          tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t        tcb_idx = GATT_GET_TCB_IDX(conn_id);
 
     GATT_TRACE_API ("GATT_Disconnect conn_id=%d ", conn_id);
 
@@ -1357,7 +1357,7 @@ tGATT_STATUS GATT_Disconnect (UINT16 conn_id)
 
     if (p_tcb)
     {
-        gatt_update_app_use_link_flag(gatt_if, p_tcb, FALSE, TRUE);
+        gatt_update_app_use_link_flag(gatt_if, p_tcb, false, true);
         ret = GATT_SUCCESS;
     }
     return ret;
@@ -1375,18 +1375,18 @@ tGATT_STATUS GATT_Disconnect (UINT16 conn_id)
 **                   p_gatt_if: applicaiton interface (output)
 **                   bd_addr: peer device address. (output)
 **
-** Returns          TRUE the ligical link information is found for conn_id
+** Returns          true the ligical link information is found for conn_id
 **
 *******************************************************************************/
-BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_addr,
+bool    GATT_GetConnectionInfor(uint16_t conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_addr,
                                 tBT_TRANSPORT *p_transport)
 {
 
     tGATT_IF        gatt_if = GATT_GET_GATT_IF(conn_id);
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
-    UINT8           tcb_idx = GATT_GET_TCB_IDX(conn_id);
+    uint8_t         tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB       *p_tcb= gatt_get_tcb_by_idx(tcb_idx);
-    BOOLEAN         status=FALSE;
+    bool            status=false;
 
     GATT_TRACE_API ("GATT_GetConnectionInfor conn_id=%d", conn_id);
 
@@ -1395,7 +1395,7 @@ BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_
         memcpy(bd_addr, p_tcb->peer_bda, BD_ADDR_LEN);
         *p_gatt_if = gatt_if;
         *p_transport = p_tcb->transport;
-        status = TRUE;
+        status = true;
     }
     return status;
 }
@@ -1413,20 +1413,20 @@ BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_
 **                   p_conn_id: connection id  (output)
 **                   transport: transport option
 **
-** Returns          TRUE the logical link is connected
+** Returns          true the logical link is connected
 **
 *******************************************************************************/
-BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_conn_id,
+bool    GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, uint16_t *p_conn_id,
                                   tBT_TRANSPORT transport)
 {
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tGATT_TCB       *p_tcb= gatt_find_tcb_by_addr(bd_addr, transport);
-    BOOLEAN         status=FALSE;
+    bool            status=false;
 
     if (p_reg && p_tcb && (gatt_get_ch_state(p_tcb) == GATT_CH_OPEN) )
     {
         *p_conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, gatt_if);
-        status = TRUE;
+        status = true;
     }
 
     GATT_TRACE_API ("GATT_GetConnIdIfConnected status=%d", status);
@@ -1446,10 +1446,10 @@ BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_c
 **                             listen to all device connection.
 **                  start: start or stop listening.
 **
-** Returns          TRUE if advertisement is started; FALSE if adv start failure.
+** Returns          true if advertisement is started; false if adv start failure.
 **
 *******************************************************************************/
-BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
+bool    GATT_Listen (tGATT_IF gatt_if, bool    start, BD_ADDR_PTR bd_addr)
 {
     tGATT_REG    *p_reg;
 
@@ -1459,12 +1459,12 @@ BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
     if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
     {
         GATT_TRACE_ERROR("GATT_Listen - gatt_if =%d is not registered", gatt_if);
-        return(FALSE);
+        return(false);
     }
 
     if (bd_addr != NULL)
     {
-        gatt_update_auto_connect_dev(gatt_if,start, bd_addr, FALSE);
+        gatt_update_auto_connect_dev(gatt_if,start, bd_addr, false);
     }
     else
     {

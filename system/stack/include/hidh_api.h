@@ -53,7 +53,7 @@ enum {
 **  Type Definitions
 *****************************************************************************/
 
-typedef void (tHID_HOST_SDP_CALLBACK) (UINT16 result, UINT16 attr_mask,
+typedef void (tHID_HOST_SDP_CALLBACK) (uint16_t result, uint16_t attr_mask,
                                        tHID_DEV_SDP_INFO *sdp_rec );
 
 /* HID-HOST returns the events in the following table to the application via tHID_HOST_DEV_CALLBACK
@@ -80,10 +80,10 @@ enum
     HID_HDEV_EVT_HANDSHAKE,
     HID_HDEV_EVT_VC_UNPLUG
 };
-typedef void (tHID_HOST_DEV_CALLBACK) (UINT8 dev_handle,
+typedef void (tHID_HOST_DEV_CALLBACK) (uint8_t dev_handle,
                                        BD_ADDR addr,
-                                       UINT8 event, /* Event from HID-DEVICE. */
-                                       UINT32 data, /* Integer data corresponding to the event.*/
+                                       uint8_t event, /* Event from HID-DEVICE. */
+                                       uint32_t data, /* Integer data corresponding to the event.*/
                                        BT_HDR *p_buf ); /* Pointer data corresponding to the event. */
 
 
@@ -102,7 +102,7 @@ typedef void (tHID_HOST_DEV_CALLBACK) (UINT8 dev_handle,
 *******************************************************************************/
 extern tHID_STATUS HID_HostGetSDPRecord (BD_ADDR addr,
                                          tSDP_DISCOVERY_DB *p_db,
-                                         UINT32 db_len,
+                                         uint32_t db_len,
                                          tHID_HOST_SDP_CALLBACK *sdp_cback );
 
 /*******************************************************************************
@@ -136,8 +136,8 @@ extern tHID_STATUS HID_HostDeregister(void);
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-extern tHID_STATUS HID_HostAddDev (BD_ADDR addr, UINT16 attr_mask,
-                                   UINT8 *handle );
+extern tHID_STATUS HID_HostAddDev (BD_ADDR addr, uint16_t attr_mask,
+                                   uint8_t *handle );
 
 /*******************************************************************************
 **
@@ -148,7 +148,7 @@ extern tHID_STATUS HID_HostAddDev (BD_ADDR addr, UINT16 attr_mask,
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-extern tHID_STATUS HID_HostRemoveDev (UINT8 dev_handle );
+extern tHID_STATUS HID_HostRemoveDev (uint8_t dev_handle );
 
 /*******************************************************************************
 **
@@ -160,7 +160,7 @@ extern tHID_STATUS HID_HostRemoveDev (UINT8 dev_handle );
 ** Returns          void
 **
 *******************************************************************************/
-extern tHID_STATUS HID_HostOpenDev (UINT8 dev_handle );
+extern tHID_STATUS HID_HostOpenDev (uint8_t dev_handle );
 
 /*******************************************************************************
 **
@@ -171,9 +171,9 @@ extern tHID_STATUS HID_HostOpenDev (UINT8 dev_handle );
 ** Returns          void
 **
 *******************************************************************************/
-extern tHID_STATUS HID_HostWriteDev(UINT8 dev_handle, UINT8 t_type,
-                                    UINT8 param, UINT16 data,
-                                    UINT8 report_id, BT_HDR *pbuf);
+extern tHID_STATUS HID_HostWriteDev(uint8_t dev_handle, uint8_t t_type,
+                                    uint8_t param, uint16_t data,
+                                    uint8_t report_id, BT_HDR *pbuf);
 
 /*******************************************************************************
 **
@@ -184,7 +184,7 @@ extern tHID_STATUS HID_HostWriteDev(UINT8 dev_handle, UINT8 t_type,
 ** Returns          void
 **
 *******************************************************************************/
-extern tHID_STATUS HID_HostCloseDev(UINT8 dev_handle );
+extern tHID_STATUS HID_HostCloseDev(uint8_t dev_handle );
 
 /*******************************************************************************
 ** Function         HID_HostInit
@@ -203,7 +203,7 @@ extern void HID_HostInit(void);
 **
 ** Returns         tHID_STATUS
 *******************************************************************************/
-extern tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], UINT8 sec_lvl );
+extern tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], uint8_t sec_lvl );
 
 /*******************************************************************************
 **
@@ -211,10 +211,10 @@ extern tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], UINT8 sec_lv
 **
 ** Description      This function checks if this device is  of type HID Device
 **
-** Returns          TRUE if device exists else FALSE
+** Returns          true if device exists else false
 **
 *******************************************************************************/
-BOOLEAN hid_known_hid_device (BD_ADDR bd_addr);
+bool    hid_known_hid_device (BD_ADDR bd_addr);
 
 
 /*******************************************************************************
@@ -227,7 +227,7 @@ BOOLEAN hid_known_hid_device (BD_ADDR bd_addr);
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-extern UINT8 HID_HostSetTraceLevel (UINT8 new_level);
+extern uint8_t HID_HostSetTraceLevel (uint8_t new_level);
 
 #ifdef __cplusplus
 }

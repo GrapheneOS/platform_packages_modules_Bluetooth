@@ -68,7 +68,7 @@
 #include "aes.h"
 
 #if defined( HAVE_UINT_32T )
-  typedef UINT32 uint_32t;
+  typedef uint32_t uint_32t;
 #endif
 
 /* functions for finite field multiplication in the AES Galois field    */

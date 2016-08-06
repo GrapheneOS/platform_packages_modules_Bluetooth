@@ -63,15 +63,15 @@ extern const BD_ADDR        BT_BD_ANY;
 ************************************
 */
 
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+#if (HCILP_INCLUDED == TRUE)
 extern void btu_check_bt_sleep (void);
 #endif
 
 /* Functions provided by btu_hcif.c
 ************************************
 */
-extern void  btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_buf);
-extern void  btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_msg);
+extern void  btu_hcif_process_event (uint8_t controller_id, BT_HDR *p_buf);
+extern void  btu_hcif_send_cmd (uint8_t controller_id, BT_HDR *p_msg);
 
 /* Functions provided by btu_core.c
 ************************************

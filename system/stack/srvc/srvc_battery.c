@@ -24,7 +24,7 @@
 #include "srvc_battery_int.h"
 #include "btcore/include/uuid.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 
 #define BA_MAX_CHAR_NUM          1
 #define BA_MAX_ATTR_NUM          (BA_MAX_CHAR_NUM * 5 + 1) /* max 3 descriptors, 1 desclration and 1 value */
@@ -46,9 +46,9 @@ tBATTERY_CB battery_cb;
 **
 **   validate a handle to be a DIS attribute handle or not.
 *******************************************************************************/
-BOOLEAN battery_valid_handle_range(UINT16 handle)
+bool    battery_valid_handle_range(uint16_t handle)
 {
-    UINT8       i = 0;
+    uint8_t     i = 0;
     tBA_INST    *p_inst = &battery_cb.battery_inst[0];
 
     for (;i < BA_MAX_INT_NUM; i ++, p_inst++)
@@ -58,25 +58,25 @@ BOOLEAN battery_valid_handle_range(UINT16 handle)
             handle == p_inst->rpt_ref_hdl ||
             handle == p_inst->pres_fmt_hdl )
         {
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 /*******************************************************************************
 **   battery_s_write_attr_value
 **
 **   Process write DIS attribute request.
 *******************************************************************************/
-UINT8 battery_s_write_attr_value(UINT8 clcb_idx, tGATT_WRITE_REQ * p_value,
+uint8_t battery_s_write_attr_value(uint8_t clcb_idx, tGATT_WRITE_REQ * p_value,
                                  tGATT_STATUS *p_status)
 {
-    UINT8       *p = p_value->value, i;
-    UINT16      handle = p_value->handle;
+    uint8_t     *p = p_value->value, i;
+    uint16_t    handle = p_value->handle;
     tBA_INST    *p_inst = &battery_cb.battery_inst[0];
     tGATT_STATUS    st = GATT_NOT_FOUND;
     tBA_WRITE_DATA   cfg;
-    UINT8       act = SRVC_ACT_RSP;
+    uint8_t     act = SRVC_ACT_RSP;
 
     for (i = 0; i < BA_MAX_INT_NUM; i ++, p_inst ++)
     {
@@ -110,12 +110,12 @@ UINT8 battery_s_write_attr_value(UINT8 clcb_idx, tGATT_WRITE_REQ * p_value,
 /*******************************************************************************
 **   BA Attributes Database Server Request callback
 *******************************************************************************/
-UINT8 battery_s_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_value, BOOLEAN is_long, tGATT_STATUS* p_status)
+uint8_t battery_s_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALUE *p_value, bool    is_long, tGATT_STATUS* p_status)
 {
-    UINT8       i;
+    uint8_t     i;
     tBA_INST    *p_inst = &battery_cb.battery_inst[0];
     tGATT_STATUS    st = GATT_NOT_FOUND;
-    UINT8       act = SRVC_ACT_RSP;
+    uint8_t     act = SRVC_ACT_RSP;
     UNUSED(p_value);
 
     for (i = 0; i < BA_MAX_INT_NUM; i ++, p_inst ++)
@@ -164,10 +164,10 @@ UINT8 battery_s_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_v
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN battery_gatt_c_read_ba_req(UINT16 conn_id)
+bool    battery_gatt_c_read_ba_req(uint16_t conn_id)
 {
     UNUSED(conn_id);
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -196,9 +196,9 @@ void battery_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
 ** Description      Instantiate a Battery service
 **
 *******************************************************************************/
-UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
+uint16_t Battery_Instantiate (uint8_t app_id, tBA_REG_INFO *p_reg_info)
 {
-    UINT16              srvc_hdl = 0;
+    uint16_t            srvc_hdl = 0;
     tGATT_STATUS        status = GATT_ERROR;
     tBA_INST            *p_inst;
 
@@ -298,13 +298,13 @@ UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info)
 ** Description      Respond to a battery service request
 **
 *******************************************************************************/
-void Battery_Rsp (UINT8 app_id, tGATT_STATUS st, UINT8 event, tBA_RSP_DATA *p_rsp)
+void Battery_Rsp (uint8_t app_id, tGATT_STATUS st, uint8_t event, tBA_RSP_DATA *p_rsp)
 {
     tBA_INST *p_inst = &battery_cb.battery_inst[0];
     tGATTS_RSP  rsp;
-    UINT8   *pp;
+    uint8_t *pp;
 
-    UINT8   i = 0;
+    uint8_t i = 0;
     while (i < BA_MAX_INT_NUM)
     {
         if (p_inst->app_id == app_id && p_inst->ba_level_hdl != 0)
@@ -366,10 +366,10 @@ void Battery_Rsp (UINT8 app_id, tGATT_STATUS st, UINT8 event, tBA_RSP_DATA *p_rs
 ** Description      Send battery level notification
 **
 *******************************************************************************/
-void Battery_Notify (UINT8 app_id, BD_ADDR remote_bda, UINT8 battery_level)
+void Battery_Notify (uint8_t app_id, BD_ADDR remote_bda, uint8_t battery_level)
 {
     tBA_INST *p_inst = &battery_cb.battery_inst[0];
-    UINT8    i = 0;
+    uint8_t  i = 0;
 
     while (i < BA_MAX_INT_NUM)
     {
@@ -393,10 +393,10 @@ void Battery_Notify (UINT8 app_id, BD_ADDR remote_bda, UINT8 battery_level)
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN Battery_ReadBatteryLevel(BD_ADDR peer_bda)
+bool    Battery_ReadBatteryLevel(BD_ADDR peer_bda)
 {
     UNUSED(peer_bda);
     /* to be implemented */
-    return TRUE;
+    return true;
 }
 #endif  /* BLE_INCLUDED */

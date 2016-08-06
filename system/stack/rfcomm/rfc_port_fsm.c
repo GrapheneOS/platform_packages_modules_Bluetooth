@@ -36,12 +36,12 @@
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void rfc_port_sm_state_closed (tPORT *p_port, UINT16 event, void *p_data);
-static void rfc_port_sm_sabme_wait_ua (tPORT *p_port, UINT16 event, void *p_data);
-static void rfc_port_sm_opened (tPORT *p_port, UINT16 event, void *p_data);
-static void rfc_port_sm_orig_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data);
-static void rfc_port_sm_term_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data);
-static void rfc_port_sm_disc_wait_ua (tPORT *p_port, UINT16 event, void *p_data);
+static void rfc_port_sm_state_closed (tPORT *p_port, uint16_t event, void *p_data);
+static void rfc_port_sm_sabme_wait_ua (tPORT *p_port, uint16_t event, void *p_data);
+static void rfc_port_sm_opened (tPORT *p_port, uint16_t event, void *p_data);
+static void rfc_port_sm_orig_wait_sec_check (tPORT *p_port, uint16_t event, void *p_data);
+static void rfc_port_sm_term_wait_sec_check (tPORT *p_port, uint16_t event, void *p_data);
+static void rfc_port_sm_disc_wait_ua (tPORT *p_port, uint16_t event, void *p_data);
 
 static void rfc_port_uplink_data (tPORT *p_port, BT_HDR *p_buf);
 
@@ -58,7 +58,7 @@ static void rfc_set_port_state(tPORT_STATE *port_pars, MX_FRAME *p_frame);
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_port_sm_execute (tPORT *p_port, UINT16 event, void *p_data)
+void rfc_port_sm_execute (tPORT *p_port, uint16_t event, void *p_data)
 {
     if (!p_port)
     {
@@ -106,14 +106,14 @@ void rfc_port_sm_execute (tPORT *p_port, UINT16 event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_port_sm_state_closed (tPORT *p_port, UINT16 event, void *p_data)
+void rfc_port_sm_state_closed (tPORT *p_port, uint16_t event, void *p_data)
 {
     switch (event)
     {
     case RFC_EVENT_OPEN:
         p_port->rfc.state = RFC_STATE_ORIG_WAIT_SEC_CHECK;
-        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, TRUE,
-                                   BTM_SEC_PROTO_RFCOMM, (UINT32)(p_port->dlci / 2),
+        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, true,
+                                   BTM_SEC_PROTO_RFCOMM, (uint32_t)(p_port->dlci / 2),
                                    &rfc_sec_check_complete, p_port);
         return;
 
@@ -133,8 +133,8 @@ void rfc_port_sm_state_closed (tPORT *p_port, UINT16 event, void *p_data)
 
         /* Open will be continued after security checks are passed */
         p_port->rfc.state = RFC_STATE_TERM_WAIT_SEC_CHECK;
-        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, FALSE,
-                                   BTM_SEC_PROTO_RFCOMM, (UINT32)(p_port->dlci / 2),
+        btm_sec_mx_access_request (p_port->rfc.p_mcb->bd_addr, BT_PSM_RFCOMM, false,
+                                   BTM_SEC_PROTO_RFCOMM, (uint32_t)(p_port->dlci / 2),
                                    &rfc_sec_check_complete, p_port);
         return;
 
@@ -147,11 +147,11 @@ void rfc_port_sm_state_closed (tPORT *p_port, UINT16 event, void *p_data)
 
     case RFC_EVENT_UIH:
         osi_free(p_data);
-        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, FALSE);
+        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, false);
         return;
 
     case RFC_EVENT_DISC:
-        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, FALSE);
+        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, false);
         return;
 
     case RFC_EVENT_TIMEOUT:
@@ -174,7 +174,7 @@ void rfc_port_sm_state_closed (tPORT *p_port, UINT16 event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_port_sm_sabme_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
+void rfc_port_sm_sabme_wait_ua (tPORT *p_port, uint16_t event, void *p_data)
 {
     switch (event)
     {
@@ -205,7 +205,7 @@ void rfc_port_sm_sabme_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
         return;
 
     case RFC_EVENT_DM:
-        p_port->rfc.p_mcb->is_disc_initiator = TRUE;
+        p_port->rfc.p_mcb->is_disc_initiator = true;
         PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR);
         rfc_port_closed (p_port);
         return;
@@ -246,19 +246,19 @@ void rfc_port_sm_sabme_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_port_sm_term_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
+void rfc_port_sm_term_wait_sec_check (tPORT *p_port, uint16_t event, void *p_data)
 {
     switch (event)
     {
     case RFC_EVENT_SEC_COMPLETE:
-        if (*((UINT8 *)p_data) != BTM_SUCCESS)
+        if (*((uint8_t *)p_data) != BTM_SUCCESS)
         {
             /* Authentication/authorization failed.  If link is still  */
             /* up send DM and check if we need to start inactive timer */
             if (p_port->rfc.p_mcb)
             {
-                rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, TRUE);
-                p_port->rfc.p_mcb->is_disc_initiator = TRUE;
+                rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, true);
+                p_port->rfc.p_mcb->is_disc_initiator = true;
                 port_rfc_closed (p_port, PORT_SEC_FAILED);
             }
         }
@@ -300,10 +300,10 @@ void rfc_port_sm_term_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
         return;
 
     case RFC_EVENT_ESTABLISH_RSP:
-        if (*((UINT8 *)p_data) != RFCOMM_SUCCESS)
+        if (*((uint8_t *)p_data) != RFCOMM_SUCCESS)
         {
             if (p_port->rfc.p_mcb)
-                rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, TRUE);
+                rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, true);
         }
         else
         {
@@ -327,14 +327,14 @@ void rfc_port_sm_term_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_port_sm_orig_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
+void rfc_port_sm_orig_wait_sec_check (tPORT *p_port, uint16_t event, void *p_data)
 {
     switch (event)
     {
     case RFC_EVENT_SEC_COMPLETE:
-        if (*((UINT8 *)p_data) != BTM_SUCCESS)
+        if (*((uint8_t *)p_data) != BTM_SUCCESS)
         {
-            p_port->rfc.p_mcb->is_disc_initiator = TRUE;
+            p_port->rfc.p_mcb->is_disc_initiator = true;
             PORT_DlcEstablishCnf (p_port->rfc.p_mcb, p_port->dlci, 0, RFCOMM_SECURITY_ERR);
             rfc_port_closed (p_port);
             return;
@@ -377,7 +377,7 @@ void rfc_port_sm_orig_wait_sec_check (tPORT *p_port, UINT16 event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_port_sm_opened (tPORT *p_port, UINT16 event, void *p_data)
+void rfc_port_sm_opened (tPORT *p_port, uint16_t event, void *p_data)
 {
     switch (event)
     {
@@ -405,7 +405,7 @@ void rfc_port_sm_opened (tPORT *p_port, UINT16 event, void *p_data)
          && (!p_port->rx.user_fc)
          && (p_port->credit_rx_max > p_port->credit_rx))
         {
-            ((BT_HDR *)p_data)->layer_specific = (UINT8) (p_port->credit_rx_max - p_port->credit_rx);
+            ((BT_HDR *)p_data)->layer_specific = (uint8_t) (p_port->credit_rx_max - p_port->credit_rx);
             p_port->credit_rx = p_port->credit_rx_max;
         }
         else
@@ -464,7 +464,7 @@ void rfc_port_sm_opened (tPORT *p_port, UINT16 event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_port_sm_disc_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
+void rfc_port_sm_disc_wait_ua (tPORT *p_port, uint16_t event, void *p_data)
 {
     switch (event)
     {
@@ -482,7 +482,7 @@ void rfc_port_sm_disc_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
         return;
 
     case RFC_EVENT_UA:
-        p_port->rfc.p_mcb->is_disc_initiator = TRUE;
+        p_port->rfc.p_mcb->is_disc_initiator = true;
         /* Case falls through */
 
    case RFC_EVENT_DM:
@@ -490,16 +490,16 @@ void rfc_port_sm_disc_wait_ua (tPORT *p_port, UINT16 event, void *p_data)
         return;
 
     case RFC_EVENT_SABME:
-        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, TRUE);
+        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, true);
         return;
 
     case RFC_EVENT_DISC:
-        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, TRUE);
+        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, true);
         return;
 
     case RFC_EVENT_UIH:
         osi_free(p_data);
-        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, FALSE);
+        rfc_send_dm (p_port->rfc.p_mcb, p_port->dlci, false);
         return;
 
     case RFC_EVENT_TIMEOUT:
@@ -532,10 +532,10 @@ void rfc_port_uplink_data (tPORT *p_port, BT_HDR *p_buf)
 **                  Record MTU and pass indication to the upper layer.
 **
 *******************************************************************************/
-void rfc_process_pn (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
+void rfc_process_pn (tRFC_MCB *p_mcb, bool    is_command, MX_FRAME *p_frame)
 {
     tPORT *p_port;
-    UINT8 dlci = p_frame->dlci;
+    uint8_t dlci = p_frame->dlci;
 
     if (is_command)
     {
@@ -547,7 +547,7 @@ void rfc_process_pn (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
         }
         else
         {
-            rfc_send_dm(p_mcb, dlci, FALSE);
+            rfc_send_dm(p_mcb, dlci, false);
             RFCOMM_TRACE_WARNING("***** MX PN while disconnecting *****");
         }
 
@@ -575,8 +575,8 @@ void rfc_process_pn (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
 **                  command/response.  Pass command to the user.
 **
 *******************************************************************************/
-void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
-                      BOOLEAN is_request, MX_FRAME *p_frame)
+void rfc_process_rpn (tRFC_MCB *p_mcb, bool    is_command,
+                      bool    is_request, MX_FRAME *p_frame)
 {
     tPORT_STATE port_pars;
     tPORT       *p_port;
@@ -599,7 +599,7 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
     {
         /* This is the special situation when peer just request local pars */
         port_pars = p_port->peer_port_pars;
-        rfc_send_rpn (p_mcb, p_frame->dlci, FALSE, &p_port->peer_port_pars, 0);
+        rfc_send_rpn (p_mcb, p_frame->dlci, false, &p_port->peer_port_pars, 0);
         return;
     }
 
@@ -640,7 +640,7 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
             p_port->peer_port_pars.fc_type = (RFCOMM_FC_RTR_ON_INPUT | RFCOMM_FC_RTR_ON_OUTPUT);
 
             p_port->rfc.expected_rsp |= RFC_RSP_RPN;
-            rfc_send_rpn (p_mcb, p_frame->dlci, TRUE, &p_port->peer_port_pars,
+            rfc_send_rpn (p_mcb, p_frame->dlci, true, &p_port->peer_port_pars,
                           RFCOMM_RPN_PM_RTR_ON_INPUT | RFCOMM_RPN_PM_RTR_ON_OUTPUT);
             rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
             return;
@@ -669,7 +669,7 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
 
         p_port->rfc.expected_rsp |= RFC_RSP_RPN;
 
-        rfc_send_rpn (p_mcb, p_frame->dlci, TRUE, &p_port->peer_port_pars,
+        rfc_send_rpn (p_mcb, p_frame->dlci, true, &p_port->peer_port_pars,
                       RFCOMM_RPN_PM_RTC_ON_INPUT | RFCOMM_RPN_PM_RTC_ON_OUTPUT);
         rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
         return;
@@ -692,12 +692,12 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, BOOLEAN is_command,
 **                  Pass command to the user.
 **
 *******************************************************************************/
-void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
+void rfc_process_msc (tRFC_MCB *p_mcb, bool    is_command, MX_FRAME *p_frame)
 {
     tPORT_CTRL pars;
     tPORT      *p_port;
-    UINT8      modem_signals = p_frame->u.msc.signals;
-    BOOLEAN    new_peer_fc = FALSE;
+    uint8_t    modem_signals = p_frame->u.msc.signals;
+    bool       new_peer_fc = false;
 
     p_port = port_find_mcb_dlci_port (p_mcb, p_frame->dlci);
     if (p_port == NULL)
@@ -727,7 +727,7 @@ void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
     /* Check if this command is passed only to indicate flow control */
     if (is_command)
     {
-        rfc_send_msc (p_mcb, p_frame->dlci, FALSE, &pars);
+        rfc_send_msc (p_mcb, p_frame->dlci, false, &pars);
 
         if (p_port->rfc.p_mcb->flow != PORT_FC_CREDIT)
         {
@@ -735,7 +735,7 @@ void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
             p_port->peer_ctrl.fc = new_peer_fc = pars.fc;
 
             if (new_peer_fc != p_port->tx.peer_fc)
-                PORT_FlowInd (p_mcb, p_frame->dlci, (BOOLEAN)!new_peer_fc);
+                PORT_FlowInd (p_mcb, p_frame->dlci, (bool   )!new_peer_fc);
         }
 
         PORT_ControlInd (p_mcb, p_frame->dlci, &pars);
@@ -763,14 +763,14 @@ void rfc_process_msc (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
 **                  Pass command to the user.
 **
 *******************************************************************************/
-void rfc_process_rls (tRFC_MCB *p_mcb, BOOLEAN is_command, MX_FRAME *p_frame)
+void rfc_process_rls (tRFC_MCB *p_mcb, bool    is_command, MX_FRAME *p_frame)
 {
     tPORT *p_port;
 
     if (is_command)
     {
         PORT_LineStatusInd (p_mcb, p_frame->dlci, p_frame->u.rls.line_status);
-        rfc_send_rls (p_mcb, p_frame->dlci, FALSE, p_frame->u.rls.line_status);
+        rfc_send_rls (p_mcb, p_frame->dlci, false, p_frame->u.rls.line_status);
     }
     else
     {
@@ -823,16 +823,16 @@ void rfc_process_test_rsp(tRFC_MCB *p_mcb, BT_HDR *p_buf)
 **                  to receive new information
 **
 *******************************************************************************/
-void rfc_process_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command)
+void rfc_process_fcon (tRFC_MCB *p_mcb, bool    is_command)
 {
     if (is_command)
     {
-        rfc_cb.rfc.peer_rx_disabled = FALSE;
+        rfc_cb.rfc.peer_rx_disabled = false;
 
-        rfc_send_fcon (p_mcb, FALSE);
+        rfc_send_fcon (p_mcb, false);
 
         if (!p_mcb->l2cap_congested)
-            PORT_FlowInd (p_mcb, 0, TRUE);
+            PORT_FlowInd (p_mcb, 0, true);
     }
 }
 
@@ -844,16 +844,16 @@ void rfc_process_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command)
 **                  to receive new information
 **
 *******************************************************************************/
-void rfc_process_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command)
+void rfc_process_fcoff (tRFC_MCB *p_mcb, bool    is_command)
 {
     if (is_command)
     {
-        rfc_cb.rfc.peer_rx_disabled = TRUE;
+        rfc_cb.rfc.peer_rx_disabled = true;
 
         if (!p_mcb->l2cap_congested)
-            PORT_FlowInd (p_mcb, 0, FALSE);
+            PORT_FlowInd (p_mcb, 0, false);
 
-        rfc_send_fcoff (p_mcb, FALSE);
+        rfc_send_fcoff (p_mcb, false);
     }
 }
 
@@ -865,7 +865,7 @@ void rfc_process_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command)
 ** Description      This function handles L2CAP congestion messages
 **
 *******************************************************************************/
-void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, BOOLEAN is_congested)
+void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, bool    is_congested)
 {
     p_mcb->l2cap_congested = is_congested;
 
@@ -877,9 +877,9 @@ void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, BOOLEAN is_congested)
     if (!rfc_cb.rfc.peer_rx_disabled)
     {
         if (!is_congested)
-            PORT_FlowInd (p_mcb, 0, TRUE);
+            PORT_FlowInd (p_mcb, 0, true);
         else
-            PORT_FlowInd (p_mcb, 0, FALSE);
+            PORT_FlowInd (p_mcb, 0, false);
     }
 }
 

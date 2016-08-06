@@ -63,8 +63,8 @@
 */
 typedef struct
 {
-    UINT8   level;
-    UINT8   mask;
+    uint8_t level;
+    uint8_t mask;
 } tBT_SECURITY;
 
 #endif  /* PROFILES_API_H */

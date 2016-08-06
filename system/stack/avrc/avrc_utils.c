@@ -30,13 +30,13 @@
 **
 ** Description      Check if correct AVC type is specified
 **
-** Returns          returns TRUE if it is valid
+** Returns          returns true if it is valid
 **
 **
 *******************************************************************************/
-BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type)
+bool    AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type)
 {
-    BOOLEAN result=FALSE;
+    bool    result=false;
 
     if (avc_type < AVRC_RSP_NOT_IMPL) /* command msg */
     {
@@ -51,7 +51,7 @@ BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type)
         case AVRC_PDU_GET_ELEMENT_ATTR:            /* 0x20 */
         case AVRC_PDU_GET_PLAY_STATUS:             /* 0x30 */
              if (avc_type == AVRC_CMD_STATUS)
-                result=TRUE;
+                result=true;
              break;
 
         case AVRC_PDU_SET_PLAYER_APP_VALUE:        /* 0x14 */
@@ -63,12 +63,12 @@ BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type)
         case AVRC_PDU_PLAY_ITEM:
         case AVRC_PDU_SET_ABSOLUTE_VOLUME:
              if (avc_type == AVRC_CMD_CTRL)
-                result=TRUE;
+                result=true;
              break;
 
         case AVRC_PDU_REGISTER_NOTIFICATION:       /* 0x31 */
              if (avc_type == AVRC_CMD_NOTIF)
-                result=TRUE;
+                result=true;
              break;
         }
     }
@@ -76,7 +76,7 @@ BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type)
     {
         if (avc_type >= AVRC_RSP_NOT_IMPL  &&
            avc_type <= AVRC_RSP_INTERIM    )
-           result=TRUE;
+           result=true;
     }
 
     return result;
@@ -88,37 +88,37 @@ BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type)
 **
 ** Description      Check if the given attrib value is valid for its attribute
 **
-** Returns          returns TRUE if it is valid
+** Returns          returns true if it is valid
 **
 *******************************************************************************/
-BOOLEAN avrc_is_valid_player_attrib_value(UINT8 attrib, UINT8 value)
+bool    avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value)
 {
-    BOOLEAN result=FALSE;
+    bool    result=false;
 
     switch(attrib)
     {
     case AVRC_PLAYER_SETTING_EQUALIZER:
          if ((value > 0)  &&
             (value <= AVRC_PLAYER_VAL_ON))
-            result=TRUE;
+            result=true;
          break;
 
     case AVRC_PLAYER_SETTING_REPEAT:
          if ((value > 0)  &&
             (value <= AVRC_PLAYER_VAL_GROUP_REPEAT))
-            result=TRUE;
+            result=true;
          break;
 
     case AVRC_PLAYER_SETTING_SHUFFLE:
     case AVRC_PLAYER_SETTING_SCAN:
          if ((value > 0)  &&
             (value <= AVRC_PLAYER_VAL_GROUP_SHUFFLE))
-            result=TRUE;
+            result=true;
          break;
     }
 
     if (attrib >= AVRC_PLAYER_SETTING_LOW_MENU_EXT)
-       result = TRUE;
+       result = true;
 
     if (!result)
         AVRC_TRACE_ERROR(
@@ -134,17 +134,17 @@ BOOLEAN avrc_is_valid_player_attrib_value(UINT8 attrib, UINT8 value)
 **
 ** Description      Check if the given attrib value is a valid one
 **
-** Returns          returns TRUE if it is valid
+** Returns          returns true if it is valid
 **
 *******************************************************************************/
-BOOLEAN AVRC_IsValidPlayerAttr(UINT8 attr)
+bool    AVRC_IsValidPlayerAttr(uint8_t attr)
 {
-    BOOLEAN result=FALSE;
+    bool    result=false;
 
     if ( (attr >= AVRC_PLAYER_SETTING_EQUALIZER && attr <= AVRC_PLAYER_SETTING_SCAN) ||
          (attr >= AVRC_PLAYER_SETTING_LOW_MENU_EXT) )
     {
-       result = TRUE;
+       result = true;
     }
 
     return result;
@@ -163,11 +163,11 @@ BOOLEAN AVRC_IsValidPlayerAttr(UINT8 attr)
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, UINT16 *p_vendor_unique_id)
+tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, uint16_t *p_vendor_unique_id)
 {
-    UINT8      *p_data;
-    UINT32      co_id;
-    UINT16      id;
+    uint8_t    *p_data;
+    uint32_t    co_id;
+    uint16_t    id;
     tAVRC_STS  status = AVRC_STS_BAD_CMD;
 
     if (p_msg->op_id == AVRC_ID_VENDOR && p_msg->pass_len == AVRC_PASS_THRU_GROUP_LEN)
@@ -196,9 +196,9 @@ tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, UINT16 *p_vendor_unique_id)
 ** Returns          AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
 **
 *******************************************************************************/
-UINT8 avrc_opcode_from_pdu(UINT8 pdu)
+uint8_t avrc_opcode_from_pdu(uint8_t pdu)
 {
-    UINT8 opcode = 0;
+    uint8_t opcode = 0;
 
     switch (pdu)
     {
@@ -224,15 +224,15 @@ UINT8 avrc_opcode_from_pdu(UINT8 pdu)
 ** Returns          AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
 **
 *******************************************************************************/
-BOOLEAN avrc_is_valid_opcode(UINT8 opcode)
+bool    avrc_is_valid_opcode(uint8_t opcode)
 {
-    BOOLEAN is_valid = FALSE;
+    bool    is_valid = false;
     switch (opcode)
     {
     case AVRC_OP_BROWSE:
     case AVRC_OP_PASS_THRU:
     case AVRC_OP_VENDOR:
-        is_valid = TRUE;
+        is_valid = true;
         break;
     }
     return is_valid;
