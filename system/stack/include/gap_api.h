@@ -95,42 +95,42 @@ extern "C" {
 /*
 ** Callback function for connection services
 */
-typedef void (tGAP_CONN_CALLBACK) (UINT16 gap_handle, UINT16 event);
+typedef void (tGAP_CONN_CALLBACK) (uint16_t gap_handle, uint16_t event);
 
 /*
 ** Define the callback function prototypes.  Parameters are specific
 ** to each event and are described below
 */
-typedef void (tGAP_CALLBACK) (UINT16 event, void *p_data);
+typedef void (tGAP_CALLBACK) (uint16_t event, void *p_data);
 
 
 /* Definition of the GAP_FindAddrByName results structure */
 typedef struct
 {
-    UINT16       status;
+    uint16_t     status;
     BD_ADDR      bd_addr;
     tBTM_BD_NAME devname;
 } tGAP_FINDADDR_RESULTS;
 
 typedef struct
 {
-    UINT16      int_min;
-    UINT16      int_max;
-    UINT16      latency;
-    UINT16      sp_tout;
+    uint16_t    int_min;
+    uint16_t    int_max;
+    uint16_t    latency;
+    uint16_t    sp_tout;
 }tGAP_BLE_PREF_PARAM;
 
 typedef union
 {
     tGAP_BLE_PREF_PARAM     conn_param;
     BD_ADDR                 reconn_bda;
-    UINT16                  icon;
-    UINT8                   *p_dev_name;
-    UINT8                   addr_resolution;
+    uint16_t                icon;
+    uint8_t                 *p_dev_name;
+    uint8_t                 addr_resolution;
 
 }tGAP_BLE_ATTR_VALUE;
 
-typedef void (tGAP_BLE_CMPL_CBACK)(BOOLEAN status, BD_ADDR addr, UINT16 length, char *p_name);
+typedef void (tGAP_BLE_CMPL_CBACK)(bool    status, BD_ADDR addr, uint16_t length, char *p_name);
 
 
 /*****************************************************************************
@@ -148,10 +148,10 @@ typedef void (tGAP_BLE_CMPL_CBACK)(BOOLEAN status, BD_ADDR addr, UINT16 length, 
 ** Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
-                                    BD_ADDR p_rem_bda, UINT16 psm, tL2CAP_CFG_INFO *p_cfg,
+extern uint16_t GAP_ConnOpen (char *p_serv_name, uint8_t service_id, bool    is_server,
+                                    BD_ADDR p_rem_bda, uint16_t psm, tL2CAP_CFG_INFO *p_cfg,
                                     tL2CAP_ERTM_INFO *ertm_info,
-                                    UINT16 security, UINT8 chan_mode_mask,
+                                    uint16_t security, uint8_t chan_mode_mask,
                                     tGAP_CONN_CALLBACK *p_cb, tBT_TRANSPORT transport);
 
 /*******************************************************************************
@@ -164,7 +164,7 @@ extern UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_serv
 **                  GAP_ERR_BAD_HANDLE  - invalid handle
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnClose (UINT16 gap_handle);
+extern uint16_t GAP_ConnClose (uint16_t gap_handle);
 
 /*******************************************************************************
 **
@@ -179,8 +179,8 @@ extern UINT16 GAP_ConnClose (UINT16 gap_handle);
 **                  GAP_NO_DATA_AVAIL   - no data available
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data,
-                                        UINT16 max_len, UINT16 *p_len);
+extern uint16_t GAP_ConnReadData (uint16_t gap_handle, uint8_t *p_data,
+                                        uint16_t max_len, uint16_t *p_len);
 
 /*******************************************************************************
 **
@@ -193,7 +193,7 @@ extern UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data,
 **
 **
 *******************************************************************************/
-extern int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count);
+extern int GAP_GetRxQueueCnt (uint16_t handle, uint32_t *p_rx_queue_count);
 
 /*******************************************************************************
 **
@@ -208,7 +208,7 @@ extern int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count);
 **                  GAP_NO_DATA_AVAIL   - no data available
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf);
+extern uint16_t GAP_ConnBTRead (uint16_t gap_handle, BT_HDR **pp_buf);
 
 /*******************************************************************************
 **
@@ -224,8 +224,8 @@ extern UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf);
 **                  GAP_CONGESTION          - system is congested
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data,
-                                         UINT16 max_len, UINT16 *p_len);
+extern uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data,
+                                         uint16_t max_len, uint16_t *p_len);
 
 /*******************************************************************************
 **
@@ -237,7 +237,7 @@ extern UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data,
 **                  GAP_ERR_BAD_HANDLE      - invalid handle
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnReconfig (UINT16 gap_handle, tL2CAP_CFG_INFO *p_cfg);
+extern uint16_t GAP_ConnReconfig (uint16_t gap_handle, tL2CAP_CFG_INFO *p_cfg);
 
 /*******************************************************************************
 **
@@ -255,7 +255,7 @@ extern UINT16 GAP_ConnReconfig (UINT16 gap_handle, tL2CAP_CFG_INFO *p_cfg);
 **                  GAP_ERR_BAD_HANDLE      - invalid handle
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnSetIdleTimeout (UINT16 gap_handle, UINT16 timeout);
+extern uint16_t GAP_ConnSetIdleTimeout (uint16_t gap_handle, uint16_t timeout);
 
 /*******************************************************************************
 **
@@ -268,7 +268,7 @@ extern UINT16 GAP_ConnSetIdleTimeout (UINT16 gap_handle, UINT16 timeout);
 **                  GAP_ERR_BAD_HANDLE  - invalid handle
 **
 *******************************************************************************/
-extern UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle);
+extern uint8_t *GAP_ConnGetRemoteAddr (uint16_t gap_handle);
 
 /*******************************************************************************
 **
@@ -276,10 +276,10 @@ extern UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle);
 **
 ** Description      Returns the remote device's MTU size.
 **
-** Returns          UINT16 - maximum size buffer that can be transmitted to the peer
+** Returns          uint16_t - maximum size buffer that can be transmitted to the peer
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnGetRemMtuSize (UINT16 gap_handle);
+extern uint16_t GAP_ConnGetRemMtuSize (uint16_t gap_handle);
 
 /*******************************************************************************
 **
@@ -289,11 +289,11 @@ extern UINT16 GAP_ConnGetRemMtuSize (UINT16 gap_handle);
 **
 ** Parameters:      handle      - Handle of the connection
 **
-** Returns          UINT16      - The L2CAP channel id
+** Returns          uint16_t    - The L2CAP channel id
 **                  0, if error
 **
 *******************************************************************************/
-extern UINT16 GAP_ConnGetL2CAPCid (UINT16 gap_handle);
+extern uint16_t GAP_ConnGetL2CAPCid (uint16_t gap_handle);
 
 /*******************************************************************************
 **
@@ -305,7 +305,7 @@ extern UINT16 GAP_ConnGetL2CAPCid (UINT16 gap_handle);
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-extern UINT8 GAP_SetTraceLevel (UINT8 new_level);
+extern uint8_t GAP_SetTraceLevel (uint8_t new_level);
 
 /*******************************************************************************
 **
@@ -330,7 +330,7 @@ extern void GAP_Init(void);
 ** Returns          Nothing
 **
 *******************************************************************************/
-extern void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value);
+extern void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE *p_value);
 
 
 /*******************************************************************************
@@ -340,10 +340,10 @@ extern void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value);
 ** Description      Start a process to read a connected peripheral's preferred
 **                  connection parameters
 **
-** Returns          TRUE if read started, else FALSE if GAP is busy
+** Returns          true if read started, else false if GAP is busy
 **
 *******************************************************************************/
-extern BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
+extern bool    GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
 
 /*******************************************************************************
 **
@@ -351,10 +351,10 @@ extern BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
 **
 ** Description      Start a process to read a connected peripheral's device name.
 **
-** Returns          TRUE if request accepted
+** Returns          true if request accepted
 **
 *******************************************************************************/
-extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback);
+extern bool    GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback);
 
 
 /*******************************************************************************
@@ -363,10 +363,10 @@ extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_
 **
 ** Description      Start a process to read peer address resolution capability
 **
-** Returns          TRUE if request accepted
+** Returns          true if request accepted
 **
 *******************************************************************************/
-extern BOOLEAN GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda,
+extern bool    GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda,
                                                     tGAP_BLE_CMPL_CBACK *p_cback);
 
 /*******************************************************************************
@@ -375,10 +375,10 @@ extern BOOLEAN GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda,
 **
 ** Description      Cancel reading a peripheral's device name.
 **
-** Returns          TRUE if request accepted
+** Returns          true if request accepted
 **
 *******************************************************************************/
-extern BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
+extern bool    GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
 
 #endif
 

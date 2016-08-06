@@ -36,14 +36,14 @@
 #define AVCT_L2C_CFG_CFM_DONE   (1<<1)
 
 /* callback function declarations */
-void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id);
-void avct_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result);
-void avct_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-void avct_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-void avct_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed);
-void avct_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result);
-void avct_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested);
-void avct_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf);
+void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
+void avct_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result);
+void avct_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
+void avct_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
+void avct_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed);
+void avct_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result);
+void avct_l2c_congestion_ind_cback(uint16_t lcid, bool is_congested);
+void avct_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf);
 
 /* L2CAP callback function structure */
 const tL2CAP_APPL_INFO avct_l2c_appl = {
@@ -67,12 +67,12 @@ const tL2CAP_APPL_INFO avct_l2c_appl = {
 ** Description      check is the CCB associated with the given LCB was created
 **                  as passive
 **
-** Returns          TRUE, if the given LCB is created as AVCT_PASSIVE
+** Returns          true, if the given LCB is created as AVCT_PASSIVE
 **
 *******************************************************************************/
-static BOOLEAN avct_l2c_is_passive (tAVCT_LCB *p_lcb)
+static bool avct_l2c_is_passive (tAVCT_LCB *p_lcb)
 {
-    BOOLEAN     is_passive = FALSE;
+    bool        is_passive = false;
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
     int         i;
 
@@ -83,7 +83,7 @@ static BOOLEAN avct_l2c_is_passive (tAVCT_LCB *p_lcb)
             AVCT_TRACE_DEBUG("avct_l2c_is_ct control:x%x", p_ccb->cc.control);
             if (p_ccb->cc.control & AVCT_PASSIVE)
             {
-                is_passive = TRUE;
+                is_passive = true;
                 break;
             }
         }
@@ -101,10 +101,10 @@ static BOOLEAN avct_l2c_is_passive (tAVCT_LCB *p_lcb)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
+void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
 {
     tAVCT_LCB       *p_lcb;
-    UINT16          result = L2CAP_CONN_OK;
+    uint16_t        result = L2CAP_CONN_OK;
     tL2CAP_CFG_INFO cfg;
     UNUSED(psm);
 
@@ -153,7 +153,7 @@ void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
 
         /* Send L2CAP config req */
         memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
-        cfg.mtu_present = TRUE;
+        cfg.mtu_present = true;
         cfg.mtu = avct_cb.mtu;
         L2CA_ConfigReq(lcid, &cfg);
         AVCT_TRACE_DEBUG("avct_l2c snd Cfg Req");
@@ -175,7 +175,7 @@ void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
+void avct_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVCT_LCB       *p_lcb;
     tL2CAP_CFG_INFO cfg;
@@ -196,7 +196,7 @@ void avct_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 
                 /* Send L2CAP config req */
                 memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
-                cfg.mtu_present = TRUE;
+                cfg.mtu_present = true;
                 cfg.mtu = avct_cb.mtu;
                 L2CA_ConfigReq(lcid, &cfg);
                 AVCT_TRACE_DEBUG("avct_l2c snd Cfg Req");
@@ -236,7 +236,7 @@ void avct_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void avct_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVCT_LCB       *p_lcb;
 
@@ -286,7 +286,7 @@ void avct_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void avct_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVCT_LCB       *p_lcb;
 
@@ -336,10 +336,10 @@ void avct_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
+void avct_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed)
 {
     tAVCT_LCB       *p_lcb;
-    UINT16          result = AVCT_RESULT_FAIL;
+    uint16_t        result = AVCT_RESULT_FAIL;
 
     /* look up lcb for this channel */
     if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
@@ -366,10 +366,10 @@ void avct_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
+void avct_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVCT_LCB       *p_lcb;
-    UINT16          res;
+    uint16_t        res;
 
     /* look up lcb for this channel */
     if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
@@ -395,7 +395,7 @@ void avct_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
+void avct_l2c_congestion_ind_cback(uint16_t lcid, bool is_congested)
 {
     tAVCT_LCB       *p_lcb;
 
@@ -417,7 +417,7 @@ void avct_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
+void avct_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tAVCT_LCB       *p_lcb;
 

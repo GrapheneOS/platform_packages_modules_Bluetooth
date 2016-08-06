@@ -37,12 +37,12 @@
 #include "sdp_api.h"
 #include "sdpint.h"
 
-#if SDP_SERVER_ENABLED == TRUE
+#if (SDP_SERVER_ENABLED == TRUE)
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static BOOLEAN find_uuid_in_seq (UINT8 *p , UINT32 seq_len, UINT8 *p_his_uuid,
-                                 UINT16 his_len, int nest_level);
+static bool    find_uuid_in_seq (uint8_t *p , uint32_t seq_len, uint8_t *p_his_uuid,
+                                 uint16_t his_len, int nest_level);
 
 
 /*******************************************************************************
@@ -58,7 +58,7 @@ static BOOLEAN find_uuid_in_seq (UINT8 *p , UINT32 seq_len, UINT8 *p_his_uuid,
 *******************************************************************************/
 tSDP_RECORD *sdp_db_service_search (tSDP_RECORD *p_rec, tSDP_UUID_SEQ *p_seq)
 {
-    UINT16          xx, yy;
+    uint16_t        xx, yy;
     tSDP_ATTRIBUTE *p_attr;
     tSDP_RECORD     *p_end = &sdp_cb.server_db.record[sdp_cb.server_db.num_records];
 
@@ -112,19 +112,19 @@ tSDP_RECORD *sdp_db_service_search (tSDP_RECORD *p_rec, tSDP_UUID_SEQ *p_seq)
 **
 ** Description      This function searches a data element sequenct for a UUID.
 **
-** Returns          TRUE if found, else FALSE
+** Returns          true if found, else false
 **
 *******************************************************************************/
-static BOOLEAN find_uuid_in_seq (UINT8 *p , UINT32 seq_len, UINT8 *p_uuid,
-                                 UINT16 uuid_len, int nest_level)
+static bool    find_uuid_in_seq (uint8_t *p , uint32_t seq_len, uint8_t *p_uuid,
+                                 uint16_t uuid_len, int nest_level)
 {
-    UINT8   *p_end = p + seq_len;
-    UINT8   type;
-    UINT32  len;
+    uint8_t *p_end = p + seq_len;
+    uint8_t type;
+    uint32_t len;
 
     /* A little safety check to avoid excessive recursion */
     if (nest_level > 3)
-        return (FALSE);
+        return (false);
 
     while (p < p_end)
     {
@@ -134,18 +134,18 @@ static BOOLEAN find_uuid_in_seq (UINT8 *p , UINT32 seq_len, UINT8 *p_uuid,
         if (type == UUID_DESC_TYPE)
         {
             if (sdpu_compare_uuid_arrays (p, len, p_uuid, uuid_len))
-                return (TRUE);
+                return (true);
         }
         else if (type == DATA_ELE_SEQ_DESC_TYPE)
         {
             if (find_uuid_in_seq (p, len, p_uuid, uuid_len, nest_level + 1))
-                return (TRUE);
+                return (true);
         }
         p = p + len;
     }
 
     /* If here, failed to match */
-    return (FALSE);
+    return (false);
 }
 
 /*******************************************************************************
@@ -158,7 +158,7 @@ static BOOLEAN find_uuid_in_seq (UINT8 *p , UINT32 seq_len, UINT8 *p_uuid,
 ** Returns          Pointer to the record, or NULL if not found.
 **
 *******************************************************************************/
-tSDP_RECORD *sdp_db_find_record (UINT32 handle)
+tSDP_RECORD *sdp_db_find_record (uint32_t handle)
 {
     tSDP_RECORD     *p_rec;
     tSDP_RECORD     *p_end = &sdp_cb.server_db.record[sdp_cb.server_db.num_records];
@@ -186,11 +186,11 @@ tSDP_RECORD *sdp_db_find_record (UINT32 handle)
 ** Returns          Pointer to the attribute, or NULL if not found.
 **
 *******************************************************************************/
-tSDP_ATTRIBUTE *sdp_db_find_attr_in_rec (tSDP_RECORD *p_rec, UINT16 start_attr,
-                                         UINT16 end_attr)
+tSDP_ATTRIBUTE *sdp_db_find_attr_in_rec (tSDP_RECORD *p_rec, uint16_t start_attr,
+                                         uint16_t end_attr)
 {
     tSDP_ATTRIBUTE  *p_at;
-    UINT16          xx;
+    uint16_t        xx;
 
     /* Note that the attributes in a record are assumed to be in sorted order */
     for (xx = 0, p_at = &p_rec->attribute[0]; xx < p_rec->num_attributes;
@@ -215,13 +215,13 @@ tSDP_ATTRIBUTE *sdp_db_find_attr_in_rec (tSDP_RECORD *p_rec, UINT16 start_attr,
 ** Returns          the length of the data sequence
 **
 *******************************************************************************/
-static int sdp_compose_proto_list( UINT8 *p, UINT16 num_elem,
+static int sdp_compose_proto_list( uint8_t *p, uint16_t num_elem,
                                   tSDP_PROTOCOL_ELEM *p_elem_list)
 {
-    UINT16          xx, yy, len;
-    BOOLEAN            is_rfcomm_scn;
-    UINT8           *p_head = p;
-    UINT8            *p_len;
+    uint16_t        xx, yy, len;
+    bool               is_rfcomm_scn;
+    uint8_t         *p_head = p;
+    uint8_t          *p_len;
 
     /* First, build the protocol list. This consists of a set of data element
     ** sequences, one for each layer. Each layer sequence consists of layer's
@@ -233,15 +233,15 @@ static int sdp_compose_proto_list( UINT8 *p, UINT16 num_elem,
         UINT8_TO_BE_STREAM  (p, (DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
 
         p_len = p;
-        *p++ = (UINT8) len;
+        *p++ = (uint8_t) len;
 
         UINT8_TO_BE_STREAM  (p, (UUID_DESC_TYPE << 3) | SIZE_TWO_BYTES);
         UINT16_TO_BE_STREAM (p, p_elem_list->protocol_uuid);
 
         if (p_elem_list->protocol_uuid == UUID_PROTOCOL_RFCOMM)
-            is_rfcomm_scn = TRUE;
+            is_rfcomm_scn = true;
         else
-            is_rfcomm_scn = FALSE;
+            is_rfcomm_scn = false;
 
         for (yy = 0; yy < p_elem_list->num_params; yy++)
         {
@@ -276,11 +276,11 @@ static int sdp_compose_proto_list( UINT8 *p, UINT16 num_elem,
 ** Returns          Record handle if OK, else 0.
 **
 *******************************************************************************/
-UINT32 SDP_CreateRecord (void)
+uint32_t SDP_CreateRecord (void)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT32    handle;
-    UINT8     buf[4];
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint32_t  handle;
+    uint8_t   buf[4];
     tSDP_DB  *p_db = &sdp_cb.server_db;
 
     /* First, check if there is a free record */
@@ -323,13 +323,13 @@ UINT32 SDP_CreateRecord (void)
 **
 **                  If a record handle of 0 is passed, all records are deleted.
 **
-** Returns          TRUE if succeeded, else FALSE
+** Returns          true if succeeded, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_DeleteRecord (UINT32 handle)
+bool    SDP_DeleteRecord (uint32_t handle)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT16          xx, yy, zz;
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint16_t        xx, yy, zz;
     tSDP_RECORD     *p_rec = &sdp_cb.server_db.record[0];
 
     if (handle == 0 || sdp_cb.server_db.num_records == 0)
@@ -340,7 +340,7 @@ BOOLEAN SDP_DeleteRecord (UINT32 handle)
         /* require new DI record to be created in SDP_SetLocalDiRecord */
         sdp_cb.server_db.di_primary_handle = 0;
 
-        return (TRUE);
+        return (true);
     }
     else
     {
@@ -369,12 +369,12 @@ BOOLEAN SDP_DeleteRecord (UINT32 handle)
                     sdp_cb.server_db.di_primary_handle = 0;
                 }
 
-                return (TRUE);
+                return (true);
             }
         }
     }
 #endif
-    return (FALSE);
+    return (false);
 }
 
 
@@ -389,14 +389,14 @@ BOOLEAN SDP_DeleteRecord (UINT32 handle)
 **
 ** NOTE             Attribute values must be passed as a Big Endian stream.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
-                          UINT32 attr_len, UINT8 *p_val)
+bool    SDP_AddAttribute (uint32_t handle, uint16_t attr_id, uint8_t attr_type,
+                          uint32_t attr_len, uint8_t *p_val)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT16          xx, yy, zz;
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint16_t        xx, yy, zz;
     tSDP_RECORD     *p_rec = &sdp_cb.server_db.record[0];
 
 #if (BT_TRACE_VERBOSE == TRUE)
@@ -408,19 +408,19 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
             (attr_type == DATA_ELE_SEQ_DESC_TYPE) ||
             (attr_type == DATA_ELE_ALT_DESC_TYPE))
         {
-            UINT8 num_array[400];
-            UINT32 i;
-            UINT32 len = (attr_len > 200) ? 200 : attr_len;
+            uint8_t num_array[400];
+            uint32_t i;
+            uint32_t len = (attr_len > 200) ? 200 : attr_len;
 
             num_array[0] ='\0';
             for (i = 0; i < len; i++)
             {
-                sprintf((char *)&num_array[i*2],"%02X",(UINT8)(p_val[i]));
+                sprintf((char *)&num_array[i*2],"%02X",(uint8_t)(p_val[i]));
             }
             SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%s",
                             handle,attr_id,attr_type,attr_len,p_val,num_array);
         }
-        else if (attr_type == BOOLEAN_DESC_TYPE)
+        else if (attr_type == bool   _DESC_TYPE)
         {
             SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%d",
                              handle,attr_id,attr_type,attr_len,p_val,*p_val);
@@ -454,7 +454,7 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
             }
 
             if (p_rec->num_attributes == SDP_MAX_REC_ATTR)
-                return (FALSE);
+                return (false);
 
             /* If not found, see if we can allocate a new entry */
             if (xx == p_rec->num_attributes)
@@ -499,14 +499,14 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
                 SDP_TRACE_ERROR("SDP_AddAttribute fail, length exceed maximum: ID %d: attr_len:%d ",
                     attr_id, attr_len );
                 p_attr->id   = p_attr->type = p_attr->len  = 0;
-                return (FALSE);
+                return (false);
             }
             p_rec->num_attributes++;
-            return (TRUE);
+            return (true);
         }
     }
 #endif
-    return (FALSE);
+    return (false);
 }
 
 
@@ -521,18 +521,18 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
 **
 ** NOTE             Element values must be passed as a Big Endian stream.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_elem,
-                         UINT8 type[], UINT8 len[], UINT8 *p_val[])
+bool    SDP_AddSequence (uint32_t handle,  uint16_t attr_id, uint16_t num_elem,
+                         uint8_t type[], uint8_t len[], uint8_t *p_val[])
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT16 xx;
-    UINT8 *p;
-    UINT8 *p_head;
-    BOOLEAN result;
-    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint16_t xx;
+    uint8_t *p;
+    uint8_t *p_head;
+    bool    result;
+    uint8_t *p_buff = (uint8_t *)osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN * 2);
 
     p = p_buff;
 
@@ -574,18 +574,18 @@ BOOLEAN SDP_AddSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_elem,
                 /* the first element exceed the max length */
                 SDP_TRACE_ERROR ("SDP_AddSequence - too long(attribute is not added)!!");
                 osi_free(p_buff);
-                return FALSE;
+                return false;
             }
             else
                 SDP_TRACE_ERROR ("SDP_AddSequence - too long, add %d elements of %d", xx, num_elem);
             break;
         }
     }
-    result = SDP_AddAttribute (handle, attr_id, DATA_ELE_SEQ_DESC_TYPE,(UINT32) (p - p_buff), p_buff);
+    result = SDP_AddAttribute (handle, attr_id, DATA_ELE_SEQ_DESC_TYPE,(uint32_t) (p - p_buff), p_buff);
     osi_free(p_buff);
     return result;
 #else   /* SDP_SERVER_ENABLED == FALSE */
-    return (FALSE);
+    return (false);
 #endif
 }
 
@@ -599,18 +599,18 @@ BOOLEAN SDP_AddSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_elem,
 **                  If the sequence already exists in the record, it is replaced
 **                  with the new sequence.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddUuidSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_uuids,
-                             UINT16 *p_uuids)
+bool    SDP_AddUuidSequence (uint32_t handle,  uint16_t attr_id, uint16_t num_uuids,
+                             uint16_t *p_uuids)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT16 xx;
-    UINT8 *p;
-    INT32 max_len = SDP_MAX_ATTR_LEN -3;
-    BOOLEAN result;
-    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint16_t xx;
+    uint8_t *p;
+    int32_t max_len = SDP_MAX_ATTR_LEN -3;
+    bool    result;
+    uint8_t *p_buff = (uint8_t *)osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN * 2);
 
     p = p_buff;
 
@@ -627,11 +627,11 @@ BOOLEAN SDP_AddUuidSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_uuids,
         }
     }
 
-    result = SDP_AddAttribute (handle, attr_id, DATA_ELE_SEQ_DESC_TYPE,(UINT32) (p - p_buff), p_buff);
+    result = SDP_AddAttribute (handle, attr_id, DATA_ELE_SEQ_DESC_TYPE,(uint32_t) (p - p_buff), p_buff);
     osi_free(p_buff);
     return result;
 #else   /* SDP_SERVER_ENABLED == FALSE */
-    return (FALSE);
+    return (false);
 #endif
 }
 
@@ -644,23 +644,23 @@ BOOLEAN SDP_AddUuidSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_uuids,
 **                  If the protocol list already exists in the record, it is replaced
 **                  with the new list.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddProtocolList (UINT32 handle, UINT16 num_elem,
+bool    SDP_AddProtocolList (uint32_t handle, uint16_t num_elem,
                              tSDP_PROTOCOL_ELEM *p_elem_list)
 {
-#if SDP_SERVER_ENABLED == TRUE
+#if (SDP_SERVER_ENABLED == TRUE)
     int offset;
-    BOOLEAN result;
-    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
+    bool    result;
+    uint8_t *p_buff = (uint8_t *)osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN * 2);
 
     offset = sdp_compose_proto_list(p_buff, num_elem, p_elem_list);
-    result = SDP_AddAttribute (handle, ATTR_ID_PROTOCOL_DESC_LIST,DATA_ELE_SEQ_DESC_TYPE, (UINT32) offset, p_buff);
+    result = SDP_AddAttribute (handle, ATTR_ID_PROTOCOL_DESC_LIST,DATA_ELE_SEQ_DESC_TYPE, (uint32_t) offset, p_buff);
     osi_free(p_buff);
     return result;
 #else   /* SDP_SERVER_ENABLED == FALSE */
-    return (FALSE);
+    return (false);
 #endif
 }
 
@@ -674,19 +674,19 @@ BOOLEAN SDP_AddProtocolList (UINT32 handle, UINT16 num_elem,
 **                  If the protocol list already exists in the record, it is replaced
 **                  with the new list.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddAdditionProtoLists (UINT32 handle, UINT16 num_elem,
+bool    SDP_AddAdditionProtoLists (uint32_t handle, uint16_t num_elem,
                                    tSDP_PROTO_LIST_ELEM *p_proto_list)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT16 xx;
-    UINT8 *p;
-    UINT8 *p_len;
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint16_t xx;
+    uint8_t *p;
+    uint8_t *p_len;
     int offset;
-    BOOLEAN result;
-    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
+    bool    result;
+    uint8_t *p_buff = (uint8_t *)osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN * 2);
 
     p = p_buff;
 
@@ -700,15 +700,15 @@ BOOLEAN SDP_AddAdditionProtoLists (UINT32 handle, UINT16 num_elem,
                                         p_proto_list->list_elem);
         p += offset;
 
-        *p_len  = (UINT8)(p - p_len - 1);
+        *p_len  = (uint8_t)(p - p_len - 1);
     }
     result = SDP_AddAttribute (handle, ATTR_ID_ADDITION_PROTO_DESC_LISTS,DATA_ELE_SEQ_DESC_TYPE,
-	                           (UINT32) (p - p_buff), p_buff);
+	                           (uint32_t) (p - p_buff), p_buff);
     osi_free(p_buff);
     return result;
 
 #else   /* SDP_SERVER_ENABLED == FALSE */
-    return (FALSE);
+    return (false);
 #endif
 }
 
@@ -721,16 +721,16 @@ BOOLEAN SDP_AddAdditionProtoLists (UINT32 handle, UINT16 num_elem,
 **                  If the version already exists in the record, it is replaced
 **                  with the new one.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddProfileDescriptorList (UINT32 handle, UINT16 profile_uuid,
-                                      UINT16 version)
+bool    SDP_AddProfileDescriptorList (uint32_t handle, uint16_t profile_uuid,
+                                      uint16_t version)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT8 *p;
-    BOOLEAN result;
-    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN);
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint8_t *p;
+    bool    result;
+    uint8_t *p_buff = (uint8_t *)osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN);
 
     p = p_buff + 2;
 
@@ -743,15 +743,15 @@ BOOLEAN SDP_AddProfileDescriptorList (UINT32 handle, UINT16 profile_uuid,
     UINT16_TO_BE_STREAM (p, version);
 
     /* Add in type and length fields */
-    *p_buff = (UINT8) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
-    *(p_buff+1) = (UINT8) (p - (p_buff+2));
+    *p_buff = (uint8_t) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
+    *(p_buff+1) = (uint8_t) (p - (p_buff+2));
 
-    result = SDP_AddAttribute (handle, ATTR_ID_BT_PROFILE_DESC_LIST,DATA_ELE_SEQ_DESC_TYPE, (UINT32) (p - p_buff), p_buff);
+    result = SDP_AddAttribute (handle, ATTR_ID_BT_PROFILE_DESC_LIST,DATA_ELE_SEQ_DESC_TYPE, (uint32_t) (p - p_buff), p_buff);
     osi_free(p_buff);
     return result;
 
 #else   /* SDP_SERVER_ENABLED == FALSE */
-    return (FALSE);
+    return (false);
 #endif
 }
 
@@ -765,16 +765,16 @@ BOOLEAN SDP_AddProfileDescriptorList (UINT32 handle, UINT16 profile_uuid,
 **                  If the version already exists in the record, it is replaced
 **                  with the new one.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddLanguageBaseAttrIDList (UINT32 handle, UINT16 lang,
-                                       UINT16 char_enc, UINT16 base_id)
+bool    SDP_AddLanguageBaseAttrIDList (uint32_t handle, uint16_t lang,
+                                       uint16_t char_enc, uint16_t base_id)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT8 *p;
-    BOOLEAN result;
-    UINT8 *p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN);
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint8_t *p;
+    bool    result;
+    uint8_t *p_buff = (uint8_t *) osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN);
 
     p = p_buff;
 
@@ -790,11 +790,11 @@ BOOLEAN SDP_AddLanguageBaseAttrIDList (UINT32 handle, UINT16 lang,
     UINT16_TO_BE_STREAM (p, base_id);
 
     result = SDP_AddAttribute (handle, ATTR_ID_LANGUAGE_BASE_ATTR_ID_LIST,DATA_ELE_SEQ_DESC_TYPE,
-	                           (UINT32) (p - p_buff), p_buff);
+	                           (uint32_t) (p - p_buff), p_buff);
     osi_free(p_buff);
     return result;
 #else   /* SDP_SERVER_ENABLED == FALSE */
-    return (FALSE);
+    return (false);
 #endif
 }
 
@@ -808,17 +808,17 @@ BOOLEAN SDP_AddLanguageBaseAttrIDList (UINT32 handle, UINT16 lang,
 **                  If the service list already exists in the record, it is replaced
 **                  with the new list.
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-BOOLEAN SDP_AddServiceClassIdList (UINT32 handle, UINT16 num_services,
-                                   UINT16 *p_service_uuids)
+bool    SDP_AddServiceClassIdList (uint32_t handle, uint16_t num_services,
+                                   uint16_t *p_service_uuids)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT16 xx;
-    UINT8 *p;
-    BOOLEAN result;
-    UINT8 *p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint16_t xx;
+    uint8_t *p;
+    bool    result;
+    uint8_t *p_buff = (uint8_t *) osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN * 2);
 
     p = p_buff;
 
@@ -829,11 +829,11 @@ BOOLEAN SDP_AddServiceClassIdList (UINT32 handle, UINT16 num_services,
     }
 
     result = SDP_AddAttribute (handle, ATTR_ID_SERVICE_CLASS_ID_LIST,DATA_ELE_SEQ_DESC_TYPE,
-	                           (UINT32) (p - p_buff), p_buff);
+	                           (uint32_t) (p - p_buff), p_buff);
     osi_free(p_buff);
     return result;
 #else   /* SDP_SERVER_ENABLED == FALSE */
-    return (FALSE);
+    return (false);
 #endif
 }
 
@@ -845,16 +845,16 @@ BOOLEAN SDP_AddServiceClassIdList (UINT32 handle, UINT16 num_services,
 ** Description      This function is called to delete an attribute from a record.
 **                  This would be through the SDP database maintenance API.
 **
-** Returns          TRUE if deleted OK, else FALSE if not found
+** Returns          true if deleted OK, else false if not found
 **
 *******************************************************************************/
-BOOLEAN SDP_DeleteAttribute (UINT32 handle, UINT16 attr_id)
+bool    SDP_DeleteAttribute (uint32_t handle, uint16_t attr_id)
 {
-#if SDP_SERVER_ENABLED == TRUE
-    UINT16          xx, yy;
+#if (SDP_SERVER_ENABLED == TRUE)
+    uint16_t        xx, yy;
     tSDP_RECORD     *p_rec = &sdp_cb.server_db.record[0];
-    UINT8           *pad_ptr;
-    UINT32  len;                        /* Number of bytes in the entry */
+    uint8_t         *pad_ptr;
+    uint32_t len;                        /* Number of bytes in the entry */
 
     /* Find the record in the database */
     for (xx = 0; xx < sdp_cb.server_db.num_records; xx++, p_rec++)
@@ -898,14 +898,14 @@ BOOLEAN SDP_DeleteAttribute (UINT32 handle, UINT16 attr_id)
                             *pad_ptr = *(pad_ptr+len);
                         p_rec->free_pad_ptr -= len;
                     }
-                    return (TRUE);
+                    return (true);
                 }
             }
         }
     }
 #endif
     /* If here, not found */
-    return (FALSE);
+    return (false);
 }
 
 /*******************************************************************************
@@ -922,17 +922,17 @@ BOOLEAN SDP_DeleteAttribute (UINT32 handle, UINT16 attr_id)
 **
 *******************************************************************************/
 #if (SDP_RAW_DATA_INCLUDED == TRUE)
-INT32 SDP_ReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len)
+int32_t SDP_ReadRecord(uint32_t handle, uint8_t *p_data, int32_t *p_data_len)
 {
-    INT32           len = 0;                        /* Number of bytes in the entry */
-    INT32           offset = -1; /* default to not found */
-#if SDP_SERVER_ENABLED == TRUE
+    int32_t         len = 0;                        /* Number of bytes in the entry */
+    int32_t         offset = -1; /* default to not found */
+#if (SDP_SERVER_ENABLED == TRUE)
     tSDP_RECORD     *p_rec;
-    UINT16          start = 0;
-    UINT16          end = 0xffff;
+    uint16_t        start = 0;
+    uint16_t        end = 0xffff;
     tSDP_ATTRIBUTE  *p_attr;
-    UINT16          rem_len;
-    UINT8           *p_rsp;
+    uint16_t        rem_len;
+    uint8_t         *p_rsp;
 
     /* Find the record in the database */
     p_rec = sdp_db_find_record(handle);
@@ -942,9 +942,9 @@ INT32 SDP_ReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len)
         while ( (p_attr = sdp_db_find_attr_in_rec (p_rec, start, end)) != NULL)
         {
             /* Check if attribute fits. Assume 3-byte value type/length */
-            rem_len = *p_data_len - (UINT16) (p_rsp - p_data);
+            rem_len = *p_data_len - (uint16_t) (p_rsp - p_data);
 
-            if (p_attr->len > (UINT32)(rem_len - 6))
+            if (p_attr->len > (uint32_t)(rem_len - 6))
                 break;
 
             p_rsp = sdpu_build_attrib_entry (p_rsp, p_attr);
@@ -952,22 +952,22 @@ INT32 SDP_ReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len)
             /* next attr id */
             start = p_attr->id + 1;
         }
-        len = (INT32) (p_rsp - p_data);
+        len = (int32_t) (p_rsp - p_data);
 
         /* Put in the sequence header (2 or 3 bytes) */
         if (len > 255)
         {
             offset = 0;
-            p_data[0] = (UINT8) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
-            p_data[1] = (UINT8) ((len - 3) >> 8);
-            p_data[2] = (UINT8) (len - 3);
+            p_data[0] = (uint8_t) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
+            p_data[1] = (uint8_t) ((len - 3) >> 8);
+            p_data[2] = (uint8_t) (len - 3);
         }
         else
         {
             offset = 1;
 
-            p_data[1] = (UINT8) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
-            p_data[2] = (UINT8) (len - 3);
+            p_data[1] = (uint8_t) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
+            p_data[2] = (uint8_t) (len - 3);
 
             len--;
         }

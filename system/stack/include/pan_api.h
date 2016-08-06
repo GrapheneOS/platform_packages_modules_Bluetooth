@@ -87,7 +87,7 @@ enum
     PAN_FAILURE                                                 /* Failure                      */
 
 };
-typedef UINT8 tPAN_RESULT;
+typedef uint8_t tPAN_RESULT;
 
 
 /*****************************************************************
@@ -95,19 +95,19 @@ typedef UINT8 tPAN_RESULT;
 *****************************************************************/
 
 /* This is call back function used to report connection status
-**      to the application. The second parameter TRUE means
-**      to create the bridge and FALSE means to remove it.
+**      to the application. The second parameter true means
+**      to create the bridge and false means to remove it.
 */
-typedef void (tPAN_CONN_STATE_CB) (UINT16 handle, BD_ADDR bd_addr, tPAN_RESULT state, BOOLEAN is_role_change,
-                                        UINT8 src_role, UINT8 dst_role);
+typedef void (tPAN_CONN_STATE_CB) (uint16_t handle, BD_ADDR bd_addr, tPAN_RESULT state, bool    is_role_change,
+                                        uint8_t src_role, uint8_t dst_role);
 
 
 /* This is call back function used to create bridge for the
 **      Connected device. The parameter "state" indicates
-**      whether to create the bridge or remove it. TRUE means
-**      to create the bridge and FALSE means to remove it.
+**      whether to create the bridge or remove it. true means
+**      to create the bridge and false means to remove it.
 */
-typedef void (tPAN_BRIDGE_REQ_CB) (BD_ADDR bd_addr, BOOLEAN state);
+typedef void (tPAN_BRIDGE_REQ_CB) (BD_ADDR bd_addr, bool    state);
 
 
 /* Data received indication callback prototype. Parameters are
@@ -118,17 +118,17 @@ typedef void (tPAN_BRIDGE_REQ_CB) (BD_ADDR bd_addr, BOOLEAN state);
 **              Length of data (non-GKI)
 **              ext is flag to indicate whether it has aby extension headers
 **              Flag used to indicate to forward on LAN
-**                      FALSE - Use it for internal stack
-**                      TRUE  - Send it across the ethernet as well
+**                      false - Use it for internal stack
+**                      true  - Send it across the ethernet as well
 */
-typedef void (tPAN_DATA_IND_CB) (UINT16 handle,
+typedef void (tPAN_DATA_IND_CB) (uint16_t handle,
                                  BD_ADDR src,
                                  BD_ADDR dst,
-                                 UINT16 protocol,
-                                 UINT8 *p_data,
-                                 UINT16 len,
-                                 BOOLEAN ext,
-                                 BOOLEAN forward);
+                                 uint16_t protocol,
+                                 uint8_t *p_data,
+                                 uint16_t len,
+                                 bool    ext,
+                                 bool    forward);
 
 
 /* Data buffer received indication callback prototype. Parameters are
@@ -138,28 +138,28 @@ typedef void (tPAN_DATA_IND_CB) (UINT16 handle,
 **              pointer to the data buffer
 **              ext is flag to indicate whether it has aby extension headers
 **              Flag used to indicate to forward on LAN
-**                      FALSE - Use it for internal stack
-**                      TRUE  - Send it across the ethernet as well
+**                      false - Use it for internal stack
+**                      true  - Send it across the ethernet as well
 */
-typedef void (tPAN_DATA_BUF_IND_CB) (UINT16 handle,
+typedef void (tPAN_DATA_BUF_IND_CB) (uint16_t handle,
                                      BD_ADDR src,
                                      BD_ADDR dst,
-                                     UINT16 protocol,
+                                     uint16_t protocol,
                                      BT_HDR *p_buf,
-                                     BOOLEAN ext,
-                                     BOOLEAN forward);
+                                     bool    ext,
+                                     bool    forward);
 
 
 /* Flow control callback for TX data. Parameters are
 **              Handle to the connection
 **              Event  flow status
 */
-typedef void (tPAN_TX_DATA_FLOW_CB) (UINT16 handle,
+typedef void (tPAN_TX_DATA_FLOW_CB) (uint16_t handle,
                                      tPAN_RESULT  event);
 
 /* Filters received indication callback prototype. Parameters are
 **              Handle to the connection
-**              TRUE if the cb is called for indication
+**              true if the cb is called for indication
 **              Ignore this if it is indication, otherwise it is the result
 **                      for the filter set operation performed by the local
 **                      device
@@ -170,17 +170,17 @@ typedef void (tPAN_TX_DATA_FLOW_CB) (UINT16 handle,
 **                      two bytes will be starting of the first range and
 **                      next two bytes will be ending of the range.
 */
-typedef void (tPAN_FILTER_IND_CB) (UINT16 handle,
-                                   BOOLEAN indication,
+typedef void (tPAN_FILTER_IND_CB) (uint16_t handle,
+                                   bool    indication,
                                    tBNEP_RESULT result,
-                                   UINT16 num_filters,
-                                   UINT8 *p_filters);
+                                   uint16_t num_filters,
+                                   uint8_t *p_filters);
 
 
 
 /* Multicast Filters received indication callback prototype. Parameters are
 **              Handle to the connection
-**              TRUE if the cb is called for indication
+**              true if the cb is called for indication
 **              Ignore this if it is indication, otherwise it is the result
 **                      for the filter set operation performed by the local
 **                      device
@@ -190,11 +190,11 @@ typedef void (tPAN_FILTER_IND_CB) (UINT16 handle,
 **                      First six bytes will be starting of the first range and
 **                      next six bytes will be ending of the range.
 */
-typedef void (tPAN_MFILTER_IND_CB) (UINT16 handle,
-                                    BOOLEAN indication,
+typedef void (tPAN_MFILTER_IND_CB) (uint16_t handle,
+                                    bool    indication,
                                     tBNEP_RESULT result,
-                                    UINT16 num_mfilters,
-                                    UINT8 *p_mfilters);
+                                    uint16_t num_mfilters,
+                                    uint8_t *p_mfilters);
 
 
 
@@ -266,7 +266,7 @@ extern void PAN_Deregister (void);
 **                                      PAN_ROLE_GN_SERVER is for GN role
 **                                      PAN_ROLE_NAP_SERVER is for NAP role
 **                  sec_mask    - Security mask for different roles
-**                                      It is array of UINT8. The byte represent the
+**                                      It is array of uint8_t. The byte represent the
 **                                      security for roles PANU, GN and NAP in order
 **                  p_user_name - Service name for PANU role
 **                  p_gn_name   - Service name for GN role
@@ -277,8 +277,8 @@ extern void PAN_Deregister (void);
 **                  PAN_FAILURE     - if the role is not valid
 **
 *******************************************************************************/
-extern tPAN_RESULT PAN_SetRole (UINT8 role,
-                                UINT8 *sec_mask,
+extern tPAN_RESULT PAN_SetRole (uint8_t role,
+                                uint8_t *sec_mask,
                                 char *p_user_name,
                                 char *p_gn_name,
                                 char *p_nap_name);
@@ -306,7 +306,7 @@ extern tPAN_RESULT PAN_SetRole (UINT8 role,
 **                                           allowed at that point of time
 **
 *******************************************************************************/
-extern tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16 *handle);
+extern tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, uint8_t src_role, uint8_t dst_role, uint16_t *handle);
 
 /*******************************************************************************
 **
@@ -321,7 +321,7 @@ extern tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role,
 **                                           there is an error in disconnecting
 **
 *******************************************************************************/
-extern tPAN_RESULT PAN_Disconnect (UINT16 handle);
+extern tPAN_RESULT PAN_Disconnect (uint16_t handle);
 
 /*******************************************************************************
 **
@@ -346,13 +346,13 @@ extern tPAN_RESULT PAN_Disconnect (UINT16 handle);
 **                                           there is an error in sending data
 **
 *******************************************************************************/
-extern tPAN_RESULT PAN_Write (UINT16 handle,
+extern tPAN_RESULT PAN_Write (uint16_t handle,
                               BD_ADDR dst,
                               BD_ADDR src,
-                              UINT16 protocol,
-                              UINT8 *p_data,
-                              UINT16 len,
-                              BOOLEAN ext);
+                              uint16_t protocol,
+                              uint8_t *p_data,
+                              uint16_t len,
+                              bool    ext);
 
 /*******************************************************************************
 **
@@ -376,12 +376,12 @@ extern tPAN_RESULT PAN_Write (UINT16 handle,
 **                                           there is an error in sending data
 **
 *******************************************************************************/
-extern tPAN_RESULT PAN_WriteBuf (UINT16 handle,
+extern tPAN_RESULT PAN_WriteBuf (uint16_t handle,
                                  BD_ADDR dst,
                                  BD_ADDR src,
-                                 UINT16 protocol,
+                                 uint16_t protocol,
                                  BT_HDR *p_buf,
-                                 BOOLEAN ext);
+                                 bool    ext);
 
 /*******************************************************************************
 **
@@ -399,10 +399,10 @@ extern tPAN_RESULT PAN_WriteBuf (UINT16 handle,
 **                  PAN_FAILURE        if connection not found or error in setting
 **
 *******************************************************************************/
-extern tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
-                                           UINT16 num_filters,
-                                           UINT16 *p_start_array,
-                                           UINT16 *p_end_array);
+extern tPAN_RESULT PAN_SetProtocolFilters (uint16_t handle,
+                                           uint16_t num_filters,
+                                           uint16_t *p_start_array,
+                                           uint16_t *p_end_array);
 
 /*******************************************************************************
 **
@@ -422,10 +422,10 @@ extern tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
 **                  PAN_FAILURE        if connection not found or error in setting
 **
 *******************************************************************************/
-extern tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
-                                             UINT16 num_mcast_filters,
-                                             UINT8 *p_start_array,
-                                             UINT8 *p_end_array);
+extern tBNEP_RESULT PAN_SetMulticastFilters (uint16_t handle,
+                                             uint16_t num_mcast_filters,
+                                             uint8_t *p_start_array,
+                                             uint8_t *p_end_array);
 
 /*******************************************************************************
 **
@@ -437,7 +437,7 @@ extern tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-extern UINT8 PAN_SetTraceLevel (UINT8 new_level);
+extern uint8_t PAN_SetTraceLevel (uint8_t new_level);
 
 /*******************************************************************************
 **

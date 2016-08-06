@@ -147,7 +147,7 @@ static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, uint8_t
     APPL_TRACE_ERROR(" ");
 
 }
-#endif  /* BTA_GATT_DEBUG == true */
+#endif  /* BTA_GATT_DEBUG == TRUE */
 
 /*******************************************************************************
 **

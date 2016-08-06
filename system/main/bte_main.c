@@ -153,7 +153,7 @@ void bte_main_cleanup()
 ******************************************************************************/
 void bte_main_enable()
 {
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __func__);
 
     module_start_up(get_module(BTSNOOP_MODULE));
     module_start_up(get_module(HCI_MODULE));
@@ -173,7 +173,7 @@ void bte_main_enable()
 ******************************************************************************/
 void bte_main_disable(void)
 {
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __func__);
 
     module_shut_down(get_module(HCI_MODULE));
     module_shut_down(get_module(BTSNOOP_MODULE));
@@ -195,7 +195,7 @@ void bte_main_postload_cfg(void)
     hci->do_postload();
 }
 
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+#if (HCILP_INCLUDED == TRUE)
 /******************************************************************************
 **
 ** Function         bte_main_enable_lpm
@@ -205,7 +205,7 @@ void bte_main_postload_cfg(void)
 ** Returns          None
 **
 ******************************************************************************/
-void bte_main_enable_lpm(BOOLEAN enable)
+void bte_main_enable_lpm(bool enable)
 {
     hci->send_low_power_command(enable ? LPM_ENABLE : LPM_DISABLE);
 }
@@ -251,9 +251,9 @@ void bte_main_lpm_wake_bt_device()
 ** Returns          None
 **
 ******************************************************************************/
-void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
+void bte_main_hci_send (BT_HDR *p_msg, uint16_t event)
 {
-    UINT16 sub_event = event & BT_SUB_EVT_MASK;  /* local controller ID */
+    uint16_t sub_event = event & BT_SUB_EVT_MASK;  /* local controller ID */
 
     p_msg->event = event;
 

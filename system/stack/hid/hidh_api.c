@@ -35,11 +35,11 @@
 #include "btu.h"
 #include "btm_int.h"
 
-#if HID_DYNAMIC_MEMORY == FALSE
+#if (HID_DYNAMIC_MEMORY == FALSE)
 tHID_HOST_CTB   hh_cb;
 #endif
 
-static void hidh_search_callback (UINT16 sdp_result);
+static void hidh_search_callback (uint16_t sdp_result);
 
 /*******************************************************************************
 **
@@ -50,7 +50,7 @@ static void hidh_search_callback (UINT16 sdp_result);
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-tHID_STATUS HID_HostGetSDPRecord ( BD_ADDR addr, tSDP_DISCOVERY_DB *p_db, UINT32 db_len,
+tHID_STATUS HID_HostGetSDPRecord ( BD_ADDR addr, tSDP_DISCOVERY_DB *p_db, uint32_t db_len,
                                    tHID_HOST_SDP_CALLBACK *sdp_cback )
 {
     tSDP_UUID   uuid_list;
@@ -67,17 +67,17 @@ tHID_STATUS HID_HostGetSDPRecord ( BD_ADDR addr, tSDP_DISCOVERY_DB *p_db, UINT32
     if (SDP_ServiceSearchRequest (addr, p_db, hidh_search_callback))
     {
         hh_cb.sdp_cback = sdp_cback ;
-        hh_cb.sdp_busy = TRUE;
+        hh_cb.sdp_busy = true;
         return HID_SUCCESS;
     }
     else
         return HID_ERR_NO_RESOURCES;
 }
 
-void hidh_get_str_attr( tSDP_DISC_REC *p_rec, UINT16 attr_id, UINT16 max_len, char *str )
+void hidh_get_str_attr( tSDP_DISC_REC *p_rec, uint16_t attr_id, uint16_t max_len, char *str )
 {
     tSDP_DISC_ATTR          *p_attr;
-    UINT16                  name_len;
+    uint16_t                name_len;
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, attr_id)) != NULL)
     {
@@ -97,19 +97,19 @@ void hidh_get_str_attr( tSDP_DISC_REC *p_rec, UINT16 attr_id, UINT16 max_len, ch
 }
 
 
-static void hidh_search_callback (UINT16 sdp_result)
+static void hidh_search_callback (uint16_t sdp_result)
 {
     tSDP_DISCOVERY_DB       *p_db = hh_cb.p_sdp_db;
     tSDP_DISC_REC           *p_rec;
     tSDP_DISC_ATTR          *p_attr, *p_subattr1, *p_subattr2, *p_repdesc;
     tBT_UUID                hid_uuid;
     tHID_DEV_SDP_INFO       *p_nvi = &hh_cb.sdp_rec;
-    UINT16                  attr_mask = 0;
+    uint16_t                attr_mask = 0;
 
     hid_uuid.len       = LEN_UUID_16;
     hid_uuid.uu.uuid16 = UUID_SERVCLASS_HUMAN_INTERFACE;
 
-    hh_cb.sdp_busy = FALSE;
+    hh_cb.sdp_busy = false;
 
     if (sdp_result != SDP_SUCCESS)
     {
@@ -139,7 +139,7 @@ static void hidh_search_callback (UINT16 sdp_result)
     }
 
     if ((p_nvi->dscp_info.dl_len = SDP_DISC_ATTR_LEN(p_repdesc->attr_len_type)) != 0)
-        p_nvi->dscp_info.dsc_list = (UINT8 *) &p_repdesc->attr_value;
+        p_nvi->dscp_info.dsc_list = (uint8_t *) &p_repdesc->attr_value;
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_VIRTUAL_CABLE)) != NULL) &&
         (p_attr->attr_value.v.u8) )
@@ -263,7 +263,7 @@ void HID_HostInit (void)
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-UINT8 HID_HostSetTraceLevel (UINT8 new_level)
+uint8_t HID_HostSetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         hh_cb.trace_level = new_level;
@@ -297,7 +297,7 @@ tHID_STATUS HID_HostRegister (tHID_HOST_DEV_CALLBACK *dev_cback)
     }
 
     hh_cb.callback = dev_cback ;
-    hh_cb.reg_flag = TRUE;
+    hh_cb.reg_flag = true;
 
     return (HID_SUCCESS);
 }
@@ -313,7 +313,7 @@ tHID_STATUS HID_HostRegister (tHID_HOST_DEV_CALLBACK *dev_cback)
 *******************************************************************************/
 tHID_STATUS HID_HostDeregister(void)
 {
-    UINT8 i;
+    uint8_t i;
 
     if( !hh_cb.reg_flag )
         return (HID_ERR_NOT_REGISTERED);
@@ -324,7 +324,7 @@ tHID_STATUS HID_HostDeregister(void)
     }
 
     hidh_conn_dereg();
-    hh_cb.reg_flag = FALSE;
+    hh_cb.reg_flag = false;
 
     return (HID_SUCCESS) ;
 }
@@ -338,7 +338,7 @@ tHID_STATUS HID_HostDeregister(void)
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-tHID_STATUS HID_HostAddDev ( BD_ADDR addr, UINT16 attr_mask, UINT8 *handle )
+tHID_STATUS HID_HostAddDev ( BD_ADDR addr, uint16_t attr_mask, uint8_t *handle )
 {
     int i;
     /* Find an entry for this device in hh_cb.devices array */
@@ -366,7 +366,7 @@ tHID_STATUS HID_HostAddDev ( BD_ADDR addr, UINT16 attr_mask, UINT8 *handle )
 
     if (!hh_cb.devices[i].in_use)
     {
-        hh_cb.devices[i].in_use = TRUE;
+        hh_cb.devices[i].in_use = true;
         memcpy( hh_cb.devices[i].addr, addr, sizeof( BD_ADDR ) ) ;
         hh_cb.devices[i].state = HID_DEV_NO_CONN;
         hh_cb.devices[i].conn_tries = 0 ;
@@ -390,7 +390,7 @@ tHID_STATUS HID_HostAddDev ( BD_ADDR addr, UINT16 attr_mask, UINT8 *handle )
 ** Returns          tHID_STATUS
 **
 *******************************************************************************/
-tHID_STATUS HID_HostRemoveDev ( UINT8 dev_handle )
+tHID_STATUS HID_HostRemoveDev ( uint8_t dev_handle )
 {
     if( !hh_cb.reg_flag )
         return (HID_ERR_NOT_REGISTERED);
@@ -399,7 +399,7 @@ tHID_STATUS HID_HostRemoveDev ( UINT8 dev_handle )
         return HID_ERR_INVALID_PARAM;
 
     HID_HostCloseDev( dev_handle ) ;
-    hh_cb.devices[dev_handle].in_use = FALSE;
+    hh_cb.devices[dev_handle].in_use = false;
     hh_cb.devices[dev_handle].conn.conn_state = HID_CONN_STATE_UNUSED;
     hh_cb.devices[dev_handle].conn.ctrl_cid = hh_cb.devices[dev_handle].conn.intr_cid = 0;
     hh_cb.devices[dev_handle].attr_mask = 0;
@@ -416,7 +416,7 @@ tHID_STATUS HID_HostRemoveDev ( UINT8 dev_handle )
 ** Returns          void
 **
 *******************************************************************************/
-tHID_STATUS HID_HostOpenDev ( UINT8 dev_handle )
+tHID_STATUS HID_HostOpenDev ( uint8_t dev_handle )
 {
     if( !hh_cb.reg_flag )
         return (HID_ERR_NOT_REGISTERED);
@@ -443,8 +443,8 @@ tHID_STATUS HID_HostOpenDev ( UINT8 dev_handle )
 ** Returns          void
 **
 *******************************************************************************/
-tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
-                              UINT8 param, UINT16 data, UINT8 report_id, BT_HDR *pbuf  )
+tHID_STATUS HID_HostWriteDev( uint8_t dev_handle, uint8_t t_type,
+                              uint8_t param, uint16_t data, uint8_t report_id, BT_HDR *pbuf  )
 {
     tHID_STATUS status = HID_SUCCESS;
 
@@ -483,7 +483,7 @@ tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
 ** Returns          void
 **
 *******************************************************************************/
-tHID_STATUS HID_HostCloseDev( UINT8 dev_handle )
+tHID_STATUS HID_HostCloseDev( uint8_t dev_handle )
 {
     if( !hh_cb.reg_flag )
         return (HID_ERR_NOT_REGISTERED);
@@ -499,44 +499,44 @@ tHID_STATUS HID_HostCloseDev( UINT8 dev_handle )
     return hidh_conn_disconnect( dev_handle );
 }
 
-tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], UINT8 sec_lvl )
+tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], uint8_t sec_lvl )
 {
-    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HIDH_SEC_CTRL,
+    if (!BTM_SetSecurityLevel (false, serv_name, BTM_SEC_SERVICE_HIDH_SEC_CTRL,
                                sec_lvl, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_SEC_CHN))
     {
         HIDH_TRACE_ERROR ("Security Registration 1 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HIDH_SEC_CTRL,
+    if (!BTM_SetSecurityLevel (true, serv_name, BTM_SEC_SERVICE_HIDH_SEC_CTRL,
                                sec_lvl, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_SEC_CHN))
     {
         HIDH_TRACE_ERROR ("Security Registration 2 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HIDH_NOSEC_CTRL,
+    if (!BTM_SetSecurityLevel (false, serv_name, BTM_SEC_SERVICE_HIDH_NOSEC_CTRL,
                                BTM_SEC_NONE, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_NOSEC_CHN))
     {
         HIDH_TRACE_ERROR ("Security Registration 3 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HIDH_NOSEC_CTRL,
+    if (!BTM_SetSecurityLevel (true, serv_name, BTM_SEC_SERVICE_HIDH_NOSEC_CTRL,
                                BTM_SEC_NONE, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_NOSEC_CHN))
     {
         HIDH_TRACE_ERROR ("Security Registration 4 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (TRUE, serv_name, BTM_SEC_SERVICE_HIDH_INTR,
+    if (!BTM_SetSecurityLevel (true, serv_name, BTM_SEC_SERVICE_HIDH_INTR,
                                BTM_SEC_NONE, HID_PSM_INTERRUPT, BTM_SEC_PROTO_HID, 0))
     {
         HIDH_TRACE_ERROR ("Security Registration 5 failed");
         return (HID_ERR_NO_RESOURCES);
     }
 
-    if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HIDH_INTR,
+    if (!BTM_SetSecurityLevel (false, serv_name, BTM_SEC_SERVICE_HIDH_INTR,
                                BTM_SEC_NONE, HID_PSM_INTERRUPT, BTM_SEC_PROTO_HID, 0))
     {
         HIDH_TRACE_ERROR ("Security Registration 6 failed");
@@ -552,16 +552,16 @@ tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], UINT8 sec_lvl )
 **
 ** Description      check if this device is  of type HID Device
 **
-** Returns          TRUE if device is HID Device else FALSE
+** Returns          true if device is HID Device else false
 **
 *******************************************************************************/
-BOOLEAN hid_known_hid_device (BD_ADDR bd_addr)
+bool    hid_known_hid_device (BD_ADDR bd_addr)
 {
-    UINT8 i;
+    uint8_t i;
     tBTM_INQ_INFO *p_inq_info = BTM_InqDbRead(bd_addr);
 
      if ( !hh_cb.reg_flag )
-        return FALSE;
+        return false;
 
     /* First  check for class of device , if Inq DB has information about this device*/
     if (p_inq_info != NULL)
@@ -571,7 +571,7 @@ BOOLEAN hid_known_hid_device (BD_ADDR bd_addr)
             == BTM_COD_MAJOR_PERIPHERAL )
         {
             HIDH_TRACE_DEBUG("hid_known_hid_device:dev found in InqDB & COD matches HID dev");
-            return TRUE;
+            return true;
         }
     }
     else
@@ -582,7 +582,7 @@ BOOLEAN hid_known_hid_device (BD_ADDR bd_addr)
             ((p_dev_rec->dev_class[1] & BTM_COD_MAJOR_CLASS_MASK) == BTM_COD_MAJOR_PERIPHERAL ))
         {
             HIDH_TRACE_DEBUG("hid_known_hid_device:dev found in SecDevDB & COD matches HID dev");
-            return TRUE;
+            return true;
         }
     }
 
@@ -591,9 +591,9 @@ BOOLEAN hid_known_hid_device (BD_ADDR bd_addr)
      {
          if ((hh_cb.devices[i].in_use) &&
             (memcmp(bd_addr, hh_cb.devices[i].addr, BD_ADDR_LEN) == 0))
-             return TRUE;
+             return true;
      }
     /* Check if this device is marked as HID Device in IOP Dev */
     HIDH_TRACE_DEBUG("hid_known_hid_device:remote is not HID device");
-    return FALSE;
+    return false;
 }

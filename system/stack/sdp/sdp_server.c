@@ -40,7 +40,7 @@
 #include "sdpint.h"
 
 
-#if SDP_SERVER_ENABLED == TRUE
+#if (SDP_SERVER_ENABLED == TRUE)
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
@@ -52,17 +52,17 @@ extern fixed_queue_t *btu_general_alarm_queue;
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
-                                    UINT16 param_len, UINT8 *p_req,
-                                    UINT8 *p_req_end);
+static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
+                                    uint16_t param_len, uint8_t *p_req,
+                                    uint8_t *p_req_end);
 
-static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
-                                      UINT16 param_len, UINT8 *p_req,
-                                      UINT8 *p_req_end);
+static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
+                                      uint16_t param_len, uint8_t *p_req,
+                                      uint8_t *p_req_end);
 
-static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
-                                             UINT16 param_len, UINT8 *p_req,
-                                             UINT8 *p_req_end);
+static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
+                                             uint16_t param_len, uint8_t *p_req,
+                                             uint8_t *p_req_end);
 
 
 /********************************************************************************/
@@ -116,10 +116,10 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
 *******************************************************************************/
 void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
 {
-    UINT8   *p_req     = (UINT8 *) (p_msg + 1) + p_msg->offset;
-    UINT8   *p_req_end = p_req + p_msg->len;
-    UINT8   pdu_id;
-    UINT16  trans_num, param_len;
+    uint8_t *p_req     = (uint8_t *) (p_msg + 1) + p_msg->offset;
+    uint8_t *p_req_end = p_req + p_msg->len;
+    uint8_t pdu_id;
+    uint16_t trans_num, param_len;
 
 
     /* Start inactivity timer */
@@ -173,17 +173,17 @@ void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
-                                    UINT16 param_len, UINT8 *p_req,
-                                    UINT8 *p_req_end)
+static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
+                                    uint16_t param_len, uint8_t *p_req,
+                                    uint8_t *p_req_end)
 {
-    UINT16          max_replies, cur_handles, rem_handles, cont_offset;
+    uint16_t        max_replies, cur_handles, rem_handles, cont_offset;
     tSDP_UUID_SEQ   uid_seq;
-    UINT8           *p_rsp, *p_rsp_start, *p_rsp_param_len;
-    UINT16          rsp_param_len, num_rsp_handles, xx;
-    UINT32          rsp_handles[SDP_MAX_RECORDS] = {0};
+    uint8_t         *p_rsp, *p_rsp_start, *p_rsp_param_len;
+    uint16_t        rsp_param_len, num_rsp_handles, xx;
+    uint32_t        rsp_handles[SDP_MAX_RECORDS] = {0};
     tSDP_RECORD    *p_rec = NULL;
-    BOOLEAN         is_cont = FALSE;
+    bool            is_cont = false;
     UNUSED(p_req_end);
 
     p_req = sdpu_extract_uid_seq (p_req, param_len, &uid_seq);
@@ -247,20 +247,20 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Calculate how many handles will fit in one PDU */
-    cur_handles = (UINT16)((p_ccb->rem_mtu_size - SDP_MAX_SERVICE_RSPHDR_LEN) / 4);
+    cur_handles = (uint16_t)((p_ccb->rem_mtu_size - SDP_MAX_SERVICE_RSPHDR_LEN) / 4);
 
     if (rem_handles <= cur_handles)
         cur_handles = rem_handles;
     else /* Continuation is set */
     {
         p_ccb->cont_offset += cur_handles;
-        is_cont = TRUE;
+        is_cont = true;
     }
 
     /* Get a buffer to use to build the response */
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_rsp = p_rsp_start = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p_rsp = p_rsp_start = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     /* Start building a rsponse */
     UINT8_TO_BE_STREAM  (p_rsp, SDP_PDU_SERVICE_SEARCH_RSP);
@@ -312,20 +312,20 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
 ** Returns          void
 **
 *******************************************************************************/
-static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
-                                      UINT16 param_len, UINT8 *p_req,
-                                      UINT8 *p_req_end)
+static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
+                                      uint16_t param_len, uint8_t *p_req,
+                                      uint8_t *p_req_end)
 {
-    UINT16          max_list_len, len_to_send, cont_offset;
-    INT16           rem_len;
+    uint16_t        max_list_len, len_to_send, cont_offset;
+    int16_t         rem_len;
     tSDP_ATTR_SEQ   attr_seq, attr_seq_sav;
-    UINT8           *p_rsp, *p_rsp_start, *p_rsp_param_len;
-    UINT16          rsp_param_len, xx;
-    UINT32          rec_handle;
+    uint8_t         *p_rsp, *p_rsp_start, *p_rsp_param_len;
+    uint16_t        rsp_param_len, xx;
+    uint32_t        rec_handle;
     tSDP_RECORD     *p_rec;
     tSDP_ATTRIBUTE  *p_attr;
-    BOOLEAN         is_cont = FALSE;
-    UINT16          attr_len;
+    bool            is_cont = false;
+    uint16_t        attr_len;
 
     /* Extract the record handle */
     BE_STREAM_TO_UINT32 (rec_handle, p_req);
@@ -362,7 +362,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
 
     /* Free and reallocate buffer */
     osi_free(p_ccb->rsp_list);
-    p_ccb->rsp_list = (UINT8 *)osi_malloc(max_list_len);
+    p_ccb->rsp_list = (uint8_t *)osi_malloc(max_list_len);
 
     /* Check if this is a continuation request */
     if (*p_req) {
@@ -378,7 +378,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
                                     SDP_TEXT_BAD_CONT_INX);
             return;
         }
-        is_cont = TRUE;
+        is_cont = true;
 
         /* Initialise for continuation response */
         p_rsp = &p_ccb->rsp_list[0];
@@ -402,7 +402,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
         if (p_attr)
         {
             /* Check if attribute fits. Assume 3-byte value type/length */
-            rem_len = max_list_len - (INT16) (p_rsp - &p_ccb->rsp_list[0]);
+            rem_len = max_list_len - (int16_t) (p_rsp - &p_ccb->rsp_list[0]);
 
             /* just in case */
             if (rem_len <= 0)
@@ -435,7 +435,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
                 }
 
                 /* add the partial attribute if possible */
-                p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, (UINT16)rem_len,
+                p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, (uint16_t)rem_len,
                                                          &p_ccb->cont_info.attr_offset);
 
                 p_ccb->cont_info.next_attr_index = xx;
@@ -460,7 +460,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     if (xx == attr_seq.num_attr)
         p_ccb->cont_info.next_attr_index = 0;
 
-    len_to_send = (UINT16) (p_rsp - &p_ccb->rsp_list[0]);
+    len_to_send = (uint16_t) (p_rsp - &p_ccb->rsp_list[0]);
     cont_offset = 0;
 
     if (!is_cont)
@@ -469,16 +469,16 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
         /* Put in the sequence header (2 or 3 bytes) */
         if (p_ccb->list_len > 255)
         {
-            p_ccb->rsp_list[0] = (UINT8) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
-            p_ccb->rsp_list[1] = (UINT8) ((p_ccb->list_len - 3) >> 8);
-            p_ccb->rsp_list[2] = (UINT8) (p_ccb->list_len - 3);
+            p_ccb->rsp_list[0] = (uint8_t) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
+            p_ccb->rsp_list[1] = (uint8_t) ((p_ccb->list_len - 3) >> 8);
+            p_ccb->rsp_list[2] = (uint8_t) (p_ccb->list_len - 3);
         }
         else
         {
             cont_offset = 1;
 
-            p_ccb->rsp_list[1] = (UINT8) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
-            p_ccb->rsp_list[2] = (UINT8) (p_ccb->list_len - 3);
+            p_ccb->rsp_list[1] = (uint8_t) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
+            p_ccb->rsp_list[2] = (uint8_t) (p_ccb->list_len - 3);
 
             p_ccb->list_len--;
             len_to_send--;
@@ -488,7 +488,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Get a buffer to use to build the response */
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_rsp = p_rsp_start = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p_rsp = p_rsp_start = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     /* Start building a rsponse */
     UINT8_TO_BE_STREAM  (p_rsp, SDP_PDU_SERVICE_ATTR_RSP);
@@ -508,7 +508,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* If anything left to send, continuation needed */
     if (p_ccb->cont_offset < p_ccb->list_len)
     {
-        is_cont = TRUE;
+        is_cont = true;
 
         UINT8_TO_BE_STREAM  (p_rsp, SDP_CONTINUATION_LEN);
         UINT16_TO_BE_STREAM (p_rsp, p_ccb->cont_offset);
@@ -541,22 +541,22 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
 ** Returns          void
 **
 *******************************************************************************/
-static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
-                                             UINT16 param_len, UINT8 *p_req,
-                                             UINT8 *p_req_end)
+static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
+                                             uint16_t param_len, uint8_t *p_req,
+                                             uint8_t *p_req_end)
 {
-    UINT16         max_list_len;
-    INT16          rem_len;
-    UINT16         len_to_send, cont_offset;
+    uint16_t       max_list_len;
+    int16_t        rem_len;
+    uint16_t       len_to_send, cont_offset;
     tSDP_UUID_SEQ   uid_seq;
-    UINT8           *p_rsp, *p_rsp_start, *p_rsp_param_len;
-    UINT16          rsp_param_len, xx;
+    uint8_t         *p_rsp, *p_rsp_start, *p_rsp_param_len;
+    uint16_t        rsp_param_len, xx;
     tSDP_RECORD    *p_rec;
     tSDP_ATTR_SEQ   attr_seq, attr_seq_sav;
     tSDP_ATTRIBUTE *p_attr;
-    BOOLEAN         maxxed_out = FALSE, is_cont = FALSE;
-    UINT8           *p_seq_start;
-    UINT16          seq_len, attr_len;
+    bool            maxxed_out = false, is_cont = false;
+    uint8_t         *p_seq_start;
+    uint16_t        seq_len, attr_len;
     UNUSED(p_req_end);
 
     /* Extract the UUID sequence to search for */
@@ -586,7 +586,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
 
     /* Free and reallocate buffer */
     osi_free(p_ccb->rsp_list);
-    p_ccb->rsp_list = (UINT8 *)osi_malloc(max_list_len);
+    p_ccb->rsp_list = (uint8_t *)osi_malloc(max_list_len);
 
     /* Check if this is a continuation request */
     if (*p_req) {
@@ -602,7 +602,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
                                      SDP_TEXT_BAD_CONT_INX);
             return;
         }
-        is_cont = TRUE;
+        is_cont = true;
 
         /* Initialise for continuation response */
         p_rsp = &p_ccb->rsp_list[0];
@@ -615,7 +615,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
         /* Reset continuation parameters in p_ccb */
         p_ccb->cont_info.prev_sdp_rec = NULL;
         p_ccb->cont_info.next_attr_index = 0;
-        p_ccb->cont_info.last_attr_seq_desc_sent = FALSE;
+        p_ccb->cont_info.last_attr_seq_desc_sent = false;
         p_ccb->cont_info.attr_offset = 0;
     }
 
@@ -624,10 +624,10 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     {
         /* Allow space for attribute sequence type and length */
         p_seq_start = p_rsp;
-        if (p_ccb->cont_info.last_attr_seq_desc_sent == FALSE)
+        if (p_ccb->cont_info.last_attr_seq_desc_sent == false)
         {
             /* See if there is enough room to include a new service in the current response */
-            rem_len = max_list_len - (INT16) (p_rsp - &p_ccb->rsp_list[0]);
+            rem_len = max_list_len - (int16_t) (p_rsp - &p_ccb->rsp_list[0]);
             if (rem_len < 3)
             {
                 /* Not enough room. Update continuation info for next response */
@@ -646,14 +646,14 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
             if (p_attr)
             {
                 /* Check if attribute fits. Assume 3-byte value type/length */
-                rem_len = max_list_len - (INT16) (p_rsp - &p_ccb->rsp_list[0]);
+                rem_len = max_list_len - (int16_t) (p_rsp - &p_ccb->rsp_list[0]);
 
                 /* just in case */
                 if (rem_len <= 0)
                 {
                     p_ccb->cont_info.next_attr_index = xx;
                     p_ccb->cont_info.next_attr_start_id = p_attr->id;
-                    maxxed_out = TRUE;
+                    maxxed_out = true;
                     break;
                 }
 
@@ -667,7 +667,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
                     /* If the partial attrib could not been fully added yet */
                     if (p_ccb->cont_info.attr_offset != attr_len)
                     {
-                        maxxed_out = TRUE;
+                        maxxed_out = true;
                         break;
                     }
                     else /* If the partial attrib has been added in full by now */
@@ -683,12 +683,12 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
                     }
 
                     /* add the partial attribute if possible */
-                    p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, (UINT16)rem_len,
+                    p_rsp = sdpu_build_partial_attrib_entry (p_rsp, p_attr, (uint16_t)rem_len,
                                                              &p_ccb->cont_info.attr_offset);
 
                     p_ccb->cont_info.next_attr_index = xx;
                     p_ccb->cont_info.next_attr_start_id = p_attr->id;
-                    maxxed_out = TRUE;
+                    maxxed_out = true;
                     break;
                 }
                 else /* build the whole attribute */
@@ -706,7 +706,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
         }
 
         /* Go back and put the type and length into the buffer */
-        if (p_ccb->cont_info.last_attr_seq_desc_sent == FALSE)
+        if (p_ccb->cont_info.last_attr_seq_desc_sent == false)
         {
             seq_len = sdpu_get_attrib_seq_len(p_rec, &attr_seq_sav);
             if (seq_len != 0)
@@ -715,7 +715,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
                 UINT16_TO_BE_STREAM (p_seq_start, seq_len);
 
                 if (maxxed_out)
-                    p_ccb->cont_info.last_attr_seq_desc_sent = TRUE;
+                    p_ccb->cont_info.last_attr_seq_desc_sent = true;
             }
             else
                 p_rsp = p_seq_start;
@@ -730,11 +730,11 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
         /* Reset the next attr index */
         p_ccb->cont_info.next_attr_index = 0;
         p_ccb->cont_info.prev_sdp_rec = p_rec;
-        p_ccb->cont_info.last_attr_seq_desc_sent = FALSE;
+        p_ccb->cont_info.last_attr_seq_desc_sent = false;
     }
 
     /* response length */
-    len_to_send = (UINT16) (p_rsp - &p_ccb->rsp_list[0]);
+    len_to_send = (uint16_t) (p_rsp - &p_ccb->rsp_list[0]);
     cont_offset = 0;
 
     // The current SDP server design has a critical flaw where it can run into an infinite
@@ -766,16 +766,16 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
         /* Put in the sequence header (2 or 3 bytes) */
         if (p_ccb->list_len > 255)
         {
-            p_ccb->rsp_list[0] = (UINT8) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
-            p_ccb->rsp_list[1] = (UINT8) ((p_ccb->list_len - 3) >> 8);
-            p_ccb->rsp_list[2] = (UINT8) (p_ccb->list_len - 3);
+            p_ccb->rsp_list[0] = (uint8_t) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_WORD);
+            p_ccb->rsp_list[1] = (uint8_t) ((p_ccb->list_len - 3) >> 8);
+            p_ccb->rsp_list[2] = (uint8_t) (p_ccb->list_len - 3);
         }
         else
         {
             cont_offset = 1;
 
-            p_ccb->rsp_list[1] = (UINT8) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
-            p_ccb->rsp_list[2] = (UINT8) (p_ccb->list_len - 3);
+            p_ccb->rsp_list[1] = (uint8_t) ((DATA_ELE_SEQ_DESC_TYPE << 3) | SIZE_IN_NEXT_BYTE);
+            p_ccb->rsp_list[2] = (uint8_t) (p_ccb->list_len - 3);
 
             p_ccb->list_len--;
             len_to_send--;
@@ -785,7 +785,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Get a buffer to use to build the response */
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     p_buf->offset = L2CAP_MIN_OFFSET;
-    p_rsp = p_rsp_start = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    p_rsp = p_rsp_start = (uint8_t *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
     /* Start building a rsponse */
     UINT8_TO_BE_STREAM  (p_rsp, SDP_PDU_SERVICE_SEARCH_ATTR_RSP);
@@ -807,7 +807,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     /* If anything left to send, continuation needed */
     if (p_ccb->cont_offset < p_ccb->list_len)
     {
-        is_cont = TRUE;
+        is_cont = true;
 
         UINT8_TO_BE_STREAM  (p_rsp, SDP_CONTINUATION_LEN);
         UINT16_TO_BE_STREAM (p_rsp, p_ccb->cont_offset);

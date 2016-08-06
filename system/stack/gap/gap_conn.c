@@ -25,23 +25,23 @@
 #include "l2c_int.h"
 #include <string.h>
 #include "osi/include/mutex.h"
-#if GAP_CONN_INCLUDED == TRUE
+#if (GAP_CONN_INCLUDED == TRUE)
 #include "btm_int.h"
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UINT8 l2cap_id);
-static void gap_connect_cfm (UINT16 l2cap_cid, UINT16 result);
-static void gap_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
-static void gap_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
-static void gap_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed);
-static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg);
-static void gap_congestion_ind (UINT16 lcid, BOOLEAN is_congested);
-static void gap_tx_complete_ind (UINT16 l2cap_cid, UINT16 sdu_sent);
+static void gap_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id);
+static void gap_connect_cfm (uint16_t l2cap_cid, uint16_t result);
+static void gap_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
+static void gap_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
+static void gap_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed);
+static void gap_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg);
+static void gap_congestion_ind (uint16_t lcid, bool    is_congested);
+static void gap_tx_complete_ind (uint16_t l2cap_cid, uint16_t sdu_sent);
 
-static tGAP_CCB *gap_find_ccb_by_cid (UINT16 cid);
-static tGAP_CCB *gap_find_ccb_by_handle (UINT16 handle);
+static tGAP_CCB *gap_find_ccb_by_cid (uint16_t cid);
+static tGAP_CCB *gap_find_ccb_by_handle (uint16_t handle);
 static tGAP_CCB *gap_allocate_ccb (void);
 static void      gap_release_ccb (tGAP_CCB *p_ccb);
 static void      gap_checks_con_flags (tGAP_CCB *p_ccb);
@@ -57,7 +57,7 @@ static void      gap_checks_con_flags (tGAP_CCB *p_ccb);
 *******************************************************************************/
 void gap_conn_init (void)
 {
-#if AMP_INCLUDED == TRUE
+#if (AMP_INCLUDED == TRUE)
     gap_cb.conn.reg_info.pAMP_ConnectInd_Cb         = gap_connect_ind;
     gap_cb.conn.reg_info.pAMP_ConnectCfm_Cb         = gap_connect_cfm;
     gap_cb.conn.reg_info.pAMP_ConnectPnd_Cb         = NULL;
@@ -96,7 +96,7 @@ void gap_conn_init (void)
 **
 ** Description      This function is called to open an L2CAP connection.
 **
-** Parameters:      is_server   - If TRUE, the connection is not created
+** Parameters:      is_server   - If true, the connection is not created
 **                                but put into a "listen" mode waiting for
 **                                the remote side to connect.
 **
@@ -123,13 +123,13 @@ void gap_conn_init (void)
 ** Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
 **
 *******************************************************************************/
-UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
-                     BD_ADDR p_rem_bda, UINT16 psm, tL2CAP_CFG_INFO *p_cfg,
-                     tL2CAP_ERTM_INFO *ertm_info, UINT16 security, UINT8 chan_mode_mask,
+uint16_t GAP_ConnOpen (char *p_serv_name, uint8_t service_id, bool    is_server,
+                     BD_ADDR p_rem_bda, uint16_t psm, tL2CAP_CFG_INFO *p_cfg,
+                     tL2CAP_ERTM_INFO *ertm_info, uint16_t security, uint8_t chan_mode_mask,
                      tGAP_CONN_CALLBACK *p_cb, tBT_TRANSPORT transport)
 {
     tGAP_CCB    *p_ccb;
-    UINT16       cid;
+    uint16_t     cid;
 
     GAP_TRACE_EVENT ("GAP_CONN - Open Request");
 
@@ -145,7 +145,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     {
         /* the bd addr is not BT_BD_ANY, then a bd address was specified */
         if (memcmp (p_rem_bda, BT_BD_ANY, BD_ADDR_LEN))
-            p_ccb->rem_addr_specified = TRUE;
+            p_ccb->rem_addr_specified = true;
 
         memcpy (&p_ccb->rem_dev_address[0], p_rem_bda, BD_ADDR_LEN);
     }
@@ -178,7 +178,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     p_ccb->p_callback     = p_cb;
 
     /* If originator, use a dynamic PSM */
-#if AMP_INCLUDED == TRUE
+#if (AMP_INCLUDED == TRUE)
     if (!is_server)
         gap_cb.conn.reg_info.pAMP_ConnectInd_Cb  = NULL;
     else
@@ -217,7 +217,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
 
     /* Register with Security Manager for the specific security level */
     p_ccb->service_id = service_id;
-    if (!BTM_SetSecurityLevel ((UINT8)!is_server, p_serv_name,
+    if (!BTM_SetSecurityLevel ((uint8_t)!is_server, p_serv_name,
                 p_ccb->service_id, security, p_ccb->psm, 0, 0))
     {
         GAP_TRACE_ERROR ("GAP_CONN - Security Error");
@@ -242,7 +242,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     /* optional FCR channel modes */
     if(ertm_info != NULL) {
         p_ccb->ertm_info.allowed_modes =
-            (chan_mode_mask) ? chan_mode_mask : (UINT8)L2CAP_FCR_CHAN_OPT_BASIC;
+            (chan_mode_mask) ? chan_mode_mask : (uint8_t)L2CAP_FCR_CHAN_OPT_BASIC;
     }
 
     if (is_server)
@@ -302,7 +302,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
 **                  GAP_ERR_BAD_HANDLE  - invalid handle
 **
 *******************************************************************************/
-UINT16 GAP_ConnClose (UINT16 gap_handle)
+uint16_t GAP_ConnClose (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
 
@@ -341,10 +341,10 @@ UINT16 GAP_ConnClose (UINT16 gap_handle)
 **                  GAP_NO_DATA_AVAIL   - no data available
 **
 *******************************************************************************/
-UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT16 *p_len)
+uint16_t GAP_ConnReadData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_len, uint16_t *p_len)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
-    UINT16      copy_len;
+    uint16_t    copy_len;
 
     if (!p_ccb)
         return (GAP_ERR_BAD_HANDLE);
@@ -367,7 +367,7 @@ UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT1
         *p_len  += copy_len;
         if (p_data)
         {
-            memcpy (p_data, (UINT8 *)(p_buf + 1) + p_buf->offset, copy_len);
+            memcpy (p_data, (uint8_t *)(p_buf + 1) + p_buf->offset, copy_len);
             p_data += copy_len;
         }
 
@@ -401,7 +401,7 @@ UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT1
 **
 **
 *******************************************************************************/
-int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count)
+int GAP_GetRxQueueCnt (uint16_t handle, uint32_t *p_rx_queue_count)
 {
     tGAP_CCB    *p_ccb;
     int         rc = BT_PASS;
@@ -442,7 +442,7 @@ int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count)
 **                  GAP_NO_DATA_AVAIL   - no data available
 **
 *******************************************************************************/
-UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf)
+uint16_t GAP_ConnBTRead (uint16_t gap_handle, BT_HDR **pp_buf)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
     BT_HDR      *p_buf;
@@ -484,7 +484,7 @@ UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf)
 **                  GAP_CONGESTION          - system is congested
 **
 *******************************************************************************/
-UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT16 *p_len)
+uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_len, uint16_t *p_len)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
     BT_HDR     *p_buf;
@@ -508,7 +508,7 @@ UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT
         p_buf->len = (p_ccb->rem_mtu_size < max_len) ? p_ccb->rem_mtu_size : max_len;
         p_buf->event = BT_EVT_TO_BTU_SP_DATA;
 
-        memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, p_buf->len);
+        memcpy ((uint8_t *)(p_buf + 1) + p_buf->offset, p_data, p_buf->len);
 
         *p_len  += p_buf->len;
         max_len -= p_buf->len;
@@ -530,11 +530,11 @@ UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT
 #else
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->tx_queue)) != NULL)
     {
-        UINT8 status = L2CA_DATA_WRITE (p_ccb->connection_id, p_buf);
+        uint8_t status = L2CA_DATA_WRITE (p_ccb->connection_id, p_buf);
 
         if (status == L2CAP_DW_CONGESTED)
         {
-            p_ccb->is_congested = TRUE;
+            p_ccb->is_congested = true;
             break;
         }
         else if (status != L2CAP_DW_SUCCESS)
@@ -558,7 +558,7 @@ UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT
 **                  GAP_ERR_BAD_HANDLE      - invalid handle
 **
 *******************************************************************************/
-UINT16 GAP_ConnReconfig (UINT16 gap_handle, tL2CAP_CFG_INFO *p_cfg)
+uint16_t GAP_ConnReconfig (uint16_t gap_handle, tL2CAP_CFG_INFO *p_cfg)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
 
@@ -596,14 +596,14 @@ UINT16 GAP_ConnReconfig (UINT16 gap_handle, tL2CAP_CFG_INFO *p_cfg)
 **                  GAP_ERR_BAD_HANDLE      - invalid handle
 **
 *******************************************************************************/
-UINT16 GAP_ConnSetIdleTimeout (UINT16 gap_handle, UINT16 timeout)
+uint16_t GAP_ConnSetIdleTimeout (uint16_t gap_handle, uint16_t timeout)
 {
     tGAP_CCB    *p_ccb;
 
     if ((p_ccb = gap_find_ccb_by_handle (gap_handle)) == NULL)
         return (GAP_ERR_BAD_HANDLE);
 
-    if (L2CA_SetIdleTimeout (p_ccb->connection_id, timeout, FALSE))
+    if (L2CA_SetIdleTimeout (p_ccb->connection_id, timeout, false))
         return (BT_PASS);
     else
         return (GAP_ERR_BAD_HANDLE);
@@ -624,7 +624,7 @@ UINT16 GAP_ConnSetIdleTimeout (UINT16 gap_handle, UINT16 timeout)
 **                  GAP_ERR_BAD_HANDLE  - invalid handle
 **
 *******************************************************************************/
-UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle)
+uint8_t *GAP_ConnGetRemoteAddr (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
 
@@ -653,10 +653,10 @@ UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle)
 **
 ** Parameters:      handle      - Handle of the connection
 **
-** Returns          UINT16      - maximum size buffer that can be transmitted to the peer
+** Returns          uint16_t    - maximum size buffer that can be transmitted to the peer
 **
 *******************************************************************************/
-UINT16 GAP_ConnGetRemMtuSize (UINT16 gap_handle)
+uint16_t GAP_ConnGetRemMtuSize (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb;
 
@@ -674,11 +674,11 @@ UINT16 GAP_ConnGetRemMtuSize (UINT16 gap_handle)
 **
 ** Parameters:      handle      - Handle of the connection
 **
-** Returns          UINT16      - The L2CAP channel id
+** Returns          uint16_t    - The L2CAP channel id
 **                  0, if error
 **
 *******************************************************************************/
-UINT16 GAP_ConnGetL2CAPCid (UINT16 gap_handle)
+uint16_t GAP_ConnGetL2CAPCid (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb;
 
@@ -698,7 +698,7 @@ UINT16 GAP_ConnGetL2CAPCid (UINT16 gap_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void gap_tx_complete_ind (UINT16 l2cap_cid, UINT16 sdu_sent)
+void gap_tx_complete_ind (uint16_t l2cap_cid, uint16_t sdu_sent)
 {
     tGAP_CCB *p_ccb = gap_find_ccb_by_cid (l2cap_cid);
     if (p_ccb == NULL)
@@ -722,9 +722,9 @@ void gap_tx_complete_ind (UINT16 l2cap_cid, UINT16 sdu_sent)
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UINT8 l2cap_id)
+static void gap_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id)
 {
-    UINT16       xx;
+    uint16_t     xx;
     tGAP_CCB     *p_ccb;
 
     /* See if we have a CCB listening for the connection */
@@ -732,7 +732,7 @@ static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
     {
         if ((p_ccb->con_state == GAP_CCB_STATE_LISTENING)
          && (p_ccb->psm == psm)
-         && ((p_ccb->rem_addr_specified == FALSE)
+         && ((p_ccb->rem_addr_specified == false)
            || (!memcmp (bd_addr, p_ccb->rem_dev_address, BD_ADDR_LEN))))
             break;
     }
@@ -813,7 +813,7 @@ static void gap_checks_con_flags (tGAP_CCB    *p_ccb)
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
+static void gap_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
 {
     tGAP_CCB *p_ccb = (tGAP_CCB *)p_ref_data;
     UNUSED(bd_addr);
@@ -847,7 +847,7 @@ static void gap_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, vo
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_connect_cfm (UINT16 l2cap_cid, UINT16 result)
+static void gap_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     tGAP_CCB    *p_ccb;
 
@@ -858,7 +858,7 @@ static void gap_connect_cfm (UINT16 l2cap_cid, UINT16 result)
     /* initiate security process, if needed */
     if ( (p_ccb->con_flags & GAP_CCB_FLAGS_SEC_DONE) == 0 && p_ccb->transport != BT_TRANSPORT_LE)
     {
-        btm_sec_mx_access_request (p_ccb->rem_dev_address, p_ccb->psm, TRUE,
+        btm_sec_mx_access_request (p_ccb->rem_dev_address, p_ccb->psm, true,
                                    0, 0, &gap_sec_check_complete, p_ccb);
     }
 
@@ -907,10 +907,10 @@ static void gap_connect_cfm (UINT16 l2cap_cid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
+static void gap_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tGAP_CCB    *p_ccb;
-    UINT16      local_mtu_size;
+    uint16_t    local_mtu_size;
 
     /* Find CCB based on CID */
     if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
@@ -934,10 +934,10 @@ static void gap_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
         p_ccb->rem_mtu_size = p_cfg->mtu;
 
     /* For now, always accept configuration from the other side */
-    p_cfg->flush_to_present = FALSE;
-    p_cfg->mtu_present      = FALSE;
+    p_cfg->flush_to_present = false;
+    p_cfg->mtu_present      = false;
     p_cfg->result           = L2CAP_CFG_OK;
-    p_cfg->fcs_present      = FALSE;
+    p_cfg->fcs_present      = false;
 
     L2CA_CONFIG_RSP (l2cap_cid, p_cfg);
 
@@ -957,7 +957,7 @@ static void gap_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
+static void gap_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tGAP_CCB    *p_ccb;
 
@@ -995,7 +995,7 @@ static void gap_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
+static void gap_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 {
     tGAP_CCB    *p_ccb;
 
@@ -1022,7 +1022,7 @@ static void gap_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
+static void gap_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 {
     tGAP_CCB    *p_ccb;
 
@@ -1060,12 +1060,12 @@ static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
 **                  data L2CAP congestion status changes
 **
 *******************************************************************************/
-static void gap_congestion_ind (UINT16 lcid, BOOLEAN is_congested)
+static void gap_congestion_ind (uint16_t lcid, bool    is_congested)
 {
     tGAP_CCB    *p_ccb;
-    UINT16       event;
+    uint16_t     event;
     BT_HDR      *p_buf;
-    UINT8        status;
+    uint8_t      status;
 
     GAP_TRACE_EVENT ("GAP_CONN - Rcvd L2CAP Is Congested (%d), CID: 0x%x",
                       is_congested, lcid);
@@ -1087,7 +1087,7 @@ static void gap_congestion_ind (UINT16 lcid, BOOLEAN is_congested)
 
             if (status == L2CAP_DW_CONGESTED)
             {
-                p_ccb->is_congested = TRUE;
+                p_ccb->is_congested = true;
                 break;
             }
             else if (status != L2CAP_DW_SUCCESS)
@@ -1107,9 +1107,9 @@ static void gap_congestion_ind (UINT16 lcid, BOOLEAN is_congested)
 ** Returns          the CCB address, or NULL if not found.
 **
 *******************************************************************************/
-static tGAP_CCB *gap_find_ccb_by_cid (UINT16 cid)
+static tGAP_CCB *gap_find_ccb_by_cid (uint16_t cid)
 {
-    UINT16       xx;
+    uint16_t     xx;
     tGAP_CCB     *p_ccb;
 
     /* Look through each connection control block */
@@ -1134,7 +1134,7 @@ static tGAP_CCB *gap_find_ccb_by_cid (UINT16 cid)
 ** Returns          the CCB address, or NULL if not found.
 **
 *******************************************************************************/
-static tGAP_CCB *gap_find_ccb_by_handle (UINT16 handle)
+static tGAP_CCB *gap_find_ccb_by_handle (uint16_t handle)
 {
     tGAP_CCB     *p_ccb;
 
@@ -1163,7 +1163,7 @@ static tGAP_CCB *gap_find_ccb_by_handle (UINT16 handle)
 *******************************************************************************/
 static tGAP_CCB *gap_allocate_ccb (void)
 {
-    UINT16       xx;
+    uint16_t     xx;
     tGAP_CCB     *p_ccb;
 
     /* Look through each connection control block for a free one */
@@ -1198,9 +1198,9 @@ static tGAP_CCB *gap_allocate_ccb (void)
 *******************************************************************************/
 static void gap_release_ccb (tGAP_CCB *p_ccb)
 {
-    UINT16       xx;
-    UINT16      psm = p_ccb->psm;
-    UINT8       service_id = p_ccb->service_id;
+    uint16_t     xx;
+    uint16_t    psm = p_ccb->psm;
+    uint8_t     service_id = p_ccb->service_id;
 
     /* Drop any buffers we may be holding */
     p_ccb->rx_queue_size = 0;
@@ -1244,7 +1244,7 @@ static void gap_release_ccb (tGAP_CCB *p_ccb)
 ** Returns      None
 **
 *******************************************************************************/
-void gap_send_event (UINT16 gap_handle)
+void gap_send_event (uint16_t gap_handle)
 {
     BT_HDR *p_msg = (BT_HDR *)osi_malloc(BT_HDR_SIZE);
 

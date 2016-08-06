@@ -268,7 +268,7 @@ OI_STATUS OI_CODEC_SBC_DecoderLimit(OI_CODEC_SBC_DECODER_CONTEXT *context,
  * @param context        Decoder context structure. This must be the context must be
  *                       used each time a frame is decoded.
  *
- * @param enhanced       Set to TRUE to enable Qualcomm proprietary
+ * @param enhanced       Set to true to enable Qualcomm proprietary
  *                       quality enhancements.
  *
  * @param frequency      One of SBC_FREQ_16000, SBC_FREQ_32000, SBC_FREQ_44100,
@@ -309,7 +309,7 @@ OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context
  *                      value will be updated to point to the next frame after
  *                      successful decoding.
  *
- * @param frameBytes    Pointer to a UINT32 containing the number of available
+ * @param frameBytes    Pointer to a uint32_t containing the number of available
  *                      bytes of frame data. This value will be updated to reflect
  *                      the number of bytes remaining after a decoding operation.
  *
@@ -317,7 +317,7 @@ OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context
  *                      populated with the decoded audio data. This address
  *                      is not updated.
  *
- * @param pcmBytes      Pointer to a UINT32 in/out parameter. On input, it
+ * @param pcmBytes      Pointer to a uint32_t in/out parameter. On input, it
  *                      should contain the number of bytes available for pcm
  *                      data. On output, it will contain the number of bytes
  *                      written. Note that this differs from the semantics of
@@ -340,7 +340,7 @@ OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
  *                      value will be updated to point to the next frame after
  *                      successful decoding.
  *
- * @param frameBytes    Pointer to a UINT32 containing the number of available
+ * @param frameBytes    Pointer to a uint32_t containing the number of available
  *                      bytes of frame data. This value will be updated to reflect
  *                      the number of bytes remaining after a decoding operation.
  *
@@ -348,7 +348,7 @@ OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
  *                      populated with the decoded audio data. This address
  *                      is not updated.
  *
- * @param pcmBytes      Pointer to a UINT32 in/out parameter. On input, it
+ * @param pcmBytes      Pointer to a uint32_t in/out parameter. On input, it
  *                      should contain the number of bytes available for pcm
  *                      data. On output, it will contain the number of bytes
  *                      written. Note that this differs from the semantics of
@@ -382,7 +382,7 @@ OI_UINT8 OI_CODEC_SBC_FrameCount(OI_BYTE  *frameData,
  *                      value will be updated to point to the next frame after
  *                      successful decoding.
  *
- * @param frameBytes    Pointer to a UINT32 containing the number of available
+ * @param frameBytes    Pointer to a uint32_t containing the number of available
  *                      bytes of frame data. This value will be updated to reflect
  *                      the number of bytes remaining after a decoding operation.
  *

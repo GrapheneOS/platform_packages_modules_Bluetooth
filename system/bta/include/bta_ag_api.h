@@ -421,11 +421,11 @@ typedef void (tBTA_AG_CBACK)(tBTA_AG_EVT event, tBTA_AG *p_data);
 /* type for HF indicator */
 typedef struct
 {
-    UINT16          ind_id;
-    BOOLEAN         is_supported;
-    BOOLEAN         is_enable;
-    UINT32          ind_min_val;
-    UINT32          ind_max_val;
+    uint16_t        ind_id;
+    bool            is_supported;
+    bool            is_enable;
+    uint32_t        ind_min_val;
+    uint32_t        ind_max_val;
 } tBTA_AG_HF_IND;
 
 /* AG configuration structure */

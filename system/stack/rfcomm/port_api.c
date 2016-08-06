@@ -42,10 +42,10 @@
 /* duration of break in 200ms units */
 #define PORT_BREAK_DURATION     1
 
-#define info(fmt, ...)  LOG_INFO(LOG_TAG, "%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOG_DEBUG(LOG_TAG, "%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) LOG_ERROR(LOG_TAG, "## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOG_ERROR(LOG_TAG, "## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  LOG_INFO(LOG_TAG, "%s: " fmt,__func__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOG_DEBUG(LOG_TAG, "%s: " fmt,__func__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOG_ERROR(LOG_TAG, "## ERROR : %s: " fmt "##",__func__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOG_ERROR(LOG_TAG, "## %s assert %s failed at line:%d ##",__func__, #s, __LINE__)
 
 /* Mapping from PORT_* result codes to human readable strings. */
 static const char *result_code_strings[] = {
@@ -90,7 +90,7 @@ static const char *result_code_strings[] = {
 ** Parameters:      scn          - Service Channel Number as registered with
 **                                 the SDP (server) or obtained using SDP from
 **                                 the peer device (client).
-**                  is_server    - TRUE if requesting application is a server
+**                  is_server    - true if requesting application is a server
 **                  mtu          - Maximum frame size the application can accept
 **                  bd_addr      - BD_ADDR of the peer (client)
 **                  mask         - specifies events to be enabled.  A value
@@ -109,15 +109,15 @@ static const char *result_code_strings[] = {
 ** (scn * 2 + 1) dlci.
 **
 *******************************************************************************/
-int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
-                             UINT16 mtu, BD_ADDR bd_addr, UINT16 *p_handle,
+int RFCOMM_CreateConnection (uint16_t uuid, uint8_t scn, bool    is_server,
+                             uint16_t mtu, BD_ADDR bd_addr, uint16_t *p_handle,
                              tPORT_CALLBACK *p_mgmt_cb)
 {
     tPORT      *p_port;
     int        i;
-    UINT8      dlci;
+    uint8_t    dlci;
     tRFC_MCB   *p_mcb = port_find_mcb (bd_addr);
-    UINT16     rfcomm_mtu;
+    uint16_t   rfcomm_mtu;
 
 
     RFCOMM_TRACE_API ("RFCOMM_CreateConnection()  BDA: %02x-%02x-%02x-%02x-%02x-%02x",
@@ -146,7 +146,7 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
     if (!is_server && ((p_port = port_find_port (dlci, bd_addr)) != NULL))
     {
         /* if existing port is also a client port */
-        if (p_port->is_server == FALSE)
+        if (p_port->is_server == false)
         {
             RFCOMM_TRACE_ERROR ("RFCOMM_CreateConnection - already opened state:%d, RFC state:%d, MCB state:%d",
                 p_port->state, p_port->rfc.state, p_port->rfc.p_mcb ? p_port->rfc.p_mcb->state : 0);
@@ -208,14 +208,14 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
     /* server doesn't need to release port when closing */
     if( is_server )
     {
-        p_port->keep_port_handle = TRUE;
+        p_port->keep_port_handle = true;
 
         /* keep mtu that user asked, p_port->mtu could be updated during param negotiation */
         p_port->keep_mtu         = p_port->mtu;
     }
 
     p_port->local_ctrl.modem_signal = p_port->default_signal_state;
-    p_port->local_ctrl.fc           = FALSE;
+    p_port->local_ctrl.fc           = false;
 
     p_port->p_mgmt_callback = p_mgmt_cb;
 
@@ -241,7 +241,7 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
 ** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
-int RFCOMM_RemoveConnection (UINT16 handle)
+int RFCOMM_RemoveConnection (uint16_t handle)
 {
     tPORT      *p_port;
 
@@ -278,7 +278,7 @@ int RFCOMM_RemoveConnection (UINT16 handle)
 ** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
-int RFCOMM_RemoveServer (UINT16 handle)
+int RFCOMM_RemoveServer (uint16_t handle)
 {
     tPORT      *p_port;
 
@@ -302,7 +302,7 @@ int RFCOMM_RemoveServer (UINT16 handle)
     }
 
     /* this port will be deallocated after closing */
-    p_port->keep_port_handle = FALSE;
+    p_port->keep_port_handle = false;
     p_port->state = PORT_STATE_CLOSING;
 
     port_start_close (p_port);
@@ -325,7 +325,7 @@ int RFCOMM_RemoveServer (UINT16 handle)
 **
 **
 *******************************************************************************/
-int PORT_SetEventCallback (UINT16 port_handle, tPORT_CALLBACK *p_port_cb)
+int PORT_SetEventCallback (uint16_t port_handle, tPORT_CALLBACK *p_port_cb)
 {
     tPORT  *p_port;
 
@@ -358,7 +358,7 @@ int PORT_SetEventCallback (UINT16 port_handle, tPORT_CALLBACK *p_port_cb)
 **
 *******************************************************************************/
 
-int PORT_ClearKeepHandleFlag (UINT16 port_handle)
+int PORT_ClearKeepHandleFlag (uint16_t port_handle)
 {
     tPORT  *p_port;
 
@@ -386,7 +386,7 @@ int PORT_ClearKeepHandleFlag (UINT16 port_handle)
 **
 **
 *******************************************************************************/
-int PORT_SetDataCallback (UINT16 port_handle, tPORT_DATA_CALLBACK *p_port_cb)
+int PORT_SetDataCallback (uint16_t port_handle, tPORT_DATA_CALLBACK *p_port_cb)
 {
     tPORT  *p_port;
 
@@ -422,7 +422,7 @@ int PORT_SetDataCallback (UINT16 port_handle, tPORT_DATA_CALLBACK *p_port_cb)
 **
 **
 *******************************************************************************/
-int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb)
+int PORT_SetDataCOCallback (uint16_t port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb)
 {
     tPORT  *p_port;
 
@@ -456,7 +456,7 @@ int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_c
 **                  mask   - Bitmask of the events the host is interested in
 **
 *******************************************************************************/
-int PORT_SetEventMask (UINT16 port_handle, UINT32 mask)
+int PORT_SetEventMask (uint16_t port_handle, uint32_t mask)
 {
     tPORT  *p_port;
 
@@ -492,7 +492,7 @@ int PORT_SetEventMask (UINT16 port_handle, UINT32 mask)
 **                  p_lcid     - OUT L2CAP's LCID
 **
 *******************************************************************************/
-int PORT_CheckConnection (UINT16 handle, BD_ADDR bd_addr, UINT16 *p_lcid)
+int PORT_CheckConnection (uint16_t handle, BD_ADDR bd_addr, uint16_t *p_lcid)
 {
     tPORT      *p_port;
 
@@ -529,19 +529,19 @@ int PORT_CheckConnection (UINT16 handle, BD_ADDR bd_addr, UINT16 *p_lcid)
 **
 ** Function         PORT_IsOpening
 **
-** Description      This function returns TRUE if there is any RFCOMM connection
+** Description      This function returns true if there is any RFCOMM connection
 **                  opening in process.
 **
-** Parameters:      TRUE if any connection opening is found
+** Parameters:      true if any connection opening is found
 **                  bd_addr    - bd_addr of the peer
 **
 *******************************************************************************/
-BOOLEAN PORT_IsOpening (BD_ADDR bd_addr)
+bool    PORT_IsOpening (BD_ADDR bd_addr)
 {
-    UINT8   xx, yy;
+    uint8_t xx, yy;
     tRFC_MCB *p_mcb = NULL;
     tPORT  *p_port;
-    BOOLEAN found_port;
+    bool    found_port;
 
     /* Check for any rfc_mcb which is in the middle of opening. */
     for (xx = 0; xx < MAX_BD_CONNECTIONS; xx++)
@@ -550,12 +550,12 @@ BOOLEAN PORT_IsOpening (BD_ADDR bd_addr)
             (rfc_cb.port.rfc_mcb[xx].state < RFC_MX_STATE_CONNECTED))
         {
             memcpy (bd_addr, rfc_cb.port.rfc_mcb[xx].bd_addr, BD_ADDR_LEN);
-            return TRUE;
+            return true;
         }
 
         if (rfc_cb.port.rfc_mcb[xx].state == RFC_MX_STATE_CONNECTED)
         {
-            found_port = FALSE;
+            found_port = false;
             p_mcb = &rfc_cb.port.rfc_mcb[xx];
             p_port = &rfc_cb.port.port[0];
 
@@ -563,7 +563,7 @@ BOOLEAN PORT_IsOpening (BD_ADDR bd_addr)
             {
                 if (p_port->rfc.p_mcb == p_mcb)
                 {
-                    found_port = TRUE;
+                    found_port = true;
                     break;
                 }
             }
@@ -573,12 +573,12 @@ BOOLEAN PORT_IsOpening (BD_ADDR bd_addr)
             {
                 /* Port is not established yet. */
                 memcpy (bd_addr, rfc_cb.port.rfc_mcb[xx].bd_addr, BD_ADDR_LEN);
-                return TRUE;
+                return true;
             }
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -594,10 +594,10 @@ BOOLEAN PORT_IsOpening (BD_ADDR bd_addr)
 **
 **
 *******************************************************************************/
-int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings)
+int PORT_SetState (uint16_t handle, tPORT_STATE *p_settings)
 {
     tPORT      *p_port;
-    UINT8       baud_rate;
+    uint8_t     baud_rate;
 
     RFCOMM_TRACE_API ("PORT_SetState() handle:%d", handle);
 
@@ -643,7 +643,7 @@ int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings)
 **                  p_rx_queue_count - Pointer to return queue count in.
 **
 *******************************************************************************/
-int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count)
+int PORT_GetRxQueueCnt (uint16_t handle, uint16_t *p_rx_queue_count)
 {
     tPORT      *p_port;
 
@@ -687,7 +687,7 @@ int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count)
 **                               configuration information is returned.
 **
 *******************************************************************************/
-int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings)
+int PORT_GetState (uint16_t handle, tPORT_STATE *p_settings)
 {
     tPORT      *p_port;
 
@@ -726,10 +726,10 @@ int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings)
 **                  signal     = specify the function to be passed
 **
 *******************************************************************************/
-int PORT_Control (UINT16 handle, UINT8 signal)
+int PORT_Control (uint16_t handle, uint8_t signal)
 {
     tPORT      *p_port;
-    UINT8      old_modem_signal;
+    uint8_t    old_modem_signal;
 
     RFCOMM_TRACE_API ("PORT_Control() handle:%d signal:0x%x", handle, signal);
 
@@ -812,11 +812,11 @@ int PORT_Control (UINT16 handle, UINT8 signal)
 **                  enable     - enables data flow
 **
 *******************************************************************************/
-int PORT_FlowControl (UINT16 handle, BOOLEAN enable)
+int PORT_FlowControl (uint16_t handle, bool    enable)
 {
     tPORT      *p_port;
-    BOOLEAN    old_fc;
-    UINT32     events;
+    bool       old_fc;
+    uint32_t   events;
 
     RFCOMM_TRACE_API ("PORT_FlowControl() handle:%d enable: %d", handle, enable);
 
@@ -844,7 +844,7 @@ int PORT_FlowControl (UINT16 handle, BOOLEAN enable)
     {
         if (!p_port->rx.user_fc)
         {
-            port_flow_control_peer(p_port, TRUE, 0);
+            port_flow_control_peer(p_port, true, 0);
         }
     }
     else
@@ -865,7 +865,7 @@ int PORT_FlowControl (UINT16 handle, BOOLEAN enable)
         events = PORT_EV_RXCHAR;
         if (p_port->rx_flag_ev_pending)
         {
-            p_port->rx_flag_ev_pending = FALSE;
+            p_port->rx_flag_ev_pending = false;
             events |= PORT_EV_RXFLAG;
         }
 
@@ -891,11 +891,11 @@ int PORT_FlowControl (UINT16 handle, BOOLEAN enable)
 **
 *******************************************************************************/
 
-int PORT_FlowControl_MaxCredit (UINT16 handle, BOOLEAN enable)
+int PORT_FlowControl_MaxCredit (uint16_t handle, bool    enable)
 {
     tPORT      *p_port;
-    BOOLEAN    old_fc;
-    UINT32     events;
+    bool       old_fc;
+    uint32_t   events;
 
     RFCOMM_TRACE_API ("PORT_FlowControl() handle:%d enable: %d", handle, enable);
 
@@ -923,7 +923,7 @@ int PORT_FlowControl_MaxCredit (UINT16 handle, BOOLEAN enable)
     {
         if (!p_port->rx.user_fc)
         {
-            port_flow_control_peer(p_port, TRUE, p_port->credit_rx);
+            port_flow_control_peer(p_port, true, p_port->credit_rx);
         }
     }
     else
@@ -944,7 +944,7 @@ int PORT_FlowControl_MaxCredit (UINT16 handle, BOOLEAN enable)
         events = PORT_EV_RXCHAR;
         if (p_port->rx_flag_ev_pending)
         {
-            p_port->rx_flag_ev_pending = FALSE;
+            p_port->rx_flag_ev_pending = false;
             events |= PORT_EV_RXFLAG;
         }
 
@@ -970,7 +970,7 @@ int PORT_FlowControl_MaxCredit (UINT16 handle, BOOLEAN enable)
 **                  p_signal   - specify the pointer to control signals info
 **
 *******************************************************************************/
-int PORT_GetModemStatus (UINT16 handle, UINT8 *p_signal)
+int PORT_GetModemStatus (uint16_t handle, uint8_t *p_signal)
 {
     tPORT      *p_port;
 
@@ -1009,7 +1009,7 @@ int PORT_GetModemStatus (UINT16 handle, UINT8 *p_signal)
 **                               connection status
 **
 *******************************************************************************/
-int PORT_ClearError (UINT16 handle, UINT16 *p_errors, tPORT_STATUS *p_status)
+int PORT_ClearError (uint16_t handle, uint16_t *p_errors, tPORT_STATUS *p_status)
 {
     tPORT  *p_port;
 
@@ -1047,7 +1047,7 @@ int PORT_ClearError (UINT16 handle, UINT16 *p_errors, tPORT_STATUS *p_status)
 **                  errors     - receive error codes
 **
 *******************************************************************************/
-int PORT_SendError (UINT16 handle, UINT8 errors)
+int PORT_SendError (uint16_t handle, uint8_t errors)
 {
     tPORT      *p_port;
 
@@ -1085,7 +1085,7 @@ int PORT_SendError (UINT16 handle, UINT8 errors)
 **                               connection status
 **
 *******************************************************************************/
-int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status)
+int PORT_GetQueueStatus (uint16_t handle, tPORT_STATUS *p_status)
 {
     tPORT      *p_port;
 
@@ -1103,10 +1103,10 @@ int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status)
         return (PORT_NOT_OPENED);
     }
 
-    p_status->in_queue_size  = (UINT16) p_port->rx.queue_size;
-    p_status->out_queue_size = (UINT16) p_port->tx.queue_size;
+    p_status->in_queue_size  = (uint16_t) p_port->rx.queue_size;
+    p_status->out_queue_size = (uint16_t) p_port->tx.queue_size;
 
-    p_status->mtu_size = (UINT16) p_port->peer_mtu;
+    p_status->mtu_size = (uint16_t) p_port->peer_mtu;
 
     p_status->flags = 0;
 
@@ -1133,12 +1133,12 @@ int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status)
 **                  purge_flags - specify the action to take.
 **
 *******************************************************************************/
-int PORT_Purge (UINT16 handle, UINT8 purge_flags)
+int PORT_Purge (uint16_t handle, uint8_t purge_flags)
 {
     tPORT      *p_port;
     BT_HDR     *p_buf;
-    UINT16      count;
-    UINT32     events;
+    uint16_t    count;
+    uint32_t   events;
 
     RFCOMM_TRACE_API ("PORT_Purge() handle:%d flags:0x%x", handle, purge_flags);
 
@@ -1170,7 +1170,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
 
         /* If we flowed controlled peer based on rx_queue size enable data again */
         if (count)
-            port_flow_control_peer (p_port, TRUE, count);
+            port_flow_control_peer (p_port, true, count);
     }
 
     if (purge_flags & PORT_PURGE_TXCLEAR)
@@ -1210,11 +1210,11 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
 **                  p_len       - Byte count received
 **
 *******************************************************************************/
-int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
+int PORT_ReadData (uint16_t handle, char *p_data, uint16_t max_len, uint16_t *p_len)
 {
     tPORT      *p_port;
     BT_HDR     *p_buf;
-    UINT16      count;
+    uint16_t    count;
 
     RFCOMM_TRACE_API ("PORT_ReadData() handle:%d max_len:%d", handle, max_len);
 
@@ -1252,7 +1252,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
         if (p_buf->len > max_len)
         {
-            memcpy (p_data, (UINT8 *)(p_buf + 1) + p_buf->offset, max_len);
+            memcpy (p_data, (uint8_t *)(p_buf + 1) + p_buf->offset, max_len);
             p_buf->offset += max_len;
             p_buf->len    -= max_len;
 
@@ -1268,7 +1268,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
         }
         else
         {
-            memcpy (p_data, (UINT8 *)(p_buf + 1) + p_buf->offset, p_buf->len);
+            memcpy (p_data, (uint8_t *)(p_buf + 1) + p_buf->offset, p_buf->len);
 
             *p_len  += p_buf->len;
             max_len -= p_buf->len;
@@ -1301,7 +1301,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
     /* If rfcomm suspended traffic from the peer based on the rx_queue_size */
     /* check if it can be resumed now */
-    port_flow_control_peer (p_port, TRUE, count);
+    port_flow_control_peer (p_port, true, count);
 
     return (PORT_SUCCESS);
 }
@@ -1317,7 +1317,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 **                  pp_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
-int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
+int PORT_Read (uint16_t handle, BT_HDR **pp_buf)
 {
     tPORT      *p_port;
     BT_HDR     *p_buf;
@@ -1352,7 +1352,7 @@ int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
 
         /* If rfcomm suspended traffic from the peer based on the rx_queue_size */
         /* check if it can be resumed now */
-        port_flow_control_peer (p_port, TRUE, 1);
+        port_flow_control_peer (p_port, true, 1);
     }
     else
     {
@@ -1438,10 +1438,10 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
 **                  pp_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
-int PORT_Write (UINT16 handle, BT_HDR *p_buf)
+int PORT_Write (uint16_t handle, BT_HDR *p_buf)
 {
     tPORT  *p_port;
-    UINT32 event = 0;
+    uint32_t event = 0;
     int    rc;
 
     RFCOMM_TRACE_API ("PORT_Write() handle:%d", handle);
@@ -1503,14 +1503,14 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
 **                  p_len      - Byte count returned
 **
 *******************************************************************************/
-int PORT_WriteDataCO (UINT16 handle, int* p_len)
+int PORT_WriteDataCO (uint16_t handle, int* p_len)
 {
 
     tPORT      *p_port;
     BT_HDR     *p_buf;
-    UINT32     event = 0;
+    uint32_t   event = 0;
     int        rc = 0;
-    UINT16     length;
+    uint16_t   length;
 
     RFCOMM_TRACE_API ("PORT_WriteDataCO() handle:%d", handle);
     *p_len = 0;
@@ -1535,8 +1535,8 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
     }
     int available = 0;
     //if(ioctl(fd, FIONREAD, &available) < 0)
-    if(p_port->p_data_co_callback(handle, (UINT8*)&available, sizeof(available),
-                                DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE) == FALSE)
+    if(p_port->p_data_co_callback(handle, (uint8_t*)&available, sizeof(available),
+                                DATA_CO_CALLBACK_TYPE_OUTGOING_SIZE) == false)
     {
         RFCOMM_TRACE_ERROR("p_data_co_callback DATA_CO_CALLBACK_TYPE_INCOMING_SIZE failed, available:%d", available);
         return (PORT_UNKNOWN_ERROR);
@@ -1545,7 +1545,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
         return PORT_SUCCESS;
     /* Length for each buffer is the smaller of GKI buffer, peer MTU, or max_len */
     length = RFCOMM_DATA_BUF_SIZE -
-            (UINT16)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
+            (uint16_t)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
 
     /* If there are buffers scheduled for transmission check if requested */
     /* data fits into the end of the queue */
@@ -1555,20 +1555,20 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
      && (((int)p_buf->len + available) <= (int)p_port->peer_mtu)
      && (((int)p_buf->len + available) <= (int)length))
     {
-        //if(recv(fd, (UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len, available, 0) != available)
-        if(p_port->p_data_co_callback(handle, (UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len,
-                                    available, DATA_CO_CALLBACK_TYPE_OUTGOING) == FALSE)
+        //if(recv(fd, (uint8_t *)(p_buf + 1) + p_buf->offset + p_buf->len, available, 0) != available)
+        if(p_port->p_data_co_callback(handle, (uint8_t *)(p_buf + 1) + p_buf->offset + p_buf->len,
+                                    available, DATA_CO_CALLBACK_TYPE_OUTGOING) == false)
 
         {
             error("p_data_co_callback DATA_CO_CALLBACK_TYPE_OUTGOING failed, available:%d", available);
             mutex_global_unlock();
             return (PORT_UNKNOWN_ERROR);
         }
-        //memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
-        p_port->tx.queue_size += (UINT16)available;
+        //memcpy ((uint8_t *)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
+        p_port->tx.queue_size += (uint16_t)available;
 
         *p_len = available;
-        p_buf->len += (UINT16)available;
+        p_buf->len += (uint16_t)available;
 
         mutex_global_unlock();
 
@@ -1602,14 +1602,14 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
         if (p_port->peer_mtu < length)
             length = p_port->peer_mtu;
         if (available < (int)length)
-            length = (UINT16)available;
+            length = (uint16_t)available;
         p_buf->len = length;
         p_buf->event          = BT_EVT_TO_BTU_SP_DATA;
 
-        //memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, length);
-        //if(recv(fd, (UINT8 *)(p_buf + 1) + p_buf->offset, (int)length, 0) != (int)length)
-        if(p_port->p_data_co_callback(handle, (UINT8 *)(p_buf + 1) + p_buf->offset, length,
-                                      DATA_CO_CALLBACK_TYPE_OUTGOING) == FALSE)
+        //memcpy ((uint8_t *)(p_buf + 1) + p_buf->offset, p_data, length);
+        //if(recv(fd, (uint8_t *)(p_buf + 1) + p_buf->offset, (int)length, 0) != (int)length)
+        if(p_port->p_data_co_callback(handle, (uint8_t *)(p_buf + 1) + p_buf->offset, length,
+                                      DATA_CO_CALLBACK_TYPE_OUTGOING) == false)
         {
             error("p_data_co_callback DATA_CO_CALLBACK_TYPE_OUTGOING failed, length:%d", length);
             return (PORT_UNKNOWN_ERROR);
@@ -1657,13 +1657,13 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
 **                  p_len       - Byte count received
 **
 *******************************************************************************/
-int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
+int PORT_WriteData (uint16_t handle, char *p_data, uint16_t max_len, uint16_t *p_len)
 {
     tPORT      *p_port;
     BT_HDR     *p_buf;
-    UINT32     event = 0;
+    uint32_t   event = 0;
     int        rc = 0;
-    UINT16     length;
+    uint16_t   length;
 
     RFCOMM_TRACE_API ("PORT_WriteData() max_len:%d", max_len);
 
@@ -1690,7 +1690,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
     /* Length for each buffer is the smaller of GKI buffer, peer MTU, or max_len */
     length = RFCOMM_DATA_BUF_SIZE -
-            (UINT16)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
+            (uint16_t)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
 
     /* If there are buffers scheduled for transmission check if requested */
     /* data fits into the end of the queue */
@@ -1700,7 +1700,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
      && ((p_buf->len + max_len) <= p_port->peer_mtu)
      && ((p_buf->len + max_len) <= length))
     {
-        memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
+        memcpy ((uint8_t *)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
         p_port->tx.queue_size += max_len;
 
         *p_len = max_len;
@@ -1732,7 +1732,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
         p_buf->len = length;
         p_buf->event          = BT_EVT_TO_BTU_SP_DATA;
 
-        memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, length);
+        memcpy ((uint8_t *)(p_buf + 1) + p_buf->offset, p_data, length);
 
         RFCOMM_TRACE_EVENT ("PORT_WriteData %d bytes", length);
 
@@ -1776,7 +1776,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 **                  max_len     - Byte count requested
 **
 *******************************************************************************/
-int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len)
+int PORT_Test (uint16_t handle, uint8_t *p_data, uint16_t len)
 {
     tPORT    *p_port;
 
@@ -1802,9 +1802,9 @@ int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len)
     p_buf->offset  = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;
     p_buf->len = len;
 
-    memcpy((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, p_buf->len);
+    memcpy((uint8_t *)(p_buf + 1) + p_buf->offset, p_data, p_buf->len);
 
-    rfc_send_test(p_port->rfc.p_mcb, TRUE, p_buf);
+    rfc_send_test(p_port->rfc.p_mcb, true, p_buf);
 
     return (PORT_SUCCESS);
 }
@@ -1841,7 +1841,7 @@ void RFCOMM_Init (void)
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-UINT8 PORT_SetTraceLevel (UINT8 new_level)
+uint8_t PORT_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         rfc_cb.trace_level = new_level;

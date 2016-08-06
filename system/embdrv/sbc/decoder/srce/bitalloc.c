@@ -51,7 +51,7 @@ OI_UINT32 OI_SBC_MaxBitpool(OI_CODEC_SBC_FRAME_INFO *frame)
     }
 
     ERROR(("Invalid frame mode %d", frame->mode));
-    OI_ASSERT(FALSE);
+    OI_ASSERT(false);
     return 0; /* Should never be reached */
 }
 

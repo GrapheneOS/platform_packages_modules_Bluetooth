@@ -62,10 +62,10 @@ static const tPORT_STATE default_port_pars =
 ** Returns          Pointer to the PORT or NULL if not found
 **
 *******************************************************************************/
-tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
+tPORT *port_allocate_port (uint8_t dlci, BD_ADDR bd_addr)
 {
     tPORT  *p_port = &rfc_cb.port.port[0];
-    UINT8  xx, yy;
+    uint8_t xx, yy;
 
     for (xx = 0, yy = rfc_cb.rfc.last_port + 1; xx < MAX_RFC_PORTS; xx++, yy++)
     {
@@ -77,7 +77,7 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
         {
             memset(p_port, 0, sizeof (tPORT));
 
-            p_port->in_use = TRUE;
+            p_port->in_use = true;
             p_port->inx    = yy + 1;
 
             /* During the open set default state for the port connection */
@@ -116,7 +116,7 @@ void port_set_defaults (tPORT *p_port)
     p_port->port_ctrl      = 0;
     p_port->error          = 0;
     p_port->line_status    = 0;
-    p_port->rx_flag_ev_pending = FALSE;
+    p_port->rx_flag_ev_pending = false;
     p_port->peer_mtu       = RFCOMM_DEFAULT_MTU;
 
     p_port->user_port_pars = default_port_pars;
@@ -147,7 +147,7 @@ void port_set_defaults (tPORT *p_port)
 *******************************************************************************/
 void port_select_mtu (tPORT *p_port)
 {
-    UINT16 packet_size;
+    uint16_t packet_size;
 
     /* Will select MTU only if application did not setup something */
     if (p_port->mtu == 0)
@@ -249,7 +249,7 @@ void port_release_port(tPORT *p_port)
             RFCOMM_TRACE_DEBUG("%s Re-initialize handle: %d", __func__, p_port->inx);
 
             /* save event mask and callback */
-            UINT32 mask = p_port->ev_mask;
+            uint32_t mask = p_port->ev_mask;
             tPORT_CALLBACK *p_port_cb = p_port->p_callback;
             tPORT_STATE user_port_pars = p_port->user_port_pars;
 
@@ -319,9 +319,9 @@ tRFC_MCB *port_find_mcb (BD_ADDR bd_addr)
 ** Returns          Pointer to the PORT or NULL if not found
 **
 *******************************************************************************/
-tPORT *port_find_mcb_dlci_port (tRFC_MCB *p_mcb, UINT8 dlci)
+tPORT *port_find_mcb_dlci_port (tRFC_MCB *p_mcb, uint8_t dlci)
 {
-    UINT8 inx;
+    uint8_t inx;
 
     if (!p_mcb)
         return (NULL);
@@ -349,9 +349,9 @@ tPORT *port_find_mcb_dlci_port (tRFC_MCB *p_mcb, UINT8 dlci)
 ** Returns          Pointer to the PORT or NULL if not found
 **
 *******************************************************************************/
-tPORT *port_find_dlci_port (UINT8 dlci)
+tPORT *port_find_dlci_port (uint8_t dlci)
 {
-    UINT16 i;
+    uint16_t i;
     tPORT  *p_port;
 
     for (i = 0; i < MAX_RFC_PORTS; i++)
@@ -384,9 +384,9 @@ tPORT *port_find_dlci_port (UINT8 dlci)
 ** Returns          Pointer to the PORT or NULL if not found
 **
 *******************************************************************************/
-tPORT *port_find_port (UINT8 dlci, BD_ADDR bd_addr)
+tPORT *port_find_port (uint8_t dlci, BD_ADDR bd_addr)
 {
-    UINT16 i;
+    uint16_t i;
     tPORT  *p_port;
 
     for (i = 0; i < MAX_RFC_PORTS; i++)
@@ -414,14 +414,14 @@ tPORT *port_find_port (UINT8 dlci, BD_ADDR bd_addr)
 ** Returns          event mask to be returned to the application
 **
 *******************************************************************************/
-UINT32 port_flow_control_user (tPORT *p_port)
+uint32_t port_flow_control_user (tPORT *p_port)
 {
-    UINT32 event = 0;
+    uint32_t event = 0;
 
     /* Flow control to the user can be caused by flow controlling by the peer */
     /* (FlowInd, or flow control by the peer RFCOMM (Fcon) or internally if */
     /* tx_queue is full */
-    BOOLEAN fc = p_port->tx.peer_fc
+    bool    fc = p_port->tx.peer_fc
               || !p_port->rfc.p_mcb
               || !p_port->rfc.p_mcb->peer_ready
               || (p_port->tx.queue_size > PORT_TX_HIGH_WM)
@@ -450,10 +450,10 @@ UINT32 port_flow_control_user (tPORT *p_port)
 ** Returns          event mask to be returned to the application
 **
 *******************************************************************************/
-UINT32 port_get_signal_changes (tPORT *p_port, UINT8 old_signals, UINT8 signal)
+uint32_t port_get_signal_changes (tPORT *p_port, uint8_t old_signals, uint8_t signal)
 {
-    UINT8  changed_signals = (signal ^ old_signals);
-    UINT32 events = 0;
+    uint8_t changed_signals = (signal ^ old_signals);
+    uint32_t events = 0;
 
     if (changed_signals & PORT_DTRDSR_ON)
     {
@@ -496,7 +496,7 @@ UINT32 port_get_signal_changes (tPORT *p_port, UINT8 old_signals, UINT8 signal)
 ** Returns          nothing
 **
 *******************************************************************************/
-void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
+void port_flow_control_peer(tPORT *p_port, bool    enable, uint16_t count)
 {
     if (!p_port->rfc.p_mcb)
         return;
@@ -525,11 +525,11 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
              && (p_port->credit_rx_max > p_port->credit_rx))
             {
                 rfc_send_credit(p_port->rfc.p_mcb, p_port->dlci,
-                                (UINT8) (p_port->credit_rx_max - p_port->credit_rx));
+                                (uint8_t) (p_port->credit_rx_max - p_port->credit_rx));
 
                 p_port->credit_rx = p_port->credit_rx_max;
 
-                p_port->rx.peer_fc = FALSE;
+                p_port->rx.peer_fc = false;
             }
         }
         /* else want to disable flow from peer */
@@ -538,12 +538,12 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             /* if client registered data callback, just do what they want */
             if (p_port->p_data_callback || p_port->p_data_co_callback)
             {
-                p_port->rx.peer_fc = TRUE;
+                p_port->rx.peer_fc = true;
             }
             /* if queue count reached credit rx max, set peer fc */
             else if (fixed_queue_length(p_port->rx.queue) >= p_port->credit_rx_max)
             {
-                p_port->rx.peer_fc = TRUE;
+                p_port->rx.peer_fc = true;
             }
         }
     }
@@ -559,11 +559,11 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
              && (p_port->rx.queue_size < PORT_RX_LOW_WM)
              && (fixed_queue_length(p_port->rx.queue) < PORT_RX_BUF_LOW_WM))
             {
-                p_port->rx.peer_fc = FALSE;
+                p_port->rx.peer_fc = false;
 
                 /* If user did not force flow control allow traffic now */
                 if (!p_port->rx.user_fc)
-                    RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, TRUE);
+                    RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, true);
             }
         }
         /* else want to disable flow from peer */
@@ -572,8 +572,8 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             /* if client registered data callback, just do what they want */
             if (p_port->p_data_callback || p_port->p_data_co_callback)
             {
-                p_port->rx.peer_fc = TRUE;
-                RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, FALSE);
+                p_port->rx.peer_fc = true;
+                RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, false);
             }
             /* Check the size of the rx queue.  If it exceeds certain */
             /* level and flow control has not been sent to the peer do it now */
@@ -583,8 +583,8 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             {
                 RFCOMM_TRACE_EVENT ("PORT_DataInd Data reached HW. Sending FC set.");
 
-                p_port->rx.peer_fc = TRUE;
-                RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, FALSE);
+                p_port->rx.peer_fc = true;
+                RFCOMM_FlowReq (p_port->rfc.p_mcb, p_port->dlci, false);
             }
         }
     }

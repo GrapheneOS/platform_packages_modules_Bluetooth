@@ -39,9 +39,9 @@
 /*
 ** Local function definitions
 */
-UINT32 port_rfc_send_tx_data (tPORT *p_port);
-void   port_rfc_closed (tPORT *p_port, UINT8 res);
-void   port_get_credits (tPORT *p_port, UINT8 k);
+uint32_t port_rfc_send_tx_data (tPORT *p_port);
+void   port_rfc_closed (tPORT *p_port, uint8_t res);
+void   port_get_credits (tPORT *p_port, uint8_t k);
 
 
 /*******************************************************************************
@@ -61,7 +61,7 @@ int port_open_continue (tPORT *p_port)
     RFCOMM_TRACE_EVENT ("port_open_continue, p_port:%p", p_port);
 
     /* Check if multiplexer channel has already been established */
-    if ((p_mcb = rfc_alloc_multiplexer_channel (p_port->bd_addr, TRUE)) == NULL)
+    if ((p_mcb = rfc_alloc_multiplexer_channel (p_port->bd_addr, true)) == NULL)
     {
         RFCOMM_TRACE_WARNING ("port_open_continue no mx channel");
         port_release_port (p_port);
@@ -152,8 +152,8 @@ void port_start_par_neg (tPORT *p_port)
 void port_start_close (tPORT *p_port)
 {
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
-    UINT8  old_signals;
-    UINT32 events = 0;
+    uint8_t old_signals;
+    uint32_t events = 0;
 
     /* At first indicate to the user that signals on the connection were dropped */
     p_port->line_status |= LINE_STATUS_FAILED;
@@ -199,11 +199,11 @@ void port_start_close (tPORT *p_port)
 **                  are in the OPENING state
 **
 *******************************************************************************/
-void PORT_StartCnf (tRFC_MCB *p_mcb, UINT16 result)
+void PORT_StartCnf (tRFC_MCB *p_mcb, uint16_t result)
 {
     tPORT   *p_port;
     int     i;
-    BOOLEAN no_ports_up = TRUE;
+    bool    no_ports_up = true;
 
     RFCOMM_TRACE_EVENT ("PORT_StartCnf result:%d", result);
 
@@ -212,7 +212,7 @@ void PORT_StartCnf (tRFC_MCB *p_mcb, UINT16 result)
     {
         if (p_port->rfc.p_mcb == p_mcb)
         {
-            no_ports_up = FALSE;
+            no_ports_up = false;
 
             if (result == RFCOMM_SUCCESS)
                 RFCOMM_ParNegReq (p_mcb, p_port->dlci, p_port->mtu);
@@ -292,11 +292,11 @@ void PORT_StartInd (tRFC_MCB *p_mcb)
 **                  Otherwise save the MTU size supported by the peer.
 **
 *******************************************************************************/
-void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
+void PORT_ParNegInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-    UINT8 our_cl;
-    UINT8 our_k;
+    uint8_t our_cl;
+    uint8_t our_k;
 
     RFCOMM_TRACE_EVENT ("PORT_ParNegInd dlci:%d mtu:%d", dlci, mtu);
 
@@ -307,7 +307,7 @@ void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
         if (!p_port)
         {
             /* If the port cannot be opened, send a DM.  Per Errata 1205 */
-            rfc_send_dm(p_mcb, dlci, FALSE);
+            rfc_send_dm(p_mcb, dlci, false);
             /* check if this is the last port open, some headsets have
             problem, they don't disconnect if we send DM */
             rfc_check_mcb_active( p_mcb );
@@ -383,7 +383,7 @@ void PORT_ParNegInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
 **                  procedure send EstablishRequest to continue.
 **
 *******************************************************************************/
-void PORT_ParNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
+void PORT_ParNegCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k)
 {
     tPORT   *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
@@ -444,7 +444,7 @@ void PORT_ParNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 k)
 **                  meaning that application already made open.
 **
 *******************************************************************************/
-void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
+void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
@@ -496,7 +496,7 @@ void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
 **                  successfull.
 **
 *******************************************************************************/
-void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 result)
+void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint16_t result)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
@@ -547,8 +547,8 @@ void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 resul
 **                  allocated before meaning that application already made open.
 **
 *******************************************************************************/
-void PORT_PortNegInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars,
-                      UINT16 param_mask)
+void PORT_PortNegInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
+                      uint16_t param_mask)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
@@ -580,7 +580,7 @@ void PORT_PortNegInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars,
 **                  state for the port.  Propagate change to the user.
 **
 *******************************************************************************/
-void PORT_PortNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 result)
+void PORT_PortNegCnf (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars, uint16_t result)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     UNUSED(p_pars);
@@ -622,11 +622,11 @@ void PORT_PortNegCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars, UINT16 r
 **                  signal change.  Propagate change to the user.
 **
 *******************************************************************************/
-void PORT_ControlInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
+void PORT_ControlInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-    UINT32 event;
-    UINT8  old_signals;
+    uint32_t event;
+    uint8_t old_signals;
 
     RFCOMM_TRACE_EVENT ("PORT_ControlInd");
 
@@ -681,10 +681,10 @@ void PORT_ControlInd (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
 **                  peer acknowleges change of the modem signals.
 **
 *******************************************************************************/
-void PORT_ControlCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
+void PORT_ControlCnf (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-    UINT32 event = 0;
+    uint32_t event = 0;
     UNUSED(p_pars);
 
     RFCOMM_TRACE_EVENT ("PORT_ControlCnf");
@@ -719,10 +719,10 @@ void PORT_ControlCnf (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
 **                  peer indicates change in the line status
 **
 *******************************************************************************/
-void PORT_LineStatusInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 line_status)
+void PORT_LineStatusInd (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t line_status)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-    UINT32 event = 0;
+    uint32_t event = 0;
 
     RFCOMM_TRACE_EVENT ("PORT_LineStatusInd");
 
@@ -753,7 +753,7 @@ void PORT_LineStatusInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 line_status)
 **                  DLC connection is released.
 **
 *******************************************************************************/
-void PORT_DlcReleaseInd (tRFC_MCB *p_mcb, UINT8 dlci)
+void PORT_DlcReleaseInd (tRFC_MCB *p_mcb, uint8_t dlci)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
 
@@ -826,12 +826,12 @@ void Port_TimeOutCloseMux (tRFC_MCB *p_mcb)
 **                  buffer is received from the peer.
 **
 *******************************************************************************/
-void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
+void PORT_DataInd (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-    UINT8  rx_char1;
-    UINT32 events = 0;
-    UINT8  *p;
+    uint8_t rx_char1;
+    uint32_t events = 0;
+    uint8_t *p;
     int    i;
 
     RFCOMM_TRACE_EVENT("PORT_DataInd with data length %d, p_mcb:%p,p_port:%p,dlci:%d",
@@ -846,9 +846,9 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     {
         /* Another packet is delivered to user.  Send credits to peer if required */
 
-        if(p_port->p_data_co_callback(p_port->inx, (UINT8*)p_buf, -1, DATA_CO_CALLBACK_TYPE_INCOMING))
-            port_flow_control_peer(p_port, TRUE, 1);
-        else port_flow_control_peer(p_port, FALSE, 0);
+        if(p_port->p_data_co_callback(p_port->inx, (uint8_t*)p_buf, -1, DATA_CO_CALLBACK_TYPE_INCOMING))
+            port_flow_control_peer(p_port, true, 1);
+        else port_flow_control_peer(p_port, false, 0);
         //osi_free(p_buf);
         return;
     }
@@ -857,9 +857,9 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     if (p_port->p_data_callback)
     {
         /* Another packet is delivered to user.  Send credits to peer if required */
-        port_flow_control_peer(p_port, TRUE, 1);
+        port_flow_control_peer(p_port, true, 1);
 
-        p_port->p_data_callback (p_port->inx, (UINT8 *)(p_buf + 1) + p_buf->offset, p_buf->len);
+        p_port->p_data_callback (p_port->inx, (uint8_t *)(p_buf + 1) + p_buf->offset, p_buf->len);
         osi_free(p_buf);
         return;
     }
@@ -880,7 +880,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     if (((rx_char1 = p_port->user_port_pars.rx_char1) != 0)
      && (p_port->ev_mask & PORT_EV_RXFLAG))
     {
-        for (i = 0, p = (UINT8 *)(p_buf + 1) + p_buf->offset; i < p_buf->len; i++)
+        for (i = 0, p = (uint8_t *)(p_buf + 1) + p_buf->offset; i < p_buf->len; i++)
         {
             if (*p++ == rx_char1)
             {
@@ -898,13 +898,13 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     mutex_global_unlock();
 
     /* perform flow control procedures if necessary */
-    port_flow_control_peer(p_port, FALSE, 0);
+    port_flow_control_peer(p_port, false, 0);
 
     /* If user indicated flow control can not deliver any notifications to him */
     if (p_port->rx.user_fc)
     {
         if (events & PORT_EV_RXFLAG)
-            p_port->rx_flag_ev_pending = TRUE;
+            p_port->rx_flag_ev_pending = true;
 
         return;
     }
@@ -927,10 +927,10 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 **                  control signal change.  Propagate change to the user.
 **
 *******************************************************************************/
-void PORT_FlowInd (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN enable_data)
+void PORT_FlowInd (tRFC_MCB *p_mcb, uint8_t dlci, bool    enable_data)
 {
     tPORT  *p_port = (tPORT *)NULL;
-    UINT32 events = 0;
+    uint32_t events = 0;
     int    i;
 
     RFCOMM_TRACE_EVENT ("PORT_FlowInd fc:%d", enable_data);
@@ -987,9 +987,9 @@ void PORT_FlowInd (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN enable_data)
 ** Description      This function is when forward data can be sent to the peer
 **
 *******************************************************************************/
-UINT32 port_rfc_send_tx_data (tPORT *p_port)
+uint32_t port_rfc_send_tx_data (tPORT *p_port)
 {
-    UINT32 events = 0;
+    uint32_t events = 0;
     BT_HDR *p_buf;
 
     /* if there is data to be sent */
@@ -1042,10 +1042,10 @@ UINT32 port_rfc_send_tx_data (tPORT *p_port)
 ** Description      This function when RFCOMM side of port is closed
 **
 *******************************************************************************/
-void port_rfc_closed (tPORT *p_port, UINT8 res)
+void port_rfc_closed (tPORT *p_port, uint8_t res)
 {
-    UINT8     old_signals;
-    UINT32    events = 0;
+    uint8_t   old_signals;
+    uint32_t  events = 0;
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
 
     if ((p_port->state == PORT_STATE_OPENING) && (p_port->is_server))
@@ -1113,9 +1113,9 @@ void port_rfc_closed (tPORT *p_port, UINT8 res)
 **                  should be less then 255
 **
 *******************************************************************************/
-void port_get_credits (tPORT *p_port, UINT8 k)
+void port_get_credits (tPORT *p_port, uint8_t k)
 {
     p_port->credit_tx = k;
     if (p_port->credit_tx == 0)
-        p_port->tx.peer_fc = TRUE;
+        p_port->tx.peer_fc = true;
 }

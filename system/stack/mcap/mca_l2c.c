@@ -70,7 +70,7 @@ const tL2CAP_FCR_OPTS mca_l2c_fcr_opts_def =
 ** Returns          void
 **
 *******************************************************************************/
-static void mca_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
+static void mca_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
 {
     tMCA_TC_TBL     *p_tbl = (tMCA_TC_TBL *)p_ref_data;
     tL2CAP_CFG_INFO cfg;
@@ -117,7 +117,7 @@ static void mca_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transpor
 ** Returns          void
 **
 *******************************************************************************/
-static void mca_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
+static void mca_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
 {
     tMCA_TC_TBL     *p_tbl = (tMCA_TC_TBL *)p_ref_data;
     tL2CAP_CFG_INFO cfg;
@@ -150,12 +150,12 @@ static void mca_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transpor
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
+void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
 {
     tMCA_HANDLE handle = mca_handle_by_cpsm(psm);
     tMCA_CCB    *p_ccb;
     tMCA_TC_TBL *p_tbl = NULL;
-    UINT16      result = L2CAP_CONN_NO_RESOURCES;
+    uint16_t    result = L2CAP_CONN_NO_RESOURCES;
     tBTM_STATUS rc;
     tL2CAP_ERTM_INFO ertm_info, *p_ertm_info = NULL;
     tL2CAP_CFG_INFO  cfg;
@@ -175,7 +175,7 @@ void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
             p_tbl->cfg_flags= MCA_L2C_CFG_CONN_ACP;
             /* proceed with connection */
             /* Check the security */
-            rc = btm_sec_mx_access_request (bd_addr, psm, FALSE, BTM_SEC_PROTO_MCA, 0,
+            rc = btm_sec_mx_access_request (bd_addr, psm, false, BTM_SEC_PROTO_MCA, 0,
                                             &mca_sec_check_complete_term, p_tbl);
             if (rc == BTM_CMD_STARTED)
             {
@@ -226,13 +226,13 @@ void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
+void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
 {
     tMCA_HANDLE handle = mca_handle_by_dpsm(psm);
     tMCA_CCB    *p_ccb;
     tMCA_DCB       *p_dcb;
     tMCA_TC_TBL    *p_tbl = NULL;
-    UINT16          result;
+    uint16_t        result;
     tL2CAP_CFG_INFO cfg;
     tL2CAP_ERTM_INFO *p_ertm_info = NULL, ertm_info;
     const tMCA_CHNL_CFG   *p_chnl_cfg;
@@ -293,7 +293,7 @@ void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
+void mca_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tMCA_TC_TBL    *p_tbl;
     tL2CAP_CFG_INFO cfg;
@@ -336,7 +336,7 @@ void mca_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 
                         /* Check the security */
                         btm_sec_mx_access_request (p_ccb->peer_addr, p_ccb->ctrl_vpsm,
-                                                   TRUE, BTM_SEC_PROTO_MCA,
+                                                   true, BTM_SEC_PROTO_MCA,
                                                    p_tbl->tcid,
                                                    &mca_sec_check_complete_orig, p_tbl);
                     }
@@ -363,7 +363,7 @@ void mca_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void mca_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tMCA_TC_TBL    *p_tbl;
 
@@ -405,10 +405,10 @@ void mca_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void mca_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tMCA_TC_TBL    *p_tbl;
-    UINT16          result = L2CAP_CFG_OK;
+    uint16_t        result = L2CAP_CFG_OK;
 
     /* look up info for this channel */
     if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
@@ -458,10 +458,10 @@ void mca_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
+void mca_l2c_disconnect_ind_cback(uint16_t lcid, bool    ack_needed)
 {
     tMCA_TC_TBL    *p_tbl;
-    UINT16         reason = L2CAP_DISC_TIMEOUT;
+    uint16_t       reason = L2CAP_DISC_TIMEOUT;
 
     MCA_TRACE_DEBUG("mca_l2c_disconnect_ind_cback lcid: %d, ack_needed: %d",
                      lcid, ack_needed);
@@ -491,7 +491,7 @@ void mca_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
+void mca_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tMCA_TC_TBL    *p_tbl;
 
@@ -516,7 +516,7 @@ void mca_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
+void mca_l2c_congestion_ind_cback(uint16_t lcid, bool    is_congested)
 {
     tMCA_TC_TBL    *p_tbl;
 
@@ -537,7 +537,7 @@ void mca_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
 ** Returns          void
 **
 *******************************************************************************/
-void mca_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
+void mca_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tMCA_TC_TBL    *p_tbl;
 
@@ -560,7 +560,7 @@ void mca_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
 ** Returns          void.
 **
 *******************************************************************************/
-UINT16 mca_l2c_open_req(BD_ADDR bd_addr, UINT16 psm, const tMCA_CHNL_CFG *p_chnl_cfg)
+uint16_t mca_l2c_open_req(BD_ADDR bd_addr, uint16_t psm, const tMCA_CHNL_CFG *p_chnl_cfg)
 {
     tL2CAP_ERTM_INFO ertm_info;
 

@@ -36,7 +36,7 @@
 /*****************************************************************************
 ** state machine constants and types
 *****************************************************************************/
-#if AVDT_DEBUG == TRUE
+#if (AVDT_DEBUG == TRUE)
 
 /* verbose state strings for trace */
 const char * const avdt_ccb_st_str[] = {
@@ -127,7 +127,7 @@ const tAVDT_CCB_ACTION avdt_ccb_action[] = {
 #define AVDT_CCB_NUM_COLS           3       /* number of columns in state tables */
 
 /* state table for idle state */
-const UINT8 avdt_ccb_st_idle[][AVDT_CCB_NUM_COLS] = {
+const uint8_t avdt_ccb_st_idle[][AVDT_CCB_NUM_COLS] = {
 /* Event                      Action 1                    Action 2                    Next state */
 /* API_DISCOVER_REQ_EVT */   {AVDT_CCB_SND_DISCOVER_CMD,  AVDT_CCB_CHAN_OPEN,         AVDT_CCB_OPENING_ST},
 /* API_GETCAP_REQ_EVT */     {AVDT_CCB_SND_GETCAP_CMD,    AVDT_CCB_CHAN_OPEN,         AVDT_CCB_OPENING_ST},
@@ -160,7 +160,7 @@ const UINT8 avdt_ccb_st_idle[][AVDT_CCB_NUM_COLS] = {
 };
 
 /* state table for opening state */
-const UINT8 avdt_ccb_st_opening[][AVDT_CCB_NUM_COLS] = {
+const uint8_t avdt_ccb_st_opening[][AVDT_CCB_NUM_COLS] = {
 /* Event                      Action 1                    Action 2                    Next state */
 /* API_DISCOVER_REQ_EVT */   {AVDT_CCB_SND_DISCOVER_CMD,  AVDT_CCB_IGNORE,            AVDT_CCB_OPENING_ST},
 /* API_GETCAP_REQ_EVT */     {AVDT_CCB_SND_GETCAP_CMD,    AVDT_CCB_IGNORE,            AVDT_CCB_OPENING_ST},
@@ -193,7 +193,7 @@ const UINT8 avdt_ccb_st_opening[][AVDT_CCB_NUM_COLS] = {
 };
 
 /* state table for open state */
-const UINT8 avdt_ccb_st_open[][AVDT_CCB_NUM_COLS] = {
+const uint8_t avdt_ccb_st_open[][AVDT_CCB_NUM_COLS] = {
 /* Event                      Action 1                    Action 2                    Next state */
 /* API_DISCOVER_REQ_EVT */   {AVDT_CCB_SND_DISCOVER_CMD,  AVDT_CCB_SND_CMD,           AVDT_CCB_OPEN_ST},
 /* API_GETCAP_REQ_EVT */     {AVDT_CCB_SND_GETCAP_CMD,    AVDT_CCB_SND_CMD,           AVDT_CCB_OPEN_ST},
@@ -226,7 +226,7 @@ const UINT8 avdt_ccb_st_open[][AVDT_CCB_NUM_COLS] = {
 };
 
 /* state table for closing state */
-const UINT8 avdt_ccb_st_closing[][AVDT_CCB_NUM_COLS] = {
+const uint8_t avdt_ccb_st_closing[][AVDT_CCB_NUM_COLS] = {
 /* Event                      Action 1                    Action 2                    Next state */
 /* API_DISCOVER_REQ_EVT */   {AVDT_CCB_SET_RECONN,        AVDT_CCB_SND_DISCOVER_CMD,  AVDT_CCB_CLOSING_ST},
 /* API_GETCAP_REQ_EVT */     {AVDT_CCB_SET_RECONN,        AVDT_CCB_SND_GETCAP_CMD,    AVDT_CCB_CLOSING_ST},
@@ -259,7 +259,7 @@ const UINT8 avdt_ccb_st_closing[][AVDT_CCB_NUM_COLS] = {
 };
 
 /* type for state table */
-typedef const UINT8 (*tAVDT_CCB_ST_TBL)[AVDT_CCB_NUM_COLS];
+typedef const uint8_t (*tAVDT_CCB_ST_TBL)[AVDT_CCB_NUM_COLS];
 
 /* state table */
 const tAVDT_CCB_ST_TBL avdt_ccb_st_tbl[] = {
@@ -295,13 +295,13 @@ void avdt_ccb_init(void)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_ccb_event(tAVDT_CCB *p_ccb, UINT8 event, tAVDT_CCB_EVT *p_data)
+void avdt_ccb_event(tAVDT_CCB *p_ccb, uint8_t event, tAVDT_CCB_EVT *p_data)
 {
     tAVDT_CCB_ST_TBL    state_table;
-    UINT8               action;
+    uint8_t             action;
     int                 i;
 
-#if AVDT_DEBUG == TRUE
+#if (AVDT_DEBUG == TRUE)
     AVDT_TRACE_EVENT("CCB ccb=%d event=%s state=%s", avdt_ccb_to_idx(p_ccb), avdt_ccb_evt_str[event], avdt_ccb_st_str[p_ccb->state]);
 #endif
 
@@ -382,7 +382,7 @@ tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
     {
         if (!p_ccb->allocated)
         {
-            p_ccb->allocated = TRUE;
+            p_ccb->allocated = true;
             memcpy(p_ccb->peer_addr, bd_addr, BD_ADDR_LEN);
             p_ccb->cmd_q = fixed_queue_new(SIZE_MAX);
             p_ccb->rsp_q = fixed_queue_new(SIZE_MAX);
@@ -436,10 +436,10 @@ void avdt_ccb_dealloc(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 ** Returns          Index of ccb.
 **
 *******************************************************************************/
-UINT8 avdt_ccb_to_idx(tAVDT_CCB *p_ccb)
+uint8_t avdt_ccb_to_idx(tAVDT_CCB *p_ccb)
 {
     /* use array arithmetic to determine index */
-    return (UINT8) (p_ccb - avdt_cb.ccb);
+    return (uint8_t) (p_ccb - avdt_cb.ccb);
 }
 
 /*******************************************************************************
@@ -452,7 +452,7 @@ UINT8 avdt_ccb_to_idx(tAVDT_CCB *p_ccb)
 ** Returns          pointer to the ccb, or NULL if none found.
 **
 *******************************************************************************/
-tAVDT_CCB *avdt_ccb_by_idx(UINT8 idx)
+tAVDT_CCB *avdt_ccb_by_idx(uint8_t idx)
 {
     tAVDT_CCB   *p_ccb;
 

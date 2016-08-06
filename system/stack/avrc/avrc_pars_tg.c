@@ -43,7 +43,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAN
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
 
-    UINT8   *p = p_msg->p_vendor_data;
+    uint8_t *p = p_msg->p_vendor_data;
     p_result->pdu = *p++;
     AVRC_TRACE_DEBUG("%s pdu:0x%x", __func__, p_result->pdu);
     if (!AVRC_IsValidAvcType (p_result->pdu, p_msg->hdr.ctype))
@@ -53,7 +53,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAN
     }
 
     p++; /* skip the reserved byte */
-    UINT16  len;
+    uint16_t len;
     BE_STREAM_TO_UINT16 (len, p);
     if ((len+4) != (p_msg->vendor_len))
     {
@@ -100,17 +100,17 @@ static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAN
 **
 *******************************************************************************/
 static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_result,
-                                      UINT8 *p_buf, UINT16 buf_len)
+                                      uint8_t *p_buf, uint16_t buf_len)
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
-    UINT8   *p;
-    UINT16  len;
-    UINT8   xx, yy;
-    UINT8   *p_u8;
-    UINT16  *p_u16;
-    UINT32  u32, u32_2, *p_u32;
+    uint8_t *p;
+    uint16_t len;
+    uint8_t xx, yy;
+    uint8_t *p_u8;
+    uint16_t *p_u16;
+    uint32_t u32, u32_2, *p_u32;
     tAVRC_APP_SETTING       *p_app_set;
-    UINT16  size_needed;
+    uint16_t size_needed;
 
     /* Check the vendor data */
     if (p_msg->vendor_len == 0)
@@ -370,7 +370,7 @@ tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result)
         p_result->cmd.opcode = p_msg->hdr.opcode;
         p_result->cmd.status = status;
     }
-    AVRC_TRACE_DEBUG("%s return status:0x%x", __FUNCTION__, status);
+    AVRC_TRACE_DEBUG("%s return status:0x%x", __func__, status);
     return status;
 }
 #endif
@@ -385,10 +385,10 @@ tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result)
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, UINT8 *p_buf, UINT16 buf_len)
+tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, uint8_t *p_buf, uint16_t buf_len)
 {
     tAVRC_STS  status = AVRC_STS_INTERNAL_ERR;
-    UINT16  id;
+    uint16_t id;
 
     if (p_msg && p_result)
     {
@@ -402,7 +402,7 @@ tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, UINT8 *p_
             status = avrc_pars_pass_thru(&p_msg->pass, &id);
             if (status == AVRC_STS_NO_ERROR)
             {
-                p_result->pdu = (UINT8)id;
+                p_result->pdu = (uint8_t)id;
             }
             break;
 

@@ -46,7 +46,7 @@ static int listen_socket_ = -1;
 static int client_socket_ = -1;
 
 void btsnoop_net_open() {
-#if (!defined(BT_NET_DEBUG) || (BT_NET_DEBUG != TRUE))
+#if (BT_NET_DEBUG != TRUE)
   return;               // Disable using network sockets for security reasons
 #endif
 
@@ -59,7 +59,7 @@ void btsnoop_net_open() {
 }
 
 void btsnoop_net_close() {
-#if (!defined(BT_NET_DEBUG) || (BT_NET_DEBUG != TRUE))
+#if (BT_NET_DEBUG != TRUE)
   return;               // Disable using network sockets for security reasons
 #endif
 
@@ -72,7 +72,7 @@ void btsnoop_net_close() {
 }
 
 void btsnoop_net_write(const void *data, size_t length) {
-#if (!defined(BT_NET_DEBUG) || (BT_NET_DEBUG != TRUE))
+#if (BT_NET_DEBUG != TRUE)
   return;               // Disable using network sockets for security reasons
 #endif
 

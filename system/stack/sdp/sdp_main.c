@@ -48,23 +48,23 @@ extern fixed_queue_t *btu_general_alarm_queue;
 /********************************************************************************/
 /*                       G L O B A L      S D P       D A T A                   */
 /********************************************************************************/
-#if SDP_DYNAMIC_MEMORY == FALSE
+#if (SDP_DYNAMIC_MEMORY == FALSE)
 tSDP_CB  sdp_cb;
 #endif
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void sdp_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm,
-                             UINT8 l2cap_id);
-static void sdp_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
-static void sdp_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
-static void sdp_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed);
-static void sdp_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg);
+static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm,
+                             uint8_t l2cap_id);
+static void sdp_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
+static void sdp_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
+static void sdp_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed);
+static void sdp_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg);
 
-#if SDP_CLIENT_ENABLED == TRUE
-static void sdp_connect_cfm (UINT16 l2cap_cid, UINT16 result);
-static void sdp_disconnect_cfm (UINT16 l2cap_cid, UINT16 result);
+#if (SDP_CLIENT_ENABLED == TRUE)
+static void sdp_connect_cfm (uint16_t l2cap_cid, uint16_t result);
+static void sdp_disconnect_cfm (uint16_t l2cap_cid, uint16_t result);
 #else
 #define sdp_connect_cfm     NULL
 #define sdp_disconnect_cfm  NULL
@@ -86,17 +86,17 @@ void sdp_init (void)
     memset (&sdp_cb, 0, sizeof (tSDP_CB));
 
     /* Initialize the L2CAP configuration. We only care about MTU and flush */
-    sdp_cb.l2cap_my_cfg.mtu_present       = TRUE;
+    sdp_cb.l2cap_my_cfg.mtu_present       = true;
     sdp_cb.l2cap_my_cfg.mtu               = SDP_MTU_SIZE;
-    sdp_cb.l2cap_my_cfg.flush_to_present  = TRUE;
+    sdp_cb.l2cap_my_cfg.flush_to_present  = true;
     sdp_cb.l2cap_my_cfg.flush_to          = SDP_FLUSH_TO;
 
     sdp_cb.max_attr_list_size             = SDP_MTU_SIZE - 16;
     sdp_cb.max_recs_per_search            = SDP_MAX_DISC_SERVER_RECS;
 
-#if SDP_SERVER_ENABLED == TRUE
+#if (SDP_SERVER_ENABLED == TRUE)
     /* Register with Security Manager for the specific security level */
-    if (!BTM_SetSecurityLevel (FALSE, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER,
+    if (!BTM_SetSecurityLevel (false, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER,
                                SDP_SECURITY_LEVEL, SDP_PSM, 0, 0))
     {
         SDP_TRACE_ERROR ("Security Registration Server failed");
@@ -104,9 +104,9 @@ void sdp_init (void)
     }
 #endif
 
-#if SDP_CLIENT_ENABLED == TRUE
+#if (SDP_CLIENT_ENABLED == TRUE)
     /* Register with Security Manager for the specific security level */
-    if (!BTM_SetSecurityLevel (TRUE, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER,
+    if (!BTM_SetSecurityLevel (true, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER,
                                SDP_SECURITY_LEVEL, SDP_PSM, 0, 0))
     {
         SDP_TRACE_ERROR ("Security Registration for Client failed");
@@ -139,7 +139,7 @@ void sdp_init (void)
     }
 }
 
-#if (defined(SDP_DEBUG) && SDP_DEBUG == TRUE)
+#if (SDP_DEBUG == TRUE)
 /*******************************************************************************
 **
 ** Function         sdp_set_max_attr_list_size
@@ -149,7 +149,7 @@ void sdp_init (void)
 ** Returns          void
 **
 *******************************************************************************/
-UINT16 sdp_set_max_attr_list_size (UINT16 max_size)
+uint16_t sdp_set_max_attr_list_size (uint16_t max_size)
 {
     if (max_size > (sdp_cb.l2cap_my_cfg.mtu - 16) )
         max_size = sdp_cb.l2cap_my_cfg.mtu - 16;
@@ -171,10 +171,10 @@ UINT16 sdp_set_max_attr_list_size (UINT16 max_size)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UINT8 l2cap_id)
+static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id)
 {
     UNUSED(psm);
-#if SDP_SERVER_ENABLED == TRUE
+#if (SDP_SERVER_ENABLED == TRUE)
     tCONN_CB    *p_ccb;
 
     /* Allocate a new CCB. Return if none available. */
@@ -205,7 +205,7 @@ static void sdp_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
         {
             /* FCR not desired; try again in basic mode */
             cfg.fcr.mode = L2CAP_FCR_BASIC_MODE;
-            cfg.fcr_present = FALSE;
+            cfg.fcr_present = false;
             L2CA_ConfigReq (l2cap_cid, &cfg);
         }
     }
@@ -217,7 +217,7 @@ static void sdp_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
 #endif
 }
 
-#if SDP_CLIENT_ENABLED == TRUE
+#if (SDP_CLIENT_ENABLED == TRUE)
 /*******************************************************************************
 **
 ** Function         sdp_connect_cfm
@@ -229,7 +229,7 @@ static void sdp_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_connect_cfm (UINT16 l2cap_cid, UINT16 result)
+static void sdp_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     tCONN_CB    *p_ccb;
     tL2CAP_CFG_INFO cfg;
@@ -260,7 +260,7 @@ static void sdp_connect_cfm (UINT16 l2cap_cid, UINT16 result)
              && cfg.fcr.mode != L2CAP_FCR_BASIC_MODE)
         {
             /* FCR not desired; try again in basic mode */
-            cfg.fcr_present = FALSE;
+            cfg.fcr_present = false;
             cfg.fcr.mode = L2CAP_FCR_BASIC_MODE;
             L2CA_ConfigReq (l2cap_cid, &cfg);
         }
@@ -274,7 +274,7 @@ static void sdp_connect_cfm (UINT16 l2cap_cid, UINT16 result)
         /* Tell the user if he has a callback */
         if (p_ccb->p_cb || p_ccb->p_cb2)
         {
-            UINT16 err = -1;
+            uint16_t err = -1;
             if ((result == HCI_ERR_HOST_REJECT_SECURITY)
              || (result == HCI_ERR_AUTH_FAILURE)
              || (result == HCI_ERR_PAIRING_NOT_ALLOWED)
@@ -307,7 +307,7 @@ static void sdp_connect_cfm (UINT16 l2cap_cid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
+static void sdp_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tCONN_CB    *p_ccb;
 
@@ -333,8 +333,8 @@ static void sdp_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     }
 
     /* For now, always accept configuration from the other side */
-    p_cfg->flush_to_present = FALSE;
-    p_cfg->mtu_present      = FALSE;
+    p_cfg->flush_to_present = false;
+    p_cfg->mtu_present      = false;
     p_cfg->result           = L2CAP_CFG_OK;
 
     /* Check peer config request against our rfcomm configuration */
@@ -368,7 +368,7 @@ static void sdp_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
             }
         }
         else    /* We agree with peer's request */
-            p_cfg->fcr_present = FALSE;
+            p_cfg->fcr_present = false;
     }
 
     L2CA_ConfigRsp (l2cap_cid, p_cfg);
@@ -402,7 +402,7 @@ static void sdp_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
+static void sdp_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tCONN_CB    *p_ccb;
 
@@ -440,14 +440,14 @@ static void sdp_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
         if (p_cfg->fcr_present)
         {
             tL2CAP_CFG_INFO cfg = sdp_cb.l2cap_my_cfg;
-            cfg.fcr_present = FALSE;
+            cfg.fcr_present = false;
             L2CA_ConfigReq (l2cap_cid, &cfg);
 
             /* Remain in configure state */
             return;
         }
 
-#if SDP_CLIENT_ENABLED == TRUE
+#if (SDP_CLIENT_ENABLED == TRUE)
         sdp_disconnect(p_ccb, SDP_CFG_FAILED);
 #endif
     }
@@ -463,7 +463,7 @@ static void sdp_config_cfm (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
+static void sdp_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 {
     tCONN_CB    *p_ccb;
 
@@ -478,13 +478,13 @@ static void sdp_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
         L2CA_DisconnectRsp (l2cap_cid);
 
     SDP_TRACE_EVENT ("SDP - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
-#if SDP_CLIENT_ENABLED == TRUE
+#if (SDP_CLIENT_ENABLED == TRUE)
     /* Tell the user if he has a callback */
     if (p_ccb->p_cb)
-        (*p_ccb->p_cb) ((UINT16) ((p_ccb->con_state == SDP_STATE_CONNECTED) ?
+        (*p_ccb->p_cb) ((uint16_t) ((p_ccb->con_state == SDP_STATE_CONNECTED) ?
                         SDP_SUCCESS : SDP_CONN_FAILED));
     else if (p_ccb->p_cb2)
-        (*p_ccb->p_cb2) ((UINT16) ((p_ccb->con_state == SDP_STATE_CONNECTED) ?
+        (*p_ccb->p_cb2) ((uint16_t) ((p_ccb->con_state == SDP_STATE_CONNECTED) ?
                         SDP_SUCCESS : SDP_CONN_FAILED), p_ccb->user_data);
 
 #endif
@@ -506,7 +506,7 @@ static void sdp_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
+static void sdp_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 {
     tCONN_CB    *p_ccb;
 
@@ -535,7 +535,7 @@ static void sdp_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
 }
 
 
-#if SDP_CLIENT_ENABLED == TRUE
+#if (SDP_CLIENT_ENABLED == TRUE)
 /*******************************************************************************
 **
 ** Function         sdp_conn_originate
@@ -546,10 +546,10 @@ static void sdp_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-tCONN_CB* sdp_conn_originate (UINT8 *p_bd_addr)
+tCONN_CB* sdp_conn_originate (uint8_t *p_bd_addr)
 {
     tCONN_CB              *p_ccb;
-    UINT16                cid;
+    uint16_t              cid;
 
     /* Allocate a new CCB. Return if none available. */
     if ((p_ccb = sdpu_allocate_ccb()) == NULL)
@@ -595,9 +595,9 @@ tCONN_CB* sdp_conn_originate (UINT8 *p_bd_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void sdp_disconnect (tCONN_CB*p_ccb, UINT16 reason)
+void sdp_disconnect (tCONN_CB*p_ccb, uint16_t reason)
 {
-#if (defined(SDP_BROWSE_PLUS) && SDP_BROWSE_PLUS == TRUE)
+#if (SDP_BROWSE_PLUS == TRUE)
 
     /* If we are browsing for multiple UUIDs ... */
     if ((p_ccb->con_state == SDP_STATE_CONNECTED)
@@ -670,7 +670,7 @@ void sdp_disconnect (tCONN_CB*p_ccb, UINT16 reason)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_disconnect_cfm (UINT16 l2cap_cid, UINT16 result)
+static void sdp_disconnect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     tCONN_CB    *p_ccb;
     UNUSED(result);
@@ -714,7 +714,7 @@ void sdp_conn_timer_timeout(void *data)
                       p_ccb->con_state, p_ccb->connection_id);
 
     L2CA_DisconnectReq (p_ccb->connection_id);
-#if SDP_CLIENT_ENABLED == TRUE
+#if (SDP_CLIENT_ENABLED == TRUE)
     /* Tell the user if he has a callback */
     if (p_ccb->p_cb)
         (*p_ccb->p_cb) (SDP_CONN_FAILED);

@@ -36,14 +36,14 @@
 #include "device/include/interop.h"
 
 /* callback function declarations */
-void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id);
-void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result);
-void avdt_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-void avdt_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg);
-void avdt_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed);
-void avdt_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result);
-void avdt_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested);
-void avdt_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf);
+void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
+void avdt_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result);
+void avdt_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
+void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
+void avdt_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed);
+void avdt_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result);
+void avdt_l2c_congestion_ind_cback(uint16_t lcid, bool is_congested);
+void avdt_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf);
 
 /* L2CAP callback function structure */
 const tL2CAP_APPL_INFO avdt_l2c_appl = {
@@ -71,7 +71,7 @@ const tL2CAP_APPL_INFO avdt_l2c_appl = {
 **
 *******************************************************************************/
 static void avdt_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport,
-                                                 void *p_ref_data, UINT8 res)
+                                                 void *p_ref_data, uint8_t res)
 {
     tAVDT_CCB       *p_ccb = NULL;
     tL2CAP_CFG_INFO cfg;
@@ -105,9 +105,9 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transpo
 
         /* Send L2CAP config req */
         memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
-        cfg.mtu_present = TRUE;
+        cfg.mtu_present = true;
         cfg.mtu = p_tbl->my_mtu;
-        cfg.flush_to_present = TRUE;
+        cfg.flush_to_present = true;
         cfg.flush_to = p_tbl->my_flush_to;
         L2CA_ConfigReq(p_tbl->lcid, &cfg);
     }
@@ -129,7 +129,7 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transpo
 **
 *******************************************************************************/
 static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
-                                                void *p_ref_data, UINT8 res)
+                                                void *p_ref_data, uint8_t res)
 {
     tAVDT_CCB       *p_ccb = NULL;
     tL2CAP_CFG_INFO cfg;
@@ -150,9 +150,9 @@ static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT trasnpo
 
         /* Send L2CAP config req */
         memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
-        cfg.mtu_present = TRUE;
+        cfg.mtu_present = true;
         cfg.mtu = p_tbl->my_mtu;
-        cfg.flush_to_present = TRUE;
+        cfg.flush_to_present = true;
         cfg.flush_to = p_tbl->my_flush_to;
         L2CA_ConfigReq(p_tbl->lcid, &cfg);
     }
@@ -172,11 +172,11 @@ static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT trasnpo
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id)
+void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
 {
     tAVDT_CCB       *p_ccb;
     tAVDT_TC_TBL    *p_tbl = NULL;
-    UINT16          result;
+    uint16_t        result;
     tL2CAP_CFG_INFO cfg;
     tBTM_STATUS rc;
     UNUSED(psm);
@@ -213,7 +213,7 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
 
             /* Check the security */
             rc = btm_sec_mx_access_request (bd_addr, AVDT_PSM,
-                FALSE, BTM_SEC_PROTO_AVDT,
+                false, BTM_SEC_PROTO_AVDT,
                 AVDT_CHAN_SIG,
                 &avdt_sec_check_complete_term, NULL);
             if(rc == BTM_CMD_STARTED)
@@ -237,7 +237,7 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
         /* yes; proceed with connection */
         result = L2CAP_CONN_OK;
     }
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
     /* this must be a reporting channel; are we accepting a reporting channel
     ** for this ccb?
     */
@@ -268,9 +268,9 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
 
         /* Send L2CAP config req */
         memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
-        cfg.mtu_present = TRUE;
+        cfg.mtu_present = true;
         cfg.mtu = p_tbl->my_mtu;
-        cfg.flush_to_present = TRUE;
+        cfg.flush_to_present = true;
         cfg.flush_to = p_tbl->my_flush_to;
         L2CA_ConfigReq(lcid, &cfg);
     }
@@ -286,7 +286,7 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
+void avdt_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVDT_TC_TBL    *p_tbl;
     tL2CAP_CFG_INFO cfg;
@@ -310,9 +310,9 @@ void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 
                     /* Send L2CAP config req */
                     memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
-                    cfg.mtu_present = TRUE;
+                    cfg.mtu_present = true;
                     cfg.mtu = p_tbl->my_mtu;
-                    cfg.flush_to_present = TRUE;
+                    cfg.flush_to_present = true;
                     cfg.flush_to = p_tbl->my_flush_to;
                     L2CA_ConfigReq(lcid, &cfg);
                 }
@@ -341,7 +341,7 @@ void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 
                         /* Check the security */
                         btm_sec_mx_access_request (p_ccb->peer_addr, AVDT_PSM,
-                            TRUE, BTM_SEC_PROTO_AVDT,
+                            true, BTM_SEC_PROTO_AVDT,
                             AVDT_CHAN_SIG,
                             &avdt_sec_check_complete_orig, NULL);
                     }
@@ -367,7 +367,7 @@ void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void avdt_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVDT_TC_TBL    *p_tbl;
 
@@ -411,7 +411,7 @@ void avdt_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
+void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVDT_TC_TBL    *p_tbl;
 
@@ -459,7 +459,7 @@ void avdt_l2c_config_ind_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
+void avdt_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed)
 {
     tAVDT_TC_TBL    *p_tbl;
 
@@ -488,7 +488,7 @@ void avdt_l2c_disconnect_ind_cback(UINT16 lcid, BOOLEAN ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
+void avdt_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVDT_TC_TBL    *p_tbl;
 
@@ -511,7 +511,7 @@ void avdt_l2c_disconnect_cfm_cback(UINT16 lcid, UINT16 result)
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
+void avdt_l2c_congestion_ind_cback(uint16_t lcid, bool is_congested)
 {
     tAVDT_TC_TBL    *p_tbl;
 
@@ -532,7 +532,7 @@ void avdt_l2c_congestion_ind_cback(UINT16 lcid, BOOLEAN is_congested)
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
+void avdt_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tAVDT_TC_TBL    *p_tbl;
 

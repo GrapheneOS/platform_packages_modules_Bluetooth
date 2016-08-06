@@ -46,7 +46,7 @@ extern fixed_queue_t *btu_general_alarm_queue;
 ** Description      Reversed CRC Table , 8-bit, poly=0x07
 **                  (GSM 07.10 TS 101 369 V6.3.0)
 *******************************************************************************/
-static const UINT8 rfc_crctable[] =
+static const uint8_t rfc_crctable[] =
 {
     0x00, 0x91, 0xE3, 0x72, 0x07, 0x96, 0xE4, 0x75,  0x0E, 0x9F, 0xED, 0x7C, 0x09, 0x98, 0xEA, 0x7B,
     0x1C, 0x8D, 0xFF, 0x6E, 0x1B, 0x8A, 0xF8, 0x69,  0x12, 0x83, 0xF1, 0x60, 0x15, 0x84, 0xF6, 0x67,
@@ -81,9 +81,9 @@ static const UINT8 rfc_crctable[] =
 **                  p   - points to message
 **
 *******************************************************************************/
-UINT8 rfc_calc_fcs (UINT16 len, UINT8 *p)
+uint8_t rfc_calc_fcs (uint16_t len, uint8_t *p)
 {
-    UINT8  fcs = 0xFF;
+    uint8_t fcs = 0xFF;
 
     while (len--)
     {
@@ -107,9 +107,9 @@ UINT8 rfc_calc_fcs (UINT16 len, UINT8 *p)
 **                  received_fcs - received FCS
 **
 *******************************************************************************/
-BOOLEAN rfc_check_fcs (UINT16 len, UINT8 *p, UINT8 received_fcs)
+bool    rfc_check_fcs (uint16_t len, uint8_t *p, uint8_t received_fcs)
 {
-    UINT8  fcs = 0xFF;
+    uint8_t fcs = 0xFF;
 
     while (len--)
     {
@@ -132,7 +132,7 @@ BOOLEAN rfc_check_fcs (UINT16 len, UINT8 *p, UINT8 received_fcs)
 **                  the BD_ADDR.
 **
 *******************************************************************************/
-tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, BOOLEAN is_initiator)
+tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, bool    is_initiator)
 {
     int i, j;
     tRFC_MCB *p_mcb = NULL;
@@ -186,7 +186,7 @@ tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, BOOLEAN is_initiator)
 
             rfc_timer_start (p_mcb, RFC_MCB_INIT_INACT_TIMER);
 
-            rfc_cb.rfc.last_mux = (UINT8) j;
+            rfc_cb.rfc.last_mux = (uint8_t) j;
             return (p_mcb);
         }
     }
@@ -229,7 +229,7 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 ** Description      Start RFC Timer
 **
 *******************************************************************************/
-void rfc_timer_start(tRFC_MCB *p_mcb, UINT16 timeout)
+void rfc_timer_start(tRFC_MCB *p_mcb, uint16_t timeout)
 {
     RFCOMM_TRACE_EVENT ("%s - timeout:%d seconds", __func__, timeout);
 
@@ -262,7 +262,7 @@ void rfc_timer_stop(tRFC_MCB *p_mcb)
 ** Description      Start RFC Timer
 **
 *******************************************************************************/
-void rfc_port_timer_start(tPORT *p_port, UINT16 timeout)
+void rfc_port_timer_start(tPORT *p_port, uint16_t timeout)
 {
     RFCOMM_TRACE_EVENT("%s - timeout:%d seconds", __func__, timeout);
 
@@ -299,13 +299,13 @@ void rfc_port_timer_stop(tPORT *p_port)
 *******************************************************************************/
 void rfc_check_mcb_active (tRFC_MCB *p_mcb)
 {
-    UINT16 i;
+    uint16_t i;
 
     for (i = 0; i < RFCOMM_MAX_DLCI; i++)
     {
         if (p_mcb->port_inx[i] != 0)
         {
-            p_mcb->is_disc_initiator = FALSE;
+            p_mcb->is_disc_initiator = false;
             return;
         }
     }
@@ -313,7 +313,7 @@ void rfc_check_mcb_active (tRFC_MCB *p_mcb)
     /* On the server side start inactivity timer */
     if (p_mcb->is_disc_initiator)
     {
-        p_mcb->is_disc_initiator = FALSE;
+        p_mcb->is_disc_initiator = false;
         rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_CLOSE_REQ, NULL);
     }
     else
@@ -344,7 +344,7 @@ void rfcomm_mcb_timer_timeout(void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, UINT8 res)
+void rfc_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
 {
     tPORT *p_port = (tPORT *)p_ref_data;
     UNUSED(bd_addr);
@@ -405,7 +405,7 @@ void rfc_port_closed (tPORT *p_port)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_inc_credit (tPORT *p_port, UINT8 credit)
+void rfc_inc_credit (tPORT *p_port, uint8_t credit)
 {
     if (p_port->rfc.p_mcb->flow == PORT_FC_CREDIT)
     {
@@ -413,8 +413,8 @@ void rfc_inc_credit (tPORT *p_port, UINT8 credit)
 
         RFCOMM_TRACE_EVENT ("rfc_inc_credit:%d", p_port->credit_tx);
 
-        if (p_port->tx.peer_fc == TRUE)
-            PORT_FlowInd(p_port->rfc.p_mcb, p_port->dlci, TRUE);
+        if (p_port->tx.peer_fc == true)
+            PORT_FlowInd(p_port->rfc.p_mcb, p_port->dlci, true);
     }
 }
 
@@ -437,7 +437,7 @@ void rfc_dec_credit (tPORT *p_port)
             p_port->credit_tx--;
 
         if (p_port->credit_tx == 0)
-            p_port->tx.peer_fc = TRUE;
+            p_port->tx.peer_fc = true;
     }
 }
 
@@ -465,7 +465,7 @@ void rfc_check_send_cmd(tRFC_MCB *p_mcb, BT_HDR *p_buf)
     }
 
     /* handle queue if L2CAP not congested */
-    while (p_mcb->l2cap_congested == FALSE) {
+    while (p_mcb->l2cap_congested == false) {
         BT_HDR *p = (BT_HDR *)fixed_queue_try_dequeue(p_mcb->cmd_q);
         if (p == NULL)
             break;

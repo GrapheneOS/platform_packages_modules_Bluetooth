@@ -30,7 +30,7 @@ extern "C" {
 
 #define DEFAULT_READ_POLL_TMO_MS 100
 
-typedef UINT8 tUIPC_CH_ID;
+typedef uint8_t tUIPC_CH_ID;
 
 /* Events generated */
 typedef enum {
@@ -74,7 +74,7 @@ void UIPC_Init(void *);
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback);
+bool    UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -96,7 +96,7 @@ void UIPC_Close(tUIPC_CH_ID ch_id);
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf, UINT16 msglen);
+bool    UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t *p_buf, uint16_t msglen);
 
 /*******************************************************************************
 **
@@ -107,7 +107,7 @@ BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf, UINT16 msglen
 ** Returns          void
 **
 *******************************************************************************/
-UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len);
+uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t *p_msg_evt, uint8_t *p_buf, uint32_t len);
 
 /*******************************************************************************
 **
@@ -118,7 +118,7 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *param);
+bool    UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void *param);
 
 #ifdef __cplusplus
 }

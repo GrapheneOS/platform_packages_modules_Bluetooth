@@ -34,7 +34,7 @@
 #include "avct_int.h"
 
 /* Control block for AVCT */
-#if AVCT_DYNAMIC_MEMORY == FALSE
+#if (AVCT_DYNAMIC_MEMORY == FALSE)
 tAVCT_CB avct_cb;
 #endif
 
@@ -52,7 +52,7 @@ tAVCT_CB avct_cb;
 ** Returns          void
 **
 *******************************************************************************/
-void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
+void AVCT_Register(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask)
 {
     UNUSED(mtu_br);
 
@@ -62,8 +62,8 @@ void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
     L2CA_Register(AVCT_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_appl);
 
     /* set security level */
-    BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
-    BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
+    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
+    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
 
     /* initialize AVCTP data structures */
     memset(&avct_cb, 0, sizeof(tAVCT_CB));
@@ -72,8 +72,8 @@ void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask)
     /* Include the browsing channel which uses eFCR */
     L2CA_Register(AVCT_BR_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_br_appl);
 
-    BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
-    BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
+    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
+    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
 
     if (mtu_br < AVCT_MIN_BROWSE_MTU)
         mtu_br = AVCT_MIN_BROWSE_MTU;
@@ -130,9 +130,9 @@ void AVCT_Deregister(void)
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
+uint16_t AVCT_CreateConn(uint8_t *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
 {
-    UINT16      result = AVCT_SUCCESS;
+    uint16_t    result = AVCT_SUCCESS;
     tAVCT_CCB   *p_ccb;
     tAVCT_LCB   *p_lcb;
 
@@ -193,9 +193,9 @@ UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-UINT16 AVCT_RemoveConn(UINT8 handle)
+uint16_t AVCT_RemoveConn(uint8_t handle)
 {
-    UINT16              result = AVCT_SUCCESS;
+    uint16_t            result = AVCT_SUCCESS;
     tAVCT_CCB           *p_ccb;
 
     AVCT_TRACE_API("AVCT_RemoveConn");
@@ -234,10 +234,10 @@ UINT16 AVCT_RemoveConn(UINT8 handle)
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-UINT16 AVCT_CreateBrowse (UINT8 handle, UINT8 role)
+uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
 {
 #if (AVCT_BROWSE_INCLUDED == TRUE)
-    UINT16      result = AVCT_SUCCESS;
+    uint16_t    result = AVCT_SUCCESS;
     tAVCT_CCB   *p_ccb;
     tAVCT_BCB   *p_bcb;
     int         index;
@@ -311,10 +311,10 @@ UINT16 AVCT_CreateBrowse (UINT8 handle, UINT8 role)
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-UINT16 AVCT_RemoveBrowse (UINT8 handle)
+uint16_t AVCT_RemoveBrowse (uint8_t handle)
 {
 #if (AVCT_BROWSE_INCLUDED == TRUE)
-    UINT16              result = AVCT_SUCCESS;
+    uint16_t            result = AVCT_SUCCESS;
     tAVCT_CCB           *p_ccb;
 
     AVCT_TRACE_API("AVCT_RemoveBrowse");
@@ -346,9 +346,9 @@ UINT16 AVCT_RemoveBrowse (UINT8 handle)
 ** Returns          the peer browsing channel MTU.
 **
 *******************************************************************************/
-UINT16 AVCT_GetBrowseMtu (UINT8 handle)
+uint16_t AVCT_GetBrowseMtu (uint8_t handle)
 {
-    UINT16  peer_mtu = AVCT_MIN_BROWSE_MTU;
+    uint16_t peer_mtu = AVCT_MIN_BROWSE_MTU;
 #if (AVCT_BROWSE_INCLUDED == TRUE)
     tAVCT_CCB           *p_ccb;
 
@@ -372,9 +372,9 @@ UINT16 AVCT_GetBrowseMtu (UINT8 handle)
 ** Returns          the peer MTU size.
 **
 *******************************************************************************/
-UINT16 AVCT_GetPeerMtu (UINT8 handle)
+uint16_t AVCT_GetPeerMtu (uint8_t handle)
 {
-    UINT16      peer_mtu = L2CAP_DEFAULT_MTU;
+    uint16_t    peer_mtu = L2CAP_DEFAULT_MTU;
     tAVCT_CCB   *p_ccb;
 
     /* map handle to ccb */
@@ -410,9 +410,9 @@ UINT16 AVCT_GetPeerMtu (UINT8 handle)
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *p_msg)
+uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg)
 {
-    UINT16          result = AVCT_SUCCESS;
+    uint16_t        result = AVCT_SUCCESS;
     tAVCT_CCB       *p_ccb;
     tAVCT_UL_MSG    ul_msg;
 

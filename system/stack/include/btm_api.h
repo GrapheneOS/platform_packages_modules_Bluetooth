@@ -72,7 +72,7 @@ enum
 
 typedef uint8_t tBTM_STATUS;
 
-#if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
+#if (BTA_HOST_INTERLEAVE_SEARCH == TRUE)
 typedef enum
 {
     BTM_BR_ONE,                         /*0 First state or BR/EDR scan 1*/
@@ -92,27 +92,27 @@ typedef enum
 #define BTM_DEVICE_ROLE_BR      0x01
 #define BTM_DEVICE_ROLE_DUAL    0x02
 #define BTM_MAX_DEVICE_ROLE     BTM_DEVICE_ROLE_DUAL
-typedef UINT8 tBTM_DEVICE_ROLE;
+typedef uint8_t tBTM_DEVICE_ROLE;
 
 /* Device name of peer (may be truncated to save space in BTM database) */
-typedef UINT8 tBTM_BD_NAME[BTM_MAX_REM_BD_NAME_LEN + 1];
+typedef uint8_t tBTM_BD_NAME[BTM_MAX_REM_BD_NAME_LEN + 1];
 
 /* Structure returned with local version information */
 typedef struct
 {
-    UINT8       hci_version;
-    UINT16      hci_revision;
-    UINT8       lmp_version;
-    UINT16      manufacturer;
-    UINT16      lmp_subversion;
+    uint8_t     hci_version;
+    uint16_t    hci_revision;
+    uint8_t     lmp_version;
+    uint16_t    manufacturer;
+    uint16_t    lmp_subversion;
 } tBTM_VERSION_INFO;
 
 /* Structure returned with Vendor Specific Command complete callback */
 typedef struct
 {
-    UINT16  opcode;
-    UINT16  param_len;
-    UINT8   *p_param_buf;
+    uint16_t opcode;
+    uint16_t param_len;
+    uint8_t  *p_param_buf;
 } tBTM_VSC_CMPL;
 
 #define  BTM_VSC_CMPL_DATA_SIZE  (BTM_MAX_VENDOR_SPECIFIC_LEN + sizeof(tBTM_VSC_CMPL))
@@ -131,7 +131,7 @@ enum
     BTM_DEV_STATUS_CMD_TOUT
 };
 
-typedef UINT8 tBTM_DEV_STATUS;
+typedef uint8_t tBTM_DEV_STATUS;
 
 
 typedef void (tBTM_DEV_STATUS_CB) (tBTM_DEV_STATUS status);
@@ -141,7 +141,7 @@ typedef void (tBTM_DEV_STATUS_CB) (tBTM_DEV_STATUS status);
 ** array of returned parameter bytes are included. This asynchronous event
 ** is enabled/disabled by calling BTM_RegisterForVSEvents().
 */
-typedef void (tBTM_VS_EVT_CB) (UINT8 len, UINT8 *p);
+typedef void (tBTM_VS_EVT_CB) (uint8_t len, uint8_t *p);
 
 
 /* General callback function for notifying an application that a synchronous
@@ -158,7 +158,7 @@ typedef void (tBTM_VSC_CMPL_CB) (tBTM_VSC_CMPL *p1);
 ** Parameters are the BD Address of remote and the Dev Class of remote.
 ** If the app returns none zero, the connection or inquiry result will be dropped.
 */
-typedef UINT8 (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
+typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 
 /*****************************************************************************
 **  DEVICE DISCOVERY - Inquiry, Remote Name, Discovery, Class of Device
@@ -496,7 +496,7 @@ enum
 #define BTM_EIR_NOT_FOUND       1
 #define BTM_EIR_UNKNOWN         2
 
-typedef UINT8 tBTM_EIR_SEARCH_RESULT;
+typedef uint8_t tBTM_EIR_SEARCH_RESULT;
 
 #define BTM_EIR_FLAGS_TYPE                  HCI_EIR_FLAGS_TYPE                  /* 0x01 */
 #define BTM_EIR_MORE_16BITS_UUID_TYPE       HCI_EIR_MORE_16BITS_UUID_TYPE       /* 0x02 */
@@ -527,28 +527,28 @@ typedef UINT8 tBTM_EIR_SEARCH_RESULT;
 #define BTM_BLE_SEC_ENCRYPT             1 /* encrypt the link using current key */
 #define BTM_BLE_SEC_ENCRYPT_NO_MITM     2
 #define BTM_BLE_SEC_ENCRYPT_MITM        3
-typedef UINT8   tBTM_BLE_SEC_ACT;
+typedef uint8_t tBTM_BLE_SEC_ACT;
 
 /************************************************************************************************
-** BTM Services MACROS handle array of UINT32 bits for more than 32 services
+** BTM Services MACROS handle array of uint32_t bits for more than 32 services
 *************************************************************************************************/
-/* Determine the number of UINT32's necessary for services */
+/* Determine the number of uint32_t's necessary for services */
 #define BTM_EIR_ARRAY_BITS          32          /* Number of bits in each array element */
-#define BTM_EIR_SERVICE_ARRAY_SIZE  (((UINT32)BTM_EIR_MAX_SERVICES / BTM_EIR_ARRAY_BITS) + \
-                                    (((UINT32)BTM_EIR_MAX_SERVICES % BTM_EIR_ARRAY_BITS) ? 1 : 0))
+#define BTM_EIR_SERVICE_ARRAY_SIZE  (((uint32_t)BTM_EIR_MAX_SERVICES / BTM_EIR_ARRAY_BITS) + \
+                                    (((uint32_t)BTM_EIR_MAX_SERVICES % BTM_EIR_ARRAY_BITS) ? 1 : 0))
 
 /* MACRO to set the service bit mask in a bit stream */
-#define BTM_EIR_SET_SERVICE(p, service)  (((UINT32 *)(p))[(((UINT32)(service)) / BTM_EIR_ARRAY_BITS)] |=  \
-                                    ((UINT32)1 << (((UINT32)(service)) % BTM_EIR_ARRAY_BITS)))
+#define BTM_EIR_SET_SERVICE(p, service)  (((uint32_t *)(p))[(((uint32_t)(service)) / BTM_EIR_ARRAY_BITS)] |=  \
+                                    ((uint32_t)1 << (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS)))
 
 
 /* MACRO to clear the service bit mask in a bit stream */
-#define BTM_EIR_CLR_SERVICE(p, service)  (((UINT32 *)(p))[(((UINT32)(service)) / BTM_EIR_ARRAY_BITS)] &=  \
-                                    ~((UINT32)1 << (((UINT32)(service)) % BTM_EIR_ARRAY_BITS)))
+#define BTM_EIR_CLR_SERVICE(p, service)  (((uint32_t *)(p))[(((uint32_t)(service)) / BTM_EIR_ARRAY_BITS)] &=  \
+                                    ~((uint32_t)1 << (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS)))
 
 /* MACRO to check the service bit mask in a bit stream */
-#define BTM_EIR_HAS_SERVICE(p, service)  ((((UINT32 *)(p))[(((UINT32)(service)) / BTM_EIR_ARRAY_BITS)] &  \
-                                    ((UINT32)1 << (((UINT32)(service)) % BTM_EIR_ARRAY_BITS))) >> (((UINT32)(service)) % BTM_EIR_ARRAY_BITS))
+#define BTM_EIR_HAS_SERVICE(p, service)  ((((uint32_t *)(p))[(((uint32_t)(service)) / BTM_EIR_ARRAY_BITS)] &  \
+                                    ((uint32_t)1 << (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS))) >> (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS))
 
 /* start of EIR in HCI buffer, 4 bytes = HCI Command(2) + Length(1) + FEC_Req(1) */
 #define BTM_HCI_EIR_OFFSET          (BT_HDR_SIZE + 4)
@@ -575,14 +575,14 @@ typedef union               /* contains the inquiry filter condition */
 
 typedef struct              /* contains the parameters passed to the inquiry functions */
 {
-    UINT8   mode;                       /* general or limited */
-    UINT8   duration;                   /* duration of the inquiry (1.28 sec increments) */
-    UINT8   max_resps;                  /* maximum number of responses to return */
-    BOOLEAN report_dup;                 /* report duplicated inquiry response with higher RSSI value */
-    UINT8   filter_cond_type;           /* new devices, BD ADDR, COD, or No filtering */
+    uint8_t mode;                       /* general or limited */
+    uint8_t duration;                   /* duration of the inquiry (1.28 sec increments) */
+    uint8_t max_resps;                  /* maximum number of responses to return */
+    bool    report_dup;                 /* report duplicated inquiry response with higher RSSI value */
+    uint8_t filter_cond_type;           /* new devices, BD ADDR, COD, or No filtering */
     tBTM_INQ_FILT_COND  filter_cond;    /* filter value based on filter cond type */
-#if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
-    UINT8   intl_duration[4];              /*duration array storing the interleave scan's time portions*/
+#if (BTA_HOST_INTERLEAVE_SEARCH == TRUE)
+    uint8_t intl_duration[4];              /*duration array storing the interleave scan's time portions*/
 #endif
 } tBTM_INQ_PARMS;
 
@@ -595,7 +595,7 @@ typedef struct              /* contains the parameters passed to the inquiry fun
 #define BTM_BLE_EVT_DISC_ADV        0x02
 #define BTM_BLE_EVT_NON_CONN_ADV    0x03
 #define BTM_BLE_EVT_SCAN_RSP        0x04
-typedef UINT8 tBTM_BLE_EVT_TYPE;
+typedef uint8_t tBTM_BLE_EVT_TYPE;
 #endif
 
 /* These are the fields returned in each device's response to the inquiry.  It
@@ -603,21 +603,21 @@ typedef UINT8 tBTM_BLE_EVT_TYPE;
 */
 typedef struct
 {
-    UINT16      clock_offset;
+    uint16_t    clock_offset;
     BD_ADDR     remote_bd_addr;
     DEV_CLASS   dev_class;
-    UINT8       page_scan_rep_mode;
-    UINT8       page_scan_per_mode;
-    UINT8       page_scan_mode;
-    INT8        rssi;       /* Set to BTM_INQ_RES_IGNORE_RSSI if  not valid */
-    UINT32      eir_uuid[BTM_EIR_SERVICE_ARRAY_SIZE];
-    BOOLEAN     eir_complete_list;
+    uint8_t     page_scan_rep_mode;
+    uint8_t     page_scan_per_mode;
+    uint8_t     page_scan_mode;
+    int8_t      rssi;       /* Set to BTM_INQ_RES_IGNORE_RSSI if  not valid */
+    uint32_t    eir_uuid[BTM_EIR_SERVICE_ARRAY_SIZE];
+    bool        eir_complete_list;
 #if (BLE_INCLUDED == TRUE)
     tBT_DEVICE_TYPE         device_type;
-    UINT8       inq_result_type;
-    UINT8       ble_addr_type;
+    uint8_t     inq_result_type;
+    uint8_t     ble_addr_type;
     tBTM_BLE_EVT_TYPE       ble_evt_type;
-    UINT8                   flag;
+    uint8_t                 flag;
 #endif
 } tBTM_INQ_RESULTS;
 
@@ -629,14 +629,14 @@ typedef struct
 {
     tBTM_INQ_RESULTS    results;
 
-    BOOLEAN             appl_knows_rem_name;    /* set by application if it knows the remote name of the peer device.
+    bool                appl_knows_rem_name;    /* set by application if it knows the remote name of the peer device.
                                                    This is later used by application to determine if remote name request is
                                                    required to be done. Having the flag here avoid duplicate store of inquiry results */
-#if ( BLE_INCLUDED == TRUE)
-    UINT16          remote_name_len;
+#if (BLE_INCLUDED == TRUE)
+    uint16_t        remote_name_len;
     tBTM_BD_NAME    remote_name;
-    UINT8           remote_name_state;
-    UINT8           remote_name_type;
+    uint8_t         remote_name_state;
+    uint8_t         remote_name_type;
 #endif
 
 } tBTM_INQ_INFO;
@@ -646,26 +646,26 @@ typedef struct
 typedef struct
 {
     tBTM_STATUS status;
-    UINT8       num_resp;       /* Number of results from the current inquiry */
+    uint8_t     num_resp;       /* Number of results from the current inquiry */
 } tBTM_INQUIRY_CMPL;
 
 
 /* Structure returned with remote name  request */
 typedef struct
 {
-    UINT16      status;
+    uint16_t    status;
     BD_ADDR     bd_addr;
-    UINT16      length;
+    uint16_t    length;
     BD_NAME     remote_bd_name;
 } tBTM_REMOTE_DEV_NAME;
 
 typedef struct
 {
-    UINT8   pcm_intf_rate;  /* PCM interface rate: 0: 128kbps, 1: 256 kbps;
+    uint8_t pcm_intf_rate;  /* PCM interface rate: 0: 128kbps, 1: 256 kbps;
                                 2:512 bps; 3: 1024kbps; 4: 2048kbps */
-    UINT8   frame_type;     /* frame type: 0: short; 1: long */
-    UINT8   sync_mode;      /* sync mode: 0: slave; 1: master */
-    UINT8   clock_mode;     /* clock mode: 0: slave; 1: master */
+    uint8_t frame_type;     /* frame type: 0: short; 1: long */
+    uint8_t sync_mode;      /* sync mode: 0: slave; 1: master */
+    uint8_t clock_mode;     /* clock mode: 0: slave; 1: master */
 
 }tBTM_SCO_PCM_PARAM;
 
@@ -676,12 +676,12 @@ typedef struct
 ** changes. First param is inquiry database, second is if added to or removed
 ** from the inquiry database.
 */
-typedef void (tBTM_INQ_DB_CHANGE_CB) (void *p1, BOOLEAN is_new);
+typedef void (tBTM_INQ_DB_CHANGE_CB) (void *p1, bool    is_new);
 
 /* Callback function for notifications when the BTM gets inquiry response.
 ** First param is inquiry results database, second is pointer of EIR.
 */
-typedef void (tBTM_INQ_RESULTS_CB) (tBTM_INQ_RESULTS *p_inq_results, UINT8 *p_eir);
+typedef void (tBTM_INQ_RESULTS_CB) (tBTM_INQ_RESULTS *p_inq_results, uint8_t *p_eir);
 
 /*****************************************************************************
 **  ACL CHANNEL MANAGEMENT
@@ -724,8 +724,8 @@ typedef void (tBTM_INQ_RESULTS_CB) (tBTM_INQ_RESULTS *p_inq_results, UINT8 *p_ei
 */
 typedef struct
 {
-    UINT8   hci_status;     /* HCI status returned with the event */
-    UINT8   role;           /* BTM_ROLE_MASTER or BTM_ROLE_SLAVE */
+    uint8_t hci_status;     /* HCI status returned with the event */
+    uint8_t role;           /* BTM_ROLE_MASTER or BTM_ROLE_SLAVE */
     BD_ADDR remote_bd_addr; /* Remote BD addr involved with the switch */
 } tBTM_ROLE_SWITCH_CMPL;
 
@@ -735,8 +735,8 @@ typedef struct
 typedef struct
 {
     FLOW_SPEC flow;
-    UINT16 handle;
-    UINT8 status;
+    uint16_t handle;
+    uint8_t status;
 } tBTM_QOS_SETUP_CMPL;
 
 
@@ -746,8 +746,8 @@ typedef struct
 typedef struct
 {
     tBTM_STATUS status;
-    UINT8       hci_status;
-    INT8        rssi;
+    uint8_t     hci_status;
+    int8_t      rssi;
     BD_ADDR     rem_bda;
 } tBTM_RSSI_RESULTS;
 
@@ -757,8 +757,8 @@ typedef struct
 typedef struct
 {
     tBTM_STATUS status;
-    UINT8       hci_status;
-    INT8        tx_power;
+    uint8_t     hci_status;
+    int8_t      tx_power;
     BD_ADDR     rem_bda;
 } tBTM_TX_POWER_RESULTS;
 
@@ -768,8 +768,8 @@ typedef struct
 typedef struct
 {
     tBTM_STATUS status;
-    UINT8       hci_status;
-    UINT8       link_quality;
+    uint8_t     hci_status;
+    uint8_t     link_quality;
     BD_ADDR     rem_bda;
 } tBTM_LINK_QUALITY_RESULTS;
 
@@ -779,8 +779,8 @@ typedef struct
 typedef struct
 {
     tBTM_STATUS status;
-    UINT8       hci_status;
-    INT8        tx_power;
+    uint8_t     hci_status;
+    int8_t      tx_power;
 } tBTM_INQ_TXPWR_RESULTS;
 
 enum
@@ -791,8 +791,8 @@ enum
     BTM_BL_ROLE_CHG_EVT,
     BTM_BL_COLLISION_EVT
 };
-typedef UINT8 tBTM_BL_EVENT;
-typedef UINT16 tBTM_BL_EVENT_MASK;
+typedef uint8_t tBTM_BL_EVENT;
+typedef uint16_t tBTM_BL_EVENT_MASK;
 
 #define BTM_BL_CONN_MASK        0x0001
 #define BTM_BL_DISCN_MASK       0x0002
@@ -810,9 +810,9 @@ typedef struct
     BD_ADDR_PTR     p_bda;      /* The address of the newly connected device */
     DEV_CLASS_PTR   p_dc;       /* The device class */
     BD_NAME_PTR     p_bdn;      /* The device name */
-    UINT8          *p_features; /* pointer to the remote device's features page[0] (supported features page) */
-#if BLE_INCLUDED == TRUE
-    UINT16          handle;     /* connection handle */
+    uint8_t        *p_features; /* pointer to the remote device's features page[0] (supported features page) */
+#if (BLE_INCLUDED == TRUE)
+    uint16_t        handle;     /* connection handle */
     tBT_TRANSPORT   transport; /* link is LE or not */
 #endif
 } tBTM_BL_CONN_DATA;
@@ -822,8 +822,8 @@ typedef struct
 {
     tBTM_BL_EVENT   event;  /* The event reported. */
     BD_ADDR_PTR     p_bda;  /* The address of the disconnected device */
-#if BLE_INCLUDED == TRUE
-    UINT16          handle; /* disconnected connection handle */
+#if (BLE_INCLUDED == TRUE)
+    uint16_t        handle; /* disconnected connection handle */
     tBT_TRANSPORT   transport; /* link is LE link or not */
 #endif
 } tBTM_BL_DISCN_DATA;
@@ -840,9 +840,9 @@ typedef struct
 typedef struct
 {
     tBTM_BL_EVENT   event;  /* The event reported. */
-    UINT8           busy_level;/* when paging or inquiring, level is 10.
+    uint8_t         busy_level;/* when paging or inquiring, level is 10.
                                 * Otherwise, the number of ACL links. */
-    UINT8           busy_level_flags; /* Notifies actual inquiry/page activities */
+    uint8_t         busy_level_flags; /* Notifies actual inquiry/page activities */
 } tBTM_BL_UPDATE_DATA;
 
 /* the data type associated with BTM_BL_ROLE_CHG_EVT */
@@ -850,8 +850,8 @@ typedef struct
 {
     tBTM_BL_EVENT   event;      /* The event reported. */
     BD_ADDR_PTR     p_bda;      /* The address of the peer connected device */
-    UINT8           new_role;
-    UINT8           hci_status; /* HCI status returned with the event */
+    uint8_t         new_role;
+    uint8_t         hci_status; /* HCI status returned with the event */
 } tBTM_BL_ROLE_CHG_DATA;
 
 typedef union
@@ -875,15 +875,15 @@ typedef void (tBTM_BL_CHANGE_CB) (tBTM_BL_EVENT_DATA *p_data);
 ** changes. First param is BD address, second is if added or removed.
 ** Registered through BTM_AclRegisterForChanges call.
 */
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
-                                      BD_NAME p_bdn, UINT8 *features,
-                                      BOOLEAN is_new, UINT16 handle,
+                                      BD_NAME p_bdn, uint8_t *features,
+                                      bool    is_new, uint16_t handle,
                                       tBT_TRANSPORT transport);
 #else
 typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
-                                      BD_NAME p_bdn, UINT8 *features,
-                                      BOOLEAN is_new);
+                                      BD_NAME p_bdn, uint8_t *features,
+                                      bool    is_new);
 #endif
 /*****************************************************************************
 **  SCO CHANNEL MANAGEMENT
@@ -935,7 +935,7 @@ typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
 ****************/
 #define BTM_LINK_TYPE_SCO           HCI_LINK_TYPE_SCO
 #define BTM_LINK_TYPE_ESCO          HCI_LINK_TYPE_ESCO
-typedef UINT8 tBTM_SCO_TYPE;
+typedef uint8_t tBTM_SCO_TYPE;
 
 
 /*******************
@@ -943,7 +943,7 @@ typedef UINT8 tBTM_SCO_TYPE;
 ********************/
 #define BTM_SCO_ROUTE_PCM           HCI_BRCM_SCO_ROUTE_PCM
 #define BTM_SCO_ROUTE_HCI           HCI_BRCM_SCO_ROUTE_HCI
-typedef UINT8 tBTM_SCO_ROUTE_TYPE;
+typedef uint8_t tBTM_SCO_ROUTE_TYPE;
 
 
 /*******************
@@ -954,7 +954,7 @@ typedef UINT8 tBTM_SCO_ROUTE_TYPE;
 #define BTM_SCO_CODEC_NONE          0x0000
 #define BTM_SCO_CODEC_CVSD          0x0001
 #define BTM_SCO_CODEC_MSBC          0x0002
-typedef UINT16 tBTM_SCO_CODEC_TYPE;
+typedef uint16_t tBTM_SCO_CODEC_TYPE;
 
 
 
@@ -965,17 +965,17 @@ typedef UINT16 tBTM_SCO_CODEC_TYPE;
 #define BTM_SCO_AIR_MODE_A_LAW          1
 #define BTM_SCO_AIR_MODE_CVSD           2
 #define BTM_SCO_AIR_MODE_TRANSPNT       3
-typedef UINT8 tBTM_SCO_AIR_MODE_TYPE;
+typedef uint8_t tBTM_SCO_AIR_MODE_TYPE;
 
 /*******************
 ** SCO Voice Settings
 ********************/
-#define BTM_VOICE_SETTING_CVSD  ((UINT16)  (HCI_INP_CODING_LINEAR          |   \
+#define BTM_VOICE_SETTING_CVSD  ((uint16_t)  (HCI_INP_CODING_LINEAR          |   \
                                             HCI_INP_DATA_FMT_2S_COMPLEMENT |   \
                                             HCI_INP_SAMPLE_SIZE_16BIT      |   \
                                             HCI_AIR_CODING_FORMAT_CVSD))
 
-#define BTM_VOICE_SETTING_TRANS ((UINT16)  (HCI_INP_CODING_LINEAR          |   \
+#define BTM_VOICE_SETTING_TRANS ((uint16_t)  (HCI_INP_CODING_LINEAR          |   \
                                             HCI_INP_DATA_FMT_2S_COMPLEMENT |   \
                                             HCI_INP_SAMPLE_SIZE_16BIT      |   \
                                             HCI_AIR_CODING_FORMAT_TRANSPNT))
@@ -990,13 +990,13 @@ enum
     BTM_SCO_DATA_NONE,
     BTM_SCO_DATA_PAR_LOST
 };
-typedef UINT8 tBTM_SCO_DATA_FLAG;
+typedef uint8_t tBTM_SCO_DATA_FLAG;
 
 /***************************
 **  SCO Callback Functions
 ****************************/
-typedef void (tBTM_SCO_CB) (UINT16 sco_inx);
-typedef void (tBTM_SCO_DATA_CB) (UINT16 sco_inx, BT_HDR *p_data, tBTM_SCO_DATA_FLAG status);
+typedef void (tBTM_SCO_CB) (uint16_t sco_inx);
+typedef void (tBTM_SCO_DATA_CB) (uint16_t sco_inx, BT_HDR *p_data, tBTM_SCO_DATA_FLAG status);
 
 /******************
 **  eSCO Constants
@@ -1018,52 +1018,52 @@ typedef void (tBTM_SCO_DATA_CB) (UINT16 sco_inx, BT_HDR *p_data, tBTM_SCO_DATA_F
 /* tBTM_ESCO_CBACK event types */
 #define BTM_ESCO_CHG_EVT        1
 #define BTM_ESCO_CONN_REQ_EVT   2
-typedef UINT8 tBTM_ESCO_EVT;
+typedef uint8_t tBTM_ESCO_EVT;
 
 /* Passed into BTM_SetEScoMode() */
 typedef struct
 {
-    UINT32 tx_bw;
-    UINT32 rx_bw;
-    UINT16 max_latency;
-    UINT16 voice_contfmt;  /* Voice Settings or Content Format */
-    UINT16 packet_types;
-    UINT8  retrans_effort;
+    uint32_t tx_bw;
+    uint32_t rx_bw;
+    uint16_t max_latency;
+    uint16_t voice_contfmt;  /* Voice Settings or Content Format */
+    uint16_t packet_types;
+    uint8_t  retrans_effort;
 } tBTM_ESCO_PARAMS;
 
 typedef struct
 {
-    UINT16 max_latency;
-    UINT16 packet_types;
-    UINT8  retrans_effort;
+    uint16_t max_latency;
+    uint16_t packet_types;
+    uint8_t  retrans_effort;
 } tBTM_CHG_ESCO_PARAMS;
 
 /* Returned by BTM_ReadEScoLinkParms() */
 typedef struct
 {
-    UINT16  rx_pkt_len;
-    UINT16  tx_pkt_len;
+    uint16_t rx_pkt_len;
+    uint16_t tx_pkt_len;
     BD_ADDR bd_addr;
-    UINT8   link_type;  /* BTM_LINK_TYPE_SCO or BTM_LINK_TYPE_ESCO */
-    UINT8   tx_interval;
-    UINT8   retrans_window;
-    UINT8   air_mode;
+    uint8_t link_type;  /* BTM_LINK_TYPE_SCO or BTM_LINK_TYPE_ESCO */
+    uint8_t tx_interval;
+    uint8_t retrans_window;
+    uint8_t air_mode;
 } tBTM_ESCO_DATA;
 
 typedef struct
 {
-    UINT16  sco_inx;
-    UINT16  rx_pkt_len;
-    UINT16  tx_pkt_len;
+    uint16_t sco_inx;
+    uint16_t rx_pkt_len;
+    uint16_t tx_pkt_len;
     BD_ADDR bd_addr;
-    UINT8   hci_status;
-    UINT8   tx_interval;
-    UINT8   retrans_window;
+    uint8_t hci_status;
+    uint8_t tx_interval;
+    uint8_t retrans_window;
 } tBTM_CHG_ESCO_EVT_DATA;
 
 typedef struct
 {
-    UINT16        sco_inx;
+    uint16_t      sco_inx;
     BD_ADDR       bd_addr;
     DEV_CLASS     dev_class;
     tBTM_SCO_TYPE link_type;
@@ -1149,7 +1149,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_LKEY_TYPE_IGNORE        0xff    /* used when event is response from
                                                hci return link keys request */
 
-typedef UINT8 tBTM_LINK_KEY_TYPE;
+typedef uint8_t tBTM_LINK_KEY_TYPE;
 
 /* Protocol level security (BTM_SetSecurityLevel) */
 #define BTM_SEC_PROTO_L2CAP         0
@@ -1162,10 +1162,10 @@ typedef UINT8 tBTM_LINK_KEY_TYPE;
 #define BTM_SEC_PROTO_AVDT          7
 #define BTM_SEC_PROTO_MCA           8
 
-/* Determine the number of UINT32's necessary for security services */
+/* Determine the number of uint32_t's necessary for security services */
 #define BTM_SEC_ARRAY_BITS          32          /* Number of bits in each array element */
-#define BTM_SEC_SERVICE_ARRAY_SIZE  (((UINT32)BTM_SEC_MAX_SERVICES / BTM_SEC_ARRAY_BITS) + \
-                                    (((UINT32)BTM_SEC_MAX_SERVICES % BTM_SEC_ARRAY_BITS) ? 1 : 0))
+#define BTM_SEC_SERVICE_ARRAY_SIZE  (((uint32_t)BTM_SEC_MAX_SERVICES / BTM_SEC_ARRAY_BITS) + \
+                                    (((uint32_t)BTM_SEC_MAX_SERVICES % BTM_SEC_ARRAY_BITS) ? 1 : 0))
 
 /* Security service definitions (BTM_SetSecurityLevel)
 ** Used for Authorization APIs
@@ -1231,28 +1231,28 @@ typedef UINT8 tBTM_LINK_KEY_TYPE;
 #endif
 
 /************************************************************************************************
-** Security Services MACROS handle array of UINT32 bits for more than 32 trusted services
+** Security Services MACROS handle array of uint32_t bits for more than 32 trusted services
 *************************************************************************************************/
 /* MACRO to set the security service bit mask in a bit stream */
-#define BTM_SEC_SET_SERVICE(p, service)  (((UINT32 *)(p))[(((UINT32)(service)) / BTM_SEC_ARRAY_BITS)] |=  \
-                                    ((UINT32)1 << (((UINT32)(service)) % BTM_SEC_ARRAY_BITS)))
+#define BTM_SEC_SET_SERVICE(p, service)  (((uint32_t *)(p))[(((uint32_t)(service)) / BTM_SEC_ARRAY_BITS)] |=  \
+                                    ((uint32_t)1 << (((uint32_t)(service)) % BTM_SEC_ARRAY_BITS)))
 
 
 /* MACRO to clear the security service bit mask in a bit stream */
-#define BTM_SEC_CLR_SERVICE(p, service)  (((UINT32 *)(p))[(((UINT32)(service)) / BTM_SEC_ARRAY_BITS)] &=  \
-                                    ~((UINT32)1 << (((UINT32)(service)) % BTM_SEC_ARRAY_BITS)))
+#define BTM_SEC_CLR_SERVICE(p, service)  (((uint32_t *)(p))[(((uint32_t)(service)) / BTM_SEC_ARRAY_BITS)] &=  \
+                                    ~((uint32_t)1 << (((uint32_t)(service)) % BTM_SEC_ARRAY_BITS)))
 
-/* MACRO to check the security service bit mask in a bit stream (Returns TRUE or FALSE) */
-#define BTM_SEC_IS_SERVICE_TRUSTED(p, service)    (((((UINT32 *)(p))[(((UINT32)(service)) / BTM_SEC_ARRAY_BITS)]) &   \
-                                        (UINT32)(((UINT32)1 << (((UINT32)(service)) % BTM_SEC_ARRAY_BITS)))) ? TRUE : FALSE)
+/* MACRO to check the security service bit mask in a bit stream (Returns true or false) */
+#define BTM_SEC_IS_SERVICE_TRUSTED(p, service)    (((((uint32_t *)(p))[(((uint32_t)(service)) / BTM_SEC_ARRAY_BITS)]) &   \
+                                        (uint32_t)(((uint32_t)1 << (((uint32_t)(service)) % BTM_SEC_ARRAY_BITS)))) ? true : false)
 
 /* MACRO to copy two trusted device bitmask */
-#define BTM_SEC_COPY_TRUSTED_DEVICE(p_src, p_dst)   {UINT32 trst; for (trst = 0; trst < BTM_SEC_SERVICE_ARRAY_SIZE; trst++) \
-                                                        ((UINT32 *)(p_dst))[trst] = ((UINT32 *)(p_src))[trst];}
+#define BTM_SEC_COPY_TRUSTED_DEVICE(p_src, p_dst)   {uint32_t trst; for (trst = 0; trst < BTM_SEC_SERVICE_ARRAY_SIZE; trst++) \
+                                                        ((uint32_t *)(p_dst))[trst] = ((uint32_t *)(p_src))[trst];}
 
 /* MACRO to clear two trusted device bitmask */
-#define BTM_SEC_CLR_TRUSTED_DEVICE(p_dst)   {UINT32 trst; for (trst = 0; trst < BTM_SEC_SERVICE_ARRAY_SIZE; trst++) \
-                                                        ((UINT32 *)(p_dst))[trst] = 0;}
+#define BTM_SEC_CLR_TRUSTED_DEVICE(p_dst)   {uint32_t trst; for (trst = 0; trst < BTM_SEC_SERVICE_ARRAY_SIZE; trst++) \
+                                                        ((uint32_t *)(p_dst))[trst] = 0;}
 
 /* Following bits can be provided by host in the trusted_mask array */
 /* 0..31 bits of mask[0] (Least Significant Word) */
@@ -1324,9 +1324,9 @@ typedef UINT8 tBTM_LINK_KEY_TYPE;
 **              Is originator of the connection
 **              Result of the operation
 */
-typedef UINT8 (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                         tBTM_BD_NAME bd_name, UINT8 *service_name,
-                                         UINT8 service_id, BOOLEAN is_originator);
+typedef uint8_t (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
+                                         tBTM_BD_NAME bd_name, uint8_t *service_name,
+                                         uint8_t service_id, bool    is_originator);
 
 /* Get PIN for the connection.  Parameters are
 **              BD Address of remote
@@ -1334,17 +1334,17 @@ typedef UINT8 (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **              BD Name of remote
 **              Flag indicating the minimum pin code length to be 16 digits
 */
-typedef UINT8 (tBTM_PIN_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                   tBTM_BD_NAME bd_name, BOOLEAN min_16_digit);
+typedef uint8_t (tBTM_PIN_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
+                                   tBTM_BD_NAME bd_name, bool    min_16_digit);
 
 /* New Link Key for the connection.  Parameters are
 **              BD Address of remote
 **              Link Key
 **              Key Type: Combination, Local Unit, or Remote Unit
 */
-typedef UINT8 (tBTM_LINK_KEY_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                        tBTM_BD_NAME bd_name, UINT8 *key,
-                                        UINT8 key_type);
+typedef uint8_t (tBTM_LINK_KEY_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
+                                        tBTM_BD_NAME bd_name, uint8_t *key,
+                                        uint8_t key_type);
 
 
 /* Remote Name Resolved.  Parameters are
@@ -1361,7 +1361,7 @@ typedef void (tBTM_RMT_NAME_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dc,
 **              BD Name of remote
 **
 */
-typedef UINT8 (tBTM_AUTH_COMPLETE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
+typedef uint8_t (tBTM_AUTH_COMPLETE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                              tBTM_BD_NAME bd_name, int result);
 
 enum
@@ -1377,20 +1377,20 @@ enum
     BTM_SP_COMPLT_EVT,      /* received SIMPLE_PAIRING_COMPLETE event */
     BTM_SP_UPGRADE_EVT      /* check if the application wants to upgrade the link key */
 };
-typedef UINT8 tBTM_SP_EVT;
+typedef uint8_t tBTM_SP_EVT;
 
 #define BTM_IO_CAP_OUT      0   /* DisplayOnly */
 #define BTM_IO_CAP_IO       1   /* DisplayYesNo */
 #define BTM_IO_CAP_IN       2   /* KeyboardOnly */
 #define BTM_IO_CAP_NONE     3   /* NoInputNoOutput */
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
 #define BTM_IO_CAP_KBDISP   4   /* Keyboard display */
 #define BTM_IO_CAP_MAX      5
 #else
 #define BTM_IO_CAP_MAX      4
 #endif
 
-typedef UINT8 tBTM_IO_CAP;
+typedef uint8_t tBTM_IO_CAP;
 
 #define BTM_MAX_PASSKEY_VAL (999999)
 #define BTM_MIN_PASSKEY_VAL (0)
@@ -1416,7 +1416,7 @@ typedef UINT8 tBTM_IO_CAP;
 #define BTM_BLE_RESPONDER_KEY_SIZE 15
 #define BTM_BLE_MAX_KEY_SIZE       16
 
-typedef UINT8 tBTM_AUTH_REQ;
+typedef uint8_t tBTM_AUTH_REQ;
 
 enum
 {
@@ -1424,7 +1424,7 @@ enum
     BTM_OOB_PRESENT,
     BTM_OOB_UNKNOWN
 };
-typedef UINT8 tBTM_OOB_DATA;
+typedef uint8_t tBTM_OOB_DATA;
 
 /* data type for BTM_SP_IO_REQ_EVT */
 typedef struct
@@ -1433,7 +1433,7 @@ typedef struct
     tBTM_IO_CAP     io_cap;         /* local IO capabilities */
     tBTM_OOB_DATA   oob_data;       /* OOB data present (locally) for the peer device */
     tBTM_AUTH_REQ   auth_req;       /* Authentication required (for local device) */
-    BOOLEAN         is_orig;        /* TRUE, if local device initiated the SP process */
+    bool            is_orig;        /* true, if local device initiated the SP process */
 } tBTM_SP_IO_REQ;
 
 /* data type for BTM_SP_IO_RSP_EVT */
@@ -1451,8 +1451,8 @@ typedef struct
     BD_ADDR         bd_addr;        /* peer address */
     DEV_CLASS       dev_class;      /* peer CoD */
     tBTM_BD_NAME    bd_name;        /* peer device name */
-    UINT32          num_val;        /* the numeric value for comparison. If just_works, do not show this number to UI */
-    BOOLEAN         just_works;     /* TRUE, if "Just Works" association model */
+    uint32_t        num_val;        /* the numeric value for comparison. If just_works, do not show this number to UI */
+    bool            just_works;     /* true, if "Just Works" association model */
     tBTM_AUTH_REQ   loc_auth_req;   /* Authentication required for local device */
     tBTM_AUTH_REQ   rmt_auth_req;   /* Authentication required for peer device */
     tBTM_IO_CAP     loc_io_caps;    /* IO Capabilities of the local device */
@@ -1473,7 +1473,7 @@ typedef struct
     BD_ADDR         bd_addr;        /* peer address */
     DEV_CLASS       dev_class;      /* peer CoD */
     tBTM_BD_NAME    bd_name;        /* peer device name */
-    UINT32          passkey;        /* passkey */
+    uint32_t        passkey;        /* passkey */
 } tBTM_SP_KEY_NOTIF;
 
 enum
@@ -1485,7 +1485,7 @@ enum
     BTM_SP_KEY_COMPLT,          /* 4 - passkey entry completed */
     BTM_SP_KEY_OUT_OF_RANGE     /* 5 - out of range */
 };
-typedef UINT8   tBTM_SP_KEY_TYPE;
+typedef uint8_t tBTM_SP_KEY_TYPE;
 
 /* data type for BTM_SP_KEYPRESS_EVT */
 typedef struct
@@ -1524,7 +1524,7 @@ typedef struct
 typedef struct
 {
     BD_ADDR         bd_addr;        /* peer address */
-    BOOLEAN         upgrade;        /* TRUE, to upgrade the link key */
+    bool            upgrade;        /* true, to upgrade the link key */
 } tBTM_SP_UPGRADE;
 
 typedef union
@@ -1544,10 +1544,10 @@ typedef union
 /* Simple Pairing Events.  Called by the stack when Simple Pairing related
 ** events occur.
 */
-typedef UINT8 (tBTM_SP_CALLBACK) (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data);
+typedef uint8_t (tBTM_SP_CALLBACK) (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data);
 
 
-typedef void (tBTM_MKEY_CALLBACK) (BD_ADDR bd_addr, UINT8 status, UINT8 key_flag) ;
+typedef void (tBTM_MKEY_CALLBACK) (BD_ADDR bd_addr, uint8_t status, uint8_t key_flag) ;
 
 /* Encryption enabled/disabled complete: Optionally passed with BTM_SetEncryption.
 ** Parameters are
@@ -1581,7 +1581,7 @@ typedef void (tBTM_BOND_CANCEL_CMPL_CALLBACK) (tBTM_STATUS result);
 #define BTM_LE_COMPLT_EVT       SMP_COMPLT_EVT         /* SMP complete event */
 #define BTM_LE_LAST_FROM_SMP    BTM_LE_BR_KEYS_REQ_EVT
 #define BTM_LE_KEY_EVT          (BTM_LE_LAST_FROM_SMP + 1) /* KEY update event */
-typedef UINT8 tBTM_LE_EVT;
+typedef uint8_t tBTM_LE_EVT;
 
 #define BTM_LE_KEY_NONE           0
 #define BTM_LE_KEY_PENC      SMP_SEC_KEY_TYPE_ENC        /* encryption information of peer device */
@@ -1592,12 +1592,12 @@ typedef UINT8 tBTM_LE_EVT;
 #define BTM_LE_KEY_LENC      (SMP_SEC_KEY_TYPE_ENC << 4)  /* master role security information:div */
 #define BTM_LE_KEY_LID       (SMP_SEC_KEY_TYPE_ID << 4)   /* master device ID key */
 #define BTM_LE_KEY_LCSRK     (SMP_SEC_KEY_TYPE_CSRK << 4) /* local CSRK has been deliver to peer */
-typedef UINT8 tBTM_LE_KEY_TYPE;
+typedef uint8_t tBTM_LE_KEY_TYPE;
 
 #define BTM_LE_AUTH_REQ_NO_BOND SMP_AUTH_NO_BOND   /* 0 */
 #define BTM_LE_AUTH_REQ_BOND    SMP_AUTH_GEN_BOND  /* 1 << 0 */
 #define BTM_LE_AUTH_REQ_MITM    SMP_AUTH_YN_BIT    /* 1 << 2 */
-typedef UINT8 tBTM_LE_AUTH_REQ;
+typedef uint8_t tBTM_LE_AUTH_REQ;
 #define BTM_LE_SC_SUPPORT_BIT           SMP_SC_SUPPORT_BIT     /* (1 << 3) */
 #define BTM_LE_KP_SUPPORT_BIT           SMP_KP_SUPPORT_BIT     /* (1 << 4) */
 
@@ -1611,27 +1611,27 @@ typedef UINT8 tBTM_LE_AUTH_REQ;
 #define BTM_LE_SEC_NONE             SMP_SEC_NONE
 #define BTM_LE_SEC_UNAUTHENTICATE   SMP_SEC_UNAUTHENTICATE      /* 1 */
 #define BTM_LE_SEC_AUTHENTICATED    SMP_SEC_AUTHENTICATED       /* 4 */
-typedef UINT8 tBTM_LE_SEC;
+typedef uint8_t tBTM_LE_SEC;
 
 
 typedef struct
 {
     tBTM_IO_CAP         io_cap;         /* local IO capabilities */
-    UINT8               oob_data;       /* OOB data present (locally) for the peer device */
+    uint8_t             oob_data;       /* OOB data present (locally) for the peer device */
     tBTM_LE_AUTH_REQ    auth_req;       /* Authentication request (for local device) contain bonding and MITM info */
-    UINT8               max_key_size;   /* max encryption key size */
+    uint8_t             max_key_size;   /* max encryption key size */
     tBTM_LE_KEY_TYPE    init_keys;      /* keys to be distributed, bit mask */
     tBTM_LE_KEY_TYPE    resp_keys;      /* keys to be distributed, bit mask */
 } tBTM_LE_IO_REQ;
 
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
 /* data type for tBTM_LE_COMPLT */
 typedef struct
 {
-    UINT8 reason;
-    UINT8 sec_level;
-    BOOLEAN is_pair_cancel;
-    BOOLEAN smp_over_br;
+    uint8_t reason;
+    uint8_t sec_level;
+    bool    is_pair_cancel;
+    bool    smp_over_br;
 }tBTM_LE_COMPLT;
 #endif
 
@@ -1640,34 +1640,34 @@ typedef struct
 {
     BT_OCTET16  ltk;
     BT_OCTET8   rand;
-    UINT16      ediv;
-    UINT8       sec_level;
-    UINT8       key_size;
+    uint16_t    ediv;
+    uint8_t     sec_level;
+    uint8_t     key_size;
 }tBTM_LE_PENC_KEYS;
 
 /* BLE CSRK keys */
 typedef struct
 {
-    UINT32          counter;
+    uint32_t        counter;
     BT_OCTET16      csrk;
-    UINT8           sec_level;
+    uint8_t         sec_level;
 }tBTM_LE_PCSRK_KEYS;
 
 /* BLE Encryption reproduction keys */
 typedef struct
 {
     BT_OCTET16  ltk;
-    UINT16      div;
-    UINT8       key_size;
-    UINT8       sec_level;
+    uint16_t    div;
+    uint8_t     key_size;
+    uint8_t     sec_level;
 }tBTM_LE_LENC_KEYS;
 
 /* BLE SRK keys */
 typedef struct
 {
-    UINT32          counter;
-    UINT16          div;
-    UINT8           sec_level;
+    uint32_t        counter;
+    uint16_t        div;
+    uint8_t         sec_level;
     BT_OCTET16      csrk;
 }tBTM_LE_LCSRK_KEYS;
 
@@ -1696,11 +1696,11 @@ typedef struct
 typedef union
 {
     tBTM_LE_IO_REQ      io_req;     /* BTM_LE_IO_REQ_EVT      */
-    UINT32              key_notif;  /* BTM_LE_KEY_NOTIF_EVT   */
+    uint32_t            key_notif;  /* BTM_LE_KEY_NOTIF_EVT   */
                                     /* BTM_LE_NC_REQ_EVT */
                                     /* no callback data for BTM_LE_KEY_REQ_EVT */
                                     /* and BTM_LE_OOB_REQ_EVT  */
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
     tBTM_LE_COMPLT      complt;     /* BTM_LE_COMPLT_EVT      */
     tSMP_OOB_DATA_TYPE  req_oob_type;
 #endif
@@ -1710,7 +1710,7 @@ typedef union
 /* Simple Pairing Events.  Called by the stack when Simple Pairing related
 ** events occur.
 */
-typedef UINT8 (tBTM_LE_CALLBACK) (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_DATA *p_data);
+typedef uint8_t (tBTM_LE_CALLBACK) (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_DATA *p_data);
 
 #define BTM_BLE_KEY_TYPE_ID         1
 #define BTM_BLE_KEY_TYPE_ER         2
@@ -1733,7 +1733,7 @@ typedef union
 
 /* New LE identity key for local device.
 */
-typedef void (tBTM_LE_KEY_CALLBACK) (UINT8 key_type, tBTM_BLE_LOCAL_KEYS *p_key);
+typedef void (tBTM_LE_KEY_CALLBACK) (uint8_t key_type, tBTM_BLE_LOCAL_KEYS *p_key);
 
 
 /***************************
@@ -1748,8 +1748,8 @@ typedef struct
     tBTM_AUTH_COMPLETE_CALLBACK *p_auth_complete_callback;
     tBTM_BOND_CANCEL_CMPL_CALLBACK *p_bond_cancel_cmpl_callback;
     tBTM_SP_CALLBACK            *p_sp_callback;
-#if BLE_INCLUDED == TRUE
-#if SMP_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
     tBTM_LE_CALLBACK            *p_le_callback;
 #endif
     tBTM_LE_KEY_CALLBACK        *p_le_key_callback;
@@ -1759,7 +1759,7 @@ typedef struct
 /* Callback function for when a link supervision timeout event occurs.
 ** This asynchronous event is enabled/disabled by calling BTM_RegForLstoEvt().
 */
-typedef void (tBTM_LSTO_CBACK) (BD_ADDR remote_bda, UINT16 timeout);
+typedef void (tBTM_LSTO_CBACK) (BD_ADDR remote_bda, uint16_t timeout);
 
 /*****************************************************************************
 **  POWER MANAGEMENT
@@ -1778,7 +1778,7 @@ enum
     BTM_PM_STS_PENDING,   /* when waiting for status from controller */
     BTM_PM_STS_ERROR   /* when HCI command status returns error */
 };
-typedef UINT8 tBTM_PM_STATUS;
+typedef uint8_t tBTM_PM_STATUS;
 
 /* BTM Power manager modes */
 enum
@@ -1789,7 +1789,7 @@ enum
     BTM_PM_MD_PARK   = BTM_PM_STS_PARK,
     BTM_PM_MD_FORCE  = 0x10 /* OR this to force ACL link to a certain mode */
 };
-typedef UINT8 tBTM_PM_MODE;
+typedef uint8_t tBTM_PM_MODE;
 
 #define BTM_PM_SET_ONLY_ID  0x80
 
@@ -1803,10 +1803,10 @@ typedef UINT8 tBTM_PM_MODE;
 *************************/
 typedef struct
 {
-    UINT16          max;
-    UINT16          min;
-    UINT16          attempt;
-    UINT16          timeout;
+    uint16_t        max;
+    uint16_t        min;
+    uint16_t        attempt;
+    uint16_t        timeout;
     tBTM_PM_MODE    mode;
 } tBTM_PM_PWR_MD;
 
@@ -1814,7 +1814,7 @@ typedef struct
 **  Power Manager Callback Functions
 **************************************/
 typedef void (tBTM_PM_STATUS_CBACK) (BD_ADDR p_bda, tBTM_PM_STATUS status,
-                                     UINT16 value, UINT8 hci_status);
+                                     uint16_t value, uint8_t hci_status);
 
 
 /************************
@@ -1824,9 +1824,9 @@ typedef void (tBTM_PM_STATUS_CBACK) (BD_ADDR p_bda, tBTM_PM_STATUS status,
 
 typedef struct
 {
-    UINT8          event;
-    UINT8          status;
-    UINT16         num_keys;
+    uint8_t        event;
+    uint8_t        status;
+    uint16_t       num_keys;
 
 } tBTM_DELETE_STORED_LINK_KEY_COMPLETE;
 
@@ -1838,20 +1838,20 @@ enum
     BTM_MIP_PKTS_COMPL_EVT,
     BTM_MIP_RXDATA_EVT
 };
-typedef UINT8 tBTM_MIP_EVT;
+typedef uint8_t tBTM_MIP_EVT;
 
 typedef struct
 {
     tBTM_MIP_EVT    event;
     BD_ADDR         bd_addr;
-    UINT16          mip_id;
+    uint16_t        mip_id;
 } tBTM_MIP_MODE_CHANGE;
 
 typedef struct
 {
     tBTM_MIP_EVT    event;
-    UINT16          mip_id;
-    UINT8           disc_reason;
+    uint16_t        mip_id;
+    uint8_t         disc_reason;
 } tBTM_MIP_CONN_TIMEOUT;
 
 #define BTM_MIP_MAX_RX_LEN  17
@@ -1859,22 +1859,22 @@ typedef struct
 typedef struct
 {
     tBTM_MIP_EVT    event;
-    UINT16          mip_id;
-    UINT8           rx_len;
-    UINT8           rx_data[BTM_MIP_MAX_RX_LEN];
+    uint16_t        mip_id;
+    uint8_t         rx_len;
+    uint8_t         rx_data[BTM_MIP_MAX_RX_LEN];
 } tBTM_MIP_RXDATA;
 
 typedef struct
 {
     tBTM_MIP_EVT    event;
     BD_ADDR         bd_addr;
-    UINT8           data[11];       /* data[0] shows Vender-specific device type */
+    uint8_t         data[11];       /* data[0] shows Vender-specific device type */
 } tBTM_MIP_EIR_HANDSHAKE;
 
 typedef struct
 {
     tBTM_MIP_EVT    event;
-    UINT16          num_sent;       /* Number of packets completed at the controller */
+    uint16_t        num_sent;       /* Number of packets completed at the controller */
 } tBTM_MIP_PKTS_COMPL;
 
 typedef union
@@ -1891,13 +1891,13 @@ typedef union
 typedef void (tBTM_MIP_EVENTS_CB) (tBTM_MIP_EVT event, tBTM_MIP_EVENT_DATA data);
 
 /* MIP Device query callback function  */
-typedef BOOLEAN (tBTM_MIP_QUERY_CB) (BD_ADDR dev_addr, UINT8 *p_mode, LINK_KEY link_key);
+typedef bool    (tBTM_MIP_QUERY_CB) (BD_ADDR dev_addr, uint8_t *p_mode, LINK_KEY link_key);
 
 #define BTM_CONTRL_ACTIVE  1       /* ACL link on, SCO link ongoing, sniff mode */
 #define BTM_CONTRL_SCAN    2       /* Scan state - paging/inquiry/trying to connect*/
 #define BTM_CONTRL_IDLE    3       /* Idle state - page scan, LE advt, inquiry scan */
 
-typedef UINT8 tBTM_CONTRL_STATE;
+typedef uint8_t tBTM_CONTRL_STATE;
 
 /*****************************************************************************
 **  EXTERNAL FUNCTION DECLARATIONS
@@ -1927,10 +1927,10 @@ extern void BTM_DeviceReset (tBTM_CMPL_CB *p_cb);
 **
 ** Description      This function is called to check if the device is up.
 **
-** Returns          TRUE if device is up, else FALSE
+** Returns          true if device is up, else false
 **
 *******************************************************************************/
-extern BOOLEAN BTM_IsDeviceUp (void);
+extern bool    BTM_IsDeviceUp (void);
 
 
 /*******************************************************************************
@@ -1992,7 +1992,7 @@ extern tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cm
 ** Returns          pointer to the device class
 **
 *******************************************************************************/
-extern UINT8 *BTM_ReadDeviceClass (void);
+extern uint8_t *BTM_ReadDeviceClass (void);
 
 
 /*******************************************************************************
@@ -2004,7 +2004,7 @@ extern UINT8 *BTM_ReadDeviceClass (void);
 ** Returns          pointer to the local features string
 **
 *******************************************************************************/
-extern UINT8 *BTM_ReadLocalFeatures (void);
+extern uint8_t *BTM_ReadLocalFeatures (void);
 
 /*******************************************************************************
 **
@@ -2027,15 +2027,15 @@ extern tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB 
 ** Description      This function is called to register/deregister for vendor
 **                  specific HCI events.
 **
-**                  If is_register=TRUE, then the function will be registered;
-**                  if is_register=FALSE, then the function will be deregistered.
+**                  If is_register=true, then the function will be registered;
+**                  if is_register=false, then the function will be deregistered.
 **
 ** Returns          BTM_SUCCESS if successful,
 **                  BTM_BUSY if maximum number of callbacks have already been
 **                           registered.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_register);
+extern tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, bool    is_register);
 
 
 /*******************************************************************************
@@ -2052,9 +2052,9 @@ extern tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, BOOLEAN is_reg
 **                              prior command.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode,
-                                             UINT8 param_len,
-                                             UINT8 *p_param_buf,
+extern tBTM_STATUS BTM_VendorSpecificCommand(uint16_t opcode,
+                                             uint8_t param_len,
+                                             uint8_t *p_param_buf,
                                              tBTM_VSC_CMPL_CB *p_cb);
 
 
@@ -2068,7 +2068,7 @@ extern tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode,
 ** Returns          Allocated SCN number or 0 if none.
 **
 *******************************************************************************/
-extern UINT8 BTM_AllocateSCN(void);
+extern uint8_t BTM_AllocateSCN(void);
 
 /*******************************************************************************
 **
@@ -2076,10 +2076,10 @@ extern UINT8 BTM_AllocateSCN(void);
 **
 ** Description      Try to allocate a fixed server channel
 **
-** Returns          Returns TRUE if server channel was available
+** Returns          Returns true if server channel was available
 **
 *******************************************************************************/
-extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
+extern bool    BTM_TryAllocateSCN(uint8_t scn);
 
 
 /*******************************************************************************
@@ -2088,10 +2088,10 @@ extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 **
 ** Description      Free the specified SCN.
 **
-** Returns          TRUE if successful, FALSE if SCN is not in use or invalid
+** Returns          true if successful, false if SCN is not in use or invalid
 **
 *******************************************************************************/
-extern BOOLEAN BTM_FreeSCN(UINT8 scn);
+extern bool    BTM_FreeSCN(uint8_t scn);
 
 
 /*******************************************************************************
@@ -2104,7 +2104,7 @@ extern BOOLEAN BTM_FreeSCN(UINT8 scn);
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-extern UINT8 BTM_SetTraceLevel (UINT8 new_level);
+extern uint8_t BTM_SetTraceLevel (uint8_t new_level);
 
 
 /*******************************************************************************
@@ -2118,7 +2118,7 @@ extern UINT8 BTM_SetTraceLevel (UINT8 new_level);
 **      BTM_NO_RESOURCES    If out of resources to send the command.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_WritePageTimeout(UINT16 timeout);
+extern tBTM_STATUS BTM_WritePageTimeout(uint16_t timeout);
 
 /*******************************************************************************
 **
@@ -2133,7 +2133,7 @@ extern tBTM_STATUS BTM_WritePageTimeout(UINT16 timeout);
 **
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_WriteVoiceSettings(UINT16 settings);
+extern tBTM_STATUS BTM_WriteVoiceSettings(uint16_t settings);
 
 /*******************************************************************************
 **
@@ -2173,8 +2173,8 @@ extern tBTM_STATUS BTM_EnableTestMode(void);
 **                  BTM_WRONG_MODE if the device is not up.
 **
 *******************************************************************************/
-extern tBTM_STATUS  BTM_SetDiscoverability (UINT16 inq_mode, UINT16 window,
-                                            UINT16 interval);
+extern tBTM_STATUS  BTM_SetDiscoverability (uint16_t inq_mode, uint16_t window,
+                                            uint16_t interval);
 
 
 /*******************************************************************************
@@ -2191,8 +2191,8 @@ extern tBTM_STATUS  BTM_SetDiscoverability (UINT16 inq_mode, UINT16 window,
 **                  BTM_GENERAL_DISCOVERABLE
 **
 *******************************************************************************/
-extern UINT16       BTM_ReadDiscoverability (UINT16 *p_window,
-                                             UINT16 *p_interval);
+extern uint16_t     BTM_ReadDiscoverability (uint16_t *p_window,
+                                             uint16_t *p_interval);
 
 
 /*******************************************************************************
@@ -2223,7 +2223,7 @@ extern UINT16       BTM_ReadDiscoverability (UINT16 *p_window,
 **
 *******************************************************************************/
 extern tBTM_STATUS  BTM_SetPeriodicInquiryMode (tBTM_INQ_PARMS *p_inqparms,
-                                                UINT16 max_delay, UINT16 min_delay,
+                                                uint16_t max_delay, uint16_t min_delay,
                                                 tBTM_INQ_RESULTS_CB *p_results_cb);
 
 
@@ -2273,7 +2273,7 @@ extern tBTM_STATUS  BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms,
 **                  BTM_PERIODIC_INQUIRY_ACTIVE if a periodic inquiry is active
 **
 *******************************************************************************/
-extern UINT16 BTM_IsInquiryActive (void);
+extern uint16_t BTM_IsInquiryActive (void);
 
 
 /*******************************************************************************
@@ -2318,8 +2318,8 @@ extern tBTM_STATUS BTM_CancelPeriodicInquiry(void);
 **                  BTM_WRONG_MODE if the device is not up.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_SetConnectability (UINT16 page_mode, UINT16 window,
-                                          UINT16 interval);
+extern tBTM_STATUS BTM_SetConnectability (uint16_t page_mode, uint16_t window,
+                                          uint16_t interval);
 
 
 /*******************************************************************************
@@ -2334,7 +2334,7 @@ extern tBTM_STATUS BTM_SetConnectability (UINT16 page_mode, UINT16 window,
 ** Returns          BTM_NON_CONNECTABLE or BTM_CONNECTABLE
 **
 *******************************************************************************/
-extern UINT16 BTM_ReadConnectability (UINT16 *p_window, UINT16 *p_interval);
+extern uint16_t BTM_ReadConnectability (uint16_t *p_window, uint16_t *p_interval);
 
 
 /*******************************************************************************
@@ -2353,7 +2353,7 @@ extern UINT16 BTM_ReadConnectability (UINT16 *p_window, UINT16 *p_interval);
 **                  BTM_WRONG_MODE if the device is not up.
 **
 *******************************************************************************/
-extern tBTM_STATUS  BTM_SetInquiryMode (UINT8 mode);
+extern tBTM_STATUS  BTM_SetInquiryMode (uint8_t mode);
 
 /*******************************************************************************
 **
@@ -2369,7 +2369,7 @@ extern tBTM_STATUS  BTM_SetInquiryMode (UINT8 mode);
 **                  BTM_WRONG_MODE if the device is not up.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_SetInquiryScanType (UINT16 scan_type);
+extern tBTM_STATUS BTM_SetInquiryScanType (uint16_t scan_type);
 
 /*******************************************************************************
 **
@@ -2386,7 +2386,7 @@ extern tBTM_STATUS BTM_SetInquiryScanType (UINT16 scan_type);
 **
 *******************************************************************************/
 
-extern tBTM_STATUS BTM_SetPageScanType (UINT16 scan_type);
+extern tBTM_STATUS BTM_SetPageScanType (uint16_t scan_type);
 
 /*******************************************************************************
 **
@@ -2443,9 +2443,9 @@ extern tBTM_STATUS  BTM_CancelRemoteDeviceName (void);
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_ReadRemoteVersion (BD_ADDR addr,
-                                          UINT8 *lmp_version,
-                                          UINT16 *manufacturer,
-                                          UINT16 *lmp_sub_version);
+                                          uint8_t *lmp_version,
+                                          uint16_t *manufacturer,
+                                          uint16_t *lmp_sub_version);
 
 /*******************************************************************************
 **
@@ -2460,7 +2460,7 @@ extern tBTM_STATUS BTM_ReadRemoteVersion (BD_ADDR addr,
 ** Returns          pointer to the remote supported features mask
 **
 *******************************************************************************/
-extern UINT8 *BTM_ReadRemoteFeatures (BD_ADDR addr);
+extern uint8_t *BTM_ReadRemoteFeatures (BD_ADDR addr);
 
 /*******************************************************************************
 **
@@ -2479,7 +2479,7 @@ extern UINT8 *BTM_ReadRemoteFeatures (BD_ADDR addr);
 **                  or NULL if page_number is not valid
 **
 *******************************************************************************/
-extern UINT8 *BTM_ReadRemoteExtendedFeatures (BD_ADDR addr, UINT8 page_number);
+extern uint8_t *BTM_ReadRemoteExtendedFeatures (BD_ADDR addr, uint8_t page_number);
 
 /*******************************************************************************
 **
@@ -2491,7 +2491,7 @@ extern UINT8 *BTM_ReadRemoteExtendedFeatures (BD_ADDR addr, UINT8 page_number);
 ** Returns          number of features pages read from the remote device
 **
 *******************************************************************************/
-extern UINT8 BTM_ReadNumberRemoteFeaturesPages (BD_ADDR addr);
+extern uint8_t BTM_ReadNumberRemoteFeaturesPages (BD_ADDR addr);
 
 /*******************************************************************************
 **
@@ -2506,7 +2506,7 @@ extern UINT8 BTM_ReadNumberRemoteFeaturesPages (BD_ADDR addr);
 **                  BTM_FEATURE_BYTES_PER_PAGE * (BTM_EXT_FEATURES_PAGE_MAX + 1).
 **
 *******************************************************************************/
-extern UINT8 *BTM_ReadAllRemoteFeatures (BD_ADDR addr);
+extern uint8_t *BTM_ReadAllRemoteFeatures (BD_ADDR addr);
 
 /*******************************************************************************
 **
@@ -2610,7 +2610,7 @@ extern tBTM_STATUS BTM_StartDiscovery (tBTM_CMPL_CB *p_cmpl_cb,
 ** Returns          Pointer to matching record, or NULL
 **
 *******************************************************************************/
-extern tSDP_DISC_REC *BTM_FindAttribute (UINT16 attr_id,
+extern tSDP_DISC_REC *BTM_FindAttribute (uint16_t attr_id,
                                          tSDP_DISC_REC *p_start_rec);
 
 
@@ -2625,7 +2625,7 @@ extern tSDP_DISC_REC *BTM_FindAttribute (UINT16 attr_id,
 ** Returns          Pointer to matching record, or NULL
 **
 *******************************************************************************/
-extern tSDP_DISC_REC *BTM_FindService (UINT16 service_uuid,
+extern tSDP_DISC_REC *BTM_FindService (uint16_t service_uuid,
                                        tSDP_DISC_REC *p_start_rec);
 
 
@@ -2640,8 +2640,8 @@ extern tSDP_DISC_REC *BTM_FindService (UINT16 service_uuid,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetDiscoveryParams (UINT16 num_uuid, tSDP_UUID *p_uuid_list,
-                                    UINT16 num_attr, UINT16 *p_attr_list);
+extern void BTM_SetDiscoveryParams (uint16_t num_uuid, tSDP_UUID *p_uuid_list,
+                                    uint16_t num_attr, uint16_t *p_attr_list);
 
 
 /*****************************************************************************
@@ -2657,7 +2657,7 @@ extern void BTM_SetDiscoveryParams (UINT16 num_uuid, tSDP_UUID *p_uuid_list,
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda,
-                                      UINT16 *settings);
+                                      uint16_t *settings);
 
 /*******************************************************************************
 **
@@ -2669,7 +2669,7 @@ extern tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetDefaultLinkPolicy (UINT16 settings);
+extern void BTM_SetDefaultLinkPolicy (uint16_t settings);
 
 
 /*******************************************************************************
@@ -2682,7 +2682,7 @@ extern void BTM_SetDefaultLinkPolicy (UINT16 settings);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetDefaultLinkSuperTout (UINT16 timeout);
+extern void BTM_SetDefaultLinkSuperTout (uint16_t timeout);
 
 
 /*******************************************************************************
@@ -2695,7 +2695,7 @@ extern void BTM_SetDefaultLinkSuperTout (UINT16 timeout);
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda,
-                                         UINT16 timeout);
+                                         uint16_t timeout);
 /*******************************************************************************
 **
 ** Function         BTM_GetLinkSuperTout
@@ -2706,7 +2706,7 @@ extern tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda,
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_GetLinkSuperTout (BD_ADDR remote_bda,
-                                         UINT16 *p_timeout);
+                                         uint16_t *p_timeout);
 
 /*******************************************************************************
 **
@@ -2715,10 +2715,10 @@ extern tBTM_STATUS BTM_GetLinkSuperTout (BD_ADDR remote_bda,
 ** Description      This function is called to check if an ACL connection exists
 **                  to a specific remote BD Address.
 **
-** Returns          TRUE if connection is up, else FALSE.
+** Returns          true if connection is up, else false.
 **
 *******************************************************************************/
-extern BOOLEAN BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transport);
+extern bool    BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -2732,7 +2732,7 @@ extern BOOLEAN BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transpor
 **                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, UINT8 *p_role);
+extern tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, uint8_t *p_role);
 
 
 
@@ -2753,7 +2753,7 @@ extern tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, UINT8 *p_role);
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr,
-                                   UINT8 new_role,
+                                   uint8_t new_role,
                                    tBTM_CMPL_CB *p_cb);
 
 /*******************************************************************************
@@ -2817,7 +2817,7 @@ extern tBTM_STATUS BTM_ReadLinkQuality (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb);
 ** Returns          BTM_SUCCESS if successfully registered, otherwise error
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_RegBusyLevelNotif (tBTM_BL_CHANGE_CB *p_cb, UINT8 *p_level,
+extern tBTM_STATUS BTM_RegBusyLevelNotif (tBTM_BL_CHANGE_CB *p_cb, uint8_t *p_level,
                                           tBTM_BL_EVENT_MASK evt_mask);
 
 /*******************************************************************************
@@ -2839,10 +2839,10 @@ extern tBTM_STATUS BTM_AclRegisterForChanges (tBTM_ACL_DB_CHANGE_CB *p_cb);
 ** Description      This function is called to count the number of
 **                  ACL links that are active.
 **
-** Returns          UINT16  Number of active ACL links
+** Returns          uint16_t Number of active ACL links
 **
 *******************************************************************************/
-extern UINT16 BTM_GetNumAclLinks (void);
+extern uint16_t BTM_GetNumAclLinks (void);
 
 /*******************************************************************************
 **
@@ -2865,7 +2865,7 @@ extern tBTM_STATUS BTM_SetQoS(BD_ADDR bd, FLOW_SPEC *p_flow,
 ** Function         BTM_CreateSco
 **
 ** Description      This function is called to create an SCO connection. If the
-**                  "is_orig" flag is TRUE, the connection will be originated,
+**                  "is_orig" flag is true, the connection will be originated,
 **                  otherwise BTM will wait for the other side to connect.
 **
 ** Returns          BTM_UNKNOWN_ADDR if the ACL connection is not up
@@ -2877,8 +2877,8 @@ extern tBTM_STATUS BTM_SetQoS(BD_ADDR bd, FLOW_SPEC *p_flow,
 **                                   with the sco index used for the connection.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig,
-                                  UINT16 pkt_types, UINT16 *p_sco_inx,
+extern tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, bool    is_orig,
+                                  uint16_t pkt_types, uint16_t *p_sco_inx,
                                   tBTM_SCO_CB *p_conn_cb,
                                   tBTM_SCO_CB *p_disc_cb);
 
@@ -2892,7 +2892,7 @@ extern tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig,
 ** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_RemoveSco (UINT16 sco_inx);
+extern tBTM_STATUS BTM_RemoveSco (uint16_t sco_inx);
 
 
 /*******************************************************************************
@@ -2915,7 +2915,7 @@ extern tBTM_STATUS BTM_RemoveSco (UINT16 sco_inx);
 ** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_SetScoPacketTypes (UINT16 sco_inx, UINT16 pkt_types);
+extern tBTM_STATUS BTM_SetScoPacketTypes (uint16_t sco_inx, uint16_t pkt_types);
 
 
 /*******************************************************************************
@@ -2936,7 +2936,7 @@ extern tBTM_STATUS BTM_SetScoPacketTypes (UINT16 sco_inx, UINT16 pkt_types);
 ** Returns          packet types supported for the connection
 **
 *******************************************************************************/
-extern UINT16 BTM_ReadScoPacketTypes (UINT16 sco_inx);
+extern uint16_t BTM_ReadScoPacketTypes (uint16_t sco_inx);
 
 
 /*******************************************************************************
@@ -2949,7 +2949,7 @@ extern UINT16 BTM_ReadScoPacketTypes (UINT16 sco_inx);
 ** Returns          packet types supported by the device.
 **
 *******************************************************************************/
-extern UINT16 BTM_ReadDeviceScoPacketTypes (void);
+extern uint16_t BTM_ReadDeviceScoPacketTypes (void);
 
 
 /*******************************************************************************
@@ -2962,7 +2962,7 @@ extern UINT16 BTM_ReadDeviceScoPacketTypes (void);
 ** Returns          handle for the connection, or 0xFFFF if invalid SCO index.
 **
 *******************************************************************************/
-extern UINT16 BTM_ReadScoHandle (UINT16 sco_inx);
+extern uint16_t BTM_ReadScoHandle (uint16_t sco_inx);
 
 
 /*******************************************************************************
@@ -2975,7 +2975,7 @@ extern UINT16 BTM_ReadScoHandle (UINT16 sco_inx);
 ** Returns          pointer to BD address or NULL if not known
 **
 *******************************************************************************/
-extern UINT8 *BTM_ReadScoBdAddr (UINT16 sco_inx);
+extern uint8_t *BTM_ReadScoBdAddr (uint16_t sco_inx);
 
 
 /*******************************************************************************
@@ -2989,7 +2989,7 @@ extern UINT8 *BTM_ReadScoBdAddr (UINT16 sco_inx);
 ** Returns          HCI reason or BTM_INVALID_SCO_DISC_REASON if not set.
 **
 *******************************************************************************/
-extern UINT16 BTM_ReadScoDiscReason (void);
+extern uint16_t BTM_ReadScoDiscReason (void);
 
 
 /*******************************************************************************
@@ -3034,7 +3034,7 @@ extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 **                  BTM_ILLEGAL_VALUE if there is an illegal sco_inx
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_RegForEScoEvts (UINT16 sco_inx,
+extern tBTM_STATUS BTM_RegForEScoEvts (uint16_t sco_inx,
                                        tBTM_ESCO_CBACK *p_esco_cback);
 
 /*******************************************************************************
@@ -3058,7 +3058,7 @@ extern tBTM_STATUS BTM_RegForEScoEvts (UINT16 sco_inx,
 **                      1.2 specification.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_ReadEScoLinkParms (UINT16 sco_inx,
+extern tBTM_STATUS BTM_ReadEScoLinkParms (uint16_t sco_inx,
                                           tBTM_ESCO_DATA *p_parms);
 
 /*******************************************************************************
@@ -3080,7 +3080,7 @@ extern tBTM_STATUS BTM_ReadEScoLinkParms (UINT16 sco_inx,
 **                      1.2 specification.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_ChangeEScoLinkParms (UINT16 sco_inx,
+extern tBTM_STATUS BTM_ChangeEScoLinkParms (uint16_t sco_inx,
                                             tBTM_CHG_ESCO_PARAMS *p_parms);
 
 /*******************************************************************************
@@ -3101,7 +3101,7 @@ extern tBTM_STATUS BTM_ChangeEScoLinkParms (UINT16 sco_inx,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_EScoConnRsp (UINT16 sco_inx, UINT8 hci_status,
+extern void BTM_EScoConnRsp (uint16_t sco_inx, uint8_t hci_status,
                              tBTM_ESCO_PARAMS *p_parms);
 
 /*******************************************************************************
@@ -3110,10 +3110,10 @@ extern void BTM_EScoConnRsp (UINT16 sco_inx, UINT8 hci_status,
 **
 ** Description      This function returns the number of active SCO links.
 **
-** Returns          UINT8
+** Returns          uint8_t
 **
 *******************************************************************************/
-extern UINT8 BTM_GetNumScoLinks (void);
+extern uint8_t BTM_GetNumScoLinks (void);
 
 /*****************************************************************************
 **  SECURITY MANAGEMENT FUNCTIONS
@@ -3126,10 +3126,10 @@ extern UINT8 BTM_GetNumScoLinks (void);
 **                  security services.  There can be one and only one application
 **                  saving link keys.  BTM allows only first registration.
 **
-** Returns          TRUE if registered OK, else FALSE
+** Returns          true if registered OK, else false
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SecRegister (tBTM_APPL_INFO *p_cb_info);
+extern bool    BTM_SecRegister (tBTM_APPL_INFO *p_cb_info);
 
 /*******************************************************************************
 **
@@ -3138,10 +3138,10 @@ extern BOOLEAN BTM_SecRegister (tBTM_APPL_INFO *p_cb_info);
 ** Description      Profiles can register to be notified when a new Link Key
 **                  is generated per connection.
 **
-** Returns          TRUE if registered OK, else FALSE
+** Returns          true if registered OK, else false
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback(
+extern bool    BTM_SecRegisterLinkKeyNotificationCallback(
                                                         tBTM_LINK_KEY_CALLBACK *p_callback);
 
 /*******************************************************************************
@@ -3151,10 +3151,10 @@ extern BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback(
 ** Description      Profiles can register to be notified when name of the
 **                  remote device is resolved (up to BTM_SEC_MAX_RMT_NAME_CALLBACKS).
 **
-** Returns          TRUE if registered OK, else FALSE
+** Returns          true if registered OK, else false
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback);
+extern bool    BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback);
 
 
 /*******************************************************************************
@@ -3164,10 +3164,10 @@ extern BOOLEAN BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callba
 ** Description      A profile can deregister notification when a new Link Key
 **                  is generated per connection.
 **
-** Returns          TRUE if OK, else FALSE
+** Returns          true if OK, else false
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback);
+extern bool    BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback);
 
 /*******************************************************************************
 **
@@ -3175,10 +3175,10 @@ extern BOOLEAN BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_cal
 **
 ** Description      Get security flags for the device
 **
-** Returns          BOOLEAN TRUE or FALSE is device found
+** Returns          bool    true or false is device found
 **
 *******************************************************************************/
-extern BOOLEAN BTM_GetSecurityFlags (BD_ADDR bd_addr, UINT8 * p_sec_flags);
+extern bool    BTM_GetSecurityFlags (BD_ADDR bd_addr, uint8_t * p_sec_flags);
 
 /*******************************************************************************
 **
@@ -3190,11 +3190,11 @@ extern BOOLEAN BTM_GetSecurityFlags (BD_ADDR bd_addr, UINT8 * p_sec_flags);
 **                  p_sec_flags : Out parameter to be filled with security flags for the connection
 **                  transport :  Physical transport of the connection (BR/EDR or LE)
 **
-** Returns          BOOLEAN TRUE or FALSE is device found
+** Returns          bool    true or false is device found
 **
 *******************************************************************************/
-extern BOOLEAN BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr,
-                                                UINT8 * p_sec_flags, tBT_TRANSPORT transport);
+extern bool    BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr,
+                                                uint8_t * p_sec_flags, tBT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -3206,7 +3206,7 @@ extern BOOLEAN BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr,
 **                  otherwise, the trusted mask
 **
 *******************************************************************************/
-extern UINT32 * BTM_ReadTrustedMask (BD_ADDR bd_addr);
+extern uint32_t * BTM_ReadTrustedMask (BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -3217,7 +3217,7 @@ extern UINT32 * BTM_ReadTrustedMask (BD_ADDR bd_addr);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetPinType (UINT8 pin_type, PIN_CODE pin_code, UINT8 pin_code_len);
+extern void BTM_SetPinType (uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len);
 
 
 /*******************************************************************************
@@ -3226,15 +3226,15 @@ extern void BTM_SetPinType (UINT8 pin_type, PIN_CODE pin_code, UINT8 pin_code_le
 **
 ** Description      Enable or disable pairing
 **
-** Parameters       allow_pairing - (TRUE or FALSE) whether or not the device
+** Parameters       allow_pairing - (true or false) whether or not the device
 **                      allows pairing.
-**                  connect_only_paired - (TRUE or FALSE) whether or not to
+**                  connect_only_paired - (true or false) whether or not to
 **                      only allow paired devices to connect.
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_paired);
+extern void BTM_SetPairableMode (bool    allow_pairing, bool    connect_only_paired);
 
 /*******************************************************************************
 **
@@ -3242,16 +3242,16 @@ extern void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_pai
 **
 ** Description      Enable or disable default treatment for Mode 4 Level 0 services
 **
-** Parameter        secure_connections_only_mode - (TRUE or FALSE)
-**                  TRUE means that the device should treat Mode 4 Level 0 services as
+** Parameter        secure_connections_only_mode - (true or false)
+**                  true means that the device should treat Mode 4 Level 0 services as
 **                  services of other levels.
-**                  FALSE means that the device should provide default treatment for
+**                  false means that the device should provide default treatment for
 **                  Mode 4 Level 0 services.
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetSecureConnectionsOnly (BOOLEAN secure_connections_only_mode);
+extern void BTM_SetSecureConnectionsOnly (bool    secure_connections_only_mode);
 
 /*******************************************************************************
 **
@@ -3262,13 +3262,13 @@ extern void BTM_SetSecureConnectionsOnly (BOOLEAN secure_connections_only_mode);
 **                  security level that is used.  This API is called once for originators
 **                  nad again for acceptors of connections.
 **
-** Returns          TRUE if registered OK, else FALSE
+** Returns          true if registered OK, else false
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, const char *p_name,
-                                     UINT8 service_id, UINT16 sec_level,
-                                     UINT16 psm, UINT32 mx_proto_id,
-                                     UINT32 mx_chan_id);
+extern bool    BTM_SetSecurityLevel (bool    is_originator, const char *p_name,
+                                     uint8_t service_id, uint16_t sec_level,
+                                     uint16_t psm, uint32_t mx_proto_id,
+                                     uint32_t mx_chan_id);
 
 /*******************************************************************************
 **
@@ -3280,7 +3280,7 @@ extern BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, const char *p_name,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetOutService(BD_ADDR bd_addr, UINT8 service_id, UINT32 mx_chan_id);
+extern void BTM_SetOutService(BD_ADDR bd_addr, uint8_t service_id, uint32_t mx_chan_id);
 
 /*******************************************************************************
 **
@@ -3295,7 +3295,7 @@ extern void BTM_SetOutService(BD_ADDR bd_addr, UINT8 service_id, UINT32 mx_chan_
 ** Returns          Number of records that were freed.
 **
 *******************************************************************************/
-extern UINT8 BTM_SecClrService (UINT8 service_id);
+extern uint8_t BTM_SecClrService (uint8_t service_id);
 
 /*******************************************************************************
 **
@@ -3306,13 +3306,13 @@ extern UINT8 BTM_SecClrService (UINT8 service_id);
 **                  stored in the NVRAM.
 **                  dev_class, bd_name, link_key, and features are NULL if unknown
 **
-** Returns          TRUE if added OK, else FALSE
+** Returns          true if added OK, else false
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                 BD_NAME bd_name, UINT8 *features,
-                                 UINT32 trusted_mask[], LINK_KEY link_key,
-                                 UINT8 key_type, tBTM_IO_CAP io_cap, UINT8 pin_length);
+extern bool    BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class,
+                                 BD_NAME bd_name, uint8_t *features,
+                                 uint32_t trusted_mask[], LINK_KEY link_key,
+                                 uint8_t key_type, tBTM_IO_CAP io_cap, uint8_t pin_length);
 
 
 /*******************************************************************************
@@ -3321,10 +3321,10 @@ extern BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **
 ** Description      Free resources associated with the device.
 **
-** Returns          TRUE if rmoved OK, FALSE if not found
+** Returns          true if rmoved OK, false if not found
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SecDeleteDevice (BD_ADDR bd_addr);
+extern bool    BTM_SecDeleteDevice (BD_ADDR bd_addr);
 
 
 /*******************************************************************************
@@ -3371,13 +3371,13 @@ extern tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr);
 **                  res          - result of the operation BTM_SUCCESS if success
 **                  pin_len      - length in bytes of the PIN Code
 **                  p_pin        - pointer to array with the PIN Code
-**                  trusted_mask - bitwise OR of trusted services (array of UINT32)
+**                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len,
-                              UINT8 *p_pin, UINT32 trusted_mask[]);
+extern void BTM_PINCodeReply (BD_ADDR bd_addr, uint8_t res, uint8_t pin_len,
+                              uint8_t *p_pin, uint32_t trusted_mask[]);
 
 
 /*******************************************************************************
@@ -3389,14 +3389,14 @@ extern void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len,
 ** Parameters:      bd_addr      - Address of the device to bond
 **                  pin_len      - length in bytes of the PIN Code
 **                  p_pin        - pointer to array with the PIN Code
-**                  trusted_mask - bitwise OR of trusted services (array of UINT32)
+**                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
 
 ** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr,
-                                UINT8 pin_len, UINT8 *p_pin,
-                                UINT32 trusted_mask[]);
+                                uint8_t pin_len, uint8_t *p_pin,
+                                uint32_t trusted_mask[]);
 
 /*******************************************************************************
 **
@@ -3407,7 +3407,7 @@ extern tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr,
 ** Parameters:      bd_addr      - Address of the device to bond
 **                  pin_len      - length in bytes of the PIN Code
 **                  p_pin        - pointer to array with the PIN Code
-**                  trusted_mask - bitwise OR of trusted services (array of UINT32)
+**                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
 **                  transport :  Physical transport to use for bonding (BR/EDR or LE)
 **
 ** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
@@ -3415,8 +3415,8 @@ extern tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr,
 *******************************************************************************/
 extern tBTM_STATUS BTM_SecBondByTransport (BD_ADDR bd_addr,
                                            tBT_TRANSPORT transport,
-                                           UINT8 pin_len, UINT8 *p_pin,
-                                           UINT32 trusted_mask[]);
+                                           uint8_t pin_len, uint8_t *p_pin,
+                                           uint32_t trusted_mask[]);
 
 /*******************************************************************************
 **
@@ -3486,7 +3486,7 @@ extern void BTM_ConfirmReqReply(tBTM_STATUS res, BD_ADDR bd_addr);
 **                  passkey       - numeric value in the range of 0 - 999999(0xF423F).
 **
 *******************************************************************************/
-extern void BTM_PasskeyReqReply(tBTM_STATUS res, BD_ADDR bd_addr, UINT32 passkey);
+extern void BTM_PasskeyReqReply(tBTM_STATUS res, BD_ADDR bd_addr, uint32_t passkey);
 
 /*******************************************************************************
 **
@@ -3565,8 +3565,8 @@ extern void BTM_RemoteOobDataReply(tBTM_STATUS res, BD_ADDR bd_addr,
 ** Returns          Number of bytes in p_data.
 **
 *******************************************************************************/
-extern UINT16 BTM_BuildOobData(UINT8 *p_data, UINT16 max_len, BT_OCTET16 c,
-                               BT_OCTET16 r, UINT8 name_len);
+extern uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c,
+                               BT_OCTET16 r, uint8_t name_len);
 
 /*******************************************************************************
 **
@@ -3577,12 +3577,12 @@ extern UINT16 BTM_BuildOobData(UINT8 *p_data, UINT16 max_len, BT_OCTET16 c,
 **
 ** Parameters:      bd_addr - address of the peer
 **
-** Returns          TRUE if BR/EDR Secure Connections are supported by both local
+** Returns          true if BR/EDR Secure Connections are supported by both local
 **                  and the remote device.
-**                  else FALSE.
+**                  else false.
 **
 *******************************************************************************/
-extern BOOLEAN BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr);
+extern bool    BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -3593,11 +3593,11 @@ extern BOOLEAN BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr);
 **
 ** Parameters:      bd_addr - address of the peer
 **
-** Returns          TRUE if BR/EDR Secure Connections are supported by the peer,
-**                  else FALSE.
+** Returns          true if BR/EDR Secure Connections are supported by the peer,
+**                  else false.
 **
 *******************************************************************************/
-extern BOOLEAN BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr);
+extern bool    BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -3614,7 +3614,7 @@ extern BOOLEAN BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr);
 **                  NULL, if the tag is not found.
 **
 *******************************************************************************/
-extern UINT8 * BTM_ReadOobData(UINT8 *p_data, UINT8 eir_tag, UINT8 *p_len);
+extern uint8_t * BTM_ReadOobData(uint8_t *p_data, uint8_t eir_tag, uint8_t *p_len);
 
 /*******************************************************************************
 **
@@ -3643,7 +3643,7 @@ extern char *BTM_SecReadDevName (BD_ADDR bd_addr);
 **                  BTM_ILLEGAL_VALUE
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_PmRegister (UINT8 mask, UINT8 *p_pm_id,
+extern tBTM_STATUS BTM_PmRegister (uint8_t mask, uint8_t *p_pm_id,
                                    tBTM_PM_STATUS_CBACK *p_cb);
 
 
@@ -3658,7 +3658,7 @@ extern tBTM_STATUS BTM_PmRegister (UINT8 mask, UINT8 *p_pm_id,
 **                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda,
+extern tBTM_STATUS BTM_SetPowerMode (uint8_t pm_id, BD_ADDR remote_bda,
                                      tBTM_PM_PWR_MD *p_mode);
 
 
@@ -3703,8 +3703,8 @@ extern tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda,
 **                  BTM_CMD_STORED if the command is stored
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, UINT16 max_lat,
-                                     UINT16 min_rmt_to, UINT16 min_loc_to);
+extern tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, uint16_t max_lat,
+                                     uint16_t min_rmt_to, uint16_t min_loc_to);
 
 /*******************************************************************************
 **
@@ -3716,7 +3716,7 @@ extern tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, UINT16 max_lat,
 ** Returns          the handle of the connection, or 0xFFFF if none.
 **
 *******************************************************************************/
-extern UINT16 BTM_GetHCIConnHandle (BD_ADDR remote_bda, tBT_TRANSPORT transport);
+extern uint16_t BTM_GetHCIConnHandle (BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -3761,7 +3761,7 @@ extern tBTM_STATUS BTM_WriteEIR( BT_HDR * p_buff );
 ** Returns          pointer of EIR data
 **
 *******************************************************************************/
-extern UINT8 *BTM_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length );
+extern uint8_t *BTM_CheckEirData( uint8_t *p_eir, uint8_t type, uint8_t *p_length );
 
 /*******************************************************************************
 **
@@ -3772,11 +3772,11 @@ extern UINT8 *BTM_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length );
 ** Parameters       p_eir_uuid - bit map of UUID list
 **                  uuid16 - UUID 16-bit
 **
-** Returns          TRUE - if found
-**                  FALSE - if not found
+** Returns          true - if found
+**                  false - if not found
 **
 *******************************************************************************/
-extern BOOLEAN BTM_HasEirService( UINT32 *p_eir_uuid, UINT16 uuid16 );
+extern bool    BTM_HasEirService( uint32_t *p_eir_uuid, uint16_t uuid16 );
 
 /*******************************************************************************
 **
@@ -3793,7 +3793,7 @@ extern BOOLEAN BTM_HasEirService( UINT32 *p_eir_uuid, UINT16 uuid16 );
 **
 *******************************************************************************/
 extern tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService( tBTM_INQ_RESULTS *p_results,
-                                                        UINT16 uuid16 );
+                                                        uint16_t uuid16 );
 
 /*******************************************************************************
 **
@@ -3807,7 +3807,7 @@ extern tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService( tBTM_INQ_RESULTS *p_resu
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTM_AddEirService( UINT32 *p_eir_uuid, UINT16 uuid16 );
+extern void BTM_AddEirService( uint32_t *p_eir_uuid, uint16_t uuid16 );
 
 /*******************************************************************************
 **
@@ -3821,7 +3821,7 @@ extern void BTM_AddEirService( UINT32 *p_eir_uuid, UINT16 uuid16 );
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTM_RemoveEirService( UINT32 *p_eir_uuid, UINT16 uuid16 );
+extern void BTM_RemoveEirService( uint32_t *p_eir_uuid, uint16_t uuid16 );
 
 /*******************************************************************************
 **
@@ -3838,8 +3838,8 @@ extern void BTM_RemoveEirService( UINT32 *p_eir_uuid, UINT16 uuid16 );
 **                  BTM_EIR_COMPLETE_16BITS_UUID_TYPE, otherwise
 **
 *******************************************************************************/
-extern UINT8 BTM_GetEirSupportedServices( UINT32 *p_eir_uuid,    UINT8 **p,
-                                          UINT8  max_num_uuid16, UINT8 *p_num_uuid16);
+extern uint8_t BTM_GetEirSupportedServices( uint32_t *p_eir_uuid,    uint8_t **p,
+                                          uint8_t max_num_uuid16, uint8_t *p_num_uuid16);
 
 /*******************************************************************************
 **
@@ -3862,8 +3862,8 @@ extern UINT8 BTM_GetEirSupportedServices( UINT32 *p_eir_uuid,    UINT8 **p,
 **                  BTM_EIR_MORE_128BITS_UUID_TYPE
 **
 *******************************************************************************/
-extern UINT8 BTM_GetEirUuidList( UINT8 *p_eir, UINT8 uuid_size, UINT8 *p_num_uuid,
-                                 UINT8 *p_uuid_list, UINT8 max_num_uuid);
+extern uint8_t BTM_GetEirUuidList( uint8_t *p_eir, uint8_t uuid_size, uint8_t *p_num_uuid,
+                                 uint8_t *p_uuid_list, uint8_t max_num_uuid);
 
 /*****************************************************************************
 **  SCO OVER HCI
@@ -3895,7 +3895,7 @@ extern UINT8 BTM_GetEirUuidList( UINT8 *p_eir, UINT8 uuid_size, UINT8 *p_num_uui
 extern tBTM_STATUS BTM_ConfigScoPath (tBTM_SCO_ROUTE_TYPE path,
                                       tBTM_SCO_DATA_CB *p_sco_data_cb,
                                       tBTM_SCO_PCM_PARAM *p_pcm_param,
-                                      BOOLEAN err_data_rpt);
+                                      bool    err_data_rpt);
 
 /*******************************************************************************
 **
@@ -3918,7 +3918,7 @@ extern tBTM_STATUS BTM_ConfigScoPath (tBTM_SCO_ROUTE_TYPE path,
 **
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_WriteScoData (UINT16 sco_inx, BT_HDR *p_buf);
+extern tBTM_STATUS BTM_WriteScoData (uint16_t sco_inx, BT_HDR *p_buf);
 
 /*******************************************************************************
 **
@@ -3929,7 +3929,7 @@ extern tBTM_STATUS BTM_WriteScoData (UINT16 sco_inx, BT_HDR *p_buf);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_SetARCMode (UINT8 iface, UINT8 arc_mode, tBTM_VSC_CMPL_CB *p_arc_cb);
+extern void BTM_SetARCMode (uint8_t iface, uint8_t arc_mode, tBTM_VSC_CMPL_CB *p_arc_cb);
 
 
 /*******************************************************************************
@@ -3941,7 +3941,7 @@ extern void BTM_SetARCMode (UINT8 iface, UINT8 arc_mode, tBTM_VSC_CMPL_CB *p_arc
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_PCM2Setup_Write (BOOLEAN clk_master, tBTM_VSC_CMPL_CB *p_arc_cb);
+extern void BTM_PCM2Setup_Write (bool    clk_master, tBTM_VSC_CMPL_CB *p_arc_cb);
 
 
 /*******************************************************************************
