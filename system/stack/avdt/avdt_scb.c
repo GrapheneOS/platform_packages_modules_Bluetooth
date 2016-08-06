@@ -36,7 +36,7 @@
 /*****************************************************************************
 ** state machine constants and types
 *****************************************************************************/
-#if AVDT_DEBUG == TRUE
+#if (AVDT_DEBUG == TRUE)
 
 /* verbose state strings for trace */
 const char * const avdt_scb_st_str[] = {
@@ -128,11 +128,11 @@ const tAVDT_SCB_ACTION avdt_scb_action[] = {
     avdt_scb_hdl_suspend_cmd,
     avdt_scb_hdl_suspend_rsp,
     avdt_scb_hdl_tc_close,
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
     avdt_scb_hdl_tc_close_sto,
 #endif
     avdt_scb_hdl_tc_open,
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
     avdt_scb_hdl_tc_open_sto,
 #endif
     avdt_scb_snd_delay_rpt_req,
@@ -176,7 +176,7 @@ const tAVDT_SCB_ACTION avdt_scb_action[] = {
 #define AVDT_SCB_NUM_COLS           3       /* number of columns in state tables */
 
 /* state table for idle state */
-const UINT8 avdt_scb_st_idle[][AVDT_SCB_NUM_COLS] = {
+const uint8_t avdt_scb_st_idle[][AVDT_SCB_NUM_COLS] = {
 /* Event                     Action 1                       Action 2                    Next state */
 /* API_REMOVE_EVT */        {AVDT_SCB_DEALLOC,              AVDT_SCB_IGNORE,            AVDT_SCB_IDLE_ST},
 /* API_WRITE_REQ_EVT */     {AVDT_SCB_FREE_PKT,             AVDT_SCB_IGNORE,            AVDT_SCB_IDLE_ST},
@@ -229,7 +229,7 @@ const UINT8 avdt_scb_st_idle[][AVDT_SCB_NUM_COLS] = {
 };
 
 /* state table for configured state */
-const UINT8 avdt_scb_st_conf[][AVDT_SCB_NUM_COLS] = {
+const uint8_t avdt_scb_st_conf[][AVDT_SCB_NUM_COLS] = {
 /* Event                     Action 1                       Action 2                    Next state */
 /* API_REMOVE_EVT */        {AVDT_SCB_SND_ABORT_REQ,        AVDT_SCB_SET_REMOVE,        AVDT_SCB_CONF_ST},
 /* API_WRITE_REQ_EVT */     {AVDT_SCB_FREE_PKT,             AVDT_SCB_IGNORE,            AVDT_SCB_CONF_ST},
@@ -282,7 +282,7 @@ const UINT8 avdt_scb_st_conf[][AVDT_SCB_NUM_COLS] = {
 };
 
 /* state table for opening state */
-const UINT8 avdt_scb_st_opening[][AVDT_SCB_NUM_COLS] = {
+const uint8_t avdt_scb_st_opening[][AVDT_SCB_NUM_COLS] = {
 /* Event                     Action 1                       Action 2                    Next state */
 /* API_REMOVE_EVT */        {AVDT_SCB_SND_CLOSE_REQ,        AVDT_SCB_SET_REMOVE,        AVDT_SCB_CLOSING_ST},
 /* API_WRITE_REQ_EVT */     {AVDT_SCB_FREE_PKT,             AVDT_SCB_IGNORE,            AVDT_SCB_OPENING_ST},
@@ -335,7 +335,7 @@ const UINT8 avdt_scb_st_opening[][AVDT_SCB_NUM_COLS] = {
 };
 
 /* state table for open state */
-const UINT8 avdt_scb_st_open[][AVDT_SCB_NUM_COLS] = {
+const uint8_t avdt_scb_st_open[][AVDT_SCB_NUM_COLS] = {
 /* Event                     Action 1                       Action 2                    Next state */
 /* API_REMOVE_EVT */        {AVDT_SCB_SND_CLOSE_REQ,        AVDT_SCB_SET_REMOVE,        AVDT_SCB_CLOSING_ST},
 /* API_WRITE_REQ_EVT */     {AVDT_SCB_FREE_PKT,             AVDT_SCB_IGNORE,            AVDT_SCB_OPEN_ST},
@@ -380,7 +380,7 @@ const UINT8 avdt_scb_st_open[][AVDT_SCB_NUM_COLS] = {
 /* MSG_START_REJ_EVT */     {AVDT_SCB_HDL_START_RSP,        AVDT_SCB_IGNORE,            AVDT_SCB_OPEN_ST},
 /* MSG_SUSPEND_REJ_EVT */   {AVDT_SCB_HDL_SUSPEND_RSP,      AVDT_SCB_IGNORE,            AVDT_SCB_OPEN_ST},
 /* TC_TOUT_EVT */           {AVDT_SCB_IGNORE,               AVDT_SCB_IGNORE,            AVDT_SCB_OPEN_ST},
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
 /* TC_OPEN_EVT */           {AVDT_SCB_HDL_TC_OPEN_STO,      AVDT_SCB_IGNORE,            AVDT_SCB_OPEN_ST},
 /* TC_CLOSE_EVT */          {AVDT_SCB_HDL_TC_CLOSE_STO,     AVDT_SCB_IGNORE,            AVDT_SCB_OPEN_ST},
 #else
@@ -393,7 +393,7 @@ const UINT8 avdt_scb_st_open[][AVDT_SCB_NUM_COLS] = {
 };
 
 /* state table for streaming state */
-const UINT8 avdt_scb_st_stream[][AVDT_SCB_NUM_COLS] = {
+const uint8_t avdt_scb_st_stream[][AVDT_SCB_NUM_COLS] = {
 /* Event                     Action 1                       Action 2                    Next state */
 /* API_REMOVE_EVT */        {AVDT_SCB_SND_STREAM_CLOSE,     AVDT_SCB_SET_REMOVE,        AVDT_SCB_CLOSING_ST},
 /* API_WRITE_REQ_EVT */     {AVDT_SCB_HDL_WRITE_REQ,        AVDT_SCB_CHK_SND_PKT,       AVDT_SCB_STREAM_ST},
@@ -446,7 +446,7 @@ const UINT8 avdt_scb_st_stream[][AVDT_SCB_NUM_COLS] = {
 };
 
 /* state table for closing state */
-const UINT8 avdt_scb_st_closing[][AVDT_SCB_NUM_COLS] = {
+const uint8_t avdt_scb_st_closing[][AVDT_SCB_NUM_COLS] = {
 /* Event                     Action 1                       Action 2                    Next state */
 /* API_REMOVE_EVT */        {AVDT_SCB_SET_REMOVE,           AVDT_SCB_IGNORE,            AVDT_SCB_CLOSING_ST},
 /* API_WRITE_REQ_EVT */     {AVDT_SCB_FREE_PKT,             AVDT_SCB_IGNORE,            AVDT_SCB_CLOSING_ST},
@@ -499,7 +499,7 @@ const UINT8 avdt_scb_st_closing[][AVDT_SCB_NUM_COLS] = {
 };
 
 /* type for state table */
-typedef const UINT8 (*tAVDT_SCB_ST_TBL)[AVDT_SCB_NUM_COLS];
+typedef const uint8_t (*tAVDT_SCB_ST_TBL)[AVDT_SCB_NUM_COLS];
 
 /* state table */
 const tAVDT_SCB_ST_TBL avdt_scb_st_tbl[] = {
@@ -522,13 +522,13 @@ const tAVDT_SCB_ST_TBL avdt_scb_st_tbl[] = {
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_scb_event(tAVDT_SCB *p_scb, UINT8 event, tAVDT_SCB_EVT *p_data)
+void avdt_scb_event(tAVDT_SCB *p_scb, uint8_t event, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_SCB_ST_TBL    state_table;
-    UINT8               action;
+    uint8_t             action;
     int                 i;
 
-#if AVDT_DEBUG == TRUE
+#if (AVDT_DEBUG == TRUE)
     AVDT_TRACE_EVENT("SCB hdl=%d event=%d/%s state=%s", avdt_scb_to_hdl(p_scb), event, avdt_scb_evt_str[event], avdt_scb_st_str[p_scb->state]);
 #endif
     /* set current event */
@@ -595,18 +595,18 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
         if (!p_scb->allocated)
         {
             memset(p_scb,0,sizeof(tAVDT_SCB));
-            p_scb->allocated = TRUE;
+            p_scb->allocated = true;
             p_scb->p_ccb = NULL;
 
             memcpy(&p_scb->cs, p_cs, sizeof(tAVDT_CS));
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
             /* initialize fragments gueue */
             p_scb->frag_q = fixed_queue_new(SIZE_MAX);
 
             if(p_cs->cfg.psc_mask & AVDT_PSC_MUX)
             {
                 p_scb->cs.cfg.mux_tcid_media = avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb);
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
                 if(p_cs->cfg.psc_mask & AVDT_PSC_REPORT)
                 {
                     p_scb->cs.cfg.mux_tcid_report = avdt_ad_type_to_tcid(AVDT_CHAN_REPORT, p_scb);
@@ -648,7 +648,7 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     AVDT_TRACE_DEBUG("avdt_scb_dealloc hdl=%d", avdt_scb_to_hdl(p_scb));
     alarm_free(p_scb->transport_channel_timer);
 
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     /* free fragments we're holding, if any; it shouldn't happen */
     fixed_queue_free(p_scb->frag_q, osi_free);
 #endif
@@ -666,9 +666,9 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 ** Returns          Index of scb.
 **
 *******************************************************************************/
-UINT8 avdt_scb_to_hdl(tAVDT_SCB *p_scb)
+uint8_t avdt_scb_to_hdl(tAVDT_SCB *p_scb)
 {
-    return (UINT8) (p_scb - avdt_cb.scb + 1);
+    return (uint8_t) (p_scb - avdt_cb.scb + 1);
 }
 
 /*******************************************************************************
@@ -682,7 +682,7 @@ UINT8 avdt_scb_to_hdl(tAVDT_SCB *p_scb)
 **                  is not allocated.
 **
 *******************************************************************************/
-tAVDT_SCB *avdt_scb_by_hdl(UINT8 hdl)
+tAVDT_SCB *avdt_scb_by_hdl(uint8_t hdl)
 {
     tAVDT_SCB   *p_scb;
 
@@ -716,12 +716,12 @@ tAVDT_SCB *avdt_scb_by_hdl(UINT8 hdl)
 ** Returns          SEID that failed, or 0 if success.
 **
 *******************************************************************************/
-UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_seid, UINT8 *p_err_code)
+uint8_t avdt_scb_verify(tAVDT_CCB *p_ccb, uint8_t state, uint8_t *p_seid, uint16_t num_seid, uint8_t *p_err_code)
 {
     int         i;
     tAVDT_SCB   *p_scb;
-    UINT8       nsc_mask;
-    UINT8       ret = 0;
+    uint8_t     nsc_mask;
+    uint8_t     ret = 0;
 
     AVDT_TRACE_DEBUG("avdt_scb_verify state %d", state);
     /* set nonsupported command mask */

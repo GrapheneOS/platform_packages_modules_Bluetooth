@@ -153,13 +153,13 @@
 #define WIND_8_SUBBANDS_8_2 (SINT16)0x12CF  /* 40 = 0x12CF6C75 */
 #endif
 
-#if (SBC_USE_ARM_PRAGMA==TRUE)
+#if (SBC_USE_ARM_PRAGMA == TRUE)
 #pragma arm section zidata = "sbc_s32_analysis_section"
 #endif
 static SINT32   s32DCTY[16]  = {0};
 static SINT32   s32X[ENC_VX_BUFFER_SIZE/2];
 static SINT16   *s16X=(SINT16*) s32X;      /* s16X must be 32 bits aligned cf  SHIFTUP_X8_2*/
-#if (SBC_USE_ARM_PRAGMA==TRUE)
+#if (SBC_USE_ARM_PRAGMA == TRUE)
 #pragma arm section zidata
 #endif
 
@@ -209,7 +209,7 @@ static SINT16   *s16X=(SINT16*) s32X;      /* s16X must be 32 bits aligned cf  S
     }                                                                               \
 }
 
-#if (SBC_ARM_ASM_OPT==TRUE)
+#if (SBC_ARM_ASM_OPT == TRUE)
 #define WINDOW_ACCU_8_0 \
 {\
     __asm\
@@ -446,7 +446,7 @@ static SINT16   *s16X=(SINT16*) s32X;      /* s16X must be 32 bits aligned cf  S
 }
 
 #else
-#if (SBC_IPAQ_OPT==TRUE)
+#if (SBC_IPAQ_OPT == TRUE)
 
 #if (SBC_IS_64_MULT_IN_WINDOW_ACCU == TRUE)
 #define WINDOW_ACCU_8_0 \
@@ -836,15 +836,15 @@ static SINT16   *s16X=(SINT16*) s32X;      /* s16X must be 32 bits aligned cf  S
 #define WINDOW_ACCU_4(i) \
 {\
     s32DCTY[i]=(gas32CoeffFor4SBs[i * 2] * s16X[ChOffset+i])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor4SBs[(i * 2) + 1]) * s16X[ChOffset+i]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor4SBs[(i * 2) + 1]) * s16X[ChOffset+i]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor4SBs[(i+8) * 2] * s16X[ChOffset+i+8])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor4SBs[((i+8) * 2) + 1]) * s16X[ChOffset+i+8]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor4SBs[((i+8) * 2) + 1]) * s16X[ChOffset+i+8]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor4SBs[(i+16) * 2] * s16X[ChOffset+i+16])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor4SBs[((i+16) * 2) + 1]) * s16X[ChOffset+i+16]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor4SBs[((i+16) * 2) + 1]) * s16X[ChOffset+i+16]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor4SBs[(i+24) * 2] * s16X[ChOffset+i+24])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor4SBs[((i+24) * 2) + 1]) * s16X[ChOffset+i+24]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor4SBs[((i+24) * 2) + 1]) * s16X[ChOffset+i+24]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor4SBs[(i+32) * 2] * s16X[ChOffset+i+32])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor4SBs[((i+32) * 2) + 1]) * s16X[ChOffset+i+32]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor4SBs[((i+32) * 2) + 1]) * s16X[ChOffset+i+32]) >> 16);   \
 }
 #endif
 #define WINDOW_PARTIAL_4 \
@@ -870,15 +870,15 @@ static SINT16   *s16X=(SINT16*) s32X;      /* s16X must be 32 bits aligned cf  S
 #define WINDOW_ACCU_8(i) \
 {\
     s32DCTY[i]=(gas32CoeffFor8SBs[i * 2] * s16X[ChOffset+i])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor8SBs[(i * 2) + 1]) * s16X[ChOffset+i]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor8SBs[(i * 2) + 1]) * s16X[ChOffset+i]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor8SBs[(i+16) * 2] * s16X[ChOffset+i+16])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor8SBs[((i+16) * 2) + 1]) * s16X[ChOffset+i+16]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor8SBs[((i+16) * 2) + 1]) * s16X[ChOffset+i+16]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor8SBs[(i+32) * 2] * s16X[ChOffset+i+32])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor8SBs[((i+32) * 2) + 1]) * s16X[ChOffset+i+32]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor8SBs[((i+32) * 2) + 1]) * s16X[ChOffset+i+32]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor8SBs[(i+48) * 2] * s16X[ChOffset+i+48])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor8SBs[((i+48) * 2) + 1]) * s16X[ChOffset+i+48]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor8SBs[((i+48) * 2) + 1]) * s16X[ChOffset+i+48]) >> 16);   \
     s32DCTY[i]+=(gas32CoeffFor8SBs[(i+64) * 2] * s16X[ChOffset+i+64])                                    \
-            +  (((SINT32)(UINT16)(gas32CoeffFor8SBs[((i+64) * 2) + 1]) * s16X[ChOffset+i+64]) >> 16);   \
+            +  (((SINT32)(uint16_t)(gas32CoeffFor8SBs[((i+64) * 2) + 1]) * s16X[ChOffset+i+64]) >> 16);   \
 	/*printf("s32DCTY8: %d = 0x%4x%4x * %d\n", s32DCTY[i], gas32CoeffFor8SBs[i * 2], (gas32CoeffFor8SBs[(i * 2) + 1]), s16X[ChOffset+i]);*/\
     /*s32DCTY[i]=(SINT32)(s64Temp>>16);*/\
 }
@@ -912,10 +912,10 @@ void SbcAnalysisFilter4(SBC_ENC_PARAMS *pstrEncParams)
     SINT32  s32NumOfChannels, s32NumOfBlocks;
     SINT32 i,*ps32X,*ps32X2;
     SINT32 Offset,Offset2,ChOffset;
-#if (SBC_ARM_ASM_OPT==TRUE)
+#if (SBC_ARM_ASM_OPT == TRUE)
     register SINT32 s32Hi,s32Hi2;
 #else
-#if (SBC_IPAQ_OPT==TRUE)
+#if (SBC_IPAQ_OPT == TRUE)
 #if (SBC_IS_64_MULT_IN_WINDOW_ACCU == TRUE)
     register SINT64 s64Temp,s64Temp2;
 #else
@@ -1006,10 +1006,10 @@ void SbcAnalysisFilter8 (SBC_ENC_PARAMS *pstrEncParams)
     SINT32  s32NumOfChannels, s32NumOfBlocks;
     SINT32 i,*ps32X,*ps32X2;
     SINT32 ChOffset;
-#if (SBC_ARM_ASM_OPT==TRUE)
+#if (SBC_ARM_ASM_OPT == TRUE)
     register SINT32 s32Hi,s32Hi2;
 #else
-#if (SBC_IPAQ_OPT==TRUE)
+#if (SBC_IPAQ_OPT == TRUE)
 #if (SBC_IS_64_MULT_IN_WINDOW_ACCU == TRUE)
     register SINT64 s64Temp,s64Temp2;
 #else

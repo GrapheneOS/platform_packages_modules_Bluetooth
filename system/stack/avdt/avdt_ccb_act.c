@@ -52,7 +52,7 @@ static void avdt_ccb_clear_ccb(tAVDT_CCB *p_ccb)
     BT_HDR          *p_buf;
 
     /* clear certain ccb variables */
-    p_ccb->cong = FALSE;
+    p_ccb->cong = false;
     p_ccb->ret_count = 0;
 
     /* free message being fragmented */
@@ -198,7 +198,7 @@ void avdt_ccb_hdl_discover_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_hdl_discover_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     /* we're done with procedure */
-    p_ccb->proc_busy = FALSE;
+    p_ccb->proc_busy = false;
 
     /* call app callback with results */
     (*p_ccb->proc_cback)(0, p_ccb->peer_addr, AVDT_DISCOVER_CFM_EVT,
@@ -245,7 +245,7 @@ void avdt_ccb_hdl_getcap_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_hdl_getcap_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     /* we're done with procedure */
-    p_ccb->proc_busy = FALSE;
+    p_ccb->proc_busy = false;
 
     /* call app callback with results */
     (*p_ccb->proc_cback)(0, p_ccb->peer_addr, AVDT_GETCAP_CFM_EVT,
@@ -267,10 +267,10 @@ void avdt_ccb_hdl_getcap_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_hdl_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8   err_code = 0;
+    uint8_t err_code = 0;
 
     /* verify all streams in the right state */
-    UINT8 seid = avdt_scb_verify(p_ccb, AVDT_VERIFY_START, p_data->msg.multi.seid_list,
+    uint8_t seid = avdt_scb_verify(p_ccb, AVDT_VERIFY_START, p_data->msg.multi.seid_list,
                                  p_data->msg.multi.num_seps, &err_code);
     if (seid == 0 && err_code == 0)
     {
@@ -299,9 +299,9 @@ void avdt_ccb_hdl_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_hdl_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8       event;
+    uint8_t     event;
     int         i;
-    UINT8       *p;
+    uint8_t     *p;
     tAVDT_SCB   *p_scb;
 
     /* determine rsp or rej event */
@@ -309,7 +309,7 @@ void avdt_ccb_hdl_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
             AVDT_SCB_MSG_START_RSP_EVT : AVDT_SCB_MSG_START_REJ_EVT;
 
     /* get to where seid's are stashed in current cmd */
-    p = (UINT8 *)(p_ccb->p_curr_cmd + 1);
+    p = (uint8_t *)(p_ccb->p_curr_cmd + 1);
 
     /* little trick here; length of current command equals number of streams */
     for (i = 0; i < p_ccb->p_curr_cmd->len; i++)
@@ -337,8 +337,8 @@ void avdt_ccb_hdl_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_hdl_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8   seid;
-    UINT8   err_code = 0;
+    uint8_t seid;
+    uint8_t err_code = 0;
 
     /* verify all streams in the right state */
     if ((seid = avdt_scb_verify(p_ccb, AVDT_VERIFY_SUSPEND, p_data->msg.multi.seid_list,
@@ -373,9 +373,9 @@ void avdt_ccb_hdl_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_hdl_suspend_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8       event;
+    uint8_t     event;
     int         i;
-    UINT8       *p;
+    uint8_t     *p;
     tAVDT_SCB   *p_scb;
 
     /* determine rsp or rej event */
@@ -383,7 +383,7 @@ void avdt_ccb_hdl_suspend_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
             AVDT_SCB_MSG_SUSPEND_RSP_EVT : AVDT_SCB_MSG_SUSPEND_REJ_EVT;
 
     /* get to where seid's are stashed in current cmd */
-    p = (UINT8 *)(p_ccb->p_curr_cmd + 1);
+    p = (uint8_t *)(p_ccb->p_curr_cmd + 1);
 
     /* little trick here; length of current command equals number of streams */
     for (i = 0; i < p_ccb->p_curr_cmd->len; i++)
@@ -416,7 +416,7 @@ void avdt_ccb_snd_discover_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     p_ccb->proc_param = p_data->discover.num_seps;
 
     /* we're busy */
-    p_ccb->proc_busy = TRUE;
+    p_ccb->proc_busy = true;
 
     /* build and queue discover req */
     avdt_msg_send_cmd(p_ccb, NULL, AVDT_SIG_DISCOVER, NULL);
@@ -455,14 +455,14 @@ void avdt_ccb_snd_discover_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_snd_getcap_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8 sig_id = AVDT_SIG_GETCAP;
+    uint8_t sig_id = AVDT_SIG_GETCAP;
 
     /* store info in ccb struct */
     p_ccb->p_proc_data = p_data->getcap.p_cfg;
     p_ccb->proc_cback = p_data->getcap.p_cback;
 
     /* we're busy */
-    p_ccb->proc_busy = TRUE;
+    p_ccb->proc_busy = true;
 
     /* build and queue discover req */
     if (p_data->msg.hdr.sig_id == AVDT_SIG_GET_ALLCAP)
@@ -485,7 +485,7 @@ void avdt_ccb_snd_getcap_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_snd_getcap_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8 sig_id = AVDT_SIG_GETCAP;
+    uint8_t sig_id = AVDT_SIG_GETCAP;
 
     if (p_data->msg.hdr.sig_id == AVDT_SIG_GET_ALLCAP)
         sig_id = AVDT_SIG_GET_ALLCAP;
@@ -512,7 +512,7 @@ void avdt_ccb_snd_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     int             i;
     tAVDT_SCB       *p_scb;
     tAVDT_MSG       avdt_msg;
-    UINT8           seid_list[AVDT_NUM_SEPS];
+    uint8_t         seid_list[AVDT_NUM_SEPS];
 
     /* make copy of our seid list */
     memcpy(seid_list, p_data->msg.multi.seid_list, p_data->msg.multi.num_seps);
@@ -590,7 +590,7 @@ void avdt_ccb_snd_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     int             i;
     tAVDT_SCB       *p_scb;
     tAVDT_MSG       avdt_msg;
-    UINT8           seid_list[AVDT_NUM_SEPS];
+    uint8_t         seid_list[AVDT_NUM_SEPS];
 
     /* make copy of our seid list */
     memcpy(seid_list, p_data->msg.multi.seid_list, p_data->msg.multi.num_seps);
@@ -667,7 +667,7 @@ void avdt_ccb_clear_cmds(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     int             i;
     tAVDT_SCB       *p_scb = &avdt_cb.scb[0];
-    UINT8           err_code = AVDT_ERR_CONNECT;
+    uint8_t         err_code = AVDT_ERR_CONNECT;
     UNUSED(p_data);
 
     /* clear the ccb */
@@ -712,7 +712,7 @@ void avdt_ccb_clear_cmds(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     tAVDT_MSG       msg;
-    UINT8           evt;
+    uint8_t         evt;
     tAVDT_SCB       *p_scb;
 
     if (p_ccb->p_curr_cmd != NULL)
@@ -727,12 +727,12 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 
         if (evt & AVDT_CCB_MKR)
         {
-            avdt_ccb_event(p_ccb, (UINT8) (evt & ~AVDT_CCB_MKR), (tAVDT_CCB_EVT *) &msg);
+            avdt_ccb_event(p_ccb, (uint8_t) (evt & ~AVDT_CCB_MKR), (tAVDT_CCB_EVT *) &msg);
         }
         else
         {
             /* we get the scb out of the current cmd */
-            p_scb = avdt_scb_by_hdl(*((UINT8 *)(p_ccb->p_curr_cmd + 1)));
+            p_scb = avdt_scb_by_hdl(*((uint8_t *)(p_ccb->p_curr_cmd + 1)));
             if (p_scb != NULL)
             {
                 avdt_scb_event(p_scb, evt, (tAVDT_SCB_EVT *) &msg);
@@ -791,7 +791,7 @@ void avdt_ccb_cong_state(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8   err_code = AVDT_ERR_TIMEOUT;
+    uint8_t err_code = AVDT_ERR_TIMEOUT;
 
     p_ccb->ret_count++;
     if (p_ccb->ret_count == AVDT_RET_MAX)
@@ -885,7 +885,7 @@ void avdt_ccb_snd_msg(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         {
             while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->rsp_q)) != NULL)
             {
-                if (avdt_msg_send(p_ccb, p_msg) == TRUE)
+                if (avdt_msg_send(p_ccb, p_msg) == true)
                 {
                     /* break out if congested */
                     break;
@@ -904,7 +904,7 @@ void avdt_ccb_snd_msg(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 **
 ** Description      This function is called to enable a reconnect attempt when
 **                  a channel transitions from closing to idle state.  It sets
-**                  the reconn variable to TRUE.
+**                  the reconn variable to true.
 **
 **
 ** Returns          void.
@@ -914,7 +914,7 @@ void avdt_ccb_set_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-    p_ccb->reconn = TRUE;
+    p_ccb->reconn = true;
 }
 
 /*******************************************************************************
@@ -931,7 +931,7 @@ void avdt_ccb_clr_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-    p_ccb->reconn = FALSE;
+    p_ccb->reconn = false;
 }
 
 /*******************************************************************************
@@ -948,12 +948,12 @@ void avdt_ccb_clr_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_chk_reconn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8   err_code = AVDT_ERR_CONNECT;
+    uint8_t err_code = AVDT_ERR_CONNECT;
     UNUSED(p_data);
 
     if (p_ccb->reconn)
     {
-        p_ccb->reconn = FALSE;
+        p_ccb->reconn = false;
 
         /* clear out ccb */
         avdt_ccb_clear_ccb(p_ccb);
@@ -1004,7 +1004,7 @@ void avdt_ccb_set_conn(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     p_ccb->p_conn_cback = p_data->connect.p_cback;
 
     /* set security level */
-    BTM_SetSecurityLevel(TRUE, "", BTM_SEC_SERVICE_AVDTP, p_data->connect.sec_mask,
+    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVDTP, p_data->connect.sec_mask,
                          AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_SIG);
 }
 
@@ -1101,7 +1101,7 @@ void avdt_ccb_ll_opened(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     tAVDT_CTRL          avdt_ctrl;
 
-    p_ccb->ll_opened = TRUE;
+    p_ccb->ll_opened = true;
 
     if (!p_ccb->p_conn_cback)
         p_ccb->p_conn_cback = avdt_cb.p_conn_cback;

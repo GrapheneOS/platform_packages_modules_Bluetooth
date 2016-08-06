@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if SMP_INCLUDED == TRUE
+#if (SMP_INCLUDED == TRUE)
 
 #include <string.h>
 #include "btm_ble_api.h"
@@ -35,15 +35,15 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-static void smp_tx_complete_callback(UINT16 cid, UINT16 num_pkt);
+static void smp_tx_complete_callback(uint16_t cid, uint16_t num_pkt);
 
-static void smp_connect_callback(UINT16 channel, BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason,
+static void smp_connect_callback(uint16_t channel, BD_ADDR bd_addr, bool    connected, uint16_t reason,
                                tBT_TRANSPORT transport);
-static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf);
+static void smp_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf);
 
-static void smp_br_connect_callback(UINT16 channel, BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason,
+static void smp_br_connect_callback(uint16_t channel, BD_ADDR bd_addr, bool    connected, uint16_t reason,
                                     tBT_TRANSPORT transport);
-static void smp_br_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf);
+static void smp_br_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf);
 
 /*******************************************************************************
 **
@@ -85,17 +85,17 @@ void smp_l2cap_if_init (void)
 **
 ** Description      This callback function is called by L2CAP to indicate that
 **                  SMP channel is
-**                      connected (conn = TRUE)/disconnected (conn = FALSE).
+**                      connected (conn = true)/disconnected (conn = false).
 **
 *******************************************************************************/
-static void smp_connect_callback (UINT16 channel, BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason,
+static void smp_connect_callback (uint16_t channel, BD_ADDR bd_addr, bool    connected, uint16_t reason,
                                   tBT_TRANSPORT transport)
 {
     tSMP_CB   *p_cb = &smp_cb;
     tSMP_INT_DATA   int_data;
     BD_ADDR dummy_bda = {0};
 
-    SMP_TRACE_EVENT ("SMDBG l2c %s", __FUNCTION__);
+    SMP_TRACE_EVENT ("SMDBG l2c %s", __func__);
 
     if (transport == BT_TRANSPORT_BR_EDR || memcmp(bd_addr, dummy_bda, BD_ADDR_LEN) == 0)
         return;
@@ -103,7 +103,7 @@ static void smp_connect_callback (UINT16 channel, BD_ADDR bd_addr, BOOLEAN conne
     if (memcmp(bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) == 0)
     {
         SMP_TRACE_EVENT ("%s()  for pairing BDA: %08x%04x  Event: %s",
-                        __FUNCTION__,
+                        __func__,
                         (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8) + bd_addr[3],
                         (bd_addr[4]<<8)+bd_addr[5],
                         (connected) ? "connected" : "disconnected");
@@ -112,7 +112,7 @@ static void smp_connect_callback (UINT16 channel, BD_ADDR bd_addr, BOOLEAN conne
         {
             if(!p_cb->connect_initialized)
             {
-                p_cb->connect_initialized = TRUE;
+                p_cb->connect_initialized = true;
                 /* initiating connection established */
                 p_cb->role = L2CA_GetBleConnRole(bd_addr);
 
@@ -143,12 +143,12 @@ static void smp_connect_callback (UINT16 channel, BD_ADDR bd_addr, BOOLEAN conne
 ** Returns          void
 **
 *******************************************************************************/
-static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
+static void smp_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tSMP_CB *p_cb = &smp_cb;
-    UINT8   *p = (UINT8 *)(p_buf + 1) + p_buf->offset;
-    UINT8   cmd ;
-    SMP_TRACE_EVENT ("SMDBG l2c %s", __FUNCTION__);
+    uint8_t *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
+    uint8_t cmd ;
+    SMP_TRACE_EVENT ("SMDBG l2c %s", __func__);
 
     STREAM_TO_UINT8(cmd, p);
 
@@ -188,7 +188,7 @@ static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
         {
             SMP_TRACE_DEBUG ("in %s cmd = 0x%02x, peer_auth_req = 0x%02x,"
                               "loc_auth_req = 0x%02x",
-                              __FUNCTION__, cmd, p_cb->peer_auth_req, p_cb->loc_auth_req);
+                              __func__, cmd, p_cb->peer_auth_req, p_cb->loc_auth_req);
 
             if ((p_cb->peer_auth_req  & SMP_SC_SUPPORT_BIT) &&
                 (p_cb->loc_auth_req & SMP_SC_SUPPORT_BIT))
@@ -198,7 +198,7 @@ static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
         }
 
         p_cb->rcvd_cmd_code = cmd;
-        p_cb->rcvd_cmd_len = (UINT8) p_buf->len;
+        p_cb->rcvd_cmd_len = (uint8_t) p_buf->len;
         smp_sm_event(p_cb, cmd, p);
     }
 
@@ -212,7 +212,7 @@ static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 ** Description      SMP channel tx complete callback
 **
 *******************************************************************************/
-static void smp_tx_complete_callback (UINT16 cid, UINT16 num_pkt)
+static void smp_tx_complete_callback (uint16_t cid, uint16_t num_pkt)
 {
     tSMP_CB *p_cb = &smp_cb;
 
@@ -221,7 +221,7 @@ static void smp_tx_complete_callback (UINT16 cid, UINT16 num_pkt)
     else
         SMP_TRACE_ERROR("Unexpected %s: num_pkt = %d", __func__,num_pkt);
 
-    UINT8 reason = SMP_SUCCESS;
+    uint8_t reason = SMP_SUCCESS;
     if (p_cb->total_tx_unacked == 0 && p_cb->wait_for_authorization_complete)
     {
         if (cid == L2CAP_SMP_CID)
@@ -237,11 +237,11 @@ static void smp_tx_complete_callback (UINT16 cid, UINT16 num_pkt)
 **
 ** Description      This callback function is called by L2CAP to indicate that
 **                  SMP BR channel is
-**                      connected (conn = TRUE)/disconnected (conn = FALSE).
+**                      connected (conn = true)/disconnected (conn = false).
 **
 *******************************************************************************/
-static void smp_br_connect_callback(UINT16 channel, BD_ADDR bd_addr, BOOLEAN connected,
-                                    UINT16 reason, tBT_TRANSPORT transport)
+static void smp_br_connect_callback(uint16_t channel, BD_ADDR bd_addr, bool    connected,
+                                    uint16_t reason, tBT_TRANSPORT transport)
 {
     tSMP_CB *p_cb = &smp_cb;
     tSMP_INT_DATA int_data;
@@ -268,7 +268,7 @@ static void smp_br_connect_callback(UINT16 channel, BD_ADDR bd_addr, BOOLEAN con
     {
         if(!p_cb->connect_initialized)
         {
-            p_cb->connect_initialized = TRUE;
+            p_cb->connect_initialized = true;
             /* initialize local i/r key to be default keys */
             p_cb->local_r_key = p_cb->local_i_key =  SMP_BR_SEC_DEFAULT_KEY;
             p_cb->loc_auth_req = p_cb->peer_auth_req = 0;
@@ -294,11 +294,11 @@ static void smp_br_connect_callback(UINT16 channel, BD_ADDR bd_addr, BOOLEAN con
 ** Returns          void
 **
 *******************************************************************************/
-static void smp_br_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
+static void smp_br_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tSMP_CB *p_cb = &smp_cb;
-    UINT8   *p = (UINT8 *)(p_buf + 1) + p_buf->offset;
-    UINT8   cmd ;
+    uint8_t *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
+    uint8_t cmd ;
     SMP_TRACE_EVENT ("SMDBG l2c %s", __func__);
 
     STREAM_TO_UINT8(cmd, p);
@@ -317,7 +317,7 @@ static void smp_br_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
         if ((p_cb->state == SMP_STATE_IDLE) && (p_cb->br_state == SMP_BR_STATE_IDLE))
         {
             p_cb->role = HCI_ROLE_SLAVE;
-            p_cb->smp_over_br = TRUE;
+            p_cb->smp_over_br = true;
             memcpy(&p_cb->pairing_bda[0], bd_addr, BD_ADDR_LEN);
         }
         else if (memcmp(&bd_addr[0], p_cb->pairing_bda, BD_ADDR_LEN))
@@ -336,7 +336,7 @@ static void smp_br_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
                            btu_general_alarm_queue);
 
         p_cb->rcvd_cmd_code = cmd;
-        p_cb->rcvd_cmd_len = (UINT8) p_buf->len;
+        p_cb->rcvd_cmd_len = (uint8_t) p_buf->len;
         smp_br_state_machine_event(p_cb, cmd, p);
     }
 

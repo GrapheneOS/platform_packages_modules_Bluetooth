@@ -120,7 +120,7 @@ void PAN_Deregister (void)
 **                                      PAN_ROLE_GN_SERVER is for GN role
 **                                      PAN_ROLE_NAP_SERVER is for NAP role
 **                  sec_mask    - Security mask for different roles
-**                                      It is array of UINT8. The byte represent the
+**                                      It is array of uint8_t. The byte represent the
 **                                      security for roles PANU, GN and NAP in order
 **                  p_user_name - Service name for PANU role
 **                  p_gn_name   - Service name for GN role
@@ -131,17 +131,17 @@ void PAN_Deregister (void)
 **                  PAN_FAILURE     - if the role is not valid
 **
 *******************************************************************************/
-tPAN_RESULT PAN_SetRole (UINT8 role,
-                         UINT8 *sec_mask,
+tPAN_RESULT PAN_SetRole (uint8_t role,
+                         uint8_t *sec_mask,
                          char *p_user_name,
                          char *p_gn_name,
                          char *p_nap_name)
 {
     char                *p_desc;
-    UINT8               security[3] = {PAN_PANU_SECURITY_LEVEL,
+    uint8_t             security[3] = {PAN_PANU_SECURITY_LEVEL,
                                        PAN_GN_SECURITY_LEVEL,
                                        PAN_NAP_SECURITY_LEVEL};
-    UINT8               *p_sec;
+    uint8_t             *p_sec;
 
     /* If the role is not a valid combination reject it */
     if ((!(role & (PAN_ROLE_CLIENT | PAN_ROLE_GN_SERVER | PAN_ROLE_NAP_SERVER))) &&
@@ -165,7 +165,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
 
     /* Register all the roles with SDP */
     PAN_TRACE_API ("PAN_SetRole() called with role 0x%x", role);
-#if (defined (PAN_SUPPORTS_ROLE_NAP) && PAN_SUPPORTS_ROLE_NAP == TRUE)
+#if (PAN_SUPPORTS_ROLE_NAP == TRUE)
     if (role & PAN_ROLE_NAP_SERVER)
     {
         /* Check the service name */
@@ -193,7 +193,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
     }
 #endif
 
-#if (defined (PAN_SUPPORTS_ROLE_GN) && PAN_SUPPORTS_ROLE_GN == TRUE)
+#if (PAN_SUPPORTS_ROLE_GN == TRUE)
     if (role & PAN_ROLE_GN_SERVER)
     {
         /* Check the service name */
@@ -221,7 +221,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
     }
 #endif
 
-#if (defined (PAN_SUPPORTS_ROLE_PANU) && PAN_SUPPORTS_ROLE_PANU == TRUE)
+#if (PAN_SUPPORTS_ROLE_PANU == TRUE)
     if (role & PAN_ROLE_CLIENT)
     {
         /* Check the service name */
@@ -282,12 +282,12 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
 **                                           allowed at that point of time
 **
 *******************************************************************************/
-tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16 *handle)
+tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, uint8_t src_role, uint8_t dst_role, uint16_t *handle)
 {
     tPAN_CONN       *pcb;
     tBNEP_RESULT    result;
     tBT_UUID        src_uuid, dst_uuid;
-    UINT32 mx_chan_id;
+    uint32_t mx_chan_id;
 
     /*
     ** Initialize the handle so that in case of failure return values
@@ -434,7 +434,7 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
 **                                           there is an error in disconnecting
 **
 *******************************************************************************/
-tPAN_RESULT PAN_Disconnect (UINT16 handle)
+tPAN_RESULT PAN_Disconnect (uint16_t handle)
 {
     tPAN_CONN       *pcb;
     tBNEP_RESULT    result;
@@ -452,7 +452,7 @@ tPAN_RESULT PAN_Disconnect (UINT16 handle)
         pan_cb.num_conns--;
 
     if (pan_cb.pan_bridge_req_cb && pcb->src_uuid == UUID_SERVCLASS_NAP)
-        (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, FALSE);
+        (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, false);
 
     pan_release_pcb (pcb);
 
@@ -489,7 +489,7 @@ tPAN_RESULT PAN_Disconnect (UINT16 handle)
 **                                           there is an error in sending data
 **
 *******************************************************************************/
-tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, UINT8 *p_data, UINT16 len, BOOLEAN ext)
+tPAN_RESULT PAN_Write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol, uint8_t *p_data, uint16_t len, bool    ext)
 {
     if (pan_cb.role == PAN_ROLE_INACTIVE || !pan_cb.num_conns) {
         PAN_TRACE_ERROR("%s PAN is not active, data write failed.", __func__);
@@ -512,7 +512,7 @@ tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, 
     BT_HDR *buffer = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
     buffer->len = len;
     buffer->offset = PAN_MINIMUM_OFFSET;
-    memcpy((UINT8 *)buffer + sizeof(BT_HDR) + buffer->offset, p_data, buffer->len);
+    memcpy((uint8_t *)buffer + sizeof(BT_HDR) + buffer->offset, p_data, buffer->len);
 
     return PAN_WriteBuf(handle, dst, src, protocol, buffer, ext);
 }
@@ -541,10 +541,10 @@ tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, 
 **                                           there is an error in sending data
 **
 *******************************************************************************/
-tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, BT_HDR *p_buf, BOOLEAN ext)
+tPAN_RESULT PAN_WriteBuf (uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol, BT_HDR *p_buf, bool    ext)
 {
     tPAN_CONN       *pcb;
-    UINT16          i;
+    uint16_t        i;
     tBNEP_RESULT    result;
 
     if (pan_cb.role == PAN_ROLE_INACTIVE || (!(pan_cb.num_conns)))
@@ -557,7 +557,7 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
     /* Check if it is broadcast or multicast packet */
     if (dst[0] & 0x01)
     {
-        UINT8 *data = (UINT8 *)p_buf + sizeof(BT_HDR) + p_buf->offset;
+        uint8_t *data = (uint8_t *)p_buf + sizeof(BT_HDR) + p_buf->offset;
         for (i = 0; i < MAX_PAN_CONNS; ++i) {
             if (pan_cb.pcb[i].con_state == PAN_STATE_CONNECTED)
                 BNEP_Write(pan_cb.pcb[i].handle, dst, data, p_buf->len, protocol, src, ext);
@@ -649,10 +649,10 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
 **                  PAN_FAILURE        if connection not found or error in setting
 **
 *******************************************************************************/
-tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
-                                    UINT16 num_filters,
-                                    UINT16 *p_start_array,
-                                    UINT16 *p_end_array)
+tPAN_RESULT PAN_SetProtocolFilters (uint16_t handle,
+                                    uint16_t num_filters,
+                                    uint16_t *p_start_array,
+                                    uint16_t *p_end_array)
 {
     tPAN_CONN       *pcb;
     tPAN_RESULT     result;
@@ -694,10 +694,10 @@ tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
 **                  PAN_FAILURE        if connection not found or error in setting
 **
 *******************************************************************************/
-tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
-                                      UINT16 num_mcast_filters,
-                                      UINT8 *p_start_array,
-                                      UINT8 *p_end_array)
+tBNEP_RESULT PAN_SetMulticastFilters (uint16_t handle,
+                                      uint16_t num_mcast_filters,
+                                      uint8_t *p_start_array,
+                                      uint8_t *p_end_array)
 {
     tPAN_CONN       *pcb;
     tPAN_RESULT     result;
@@ -733,7 +733,7 @@ tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-UINT8 PAN_SetTraceLevel (UINT8 new_level)
+uint8_t PAN_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         pan_cb.trace_level = new_level;

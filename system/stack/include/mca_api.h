@@ -45,7 +45,7 @@
 #define MCA_BUSY                   4       /* A procedure is already in progress */
 #define MCA_WRITE_FAIL             5       /* Write failed */
 #define MCA_BAD_MDL_ID             6       /* MDL ID is not valid for the current API */
-typedef UINT8 tMCA_RESULT;
+typedef uint8_t tMCA_RESULT;
 
 /* MDEP data type.  */
 #define MCA_TDEP_ECHO              0       /* MDEP for echo test  */
@@ -79,10 +79,10 @@ typedef UINT8 tMCA_RESULT;
 /*****************************************************************************
 **  Type Definitions
 *****************************************************************************/
-typedef UINT8  tMCA_HANDLE; /* the handle for registration. 1 based index to rcb */
-typedef UINT8  tMCA_CL;     /* the handle for a control channel; reported at MCA_CONNECT_IND_EVT */
-typedef UINT8  tMCA_DEP;    /* the handle for MCA_CreateDep. This is also the local mdep_id */
-typedef UINT16 tMCA_DL;     /* the handle for the data channel. This is reported at MCA_OPEN_CFM_EVT or MCA_OPEN_IND_EVT */
+typedef uint8_t tMCA_HANDLE; /* the handle for registration. 1 based index to rcb */
+typedef uint8_t tMCA_CL;     /* the handle for a control channel; reported at MCA_CONNECT_IND_EVT */
+typedef uint8_t tMCA_DEP;    /* the handle for MCA_CreateDep. This is also the local mdep_id */
+typedef uint16_t tMCA_DL;     /* the handle for the data channel. This is reported at MCA_OPEN_CFM_EVT or MCA_OPEN_IND_EVT */
 
 /* This is the data callback function.  It is executed when MCAP has a data
 ** packet ready for the application.
@@ -92,98 +92,98 @@ typedef void (tMCA_DATA_CBACK)(tMCA_DL mdl, BT_HDR *p_pkt);
 
 /* This structure contains parameters which are set at registration. */
 typedef struct {
-    UINT32      rsp_tout;   /* MCAP signaling response timeout */
-    UINT16      ctrl_psm;   /* L2CAP PSM for the MCAP control channel */
-    UINT16      data_psm;   /* L2CAP PSM for the MCAP data channel */
-    UINT16      sec_mask;   /* Security mask for BTM_SetSecurityLevel() */
+    uint32_t    rsp_tout;   /* MCAP signaling response timeout */
+    uint16_t    ctrl_psm;   /* L2CAP PSM for the MCAP control channel */
+    uint16_t    data_psm;   /* L2CAP PSM for the MCAP data channel */
+    uint16_t    sec_mask;   /* Security mask for BTM_SetSecurityLevel() */
 } tMCA_REG;
 
 /* This structure contains parameters to create a MDEP. */
 typedef struct {
-    UINT8           type;       /* MCA_TDEP_DATA, or MCA_TDEP_ECHO. a regiatration may have only one MCA_TDEP_ECHO MDEP */
-    UINT8           max_mdl;    /* The maximum number of MDLs for this MDEP (max is MCA_NUM_MDLS) */
+    uint8_t         type;       /* MCA_TDEP_DATA, or MCA_TDEP_ECHO. a regiatration may have only one MCA_TDEP_ECHO MDEP */
+    uint8_t         max_mdl;    /* The maximum number of MDLs for this MDEP (max is MCA_NUM_MDLS) */
     tMCA_DATA_CBACK *p_data_cback;  /* Data callback function */
 } tMCA_CS;
 
-#define MCA_FCS_NONE        0       /* fcs_present=FALSE */
-#define MCA_FCS_BYPASS      0x10    /* fcs_present=TRUE, fcs=L2CAP_CFG_FCS_BYPASS */
-#define MCA_FCS_USE         0x11    /* fcs_present=TRUE, fcs=L2CAP_CFG_FCS_USE */
-#define MCA_FCS_PRESNT_MASK 0x10    /* fcs_present=TRUE */
+#define MCA_FCS_NONE        0       /* fcs_present=false */
+#define MCA_FCS_BYPASS      0x10    /* fcs_present=true, fcs=L2CAP_CFG_FCS_BYPASS */
+#define MCA_FCS_USE         0x11    /* fcs_present=true, fcs=L2CAP_CFG_FCS_USE */
+#define MCA_FCS_PRESNT_MASK 0x10    /* fcs_present=true */
 #define MCA_FCS_USE_MASK    0x01    /* mask for fcs */
-typedef UINT8 tMCA_FCS_OPT;
+typedef uint8_t tMCA_FCS_OPT;
 
 /* This structure contains L2CAP configuration parameters for the channel. */
 typedef struct {
     tL2CAP_FCR_OPTS fcr_opt;
-    UINT16          user_rx_buf_size;
-    UINT16          user_tx_buf_size;
-    UINT16          fcr_rx_buf_size;
-    UINT16          fcr_tx_buf_size;
+    uint16_t        user_rx_buf_size;
+    uint16_t        user_tx_buf_size;
+    uint16_t        fcr_rx_buf_size;
+    uint16_t        fcr_tx_buf_size;
     tMCA_FCS_OPT    fcs;
-    UINT16          data_mtu;   /* L2CAP MTU of the MCAP data channel */
+    uint16_t        data_mtu;   /* L2CAP MTU of the MCAP data channel */
 } tMCA_CHNL_CFG;
 
 
 /* Header structure for callback event parameters. */
 typedef struct {
-    UINT16          mdl_id;     /* The associated MDL ID */
-    UINT8           op_code;    /* The op (request/response) code */
+    uint16_t        mdl_id;     /* The associated MDL ID */
+    uint8_t         op_code;    /* The op (request/response) code */
 } tMCA_EVT_HDR;
 
 /* Response Header structure for callback event parameters. */
 typedef struct {
-    UINT16          mdl_id;     /* The associated MDL ID */
-    UINT8           op_code;    /* The op (request/response) code */
-    UINT8           rsp_code;   /* The response code */
+    uint16_t        mdl_id;     /* The associated MDL ID */
+    uint8_t         op_code;    /* The op (request/response) code */
+    uint8_t         rsp_code;   /* The response code */
 } tMCA_RSP_EVT;
 
 /* This data structure is associated with the MCA_CREATE_IND_EVT. */
 typedef struct {
-    UINT16          mdl_id;     /* The associated MDL ID */
-    UINT8           op_code;    /* The op (request/response) code */
-    UINT8           dep_id;     /* MDEP ID */
-    UINT8           cfg;        /* The configuration to negotiate */
+    uint16_t        mdl_id;     /* The associated MDL ID */
+    uint8_t         op_code;    /* The op (request/response) code */
+    uint8_t         dep_id;     /* MDEP ID */
+    uint8_t         cfg;        /* The configuration to negotiate */
 } tMCA_CREATE_IND;
 
 /* This data structure is associated with the MCA_CREATE_CFM_EVT. */
 typedef struct {
-    UINT16          mdl_id;     /* The associated MDL ID */
-    UINT8           op_code;    /* The op (request/response) code */
-    UINT8           rsp_code;   /* The response code. */
-    UINT8           cfg;        /* The configuration to negotiate */
+    uint16_t        mdl_id;     /* The associated MDL ID */
+    uint8_t         op_code;    /* The op (request/response) code */
+    uint8_t         rsp_code;   /* The response code. */
+    uint8_t         cfg;        /* The configuration to negotiate */
 } tMCA_CREATE_CFM;
 
 /* This data structure is associated with MCA_CONNECT_IND_EVT. */
 typedef struct {
     BD_ADDR         bd_addr;    /* The peer address */
-    UINT16          mtu;        /* peer mtu */
+    uint16_t        mtu;        /* peer mtu */
 } tMCA_CONNECT_IND;
 
 /* This data structure is associated with MCA_DISCONNECT_IND_EVT. */
 typedef struct {
     BD_ADDR         bd_addr;    /* The peer address */
-    UINT16          reason;     /* disconnect reason given by L2CAP */
+    uint16_t        reason;     /* disconnect reason given by L2CAP */
 } tMCA_DISCONNECT_IND;
 
 /* This data structure is associated with MCA_OPEN_IND_EVT, and MCA_OPEN_CFM_EVT. */
 typedef struct {
-    UINT16          mdl_id;     /* The associated MDL ID */
+    uint16_t        mdl_id;     /* The associated MDL ID */
     tMCA_DL         mdl;        /* The handle for the data channel */
-    UINT16          mtu;        /* peer mtu */
+    uint16_t        mtu;        /* peer mtu */
 } tMCA_DL_OPEN;
 
 /* This data structure is associated with MCA_CLOSE_IND_EVT and MCA_CLOSE_CFM_EVT. */
 typedef struct {
-    UINT16          mdl_id;     /* The associated MDL ID */
+    uint16_t        mdl_id;     /* The associated MDL ID */
     tMCA_DL         mdl;        /* The handle for the data channel */
-    UINT16          reason;     /* disconnect reason given by L2CAP */
+    uint16_t        reason;     /* disconnect reason given by L2CAP */
 } tMCA_DL_CLOSE;
 
 /* This data structure is associated with MCA_CONG_CHG_EVT. */
 typedef struct {
-    UINT16          mdl_id;     /* N/A - This is a place holder */
+    uint16_t        mdl_id;     /* N/A - This is a place holder */
     tMCA_DL	        mdl;        /* The handle for the data channel */
-    BOOLEAN         cong;       /* TRUE, if the channel is congested */
+    bool            cong;       /* true, if the channel is congested */
 } tMCA_CONG_CHG;
 
 /* Union of all control callback event data structures */
@@ -210,7 +210,7 @@ typedef union {
 /* This is the control callback function.  This function passes control events
 ** to the application.
 */
-typedef void (tMCA_CTRL_CBACK)(tMCA_HANDLE handle, tMCA_CL mcl, UINT8 event,
+typedef void (tMCA_CTRL_CBACK)(tMCA_HANDLE handle, tMCA_CL mcl, uint8_t event,
                                 tMCA_CTRL *p_data);
 
 
@@ -247,7 +247,7 @@ extern void MCA_Init(void);
 **                  the input parameter is 0xff.
 **
 *******************************************************************************/
-extern UINT8 MCA_SetTraceLevel (UINT8 level);
+extern uint8_t MCA_SetTraceLevel (uint8_t level);
 
 /*******************************************************************************
 **
@@ -322,8 +322,8 @@ extern tMCA_RESULT MCA_DeleteDep(tMCA_HANDLE handle, tMCA_DEP dep);
 **
 *******************************************************************************/
 extern tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
-                                  UINT16 ctrl_psm,
-                                  UINT16 sec_mask);
+                                  uint16_t ctrl_psm,
+                                  uint16_t sec_mask);
 
 /*******************************************************************************
 **
@@ -355,9 +355,9 @@ extern tMCA_RESULT MCA_DisconnectReq(tMCA_CL mcl);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
-                                 UINT16 mdl_id, UINT8 peer_dep_id,
-                                 UINT8 cfg, const tMCA_CHNL_CFG *p_chnl_cfg);
+extern tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, uint16_t data_psm,
+                                 uint16_t mdl_id, uint8_t peer_dep_id,
+                                 uint8_t cfg, const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
 **
@@ -374,7 +374,7 @@ extern tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
 **
 *******************************************************************************/
 extern tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
-                                    UINT16 mdl_id, UINT8 cfg, UINT8 rsp_code,
+                                    uint16_t mdl_id, uint8_t cfg, uint8_t rsp_code,
                                     const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
@@ -403,8 +403,8 @@ extern tMCA_RESULT MCA_CloseReq(tMCA_DL mdl);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
-                                    UINT16 mdl_id, const tMCA_CHNL_CFG *p_chnl_cfg);
+extern tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, uint16_t data_psm,
+                                    uint16_t mdl_id, const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
 **
@@ -420,7 +420,7 @@ extern tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
 **
 *******************************************************************************/
 extern tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
-                                       UINT16 mdl_id, UINT8 rsp_code,
+                                       uint16_t mdl_id, uint8_t rsp_code,
                                        const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
@@ -459,7 +459,7 @@ extern tMCA_RESULT MCA_Abort(tMCA_CL mcl);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id);
+extern tMCA_RESULT MCA_Delete(tMCA_CL mcl, uint16_t mdl_id);
 
 /*******************************************************************************
 **
@@ -490,6 +490,6 @@ extern tMCA_RESULT MCA_WriteReq(tMCA_DL mdl, BT_HDR *p_pkt);
 ** Returns          L2CAP channel ID if successful, otherwise 0.
 **
 *******************************************************************************/
-extern UINT16 MCA_GetL2CapChannel (tMCA_DL mdl);
+extern uint16_t MCA_GetL2CapChannel (tMCA_DL mdl);
 
 #endif /* MCA_API_H */

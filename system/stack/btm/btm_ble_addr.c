@@ -31,7 +31,7 @@
 #include "gap_api.h"
 #include "device/include/controller.h"
 
-#if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE)
 #include "btm_ble_int.h"
 #include "smp_api.h"
 
@@ -148,7 +148,7 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tBTM_BLE_ADDR_CBACK *p_cback = p_cb->p_generate_cback;
     void    *p_data = p_cb->p;
-    UINT8   *pp;
+    uint8_t *pp;
     BD_ADDR     static_random;
 
     BTM_TRACE_EVENT ("btm_gen_non_resolve_paddr_cmpl");
@@ -201,7 +201,7 @@ void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
 
 }
 
-#if SMP_INCLUDED == TRUE
+#if (SMP_INCLUDED == TRUE)
 /*******************************************************************************
 **  Utility functions for Random address resolving
 *******************************************************************************/
@@ -212,13 +212,13 @@ void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
 ** Description      This function compares the X with random address 3 MSO bytes
 **                  to find a match.
 **
-** Returns          TRUE on match, FALSE otherwise
+** Returns          true on match, false otherwise
 **
 *******************************************************************************/
-static BOOLEAN btm_ble_proc_resolve_x(tSMP_ENC *p)
+static bool    btm_ble_proc_resolve_x(tSMP_ENC *p)
 {
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-    UINT8    comp[3];
+    uint8_t  comp[3];
     BTM_TRACE_EVENT ("btm_ble_proc_resolve_x");
     /* compare the hash with 3 LSB of bd address */
     comp[0] = p_mgnt_cb->random_bda[5];
@@ -231,10 +231,10 @@ static BOOLEAN btm_ble_proc_resolve_x(tSMP_ENC *p)
         {
             /* match is found */
             BTM_TRACE_EVENT ("match is found");
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -244,20 +244,20 @@ static BOOLEAN btm_ble_proc_resolve_x(tSMP_ENC *p)
 ** Description      This function is used to initialize pseudo address.
 **                  If pseudo address is not available, use dummy address
 **
-** Returns          TRUE is updated; FALSE otherwise.
+** Returns          true is updated; false otherwise.
 **
 *******************************************************************************/
-BOOLEAN btm_ble_init_pseudo_addr (tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR new_pseudo_addr)
+bool    btm_ble_init_pseudo_addr (tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR new_pseudo_addr)
 {
     BD_ADDR dummy_bda = {0};
 
     if (memcmp(p_dev_rec->ble.pseudo_addr, dummy_bda, BD_ADDR_LEN) == 0)
     {
         memcpy(p_dev_rec->ble.pseudo_addr, new_pseudo_addr, BD_ADDR_LEN);
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -266,17 +266,17 @@ BOOLEAN btm_ble_init_pseudo_addr (tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR new_pseud
 **
 ** Description      This function checks if a RPA is resolvable by the device key.
 **
-** Returns          TRUE is resolvable; FALSE otherwise.
+** Returns          true is resolvable; false otherwise.
 **
 *******************************************************************************/
-BOOLEAN btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
+bool    btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
 {
-    BOOLEAN rt = FALSE;
+    bool    rt = false;
 
     if (!BTM_BLE_IS_RESOLVE_BDA(rpa))
         return rt;
 
-    UINT8 rand[3];
+    uint8_t rand[3];
     tSMP_ENC output;
     if ((p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) &&
         (p_dev_rec->ble.key_type & BTM_LE_KEY_PID))
@@ -298,7 +298,7 @@ BOOLEAN btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
         if (!memcmp(output.param_buf, &rand[0], 3))
         {
             btm_ble_init_pseudo_addr (p_dev_rec, rpa);
-            rt = TRUE;
+            rt = true;
         }
     }
     return rt;
@@ -315,13 +315,13 @@ BOOLEAN btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
 ** Returns          None.
 **
 *******************************************************************************/
-static BOOLEAN btm_ble_match_random_bda(void *data, void *context)
+static bool    btm_ble_match_random_bda(void *data, void *context)
 {
 #if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
     /* use the 3 MSB of bd address as prand */
 
     tBTM_LE_RANDOM_CB *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-    UINT8 rand[3];
+    uint8_t rand[3];
     rand[0] = p_mgnt_cb->random_bda[2];
     rand[1] = p_mgnt_cb->random_bda[1];
     rand[2] = p_mgnt_cb->random_bda[0];
@@ -336,7 +336,7 @@ static BOOLEAN btm_ble_match_random_bda(void *data, void *context)
 
     if (!(p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) ||
         !(p_dev_rec->ble.key_type & BTM_LE_KEY_PID))
-        return TRUE;
+        return true;
 
     /* generate X = E irk(R0, R1, R2) and R is random address 3 LSO */
     SMP_Encrypt(p_dev_rec->ble.keys.irk, BT_OCTET16_LEN,
@@ -363,7 +363,7 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
     BTM_TRACE_EVENT("%s", __func__);
     if ( !p_mgnt_cb->busy) {
         p_mgnt_cb->p = p;
-        p_mgnt_cb->busy = TRUE;
+        p_mgnt_cb->busy = true;
         memcpy(p_mgnt_cb->random_bda, random_bda, BD_ADDR_LEN);
         /* start to resolve random address */
         /* check for next security record */
@@ -372,7 +372,7 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
         tBTM_SEC_DEV_REC *p_dev_rec = n ? list_node(n) : NULL;
 
         BTM_TRACE_EVENT("%s:  %sresolved", __func__, (p_dev_rec == NULL ? "not " : ""));
-        p_mgnt_cb->busy = FALSE;
+        p_mgnt_cb->busy = false;
 
         (*p_cback)(p_dev_rec, p);
     } else {
@@ -391,9 +391,9 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
 ** Description      find the security record whose LE static address is matching
 **
 *******************************************************************************/
-tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(BD_ADDR bd_addr, UINT8 addr_type)
+tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(BD_ADDR bd_addr, uint8_t addr_type)
 {
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
     list_node_t *end = list_end(btm_cb.sec_dev_rec);
     for (list_node_t *node = list_begin(btm_cb.sec_dev_rec); node != end; node = list_next(node)) {
         tBTM_SEC_DEV_REC *p_dev_rec = list_node(node);
@@ -420,9 +420,9 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(BD_ADDR bd_addr, UINT8 addr_type
 **                  in security database.
 **
 *******************************************************************************/
-BOOLEAN btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type, BOOLEAN refresh)
+bool    btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, uint8_t *p_addr_type, bool    refresh)
 {
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev_by_identity_addr(bd_addr, *p_addr_type);
 
     BTM_TRACE_EVENT ("%s", __func__);
@@ -438,10 +438,10 @@ BOOLEAN btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type, 
             memcpy(bd_addr, p_dev_rec->ble.pseudo_addr, BD_ADDR_LEN);
 
         *p_addr_type = p_dev_rec->ble.ble_addr_type;
-        return TRUE;
+        return true;
     }
 #endif
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -452,9 +452,9 @@ BOOLEAN btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type, 
 **                  random_pseudo is input and output parameter
 **
 *******************************************************************************/
-BOOLEAN btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, UINT8 *p_static_addr_type)
+bool    btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, uint8_t *p_static_addr_type)
 {
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (random_pseudo);
 
     if (p_dev_rec != NULL)
@@ -465,11 +465,11 @@ BOOLEAN btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, UINT8 *p_stati
             memcpy(random_pseudo, p_dev_rec->ble.static_addr, BD_ADDR_LEN);
             if (controller_get_interface()->supports_ble_privacy())
                 *p_static_addr_type |= BLE_ADDR_TYPE_ID_BIT;
-            return TRUE;
+            return true;
         }
     }
 #endif
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -481,14 +481,14 @@ BOOLEAN btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, UINT8 *p_stati
 **
 *******************************************************************************/
 void btm_ble_refresh_peer_resolvable_private_addr(BD_ADDR pseudo_bda, BD_ADDR rpa,
-                                                  UINT8 rra_type)
+                                                  uint8_t rra_type)
 {
-#if BLE_PRIVACY_SPT == TRUE
-    UINT8 rra_dummy = FALSE;
+#if (BLE_PRIVACY_SPT == TRUE)
+    uint8_t rra_dummy = false;
     BD_ADDR dummy_bda = {0};
 
     if (memcmp(dummy_bda, rpa, BD_ADDR_LEN) == 0)
-        rra_dummy = TRUE;
+        rra_dummy = true;
 
     /* update security record here, in adv event or connection complete process */
     tBTM_SEC_DEV_REC *p_sec_rec = btm_find_dev(pseudo_bda);
@@ -558,7 +558,7 @@ void btm_ble_refresh_peer_resolvable_private_addr(BD_ADDR pseudo_bda, BD_ADDR rp
 void btm_ble_refresh_local_resolvable_private_addr(BD_ADDR pseudo_addr,
                                                    BD_ADDR local_rpa)
 {
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
     tACL_CONN *p = btm_bda_to_acl(pseudo_addr, BT_TRANSPORT_LE);
     BD_ADDR     dummy_bda = {0};
 

@@ -23,17 +23,15 @@
 #include "osi/include/osi.h"
 #include "srvc_eng_int.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 
-//#if DIS_INCLUDED == TRUE
 #include "srvc_dis_int.h"
-//#endif
 #include "srvc_battery_int.h"
 
-static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, UINT8 op_code, tGATTS_DATA *p_data);
-static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected,
+static void srvc_eng_s_request_cback (uint16_t conn_id, uint32_t trans_id, uint8_t op_code, tGATTS_DATA *p_data);
+static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id, bool    connected,
                                           tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport);
-static void srvc_eng_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
+static void srvc_eng_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
 
 static tGATT_CBACK srvc_gatt_cback =
 {
@@ -65,9 +63,9 @@ tSRVC_ENG_CB srvc_eng_cb;
 ** Returns          total number of clcb found.
 **
 *******************************************************************************/
-UINT16 srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda)
+uint16_t srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda)
 {
-    UINT8 i_clcb;
+    uint8_t i_clcb;
     tSRVC_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= srvc_eng_cb.clcb; i_clcb < SRVC_MAX_APPS; i_clcb++, p_clcb++)
@@ -92,7 +90,7 @@ UINT16 srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda)
 *******************************************************************************/
 tSRVC_CLCB *srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda)
 {
-    UINT8 i_clcb;
+    uint8_t i_clcb;
     tSRVC_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= srvc_eng_cb.clcb; i_clcb < SRVC_MAX_APPS; i_clcb++, p_clcb++)
@@ -114,9 +112,9 @@ tSRVC_CLCB *srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda)
 ** Returns          Pointer to the found link conenction control block.
 **
 *******************************************************************************/
-tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(UINT16 conn_id)
+tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(uint16_t conn_id)
 {
-    UINT8 i_clcb;
+    uint8_t i_clcb;
     tSRVC_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= srvc_eng_cb.clcb; i_clcb < SRVC_MAX_APPS; i_clcb++, p_clcb++)
@@ -138,9 +136,9 @@ tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(UINT16 conn_id)
 ** Returns          Pointer to the found link conenction control block.
 **
 *******************************************************************************/
-UINT8 srvc_eng_find_clcb_idx_by_conn_id(UINT16 conn_id)
+uint8_t srvc_eng_find_clcb_idx_by_conn_id(uint16_t conn_id)
 {
-    UINT8 i_clcb;
+    uint8_t i_clcb;
     tSRVC_CLCB    *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= srvc_eng_cb.clcb; i_clcb < SRVC_MAX_APPS; i_clcb++, p_clcb++)
@@ -162,18 +160,18 @@ UINT8 srvc_eng_find_clcb_idx_by_conn_id(UINT16 conn_id)
 ** Returns           NULL if not found. Otherwise pointer to the connection link block.
 **
 *******************************************************************************/
-tSRVC_CLCB *srvc_eng_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
+tSRVC_CLCB *srvc_eng_clcb_alloc (uint16_t conn_id, BD_ADDR bda)
 {
-    UINT8                   i_clcb = 0;
+    uint8_t                 i_clcb = 0;
     tSRVC_CLCB      *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= srvc_eng_cb.clcb; i_clcb < SRVC_MAX_APPS; i_clcb++, p_clcb++)
     {
         if (!p_clcb->in_use)
         {
-            p_clcb->in_use      = TRUE;
+            p_clcb->in_use      = true;
             p_clcb->conn_id     = conn_id;
-            p_clcb->connected   = TRUE;
+            p_clcb->connected   = true;
             memcpy (p_clcb->bda, bda, BD_ADDR_LEN);
             break;
         }
@@ -189,9 +187,9 @@ tSRVC_CLCB *srvc_eng_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
 ** Returns           True the deallocation is successful
 **
 *******************************************************************************/
-BOOLEAN srvc_eng_clcb_dealloc (UINT16 conn_id)
+bool    srvc_eng_clcb_dealloc (uint16_t conn_id)
 {
-    UINT8                   i_clcb = 0;
+    uint8_t                 i_clcb = 0;
     tSRVC_CLCB      *p_clcb = NULL;
 
     for (i_clcb = 0, p_clcb= srvc_eng_cb.clcb; i_clcb < SRVC_MAX_APPS; i_clcb++, p_clcb++)
@@ -203,18 +201,18 @@ BOOLEAN srvc_eng_clcb_dealloc (UINT16 conn_id)
                 osi_free(p_clcb->dis_value.data_string[j]);
 
             memset(p_clcb, 0, sizeof(tSRVC_CLCB));
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 /*******************************************************************************
 **   Service Engine Server Attributes Database Read/Read Blob Request process
 *******************************************************************************/
-UINT8 srvc_eng_process_read_req (UINT8 clcb_idx, tGATT_READ_REQ *p_data, tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
+uint8_t srvc_eng_process_read_req (uint8_t clcb_idx, tGATT_READ_REQ *p_data, tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
-    UINT8       act = SRVC_ACT_RSP;
+    uint8_t     act = SRVC_ACT_RSP;
 
     if (p_data->is_long)
         p_rsp->attr_value.offset = p_data->offset;
@@ -234,9 +232,9 @@ UINT8 srvc_eng_process_read_req (UINT8 clcb_idx, tGATT_READ_REQ *p_data, tGATTS_
 /*******************************************************************************
 **   Service Engine Server Attributes Database write Request process
 *******************************************************************************/
-UINT8 srvc_eng_process_write_req (UINT8 clcb_idx, tGATT_WRITE_REQ *p_data, tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
+uint8_t srvc_eng_process_write_req (uint8_t clcb_idx, tGATT_WRITE_REQ *p_data, tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
 {
-    UINT8       act = SRVC_ACT_RSP;
+    uint8_t     act = SRVC_ACT_RSP;
     UNUSED(p_rsp);
 
     if (dis_valid_handle_range(p_data->handle))
@@ -262,13 +260,13 @@ UINT8 srvc_eng_process_write_req (UINT8 clcb_idx, tGATT_WRITE_REQ *p_data, tGATT
 ** Returns          void.
 **
 *******************************************************************************/
-static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE type,
+static void srvc_eng_s_request_cback (uint16_t conn_id, uint32_t trans_id, tGATTS_REQ_TYPE type,
                                         tGATTS_DATA *p_data)
 {
-    UINT8       status = GATT_INVALID_PDU;
+    uint8_t     status = GATT_INVALID_PDU;
     tGATTS_RSP  rsp_msg ;
-    UINT8       act = SRVC_ACT_IGNORE;
-    UINT8   clcb_idx = srvc_eng_find_clcb_idx_by_conn_id(conn_id);
+    uint8_t     act = SRVC_ACT_IGNORE;
+    uint8_t clcb_idx = srvc_eng_find_clcb_idx_by_conn_id(conn_id);
 
     GATT_TRACE_EVENT("srvc_eng_s_request_cback : recv type (0x%02x)", type);
 
@@ -321,7 +319,7 @@ static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_RE
 ** Returns          void
 **
 *******************************************************************************/
-static void srvc_eng_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
+static void srvc_eng_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
                                    tGATT_CL_COMPLETE *p_data)
 {
     tSRVC_CLCB   *p_clcb = srvc_eng_find_clcb_by_conn_id(conn_id);
@@ -349,8 +347,8 @@ static void srvc_eng_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATU
 ** Returns          void
 **
 *******************************************************************************/
-static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                        BOOLEAN connected, tGATT_DISCONN_REASON reason,  tBT_TRANSPORT transport)
+static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+                                        bool    connected, tGATT_DISCONN_REASON reason,  tBT_TRANSPORT transport)
 {
     UNUSED(gatt_if);
     UNUSED (transport);
@@ -382,9 +380,9 @@ static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_i
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN srvc_eng_request_channel (BD_ADDR remote_bda, UINT8 srvc_id )
+bool    srvc_eng_request_channel (BD_ADDR remote_bda, uint8_t srvc_id )
 {
-    BOOLEAN set = TRUE;
+    bool    set = true;
     tSRVC_CLCB  *p_clcb = srvc_eng_find_clcb_by_bd_addr(remote_bda);
 
     if (p_clcb == NULL)
@@ -393,7 +391,7 @@ BOOLEAN srvc_eng_request_channel (BD_ADDR remote_bda, UINT8 srvc_id )
     if (p_clcb && p_clcb->cur_srvc_id == SRVC_ID_NONE)
         p_clcb->cur_srvc_id = srvc_id;
     else
-        set = FALSE;
+        set = false;
 
     return set;
 }
@@ -406,13 +404,13 @@ BOOLEAN srvc_eng_request_channel (BD_ADDR remote_bda, UINT8 srvc_id )
 ** Returns          void
 **
 *******************************************************************************/
-void srvc_eng_release_channel (UINT16 conn_id)
+void srvc_eng_release_channel (uint16_t conn_id)
 {
     tSRVC_CLCB *p_clcb =  srvc_eng_find_clcb_by_conn_id(conn_id);
 
     if (p_clcb == NULL)
     {
-        GATT_TRACE_ERROR("%s: invalid connection id %d", __FUNCTION__, conn_id);
+        GATT_TRACE_ERROR("%s: invalid connection id %d", __func__, conn_id);
         return;
     }
 
@@ -446,15 +444,13 @@ tGATT_STATUS srvc_eng_init (void)
 
         GATT_TRACE_DEBUG ("Srvc_Init:  gatt_if=%d  ", srvc_eng_cb.gatt_if);
 
-        srvc_eng_cb.enabled = TRUE;
-//#if DIS_INCLUDED == TRUE
+        srvc_eng_cb.enabled = true;
         dis_cb.dis_read_uuid_idx = 0xff;
-//#endif
     }
     return GATT_SUCCESS;
 }
 
-void srvc_sr_rsp(UINT8 clcb_idx, tGATT_STATUS st, tGATTS_RSP *p_rsp)
+void srvc_sr_rsp(uint8_t clcb_idx, tGATT_STATUS st, tGATTS_RSP *p_rsp)
 {
     if (srvc_eng_cb.clcb[clcb_idx].trans_id != 0)
     {
@@ -466,9 +462,9 @@ void srvc_sr_rsp(UINT8 clcb_idx, tGATT_STATUS st, tGATTS_RSP *p_rsp)
         srvc_eng_cb.clcb[clcb_idx].trans_id = 0;
     }
 }
-void srvc_sr_notify(BD_ADDR remote_bda, UINT16 handle, UINT16 len, UINT8 *p_value)
+void srvc_sr_notify(BD_ADDR remote_bda, uint16_t handle, uint16_t len, uint8_t *p_value)
 {
-    UINT16 conn_id = srvc_eng_find_conn_id_by_bd_addr(remote_bda);
+    uint16_t conn_id = srvc_eng_find_conn_id_by_bd_addr(remote_bda);
 
     if (conn_id != GATT_INVALID_CONN_ID)
     {

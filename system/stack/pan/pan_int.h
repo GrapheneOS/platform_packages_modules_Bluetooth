@@ -50,21 +50,21 @@ typedef struct
 #define PAN_STATE_IDLE              0
 #define PAN_STATE_CONN_START        1
 #define PAN_STATE_CONNECTED         2
-    UINT8             con_state;
+    uint8_t           con_state;
 
 #define PAN_FLAGS_CONN_COMPLETED    0x01
-    UINT8             con_flags;
+    uint8_t           con_flags;
 
-    UINT16            handle;
+    uint16_t          handle;
     BD_ADDR           rem_bda;
 
-    UINT16            bad_pkts_rcvd;
-    UINT16            src_uuid;
-    UINT16            dst_uuid;
-    UINT16            prv_src_uuid;
-    UINT16            prv_dst_uuid;
-    UINT16            ip_addr_known;
-    UINT32            ip_addr;
+    uint16_t          bad_pkts_rcvd;
+    uint16_t          src_uuid;
+    uint16_t          dst_uuid;
+    uint16_t          prv_src_uuid;
+    uint16_t          prv_dst_uuid;
+    uint16_t          ip_addr_known;
+    uint32_t          ip_addr;
 
 } tPAN_CONN;
 
@@ -73,9 +73,9 @@ typedef struct
 */
 typedef struct
 {
-    UINT8                       role;
-    UINT8                       active_role;
-    UINT8                       prv_active_role;
+    uint8_t                     role;
+    uint8_t                     active_role;
+    uint8_t                     prv_active_role;
     tPAN_CONN                   pcb[MAX_PAN_CONNS];
 
     tPAN_CONN_STATE_CB          *pan_conn_state_cb;     /* Connection state callback */
@@ -89,16 +89,16 @@ typedef struct
     char                        *user_service_name;
     char                        *gn_service_name;
     char                        *nap_service_name;
-    UINT32                      pan_user_sdp_handle;
-    UINT32                      pan_gn_sdp_handle;
-    UINT32                      pan_nap_sdp_handle;
-    UINT8                       num_conns;
-    UINT8                       trace_level;
+    uint32_t                    pan_user_sdp_handle;
+    uint32_t                    pan_gn_sdp_handle;
+    uint32_t                    pan_nap_sdp_handle;
+    uint8_t                     num_conns;
+    uint8_t                     trace_level;
 } tPAN_CB;
 
 /* Global PAN data
 */
-#if PAN_DYNAMIC_MEMORY == FALSE
+#if (PAN_DYNAMIC_MEMORY == FALSE)
 extern tPAN_CB  pan_cb;
 #else
 extern tPAN_CB  *pan_cb_ptr;
@@ -107,40 +107,40 @@ extern tPAN_CB  *pan_cb_ptr;
 
 /*******************************************************************************/
 extern void pan_register_with_bnep (void);
-extern void pan_conn_ind_cb (UINT16 handle,
+extern void pan_conn_ind_cb (uint16_t handle,
                              BD_ADDR p_bda,
                              tBT_UUID *remote_uuid,
                              tBT_UUID *local_uuid,
-                             BOOLEAN is_role_change);
-extern void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, BOOLEAN is_role_change);
-extern void pan_data_ind_cb (UINT16 handle,
-                             UINT8 *src,
-                             UINT8 *dst,
-                             UINT16 protocol,
-                             UINT8 *p_data,
-                             UINT16 len,
-                             BOOLEAN fw_ext_present);
-extern void pan_data_buf_ind_cb (UINT16 handle,
-                                 UINT8 *src,
-                                 UINT8 *dst,
-                                 UINT16 protocol,
+                             bool    is_role_change);
+extern void pan_connect_state_cb (uint16_t handle, BD_ADDR rem_bda, tBNEP_RESULT result, bool    is_role_change);
+extern void pan_data_ind_cb (uint16_t handle,
+                             uint8_t *src,
+                             uint8_t *dst,
+                             uint16_t protocol,
+                             uint8_t *p_data,
+                             uint16_t len,
+                             bool    fw_ext_present);
+extern void pan_data_buf_ind_cb (uint16_t handle,
+                                 uint8_t *src,
+                                 uint8_t *dst,
+                                 uint16_t protocol,
                                  BT_HDR *p_buf,
-                                 BOOLEAN ext);
-extern void pan_tx_data_flow_cb (UINT16 handle,
+                                 bool    ext);
+extern void pan_tx_data_flow_cb (uint16_t handle,
                             tBNEP_RESULT  event);
-void pan_proto_filt_ind_cb (UINT16 handle,
-                            BOOLEAN indication,
+void pan_proto_filt_ind_cb (uint16_t handle,
+                            bool    indication,
                             tBNEP_RESULT result,
-                            UINT16 num_filters,
-                            UINT8 *p_filters);
-void pan_mcast_filt_ind_cb (UINT16 handle,
-                            BOOLEAN indication,
+                            uint16_t num_filters,
+                            uint8_t *p_filters);
+void pan_mcast_filt_ind_cb (uint16_t handle,
+                            bool    indication,
                             tBNEP_RESULT result,
-                            UINT16 num_filters,
-                            UINT8 *p_filters);
-extern UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p_desc);
-extern tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, UINT16 handle);
-extern tPAN_CONN *pan_get_pcb_by_handle (UINT16 handle);
+                            uint16_t num_filters,
+                            uint8_t *p_filters);
+extern uint32_t pan_register_with_sdp (uint16_t uuid, uint8_t sec_mask, char *p_name, char *p_desc);
+extern tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, uint16_t handle);
+extern tPAN_CONN *pan_get_pcb_by_handle (uint16_t handle);
 extern tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda);
 extern void pan_close_all_connections (void);
 extern void pan_release_pcb (tPAN_CONN *p_pcb);

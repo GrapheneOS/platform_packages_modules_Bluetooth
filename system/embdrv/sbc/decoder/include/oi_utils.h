@@ -126,7 +126,7 @@ OI_STATUS OI_CancelCallback(OI_SCHEDULED_CALLBACK callbackFunction);
  * @param str   the string to parse
  * @param addr  the parsed address, if successful
  *
- * @return TRUE if an address was successfully parsed, FALSE otherwise
+ * @return true if an address was successfully parsed, false otherwise
  */
 
 OI_BOOL OI_ParseBdAddr(const OI_CHAR *str,
@@ -362,7 +362,7 @@ const OI_CHAR* OI_ScanBdAddr(const OI_CHAR *str,
 
 /**
  * Compare two BD_ADDRs
- * SAME_BD_ADDR - Boolean: TRUE if they are the same address
+ * SAME_BD_ADDR - Boolean: true if they are the same address
  */
 
 #define SAME_BD_ADDR(x, y)      (0 == OI_MemCmp((x),(y),OI_BD_ADDR_BYTE_SIZE) )

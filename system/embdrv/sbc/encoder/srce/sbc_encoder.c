@@ -38,7 +38,7 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
 {
     SINT32 s32Ch;                               /* counter for ch*/
     SINT32 s32Sb;                               /* counter for sub-band*/
-    UINT32 u32Count, maxBit = 0;                          /* loop count*/
+    uint32_t u32Count, maxBit = 0;                          /* loop count*/
     SINT32 s32MaxValue;                         /* temp variable to store max value */
 
     SINT16 *ps16ScfL;
@@ -47,10 +47,10 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
     SINT32  s32NumOfBlocks   = pstrEncParams->s16NumOfBlocks;
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
     SINT32 s32MaxValue2;
-    UINT32 u32CountSum,u32CountDiff;
+    uint32_t u32CountSum,u32CountDiff;
     SINT32 *pSum, *pDiff;
 #endif
-    UINT8  *pu8;
+    uint8_t  *pu8;
     register SINT32  s32NumOfSubBands = pstrEncParams->s16NumOfSubBands;
 
     pstrEncParams->pu8NextPacket = pstrEncParams->pu8Packet;
@@ -201,11 +201,11 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
 */
 void SBC_Encoder_Init(SBC_ENC_PARAMS *pstrEncParams)
 {
-    UINT16 s16SamplingFreq; /*temp variable to store smpling freq*/
+    uint16_t s16SamplingFreq; /*temp variable to store smpling freq*/
     SINT16 s16Bitpool;      /*to store bit pool value*/
     SINT16 s16BitRate;      /*to store bitrate*/
     SINT16 s16FrameLen;     /*to store frame length*/
-    UINT16 HeaderParams;
+    uint16_t HeaderParams;
 
     pstrEncParams->u8NumPacketToEncode = 1; /* default is one for retrocompatibility purpose */
 

@@ -58,11 +58,11 @@ void btm_ble_batchscan_cleanup(void);
 ** Returns          None
 **
 *******************************************************************************/
-void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
+void btm_ble_batchscan_filter_track_adv_vse_cback(uint8_t len, uint8_t *p)
 {
     tBTM_BLE_TRACK_ADV_DATA adv_data;
 
-    UINT8   sub_event = 0;
+    uint8_t sub_event = 0;
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
     STREAM_TO_UINT8(sub_event, p);
 
@@ -81,7 +81,7 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
 
         memset(&adv_data, 0 , sizeof(tBTM_BLE_TRACK_ADV_DATA));
         BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
-        adv_data.client_if = (UINT8)ble_advtrack_cb.ref_value;
+        adv_data.client_if = (uint8_t)ble_advtrack_cb.ref_value;
         if (cmn_ble_vsc_cb.version_supported > BTM_VSC_CHIP_CAPABILITY_L_VERSION)
         {
             STREAM_TO_UINT8(adv_data.filt_index, p);
@@ -138,8 +138,8 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_batchscan_enq_op_q(UINT8 opcode, tBTM_BLE_BATCH_SCAN_STATE cur_state,
-                                          UINT8 cb_evt, tBTM_BLE_REF_VALUE ref_value)
+void btm_ble_batchscan_enq_op_q(uint8_t opcode, tBTM_BLE_BATCH_SCAN_STATE cur_state,
+                                          uint8_t cb_evt, tBTM_BLE_REF_VALUE ref_value)
 {
     ble_batchscan_cb.op_q.sub_code[ble_batchscan_cb.op_q.next_idx] = (opcode |(cb_evt << 4));
     ble_batchscan_cb.op_q.cur_state[ble_batchscan_cb.op_q.next_idx] = cur_state;
@@ -162,7 +162,7 @@ void btm_ble_batchscan_enq_op_q(UINT8 opcode, tBTM_BLE_BATCH_SCAN_STATE cur_stat
 ** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_batchscan_enq_rep_q(UINT8 report_format, tBTM_BLE_REF_VALUE ref_value)
+tBTM_STATUS btm_ble_batchscan_enq_rep_q(uint8_t report_format, tBTM_BLE_REF_VALUE ref_value)
 {
     int i = 0;
     for (i = 0; i < BTM_BLE_BATCH_REP_MAIN_Q_SIZE; i++)
@@ -193,8 +193,8 @@ tBTM_STATUS btm_ble_batchscan_enq_rep_q(UINT8 report_format, tBTM_BLE_REF_VALUE 
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT8 *p_data,
-                                    UINT8 data_len)
+void btm_ble_batchscan_enq_rep_data(uint8_t report_format, uint8_t num_records, uint8_t *p_data,
+                                    uint8_t data_len)
 {
     int index = 0;
 
@@ -210,8 +210,8 @@ void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT
     if (index < BTM_BLE_BATCH_REP_MAIN_Q_SIZE && data_len > 0 && num_records > 0)
     {
         int len = ble_batchscan_cb.main_rep_q.data_len[index];
-        UINT8 *p_orig_data = ble_batchscan_cb.main_rep_q.p_data[index];
-        UINT8 *p_app_data;
+        uint8_t *p_orig_data = ble_batchscan_cb.main_rep_q.p_data[index];
+        uint8_t *p_app_data;
 
         if (NULL != p_orig_data)
         {
@@ -244,8 +244,8 @@ void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_batchscan_deq_rep_data(UINT8 report_format, tBTM_BLE_REF_VALUE *p_ref_value,
-                                 UINT8 *p_num_records, UINT8 **p_data, UINT16 *p_data_len)
+void btm_ble_batchscan_deq_rep_data(uint8_t report_format, tBTM_BLE_REF_VALUE *p_ref_value,
+                                 uint8_t *p_num_records, uint8_t **p_data, uint16_t *p_data_len)
 {
     int index = 0;
 
@@ -289,8 +289,8 @@ void btm_ble_batchscan_deq_rep_data(UINT8 report_format, tBTM_BLE_REF_VALUE *p_r
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_batchscan_deq_op_q(UINT8 *p_opcode,tBTM_BLE_BATCH_SCAN_STATE *cur_state,
-                                          UINT8 *p_cb_evt, tBTM_BLE_REF_VALUE *p_ref)
+void btm_ble_batchscan_deq_op_q(uint8_t *p_opcode,tBTM_BLE_BATCH_SCAN_STATE *cur_state,
+                                          uint8_t *p_cb_evt, tBTM_BLE_REF_VALUE *p_ref)
 {
     *p_cb_evt = (ble_batchscan_cb.op_q.sub_code[ble_batchscan_cb.op_q.pending_idx] >> 4);
     *p_opcode = (ble_batchscan_cb.op_q.sub_code[ble_batchscan_cb.op_q.pending_idx]
@@ -317,7 +317,7 @@ tBTM_STATUS btm_ble_read_batchscan_reports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                                           tBTM_BLE_REF_VALUE ref_value)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
-    UINT8 param[BTM_BLE_BATCH_SCAN_READ_RESULTS_LEN], *pp;
+    uint8_t param[BTM_BLE_BATCH_SCAN_READ_RESULTS_LEN], *pp;
     pp = param;
 
     memset(param, 0, BTM_BLE_BATCH_SCAN_READ_RESULTS_LEN);
@@ -356,16 +356,16 @@ tBTM_STATUS btm_ble_read_batchscan_reports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 *******************************************************************************/
 void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
 {
-    UINT8  *p = p_params->p_param_buf;
-    UINT16  len = p_params->param_len;
+    uint8_t *p = p_params->p_param_buf;
+    uint16_t len = p_params->param_len;
     tBTM_BLE_REF_VALUE ref_value = 0;
 
-    UINT8  status = 0, subcode = 0, opcode = 0;
-    UINT8 report_format = 0, num_records = 0, cb_evt = 0;
-    UINT16 data_len = 0;
+    uint8_t status = 0, subcode = 0, opcode = 0;
+    uint8_t report_format = 0, num_records = 0, cb_evt = 0;
+    uint16_t data_len = 0;
     tBTM_BLE_BATCH_SCAN_STATE cur_state = 0;
     tBTM_STATUS btm_status = 0;
-    UINT8 *p_data = NULL;
+    uint8_t *p_data = NULL;
 
     if (len < 2)
     {
@@ -500,11 +500,11 @@ void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
 ** Returns          status
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_set_storage_config(UINT8 batch_scan_full_max, UINT8 batch_scan_trunc_max,
-                                       UINT8 batch_scan_notify_threshold)
+tBTM_STATUS btm_ble_set_storage_config(uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
+                                       uint8_t batch_scan_notify_threshold)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
-    UINT8 param[BTM_BLE_BATCH_SCAN_STORAGE_CFG_LEN], *pp;
+    uint8_t param[BTM_BLE_BATCH_SCAN_STORAGE_CFG_LEN], *pp;
 
     pp = param;
     memset(param, 0, BTM_BLE_BATCH_SCAN_STORAGE_CFG_LEN);
@@ -541,11 +541,11 @@ tBTM_STATUS btm_ble_set_storage_config(UINT8 batch_scan_full_max, UINT8 batch_sc
 **
 *******************************************************************************/
 tBTM_STATUS btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
-                     UINT32 scan_interval, UINT32 scan_window, tBLE_ADDR_TYPE addr_type,
+                     uint32_t scan_interval, uint32_t scan_window, tBLE_ADDR_TYPE addr_type,
                      tBTM_BLE_DISCARD_RULE discard_rule)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
-    UINT8 scan_param[BTM_BLE_BATCH_SCAN_PARAM_CONFIG_LEN], *pp_scan;
+    uint8_t scan_param[BTM_BLE_BATCH_SCAN_PARAM_CONFIG_LEN], *pp_scan;
 
     pp_scan = scan_param;
     memset(scan_param, 0, BTM_BLE_BATCH_SCAN_PARAM_CONFIG_LEN);
@@ -583,11 +583,11 @@ tBTM_STATUS btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 ** Returns          status
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_enable_disable_batchscan(BOOLEAN should_enable)
+tBTM_STATUS btm_ble_enable_disable_batchscan(bool    should_enable)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
-    UINT8 shld_enable = 0x01;
-    UINT8 enable_param[BTM_BLE_BATCH_SCAN_ENB_DISB_LEN], *pp_enable;
+    uint8_t shld_enable = 0x01;
+    uint8_t enable_param[BTM_BLE_BATCH_SCAN_ENB_DISB_LEN], *pp_enable;
 
     if (!should_enable)
         shld_enable = 0x00;
@@ -643,8 +643,8 @@ tBTM_STATUS btm_ble_enable_disable_batchscan(BOOLEAN should_enable)
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max, UINT8 batch_scan_trunc_max,
-                                        UINT8 batch_scan_notify_threshold,
+tBTM_STATUS BTM_BleSetStorageConfig(uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
+                                        uint8_t batch_scan_notify_threshold,
                                         tBTM_BLE_SCAN_SETUP_CBACK *p_setup_cback,
                                         tBTM_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback,
                                         tBTM_BLE_SCAN_REP_CBACK* p_rep_cback,
@@ -685,7 +685,7 @@ tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max, UINT8 batch_scan_
          BTM_BLE_SCAN_DISABLED_STATE == ble_batchscan_cb.cur_state ||
          BTM_BLE_SCAN_DISABLE_CALLED == ble_batchscan_cb.cur_state)
     {
-        status = btm_ble_enable_disable_batchscan(TRUE);
+        status = btm_ble_enable_disable_batchscan(true);
         if (BTM_CMD_STARTED != status)
             return status;
 
@@ -722,7 +722,7 @@ tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max, UINT8 batch_scan_
 **
 *******************************************************************************/
 tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
-            UINT32 scan_interval, UINT32 scan_window, tBLE_ADDR_TYPE addr_type,
+            uint32_t scan_interval, uint32_t scan_window, tBLE_ADDR_TYPE addr_type,
             tBTM_BLE_DISCARD_RULE discard_rule, tBTM_BLE_REF_VALUE ref_value)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
@@ -757,7 +757,7 @@ tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
             BTM_BLE_SCAN_DISABLED_STATE == ble_batchscan_cb.cur_state ||
             BTM_BLE_SCAN_DISABLE_CALLED == ble_batchscan_cb.cur_state)
         {
-            status = btm_ble_enable_disable_batchscan(TRUE);
+            status = btm_ble_enable_disable_batchscan(true);
             if (BTM_CMD_STARTED != status)
                return status;
             btm_ble_batchscan_enq_op_q(BTM_BLE_BATCH_SCAN_ENB_DISAB_CUST_FEATURE,
@@ -815,7 +815,7 @@ tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value)
         return BTM_ERR_PROCESSING;
     }
 
-    status = btm_ble_enable_disable_batchscan(FALSE);
+    status = btm_ble_enable_disable_batchscan(false);
     if (BTM_CMD_STARTED == status)
     {
        /* The user needs to be provided scan disable event */
@@ -844,9 +844,9 @@ tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
-    UINT8 read_scan_mode = 0;
-    UINT8  *p_data = NULL, num_records = 0;
-    UINT16 data_len = 0;
+    uint8_t read_scan_mode = 0;
+    uint8_t *p_data = NULL, num_records = 0;
+    uint16_t data_len = 0;
 
     BTM_TRACE_EVENT (" BTM_BleReadScanReports; %d, %d", scan_mode, ref_value);
 
@@ -940,7 +940,7 @@ void btm_ble_batchscan_init(void)
     BTM_TRACE_EVENT (" btm_ble_batchscan_init");
     memset(&ble_batchscan_cb, 0, sizeof(tBTM_BLE_BATCH_SCAN_CB));
     memset(&ble_advtrack_cb, 0, sizeof(tBTM_BLE_ADV_TRACK_CB));
-    BTM_RegisterForVSEvents(btm_ble_batchscan_filter_track_adv_vse_cback, TRUE);
+    BTM_RegisterForVSEvents(btm_ble_batchscan_filter_track_adv_vse_cback, true);
 }
 
 /*******************************************************************************

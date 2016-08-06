@@ -37,7 +37,7 @@ enum
 /*****************************************************************************
 **              VENDOR SPECIFIC BLE FEATURE FUNCTIONS
 ******************************************************************************/
-#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 
 #endif
 

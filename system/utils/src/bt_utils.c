@@ -49,7 +49,7 @@
 **  Type definitions for callback functions
 ********************************************************************************/
 static pthread_once_t g_DoSchedulingGroupOnce[TASK_HIGH_MAX];
-static BOOLEAN g_DoSchedulingGroup[TASK_HIGH_MAX];
+static bool    g_DoSchedulingGroup[TASK_HIGH_MAX];
 static pthread_mutex_t         gIdxLock;
 static int g_TaskIdx;
 static int g_TaskIDs[TASK_HIGH_MAX];
@@ -61,7 +61,7 @@ static future_t *init(void) {
 
   for(i = 0; i < TASK_HIGH_MAX; i++) {
     g_DoSchedulingGroupOnce[i] = PTHREAD_ONCE_INIT;
-    g_DoSchedulingGroup[i] = TRUE;
+    g_DoSchedulingGroup[i] = true;
     g_TaskIDs[i] = INVALID_TASK_ID;
   }
 

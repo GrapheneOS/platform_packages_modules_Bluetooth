@@ -37,22 +37,7 @@
 **  Constants & Macros
 ******************************************************************************/
 
-#if __STDC_VERSION__ < 199901L
-#  ifndef FALSE
-#    define FALSE 0
-#  endif
-#  ifndef TRUE
-#    define TRUE (!FALSE)
-#  endif
-#else
-#  include <stdbool.h>
-#  ifndef FALSE
-#    define FALSE  false
-#  endif
-#  ifndef TRUE
-#    define TRUE   true
-#  endif
-#endif
+#include <stdbool.h>
 
 #define HCI_ACL_MAX_SIZE 1024
 #define HCI_MAX_FRAME_SIZE (HCI_ACL_MAX_SIZE + 4)

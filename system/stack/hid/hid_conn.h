@@ -39,7 +39,7 @@ typedef struct hid_conn
 #define HID_CONN_STATE_DISCONNECTING    (5)
 #define HID_CONN_STATE_SECURITY         (6)
 
-    UINT8             conn_state;
+    uint8_t           conn_state;
 
 #define HID_CONN_FLAGS_IS_ORIG              (0x01)
 #define HID_CONN_FLAGS_HIS_CTRL_CFG_DONE    (0x02)
@@ -50,13 +50,13 @@ typedef struct hid_conn
 #define HID_CONN_FLAGS_CONGESTED            (0x20)
 #define HID_CONN_FLAGS_INACTIVE             (0x40)
 
-    UINT8             conn_flags;
+    uint8_t           conn_flags;
 
-    UINT8             ctrl_id;
-    UINT16            ctrl_cid;
-    UINT16            intr_cid;
-    UINT16            rem_mtu_size;
-    UINT16            disc_reason;                       /* Reason for disconnecting (for HID_HDEV_EVT_CLOSE) */
+    uint8_t           ctrl_id;
+    uint16_t          ctrl_cid;
+    uint16_t          intr_cid;
+    uint16_t          rem_mtu_size;
+    uint16_t          disc_reason;                       /* Reason for disconnecting (for HID_HDEV_EVT_CLOSE) */
     alarm_t           *process_repage_timer;
 } tHID_CONN;
 

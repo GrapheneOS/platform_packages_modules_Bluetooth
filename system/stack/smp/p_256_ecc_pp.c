@@ -201,7 +201,7 @@ static void ECC_NAF(uint8_t *naf, uint32_t *NumNAF, DWORD *k, uint32_t keyLength
 void ECC_PointMult_Bin_NAF(Point *q, Point *p, DWORD *n, uint32_t keyLength)
 {
     uint32_t sign;
-    UINT8 naf[256 / 4 +1];
+    uint8_t naf[256 / 4 +1];
     uint32_t NumNaf;
     Point minus_p;
     Point r;

@@ -38,10 +38,10 @@ extern "C" {
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
-/* Set to true if seperate authorization prompt desired for AVCTP besides A2DP authorization */
-/* Typically false when AVRCP is used in conjunction with A2DP */
+/* Set to TRUE if seperate authorization prompt desired for AVCTP besides A2DP authorization */
+/* Typically FALSE when AVRCP is used in conjunction with A2DP */
 #ifndef BTA_AV_WITH_AVCTP_AUTHORIZATION
-#define BTA_AV_WITH_AVCTP_AUTHORIZATION     false
+#define BTA_AV_WITH_AVCTP_AUTHORIZATION FALSE
 #endif
 
 /* AV status values */

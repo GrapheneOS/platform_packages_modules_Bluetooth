@@ -34,7 +34,7 @@ tGAP_CB  gap_cb;
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-UINT8 GAP_SetTraceLevel (UINT8 new_level)
+uint8_t GAP_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         gap_cb.trace_level = new_level;
@@ -64,11 +64,11 @@ void GAP_Init(void)
     gap_cb.trace_level = BT_TRACE_LEVEL_NONE;    /* No traces */
 #endif
 
-#if GAP_CONN_INCLUDED == TRUE
+#if (GAP_CONN_INCLUDED == TRUE)
     gap_conn_init();
 #endif
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     gap_attr_db_init();
 #endif
 }

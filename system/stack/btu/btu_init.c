@@ -37,7 +37,7 @@
 #if (BLE_INCLUDED == TRUE)
 #include "gatt_api.h"
 #include "gatt_int.h"
-#if SMP_INCLUDED == TRUE
+#if (SMP_INCLUDED == TRUE)
 #include "smp_int.h"
 #endif
 #endif
@@ -60,7 +60,7 @@ fixed_queue_t *btu_general_alarm_queue;
 thread_t *bt_workqueue_thread;
 static const char *BT_WORKQUEUE_NAME = "bt_workqueue";
 
-extern void PLATFORM_DisableHciTransport(UINT8 bDisable);
+extern void PLATFORM_DisableHciTransport(uint8_t bDisable);
 /*****************************************************************************
 **                          V A R I A B L E S                                *
 ******************************************************************************/
@@ -89,9 +89,9 @@ void btu_init_core(void)
 
     sdp_init();
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     gatt_init();
-#if (defined(SMP_INCLUDED) && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
     SMP_Init();
 #endif
     btm_ble_init();
@@ -113,7 +113,7 @@ void btu_free_core(void)
       /* Free the mandatory core stack components */
       l2c_free();
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
       gatt_free();
 #endif
 }

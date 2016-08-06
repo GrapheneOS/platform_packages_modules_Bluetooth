@@ -32,7 +32,7 @@
 /*****************************************************************************
 **  Global data
 *****************************************************************************/
-#if A2D_DYNAMIC_MEMORY == FALSE
+#if (A2D_DYNAMIC_MEMORY == FALSE)
 tA2D_CB a2d_cb;
 #endif
 
@@ -52,11 +52,11 @@ tA2D_CB a2d_cb;
 ** Returns          Nothing.
 **
 ******************************************************************************/
-static void a2d_sdp_cback(UINT16 status)
+static void a2d_sdp_cback(uint16_t status)
 {
     tSDP_DISC_REC       *p_rec = NULL;
     tSDP_DISC_ATTR      *p_attr;
-    BOOLEAN             found = FALSE;
+    bool                found = false;
     tA2D_Service        a2d_svc;
     tSDP_PROTOCOL_ELEM  elem;
 
@@ -106,10 +106,10 @@ static void a2d_sdp_cback(UINT16 status)
             }
 
             /* we've got everything, we're done */
-            found = TRUE;
+            found = true;
             break;
 
-        } while (TRUE);
+        } while (true);
     }
 
     a2d_cb.find.service_uuid = 0;
@@ -133,7 +133,7 @@ static void a2d_sdp_cback(UINT16 status)
 ** Returns          None
 **
 *******************************************************************************/
-void a2d_set_avdt_sdp_ver (UINT16 avdt_sdp_ver)
+void a2d_set_avdt_sdp_ver (uint16_t avdt_sdp_ver)
 {
     a2d_cb.avdt_sdp_ver = avdt_sdp_ver;
 }
@@ -168,13 +168,13 @@ void a2d_set_avdt_sdp_ver (UINT16 avdt_sdp_ver)
 **                  A2D_FAIL if function execution failed.
 **
 ******************************************************************************/
-tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_provider_name,
-        UINT16 features, UINT32 sdp_handle)
+tA2D_STATUS A2D_AddRecord(uint16_t service_uuid, char *p_service_name, char *p_provider_name,
+        uint16_t features, uint32_t sdp_handle)
 {
-    UINT16      browse_list[1];
-    BOOLEAN     result = TRUE;
-    UINT8       temp[8];
-    UINT8       *p;
+    uint16_t    browse_list[1];
+    bool        result = true;
+    uint8_t     temp[8];
+    uint8_t     *p;
     tSDP_PROTOCOL_ELEM  proto_list [A2D_NUM_PROTO_ELEMS];
 
     A2D_TRACE_API("A2D_AddRecord uuid: %x", service_uuid);
@@ -207,21 +207,21 @@ tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_pro
         p = temp;
         UINT16_TO_BE_STREAM(p, features);
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
-                  (UINT32)2, (UINT8*)temp);
+                  (uint32_t)2, (uint8_t*)temp);
     }
 
     /* add provider name */
     if (p_provider_name != NULL)
     {
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_PROVIDER_NAME, TEXT_STR_DESC_TYPE,
-                    (UINT32)(strlen(p_provider_name)+1), (UINT8 *) p_provider_name);
+                    (uint32_t)(strlen(p_provider_name)+1), (uint8_t *) p_provider_name);
     }
 
     /* add service name */
     if (p_service_name != NULL)
     {
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
-                    (UINT32)(strlen(p_service_name)+1), (UINT8 *) p_service_name);
+                    (uint32_t)(strlen(p_service_name)+1), (uint8_t *) p_service_name);
     }
 
     /* add browse group list */
@@ -267,12 +267,12 @@ tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_pro
 **                  A2D_FAIL if function execution failed.
 **
 ******************************************************************************/
-tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
+tA2D_STATUS A2D_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                         tA2D_SDP_DB_PARAMS *p_db, tA2D_FIND_CBACK *p_cback)
 {
     tSDP_UUID   uuid_list;
-    BOOLEAN     result = TRUE;
-    UINT16      a2d_attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, /* update A2D_NUM_ATTR, if changed */
+    bool        result = true;
+    uint16_t    a2d_attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, /* update A2D_NUM_ATTR, if changed */
                                    ATTR_ID_BT_PROFILE_DESC_LIST,
                                    ATTR_ID_SUPPORTED_FEATURES,
                                    ATTR_ID_SERVICE_NAME,
@@ -304,7 +304,7 @@ tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
     result = SDP_InitDiscoveryDb(a2d_cb.find.p_db, p_db->db_len, 1, &uuid_list, p_db->num_attr,
                                  p_db->p_attrs);
 
-    if (result == TRUE)
+    if (result == true)
     {
         /* store service_uuid */
         a2d_cb.find.service_uuid = service_uuid;
@@ -312,7 +312,7 @@ tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 
         /* perform service search */
         result = SDP_ServiceSearchAttributeRequest(bd_addr, a2d_cb.find.p_db, a2d_sdp_cback);
-        if(FALSE == result)
+        if(false == result)
         {
             a2d_cb.find.service_uuid = 0;
         }
@@ -342,7 +342,7 @@ tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **                  the input parameter is 0xff.
 **
 ******************************************************************************/
-UINT8 A2D_SetTraceLevel (UINT8 new_level)
+uint8_t A2D_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
         a2d_cb.trace_level = new_level;
@@ -358,10 +358,10 @@ UINT8 A2D_SetTraceLevel (UINT8 new_level)
 **                  A2D_SET_ZERO_BIT, if all bits clear
 **                  A2D_SET_MULTL_BIT, if multiple bits are set
 ******************************************************************************/
-UINT8 A2D_BitsSet(UINT8 num)
+uint8_t A2D_BitsSet(uint8_t num)
 {
-    UINT8   count;
-    BOOLEAN res;
+    uint8_t count;
+    bool    res;
     if(num == 0)
         res = A2D_SET_ZERO_BIT;
     else

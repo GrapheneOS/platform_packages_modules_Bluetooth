@@ -75,7 +75,7 @@ tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc)
 ** Returns          void.
 **
 *******************************************************************************/
-void avct_ccb_dealloc(tAVCT_CCB *p_ccb, UINT8 event, UINT16 result, BD_ADDR bd_addr)
+void avct_ccb_dealloc(tAVCT_CCB *p_ccb, uint8_t event, uint16_t result, BD_ADDR bd_addr)
 {
     tAVCT_CTRL_CBACK    *p_cback = p_ccb->cc.p_ctrl_cback;
 
@@ -109,10 +109,10 @@ void avct_ccb_dealloc(tAVCT_CCB *p_ccb, UINT8 event, UINT16 result, BD_ADDR bd_a
 ** Returns          Index of ccb.
 **
 *******************************************************************************/
-UINT8 avct_ccb_to_idx(tAVCT_CCB *p_ccb)
+uint8_t avct_ccb_to_idx(tAVCT_CCB *p_ccb)
 {
     /* use array arithmetic to determine index */
-    return (UINT8) (p_ccb - avct_cb.ccb);
+    return (uint8_t) (p_ccb - avct_cb.ccb);
 }
 
 /*******************************************************************************
@@ -125,7 +125,7 @@ UINT8 avct_ccb_to_idx(tAVCT_CCB *p_ccb)
 ** Returns          pointer to the ccb, or NULL if none found.
 **
 *******************************************************************************/
-tAVCT_CCB *avct_ccb_by_idx(UINT8 idx)
+tAVCT_CCB *avct_ccb_by_idx(uint8_t idx)
 {
     tAVCT_CCB   *p_ccb;
 

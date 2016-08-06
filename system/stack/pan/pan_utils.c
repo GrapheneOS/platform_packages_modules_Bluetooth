@@ -36,7 +36,7 @@
 #include "btm_api.h"
 
 
-static const UINT8 pan_proto_elem_data[]   = {
+static const uint8_t pan_proto_elem_data[]   = {
                                    0x35, 0x18,          /* data element sequence of length 0x18 bytes */
                                    0x35, 0x06,          /* data element sequence for L2CAP descriptor */
                                    0x19, 0x01, 0x00,    /* UUID for L2CAP - 0x0100 */
@@ -58,12 +58,12 @@ static const UINT8 pan_proto_elem_data[]   = {
 ** Returns
 **
 *******************************************************************************/
-UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p_desc)
+uint32_t pan_register_with_sdp (uint16_t uuid, uint8_t sec_mask, char *p_name, char *p_desc)
 {
-    UINT32  sdp_handle;
-    UINT16  browse_list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    UINT16  security = 0;
-    UINT32  proto_len = (UINT32)pan_proto_elem_data[1];
+    uint32_t sdp_handle;
+    uint16_t browse_list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    uint16_t security = 0;
+    uint32_t proto_len = (uint32_t )pan_proto_elem_data[1];
 
     /* Create a record */
     sdp_handle = SDP_CreateRecord ();
@@ -79,7 +79,7 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 
     /* Add protocol element sequence from the constant string */
     SDP_AddAttribute (sdp_handle, ATTR_ID_PROTOCOL_DESC_LIST, DATA_ELE_SEQ_DESC_TYPE,
-                      proto_len, (UINT8 *)(pan_proto_elem_data+2));
+                      proto_len, (uint8_t *)(pan_proto_elem_data+2));
 
 #if 0
     availability = 0xFF;
@@ -94,25 +94,25 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 
     /* Service Name */
     SDP_AddAttribute (sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
-                        (UINT8) (strlen(p_name) + 1), (UINT8 *)p_name);
+                        (uint8_t) (strlen(p_name) + 1), (uint8_t *)p_name);
 
     /* Service description */
     SDP_AddAttribute (sdp_handle, ATTR_ID_SERVICE_DESCRIPTION, TEXT_STR_DESC_TYPE,
-                        (UINT8) (strlen(p_desc) + 1), (UINT8 *)p_desc);
+                        (uint8_t) (strlen(p_desc) + 1), (uint8_t *)p_desc);
 
     /* Security description */
     if (sec_mask)
     {
         UINT16_TO_BE_FIELD(&security, 0x0001);
     }
-    SDP_AddAttribute (sdp_handle, ATTR_ID_SECURITY_DESCRIPTION, UINT_DESC_TYPE, 2, (UINT8 *)&security);
+    SDP_AddAttribute (sdp_handle, ATTR_ID_SECURITY_DESCRIPTION, UINT_DESC_TYPE, 2, (uint8_t *)&security);
 
-#if (defined (PAN_SUPPORTS_ROLE_NAP) && PAN_SUPPORTS_ROLE_NAP == TRUE)
+#if (PAN_SUPPORTS_ROLE_NAP == TRUE)
     if (uuid == UUID_SERVCLASS_NAP)
     {
-        UINT16  NetAccessType = 0x0005;      /* Ethernet */
-        UINT32  NetAccessRate = 0x0001312D0; /* 10Mb/sec */
-        UINT8   array[10], *p;
+        uint16_t NetAccessType = 0x0005;      /* Ethernet */
+        uint32_t NetAccessRate = 0x0001312D0; /* 10Mb/sec */
+        uint8_t array[10], *p;
 
         /* Net access type. */
         p = array;
@@ -125,33 +125,33 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
         SDP_AddAttribute (sdp_handle, ATTR_ID_MAX_NET_ACCESS_RATE, UINT_DESC_TYPE, 4, array);
 
         /* Register with Security Manager for the specific security level */
-        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_NAP,
+        if ((!BTM_SetSecurityLevel (true, p_name, BTM_SEC_SERVICE_BNEP_NAP,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_NAP))
-         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_NAP,
+         || (!BTM_SetSecurityLevel (false, p_name, BTM_SEC_SERVICE_BNEP_NAP,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_NAP)))
         {
             PAN_TRACE_ERROR ("PAN Security Registration failed for PANU");
         }
     }
 #endif
-#if (defined (PAN_SUPPORTS_ROLE_GN) && PAN_SUPPORTS_ROLE_GN == TRUE)
+#if (PAN_SUPPORTS_ROLE_GN == TRUE)
     if (uuid == UUID_SERVCLASS_GN)
     {
-        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_GN,
+        if ((!BTM_SetSecurityLevel (true, p_name, BTM_SEC_SERVICE_BNEP_GN,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_GN))
-         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_GN,
+         || (!BTM_SetSecurityLevel (false, p_name, BTM_SEC_SERVICE_BNEP_GN,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_GN)))
         {
             PAN_TRACE_ERROR ("PAN Security Registration failed for GN");
         }
     }
 #endif
-#if (defined (PAN_SUPPORTS_ROLE_PANU) && PAN_SUPPORTS_ROLE_PANU == TRUE)
+#if (PAN_SUPPORTS_ROLE_PANU == TRUE)
     if (uuid == UUID_SERVCLASS_PANU)
     {
-        if ((!BTM_SetSecurityLevel (TRUE, p_name, BTM_SEC_SERVICE_BNEP_PANU,
+        if ((!BTM_SetSecurityLevel (true, p_name, BTM_SEC_SERVICE_BNEP_PANU,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_PANU))
-         || (!BTM_SetSecurityLevel (FALSE, p_name, BTM_SEC_SERVICE_BNEP_PANU,
+         || (!BTM_SetSecurityLevel (false, p_name, BTM_SEC_SERVICE_BNEP_PANU,
                                     sec_mask, BT_PSM_BNEP, BTM_SEC_PROTO_BNEP, UUID_SERVCLASS_PANU)))
         {
             PAN_TRACE_ERROR ("PAN Security Registration failed for PANU");
@@ -177,9 +177,9 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
 ** Returns
 **
 *******************************************************************************/
-tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, UINT16 handle)
+tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, uint16_t handle)
 {
-    UINT16      i;
+    uint16_t    i;
 
     for (i=0; i<MAX_PAN_CONNS; i++)
     {
@@ -218,9 +218,9 @@ tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, UINT16 handle)
 ** Returns
 **
 *******************************************************************************/
-tPAN_CONN *pan_get_pcb_by_handle (UINT16 handle)
+tPAN_CONN *pan_get_pcb_by_handle (uint16_t handle)
 {
-    UINT16      i;
+    uint16_t    i;
 
     for (i=0; i<MAX_PAN_CONNS; i++)
     {
@@ -244,7 +244,7 @@ tPAN_CONN *pan_get_pcb_by_handle (UINT16 handle)
 *******************************************************************************/
 tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda)
 {
-    UINT16      i;
+    uint16_t    i;
 
     for (i=0; i<MAX_PAN_CONNS; i++)
     {
@@ -278,7 +278,7 @@ tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda)
 *******************************************************************************/
 void pan_close_all_connections (void)
 {
-    UINT16      i;
+    uint16_t    i;
 
     for (i=0; i<MAX_PAN_CONNS; i++)
     {
@@ -324,8 +324,8 @@ void pan_release_pcb (tPAN_CONN *p_pcb)
 *******************************************************************************/
 void pan_dump_status (void)
 {
-#if (defined (PAN_SUPPORTS_DEBUG_DUMP) && PAN_SUPPORTS_DEBUG_DUMP == TRUE)
-    UINT16          i;
+#if (PAN_SUPPORTS_DEBUG_DUMP == TRUE)
+    uint16_t        i;
     char            buff[200];
     tPAN_CONN      *p_pcb;
 

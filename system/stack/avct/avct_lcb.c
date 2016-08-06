@@ -35,7 +35,7 @@
 ** state machine constants and types
 *****************************************************************************/
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
 
 /* verbose state strings for trace */
 const char * const avct_lcb_st_str[] = {
@@ -119,7 +119,7 @@ const tAVCT_LCB_ACTION avct_lcb_action[] = {
 #define AVCT_LCB_NUM_COLS           3       /* number of columns in state tables */
 
 /* state table for idle state */
-const UINT8 avct_lcb_st_idle[][AVCT_LCB_NUM_COLS] = {
+const uint8_t avct_lcb_st_idle[][AVCT_LCB_NUM_COLS] = {
 /* Event                Action 1                    Action 2                    Next state */
 /* UL_BIND_EVT */       {AVCT_LCB_CHNL_OPEN,        AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
 /* UL_UNBIND_EVT */     {AVCT_LCB_UNBIND_DISC,      AVCT_LCB_IGNORE,            AVCT_LCB_IDLE_ST},
@@ -132,7 +132,7 @@ const UINT8 avct_lcb_st_idle[][AVCT_LCB_NUM_COLS] = {
 };
 
 /* state table for opening state */
-const UINT8 avct_lcb_st_opening[][AVCT_LCB_NUM_COLS] = {
+const uint8_t avct_lcb_st_opening[][AVCT_LCB_NUM_COLS] = {
 /* Event                Action 1                    Action 2                    Next state */
 /* UL_BIND_EVT */       {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
 /* UL_UNBIND_EVT */     {AVCT_LCB_UNBIND_DISC,      AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
@@ -145,7 +145,7 @@ const UINT8 avct_lcb_st_opening[][AVCT_LCB_NUM_COLS] = {
 };
 
 /* state table for open state */
-const UINT8 avct_lcb_st_open[][AVCT_LCB_NUM_COLS] = {
+const uint8_t avct_lcb_st_open[][AVCT_LCB_NUM_COLS] = {
 /* Event                Action 1                    Action 2                    Next state */
 /* UL_BIND_EVT */       {AVCT_LCB_BIND_CONN,        AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
 /* UL_UNBIND_EVT */     {AVCT_LCB_CHK_DISC,         AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
@@ -158,7 +158,7 @@ const UINT8 avct_lcb_st_open[][AVCT_LCB_NUM_COLS] = {
 };
 
 /* state table for closing state */
-const UINT8 avct_lcb_st_closing[][AVCT_LCB_NUM_COLS] = {
+const uint8_t avct_lcb_st_closing[][AVCT_LCB_NUM_COLS] = {
 /* Event                Action 1                    Action 2                    Next state */
 /* UL_BIND_EVT */       {AVCT_LCB_BIND_FAIL,        AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
 /* UL_UNBIND_EVT */     {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
@@ -171,7 +171,7 @@ const UINT8 avct_lcb_st_closing[][AVCT_LCB_NUM_COLS] = {
 };
 
 /* type for state table */
-typedef const UINT8 (*tAVCT_LCB_ST_TBL)[AVCT_LCB_NUM_COLS];
+typedef const uint8_t (*tAVCT_LCB_ST_TBL)[AVCT_LCB_NUM_COLS];
 
 /* state table */
 const tAVCT_LCB_ST_TBL avct_lcb_st_tbl[] = {
@@ -191,13 +191,13 @@ const tAVCT_LCB_ST_TBL avct_lcb_st_tbl[] = {
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_lcb_event(tAVCT_LCB *p_lcb, UINT8 event, tAVCT_LCB_EVT *p_data)
+void avct_lcb_event(tAVCT_LCB *p_lcb, uint8_t event, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_LCB_ST_TBL    state_table;
-    UINT8               action;
+    uint8_t             action;
     int                 i;
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
     AVCT_TRACE_EVENT("LCB lcb=%d event=%s state=%s", p_lcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
 #else
     AVCT_TRACE_EVENT("LCB lcb=%d event=%d state=%d", p_lcb->allocated, event, p_lcb->state);
@@ -234,13 +234,13 @@ void avct_lcb_event(tAVCT_LCB *p_lcb, UINT8 event, tAVCT_LCB_EVT *p_data)
 **
 *******************************************************************************/
 #if (AVCT_BROWSE_INCLUDED == TRUE)
-void avct_bcb_event(tAVCT_BCB *p_bcb, UINT8 event, tAVCT_LCB_EVT *p_data)
+void avct_bcb_event(tAVCT_BCB *p_bcb, uint8_t event, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_LCB_ST_TBL    state_table;
-    UINT8               action;
+    uint8_t             action;
     int                 i;
 
-#if BT_TRACE_VERBOSE == TRUE
+#if (BT_TRACE_VERBOSE == TRUE)
     AVCT_TRACE_EVENT("BCB lcb=%d event=%s state=%s", p_bcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
 #else
     AVCT_TRACE_EVENT("BCB lcb=%d event=%d state=%d", p_bcb->allocated, event, p_bcb->state);
@@ -321,7 +321,7 @@ tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr)
     {
         if (!p_lcb->allocated)
         {
-            p_lcb->allocated = (UINT8)(i + 1);
+            p_lcb->allocated = (uint8_t)(i + 1);
             memcpy(p_lcb->peer_addr, bd_addr, BD_ADDR_LEN);
             AVCT_TRACE_DEBUG("avct_lcb_alloc %d", p_lcb->allocated);
             p_lcb->tx_q = fixed_queue_new(SIZE_MAX);
@@ -384,7 +384,7 @@ void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 ** Returns          pointer to the lcb, or NULL if none found.
 **
 *******************************************************************************/
-tAVCT_LCB *avct_lcb_by_lcid(UINT16 lcid)
+tAVCT_LCB *avct_lcb_by_lcid(uint16_t lcid)
 {
     tAVCT_LCB   *p_lcb = &avct_cb.lcb[0];
     int         i;
@@ -417,7 +417,7 @@ tAVCT_LCB *avct_lcb_by_lcid(UINT16 lcid)
 ** Returns          Pointer to CCB if PID found, NULL otherwise.
 **
 *******************************************************************************/
-tAVCT_CCB *avct_lcb_has_pid(tAVCT_LCB *p_lcb, UINT16 pid)
+tAVCT_CCB *avct_lcb_has_pid(tAVCT_LCB *p_lcb, uint16_t pid)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
     int         i;
@@ -439,10 +439,10 @@ tAVCT_CCB *avct_lcb_has_pid(tAVCT_LCB *p_lcb, UINT16 pid)
 ** Description      See if given ccb is only one on the lcb.
 **
 **
-** Returns          TRUE if ccb is last, FALSE otherwise.
+** Returns          true if ccb is last, false otherwise.
 **
 *******************************************************************************/
-BOOLEAN avct_lcb_last_ccb(tAVCT_LCB *p_lcb, tAVCT_CCB *p_ccb_last)
+bool    avct_lcb_last_ccb(tAVCT_LCB *p_lcb, tAVCT_CCB *p_ccb_last)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
     int         i;
@@ -454,10 +454,10 @@ BOOLEAN avct_lcb_last_ccb(tAVCT_LCB *p_lcb, tAVCT_CCB *p_ccb_last)
             i, p_ccb->allocated, p_ccb->p_lcb, p_lcb, p_ccb, p_ccb_last);
         if (p_ccb->allocated && (p_ccb->p_lcb == p_lcb) && (p_ccb != p_ccb_last))
         {
-            return FALSE;
+            return false;
         }
     }
-    return TRUE;
+    return true;
 }
 
 
