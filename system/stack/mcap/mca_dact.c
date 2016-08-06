@@ -64,11 +64,11 @@ void mca_dcb_tc_open (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     tMCA_CTRL   evt_data;
     tMCA_CCB    *p_ccb = p_dcb->p_ccb;
-    UINT8       event = MCA_OPEN_IND_EVT;
+    uint8_t     event = MCA_OPEN_IND_EVT;
 
     if (p_data->open.param == MCA_INT)
         event = MCA_OPEN_CFM_EVT;
-    p_dcb->cong  = FALSE;
+    p_dcb->cong  = false;
     evt_data.open_cfm.mtu       = p_data->open.peer_mtu;
     evt_data.open_cfm.mdl_id    = p_dcb->mdl_id;
     evt_data.open_cfm.mdl       = mca_dcb_to_hdl(p_dcb);
@@ -120,7 +120,7 @@ void mca_dcb_do_disconn (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
     tMCA_CLOSE  close;
     UNUSED(p_data);
 
-    if ((p_dcb->lcid == 0) || (L2CA_DisconnectReq(p_dcb->lcid) == FALSE))
+    if ((p_dcb->lcid == 0) || (L2CA_DisconnectReq(p_dcb->lcid) == false))
     {
         close.param  = MCA_INT;
         close.reason = L2CAP_DISC_OK;
@@ -140,13 +140,13 @@ void mca_dcb_do_disconn (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 *******************************************************************************/
 void mca_dcb_snd_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
-    UINT8   status;
+    uint8_t status;
 
     /* do not need to check cong, because API already checked the status */
     status = L2CA_DataWrite (p_dcb->lcid, p_data->p_pkt);
     if (status == L2CAP_DW_CONGESTED)
     {
-        p_dcb->cong = TRUE;
+        p_dcb->cong = true;
         mca_dcb_report_cong(p_dcb);
     }
 }

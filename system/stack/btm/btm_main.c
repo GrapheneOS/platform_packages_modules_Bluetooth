@@ -31,7 +31,7 @@
 
 /* Global BTM control block structure
 */
-#if BTM_DYNAMIC_MEMORY == FALSE
+#if (BTM_DYNAMIC_MEMORY == FALSE)
 tBTM_CB  btm_cb;
 #endif
 
@@ -69,7 +69,7 @@ void btm_init (void)
         btm_sec_init(BTM_SEC_MODE_SC);
     else
         btm_sec_init(BTM_SEC_MODE_SP);
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
     btm_sco_init();                     /* SCO Database and Structures (If included) */
 #endif
 

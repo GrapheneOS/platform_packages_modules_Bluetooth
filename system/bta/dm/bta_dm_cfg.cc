@@ -44,7 +44,7 @@
 #define BTA_DM_LINK_TIMEOUT    8000
 #endif
 
-/* true to avoid scatternet when av is streaming (be the master) */
+/* TRUE to avoid scatternet when av is streaming (be the master) */
 #ifndef BTA_DM_AVOID_SCATTER_A2DP
 #define BTA_DM_AVOID_SCATTER_A2DP    TRUE
 #endif

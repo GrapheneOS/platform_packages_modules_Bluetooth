@@ -49,7 +49,7 @@
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result)
+tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, tA2D_SBC_CIE *p_ie, uint8_t *p_result)
 {
     tA2D_STATUS status;
 
@@ -96,7 +96,7 @@ tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result
 **                  Input Parameters:
 **                      p_info:  the byte sequence to parse.
 **
-**                      for_caps:  TRUE, if the byte sequence is for get capabilities response.
+**                      for_caps:  true, if the byte sequence is for get capabilities response.
 **
 **                  Output Parameters:
 **                      p_ie:  The SBC Codec Information Element information.
@@ -104,11 +104,11 @@ tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
-                            BOOLEAN for_caps)
+tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const uint8_t *p_info,
+                            bool for_caps)
 {
     tA2D_STATUS status = A2D_SUCCESS;
-    UINT8 losc;
+    uint8_t losc;
 
     if (p_ie == NULL || p_info == NULL)
         return A2D_INVALID_PARAMS;
@@ -137,7 +137,7 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
          p_ie->max_bitpool < p_ie->min_bitpool)
         status = A2D_BAD_MAX_BITPOOL;
 
-    if (for_caps != FALSE)
+    if (for_caps != false)
         return status;
 
     if (A2D_BitsSet(p_ie->samp_freq) != A2D_SET_ONE_BIT)
@@ -176,7 +176,7 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
 **
 ** Returns          void.
 ******************************************************************************/
-void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start, BOOLEAN last, UINT8 num)
+void A2D_BldSbcMplHdr(uint8_t *p_dst, bool frag, bool start, bool last, uint8_t num)
 {
     if(p_dst)
     {
@@ -213,13 +213,13 @@ void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start, BOOLEAN last, U
 **
 ** Returns          void.
 ******************************************************************************/
-void A2D_ParsSbcMplHdr(UINT8 *p_src, BOOLEAN *p_frag, BOOLEAN *p_start, BOOLEAN *p_last, UINT8 *p_num)
+void A2D_ParsSbcMplHdr(uint8_t *p_src, bool *p_frag, bool *p_start, bool *p_last, uint8_t *p_num)
 {
     if(p_src && p_frag && p_start && p_last && p_num)
     {
-        *p_frag = (*p_src & A2D_SBC_HDR_F_MSK) ? TRUE: FALSE;
-        *p_start= (*p_src & A2D_SBC_HDR_S_MSK) ? TRUE: FALSE;
-        *p_last = (*p_src & A2D_SBC_HDR_L_MSK) ? TRUE: FALSE;
+        *p_frag = (*p_src & A2D_SBC_HDR_F_MSK) ? true: false;
+        *p_start= (*p_src & A2D_SBC_HDR_S_MSK) ? true: false;
+        *p_last = (*p_src & A2D_SBC_HDR_L_MSK) ? true: false;
         *p_num  = (*p_src & A2D_SBC_HDR_NUM_MSK);
     }
 }

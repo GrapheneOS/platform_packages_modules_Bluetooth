@@ -49,80 +49,80 @@
 #include "btu.h"
 extern fixed_queue_t *btu_hci_msg_queue;
 
-extern void btm_process_cancel_complete(UINT8 status, UINT8 mode);
-extern void btm_ble_test_command_complete(UINT8 *p);
+extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);
+extern void btm_ble_test_command_complete(uint8_t *p);
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void btu_hcif_inquiry_comp_evt (UINT8 *p);
-static void btu_hcif_inquiry_result_evt (UINT8 *p);
-static void btu_hcif_inquiry_rssi_result_evt (UINT8 *p);
-static void btu_hcif_extended_inquiry_result_evt (UINT8 *p);
+static void btu_hcif_inquiry_comp_evt (uint8_t *p);
+static void btu_hcif_inquiry_result_evt (uint8_t *p);
+static void btu_hcif_inquiry_rssi_result_evt (uint8_t *p);
+static void btu_hcif_extended_inquiry_result_evt (uint8_t *p);
 
-static void btu_hcif_connection_comp_evt (UINT8 *p);
-static void btu_hcif_connection_request_evt (UINT8 *p);
-static void btu_hcif_disconnection_comp_evt (UINT8 *p);
-static void btu_hcif_authentication_comp_evt (UINT8 *p);
-static void btu_hcif_rmt_name_request_comp_evt (UINT8 *p, UINT16 evt_len);
-static void btu_hcif_encryption_change_evt (UINT8 *p);
-static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p);
-static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p);
-static void btu_hcif_read_rmt_version_comp_evt (UINT8 *p);
-static void btu_hcif_qos_setup_comp_evt (UINT8 *p);
+static void btu_hcif_connection_comp_evt (uint8_t *p);
+static void btu_hcif_connection_request_evt (uint8_t *p);
+static void btu_hcif_disconnection_comp_evt (uint8_t *p);
+static void btu_hcif_authentication_comp_evt (uint8_t *p);
+static void btu_hcif_rmt_name_request_comp_evt (uint8_t *p, uint16_t evt_len);
+static void btu_hcif_encryption_change_evt (uint8_t *p);
+static void btu_hcif_read_rmt_features_comp_evt (uint8_t *p);
+static void btu_hcif_read_rmt_ext_features_comp_evt (uint8_t *p);
+static void btu_hcif_read_rmt_version_comp_evt (uint8_t *p);
+static void btu_hcif_qos_setup_comp_evt (uint8_t *p);
 static void btu_hcif_command_complete_evt (BT_HDR *response, void *context);
 static void btu_hcif_command_status_evt (uint8_t status, BT_HDR *command, void *context);
-static void btu_hcif_hardware_error_evt (UINT8 *p);
+static void btu_hcif_hardware_error_evt (uint8_t *p);
 static void btu_hcif_flush_occured_evt (void);
-static void btu_hcif_role_change_evt (UINT8 *p);
-static void btu_hcif_num_compl_data_pkts_evt (UINT8 *p);
-static void btu_hcif_mode_change_evt (UINT8 *p);
-static void btu_hcif_pin_code_request_evt (UINT8 *p);
-static void btu_hcif_link_key_request_evt (UINT8 *p);
-static void btu_hcif_link_key_notification_evt (UINT8 *p);
+static void btu_hcif_role_change_evt (uint8_t *p);
+static void btu_hcif_num_compl_data_pkts_evt (uint8_t *p);
+static void btu_hcif_mode_change_evt (uint8_t *p);
+static void btu_hcif_pin_code_request_evt (uint8_t *p);
+static void btu_hcif_link_key_request_evt (uint8_t *p);
+static void btu_hcif_link_key_notification_evt (uint8_t *p);
 static void btu_hcif_loopback_command_evt (void);
 static void btu_hcif_data_buf_overflow_evt (void);
 static void btu_hcif_max_slots_changed_evt (void);
-static void btu_hcif_read_clock_off_comp_evt (UINT8 *p);
+static void btu_hcif_read_clock_off_comp_evt (uint8_t *p);
 static void btu_hcif_conn_pkt_type_change_evt (void);
-static void btu_hcif_qos_violation_evt (UINT8 *p);
+static void btu_hcif_qos_violation_evt (uint8_t *p);
 static void btu_hcif_page_scan_mode_change_evt (void);
 static void btu_hcif_page_scan_rep_mode_chng_evt (void);
-static void btu_hcif_esco_connection_comp_evt(UINT8 *p);
-static void btu_hcif_esco_connection_chg_evt(UINT8 *p);
+static void btu_hcif_esco_connection_comp_evt(uint8_t *p);
+static void btu_hcif_esco_connection_chg_evt(uint8_t *p);
 
 /* Simple Pairing Events */
-static void btu_hcif_host_support_evt (UINT8 *p);
-static void btu_hcif_io_cap_request_evt (UINT8 *p);
-static void btu_hcif_io_cap_response_evt (UINT8 *p);
-static void btu_hcif_user_conf_request_evt (UINT8 *p);
-static void btu_hcif_user_passkey_request_evt (UINT8 *p);
-static void btu_hcif_user_passkey_notif_evt (UINT8 *p);
-static void btu_hcif_keypress_notif_evt (UINT8 *p);
-static void btu_hcif_rem_oob_request_evt (UINT8 *p);
+static void btu_hcif_host_support_evt (uint8_t *p);
+static void btu_hcif_io_cap_request_evt (uint8_t *p);
+static void btu_hcif_io_cap_response_evt (uint8_t *p);
+static void btu_hcif_user_conf_request_evt (uint8_t *p);
+static void btu_hcif_user_passkey_request_evt (uint8_t *p);
+static void btu_hcif_user_passkey_notif_evt (uint8_t *p);
+static void btu_hcif_keypress_notif_evt (uint8_t *p);
+static void btu_hcif_rem_oob_request_evt (uint8_t *p);
 
-static void btu_hcif_simple_pair_complete_evt (UINT8 *p);
-    #if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
+static void btu_hcif_simple_pair_complete_evt (uint8_t *p);
+    #if L2CAP_NON_FLUSHABLE_PB_INCLUDED == true
 static void btu_hcif_enhanced_flush_complete_evt (void);
     #endif
 
-    #if (BTM_SSR_INCLUDED == TRUE)
-static void btu_hcif_ssr_evt (UINT8 *p, UINT16 evt_len);
+    #if (BTM_SSR_INCLUDED == true)
+static void btu_hcif_ssr_evt (uint8_t *p, uint16_t evt_len);
     #endif /* BTM_SSR_INCLUDED == TRUE */
 
-    #if BLE_INCLUDED == TRUE
-static void btu_ble_ll_conn_complete_evt (UINT8 *p, UINT16 evt_len);
-static void btu_ble_process_adv_pkt (UINT8 *p);
-static void btu_ble_read_remote_feat_evt (UINT8 *p);
-static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len);
-static void btu_ble_proc_ltk_req (UINT8 *p);
-static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p);
-static void btu_ble_data_length_change_evt (UINT8 *p, UINT16 evt_len);
+    #if BLE_INCLUDED == true
+static void btu_ble_ll_conn_complete_evt (uint8_t *p, uint16_t evt_len);
+static void btu_ble_process_adv_pkt (uint8_t *p);
+static void btu_ble_read_remote_feat_evt (uint8_t *p);
+static void btu_ble_ll_conn_param_upd_evt (uint8_t *p, uint16_t evt_len);
+static void btu_ble_proc_ltk_req (uint8_t *p);
+static void btu_hcif_encryption_key_refresh_cmpl_evt (uint8_t *p);
+static void btu_ble_data_length_change_evt (uint8_t *p, uint16_t evt_len);
 #if (BLE_LLT_INCLUDED == TRUE)
-static void btu_ble_rc_param_req_evt(UINT8 *p);
+static void btu_ble_rc_param_req_evt(uint8_t *p);
 #endif
-#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
-static void btu_ble_proc_enhanced_conn_cmpl (UINT8 *p, UINT16 evt_len);
+#if (BLE_PRIVACY_SPT == TRUE)
+static void btu_ble_proc_enhanced_conn_cmpl (uint8_t *p, uint16_t evt_len);
 #endif
 
     #endif
@@ -137,12 +137,12 @@ static void btu_ble_proc_enhanced_conn_cmpl (UINT8 *p, UINT16 evt_len);
 ** Returns          void
 **
 *******************************************************************************/
-void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
+void btu_hcif_process_event (UNUSED_ATTR uint8_t controller_id, BT_HDR *p_msg)
 {
-    UINT8   *p = (UINT8 *)(p_msg + 1) + p_msg->offset;
-    UINT8   hci_evt_code, hci_evt_len;
-#if BLE_INCLUDED == TRUE
-    UINT8   ble_sub_code;
+    uint8_t *p = (uint8_t *)(p_msg + 1) + p_msg->offset;
+    uint8_t hci_evt_code, hci_evt_len;
+#if (BLE_INCLUDED == TRUE)
+    uint8_t ble_sub_code;
 #endif
     STREAM_TO_UINT8  (hci_evt_code, p);
     STREAM_TO_UINT8  (hci_evt_len, p);
@@ -179,7 +179,7 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
         case HCI_ENCRYPTION_CHANGE_EVT:
             btu_hcif_encryption_change_evt (p);
             break;
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
         case HCI_ENCRYPTION_KEY_REFRESH_COMP_EVT:
             btu_hcif_encryption_key_refresh_cmpl_evt(p);
             break;
@@ -290,7 +290,7 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
         case HCI_KEYPRESS_NOTIFY_EVT:
             btu_hcif_keypress_notif_evt (p);
             break;
-#if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
+#if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
         case HCI_ENHANCED_FLUSH_COMPLETE_EVT:
             btu_hcif_enhanced_flush_complete_evt ();
             break;
@@ -319,7 +319,7 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
                 case HCI_BLE_LTK_REQ_EVT: /* received only at slave device */
                     btu_ble_proc_ltk_req(p);
                     break;
-#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+#if (BLE_PRIVACY_SPT == TRUE)
                 case HCI_BLE_ENHANCED_CONN_COMPLETE_EVT:
                     btu_ble_proc_enhanced_conn_cmpl(p, hci_evt_len);
                     break;
@@ -350,7 +350,7 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
+void btu_hcif_send_cmd (UNUSED_ATTR uint8_t controller_id, BT_HDR *p_buf)
 {
     if (!p_buf)
       return;
@@ -364,7 +364,7 @@ void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
     // Eww...horrible hackery here
     /* If command was a VSC, then extract command_complete callback */
     if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
         || (opcode == HCI_BLE_RAND)
         || (opcode == HCI_BLE_ENCRYPT)
 #endif
@@ -378,7 +378,7 @@ void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
       btu_hcif_command_status_evt,
       vsc_callback);
 
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+#if (HCILP_INCLUDED == TRUE)
     btu_check_bt_sleep ();
 #endif
 }
@@ -392,9 +392,9 @@ void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_inquiry_comp_evt (UINT8 *p)
+static void btu_hcif_inquiry_comp_evt (uint8_t *p)
 {
-    UINT8   status;
+    uint8_t status;
 
     STREAM_TO_UINT8    (status, p);
 
@@ -411,7 +411,7 @@ static void btu_hcif_inquiry_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_inquiry_result_evt (UINT8 *p)
+static void btu_hcif_inquiry_result_evt (uint8_t *p)
 {
     /* Store results in the cache */
     btm_process_inq_results (p, BTM_INQ_RESULT_STANDARD);
@@ -426,7 +426,7 @@ static void btu_hcif_inquiry_result_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_inquiry_rssi_result_evt (UINT8 *p)
+static void btu_hcif_inquiry_rssi_result_evt (uint8_t *p)
 {
     /* Store results in the cache */
     btm_process_inq_results (p, BTM_INQ_RESULT_WITH_RSSI);
@@ -441,7 +441,7 @@ static void btu_hcif_inquiry_rssi_result_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_extended_inquiry_result_evt (UINT8 *p)
+static void btu_hcif_extended_inquiry_result_evt (uint8_t *p)
 {
     /* Store results in the cache */
     btm_process_inq_results (p, BTM_INQ_RESULT_EXTENDED);
@@ -456,14 +456,14 @@ static void btu_hcif_extended_inquiry_result_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_connection_comp_evt (UINT8 *p)
+static void btu_hcif_connection_comp_evt (uint8_t *p)
 {
-    UINT8       status;
-    UINT16      handle;
+    uint8_t     status;
+    uint16_t    handle;
     BD_ADDR     bda;
-    UINT8       link_type;
-    UINT8       enc_mode;
-#if BTM_SCO_INCLUDED == TRUE
+    uint8_t     link_type;
+    uint8_t     enc_mode;
+#if (BTM_SCO_INCLUDED == TRUE)
     tBTM_ESCO_DATA  esco_data;
 #endif
 
@@ -481,7 +481,7 @@ static void btu_hcif_connection_comp_evt (UINT8 *p)
 
         l2c_link_hci_conn_comp (status, handle, bda);
     }
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
     else
     {
         memset(&esco_data, 0, sizeof(tBTM_ESCO_DATA));
@@ -501,11 +501,11 @@ static void btu_hcif_connection_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_connection_request_evt (UINT8 *p)
+static void btu_hcif_connection_request_evt (uint8_t *p)
 {
     BD_ADDR     bda;
     DEV_CLASS   dc;
-    UINT8       link_type;
+    uint8_t     link_type;
 
     STREAM_TO_BDADDR   (bda, p);
     STREAM_TO_DEVCLASS (dc, p);
@@ -517,7 +517,7 @@ static void btu_hcif_connection_request_evt (UINT8 *p)
     {
         btm_sec_conn_req (bda, dc);
     }
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
     else
     {
         btm_sco_conn_req (bda, dc, link_type);
@@ -534,10 +534,10 @@ static void btu_hcif_connection_request_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_disconnection_comp_evt (UINT8 *p)
+static void btu_hcif_disconnection_comp_evt (uint8_t *p)
 {
-    UINT16  handle;
-    UINT8   reason;
+    uint16_t handle;
+    uint8_t reason;
 
     ++p;
     STREAM_TO_UINT16 (handle, p);
@@ -545,7 +545,7 @@ static void btu_hcif_disconnection_comp_evt (UINT8 *p)
 
     handle = HCID_GET_HANDLE (handle);
 
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
     /* If L2CAP doesn't know about it, send it to SCO */
     if (!l2c_link_hci_disc_comp (handle, reason))
         btm_sco_removed (handle, reason);
@@ -566,10 +566,10 @@ static void btu_hcif_disconnection_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_authentication_comp_evt (UINT8 *p)
+static void btu_hcif_authentication_comp_evt (uint8_t *p)
 {
-    UINT8   status;
-    UINT16  handle;
+    uint8_t status;
+    uint16_t handle;
 
     STREAM_TO_UINT8  (status, p);
     STREAM_TO_UINT16 (handle, p);
@@ -586,9 +586,9 @@ static void btu_hcif_authentication_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_rmt_name_request_comp_evt (UINT8 *p, UINT16 evt_len)
+static void btu_hcif_rmt_name_request_comp_evt (uint8_t *p, uint16_t evt_len)
 {
-    UINT8   status;
+    uint8_t status;
     BD_ADDR bd_addr;
 
     STREAM_TO_UINT8 (status, p);
@@ -610,11 +610,11 @@ static void btu_hcif_rmt_name_request_comp_evt (UINT8 *p, UINT16 evt_len)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_encryption_change_evt (UINT8 *p)
+static void btu_hcif_encryption_change_evt (uint8_t *p)
 {
-    UINT8   status;
-    UINT16  handle;
-    UINT8   encr_enable;
+    uint8_t status;
+    uint16_t handle;
+    uint8_t encr_enable;
 
     STREAM_TO_UINT8  (status, p);
     STREAM_TO_UINT16 (handle, p);
@@ -633,7 +633,7 @@ static void btu_hcif_encryption_change_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p)
+static void btu_hcif_read_rmt_features_comp_evt (uint8_t *p)
 {
     btm_read_remote_features_complete(p);
 }
@@ -647,11 +647,11 @@ static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p)
+static void btu_hcif_read_rmt_ext_features_comp_evt (uint8_t *p)
 {
-    UINT8 *p_cur = p;
-    UINT8 status;
-    UINT16 handle;
+    uint8_t *p_cur = p;
+    uint8_t status;
+    uint16_t handle;
 
     STREAM_TO_UINT8 (status, p_cur);
 
@@ -673,7 +673,7 @@ static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_read_rmt_version_comp_evt (UINT8 *p)
+static void btu_hcif_read_rmt_version_comp_evt (uint8_t *p)
 {
     btm_read_remote_version_complete (p);
 }
@@ -687,10 +687,10 @@ static void btu_hcif_read_rmt_version_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_qos_setup_comp_evt (UINT8 *p)
+static void btu_hcif_qos_setup_comp_evt (uint8_t *p)
 {
-    UINT8 status;
-    UINT16 handle;
+    uint8_t status;
+    uint16_t handle;
     FLOW_SPEC flow;
 
     STREAM_TO_UINT8 (status, p);
@@ -714,13 +714,13 @@ static void btu_hcif_qos_setup_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_esco_connection_comp_evt (UINT8 *p)
+static void btu_hcif_esco_connection_comp_evt (uint8_t *p)
 {
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
     tBTM_ESCO_DATA  data;
-    UINT16          handle;
+    uint16_t        handle;
     BD_ADDR         bda;
-    UINT8           status;
+    uint8_t         status;
 
     STREAM_TO_UINT8 (status, p);
     STREAM_TO_UINT16 (handle, p);
@@ -747,15 +747,15 @@ static void btu_hcif_esco_connection_comp_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_esco_connection_chg_evt (UINT8 *p)
+static void btu_hcif_esco_connection_chg_evt (uint8_t *p)
 {
-#if BTM_SCO_INCLUDED == TRUE
-    UINT16  handle;
-    UINT16  tx_pkt_len;
-    UINT16  rx_pkt_len;
-    UINT8   status;
-    UINT8   tx_interval;
-    UINT8   retrans_window;
+#if (BTM_SCO_INCLUDED == TRUE)
+    uint16_t handle;
+    uint16_t tx_pkt_len;
+    uint16_t rx_pkt_len;
+    uint8_t status;
+    uint8_t tx_interval;
+    uint8_t retrans_window;
 
     STREAM_TO_UINT8 (status, p);
     STREAM_TO_UINT16 (handle, p);
@@ -779,7 +779,7 @@ static void btu_hcif_esco_connection_chg_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_len,
+static void btu_hcif_hdl_command_complete (uint16_t opcode, uint8_t *p, uint16_t evt_len,
                                            void *p_cplt_cback)
 {
     switch (opcode)
@@ -809,7 +809,7 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             break;
 
         case HCI_READ_TRANSMIT_POWER_LEVEL:
-            btm_read_tx_power_complete(p, FALSE);
+            btm_read_tx_power_complete(p, false);
             break;
 
         case HCI_CREATE_CONNECTION_CANCEL:
@@ -844,7 +844,7 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             break;
 
         case HCI_BLE_READ_ADV_CHNL_TX_POWER:
-            btm_read_tx_power_complete(p, TRUE);
+            btm_read_tx_power_complete(p, true);
             break;
 
         case HCI_BLE_WRITE_ADV_ENABLE:
@@ -861,7 +861,7 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_ble_test_command_complete(p);
             break;
 
-#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+#if (BLE_PRIVACY_SPT == TRUE)
         case HCI_BLE_ADD_DEV_RESOLVING_LIST:
             btm_ble_add_resolving_list_entry_complete(p, evt_len);
             break;
@@ -942,12 +942,12 @@ static void btu_hcif_command_complete_evt(BT_HDR *response, void *context)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_cmd,
+static void btu_hcif_hdl_command_status (uint16_t opcode, uint8_t status, uint8_t *p_cmd,
                                          void *p_vsc_status_cback)
 {
     BD_ADDR         bd_addr;
-    UINT16          handle;
-#if BTM_SCO_INCLUDED == TRUE
+    uint16_t        handle;
+#if (BTM_SCO_INCLUDED == TRUE)
     tBTM_ESCO_DATA  esco_data;
 #endif
 
@@ -955,7 +955,7 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
     {
         case HCI_EXIT_SNIFF_MODE:
         case HCI_EXIT_PARK_MODE:
-#if BTM_SCO_WAKE_PARKED_LINK == TRUE
+#if (BTM_SCO_WAKE_PARKED_LINK == TRUE)
             if (status != HCI_SUCCESS)
             {
                 /* Allow SCO initiation to continue if waiting for change mode event */
@@ -1042,16 +1042,16 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
 
                     case HCI_SET_CONN_ENCRYPTION:
                         /* Device refused to start encryption.  That should be treated as encryption failure. */
-                        btm_sec_encrypt_change (BTM_INVALID_HCI_HANDLE, status, FALSE);
+                        btm_sec_encrypt_change (BTM_INVALID_HCI_HANDLE, status, false);
                         break;
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
                     case HCI_BLE_CREATE_LL_CONN:
                         btm_ble_create_ll_conn_complete(status);
                         break;
 #endif
 
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
                     case HCI_SETUP_ESCO_CONNECTION:
                         /* read handle out of stored command */
                         if (p_cmd != NULL)
@@ -1069,7 +1069,7 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
 #endif
 
 /* This is commented out until an upper layer cares about returning event
-#if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
+#if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
             case HCI_ENHANCED_FLUSH:
                 break;
 #endif
@@ -1140,7 +1140,7 @@ static void btu_hcif_command_status_evt(uint8_t status, BT_HDR *command, void *c
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_hardware_error_evt (UINT8 *p)
+static void btu_hcif_hardware_error_evt (uint8_t *p)
 {
     HCI_TRACE_ERROR("Ctlr H/w error event - code:0x%x", *p);
 
@@ -1174,11 +1174,11 @@ static void btu_hcif_flush_occured_evt (void)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_role_change_evt (UINT8 *p)
+static void btu_hcif_role_change_evt (uint8_t *p)
 {
-    UINT8       status;
+    uint8_t     status;
     BD_ADDR     bda;
-    UINT8       role;
+    uint8_t     role;
 
     STREAM_TO_UINT8 (status, p);
     STREAM_TO_BDADDR (bda, p);
@@ -1197,7 +1197,7 @@ static void btu_hcif_role_change_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_num_compl_data_pkts_evt (UINT8 *p)
+static void btu_hcif_num_compl_data_pkts_evt (uint8_t *p)
 {
     /* Process for L2CAP and SCO */
     l2c_link_process_num_completed_pkts (p);
@@ -1215,24 +1215,24 @@ static void btu_hcif_num_compl_data_pkts_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_mode_change_evt (UINT8 *p)
+static void btu_hcif_mode_change_evt (uint8_t *p)
 {
-    UINT8       status;
-    UINT16      handle;
-    UINT8       current_mode;
-    UINT16      interval;
+    uint8_t     status;
+    uint16_t    handle;
+    uint8_t     current_mode;
+    uint16_t    interval;
 
     STREAM_TO_UINT8 (status, p);
 
     STREAM_TO_UINT16 (handle, p);
     STREAM_TO_UINT8 (current_mode, p);
     STREAM_TO_UINT16 (interval, p);
-#if BTM_SCO_WAKE_PARKED_LINK == TRUE
+#if (BTM_SCO_WAKE_PARKED_LINK == TRUE)
     btm_sco_chk_pend_unpark (status, handle);
 #endif
     btm_pm_proc_mode_change (status, handle, current_mode, interval);
 
-#if (HID_DEV_INCLUDED == TRUE) && (HID_DEV_PM_INCLUDED == TRUE)
+#if (HID_DEV_INCLUDED == TRUE && HID_DEV_PM_INCLUDED == TRUE)
     hidd_pm_proc_mode_change( status, current_mode, interval ) ;
 #endif
 }
@@ -1246,8 +1246,8 @@ static void btu_hcif_mode_change_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-    #if (BTM_SSR_INCLUDED == TRUE)
-static void btu_hcif_ssr_evt (UINT8 *p, UINT16 evt_len)
+    #if (BTM_SSR_INCLUDED == true)
+static void btu_hcif_ssr_evt (uint8_t *p, uint16_t evt_len)
 {
     btm_pm_proc_ssr_evt(p, evt_len);
 }
@@ -1262,7 +1262,7 @@ static void btu_hcif_ssr_evt (UINT8 *p, UINT16 evt_len)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_pin_code_request_evt (UINT8 *p)
+static void btu_hcif_pin_code_request_evt (uint8_t *p)
 {
     BD_ADDR  bda;
 
@@ -1284,7 +1284,7 @@ static void btu_hcif_pin_code_request_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_link_key_request_evt (UINT8 *p)
+static void btu_hcif_link_key_request_evt (uint8_t *p)
 {
     BD_ADDR  bda;
 
@@ -1301,11 +1301,11 @@ static void btu_hcif_link_key_request_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_link_key_notification_evt (UINT8 *p)
+static void btu_hcif_link_key_notification_evt (uint8_t *p)
 {
     BD_ADDR  bda;
     LINK_KEY key;
-    UINT8    key_type;
+    uint8_t  key_type;
 
     STREAM_TO_BDADDR (bda, p);
     STREAM_TO_ARRAY16 (key, p);
@@ -1362,11 +1362,11 @@ static void btu_hcif_max_slots_changed_evt (void)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_read_clock_off_comp_evt (UINT8 *p)
+static void btu_hcif_read_clock_off_comp_evt (uint8_t *p)
 {
-    UINT8       status;
-    UINT16      handle;
-    UINT16      clock_offset;
+    uint8_t     status;
+    uint16_t    handle;
+    uint16_t    clock_offset;
 
     STREAM_TO_UINT8  (status, p);
 
@@ -1405,9 +1405,9 @@ static void btu_hcif_conn_pkt_type_change_evt (void)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_qos_violation_evt (UINT8 *p)
+static void btu_hcif_qos_violation_evt (uint8_t *p)
 {
-    UINT16   handle;
+    uint16_t handle;
 
     STREAM_TO_UINT16 (handle, p);
 
@@ -1455,7 +1455,7 @@ static void btu_hcif_page_scan_rep_mode_chng_evt (void)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_host_support_evt (UINT8 *p)
+static void btu_hcif_host_support_evt (uint8_t *p)
 {
     btm_sec_rmt_host_support_feat_evt(p);
 }
@@ -1469,7 +1469,7 @@ static void btu_hcif_host_support_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_io_cap_request_evt (UINT8 *p)
+static void btu_hcif_io_cap_request_evt (uint8_t *p)
 {
     btm_io_capabilities_req(p);
 }
@@ -1483,7 +1483,7 @@ static void btu_hcif_io_cap_request_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_io_cap_response_evt (UINT8 *p)
+static void btu_hcif_io_cap_response_evt (uint8_t *p)
 {
     btm_io_capabilities_rsp(p);
 }
@@ -1497,7 +1497,7 @@ static void btu_hcif_io_cap_response_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_user_conf_request_evt (UINT8 *p)
+static void btu_hcif_user_conf_request_evt (uint8_t *p)
 {
     btm_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
 }
@@ -1511,7 +1511,7 @@ static void btu_hcif_user_conf_request_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_user_passkey_request_evt (UINT8 *p)
+static void btu_hcif_user_passkey_request_evt (uint8_t *p)
 {
     btm_proc_sp_req_evt(BTM_SP_KEY_REQ_EVT, p);
 }
@@ -1525,7 +1525,7 @@ static void btu_hcif_user_passkey_request_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_user_passkey_notif_evt (UINT8 *p)
+static void btu_hcif_user_passkey_notif_evt (uint8_t *p)
 {
     btm_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
 }
@@ -1539,7 +1539,7 @@ static void btu_hcif_user_passkey_notif_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_keypress_notif_evt (UINT8 *p)
+static void btu_hcif_keypress_notif_evt (uint8_t *p)
 {
     btm_keypress_notif_evt(p);
 }
@@ -1553,7 +1553,7 @@ static void btu_hcif_keypress_notif_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_rem_oob_request_evt (UINT8 *p)
+static void btu_hcif_rem_oob_request_evt (uint8_t *p)
 {
     btm_rem_oob_req(p);
 }
@@ -1567,7 +1567,7 @@ static void btu_hcif_rem_oob_request_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_simple_pair_complete_evt (UINT8 *p)
+static void btu_hcif_simple_pair_complete_evt (uint8_t *p)
 {
     btm_simple_pair_complete(p);
 }
@@ -1581,7 +1581,7 @@ static void btu_hcif_simple_pair_complete_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-#if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
+#if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
 static void btu_hcif_enhanced_flush_complete_evt (void)
 {
 /* This is empty until an upper layer cares about returning event */
@@ -1594,12 +1594,12 @@ static void btu_hcif_enhanced_flush_complete_evt (void)
 /**********************************************
 ** BLE Events
 ***********************************************/
-#if (defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE)
-static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p)
+#if (BLE_INCLUDED == TRUE)
+static void btu_hcif_encryption_key_refresh_cmpl_evt (uint8_t *p)
 {
-    UINT8   status;
-    UINT8   enc_enable = 0;
-    UINT16  handle;
+    uint8_t status;
+    uint8_t enc_enable = 0;
+    uint16_t handle;
 
     STREAM_TO_UINT8  (status, p);
     STREAM_TO_UINT16 (handle, p);
@@ -1609,33 +1609,33 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p)
     btm_sec_encrypt_change (handle, status, enc_enable);
 }
 
-static void btu_ble_process_adv_pkt (UINT8 *p)
+static void btu_ble_process_adv_pkt (uint8_t *p)
 {
     HCI_TRACE_EVENT("btu_ble_process_adv_pkt");
 
     btm_ble_process_adv_pkt(p);
 }
 
-static void btu_ble_ll_conn_complete_evt ( UINT8 *p, UINT16 evt_len)
+static void btu_ble_ll_conn_complete_evt ( uint8_t *p, uint16_t evt_len)
 {
-    btm_ble_conn_complete(p, evt_len, FALSE);
+    btm_ble_conn_complete(p, evt_len, false);
 }
-#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
-static void btu_ble_proc_enhanced_conn_cmpl( UINT8 *p, UINT16 evt_len)
+#if (BLE_PRIVACY_SPT == TRUE)
+static void btu_ble_proc_enhanced_conn_cmpl( uint8_t *p, uint16_t evt_len)
 {
-    btm_ble_conn_complete(p, evt_len, TRUE);
+    btm_ble_conn_complete(p, evt_len, true);
 }
 #endif
-static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len)
+static void btu_ble_ll_conn_param_upd_evt (uint8_t *p, uint16_t evt_len)
 {
     /* LE connection update has completed successfully as a master. */
     /* We can enable the update request if the result is a success. */
     /* extract the HCI handle first */
-    UINT8   status;
-    UINT16  handle;
-    UINT16  interval;
-    UINT16  latency;
-    UINT16  timeout;
+    uint8_t status;
+    uint16_t handle;
+    uint16_t interval;
+    uint16_t latency;
+    uint16_t timeout;
 
     STREAM_TO_UINT8(status, p);
     STREAM_TO_UINT16(handle, p);
@@ -1646,34 +1646,34 @@ static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len)
     l2cble_process_conn_update_evt(handle, status, interval, latency, timeout);
 }
 
-static void btu_ble_read_remote_feat_evt (UINT8 *p)
+static void btu_ble_read_remote_feat_evt (uint8_t *p)
 {
     btm_ble_read_remote_features_complete(p);
 }
 
-static void btu_ble_proc_ltk_req (UINT8 *p)
+static void btu_ble_proc_ltk_req (uint8_t *p)
 {
-    UINT16 ediv, handle;
-    UINT8   *pp;
+    uint16_t ediv, handle;
+    uint8_t *pp;
 
     STREAM_TO_UINT16(handle, p);
     pp = p + 8;
     STREAM_TO_UINT16(ediv, pp);
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
     btm_ble_ltk_request(handle, p, ediv);
 #endif
     /* This is empty until an upper layer cares about returning event */
 }
 
-static void btu_ble_data_length_change_evt(UINT8 *p, UINT16 evt_len)
+static void btu_ble_data_length_change_evt(uint8_t *p, uint16_t evt_len)
 {
-    UINT16 handle;
-    UINT16 tx_data_len;
-    UINT16 rx_data_len;
+    uint16_t handle;
+    uint16_t tx_data_len;
+    uint16_t rx_data_len;
 
     if (!controller_get_interface()->supports_ble_packet_extension())
     {
-        HCI_TRACE_WARNING("%s, request not supported", __FUNCTION__);
+        HCI_TRACE_WARNING("%s, request not supported", __func__);
         return;
     }
 
@@ -1688,11 +1688,11 @@ static void btu_ble_data_length_change_evt(UINT8 *p, UINT16 evt_len)
 /**********************************************
 ** End of BLE Events Handler
 ***********************************************/
-#if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
-static void btu_ble_rc_param_req_evt(UINT8 *p)
+#if (BLE_LLT_INCLUDED == TRUE)
+static void btu_ble_rc_param_req_evt(uint8_t *p)
 {
-    UINT16 handle;
-    UINT16  int_min, int_max, latency, timeout;
+    uint16_t handle;
+    uint16_t int_min, int_max, latency, timeout;
 
     STREAM_TO_UINT16(handle, p);
     STREAM_TO_UINT16(int_min, p);

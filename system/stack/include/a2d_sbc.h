@@ -80,13 +80,13 @@ extern "C" {
 /* data type for the SBC Codec Information Element*/
 typedef struct
 {
-    UINT8   samp_freq;      /* Sampling frequency */
-    UINT8   ch_mode;        /* Channel mode */
-    UINT8   block_len;      /* Block length */
-    UINT8   num_subbands;   /* Number of subbands */
-    UINT8   alloc_mthd;     /* Allocation method */
-    UINT8   max_bitpool;    /* Maximum bitpool */
-    UINT8   min_bitpool;    /* Minimum bitpool */
+    uint8_t samp_freq;      /* Sampling frequency */
+    uint8_t ch_mode;        /* Channel mode */
+    uint8_t block_len;      /* Block length */
+    uint8_t num_subbands;   /* Number of subbands */
+    uint8_t alloc_mthd;     /* Allocation method */
+    uint8_t max_bitpool;    /* Maximum bitpool */
+    uint8_t min_bitpool;    /* Minimum bitpool */
 } tA2D_SBC_CIE;
 
 
@@ -101,7 +101,7 @@ typedef struct
 **
 ** Returns          nothing.
 ******************************************************************************/
-extern void A2D_SbcChkFrInit(UINT8 *p_pkt);
+extern void A2D_SbcChkFrInit(uint8_t *p_pkt);
 
 /******************************************************************************
 **
@@ -111,7 +111,7 @@ extern void A2D_SbcChkFrInit(UINT8 *p_pkt);
 **
 ** Returns          nothing.
 ******************************************************************************/
-extern void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len);
+extern void A2D_SbcDescramble(uint8_t *p_pkt, uint16_t len);
 
 /******************************************************************************
 **
@@ -131,8 +131,8 @@ extern void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len);
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-extern tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie,
-                                  UINT8 *p_result);
+extern tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, tA2D_SBC_CIE *p_ie,
+                                  uint8_t *p_result);
 
 /******************************************************************************
 **
@@ -144,7 +144,7 @@ extern tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie,
 **                  Input Parameters:
 **                      p_info:  the byte sequence to parse.
 **
-**                      for_caps:  TRUE, if the byte sequence is for get capabilities response.
+**                      for_caps:  true, if the byte sequence is for get capabilities response.
 **
 **                  Output Parameters:
 **                      p_ie:  The SBC Codec Information Element information.
@@ -152,8 +152,8 @@ extern tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie,
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
-                                   BOOLEAN for_caps);
+extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const uint8_t *p_info,
+                                   bool    for_caps);
 
 /******************************************************************************
 **
@@ -177,8 +177,8 @@ extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
 **
 ** Returns          void.
 ******************************************************************************/
-extern void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start,
-                             BOOLEAN last, UINT8 num);
+extern void A2D_BldSbcMplHdr(uint8_t *p_dst, bool    frag, bool    start,
+                             bool    last, uint8_t num);
 
 /******************************************************************************
 **
@@ -202,9 +202,9 @@ extern void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start,
 **
 ** Returns          void.
 ******************************************************************************/
-extern void A2D_ParsSbcMplHdr(UINT8 *p_src, BOOLEAN *p_frag,
-                              BOOLEAN *p_start, BOOLEAN *p_last,
-                              UINT8 *p_num);
+extern void A2D_ParsSbcMplHdr(uint8_t *p_src, bool    *p_frag,
+                              bool    *p_start, bool    *p_last,
+                              uint8_t *p_num);
 #ifdef __cplusplus
 }
 #endif

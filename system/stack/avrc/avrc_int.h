@@ -74,8 +74,8 @@ extern "C" {
 
 
 /* Company ID is 24-bit integer We can not use the macros in bt_types.h */
-#define AVRC_CO_ID_TO_BE_STREAM(p, u32) {*(p)++ = (UINT8)((u32) >> 16); *(p)++ = (UINT8)((u32) >> 8); *(p)++ = (UINT8)(u32); }
-#define AVRC_BE_STREAM_TO_CO_ID(u32, p) {(u32) = (((UINT32)(*((p) + 2))) + (((UINT32)(*((p) + 1))) << 8) + (((UINT32)(*(p))) << 16)); (p) += 3;}
+#define AVRC_CO_ID_TO_BE_STREAM(p, u32) {*(p)++ = (uint8_t)((u32) >> 16); *(p)++ = (uint8_t)((u32) >> 8); *(p)++ = (uint8_t)(u32); }
+#define AVRC_BE_STREAM_TO_CO_ID(u32, p) {(u32) = (((uint32_t)(*((p) + 2))) + (((uint32_t)(*((p) + 1))) << 8) + (((uint32_t)(*(p))) << 16)); (p) += 3;}
 
 #define AVRC_AVC_HDR_SIZE           3   /* ctype, subunit*, opcode */
 
@@ -92,7 +92,7 @@ extern "C" {
 
 #define AVRC_MIN_BROWSE_SIZE        (AVCT_BROWSE_OFFSET + BT_HDR_SIZE + AVRC_MIN_BROWSE_HDR_SIZE)
 
-#define AVRC_CTRL_PKT_LEN(pf, pk)   {(pf) = (UINT8 *)((pk) + 1) + (pk)->offset + 2;}
+#define AVRC_CTRL_PKT_LEN(pf, pk)   {(pf) = (uint8_t *)((pk) + 1) + (pk)->offset + 2;}
 
 #define AVRC_MAX_CTRL_DATA_LEN      (AVRC_PACKET_LEN)
 
@@ -105,16 +105,16 @@ extern "C" {
 typedef struct
 {
     BT_HDR              *p_fmsg;        /* the fragmented message */
-    UINT8               frag_pdu;       /* the PDU ID for fragmentation */
-    BOOLEAN             frag_enabled;   /* fragmentation flag */
+    uint8_t             frag_pdu;       /* the PDU ID for fragmentation */
+    bool                frag_enabled;   /* fragmentation flag */
 } tAVRC_FRAG_CB;
 
 /* type for Metadata re-assembly control block */
 typedef struct
 {
     BT_HDR              *p_rmsg;        /* the received message */
-    UINT16              rasm_offset;    /* re-assembly flag, the offset of the start fragment */
-    UINT8               rasm_pdu;       /* the PDU ID for re-assembly */
+    uint16_t            rasm_offset;    /* re-assembly flag, the offset of the start fragment */
+    uint8_t             rasm_pdu;       /* the PDU ID for re-assembly */
 } tAVRC_RASM_CB;
 #endif
 
@@ -127,26 +127,26 @@ typedef struct
 #endif
     tAVRC_FIND_CBACK    *p_cback;       /* pointer to application callback */
     tSDP_DISCOVERY_DB   *p_db;          /* pointer to discovery database */
-    UINT16              service_uuid;   /* service UUID to search */
-    UINT8               trace_level;
+    uint16_t            service_uuid;   /* service UUID to search */
+    uint8_t             trace_level;
 } tAVRC_CB;
 
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if AVRC_DYNAMIC_MEMORY == FALSE
+#if (AVRC_DYNAMIC_MEMORY == FALSE)
 extern tAVRC_CB  avrc_cb;
 #else
 extern tAVRC_CB *avrc_cb_ptr;
 #define avrc_cb (*avrc_cb_ptr)
 #endif
 
-extern BOOLEAN avrc_is_valid_pdu_id(UINT8 pdu_id);
-extern BOOLEAN avrc_is_valid_player_attrib_value(UINT8 attrib, UINT8 value);
-extern BT_HDR * avrc_alloc_ctrl_pkt (UINT8 pdu);
-extern tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, UINT16 *p_vendor_unique_id);
-extern UINT8 avrc_opcode_from_pdu(UINT8 pdu);
-extern BOOLEAN avrc_is_valid_opcode(UINT8 opcode);
+extern bool    avrc_is_valid_pdu_id(uint8_t pdu_id);
+extern bool    avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value);
+extern BT_HDR * avrc_alloc_ctrl_pkt (uint8_t pdu);
+extern tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, uint16_t *p_vendor_unique_id);
+extern uint8_t avrc_opcode_from_pdu(uint8_t pdu);
+extern bool    avrc_is_valid_opcode(uint8_t opcode);
 
 #ifdef __cplusplus
 }

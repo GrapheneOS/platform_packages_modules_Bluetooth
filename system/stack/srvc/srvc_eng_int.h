@@ -39,12 +39,12 @@ extern "C" {
 
 typedef struct
 {
-    BOOLEAN         in_use;
-    UINT16          conn_id;
-    BOOLEAN         connected;
+    bool            in_use;
+    uint16_t        conn_id;
+    bool            connected;
     BD_ADDR         bda;
-    UINT32          trans_id;
-    UINT8           cur_srvc_id;
+    uint32_t        trans_id;
+    uint8_t         cur_srvc_id;
 
     tDIS_VALUE      dis_value;
 
@@ -56,12 +56,12 @@ typedef struct
 {
     tSRVC_CLCB              clcb[SRVC_MAX_APPS]; /* connection link*/
     tGATT_IF                gatt_if;
-    BOOLEAN                 enabled;
+    bool                    enabled;
 
 }tSRVC_ENG_CB;
 
 /* Global GATT data */
-#if GATT_DYNAMIC_MEMORY == FALSE
+#if (GATT_DYNAMIC_MEMORY == FALSE)
 extern tSRVC_ENG_CB srvc_eng_cb;
 #else
 extern tSRVC_ENG_CB srvc_eng_cb_ptr;
@@ -69,15 +69,15 @@ extern tSRVC_ENG_CB srvc_eng_cb_ptr;
 
 #endif
 
-extern tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(UINT16 conn_id);
+extern tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(uint16_t conn_id);
 extern tSRVC_CLCB *srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda);
-extern UINT16 srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda);
+extern uint16_t srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda);
 
 
-extern void srvc_eng_release_channel (UINT16 conn_id) ;
-extern BOOLEAN srvc_eng_request_channel (BD_ADDR remote_bda, UINT8 srvc_id );
-extern void srvc_sr_rsp(UINT8 clcb_idx, tGATT_STATUS st, tGATTS_RSP *p_rsp);
-extern void srvc_sr_notify(BD_ADDR remote_bda, UINT16 handle, UINT16 len, UINT8 *p_value);
+extern void srvc_eng_release_channel (uint16_t conn_id) ;
+extern bool    srvc_eng_request_channel (BD_ADDR remote_bda, uint8_t srvc_id );
+extern void srvc_sr_rsp(uint8_t clcb_idx, tGATT_STATUS st, tGATTS_RSP *p_rsp);
+extern void srvc_sr_notify(BD_ADDR remote_bda, uint16_t handle, uint16_t len, uint8_t *p_value);
 
 
 #ifdef __cplusplus

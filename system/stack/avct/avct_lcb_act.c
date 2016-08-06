@@ -32,7 +32,7 @@
 #include "btm_api.h"
 
 /* packet header length lookup table */
-const UINT8 avct_lcb_pkt_type_len[] = {
+const uint8_t avct_lcb_pkt_type_len[] = {
     AVCT_HDR_LEN_SINGLE,
     AVCT_HDR_LEN_START,
     AVCT_HDR_LEN_CONT,
@@ -52,12 +52,12 @@ const UINT8 avct_lcb_pkt_type_len[] = {
 *******************************************************************************/
 static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
 {
-    UINT8   *p;
-    UINT8   pkt_type;
+    uint8_t *p;
+    uint8_t pkt_type;
     BT_HDR  *p_ret;
 
     /* parse the message header */
-    p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p = (uint8_t *)(p_buf + 1) + p_buf->offset;
     AVCT_PRS_PKT_TYPE(p, pkt_type);
 
     /* quick sanity check on length */
@@ -100,7 +100,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
         osi_free(p_buf);
 
         /* update p to point to new buffer */
-        p = (UINT8 *)(p_lcb->p_rx_msg + 1) + p_lcb->p_rx_msg->offset;
+        p = (uint8_t *)(p_lcb->p_rx_msg + 1) + p_lcb->p_rx_msg->offset;
 
         /* copy first header byte over nosp */
         *(p + 1) = *p;
@@ -130,7 +130,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
              * NOTE: The buffer is allocated above at the beginning of the
              * reassembly, and is always of size BT_DEFAULT_BUFFER_SIZE.
              */
-            UINT16 buf_len = BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR);
+            uint16_t buf_len = BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR);
 
             /* adjust offset and len of fragment for header byte */
             p_buf->offset += AVCT_HDR_LEN_CONT;
@@ -145,8 +145,8 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
                 p_ret = NULL;
             } else {
                 /* copy contents of p_buf to p_rx_msg */
-                memcpy((UINT8 *)(p_lcb->p_rx_msg + 1) + p_lcb->p_rx_msg->offset,
-                       (UINT8 *)(p_buf + 1) + p_buf->offset, p_buf->len);
+                memcpy((uint8_t *)(p_lcb->p_rx_msg + 1) + p_lcb->p_rx_msg->offset,
+                       (uint8_t *)(p_buf + 1) + p_buf->offset, p_buf->len);
 
                 if (pkt_type == AVCT_PKT_TYPE_END)
                 {
@@ -181,7 +181,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
 *******************************************************************************/
 void avct_lcb_chnl_open(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
-    UINT16 result = AVCT_RESULT_FAIL;
+    uint16_t result = AVCT_RESULT_FAIL;
     UNUSED(p_data);
 
     BTM_SetOutService(p_lcb->peer_addr, BTM_SEC_SERVICE_AVCTP, 0);
@@ -228,7 +228,7 @@ void avct_lcb_open_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
     int         i;
-    BOOLEAN     bind = FALSE;
+    bool        bind = false;
 
     for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++)
     {
@@ -238,7 +238,7 @@ void avct_lcb_open_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             /* if bound to this lcb send connect confirm event */
             if (p_ccb->p_lcb == p_lcb)
             {
-                bind = TRUE;
+                bind = true;
                 L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
                 p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_CFM_EVT,
                                        0, p_lcb->peer_addr);
@@ -248,7 +248,7 @@ void avct_lcb_open_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
                      (avct_lcb_has_pid(p_lcb, p_ccb->cc.pid) == NULL))
             {
                 /* bind ccb to lcb and send connect ind event */
-                bind = TRUE;
+                bind = true;
                 p_ccb->p_lcb = p_lcb;
                 L2CA_SetTxPriority(p_lcb->ch_lcid, L2CAP_CHNL_PRIORITY_HIGH);
                 p_ccb->cc.p_ctrl_cback(avct_ccb_to_idx(p_ccb), AVCT_CONNECT_IND_EVT,
@@ -258,7 +258,7 @@ void avct_lcb_open_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     }
 
     /* if no ccbs bound to this lcb, disconnect */
-    if (bind == FALSE)
+    if (bind == false)
     {
         avct_lcb_event(p_lcb, AVCT_LCB_INT_CLOSE_EVT, p_data);
     }
@@ -341,7 +341,7 @@ void avct_lcb_close_cfm(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB           *p_ccb = &avct_cb.ccb[0];
     int                 i;
-    UINT8               event;
+    uint8_t             event;
 
     for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++)
     {
@@ -350,7 +350,7 @@ void avct_lcb_close_cfm(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             /* if this ccb initiated close send disconnect cfm otherwise ind */
             if (p_ccb->ch_close)
             {
-                p_ccb->ch_close = FALSE;
+                p_ccb->ch_close = false;
                 event = AVCT_DISCONNECT_CFM_EVT;
             }
             else
@@ -410,7 +410,7 @@ void avct_lcb_chk_disc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     if (avct_lcb_last_ccb(p_lcb, p_data->p_ccb))
     {
         AVCT_TRACE_WARNING("closing");
-        p_data->p_ccb->ch_close = TRUE;
+        p_data->p_ccb->ch_close = true;
         avct_lcb_event(p_lcb, AVCT_LCB_INT_CLOSE_EVT, p_data);
     }
     else
@@ -469,20 +469,20 @@ void avct_lcb_cong_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB           *p_ccb = &avct_cb.ccb[0];
     int                 i;
-    UINT8               event;
+    uint8_t             event;
     BT_HDR          *p_buf;
 
     /* set event */
     event = (p_data->cong) ? AVCT_CONG_IND_EVT : AVCT_UNCONG_IND_EVT;
     p_lcb->cong = p_data->cong;
-    if (p_lcb->cong == FALSE && !fixed_queue_is_empty(p_lcb->tx_q))
+    if (p_lcb->cong == false && !fixed_queue_is_empty(p_lcb->tx_q))
     {
         while (!p_lcb->cong &&
                (p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_lcb->tx_q)) != NULL)
         {
             if (L2CA_DataWrite(p_lcb->ch_lcid, p_buf) == L2CAP_DW_CONGESTED)
             {
-                p_lcb->cong = TRUE;
+                p_lcb->cong = true;
             }
         }
     }
@@ -527,13 +527,13 @@ void avct_lcb_discard_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 *******************************************************************************/
 void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
-    UINT16          curr_msg_len;
-    UINT8           pkt_type;
-    UINT8           hdr_len;
-    UINT8           *p;
-    UINT8           nosp = 0;       /* number of subsequent packets */
-    UINT16          temp;
-    UINT16          buf_size = p_lcb->peer_mtu + L2CAP_MIN_OFFSET + BT_HDR_SIZE;
+    uint16_t        curr_msg_len;
+    uint8_t         pkt_type;
+    uint8_t         hdr_len;
+    uint8_t         *p;
+    uint8_t         nosp = 0;       /* number of subsequent packets */
+    uint16_t        temp;
+    uint16_t        buf_size = p_lcb->peer_mtu + L2CAP_MIN_OFFSET + BT_HDR_SIZE;
 
 
     /* store msg len */
@@ -570,8 +570,8 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             p_buf->offset = L2CAP_MIN_OFFSET + hdr_len;
             p_buf->len = p_lcb->peer_mtu - hdr_len;
 
-            memcpy((UINT8 *)(p_buf + 1) + p_buf->offset,
-                   (UINT8 *)(p_data->ul_msg.p_buf + 1) + p_data->ul_msg.p_buf->offset, p_buf->len);
+            memcpy((uint8_t *)(p_buf + 1) + p_buf->offset,
+                   (uint8_t *)(p_data->ul_msg.p_buf + 1) + p_data->ul_msg.p_buf->offset, p_buf->len);
 
             p_data->ul_msg.p_buf->offset += p_buf->len;
             p_data->ul_msg.p_buf->len -= p_buf->len;
@@ -586,7 +586,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         /* set up to build header */
         p_buf->len += hdr_len;
         p_buf->offset -= hdr_len;
-        p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+        p = (uint8_t *)(p_buf + 1) + p_buf->offset;
 
         /* build header */
         AVCT_BLD_HDR(p, p_data->ul_msg.label, pkt_type, p_data->ul_msg.cr);
@@ -599,7 +599,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             UINT16_TO_BE_STREAM(p, p_data->ul_msg.p_ccb->cc.pid);
         }
 
-        if (p_lcb->cong == TRUE)
+        if (p_lcb->cong == true)
         {
             fixed_queue_enqueue(p_lcb->tx_q, p_buf);
         }
@@ -609,7 +609,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         {
             if (L2CA_DataWrite(p_lcb->ch_lcid, p_buf) == L2CAP_DW_CONGESTED)
             {
-                p_lcb->cong = TRUE;
+                p_lcb->cong = true;
             }
         }
 
@@ -660,9 +660,9 @@ void avct_lcb_free_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 *******************************************************************************/
 void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
-    UINT8       *p;
-    UINT8       label, type, cr_ipid;
-    UINT16      pid;
+    uint8_t     *p;
+    uint8_t     label, type, cr_ipid;
+    uint16_t    pid;
     tAVCT_CCB   *p_ccb;
 
     /* this p_buf is to be reported through p_msg_cback. The layer_specific
@@ -676,7 +676,7 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         return;
     }
 
-    p = (UINT8 *)(p_data->p_buf + 1) + p_data->p_buf->offset;
+    p = (uint8_t *)(p_data->p_buf + 1) + p_data->p_buf->offset;
 
     /* parse header byte */
     AVCT_PRS_HDR(p, label, type, cr_ipid);
@@ -711,7 +711,7 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             BT_HDR *p_buf = (BT_HDR *)osi_malloc(AVCT_CMD_BUF_SIZE);
             p_buf->len = AVCT_HDR_LEN_SINGLE;
             p_buf->offset = AVCT_MSG_OFFSET - AVCT_HDR_LEN_SINGLE;
-            p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+            p = (uint8_t *)(p_buf + 1) + p_buf->offset;
             AVCT_BLD_HDR(p, label, AVCT_PKT_TYPE_SINGLE, AVCT_REJ);
             UINT16_TO_BE_STREAM(p, pid);
             L2CA_DataWrite(p_lcb->ch_lcid, p_buf);

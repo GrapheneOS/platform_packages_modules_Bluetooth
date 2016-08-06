@@ -163,8 +163,8 @@ OI_UINT32 OI_Time_IntervalMsecs(OI_TIME *Sooner,
  *
  * @param pTargetTime   target time
  *
- * @return  TRUE means time now is at or past target time
- *          FALSE means target time is still some time in the future
+ * @return  true means time now is at or past target time
+ *          false means target time is still some time in the future
  */
 
 OI_BOOL  OI_Time_NowReachedTime(OI_TIME *pTargetTime);

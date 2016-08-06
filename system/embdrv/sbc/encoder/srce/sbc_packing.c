@@ -25,7 +25,7 @@
 #include "sbc_encoder.h"
 #include "sbc_enc_func_declare.h"
 
-#if (SBC_ARM_ASM_OPT==TRUE)
+#if (SBC_ARM_ASM_OPT == TRUE)
 #define Mult32(s32In1,s32In2,s32OutLow)                                                 \
 {                                                                                       \
    __asm                                                                                \
@@ -44,48 +44,48 @@
 #define Mult32(s32In1,s32In2,s32OutLow) s32OutLow=(SINT32)(s32In1)*(SINT32)(s32In2);
 #define Mult64(s32In1, s32In2, s32OutLow, s32OutHi)                                     \
 {                                                                                       \
-	(s32OutLow) = ((SINT32)(UINT16)(s32In1) * (UINT16)(s32In2));                        \
-	s32TempVal2 = (SINT32)(((s32In1) >> 16) * (UINT16)(s32In2));                        \
-	s32Carry    = ( (((UINT32)(s32OutLow)>>16)&0xFFFF) +                                \
+	(s32OutLow) = ((SINT32)(uint16_t)(s32In1) * (uint16_t)(s32In2));                \
+	s32TempVal2 = (SINT32)(((s32In1) >> 16) * (uint16_t)(s32In2));                  \
+	s32Carry    = ((((uint32_t)(s32OutLow)>>16)&0xFFFF) +                           \
 										+ (s32TempVal2 & 0xFFFF) ) >> 16;               \
-	(s32OutLow) += (s32TempVal2 << 16);                                                 \
-	(s32OutHi)  = (s32TempVal2 >> 16) + s32Carry;                                       \
+	(s32OutLow) += (s32TempVal2 << 16);                                             \
+	(s32OutHi)  = (s32TempVal2 >> 16) + s32Carry;                                   \
 }
 #endif
 
 void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
 {
-    UINT8       *pu8PacketPtr;                      /* packet ptr*/
-    UINT8 Temp;
+    uint8_t     *pu8PacketPtr;                      /* packet ptr*/
+    uint8_t Temp;
     SINT32      s32Blk;                             /* counter for block*/
     SINT32      s32Ch;                              /* counter for channel*/
     SINT32      s32Sb;                              /* counter for sub-band*/
     SINT32 s32PresentBit;                      /* represents bit to be stored*/
     /*SINT32 s32LoopCountI;                       loop counter*/
     SINT32 s32LoopCountJ;                      /* loop counter*/
-    UINT32 u32QuantizedSbValue,u32QuantizedSbValue0; /* temp variable to store quantized sb val*/
+    uint32_t u32QuantizedSbValue,u32QuantizedSbValue0; /* temp variable to store quantized sb val*/
     SINT32 s32LoopCount;                       /* loop counter*/
-    UINT8 u8XoredVal;                         /* to store XORed value in CRC calculation*/
-    UINT8 u8CRC;                              /* to store CRC value*/
+    uint8_t u8XoredVal;                         /* to store XORed value in CRC calculation*/
+    uint8_t u8CRC;                              /* to store CRC value*/
     SINT16 *ps16GenPtr;
     SINT32 s32NumOfBlocks;
     SINT32 s32NumOfSubBands = pstrEncParams->s16NumOfSubBands;
     SINT32 s32NumOfChannels = pstrEncParams->s16NumOfChannels;
-	UINT32 u32SfRaisedToPow2;	/*scale factor raised to power 2*/
+	uint32_t u32SfRaisedToPow2;	/*scale factor raised to power 2*/
     SINT16 *ps16ScfPtr;
     SINT32 *ps32SbPtr;
-	UINT16 u16Levels;	/*to store levels*/
+	uint16_t u16Levels;	/*to store levels*/
 	SINT32 s32Temp1;	/*used in 64-bit multiplication*/
 	SINT32 s32Low;	/*used in 64-bit multiplication*/
-#if (SBC_IS_64_MULT_IN_QUANTIZER==TRUE)
+#if (SBC_IS_64_MULT_IN_QUANTIZER == TRUE)
 	SINT32 s32Hi1,s32Low1,s32Carry,s32TempVal2,s32Hi, s32Temp2;
 #endif
 
     pu8PacketPtr    = pstrEncParams->pu8NextPacket;    /*Initialize the ptr*/
-    *pu8PacketPtr++ = (UINT8)0x9C;  /*Sync word*/
-    *pu8PacketPtr++=(UINT8)(pstrEncParams->FrameHeader);
+    *pu8PacketPtr++ = (uint8_t)0x9C;  /*Sync word*/
+    *pu8PacketPtr++=(uint8_t)(pstrEncParams->FrameHeader);
 
-    *pu8PacketPtr = (UINT8)(pstrEncParams->s16BitPool & 0x00FF);
+    *pu8PacketPtr = (uint8_t)(pstrEncParams->s16BitPool & 0x00FF);
     pu8PacketPtr += 2;  /*skip for CRC*/
 
     /*here it indicate if it is byte boundary or nibble boundary*/
@@ -148,10 +148,10 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
             s32LoopCount = *ps16GenPtr++;
             if (s32LoopCount != 0)
             {
-#if (SBC_IS_64_MULT_IN_QUANTIZER==TRUE)
+#if (SBC_IS_64_MULT_IN_QUANTIZER == TRUE)
                 /* finding level from reconstruction part of decoder */
-                u32SfRaisedToPow2 = ((UINT32)1 << ((*ps16ScfPtr)+1));
-                u16Levels = (UINT16)(((UINT32)1 << s32LoopCount) - 1);
+                u32SfRaisedToPow2 = ((uint32_t)1 << ((*ps16ScfPtr)+1));
+                u16Levels = (uint16_t)(((uint32_t)1 << s32LoopCount) - 1);
 
                 /* quantizer */
                 s32Temp1 = (*ps32SbPtr >> 2) + (u32SfRaisedToPow2 << 12);
@@ -160,20 +160,20 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
                 Mult64 (s32Temp1, s32Temp2, s32Low, s32Hi);
 
                 s32Low1   = s32Low >> ((*ps16ScfPtr)+2);
-                s32Low1  &= ((UINT32)1 << (32 - ((*ps16ScfPtr)+2))) - 1;
+                s32Low1  &= ((uint32_t)1 << (32 - ((*ps16ScfPtr)+2))) - 1;
                 s32Hi1    = s32Hi << (32 - ((*ps16ScfPtr) +2));
 
-                u32QuantizedSbValue0 = (UINT16)((s32Low1 | s32Hi1) >> 12);
+                u32QuantizedSbValue0 = (uint16_t)((s32Low1 | s32Hi1) >> 12);
 #else
                 /* finding level from reconstruction part of decoder */
-                u32SfRaisedToPow2 = ((UINT32)1 << *ps16ScfPtr);
-                u16Levels = (UINT16)(((UINT32)1 << s32LoopCount)-1);
+                u32SfRaisedToPow2 = ((uint32_t)1 << *ps16ScfPtr);
+                u16Levels = (uint16_t)(((uint32_t)1 << s32LoopCount)-1);
 
                 /* quantizer */
                 s32Temp1 = (*ps32SbPtr >> 15) + u32SfRaisedToPow2;
                 Mult32(s32Temp1,u16Levels,s32Low);
                 s32Low>>= (*ps16ScfPtr+1);
-                u32QuantizedSbValue0 = (UINT16)s32Low;
+                u32QuantizedSbValue0 = (uint16_t)s32Low;
 #endif
                 /*store the number of bits required and the quantized s32Sb
                 sample to ease the coding*/

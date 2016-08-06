@@ -36,12 +36,12 @@
 #include "hcidefs.h"
 
 
-#if PAN_DYNAMIC_MEMORY == FALSE
+#if (PAN_DYNAMIC_MEMORY == FALSE)
 tPAN_CB  pan_cb;
 #endif
 
 #define UUID_CONSTANT_PART  12
-UINT8 constant_pan_uuid[UUID_CONSTANT_PART] = {0, 0, 0x10, 0, 0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb};
+uint8_t constant_pan_uuid[UUID_CONSTANT_PART] = {0, 0, 0x10, 0, 0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb};
 
 
 /*******************************************************************************
@@ -91,15 +91,15 @@ void pan_register_with_bnep (void)
 ** Returns          none
 **
 *******************************************************************************/
-void pan_conn_ind_cb (UINT16 handle,
+void pan_conn_ind_cb (uint16_t handle,
                       BD_ADDR p_bda,
                       tBT_UUID *remote_uuid,
                       tBT_UUID *local_uuid,
-                      BOOLEAN is_role_change)
+                      bool    is_role_change)
 {
     tPAN_CONN       *pcb;
-    UINT8           req_role;
-    BOOLEAN         wrong_uuid;
+    uint8_t         req_role;
+    bool            wrong_uuid;
 
     /*
     ** If we are in GN or NAP role and have one or more
@@ -111,7 +111,7 @@ void pan_conn_ind_cb (UINT16 handle,
     ** Make bridge request to the host system if connection
     ** is for NAP
     */
-    wrong_uuid = FALSE;
+    wrong_uuid = false;
     if (remote_uuid->len == 16)
     {
         /*
@@ -119,22 +119,22 @@ void pan_conn_ind_cb (UINT16 handle,
         ** and last 12 bytes should match the spec defined constant value
         */
         if (memcmp (constant_pan_uuid, remote_uuid->uu.uuid128 + 4, UUID_CONSTANT_PART))
-            wrong_uuid = TRUE;
+            wrong_uuid = true;
 
         if (remote_uuid->uu.uuid128[0] || remote_uuid->uu.uuid128[1])
-            wrong_uuid = TRUE;
+            wrong_uuid = true;
 
         /* Extract the 16 bit equivalent of the UUID */
-        remote_uuid->uu.uuid16 = (UINT16)((remote_uuid->uu.uuid128[2] << 8) | remote_uuid->uu.uuid128[3]);
+        remote_uuid->uu.uuid16 = (uint16_t)((remote_uuid->uu.uuid128[2] << 8) | remote_uuid->uu.uuid128[3]);
         remote_uuid->len = 2;
     }
     if (remote_uuid->len == 4)
     {
         /* First two bytes should be zeros */
         if (remote_uuid->uu.uuid32 & 0xFFFF0000)
-            wrong_uuid = TRUE;
+            wrong_uuid = true;
 
-        remote_uuid->uu.uuid16 = (UINT16)remote_uuid->uu.uuid32;
+        remote_uuid->uu.uuid16 = (uint16_t)remote_uuid->uu.uuid32;
         remote_uuid->len = 2;
     }
 
@@ -145,7 +145,7 @@ void pan_conn_ind_cb (UINT16 handle,
         return;
     }
 
-    wrong_uuid = FALSE;
+    wrong_uuid = false;
     if (local_uuid->len == 16)
     {
         /*
@@ -153,22 +153,22 @@ void pan_conn_ind_cb (UINT16 handle,
         ** and last 12 bytes should match the spec defined constant value
         */
         if (memcmp (constant_pan_uuid, local_uuid->uu.uuid128 + 4, UUID_CONSTANT_PART))
-            wrong_uuid = TRUE;
+            wrong_uuid = true;
 
         if (local_uuid->uu.uuid128[0] || local_uuid->uu.uuid128[1])
-            wrong_uuid = TRUE;
+            wrong_uuid = true;
 
         /* Extract the 16 bit equivalent of the UUID */
-        local_uuid->uu.uuid16 = (UINT16)((local_uuid->uu.uuid128[2] << 8) | local_uuid->uu.uuid128[3]);
+        local_uuid->uu.uuid16 = (uint16_t)((local_uuid->uu.uuid128[2] << 8) | local_uuid->uu.uuid128[3]);
         local_uuid->len = 2;
     }
     if (local_uuid->len == 4)
     {
         /* First two bytes should be zeros */
         if (local_uuid->uu.uuid32 & 0xFFFF0000)
-            wrong_uuid = TRUE;
+            wrong_uuid = true;
 
-        local_uuid->uu.uuid16 = (UINT16)local_uuid->uu.uuid32;
+        local_uuid->uu.uuid16 = (uint16_t)local_uuid->uu.uuid32;
         local_uuid->len = 2;
     }
 
@@ -260,7 +260,7 @@ void pan_conn_ind_cb (UINT16 handle,
             {
                 /* Remove bridging */
                 if (pan_cb.pan_bridge_req_cb)
-                    (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, FALSE);
+                    (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, false);
             }
         }
         /* Set the latest active PAN role */
@@ -328,10 +328,10 @@ void pan_conn_ind_cb (UINT16 handle,
 ** Returns          none
 **
 *******************************************************************************/
-void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, BOOLEAN is_role_change)
+void pan_connect_state_cb (uint16_t handle, BD_ADDR rem_bda, tBNEP_RESULT result, bool    is_role_change)
 {
     tPAN_CONN       *pcb;
-    UINT8            peer_role;
+    uint8_t          peer_role;
     UNUSED(rem_bda);
 
     PAN_TRACE_EVENT ("pan_connect_state_cb - for handle %d, result %d", handle, result);
@@ -363,7 +363,7 @@ void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, 
             pan_cb.active_role = pan_cb.prv_active_role;
 
             if ((pcb->src_uuid == UUID_SERVCLASS_NAP) && pan_cb.pan_bridge_req_cb)
-                (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, TRUE);
+                (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, true);
 
             return;
         }
@@ -372,7 +372,7 @@ void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, 
         {
             /* If the connections destination role is NAP remove bridging */
             if ((pcb->src_uuid == UUID_SERVCLASS_NAP) && pan_cb.pan_bridge_req_cb)
-                (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, FALSE);
+                (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, false);
         }
 
         pan_cb.num_conns--;
@@ -405,7 +405,7 @@ void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, 
     if (pan_cb.pan_bridge_req_cb && pcb->src_uuid == UUID_SERVCLASS_NAP)
     {
         PAN_TRACE_EVENT ("PAN requesting for bridge");
-        (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, TRUE);
+        (*pan_cb.pan_bridge_req_cb) (pcb->rem_bda, true);
     }
 }
 
@@ -430,17 +430,17 @@ void pan_connect_state_cb (UINT16 handle, BD_ADDR rem_bda, tBNEP_RESULT result, 
 ** Returns          none
 **
 *******************************************************************************/
-void pan_data_ind_cb (UINT16 handle,
-                      UINT8 *src,
-                      UINT8 *dst,
-                      UINT16 protocol,
-                      UINT8 *p_data,
-                      UINT16 len,
-                      BOOLEAN ext)
+void pan_data_ind_cb (uint16_t handle,
+                      uint8_t *src,
+                      uint8_t *dst,
+                      uint16_t protocol,
+                      uint8_t *p_data,
+                      uint16_t len,
+                      bool    ext)
 {
     tPAN_CONN       *pcb;
-    UINT16          i;
-    BOOLEAN         forward;
+    uint16_t        i;
+    bool            forward;
 
     /*
     ** Check the connection status
@@ -484,7 +484,7 @@ void pan_data_ind_cb (UINT16 handle,
         }
 
         if (pan_cb.pan_data_ind_cb)
-            (*pan_cb.pan_data_ind_cb) (pcb->handle, src, dst, protocol, p_data, len, ext, TRUE);
+            (*pan_cb.pan_data_ind_cb) (pcb->handle, src, dst, protocol, p_data, len, ext, true);
 
         return;
     }
@@ -504,9 +504,9 @@ void pan_data_ind_cb (UINT16 handle,
     }
 
    if (pcb->src_uuid == UUID_SERVCLASS_NAP)
-       forward = TRUE;
+       forward = true;
    else
-       forward = FALSE;
+       forward = false;
 
     /* Send it over the LAN or give it to host software */
     if (pan_cb.pan_data_ind_cb)
@@ -535,18 +535,18 @@ void pan_data_ind_cb (UINT16 handle,
 ** Returns          none
 **
 *******************************************************************************/
-void pan_data_buf_ind_cb (UINT16 handle,
-                          UINT8 *src,
-                          UINT8 *dst,
-                          UINT16 protocol,
+void pan_data_buf_ind_cb (uint16_t handle,
+                          uint8_t *src,
+                          uint8_t *dst,
+                          uint16_t protocol,
                           BT_HDR *p_buf,
-                          BOOLEAN ext)
+                          bool    ext)
 {
     tPAN_CONN       *pcb, *dst_pcb;
     tBNEP_RESULT    result;
-    UINT16          i, len;
-    UINT8           *p_data;
-    BOOLEAN         forward = FALSE;
+    uint16_t        i, len;
+    uint8_t         *p_data;
+    bool            forward = false;
 
     /* Check if the connection is in right state */
     pcb = pan_get_pcb_by_handle (handle);
@@ -565,16 +565,16 @@ void pan_data_buf_ind_cb (UINT16 handle,
         return;
     }
 
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;
     len    = p_buf->len;
 
     PAN_TRACE_EVENT ("pan_data_buf_ind_cb - for handle %d, protocol 0x%x, length %d, ext %d",
         handle, protocol, len, ext);
 
    if (pcb->src_uuid == UUID_SERVCLASS_NAP)
-       forward = TRUE;
+       forward = true;
    else
-       forward = FALSE;
+       forward = false;
 
     /* Check if it is broadcast or multicast packet */
     if (pcb->src_uuid != UUID_SERVCLASS_PANU)
@@ -646,7 +646,7 @@ void pan_data_buf_ind_cb (UINT16 handle,
 ** Returns          none
 **
 *******************************************************************************/
-void pan_tx_data_flow_cb (UINT16 handle,
+void pan_tx_data_flow_cb (uint16_t handle,
                             tBNEP_RESULT  event)
 {
 
@@ -666,8 +666,8 @@ void pan_tx_data_flow_cb (UINT16 handle,
 **                  protocol filter set by the local device
 **
 ** Parameters:      handle      - handle for the connection
-**                  indication  - TRUE if this is indication
-**                                FALSE if it is called to give the result of local
+**                  indication  - true if this is indication
+**                                false if it is called to give the result of local
 **                                      device protocol filter set
 **                  result      - This gives the result of the filter set operation
 **                  num_filters - number of filters set by the peer device
@@ -676,11 +676,11 @@ void pan_tx_data_flow_cb (UINT16 handle,
 ** Returns          none
 **
 *******************************************************************************/
-void pan_proto_filt_ind_cb (UINT16 handle,
-                            BOOLEAN indication,
+void pan_proto_filt_ind_cb (uint16_t handle,
+                            bool    indication,
                             tBNEP_RESULT result,
-                            UINT16 num_filters,
-                            UINT8 *p_filters)
+                            uint16_t num_filters,
+                            uint8_t *p_filters)
 {
     PAN_TRACE_EVENT ("pan_proto_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
                             handle, indication, result, num_filters);
@@ -700,8 +700,8 @@ void pan_proto_filt_ind_cb (UINT16 handle,
 **                  multicast filter set by the local device
 **
 ** Parameters:      handle      - handle for the connection
-**                  indication  - TRUE if this is indication
-**                                FALSE if it is called to give the result of local
+**                  indication  - true if this is indication
+**                                false if it is called to give the result of local
 **                                      device multicast filter set
 **                  result      - This gives the result of the filter set operation
 **                  num_filters - number of filters set by the peer device
@@ -710,11 +710,11 @@ void pan_proto_filt_ind_cb (UINT16 handle,
 ** Returns          none
 **
 *******************************************************************************/
-void pan_mcast_filt_ind_cb (UINT16 handle,
-                            BOOLEAN indication,
+void pan_mcast_filt_ind_cb (uint16_t handle,
+                            bool    indication,
                             tBNEP_RESULT result,
-                            UINT16 num_filters,
-                            UINT8 *p_filters)
+                            uint16_t num_filters,
+                            uint8_t *p_filters)
 {
     PAN_TRACE_EVENT ("pan_mcast_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
                             handle, indication, result, num_filters);

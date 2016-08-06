@@ -33,7 +33,7 @@ extern "C" {
 #define SMP_PIN_CODE_LEN_MAX    PIN_CODE_LEN
 #define SMP_PIN_CODE_LEN_MIN    6
 
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
 /* SMP command code */
 #define SMP_OPCODE_PAIRING_REQ            0x01
 #define SMP_OPCODE_PAIRING_RSP            0x02
@@ -68,7 +68,7 @@ extern "C" {
 #define SMP_SC_LOC_OOB_DATA_UP_EVT  10  /* SC OOB local data set is created */
                                         /* (as result of SMP_CrLocScOobData(...)) */
 #define SMP_BR_KEYS_REQ_EVT     12      /* SMP over BR keys request event */
-typedef UINT8   tSMP_EVT;
+typedef uint8_t tSMP_EVT;
 
 
 /* pairing failure reason code */
@@ -108,7 +108,7 @@ typedef UINT8   tSMP_EVT;
 #define SMP_CONN_TOUT               (SMP_MAX_FAIL_RSN_PER_SPEC + 0x0B)
 #define SMP_SUCCESS                 0
 
-typedef UINT8 tSMP_STATUS;
+typedef uint8_t tSMP_STATUS;
 
 
 /* Device IO capability */
@@ -118,7 +118,7 @@ typedef UINT8 tSMP_STATUS;
 #define SMP_IO_CAP_NONE     BTM_IO_CAP_NONE   /* NoInputNoOutput */
 #define SMP_IO_CAP_KBDISP   BTM_IO_CAP_KBDISP   /* Keyboard Display */
 #define SMP_IO_CAP_MAX      BTM_IO_CAP_MAX
-typedef UINT8  tSMP_IO_CAP;
+typedef uint8_t tSMP_IO_CAP;
 
 #ifndef SMP_DEFAULT_IO_CAPS
     #define SMP_DEFAULT_IO_CAPS     SMP_IO_CAP_KBDISP
@@ -131,7 +131,7 @@ enum
     SMP_OOB_PRESENT,
     SMP_OOB_UNKNOWN
 };
-typedef UINT8  tSMP_OOB_FLAG;
+typedef uint8_t tSMP_OOB_FLAG;
 
 /* type of OOB data required from application */
 enum
@@ -141,7 +141,7 @@ enum
     SMP_OOB_LOCAL,
     SMP_OOB_BOTH
 };
-typedef UINT8   tSMP_OOB_DATA_TYPE;
+typedef uint8_t tSMP_OOB_DATA_TYPE;
 
 #define SMP_AUTH_NO_BOND        0x00
 #define SMP_AUTH_GEN_BOND       0x01 //todo sdh change GEN_BOND to BOND
@@ -182,12 +182,12 @@ typedef UINT8   tSMP_OOB_DATA_TYPE;
  /* All AuthReq RFU bits are set to 1 - NOTE: reserved bit in Bonding_Flags is not set */
 #define SMP_AUTH_ALL_RFU_SET    0xF8
 
-typedef UINT8 tSMP_AUTH_REQ;
+typedef uint8_t tSMP_AUTH_REQ;
 
 #define SMP_SEC_NONE                 0
 #define SMP_SEC_UNAUTHENTICATE      (1 << 0)
 #define SMP_SEC_AUTHENTICATED       (1 << 2)
-typedef UINT8 tSMP_SEC_LEVEL;
+typedef uint8_t tSMP_SEC_LEVEL;
 
 /* Maximum Encryption Key Size range */
 #define SMP_ENCR_KEY_SIZE_MIN       7
@@ -198,7 +198,7 @@ typedef UINT8 tSMP_SEC_LEVEL;
 #define SMP_SEC_KEY_TYPE_ID                 (1 << 1)    /* identity key */
 #define SMP_SEC_KEY_TYPE_CSRK               (1 << 2)    /* slave CSRK */
 #define SMP_SEC_KEY_TYPE_LK                 (1 << 3)    /* BR/EDR link key */
-typedef UINT8 tSMP_KEYS;
+typedef uint8_t tSMP_KEYS;
 
 #define SMP_BR_SEC_DEFAULT_KEY   (SMP_SEC_KEY_TYPE_ENC | SMP_SEC_KEY_TYPE_ID | \
                                   SMP_SEC_KEY_TYPE_CSRK)
@@ -213,7 +213,7 @@ typedef UINT8 tSMP_KEYS;
 #define SMP_SC_KEY_CLEARED      3   /* passkey cleared */
 #define SMP_SC_KEY_COMPLT       4   /* passkey entry completed */
 #define SMP_SC_KEY_OUT_OF_RANGE 5   /* out of range */
-typedef UINT8 tSMP_SC_KEY_TYPE;
+typedef uint8_t tSMP_SC_KEY_TYPE;
 
 /* data type for BTM_SP_IO_REQ_EVT */
 typedef struct
@@ -221,7 +221,7 @@ typedef struct
     tSMP_IO_CAP     io_cap;         /* local IO capabilities */
     tSMP_OOB_FLAG   oob_data;       /* OOB data present (locally) for the peer device */
     tSMP_AUTH_REQ   auth_req;       /* Authentication required (for local device) */
-    UINT8           max_key_size;   /* max encryption key size */
+    uint8_t         max_key_size;   /* max encryption key size */
     tSMP_KEYS       init_keys;      /* initiator keys to be distributed */
     tSMP_KEYS       resp_keys;      /* responder keys */
 } tSMP_IO_REQ;
@@ -230,8 +230,8 @@ typedef struct
 {
     tSMP_STATUS reason;
     tSMP_SEC_LEVEL sec_level;
-    BOOLEAN is_pair_cancel;
-    BOOLEAN smp_over_br;
+    bool    is_pair_cancel;
+    bool    smp_over_br;
 } tSMP_CMPL;
 
 typedef struct
@@ -243,7 +243,7 @@ typedef struct
 /* the data associated with the info sent to the peer via OOB interface */
 typedef struct
 {
-    BOOLEAN         present;
+    bool            present;
     BT_OCTET16      randomizer;
     BT_OCTET16      commitment;
 
@@ -258,7 +258,7 @@ typedef struct
 /* the data associated with the info received from the peer via OOB interface */
 typedef struct
 {
-    BOOLEAN         present;
+    bool            present;
     BT_OCTET16      randomizer;
     BT_OCTET16      commitment;
     tBLE_BD_ADDR    addr_rcvd_from;
@@ -273,7 +273,7 @@ typedef struct
 
 typedef union
 {
-    UINT32          passkey;
+    uint32_t        passkey;
     tSMP_IO_REQ     io_req;     /* IO request */
     tSMP_CMPL       cmplt;
     tSMP_OOB_DATA_TYPE  req_oob_type;
@@ -284,18 +284,18 @@ typedef union
 /* AES Encryption output */
 typedef struct
 {
-    UINT8   status;
-    UINT8   param_len;
-    UINT16  opcode;
-    UINT8   param_buf[BT_OCTET16_LEN];
+    uint8_t  status;
+    uint8_t  param_len;
+    uint16_t opcode;
+    uint8_t  param_buf[BT_OCTET16_LEN];
 } tSMP_ENC;
 
 /* Security Manager events - Called by the stack when Security Manager related events occur.*/
-typedef UINT8 (tSMP_CALLBACK) (tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data);
+typedef uint8_t (tSMP_CALLBACK) (tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data);
 
 /* callback function for CMAC algorithm
 */
-typedef void (tCMAC_CMPL_CBACK)(UINT8 *p_mac, UINT16 tlen, UINT32 sign_counter);
+typedef void (tCMAC_CMPL_CBACK)(uint8_t *p_mac, uint16_t tlen, uint32_t sign_counter);
 
 /*****************************************************************************
 **  External Function Declarations
@@ -323,7 +323,7 @@ extern void SMP_Init(void);
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-extern UINT8 SMP_SetTraceLevel (UINT8 new_level);
+extern uint8_t SMP_SetTraceLevel (uint8_t new_level);
 
 /*******************************************************************************
 **
@@ -334,7 +334,7 @@ extern UINT8 SMP_SetTraceLevel (UINT8 new_level);
 ** Returns          void
 **
 *******************************************************************************/
-extern BOOLEAN SMP_Register (tSMP_CALLBACK *p_cback);
+extern bool    SMP_Register (tSMP_CALLBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -364,10 +364,10 @@ extern tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr);
 **
 ** Description      This function is called to cancel a SMP pairing.
 **
-** Returns          TRUE - pairing cancelled
+** Returns          true - pairing cancelled
 **
 *******************************************************************************/
-extern  BOOLEAN SMP_PairCancel (BD_ADDR bd_addr);
+extern  bool    SMP_PairCancel (BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -382,7 +382,7 @@ extern  BOOLEAN SMP_PairCancel (BD_ADDR bd_addr);
 ** Returns          None
 **
 *******************************************************************************/
-extern void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res);
+extern void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res);
 
 /*******************************************************************************
 **
@@ -397,7 +397,7 @@ extern void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res);
 **                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
 **
 *******************************************************************************/
-extern void SMP_PasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
+extern void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey);
 
 /*******************************************************************************
 **
@@ -411,7 +411,7 @@ extern void SMP_PasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
 **                  res          - comparison result SMP_SUCCESS if success
 **
 *******************************************************************************/
-extern void SMP_ConfirmReply (BD_ADDR bd_addr, UINT8 res);
+extern void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res);
 
 /*******************************************************************************
 **
@@ -425,8 +425,8 @@ extern void SMP_ConfirmReply (BD_ADDR bd_addr, UINT8 res);
 **                  p_data      - SM Randomizer  C.
 **
 *******************************************************************************/
-extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len,
-                             UINT8 *p_data);
+extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len,
+                             uint8_t *p_data);
 
 /*******************************************************************************
 **
@@ -438,7 +438,7 @@ extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len,
 ** Parameters:      p_data      - pointer to the data
 **
 *******************************************************************************/
-extern void SMP_SecureConnectionOobDataReply(UINT8 *p_data);
+extern void SMP_SecureConnectionOobDataReply(uint8_t *p_data);
 
 /*******************************************************************************
 **
@@ -454,10 +454,10 @@ extern void SMP_SecureConnectionOobDataReply(UINT8 *p_data);
 **                  pt_len              - plain text length
 **                  p_out               - pointer to the encrypted outputs
 **
-**  Returns         Boolean - TRUE: encryption is successful
+**  Returns         Boolean - true: encryption is successful
 *******************************************************************************/
-extern BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len,
-                            UINT8 *plain_text, UINT8 pt_len,
+extern bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
+                            uint8_t *plain_text, uint8_t pt_len,
                             tSMP_ENC *p_out);
 
 /*******************************************************************************
@@ -471,7 +471,7 @@ extern BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len,
 **                  value        - keypress notification parameter value
 **
 *******************************************************************************/
-extern void SMP_KeypressNotification (BD_ADDR bd_addr, UINT8 value);
+extern void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value);
 
 /*******************************************************************************
 **
@@ -483,9 +483,9 @@ extern void SMP_KeypressNotification (BD_ADDR bd_addr, UINT8 value);
 ** Parameters:      bd_addr      - Address of the device to send OOB data block
 **                                 to.
 **
-**  Returns         Boolean - TRUE: creation of local SC OOB data set started.
+**  Returns         Boolean - true: creation of local SC OOB data set started.
 *******************************************************************************/
-extern BOOLEAN SMP_CreateLocalSecureConnectionsOobData (
+extern bool    SMP_CreateLocalSecureConnectionsOobData (
                                                                   tBLE_BD_ADDR *addr_to_send_to);
 
 #ifdef __cplusplus

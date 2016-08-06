@@ -152,10 +152,10 @@ typedef OI_UINT32 OI_UTF32;
  * is to be tested or set.
  */
 
-/** This macro's value is TRUE if the bit specified by y is set in data item x. */
+/** This macro's value is true if the bit specified by y is set in data item x. */
 #define OI_BIT_TEST(x,y)   ((x) & (y))
 
-/** This macro's value is TRUE if the bit specified by y is not set in data item x. */
+/** This macro's value is true if the bit specified by y is not set in data item x. */
 #define OI_BIT_CLEAR_TEST(x,y)  (((x) & (y)) == 0)
 
 /** This macro sets the bit specified by y in data item x. */

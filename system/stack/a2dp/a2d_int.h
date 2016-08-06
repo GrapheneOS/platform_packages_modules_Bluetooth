@@ -50,20 +50,20 @@ typedef struct
 {
     tA2D_FIND_CBACK     *p_cback;       /* pointer to application callback */
     tSDP_DISCOVERY_DB   *p_db;          /* pointer to discovery database */
-    UINT16              service_uuid;   /* service UUID of search */
+    uint16_t            service_uuid;   /* service UUID of search */
 } tA2D_FIND_CB;
 
 typedef struct
 {
     tA2D_FIND_CB    find;   /* find service control block */
-    UINT8           trace_level;
-    UINT16          avdt_sdp_ver;   /* AVDTP version */
+    uint8_t         trace_level;
+    uint16_t        avdt_sdp_ver;   /* AVDTP version */
 } tA2D_CB;
 
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if A2D_DYNAMIC_MEMORY == FALSE
+#if (A2D_DYNAMIC_MEMORY == FALSE)
 extern tA2D_CB  a2d_cb;
 #else
 extern tA2D_CB *a2d_cb_ptr;
@@ -71,7 +71,7 @@ extern tA2D_CB *a2d_cb_ptr;
 #endif
 
 /* Used only for conformance testing */
-extern void a2d_set_avdt_sdp_ver (UINT16 avdt_sdp_ver);
+extern void a2d_set_avdt_sdp_ver (uint16_t avdt_sdp_ver);
 
 #ifdef __cplusplus
 }

@@ -60,10 +60,10 @@
 
 #define UIPC_DISCONNECTED (-1)
 
-#define UIPC_LOCK() /*BTIF_TRACE_EVENT(" %s lock", __FUNCTION__);*/ pthread_mutex_lock(&uipc_main.mutex);
-#define UIPC_UNLOCK() /*BTIF_TRACE_EVENT("%s unlock", __FUNCTION__);*/ pthread_mutex_unlock(&uipc_main.mutex);
+#define UIPC_LOCK() /*BTIF_TRACE_EVENT(" %s lock", __func__);*/ pthread_mutex_lock(&uipc_main.mutex);
+#define UIPC_UNLOCK() /*BTIF_TRACE_EVENT("%s unlock", __func__);*/ pthread_mutex_unlock(&uipc_main.mutex);
 
-#define SAFE_FD_ISSET(fd, set) (((fd) == -1) ? FALSE : FD_ISSET((fd), (set)))
+#define SAFE_FD_ISSET(fd, set) (((fd) == -1) ? false : FD_ISSET((fd), (set)))
 
 #define UIPC_FLUSH_BUFFER_SIZE 1024
 
@@ -393,7 +393,7 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
 
     if (uipc_main.ch[ch_id].fd == UIPC_DISCONNECTED)
     {
-        BTIF_TRACE_EVENT("%s() - fd disconnected. Exiting", __FUNCTION__);
+        BTIF_TRACE_EVENT("%s() - fd disconnected. Exiting", __func__);
         return;
     }
 
@@ -412,10 +412,10 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
             return;
         }
         BTIF_TRACE_VERBOSE("%s() - polling fd %d, revents: 0x%x, ret %d",
-                __FUNCTION__, pfd.fd, pfd.revents, ret);
+                __func__, pfd.fd, pfd.revents, ret);
         if (pfd.revents & (POLLERR|POLLHUP))
         {
-            BTIF_TRACE_WARNING("%s() - POLLERR or POLLHUP. Exiting", __FUNCTION__);
+            BTIF_TRACE_WARNING("%s() - POLLERR or POLLHUP. Exiting", __func__);
             return;
         }
 
@@ -613,10 +613,10 @@ void UIPC_Init(void *p_data)
  **
  ** Description      Open UIPC interface
  **
- ** Returns          TRUE in case of success, FALSE in case of failure.
+ ** Returns          true in case of success, false in case of failure.
  **
  *******************************************************************************/
-BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
+bool    UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
 {
     BTIF_TRACE_DEBUG("UIPC_Open : ch_id %d, p_cback %x", ch_id, p_cback);
 
@@ -625,7 +625,7 @@ BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
     if (ch_id >= UIPC_CH_NUM)
     {
         UIPC_UNLOCK();
-        return FALSE;
+        return false;
     }
 
     if (uipc_main.ch[ch_id].srvfd != UIPC_DISCONNECTED)
@@ -648,7 +648,7 @@ BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
 
     UIPC_UNLOCK();
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -686,11 +686,11 @@ void UIPC_Close(tUIPC_CH_ID ch_id)
  **
  ** Description      Called to transmit a message over UIPC.
  **
- ** Returns          TRUE in case of success, FALSE in case of failure.
+ ** Returns          true in case of success, false in case of failure.
  **
  *******************************************************************************/
-BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
-        UINT16 msglen)
+bool    UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t *p_buf,
+        uint16_t msglen)
 {
     UNUSED(msg_evt);
 
@@ -706,7 +706,7 @@ BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
 
     UIPC_UNLOCK();
 
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -719,7 +719,7 @@ BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
  **
  *******************************************************************************/
 
-UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
+uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t *p_msg_evt, uint8_t *p_buf, uint32_t len)
 {
     int n_read = 0;
     int fd = uipc_main.ch[ch_id].fd;
@@ -811,7 +811,7 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 **
 *******************************************************************************/
 
-extern BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *param)
+extern bool    UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void *param)
 {
     BTIF_TRACE_DEBUG("#### UIPC_Ioctl : ch_id %d, request %d ####", ch_id, request);
 
@@ -853,6 +853,6 @@ extern BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *param)
 
     UIPC_UNLOCK();
 
-    return FALSE;
+    return false;
 }
 

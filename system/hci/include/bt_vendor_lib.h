@@ -364,7 +364,7 @@ typedef struct {
     uint16_t  local_cid;
     uint16_t  remote_cid;
     uint16_t  lm_handle;
-    uint8_t   is_flushable;                  /* TRUE if flushable channel */
+    uint8_t   is_flushable;                  /* true if flushable channel */
     uint32_t  stream_source;
     uint8_t   codec_info[10];                /* Codec capabilities array */
 } bt_vendor_op_a2dp_offload_t;

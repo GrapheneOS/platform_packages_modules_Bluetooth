@@ -47,25 +47,25 @@
 #include "port_ext.h"
 #include "sdpint.h"
 
-#if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
+#if (BNEP_INCLUDED == TRUE)
 #include "bnep_int.h"
 #endif
 
-#if (defined(PAN_INCLUDED) && PAN_INCLUDED == TRUE)
+#if (PAN_INCLUDED == TRUE)
 #include "pan_int.h"
 #endif
 
-#if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE )
+#if (HID_HOST_INCLUDED == TRUE)
 #include "hidh_int.h"
 #endif
 
-#if (defined(AVDT_INCLUDED) && AVDT_INCLUDED == TRUE)
+#if (AVDT_INCLUDED == TRUE)
 #include "avdt_int.h"
 #else
 extern void avdt_rcv_sync_info (BT_HDR *p_buf); /* this is for hci_test */
 #endif
 
-#if (defined(MCA_INCLUDED) && MCA_INCLUDED == TRUE)
+#if (MCA_INCLUDED == TRUE)
 #include "mca_api.h"
 #include "mca_defs.h"
 #include "mca_int.h"
@@ -119,7 +119,7 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
     {
         case BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK: // TODO(zachoverflow): remove this
             ((post_to_task_hack_t *)(&p_msg->data[0]))->callback(p_msg);
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+#if (HCILP_INCLUDED == TRUE)
             /* If the host receives events which it doesn't responsd to, */
             /* it should start an idle timer to enter sleep mode.        */
             btu_check_bt_sleep ();
@@ -136,16 +136,16 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
             break;
 
         case BT_EVT_TO_BTU_HCI_SCO:
-#if BTM_SCO_INCLUDED == TRUE
+#if (BTM_SCO_INCLUDED == TRUE)
             btm_route_sco_data (p_msg);
             break;
 #endif
 
         case BT_EVT_TO_BTU_HCI_EVT:
-            btu_hcif_process_event ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
+            btu_hcif_process_event ((uint8_t)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
             osi_free(p_msg);
 
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+#if (HCILP_INCLUDED == TRUE)
             /* If host receives events which it doesn't response to, */
             /* host should start idle timer to enter sleep mode.     */
             btu_check_bt_sleep ();
@@ -153,7 +153,7 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
             break;
 
         case BT_EVT_TO_BTU_HCI_CMD:
-            btu_hcif_send_cmd ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
+            btu_hcif_send_cmd ((uint8_t)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
             break;
 
         default:
@@ -184,7 +184,7 @@ void btu_task_start_up(UNUSED_ATTR void *context) {
   /* Initialise platform trace levels at this point as BTE_InitStack() and bta_sys_init()
    * reset the control blocks and preset the trace level with XXX_INITIAL_TRACE_LEVEL
    */
-#if ( BT_USE_TRACES==TRUE )
+#if (BT_USE_TRACES == TRUE)
   module_init(get_module(BTE_LOGMSG_MODULE));
 #endif
 
@@ -209,7 +209,7 @@ void btu_task_shut_down(UNUSED_ATTR void *context) {
   fixed_queue_unregister_dequeue(btu_hci_msg_queue);
   alarm_unregister_processing_queue(btu_general_alarm_queue);
 
-#if ( BT_USE_TRACES==TRUE )
+#if (BT_USE_TRACES == TRUE)
   module_clean_up(get_module(BTE_LOGMSG_MODULE));
 #endif
 
@@ -217,7 +217,7 @@ void btu_task_shut_down(UNUSED_ATTR void *context) {
   btu_free_core();
 }
 
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+#if (HCILP_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         btu_check_bt_sleep

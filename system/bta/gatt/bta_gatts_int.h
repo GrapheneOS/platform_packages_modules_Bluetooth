@@ -79,7 +79,7 @@ typedef struct
     BT_HDR                  hdr;
     tBTA_GATTS_IF           server_if;
     btgatt_db_element_t    *service;
-    UINT16                  count;
+    uint16_t                count;
 } tBTA_GATTS_API_ADD_SERVICE;
 
 typedef struct

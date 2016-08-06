@@ -72,7 +72,7 @@ const tMCA_CCB_ACTION mca_ccb_action[] = {
 #define MCA_CCB_NUM_COLS           2       /* number of columns in state tables */
 
 /* state table for opening state */
-const UINT8 mca_ccb_st_opening[][MCA_CCB_NUM_COLS] = {
+const uint8_t mca_ccb_st_opening[][MCA_CCB_NUM_COLS] = {
 /* Event                            Action              Next State */
 /* MCA_CCB_API_CONNECT_EVT    */   {MCA_CCB_IGNORE,     MCA_CCB_OPENING_ST},
 /* MCA_CCB_API_DISCONNECT_EVT */   {MCA_CCB_DO_DISCONN, MCA_CCB_CLOSING_ST},
@@ -88,7 +88,7 @@ const UINT8 mca_ccb_st_opening[][MCA_CCB_NUM_COLS] = {
 };
 
 /* state table for open state */
-const UINT8 mca_ccb_st_open[][MCA_CCB_NUM_COLS] = {
+const uint8_t mca_ccb_st_open[][MCA_CCB_NUM_COLS] = {
 /* Event                            Action              Next State */
 /* MCA_CCB_API_CONNECT_EVT    */   {MCA_CCB_IGNORE,     MCA_CCB_OPEN_ST},
 /* MCA_CCB_API_DISCONNECT_EVT */   {MCA_CCB_DO_DISCONN, MCA_CCB_CLOSING_ST},
@@ -104,7 +104,7 @@ const UINT8 mca_ccb_st_open[][MCA_CCB_NUM_COLS] = {
 };
 
 /* state table for closing state */
-const UINT8 mca_ccb_st_closing[][MCA_CCB_NUM_COLS] = {
+const uint8_t mca_ccb_st_closing[][MCA_CCB_NUM_COLS] = {
 /* Event                            Action              Next State */
 /* MCA_CCB_API_CONNECT_EVT    */   {MCA_CCB_IGNORE,     MCA_CCB_CLOSING_ST},
 /* MCA_CCB_API_DISCONNECT_EVT */   {MCA_CCB_IGNORE,     MCA_CCB_CLOSING_ST},
@@ -120,7 +120,7 @@ const UINT8 mca_ccb_st_closing[][MCA_CCB_NUM_COLS] = {
 };
 
 /* type for state table */
-typedef const UINT8 (*tMCA_CCB_ST_TBL)[MCA_CCB_NUM_COLS];
+typedef const uint8_t (*tMCA_CCB_ST_TBL)[MCA_CCB_NUM_COLS];
 
 /* state table */
 const tMCA_CCB_ST_TBL mca_ccb_st_tbl[] = {
@@ -180,10 +180,10 @@ void mca_stop_timer(tMCA_CCB *p_ccb)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_ccb_event(tMCA_CCB *p_ccb, UINT8 event, tMCA_CCB_EVT *p_data)
+void mca_ccb_event(tMCA_CCB *p_ccb, uint8_t event, tMCA_CCB_EVT *p_data)
 {
     tMCA_CCB_ST_TBL    state_table;
-    UINT8              action;
+    uint8_t            action;
 
 #if (BT_TRACE_VERBOSE == TRUE)
     MCA_TRACE_EVENT("CCB ccb=%d event=%s state=%s", mca_ccb_to_hdl(p_ccb), mca_ccb_evt_str[event], mca_ccb_st_str[p_ccb->state]);
@@ -268,7 +268,7 @@ tMCA_CCB *mca_ccb_alloc(tMCA_HANDLE handle, BD_ADDR bd_addr)
                 p_ccb_tmp->p_rcb = p_rcb;
                 p_ccb_tmp->mca_ccb_timer = alarm_new("mca.mca_ccb_timer");
                 p_ccb_tmp->state = MCA_CCB_OPENING_ST;
-                p_ccb_tmp->cong  = TRUE;
+                p_ccb_tmp->cong  = true;
                 memcpy(p_ccb_tmp->peer_addr, bd_addr, BD_ADDR_LEN);
                 p_ccb = p_ccb_tmp;
                 break;
@@ -330,7 +330,7 @@ void mca_ccb_dealloc(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 *******************************************************************************/
 tMCA_CL mca_ccb_to_hdl(tMCA_CCB *p_ccb)
 {
-    return (UINT8) (p_ccb - mca_cb.ccb + 1);
+    return (uint8_t) (p_ccb - mca_cb.ccb + 1);
 }
 
 /*******************************************************************************
@@ -359,12 +359,12 @@ tMCA_CCB *mca_ccb_by_hdl(tMCA_CL mcl)
 **
 ** Description      This function checkes if a given mdl_id is in use.
 **
-** Returns          TRUE, if the given mdl_id is currently used in the MCL.
+** Returns          true, if the given mdl_id is currently used in the MCL.
 **
 *******************************************************************************/
-BOOLEAN mca_ccb_uses_mdl_id(tMCA_CCB *p_ccb, UINT16 mdl_id)
+bool    mca_ccb_uses_mdl_id(tMCA_CCB *p_ccb, uint16_t mdl_id)
 {
-    BOOLEAN uses = FALSE;
+    bool    uses = false;
     tMCA_DCB *p_dcb;
     int       i;
 
@@ -374,7 +374,7 @@ BOOLEAN mca_ccb_uses_mdl_id(tMCA_CCB *p_ccb, UINT16 mdl_id)
     {
         if (p_dcb->state != MCA_DCB_NULL_ST && p_dcb->mdl_id == mdl_id)
         {
-            uses = TRUE;
+            uses = true;
             break;
         }
     }

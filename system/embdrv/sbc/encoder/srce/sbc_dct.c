@@ -68,9 +68,9 @@ extern const SINT16 gas16AnalDCTcoeff4[];
 void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
 {
 #if (SBC_FAST_DCT == TRUE)
-#if (SBC_ARM_ASM_OPT==TRUE)
+#if (SBC_ARM_ASM_OPT == TRUE)
 #else
-#if (SBC_IPAQ_OPT==TRUE)
+#if (SBC_IPAQ_OPT == TRUE)
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
     SINT64 s64Temp;
 #endif
@@ -158,7 +158,7 @@ void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
     pOutVect[5] = (res_even[ 2 ] - res_odd[ 2 ])  ;
     pOutVect[4] = (res_even[ 3 ] - res_odd[ 3 ])  ;
 #else
-    UINT8 Index, k;
+    uint8_t Index, k;
     SINT32 temp;
 	/*Calculate 4 subband samples by matrixing*/
     for(Index=0; Index<8; Index++)
@@ -191,9 +191,9 @@ void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
 void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
 {
 #if (SBC_FAST_DCT == TRUE)
-#if (SBC_ARM_ASM_OPT==TRUE)
+#if (SBC_ARM_ASM_OPT == TRUE)
 #else
-#if (SBC_IPAQ_OPT==TRUE)
+#if (SBC_IPAQ_OPT == TRUE)
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
     SINT64 s64Temp;
 #endif
@@ -201,7 +201,7 @@ void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
     SINT32 s32HiTemp;
 #else
-    UINT16 s32In2Temp;
+    uint16_t s32In2Temp;
     SINT32 s32In1Temp;
 #endif
 #endif
@@ -227,7 +227,7 @@ void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
     pOutVect[2] = (tmp[1]-tmp[7]);
     pOutVect[3] = (tmp[0]-tmp[6]);
 #else
-    UINT8 Index, k;
+    uint8_t Index, k;
     SINT32 temp;
 	/*Calculate 4 subband samples by matrixing*/
     for(Index=0; Index<4; Index++)

@@ -24,8 +24,8 @@
 
 #include "sbc_encoder.h"
 
-#if (SBC_ARM_ASM_OPT==FALSE && SBC_IPAQ_OPT==FALSE)
-#if (SBC_IS_64_MULT_IN_WINDOW_ACCU ==  FALSE)
+#if (SBC_ARM_ASM_OPT == FALSE && SBC_IPAQ_OPT == FALSE)
+#if (SBC_IS_64_MULT_IN_WINDOW_ACCU == FALSE)
 /*Window coeff for 4 sub band case*/
 const SINT16 gas32CoeffFor4SBs[] =
 {

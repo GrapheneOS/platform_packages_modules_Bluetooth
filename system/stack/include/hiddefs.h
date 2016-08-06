@@ -54,7 +54,7 @@ enum
    HID_ERR_INVALID = 0xFF
 };
 
-typedef UINT8 tHID_STATUS;
+typedef uint8_t tHID_STATUS;
 
 #define    HID_L2CAP_CONN_FAIL (0x0100) /* Connection Attempt was made but failed */
 #define    HID_L2CAP_REQ_FAIL  (0x0200)  /* L2CAP_ConnectReq API failed */
@@ -77,7 +77,7 @@ typedef UINT8 tHID_STATUS;
 
 #define HID_GET_TRANS_FROM_HDR(x) (((x) >> 4) & 0x0f)
 #define HID_GET_PARAM_FROM_HDR(x) ((x) & 0x0f)
-#define HID_BUILD_HDR(t,p)  (UINT8)(((t) << 4) | ((p) & 0x0f))
+#define HID_BUILD_HDR(t,p)  (uint8_t)(((t) << 4) | ((p) & 0x0f))
 
 
 /* Parameters for Handshake
@@ -131,8 +131,8 @@ typedef UINT8 tHID_STATUS;
 
 typedef struct desc_info
 {
-    UINT16 dl_len;
-    UINT8 *dsc_list;
+    uint16_t dl_len;
+    uint8_t *dsc_list;
 } tHID_DEV_DSCP_INFO;
 
 #define HID_SSR_PARAM_INVALID    0xffff
@@ -142,16 +142,16 @@ typedef struct sdp_info
     char svc_name[HID_MAX_SVC_NAME_LEN];   /*Service Name */
     char svc_descr[HID_MAX_SVC_DESCR_LEN]; /*Service Description*/
     char prov_name[HID_MAX_PROV_NAME_LEN]; /*Provider Name.*/
-    UINT16    rel_num;    /*Release Number */
-    UINT16    hpars_ver;  /*HID Parser Version.*/
-    UINT16    ssr_max_latency; /* HIDSSRHostMaxLatency value, if HID_SSR_PARAM_INVALID not used*/
-    UINT16    ssr_min_tout; /* HIDSSRHostMinTimeout value, if HID_SSR_PARAM_INVALID not used* */
-    UINT8     sub_class;    /*Device Subclass.*/
-    UINT8     ctry_code;     /*Country Code.*/
-    UINT16    sup_timeout;/* Supervisory Timeout */
+    uint16_t  rel_num;    /*Release Number */
+    uint16_t  hpars_ver;  /*HID Parser Version.*/
+    uint16_t  ssr_max_latency; /* HIDSSRHostMaxLatency value, if HID_SSR_PARAM_INVALID not used*/
+    uint16_t  ssr_min_tout; /* HIDSSRHostMinTimeout value, if HID_SSR_PARAM_INVALID not used* */
+    uint8_t   sub_class;    /*Device Subclass.*/
+    uint8_t   ctry_code;     /*Country Code.*/
+    uint16_t  sup_timeout;/* Supervisory Timeout */
 
     tHID_DEV_DSCP_INFO  dscp_info;   /* Descriptor list and Report list to be set in the SDP record.
-                                       This parameter is used if HID_DEV_USE_GLB_SDP_REC is set to FALSE.*/
+                                       This parameter is used if HID_DEV_USE_GLB_SDP_REC is set to false.*/
     tSDP_DISC_REC       *p_sdp_layer_rec;
 } tHID_DEV_SDP_INFO;
 

@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 
 #include "bt_trace.h"
 #include "bt_utils.h"
@@ -38,14 +38,14 @@
 /********************************************************************************
 **              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
 *********************************************************************************/
-static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db);
+static bool allocate_svc_db_buf(tGATT_SVC_DB *p_db);
 static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PERM perm);
-static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr);
-static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 len);
+static bool deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr);
+static bool copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, uint16_t len);
 
-static BOOLEAN gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_service, BOOLEAN is_pri);
-static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
-                                                UINT16 handle, UINT16 offset, UINT32 trans_id,
+static bool gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_service, bool is_pri);
+static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, uint8_t op_code,
+                                                uint16_t handle, uint16_t offset, uint32_t trans_id,
                                                 bt_gatt_db_attribute_type_t gatt_type);
 
 /*******************************************************************************
@@ -60,15 +60,15 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 ** Returns          Status of te operation.
 **
 *******************************************************************************/
-BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  BOOLEAN is_pri,
-                               UINT16 s_hdl, UINT16 num_handle)
+bool    gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  bool    is_pri,
+                               uint16_t s_hdl, uint16_t num_handle)
 {
     p_db->svc_buffer = fixed_queue_new(SIZE_MAX);
 
     if (!allocate_svc_db_buf(p_db))
     {
         GATT_TRACE_ERROR("gatts_init_service_db failed, no resources");
-        return FALSE;
+        return false;
     }
 
     GATT_TRACE_DEBUG("gatts_init_service_db");
@@ -117,12 +117,12 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 **
 *******************************************************************************/
 static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
-                                                 UINT16 offset,
-                                                 BOOLEAN read_long,
+                                                 uint16_t offset,
+                                                 bool    read_long,
                                                  tGATT_SEC_FLAG sec_flag,
-                                                 UINT8 key_size)
+                                                 uint8_t key_size)
 {
-    UINT16          min_key_size;
+    uint16_t        min_key_size;
     tGATT_PERM      perm = p_attr->permission;
 
     UNUSED(offset);
@@ -206,16 +206,16 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
 **
 *******************************************************************************/
 static tGATT_STATUS read_attr_value (void *p_attr,
-                                     UINT16 offset,
-                                     UINT8 **p_data,
-                                     BOOLEAN read_long,
-                                     UINT16 mtu,
-                                     UINT16 *p_len,
+                                     uint16_t offset,
+                                     uint8_t **p_data,
+                                     bool    read_long,
+                                     uint16_t mtu,
+                                     uint16_t *p_len,
                                      tGATT_SEC_FLAG sec_flag,
-                                     UINT8 key_size)
+                                     uint8_t key_size)
 {
-    UINT16          len = 0, uuid16 = 0;
-    UINT8           *p = *p_data;
+    uint16_t        len = 0, uuid16 = 0;
+    uint8_t         *p = *p_data;
     tGATT_STATUS    status;
     tGATT_ATTR    *p_attr16  = (tGATT_ATTR  *)p_attr;
 
@@ -321,21 +321,21 @@ static tGATT_STATUS read_attr_value (void *p_attr,
 *******************************************************************************/
 tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
                                                tGATT_SVC_DB    *p_db,
-                                               UINT8        op_code,
+                                               uint8_t      op_code,
                                                BT_HDR      *p_rsp,
-                                               UINT16       s_handle,
-                                               UINT16       e_handle,
+                                               uint16_t     s_handle,
+                                               uint16_t     e_handle,
                                                tBT_UUID     type,
-                                               UINT16      *p_len,
+                                               uint16_t    *p_len,
                                                tGATT_SEC_FLAG sec_flag,
-                                               UINT8        key_size,
-                                               UINT32       trans_id,
-                                               UINT16       *p_cur_handle)
+                                               uint8_t      key_size,
+                                               uint32_t     trans_id,
+                                               uint16_t     *p_cur_handle)
 {
     tGATT_STATUS status = GATT_NOT_FOUND;
     tGATT_ATTR  *p_attr;
-    UINT16      len = 0;
-    UINT8       *p = (UINT8 *)(p_rsp + 1) + p_rsp->len + L2CAP_MIN_OFFSET;
+    uint16_t    len = 0;
+    uint8_t     *p = (uint8_t *)(p_rsp + 1) + p_rsp->len + L2CAP_MIN_OFFSET;
     tBT_UUID    attr_uuid;
 
     if (p_db && p_db->p_attr_list)
@@ -356,7 +356,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 
                 UINT16_TO_STREAM (p, p_attr->handle);
 
-                status = read_attr_value ((void *)p_attr, 0, &p, FALSE, (UINT16)(*p_len -2), &len, sec_flag, key_size);
+                status = read_attr_value ((void *)p_attr, 0, &p, false, (uint16_t)(*p_len -2), &len, sec_flag, key_size);
 
                 if (status == GATT_PENDING)
                 {
@@ -393,8 +393,8 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
         }
     }
 
-#if (defined(BLE_DELAY_REQUEST_ENC) && (BLE_DELAY_REQUEST_ENC == TRUE))
-    UINT8 flag = 0;
+#if (BLE_DELAY_REQUEST_ENC == TRUE)
+    uint8_t flag = 0;
     if (BTM_GetSecurityFlags(p_tcb->peer_bda, &flag))
     {
         if ((p_tcb->att_lcid == L2CAP_ATT_CID) && (status == GATT_PENDING) &&
@@ -425,7 +425,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 ** Returns          Status of the operation.
 **
 *******************************************************************************/
-UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e_handle,
+uint16_t gatts_add_included_service (tGATT_SVC_DB *p_db, uint16_t s_handle, uint16_t e_handle,
                                    tBT_UUID service)
 {
     tGATT_ATTR      *p_attr;
@@ -474,7 +474,7 @@ UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e
 ** Returns          Status of te operation.
 **
 *******************************************************************************/
-UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
+uint16_t gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                                  tGATT_CHAR_PROP property,
                                  tBT_UUID * p_char_uuid)
 {
@@ -520,7 +520,7 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 ** Returns          descriptor type.
 **
 *******************************************************************************/
-UINT8 gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
+uint8_t gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
 {
     tBT_UUID std_descr = {LEN_UUID_16, {GATT_UUID_CHAR_EXT_PROP}};
 
@@ -569,7 +569,7 @@ UINT8 gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
 ** Returns          Status of the operation.
 **
 *******************************************************************************/
-UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
+uint16_t gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                              tBT_UUID *     p_descr_uuid)
 {
     tGATT_ATTR    *p_char_dscptr;
@@ -616,17 +616,17 @@ UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 *******************************************************************************/
 tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
                                              tGATT_SVC_DB *p_db,
-                                             UINT8 op_code,
-                                             UINT16 handle, UINT16 offset,
-                                             UINT8 *p_value, UINT16 *p_len,
-                                             UINT16 mtu,
+                                             uint8_t op_code,
+                                             uint16_t handle, uint16_t offset,
+                                             uint8_t *p_value, uint16_t *p_len,
+                                             uint16_t mtu,
                                              tGATT_SEC_FLAG sec_flag,
-                                             UINT8 key_size,
-                                             UINT32 trans_id)
+                                             uint8_t key_size,
+                                             uint32_t trans_id)
 {
     tGATT_STATUS status = GATT_NOT_FOUND;
     tGATT_ATTR  *p_attr;
-    UINT8       *pp = p_value;
+    uint8_t     *pp = p_value;
 
     if (p_db && p_db->p_attr_list)
     {
@@ -637,7 +637,7 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
             if (p_attr->handle == handle)
             {
                 status = read_attr_value (p_attr, offset, &pp,
-                                          (BOOLEAN)(op_code == GATT_REQ_READ_BLOB),
+                                          (bool   )(op_code == GATT_REQ_READ_BLOB),
                                           mtu, p_len, sec_flag, key_size);
 
                 if (status == GATT_PENDING)
@@ -674,10 +674,10 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
 **
 *******************************************************************************/
 tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
-                                        BOOLEAN is_long,
-                                        UINT16 handle,
+                                        bool    is_long,
+                                        uint16_t handle,
                                         tGATT_SEC_FLAG sec_flag,
-                                        UINT8 key_size)
+                                        uint8_t key_size)
 {
     tGATT_STATUS status = GATT_NOT_FOUND;
     tGATT_ATTR  *p_attr;
@@ -719,15 +719,15 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
 ** Returns          Status of the operation.
 **
 *******************************************************************************/
-tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
-                                          UINT16 handle, UINT16 offset, UINT8 *p_data,
-                                          UINT16 len, tGATT_SEC_FLAG sec_flag, UINT8 key_size)
+tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, uint8_t op_code,
+                                          uint16_t handle, uint16_t offset, uint8_t *p_data,
+                                          uint16_t len, tGATT_SEC_FLAG sec_flag, uint8_t key_size)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
     tGATT_ATTR    *p_attr;
-    UINT16          max_size = 0;
+    uint16_t        max_size = 0;
     tGATT_PERM      perm;
-    UINT16          min_key_size;
+    uint16_t        min_key_size;
 
     GATT_TRACE_DEBUG( "%s: op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x key_size=%d",
                        __func__, op_code, handle, offset, len, sec_flag, key_size);
@@ -935,7 +935,7 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
         return NULL;
     }
 
-    UINT16 len = sizeof(tGATT_ATTR);
+    uint16_t len = sizeof(tGATT_ATTR);
     if (p_db->mem_free < len) {
         if (!allocate_svc_db_buf(p_db)) {
             GATT_TRACE_ERROR("allocate_attr_in_db failed, no resources");
@@ -983,13 +983,13 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
 ** Parameter        p_db: database pointer.
 **                  p_attr: pointer to the attribute record to be freed.
 **
-** Returns          BOOLEAN: success
+** Returns          bool   : success
 **
 *******************************************************************************/
-static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
+static bool    deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
 {
     tGATT_ATTR  *p_cur, *p_next;
-    BOOLEAN     found = FALSE;
+    bool        found = false;
 
     if (p_db->p_attr_list == NULL)
         return found;
@@ -1003,13 +1003,13 @@ static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
         if (p_next == p_attr)
         {
             p_cur->p_next = p_next->p_next;
-            found = TRUE;
+            found = true;
         }
     }
     if (p_cur == p_attr && p_cur == p_db->p_attr_list)
     {
         p_db->p_attr_list = p_cur->p_next;
-        found = TRUE;
+        found = true;
     }
     /* else attr not found */
     if ( found)
@@ -1034,16 +1034,16 @@ static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
 ** Returns          None.
 **
 *******************************************************************************/
-static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 len)
+static bool    copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, uint16_t len)
 {
-    UINT8 *p = (UINT8 *)*p_dst;
+    uint8_t *p = (uint8_t *)*p_dst;
 
     if (p_db->mem_free < len)
     {
         if (!allocate_svc_db_buf(p_db))
         {
             GATT_TRACE_ERROR("copy_extra_byte_in_db failed, no resources");
-            return FALSE;
+            return false;
         }
     }
 
@@ -1053,7 +1053,7 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
     memset((void *)p, 0, len);
     *p_dst = (void *)p;
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -1062,21 +1062,21 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
 **
 ** Description      Utility function to allocate extra buffer for service database.
 **
-** Returns          TRUE if allocation succeed, otherwise FALSE.
+** Returns          true if allocation succeed, otherwise false.
 **
 *******************************************************************************/
-static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
+static bool    allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_calloc(GATT_DB_BUF_SIZE);
 
     GATT_TRACE_DEBUG("%s allocating extra buffer", __func__);
 
-    p_db->p_free_mem = (UINT8 *) p_buf;
+    p_db->p_free_mem = (uint8_t *) p_buf;
     p_db->mem_free = GATT_DB_BUF_SIZE;
 
     fixed_queue_enqueue(p_db->svc_buffer, p_buf);
 
-    return TRUE;
+    return true;
 
 }
 
@@ -1089,14 +1089,14 @@ static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 ** Returns          status of operation.
 **
 *******************************************************************************/
-static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
-                                                UINT16 handle, UINT16 offset, UINT32 trans_id,
+static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, uint8_t op_code,
+                                                uint16_t handle, uint16_t offset, uint32_t trans_id,
                                                 bt_gatt_db_attribute_type_t gatt_type)
 {
     tGATTS_DATA   sr_data;
-    UINT8       i_rcb;
+    uint8_t     i_rcb;
     tGATT_SR_REG *p_sreg;
-    UINT16   conn_id;
+    uint16_t conn_id;
 
     i_rcb = gatt_sr_find_i_rcb_by_handle(handle);
     p_sreg = &gatt_cb.sr_reg[i_rcb];
@@ -1105,7 +1105,7 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
     if (trans_id == 0)
     {
         trans_id = gatt_sr_enqueue_cmd(p_tcb, op_code, handle);
-        gatt_sr_update_cback_cnt(p_tcb, p_sreg->gatt_if, TRUE, TRUE);
+        gatt_sr_update_cback_cnt(p_tcb, p_sreg->gatt_if, true, true);
     }
 
     if (trans_id != 0 )
@@ -1113,10 +1113,10 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
         memset(&sr_data, 0, sizeof(tGATTS_DATA));
 
         sr_data.read_req.handle = handle;
-        sr_data.read_req.is_long = (BOOLEAN)(op_code == GATT_REQ_READ_BLOB);
+        sr_data.read_req.is_long = (bool)(op_code == GATT_REQ_READ_BLOB);
         sr_data.read_req.offset = offset;
 
-        UINT8 opcode;
+        uint8_t opcode;
         if (gatt_type == BTGATT_DB_DESCRIPTOR) {
             opcode = GATTS_REQ_TYPE_READ_DESCRIPTOR;
         } else if (gatt_type == BTGATT_DB_CHARACTERISTIC) {
@@ -1148,11 +1148,11 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 ** Returns          void
 **
 *******************************************************************************/
-static BOOLEAN gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_service, BOOLEAN is_pri)
+static bool gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_service, bool is_pri)
 {
     tGATT_ATTR  *p_attr;
     tBT_UUID    uuid = {LEN_UUID_16, {0}};
-    BOOLEAN     rt = FALSE;
+    bool        rt = false;
 
     GATT_TRACE_DEBUG( "add_service_declaration");
 
@@ -1181,7 +1181,7 @@ static BOOLEAN gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_
                 p_attr->p_value->uuid.len = LEN_UUID_128;
                 memcpy(p_attr->p_value->uuid.uu.uuid128, p_service->uu.uuid128, LEN_UUID_128);
             }
-            rt = TRUE;
+            rt = true;
         }
 
     }

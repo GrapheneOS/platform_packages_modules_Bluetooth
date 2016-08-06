@@ -33,33 +33,33 @@
 /* Include initialization functions definitions */
 #include "port_api.h"
 
-#if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
+#if (BNEP_INCLUDED == TRUE)
 #include "bnep_api.h"
 #endif
 
 #include "gap_api.h"
 
-#if (defined(PAN_INCLUDED) && PAN_INCLUDED == TRUE)
+#if (PAN_INCLUDED == TRUE)
 #include "pan_api.h"
 #endif
 
 #include "avrc_api.h"
 
-#if (defined(A2D_INCLUDED) && A2D_INCLUDED == TRUE)
+#if (A2D_INCLUDED == TRUE)
 #include "a2d_api.h"
 #endif
 
-#if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
+#if (HID_HOST_INCLUDED == TRUE)
 #include "hidh_api.h"
 #endif
 
-#if (defined(MCA_INCLUDED) && MCA_INCLUDED == TRUE)
+#if (MCA_INCLUDED == TRUE)
 #include "mca_api.h"
 #endif
 
-#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE)
 #include "gatt_api.h"
-#if (defined(SMP_INCLUDED) && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
 #include "smp_api.h"
 #endif
 #endif
@@ -91,10 +91,10 @@ void BTE_InitStack(void)
 /**************************
 ** BNEP and its profiles **
 ***************************/
-#if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
+#if (BNEP_INCLUDED == TRUE)
     BNEP_Init();
 
-#if (defined(PAN_INCLUDED) && PAN_INCLUDED == TRUE)
+#if (PAN_INCLUDED == TRUE)
     PAN_Init();
 #endif  /* PAN */
 #endif  /* BNEP Included */
@@ -103,7 +103,7 @@ void BTE_InitStack(void)
 /**************************
 ** AVDT and its profiles **
 ***************************/
-#if (defined(A2D_INCLUDED) && A2D_INCLUDED == TRUE)
+#if (A2D_INCLUDED == TRUE)
     A2D_Init();
 #endif  /* AADP */
 
@@ -116,11 +116,11 @@ void BTE_InitStack(void)
 ************/
     GAP_Init();
 
-#if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
+#if (HID_HOST_INCLUDED == TRUE)
     HID_HostInit();
 #endif
 
-#if (defined(MCA_INCLUDED) && MCA_INCLUDED == TRUE)
+#if (MCA_INCLUDED == TRUE)
     MCA_Init();
 #endif
 

@@ -62,7 +62,7 @@ static void read_ready(socket_t *socket, void *context);
 static void client_free(void *ptr);
 
 bool hci_inject_open(const hci_t *hci_interface) {
-#if (!defined(BT_NET_DEBUG) || (BT_NET_DEBUG != TRUE))
+#if (BT_NET_DEBUG != TRUE)
   return true;          // Disable using network sockets for security reasons
 #endif
 
@@ -97,7 +97,7 @@ error:;
 }
 
 void hci_inject_close(void) {
-#if (!defined(BT_NET_DEBUG) || (BT_NET_DEBUG != TRUE))
+#if (BT_NET_DEBUG != TRUE)
   return;               // Disable using network sockets for security reasons
 #endif
 

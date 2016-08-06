@@ -45,9 +45,9 @@
 ** Returns          TCID value.
 **
 *******************************************************************************/
-UINT8 avdt_ad_type_to_tcid(UINT8 type, tAVDT_SCB *p_scb)
+uint8_t avdt_ad_type_to_tcid(uint8_t type, tAVDT_SCB *p_scb)
 {
-    UINT8 scb_idx;
+    uint8_t scb_idx;
 
     if (type == AVDT_CHAN_SIG)
     {
@@ -73,9 +73,9 @@ UINT8 avdt_ad_type_to_tcid(UINT8 type, tAVDT_SCB *p_scb)
 ** Returns          Channel type value.
 **
 *******************************************************************************/
-static UINT8 avdt_ad_tcid_to_type(UINT8 tcid)
+static uint8_t avdt_ad_tcid_to_type(uint8_t tcid)
 {
-    UINT8 type;
+    uint8_t type;
 
     if (tcid == 0)
     {
@@ -132,11 +132,11 @@ void avdt_ad_init(void)
 **                  first matching entry (there could be more than one).
 **
 *******************************************************************************/
-tAVDT_TC_TBL *avdt_ad_tc_tbl_by_st(UINT8 type, tAVDT_CCB *p_ccb, UINT8 state)
+tAVDT_TC_TBL *avdt_ad_tc_tbl_by_st(uint8_t type, tAVDT_CCB *p_ccb, uint8_t state)
 {
     int             i;
     tAVDT_TC_TBL    *p_tbl = avdt_cb.ad.tc_tbl;
-    UINT8           ccb_idx;
+    uint8_t         ccb_idx;
 
     if (p_ccb == NULL)
     {
@@ -200,9 +200,9 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_st(UINT8 type, tAVDT_CCB *p_ccb, UINT8 state)
 ** Returns          Pointer to entry.
 **
 *******************************************************************************/
-tAVDT_TC_TBL *avdt_ad_tc_tbl_by_lcid(UINT16 lcid)
+tAVDT_TC_TBL *avdt_ad_tc_tbl_by_lcid(uint16_t lcid)
 {
-    UINT8 idx;
+    uint8_t idx;
 
     idx = avdt_cb.ad.lcid_tbl[lcid - L2CAP_BASE_APPL_CID];
 
@@ -228,12 +228,12 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_lcid(UINT16 lcid)
 ** Returns          Pointer to transport channel table entry.
 **
 *******************************************************************************/
-tAVDT_TC_TBL *avdt_ad_tc_tbl_by_type(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
+tAVDT_TC_TBL *avdt_ad_tc_tbl_by_type(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
 {
-    UINT8           tcid;
+    uint8_t         tcid;
     int             i;
     tAVDT_TC_TBL    *p_tbl = avdt_cb.ad.tc_tbl;
-    UINT8           ccb_idx = avdt_ccb_to_idx(p_ccb);
+    uint8_t         ccb_idx = avdt_ccb_to_idx(p_ccb);
 
     /* get tcid from type, scb */
     tcid = avdt_ad_type_to_tcid(type, p_scb);
@@ -299,11 +299,11 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_alloc(tAVDT_CCB *p_ccb)
 ** Returns          Index value.
 **
 *******************************************************************************/
-UINT8 avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
+uint8_t avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
 {
     AVDT_TRACE_DEBUG("avdt_ad_tc_tbl_to_idx: %d", (p_tbl - avdt_cb.ad.tc_tbl));
     /* use array arithmetic to determine index */
-    return (UINT8) (p_tbl - avdt_cb.ad.tc_tbl);
+    return (uint8_t) (p_tbl - avdt_cb.ad.tc_tbl);
 }
 
 /*******************************************************************************
@@ -320,7 +320,7 @@ UINT8 avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl, UINT16 reason)
+void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl, uint16_t reason)
 {
     tAVDT_CCB   *p_ccb;
     tAVDT_SCB   *p_scb;
@@ -424,7 +424,7 @@ void avdt_ad_tc_open_ind(tAVDT_TC_TBL *p_tbl)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_ad_tc_cong_ind(tAVDT_TC_TBL *p_tbl, BOOLEAN is_congested)
+void avdt_ad_tc_cong_ind(tAVDT_TC_TBL *p_tbl, bool    is_congested)
 {
     tAVDT_CCB   *p_ccb;
     tAVDT_SCB   *p_scb;
@@ -501,14 +501,14 @@ void avdt_ad_tc_data_ind(tAVDT_TC_TBL *p_tbl, BT_HDR *p_buf)
 **                  passes the data to L2CA_DataWrite().
 **
 **
-** Returns          AVDT_AD_SUCCESS, if data accepted, else FALSE
+** Returns          AVDT_AD_SUCCESS, if data accepted, else false
 **                  AVDT_AD_CONGESTED, if data accepted and the channel is congested
 **                  AVDT_AD_FAILED, if error
 **
 *******************************************************************************/
-UINT8 avdt_ad_write_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, BT_HDR *p_buf)
+uint8_t avdt_ad_write_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, BT_HDR *p_buf)
 {
-    UINT8   tcid;
+    uint8_t tcid;
 
     /* get tcid from type, scb */
     tcid = avdt_ad_type_to_tcid(type, p_scb);
@@ -534,10 +534,10 @@ UINT8 avdt_ad_write_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, BT_HDR *
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_ad_open_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, UINT8 role)
+void avdt_ad_open_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, uint8_t role)
 {
     tAVDT_TC_TBL    *p_tbl;
-    UINT16          lcid;
+    uint16_t        lcid;
 
     if((p_tbl = avdt_ad_tc_tbl_alloc(p_ccb)) == NULL)
     {
@@ -612,9 +612,9 @@ void avdt_ad_open_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, UINT8 role
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_ad_close_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
+void avdt_ad_close_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
 {
-    UINT8           tcid;
+    uint8_t         tcid;
     tAVDT_TC_TBL    *p_tbl;
 
     p_tbl = avdt_ad_tc_tbl_by_type(type, p_ccb, p_scb);

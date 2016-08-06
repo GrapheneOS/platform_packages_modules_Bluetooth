@@ -104,21 +104,21 @@ extern "C" {
 *****************************************************************************/
 
 /* Control callback function. */
-typedef void (tAVCT_CTRL_CBACK)(UINT8 handle, UINT8 event, UINT16 result,
+typedef void (tAVCT_CTRL_CBACK)(uint8_t handle, uint8_t event, uint16_t result,
                                 BD_ADDR peer_addr);
 
 /* Message callback function */
 /* p_pkt->layer_specific is AVCT_DATA_CTRL or AVCT_DATA_BROWSE */
-typedef void (tAVCT_MSG_CBACK)(UINT8 handle, UINT8 label, UINT8 cr,
+typedef void (tAVCT_MSG_CBACK)(uint8_t handle, uint8_t label, uint8_t cr,
                                BT_HDR *p_pkt);
 
 /* Structure used by AVCT_CreateConn. */
 typedef struct {
     tAVCT_CTRL_CBACK    *p_ctrl_cback;      /* Control callback */
     tAVCT_MSG_CBACK     *p_msg_cback;       /* Message callback */
-    UINT16              pid;                /* Profile ID */
-    UINT8               role;               /* Initiator/acceptor role */
-    UINT8               control;        /* Control role (Control/Target) */
+    uint16_t            pid;                /* Profile ID */
+    uint8_t             role;               /* Initiator/acceptor role */
+    uint8_t             control;        /* Control role (Control/Target) */
 } tAVCT_CC;
 
 /*****************************************************************************
@@ -139,7 +139,7 @@ typedef struct {
 ** Returns          void
 **
 *******************************************************************************/
-extern void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask);
+extern void AVCT_Register(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask);
 
 /*******************************************************************************
 **
@@ -173,7 +173,7 @@ extern void AVCT_Deregister(void);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc,
+extern uint16_t AVCT_CreateConn(uint8_t *p_handle, tAVCT_CC *p_cc,
                               BD_ADDR peer_addr);
 
 /*******************************************************************************
@@ -189,7 +189,7 @@ extern UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc,
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern UINT16 AVCT_RemoveConn(UINT8 handle);
+extern uint16_t AVCT_RemoveConn(uint8_t handle);
 
 /*******************************************************************************
 **
@@ -207,7 +207,7 @@ extern UINT16 AVCT_RemoveConn(UINT8 handle);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern UINT16 AVCT_CreateBrowse(UINT8 handle, UINT8 role);
+extern uint16_t AVCT_CreateBrowse(uint8_t handle, uint8_t role);
 
 /*******************************************************************************
 **
@@ -222,7 +222,7 @@ extern UINT16 AVCT_CreateBrowse(UINT8 handle, UINT8 role);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern UINT16 AVCT_RemoveBrowse(UINT8 handle);
+extern uint16_t AVCT_RemoveBrowse(uint8_t handle);
 
 /*******************************************************************************
 **
@@ -234,7 +234,7 @@ extern UINT16 AVCT_RemoveBrowse(UINT8 handle);
 ** Returns          the peer browsing channel MTU.
 **
 *******************************************************************************/
-extern UINT16 AVCT_GetBrowseMtu (UINT8 handle);
+extern uint16_t AVCT_GetBrowseMtu (uint8_t handle);
 
 /*******************************************************************************
 **
@@ -246,7 +246,7 @@ extern UINT16 AVCT_GetBrowseMtu (UINT8 handle);
 ** Returns          the peer MTU size.
 **
 *******************************************************************************/
-extern UINT16 AVCT_GetPeerMtu (UINT8 handle);
+extern uint16_t AVCT_GetPeerMtu (uint8_t handle);
 
 /*******************************************************************************
 **
@@ -269,7 +269,7 @@ extern UINT16 AVCT_GetPeerMtu (UINT8 handle);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-extern UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *p_msg);
+extern uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg);
 
 #ifdef __cplusplus
 }

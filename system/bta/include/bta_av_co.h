@@ -35,9 +35,9 @@ extern "C" {
 **  Constants and data types
 *****************************************************************************/
 
-/* true to use SCMS-T content protection */
+/* TRUE to use SCMS-T content protection */
 #ifndef BTA_AV_CO_CP_SCMS_T
-#define BTA_AV_CO_CP_SCMS_T     false
+#define BTA_AV_CO_CP_SCMS_T FALSE
 #endif
 
 /* the content protection IDs assigned by BT SIG */

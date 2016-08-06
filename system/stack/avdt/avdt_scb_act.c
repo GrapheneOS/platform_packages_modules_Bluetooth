@@ -41,7 +41,7 @@ extern fixed_queue_t *btu_general_alarm_queue;
 ** events are at the beginning of the event list starting at zero, thus
 ** allowing for this table.
 */
-const UINT8 avdt_scb_cback_evt[] = {
+const uint8_t avdt_scb_cback_evt[] = {
     0,                          /* API_REMOVE_EVT (no event) */
     AVDT_WRITE_CFM_EVT,         /* API_WRITE_REQ_EVT */
     0,                          /* API_GETCONFIG_REQ_EVT (no event) */
@@ -57,7 +57,7 @@ const UINT8 avdt_scb_cback_evt[] = {
 /* This table is used to look up the callback event based on the signaling
 ** role when the stream is closed.
 */
-const UINT8 avdt_scb_role_evt[] = {
+const uint8_t avdt_scb_role_evt[] = {
     AVDT_CLOSE_IND_EVT,         /* AVDT_CLOSE_ACP */
     AVDT_CLOSE_CFM_EVT,         /* AVDT_CLOSE_INT */
     AVDT_CLOSE_IND_EVT,         /* AVDT_OPEN_ACP */
@@ -73,10 +73,10 @@ const UINT8 avdt_scb_role_evt[] = {
 ** Returns          SSRC value.
 **
 *******************************************************************************/
-UINT32 avdt_scb_gen_ssrc(tAVDT_SCB *p_scb)
+uint32_t avdt_scb_gen_ssrc(tAVDT_SCB *p_scb)
 {
     /* combine the value of the media type and codec type of the SCB */
-    return ((UINT32)(p_scb->cs.cfg.codec_info[1] | p_scb->cs.cfg.codec_info[2]));
+    return ((uint32_t)(p_scb->cs.cfg.codec_info[1] | p_scb->cs.cfg.codec_info[2]));
 }
 
 /*******************************************************************************
@@ -247,17 +247,17 @@ void avdt_scb_hdl_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-    UINT8   *p, *p_start;
-    UINT8   o_v, o_p, o_x, o_cc;
-    UINT8   m_pt;
-    UINT8   marker;
-    UINT16  seq;
-    UINT32  time_stamp;
-    UINT16  offset;
-    UINT16  ex_len;
-    UINT8   pad_len = 0;
+    uint8_t *p, *p_start;
+    uint8_t o_v, o_p, o_x, o_cc;
+    uint8_t m_pt;
+    uint8_t marker;
+    uint16_t seq;
+    uint32_t time_stamp;
+    uint16_t offset;
+    uint16_t ex_len;
+    uint8_t pad_len = 0;
 
-    p = p_start = (UINT8 *)(p_data->p_pkt + 1) + p_data->p_pkt->offset;
+    p = p_start = (uint8_t *)(p_data->p_pkt + 1) + p_data->p_pkt->offset;
 
     /* parse media packet header */
     AVDT_MSG_PRS_OCTET1(p, o_v, o_p, o_x, o_cc);
@@ -280,7 +280,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     }
 
     /* save our new offset */
-    offset = (UINT16) (p - p_start);
+    offset = (uint16_t) (p - p_start);
 
     /* adjust length for any padding at end of packet */
     if (o_p)
@@ -306,17 +306,17 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             /* report sequence number */
             p_data->p_pkt->layer_specific = seq;
             (*p_scb->cs.p_data_cback)(avdt_scb_to_hdl(p_scb), p_data->p_pkt,
-                time_stamp, (UINT8)(m_pt | (marker<<7)));
+                time_stamp, (uint8_t)(m_pt | (marker<<7)));
         }
         else
         {
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
             if ((p_scb->cs.p_media_cback != NULL)
              && (p_scb->p_media_buf != NULL)
              && (p_scb->media_buf_len > p_data->p_pkt->len))
             {
                 /* media buffer enough length is assigned by application. Lets use it*/
-                memcpy(p_scb->p_media_buf,(UINT8*)(p_data->p_pkt + 1) + p_data->p_pkt->offset,
+                memcpy(p_scb->p_media_buf,(uint8_t*)(p_data->p_pkt + 1) + p_data->p_pkt->offset,
                     p_data->p_pkt->len);
                 (*p_scb->cs.p_media_cback)(avdt_scb_to_hdl(p_scb),p_scb->p_media_buf,
                     p_scb->media_buf_len,time_stamp,seq,m_pt,marker);
@@ -327,7 +327,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     }
 }
 
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
 **
 ** Function         avdt_scb_hdl_report
@@ -337,12 +337,12 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-UINT8 * avdt_scb_hdl_report(tAVDT_SCB *p_scb, UINT8 *p, UINT16 len)
+uint8_t * avdt_scb_hdl_report(tAVDT_SCB *p_scb, uint8_t *p, uint16_t len)
 {
-    UINT16  result = AVDT_SUCCESS;
-    UINT8   *p_start = p;
-    UINT32  ssrc;
-    UINT8   o_v, o_p, o_cc;
+    uint16_t result = AVDT_SUCCESS;
+    uint8_t *p_start = p;
+    uint32_t ssrc;
+    uint8_t o_v, o_p, o_cc;
     AVDT_REPORT_TYPE    pt;
     tAVDT_REPORT_DATA   report, *p_rpt;
 
@@ -406,7 +406,7 @@ UINT8 * avdt_scb_hdl_report(tAVDT_SCB *p_scb, UINT8 *p, UINT16 len)
 }
 #endif
 
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
 /*******************************************************************************
 **
 ** Function         avdt_scb_hdl_pkt_frag
@@ -419,25 +419,25 @@ UINT8 * avdt_scb_hdl_report(tAVDT_SCB *p_scb, UINT8 *p, UINT16 len)
 void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     /* Fields of Adaptation Layer Header */
-    UINT8   al_tsid,al_frag,al_lcode;
-    UINT16  al_len;
+    uint8_t al_tsid,al_frag,al_lcode;
+    uint16_t al_len;
     /* media header fields */
-    UINT8   o_v, o_p, o_x, o_cc;
-    UINT8   m_pt;
-    UINT8   marker;
-    UINT16  seq;
-    UINT32  time_stamp;
-    UINT32  ssrc;
-    UINT16  ex_len;
-    UINT8   pad_len;
+    uint8_t o_v, o_p, o_x, o_cc;
+    uint8_t m_pt;
+    uint8_t marker;
+    uint16_t seq;
+    uint32_t time_stamp;
+    uint32_t ssrc;
+    uint16_t ex_len;
+    uint8_t pad_len;
     /* other variables */
-    UINT8   *p; /* current pointer */
-    UINT8   *p_end; /* end of all packet */
-    UINT8   *p_payload; /* pointer to media fragment payload in the buffer */
-    UINT32  payload_len; /* payload length */
-    UINT16  frag_len; /* fragment length */
+    uint8_t *p; /* current pointer */
+    uint8_t *p_end; /* end of all packet */
+    uint8_t *p_payload; /* pointer to media fragment payload in the buffer */
+    uint32_t payload_len; /* payload length */
+    uint16_t frag_len; /* fragment length */
 
-    p = (UINT8 *)(p_data->p_pkt + 1) + p_data->p_pkt->offset;
+    p = (uint8_t *)(p_data->p_pkt + 1) + p_data->p_pkt->offset;
     p_end = p + p_data->p_pkt->len;
     /* parse all fragments */
     while(p < p_end)
@@ -462,7 +462,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         switch(al_lcode)
         {
         case AVDT_ALH_LCODE_NONE:  /* No length field present. Take length from l2cap */
-            al_len = (UINT16)(p_end - p);
+            al_len = (uint16_t)(p_end - p);
             break;
         case AVDT_ALH_LCODE_16BIT:  /* 16 bit length field */
             BE_STREAM_TO_UINT16(al_len, p);
@@ -471,11 +471,11 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             al_len = *p++;
             break;
         default:    /* 9 bit length field, MSB = 1, 8 LSBs in 1 octet following */
-            al_len =(UINT16)*p++ + 0x100;
+            al_len =(uint16_t)*p++ + 0x100;
         }
 
         /* max fragment length */
-        frag_len = (UINT16)(p_end - p);
+        frag_len = (uint16_t)(p_end - p);
         /* if it isn't last fragment */
         if(frag_len >= al_len)
             frag_len = al_len;
@@ -483,7 +483,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         /* check TSID corresponds to config */
         if (al_tsid != p_scb->curr_cfg.mux_tsid_media)
         {
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
             if((p_scb->curr_cfg.psc_mask & AVDT_PSC_REPORT) &&
                 (al_tsid == p_scb->curr_cfg.mux_tsid_report))
             {
@@ -618,7 +618,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             else
                 pad_len =  0;
             /* payload length */
-            payload_len = (UINT32)(p_scb->p_media_buf + p_scb->frag_off - pad_len - p_payload);
+            payload_len = (uint32_t)(p_scb->p_media_buf + p_scb->frag_off - pad_len - p_payload);
 
             AVDT_TRACE_DEBUG("Received last fragment header=%d len=%d",
                 p_payload - p_scb->p_media_buf,payload_len);
@@ -651,11 +651,11 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-#if AVDT_REPORTING == TRUE
-    UINT8 *p;
+#if (AVDT_REPORTING == TRUE)
+    uint8_t *p;
 #endif
 
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     /* select right function in dependance of is fragmentation supported or not */
     if( 0 != (p_scb->curr_cfg.psc_mask & AVDT_PSC_MUX))
     {
@@ -663,10 +663,10 @@ void avdt_scb_hdl_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     }
     else
 #endif
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
     if(p_data->p_pkt->layer_specific == AVDT_CHAN_REPORT)
     {
-        p = (UINT8 *)(p_data->p_pkt + 1) + p_data->p_pkt->offset;
+        p = (uint8_t *)(p_data->p_pkt + 1) + p_data->p_pkt->offset;
         avdt_scb_hdl_report(p_scb, p, p_data->p_pkt->len);
         osi_free_and_reset((void **)&p_data->p_pkt);
     }
@@ -831,7 +831,7 @@ void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         if(p_scb->cs.cfg.codec_info[AVDT_CODEC_TYPE_INDEX] == p_cfg->codec_info[AVDT_CODEC_TYPE_INDEX])
         {
             /* set sep as in use */
-            p_scb->in_use = TRUE;
+            p_scb->in_use = true;
 
             /* copy info to scb */
             p_scb->p_ccb = avdt_ccb_by_idx(p_data->msg.config_cmd.hdr.ccb_idx);
@@ -1001,10 +1001,10 @@ void avdt_scb_hdl_suspend_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-    UINT8               hdl = avdt_scb_to_hdl(p_scb);
+    uint8_t             hdl = avdt_scb_to_hdl(p_scb);
     tAVDT_CTRL_CBACK    *p_ctrl_cback = p_scb->cs.p_ctrl_cback;
     tAVDT_CTRL          avdt_ctrl;
-    UINT8               event;
+    uint8_t             event;
     tAVDT_CCB           *p_ccb = p_scb->p_ccb;
     BD_ADDR remote_addr;
 
@@ -1017,7 +1017,7 @@ void avdt_scb_hdl_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     /* clear sep variables */
     avdt_scb_clr_vars(p_scb, p_data);
     p_scb->media_seq = 0;
-    p_scb->cong = FALSE;
+    p_scb->cong = false;
 
     /* free pkt we're holding, if any */
     osi_free_and_reset((void **)&p_scb->p_pkt);
@@ -1097,7 +1097,7 @@ void avdt_scb_hdl_delay_rpt_rsp (tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                               (tAVDT_CTRL *) &p_data->msg.hdr);
 }
 
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
 **
 ** Function         avdt_scb_hdl_tc_close_sto
@@ -1149,9 +1149,9 @@ void avdt_scb_hdl_tc_close_sto(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_tc_open(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-    UINT8   event;
-#if AVDT_REPORTING == TRUE
-    UINT8   role;
+    uint8_t event;
+#if (AVDT_REPORTING == TRUE)
+    uint8_t role;
 #endif
 
     alarm_cancel(p_scb->transport_channel_timer);
@@ -1161,7 +1161,7 @@ void avdt_scb_hdl_tc_open(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     AVDT_TRACE_DEBUG("psc_mask: cfg: 0x%x, req:0x%x, cur: 0x%x",
         p_scb->cs.cfg.psc_mask, p_scb->req_cfg.psc_mask, p_scb->curr_cfg.psc_mask);
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
     if(p_scb->curr_cfg.psc_mask & AVDT_PSC_REPORT)
     {
         /* open the reporting channel, if both devices support it */
@@ -1177,7 +1177,7 @@ void avdt_scb_hdl_tc_open(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                               (tAVDT_CTRL *) &p_data->open);
 }
 
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
 **
 ** Function         avdt_scb_hdl_tc_open_sto
@@ -1220,8 +1220,8 @@ void avdt_scb_hdl_tc_open_sto(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-    UINT8   *p;
-    UINT32  ssrc;
+    uint8_t *p;
+    uint32_t ssrc;
 
     /* free packet we're holding, if any; to be replaced with new */
     if (p_scb->p_pkt != NULL) {
@@ -1239,7 +1239,7 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         p_data->apiwrite.p_buf->len += AVDT_MEDIA_HDR_SIZE;
         p_data->apiwrite.p_buf->offset -= AVDT_MEDIA_HDR_SIZE;
         p_scb->media_seq++;
-        p = (UINT8 *)(p_data->apiwrite.p_buf + 1) + p_data->apiwrite.p_buf->offset;
+        p = (uint8_t *)(p_data->apiwrite.p_buf + 1) + p_data->apiwrite.p_buf->offset;
 
         UINT8_TO_BE_STREAM(p, AVDT_MEDIA_OCTET1);
         UINT8_TO_BE_STREAM(p, p_data->apiwrite.m_pt);
@@ -1252,7 +1252,7 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     p_scb->p_pkt = p_data->apiwrite.p_buf;
 }
 
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
 /*******************************************************************************
 **
 ** Function         avdt_scb_hdl_write_req_frag
@@ -1265,8 +1265,8 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-    UINT8   *p;
-    UINT32  ssrc;
+    uint8_t *p;
+    uint32_t ssrc;
 
     /* free fragments we're holding, if any; it shouldn't happen */
     if (!fixed_queue_is_empty(p_scb->frag_q))
@@ -1295,7 +1295,7 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             /* posit on Adaptation Layer header */
             p_frag->len += AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
             p_frag->offset -= AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
-            p = (UINT8 *)(p_frag + 1) + p_frag->offset;
+            p = (uint8_t *)(p_frag + 1) + p_frag->offset;
 
             /* Adaptation Layer header */
             /* TSID, no-fragment bit and coding of length (in 2 length octets
@@ -1320,7 +1320,7 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             /* posit on Adaptation Layer header */
             p_frag->len += AVDT_AL_HDR_SIZE;
             p_frag->offset -= AVDT_AL_HDR_SIZE;
-            p = (UINT8 *)(p_frag + 1) + p_frag->offset;
+            p = (uint8_t *)(p_frag + 1) + p_frag->offset;
             /* Adaptation Layer header */
             /* TSID, fragment bit and coding of length (in 2 length octets
              * following)
@@ -1348,11 +1348,11 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_hdl_write_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     if (fixed_queue_is_empty(p_scb->frag_q))
 #endif
         avdt_scb_hdl_write_req_no_frag(p_scb, p_data);
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     else
         avdt_scb_hdl_write_req_frag(p_scb, p_data);
 #endif
@@ -1431,7 +1431,7 @@ void avdt_scb_snd_close_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 *******************************************************************************/
 void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     AVDT_TRACE_WARNING("%s c:%d, off:%d", __func__,
         fixed_queue_length(p_scb->frag_q), p_scb->frag_off);
 
@@ -1666,12 +1666,12 @@ void avdt_scb_snd_setconfig_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     tAVDT_CFG *p_req, *p_cfg;
 
     /* copy API parameters to scb, set scb as in use */
-    p_scb->in_use = TRUE;
+    p_scb->in_use = true;
     p_scb->p_ccb = avdt_ccb_by_idx(p_data->msg.config_cmd.hdr.ccb_idx);
     p_scb->peer_seid = p_data->msg.config_cmd.hdr.seid;
     p_req = p_data->msg.config_cmd.p_cfg;
     p_cfg = &p_scb->cs.cfg;
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     p_req->mux_tsid_media = p_cfg->mux_tsid_media;
     p_req->mux_tcid_media = p_cfg->mux_tcid_media;
     if(p_req->psc_mask & AVDT_PSC_REPORT)
@@ -1723,7 +1723,7 @@ void avdt_scb_snd_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
     if(p_scb->curr_cfg.psc_mask & AVDT_PSC_REPORT)
         avdt_ad_close_req(AVDT_CHAN_REPORT, p_scb->p_ccb, p_scb);
 #endif
@@ -1844,7 +1844,7 @@ void avdt_scb_set_remove(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-    p_scb->remove = TRUE;
+    p_scb->remove = true;
 }
 
 /*******************************************************************************
@@ -1867,7 +1867,7 @@ void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     /* p_buf can be NULL in case using of fragments queue frag_q */
     osi_free_and_reset((void **)&p_data->apiwrite.p_buf);
 
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     /* clean fragments queue */
     BT_HDR          *p_frag;
     while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
@@ -1894,8 +1894,8 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CTRL      avdt_ctrl;
     tAVDT_CCB       *p_ccb;
-    UINT8           tcid;
-    UINT16          lcid;
+    uint8_t         tcid;
+    uint16_t        lcid;
     UNUSED(p_data);
 
     /* set error code and parameter */
@@ -1921,7 +1921,7 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb), NULL, AVDT_WRITE_CFM_EVT,
                                   &avdt_ctrl);
     }
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
     else if (!fixed_queue_is_empty(p_scb->frag_q))
     {
         AVDT_TRACE_DEBUG("Dropped fragments queue");
@@ -1955,9 +1955,9 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CTRL      avdt_ctrl;
     BT_HDR          *p_pkt;
-#if AVDT_MULTIPLEXING == TRUE
-    BOOLEAN         sent = FALSE;
-    UINT8   res = AVDT_AD_SUCCESS;
+#if (AVDT_MULTIPLEXING == TRUE)
+    bool            sent = false;
+    uint8_t res = AVDT_AD_SUCCESS;
     tAVDT_SCB_EVT data;
 #endif
     UNUSED(p_data);
@@ -1974,7 +1974,7 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
             (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb), NULL, AVDT_WRITE_CFM_EVT, &avdt_ctrl);
         }
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
         else
         {
 #if 0
@@ -1984,13 +1984,13 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #endif
             while ((p_pkt = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
             {
-                sent = TRUE;
+                sent = true;
                 AVDT_TRACE_DEBUG("Send fragment len=%d",p_pkt->len);
                 /* fragments queue contains fragment to send */
                 res = avdt_ad_write_req(AVDT_CHAN_MEDIA, p_scb->p_ccb, p_scb, p_pkt);
                 if(AVDT_AD_CONGESTED == res)
                 {
-                    p_scb->cong = TRUE;
+                    p_scb->cong = true;
                     AVDT_TRACE_DEBUG("avdt/l2c congested!!");
                     break;/* exit loop if channel became congested */
             }
@@ -2054,12 +2054,12 @@ void avdt_scb_transport_channel_timer(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     UNUSED(p_data);
-    p_scb->in_use = FALSE;
+    p_scb->in_use = false;
     p_scb->p_ccb = NULL;
     p_scb->peer_seid = 0;
 }
 
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
 /*******************************************************************************
 **
 ** Function         avdt_scb_queue_frags
@@ -2070,19 +2070,19 @@ void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
-                          UINT32 *p_data_len)
+void avdt_scb_queue_frags(tAVDT_SCB *p_scb, uint8_t **pp_data,
+                          uint32_t *p_data_len)
 {
-    UINT16  lcid;
-    UINT16  num_frag;
-    UINT16  mtu_used;
-    UINT8   *p;
-    BOOLEAN al_hdr = FALSE;
-    UINT8   tcid;
+    uint16_t lcid;
+    uint16_t num_frag;
+    uint16_t mtu_used;
+    uint8_t *p;
+    bool    al_hdr = false;
+    uint8_t tcid;
     tAVDT_TC_TBL    *p_tbl;
-    UINT16          buf_size;
-    UINT16          offset = AVDT_MEDIA_OFFSET + AVDT_AL_HDR_SIZE;
-    UINT16          cont_offset = offset - AVDT_MEDIA_HDR_SIZE;
+    uint16_t        buf_size;
+    uint16_t        offset = AVDT_MEDIA_OFFSET + AVDT_AL_HDR_SIZE;
+    uint16_t        cont_offset = offset - AVDT_MEDIA_HDR_SIZE;
 
     tcid = avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb);
     lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_scb->p_ccb)][tcid].lcid;
@@ -2093,7 +2093,7 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
          * the number of buffers at L2CAP is very small (if not 0).
          * we do not need to L2CA_FlushChannel() */
         offset = cont_offset;
-        al_hdr = TRUE;
+        al_hdr = true;
         num_frag = AVDT_MAX_FRAG_COUNT;
     }
     else
@@ -2134,7 +2134,7 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
         p_frag->len = mtu_used - p_frag->offset;
         if(p_frag->len > *p_data_len)
             p_frag->len = *p_data_len;
-        memcpy((UINT8*)(p_frag+1) + p_frag->offset, *pp_data, p_frag->len);
+        memcpy((uint8_t*)(p_frag+1) + p_frag->offset, *pp_data, p_frag->len);
         *pp_data += p_frag->len;
         *p_data_len -= p_frag->len;
         AVDT_TRACE_DEBUG("Prepared fragment len=%d", p_frag->len);
@@ -2144,7 +2144,7 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
             /* Adaptation Layer header */
             p_frag->len += AVDT_AL_HDR_SIZE;
             p_frag->offset -= AVDT_AL_HDR_SIZE;
-            p = (UINT8 *)(p_frag + 1) + p_frag->offset;
+            p = (uint8_t *)(p_frag + 1) + p_frag->offset;
             /* TSID, fragment bit and coding of length(in 2 length octets following) */
             *p++ = (p_scb->curr_cfg.mux_tsid_media<<3) | (AVDT_ALH_FRAG_MASK|AVDT_ALH_LCODE_16BIT);
 

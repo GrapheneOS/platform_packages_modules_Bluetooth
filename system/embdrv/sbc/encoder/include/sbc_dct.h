@@ -25,7 +25,7 @@
 #ifndef SBC_DCT_H
 #define SBC_DCT_H
 
-#if (SBC_ARM_ASM_OPT==TRUE)
+#if (SBC_ARM_ASM_OPT == TRUE)
 #define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1, s32OutLow)					\
 {																			    \
     __asm																		\
@@ -34,10 +34,10 @@
 }																				\
 }
 #else
-#if (SBC_DSP_OPT==TRUE)
+#if (SBC_DSP_OPT == TRUE)
 #define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow = SBC_Multiply_32_16_Simplified((SINT32)s16In2,s32In1);
 #else
-#if (SBC_IPAQ_OPT==TRUE)
+#if (SBC_IPAQ_OPT == TRUE)
 /*#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(SINT32)((SINT32)(s16In2)*(SINT32)(s32In1>>15)); */
 #define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(SINT32)(((SINT64)(s16In2)*(SINT64)(s32In1))>>15);
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)

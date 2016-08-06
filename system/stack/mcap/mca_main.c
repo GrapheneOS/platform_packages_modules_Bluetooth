@@ -33,7 +33,7 @@
 #include "l2c_api.h"
 
 /* Main Control block for MCA */
-#if MCA_DYNAMIC_MEMORY == FALSE
+#if (MCA_DYNAMIC_MEMORY == FALSE)
 tMCA_CB mca_cb;
 #endif
 
@@ -42,7 +42,7 @@ tMCA_CB mca_cb;
 *****************************************************************************/
 
 /* table of standard opcode message size */
-const UINT8 mca_std_msg_len[MCA_NUM_STANDARD_OPCODE] = {
+const uint8_t mca_std_msg_len[MCA_NUM_STANDARD_OPCODE] = {
     4,          /* MCA_OP_ERROR_RSP         */
     5,          /* MCA_OP_MDL_CREATE_REQ    */
     5,          /* MCA_OP_MDL_CREATE_RSP    */
@@ -65,7 +65,7 @@ const UINT8 mca_std_msg_len[MCA_NUM_STANDARD_OPCODE] = {
 ** Returns          the MCA handle.
 **
 *******************************************************************************/
-tMCA_HANDLE mca_handle_by_cpsm(UINT16 psm)
+tMCA_HANDLE mca_handle_by_cpsm(uint16_t psm)
 {
     int     i;
     tMCA_HANDLE handle = 0;
@@ -92,7 +92,7 @@ tMCA_HANDLE mca_handle_by_cpsm(UINT16 psm)
 ** Returns          the MCA handle.
 **
 *******************************************************************************/
-tMCA_HANDLE mca_handle_by_dpsm(UINT16 psm)
+tMCA_HANDLE mca_handle_by_dpsm(uint16_t psm)
 {
     int     i;
     tMCA_HANDLE handle = 0;
@@ -201,9 +201,9 @@ tMCA_TC_TBL * mca_tc_tbl_dalloc(tMCA_DCB *p_dcb)
 ** Returns          The tranport table.
 **
 *******************************************************************************/
-tMCA_TC_TBL *mca_tc_tbl_by_lcid(UINT16 lcid)
+tMCA_TC_TBL *mca_tc_tbl_by_lcid(uint16_t lcid)
 {
-    UINT8 idx;
+    uint8_t idx;
 
     if (lcid)
     {
@@ -227,9 +227,9 @@ tMCA_TC_TBL *mca_tc_tbl_by_lcid(UINT16 lcid)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_free_tc_tbl_by_lcid(UINT16 lcid)
+void mca_free_tc_tbl_by_lcid(uint16_t lcid)
 {
-    UINT8 idx;
+    uint8_t idx;
 
     if (lcid)
     {
@@ -272,13 +272,13 @@ void mca_set_cfg_by_tbl(tL2CAP_CFG_INFO *p_cfg, tMCA_TC_TBL *p_tbl)
         }
     }
     memset(p_cfg, 0, sizeof(tL2CAP_CFG_INFO));
-    p_cfg->mtu_present = TRUE;
+    p_cfg->mtu_present = true;
     p_cfg->mtu = p_tbl->my_mtu;
-    p_cfg->fcr_present = TRUE;
+    p_cfg->fcr_present = true;
     memcpy(&p_cfg->fcr, p_opt, sizeof (tL2CAP_FCR_OPTS));
     if (fcs & MCA_FCS_PRESNT_MASK)
     {
-        p_cfg->fcs_present = TRUE;
+        p_cfg->fcs_present = true;
         p_cfg->fcs = (fcs & MCA_FCS_USE_MASK);
     }
 }
@@ -296,7 +296,7 @@ void mca_set_cfg_by_tbl(tL2CAP_CFG_INFO *p_cfg, tMCA_TC_TBL *p_tbl)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void mca_tc_close_ind(tMCA_TC_TBL *p_tbl, UINT16 reason)
+void mca_tc_close_ind(tMCA_TC_TBL *p_tbl, uint16_t reason)
 {
     tMCA_CCB   *p_ccb;
     tMCA_DCB   *p_dcb;
@@ -404,7 +404,7 @@ void mca_tc_open_ind(tMCA_TC_TBL *p_tbl)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void mca_tc_cong_ind(tMCA_TC_TBL *p_tbl, BOOLEAN is_congested)
+void mca_tc_cong_ind(tMCA_TC_TBL *p_tbl, bool    is_congested)
 {
     tMCA_CCB   *p_ccb;
     tMCA_DCB   *p_dcb;
@@ -445,9 +445,9 @@ void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
 {
     tMCA_CCB   *p_ccb;
     tMCA_DCB   *p_dcb;
-    UINT8       event = MCA_CCB_MSG_RSP_EVT;
-    UINT8       *p;
-    UINT8       rej_rsp_code = MCA_RSP_SUCCESS;
+    uint8_t     event = MCA_CCB_MSG_RSP_EVT;
+    uint8_t     *p;
+    uint8_t     rej_rsp_code = MCA_RSP_SUCCESS;
 
     MCA_TRACE_DEBUG("%s() - tcid: %d, cb_idx: %d", __func__, p_tbl->tcid, p_tbl->cb_idx);
 
@@ -457,7 +457,7 @@ void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
         p_ccb = mca_ccb_by_hdl((tMCA_CL)p_tbl->cb_idx);
         if (p_ccb)
         {
-            p = (UINT8*)(p_buf+1) + p_buf->offset;
+            p = (uint8_t*)(p_buf+1) + p_buf->offset;
             /* all the request opcode has bit 0 set. response code has bit 0 clear */
             if ((*p) & 0x01)
                 event = MCA_CCB_MSG_REQ_EVT;
@@ -544,7 +544,7 @@ tMCA_RCB * mca_rcb_alloc(tMCA_REG *p_reg)
 void mca_rcb_dealloc(tMCA_HANDLE handle)
 {
     int      i;
-    BOOLEAN  done = TRUE;
+    bool     done = true;
     tMCA_RCB *p_rcb;
     tMCA_CCB *p_ccb;
 
@@ -560,7 +560,7 @@ void mca_rcb_dealloc(tMCA_HANDLE handle)
             {
                 if (p_ccb->p_rcb)
                 {
-                    done = FALSE;
+                    done = false;
                     mca_ccb_event (p_ccb, MCA_CCB_API_DISCONNECT_EVT, NULL);
                 }
             }
@@ -586,7 +586,7 @@ void mca_rcb_dealloc(tMCA_HANDLE handle)
 *******************************************************************************/
 tMCA_HANDLE mca_rcb_to_handle(tMCA_RCB *p_rcb)
 {
-    return(UINT8) (p_rcb - mca_cb.rcb + 1);
+    return(uint8_t) (p_rcb - mca_cb.rcb + 1);
 }
 
 /*******************************************************************************
@@ -617,15 +617,15 @@ tMCA_RCB *mca_rcb_by_handle(tMCA_HANDLE handle)
 **
 ** Description      This function checks if the given dep_id is valid.
 **
-** Returns          TRUE, if this is a valid local dep_id
+** Returns          true, if this is a valid local dep_id
 **
 *******************************************************************************/
-BOOLEAN mca_is_valid_dep_id(tMCA_RCB *p_rcb, tMCA_DEP dep)
+bool    mca_is_valid_dep_id(tMCA_RCB *p_rcb, tMCA_DEP dep)
 {
-    BOOLEAN valid = FALSE;
+    bool    valid = false;
     if (dep < MCA_NUM_DEPS && p_rcb->dep[dep].p_data_cback)
     {
-        valid = TRUE;
+        valid = true;
     }
     return valid;
 }
