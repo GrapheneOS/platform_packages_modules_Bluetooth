@@ -188,8 +188,8 @@ class DualModeController {
       std::function<void(std::unique_ptr<EventPacket>)> send_event);
 
   void RegisterDelayedEventChannel(
-      std::function<void(std::unique_ptr<EventPacket>, base::TimeDelta)>
-          send_event);
+      std::function<void(std::unique_ptr<EventPacket>,
+                         std::chrono::milliseconds)> send_event);
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).
@@ -480,7 +480,7 @@ class DualModeController {
   // Callback provided to send events from the controller back to the HCI.
   std::function<void(std::unique_ptr<EventPacket>)> send_event_;
 
-  std::function<void(std::unique_ptr<EventPacket>, base::TimeDelta)>
+  std::function<void(std::unique_ptr<EventPacket>, std::chrono::milliseconds)>
       send_delayed_event_;
 
   // Maintains the commands to be registered and used in the HciHandler object.

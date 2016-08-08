@@ -20,9 +20,6 @@
 
 #include "hci_transport.h"
 
-#include "base/bind.h"
-#include "base/threading/thread_task_runner_handle.h"
-
 extern "C" {
 #include <sys/socket.h>
 
@@ -32,7 +29,7 @@ extern "C" {
 
 namespace test_vendor_lib {
 
-HciTransport::HciTransport() : weak_ptr_factory_(this) {}
+HciTransport::HciTransport() = default;
 
 void HciTransport::CloseHciFd() {
   hci_fd_.reset(nullptr);
@@ -102,37 +99,27 @@ void HciTransport::RegisterCommandHandler(
   command_handler_ = callback;
 }
 
-void HciTransport::OnFileCanWriteWithoutBlocking(int fd) {
-  CHECK(fd == GetVendorFd());
-  if (!outbound_events_.empty()) {
-    base::TimeTicks current_time = base::TimeTicks::Now();
-    // Check outbound events for events that can be sent, i.e. events with a
-    // timestamp before the current time. Stop sending events when
-    // |packet_stream_| fails writing.
-    for (auto it = outbound_events_.begin(); it != outbound_events_.end();) {
-      if ((*it)->GetTimeStamp() > current_time) {
-        ++it;
-        continue;
-      }
-      if (!packet_stream_.SendEvent((*it)->GetEvent(), fd))
-        return;
-      it = outbound_events_.erase(it);
-    }
-  }
+void HciTransport::RegisterEventScheduler(
+    std::function<void(std::chrono::milliseconds, const TaskCallback&)>
+        evtScheduler) {
+  schedule_event_ = evtScheduler;
 }
 
-void HciTransport::AddEventToOutboundEvents(
-    std::unique_ptr<TimeStampedEvent> event) {
-  outbound_events_.push_back(std::move(event));
+void HciTransport::RegisterPeriodicEventScheduler(
+    std::function<void(std::chrono::milliseconds,
+                       std::chrono::milliseconds,
+                       const TaskCallback&)> periodicEvtScheduler) {
+  schedule_periodic_event_ = periodicEvtScheduler;
 }
 
-void HciTransport::PostEventResponse(std::unique_ptr<EventPacket> event) {
-  AddEventToOutboundEvents(
-      std::make_unique<TimeStampedEvent>(std::move(event)));
+void HciTransport::PostEventResponse(const EventPacket& event) {
+  schedule_event_(std::chrono::milliseconds(0), [this, event]() {
+    packet_stream_.SendEvent(event, GetVendorFd());
+  });
 }
 
-void HciTransport::PostDelayedEventResponse(std::unique_ptr<EventPacket> event,
-                                            base::TimeDelta delay) {
+void HciTransport::PostDelayedEventResponse(const EventPacket& event,
+                                            std::chrono::milliseconds delay) {
   // TODO(dennischeng): When it becomes available for MessageLoopForIO, use the
   // thread's task runner to post |PostEventResponse| as a delayed task, being
   // sure to CHECK the appropriate task runner attributes using
@@ -145,31 +132,18 @@ void HciTransport::PostDelayedEventResponse(std::unique_ptr<EventPacket> event,
     LOG_INFO(LOG_TAG,
              "System does not support high resolution timing. Sending event "
              "without delay.");
-    PostEventResponse(std::move(event));
+    schedule_event_(std::chrono::milliseconds(0), [this, event]() {
+      packet_stream_.SendEvent(event, GetVendorFd());
+    });
   }
 
   LOG_INFO(LOG_TAG,
            "Posting event response with delay of %" PRId64 " ms.",
-           delay.InMilliseconds());
+           static_cast<int64_t>(std::chrono::milliseconds(delay).count()));
 
-  AddEventToOutboundEvents(
-      std::make_unique<TimeStampedEvent>(std::move(event), delay));
-}
-
-HciTransport::TimeStampedEvent::TimeStampedEvent(
-    std::unique_ptr<EventPacket> event, base::TimeDelta delay)
-    : event_(std::move(event)), time_stamp_(base::TimeTicks::Now() + delay) {}
-
-HciTransport::TimeStampedEvent::TimeStampedEvent(
-    std::unique_ptr<EventPacket> event)
-    : event_(std::move(event)), time_stamp_(base::TimeTicks::UnixEpoch()) {}
-
-const base::TimeTicks& HciTransport::TimeStampedEvent::GetTimeStamp() const {
-  return time_stamp_;
-}
-
-const EventPacket& HciTransport::TimeStampedEvent::GetEvent() {
-  return *(event_.get());
+  schedule_event_(delay, [this, event]() {
+    packet_stream_.SendEvent(event, GetVendorFd());
+  });
 }
 
 }  // namespace test_vendor_lib
