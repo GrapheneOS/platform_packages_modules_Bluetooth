@@ -32,6 +32,7 @@
 #include "hcimsgs.h"
 #include "device/include/controller.h"
 #include "stack_config.h"
+#include "btif_debug_l2c.h"
 
 #if (BLE_INCLUDED == TRUE)
 
@@ -569,6 +570,14 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
             p_lcb->conn_update_mask |= L2C_BLE_NOT_DEFAULT_PARAM;
         }
     }
+
+    /* Record the BLE connection update request. */
+    if (p_lcb->conn_update_mask & L2C_BLE_UPDATE_PENDING) {
+      bt_bdaddr_t bd_addr;
+      bdcpy(bd_addr.address, p_lcb->remote_bd_addr);
+      btif_debug_ble_connection_update_request(bd_addr, min_conn_int, max_conn_int, slave_latency,
+          supervision_tout);
+    }
 }
 
 /*******************************************************************************
@@ -602,6 +611,12 @@ void l2cble_process_conn_update_evt (uint16_t handle, uint8_t status,
     }
 
     l2cble_start_conn_update(p_lcb);
+
+    /* Record the BLE connection update response. */
+    bt_bdaddr_t bd_addr;
+    bdcpy(bd_addr.address, p_lcb->remote_bd_addr);
+    btif_debug_ble_connection_update_response(bd_addr, status, interval,
+        latency, timeout);
 
     L2CAP_TRACE_DEBUG("%s: conn_update_mask=%d", __func__, p_lcb->conn_update_mask);
 }
