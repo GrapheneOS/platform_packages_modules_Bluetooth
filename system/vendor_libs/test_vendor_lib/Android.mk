@@ -7,6 +7,7 @@ include $(CLEAR_VARS)
 BT_DIR := $(TOP_DIR)packages/modules/Bluetooth/system
 
 LOCAL_SRC_FILES := \
+    src/async_manager.cc \
     src/bt_vendor.cc \
     src/command_packet.cc \
     src/dual_mode_controller.cc \
@@ -56,6 +57,7 @@ ifeq ($(HOST_OS), linux)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
+    src/async_manager.cc \
     src/command_packet.cc \
     src/event_packet.cc \
     src/hci_transport.cc \
