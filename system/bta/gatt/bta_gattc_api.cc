@@ -477,6 +477,7 @@ void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
     p_buf->handle = handle;
+    p_buf->write_type = BTA_GATTC_TYPE_WRITE;
     p_buf->write_cb = callback;
     p_buf->write_cb_data = cb_data;
 
