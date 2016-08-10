@@ -105,7 +105,7 @@ typedef uint16_t tBTA_SYS_HW_MODULE;
 #define BTA_ID_SWRAP        40           /* Insight script wrapper */
 #define BTA_ID_MIP          41           /* Multicase Individual Polling */
 #define BTA_ID_RT           42           /* Audio Routing module: This module is always on. */
-
+#define BTA_ID_CLOSURE      43           /* Generic C++ closure  */
 
 /* JV */
 #define BTA_ID_JV1          44           /* JV1 */
@@ -165,6 +165,9 @@ typedef struct
     BT_HDR                hdr;
     tBTA_SYS_HW_MODULE   hw_module;
 } tBTA_SYS_HW_MSG;
+
+typedef void (*tBTA_SYS_REGISTER)(uint8_t id, const tBTA_SYS_REG *p_reg);
+typedef void (*tBTA_SYS_SENDMSG)(void *p_msg);
 
 /*****************************************************************************
 **  Global data

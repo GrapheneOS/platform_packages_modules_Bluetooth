@@ -28,11 +28,12 @@
 #include <pthread.h>
 #include <string.h>
 
+#include "bt_common.h"
 #include "bta_api.h"
+#include "bta_closure_int.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
 #include "btm_api.h"
-#include "bt_common.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
@@ -186,6 +187,7 @@ void bta_sys_init(void)
     bta_ar_init();
 #endif
 
+    bta_closure_init(bta_sys_register, bta_sys_sendmsg);
 }
 
 void bta_sys_free(void) {
