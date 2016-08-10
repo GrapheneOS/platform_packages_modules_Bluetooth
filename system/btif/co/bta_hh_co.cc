@@ -95,14 +95,6 @@ static int uhid_read_event(btif_hh_device_t *p_dev)
         APPL_TRACE_ERROR("%s: Cannot read uhid-cdev: %s", __func__,
                                                 strerror(errno));
         return -errno;
-    } else if ((ev.type == UHID_OUTPUT) || (ev.type==UHID_OUTPUT_EV)) {
-        // Only these two types havae payload,
-        // ensure we read full event descriptor
-        if (ret < (ssize_t)sizeof(ev)) {
-            APPL_TRACE_ERROR("%s: Invalid size read from uhid-dev: %ld != %lu",
-                         __func__, ret, sizeof(ev.type));
-            return -EFAULT;
-        }
     }
 
     switch (ev.type) {
@@ -144,6 +136,11 @@ static int uhid_read_event(btif_hh_device_t *p_dev)
                               ev.u.output.size, ev.u.output.data);
            break;
     case UHID_OUTPUT_EV:
+        if (ret < (ssize_t)(sizeof(ev.type) + sizeof(ev.u.output_ev))) {
+            APPL_TRACE_ERROR("%s: Invalid size read from uhid-dev: %zd < %zu",
+                             __func__, ret, sizeof(ev.type) + sizeof(ev.u.output_ev));
+            return -EFAULT;
+        }
         APPL_TRACE_DEBUG("UHID_OUTPUT_EV from uhid-dev\n");
         break;
     case UHID_FEATURE:
