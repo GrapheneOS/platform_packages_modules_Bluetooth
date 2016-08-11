@@ -32,6 +32,8 @@
 namespace android {
 
 #define OOB_TK_SIZE 16
+#define OOB_LE_SC_C_SIZE 16
+#define OOB_LE_SC_R_SIZE 16
 
 #define ADDITIONAL_NREFS 50
 static jmethodID method_stateChangeCallback;
@@ -805,16 +807,49 @@ static jboolean createBondOutOfBandNative(JNIEnv* env, jobject obj, jbyteArray a
     }
 
     jbyte* smTKBytes = NULL;
+    jbyte* leScCBytes = NULL;
+    jbyte* leScRBytes = NULL;
+    jbyteArray leScC = NULL;
+    jbyteArray leScR = NULL;
+
     jbyteArray smTK = callByteArrayGetter(env, oobData, "android/bluetooth/OobData", "getSecurityManagerTk");
     if (smTK != NULL) {
         smTKBytes = env->GetByteArrayElements(smTK, NULL);
         int len = env->GetArrayLength(smTK);
         if (len != OOB_TK_SIZE) {
-            ALOGI("%s: wrong length of smTK, should be empty or %d bytes.", __FUNCTION__, OOB_TK_SIZE);
+            ALOGI("%s: wrong length of smTK, should be empty or %d bytes.", __func__, OOB_TK_SIZE);
             jniThrowIOException(env, EINVAL);
             goto done;
         }
         memcpy(oob_data.sm_tk, smTKBytes, len);
+    }
+
+    leScC = callByteArrayGetter(env, oobData, "android/bluetooth/OobData",
+                                           "getLeSecureConnectionsConfirmation");
+    if (leScC != NULL) {
+        leScCBytes = env->GetByteArrayElements(leScC, NULL);
+        int len = env->GetArrayLength(leScC);
+        if (len != OOB_LE_SC_C_SIZE) {
+            ALOGI("%s: wrong length of LE SC Confirmation, should be empty or %d bytes.",
+                    __func__, OOB_LE_SC_C_SIZE);
+            jniThrowIOException(env, EINVAL);
+            goto done;
+        }
+        memcpy(oob_data.le_sc_c, leScCBytes, len);
+    }
+
+    leScR = callByteArrayGetter(env, oobData, "android/bluetooth/OobData",
+                                           "getLeSecureConnectionsRandom");
+    if (leScR != NULL) {
+        leScRBytes = env->GetByteArrayElements(leScR, NULL);
+        int len = env->GetArrayLength(leScR);
+        if (len != OOB_LE_SC_R_SIZE) {
+            ALOGI("%s: wrong length of LE SC Random, should be empty or %d bytes.",
+                  __func__, OOB_LE_SC_R_SIZE);
+            jniThrowIOException(env, EINVAL);
+            goto done;
+        }
+        memcpy(oob_data.le_sc_r, leScRBytes, len);
     }
 
     if (sBluetoothInterface->create_bond_out_of_band((bt_bdaddr_t *)addr, transport, &oob_data)
@@ -826,6 +861,12 @@ done:
 
     if (smTK != NULL)
         env->ReleaseByteArrayElements(smTK, smTKBytes, 0);
+
+    if (leScC != NULL)
+        env->ReleaseByteArrayElements(leScC, leScCBytes, 0);
+
+    if (leScR != NULL)
+        env->ReleaseByteArrayElements(leScR, leScRBytes, 0);
 
     return result;
 }
