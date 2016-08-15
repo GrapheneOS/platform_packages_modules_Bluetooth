@@ -115,8 +115,10 @@ class HciTransportTest : public ::testing::Test {
 };
 
 TEST_F(HciTransportTest, SingleCommandCallback) {
-  transport_.RegisterCommandHandler(std::bind(
-      &HciTransportTest::CommandCallback, this, std::placeholders::_1));
+  transport_.RegisterCommandHandler(
+      [this](std::unique_ptr<CommandPacket> command) {
+        CommandCallback(std::move(command));
+      });
   EXPECT_EQ(0, command_callback_count_);
   WriteStubCommand(transport_.GetHciFd());
   thread_.Stop();  // Wait for the command handler to finish.
@@ -124,8 +126,10 @@ TEST_F(HciTransportTest, SingleCommandCallback) {
 }
 
 TEST_F(HciTransportTest, MultiCommandCallback) {
-  transport_.RegisterCommandHandler(std::bind(
-      &HciTransportTest::MultiCommandCallback, this, std::placeholders::_1));
+  transport_.RegisterCommandHandler(
+      [this](std::unique_ptr<CommandPacket> command) {
+        MultiCommandCallback(std::move(command));
+      });
   EXPECT_EQ(0, command_callback_count_);
   WriteStubCommand(transport_.GetHciFd());
   for (int i = 1; i < kMultiIterations; ++i)
