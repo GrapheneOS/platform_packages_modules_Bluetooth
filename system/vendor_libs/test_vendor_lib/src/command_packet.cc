@@ -16,7 +16,7 @@
 
 #define LOG_TAG "command_packet"
 
-#include "vendor_libs/test_vendor_lib/include/command_packet.h"
+#include "command_packet.h"
 
 extern "C" {
 #include "hci/include/hci_hal.h"

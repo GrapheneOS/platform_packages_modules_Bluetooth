@@ -25,9 +25,9 @@ using std::vector;
 
 #include "base/json/json_value_converter.h"
 #include "base/time/time.h"
-#include "vendor_libs/test_vendor_lib/include/command_packet.h"
-#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
-#include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
+#include "command_packet.h"
+#include "hci_transport.h"
+#include "test_channel_transport.h"
 
 namespace test_vendor_lib {
 

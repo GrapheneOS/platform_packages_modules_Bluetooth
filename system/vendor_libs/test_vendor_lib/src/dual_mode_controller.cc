@@ -16,7 +16,7 @@
 
 #define LOG_TAG "dual_mode_controller"
 
-#include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
+#include "dual_mode_controller.h"
 
 #include <memory>
 
@@ -24,8 +24,8 @@
 #include "base/json/json_reader.h"
 #include "base/logging.h"
 #include "base/values.h"
-#include "vendor_libs/test_vendor_lib/include/event_packet.h"
-#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
+#include "event_packet.h"
+#include "hci_transport.h"
 
 extern "C" {
 #include "osi/include/log.h"
@@ -539,12 +539,13 @@ void DualModeController::HciLeSetRandomAddress(const vector<uint8_t>& args) {
   SendCommandCompleteSuccess(HCI_BLE_WRITE_RANDOM_ADDR);
 }
 
-void DualModeController::HciLeSetAdvertisingParameters(const vector<uint8_t>& args){
+void DualModeController::HciLeSetAdvertisingParameters(
+    const vector<uint8_t>& args) {
   LogCommand("LE SetAdvertisingParameters");
   SendCommandCompleteSuccess(HCI_BLE_WRITE_ADV_PARAMS);
 }
 
-void DualModeController::HciLeSetAdvertisingData(const vector<uint8_t>& args){
+void DualModeController::HciLeSetAdvertisingData(const vector<uint8_t>& args) {
   LogCommand("LE SetAdvertisingData");
   SendCommandCompleteSuccess(HCI_BLE_WRITE_ADV_DATA);
 }

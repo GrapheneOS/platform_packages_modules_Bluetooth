@@ -16,7 +16,7 @@
 
 #define LOG_TAG "event_packet"
 
-#include "vendor_libs/test_vendor_lib/include/event_packet.h"
+#include "event_packet.h"
 
 extern "C" {
 #include "osi/include/log.h"

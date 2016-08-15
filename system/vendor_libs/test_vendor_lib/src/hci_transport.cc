@@ -18,7 +18,7 @@
 
 #include <cinttypes>
 
-#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
+#include "hci_transport.h"
 
 #include "base/bind.h"
 #include "base/threading/thread_task_runner_handle.h"
