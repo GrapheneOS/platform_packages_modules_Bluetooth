@@ -23,13 +23,12 @@
 using std::vector;
 
 #include "base/files/scoped_file.h"
-#include "base/message_loop/message_loop.h"
 
 namespace test_vendor_lib {
 
 // Manages communications between test channel and the controller. Mirrors the
 // HciTransport for the test channel.
-class TestChannelTransport : public base::MessageLoopForIO::Watcher {
+class TestChannelTransport {
  public:
   TestChannelTransport(bool enabled, int port);
 
@@ -58,12 +57,9 @@ class TestChannelTransport : public base::MessageLoopForIO::Watcher {
       std::function<void(const std::string&, const vector<std::string>&)>
           callback);
 
+  void OnFileCanReadWithoutBlocking(int fd);
+
  private:
-  // base::MessageLoopForIO::Watcher overrides:
-  void OnFileCanReadWithoutBlocking(int fd) override;
-
-  void OnFileCanWriteWithoutBlocking(int fd) override;
-
   std::function<void(const std::string&, const vector<std::string>&)>
       command_handler_;
 

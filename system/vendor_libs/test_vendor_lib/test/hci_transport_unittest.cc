@@ -17,13 +17,12 @@
 #include "hci_transport.h"
 #include "command_packet.h"
 
-#include "base/bind.h"
-#include "base/message_loop/message_loop.h"
-#include "base/threading/thread.h"
+#include "async_manager.h"
 
 #include <gtest/gtest.h>
 #include <functional>
 #include <mutex>
+#include <thread>
 
 extern "C" {
 #include "stack/include/hcidefs.h"
@@ -47,13 +46,9 @@ namespace test_vendor_lib {
 
 class HciTransportTest : public ::testing::Test {
  public:
-  HciTransportTest()
-      : command_callback_count_(0),
-        thread_("HciTransportTest"),
-        weak_ptr_factory_(this) {
+  HciTransportTest() : command_callback_count_(0) {
     SetUpTransport();
     StartThread();
-    PostStartWatchingOnThread();
   }
 
   ~HciTransportTest() { transport_.CloseHciFd(); }
@@ -65,6 +60,7 @@ class HciTransportTest : public ::testing::Test {
     EXPECT_EQ(HCI_RESET, command->GetOpcode());
     EXPECT_EQ(static_cast<size_t>(1), command->GetPayloadSize());
     transport_.CloseVendorFd();
+    SignalCommandhandlerFinished();
   }
 
   void MultiCommandCallback(std::unique_ptr<CommandPacket> command) {
@@ -73,44 +69,43 @@ class HciTransportTest : public ::testing::Test {
     EXPECT_EQ(DATA_TYPE_COMMAND, command->GetType());
     EXPECT_EQ(HCI_RESET, command->GetOpcode());
     EXPECT_EQ(static_cast<size_t>(1), command->GetPayloadSize());
-    if (command_callback_count_ == kMultiIterations)
+    if (command_callback_count_ == kMultiIterations) {
       transport_.CloseVendorFd();
+      SignalCommandhandlerFinished();
+    }
   }
 
  protected:
   // Tracks the number of commands received.
   int command_callback_count_;
-  base::Thread thread_;
+  AsyncManager async_manager_;
   HciTransport transport_;
-  base::MessageLoopForIO::FileDescriptorWatcher watcher_;
-  base::WeakPtrFactory<HciTransportTest> weak_ptr_factory_;
+  bool command_handler_finished_ = false;
+  std::mutex mutex_;
+  std::condition_variable cond_var_;
+
+  void WaitCommandhandlerFinish() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    while (!command_handler_finished_) {
+      cond_var_.wait(lock);
+    }
+  }
 
  private:
   // Workaround because ASSERT cannot be used directly in a constructor
   void SetUpTransport() { ASSERT_TRUE(transport_.SetUp()); }
 
   void StartThread() {
-    ASSERT_TRUE(thread_.StartWithOptions(
-        base::Thread::Options(base::MessageLoop::TYPE_IO, 0)));
+    ASSERT_TRUE(async_manager_.WatchFdForNonBlockingReads(
+                    transport_.GetVendorFd(), [this](int fd) {
+                      transport_.OnFileCanReadWithoutBlocking(fd);
+                    }) == 0);
   }
 
-  void PostStartWatchingOnThread() {
-    thread_.task_runner()->PostTask(
-        FROM_HERE,
-        base::Bind(&HciTransportTest::StartWatchingOnThread,
-                   weak_ptr_factory_.GetWeakPtr()));
-  }
-
-  void StartWatchingOnThread() {
-    base::MessageLoopForIO* loop =
-        static_cast<base::MessageLoopForIO*>(thread_.message_loop());
-    ASSERT_TRUE(loop);
-    ASSERT_TRUE(
-        loop->WatchFileDescriptor(transport_.GetVendorFd(),
-                                  true,
-                                  base::MessageLoopForIO::WATCH_READ_WRITE,
-                                  &watcher_,
-                                  &transport_));
+  void SignalCommandhandlerFinished() {
+    std::unique_lock<std::mutex> lock(mutex_);
+    command_handler_finished_ = true;
+    cond_var_.notify_one();
   }
 };
 
@@ -121,7 +116,7 @@ TEST_F(HciTransportTest, SingleCommandCallback) {
       });
   EXPECT_EQ(0, command_callback_count_);
   WriteStubCommand(transport_.GetHciFd());
-  thread_.Stop();  // Wait for the command handler to finish.
+  WaitCommandhandlerFinish();
   EXPECT_EQ(1, command_callback_count_);
 }
 
@@ -134,7 +129,7 @@ TEST_F(HciTransportTest, MultiCommandCallback) {
   WriteStubCommand(transport_.GetHciFd());
   for (int i = 1; i < kMultiIterations; ++i)
     WriteStubCommand(transport_.GetHciFd());
-  thread_.Stop();  // Wait for the command handler to finish.
+  WaitCommandhandlerFinish();
   EXPECT_EQ(kMultiIterations, command_callback_count_);
 }
 

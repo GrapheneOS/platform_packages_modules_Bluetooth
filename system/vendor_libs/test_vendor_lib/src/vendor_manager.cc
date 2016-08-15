@@ -18,7 +18,6 @@
 
 #include "vendor_manager.h"
 
-#include "base/bind.h"
 #include "base/logging.h"
 
 extern "C" {
@@ -49,10 +48,7 @@ void VendorManager::Initialize() {
 }
 
 VendorManager::VendorManager()
-    : test_channel_transport_(true, 6111),
-      running_(false),
-      thread_("TestVendorLibrary"),
-      weak_ptr_factory_(this) {}
+    : test_channel_transport_(true, 6111), running_(false) {}
 
 bool VendorManager::Run() {
   CHECK(!running_);
@@ -79,60 +75,47 @@ bool VendorManager::Run() {
 
   controller_.RegisterHandlersWithHciTransport(transport_);
   // TODO(dennischeng): Register PostDelayedEventResponse instead.
-  controller_.RegisterDelayedEventChannel(
-      [this](std::unique_ptr<EventPacket> event, base::TimeDelta delay) {
-        transport_.PostDelayedEventResponse(std::move(event), delay);
+  controller_.RegisterDelayedEventChannel([this](
+      std::unique_ptr<EventPacket> event, std::chrono::milliseconds delay) {
+    transport_.PostDelayedEventResponse(*event, delay);
+  });
+
+  transport_.RegisterEventScheduler(
+      [this](std::chrono::milliseconds delay, const TaskCallback& task) {
+        async_manager_.ExecAsync(delay, task);
+      });
+
+  transport_.RegisterPeriodicEventScheduler(
+      [this](std::chrono::milliseconds delay,
+             std::chrono::milliseconds period,
+             const TaskCallback& task) {
+        async_manager_.ExecAsyncPeriodically(delay, period, task);
       });
 
   running_ = true;
-  if (!thread_.StartWithOptions(
-          base::Thread::Options(base::MessageLoop::TYPE_IO, 0))) {
-    LOG_ERROR(LOG_TAG, "Error starting TestVendorLibrary thread.");
-    running_ = false;
-    return false;
-  }
-
-  if (!PostTask(base::Bind(&VendorManager::StartWatchingOnThread,
-                           weak_ptr_factory_.GetWeakPtr()))) {
-    LOG_ERROR(LOG_TAG, "Error posting StartWatchingOnThread to task runner.");
-    running_ = false;
-    return false;
-  }
+  StartWatchingOnThread();
 
   return true;
 }
 
 void VendorManager::StartWatchingOnThread() {
   CHECK(running_);
-  CHECK(base::MessageLoopForIO::IsCurrent());
 
-  if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
-          transport_.GetVendorFd(),
-          true,
-          base::MessageLoopForIO::WATCH_READ_WRITE,
-          &hci_watcher_,
-          &transport_)) {
+  if (async_manager_.WatchFdForNonBlockingReads(
+          transport_.GetVendorFd(), [this](int fd) {
+            transport_.OnFileCanReadWithoutBlocking(fd);
+          }) != 0) {
     LOG_ERROR(LOG_TAG, "Error watching vendor fd.");
     return;
   }
 
   if (test_channel_transport_.IsEnabled())
-    if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
-            test_channel_transport_.GetFd(),
-            true,
-            base::MessageLoopForIO::WATCH_READ,
-            &test_channel_watcher_,
-            &test_channel_transport_))
+    if (async_manager_.WatchFdForNonBlockingReads(
+            test_channel_transport_.GetFd(), [this](int fd) {
+              test_channel_transport_.OnFileCanReadWithoutBlocking(fd);
+            }) != 0) {
       LOG_ERROR(LOG_TAG, "Error watching test channel fd.");
-}
-
-bool VendorManager::PostTask(const base::Closure& task) {
-  return PostDelayedTask(task, base::TimeDelta::FromMilliseconds(0));
-}
-
-bool VendorManager::PostDelayedTask(const base::Closure& task,
-                                    base::TimeDelta delay) {
-  return thread_.task_runner()->PostDelayedTask(FROM_HERE, task, delay);
+    }
 }
 
 void VendorManager::SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks) {
