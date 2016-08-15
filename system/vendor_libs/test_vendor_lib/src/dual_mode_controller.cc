@@ -99,7 +99,7 @@ DualModeController::DualModeController()
     : state_(kStandby),
       properties_(kControllerPropertiesFile),
       test_channel_state_(kNone) {
-#define SET_HANDLER(opcode, method) \
+#define SET_HANDLER(opcode, method)                                     \
   active_hci_commands_[opcode] = [this](const vector<uint8_t>& param) { \
     method(param);                                                      \
   };
@@ -210,7 +210,7 @@ void DualModeController::RegisterEventChannel(
 }
 
 void DualModeController::RegisterDelayedEventChannel(
-    std::function<void(std::unique_ptr<EventPacket>, base::TimeDelta)>
+    std::function<void(std::unique_ptr<EventPacket>, std::chrono::milliseconds)>
         callback) {
   send_delayed_event_ = callback;
   SetEventDelay(0);
@@ -220,8 +220,7 @@ void DualModeController::SetEventDelay(int64_t delay) {
   if (delay < 0)
     delay = 0;
   send_event_ = [this, delay](std::unique_ptr<EventPacket> arg) {
-    send_delayed_event_(std::move(arg),
-                        base::TimeDelta::FromMilliseconds(delay));
+    send_delayed_event_(std::move(arg), std::chrono::milliseconds(delay));
   };
 }
 
@@ -488,7 +487,7 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
     } break;
   }
   send_delayed_event_(EventPacket::CreateInquiryCompleteEvent(kSuccessStatus),
-                      base::TimeDelta::FromMilliseconds(args[4] * 1280));
+                      std::chrono::milliseconds(args[4] * 1280));
 }
 
 void DualModeController::HciInquiryCancel(const vector<uint8_t>& /* args */) {

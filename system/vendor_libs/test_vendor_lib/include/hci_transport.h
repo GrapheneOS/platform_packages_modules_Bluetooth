@@ -24,9 +24,8 @@ extern "C" {
 #include <sys/epoll.h>
 }  // extern "C"
 
+#include "async_manager.h"
 #include "base/files/scoped_file.h"
-#include "base/memory/weak_ptr.h"
-#include "base/message_loop/message_loop.h"
 #include "base/time/time.h"
 #include "command_packet.h"
 #include "event_packet.h"
@@ -37,7 +36,7 @@ namespace test_vendor_lib {
 
 // Manages communication channel between HCI and the controller by providing the
 // socketing mechanisms for reading/writing between the HCI and the controller.
-class HciTransport : public base::MessageLoopForIO::Watcher {
+class HciTransport {
  public:
   HciTransport();
 
@@ -60,58 +59,44 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
   void RegisterCommandHandler(
       std::function<void(std::unique_ptr<CommandPacket>)> callback);
 
+  // Sets the callback that is to schedule events.
+  void RegisterEventScheduler(
+      std::function<void(std::chrono::milliseconds, const TaskCallback&)>
+          evtScheduler);
+
+  // Sets the callback that is to schedule events.
+  void RegisterPeriodicEventScheduler(
+      std::function<void(std::chrono::milliseconds,
+                         std::chrono::milliseconds,
+                         const TaskCallback&)> periodicEvtScheduler);
+
   // Posts the event onto |outbound_events_| to be written sometime in the
   // future when the vendor file descriptor is ready for writing.
-  void PostEventResponse(std::unique_ptr<EventPacket> event);
+  void PostEventResponse(const EventPacket& event);
 
   // Posts the event onto |outbound_events_| after |delay| ms. A call to
   // |PostEventResponse| with |delay| 0 is equivalent to a call to |PostEvent|.
-  void PostDelayedEventResponse(std::unique_ptr<EventPacket> event,
-                                base::TimeDelta delay);
+  void PostDelayedEventResponse(const EventPacket& event,
+                                std::chrono::milliseconds delay);
+
+  void OnFileCanReadWithoutBlocking(int fd);
 
  private:
-  // Wrapper class for sending events on a delay. The TimeStampedEvent object
-  // takes ownership of a given event packet.
-  class TimeStampedEvent {
-   public:
-    TimeStampedEvent(std::unique_ptr<EventPacket> event, base::TimeDelta delay);
-
-    // Using this constructor is equivalent to calling the 2-argument
-    // constructor with a |delay| of 0. It is used to generate event responses
-    // with no delay.
-    explicit TimeStampedEvent(std::unique_ptr<EventPacket> event);
-
-    const base::TimeTicks& GetTimeStamp() const;
-
-    const EventPacket& GetEvent();
-
-   private:
-    std::shared_ptr<EventPacket> event_;
-
-    // The time associated with the event, indicating the earliest time at which
-    // |event_| will be sent.
-    base::TimeTicks time_stamp_;
-  };
-
-  // base::MessageLoopForIO::Watcher overrides:
-  void OnFileCanReadWithoutBlocking(int fd) override;
-
-  void OnFileCanWriteWithoutBlocking(int fd) override;
-
   // Reads in a command packet and calls the command ready callback,
   // |command_handler_|, passing ownership of the command packet to the handler.
   void ReceiveReadyCommand() const;
 
-  void AddEventToOutboundEvents(std::unique_ptr<TimeStampedEvent> event);
-
-  // Write queue for sending events to the HCI. Event packets are removed from
-  // the queue and written when write-readiness is signalled by the message
-  // loop. After being written, the event packets are destructed.
-  std::list<std::unique_ptr<TimeStampedEvent>> outbound_events_;
-
   // Callback executed in ReceiveReadyCommand() to pass the incoming command
   // over to the handler for further processing.
   std::function<void(std::unique_ptr<CommandPacket>)> command_handler_;
+
+  // Callbacks to schedule events.
+  std::function<void(std::chrono::milliseconds, const TaskCallback&)>
+      schedule_event_;
+  std::function<void(std::chrono::milliseconds,
+                     std::chrono::milliseconds,
+                     const TaskCallback&)>
+      schedule_periodic_event_;
 
   // For performing packet-based IO.
   PacketStream packet_stream_;
@@ -123,10 +108,6 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
   // TestVendorOp().
   std::unique_ptr<base::ScopedFD> hci_fd_;
   std::unique_ptr<base::ScopedFD> vendor_fd_;
-
-  // This should remain the last member so it'll be destroyed and invalidate
-  // its weak pointers before any other members are destroyed.
-  base::WeakPtrFactory<HciTransport> weak_ptr_factory_;
 
   HciTransport(const HciTransport& cmdPckt) = delete;
   HciTransport& operator=(const HciTransport& cmdPckt) = delete;
