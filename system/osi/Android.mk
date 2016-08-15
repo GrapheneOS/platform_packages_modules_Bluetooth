@@ -71,7 +71,8 @@ btosiCommonTestSrc := \
     ./test/ringbuffer_test.cc \
     ./test/semaphore_test.cc \
     ./test/thread_test.cc \
-    ./test/time_test.cc
+    ./test/time_test.cc \
+    ./test/wakelock_test.cc
 
 btosiCommonIncludes := \
     $(LOCAL_PATH)/.. \
