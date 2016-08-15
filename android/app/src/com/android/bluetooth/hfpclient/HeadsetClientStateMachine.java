@@ -78,31 +78,36 @@ final class HeadsetClientStateMachine extends StateMachine {
     static final int NO_ACTION = 0;
 
     // external actions
-    static final int CONNECT = 1;
-    static final int DISCONNECT = 2;
-    static final int CONNECT_AUDIO = 3;
-    static final int DISCONNECT_AUDIO = 4;
-    static final int VOICE_RECOGNITION_START = 5;
-    static final int VOICE_RECOGNITION_STOP = 6;
-    static final int SET_MIC_VOLUME = 7;
-    static final int SET_SPEAKER_VOLUME = 8;
-    static final int DIAL_NUMBER = 10;
-    static final int ACCEPT_CALL = 12;
-    static final int REJECT_CALL = 13;
-    static final int HOLD_CALL = 14;
-    static final int TERMINATE_CALL = 15;
-    static final int ENTER_PRIVATE_MODE = 16;
-    static final int SEND_DTMF = 17;
-    static final int EXPLICIT_CALL_TRANSFER = 18;
-    static final int LAST_VTAG_NUMBER = 19;
-    static final int DISABLE_NREC = 20;
+    public static final int CONNECT = 1;
+    public static final int DISCONNECT = 2;
+    public static final int CONNECT_AUDIO = 3;
+    public static final int DISCONNECT_AUDIO = 4;
+    public static final int VOICE_RECOGNITION_START = 5;
+    public static final int VOICE_RECOGNITION_STOP = 6;
+    public static final int SET_MIC_VOLUME = 7;
+    public static final int SET_SPEAKER_VOLUME = 8;
+    public static final int DIAL_NUMBER = 10;
+    public static final int ACCEPT_CALL = 12;
+    public static final int REJECT_CALL = 13;
+    public static final int HOLD_CALL = 14;
+    public static final int TERMINATE_CALL = 15;
+    public static final int ENTER_PRIVATE_MODE = 16;
+    public static final int SEND_DTMF = 17;
+    public static final int EXPLICIT_CALL_TRANSFER = 18;
+    public static final int LAST_VTAG_NUMBER = 19;
+    public static final int DISABLE_NREC = 20;
 
     // internal actions
-    static final int QUERY_CURRENT_CALLS = 50;
-    static final int QUERY_OPERATOR_NAME = 51;
-    static final int SUBSCRIBER_INFO = 52;
+    private static final int QUERY_CURRENT_CALLS = 50;
+    private static final int QUERY_OPERATOR_NAME = 51;
+    private static final int SUBSCRIBER_INFO = 52;
+    private static final int CONNECTING_TIMEOUT = 53;
+
     // special action to handle terminating specific call from multiparty call
     static final int TERMINATE_SPECIFIC_CALL = 53;
+
+    // Timeouts.
+    static final int CONNECTING_TIMEOUT_MS = 5000;
 
     static final int MAX_HFP_SCO_VOICE_CALL_VOLUME = 15; // HFP 1.5 spec.
     static final int MIN_HFP_SCO_VOICE_CALL_VOLUME = 1; // HFP 1.5 spec.
@@ -944,6 +949,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
 
                     mCurrentDevice = device;
+
                     transitionTo(mConnecting);
                     break;
                 case DISCONNECT:
@@ -1023,6 +1029,10 @@ final class HeadsetClientStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Enter Connecting: " + getCurrentMessage().what);
             }
+            // This message is either consumed in processMessage or
+            // removed in exit. It is safe to send a CONNECTING_TIMEOUT here since
+            // the only transition is when connection attempt is initiated.
+            sendMessageDelayed(CONNECTING_TIMEOUT, CONNECTING_TIMEOUT_MS);
         }
 
         @Override
@@ -1031,7 +1041,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                 Log.d(TAG, "Connecting process message: " + message.what);
             }
 
-            boolean retValue = HANDLED;
             switch (message.what) {
                 case CONNECT:
                 case CONNECT_AUDIO:
@@ -1077,11 +1086,21 @@ final class HeadsetClientStateMachine extends StateMachine {
                             break;
                     }
                     break;
+                case CONNECTING_TIMEOUT:
+                      // We timed out trying to connect, transition to disconnected.
+                      Log.w(TAG, "Connection timeout for " + mCurrentDevice);
+                      transitionTo(mDisconnected);
+                      broadcastConnectionState(
+                          mCurrentDevice,
+                          BluetoothProfile.STATE_CONNECTING,
+                          BluetoothProfile.STATE_DISCONNECTED);
+                      break;
+
                 default:
                     Log.w(TAG, "Message not handled " + message);
                     return NOT_HANDLED;
             }
-            return retValue;
+            return HANDLED;
         }
 
         // in Connecting state
@@ -1166,6 +1185,7 @@ final class HeadsetClientStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Exit Connecting: " + getCurrentMessage().what);
             }
+            removeMessages(CONNECTING_TIMEOUT);
         }
     }
 
