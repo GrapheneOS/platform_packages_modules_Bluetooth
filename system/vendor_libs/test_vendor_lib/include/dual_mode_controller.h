@@ -520,7 +520,8 @@ class DualModeController {
 
   TestChannelState test_channel_state_;
 
-  DISALLOW_COPY_AND_ASSIGN(DualModeController);
+  DualModeController(const DualModeController& cmdPckt) = delete;
+  DualModeController& operator=(const DualModeController& cmdPckt) = delete;
 };
 
 }  // namespace test_vendor_lib
