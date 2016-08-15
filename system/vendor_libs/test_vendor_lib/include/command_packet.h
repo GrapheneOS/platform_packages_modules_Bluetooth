@@ -76,7 +76,8 @@ class CommandPacket : public Packet {
 
  private:
   // Disallow any copies of the singleton to be made.
-  DISALLOW_COPY_AND_ASSIGN(CommandPacket);
+  CommandPacket(const CommandPacket& cmdPckt) = delete;
+  CommandPacket& operator=(const CommandPacket& cmdPckt) = delete;
 };
 
 }  // namespace test_vendor_lib
