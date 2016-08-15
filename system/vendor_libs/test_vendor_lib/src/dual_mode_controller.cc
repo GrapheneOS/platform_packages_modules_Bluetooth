@@ -100,8 +100,9 @@ DualModeController::DualModeController()
       properties_(kControllerPropertiesFile),
       test_channel_state_(kNone) {
 #define SET_HANDLER(opcode, method) \
-  active_hci_commands_[opcode] =    \
-      std::bind(&DualModeController::method, this, std::placeholders::_1);
+  active_hci_commands_[opcode] = [this](const vector<uint8_t>& param) { \
+    method(param);                                                      \
+  };
   SET_HANDLER(HCI_RESET, HciReset);
   SET_HANDLER(HCI_READ_BUFFER_SIZE, HciReadBufferSize);
   SET_HANDLER(HCI_HOST_BUFFER_SIZE, HciHostBufferSize);
@@ -153,7 +154,7 @@ DualModeController::DualModeController()
 
 #define SET_TEST_HANDLER(command_name, method)  \
   active_test_channel_commands_[command_name] = \
-      std::bind(&DualModeController::method, this, std::placeholders::_1);
+      [this](const vector<std::string>& param) { method(param); };
   SET_TEST_HANDLER("CLEAR", TestChannelClear);
   SET_TEST_HANDLER("CLEAR_EVENT_DELAY", TestChannelClearEventDelay);
   SET_TEST_HANDLER("DISCOVER", TestChannelDiscover);
@@ -164,17 +165,18 @@ DualModeController::DualModeController()
 
 void DualModeController::RegisterHandlersWithHciTransport(
     HciTransport& transport) {
-  transport.RegisterCommandHandler(std::bind(
-      &DualModeController::HandleCommand, this, std::placeholders::_1));
+  transport.RegisterCommandHandler(
+      [this](std::unique_ptr<CommandPacket> command) {
+        HandleCommand(std::move(command));
+      });
 }
 
 void DualModeController::RegisterHandlersWithTestChannelTransport(
     TestChannelTransport& transport) {
   transport.RegisterCommandHandler(
-      std::bind(&DualModeController::HandleTestChannelCommand,
-                this,
-                std::placeholders::_1,
-                std::placeholders::_2));
+      [this](const std::string& name, const vector<std::string>& args) {
+        HandleTestChannelCommand(name, args);
+      });
 }
 
 void DualModeController::HandleTestChannelCommand(
@@ -217,9 +219,10 @@ void DualModeController::RegisterDelayedEventChannel(
 void DualModeController::SetEventDelay(int64_t delay) {
   if (delay < 0)
     delay = 0;
-  send_event_ = std::bind(send_delayed_event_,
-                          std::placeholders::_1,
-                          base::TimeDelta::FromMilliseconds(delay));
+  send_event_ = [this, delay](std::unique_ptr<EventPacket> arg) {
+    send_delayed_event_(std::move(arg),
+                        base::TimeDelta::FromMilliseconds(delay));
+  };
 }
 
 void DualModeController::TestChannelClear(

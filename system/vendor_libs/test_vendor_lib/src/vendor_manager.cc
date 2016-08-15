@@ -80,10 +80,9 @@ bool VendorManager::Run() {
   controller_.RegisterHandlersWithHciTransport(transport_);
   // TODO(dennischeng): Register PostDelayedEventResponse instead.
   controller_.RegisterDelayedEventChannel(
-      std::bind(&HciTransport::PostDelayedEventResponse,
-                &transport_,
-                std::placeholders::_1,
-                std::placeholders::_2));
+      [this](std::unique_ptr<EventPacket> event, base::TimeDelta delay) {
+        transport_.PostDelayedEventResponse(std::move(event), delay);
+      });
 
   running_ = true;
   if (!thread_.StartWithOptions(
