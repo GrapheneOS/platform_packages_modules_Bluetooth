@@ -128,7 +128,8 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
   // its weak pointers before any other members are destroyed.
   base::WeakPtrFactory<HciTransport> weak_ptr_factory_;
 
-  DISALLOW_COPY_AND_ASSIGN(HciTransport);
+  HciTransport(const HciTransport& cmdPckt) = delete;
+  HciTransport& operator=(const HciTransport& cmdPckt) = delete;
 };
 
 }  // namespace test_vendor_lib

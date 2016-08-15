@@ -112,7 +112,8 @@ class VendorManager {
   // its weak pointers before any other members are destroyed.
   base::WeakPtrFactory<VendorManager> weak_ptr_factory_;
 
-  DISALLOW_COPY_AND_ASSIGN(VendorManager);
+  VendorManager(const VendorManager& cmdPckt) = delete;
+  VendorManager& operator=(const VendorManager& cmdPckt) = delete;
 };
 
 }  // namespace test_vendor_lib
