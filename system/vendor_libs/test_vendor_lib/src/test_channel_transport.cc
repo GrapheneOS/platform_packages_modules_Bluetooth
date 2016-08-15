@@ -16,7 +16,7 @@
 
 #define LOG_TAG "test_channel_transport"
 
-#include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
+#include "test_channel_transport.h"
 
 #include "base/logging.h"
 
