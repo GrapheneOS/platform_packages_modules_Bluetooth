@@ -14,9 +14,10 @@
 // limitations under the License.
 //
 
+#pragma once
+
+#include "async_manager.h"
 #include "base/macros.h"
-#include "base/memory/weak_ptr.h"
-#include "base/threading/thread.h"
 #include "base/time/time.h"
 #include "dual_mode_controller.h"
 #include "event_packet.h"
@@ -68,13 +69,6 @@ class VendorManager {
 
   ~VendorManager() = default;
 
-  // Posts a callback to |thread_|'s task runner. Equivalent to calling
-  // |PostDelayedTask| with a delay of 0.
-  bool PostTask(const base::Closure& task);
-
-  // Posts a callback to be run after |delay| ms (or longer) have passed.
-  bool PostDelayedTask(const base::Closure& task, base::TimeDelta delay);
-
   // Starts watching for incoming data from the HCI and the test hook.
   void StartWatchingOnThread();
 
@@ -95,22 +89,9 @@ class VendorManager {
   // True if the underlying message loop (in |thread_|) is running.
   bool running_;
 
-  // Dedicated thread for managing the message loop to receive and send packets
-  // from the HCI and to receive additional parameters from the test hook file
-  // descriptor.
-  base::Thread thread_;
-
-  // Used to handle further watching of the vendor's/test channel's file
-  // descriptor after WatchFileDescriptor() is called.
-  base::MessageLoopForIO::FileDescriptorWatcher hci_watcher_;
-
-  // Used to handle further watching of the test channel's file descriptor after
-  // WatchFileDescriptor() is called.
-  base::MessageLoopForIO::FileDescriptorWatcher test_channel_watcher_;
-
-  // This should remain the last member so it'll be destroyed and invalidate
-  // its weak pointers before any other members are destroyed.
-  base::WeakPtrFactory<VendorManager> weak_ptr_factory_;
+  // The object that manages asynchronous tasks such as watching a file
+  // descriptor or doing something in the future
+  AsyncManager async_manager_;
 
   VendorManager(const VendorManager& cmdPckt) = delete;
   VendorManager& operator=(const VendorManager& cmdPckt) = delete;
