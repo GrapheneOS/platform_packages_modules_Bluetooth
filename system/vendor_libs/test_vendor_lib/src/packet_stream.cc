@@ -16,7 +16,7 @@
 
 #define LOG_TAG "packet_stream"
 
-#include "vendor_libs/test_vendor_lib/include/packet_stream.h"
+#include "packet_stream.h"
 
 #include "base/logging.h"
 

@@ -21,7 +21,7 @@
 using std::vector;
 
 #include "base/macros.h"
-#include "vendor_libs/test_vendor_lib/include/packet.h"
+#include "packet.h"
 
 namespace test_vendor_lib {
 

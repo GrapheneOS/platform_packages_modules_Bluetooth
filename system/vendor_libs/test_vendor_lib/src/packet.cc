@@ -16,7 +16,7 @@
 
 #define LOG_TAG "packet"
 
-#include "vendor_libs/test_vendor_lib/include/packet.h"
+#include "packet.h"
 
 #include "base/logging.h"
 
