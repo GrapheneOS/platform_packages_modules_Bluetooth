@@ -84,13 +84,9 @@ static int uhid_read_event(btif_hh_device_t *p_dev)
     struct uhid_event ev;
     memset(&ev, 0, sizeof(ev));
 
-    if(!p_dev)
-    {
-        APPL_TRACE_ERROR("%s: Device not found",__func__)
-        return -1;
-    }
     ssize_t ret;
     OSI_NO_INTR(ret = read(p_dev->fd, &ev, sizeof(ev)));
+
     if (ret == 0) {
         APPL_TRACE_ERROR("%s: Read HUP on uhid-cdev %s", __func__,
                                                  strerror(errno));
@@ -443,7 +439,7 @@ void bta_hh_co_data(uint8_t dev_handle, uint8_t *p_rpt, uint16_t len, tBTA_HH_PR
     if ((p_dev->fd >= 0) && p_dev->ready_for_data) {
         bta_hh_co_write(p_dev->fd, p_rpt, len);
     }else {
-        APPL_TRACE_WARNING("%s: Error: fd = %d, ready %d, len = %d", __func__, p_dev->fd, 
+        APPL_TRACE_WARNING("%s: Error: fd = %d, ready %d, len = %d", __func__, p_dev->fd,
                             p_dev->ready_for_data, len);
     }
 }
