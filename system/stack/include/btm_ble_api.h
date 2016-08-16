@@ -480,9 +480,14 @@ typedef struct
 #define BTM_BLE_MULTI_ADV_DISABLE_EVT       2
 #define BTM_BLE_MULTI_ADV_PARAM_EVT         3
 #define BTM_BLE_MULTI_ADV_DATA_EVT          4
+#define BTM_BLE_MULTI_ADV_REG_EVT           5
 typedef uint8_t tBTM_BLE_MULTI_ADV_EVT;
 
 #define BTM_BLE_MULTI_ADV_DEFAULT_STD 0
+
+#define BTM_BLE_MULTI_ADV_SUCCESS           0
+#define BTM_BLE_MULTI_ADV_FAILURE           1
+
 
 typedef struct
 {
@@ -503,7 +508,7 @@ typedef struct
 }tBTM_BLE_MULTI_ADV_OPQ;
 
 typedef void (tBTM_BLE_MULTI_ADV_CBACK)(tBTM_BLE_MULTI_ADV_EVT evt, uint8_t inst_id,
-                void *p_ref, tBTM_STATUS status);
+                tBTM_STATUS status);
 
 typedef struct
 {
@@ -513,7 +518,6 @@ typedef struct
     BD_ADDR                     rpa;
     alarm_t                     *adv_raddr_timer;
     tBTM_BLE_MULTI_ADV_CBACK    *p_cback;
-    void                        *p_ref;
     uint8_t                     index;
 }tBTM_BLE_MULTI_ADV_INST;
 
@@ -1377,7 +1381,7 @@ extern bool    BTM_BleUpdateBgConnDev(bool    add_remove, BD_ADDR   remote_bda);
 **
 ** Description      This function is called to clear the whitelist,
 **                  end any pending whitelist connections,
-*                   and reset the local bg device list.
+**                  and reset the local bg device list.
 **
 ** Parameters       void
 **
@@ -1733,22 +1737,29 @@ extern uint8_t BTM_BleGetSupportedKeySize (BD_ADDR bd_addr);
 /*                          Multi ADV API                                      */
 /*******************************************************************************
 **
+** Register an advertising instance, status will be returned in |p_cback|
+** callback, with assigned id, if operation succeeds. Instance is freed when
+** advertising is disabled by calling |BTM_BleDisableAdvInstance|, or when any
+** of the operations fails.
+*******************************************************************************/
+extern void  BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback);
+
+/*******************************************************************************
+**
 ** Function         BTM_BleEnableAdvInstance
 **
 ** Description      This function enable a Multi-ADV instance with the specified
 **                  adv parameters
 **
-** Parameters       p_params: pointer to the adv parameter structure, set as default
+** Parameters       inst_id: adv instance ID
+**                  p_params: pointer to the adv parameter structure, set as default
 **                            adv parameter when the instance is enabled.
-**                  p_cback: callback function for the adv instance.
-**                  p_ref:  reference data attach to the adv instance to be enabled.
 **
 ** Returns          status
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
-                                      tBTM_BLE_MULTI_ADV_CBACK *p_cback,
-                                      void *p_ref);
+extern tBTM_STATUS BTM_BleEnableAdvInstance (uint8_t inst_id,
+                                             tBTM_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
 **

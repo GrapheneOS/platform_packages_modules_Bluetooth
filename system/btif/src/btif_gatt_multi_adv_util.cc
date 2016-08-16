@@ -66,16 +66,9 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
     {
         p_multi_adv_com_data_cb = (btgatt_multi_adv_common_data*)osi_calloc(sizeof(btgatt_multi_adv_common_data));
         /* Storing both advertiser_id and inst_id details */
-        p_multi_adv_com_data_cb->clntif_map =
-            (int8_t*)osi_calloc((max_adv_inst * INST_ID_IDX_MAX) * sizeof(int8_t));
 
         p_multi_adv_com_data_cb->inst_cb = (btgatt_multi_adv_inst_cb*)
             osi_calloc((max_adv_inst + 1) * sizeof(btgatt_multi_adv_inst_cb));
-
-        for (int i = 0; i < max_adv_inst * 2; i += 2) {
-            p_multi_adv_com_data_cb->clntif_map[i] = INVALID_ADV_INST;
-            p_multi_adv_com_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
-        }
     }
 
     return p_multi_adv_com_data_cb;
@@ -94,119 +87,9 @@ void btif_gattc_decr_app_count(void)
         user_app_count--;
 
     if ((user_app_count == 0) && (p_multi_adv_com_data_cb != NULL)) {
-       osi_free(p_multi_adv_com_data_cb->clntif_map);
        osi_free(p_multi_adv_com_data_cb->inst_cb);
        osi_free_and_reset((void **)&p_multi_adv_com_data_cb);
     }
-}
-
-int btif_multi_adv_add_instid_map(int advertiser_id, int inst_id, bool gen_temp_instid)
-{
-    int i=1;
-
-    btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-    if (NULL == p_multi_adv_data_cb)
-        return INVALID_ADV_INST;
-
-    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
-    {
-       if (advertiser_id == p_multi_adv_data_cb->clntif_map[i + i])
-       {
-          if (!gen_temp_instid)
-          {
-             // Write the final inst_id value obtained from stack layer
-             p_multi_adv_data_cb->clntif_map[i + (i + 1)] = inst_id;
-             BTIF_TRACE_DEBUG("%s -Index: %d, Found advertiser_id: %d", __func__,
-                i, p_multi_adv_data_cb->clntif_map[i + i]);
-             break;
-          }
-          else
-          {
-              //Store the passed in inst_id value
-             if (inst_id != INVALID_ADV_INST)
-                 p_multi_adv_data_cb->clntif_map[i + (i + 1)] = inst_id;
-             else
-                 p_multi_adv_data_cb->clntif_map[i + (i + 1)] = (i + 1);
-
-             BTIF_TRACE_DEBUG("%s - Index:%d,Found advertiser_id: %d", __func__,
-                i, p_multi_adv_data_cb->clntif_map[i + i]);
-             break;
-          }
-       }
-    }
-
-    if (i <  BTM_BleMaxMultiAdvInstanceCount())
-        return i;
-
-    // If client ID if is not found, then write both values
-    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
-    {
-        if (INVALID_ADV_INST == p_multi_adv_data_cb->clntif_map[i + i])
-        {
-            p_multi_adv_data_cb->clntif_map[i + i] = advertiser_id;
-            if (inst_id != INVALID_ADV_INST)
-               p_multi_adv_data_cb->clntif_map[i + (i + 1)] = inst_id;
-            else
-                p_multi_adv_data_cb->clntif_map[i + (i + 1)] = (i + 1);
-            BTIF_TRACE_DEBUG("%s -Not found - Index:%d, advertiser_id: %d, Inst ID: %d",
-                            __func__,i,
-                            p_multi_adv_data_cb->clntif_map[i + i],
-                            p_multi_adv_data_cb->clntif_map[i + (i + 1)]);
-            break;
-        }
-    }
-
-    if (i <  BTM_BleMaxMultiAdvInstanceCount())
-        return i;
-    return INVALID_ADV_INST;
-}
-
-int btif_multi_adv_instid_for_clientif(int advertiser_id)
-{
-    int i=1, ret = INVALID_ADV_INST;
-
-    btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-
-    if (NULL == p_multi_adv_data_cb)
-        return INVALID_ADV_INST;
-
-    // Retrieve the existing inst_id for the advertiser_id value
-    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
-    {
-       if (advertiser_id == p_multi_adv_data_cb->clntif_map[i + i])
-       {
-           BTIF_TRACE_DEBUG("%s - Client if found", __func__, advertiser_id);
-           ret = p_multi_adv_data_cb->clntif_map[i + (i + 1)];
-       }
-    }
-
-    return ret;
-}
-
-int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index)
-{
-    int i=1;
-
-    btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-
-    if (NULL == p_multi_adv_data_cb)
-        return INVALID_ADV_INST;
-
-    // Retrieve the array index for the inst_id value
-    for (i=1; i <  BTM_BleMaxMultiAdvInstanceCount(); i++)
-    {
-       if (value == p_multi_adv_data_cb->clntif_map[i + (i + clnt_inst_index)])
-           break;
-    }
-
-    if (i <  BTM_BleMaxMultiAdvInstanceCount())
-    {
-        BTIF_TRACE_DEBUG("%s, %d",__func__,i);
-        return i;
-    }
-
-    BTIF_TRACE_DEBUG("%s Invalid instance",__func__);
-    return INVALID_ADV_INST;
 }
 
 void btif_gattc_adv_data_packager(int advertiser_id, bool set_scan_rsp,
@@ -445,21 +328,7 @@ void btif_gattc_clear_clientif(int advertiser_id, bool stop_timer)
     if (NULL == p_multi_adv_data_cb)
         return;
 
-    // Clear both the inst_id and advertiser_id values
-    for (int i=0; i < BTM_BleMaxMultiAdvInstanceCount()*2; i+=2)
-    {
-        if (advertiser_id == p_multi_adv_data_cb->clntif_map[i])
-        {
-            btif_gattc_cleanup_inst_cb(p_multi_adv_data_cb->clntif_map[i+1], stop_timer);
-            if (stop_timer)
-            {
-                p_multi_adv_data_cb->clntif_map[i] = INVALID_ADV_INST;
-                p_multi_adv_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
-                BTIF_TRACE_DEBUG("Cleaning up index %d for clnt_if :%d,", i/2, advertiser_id);
-            }
-            break;
-        }
-    }
+    btif_gattc_cleanup_inst_cb(advertiser_id, stop_timer);
 }
 
 void btif_gattc_cleanup_inst_cb(int inst_id, bool stop_timer)
@@ -472,12 +341,8 @@ void btif_gattc_cleanup_inst_cb(int inst_id, bool stop_timer)
     if (NULL == p_multi_adv_data_cb)
         return;
 
-    int cbindex = (STD_ADV_INSTID == inst_id) ?
-        STD_ADV_INSTID : btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
-    if (cbindex < 0) return;
-
-    BTIF_TRACE_DEBUG("%s: inst_id %d, cbindex %d", __func__, inst_id, cbindex);
-    btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[cbindex], stop_timer);
+    BTIF_TRACE_DEBUG("%s: inst_id %d", __func__, inst_id);
+    btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[inst_id], stop_timer);
 }
 
 void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb,
@@ -498,19 +363,11 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb,
 
 void btif_multi_adv_timer_ctrl(int advertiser_id, alarm_callback_t cb)
 {
-    int inst_id = btif_multi_adv_instid_for_clientif(advertiser_id);
-    if (inst_id == INVALID_ADV_INST)
-        return;
-
-    int cbindex = btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
-    if (cbindex == INVALID_ADV_INST)
-        return;
-
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
     if (p_multi_adv_data_cb == NULL)
         return;
 
-    btgatt_multi_adv_inst_cb *inst_cb = &p_multi_adv_data_cb->inst_cb[cbindex];
+    btgatt_multi_adv_inst_cb *inst_cb = &p_multi_adv_data_cb->inst_cb[advertiser_id];
     if (cb == NULL)
     {
         alarm_free(inst_cb->multi_adv_timer);
