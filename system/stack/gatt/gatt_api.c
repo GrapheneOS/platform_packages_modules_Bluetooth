@@ -1223,7 +1223,8 @@ void GATT_StartIf (tGATT_IF gatt_if)
 ** Returns          true if connection started; false if connection start failure.
 **
 *******************************************************************************/
-bool    GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool    is_direct, tBT_TRANSPORT transport)
+bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
+                      tBT_TRANSPORT transport, bool opportunistic)
 {
     tGATT_REG    *p_reg;
     bool    status = false;
@@ -1238,7 +1239,7 @@ bool    GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool    is_direct, tBT_
     }
 
     if (is_direct)
-        status = gatt_act_connect (p_reg, bd_addr, transport);
+        status = gatt_act_connect (p_reg, bd_addr, transport, opportunistic);
     else
     {
         if (transport == BT_TRANSPORT_LE)
