@@ -1095,11 +1095,11 @@ static bool bta_ag_parse_biev_response(tBTA_AG_SCB *p_scb, tBTA_AG_VAL *val)
 void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
                                 char *p_arg, int16_t int_arg)
 {
-    tBTA_AG_VAL     val;
+    tBTA_AG_VAL   val;
     tBTA_AG_EVT   event;
-    tBTA_AG_SCB     *ag_scb;
-    uint32_t        i, ind_id;
-    uint32_t        bia_masked_out;
+    tBTA_AG_SCB   *ag_scb;
+    uint32_t      i, ind_id;
+    uint32_t      bia_masked_out;
 #if (BTM_WBS_INCLUDED == TRUE)
     tBTA_AG_PEER_CODEC  codec_type, codec_sent;
 #endif
