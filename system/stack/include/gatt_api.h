@@ -987,14 +987,18 @@ extern  void GATT_StartIf (tGATT_IF gatt_if);
 **
 ** Parameters       gatt_if: applicaiton interface
 **                  bd_addr: peer device address.
-**                  is_direct: is a direct conenection or a background auto connection
+**                  is_direct: is a direct connection or a background auto connection
 **                  transport : Physical transport for GATT connection (BR/EDR or LE)
+**                  opportunistic: will not keep device connected if other apps
+**                      disconnect, will not update connected apps counter, when
+**                      disconnected won't cause physical disconnection.
 **
 ** Returns          true if connection started; false if connection start failure.
 **
 *******************************************************************************/
-extern bool    GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr,
-                             bool    is_direct, tBT_TRANSPORT transport);
+extern bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr,
+                             bool is_direct, tBT_TRANSPORT transport,
+                             bool opportunistic);
 
 
 /*******************************************************************************

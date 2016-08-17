@@ -458,7 +458,7 @@ void GATT_ConfigServiceChangeCCC (BD_ADDR remote_bda, bool    enable, tBT_TRANSP
         p_clcb->connected = true;
     }
     /* hold the link here */
-    GATT_Connect(gatt_cb.gatt_if, remote_bda, true, transport);
+    GATT_Connect(gatt_cb.gatt_if, remote_bda, true, transport, true);
     p_clcb->ccc_stage = GATT_SVC_CHANGED_CONNECTING;
 
     if (!p_clcb->connected)

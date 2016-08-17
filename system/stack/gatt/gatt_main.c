@@ -346,7 +346,8 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB *p_tcb, bool    i
 ** Returns          void.
 **
 *******************************************************************************/
-bool    gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr, tBT_TRANSPORT transport)
+bool gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr,
+                          tBT_TRANSPORT transport, bool opportunistic)
 {
     bool        ret = false;
     tGATT_TCB   *p_tcb;
@@ -393,7 +394,11 @@ bool    gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr, tBT_TRANSPORT trans
 
     if (ret)
     {
-        gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, false);
+        if (!opportunistic)
+            gatt_update_app_use_link_flag(p_reg->gatt_if, p_tcb, true, false);
+        else
+            GATT_TRACE_DEBUG("%s: connection is opportunistic, not updating app usage",
+                            __func__);
     }
 
     return ret;
