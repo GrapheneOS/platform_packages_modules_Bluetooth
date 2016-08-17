@@ -462,8 +462,8 @@ static uint64_t time_now_us()
 static void log_tstamps_us(const char *comment, uint64_t timestamp_us)
 {
     static uint64_t prev_us = 0;
-    APPL_TRACE_DEBUG("[%s] ts %08llu, diff : %08llu, queue sz %d", comment, timestamp_us, timestamp_us - prev_us,
-                fixed_queue_length(btif_media_cb.TxAaQ));
+    APPL_TRACE_DEBUG("[%s] ts %08llu, diff : %08llu, queue sz %d", comment, timestamp_us,
+        timestamp_us - prev_us, fixed_queue_length(btif_media_cb.TxAaQ));
     prev_us = timestamp_us;
 }
 
