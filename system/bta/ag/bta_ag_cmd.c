@@ -345,8 +345,8 @@ const uint8_t bta_ag_callsetup_ind_tbl[] =
 static void bta_ag_send_result(tBTA_AG_SCB *p_scb, uint8_t code, char *p_arg,
                                int16_t int_arg)
 {
-    char     buf[BTA_AG_AT_MAX_LEN + 16];
-    char     *p = buf;
+    char buf[BTA_AG_AT_MAX_LEN + 16];
+    char *p = buf;
     uint16_t len;
 
 #if (BTA_AG_RESULT_DEBUG == TRUE)
@@ -359,7 +359,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, uint8_t code, char *p_arg,
     /* copy result code string */
     strlcpy(p, bta_ag_result_tbl[code].p_res, sizeof(buf) - 2);
 #if (BTA_HSP_RESULT_REPLACE_COLON == TRUE)
-    if(p_scb->conn_service == BTA_AG_HSP)
+    if (p_scb->conn_service == BTA_AG_HSP)
     {
         /* If HSP then ":"symbol should be changed as "=" for HSP compatibility */
         switch(code)
