@@ -87,15 +87,15 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // Initiates a BLE connection do device with address |address|. If
   // |is_direct| is set, use direct connect procedure. Return true on success
   //, false otherwise.
-  bool Connect(std::string address, bool is_direct);
+  bool Connect(const std::string& address, bool is_direct);
 
   // Disconnect from previously connected BLE device with address |address|.
   // Return true on success, false otherwise.
-  bool Disconnect(std::string address);
+  bool Disconnect(const std::string& address);
 
   // Sends request to set MTU to |mtu| for device with address |address|.
   // Return true on success, false otherwise.
-  bool SetMtu(std::string address, int mtu);
+  bool SetMtu(const std::string& address, int mtu);
 
   // Initiates a BLE device scan for this client using the given |settings| and
   // |filters|. See the documentation for ScanSettings and ScanFilter for how

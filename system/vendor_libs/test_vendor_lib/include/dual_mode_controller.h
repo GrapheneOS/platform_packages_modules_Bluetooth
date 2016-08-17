@@ -185,11 +185,11 @@ class DualModeController {
   // TODO(dennischeng): Once PostDelayedTask works, get rid of this and only use
   // |RegisterDelayedEventChannel|.
   void RegisterEventChannel(
-      std::function<void(std::unique_ptr<EventPacket>)> send_event);
+      const std::function<void(std::unique_ptr<EventPacket>)>& send_event);
 
   void RegisterDelayedEventChannel(
-      std::function<void(std::unique_ptr<EventPacket>,
-                         std::chrono::milliseconds)> send_event);
+      const std::function<void(std::unique_ptr<EventPacket>,
+                         std::chrono::milliseconds)>& send_event);
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).

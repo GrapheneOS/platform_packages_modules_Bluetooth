@@ -28,7 +28,7 @@ namespace bluetooth {
 class ScanResult {
  public:
   ScanResult(const std::string& device_address,
-             const std::vector<uint8_t> scan_record,
+             const std::vector<uint8_t>& scan_record,
              int rssi);
   ScanResult() = default;
   ~ScanResult() = default;

@@ -57,18 +57,18 @@ class HciTransport {
 
   // Sets the callback that is run when command packets are received.
   void RegisterCommandHandler(
-      std::function<void(std::unique_ptr<CommandPacket>)> callback);
+      const std::function<void(std::unique_ptr<CommandPacket>)>& callback);
 
   // Sets the callback that is to schedule events.
   void RegisterEventScheduler(
-      std::function<void(std::chrono::milliseconds, const TaskCallback&)>
+      const std::function<void(std::chrono::milliseconds, const TaskCallback&)>&
           evtScheduler);
 
   // Sets the callback that is to schedule events.
   void RegisterPeriodicEventScheduler(
-      std::function<void(std::chrono::milliseconds,
+      const std::function<void(std::chrono::milliseconds,
                          std::chrono::milliseconds,
-                         const TaskCallback&)> periodicEvtScheduler);
+                         const TaskCallback&)>& periodicEvtScheduler);
 
   // Posts the event onto |outbound_events_| to be written sometime in the
   // future when the vendor file descriptor is ready for writing.

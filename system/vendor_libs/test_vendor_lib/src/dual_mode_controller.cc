@@ -205,12 +205,12 @@ void DualModeController::HandleCommand(
 }
 
 void DualModeController::RegisterEventChannel(
-    std::function<void(std::unique_ptr<EventPacket>)> callback) {
+    const std::function<void(std::unique_ptr<EventPacket>)>& callback) {
   send_event_ = callback;
 }
 
 void DualModeController::RegisterDelayedEventChannel(
-    std::function<void(std::unique_ptr<EventPacket>, std::chrono::milliseconds)>
+    const std::function<void(std::unique_ptr<EventPacket>, std::chrono::milliseconds)>&
         callback) {
   send_delayed_event_ = callback;
   SetEventDelay(0);
