@@ -39,7 +39,6 @@ typedef struct {
 
 static const size_t canary_size = 8;
 static char canary[canary_size];
-
 static std::unordered_map<void*, allocation_t*> allocations;
 static pthread_mutex_t lock;
 static bool enabled = false;
