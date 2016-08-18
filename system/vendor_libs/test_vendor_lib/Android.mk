@@ -63,7 +63,6 @@ LOCAL_SRC_FILES := \
     src/hci_transport.cc \
     src/packet.cc \
     src/packet_stream.cc \
-    test/async_manager_unittest.cc \
     test/hci_transport_unittest.cc \
     test/packet_stream_unittest.cc
 
