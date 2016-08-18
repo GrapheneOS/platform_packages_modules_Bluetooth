@@ -700,7 +700,7 @@ void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  for (auto arg : args) {
+  for (const auto& arg : args) {
     if (arg == "-d") {
       dump_scan_record = true;
     } else if (arg == "-h") {
@@ -799,7 +799,7 @@ void HandleHelp(IBluetooth* /* bt_iface */, const vector<string>& /* args */) {
 const char kExecuteLong[] = "exec";
 const char kExecuteShort[] = "e";
 
-bool ExecuteCommand(sp<IBluetooth> bt_iface, std::string &command) {
+bool ExecuteCommand(const sp<IBluetooth>& bt_iface, std::string &command) {
   vector<string> args =
       base::SplitString(command, " ", base::TRIM_WHITESPACE,
                         base::SPLIT_WANT_ALL);

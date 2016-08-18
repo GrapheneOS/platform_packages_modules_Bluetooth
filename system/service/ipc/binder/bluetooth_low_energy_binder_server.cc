@@ -132,7 +132,7 @@ Status BluetoothLowEnergyBinderServer::StartScan(
   }
 
   std::vector<bluetooth::ScanFilter> flt;
-  for (auto filter : filters) {
+  for (const auto& filter : filters) {
     flt.push_back(filter);
   }
 
@@ -173,7 +173,7 @@ Status BluetoothLowEnergyBinderServer::StartMultiAdvertising(
   // Create a weak pointer and pass that to the callback to prevent a potential
   // use after free.
   android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
-  auto settings_copy = settings;
+  const auto& settings_copy = settings;
   auto callback = [=](bluetooth::BLEStatus status) {
     auto sp_to_this = weak_ptr_to_this.promote();
     if (!sp_to_this.get()) {

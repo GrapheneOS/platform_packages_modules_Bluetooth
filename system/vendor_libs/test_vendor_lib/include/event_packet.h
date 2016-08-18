@@ -57,7 +57,7 @@ class EventPacket : public Packet {
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.3.12
   static std::unique_ptr<EventPacket> CreateCommandCompleteReadLocalName(
-      const uint8_t status, const std::string local_name);
+      const uint8_t status, const std::string& local_name);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.1
   static std::unique_ptr<EventPacket>

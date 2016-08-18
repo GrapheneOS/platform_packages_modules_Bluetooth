@@ -580,8 +580,8 @@ bool Server::SetAdvertisement(const std::vector<UUID>& ids,
                               const std::vector<uint8_t>& manufacturer_data,
                               bool transmit_name) {
   std::vector<uint8_t> id_data;
-  auto mutable_manufacturer_data = manufacturer_data;
-  auto mutable_service_data = service_data;
+  const auto& mutable_manufacturer_data = manufacturer_data;
+  const auto& mutable_service_data = service_data;
 
   for (const UUID &id : ids) {
     const auto le_id = id.GetFullLittleEndian();
@@ -612,8 +612,8 @@ bool Server::SetScanResponse(const std::vector<UUID>& ids,
                              const std::vector<uint8_t>& manufacturer_data,
                              bool transmit_name) {
   std::vector<uint8_t> id_data;
-  auto mutable_manufacturer_data = manufacturer_data;
-  auto mutable_service_data = service_data;
+  const auto& mutable_manufacturer_data = manufacturer_data;
+  const auto& mutable_service_data = service_data;
 
   for (const UUID &id : ids) {
     const auto le_id = id.GetFullLittleEndian();

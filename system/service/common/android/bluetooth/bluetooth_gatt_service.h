@@ -32,8 +32,8 @@ namespace bluetooth {
 class BluetoothGattService : public Parcelable, public ::bluetooth::Service {
  public:
   BluetoothGattService() = default;
-  BluetoothGattService(const ::bluetooth::Service& service) : ::bluetooth::Service(service){};
-  BluetoothGattService(const BluetoothGattIncludedService& includedService)
+  BluetoothGattService(const ::bluetooth::Service& service) : ::bluetooth::Service(service){};  // NOLINT(implicit)
+  BluetoothGattService(const BluetoothGattIncludedService& includedService)  // NOLINT(implicit)
     : ::bluetooth::Service(includedService.handle(), includedService.primary(),
                            includedService.uuid(), {}, {}) {};
   ~BluetoothGattService() = default;

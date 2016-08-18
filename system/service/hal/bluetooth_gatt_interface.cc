@@ -80,7 +80,7 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
       RegisterClientCallback(g_interface, status, client_if, *app_uuid));
 }
 
-void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) {
+void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) {  // NOLINT(pass-by-value)
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
@@ -288,7 +288,7 @@ void ConnectionCallback(int conn_id, int server_if, int connected,
 void ServiceAddedCallback(
     int status,
     int server_if,
-    vector<btgatt_db_element_t> service) {
+    vector<btgatt_db_element_t> service) {  // NOLINT(pass-by-value)
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " count: " << service.size();
@@ -367,7 +367,7 @@ void RequestWriteDescriptorCallback(int conn_id, int trans_id,
                           bt_bdaddr_t* bda,
                           int attr_handle, int offset,
                           bool need_rsp, bool is_prep,
-                          vector<uint8_t> value) {
+                          vector<uint8_t> value) {  // NOLINT(pass-by-value)
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
@@ -596,7 +596,7 @@ void BluetoothGattInterface::ClientObserver::ScanResultCallback(
     BluetoothGattInterface* /* gatt_iface */,
     const bt_bdaddr_t& /* bda */,
     int /* rssi */,
-    vector<uint8_t>  /* adv_data */) {
+    vector<uint8_t>  /* adv_data */) {  // NOLINT(pass-by-value)
   // Do Nothing.
 }
 
@@ -742,7 +742,7 @@ void BluetoothGattInterface::ServerObserver::ServiceAddedCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* server_if */,
-    vector<btgatt_db_element_t> /* service */) {
+    vector<btgatt_db_element_t> /* service */) {  // NOLINT(pass-by-value)
   // Do nothing.
 }
 
@@ -793,7 +793,7 @@ void BluetoothGattInterface::ServerObserver::RequestWriteCharacteristicCallback(
     int /* offset */,
     bool /* need_rsp */,
     bool /* is_prep */,
-    vector<uint8_t> /* value */) {
+    vector<uint8_t> /* value */) {  // NOLINT(pass-by-value)
   // Do nothing.
 }
 
@@ -806,7 +806,7 @@ void BluetoothGattInterface::ServerObserver::RequestWriteDescriptorCallback(
     int /* offset */,
     bool /* need_rsp */,
     bool /* is_prep */,
-    vector<uint8_t> /* value */) {
+    vector<uint8_t> /* value */) {  // NOLINT(pass-by-value)
   // Do nothing.
 }
 
