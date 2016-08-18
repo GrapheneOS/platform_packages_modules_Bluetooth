@@ -35,16 +35,17 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
 
     virtual bt_status_t RegisterAdvertiser(bt_uuid_t* app_uuid) = 0;
     virtual bt_status_t UnregisterAdvertiser(int advertiser_id) = 0;
-    virtual bt_status_t MultiAdvEnable(
+    virtual bt_status_t MultiAdvSetParameters(
         int advertiser_id, int min_interval, int max_interval, int adv_type,
-        int chnl_map, int tx_power, int timeout_s) = 0;
+        int chnl_map, int tx_power) = 0;
     virtual bt_status_t MultiAdvSetInstData(
         int advertiser_id, bool set_scan_rsp, bool include_name,
         bool incl_txpower, int appearance,
         vector<uint8_t> manufacturer_data,
         vector<uint8_t> service_data,
         vector<uint8_t> service_uuid) = 0;
-    virtual bt_status_t MultiAdvDisable(int advertiser_id) = 0;
+    virtual bt_status_t MultiAdvEnable(
+        int advertiser_id, bool enable, int timeout_s) = 0;
   };
 
   // Handles HAL Bluetooth GATT client API calls for testing. Test code can
@@ -97,9 +98,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // Advertiser callbacks:
   void NotifyRegisterAdvertiserCallback(int status, int advertiser_id,
                                         const bt_uuid_t& app_uuid);
-  void NotifyMultiAdvEnableCallback(int client_if, int status);
+  void NotifyMultiAdvSetParamsCallback(int client_if, int status);
   void NotifyMultiAdvDataCallback(int client_if, int status);
-  void NotifyMultiAdvDisableCallback(int client_if, int status);
+  void NotifyMultiAdvEnableCallback(int client_if, int status, bool enable);
 
   // Client callbacks:
   void NotifyRegisterClientCallback(int status, int client_if,

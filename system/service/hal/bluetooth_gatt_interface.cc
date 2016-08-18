@@ -213,22 +213,13 @@ void RegisterAdvertiserCallback(int status, int advertiser_id, bt_uuid_t* app_uu
       RegisterAdvertiserCallback(g_interface, status, advertiser_id, *app_uuid));
 }
 
-void MultiAdvEnableCallback(int advertiser_id, int status) {
+void MultiAdvSetParamsCallback(int advertiser_id, int status) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
   VERIFY_INTERFACE_OR_RETURN();
 
   FOR_EACH_ADVERTISER_OBSERVER(
-      MultiAdvEnableCallback(g_interface, advertiser_id, status));
-}
-
-void MultiAdvUpdateCallback(int advertiser_id, int status) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
-  VERIFY_INTERFACE_OR_RETURN();
-
-  FOR_EACH_ADVERTISER_OBSERVER(
-      MultiAdvUpdateCallback(g_interface, advertiser_id, status));
+      MultiAdvSetParamsCallback(g_interface, advertiser_id, status));
 }
 
 void MultiAdvDataCallback(int advertiser_id, int status) {
@@ -240,13 +231,16 @@ void MultiAdvDataCallback(int advertiser_id, int status) {
       MultiAdvDataCallback(g_interface, advertiser_id, status));
 }
 
-void MultiAdvDisableCallback(int advertiser_id, int status) {
+void MultiAdvEnableCallback(int advertiser_id, int status, bool enable) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
+  VLOG(2) << __func__
+          << " - status: " << status
+          << " advertiser_id: " << advertiser_id
+          << " enable: " << enable;
   VERIFY_INTERFACE_OR_RETURN();
 
   FOR_EACH_ADVERTISER_OBSERVER(
-      MultiAdvDisableCallback(g_interface, advertiser_id, status));
+      MultiAdvEnableCallback(g_interface, advertiser_id, status, enable));
 }
 
 void GetGattDbCallback(int conn_id, btgatt_db_element_t *db, int size) {
@@ -470,10 +464,9 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
 
 const ble_advertiser_callbacks_t le_advertiser_callbacks = {
     RegisterAdvertiserCallback,
-    MultiAdvEnableCallback,
-    MultiAdvUpdateCallback,
+    MultiAdvSetParamsCallback,
     MultiAdvDataCallback,
-    MultiAdvDisableCallback,
+    MultiAdvEnableCallback
 };
 
 const btgatt_server_callbacks_t gatt_server_callbacks = {
@@ -637,13 +630,7 @@ void BluetoothGattInterface::AdvertiserObserver::RegisterAdvertiserCallback(
   // Do nothing.
 }
 
-void BluetoothGattInterface::AdvertiserObserver::MultiAdvEnableCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* advertiser_id */) {
-  // Do nothing.
-}
-void BluetoothGattInterface::AdvertiserObserver::MultiAdvUpdateCallback(
+void BluetoothGattInterface::AdvertiserObserver::MultiAdvSetParamsCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* advertiser_id */) {
@@ -655,10 +642,12 @@ void BluetoothGattInterface::AdvertiserObserver::MultiAdvDataCallback(
     int /* advertiser_id */) {
   // Do nothing.
 }
-void BluetoothGattInterface::AdvertiserObserver::MultiAdvDisableCallback(
+
+void BluetoothGattInterface::AdvertiserObserver::MultiAdvEnableCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
-    int /* advertiser_id */) {
+    int /* advertiser_id */,
+    bool /* enable */) {
   // Do nothing.
 }
 

@@ -51,11 +51,7 @@ class BluetoothGattInterface {
         int status, int advertiser_id,
         const bt_uuid_t& app_uuid);
 
-    virtual void MultiAdvEnableCallback(
-        BluetoothGattInterface* gatt_iface,
-        int advertiser_id, int status);
-
-    virtual void MultiAdvUpdateCallback(
+    virtual void MultiAdvSetParamsCallback(
         BluetoothGattInterface* gatt_iface,
         int advertiser_id, int status);
 
@@ -63,9 +59,9 @@ class BluetoothGattInterface {
         BluetoothGattInterface* gatt_iface,
         int advertiser_id, int status);
 
-    virtual void MultiAdvDisableCallback(
+    virtual void MultiAdvEnableCallback(
         BluetoothGattInterface* gatt_iface,
-        int advertiser_id, int status);
+        int advertiser_id, int status, bool enable);
   };
 
   // The standard BT-GATT client callback interface. The HAL interface doesn't
