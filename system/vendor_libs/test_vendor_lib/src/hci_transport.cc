@@ -95,20 +95,20 @@ void HciTransport::ReceiveReadyCommand() const {
 }
 
 void HciTransport::RegisterCommandHandler(
-    std::function<void(std::unique_ptr<CommandPacket>)> callback) {
+    const std::function<void(std::unique_ptr<CommandPacket>)>& callback) {
   command_handler_ = callback;
 }
 
 void HciTransport::RegisterEventScheduler(
-    std::function<void(std::chrono::milliseconds, const TaskCallback&)>
+    const std::function<void(std::chrono::milliseconds, const TaskCallback&)>&
         evtScheduler) {
   schedule_event_ = evtScheduler;
 }
 
 void HciTransport::RegisterPeriodicEventScheduler(
-    std::function<void(std::chrono::milliseconds,
+    const std::function<void(std::chrono::milliseconds,
                        std::chrono::milliseconds,
-                       const TaskCallback&)> periodicEvtScheduler) {
+                       const TaskCallback&)>& periodicEvtScheduler) {
   schedule_periodic_event_ = periodicEvtScheduler;
 }
 

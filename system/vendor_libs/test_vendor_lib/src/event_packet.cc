@@ -84,7 +84,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandStatusEvent(
 
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.3.12
 std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteReadLocalName(
-    const uint8_t status, const std::string local_name) {
+    const uint8_t status, const std::string& local_name) {
   std::unique_ptr<EventPacket> evt_ptr =
       EventPacket::CreateCommandCompleteOnlyStatusEvent(HCI_READ_LOCAL_NAME,
                                                         status);

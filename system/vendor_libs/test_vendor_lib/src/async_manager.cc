@@ -348,7 +348,7 @@ class AsyncManager::AsyncTaskManager {
   AsyncTaskManager(const AsyncTaskManager&) = delete;
   AsyncTaskManager& operator=(const AsyncTaskManager&) = delete;
 
-  AsyncTaskId scheduleTask(std::shared_ptr<Task> task) {
+  AsyncTaskId scheduleTask(const std::shared_ptr<Task>& task) {
     AsyncTaskId task_id = kInvalidTaskId;
     {
       std::unique_lock<std::mutex> guard(internal_mutex_);

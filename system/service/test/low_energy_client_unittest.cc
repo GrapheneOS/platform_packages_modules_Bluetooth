@@ -51,8 +51,8 @@ class MockGattHandler
   MOCK_METHOD7(MultiAdvEnable, bt_status_t(int, int, int, int, int, int, int));
   MOCK_METHOD7(
       MultiAdvSetInstDataMock,
-      bt_status_t(bool, bool, bool, int, vector<uint8_t>, vector<uint8_t>,
-                  vector<uint8_t>));
+      bt_status_t(bool, bool, bool, int, const vector<uint8_t>&, const vector<uint8_t>&,
+                  const vector<uint8_t>&));
   MOCK_METHOD1(MultiAdvDisable, bt_status_t(int));
 
   // GMock has macros for up to 10 arguments (11 is really just too many...).
@@ -212,7 +212,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
   }
 
   void RegisterTestClient(
-      const std::function<void(std::unique_ptr<LowEnergyClient> client)>
+      const std::function<void(std::unique_ptr<LowEnergyClient> client)>&
           callback) {
     UUID uuid = UUID::GetRandom();
     auto api_callback = [&](BLEStatus status, const UUID& in_uuid,
@@ -266,7 +266,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     ASSERT_FALSE(le_client_->IsStoppingAdvertising());
   }
 
-  void AdvertiseDataTestHelper(AdvertiseData data, std::function<void(BLEStatus)> callback) {
+  void AdvertiseDataTestHelper(const AdvertiseData& data, const std::function<void(BLEStatus)>& callback) {
     AdvertiseSettings settings;
     EXPECT_TRUE(le_client_->StartAdvertising(
         settings, data, AdvertiseData(), callback));
