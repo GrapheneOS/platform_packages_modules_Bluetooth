@@ -54,7 +54,7 @@ class TestChannelTransport {
   // Sets the callback that fires when data is read in
   // |OnFileCanReadWithoutBlocking|.
   void RegisterCommandHandler(
-      std::function<void(const std::string&, const vector<std::string>&)>
+      const std::function<void(const std::string&, const vector<std::string>&)>&
           callback);
 
   void OnFileCanReadWithoutBlocking(int fd);

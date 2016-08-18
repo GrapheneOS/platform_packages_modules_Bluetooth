@@ -59,7 +59,7 @@ class BluetoothGattInterface {
     virtual void ScanResultCallback(
         BluetoothGattInterface* gatt_iface,
         const bt_bdaddr_t& bda, int rssi,
-        vector<uint8_t> adv_data);
+        vector<uint8_t> adv_data);  // NOLINT(pass-by-value)
 
     virtual void ConnectCallback(
         BluetoothGattInterface* gatt_iface,
@@ -158,7 +158,7 @@ class BluetoothGattInterface {
     virtual void ServiceAddedCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,
-        vector<btgatt_db_element_t> service);
+        vector<btgatt_db_element_t> service);  // NOLINT(pass-by-value)
 
     virtual void ServiceStoppedCallback(
         BluetoothGattInterface* gatt_iface,
@@ -190,7 +190,7 @@ class BluetoothGattInterface {
         const bt_bdaddr_t& bda,
         int attr_handle, int offset,
         bool need_rsp, bool is_prep,
-        vector<uint8_t> value);
+        vector<uint8_t> value);  // NOLINT(pass-by-value)
 
     virtual void RequestWriteDescriptorCallback(
         BluetoothGattInterface* gatt_iface,
@@ -198,7 +198,7 @@ class BluetoothGattInterface {
         const bt_bdaddr_t& bda,
         int attr_handle, int offset,
         bool need_rsp, bool is_prep,
-        vector<uint8_t> value);
+        vector<uint8_t> value);  // NOLINT(pass-by-alue)
 
     virtual void RequestExecWriteCallback(
         BluetoothGattInterface* gatt_iface,

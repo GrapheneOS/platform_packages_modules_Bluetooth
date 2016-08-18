@@ -31,7 +31,7 @@ namespace bluetooth {
 class BluetoothGattCharacteristic : public Parcelable, public ::bluetooth::Characteristic {
  public:
   BluetoothGattCharacteristic() = default;
-  BluetoothGattCharacteristic(const ::bluetooth::Characteristic& characteristic)
+  BluetoothGattCharacteristic(const ::bluetooth::Characteristic& characteristic)  // NOLINT(implicit)
       : ::bluetooth::Characteristic(characteristic){};
   ~BluetoothGattCharacteristic() = default;
 

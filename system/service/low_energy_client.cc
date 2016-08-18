@@ -335,7 +335,7 @@ LowEnergyClient::~LowEnergyClient() {
     StopScan();
 }
 
-bool LowEnergyClient::Connect(std::string address, bool is_direct) {
+bool LowEnergyClient::Connect(const std::string& address, bool is_direct) {
   VLOG(2) << __func__ << "Address: " << address << " is_direct: " << is_direct;
 
   bt_bdaddr_t bda;
@@ -352,7 +352,7 @@ bool LowEnergyClient::Connect(std::string address, bool is_direct) {
   return true;
 }
 
-bool LowEnergyClient::Disconnect(std::string address) {
+bool LowEnergyClient::Disconnect(const std::string& address) {
   VLOG(2) << __func__ << "Address: " << address;
 
   bt_bdaddr_t bda;
@@ -378,7 +378,7 @@ bool LowEnergyClient::Disconnect(std::string address) {
   return true;
 }
 
-bool LowEnergyClient::SetMtu(std::string address, int mtu) {
+bool LowEnergyClient::SetMtu(const std::string& address, int mtu) {
   VLOG(2) << __func__ << "Address: " << address
           << " MTU: " << mtu;
 
