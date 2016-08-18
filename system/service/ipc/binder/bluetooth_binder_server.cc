@@ -189,7 +189,7 @@ android::status_t BluetoothBinderServer::dump(
   VLOG(2) << __func__ << " called with fd " << fd;
   if (args.size() > 0) {
     // TODO (jamuraa): Parse arguments and switch on --proto, --proto_text
-    for (auto x : args) {
+    for (const auto& x : args) {
       VLOG(2) << __func__ << "argument: " << x.string();
     }
   }

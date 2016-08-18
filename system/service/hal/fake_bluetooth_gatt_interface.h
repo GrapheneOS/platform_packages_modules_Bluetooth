@@ -91,7 +91,7 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyDisconnectCallback(int conn_id, int status, int client_if,
                                 const bt_bdaddr_t& bda);
   void NotifyScanResultCallback(const bt_bdaddr_t& bda, int rssi,
-                                vector<uint8_t> adv_data);
+                                const vector<uint8_t>& adv_data);
   void NotifyMultiAdvEnableCallback(int client_if, int status);
   void NotifyMultiAdvDataCallback(int client_if, int status);
   void NotifyMultiAdvDisableCallback(int client_if, int status);
@@ -101,9 +101,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
                                     const bt_uuid_t& app_uuid);
   void NotifyServerConnectionCallback(int conn_id, int server_if,
                                       int connected,
-                                      const bt_bdaddr_t& bda);
+                                      bt_bdaddr_t bda);  // NOLINT(pass-by-value)
   void NotifyServiceAddedCallback(int status, int server_if,
-                                  vector<btgatt_db_element_t> srvc);
+                                  vector<btgatt_db_element_t> srvc);  // NOLINT(pass-by-value)
   void NotifyCharacteristicAddedCallback(int status, int server_if,
                                          const bt_uuid_t& uuid,
                                          int srvc_handle, int char_handle);
@@ -120,11 +120,11 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyRequestWriteCharacteristicCallback(int conn_id, int trans_id,
                                   const bt_bdaddr_t& bda, int attr_handle,
                                   int offset, bool need_rsp, bool is_prep,
-                                  vector<uint8_t> value);
+                                  vector<uint8_t> value);  // NOLINT(pass-by-value)
   void NotifyRequestWriteDescriptorCallback(int conn_id, int trans_id,
                                   const bt_bdaddr_t& bda, int attr_handle,
                                   int offset, bool need_rsp, bool is_prep,
-                                  vector<uint8_t> value);
+                                  vector<uint8_t> value);  // NOLINT(pass-by-value)
   void NotifyRequestExecWriteCallback(int conn_id, int trans_id,
                                       const bt_bdaddr_t& bda, int exec_write);
   void NotifyIndicationSentCallback(int conn_id, int status);

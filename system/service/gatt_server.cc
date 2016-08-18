@@ -147,7 +147,7 @@ bool GattServer::SendResponse(
   }
 
   std::shared_ptr<Connection> connection;
-  for (auto tmp : iter->second) {
+  for (const auto& tmp : iter->second) {
     if (tmp->request_id_to_handle.find(request_id) ==
         tmp->request_id_to_handle.end())
       continue;
@@ -218,7 +218,7 @@ bool GattServer::SendNotification(
 
   // Send the notification/indication on all matching connections.
   int send_count = 0;
-  for (auto conn : conn_iter->second) {
+  for (const auto& conn : conn_iter->second) {
     // Make sure that one isn't already pending for this connection.
     if (pending_indications_.find(conn->conn_id) !=
         pending_indications_.end()) {
