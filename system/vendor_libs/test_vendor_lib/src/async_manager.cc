@@ -188,7 +188,7 @@ class AsyncManager::AsyncFdWatcher {
   int setUpFileDescriptorSet(fd_set& read_fds) {
     // add comm channel to the set
     FD_SET(notification_listen_fd_, &read_fds);
-    int nfds = notification_listen_fd_ + 1;
+    int nfds = notification_listen_fd_;
 
     // add watched FDs to the set
     {
@@ -239,7 +239,7 @@ class AsyncManager::AsyncFdWatcher {
       int nfds = setUpFileDescriptorSet(read_fds);
 
       // wait until there is data available to read on some FD
-      int retval = select(nfds, &read_fds, NULL, NULL, NULL);
+      int retval = select(nfds + 1, &read_fds, NULL, NULL, NULL);
       if (retval <= 0) {  // there was some error or a timeout
         LOG_ERROR(LOG_TAG,
                   "%s: There was an error while waiting for data on the file "
