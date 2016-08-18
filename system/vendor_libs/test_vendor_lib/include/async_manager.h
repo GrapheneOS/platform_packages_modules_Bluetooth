@@ -40,13 +40,15 @@ class AsyncManager {
  public:
   // Starts watching a file descriptor in a separate thread. The
   // on_read_fd_ready_callback() will be asynchronously called when it is
-  // granted
-  // that a call to read() on the FD will not block. No promise is made about
-  // when in the future the callback will be called, in particular, it is
-  // perfectly possible to have it called before this function returns. A return
-  // of 0 means success, an error code is returned otherwise
+  // guaranteed that a call to read() on the FD will not block. No promise is
+  // made about when in the future the callback will be called, in particular,
+  // it is perfectly possible to have it called before this function returns. A
+  // return of 0 means success, an error code is returned otherwise.
   int WatchFdForNonBlockingReads(int file_descriptor,
                                  const ReadCallback& on_read_fd_ready_callback);
+
+  // If the fd was not being watched before the call will be ignored.
+  void StopWatchingFileDescriptor(int file_descriptor);
 
   // Schedules an action to occur in the future. Even if the delay given is not
   // positive the callback will be called asynchronously.
