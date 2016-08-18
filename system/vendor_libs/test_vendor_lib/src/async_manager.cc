@@ -115,6 +115,11 @@ class AsyncManager::AsyncFdWatcher {
     return 0;
   }
 
+  void StopWatchingFileDescriptor(int file_descriptor) {
+    std::unique_lock<std::mutex> guard(internal_mutex_);
+    watched_shared_fds_.erase(file_descriptor);
+  }
+
   AsyncFdWatcher() = default;
 
   ~AsyncFdWatcher() { stopThread(); }
@@ -483,6 +488,10 @@ int AsyncManager::WatchFdForNonBlockingReads(
     int file_descriptor, const ReadCallback& on_read_fd_ready_callback) {
   return fdWatcher_p_->WatchFdForNonBlockingReads(file_descriptor,
                                                   on_read_fd_ready_callback);
+}
+
+void AsyncManager::StopWatchingFileDescriptor(int file_descriptor) {
+  fdWatcher_p_->StopWatchingFileDescriptor(file_descriptor);
 }
 
 AsyncTaskId AsyncManager::ExecAsync(std::chrono::milliseconds delay,
