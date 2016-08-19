@@ -65,6 +65,7 @@ import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.mapclient.MapClientService;
 import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sdp.SdpManager;
@@ -255,7 +256,7 @@ public class AdapterService extends Service {
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
         PbapClientService pbapClientService = PbapClientService.getPbapClientService();
         PanService panService = PanService.getPanService();
-
+        MapClientService mapClientService = MapClientService.getMapClientService();
 
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
@@ -306,6 +307,14 @@ public class AdapterService extends Service {
              getResources().getBoolean(
                  R.bool.config_bluetooth_pan_enable_autoconnect))) {
             panService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+        }
+
+        if ((mapClientService != null) &&
+                ((BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.MAP) ||
+                        BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.MAS) ||
+                        BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.MNS)) &&
+                        (mapClientService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED))) {
+            mapClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
         }
     }
 
