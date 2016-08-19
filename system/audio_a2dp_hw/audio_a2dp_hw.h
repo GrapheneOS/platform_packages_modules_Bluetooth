@@ -111,16 +111,15 @@ typedef enum {
 **  Functions
 ******************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*****************************************************************************
-**
-** Function
-**
-** Description
-**
-** Returns
-**
-******************************************************************************/
+// Returns a string representation of |event|.
+extern const char* audio_a2dp_hw_dump_ctrl_event(tA2DP_CTRL_CMD event);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* A2DP_AUDIO_HW_H */
-

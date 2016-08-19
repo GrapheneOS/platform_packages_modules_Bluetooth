@@ -61,8 +61,6 @@
 // set WRITE_POLL_MS to 0 for blocking sockets, nonzero for polled non-blocking sockets
 #define WRITE_POLL_MS 20
 
-#define CASE_RETURN_STR(const) case const: return #const;
-
 #define FNLOG()             LOG_VERBOSE(LOG_TAG, "%s", __func__);
 #define DEBUG(fmt, ...)     LOG_VERBOSE(LOG_TAG, "%s: " fmt,__func__, ## __VA_ARGS__)
 #define INFO(fmt, ...)      LOG_INFO(LOG_TAG, "%s: " fmt,__func__, ## __VA_ARGS__)
@@ -139,27 +137,11 @@ static size_t out_get_buffer_size(const struct audio_stream *stream);
 /*****************************************************************************
 **  Functions
 ******************************************************************************/
-/* Function used only in debug mode */
-static const char* dump_a2dp_ctrl_event(char event) __attribute__ ((unused));
 static void a2dp_open_ctrl_path(struct a2dp_stream_common *common);
 
 /*****************************************************************************
 **   Miscellaneous helper functions
 ******************************************************************************/
-
-static const char* dump_a2dp_ctrl_event(char event)
-{
-    switch(event)
-    {
-        CASE_RETURN_STR(A2DP_CTRL_CMD_NONE)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_CHECK_READY)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_START)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_STOP)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_SUSPEND)
-        default:
-            return "UNKNOWN MSG ID";
-    }
-}
 
 /* logs timestamp with microsec precision
    pprev is optional in case a dedicated diff is required */
@@ -360,11 +342,11 @@ static int a2dp_ctrl_receive(struct a2dp_stream_common *common, void* buffer, in
     return ret;
 }
 
-static int a2dp_command(struct a2dp_stream_common *common, char cmd)
+static int a2dp_command(struct a2dp_stream_common *common, tA2DP_CTRL_CMD cmd)
 {
     char ack;
 
-    DEBUG("A2DP COMMAND %s", dump_a2dp_ctrl_event(cmd));
+    DEBUG("A2DP COMMAND %s", audio_a2dp_hw_dump_ctrl_event(cmd));
 
     if (common->ctrl_fd == AUDIO_SKT_DISCONNECTED) {
         INFO("recovering from previous error");
@@ -388,16 +370,18 @@ static int a2dp_command(struct a2dp_stream_common *common, char cmd)
 
     /* wait for ack byte */
     if (a2dp_ctrl_receive(common, &ack, 1) < 0) {
-        ERROR("A2DP COMMAND %s: no ACK", dump_a2dp_ctrl_event(cmd));
+        ERROR("A2DP COMMAND %s: no ACK", audio_a2dp_hw_dump_ctrl_event(cmd));
         return -1;
     }
 
-    DEBUG("A2DP COMMAND %s DONE STATUS %d", dump_a2dp_ctrl_event(cmd), ack);
+    DEBUG("A2DP COMMAND %s DONE STATUS %d", audio_a2dp_hw_dump_ctrl_event(cmd),
+          ack);
 
     if (ack == A2DP_CTRL_ACK_INCALL_FAILURE)
         return ack;
     if (ack != A2DP_CTRL_ACK_SUCCESS) {
-        ERROR("A2DP COMMAND %s error %d", dump_a2dp_ctrl_event(cmd), ack);
+        ERROR("A2DP COMMAND %s error %d", audio_a2dp_hw_dump_ctrl_event(cmd),
+              ack);
         return -1;
     }
 
