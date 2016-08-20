@@ -20,6 +20,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Get the OS boot time in milliseconds.
 //
 // NOTE: The return value will rollover every 49.7 days,
@@ -28,3 +32,10 @@
 // as (t2_u32 - t1_u32 < delta_u32) should work as expected as long
 // as there is no multiple rollover between t2_u32 and t1_u32.
 uint32_t time_get_os_boottime_ms(void);
+
+// Get the OS boot time in microseconds.
+uint64_t time_get_os_boottime_us(void);
+
+#ifdef __cplusplus
+}
+#endif
