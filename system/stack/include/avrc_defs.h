@@ -1379,6 +1379,14 @@ typedef struct
     uint8_t     pdu;
     tAVRC_STS   status;
     uint8_t     opcode;         /* Op Code (copied from avrc_cmd.opcode by AVRC_BldResponse user. invalid one to generate according to pdu) */
+    uint8_t     target_pdu;
+} tAVRC_NEXT_RSP;
+
+typedef struct
+{
+    uint8_t     pdu;
+    tAVRC_STS   status;
+    uint8_t     opcode;         /* Op Code (copied from avrc_cmd.opcode by AVRC_BldResponse user. invalid one to generate according to pdu) */
 } tAVRC_RSP;
 
 typedef union
@@ -1397,8 +1405,8 @@ typedef union
     tAVRC_GET_ELEM_ATTRS_RSP        get_elem_attrs;         /* GetElemAttrs */
     tAVRC_GET_PLAY_STATUS_RSP       get_play_status;        /* GetPlayStatus */
     tAVRC_REG_NOTIF_RSP             reg_notif;              /* RegNotify */
-    tAVRC_RSP                       continu;                /* Continue */
-    tAVRC_RSP                       abort;                  /* Abort */
+    tAVRC_NEXT_RSP                  continu;                /* Continue */
+    tAVRC_NEXT_RSP                  abort;                  /* Abort */
 
     tAVRC_RSP                       addr_player;            /* SetAddrPlayer */
     tAVRC_SET_VOLUME_RSP            volume;                 /* SetAbsVolume */
