@@ -40,9 +40,17 @@ typedef void (*fixed_queue_cb)(fixed_queue_t *queue, void *context);
 // the returned queue with |fixed_queue_free|.
 fixed_queue_t *fixed_queue_new(size_t capacity);
 
+// Frees a queue and (optionally) the enqueued elements.
+// |queue| is the queue to free. If the |free_cb| callback is not null,
+// it is called on each queue element to free it.
 // Freeing a queue that is currently in use (i.e. has waiters
 // blocked on it) results in undefined behaviour.
 void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb);
+
+// Flushes a queue and (optionally) frees the enqueued elements.
+// |queue| is the queue to flush. If the |free_cb| callback is not null,
+// it is called on each queue element to free it.
+void fixed_queue_flush(fixed_queue_t *queue, fixed_queue_free_cb free_cb);
 
 // Returns a value indicating whether the given |queue| is empty. If |queue|
 // is NULL, the return value is true.
