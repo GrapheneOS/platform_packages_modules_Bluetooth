@@ -40,8 +40,7 @@ extern "C"
 **
 ** Description      This function sends an event to the AV indicating that
 **                  the phone has audio stream data ready to send and AV
-**                  should call bta_av_co_audio_src_data_path() or
-**                  bta_av_co_video_src_data_path().
+**                  should call bta_av_co_audio_src_data_path().
 **
 ** Returns          void
 **
@@ -53,7 +52,7 @@ extern void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl);
 ** Function         bta_av_ci_setconfig
 **
 ** Description      This function must be called in response to function
-**                  bta_av_co_audio_setconfig() or bta_av_co_video_setconfig.
+**                  bta_av_co_audio_setconfig().
 **                  Parameter err_code is set to an AVDTP status value;
 **                  AVDT_SUCCESS if the codec configuration is ok,
 **                  otherwise error.

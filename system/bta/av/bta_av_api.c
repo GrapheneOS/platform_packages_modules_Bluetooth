@@ -274,28 +274,6 @@ void BTA_AvOffloadStartRsp(tBTA_AV_HNDL hndl, tBTA_AV_STATUS status)
 
 /*******************************************************************************
 **
-** Function         BTA_AvEnable_Sink
-**
-** Description      Enable/Disable A2DP Sink..
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_AvEnable_Sink(int enable)
-{
-#if (BTA_AV_SINK_INCLUDED == TRUE)
-    BT_HDR *p_buf =
-        (BT_HDR *)osi_malloc(sizeof(BT_HDR));
-
-    p_buf->event = BTA_AV_API_SINK_ENABLE_EVT;
-    p_buf->layer_specific = enable;
-
-    bta_sys_sendmsg(p_buf);
-#endif
-}
-
-/*******************************************************************************
-**
 ** Function         BTA_AvStop
 **
 ** Description      Stop audio/video stream data transfer.
