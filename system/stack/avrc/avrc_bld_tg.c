@@ -672,13 +672,15 @@ static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-static tAVRC_STS avrc_bld_next_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
+static tAVRC_STS avrc_bld_next_rsp (tAVRC_NEXT_RSP *p_rsp, BT_HDR *p_pkt)
 {
-    UNUSED(p_rsp);
-    UNUSED(p_pkt);
+    uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
+    uint8_t *p_data = (p_start + 2); /* Skip the pdu and reserved bits */
 
-    /* nothing to be added. */
-    AVRC_TRACE_API("%s", __func__);
+    UINT16_TO_BE_STREAM(p_data, 0x0001); /* only one attribute to be sent */
+    UINT8_TO_BE_STREAM(p_data, p_rsp->target_pdu);
+
+    AVRC_TRACE_API("%s: target_pdu: 0x%02x", __func__, p_rsp->target_pdu);
     return AVRC_STS_NO_ERROR;
 }
 

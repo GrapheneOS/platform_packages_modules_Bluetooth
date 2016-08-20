@@ -1466,6 +1466,41 @@ static void btif_rc_upstreams_evt(uint16_t event, tAVRC_COMMAND *pavrc_cmd, uint
             }
         }
         break;
+
+        case AVRC_PDU_REQUEST_CONTINUATION_RSP:
+        {
+            BTIF_TRACE_EVENT("%s() REQUEST CONTINUATION: target_pdu: 0x%02d",
+                             __func__, pavrc_cmd->continu.target_pdu);
+            tAVRC_RESPONSE avrc_rsp;
+            if (btif_rc_cb.rc_connected == TRUE)
+            {
+                memset(&(avrc_rsp.continu), 0, sizeof(tAVRC_NEXT_RSP));
+                avrc_rsp.continu.opcode = opcode_from_pdu(AVRC_PDU_REQUEST_CONTINUATION_RSP);
+                avrc_rsp.continu.pdu = AVRC_PDU_REQUEST_CONTINUATION_RSP;
+                avrc_rsp.continu.status = AVRC_STS_NO_ERROR;
+                avrc_rsp.continu.target_pdu = pavrc_cmd->continu.target_pdu;
+                send_metamsg_rsp(btif_rc_cb.rc_handle, label, ctype, &avrc_rsp);
+            }
+        }
+        break;
+
+        case AVRC_PDU_ABORT_CONTINUATION_RSP:
+        {
+            BTIF_TRACE_EVENT("%s() ABORT CONTINUATION: target_pdu: 0x%02d",
+                             __func__, pavrc_cmd->abort.target_pdu);
+            tAVRC_RESPONSE avrc_rsp;
+            if (btif_rc_cb.rc_connected == TRUE)
+            {
+                memset(&(avrc_rsp.abort), 0, sizeof(tAVRC_NEXT_RSP));
+                avrc_rsp.abort.opcode = opcode_from_pdu(AVRC_PDU_ABORT_CONTINUATION_RSP);
+                avrc_rsp.abort.pdu = AVRC_PDU_ABORT_CONTINUATION_RSP;
+                avrc_rsp.abort.status = AVRC_STS_NO_ERROR;
+                avrc_rsp.abort.target_pdu = pavrc_cmd->continu.target_pdu;
+                send_metamsg_rsp(btif_rc_cb.rc_handle, label, ctype, &avrc_rsp);
+            }
+        }
+        break;
+
         default:
         {
         send_reject_response (btif_rc_cb.rc_handle, label, pavrc_cmd->pdu,
