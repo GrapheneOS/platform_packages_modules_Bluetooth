@@ -19,6 +19,8 @@ static const char *DUMMY_DATA_STRING2 = "Dummy data string2";
 static const char *DUMMY_DATA_STRING3 = "Dummy data string3";
 static future_t *received_message_future = NULL;
 
+static int test_queue_entry_free_counter = 0;
+
 // Test whether a file descriptor |fd| is readable.
 // Return true if the file descriptor is readable, otherwise false.
 static bool is_fd_readable(int fd)
@@ -44,6 +46,14 @@ fixed_queue_ready(fixed_queue_t *queue, UNUSED_ATTR void *context)
   void *msg = fixed_queue_try_dequeue(queue);
   EXPECT_TRUE(msg != NULL);
   future_ready(received_message_future, msg);
+}
+
+static void
+test_queue_entry_free_cb(void *data)
+{
+  // Don't free the data, because we are testing only whether the callback
+  // is called.
+  test_queue_entry_free_counter++;
 }
 
 class FixedQueueTest : public AllocationTestHarness {};
@@ -74,6 +84,48 @@ TEST_F(FixedQueueTest, test_fixed_queue_new_free) {
   // Test free-ing a NULL queue
   fixed_queue_free(NULL, NULL);
   fixed_queue_free(NULL, osi_free);
+}
+
+TEST_F(FixedQueueTest, test_fixed_queue_flush) {
+  fixed_queue_t *queue;
+
+  // Test a corner case: queue of size 0 and no callback to free entries
+  queue = fixed_queue_new(0);
+  EXPECT_TRUE(queue != NULL);
+  fixed_queue_flush(queue, NULL);
+  EXPECT_TRUE(fixed_queue_is_empty(queue));
+  fixed_queue_free(queue, osi_free);
+
+  // Test a corner case: queue of size 0 and a callback to free entries
+  queue = fixed_queue_new(0);
+  EXPECT_TRUE(queue != NULL);
+  fixed_queue_flush(queue, osi_free);
+  EXPECT_TRUE(fixed_queue_is_empty(queue));
+  fixed_queue_free(queue, osi_free);
+
+  // Test a queue of some size and no callback to free entries
+  queue = fixed_queue_new(TEST_QUEUE_SIZE);
+  EXPECT_TRUE(queue != NULL);
+  fixed_queue_try_enqueue(queue, (void *)DUMMY_DATA_STRING1);
+  fixed_queue_try_enqueue(queue, (void *)DUMMY_DATA_STRING2);
+  fixed_queue_try_enqueue(queue, (void *)DUMMY_DATA_STRING3);
+  EXPECT_FALSE(fixed_queue_is_empty(queue));
+  fixed_queue_flush(queue, NULL);
+  EXPECT_TRUE(fixed_queue_is_empty(queue));
+  fixed_queue_free(queue, osi_free);
+
+  // Test a queue of some size and a callback to free entries
+  test_queue_entry_free_counter = 0;
+  queue = fixed_queue_new(TEST_QUEUE_SIZE);
+  EXPECT_TRUE(queue != NULL);
+  fixed_queue_try_enqueue(queue, (void *)DUMMY_DATA_STRING1);
+  fixed_queue_try_enqueue(queue, (void *)DUMMY_DATA_STRING2);
+  fixed_queue_try_enqueue(queue, (void *)DUMMY_DATA_STRING3);
+  EXPECT_FALSE(fixed_queue_is_empty(queue));
+  fixed_queue_flush(queue, test_queue_entry_free_cb);
+  EXPECT_TRUE(test_queue_entry_free_counter == 3);
+  EXPECT_TRUE(fixed_queue_is_empty(queue));
+  fixed_queue_free(queue, osi_free);
 }
 
 TEST_F(FixedQueueTest, test_fixed_queue_is_empty) {
