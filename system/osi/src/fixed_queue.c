@@ -83,6 +83,18 @@ void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb) {
   osi_free(queue);
 }
 
+void fixed_queue_flush(fixed_queue_t *queue, fixed_queue_free_cb free_cb) {
+  if (!queue)
+    return;
+
+  while (!fixed_queue_is_empty(queue)) {
+    void *data = fixed_queue_try_dequeue(queue);
+    if (free_cb != NULL) {
+      free_cb(data);
+    }
+  }
+}
+
 bool fixed_queue_is_empty(fixed_queue_t *queue) {
   if (queue == NULL)
     return true;
