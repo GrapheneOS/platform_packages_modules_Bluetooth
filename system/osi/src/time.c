@@ -23,7 +23,13 @@
 #include "osi/include/time.h"
 
 uint32_t time_get_os_boottime_ms(void) {
-  struct timespec timespec;
-  clock_gettime(CLOCK_BOOTTIME, &timespec);
-  return (timespec.tv_sec * 1000) + (timespec.tv_nsec / 1000000);
+  return (uint32_t) (time_get_os_boottime_us() / 1000);
+}
+
+uint64_t time_get_os_boottime_us(void) {
+  struct timespec ts_now;
+  clock_gettime(CLOCK_BOOTTIME, &ts_now);
+
+  return ((uint64_t)ts_now.tv_sec * 1000000L) +
+    ((uint64_t)ts_now.tv_nsec / 1000);
 }
