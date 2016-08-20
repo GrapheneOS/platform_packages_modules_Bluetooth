@@ -322,14 +322,23 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
         break;
 
     case AVRC_PDU_SET_ABSOLUTE_VOLUME:
-    {
-        if(len!=1)
+        if (len != 1)
             status = AVRC_STS_INTERNAL_ERR;
         break;
-    }
 
-    /* case AVRC_PDU_REQUEST_CONTINUATION_RSP: 0x40 */
-    /* case AVRC_PDU_ABORT_CONTINUATION_RSP:   0x41 */
+    case AVRC_PDU_REQUEST_CONTINUATION_RSP: /* 0x40 */
+        if (len != 1) {
+            status = AVRC_STS_INTERNAL_ERR;
+        }
+        BE_STREAM_TO_UINT8(p_result->continu.target_pdu, p);
+        break;
+
+    case AVRC_PDU_ABORT_CONTINUATION_RSP:   /* 0x41 */
+        if (len != 1){
+            status = AVRC_STS_INTERNAL_ERR;
+        }
+        BE_STREAM_TO_UINT8(p_result->abort.target_pdu, p);
+        break;
 
     default:
         status = AVRC_STS_BAD_CMD;
