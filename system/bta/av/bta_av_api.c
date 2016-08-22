@@ -27,7 +27,6 @@
 #include <assert.h>
 
 #include "bt_target.h"
-#if (BTA_AV_INCLUDED == TRUE)
 
 #include "bta_api.h"
 #include "bta_sys.h"
@@ -614,5 +613,3 @@ void BTA_AvMetaCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CMD cmd_code, BT_HD
 
     bta_sys_sendmsg(p_buf);
 }
-
-#endif /* BTA_AV_INCLUDED */
