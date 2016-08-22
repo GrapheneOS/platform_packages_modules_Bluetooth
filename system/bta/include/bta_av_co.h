@@ -18,7 +18,7 @@
 
 /******************************************************************************
  *
- *  This is the interface file for advanced audio/video call-out functions.
+ *  This is the interface file for advanced audio call-out functions.
  *
  ******************************************************************************/
 #ifndef BTA_AV_CO_H
@@ -108,21 +108,6 @@ extern void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
 
 /*******************************************************************************
 **
-** Function         bta_av_co_video_disc_res
-**
-** Description      This callout function is executed by AV to report the
-**                  number of stream end points (SEP) were found during the
-**                  AVDT stream discovery process.
-**
-**
-** Returns          void.
-**
-*******************************************************************************/
-extern void bta_av_co_video_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
-                                     uint8_t num_snk, BD_ADDR addr);
-
-/*******************************************************************************
-**
 ** Function         bta_av_co_audio_getconfig
 **
 ** Description      This callout function is executed by AV to retrieve the
@@ -134,22 +119,6 @@ extern void bta_av_co_video_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
 **
 *******************************************************************************/
 extern uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                       uint8_t *p_codec_info, uint8_t *p_sep_info_idx, uint8_t seid,
-                                       uint8_t *p_num_protect, uint8_t *p_protect_info);
-
-/*******************************************************************************
-**
-** Function         bta_av_co_video_getconfig
-**
-** Description      This callout function is executed by AV to retrieve the
-**                  desired codec and content protection configuration for the
-**                  video stream.
-**
-**
-** Returns          Stream codec and content protection configuration info.
-**
-*******************************************************************************/
-extern uint8_t bta_av_co_video_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
                                        uint8_t *p_codec_info, uint8_t *p_sep_info_idx, uint8_t seid,
                                        uint8_t *p_num_protect, uint8_t *p_protect_info);
 
@@ -170,21 +139,6 @@ extern void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_typ
 
 /*******************************************************************************
 **
-** Function         bta_av_co_video_setconfig
-**
-** Description      This callout function is executed by AV to set the
-**                  codec and content protection configuration of the video stream.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                      uint8_t *p_codec_info, uint8_t seid, BD_ADDR addr,
-                                      uint8_t num_protect, uint8_t *p_protect_info);
-
-/*******************************************************************************
-**
 ** Function         bta_av_co_audio_open
 **
 ** Description      This function is called by AV when the audio stream connection
@@ -197,21 +151,6 @@ extern void bta_av_co_video_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_typ
 **
 *******************************************************************************/
 extern void bta_av_co_audio_open(tBTA_AV_HNDL hndl,
-                                 tBTA_AV_CODEC codec_type, uint8_t *p_codec_info,
-                                 uint16_t mtu);
-
-/*******************************************************************************
-**
-** Function         bta_av_co_video_open
-**
-** Description      This function is called by AV when the video stream connection
-**                  is opened.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_open(tBTA_AV_HNDL hndl,
                                  tBTA_AV_CODEC codec_type, uint8_t *p_codec_info,
                                  uint16_t mtu);
 
@@ -234,20 +173,6 @@ extern void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 
 /*******************************************************************************
 **
-** Function         bta_av_co_video_close
-**
-** Description      This function is called by AV when the video stream connection
-**                  is closed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                  uint16_t mtu);
-
-/*******************************************************************************
-**
 ** Function         bta_av_co_audio_start
 **
 ** Description      This function is called by AV when the audio streaming data
@@ -258,20 +183,6 @@ extern void bta_av_co_video_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 **
 *******************************************************************************/
 extern void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                  uint8_t *p_codec_info, bool *p_no_rtp_hdr);
-
-/*******************************************************************************
-**
-** Function         bta_av_co_video_start
-**
-** Description      This function is called by AV when the video streaming data
-**                  transfer is started.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
                                   uint8_t *p_codec_info, bool *p_no_rtp_hdr);
 
 /*******************************************************************************
@@ -289,19 +200,6 @@ extern void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
 
 /*******************************************************************************
 **
-** Function         bta_av_co_video_stop
-**
-** Description      This function is called by AV when the video streaming data
-**                  transfer is stopped.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
-
-/*******************************************************************************
-**
 ** Function         bta_av_co_audio_src_data_path
 **
 ** Description      This function is called to get the next data buffer from
@@ -312,20 +210,6 @@ extern void bta_av_co_video_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
 **
 *******************************************************************************/
 extern void * bta_av_co_audio_src_data_path(tBTA_AV_CODEC codec_type,
-                                            uint32_t *p_len, uint32_t *p_timestamp);
-
-/*******************************************************************************
-**
-** Function         bta_av_co_video_src_data_path
-**
-** Description      This function is called to get the next data buffer from
-**                  the video codec.
-**
-** Returns          NULL if data is not ready.
-**                  Otherwise, a video data buffer (uint8_t*).
-**
-*******************************************************************************/
-extern void * bta_av_co_video_src_data_path(tBTA_AV_CODEC codec_type,
                                             uint32_t *p_len, uint32_t *p_timestamp);
 
 /*******************************************************************************
@@ -344,30 +228,6 @@ extern void bta_av_co_audio_drop(tBTA_AV_HNDL hndl);
 
 /*******************************************************************************
 **
-** Function         bta_av_co_video_report_conn
-**
-** Description      This function is called by AV when the reporting channel is
-**                  opened (open=true) or closed (open=false).
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_report_conn (bool open, uint8_t avdt_handle);
-
-/*******************************************************************************
-**
-** Function         bta_av_co_video_report_rr
-**
-** Description      This function is called by AV when a Receiver Report is
-**                  received
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_report_rr (uint32_t packet_lost);
-
-/*******************************************************************************
-**
 ** Function         bta_av_co_audio_delay
 **
 ** Description      This function is called by AV when the audio stream connection
@@ -378,19 +238,6 @@ extern void bta_av_co_video_report_rr (uint32_t packet_lost);
 **
 *******************************************************************************/
 extern void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay);
-
-/*******************************************************************************
-**
-** Function         bta_av_co_video_delay
-**
-** Description      This function is called by AV when the video stream connection
-**                  needs to send the initial delay report to the connected SRC.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_co_video_delay(tBTA_AV_HNDL hndl, uint16_t delay);
 
 #ifdef __cplusplus
 }

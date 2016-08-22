@@ -449,35 +449,6 @@ extern void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback);
 *******************************************************************************/
 extern void AVDT_Deregister(void);
 
-
-/*******************************************************************************
-**
-** Function         AVDT_SINK_Activate
-**
-** Description      Activate SEP of A2DP Sink. In Use parameter is adjusted.
-**                  In Use will be made false in case of activation. A2DP SRC
-**                  will receive in_use as false and can open A2DP Sink
-**                  connection
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void AVDT_SINK_Activate(void);
-
-/*******************************************************************************
-**
-** Function         AVDT_SINK_Deactivate
-**
-** Description      Deactivate SEP of A2DP Sink. In Use parameter is adjusted.
-**                  In Use will be made true in case of activation. A2DP SRC
-**                  will receive in_use as true and will not open A2DP Sink
-**                  connection
-**
-** Returns          void.
-**
-*******************************************************************************/
-extern void AVDT_SINK_Deactivate(void);
-
 /*******************************************************************************
 **
 ** Function         AVDT_AbortReq
