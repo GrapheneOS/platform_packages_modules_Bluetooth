@@ -6,9 +6,10 @@ include $(CLEAR_VARS)
 LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_SRC_FILES := \
-	audio_a2dp_hw.cc
+	audio_a2dp_hw.cc \
+	audio_a2dp_hw_utils.cc
 
-LOCAL_C_INCLUDES += \
+LOCAL_C_INCLUDES := \
 	. \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../utils/include
