@@ -166,31 +166,6 @@ bool btif_av_is_connected(void);
 
 bool btif_av_is_peer_edr(void);
 
-#ifdef USE_AUDIO_TRACK
-/*******************************************************************************
-**
-** Function         audio_focus_status
-**
-** Description      Update Audio Focus State
-**
-** Returns          None
-**
-*******************************************************************************/
-void audio_focus_status(int state);
-
-/*******************************************************************************
-**
-** Function         btif_queue_focus_request
-**
-** Description      This is used to move context to btif and
-**                  queue audio_focus_request
-**
-** Returns          none
-**
-*******************************************************************************/
-void btif_queue_focus_request(void);
-#endif
-
 /******************************************************************************
 **
 ** Function         btif_av_clear_remote_suspend_flag

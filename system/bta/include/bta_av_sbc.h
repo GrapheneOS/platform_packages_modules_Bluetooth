@@ -168,24 +168,6 @@ extern int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
 
 /*******************************************************************************
 **
-** Function         bta_av_sbc_cfg_for_cap
-**
-** Description      Determine the preferred SBC codec configuration for the
-**                  given codec capabilities.  The function is passed the
-**                  preferred codec configuration and the peer codec
-**                  capabilities for the stream.  The function attempts to
-**                  match the preferred capabilities with the configuration
-**                  as best it can.  The resulting codec configuration is
-**                  returned in the same memory used for the capabilities.
-**
-** Returns          0 if ok, nonzero if error.
-**                  Codec configuration in p_cap.
-**
-*******************************************************************************/
-extern uint8_t bta_av_sbc_cfg_for_cap(uint8_t *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p_pref);
-
-/*******************************************************************************
-**
 ** Function         bta_av_sbc_cfg_in_cap
 **
 ** Description      This function checks whether an SBC codec configuration
