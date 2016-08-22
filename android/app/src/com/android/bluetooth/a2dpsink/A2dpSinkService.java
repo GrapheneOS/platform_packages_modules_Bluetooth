@@ -129,6 +129,10 @@ public class A2dpSinkService extends ProfileService {
             return false;
         }
 
+        if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+            return false;
+        }
+
         mStateMachine.sendMessage(A2dpSinkStateMachine.CONNECT, device);
         return true;
     }

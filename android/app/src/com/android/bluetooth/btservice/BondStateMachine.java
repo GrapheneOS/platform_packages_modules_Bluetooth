@@ -23,6 +23,9 @@ import android.bluetooth.BluetoothDevice;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.pbapclient.PbapClientService;
 
 import android.bluetooth.OobData;
 import android.content.Intent;
@@ -445,13 +448,22 @@ final class BondStateMachine extends StateMachine {
         HidService hidService = HidService.getHidService();
         A2dpService a2dpService = A2dpService.getA2dpService();
         HeadsetService headsetService = HeadsetService.getHeadsetService();
+        HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
+        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        PbapClientService pbapClientService = PbapClientService.getPbapClientService();
 
         if (hidService != null)
-            hidService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
-        if(a2dpService != null)
-            a2dpService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
-        if(headsetService != null)
-            headsetService.setPriority(device,BluetoothProfile.PRIORITY_UNDEFINED);
+            hidService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if (a2dpService != null)
+            a2dpService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if (headsetService != null)
+            headsetService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if (headsetClientService != null)
+            headsetClientService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if (a2dpSinkService != null)
+            a2dpSinkService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+        if (pbapClientService != null)
+            pbapClientService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
 
         // Clear Absolute Volume black list
         if(a2dpService != null)
