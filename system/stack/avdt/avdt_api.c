@@ -142,66 +142,6 @@ void AVDT_Deregister(void)
     L2CA_Deregister(AVDT_PSM);
 }
 
-/*******************************************************************************
-**
-** Function         AVDT_SINK_Activate
-**
-** Description      Activate SEP of A2DP Sink. In Use parameter is adjusted.
-**                  In Use will be made false in case of activation. A2DP SRC
-**                  will receive in_use as false and can open A2DP Sink
-**                  connection
-**
-** Returns          void.
-**
-*******************************************************************************/
-void AVDT_SINK_Activate()
-{
-    tAVDT_SCB           *p_scb = &avdt_cb.scb[0];
-    int                 i;
-    AVDT_TRACE_DEBUG("AVDT_SINK_Activate");
-    /* for all allocated scbs */
-    for (i = 0; i < AVDT_NUM_SEPS; i++, p_scb++)
-    {
-        if ((p_scb->allocated) && (p_scb->cs.tsep == AVDT_TSEP_SNK))
-        {
-            AVDT_TRACE_DEBUG("AVDT_SINK_Activate found scb");
-            /* update in_use */
-            p_scb->in_use = false;
-            break;
-        }
-    }
-}
-
-/*******************************************************************************
-**
-** Function         AVDT_SINK_Deactivate
-**
-** Description      Deactivate SEP of A2DP Sink. In Use parameter is adjusted.
-**                  In Use will be made true in case of activation. A2DP SRC
-**                  will receive in_use as true and will not open A2DP Sink
-**                  connection
-**
-** Returns          void.
-**
-*******************************************************************************/
-void AVDT_SINK_Deactivate()
-{
-    tAVDT_SCB           *p_scb = &avdt_cb.scb[0];
-    int                 i;
-    AVDT_TRACE_DEBUG("AVDT_SINK_Deactivate");
-    /* for all allocated scbs */
-    for (i = 0; i < AVDT_NUM_SEPS; i++, p_scb++)
-    {
-        if ((p_scb->allocated) && (p_scb->cs.tsep == AVDT_TSEP_SNK))
-        {
-            AVDT_TRACE_DEBUG("AVDT_SINK_Deactivate, found scb");
-            /* update in_use */
-            p_scb->in_use = true;
-            break;
-        }
-    }
-}
-
 void AVDT_AbortReq(uint8_t handle)
 {
     AVDT_TRACE_ERROR("%s", __func__);

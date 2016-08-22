@@ -621,17 +621,6 @@ void BTA_AvDisconnect(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
-** Function         BTA_AvEnable_Sink
-**
-** Description      Enable/Disable A2DP Sink.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_AvEnable_Sink(int enable);
-
-/*******************************************************************************
-**
 ** Function         BTA_AvStart
 **
 ** Description      Start audio/video stream data transfer.
