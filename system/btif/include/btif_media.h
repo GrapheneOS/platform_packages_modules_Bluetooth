@@ -74,7 +74,6 @@ typedef struct
         uint16_t MtuSize; /* peer mtu size */
 } tBTIF_MEDIA_INIT_AUDIO;
 
-#if (BTA_AV_INCLUDED == TRUE)
 /* tBTIF_MEDIA_UPDATE_AUDIO msg structure */
 typedef struct
 {
@@ -97,7 +96,6 @@ typedef struct
         BT_HDR hdr;
         uint8_t codec_info[AVDT_CODEC_SIZE];
 } tBTIF_MEDIA_SINK_CFG_UPDATE;
-#endif
 
 #ifdef USE_AUDIO_TRACK
 typedef enum {
@@ -147,9 +145,7 @@ extern bool btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO * p_msg);
  ** Returns          true is success
  **
  *******************************************************************************/
-#if (BTA_AV_INCLUDED == TRUE)
 extern bool btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO * p_msg);
-#endif
 
 /*******************************************************************************
  **
@@ -241,7 +237,6 @@ extern void btif_media_aa_writebuf(BT_HDR *pBuf, uint32_t timestamp, uint16_t se
 extern bool btif_media_av_writebuf(uint8_t *p_media, uint32_t media_len,
                                      uint32_t timestamp, uint16_t seq_num);
 
-#if (BTA_AV_INCLUDED == TRUE)
 /*******************************************************************************
  **
  ** Function         btif_media_task_audio_feeding_init_req
@@ -253,7 +248,6 @@ extern bool btif_media_av_writebuf(uint8_t *p_media, uint32_t media_len,
  *******************************************************************************/
 
 extern bool btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg);
-#endif
 
 /*******************************************************************************
  **

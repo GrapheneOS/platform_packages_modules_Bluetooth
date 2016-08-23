@@ -30,7 +30,6 @@
 #include "bt_target.h"
 #include "osi/include/log.h"
 
-#if (BTA_AV_INCLUDED == TRUE)
 #include "bta_av_co.h"
 #include "bta_av_int.h"
 #include "l2c_api.h"
@@ -1345,5 +1344,3 @@ char *bta_av_evt_code(uint16_t evt_code)
     }
 }
 #endif
-
-#endif /* BTA_AV_INCLUDED */

@@ -78,10 +78,6 @@
 #define BTA_AR_INCLUDED TRUE
 #endif
 
-#ifndef BTA_AV_INCLUDED
-#define BTA_AV_INCLUDED TRUE
-#endif
-
 #ifndef BTA_GATT_INCLUDED
 #define BTA_GATT_INCLUDED TRUE
 #endif
