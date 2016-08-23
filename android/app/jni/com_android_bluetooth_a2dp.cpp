@@ -132,6 +132,11 @@ static void initNative(JNIEnv *env, jobject object) {
          mCallbacksObj = NULL;
     }
 
+    if ((mCallbacksObj = env->NewGlobalRef(object)) == NULL) {
+        ALOGE("Failed to allocate Global Ref for A2DP Callbacks");
+        return;
+    }
+
     if ( (sBluetoothA2dpInterface = (btav_interface_t *)
           btInf->get_profile_interface(BT_PROFILE_ADVANCED_AUDIO_ID)) == NULL) {
         ALOGE("Failed to get Bluetooth A2DP Interface");
@@ -143,8 +148,6 @@ static void initNative(JNIEnv *env, jobject object) {
         sBluetoothA2dpInterface = NULL;
         return;
     }
-
-    mCallbacksObj = env->NewGlobalRef(object);
 }
 
 static void cleanupNative(JNIEnv *env, jobject object) {
