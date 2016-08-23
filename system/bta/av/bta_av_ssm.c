@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-#if (BTA_AV_INCLUDED == TRUE)
 
 #include <string.h>
 #include "bta_av_co.h"
@@ -610,4 +609,3 @@ static char *bta_av_sst_code(uint8_t state)
 }
 
 #endif
-#endif /* BTA_AV_INCLUDED */

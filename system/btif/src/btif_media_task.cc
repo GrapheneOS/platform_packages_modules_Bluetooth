@@ -69,9 +69,7 @@
 #include "osi/include/mutex.h"
 #include "osi/include/thread.h"
 
-#if (BTA_AV_INCLUDED == TRUE)
 #include "sbc_encoder.h"
-#endif
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
 #include "oi_codec_sbc.h"
@@ -306,7 +304,6 @@ typedef union
 
 typedef struct
 {
-#if (BTA_AV_INCLUDED == TRUE)
     fixed_queue_t *TxAaQ;
     fixed_queue_t *RxSbcQ;
     uint16_t TxAaMtuSize;
@@ -335,7 +332,6 @@ typedef struct
     alarm_t *media_alarm;
     alarm_t *decode_alarm;
     btif_media_stats_t stats;
-#endif
 } tBTIF_MEDIA_CB;
 
 typedef struct {
@@ -379,7 +375,6 @@ static void btif_media_thread_handle_cmd(fixed_queue_t *queue, void *context);
 static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg);
 #endif
 
-#if (BTA_AV_INCLUDED == TRUE)
 static void btif_media_send_aa_frame(uint64_t timestamp_us);
 static void btif_media_task_feeding_state_reset(void);
 static void btif_media_task_aa_start_tx(void);
@@ -394,7 +389,6 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg);
 static void btif_media_task_aa_handle_clear_track(void);
 #endif
 static void btif_media_task_aa_handle_start_decoding(void);
-#endif
 bool btif_media_task_clear_track(void);
 
 static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context);
@@ -1398,7 +1392,6 @@ static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context)
     uint64_t timestamp_us = time_now_us();
     log_tstamps_us("media task tx timer", timestamp_us);
 
-#if (BTA_AV_INCLUDED == TRUE)
     if (alarm_is_scheduled(btif_media_cb.media_alarm))
     {
         btif_media_send_aa_frame(timestamp_us);
@@ -1407,10 +1400,8 @@ static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context)
     {
         APPL_TRACE_ERROR("ERROR Media task Scheduled after Suspend");
     }
-#endif
 }
 
-#if (BTA_AV_INCLUDED == TRUE)
 static void btif_media_task_aa_handle_uipc_rx_rdy(void)
 {
     /* process all the UIPC data */
@@ -1420,7 +1411,6 @@ static void btif_media_task_aa_handle_uipc_rx_rdy(void)
     LOG_VERBOSE(LOG_TAG, "%s calls bta_av_ci_src_data_ready", __func__);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
-#endif
 
 static void btif_media_thread_init(UNUSED_ATTR void *context) {
   // Check to make sure the platform has 8 bits/byte since
@@ -1432,11 +1422,9 @@ static void btif_media_thread_init(UNUSED_ATTR void *context) {
 
   UIPC_Init(NULL);
 
-#if (BTA_AV_INCLUDED == TRUE)
   btif_media_cb.TxAaQ = fixed_queue_new(SIZE_MAX);
   btif_media_cb.RxSbcQ = fixed_queue_new(SIZE_MAX);
   UIPC_Open(UIPC_CH_ID_AV_CTRL , btif_a2dp_ctrl_cb);
-#endif
 
   raise_priority_a2dp(TASK_HIGH_MEDIA);
   media_task_running = MEDIA_TASK_STATE_ON;
@@ -1449,12 +1437,10 @@ static void btif_media_thread_cleanup(UNUSED_ATTR void *context) {
   /* this calls blocks until uipc is fully closed */
   UIPC_Close(UIPC_CH_ID_ALL);
 
-#if (BTA_AV_INCLUDED == TRUE)
   fixed_queue_free(btif_media_cb.TxAaQ, NULL);
   btif_media_cb.TxAaQ = NULL;
   fixed_queue_free(btif_media_cb.RxSbcQ, NULL);
   btif_media_cb.RxSbcQ = NULL;
-#endif
 
   /* Clear media task flag */
   media_task_running = MEDIA_TASK_STATE_OFF;
@@ -1504,7 +1490,6 @@ static void btif_media_thread_handle_cmd(fixed_queue_t *queue, UNUSED_ATTR void 
 
     switch (p_msg->event)
     {
-#if (BTA_AV_INCLUDED == TRUE)
     case BTIF_MEDIA_START_AA_TX:
         btif_media_task_aa_start_tx();
         break;
@@ -1548,7 +1533,6 @@ static void btif_media_thread_handle_cmd(fixed_queue_t *queue, UNUSED_ATTR void 
      case BTIF_MEDIA_FLUSH_AA_RX:
         btif_media_task_aa_rx_flush();
         break;
-#endif
     default:
         APPL_TRACE_ERROR("ERROR in %s unknown event %d", __func__, p_msg->event);
     }
@@ -1619,7 +1603,6 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
 }
 #endif
 
-#if (BTA_AV_INCLUDED == TRUE)
 /*******************************************************************************
  **
  ** Function         btif_media_task_enc_init_req
@@ -3173,8 +3156,6 @@ static void btif_media_send_aa_frame(uint64_t timestamp_us)
                         __func__, nb_frame_2_send, nb_iterations);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
-
-#endif /* BTA_AV_INCLUDED == TRUE */
 
 /*******************************************************************************
  **
