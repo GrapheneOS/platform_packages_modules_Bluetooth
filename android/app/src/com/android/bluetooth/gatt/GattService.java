@@ -37,10 +37,12 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.WorkSource;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -316,10 +318,12 @@ public class GattService extends ProfileService {
 
         @Override
         public void startScan(int appIf, boolean isServer, ScanSettings settings,
-                List<ScanFilter> filters, List storages, String callingPackage) {
+                List<ScanFilter> filters, WorkSource workSource, List storages,
+                String callingPackage) {
             GattService service = getService();
             if (service == null) return;
-            service.startScan(appIf, isServer, settings, filters, storages, callingPackage);
+            service.startScan(appIf, isServer, settings, filters, workSource, storages,
+                    callingPackage);
         }
 
         public void stopScan(int appIf, boolean isServer) {
@@ -1215,14 +1219,21 @@ public class GattService extends ProfileService {
     }
 
     void startScan(int appIf, boolean isServer, ScanSettings settings,
-            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages,
-            String callingPackage) {
+            List<ScanFilter> filters, WorkSource workSource,
+            List<List<ResultStorageDescriptor>> storages, String callingPackage) {
         if (DBG) Log.d(TAG, "start scan with filters");
         enforceAdminPermission();
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
         }
-        final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, storages);
+        if (workSource != null) {
+            enforceImpersonatationPermission();
+        } else {
+            // Blame the caller if the work source is unspecified.
+            workSource = new WorkSource(Binder.getCallingUid(), callingPackage);
+        }
+        final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, workSource,
+                storages);
         scanClient.hasLocationPermission = Utils.checkCallerHasLocationPermission(this, mAppOps,
                 callingPackage);
         scanClient.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(
