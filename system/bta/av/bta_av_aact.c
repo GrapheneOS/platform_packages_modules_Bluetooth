@@ -25,7 +25,6 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-#if (BTA_AV_INCLUDED == TRUE)
 
 #include <assert.h>
 #include <string.h>
@@ -3210,5 +3209,3 @@ void bta_av_offload_rsp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->offload_start_pending = false;
     (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
 }
-
-#endif /* BTA_AV_INCLUDED */

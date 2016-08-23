@@ -27,8 +27,6 @@
 
 #include "bt_target.h"
 
-#if (BTA_AV_INCLUDED == TRUE)
-
 #include <string.h>
 
 #include "avdt_api.h"
@@ -2209,4 +2207,3 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
         utl_set_device_class(&cod, BTA_UTL_CLR_COD_SERVICE_CLASS);
     }
 }
-#endif /* BTA_AV_INCLUDED */
