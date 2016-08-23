@@ -87,7 +87,7 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 generated_sources_dir := $(call local-generated-sources-dir)
-LOCAL_EXPORT_C_INCLUDE_DIRS += \
+LOCAL_EXPORT_C_INCLUDE_DIRS := \
     $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
 LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
 
@@ -105,7 +105,7 @@ LOCAL_MODULE := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_IS_HOST_MODULE := true
 generated_sources_dir := $(call local-generated-sources-dir)
-LOCAL_EXPORT_C_INCLUDE_DIRS += \
+LOCAL_EXPORT_C_INCLUDE_DIRS := \
     $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
 LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
 

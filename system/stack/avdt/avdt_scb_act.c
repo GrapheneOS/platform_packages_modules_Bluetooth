@@ -301,25 +301,26 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         p_data->p_pkt->len -= (offset + pad_len);
         p_data->p_pkt->offset += offset;
 
-        if (p_scb->cs.p_data_cback != NULL)
+        if (p_scb->cs.p_sink_data_cback != NULL)
         {
             /* report sequence number */
             p_data->p_pkt->layer_specific = seq;
-            (*p_scb->cs.p_data_cback)(avdt_scb_to_hdl(p_scb), p_data->p_pkt,
-                time_stamp, (uint8_t)(m_pt | (marker<<7)));
+            (*p_scb->cs.p_sink_data_cback)(avdt_scb_to_hdl(p_scb),
+                p_data->p_pkt, time_stamp, (uint8_t)(m_pt | (marker << 7)));
         }
         else
         {
 #if (AVDT_MULTIPLEXING == TRUE)
-            if ((p_scb->cs.p_media_cback != NULL)
+            if ((p_scb->cs.p_sink_media_cback != NULL)
              && (p_scb->p_media_buf != NULL)
              && (p_scb->media_buf_len > p_data->p_pkt->len))
             {
                 /* media buffer enough length is assigned by application. Lets use it*/
                 memcpy(p_scb->p_media_buf,(uint8_t*)(p_data->p_pkt + 1) + p_data->p_pkt->offset,
                     p_data->p_pkt->len);
-                (*p_scb->cs.p_media_cback)(avdt_scb_to_hdl(p_scb),p_scb->p_media_buf,
-                    p_scb->media_buf_len,time_stamp,seq,m_pt,marker);
+                (*p_scb->cs.p_sink_media_cback)(avdt_scb_to_hdl(p_scb),
+                        p_scb->p_media_buf, p_scb->media_buf_len, time_stamp,
+                        seq, m_pt, marker);
             }
 #endif
             osi_free_and_reset((void **)&p_data->p_pkt);
@@ -499,9 +500,9 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             }
         }
         /* check are buffer for assembling and related callback set */
-        else if ((p_scb->p_media_buf == NULL) || (p_scb->cs.p_media_cback == NULL))
+        else if ((p_scb->p_media_buf == NULL) || (p_scb->cs.p_sink_media_cback == NULL))
         {
-            AVDT_TRACE_WARNING("NULL p_media_buf or p_media_cback");
+            AVDT_TRACE_WARNING("NULL p_media_buf or p_sink_media_cback");
             break;
         }
 
@@ -624,10 +625,10 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                 p_payload - p_scb->p_media_buf,payload_len);
 
             /* send total media packet up */
-            if (p_scb->cs.p_media_cback != NULL)
-            {
-                (*p_scb->cs.p_media_cback)(avdt_scb_to_hdl(p_scb), p_payload,
-                                           payload_len, time_stamp, seq, m_pt, marker);
+            if (p_scb->cs.p_sink_media_cback != NULL) {
+                (*p_scb->cs.p_sink_media_cback)(avdt_scb_to_hdl(p_scb),
+                                                p_payload, payload_len,
+                                                time_stamp, seq, m_pt, marker);
             }
         }
     } /* while(p < p_end) */

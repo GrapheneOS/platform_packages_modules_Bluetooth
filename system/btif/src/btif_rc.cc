@@ -4082,7 +4082,7 @@ static const btrc_ctrl_interface_t bt_rc_ctrl_interface = {
 **
 ** Description      Get the AVRCP Target callback interface
 **
-** Returns          btav_interface_t
+** Returns          btrc_interface_t
 **
 *******************************************************************************/
 const btrc_interface_t *btif_rc_get_interface(void)
@@ -4097,7 +4097,7 @@ const btrc_interface_t *btif_rc_get_interface(void)
 **
 ** Description      Get the AVRCP Controller callback interface
 **
-** Returns          btav_interface_t
+** Returns          btrc_ctrl_interface_t
 **
 *******************************************************************************/
 const btrc_ctrl_interface_t *btif_rc_ctrl_get_interface(void)
