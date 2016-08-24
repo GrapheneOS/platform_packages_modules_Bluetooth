@@ -4,6 +4,7 @@ known_tests=(
   bluetoothtbd_test
   net_test_bluetooth
   net_test_btcore
+  net_test_bta
   net_test_btif
   net_test_device
   net_test_hci
