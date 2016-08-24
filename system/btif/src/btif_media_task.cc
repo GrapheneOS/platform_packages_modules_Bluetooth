@@ -2134,40 +2134,6 @@ static void btif_media_task_audio_feeding_init(BT_HDR *p_msg)
     }
 }
 
-int btif_a2dp_get_track_frequency(uint8_t frequency) {
-    int freq = 48000;
-    switch (frequency) {
-        case A2D_SBC_IE_SAMP_FREQ_16:
-            freq = 16000;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_32:
-            freq = 32000;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_44:
-            freq = 44100;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_48:
-            freq = 48000;
-            break;
-    }
-    return freq;
-}
-
-int btif_a2dp_get_track_channel_count(uint8_t channeltype) {
-    int count = 1;
-    switch (channeltype) {
-        case A2D_SBC_IE_CH_MD_MONO:
-            count = 1;
-            break;
-        case A2D_SBC_IE_CH_MD_DUAL:
-        case A2D_SBC_IE_CH_MD_STEREO:
-        case A2D_SBC_IE_CH_MD_JOINT:
-            count = 2;
-            break;
-    }
-    return count;
-}
-
 #ifdef USE_AUDIO_TRACK
 int a2dp_get_track_channel_type(uint8_t channeltype) {
     int count = 1;
@@ -2249,19 +2215,19 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     uint32_t          num_blocks = 16;
     uint32_t          num_subbands = 8;
 
-    APPL_TRACE_DEBUG("btif_media_task_aa_handle_decoder_reset p_codec_info[%x:%x:%x:%x:%x:%x]",
+    APPL_TRACE_DEBUG("%s: p_codec_info[%x:%x:%x:%x:%x:%x]", __func__,
             p_buf->codec_info[1], p_buf->codec_info[2], p_buf->codec_info[3],
             p_buf->codec_info[4], p_buf->codec_info[5], p_buf->codec_info[6]);
 
     a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_buf->codec_info, false);
     if (a2d_status != A2D_SUCCESS)
     {
-        APPL_TRACE_ERROR("ERROR dump_codec_info A2D_ParsSbcInfo fail:%d", a2d_status);
+        APPL_TRACE_ERROR("%s: A2D_ParsSbcInfo fail:%d", __func_, a2d_status);
         return;
     }
 
-    btif_media_cb.sample_rate = btif_a2dp_get_track_frequency(sbc_cie.samp_freq);
-    btif_media_cb.channel_count = btif_a2dp_get_track_channel_count(sbc_cie.ch_mode);
+    btif_media_cb.sample_rate = A2D_sbc_get_track_frequency(sbc_cie.samp_freq);
+    btif_media_cb.channel_count = A2D_sbc_get_track_channel_count(sbc_cie.ch_mode);
 
     btif_media_cb.rx_flush = false;
     APPL_TRACE_DEBUG("Reset to sink role");
@@ -2273,7 +2239,7 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
 #ifdef USE_AUDIO_TRACK
     APPL_TRACE_DEBUG("%s A2dpSink: sbc Create Track", __func__);
     btif_media_cb.audio_track =
-        BtifAvrcpAudioTrackCreate(btif_a2dp_get_track_frequency(sbc_cie.samp_freq),
+        BtifAvrcpAudioTrackCreate(A2D_sbc_get_track_frequency(sbc_cie.samp_freq),
                                   a2dp_get_track_channel_type(sbc_cie.ch_mode));
     if (btif_media_cb.audio_track == NULL) {
         APPL_TRACE_ERROR("%s A2dpSink: Track creation fails!!!", __func__);
@@ -3155,80 +3121,6 @@ static void btif_media_send_aa_frame(uint64_t timestamp_us)
     LOG_VERBOSE(LOG_TAG, "%s Sent %d frames per iteration, %d iterations",
                         __func__, nb_frame_2_send, nb_iterations);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
-}
-
-/*******************************************************************************
- **
- ** Function         dump_codec_info
- **
- ** Description      Decode and display codec_info (for debug)
- **
- ** Returns          void
- **
- *******************************************************************************/
-void dump_codec_info(unsigned char *p_codec)
-{
-    tA2D_STATUS a2d_status;
-    tA2D_SBC_CIE sbc_cie;
-
-    a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec, false);
-    if (a2d_status != A2D_SUCCESS)
-    {
-        APPL_TRACE_ERROR("ERROR dump_codec_info A2D_ParsSbcInfo fail:%d", a2d_status);
-        return;
-    }
-
-    APPL_TRACE_DEBUG("dump_codec_info");
-
-    if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_16)
-    {    APPL_TRACE_DEBUG("\tsamp_freq:%d (16000)", sbc_cie.samp_freq);}
-    else  if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_32)
-    {    APPL_TRACE_DEBUG("\tsamp_freq:%d (32000)", sbc_cie.samp_freq);}
-    else  if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_44)
-    {    APPL_TRACE_DEBUG("\tsamp_freq:%d (44.100)", sbc_cie.samp_freq);}
-    else  if (sbc_cie.samp_freq == A2D_SBC_IE_SAMP_FREQ_48)
-    {    APPL_TRACE_DEBUG("\tsamp_freq:%d (48000)", sbc_cie.samp_freq);}
-    else
-    {    APPL_TRACE_DEBUG("\tBAD samp_freq:%d", sbc_cie.samp_freq);}
-
-    if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_MONO)
-    {    APPL_TRACE_DEBUG("\tch_mode:%d (Mono)", sbc_cie.ch_mode);}
-    else  if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_DUAL)
-    {    APPL_TRACE_DEBUG("\tch_mode:%d (Dual)", sbc_cie.ch_mode);}
-    else  if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_STEREO)
-    {    APPL_TRACE_DEBUG("\tch_mode:%d (Stereo)", sbc_cie.ch_mode);}
-    else  if (sbc_cie.ch_mode == A2D_SBC_IE_CH_MD_JOINT)
-    {    APPL_TRACE_DEBUG("\tch_mode:%d (Joint)", sbc_cie.ch_mode);}
-    else
-    {    APPL_TRACE_DEBUG("\tBAD ch_mode:%d", sbc_cie.ch_mode);}
-
-    if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_4)
-    {    APPL_TRACE_DEBUG("\tblock_len:%d (4)", sbc_cie.block_len);}
-    else  if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_8)
-    {    APPL_TRACE_DEBUG("\tblock_len:%d (8)", sbc_cie.block_len);}
-    else  if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_12)
-    {    APPL_TRACE_DEBUG("\tblock_len:%d (12)", sbc_cie.block_len);}
-    else  if (sbc_cie.block_len == A2D_SBC_IE_BLOCKS_16)
-    {    APPL_TRACE_DEBUG("\tblock_len:%d (16)", sbc_cie.block_len);}
-    else
-    {    APPL_TRACE_DEBUG("\tBAD block_len:%d", sbc_cie.block_len);}
-
-    if (sbc_cie.num_subbands == A2D_SBC_IE_SUBBAND_4)
-    {    APPL_TRACE_DEBUG("\tnum_subbands:%d (4)", sbc_cie.num_subbands);}
-    else  if (sbc_cie.num_subbands == A2D_SBC_IE_SUBBAND_8)
-    {    APPL_TRACE_DEBUG("\tnum_subbands:%d (8)", sbc_cie.num_subbands);}
-    else
-    {    APPL_TRACE_DEBUG("\tBAD num_subbands:%d", sbc_cie.num_subbands);}
-
-    if (sbc_cie.alloc_mthd == A2D_SBC_IE_ALLOC_MD_S)
-    {    APPL_TRACE_DEBUG("\talloc_mthd:%d (SNR)", sbc_cie.alloc_mthd);}
-    else  if (sbc_cie.alloc_mthd == A2D_SBC_IE_ALLOC_MD_L)
-    {    APPL_TRACE_DEBUG("\talloc_mthd:%d (Loundess)", sbc_cie.alloc_mthd);}
-    else
-    {    APPL_TRACE_DEBUG("\tBAD alloc_mthd:%d", sbc_cie.alloc_mthd);}
-
-    APPL_TRACE_DEBUG("\tBit pool Min:%d Max:%d", sbc_cie.min_bitpool, sbc_cie.max_bitpool);
-
 }
 
 void btif_debug_a2dp_dump(int fd)

@@ -207,7 +207,6 @@ static const uint16_t bta_av_stream_evt_fail[] = {
     0                               /* AVDT_DELAY_REPORT_CFM_EVT */
 };
 
-void bta_av_stream_data_cback(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8_t m_pt);
 static void bta_av_stream0_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data);
 static void bta_av_stream1_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data);
 #if BTA_AV_NUM_STRS > 2
@@ -567,35 +566,41 @@ static void bta_av_proc_stream_evt(uint8_t handle, BD_ADDR bd_addr, uint8_t even
 
 /*******************************************************************************
 **
-** Function         bta_av_stream_data_cback
+** Function         bta_av_sink_data_cback
 **
-** Description      This is the AVDTP callback function for stream events.
+** Description      This is the AVDTP callback function for sink stream events.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_stream_data_cback(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8_t m_pt)
+void bta_av_sink_data_cback(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp,
+                            uint8_t m_pt)
 {
     int index = 0;
-    tBTA_AV_SCB         *p_scb ;
-    APPL_TRACE_DEBUG("bta_av_stream_data_cback avdt_handle: %d pkt_len=0x%x  ofst = 0x%x", handle,p_pkt->len,p_pkt->offset);
-    APPL_TRACE_DEBUG(" Number of frames 0x%x",*((uint8_t*)(p_pkt + 1) + p_pkt->offset));
-    APPL_TRACE_DEBUG("Sequence Number 0x%x",p_pkt->layer_specific);
-    /* Get  SCB  and correct sep type*/
-    for(index = 0; index < BTA_AV_NUM_STRS;index ++ )
-    {
+    tBTA_AV_SCB *p_scb;
+    APPL_TRACE_DEBUG("%s: avdt_handle: %d pkt_len=0x%x  offset = 0x%x "
+                     "number of frames 0x%x sequence number 0x%x",
+                     __func__, handle, p_pkt->len, p_pkt->offset,
+                     *((uint8_t*)(p_pkt + 1) + p_pkt->offset),
+                     p_pkt->layer_specific);
+    /* Get SCB and correct sep type */
+    for (index = 0; index < BTA_AV_NUM_STRS; index++) {
         p_scb = bta_av_cb.p_scb[index];
-        if((p_scb->avdt_handle == handle)&&(p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK))
+        if ((p_scb->avdt_handle == handle) &&
+            (p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SNK)) {
             break;
+        }
     }
-    if(index == BTA_AV_NUM_STRS) /* cannot find correct handler */
-    {
+    if (index == BTA_AV_NUM_STRS) {
+        /* cannot find correct handler */
         osi_free(p_pkt);
         return;
     }
-    p_pkt->event = BTA_AV_MEDIA_DATA_EVT;
-    p_scb->seps[p_scb->sep_idx].p_app_data_cback(BTA_AV_MEDIA_DATA_EVT, (tBTA_AV_MEDIA*)p_pkt);
-    osi_free(p_pkt);  /* a copy of packet had been delivered, we free this buffer */
+    p_pkt->event = BTA_AV_SINK_MEDIA_DATA_EVT;
+    p_scb->seps[p_scb->sep_idx].p_app_sink_data_cback(BTA_AV_SINK_MEDIA_DATA_EVT,
+                                                      (tBTA_AV_MEDIA *)p_pkt);
+    /* Free the buffer: a copy of the packet has been delivered */
+    osi_free(p_pkt);
 }
 
 /*******************************************************************************
@@ -1296,13 +1301,15 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     APPL_TRACE_DEBUG("%s: sep_idx: %d cur_psc_mask:0x%x", __func__,
                      p_scb->sep_idx, p_scb->cur_psc_mask);
 
-    if ((AVDT_TSEP_SNK == local_sep) && (p_data->ci_setconfig.err_code == AVDT_SUCCESS) &&
-                                     (p_scb->seps[p_scb->sep_idx].p_app_data_cback != NULL)) {
+    if ((AVDT_TSEP_SNK == local_sep) &&
+        (p_data->ci_setconfig.err_code == AVDT_SUCCESS) &&
+        (p_scb->seps[p_scb->sep_idx].p_app_sink_data_cback != NULL)) {
         tBTA_AV_MEDIA av_sink_codec_info;
-        memcpy(av_sink_codec_info.avk_config.bd_addr,p_scb->peer_addr,sizeof(BD_ADDR));
+        memcpy(av_sink_codec_info.avk_config.bd_addr, p_scb->peer_addr,
+               sizeof(BD_ADDR));
         av_sink_codec_info.avk_config.codec_info = p_scb->cfg.codec_info;
-        p_scb->seps[p_scb->sep_idx].p_app_data_cback(BTA_AV_MEDIA_SINK_CFG_EVT,
-                                              &av_sink_codec_info);
+        p_scb->seps[p_scb->sep_idx].p_app_sink_data_cback(BTA_AV_SINK_MEDIA_CFG_EVT,
+                                                          &av_sink_codec_info);
     }
 
 
@@ -1906,14 +1913,15 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->cur_psc_mask = cfg.psc_mask;
 
         if ((uuid_int == UUID_SERVCLASS_AUDIO_SINK) &&
-            (p_scb->seps[p_scb->sep_idx].p_app_data_cback != NULL))
+            (p_scb->seps[p_scb->sep_idx].p_app_sink_data_cback != NULL))
         {
             APPL_TRACE_DEBUG("%s Configure Decoder for Sink Connection.", __func__);
             tBTA_AV_MEDIA av_sink_codec_info;
-            memcpy(av_sink_codec_info.avk_config.bd_addr,p_scb->peer_addr,sizeof(BD_ADDR));
+            memcpy(av_sink_codec_info.avk_config.bd_addr, p_scb->peer_addr,
+                   sizeof(BD_ADDR));
             av_sink_codec_info.avk_config.codec_info = p_scb->cfg.codec_info;
-            p_scb->seps[p_scb->sep_idx].p_app_data_cback(BTA_AV_MEDIA_SINK_CFG_EVT,
-                                                         &av_sink_codec_info);
+            p_scb->seps[p_scb->sep_idx].p_app_sink_data_cback(BTA_AV_SINK_MEDIA_CFG_EVT,
+                        &av_sink_codec_info);
         }
 
         if ((uuid_int == UUID_SERVCLASS_AUDIO_SOURCE) &&

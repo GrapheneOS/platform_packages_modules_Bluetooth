@@ -23,7 +23,7 @@ LOCAL_SRC_FILES := \
     src/vendor.c \
     ../../EventLogTags.logtags
 
-LOCAL_C_INCLUDES += \
+LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/.. \
     $(LOCAL_PATH)/../include \
@@ -36,7 +36,7 @@ LOCAL_C_INCLUDES += \
 LOCAL_MODULE := libbt-hci
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
-LOCAL_CFLAGS += -DHCI_USE_MCT
+    LOCAL_CFLAGS += -DHCI_USE_MCT
 endif
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)

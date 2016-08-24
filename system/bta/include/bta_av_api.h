@@ -125,8 +125,6 @@ typedef uint8_t tBTA_AV_HNDL;
 #define BTA_AV_CODEC_H263_P8    VDP_MEDIA_CT_H263_P8    /* H.263 profile 8 */
 #define BTA_AV_CODEC_VEND       VDP_MEDIA_CT_VEND       /* Non-VDP */
 
-typedef uint8_t tBTA_AV_CODEC;
-
 /* Company ID in BT assigned numbers */
 #define BTA_AV_BT_VENDOR_ID     VDP_BT_VENDOR_ID        /* Broadcom Corporation */
 
@@ -255,8 +253,8 @@ typedef uint8_t tBTA_AV_ERR;
 #define BTA_AV_META_MSG_EVT     17      /* metadata messages */
 #define BTA_AV_REJECT_EVT       18      /* incoming connection rejected */
 #define BTA_AV_RC_FEAT_EVT      19      /* remote control channel peer supported features update */
-#define BTA_AV_MEDIA_SINK_CFG_EVT    20 /* command to configure codec */
-#define BTA_AV_MEDIA_DATA_EVT   21      /* sending data to Media Task */
+#define BTA_AV_SINK_MEDIA_CFG_EVT    20 /* command to configure sink codec */
+#define BTA_AV_SINK_MEDIA_DATA_EVT   21 /* sending sink data to Media Task */
 #define BTA_AV_OFFLOAD_START_RSP_EVT 22 /* a2dp offload start response */
 /* Max BTA event */
 #define BTA_AV_MAX_EVT          23
@@ -490,7 +488,8 @@ typedef union
 
 /* AV callback */
 typedef void (tBTA_AV_CBACK)(tBTA_AV_EVT event, tBTA_AV *p_data);
-typedef void (tBTA_AV_DATA_CBACK)(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data);
+typedef void (tBTA_AV_SINK_DATA_CBACK)(tBTA_AV_EVT event,
+                                       tBTA_AV_MEDIA *p_data);
 
 /* type for stream state machine action functions */
 typedef void (*tBTA_AV_ACT)(void *p_cb, void *p_data);
@@ -570,7 +569,8 @@ void BTA_AvDisable(void);
 **
 *******************************************************************************/
 void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
-                    uint8_t app_id, tBTA_AV_DATA_CBACK  *p_data_cback, uint16_t service_uuid);
+                    uint8_t app_id, tBTA_AV_SINK_DATA_CBACK *p_sink_data_cback,
+                    uint16_t service_uuid);
 
 /*******************************************************************************
 **

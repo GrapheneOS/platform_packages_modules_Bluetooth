@@ -454,9 +454,11 @@ void bta_av_build_src_cfg (uint8_t *p_pref_cfg, uint8_t *p_src_cap)
  ** Returns          Pass or Fail for current getconfig.
  **
  *******************************************************************************/
-uint8_t bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-        uint8_t *p_codec_info, uint8_t *p_sep_info_idx, uint8_t seid, uint8_t *p_num_protect,
-        uint8_t *p_protect_info)
+uint8_t bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                                    uint8_t *p_codec_info,
+                                    uint8_t *p_sep_info_idx, uint8_t seid,
+                                    uint8_t *p_num_protect,
+                                    uint8_t *p_protect_info)
 {
 
     uint8_t result = A2D_FAIL;
@@ -578,10 +580,11 @@ uint8_t bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
  ** Returns          Stream codec and content protection configuration info.
  **
  *******************************************************************************/
-uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                uint8_t *p_codec_info, uint8_t *p_sep_info_idx, uint8_t seid, uint8_t *p_num_protect,
-                                uint8_t *p_protect_info)
-
+uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                                  uint8_t *p_codec_info,
+                                  uint8_t *p_sep_info_idx, uint8_t seid,
+                                  uint8_t *p_num_protect,
+                                  uint8_t *p_protect_info)
 {
     uint8_t result = A2D_FAIL;
     bool supported;
@@ -596,23 +599,25 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
     p_peer = bta_av_co_get_peer(hndl);
     if (p_peer == NULL)
     {
-        APPL_TRACE_ERROR("bta_av_co_audio_getconfig could not find peer entry");
+        APPL_TRACE_ERROR("%s: could not find peer entry", __func__);
         return A2D_FAIL;
     }
 
     if (p_peer->uuid_to_connect == UUID_SERVCLASS_AUDIO_SOURCE)
     {
-        result = bta_av_audio_sink_getconfig(hndl, codec_type, p_codec_info, p_sep_info_idx,
-                                             seid, p_num_protect, p_protect_info);
+        result = bta_av_audio_sink_getconfig(hndl, codec_type, p_codec_info,
+                                             p_sep_info_idx, seid,
+                                             p_num_protect, p_protect_info);
         return result;
     }
-    APPL_TRACE_DEBUG("bta_av_co_audio_getconfig handle:0x%x codec_type:%d seid:%d",
-                                                              hndl, codec_type, seid);
-    APPL_TRACE_DEBUG("num_protect:0x%02x protect_info:0x%02x%02x%02x",
-        *p_num_protect, p_protect_info[0], p_protect_info[1], p_protect_info[2]);
-
-    APPL_TRACE_DEBUG("bta_av_co_audio_getconfig peer(o=%d,n_snks=%d,n_rx_snks=%d,n_sup_snks=%d)",
-            p_peer->opened, p_peer->num_snks, p_peer->num_rx_snks, p_peer->num_sup_snks);
+    APPL_TRACE_DEBUG("%s: handle:0x%x codec_type:%d seid:%d",
+                     __func__, hndl, codec_type, seid);
+    APPL_TRACE_DEBUG("%s: num_protect:0x%02x protect_info:0x%02x%02x%02x",
+                     __func__, *p_num_protect, p_protect_info[0],
+                     p_protect_info[1], p_protect_info[2]);
+    APPL_TRACE_DEBUG("%s: peer(o=%d, n_snks=%d, n_rx_snks=%d, n_sup_snks=%d)",
+                     __func__, p_peer->opened, p_peer->num_snks,
+                     p_peer->num_rx_snks, p_peer->num_sup_snks);
 
     p_peer->num_rx_snks++;
 
@@ -635,7 +640,7 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
         {
             p_sink = &p_peer->snks[p_peer->num_sup_snks++];
 
-            APPL_TRACE_DEBUG("bta_av_co_audio_getconfig saved caps[%x:%x:%x:%x:%x:%x]",
+            APPL_TRACE_DEBUG("%s: saved caps[%x:%x:%x:%x:%x:%x]", __func__,
                     p_codec_info[1], p_codec_info[2], p_codec_info[3],
                     p_codec_info[4], p_codec_info[5], p_codec_info[6]);
 
@@ -645,10 +650,8 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
             p_sink->seid = seid;
             p_sink->num_protect = *p_num_protect;
             memcpy(p_sink->protect_info, p_protect_info, BTA_AV_CP_INFO_LEN);
-        }
-        else
-        {
-            APPL_TRACE_ERROR("bta_av_co_audio_getconfig no more room for SNK info");
+        } else {
+            APPL_TRACE_ERROR("%s: no more room for SNK info", __func__);
         }
     }
 
@@ -656,7 +659,7 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
     if ((p_peer->num_rx_snks == p_peer->num_snks) ||
         (p_peer->num_sup_snks == BTA_AV_CO_NUM_ELEMENTS(p_peer->snks)))
     {
-        APPL_TRACE_DEBUG("bta_av_co_audio_getconfig last sink reached");
+        APPL_TRACE_DEBUG("%s: last sink reached", __func__);
 
         /* Protect access to bta_av_co_cb.codec_cfg */
         mutex_global_lock();
@@ -668,7 +671,7 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
             if (p_peer->acp)
             {
                 *p_sep_info_idx = p_peer->num_seps;
-                APPL_TRACE_EVENT("no need to fetch more SEPs");
+                APPL_TRACE_EVENT("%s: no need to fetch more SEPs", __func__);
             }
 
             p_sink = &p_peer->snks[index];
@@ -676,9 +679,14 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
             /* Build the codec configuration for this sink */
             if (bta_av_co_audio_codec_build_config(p_sink->codec_caps, codec_cfg))
             {
-                APPL_TRACE_DEBUG("bta_av_co_audio_getconfig reconfig p_codec_info[%x:%x:%x:%x:%x:%x]",
+                APPL_TRACE_DEBUG("%s: reconfig codec_cfg[%x:%x:%x:%x:%x:%x]",
+                        __func__,
                         codec_cfg[1], codec_cfg[2], codec_cfg[3],
                         codec_cfg[4], codec_cfg[5], codec_cfg[6]);
+                for (int i = 0; i < AVDT_CODEC_SIZE; i++) {
+                    APPL_TRACE_DEBUG("%s: p_codec_info[%d]: %x",
+                                     __func__, i,  p_codec_info[i]);
+                }
 
                 /* Save the new configuration */
                 p_peer->p_snk = p_sink;
@@ -708,7 +716,8 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
                 {
                     if (p_peer->recfg_needed)
                     {
-                        APPL_TRACE_DEBUG("bta_av_co_audio_getconfig call BTA_AvReconfig(x%x)", hndl);
+                        APPL_TRACE_DEBUG("%s: call BTA_AvReconfig(x%x)",
+                                         __func__, hndl);
                         BTA_AvReconfig(hndl, true, p_sink->sep_info_idx, p_peer->codec_cfg, *p_num_protect, (uint8_t *)bta_av_co_cp_scmst);
                     }
                 }
@@ -737,9 +746,11 @@ uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
  ** Returns          void
  **
  *******************************************************************************/
-void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-        uint8_t *p_codec_info, uint8_t seid, BD_ADDR addr, uint8_t num_protect, uint8_t *p_protect_info,
-        uint8_t t_local_sep, uint8_t avdt_handle)
+void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                               uint8_t *p_codec_info, uint8_t seid,
+                               BD_ADDR addr, uint8_t num_protect,
+                               uint8_t *p_protect_info, uint8_t t_local_sep,
+                               uint8_t avdt_handle)
 {
     tBTA_AV_CO_PEER *p_peer;
     uint8_t status = A2D_SUCCESS;
@@ -751,7 +762,8 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 
     FUNC_TRACE();
 
-    APPL_TRACE_DEBUG("bta_av_co_audio_setconfig p_codec_info[%x:%x:%x:%x:%x:%x]",
+    APPL_TRACE_DEBUG("%s: p_codec_info[%x:%x:%x:%x:%x:%x]",
+            __func__,
             p_codec_info[1], p_codec_info[2], p_codec_info[3],
             p_codec_info[4], p_codec_info[5], p_codec_info[6]);
     APPL_TRACE_DEBUG("num_protect:0x%02x protect_info:0x%02x%02x%02x",
@@ -761,19 +773,20 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
     p_peer = bta_av_co_get_peer(hndl);
     if (p_peer == NULL)
     {
-        APPL_TRACE_ERROR("bta_av_co_audio_setconfig could not find peer entry");
+        APPL_TRACE_ERROR("%s: could not find peer entry", __func__);
 
         /* Call call-in rejecting the configuration */
         bta_av_ci_setconfig(hndl, A2D_BUSY, AVDT_ASC_CODEC, 0, NULL, false, avdt_handle);
         return;
     }
-    APPL_TRACE_DEBUG("bta_av_co_audio_setconfig peer(o=%d,n_snks=%d,n_rx_snks=%d,n_sup_snks=%d)",
-            p_peer->opened, p_peer->num_snks, p_peer->num_rx_snks, p_peer->num_sup_snks);
+    APPL_TRACE_DEBUG("%s: peer(o=%d, n_snks=%d, n_rx_snks=%d, n_sup_snks=%d)",
+                     __func__, p_peer->opened, p_peer->num_snks,
+                     p_peer->num_rx_snks, p_peer->num_sup_snks);
 
     /* Sanity check: should not be opened at this point */
     if (p_peer->opened)
     {
-        APPL_TRACE_ERROR("bta_av_co_audio_setconfig peer already in use");
+        APPL_TRACE_ERROR("%s: peer already in use", __func__);
     }
 
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
@@ -783,7 +796,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
         if ((num_protect != 1) ||
             (bta_av_co_cp_is_scmst(p_protect_info) == false))
         {
-            APPL_TRACE_ERROR("bta_av_co_audio_setconfig wrong CP configuration");
+            APPL_TRACE_ERROR("%s: wrong CP configuration", __func__);
             status = A2D_BAD_CP_TYPE;
             category = AVDT_ASC_PROTECT;
         }
@@ -792,7 +805,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
     /* Do not support content protection for the time being */
     if (num_protect != 0)
     {
-        APPL_TRACE_ERROR("bta_av_co_audio_setconfig wrong CP configuration");
+        APPL_TRACE_ERROR("%s: wrong CP configuration", __func__);
         status = A2D_BAD_CP_TYPE;
         category = AVDT_ASC_PROTECT;
     }
@@ -848,7 +861,8 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 
 
             default:
-                APPL_TRACE_ERROR("bta_av_co_audio_setconfig unsupported cid %d", bta_av_co_cb.codec_cfg.id);
+                APPL_TRACE_ERROR("%s: unsupported cid %d", __func__,
+                                 bta_av_co_cb.codec_cfg.id);
                 recfg_needed = true;
                 break;
             }
@@ -864,7 +878,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 
     if (status != A2D_SUCCESS)
     {
-        APPL_TRACE_DEBUG("bta_av_co_audio_setconfig reject s=%d c=%d", status, category);
+        APPL_TRACE_DEBUG("%s: reject s=%d c=%d", __func__, status, category);
 
         /* Call call-in rejecting the configuration */
         bta_av_ci_setconfig(hndl, status, category, 0, NULL, false, avdt_handle);
@@ -875,7 +889,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
         p_peer->acp = true;
         p_peer->recfg_needed = recfg_needed;
 
-        APPL_TRACE_DEBUG("bta_av_co_audio_setconfig accept reconf=%d", recfg_needed);
+        APPL_TRACE_DEBUG("%s: accept reconf=%d", __func__, recfg_needed);
 
         /* Call call-in accepting the configuration */
         bta_av_ci_setconfig(hndl, A2D_SUCCESS, A2D_SUCCESS, 0, NULL, recfg_needed, avdt_handle);
@@ -893,8 +907,8 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
  ** Returns          void
  **
  *******************************************************************************/
-void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, uint8_t *p_codec_info,
-                          uint16_t mtu)
+void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                          uint8_t *p_codec_info, uint16_t mtu)
 {
     tBTA_AV_CO_PEER *p_peer;
     UNUSED(p_codec_info);
@@ -907,7 +921,7 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, uint8_t *
     p_peer = bta_av_co_get_peer(hndl);
     if (p_peer == NULL)
     {
-        APPL_TRACE_ERROR("bta_av_co_audio_setconfig could not find peer entry");
+        APPL_TRACE_ERROR("%s: could not find peer entry", __func__);
     }
     else
     {
@@ -927,7 +941,8 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, uint8_t *
  ** Returns          void
  **
  *******************************************************************************/
-void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, uint16_t mtu)
+void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                           uint16_t mtu)
 
 {
     tBTA_AV_CO_PEER *p_peer;
@@ -965,7 +980,7 @@ void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, uint16_t
  ** Returns          void
  **
  *******************************************************************************/
-void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
                            uint8_t *p_codec_info, bool *p_no_rtp_hdr)
 {
     UNUSED(hndl);
@@ -990,14 +1005,14 @@ void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
  ** Returns          void
  **
  *******************************************************************************/
-extern void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type)
+void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tA2D_CODEC codec_type)
 {
     UNUSED(hndl);
     UNUSED(codec_type);
 
     FUNC_TRACE();
 
-    APPL_TRACE_DEBUG("bta_av_co_audio_stop");
+    APPL_TRACE_DEBUG("%s", __func__);
 }
 
 /*******************************************************************************
@@ -1010,7 +1025,7 @@ extern void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type)
  ** Returns          Pointer to the GKI buffer to send, NULL if no buffer to send
  **
  *******************************************************************************/
-void * bta_av_co_audio_src_data_path(tBTA_AV_CODEC codec_type, uint32_t *p_len,
+void * bta_av_co_audio_src_data_path(tA2D_CODEC codec_type, uint32_t *p_len,
                                      uint32_t *p_timestamp)
 {
     BT_HDR *p_buf;

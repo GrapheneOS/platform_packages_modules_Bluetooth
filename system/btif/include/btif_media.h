@@ -32,7 +32,6 @@
 #include "bta_api.h"
 #include "bt_common.h"
 #include "btif_av_api.h"
-#include "audio_a2dp_hw.h"
 
 /*******************************************************************************
  **  Constants
@@ -249,17 +248,6 @@ extern bool btif_media_av_writebuf(uint8_t *p_media, uint32_t media_len,
 
 extern bool btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg);
 
-/*******************************************************************************
- **
- ** Function         dump_codec_info
- **
- ** Description      Decode and display codec_info (for debug)
- **
- ** Returns          void
- **
- *******************************************************************************/
-extern void dump_codec_info(unsigned char *p_codec);
-
 /**
  * Local adaptation helper functions between btif and media task
  */
@@ -283,9 +271,6 @@ void btif_media_check_iop_exceptions(uint8_t *peer_bda);
 void btif_reset_decoder(uint8_t *p_av);
 void btif_a2dp_on_offload_started(tBTA_AV_STATUS status);
 
-
-int btif_a2dp_get_track_frequency(uint8_t frequency);
-int btif_a2dp_get_track_channel_count(uint8_t channeltype);
 void btif_a2dp_set_peer_sep(uint8_t sep);
 #ifdef USE_AUDIO_TRACK
 void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state);
