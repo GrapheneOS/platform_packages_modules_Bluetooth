@@ -1,5 +1,26 @@
 LOCAL_PATH:= $(call my-dir)
 
+# Tests
+btaTestSrc := \
+  test/bta_closure_test.cc
+
+btaCommonIncludes := \
+                   $(LOCAL_PATH)/../ \
+                   $(LOCAL_PATH)/include \
+                   $(LOCAL_PATH)/sys \
+                   $(LOCAL_PATH)/dm \
+                   $(LOCAL_PATH)/hh \
+                   $(LOCAL_PATH)/closure \
+                   $(LOCAL_PATH)/../btcore/include \
+                   $(LOCAL_PATH)/../hci/include \
+                   $(LOCAL_PATH)/../include \
+                   $(LOCAL_PATH)/../stack/include \
+                   $(LOCAL_PATH)/../stack/btm \
+                   $(LOCAL_PATH)/../udrv/include \
+                   $(LOCAL_PATH)/../vnd/include \
+                   $(LOCAL_PATH)/../utils/include \
+                   $(bluetooth_C_INCLUDES)
+
 # BTA static library for target
 # ========================================================
 include $(CLEAR_VARS)
@@ -13,6 +34,7 @@ LOCAL_SRC_FILES:= \
     ./dm/bta_dm_cfg.cc \
     ./dm/bta_dm_api.cc \
     ./dm/bta_dm_sco.cc \
+    ./closure/bta_closure.cc \
     ./gatt/bta_gattc_api.cc \
     ./gatt/bta_gatts_act.cc \
     ./gatt/bta_gatts_main.cc \
@@ -80,26 +102,31 @@ LOCAL_SRC_FILES:= \
 LOCAL_MODULE := libbt-bta
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libcutils libc
+LOCAL_SHARED_LIBRARIES := libcutils libc libchrome
 
-LOCAL_C_INCLUDES := . \
-                   $(LOCAL_PATH)/include \
-                   $(LOCAL_PATH)/sys \
-                   $(LOCAL_PATH)/dm \
-                   $(LOCAL_PATH)/hh \
-                   $(LOCAL_PATH)/../ \
-                   $(LOCAL_PATH)/../btcore/include \
-                   $(LOCAL_PATH)/../hci/include \
-                   $(LOCAL_PATH)/../include \
-                   $(LOCAL_PATH)/../stack/include \
-                   $(LOCAL_PATH)/../stack/btm \
-                   $(LOCAL_PATH)/../udrv/include \
-                   $(LOCAL_PATH)/../vnd/include \
-                   $(LOCAL_PATH)/../utils/include \
-                   $(bluetooth_C_INCLUDES)
+LOCAL_C_INCLUDES := $(btaCommonIncludes)
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_STATIC_LIBRARY)
+
+# bta unit tests for target
+# ========================================================
+include $(CLEAR_VARS)
+
+LOCAL_CPP_EXTENSION := .cc
+
+LOCAL_C_INCLUDES := $(btaCommonIncludes)
+LOCAL_SRC_FILES := $(btaTestSrc)
+LOCAL_SHARED_LIBRARIES := libcutils libc libchrome libhardware liblog
+LOCAL_STATIC_LIBRARIES := libbtcore libbt-bta libosi
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := net_test_bta
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
+include $(BUILD_NATIVE_TEST)
