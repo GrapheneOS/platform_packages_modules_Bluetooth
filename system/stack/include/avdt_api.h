@@ -361,8 +361,8 @@ typedef void (tAVDT_CTRL_CBACK)(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 ** packet ready for the application.  This function is required for SNK
 ** endpoints and not applicable for SRC endpoints.
 */
-typedef void (tAVDT_DATA_CBACK)(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp,
-                                uint8_t m_pt);
+typedef void (tAVDT_SINK_DATA_CBACK)(uint8_t handle, BT_HDR *p_pkt,
+                                     uint32_t time_stamp, uint8_t m_pt);
 
 #if (AVDT_MULTIPLEXING == TRUE)
 /* This is the second version of the data callback function. This version uses
@@ -371,8 +371,10 @@ typedef void (tAVDT_DATA_CBACK)(uint8_t handle, BT_HDR *p_pkt, uint32_t time_sta
 ** This callback is called when AVDTP has a media packet ready for the application.
 ** This function is required for SNK endpoints and not applicable for SRC endpoints.
 */
-typedef void (tAVDT_MEDIA_CBACK)(uint8_t handle, uint8_t *p_payload, uint32_t payload_len,
-                                uint32_t time_stamp, uint16_t seq_num, uint8_t m_pt, uint8_t marker);
+typedef void (tAVDT_SINK_MEDIA_CBACK)(uint8_t handle, uint8_t *p_payload,
+                                      uint32_t payload_len,
+                                      uint32_t time_stamp, uint16_t seq_num,
+                                      uint8_t m_pt, uint8_t marker);
 #endif
 
 #if (AVDT_REPORTING == TRUE)
@@ -392,9 +394,9 @@ typedef uint16_t (tAVDT_GETCAP_REQ) (BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p
 typedef struct {
     tAVDT_CFG           cfg;            /* SEP configuration */
     tAVDT_CTRL_CBACK    *p_ctrl_cback;  /* Control callback function */
-    tAVDT_DATA_CBACK    *p_data_cback;  /* Data callback function */
+    tAVDT_SINK_DATA_CBACK *p_sink_data_cback; /* Sink data callback function */
 #if (AVDT_MULTIPLEXING == TRUE)
-    tAVDT_MEDIA_CBACK   *p_media_cback; /* Media callback function. It will be called only if p_data_cback is NULL */
+    tAVDT_SINK_MEDIA_CBACK *p_sink_media_cback; /* Sink media callback function. It will be called only if p_sink_data_cback is NULL */
 #endif
 #if (AVDT_REPORTING == TRUE)
     tAVDT_REPORT_CBACK  *p_report_cback;/* Report callback function. */
@@ -875,7 +877,7 @@ extern uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr);
 **
 **                  AVDTP uses this buffer to reassemble fragmented media packets.
 **                  When AVDTP receives a complete media packet, it calls the
-**                  p_media_cback assigned by AVDT_CreateStream().
+**                  p_sink_media_cback assigned by AVDT_CreateStream().
 **                  This function can be called during callback to assign a
 **                  different buffer for next media packet or can leave the current
 **                  buffer for next packet.

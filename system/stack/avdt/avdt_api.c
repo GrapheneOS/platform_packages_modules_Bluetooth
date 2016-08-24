@@ -1078,7 +1078,7 @@ uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr)
 **
 **                  AVDTP uses this buffer to reassemble fragmented media packets.
 **                  When AVDTP receives a complete media packet, it calls the
-**                  p_media_cback assigned by AVDT_CreateStream().
+**                  p_sink_media_cback assigned by AVDT_CreateStream().
 **                  This function can be called during callback to assign a
 **                  different buffer for next media packet or can leave the current
 **                  buffer for next packet.
@@ -1098,10 +1098,9 @@ extern uint16_t AVDT_SetMediaBuf(uint8_t handle, uint8_t *p_buf, uint32_t buf_le
     }
     else
     {
-        if(p_buf && p_scb->cs.p_media_cback == NULL)
+        if (p_buf && p_scb->cs.p_sink_media_cback == NULL) {
             result = AVDT_NO_RESOURCES;
-        else
-        {
+        } else {
             p_scb->p_media_buf = p_buf;
             p_scb->media_buf_len = buf_len;
         }
