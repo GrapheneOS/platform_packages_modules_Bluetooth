@@ -136,12 +136,12 @@ LOCAL_SRC_FILES := \
 	$(btserviceDaemonSrc) \
 	main.cc
 LOCAL_AIDL_INCLUDES = $(btserviceCommonAidlInclude)
-LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_C_INCLUDES := $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetoothtbd
-LOCAL_REQUIRED_MODULES = bluetooth.default
-LOCAL_STATIC_LIBRARIES += libbtcore
-LOCAL_SHARED_LIBRARIES += \
+LOCAL_REQUIRED_MODULES := bluetooth.default
+LOCAL_STATIC_LIBRARIES := libbtcore
+LOCAL_SHARED_LIBRARIES := \
 	libbinder \
 	libchrome \
 	libcutils \
@@ -175,11 +175,11 @@ else
 LOCAL_SRC_FILES += \
 	test/stub_ipc_handler_linux.cc
 endif
-LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_C_INCLUDES := $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd-host_test
-LOCAL_SHARED_LIBRARIES += libchrome
-LOCAL_STATIC_LIBRARIES += libgmock_host libgtest_host liblog
+LOCAL_SHARED_LIBRARIES := libchrome
+LOCAL_STATIC_LIBRARIES := libgmock_host libgtest_host liblog
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_HOST_NDEBUG)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
@@ -203,14 +203,14 @@ LOCAL_SRC_FILES := \
 	test/ParcelableTest.aidl
 LOCAL_AIDL_INCLUDES := $(btserviceCommonAidlInclude)
 LOCAL_AIDL_INCLUDES += ./
-LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_C_INCLUDES := $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd_test
-LOCAL_SHARED_LIBRARIES += \
+LOCAL_SHARED_LIBRARIES := \
 	libbinder \
 	libchrome \
 	libutils
-LOCAL_STATIC_LIBRARIES += libgmock libgtest liblog
+LOCAL_STATIC_LIBRARIES := libgmock libgtest liblog
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
@@ -227,10 +227,10 @@ LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
 	$(btserviceCommonBinderSrc)
 LOCAL_AIDL_INCLUDES := $(btserviceCommonAidlInclude)
-LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_C_INCLUDES := $(btserviceCommonIncludes)
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/common
 LOCAL_MODULE := libbluetooth-client
-LOCAL_SHARED_LIBRARIES += libbinder libchrome libutils
+LOCAL_SHARED_LIBRARIES := libbinder libchrome libutils
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
@@ -245,8 +245,8 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := client/main.cc
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetooth-cli
-LOCAL_STATIC_LIBRARIES += libbluetooth-client
-LOCAL_SHARED_LIBRARIES += \
+LOCAL_STATIC_LIBRARIES := libbluetooth-client
+LOCAL_SHARED_LIBRARIES := \
 	libbinder \
 	libchrome \
 	libutils
@@ -266,11 +266,11 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
 	example/heart_rate/heart_rate_server.cc \
 	example/heart_rate/server_main.cc
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/../
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bt-example-hr-server
-LOCAL_STATIC_LIBRARIES += libbluetooth-client
-LOCAL_SHARED_LIBRARIES += \
+LOCAL_STATIC_LIBRARIES := libbluetooth-client
+LOCAL_SHARED_LIBRARIES := \
 	libbinder \
 	libchrome \
 	libutils

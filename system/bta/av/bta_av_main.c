@@ -32,6 +32,7 @@
 
 #include "bta_av_co.h"
 #include "bta_av_int.h"
+#include "btif/include/btif_av_co.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "utl.h"
@@ -436,9 +437,8 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
     tAVDT_REG       reg;
     tAVDT_CS        cs;
     char            *p_service_name;
-    tBTA_AV_CODEC   codec_type;
+    tA2D_CODEC      codec_type;
     tBTA_UTL_COD    cod;
-    uint8_t           index = 0;
 
     memset(&cs,0,sizeof(tAVDT_CS));
 
@@ -521,15 +521,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         } /* if 1st channel */
 
         /* get stream configuration and create stream */
-        /* memset(&cs.cfg,0,sizeof(tAVDT_CFG)); */
         cs.cfg.num_codec = 1;
-
-
-        /*
-         * memset of cs takes care setting call back pointers to null.
-        cs.p_data_cback = NULL;
-        cs.p_report_cback = NULL;
-        */
         cs.nsc_mask = AVDT_NSC_RECONFIG |
               ((bta_av_cb.features & BTA_AV_FEAT_PROTECT) ? 0 : AVDT_NSC_SECURITY);
         APPL_TRACE_DEBUG("nsc_mask: 0x%x", cs.nsc_mask);
@@ -558,6 +550,8 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             cs.media_type    = AVDT_MEDIA_AUDIO;
             cs.mtu           = p_bta_av_cfg->audio_mtu;
             cs.flush_to      = L2CAP_DEFAULT_FLUSH_TO;
+            uint8_t index    = 0;
+
 #if (AVDT_REPORTING == TRUE)
             if(bta_av_cb.features & BTA_AV_FEAT_REPORT)
             {
@@ -574,13 +568,13 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
             {
                 cs.tsep = AVDT_TSEP_SRC;
-                index = 0;
+                index = BTIF_SV_AV_AA_SBC_INDEX;
             }
             else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
             {
                 cs.tsep = AVDT_TSEP_SNK;
-                cs.p_data_cback = bta_av_stream_data_cback;
-                index = 1;
+                cs.p_sink_data_cback = bta_av_sink_data_cback;
+                index = BTIF_SV_AV_AA_SBC_SINK_INDEX;
             }
 
             /* Initialize Handles to zero */
@@ -598,11 +592,15 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 {
                     p_scb->seps[index].codec_type = codec_type;
                     p_scb->seps[index].tsep = cs.tsep;
-                    if(cs.tsep == AVDT_TSEP_SNK)
-                        p_scb->seps[index].p_app_data_cback = p_data->api_reg.p_app_data_cback;
-                    else
-                        p_scb->seps[index].p_app_data_cback = NULL; /* In case of A2DP SOURCE we don't need a callback to handle media packets */
-
+                    if (cs.tsep == AVDT_TSEP_SNK) {
+                        p_scb->seps[index].p_app_sink_data_cback =
+                            p_data->api_reg.p_app_sink_data_cback;
+                    } else {
+                        /* In case of A2DP SOURCE we don't need a callback to
+                         * handle media packets.
+                         */
+                        p_scb->seps[index].p_app_sink_data_cback = NULL;
+                    }
                 }
             }
 

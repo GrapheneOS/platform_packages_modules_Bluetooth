@@ -158,24 +158,30 @@ enum
 
 /* function types for call-out functions */
 typedef bool (*tBTA_AV_CO_INIT) (uint8_t *p_codec_type, uint8_t *p_codec_info,
-                                   uint8_t *p_num_protect, uint8_t *p_protect_info, uint8_t index);
+                                 uint8_t *p_num_protect,
+                                 uint8_t *p_protect_info, uint8_t index);
 typedef void (*tBTA_AV_CO_DISC_RES) (tBTA_AV_HNDL hndl, uint8_t num_seps,
-                                     uint8_t num_snk, uint8_t num_src, BD_ADDR addr, uint16_t uuid_local);
-typedef uint8_t (*tBTA_AV_CO_GETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                     uint8_t *p_codec_info, uint8_t *p_sep_info_idx, uint8_t seid,
-                                     uint8_t *p_num_protect, uint8_t *p_protect_info);
-typedef void (*tBTA_AV_CO_SETCFG) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                     uint8_t *p_codec_info, uint8_t seid, BD_ADDR addr,
-                                     uint8_t num_protect, uint8_t *p_protect_info,
-                                     uint8_t t_local_sep, uint8_t avdt_handle);
-typedef void (*tBTA_AV_CO_OPEN) (tBTA_AV_HNDL hndl,
-                                 tBTA_AV_CODEC codec_type, uint8_t *p_codec_info,
-                                   uint16_t mtu);
-typedef void (*tBTA_AV_CO_CLOSE) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, uint16_t mtu);
-typedef void (*tBTA_AV_CO_START) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,uint8_t *p_codec_info, bool *p_no_rtp_hdr);
-typedef void (*tBTA_AV_CO_STOP) (tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
-typedef void * (*tBTA_AV_CO_DATAPATH) (tBTA_AV_CODEC codec_type,
-                                       uint32_t *p_len, uint32_t *p_timestamp);
+                                     uint8_t num_snk, uint8_t num_src,
+                                     BD_ADDR addr, uint16_t uuid_local);
+typedef uint8_t (*tBTA_AV_CO_GETCFG) (tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                                      uint8_t *p_codec_info,
+                                      uint8_t *p_sep_info_idx, uint8_t seid,
+                                      uint8_t *p_num_protect,
+                                      uint8_t *p_protect_info);
+typedef void (*tBTA_AV_CO_SETCFG) (tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                                   uint8_t *p_codec_info, uint8_t seid,
+                                   BD_ADDR addr, uint8_t num_protect,
+                                   uint8_t *p_protect_info,
+                                   uint8_t t_local_sep, uint8_t avdt_handle);
+typedef void (*tBTA_AV_CO_OPEN) (tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                                 uint8_t *p_codec_info, uint16_t mtu);
+typedef void (*tBTA_AV_CO_CLOSE) (tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                                  uint16_t mtu);
+typedef void (*tBTA_AV_CO_START) (tBTA_AV_HNDL hndl, tA2D_CODEC codec_type,
+                                  uint8_t *p_codec_info, bool *p_no_rtp_hdr);
+typedef void (*tBTA_AV_CO_STOP) (tBTA_AV_HNDL hndl, tA2D_CODEC codec_type);
+typedef void * (*tBTA_AV_CO_DATAPATH) (tA2D_CODEC codec_type, uint32_t *p_len,
+                                       uint32_t *p_timestamp);
 typedef void (*tBTA_AV_CO_DELAY) (tBTA_AV_HNDL hndl, uint16_t delay);
 
 /* the call-out functions for one stream */
@@ -202,13 +208,13 @@ typedef struct
     tBTA_SEC            sec_mask;
 } tBTA_AV_API_ENABLE;
 
-/* data type for BTA_AV_API_REG_EVT */
+/* data type for BTA_AV_API_REGISTER_EVT */
 typedef struct
 {
     BT_HDR              hdr;
     char                p_service_name[BTA_SERVICE_NAME_LEN+1];
     uint8_t             app_id;
-    tBTA_AV_DATA_CBACK  *p_app_data_cback;
+    tBTA_AV_SINK_DATA_CBACK *p_app_sink_data_cback;
     uint16_t            service_uuid;
 } tBTA_AV_API_REG;
 
@@ -391,9 +397,9 @@ typedef struct
 typedef struct
 {
     uint8_t             av_handle;         /* AVDTP handle */
-    tBTA_AV_CODEC       codec_type;        /* codec type */
+    tA2D_CODEC          codec_type;        /* codec type */
     uint8_t             tsep;              /* SEP type of local SEP */
-    tBTA_AV_DATA_CBACK  *p_app_data_cback; /* Application callback for media packets */
+    tBTA_AV_SINK_DATA_CBACK *p_app_sink_data_cback; /* Sink application callback for media packets */
 } tBTA_AV_SEP;
 
 
@@ -489,7 +495,7 @@ typedef struct
     uint16_t            stream_mtu;     /* MTU of stream */
     uint16_t            avdt_version;   /* the avdt version of peer device */
     tBTA_SEC            sec_mask;       /* security mask */
-    tBTA_AV_CODEC       codec_type;     /* codec type */
+    tA2D_CODEC          codec_type;     /* codec type */
     uint8_t             media_type;     /* Media type */
     bool                cong;           /* true if AVDTP congested */
     tBTA_AV_STATUS      open_status;    /* open failure status */
@@ -622,7 +628,8 @@ extern const tBTA_AV_SACT bta_av_a2d_action[];
 extern const tBTA_AV_CO_FUNCTS bta_av_a2d_cos;
 extern const tBTA_AV_SACT bta_av_vdp_action[];
 extern tAVDT_CTRL_CBACK * const bta_av_dt_cback[];
-extern void bta_av_stream_data_cback(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8_t m_pt);
+extern void bta_av_sink_data_cback(uint8_t handle, BT_HDR *p_pkt,
+                                   uint32_t time_stamp, uint8_t m_pt);
 
 /*****************************************************************************
 **  Function prototypes

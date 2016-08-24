@@ -31,7 +31,7 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_bluetooth
 
-LOCAL_C_INCLUDES += \
+LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/../../
 
 LOCAL_SRC_FILES := \
@@ -41,14 +41,14 @@ LOCAL_SRC_FILES := \
     gatt/gatt_unittest.cc \
     $(bluetoothHalSrc)
 
-LOCAL_SHARED_LIBRARIES += \
+LOCAL_SHARED_LIBRARIES := \
     liblog \
     libhardware \
     libhardware_legacy \
     libcutils \
     libchrome
 
-LOCAL_STATIC_LIBRARIES += \
+LOCAL_STATIC_LIBRARIES := \
     libbtcore \
     libosi
 
@@ -65,7 +65,7 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_rfcomm
 
-LOCAL_C_INCLUDES += \
+LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/../../ \
     $(bluetooth_C_INCLUDES) \
 
@@ -75,14 +75,14 @@ LOCAL_SRC_FILES := \
     rfcomm/rfcomm_unittest.cc \
     $(bluetoothHalSrc)
 
-LOCAL_SHARED_LIBRARIES += \
+LOCAL_SHARED_LIBRARIES := \
     liblog \
     libhardware \
     libhardware_legacy \
     libcutils \
     libchrome \
 
-LOCAL_STATIC_LIBRARIES += \
+LOCAL_STATIC_LIBRARIES := \
     libbtcore \
     libosi \
 

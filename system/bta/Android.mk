@@ -82,7 +82,7 @@ LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libcutils libc
 
-LOCAL_C_INCLUDES+= . \
+LOCAL_C_INCLUDES := . \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/sys \
                    $(LOCAL_PATH)/dm \

@@ -1131,44 +1131,50 @@ static void bte_av_callback(tBTA_AV_EVT event, tBTA_AV *p_data)
                           (char*)p_data, sizeof(tBTA_AV), btif_av_event_deep_copy);
 }
 
-static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
+static void bte_av_sink_media_callback(tBTA_AV_EVT event,
+                                       tBTA_AV_MEDIA *p_data)
 {
-    btif_sm_state_t state;
-    uint8_t que_len;
-    tA2D_STATUS a2d_status;
-    tA2D_SBC_CIE sbc_cie;
-    btif_av_sink_config_req_t config_req;
-
-    if (event == BTA_AV_MEDIA_DATA_EVT)/* Switch to BTIF_MEDIA context */
-    {
-        state= btif_sm_get_state(btif_av_cb.sm_handle);
-        if ( (state == BTIF_AV_STATE_STARTED) || /* send SBC packets only in Started State */
-             (state == BTIF_AV_STATE_OPENED) )
-        {
-            que_len = btif_media_sink_enque_buf((BT_HDR *)p_data);
-            BTIF_TRACE_DEBUG(" Packets in Que %d",que_len);
+    switch (event) {
+    case BTA_AV_SINK_MEDIA_DATA_EVT: {
+        btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
+        if ((state == BTIF_AV_STATE_STARTED) ||
+            (state == BTIF_AV_STATE_OPENED)) {
+            uint8_t queue_len = btif_media_sink_enque_buf((BT_HDR *)p_data);
+            BTIF_TRACE_DEBUG("%s: packets in sink queue %d", __func__,
+                             queue_len);
         }
-        else
-            return;
+        break;
     }
+    case BTA_AV_SINK_MEDIA_CFG_EVT: {
+        btif_av_sink_config_req_t config_req;
+        tA2D_SBC_CIE sbc_cie;
 
-    if (event == BTA_AV_MEDIA_SINK_CFG_EVT) {
         /* send a command to BT Media Task */
-        btif_reset_decoder((uint8_t*)(p_data->avk_config.codec_info));
-        a2d_status = A2D_ParsSbcInfo(&sbc_cie, (uint8_t *)(p_data->avk_config.codec_info), false);
-        if (a2d_status == A2D_SUCCESS) {
-            /* Switch to BTIF context */
-            config_req.sample_rate = btif_a2dp_get_track_frequency(sbc_cie.samp_freq);
-            config_req.channel_count = btif_a2dp_get_track_channel_count(sbc_cie.ch_mode);
-            memcpy(&config_req.peer_bd,(uint8_t*)(p_data->avk_config.bd_addr),
-                                                              sizeof(config_req.peer_bd));
-            btif_transfer_context(btif_av_handle_event, BTIF_AV_SINK_CONFIG_REQ_EVT,
-                                     (char*)&config_req, sizeof(config_req), NULL);
-        } else {
-            APPL_TRACE_ERROR("ERROR dump_codec_info A2D_ParsSbcInfo fail:%d", a2d_status);
+        btif_reset_decoder((uint8_t *)(p_data->avk_config.codec_info));
+        tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie,
+                (uint8_t *)(p_data->avk_config.codec_info), false);
+        if (a2d_status != A2D_SUCCESS) {
+            APPL_TRACE_ERROR("%s: A2D_ParsSbcInfo fail: %d", __func__,
+                             a2d_status);
+            break;
         }
+        /* Switch to BTIF context */
+        config_req.sample_rate =
+            A2D_sbc_get_track_frequency(sbc_cie.samp_freq);
+        config_req.channel_count =
+            A2D_sbc_get_track_channel_count(sbc_cie.ch_mode);
+        memcpy(&config_req.peer_bd, (uint8_t *)(p_data->avk_config.bd_addr),
+               sizeof(config_req.peer_bd));
+        btif_transfer_context(btif_av_handle_event,
+                              BTIF_AV_SINK_CONFIG_REQ_EVT,
+                              (char *)&config_req, sizeof(config_req), NULL);
+        break;
+    }
+    default:
+        break;
     }
 }
+
 /*******************************************************************************
 **
 ** Function         btif_av_init
@@ -1554,8 +1560,8 @@ bt_status_t btif_av_execute_service(bool b_enable)
          BTA_AvEnable(BTA_SEC_AUTHENTICATE, (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_NO_SCO_SSPD),
                       bte_av_callback);
 #endif
-         BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AV_SERVICE_NAME, 0, bte_av_media_callback,
-                                                             UUID_SERVCLASS_AUDIO_SOURCE);
+         BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AV_SERVICE_NAME, 0, bte_av_sink_media_callback,
+                        UUID_SERVCLASS_AUDIO_SOURCE);
      }
      else {
          BTA_AvDeregister(btif_av_cb.bta_handle);
@@ -1584,8 +1590,8 @@ bt_status_t btif_av_sink_execute_service(bool b_enable)
                                             BTA_AV_FEAT_METADATA|BTA_AV_FEAT_VENDOR|
                                             BTA_AV_FEAT_ADV_CTRL|BTA_AV_FEAT_RCTG,
                                                                         bte_av_callback);
-         BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AVK_SERVICE_NAME, 0, bte_av_media_callback,
-                                                                UUID_SERVCLASS_AUDIO_SINK);
+         BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AVK_SERVICE_NAME, 0,
+                        bte_av_sink_media_callback, UUID_SERVCLASS_AUDIO_SINK);
      }
      else {
          BTA_AvDeregister(btif_av_cb.bta_handle);
