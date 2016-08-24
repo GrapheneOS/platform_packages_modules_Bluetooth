@@ -2222,7 +2222,7 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_buf->codec_info, false);
     if (a2d_status != A2D_SUCCESS)
     {
-        APPL_TRACE_ERROR("%s: A2D_ParsSbcInfo fail:%d", __func_, a2d_status);
+        APPL_TRACE_ERROR("%s: A2D_ParsSbcInfo fail:%d", __func__, a2d_status);
         return;
     }
 
