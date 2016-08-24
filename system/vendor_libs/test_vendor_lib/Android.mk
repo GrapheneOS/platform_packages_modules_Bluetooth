@@ -47,9 +47,13 @@ endif
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS)
-LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
-LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+LOCAL_CFLAGS += \
+  -fvisibility=hidden \
+  -Wall \
+  -Wextra \
+  -Werror \
+  -UNDEBUG \
+  -DLOG_NDEBUG=1
 
 include $(BUILD_SHARED_LIBRARY)
 
@@ -84,9 +88,13 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE := test-vendor_test_host
 LOCAL_MODULE_TAGS := tests
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS)
-LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
-LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+LOCAL_CFLAGS += \
+  -fvisibility=hidden \
+  -Wall \
+  -Wextra \
+  -Werror \
+  -UNDEBUG \
+  -DLOG_NDEBUG=1
 
 include $(BUILD_HOST_NATIVE_TEST)
 endif
