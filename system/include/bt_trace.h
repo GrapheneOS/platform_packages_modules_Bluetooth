@@ -120,10 +120,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
                                                          enable/disable of BT_PROTOCOL_TRACE */
 #define BTTRC_ID_MAX_ID                    BTTRC_ID_BT_PROTOCOL
 #define BTTRC_ID_ALL_LAYERS                0xFF       /* all trace layers */
-/* Parameter datatypes used in Trace APIs */
-#define BTTRC_PARAM_UINT8                  1
-#define BTTRC_PARAM_UINT16                 2
-#define BTTRC_PARAM_UINT32                 3
 
 /* Enables or disables verbose trace information. */
 #ifndef BT_TRACE_VERBOSE
@@ -222,7 +218,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #endif
 
 #define BT_TRACE(l,t,...)                        LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), ##__VA_ARGS__)
-#define BT_ERROR_TRACE(l,...)                    LogMsg(TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | TRACE_TYPE_ERROR, ##__VA_ARGS__)
 
 /* Define tracing for the HCI unit
 */
@@ -369,41 +364,7 @@ extern uint8_t btif_trace_level;
 #define APPL_TRACE_DEBUG(...)                    {if (appl_trace_level >= BT_TRACE_LEVEL_DEBUG) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 #define APPL_TRACE_VERBOSE(...)                  {if (appl_trace_level >= BT_TRACE_LEVEL_VERBOSE) LogMsg(TRACE_CTRL_GENERAL | TRACE_LAYER_NONE | TRACE_ORG_APPL | TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
-/* Simplified Trace Helper Macro
-*/
-#define bdld(fmt, ...) \
-    do{\
-        if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_DEBUG, "%s(L%d): " fmt, __func__, __LINE__,  ## __VA_ARGS__); \
-    }while(0)
-
-#define bdlw(fmt, ...) \
-    do{\
-        if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_WARNING, "%s(L%d): " fmt, __func__, __LINE__,  ## __VA_ARGS__); \
-    }while(0)
-
-#define bdle(fmt, ...) \
-    do{\
-        if((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_DEBUG) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): " fmt, __func__, __LINE__,  ## __VA_ARGS__); \
-    }while(0)
-
-#define bdla(assert_if) \
-    do{\
-        if(((MY_LOG_LEVEL) >= BT_TRACE_LEVEL_ERROR) && !(assert_if)) \
-            LogMsg((MY_LOG_LAYER) | TRACE_TYPE_ERROR, "%s(L%d): assert failed: " #assert_if, __func__, __LINE__); \
-    }while(0)
-
-typedef uint8_t tBTTRC_PARAM_TYPE;
 typedef uint8_t tBTTRC_LAYER_ID;
-typedef uint8_t tBTTRC_TYPE;
-
-typedef struct {
-    tBTTRC_LAYER_ID layer_id;
-    tBTTRC_TYPE     type;      /* TODO: use tBTTRC_TYPE instead of "classical level 0-5" */
-} tBTTRC_LEVEL;
-
 typedef uint8_t (tBTTRC_SET_TRACE_LEVEL)( uint8_t );
 
 typedef struct {
