@@ -210,8 +210,8 @@ void DualModeController::RegisterEventChannel(
 }
 
 void DualModeController::RegisterDelayedEventChannel(
-    const std::function<void(std::unique_ptr<EventPacket>, std::chrono::milliseconds)>&
-        callback) {
+    const std::function<void(std::unique_ptr<EventPacket>,
+                             std::chrono::milliseconds)>& callback) {
   send_delayed_event_ = callback;
   SetEventDelay(0);
 }
@@ -225,14 +225,14 @@ void DualModeController::SetEventDelay(int64_t delay) {
 }
 
 void DualModeController::TestChannelClear(
-    const vector<std::string>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<std::string>& args) {
   LogCommand("TestChannel Clear");
   test_channel_state_ = kNone;
   SetEventDelay(0);
 }
 
 void DualModeController::TestChannelDiscover(
-    const vector<std::string>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<std::string>& args) {
   LogCommand("TestChannel Discover");
   /* TODO: Replace with adding devices */
   /*
@@ -243,7 +243,7 @@ void DualModeController::TestChannelDiscover(
 }
 
 void DualModeController::TestChannelTimeoutAll(
-    const vector<std::string>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<std::string>& args) {
   LogCommand("TestChannel Timeout All");
   test_channel_state_ = kTimeoutAll;
 }
@@ -256,19 +256,20 @@ void DualModeController::TestChannelSetEventDelay(
 }
 
 void DualModeController::TestChannelClearEventDelay(
-    const vector<std::string>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<std::string>& args) {
   LogCommand("TestChannel Clear Event Delay");
   test_channel_state_ = kNone;
   SetEventDelay(0);
 }
 
-void DualModeController::HciReset(const vector<uint8_t>& /* args */) {
+void DualModeController::HciReset(UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Reset");
   state_ = kStandby;
   SendCommandCompleteSuccess(HCI_RESET);
 }
 
-void DualModeController::HciReadBufferSize(const vector<uint8_t>& /* args */) {
+void DualModeController::HciReadBufferSize(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Read Buffer Size");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadBufferSize(
@@ -281,13 +282,14 @@ void DualModeController::HciReadBufferSize(const vector<uint8_t>& /* args */) {
   send_event_(std::move(command_complete));
 }
 
-void DualModeController::HciHostBufferSize(const vector<uint8_t>& /* args */) {
+void DualModeController::HciHostBufferSize(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Host Buffer Size");
   SendCommandCompleteSuccess(HCI_HOST_BUFFER_SIZE);
 }
 
 void DualModeController::HciReadLocalVersionInformation(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Read Local Version Information");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadLocalVersionInformation(
@@ -300,7 +302,8 @@ void DualModeController::HciReadLocalVersionInformation(
   send_event_(std::move(command_complete));
 }
 
-void DualModeController::HciReadBdAddr(const vector<uint8_t>& /* args */) {
+void DualModeController::HciReadBdAddr(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadBdAddr(kSuccessStatus,
                                                    properties_.GetBdAddress());
@@ -308,7 +311,7 @@ void DualModeController::HciReadBdAddr(const vector<uint8_t>& /* args */) {
 }
 
 void DualModeController::HciReadLocalSupportedCommands(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Read Local Supported Commands");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadLocalSupportedCommands(
@@ -317,7 +320,7 @@ void DualModeController::HciReadLocalSupportedCommands(
 }
 
 void DualModeController::HciReadLocalSupportedCodecs(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Read Local Supported Codecs");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadLocalSupportedCodecs(
@@ -341,18 +344,19 @@ void DualModeController::HciReadLocalExtendedFeatures(
 }
 
 void DualModeController::HciWriteSimplePairingMode(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Simple Pairing Mode");
   SendCommandCompleteSuccess(HCI_WRITE_SIMPLE_PAIRING_MODE);
 }
 
 void DualModeController::HciWriteLeHostSupport(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Le Host Support");
   SendCommandCompleteSuccess(HCI_WRITE_LE_HOST_SUPPORT);
 }
 
-void DualModeController::HciSetEventMask(const vector<uint8_t>& /* args */) {
+void DualModeController::HciSetEventMask(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Set Event Mask");
   SendCommandCompleteSuccess(HCI_SET_EVENT_MASK);
 }
@@ -365,36 +369,37 @@ void DualModeController::HciWriteInquiryMode(const vector<uint8_t>& args) {
 }
 
 void DualModeController::HciWritePageScanType(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Page Scan Type");
   SendCommandCompleteSuccess(HCI_WRITE_PAGESCAN_TYPE);
 }
 
 void DualModeController::HciWriteInquiryScanType(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Inquiry Scan Type");
   SendCommandCompleteSuccess(HCI_WRITE_INQSCAN_TYPE);
 }
 
 void DualModeController::HciWriteClassOfDevice(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Class Of Device");
   SendCommandCompleteSuccess(HCI_WRITE_CLASS_OF_DEVICE);
 }
 
 void DualModeController::HciWritePageTimeout(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Page Timeout");
   SendCommandCompleteSuccess(HCI_WRITE_PAGE_TOUT);
 }
 
 void DualModeController::HciWriteDefaultLinkPolicySettings(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Default Link Policy Settings");
   SendCommandCompleteSuccess(HCI_WRITE_DEF_POLICY_SETTINGS);
 }
 
-void DualModeController::HciReadLocalName(const vector<uint8_t>& /* args */) {
+void DualModeController::HciReadLocalName(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Get Local Name");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadLocalName(
@@ -402,41 +407,44 @@ void DualModeController::HciReadLocalName(const vector<uint8_t>& /* args */) {
   send_event_(std::move(command_complete));
 }
 
-void DualModeController::HciWriteLocalName(const vector<uint8_t>& /* args */) {
+void DualModeController::HciWriteLocalName(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Local Name");
   SendCommandCompleteSuccess(HCI_CHANGE_LOCAL_NAME);
 }
 
 void DualModeController::HciWriteExtendedInquiryResponse(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Extended Inquiry Response");
   SendCommandCompleteSuccess(HCI_WRITE_EXT_INQ_RESPONSE);
 }
 
 void DualModeController::HciWriteVoiceSetting(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Voice Setting");
   SendCommandCompleteSuccess(HCI_WRITE_VOICE_SETTINGS);
 }
 
 void DualModeController::HciWriteCurrentIacLap(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Current IAC LAP");
   SendCommandCompleteSuccess(HCI_WRITE_CURRENT_IAC_LAP);
 }
 
 void DualModeController::HciWriteInquiryScanActivity(
-    const vector<uint8_t>& /* args */) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Inquiry Scan Activity");
   SendCommandCompleteSuccess(HCI_WRITE_INQUIRYSCAN_CFG);
 }
 
-void DualModeController::HciWriteScanEnable(const vector<uint8_t>& /* args */) {
+void DualModeController::HciWriteScanEnable(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Write Scan Enable");
   SendCommandCompleteSuccess(HCI_WRITE_SCAN_ENABLE);
 }
 
-void DualModeController::HciSetEventFilter(const vector<uint8_t>& /* args */) {
+void DualModeController::HciSetEventFilter(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Set Event Filter");
   SendCommandCompleteSuccess(HCI_SET_EVENT_FILTER);
 }
@@ -490,7 +498,8 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
                       std::chrono::milliseconds(args[4] * 1280));
 }
 
-void DualModeController::HciInquiryCancel(const vector<uint8_t>& /* args */) {
+void DualModeController::HciInquiryCancel(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Inquiry Cancel");
   CHECK(state_ == kInquiry);
   state_ = kStandby;
@@ -498,7 +507,7 @@ void DualModeController::HciInquiryCancel(const vector<uint8_t>& /* args */) {
 }
 
 void DualModeController::HciDeleteStoredLinkKey(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Delete Stored Link Key");
   /* Check the last octect in |args|. If it is 0, delete only the link key for
    * the given BD_ADDR. If is is 1, delete all stored link keys. */
@@ -506,7 +515,7 @@ void DualModeController::HciDeleteStoredLinkKey(
 }
 
 void DualModeController::HciRemoteNameRequest(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Remote Name Request");
   SendCommandStatusSuccess(HCI_RMT_NAME_REQUEST);
 }
@@ -518,7 +527,7 @@ void DualModeController::HciLeSetEventMask(const vector<uint8_t>& args) {
 }
 
 void DualModeController::HciLeReadBufferSize(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteLeReadBufferSize(
           kSuccessStatus,
@@ -528,7 +537,7 @@ void DualModeController::HciLeReadBufferSize(
 }
 
 void DualModeController::HciLeReadLocalSupportedFeatures(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteLeReadLocalSupportedFeatures(
           kSuccessStatus, properties_.GetLeLocalSupportedFeatures());
@@ -542,12 +551,13 @@ void DualModeController::HciLeSetRandomAddress(const vector<uint8_t>& args) {
 }
 
 void DualModeController::HciLeSetAdvertisingParameters(
-    const vector<uint8_t>& args) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("LE SetAdvertisingParameters");
   SendCommandCompleteSuccess(HCI_BLE_WRITE_ADV_PARAMS);
 }
 
-void DualModeController::HciLeSetAdvertisingData(const vector<uint8_t>& args) {
+void DualModeController::HciLeSetAdvertisingData(
+    UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("LE SetAdvertisingData");
   SendCommandCompleteSuccess(HCI_BLE_WRITE_ADV_DATA);
 }
@@ -573,14 +583,14 @@ void DualModeController::HciLeSetScanEnable(const vector<uint8_t>& args) {
 }
 
 void DualModeController::HciLeReadWhiteListSize(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteLeReadWhiteListSize(
           kSuccessStatus, properties_.GetLeWhiteListSize());
   send_event_(std::move(command_complete));
 }
 
-void DualModeController::HciLeRand(const vector<uint8_t>& args UNUSED_ATTR) {
+void DualModeController::HciLeRand(UNUSED_ATTR const vector<uint8_t>& args) {
   uint64_t random_val = rand();
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteLeRand(kSuccessStatus, random_val);
@@ -588,7 +598,7 @@ void DualModeController::HciLeRand(const vector<uint8_t>& args UNUSED_ATTR) {
 }
 
 void DualModeController::HciLeReadSupportedStates(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteLeReadSupportedStates(
           kSuccessStatus, properties_.GetLeSupportedStates());
@@ -596,13 +606,13 @@ void DualModeController::HciLeReadSupportedStates(
 }
 
 void DualModeController::HciBleVendorSleepMode(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   SendCommandCompleteOnlyStatus(HCI_GRP_VENDOR_SPECIFIC | 0x27,
                                 kUnknownHciCommand);
 }
 
 void DualModeController::HciBleVendorCap(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteLeVendorCap(
           kSuccessStatus, properties_.GetLeVendorCap());
@@ -610,29 +620,29 @@ void DualModeController::HciBleVendorCap(
 }
 
 void DualModeController::HciBleVendorMultiAdv(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   SendCommandCompleteOnlyStatus(HCI_BLE_MULTI_ADV_OCF, kUnknownHciCommand);
 }
 
 void DualModeController::HciBleVendor155(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   SendCommandCompleteOnlyStatus(HCI_GRP_VENDOR_SPECIFIC | 0x155,
                                 kUnknownHciCommand);
 }
 
 void DualModeController::HciBleVendor157(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   SendCommandCompleteOnlyStatus(HCI_GRP_VENDOR_SPECIFIC | 0x157,
                                 kUnknownHciCommand);
 }
 
 void DualModeController::HciBleEnergyInfo(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   SendCommandCompleteOnlyStatus(HCI_BLE_ENERGY_INFO_OCF, kUnknownHciCommand);
 }
 
 void DualModeController::HciBleExtendedScanParams(
-    const vector<uint8_t>& args UNUSED_ATTR) {
+    UNUSED_ATTR const vector<uint8_t>& args) {
   SendCommandCompleteOnlyStatus(HCI_BLE_EXTENDED_SCAN_PARAMS_OCF,
                                 kUnknownHciCommand);
 }
