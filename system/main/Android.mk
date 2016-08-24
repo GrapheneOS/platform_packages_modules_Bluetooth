@@ -5,7 +5,7 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 # platform specific
-LOCAL_SRC_FILES+= \
+LOCAL_SRC_FILES := \
 	bte_main.c \
 	bte_init.c \
 	bte_logmsg.c \
@@ -13,7 +13,7 @@ LOCAL_SRC_FILES+= \
 	stack_config.c
 
 # sbc encoder
-LOCAL_SRC_FILES+= \
+LOCAL_SRC_FILES += \
 	../embdrv/sbc/encoder/srce/sbc_analysis.c \
 	../embdrv/sbc/encoder/srce/sbc_dct.c \
 	../embdrv/sbc/encoder/srce/sbc_dct_coeffs.c \
@@ -23,10 +23,10 @@ LOCAL_SRC_FILES+= \
 	../embdrv/sbc/encoder/srce/sbc_encoder.c \
 	../embdrv/sbc/encoder/srce/sbc_packing.c \
 
-LOCAL_SRC_FILES+= \
+LOCAL_SRC_FILES += \
 	../udrv/ulinux/uipc.c
 
-LOCAL_C_INCLUDES+= . \
+LOCAL_C_INCLUDES := . \
 	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../bta/include \
 	$(LOCAL_PATH)/../bta/sys \

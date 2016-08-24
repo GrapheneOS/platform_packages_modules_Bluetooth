@@ -5,7 +5,7 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 # sbc decoder
-LOCAL_SRC_FILES+= \
+LOCAL_SRC_FILES := \
         ./srce/alloc.c \
         ./srce/bitalloc.c \
         ./srce/bitalloc-sbc.c \
@@ -21,10 +21,10 @@ LOCAL_SRC_FILES+= \
         ./srce/synthesis-dct8.c \
         ./srce/synthesis-8-generated.c \
 
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/include
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/srce
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include \
+	$(LOCAL_PATH)/srce
 
-LOCAL_MODULE:= libbt-qcom_sbc_decoder
+LOCAL_MODULE := libbt-qcom_sbc_decoder
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 

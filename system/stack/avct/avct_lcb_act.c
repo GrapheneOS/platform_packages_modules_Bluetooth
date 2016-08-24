@@ -403,19 +403,19 @@ void avct_lcb_bind_conn(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 *******************************************************************************/
 void avct_lcb_chk_disc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
-    AVCT_TRACE_WARNING("avct_lcb_chk_disc");
+    AVCT_TRACE_WARNING("%s", __func__);
 #if (AVCT_BROWSE_INCLUDED == TRUE)
     avct_close_bcb(p_lcb, p_data);
 #endif
     if (avct_lcb_last_ccb(p_lcb, p_data->p_ccb))
     {
-        AVCT_TRACE_WARNING("closing");
+        AVCT_TRACE_WARNING("%s: closing", __func__);
         p_data->p_ccb->ch_close = true;
         avct_lcb_event(p_lcb, AVCT_LCB_INT_CLOSE_EVT, p_data);
     }
     else
     {
-        AVCT_TRACE_WARNING("dealloc ccb");
+        AVCT_TRACE_WARNING("%s: dealloc ccb", __func__);
         avct_lcb_unbind_disc(p_lcb, p_data);
     }
 }

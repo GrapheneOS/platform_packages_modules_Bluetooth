@@ -205,6 +205,19 @@ extern void A2D_BldSbcMplHdr(uint8_t *p_dst, bool    frag, bool    start,
 extern void A2D_ParsSbcMplHdr(uint8_t *p_src, bool    *p_frag,
                               bool    *p_start, bool    *p_last,
                               uint8_t *p_num);
+
+// Get the A2DP SBC track sampling frequency value.
+// |frequency_type| is the frequency type - see |A2D_SBC_IE_SAMP_FREQ_*|.
+int A2D_sbc_get_track_frequency(uint8_t frequency_type);
+
+// Get the A2DP SBC channel count.
+// |channel_type| is the channel type - see |A2D_SBC_IE_CH_MD_*|.
+int A2D_sbc_get_track_channel_count(uint8_t channel_type);
+
+// Decode and display SBC codec_info (for debugging).
+// |p_codec| is a pointer to the SBC codec_info to decode and display.
+void A2D_sbc_dump_codec_info(uint8_t *p_codec);
+
 #ifdef __cplusplus
 }
 #endif
