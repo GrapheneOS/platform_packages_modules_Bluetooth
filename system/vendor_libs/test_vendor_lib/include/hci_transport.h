@@ -67,8 +67,8 @@ class HciTransport {
   // Sets the callback that is to schedule events.
   void RegisterPeriodicEventScheduler(
       const std::function<void(std::chrono::milliseconds,
-                         std::chrono::milliseconds,
-                         const TaskCallback&)>& periodicEvtScheduler);
+                               std::chrono::milliseconds,
+                               const TaskCallback&)>& periodicEvtScheduler);
 
   // Posts the event onto |outbound_events_| to be written sometime in the
   // future when the vendor file descriptor is ready for writing.
