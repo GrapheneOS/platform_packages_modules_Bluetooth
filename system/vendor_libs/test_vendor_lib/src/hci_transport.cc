@@ -107,8 +107,8 @@ void HciTransport::RegisterEventScheduler(
 
 void HciTransport::RegisterPeriodicEventScheduler(
     const std::function<void(std::chrono::milliseconds,
-                       std::chrono::milliseconds,
-                       const TaskCallback&)>& periodicEvtScheduler) {
+                             std::chrono::milliseconds,
+                             const TaskCallback&)>& periodicEvtScheduler) {
   schedule_periodic_event_ = periodicEvtScheduler;
 }
 

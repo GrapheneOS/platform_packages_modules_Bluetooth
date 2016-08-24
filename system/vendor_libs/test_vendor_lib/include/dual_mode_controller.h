@@ -189,7 +189,7 @@ class DualModeController {
 
   void RegisterDelayedEventChannel(
       const std::function<void(std::unique_ptr<EventPacket>,
-                         std::chrono::milliseconds)>& send_event);
+                               std::chrono::milliseconds)>& send_event);
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).
