@@ -521,6 +521,8 @@ public class AdapterService extends Service {
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
         mProfileObserver = new ProfileObserver(getApplicationContext(), this, new Handler());
         mProfileObserver.start();
+
+        setAdapterService(this);
     }
 
     @Override
@@ -575,9 +577,6 @@ public class AdapterService extends Service {
         } catch (RemoteException e) {
             // Ignore.
         }
-
-        //FIXME: Set static instance here???
-        setAdapterService(this);
 
         //Start Gatt service
         setGattProfileServiceState(supportedProfileServices,BluetoothAdapter.STATE_ON);
