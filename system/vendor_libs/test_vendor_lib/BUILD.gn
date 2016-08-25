@@ -1,5 +1,6 @@
 shared_library("test_vendor_lib") {
   sources = [
+    "src/async_manager.cc",
     "src/bt_vendor.cc",
     "src/command_packet.cc",
     "src/dual_mode_controller.cc",
@@ -28,6 +29,7 @@ shared_library("test_vendor_lib") {
 executable("test_vendor_lib_test") {
   testonly = true
   sources = [
+    "src/async_manager.cc",
     "src/command_packet.cc",
     "src/event_packet.cc",
     "src/hci_transport.cc",
