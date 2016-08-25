@@ -1341,4 +1341,4 @@ char *bta_av_evt_code(uint16_t evt_code)
     default:             return "unknown";
     }
 }
-#endif
+#endif /* BTA_AV_DEBUG */
