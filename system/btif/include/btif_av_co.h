@@ -97,7 +97,7 @@ void bta_av_co_audio_codec_reset(void);
  ** Returns          true if all opened devices support this codec, false otherwise
  **
  *******************************************************************************/
-bool bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status);
+bool bta_av_co_audio_codec_supported(void);
 
 /*******************************************************************************
  **
@@ -110,7 +110,7 @@ bool bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status);
  ** Returns          true if successful, false otherwise
  **
  *******************************************************************************/
-bool bta_av_co_audio_set_codec(const tBTIF_AV_MEDIA_FEEDINGS *p_feeding, tBTIF_STATUS *p_status);
+bool bta_av_co_audio_set_codec(const tBTIF_AV_MEDIA_FEEDINGS *p_feeding);
 
 /*******************************************************************************
  **
