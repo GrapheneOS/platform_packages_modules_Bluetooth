@@ -744,7 +744,7 @@ static void bta_av_a2d_sdp_cback(bool found, tA2D_Service *p_service)
 *******************************************************************************/
 static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 {
-    APPL_TRACE_DEBUG("bta_av_adjust_seps_idx codec_type: %d", p_scb->codec_type);
+    APPL_TRACE_DEBUG("%s: codec_type: %d", __func__, p_scb->codec_type);
     for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
         APPL_TRACE_DEBUG("av_handle: %d codec_type: %d",
             p_scb->seps[i].av_handle, p_scb->seps[i].codec_type);
@@ -1333,7 +1333,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             p_scb->avdt_version = AVDT_VERSION_SYNC;
 
 
-        if (p_scb->codec_type == BTA_AV_CODEC_SBC || num > 1)
+        if (p_scb->codec_type == A2D_MEDIA_CT_SBC || num > 1)
         {
             /* if SBC is used by the SNK as INT, discover req is not sent in bta_av_config_ind.
                        * call disc_res now */
