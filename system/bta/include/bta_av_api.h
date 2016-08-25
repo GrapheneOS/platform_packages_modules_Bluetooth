@@ -93,8 +93,6 @@ typedef uint8_t tBTA_AV_HNDL;
 /* offset of codec type in codec info byte array */
 #define BTA_AV_CODEC_TYPE_IDX       AVDT_CODEC_TYPE_INDEX   /* 2 */
 
-
-
 /* maximum number of streams created: 1 for audio, 1 for video */
 #ifndef BTA_AV_NUM_STRS
 #define BTA_AV_NUM_STRS         2
@@ -112,25 +110,6 @@ typedef uint8_t tBTA_AV_HNDL;
 #ifndef BTA_AV_MAX_VDP_MTU
 #define BTA_AV_MAX_VDP_MTU      1008
 #endif
-
-
-/* codec type */
-#define BTA_AV_CODEC_SBC        A2D_MEDIA_CT_SBC        /* SBC media codec type */
-#define BTA_AV_CODEC_M12        A2D_MEDIA_CT_M12        /* MPEG-1, 2 Audio media codec type */
-#define BTA_AV_CODEC_M24        A2D_MEDIA_CT_M24        /* MPEG-2, 4 AAC media codec type */
-#define BTA_AV_CODEC_ATRAC      A2D_MEDIA_CT_ATRAC      /* ATRAC family media codec type */
-#define BTA_AV_CODEC_H263_P0    VDP_MEDIA_CT_H263_P0    /* H.263 baseline (profile 0) */
-#define BTA_AV_CODEC_MPEG4      VDP_MEDIA_CT_MPEG4      /* MPEG-4 Visual Simple Profile */
-#define BTA_AV_CODEC_H263_P3    VDP_MEDIA_CT_H263_P3    /* H.263 profile 3 */
-#define BTA_AV_CODEC_H263_P8    VDP_MEDIA_CT_H263_P8    /* H.263 profile 8 */
-#define BTA_AV_CODEC_VEND       VDP_MEDIA_CT_VEND       /* Non-VDP */
-
-/* Company ID in BT assigned numbers */
-#define BTA_AV_BT_VENDOR_ID     VDP_BT_VENDOR_ID        /* Broadcom Corporation */
-
-/* vendor specific codec ID */
-#define BTA_AV_CODEC_ID_H264    VDP_CODEC_ID_H264       /* Non-VDP codec ID - H.264 */
-#define BTA_AV_CODEC_ID_IMG     VDP_CODEC_ID_IMG        /* Non-VDP codec ID - images/slideshow */
 
 /* operation id list for BTA_AvRemoteCmd */
 #define BTA_AV_RC_SELECT        AVRC_ID_SELECT      /* select */
@@ -471,20 +450,7 @@ typedef union
 } tBTA_AV_MEDIA;
 
 
-#define BTA_AVC_PACKET_LEN                  AVRC_PACKET_LEN
-#define BTA_VENDOR_DATA_OFFSET              6
-#define BTA_VENDOR_HEADER_LEN               4
-#define BTA_MAX_VENDOR_DEPENDENT_DATA_LEN   (BTA_AVC_PACKET_LEN-BTA_VENDOR_DATA_OFFSET-BTA_VENDOR_HEADER_LEN)
 #define BTA_GROUP_NAVI_MSG_OP_DATA_LEN      5
-
-#define BTA_ERROR_INVALID_CMD           AVRC_STS_BAD_CMD
-#define BTA_ERROR_INVALID_PARAM         AVRC_STS_BAD_PARAM
-#define BTA_ERROR_BAD_CONTENTS          AVRC_STS_NOT_FOUND
-#define BTA_ERROR_INTERNAL              AVRC_STS_INTERNAL_ERR
-
-#define BTA_AV_META_SINGLE_PACKET       AVRC_PKT_SINGLE
-
-#define BTA_AV_CO_METADATA              AVRC_CO_METADATA
 
 /* AV callback */
 typedef void (tBTA_AV_CBACK)(tBTA_AV_EVT event, tBTA_AV *p_data);
