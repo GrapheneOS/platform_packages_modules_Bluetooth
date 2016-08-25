@@ -441,7 +441,7 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
         bdname.name[remote_name_len] = '\0';
 
-        LOG_DEBUG(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __func__,
+        LOG_VERBOSE(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __func__,
                   bdname.name, remote_name_len, device_type);
         btif_dm_update_ble_remote_properties(bd_addr.address, bdname.name,
                                              device_type);
