@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.pbapclient.utils;
+package com.android.bluetooth.pbapclient;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
