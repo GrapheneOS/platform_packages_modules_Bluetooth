@@ -46,6 +46,7 @@ public class BrowseTree {
 
     public static final int DIRECTION_DOWN = 0;
     public static final int DIRECTION_UP = 1;
+    public static final int DIRECTION_SAME = 2;
     public static final int DIRECTION_UNKNOWN = -1;
 
     public static final String ROOT = "__ROOT__";
@@ -57,6 +58,9 @@ public class BrowseTree {
     private BrowseNode mCurrentBrowseNode;
 
     BrowseTree() {
+    }
+
+    public void init() {
         MediaDescription.Builder mdb = new MediaDescription.Builder();
         mdb.setMediaId(ROOT);
         mdb.setTitle(ROOT);
@@ -65,6 +69,11 @@ public class BrowseTree {
         mdb.setExtras(mdBundle);
         mBrowseMap.put(ROOT, new BrowseNode(new MediaItem(mdb.build(), MediaItem.FLAG_BROWSABLE)));
         mCurrentBrowseNode = mBrowseMap.get(ROOT);
+    }
+
+    public void clear() {
+        // Clearing the map should garbage collect everything.
+        mBrowseMap.clear();
     }
 
     // Each node of the tree is represented by Folder ID, Folder Name and the children.
@@ -76,6 +85,10 @@ public class BrowseTree {
         // Since Media APIs do not define the player separately we define that
         // distinction here.
         boolean mIsPlayer = false;
+
+        // If this folder is currently cached, can be useful to return the contents
+        // without doing another fetch.
+        boolean mCached = false;
 
         // Result object if this node is not loaded yet. This result object will be used
         // once loading is finished.
@@ -113,6 +126,14 @@ public class BrowseTree {
                 }
             }
             return false;
+        }
+
+        synchronized boolean isCached() {
+            return mCached;
+        }
+
+        synchronized void setCached(boolean cached) {
+            mCached = cached;
         }
 
         // Fetch the Unique UID for this item, this is unique across all elements in the tree.
@@ -195,6 +216,8 @@ public class BrowseTree {
         for (BrowseNode bn : parent.getChildren()) {
             childrenList.add(bn.getMediaItem());
         }
+
+        parent.setCached(true);
     }
 
     synchronized BrowseNode findBrowseNodeByID(String parentID) {
@@ -238,6 +261,8 @@ public class BrowseTree {
             return DIRECTION_DOWN;
         } else if (toFolder.isChild(fromFolder)) {
             return DIRECTION_UP;
+        } else if (fromFolder.equals(toFolder)) {
+            return DIRECTION_SAME;
         } else {
             Log.w(TAG, "from folder " + mCurrentBrowseNode + " children " +
                 fromFolder.getChildren() + "to folder " + toUID + " children " +
@@ -252,6 +277,10 @@ public class BrowseTree {
             Log.e(TAG, "Setting an unknown browsed folder, ignoring bn " + uid);
             return false;
         }
+
+        // Set the previous folder as not cached so that we fetch the contents again.
+        mCurrentBrowseNode.setCached(false);
+
         mCurrentBrowseNode = bn;
         return true;
     }
