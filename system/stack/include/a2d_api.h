@@ -51,9 +51,7 @@ extern "C" {
 
 /* AV Media Codec Type (Audio Codec ID) */
 #define A2D_MEDIA_CT_SBC        0x00    /* SBC media codec type */
-#define A2D_MEDIA_CT_M12        0x01    /* MPEG-1, 2 Audio media codec type */
-#define A2D_MEDIA_CT_M24        0x02    /* MPEG-2, 4 AAC media codec type */
-#define A2D_MEDIA_CT_ATRAC      0x04    /* ATRAC family media codec type */
+#define A2D_MEDIA_CT_NON_A2DP   0xFF    /* Non-A2DP media codec type (vendor-specific codec) */
 
 typedef uint8_t tA2D_CODEC;     /* A2DP Codec type: A2D_MEDIA_CT_* */
 
@@ -250,6 +248,23 @@ extern uint8_t A2D_BitsSet(uint8_t num);
 **
 *******************************************************************************/
 extern void A2D_Init(void);
+
+// Gets the A2DP codec type.
+// |p_codec_info| contains information about the codec capabilities.
+tA2D_CODEC A2D_GetCodecType(const uint8_t *p_codec_info);
+
+// Checks whether an A2DP codec is supported.
+// |p_codec_info| contains information about the codec capabilities.
+// Returns true if the A2DP codec is supported, otherwise false.
+bool A2D_IsCodecSupported(const uint8_t *p_codec_info);
+
+// Checks whether the A2DP data packets should contain RTP header.
+// |content_protection_enabled| is true if Content Protection is
+// enabled. |p_codec_info| contains information about the codec capabilities.
+// Returns true if the A2DP data packets should contain RTP header, otherwise
+// false.
+bool A2D_UsesRtpHeader(bool content_protection_enabled,
+                       const uint8_t *p_codec_info);
 
 #ifdef __cplusplus
 }

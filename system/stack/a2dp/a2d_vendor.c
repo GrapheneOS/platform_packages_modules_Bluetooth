@@ -1,0 +1,66 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Vendor Specific A2DP Codecs Support
+ */
+
+#include "bt_target.h"
+#include "a2d_vendor.h"
+#include "osi/include/osi.h"
+
+bool A2D_IsVendorCodecSupported(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
+}
+
+uint32_t A2D_VendorCodecGetVendorId(const uint8_t *p_codec_info)
+{
+    const uint8_t *p = &p_codec_info[A2D_VENDOR_CODEC_VENDOR_ID_START_IDX];
+
+    uint32_t vendor_id =
+      (p[0] & 0x000000ff) |
+      ((p[1] << 8) & 0x0000ff00) |
+      ((p[2] << 16) & 0x00ff0000) |
+      ((p[3] << 24) & 0xff000000);
+
+    return vendor_id;
+}
+
+uint16_t A2D_VendorCodecGetCodecId(const uint8_t *p_codec_info)
+{
+    const uint8_t *p = &p_codec_info[A2D_VENDOR_CODEC_CODEC_ID_START_IDX];
+
+    uint16_t codec_id = (p[0] & 0x00ff) | ((p[1] << 8) & 0xff00);
+
+    return codec_id;
+}
+
+bool A2D_VendorUsesRtpHeader(UNUSED_ATTR bool content_protection_enabled,
+                             UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <content_protection_enabled, vendor_id, codec_id>
+
+    return true;
+}
