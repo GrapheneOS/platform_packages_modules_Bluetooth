@@ -37,19 +37,6 @@
  **  Constants
  *******************************************************************************/
 
-/* Generic part */
-#define BTIF_SUCCESS                         0
-
-/**
- * AV (Audio Video source) Errors
- */
-#define BTIF_ERROR_SRV_AV_NOT_ENABLED        700     /* AV is not enabled */
-#define BTIF_ERROR_SRV_AV_FEEDING_NOT_SUPPORTED 701  /* Requested Feeding not supported */
-#define BTIF_ERROR_SRV_AV_BUSY               702     /* Another operation ongoing */
-#define BTIF_ERROR_SRV_AV_NOT_OPENED         703     /* No AV link opened */
-#define BTIF_ERROR_SRV_AV_NOT_STARTED        704     /* AV is not started */
-#define BTIF_ERROR_SRV_AV_CP_NOT_SUPPORTED   705     /* Content protection is not supported by all headsets */
-
 /* Transcoding definition for TxTranscoding and RxTranscoding */
 #define BTIF_MEDIA_TRSCD_OFF             0
 #define BTIF_MEDIA_TRSCD_PCM_2_SBC       1  /* Tx */
@@ -58,8 +45,6 @@
 /*******************************************************************************
  **  Data types
  *******************************************************************************/
-
-typedef int tBTIF_STATUS;
 
 /* tBTIF_MEDIA_INIT_AUDIO msg structure */
 typedef struct

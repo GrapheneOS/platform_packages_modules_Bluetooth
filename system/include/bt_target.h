@@ -114,6 +114,7 @@
 #define BTA_AV_RET_TOUT 15
 #endif
 
+/* TRUE to use SCMS-T content protection */
 #ifndef BTA_AV_CO_CP_SCMS_T
 #define BTA_AV_CO_CP_SCMS_T  FALSE
 #endif
