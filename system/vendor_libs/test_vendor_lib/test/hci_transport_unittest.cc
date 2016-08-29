@@ -26,6 +26,8 @@
 
 #include "stack/include/hcidefs.h"
 
+using std::vector;
+
 namespace {
 const vector<uint8_t> stub_command({DATA_TYPE_COMMAND,
                                     static_cast<uint8_t>(HCI_RESET),
