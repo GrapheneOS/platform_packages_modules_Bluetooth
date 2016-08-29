@@ -56,18 +56,6 @@ typedef enum {
 
 /*******************************************************************************
 **
-** Function         btif_av_get_sm_handle
-**
-** Description      Fetches current av SM handle
-**
-** Returns          None
-**
-*******************************************************************************/
-
-btif_sm_handle_t btif_av_get_sm_handle(void);
-
-/*******************************************************************************
-**
 ** Function         btif_av_get_addr
 **
 ** Description      Fetches current AV BD address

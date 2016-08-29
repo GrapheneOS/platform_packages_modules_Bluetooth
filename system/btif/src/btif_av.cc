@@ -1021,18 +1021,17 @@ static bool btif_av_state_started_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTA_AV_OFFLOAD_START_RSP_EVT:
-
             btif_a2dp_on_offload_started(p_av->status);
             break;
 
         CHECK_RC_EVENT(event, (tBTA_AV*)p_data);
 
         default:
-            BTIF_TRACE_WARNING("%s : unhandled event:%s", __func__,
+            BTIF_TRACE_WARNING("%s: unhandled event: %s", __func__,
                                  dump_av_sm_event_name((btif_av_sm_event_t)event));
             return false;
-
     }
+
     return true;
 }
 
@@ -1410,21 +1409,6 @@ static const btav_interface_t bt_av_sink_interface = {
     NULL,
 #endif
 };
-
-/*******************************************************************************
-**
-** Function         btif_av_get_sm_handle
-**
-** Description      Fetches current av SM handle
-**
-** Returns          None
-**
-*******************************************************************************/
-
-btif_sm_handle_t btif_av_get_sm_handle(void)
-{
-    return btif_av_cb.sm_handle;
-}
 
 /*******************************************************************************
 **
