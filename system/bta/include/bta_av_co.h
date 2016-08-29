@@ -35,11 +35,6 @@ extern "C" {
 **  Constants and data types
 *****************************************************************************/
 
-/* TRUE to use SCMS-T content protection */
-#ifndef BTA_AV_CO_CP_SCMS_T
-#define BTA_AV_CO_CP_SCMS_T FALSE
-#endif
-
 /* the content protection IDs assigned by BT SIG */
 #define BTA_AV_CP_SCMS_T_ID     0x0002
 #define BTA_AV_CP_DTCP_ID       0x0001
@@ -51,29 +46,6 @@ extern "C" {
 #define BTA_AV_CP_SCMS_COPY_FREE        2
 #define BTA_AV_CP_SCMS_COPY_ONCE        1
 #define BTA_AV_CP_SCMS_COPY_NEVER       0
-
-#define BTA_AV_CO_DEFAULT_AUDIO_OFFSET      AVDT_MEDIA_OFFSET
-
-enum
-{
-    BTA_AV_CO_ST_INIT,
-    BTA_AV_CO_ST_IN,
-    BTA_AV_CO_ST_OUT,
-    BTA_AV_CO_ST_OPEN,
-    BTA_AV_CO_ST_STREAM
-};
-
-
-/* data type for the Audio Codec Information*/
-typedef struct
-{
-    uint16_t  bit_rate;       /* SBC encoder bit rate in kbps */
-    uint16_t  bit_rate_busy;  /* SBC encoder bit rate in kbps */
-    uint16_t  bit_rate_swampd;/* SBC encoder bit rate in kbps */
-    uint8_t   busy_level;     /* Busy level indicating the bit-rate to be used */
-    uint8_t   codec_info[AVDT_CODEC_SIZE];
-    uint8_t   codec_type;     /* Codec type */
-} tBTA_AV_AUDIO_CODEC_INFO;
 
 /*******************************************************************************
 **
