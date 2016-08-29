@@ -4115,7 +4115,10 @@ static void handle_get_folder_items_response(tBTA_AV_META_MSG* pmeta_msg,
       }
     }
 
-    HAL_CBACK(bt_rc_ctrl_callbacks, get_folder_items_cb, &rc_addr,
+    HAL_CBACK(bt_rc_ctrl_callbacks,
+              get_folder_items_cb,
+              &rc_addr,
+              BTRC_STS_NO_ERROR,
               /* We want to make the ownership explicit in native */
               (const btrc_folder_items_t*)btrc_items, item_count);
     BTIF_TRACE_DEBUG("%s HAL CBACK get_folder_items_cb finished", __func__);
@@ -4124,6 +4127,11 @@ static void handle_get_folder_items_response(tBTA_AV_META_MSG* pmeta_msg,
     osi_free(btrc_items);
   } else {
     BTIF_TRACE_ERROR("%s: Error %d", __func__, p_rsp->status);
+    HAL_CBACK(bt_rc_ctrl_callbacks,
+              get_folder_items_cb,
+              &rc_addr,
+              (btrc_status_t) p_rsp->status,
+              NULL, 0);
   }
 }
 
@@ -5006,7 +5014,7 @@ static bt_status_t set_browsed_player_cmd(bt_bdaddr_t* bd_addr, uint16_t id) {
  *
  **************************************************************************/
 static bt_status_t get_folder_items_cmd(bt_bdaddr_t* bd_addr, uint8_t scope,
-                                        uint8_t start_item, uint8_t num_items) {
+                                        uint8_t start_item, uint8_t end_item) {
   BTIF_TRACE_DEBUG("%s", __func__);
   /* Check that both avrcp and browse channel are connected. */
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);
@@ -5027,7 +5035,7 @@ static bt_status_t get_folder_items_cmd(bt_bdaddr_t* bd_addr, uint8_t scope,
     avrc_cmd.get_items.status = AVRC_STS_NO_ERROR;
     avrc_cmd.get_items.scope = scope;
     avrc_cmd.get_items.start_item = start_item;
-    avrc_cmd.get_items.end_item = (start_item + num_items - 1);
+    avrc_cmd.get_items.end_item = end_item;
     avrc_cmd.get_items.attr_count = 0; /* p_attr_list does not matter hence */
 
     if (AVRC_BldCommand(&avrc_cmd, &p_msg) == AVRC_STS_NO_ERROR) {

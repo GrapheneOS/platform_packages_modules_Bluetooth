@@ -390,7 +390,8 @@ static tAVRC_STS avrc_bld_get_play_status_cmd(BT_HDR * p_pkt)
 *******************************************************************************/
 static tAVRC_STS avrc_bld_get_folder_items_cmd(BT_HDR *p_pkt, const tAVRC_GET_ITEMS_CMD *cmd)
 {
-    AVRC_TRACE_API("avrc_bld_get_folder_items_cmd");
+    AVRC_TRACE_API("avrc_bld_get_folder_items_cmd scope %d, start_item %d, end_item %d",
+                   cmd->scope, cmd->start_item, cmd->end_item);
     uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
     /* This is where the PDU specific for AVRC starts
      * AVRCP Spec 1.4 section 22.19 */
