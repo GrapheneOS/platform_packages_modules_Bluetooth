@@ -25,9 +25,7 @@
 #ifndef BTA_AV_SBC_H
 #define BTA_AV_SBC_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "stack/include/a2d_sbc.h"
 
 /*****************************************************************************
 **  constants
@@ -35,6 +33,10 @@ extern "C" {
 
 /* SBC packet header size */
 #define BTA_AV_SBC_HDR_SIZE         A2D_SBC_MPL_HDR_LEN
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*******************************************************************************
 **

@@ -37,6 +37,7 @@
 #include "bta_ag_api.h"
 #include "btcore/include/bdaddr.h"
 #include "btif_common.h"
+#include "btif_hf.h"
 #include "btif_profile_queue.h"
 #include "btif_util.h"
 
@@ -1513,7 +1514,7 @@ update_call_states:
 ** Returns          bt_status_t
 **
 *******************************************************************************/
-bool btif_hf_is_call_idle()
+bool btif_hf_is_call_idle(void)
 {
     if (bt_hf_callbacks == NULL)
         return true;

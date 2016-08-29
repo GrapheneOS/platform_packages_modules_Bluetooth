@@ -55,6 +55,7 @@
 #include "bta_sys_int.h"
 #include "btif_av.h"
 #include "btif_av_co.h"
+#include "btif_hf.h"
 #include "btif_media.h"
 #include "btif_sm.h"
 #include "btif_util.h"
@@ -314,7 +315,6 @@ typedef struct
     tBTIF_AV_MEDIA_FEEDINGS_STATE media_feeding_state;
     SBC_ENC_PARAMS encoder;
     uint8_t busy_level;
-    void* av_sm_hdl;
     uint8_t a2dp_cmd_pending; /* we can have max one command pending */
     bool tx_flush; /* discards any outgoing data when true */
     bool rx_flush; /* discards any incoming data when true */
@@ -393,7 +393,6 @@ bool btif_media_task_clear_track(void);
 
 static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context);
 static void btif_media_task_avk_handle_timer(UNUSED_ATTR void *context);
-extern bool btif_hf_is_call_idle();
 
 static tBTIF_MEDIA_CB btif_media_cb;
 static int media_task_running = MEDIA_TASK_STATE_OFF;
@@ -714,8 +713,6 @@ static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
     switch (event)
     {
         case UIPC_OPEN_EVT:
-            /* fetch av statemachine handle */
-            btif_media_cb.av_sm_hdl = btif_av_get_sm_handle();
             break;
 
         case UIPC_CLOSE_EVT:
@@ -960,7 +957,6 @@ void btif_a2dp_on_init(void)
 void btif_a2dp_setup_codec(void)
 {
     tBTIF_AV_MEDIA_FEEDINGS media_feeding;
-    tBTIF_STATUS status;
 
     APPL_TRACE_EVENT("## A2DP SETUP CODEC ##");
 
@@ -972,7 +968,7 @@ void btif_a2dp_setup_codec(void)
     media_feeding.cfg.pcm.num_channel = BTIF_A2DP_SRC_NUM_CHANNELS;
     media_feeding.format = BTIF_AV_CODEC_PCM;
 
-    if (bta_av_co_audio_set_codec(&media_feeding, &status))
+    if (bta_av_co_audio_set_codec(&media_feeding))
     {
         tBTIF_MEDIA_INIT_AUDIO_FEEDING mfeed;
 
