@@ -23,6 +23,7 @@
 using std::vector;
 
 #include "base/logging.h"
+#include "bt_address.h"
 #include "packet.h"
 
 namespace test_vendor_lib {
@@ -92,7 +93,7 @@ class EventPacket : public Packet {
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.6
   static std::unique_ptr<EventPacket> CreateCommandCompleteReadBdAddr(
-      const uint8_t status, const vector<uint8_t>& bd_addr);
+      const uint8_t status, const BtAddress& bt_address);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.8
   static std::unique_ptr<EventPacket>
@@ -109,19 +110,19 @@ class EventPacket : public Packet {
   };
 
   static std::unique_ptr<EventPacket> CreateInquiryResultEvent(
-      const vector<uint8_t>& bd_address,
+      const BtAddress& bt_address,
       const PageScanRepetitionMode page_scan_repetition_mode,
       const uint32_t class_of_device,
       const uint16_t clock_offset);
 
-  void AddInquiryResult(const vector<uint8_t>& bd_address,
+  void AddInquiryResult(const BtAddress& bt_address,
                         const PageScanRepetitionMode page_scan_repetition_mode,
                         const uint32_t class_of_device,
                         const uint16_t clock_offset);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.38
   static std::unique_ptr<EventPacket> CreateExtendedInquiryResultEvent(
-      const vector<uint8_t>& bd_address,
+      const BtAddress& bt_address,
       const PageScanRepetitionMode page_scan_repetition_mode,
       const uint32_t class_of_device,
       const uint16_t clock_offset,

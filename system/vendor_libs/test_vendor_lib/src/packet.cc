@@ -62,6 +62,17 @@ bool Packet::AddPayloadOctets(size_t octets, const uint64_t value) {
   return AddPayloadOctets(octets, val_vector);
 }
 
+bool Packet::AddPayloadBtAddress(const BtAddress& address) {
+  if (BtAddress::kOctets + payload_.size() > kMaxPacketOctets)
+    return false;
+
+  address.ToVector(payload_);
+
+  payload_[0] = payload_.size() - 1;
+
+  return true;
+}
+
 bool Packet::IncrementPayloadCounter(const size_t index) {
   if (payload_.size() < index - 1)
     return false;

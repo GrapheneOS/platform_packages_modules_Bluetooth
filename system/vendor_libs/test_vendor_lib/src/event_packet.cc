@@ -170,12 +170,12 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteReadBufferSize(
 
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.6
 std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteReadBdAddr(
-    const uint8_t status, const vector<uint8_t>& bd_addr) {
+    const uint8_t status, const BtAddress& address) {
   std::unique_ptr<EventPacket> evt_ptr =
       EventPacket::CreateCommandCompleteOnlyStatusEvent(HCI_READ_BD_ADDR,
                                                         status);
 
-  CHECK(evt_ptr->AddPayloadOctets(6, bd_addr));
+  CHECK(evt_ptr->AddPayloadBtAddress(address));
 
   return evt_ptr;
 }
@@ -198,7 +198,7 @@ EventPacket::CreateCommandCompleteReadLocalSupportedCodecs(
 }
 
 std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
-    const vector<uint8_t>& bd_address,
+    const BtAddress& address,
     const PageScanRepetitionMode page_scan_repetition_mode,
     const uint32_t class_of_device,
     const uint16_t clock_offset) {
@@ -207,7 +207,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
 
   CHECK(evt_ptr->AddPayloadOctets1(1));  // Start with a single response
 
-  CHECK(evt_ptr->AddPayloadOctets(6, bd_address));
+  CHECK(evt_ptr->AddPayloadBtAddress(address));
   CHECK(evt_ptr->AddPayloadOctets1(page_scan_repetition_mode));
   CHECK(evt_ptr->AddPayloadOctets2(kReservedZero));
   CHECK(evt_ptr->AddPayloadOctets3(class_of_device));
@@ -218,7 +218,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
 }
 
 void EventPacket::AddInquiryResult(
-    const vector<uint8_t>& bd_address,
+    const BtAddress& address,
     const PageScanRepetitionMode page_scan_repetition_mode,
     const uint32_t class_of_device,
     const uint16_t clock_offset) {
@@ -226,7 +226,7 @@ void EventPacket::AddInquiryResult(
 
   CHECK(IncrementPayloadCounter(1));  // Increment the number of responses
 
-  CHECK(AddPayloadOctets(6, bd_address));
+  CHECK(AddPayloadBtAddress(address));
   CHECK(AddPayloadOctets1(page_scan_repetition_mode));
   CHECK(AddPayloadOctets2(kReservedZero));
   CHECK(AddPayloadOctets3(class_of_device));
@@ -235,7 +235,7 @@ void EventPacket::AddInquiryResult(
 }
 
 std::unique_ptr<EventPacket> EventPacket::CreateExtendedInquiryResultEvent(
-    const vector<uint8_t>& bd_address,
+    const BtAddress& address,
     const PageScanRepetitionMode page_scan_repetition_mode,
     const uint32_t class_of_device,
     const uint16_t clock_offset,
@@ -246,7 +246,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateExtendedInquiryResultEvent(
 
   CHECK(evt_ptr->AddPayloadOctets1(1));  // Always contains a single response
 
-  CHECK(evt_ptr->AddPayloadOctets(6, bd_address));
+  CHECK(evt_ptr->AddPayloadBtAddress(address));
   CHECK(evt_ptr->AddPayloadOctets1(page_scan_repetition_mode));
   CHECK(evt_ptr->AddPayloadOctets1(kReservedZero));
   CHECK(evt_ptr->AddPayloadOctets3(class_of_device));
