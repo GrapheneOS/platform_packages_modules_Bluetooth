@@ -25,6 +25,7 @@
 #include "bt_common.h"
 #include "bta_sys.h"
 #include "bta_api.h"
+#include "bta_closure_api.h"
 #include "bta_dm_int.h"
 #include "bta_sys_int.h"
 #include "btm_api.h"
@@ -879,25 +880,20 @@ void BTA_DmSetBleScanParams(tGATT_IF client_if, uint32_t scan_interval,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmSetBleAdvParams (uint16_t adv_int_min, uint16_t adv_int_max,
+void BTA_DmSetBleAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
                            tBLE_BD_ADDR *p_dir_bda)
 {
 #if (BLE_INCLUDED == TRUE)
-    tBTA_DM_API_BLE_ADV_PARAMS *p_msg =
-        (tBTA_DM_API_BLE_ADV_PARAMS *)osi_calloc(sizeof(tBTA_DM_API_BLE_ADV_PARAMS));
-
-    APPL_TRACE_API("BTA_DmSetBleAdvParam: %d, %d", adv_int_min, adv_int_max);
-
-    p_msg->hdr.event = BTA_DM_API_BLE_ADV_PARAM_EVT;
-    p_msg->adv_int_min = adv_int_min;
-    p_msg->adv_int_max = adv_int_max;
-
     if (p_dir_bda != NULL) {
-        p_msg->p_dir_bda = (tBLE_BD_ADDR *)(p_msg + 1);
-        memcpy(p_msg->p_dir_bda, p_dir_bda, sizeof(tBLE_BD_ADDR));
+        tBLE_BD_ADDR *bda  = new tBLE_BD_ADDR;
+        memcpy(bda, p_dir_bda, sizeof(tBLE_BD_ADDR));
+        do_in_bta_thread(FROM_HERE,
+          base::Bind(&bta_dm_ble_set_adv_params, adv_int_min, adv_int_max, base::Owned(bda)));
     }
 
-    bta_sys_sendmsg(p_msg);
+    do_in_bta_thread(FROM_HERE,
+      base::Bind(&bta_dm_ble_set_adv_params, adv_int_min, adv_int_max, nullptr));
+
 #endif
 }
 
@@ -924,14 +920,11 @@ void BTA_DmSetBleAdvParams (uint16_t adv_int_min, uint16_t adv_int_max,
 void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                             tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-  tBTA_DM_API_SET_ADV_CONFIG *p_msg = (tBTA_DM_API_SET_ADV_CONFIG*) osi_calloc(sizeof(*p_msg));
+  tBTA_BLE_ADV_DATA *adv_cfg = new tBTA_BLE_ADV_DATA;
+  memcpy(adv_cfg, p_adv_cfg, sizeof(tBTA_BLE_ADV_DATA));
 
-  p_msg->hdr.event = BTA_DM_API_BLE_SET_ADV_CONFIG_EVT;
-  p_msg->data_mask = data_mask;
-  p_msg->p_adv_data_cback = p_adv_data_cback;
-  memcpy(&p_msg->adv_cfg, p_adv_cfg, sizeof(p_msg->adv_cfg));
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(FROM_HERE,
+      base::Bind(&bta_dm_ble_set_adv_config, data_mask, base::Owned(adv_cfg), p_adv_data_cback));
 }
 
 /*******************************************************************************
@@ -948,14 +941,11 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
 extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                                  tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-  tBTA_DM_API_SET_ADV_CONFIG *p_msg = (tBTA_DM_API_SET_ADV_CONFIG*) osi_calloc(sizeof(*p_msg));
+  tBTA_BLE_ADV_DATA *adv_cfg = new tBTA_BLE_ADV_DATA;
+  memcpy(adv_cfg, p_adv_cfg, sizeof(tBTA_BLE_ADV_DATA));
 
-  p_msg->hdr.event = BTA_DM_API_BLE_SET_SCAN_RSP_EVT;
-  p_msg->data_mask = data_mask;
-  p_msg->p_adv_data_cback = p_adv_data_cback;
-  memcpy(&p_msg->adv_cfg, p_adv_cfg, sizeof(p_msg->adv_cfg));
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(FROM_HERE,
+      base::Bind(&bta_dm_ble_set_scan_rsp, data_mask, base::Owned(adv_cfg), p_adv_data_cback));
 }
 
 /*******************************************************************************
@@ -1387,25 +1377,21 @@ void BTA_DmBleConfigLocalPrivacy(bool privacy_enable)
 **
 *******************************************************************************/
 void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
-                                tBTA_BLE_MULTI_ADV_CBACK *p_cback,
-                                void *p_ref)
+                               tBTA_BLE_MULTI_ADV_CBACK *p_cback,
+                               void *p_ref)
 {
-    const size_t len = sizeof(tBTA_BLE_ADV_PARAMS) +
-        sizeof(tBTA_DM_API_BLE_MULTI_ADV_ENB);
-    tBTA_DM_API_BLE_MULTI_ADV_ENB *p_msg =
-        (tBTA_DM_API_BLE_MULTI_ADV_ENB *)osi_calloc(len);
-
     APPL_TRACE_API("%s", __func__);
 
-    p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_ENB_EVT;
-    p_msg->p_cback = (tBTA_BLE_MULTI_ADV_CBACK *)p_cback;
     if (p_params != NULL) {
-        p_msg->p_params = (tBTA_BLE_ADV_PARAMS *)(p_msg + 1);
-        memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
+        tBTA_BLE_ADV_PARAMS *params = new tBTA_BLE_ADV_PARAMS;
+        memcpy(params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
+        do_in_bta_thread(FROM_HERE,
+            base::Bind(&bta_dm_ble_multi_adv_enb, base::Owned(params),
+                       p_cback, p_ref));
+    } else {
+        do_in_bta_thread(FROM_HERE,
+            base::Bind(&bta_dm_ble_multi_adv_enb, nullptr, p_cback, p_ref));
     }
-    p_msg->p_ref = p_ref;
-
-    bta_sys_sendmsg(p_msg);
 }
 
 /*******************************************************************************
@@ -1423,19 +1409,12 @@ void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
 *******************************************************************************/
 void BTA_BleUpdateAdvInstParam (uint8_t inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 {
-    const size_t len = sizeof(tBTA_BLE_ADV_PARAMS) +
-        sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM);
-    tBTA_DM_API_BLE_MULTI_ADV_PARAM *p_msg =
-        (tBTA_DM_API_BLE_MULTI_ADV_PARAM *)osi_calloc(len);
-
     APPL_TRACE_API("%s", __func__);
 
-    p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT;
-    p_msg->inst_id = inst_id;
-    p_msg->p_params = (tBTA_BLE_ADV_PARAMS *)(p_msg + 1);
-    memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
-
-    bta_sys_sendmsg(p_msg);
+    tBTA_BLE_ADV_PARAMS *params = new tBTA_BLE_ADV_PARAMS;
+    memcpy(params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
+    do_in_bta_thread(FROM_HERE,
+        base::Bind(&bta_dm_ble_multi_adv_upd_param, inst_id, base::Owned(params)));
 }
 
 /*******************************************************************************
@@ -1459,16 +1438,8 @@ void BTA_BleCfgAdvInstData (uint8_t inst_id, bool is_scan_rsp,
                             tBTA_BLE_AD_MASK data_mask,
                             tBTA_BLE_ADV_DATA *p_data)
 {
-  tBTA_DM_API_BLE_MULTI_ADV_DATA *p_msg =
-    (tBTA_DM_API_BLE_MULTI_ADV_DATA*) osi_calloc(sizeof(*p_msg));
-
-  p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_DATA_EVT;
-  p_msg->inst_id = inst_id;
-  p_msg->is_scan_rsp = is_scan_rsp;
-  p_msg->data_mask = data_mask;
-  memcpy(&p_msg->data, p_data, sizeof(p_msg->data));
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(FROM_HERE,
+      base::Bind(&bta_dm_ble_multi_adv_data, inst_id, is_scan_rsp, data_mask, *p_data));
 }
 
 /*******************************************************************************
@@ -1484,15 +1455,10 @@ void BTA_BleCfgAdvInstData (uint8_t inst_id, bool is_scan_rsp,
 *******************************************************************************/
 void BTA_BleDisableAdvInstance(uint8_t inst_id)
 {
-    tBTA_DM_API_BLE_MULTI_ADV_DISABLE *p_msg =
-        (tBTA_DM_API_BLE_MULTI_ADV_DISABLE *)osi_calloc(sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE));
-
     APPL_TRACE_API("%s: %d", __func__, inst_id);
 
-    p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT;
-    p_msg->inst_id = inst_id;
-
-    bta_sys_sendmsg(p_msg);
+    do_in_bta_thread(FROM_HERE,
+        base::Bind(&btm_dm_ble_multi_adv_disable, inst_id));
 }
 
 /*******************************************************************************
