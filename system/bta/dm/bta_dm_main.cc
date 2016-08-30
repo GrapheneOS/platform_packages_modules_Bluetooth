@@ -89,9 +89,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
 #if (BLE_PRIVACY_SPT == TRUE)
     bta_dm_ble_config_local_privacy,   /* BTA_DM_API_LOCAL_PRIVACY_EVT */
 #endif
-    bta_dm_ble_set_adv_params,     /* BTA_DM_API_BLE_ADV_PARAM_EVT */
-    bta_dm_ble_set_adv_config,     /* BTA_DM_API_BLE_SET_ADV_CONFIG_EVT */
-    bta_dm_ble_set_scan_rsp,       /* BTA_DM_API_BLE_SET_SCAN_RSPT */
     bta_dm_ble_broadcast,          /* BTA_DM_API_BLE_BROADCAST_EVT */
     bta_dm_ble_set_data_length,    /* BTA_DM_API_SET_DATA_LENGTH_EVT */
 #if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
@@ -99,10 +96,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_scan_filter_param_setup, /* BTA_DM_API_SCAN_FILTER_SETUP_EVT */
     bta_dm_enable_scan_filter,      /* BTA_DM_API_SCAN_FILTER_ENABLE_EVT */
 #endif
-    bta_dm_ble_multi_adv_enb,           /*  BTA_DM_API_BLE_MULTI_ADV_ENB_EVT*/
-    bta_dm_ble_multi_adv_upd_param,     /*  BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT */
-    bta_dm_ble_multi_adv_data,          /*  BTA_DM_API_BLE_MULTI_ADV_DATA_EVT */
-    btm_dm_ble_multi_adv_disable,       /*  BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT */
     bta_dm_ble_setup_storage,      /* BTA_DM_API_BLE_SETUP_STORAGE_EVT */
     bta_dm_ble_enable_batch_scan,  /* BTA_DM_API_BLE_ENABLE_BATCH_SCAN_EVT */
     bta_dm_ble_disable_batch_scan, /* BTA_DM_API_BLE_DISABLE_BATCH_SCAN_EVT */
