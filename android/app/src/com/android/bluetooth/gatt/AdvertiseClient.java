@@ -28,7 +28,7 @@ import java.util.Objects;
  * @hide
  */
 class AdvertiseClient {
-    int clientIf;
+    int advertiserId;
     // Associated application died.
     boolean appDied;
     AdvertiseSettings settings;
@@ -37,21 +37,21 @@ class AdvertiseClient {
     AdvertiseData scanResponse;
 
     /**
-     * @param clientIf - Identifier of the client.
+     * @param advertiserId - Identifier of the advertiser.
      */
-    AdvertiseClient(int clientIf) {
-        this.clientIf = clientIf;
+    AdvertiseClient(int advertiserId) {
+        this.advertiserId = advertiserId;
     }
 
     /**
-     * @param clientIf - Identifier of the client.
+     * @param advertiserId - Identifier of the advertiser.
      * @param settings - Settings for the advertising.
      * @param advertiseData - Advertise data broadcasted over the air.
      * @param scanResponse - Response of scan request, could be null.
      */
-    AdvertiseClient(int clientIf, AdvertiseSettings settings, AdvertiseData advertiseData,
+    AdvertiseClient(int advertiserId, AdvertiseSettings settings, AdvertiseData advertiseData,
             AdvertiseData scanResponse) {
-        this.clientIf = clientIf;
+        this.advertiserId = advertiserId;
         this.settings = settings;
         this.advertiseData = advertiseData;
         this.scanResponse = scanResponse;
@@ -66,11 +66,11 @@ class AdvertiseClient {
             return false;
         }
         AdvertiseClient other = (AdvertiseClient) obj;
-        return clientIf == other.clientIf;
+        return advertiserId == other.advertiserId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clientIf);
+        return Objects.hash(advertiserId);
     }
 }

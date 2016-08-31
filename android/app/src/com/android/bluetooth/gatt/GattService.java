@@ -31,6 +31,7 @@ import android.bluetooth.IBluetoothGattServerCallback;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.IAdvertiserCallback;
 import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
@@ -100,9 +101,14 @@ public class GattService extends ProfileService {
     };
 
     /**
+     * List of our registered advertisers.
+     */
+    class AdvertiserMap extends ContextMap<IAdvertiserCallback> {}
+    AdvertiserMap mAdvertiserMap = new AdvertiserMap();
+
+    /**
      * List of our registered clients.
      */
-
     class ClientMap extends ContextMap<IBluetoothGattCallback> {}
     ClientMap mClientMap = new ClientMap();
 
@@ -261,6 +267,23 @@ public class GattService extends ProfileService {
                 }
             }
             return false;
+        }
+    }
+
+    class AdvertiserDeathRecipient implements IBinder.DeathRecipient {
+        int mAppIf;
+
+        public AdvertiserDeathRecipient(int appIf) {
+            mAppIf = appIf;
+        }
+
+        @Override
+        public void binderDied() {
+            if (DBG) Log.d(TAG, "Binder is dead - unregistering advertiser (" + mAppIf + ")!");
+
+            AdvertiseClient client = new AdvertiseClient(mAppIf);
+            client.appDied = true;
+            stopMultiAdvertising(client);
         }
     }
 
@@ -483,19 +506,31 @@ public class GattService extends ProfileService {
             service.sendNotification(serverIf, address, handle, confirm, value);
         }
 
-        @Override
-        public void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
-                AdvertiseData scanResponse, AdvertiseSettings settings) {
+        public void registerAdvertiser(IAdvertiserCallback callback) {
             GattService service = getService();
             if (service == null) return;
-            service.startMultiAdvertising(clientIf, advertiseData, scanResponse, settings);
+            service.registerAdvertiser(callback);
+        }
+
+        public void unregisterAdvertiser(int advertiserId) {
+            GattService service = getService();
+            if (service == null) return;
+            service.unregisterAdvertiser(advertiserId);
         }
 
         @Override
-        public void stopMultiAdvertising(int clientIf) {
+        public void startMultiAdvertising(int advertiserId, AdvertiseData advertiseData,
+                AdvertiseData scanResponse, AdvertiseSettings settings) {
             GattService service = getService();
             if (service == null) return;
-            service.stopMultiAdvertising(new AdvertiseClient(clientIf));
+            service.startMultiAdvertising(advertiserId, advertiseData, scanResponse, settings);
+        }
+
+        @Override
+        public void stopMultiAdvertising(int advertiserId) {
+            GattService service = getService();
+            if (service == null) return;
+            service.stopMultiAdvertising(new AdvertiseClient(advertiserId));
         }
 
         @Override
@@ -1071,13 +1106,15 @@ public class GattService extends ProfileService {
     }
 
     // callback from AdvertiseManager for advertise status dispatch.
-    void onMultipleAdvertiseCallback(int clientIf, int status, boolean isStart,
+    void onMultipleAdvertiseCallback(int advertiserId, int status, boolean isStart,
             AdvertiseSettings settings) throws RemoteException {
-        ClientMap.App app = mClientMap.getById(clientIf);
+        AdvertiserMap.App app = mAdvertiserMap.getById(advertiserId);
         if (app == null || app.callback == null) {
             Log.e(TAG, "Advertise app or callback is null");
             return;
         }
+        if (DBG) Log.d(TAG, "onMultipleAdvertiseCallback : advertiserId: " + advertiserId
+            + " isStart: " + isStart + " status: " + status);
         app.callback.onMultiAdvertiseCallback(status, isStart, settings);
     }
 
@@ -1104,44 +1141,63 @@ public class GattService extends ProfileService {
     }
 
     // Callback for standard advertising instance.
-    void onAdvertiseCallback(int status, int clientIf) {
-        if (DBG) Log.d(TAG, "onAdvertiseCallback,- clientIf=" + clientIf + ", status=" + status);
-        mAdvertiseManager.callbackDone(clientIf, status);
+    void onAdvertiseCallback(int status, int advertiserId) {
+        if (DBG) Log.d(TAG, "onAdvertiseCallback,- advertiserId=" + advertiserId + ", status=" + status);
+        mAdvertiseManager.callbackDone(advertiserId, status);
     }
 
     // Followings are callbacks for Bluetooth LE Advertise operations.
     // Start advertising flow is
+    //     register advertiser         -> onAdvertiserRegistered
     //     enable advertising instance -> onAdvertiseInstaceEnabled
     // ->  set advertise data          -> onAdvertiseDataSet
     // ->  set scan response           -> onAdvertiseDataSet
 
+    void onAdvertiserRegistered(int status, int advertiserId, long uuidLsb, long uuidMsb)
+            throws RemoteException {
+        UUID uuid = new UUID(uuidMsb, uuidLsb);
+        if (DBG) Log.d(TAG, "onAdvertiserRegistered() - UUID=" + uuid
+                + ", advertiserId=" + advertiserId + ", status=" + status);
+
+        AdvertiserMap.App app = mAdvertiserMap.getByUuid(uuid);
+        if (app != null) {
+            if (status == 0) {
+                app.id = advertiserId;
+                app.linkToDeath(new AdvertiserDeathRecipient(advertiserId));
+            } else {
+                mAdvertiserMap.remove(advertiserId);
+            }
+            app.callback.onAdvertiserRegistered(status, advertiserId);
+        }
+    }
+
     // Callback when advertise instance is enabled.
-    void onAdvertiseInstanceEnabled(int status, int clientIf) {
+    void onAdvertiseInstanceEnabled(int status, int advertiserId) {
         if (DBG) Log.d(TAG, "onAdvertiseInstanceEnabled() - "
-                + "clientIf=" + clientIf + ", status=" + status);
-        mAdvertiseManager.callbackDone(clientIf, status);
+                + "advertiserId=" + advertiserId + ", status=" + status);
+        mAdvertiseManager.callbackDone(advertiserId, status);
     }
 
     // Not really used.
-    void onAdvertiseDataUpdated(int status, int client_if) {
-        if (DBG) Log.d(TAG, "onAdvertiseDataUpdated() - client_if=" + client_if
+    void onAdvertiseDataUpdated(int status, int advertiserId) {
+        if (DBG) Log.d(TAG, "onAdvertiseDataUpdated() - advertiserId=" + advertiserId
             + ", status=" + status);
     }
 
     // Callback when advertise data or scan response is set.
-    void onAdvertiseDataSet(int status, int clientIf) {
-        if (DBG) Log.d(TAG, "onAdvertiseDataSet() - clientIf=" + clientIf
+    void onAdvertiseDataSet(int status, int advertiserId) {
+        if (DBG) Log.d(TAG, "onAdvertiseDataSet() - advertiserId=" + advertiserId
             + ", status=" + status);
-        mAdvertiseManager.callbackDone(clientIf, status);
+        mAdvertiseManager.callbackDone(advertiserId, status);
     }
 
     // Callback when advertise instance is disabled
-    void onAdvertiseInstanceDisabled(int status, int clientIf) throws RemoteException {
-        if (DBG) Log.d(TAG, "onAdvertiseInstanceDisabled() - clientIf=" + clientIf
+    void onAdvertiseInstanceDisabled(int status, int advertiserId) throws RemoteException {
+        if (DBG) Log.d(TAG, "onAdvertiseInstanceDisabled() - advertiserId=" + advertiserId
             + ", status=" + status);
-        ClientMap.App app = mClientMap.getById(clientIf);
+        AdvertiserMap.App app = mAdvertiserMap.getById(advertiserId);
         if (app != null) {
-            Log.d(TAG, "Client app is not null!");
+            Log.d(TAG, "Advertiser app is not null!");
             boolean isStart = false;
             if (status == 0) {
                 app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS,
@@ -1301,6 +1357,43 @@ public class GattService extends ProfileService {
     }
 
     /**************************************************************************
+     * ADVERTISER
+     *************************************************************************/
+
+    void registerAdvertiser(IAdvertiserCallback callback) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        UUID uuid = UUID.randomUUID();
+        if (DBG) Log.d(TAG, "registerAdvertiser() - UUID=" + uuid);
+        mAdvertiserMap.add(uuid, callback, this);
+        mAdvertiseManager.registerAdvertiser(uuid);
+    }
+
+    void unregisterAdvertiser(int advertiserId) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        if (DBG) Log.d(TAG, "unregisterAdvertiser() - advertiserId=" + advertiserId);
+        mAdvertiserMap.remove(advertiserId);
+        mAdvertiseManager.unregisterAdvertiser(advertiserId);
+    }
+
+    void startMultiAdvertising(int advertiserId, AdvertiseData advertiseData,
+            AdvertiseData scanResponse, AdvertiseSettings settings) {
+        enforceAdminPermission();
+
+        if (DBG) Log.d(TAG, "startMultiAdvertising() - advertiserId=" + advertiserId);
+        mAdvertiseManager.startAdvertising(new AdvertiseClient(advertiserId, settings, advertiseData,
+                scanResponse));
+    }
+
+    void stopMultiAdvertising(AdvertiseClient client) {
+        enforceAdminPermission();
+
+        if (DBG) Log.d(TAG, "stopMultiAdvertising() - advertiserId=" + client.advertiserId);
+        mAdvertiseManager.stopAdvertising(client);
+    }
+
+    /**************************************************************************
      * GATT Service functions - CLIENT
      *************************************************************************/
 
@@ -1335,18 +1428,6 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "clientDisconnect() - address=" + address + ", connId=" + connId);
 
         gattClientDisconnectNative(clientIf, address, connId != null ? connId : 0);
-    }
-
-    void startMultiAdvertising(int clientIf, AdvertiseData advertiseData,
-            AdvertiseData scanResponse, AdvertiseSettings settings) {
-        enforceAdminPermission();
-        mAdvertiseManager.startAdvertising(new AdvertiseClient(clientIf, settings, advertiseData,
-                scanResponse));
-    }
-
-    void stopMultiAdvertising(AdvertiseClient client) {
-        enforceAdminPermission();
-        mAdvertiseManager.stopAdvertising(client);
     }
 
     int numHwTrackFiltersAvailable() {

@@ -157,6 +157,7 @@ static jmethodID method_onConfigureMTU;
 static jmethodID method_onScanFilterConfig;
 static jmethodID method_onScanFilterParamsConfigured;
 static jmethodID method_onScanFilterEnableDisabled;
+static jmethodID method_onAdvertiserRegistered;
 static jmethodID method_onMultiAdvEnable;
 static jmethodID method_onMultiAdvUpdate;
 static jmethodID method_onMultiAdvSetAdvData;
@@ -408,34 +409,6 @@ void btgattc_scan_filter_status_cb(int action, int client_if, int status)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
-void btgattc_multiadv_enable_cb(int client_if, int status)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvEnable, status,client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
-void btgattc_multiadv_update_cb(int client_if, int status)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvUpdate, status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
-void btgattc_multiadv_setadv_data_cb(int client_if, int status)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvSetAdvData, status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
-void btgattc_multiadv_disable_cb(int client_if, int status)
-{
-    CHECK_CALLBACK_ENV
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvDisable, status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
-}
-
 void btgattc_congestion_cb(int conn_id, bool congested)
 {
     CHECK_CALLBACK_ENV
@@ -609,10 +582,6 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_scan_filter_cfg_cb,
     btgattc_scan_filter_param_cb,
     btgattc_scan_filter_status_cb,
-    btgattc_multiadv_enable_cb,
-    btgattc_multiadv_update_cb,
-    btgattc_multiadv_setadv_data_cb,
-    btgattc_multiadv_disable_cb,
     btgattc_congestion_cb,
     btgattc_batchscan_cfg_storage_cb,
     btgattc_batchscan_startstop_cb,
@@ -625,6 +594,52 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     NULL  /* services_added_cb */
 };
 
+/**
+ * Advertiser callbacks
+ */
+void ble_advertiser_register_cb(int status, int advertiser_id, bt_uuid_t *uuid)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiserRegistered,
+                                 status, advertiser_id, UUID_PARAMS(uuid));
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
+void ble_advertiser_enable_cb(int advertiser_id, int status)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvEnable, status,advertiser_id);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
+void ble_advertiser_update_cb(int advertiser_id, int status)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvUpdate, status, advertiser_id);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
+void ble_advertiser_setadv_data_cb(int advertiser_id, int status)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvSetAdvData, status, advertiser_id);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
+void ble_advertiser_disable_cb(int advertiser_id, int status)
+{
+    CHECK_CALLBACK_ENV
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvDisable, status, advertiser_id);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+}
+
+static const ble_advertiser_callbacks_t sGattAdvertiserCallbacks = {
+    ble_advertiser_register_cb,
+    ble_advertiser_enable_cb,
+    ble_advertiser_update_cb,
+    ble_advertiser_setadv_data_cb,
+    ble_advertiser_disable_cb
+};
 
 /**
  * BTA server callbacks
@@ -810,7 +825,8 @@ static const btgatt_server_callbacks_t sGattServerCallbacks = {
 static const btgatt_callbacks_t sGattCallbacks = {
     sizeof(btgatt_callbacks_t),
     &sGattClientCallbacks,
-    &sGattServerCallbacks
+    &sGattServerCallbacks,
+    &sGattAdvertiserCallbacks,
 };
 
 /**
@@ -838,6 +854,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onScanFilterConfig = env->GetMethodID(clazz, "onScanFilterConfig", "(IIIII)V");
     method_onScanFilterParamsConfigured = env->GetMethodID(clazz, "onScanFilterParamsConfigured", "(IIII)V");
     method_onScanFilterEnableDisabled = env->GetMethodID(clazz, "onScanFilterEnableDisabled", "(III)V");
+    method_onAdvertiserRegistered = env->GetMethodID(clazz, "onAdvertiserRegistered", "(IIJJ)V");
     method_onMultiAdvEnable = env->GetMethodID(clazz, "onAdvertiseInstanceEnabled", "(II)V");
     method_onMultiAdvUpdate = env->GetMethodID(clazz, "onAdvertiseDataUpdated", "(II)V");
     method_onMultiAdvSetAdvData = env->GetMethodID(clazz, "onAdvertiseDataSet", "(II)V");
@@ -1128,7 +1145,7 @@ static void gattSetAdvDataNative(JNIEnv *env, jobject object, jint client_if,
     vector<uint8_t> service_uuid(arr_service_uuid, arr_service_uuid + arr_service_uuid_len);
     env->ReleaseByteArrayElements(serviceUuid, arr_service_uuid, JNI_ABORT);
 
-    sGattIf->client->set_adv_data(client_if, setScanRsp, inclName, inclTxPower,
+    sGattIf->advertiser->set_adv_data(client_if, setScanRsp, inclName, inclTxPower,
         minInterval, maxInterval, appearance, std::move(data),
         std::move(service_data), std::move(service_uuid));
 }
@@ -1357,13 +1374,31 @@ static void gattConnectionParameterUpdateNative(JNIEnv *env, jobject object, jin
     sGattIf->client->conn_parameter_update(&bda, min_interval, max_interval, latency, timeout);
 }
 
+static void registerAdvertiserNative(JNIEnv* env, jobject object,
+                                     jlong app_uuid_lsb, jlong app_uuid_msb)
+{
+    bt_uuid_t uuid;
+
+    if (!sGattIf) return;
+
+    set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
+    sGattIf->advertiser->register_advertiser(&uuid);
+}
+
+static void unregisterAdvertiserNative(JNIEnv* env, jobject object, jint advertiser_id)
+{
+    if (!sGattIf) return;
+
+    sGattIf->advertiser->unregister_advertiser(advertiser_id);
+}
+
 static void gattClientEnableAdvNative(JNIEnv* env, jobject object, jint client_if,
        jint min_interval, jint max_interval, jint adv_type, jint chnl_map, jint tx_power,
        jint timeout_s)
 {
     if (!sGattIf) return;
 
-    sGattIf->client->multi_adv_enable(client_if, min_interval, max_interval, adv_type, chnl_map,
+    sGattIf->advertiser->multi_adv_enable(client_if, min_interval, max_interval, adv_type, chnl_map,
         tx_power, timeout_s);
 }
 
@@ -1373,7 +1408,7 @@ static void gattClientUpdateAdvNative(JNIEnv* env, jobject object, jint client_i
 {
     if (!sGattIf) return;
 
-    sGattIf->client->multi_adv_update(client_if, min_interval, max_interval, adv_type, chnl_map,
+    sGattIf->advertiser->multi_adv_update(client_if, min_interval, max_interval, adv_type, chnl_map,
         tx_power, timeout_s);
 }
 
@@ -1397,7 +1432,7 @@ static void gattClientSetAdvDataNative(JNIEnv* env, jobject object , jint client
     vector<uint8_t> serv_uuid_vec(serv_uuid, serv_uuid + serv_uuid_len);
     env->ReleaseByteArrayElements(service_uuid, serv_uuid, JNI_ABORT);
 
-    sGattIf->client->multi_adv_set_inst_data(client_if, set_scan_rsp, incl_name,incl_txpower,
+    sGattIf->advertiser->multi_adv_set_inst_data(client_if, set_scan_rsp, incl_name,incl_txpower,
                                              appearance, std::move(manu_vec),
                                              std::move(serv_data_vec), std::move(serv_uuid_vec));
 }
@@ -1405,7 +1440,7 @@ static void gattClientSetAdvDataNative(JNIEnv* env, jobject object , jint client
 static void gattClientDisableAdvNative(JNIEnv* env, jobject object, jint client_if)
 {
     if (!sGattIf) return;
-    sGattIf->client->multi_adv_disable(client_if);
+    sGattIf->advertiser->multi_adv_disable(client_if);
 }
 
 static void gattClientConfigBatchScanStorageNative(JNIEnv* env, jobject object, jint client_if,
@@ -1641,6 +1676,8 @@ static void gattTestNative(JNIEnv *env, jobject object, jint command,
 
 // JNI functions defined in AdvertiseManager class.
 static JNINativeMethod sAdvertiseMethods[] = {
+    {"registerAdvertiserNative", "(JJ)V", (void *) registerAdvertiserNative},
+    {"unregisterAdvertiserNative", "(I)V", (void *) unregisterAdvertiserNative},
     {"gattClientEnableAdvNative", "(IIIIIII)V", (void *) gattClientEnableAdvNative},
     {"gattClientUpdateAdvNative", "(IIIIIII)V", (void *) gattClientUpdateAdvNative},
     {"gattClientSetAdvDataNative", "(IZZZI[B[B[B)V", (void *) gattClientSetAdvDataNative},
