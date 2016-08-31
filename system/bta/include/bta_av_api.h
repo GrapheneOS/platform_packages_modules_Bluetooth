@@ -90,9 +90,6 @@ typedef uint8_t tBTA_AV_HNDL;
 /* tBTA_AV_HNDL to mask */
 #define BTA_AV_HNDL_TYPE_TO_MSK(h)  ((uint8_t)(1 << ((h)&BTA_AV_HNDL_MSK)))
 
-/* offset of codec type in codec info byte array */
-#define BTA_AV_CODEC_TYPE_IDX       AVDT_CODEC_TYPE_INDEX   /* 2 */
-
 /* maximum number of streams created: 1 for audio, 1 for video */
 #ifndef BTA_AV_NUM_STRS
 #define BTA_AV_NUM_STRS         2

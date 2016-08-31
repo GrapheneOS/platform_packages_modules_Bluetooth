@@ -4,7 +4,7 @@ LOCAL_PATH:= $(call my-dir)
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_C_INCLUDES:= \
+LOCAL_C_INCLUDES := \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/avct \
                    $(LOCAL_PATH)/btm \
@@ -35,9 +35,10 @@ LOCAL_C_INCLUDES:= \
                    $(LOCAL_PATH)/../ \
                    $(bluetooth_C_INCLUDES)
 
-LOCAL_SRC_FILES:= \
+LOCAL_SRC_FILES := \
     ./a2dp/a2d_api.c \
     ./a2dp/a2d_sbc.c \
+    ./a2dp/a2d_vendor.c \
     ./avrc/avrc_api.c \
     ./avrc/avrc_sdp.c \
     ./avrc/avrc_opt.c \
@@ -158,3 +159,27 @@ LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_STATIC_LIBRARY)
+
+# Bluetooth stack unit tests for target
+# ========================================================
+include $(CLEAR_VARS)
+
+LOCAL_CPP_EXTENSION := .cc
+
+LOCAL_C_INCLUDES := \
+                   $(LOCAL_PATH)/include \
+                   $(LOCAL_PATH)/../include \
+                   $(LOCAL_PATH)/../ \
+                   $(bluetooth_C_INCLUDES)
+
+LOCAL_SRC_FILES := test/stack_a2d_test.cc
+LOCAL_SHARED_LIBRARIES :=
+LOCAL_STATIC_LIBRARIES := libbt-stack
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := net_test_stack
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
+include $(BUILD_NATIVE_TEST)
