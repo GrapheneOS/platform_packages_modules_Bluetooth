@@ -24,8 +24,6 @@
 #include <base/macros.h>
 
 #include "service/bluetooth_instance.h"
-#include "service/common/bluetooth/advertise_data.h"
-#include "service/common/bluetooth/advertise_settings.h"
 #include "service/common/bluetooth/low_energy_constants.h"
 #include "service/common/bluetooth/scan_filter.h"
 #include "service/common/bluetooth/scan_result.h"
@@ -107,31 +105,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // Stops an ongoing BLE device scan for this client.
   bool StopScan();
 
-  // Starts advertising based on the given advertising and scan response
-  // data and the provided |settings|. Reports the result of the operation in
-  // |callback|. Return true on success, false otherwise. Please see logs for
-  // details in case of error.
-  bool StartAdvertising(const AdvertiseSettings& settings,
-                        const AdvertiseData& advertise_data,
-                        const AdvertiseData& scan_response,
-                        const StatusCallback& callback);
-
-  // Stops advertising if it was already started. Reports the result of the
-  // operation in |callback|.
-  bool StopAdvertising(const StatusCallback& callback);
-
-  // Returns true if advertising has been started.
-  bool IsAdvertisingStarted() const;
-
-  // Returns the state of pending advertising operations.
-  bool IsStartingAdvertising() const;
-  bool IsStoppingAdvertising() const;
-
-  // Returns the current advertising settings.
-  const AdvertiseSettings& advertise_settings() const {
-    return advertise_settings_;
-  }
-
   // Returns the current scan settings.
   const ScanSettings& scan_settings() const { return scan_settings_; }
 
@@ -161,26 +134,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   void MtuChangedCallback(
       hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
       int mtu) override;
-  void MultiAdvEnableCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int client_id, int status) override;
-  void MultiAdvDataCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int client_id, int status) override;
-  void MultiAdvDisableCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int client_id, int status) override;
-
-  // Helper method called from SetAdvertiseData/SetScanResponse.
-  bt_status_t SetAdvertiseData(
-      hal::BluetoothGattInterface* gatt_iface,
-      const AdvertiseData& data,
-      bool set_scan_rsp);
-
-  // Handles deferred advertise/scan-response data updates. We set the data if
-  // there's data to be set, otherwise we either defer it if advertisements
-  // aren't enabled or do nothing.
-  void HandleDeferredAdvertiseData(hal::BluetoothGattInterface* gatt_iface);
 
   // Calls and clears the pending callbacks.
   void InvokeAndClearStartCallback(BLEStatus status);
@@ -192,27 +145,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // See getters above for documentation.
   UUID app_identifier_;
   int client_id_;
-
-  // Protects advertising-related members below.
-  std::mutex adv_fields_lock_;
-
-  // The advertising and scan response data fields that will be sent to the
-  // controller.
-  AdvertiseData adv_data_;
-  AdvertiseData scan_response_;
-  std::atomic_bool adv_data_needs_update_;
-  std::atomic_bool scan_rsp_needs_update_;
-
-  // Latest advertising settings.
-  AdvertiseSettings advertise_settings_;
-
-  // Whether or not there is a pending call to update advertising or scan
-  // response data.
-  std::atomic_bool is_setting_adv_data_;
-
-  std::atomic_bool adv_started_;
-  std::unique_ptr<StatusCallback> adv_start_callback_;
-  std::unique_ptr<StatusCallback> adv_stop_callback_;
 
   // Protects device scan related members below.
   std::mutex scan_fields_lock_;

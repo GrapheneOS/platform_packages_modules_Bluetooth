@@ -26,6 +26,27 @@ namespace hal {
 
 class FakeBluetoothGattInterface : public BluetoothGattInterface {
  public:
+  // Handles HAL Bluetooth LE advertiser API calls for testing. Test code can
+  // provide a fake or mock implementation of this and all calls will be routed
+  // to it.
+  class TestAdvertiserHandler {
+   public:
+    virtual ~TestAdvertiserHandler() = default;
+
+    virtual bt_status_t RegisterAdvertiser(bt_uuid_t* app_uuid) = 0;
+    virtual bt_status_t UnregisterAdvertiser(int advertiser_id) = 0;
+    virtual bt_status_t MultiAdvEnable(
+        int advertiser_id, int min_interval, int max_interval, int adv_type,
+        int chnl_map, int tx_power, int timeout_s) = 0;
+    virtual bt_status_t MultiAdvSetInstData(
+        int advertiser_id, bool set_scan_rsp, bool include_name,
+        bool incl_txpower, int appearance,
+        vector<uint8_t> manufacturer_data,
+        vector<uint8_t> service_data,
+        vector<uint8_t> service_uuid) = 0;
+    virtual bt_status_t MultiAdvDisable(int advertiser_id) = 0;
+  };
+
   // Handles HAL Bluetooth GATT client API calls for testing. Test code can
   // provide a fake or mock implementation of this and all calls will be routed
   // to it.
@@ -41,17 +62,6 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
                                 bool is_direct, int transport) = 0;
     virtual bt_status_t Disconnect(int client_if, const bt_bdaddr_t *bd_addr,
                                    int conn_id) = 0;
-
-    virtual bt_status_t MultiAdvEnable(
-        int client_if, int min_interval, int max_interval, int adv_type,
-        int chnl_map, int tx_power, int timeout_s) = 0;
-    virtual bt_status_t MultiAdvSetInstData(
-        int client_if, bool set_scan_rsp, bool include_name,
-        bool incl_txpower, int appearance,
-        vector<uint8_t> manufacturer_data,
-        vector<uint8_t> service_data,
-        vector<uint8_t> service_uuid) = 0;
-    virtual bt_status_t MultiAdvDisable(int client_if) = 0;
   };
 
   // Handles HAL Bluetooth GATT server API calls for testing. Test code can
@@ -76,12 +86,20 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // Constructs the fake with the given handlers. Implementations can
   // provide their own handlers or simply pass "nullptr" for the default
   // behavior in which BT_STATUS_FAIL will be returned from all calls.
-  FakeBluetoothGattInterface(std::shared_ptr<TestClientHandler> client_handler,
+  FakeBluetoothGattInterface(std::shared_ptr<TestAdvertiserHandler> advertiser_handler,
+                             std::shared_ptr<TestClientHandler> client_handler,
                              std::shared_ptr<TestServerHandler> server_handler);
   ~FakeBluetoothGattInterface();
 
   // The methods below can be used to notify observers with certain events and
   // given parameters.
+
+  // Advertiser callbacks:
+  void NotifyRegisterAdvertiserCallback(int status, int advertiser_id,
+                                        const bt_uuid_t& app_uuid);
+  void NotifyMultiAdvEnableCallback(int client_if, int status);
+  void NotifyMultiAdvDataCallback(int client_if, int status);
+  void NotifyMultiAdvDisableCallback(int client_if, int status);
 
   // Client callbacks:
   void NotifyRegisterClientCallback(int status, int client_if,
@@ -91,19 +109,16 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyDisconnectCallback(int conn_id, int status, int client_if,
                                 const bt_bdaddr_t& bda);
   void NotifyScanResultCallback(const bt_bdaddr_t& bda, int rssi,
-                                const vector<uint8_t>& adv_data);
-  void NotifyMultiAdvEnableCallback(int client_if, int status);
-  void NotifyMultiAdvDataCallback(int client_if, int status);
-  void NotifyMultiAdvDisableCallback(int client_if, int status);
+                                vector<uint8_t> adv_data);
 
   // Server callbacks:
   void NotifyRegisterServerCallback(int status, int server_if,
                                     const bt_uuid_t& app_uuid);
   void NotifyServerConnectionCallback(int conn_id, int server_if,
                                       int connected,
-                                      bt_bdaddr_t bda);  // NOLINT(pass-by-value)
+                                      const bt_bdaddr_t& bda);
   void NotifyServiceAddedCallback(int status, int server_if,
-                                  vector<btgatt_db_element_t> srvc);  // NOLINT(pass-by-value)
+                                  vector<btgatt_db_element_t> srvc);
   void NotifyCharacteristicAddedCallback(int status, int server_if,
                                          const bt_uuid_t& uuid,
                                          int srvc_handle, int char_handle);
@@ -120,26 +135,31 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyRequestWriteCharacteristicCallback(int conn_id, int trans_id,
                                   const bt_bdaddr_t& bda, int attr_handle,
                                   int offset, bool need_rsp, bool is_prep,
-                                  vector<uint8_t> value);  // NOLINT(pass-by-value)
+                                  vector<uint8_t> value);
   void NotifyRequestWriteDescriptorCallback(int conn_id, int trans_id,
                                   const bt_bdaddr_t& bda, int attr_handle,
                                   int offset, bool need_rsp, bool is_prep,
-                                  vector<uint8_t> value);  // NOLINT(pass-by-value)
+                                  vector<uint8_t> value);
   void NotifyRequestExecWriteCallback(int conn_id, int trans_id,
                                       const bt_bdaddr_t& bda, int exec_write);
   void NotifyIndicationSentCallback(int conn_id, int status);
 
   // BluetoothGattInterface overrides:
+  void AddAdvertiserObserver(AdvertiserObserver* observer) override;
+  void RemoveAdvertiserObserver(AdvertiserObserver* observer) override;
   void AddClientObserver(ClientObserver* observer) override;
   void RemoveClientObserver(ClientObserver* observer) override;
   void AddServerObserver(ServerObserver* observer) override;
   void RemoveServerObserver(ServerObserver* observer) override;
+  const ble_advertiser_interface_t* GetAdvertiserHALInterface() const override;
   const btgatt_client_interface_t* GetClientHALInterface() const override;
   const btgatt_server_interface_t* GetServerHALInterface() const override;
 
  private:
+  base::ObserverList<AdvertiserObserver> advertiser_observers_;
   base::ObserverList<ClientObserver> client_observers_;
   base::ObserverList<ServerObserver> server_observers_;
+  std::shared_ptr<TestAdvertiserHandler> advertiser_handler_;
   std::shared_ptr<TestClientHandler> client_handler_;
   std::shared_ptr<TestServerHandler> server_handler_;
 

@@ -49,10 +49,16 @@ shared_timed_mutex g_instance_lock;
 
 // Helper for obtaining the observer lists. This is forward declared here
 // and defined below since it depends on BluetoothInterfaceImpl.
+base::ObserverList<BluetoothGattInterface::AdvertiserObserver>*
+    GetAdvertiserObservers();
 base::ObserverList<BluetoothGattInterface::ClientObserver>*
     GetClientObservers();
 base::ObserverList<BluetoothGattInterface::ServerObserver>*
     GetServerObservers();
+
+#define FOR_EACH_ADVERTISER_OBSERVER(func) \
+  FOR_EACH_OBSERVER(BluetoothGattInterface::AdvertiserObserver, \
+                    *GetAdvertiserObservers(), func)
 
 #define FOR_EACH_CLIENT_OBSERVER(func) \
   FOR_EACH_OBSERVER(BluetoothGattInterface::ClientObserver, \
@@ -197,40 +203,50 @@ void MtuChangedCallback(int conn_id, int status, int mtu) {
   FOR_EACH_CLIENT_OBSERVER(MtuChangedCallback(g_interface, conn_id, status, mtu));
 }
 
-void MultiAdvEnableCallback(int client_if, int status) {
+void RegisterAdvertiserCallback(int status, int advertiser_id, bt_uuid_t* app_uuid) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
   VERIFY_INTERFACE_OR_RETURN();
+  CHECK(app_uuid);
 
-  FOR_EACH_CLIENT_OBSERVER(
-      MultiAdvEnableCallback(g_interface, client_if, status));
+  FOR_EACH_ADVERTISER_OBSERVER(
+      RegisterAdvertiserCallback(g_interface, status, advertiser_id, *app_uuid));
 }
 
-void MultiAdvUpdateCallback(int client_if, int status) {
+void MultiAdvEnableCallback(int advertiser_id, int status) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
   VERIFY_INTERFACE_OR_RETURN();
 
-  FOR_EACH_CLIENT_OBSERVER(
-      MultiAdvUpdateCallback(g_interface, client_if, status));
+  FOR_EACH_ADVERTISER_OBSERVER(
+      MultiAdvEnableCallback(g_interface, advertiser_id, status));
 }
 
-void MultiAdvDataCallback(int client_if, int status) {
+void MultiAdvUpdateCallback(int advertiser_id, int status) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
   VERIFY_INTERFACE_OR_RETURN();
 
-  FOR_EACH_CLIENT_OBSERVER(
-      MultiAdvDataCallback(g_interface, client_if, status));
+  FOR_EACH_ADVERTISER_OBSERVER(
+      MultiAdvUpdateCallback(g_interface, advertiser_id, status));
 }
 
-void MultiAdvDisableCallback(int client_if, int status) {
+void MultiAdvDataCallback(int advertiser_id, int status) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
   VERIFY_INTERFACE_OR_RETURN();
 
-  FOR_EACH_CLIENT_OBSERVER(
-      MultiAdvDisableCallback(g_interface, client_if, status));
+  FOR_EACH_ADVERTISER_OBSERVER(
+      MultiAdvDataCallback(g_interface, advertiser_id, status));
+}
+
+void MultiAdvDisableCallback(int advertiser_id, int status) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_ADVERTISER_OBSERVER(
+      MultiAdvDisableCallback(g_interface, advertiser_id, status));
 }
 
 void GetGattDbCallback(int conn_id, btgatt_db_element_t *db, int size) {
@@ -440,10 +456,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // scan_filter_cfg_cb
     nullptr,  // scan_filter_param_cb
     nullptr,  // scan_filter_status_cb
-    MultiAdvEnableCallback,
-    MultiAdvUpdateCallback,
-    MultiAdvDataCallback,
-    MultiAdvDisableCallback,
     nullptr,  // congestion_cb
     nullptr,  // batchscan_cfg_storage_cb
     nullptr,  // batchscan_enb_disable_cb
@@ -454,6 +466,14 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     GetGattDbCallback,
     ServicesRemovedCallback,
     ServicesAddedCallback,
+};
+
+const ble_advertiser_callbacks_t le_advertiser_callbacks = {
+    RegisterAdvertiserCallback,
+    MultiAdvEnableCallback,
+    MultiAdvUpdateCallback,
+    MultiAdvDataCallback,
+    MultiAdvDisableCallback,
 };
 
 const btgatt_server_callbacks_t gatt_server_callbacks = {
@@ -476,7 +496,8 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
 const btgatt_callbacks_t gatt_callbacks = {
   sizeof(btgatt_callbacks_t),
   &gatt_client_callbacks,
-  &gatt_server_callbacks
+  &gatt_server_callbacks,
+  &le_advertiser_callbacks,
 };
 
 }  // namespace
@@ -493,6 +514,14 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   }
 
   // BluetoothGattInterface overrides:
+  void AddAdvertiserObserver(AdvertiserObserver* observer) override {
+    advertiser_observers_.AddObserver(observer);
+  }
+
+  void RemoveAdvertiserObserver(AdvertiserObserver* observer) override {
+    advertiser_observers_.RemoveObserver(observer);
+  }
+
   void AddClientObserver(ClientObserver* observer) override {
     client_observers_.AddObserver(observer);
   }
@@ -507,6 +536,10 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
 
   void RemoveServerObserver(ServerObserver* observer) override {
     server_observers_.RemoveObserver(observer);
+  }
+
+  const ble_advertiser_interface_t* GetAdvertiserHALInterface() const override {
+    return hal_iface_->advertiser;
   }
 
   const btgatt_client_interface_t* GetClientHALInterface() const override {
@@ -542,6 +575,10 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
     return true;
   }
 
+  base::ObserverList<AdvertiserObserver>* advertiser_observers() {
+    return &advertiser_observers_;
+  }
+
   base::ObserverList<ClientObserver>* client_observers() {
     return &client_observers_;
   }
@@ -555,6 +592,7 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   // We're not using a base::ObserverListThreadSafe, which it posts observer
   // events automatically on the origin threads, as we want to avoid that
   // overhead and simply forward the events to the upper layer.
+  base::ObserverList<AdvertiserObserver> advertiser_observers_;
   base::ObserverList<ClientObserver> client_observers_;
   base::ObserverList<ServerObserver> server_observers_;
 
@@ -566,6 +604,13 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
 };
 
 namespace {
+
+base::ObserverList<BluetoothGattInterface::AdvertiserObserver>*
+GetAdvertiserObservers() {
+  CHECK(g_interface);
+  return static_cast<BluetoothGattInterfaceImpl*>(
+      g_interface)->advertiser_observers();
+}
 
 base::ObserverList<BluetoothGattInterface::ClientObserver>*
 GetClientObservers() {
@@ -582,6 +627,40 @@ GetServerObservers() {
 }
 
 }  // namespace
+
+
+void BluetoothGattInterface::AdvertiserObserver::RegisterAdvertiserCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* advertiser_id */,
+    const bt_uuid_t& /* app_uuid */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::AdvertiserObserver::MultiAdvEnableCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* advertiser_id */) {
+  // Do nothing.
+}
+void BluetoothGattInterface::AdvertiserObserver::MultiAdvUpdateCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* advertiser_id */) {
+  // Do nothing.
+}
+void BluetoothGattInterface::AdvertiserObserver::MultiAdvDataCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* advertiser_id */) {
+  // Do nothing.
+}
+void BluetoothGattInterface::AdvertiserObserver::MultiAdvDisableCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* advertiser_id */) {
+  // Do nothing.
+}
 
 // Default observer implementations. These are provided so that the methods
 // themselves are optional.
@@ -669,31 +748,6 @@ void BluetoothGattInterface::ClientObserver::MtuChangedCallback(
     int /* conn_id */,
     int /* statis*/,
     int /* mtu */) {
-  // Do nothing.
-}
-
-void BluetoothGattInterface::ClientObserver::MultiAdvEnableCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* client_if */) {
-  // Do nothing.
-}
-void BluetoothGattInterface::ClientObserver::MultiAdvUpdateCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* client_if */) {
-  // Do nothing.
-}
-void BluetoothGattInterface::ClientObserver::MultiAdvDataCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* client_if */) {
-  // Do nothing.
-}
-void BluetoothGattInterface::ClientObserver::MultiAdvDisableCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* client_if */) {
   // Do nothing.
 }
 
