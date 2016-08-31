@@ -16,12 +16,20 @@
 
 package android.bluetooth;
 
-import android.bluetooth.ScanResult;
+import android.bluetooth.IBluetoothLeAdvertiserCallback;
+
+import android.bluetooth.AdvertiseData;
 import android.bluetooth.AdvertiseSettings;
 
-oneway interface IBluetoothLowEnergyCallback {
-  void OnClientRegistered(int status, int client_id);
-  void OnConnectionState(int status, int client_id, String address, boolean connected);
-  void OnMtuChanged(int status, String address, int mtu);
-  void OnScanResult(in ScanResult scan_result);
+interface IBluetoothLeAdvertiser {
+  boolean RegisterAdvertiser(in IBluetoothLeAdvertiserCallback callback);
+  void UnregisterAdvertiser(int advertiser_id);
+  void UnregisterAll();
+
+  boolean StartMultiAdvertising(
+      int advertiser_id,
+      in AdvertiseData advertise_data,
+      in AdvertiseData scan_response,
+      in AdvertiseSettings settings);
+  boolean StopMultiAdvertising(int advertiser_id);
 }

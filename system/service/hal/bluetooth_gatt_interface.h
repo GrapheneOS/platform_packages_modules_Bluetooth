@@ -39,6 +39,35 @@ namespace hal {
 // be injected for testing the upper layer.
 class BluetoothGattInterface {
  public:
+
+  class AdvertiserObserver {
+   public:
+    virtual ~AdvertiserObserver() = default;
+
+    // All of the events below correspond to callbacks defined in
+    // "ble_advertiser_callbacks_t" in the HAL API definitions.
+    virtual void RegisterAdvertiserCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int advertiser_id,
+        const bt_uuid_t& app_uuid);
+
+    virtual void MultiAdvEnableCallback(
+        BluetoothGattInterface* gatt_iface,
+        int advertiser_id, int status);
+
+    virtual void MultiAdvUpdateCallback(
+        BluetoothGattInterface* gatt_iface,
+        int advertiser_id, int status);
+
+    virtual void MultiAdvDataCallback(
+        BluetoothGattInterface* gatt_iface,
+        int advertiser_id, int status);
+
+    virtual void MultiAdvDisableCallback(
+        BluetoothGattInterface* gatt_iface,
+        int advertiser_id, int status);
+  };
+
   // The standard BT-GATT client callback interface. The HAL interface doesn't
   // allow registering "user data" that carries context beyond the callback
   // parameters, forcing implementations to deal with global variables. The
@@ -103,22 +132,6 @@ class BluetoothGattInterface {
     virtual void MtuChangedCallback(
         BluetoothGattInterface* gatt_iface,
         int conn_id, int status, int mtu);
-
-    virtual void MultiAdvEnableCallback(
-        BluetoothGattInterface* gatt_iface,
-        int client_if, int status);
-
-    virtual void MultiAdvUpdateCallback(
-        BluetoothGattInterface* gatt_iface,
-        int client_if, int status);
-
-    virtual void MultiAdvDataCallback(
-        BluetoothGattInterface* gatt_iface,
-        int client_if, int status);
-
-    virtual void MultiAdvDisableCallback(
-        BluetoothGattInterface* gatt_iface,
-        int client_if, int status);
 
     virtual void GetGattDbCallback(
         BluetoothGattInterface* gatt_iface,
@@ -239,6 +252,11 @@ class BluetoothGattInterface {
   // call this re-entrantly from an observer event as this may cause a deadlock.
   static BluetoothGattInterface* Get();
 
+  // Add or remove an observer that is interested in Advertising
+  // notifications from us. Thread-safety is guaranteed by ObserverList.
+  virtual void AddAdvertiserObserver(AdvertiserObserver* observer) = 0;
+  virtual void RemoveAdvertiserObserver(AdvertiserObserver* observer) = 0;
+
   // Add or remove an observer that is interested in GATT client interface
   // notifications from us. Thread-safety is guaranteed by ObserverList.
   virtual void AddClientObserver(ClientObserver* observer) = 0;
@@ -248,6 +266,14 @@ class BluetoothGattInterface {
   // notifications from us. Thread-safety is guaranteed by ObserverList.
   virtual void AddServerObserver(ServerObserver* observer) = 0;
   virtual void RemoveServerObserver(ServerObserver* observer) = 0;
+
+  // The HAL module pointer that represents the standard BT LE advertiser
+  // interface. This is implemented in and provided by the shared Bluetooth
+  // library, so this isn't owned by us.
+  //
+  // Upper layers can make ble_advertiser_interface_t API calls through this
+  // structure.
+  virtual const ble_advertiser_interface_t* GetAdvertiserHALInterface() const = 0;
 
   // The HAL module pointer that represents the standard BT-GATT client
   // interface. This is implemented in and provided by the shared Bluetooth

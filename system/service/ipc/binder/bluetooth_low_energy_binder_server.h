@@ -66,12 +66,6 @@ class BluetoothLowEnergyBinderServer
                    const std::vector<android::bluetooth::ScanFilter>& filters,
                    bool* _aidl_return) override;
   Status StopScan(int client_id, bool* _aidl_return) override;
-  Status StartMultiAdvertising(
-      int client_id, const android::bluetooth::AdvertiseData& advertise_data,
-      const android::bluetooth::AdvertiseData& scan_response,
-      const android::bluetooth::AdvertiseSettings& settings,
-      bool* _aidl_return) override;
-  Status StopMultiAdvertising(int client_id, bool* _aidl_return) override;
 
   // bluetooth::LowEnergyClient::Delegate overrides:
   void OnConnectionState(bluetooth::LowEnergyClient* client, int status,
