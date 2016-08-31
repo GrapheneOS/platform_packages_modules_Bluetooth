@@ -1142,7 +1142,7 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     local_sep = bta_av_get_scb_sep_type(p_scb, p_msg->handle);
     p_scb->avdt_label = p_data->str_msg.msg.hdr.label;
     memcpy(p_scb->cfg.codec_info, p_evt_cfg->codec_info, AVDT_CODEC_SIZE);
-    p_scb->codec_type = p_evt_cfg->codec_info[BTA_AV_CODEC_TYPE_IDX];
+    p_scb->codec_type = A2D_GetCodecType(p_evt_cfg->codec_info);
     bta_av_save_addr(p_scb, p_data->str_msg.bd_addr);
 
     /* Clear collision mask */
@@ -1733,7 +1733,7 @@ void bta_av_save_caps(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->num_seps, p_scb->sep_info_idx, p_scb->wait);
     memcpy(&cfg, p_scb->p_cap, sizeof(tAVDT_CFG));
     /* let application know the capability of the SNK */
-    p_scb->p_cos->getcfg(p_scb->hndl, cfg.codec_info[BTA_AV_CODEC_TYPE_IDX],
+    p_scb->p_cos->getcfg(p_scb->hndl, A2D_GetCodecType(cfg.codec_info),
         cfg.codec_info, &p_scb->sep_info_idx, p_info->seid,
         &cfg.num_protect, cfg.protect_info);
 
@@ -1889,16 +1889,18 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* if codec present and we get a codec configuration */
     if ((p_scb->p_cap->num_codec != 0) &&
         (media_type == p_scb->media_type) &&
-        (p_scb->p_cos->getcfg(p_scb->hndl, p_scb->p_cap->codec_info[BTA_AV_CODEC_TYPE_IDX],
-            cfg.codec_info, &p_scb->sep_info_idx, p_info->seid,
-            &cfg.num_protect, cfg.protect_info) == 0))
+        (p_scb->p_cos->getcfg(p_scb->hndl,
+                              A2D_GetCodecType(p_scb->p_cap->codec_info),
+                              cfg.codec_info, &p_scb->sep_info_idx,
+                              p_info->seid, &cfg.num_protect,
+                              cfg.protect_info) == 0))
     {
 #if AVDT_MULTIPLEXING == TRUE
         cfg.mux_mask &= p_scb->p_cap->mux_mask;
         APPL_TRACE_DEBUG("mux_mask used x%x", cfg.mux_mask);
 #endif
         /* save copy of codec type and configuration */
-        p_scb->codec_type = cfg.codec_info[BTA_AV_CODEC_TYPE_IDX];
+        p_scb->codec_type = A2D_GetCodecType(cfg.codec_info);
         memcpy(&p_scb->cfg, &cfg, sizeof(tAVDT_CFG));
 
         uuid_int = p_scb->uuid_int;
@@ -2945,7 +2947,7 @@ void bta_av_rcfg_open (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
     else
     {
-        p_scb->codec_type = p_scb->p_cap->codec_info[BTA_AV_CODEC_TYPE_IDX];
+        p_scb->codec_type = A2D_GetCodecType(p_scb->p_cap->codec_info);
         memcpy(p_scb->cfg.codec_info, p_scb->p_cap->codec_info, AVDT_CODEC_SIZE);
         /* we may choose to use a different SEP at reconfig.
          * adjust the sep_idx now */
