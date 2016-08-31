@@ -23,6 +23,7 @@ namespace {
 // The global test handler instances. We have to have globals since the HAL
 // interface methods all have to be global and their signatures don't allow us
 // to pass in user_data.
+std::shared_ptr<FakeBluetoothGattInterface::TestAdvertiserHandler> g_advertiser_handler;
 std::shared_ptr<FakeBluetoothGattInterface::TestClientHandler> g_client_handler;
 std::shared_ptr<FakeBluetoothGattInterface::TestServerHandler> g_server_handler;
 
@@ -59,37 +60,6 @@ bt_status_t FakeDisconnect(int client_if, const bt_bdaddr_t *bd_addr,
                            int conn_id) {
   if (g_client_handler)
     return g_client_handler->Disconnect(client_if, bd_addr, conn_id);
-
-  return BT_STATUS_FAIL;
-}
-
-bt_status_t FakeMultiAdvEnable(
-    int client_if, int min_interval, int max_interval, int adv_type,
-    int chnl_map, int tx_power, int timeout_s) {
-  if (g_client_handler)
-    return g_client_handler->MultiAdvEnable(client_if, min_interval, max_interval,
-                                     adv_type, chnl_map, tx_power, timeout_s);
-
-  return BT_STATUS_FAIL;
-}
-
-bt_status_t FakeMultiAdvSetInstData(
-    int client_if, bool set_scan_rsp, bool include_name, bool incl_txpower,
-    int appearance, vector<uint8_t> manufacturer_data,  // NOLINT(pass-by-value)
-    vector<uint8_t> service_data,  // NOLINT(pass-by-value)
-    vector<uint8_t> service_uuid) {  // NOLINT(pass-by-value)
-  if (g_client_handler)
-    return g_client_handler->MultiAdvSetInstData(
-        client_if, set_scan_rsp, include_name, incl_txpower, appearance,
-        manufacturer_data, service_data, service_uuid);
-
-  return BT_STATUS_FAIL;
-}
-
-
-bt_status_t FakeMultiAdvDisable(int client_if) {
-  if (g_client_handler)
-    return g_client_handler->MultiAdvDisable(client_if);
 
   return BT_STATUS_FAIL;
 }
@@ -163,20 +133,69 @@ btgatt_client_interface_t fake_btgattc_iface = {
   nullptr,  // scan_filter_clear
   nullptr,  // scan_filter_enable
   nullptr,  // get_device_type
-  nullptr,  // set_adv_data
   nullptr,  // configure_mtu
   nullptr,  // conn_parameter_update
   nullptr,  // set_scan_parameters
-  FakeMultiAdvEnable,
-  nullptr,  // multi_adv_update
-  FakeMultiAdvSetInstData,
-  FakeMultiAdvDisable,
   nullptr,  // batchscan_cfg_storate
   nullptr,  // batchscan_enb_batch_scan
   nullptr,  // batchscan_dis_batch_scan
   nullptr,  // batchscan_read_reports
   nullptr,  // test_command
   nullptr,  // get_gatt_db
+};
+
+bt_status_t FakeRegisterAdvertiser(bt_uuid_t* app_uuid) {
+  if (g_advertiser_handler)
+    return g_advertiser_handler->RegisterAdvertiser(app_uuid);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeUnregisterAdvertiser(int advertiser_id) {
+  if (g_advertiser_handler)
+    return g_advertiser_handler->UnregisterAdvertiser(advertiser_id);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeMultiAdvEnable(
+    int advertiser_id, int min_interval, int max_interval, int adv_type,
+    int chnl_map, int tx_power, int timeout_s) {
+  if (g_advertiser_handler)
+    return g_advertiser_handler->MultiAdvEnable(advertiser_id, min_interval, max_interval,
+                                     adv_type, chnl_map, tx_power, timeout_s);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeMultiAdvSetInstData(
+    int advertiser_id, bool set_scan_rsp, bool include_name, bool incl_txpower,
+    int appearance, vector<uint8_t> manufacturer_data,
+    vector<uint8_t> service_data,
+    vector<uint8_t> service_uuid) {
+  if (g_advertiser_handler)
+    return g_advertiser_handler->MultiAdvSetInstData(
+        advertiser_id, set_scan_rsp, include_name, incl_txpower, appearance,
+        manufacturer_data, service_data, service_uuid);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeMultiAdvDisable(int advertiser_id) {
+  if (g_advertiser_handler)
+    return g_advertiser_handler->MultiAdvDisable(advertiser_id);
+
+  return BT_STATUS_FAIL;
+}
+
+ble_advertiser_interface_t fake_bt_advertiser_iface = {
+  FakeRegisterAdvertiser,
+  FakeUnregisterAdvertiser,
+  nullptr,  // set_adv_data
+  FakeMultiAdvEnable,
+  nullptr,  // multi_adv_update
+  FakeMultiAdvSetInstData,
+  FakeMultiAdvDisable,
 };
 
 btgatt_server_interface_t fake_btgatts_iface = {
@@ -194,13 +213,19 @@ btgatt_server_interface_t fake_btgatts_iface = {
 }  // namespace
 
 FakeBluetoothGattInterface::FakeBluetoothGattInterface(
+    std::shared_ptr<TestAdvertiserHandler> advertiser_handler,
     std::shared_ptr<TestClientHandler> client_handler,
     std::shared_ptr<TestServerHandler> server_handler)
-    : client_handler_(client_handler) {
+    : advertiser_handler_(advertiser_handler),
+      client_handler_(client_handler) {
+  CHECK(!g_advertiser_handler);
   CHECK(!g_client_handler);
   CHECK(!g_server_handler);
 
   // We allow passing NULL. In this case all calls we fail by default.
+  if (advertiser_handler)
+    g_advertiser_handler = advertiser_handler;
+
   if (client_handler)
     g_client_handler = client_handler;
 
@@ -209,6 +234,9 @@ FakeBluetoothGattInterface::FakeBluetoothGattInterface(
 }
 
 FakeBluetoothGattInterface::~FakeBluetoothGattInterface() {
+  if (g_advertiser_handler)
+    g_advertiser_handler = nullptr;
+
   if (g_client_handler)
     g_client_handler = nullptr;
 
@@ -238,27 +266,34 @@ void FakeBluetoothGattInterface::NotifyDisconnectCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyScanResultCallback(
-    const bt_bdaddr_t& bda, int rssi, const vector<uint8_t>& adv_data) {
+    const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
   FOR_EACH_OBSERVER(ClientObserver, client_observers_,
                     ScanResultCallback(this, bda, rssi, adv_data));
 }
 
+void FakeBluetoothGattInterface::NotifyRegisterAdvertiserCallback(
+    int status, int advertiser_id,
+    const bt_uuid_t& app_uuid) {
+  FOR_EACH_OBSERVER(AdvertiserObserver, advertiser_observers_,
+                    RegisterAdvertiserCallback(this, status, advertiser_id, app_uuid));
+}
+
 void FakeBluetoothGattInterface::NotifyMultiAdvEnableCallback(
-    int client_if, int status) {
-  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
-                    MultiAdvEnableCallback(this, client_if, status));
+    int advertiser_id, int status) {
+  FOR_EACH_OBSERVER(AdvertiserObserver, advertiser_observers_,
+                    MultiAdvEnableCallback(this, advertiser_id, status));
 }
 
 void FakeBluetoothGattInterface::NotifyMultiAdvDataCallback(
-    int client_if, int status) {
-  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
-                    MultiAdvDataCallback(this, client_if, status));
+    int advertiser_id, int status) {
+  FOR_EACH_OBSERVER(AdvertiserObserver, advertiser_observers_,
+                    MultiAdvDataCallback(this, advertiser_id, status));
 }
 
 void FakeBluetoothGattInterface::NotifyMultiAdvDisableCallback(
-    int client_if, int status) {
-  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
-                    MultiAdvDisableCallback(this, client_if, status));
+    int advertiser_id, int status) {
+  FOR_EACH_OBSERVER(AdvertiserObserver, advertiser_observers_,
+                    MultiAdvDisableCallback(this, advertiser_id, status));
 }
 
 void FakeBluetoothGattInterface::NotifyRegisterServerCallback(
@@ -269,7 +304,7 @@ void FakeBluetoothGattInterface::NotifyRegisterServerCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyServerConnectionCallback(
-    int conn_id, int server_if, int connected, bt_bdaddr_t bda) {  // NOLINT(pass-by-value)
+    int conn_id, int server_if, int connected, const bt_bdaddr_t& bda) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       ConnectionCallback(this, conn_id, server_if, connected, bda));
@@ -277,7 +312,7 @@ void FakeBluetoothGattInterface::NotifyServerConnectionCallback(
 
 void FakeBluetoothGattInterface::NotifyServiceAddedCallback(
     int status, int server_if,
-    vector<btgatt_db_element_t> service) {  // NOLINT(pass-by-value)
+    vector<btgatt_db_element_t> service) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       ServiceAddedCallback(this, status, server_if, service));
@@ -303,7 +338,7 @@ void FakeBluetoothGattInterface::NotifyRequestReadDescriptorCallback(
 
 void FakeBluetoothGattInterface::NotifyRequestWriteCharacteristicCallback(
     int conn_id, int trans_id, const bt_bdaddr_t& bda, int attr_handle,
-    int offset, bool need_rsp, bool is_prep, vector<uint8_t> value) {  // NOLINT(pass-by-value)
+    int offset, bool need_rsp, bool is_prep, vector<uint8_t> value) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       RequestWriteCharacteristicCallback(
@@ -315,7 +350,7 @@ void FakeBluetoothGattInterface::NotifyRequestWriteDescriptorCallback(
     int conn_id, int trans_id,
     const bt_bdaddr_t& bda, int attr_handle,
     int offset, bool need_rsp, bool is_prep,
-    vector<uint8_t> value) {  // NOLINT(pass-by-value)
+    vector<uint8_t> value) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       RequestWriteDescriptorCallback(
@@ -334,6 +369,17 @@ void FakeBluetoothGattInterface::NotifyIndicationSentCallback(
     int conn_id, int status) {
   FOR_EACH_OBSERVER(ServerObserver, server_observers_,
                     IndicationSentCallback(this, conn_id, status));
+}
+
+void FakeBluetoothGattInterface::AddAdvertiserObserver(AdvertiserObserver* observer) {
+  CHECK(observer);
+  advertiser_observers_.AddObserver(observer);
+}
+
+void FakeBluetoothGattInterface::RemoveAdvertiserObserver(
+    AdvertiserObserver* observer) {
+  CHECK(observer);
+  advertiser_observers_.RemoveObserver(observer);
 }
 
 void FakeBluetoothGattInterface::AddClientObserver(ClientObserver* observer) {
@@ -356,6 +402,11 @@ void FakeBluetoothGattInterface::RemoveServerObserver(
     ServerObserver* observer) {
   CHECK(observer);
   server_observers_.RemoveObserver(observer);
+}
+
+const ble_advertiser_interface_t*
+FakeBluetoothGattInterface::GetAdvertiserHALInterface() const {
+  return &fake_bt_advertiser_iface;
 }
 
 const btgatt_client_interface_t*

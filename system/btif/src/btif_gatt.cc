@@ -88,6 +88,7 @@ static const btgatt_interface_t btgattInterface = {
 
     &btgattClientInterface,
     &btgattServerInterface,
+    &btLeAdvertiserInstance
 };
 
 /*******************************************************************************

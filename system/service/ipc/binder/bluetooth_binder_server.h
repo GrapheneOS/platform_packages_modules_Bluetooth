@@ -28,6 +28,7 @@
 #include <android/bluetooth/IBluetoothGattClient.h>
 #include <android/bluetooth/IBluetoothGattServer.h>
 #include <android/bluetooth/IBluetoothLowEnergy.h>
+#include <android/bluetooth/IBluetoothLeAdvertiser.h>
 
 #include "service/adapter.h"
 #include "service/common/bluetooth/uuid.h"
@@ -41,6 +42,7 @@ using android::bluetooth::IBluetoothCallback;
 using android::bluetooth::IBluetoothGattClient;
 using android::bluetooth::IBluetoothGattServer;
 using android::bluetooth::IBluetoothLowEnergy;
+using android::bluetooth::IBluetoothLeAdvertiser;
 
 namespace ipc {
 namespace binder {
@@ -72,6 +74,8 @@ class BluetoothBinderServer : public BnBluetooth,
   Status IsMultiAdvertisementSupported(bool* _aidl_return) override;
   Status GetLowEnergyInterface(
       ::android::sp<IBluetoothLowEnergy>* _aidl_return) override;
+  Status GetLeAdvertiserInterface(
+      ::android::sp<IBluetoothLeAdvertiser>* _aidl_return) override;
   Status GetGattClientInterface(
       ::android::sp<IBluetoothGattClient>* _aidl_return) override;
   Status GetGattServerInterface(
@@ -92,6 +96,10 @@ class BluetoothBinderServer : public BnBluetooth,
   // The IBluetoothLowEnergy interface handle. This is lazily initialized on the
   // first call to GetLowEnergyInterface().
   android::sp<IBluetoothLowEnergy> low_energy_interface_;
+
+  // The IBluetoothLeAdvertiser interface handle. This is lazily initialized on the
+  // first call to GetLeAdvertiserInterface().
+  android::sp<IBluetoothLeAdvertiser> le_advertiser_interface_;
 
   // The IBluetoothGattClient interface handle. This is lazily initialized on
   // the first call to GetGattClientInterface().
