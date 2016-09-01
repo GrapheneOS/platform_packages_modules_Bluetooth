@@ -87,9 +87,6 @@ typedef uint8_t tBTA_AV_HNDL;
 /* handle index to mask */
 #define BTA_AV_HNDL_TO_MSK(h)       ((uint8_t)(1 << (h)))
 
-/* tBTA_AV_HNDL to mask */
-#define BTA_AV_HNDL_TYPE_TO_MSK(h)  ((uint8_t)(1 << ((h)&BTA_AV_HNDL_MSK)))
-
 /* maximum number of streams created: 1 for audio, 1 for video */
 #ifndef BTA_AV_NUM_STRS
 #define BTA_AV_NUM_STRS         2

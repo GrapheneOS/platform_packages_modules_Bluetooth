@@ -76,6 +76,7 @@ extern "C" {
 /* SEP Type.  This indicates the stream endpoint type. */
 #define AVDT_TSEP_SRC               0       /* Source SEP */
 #define AVDT_TSEP_SNK               1       /* Sink SEP */
+#define AVDT_TSEP_INVALID           3       /* Invalid SEP */
 
 /* initiator/acceptor role for adaption */
 #define AVDT_INT                0       /* initiator */
