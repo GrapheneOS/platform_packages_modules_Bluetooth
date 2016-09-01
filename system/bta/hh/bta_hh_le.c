@@ -1774,6 +1774,11 @@ void bta_hh_w4_le_read_char_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
 
     const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id,
                                                                           p_data->handle);
+    if (p_char == NULL) {
+        APPL_TRACE_ERROR("%s: p_char is NULL %d", __func__, p_data->handle);
+        return;
+    }
+
     UINT16 char_uuid = p_char->uuid.uu.uuid16;
 
     if (char_uuid == GATT_UUID_BATTERY_LEVEL)
@@ -1783,6 +1788,12 @@ void bta_hh_w4_le_read_char_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
     else if (char_uuid == GATT_UUID_GAP_PREF_CONN_PARAM)
     {
         //TODO(jpawlowski): this should be done by GAP profile, remove when GAP is fixed.
+        if (p_data->status != BTA_GATT_OK || p_data->p_value == NULL) {
+            APPL_TRACE_ERROR("%s: read pref conn params error: %d",
+                             __func__, p_data->status);
+            return;
+        }
+
         UINT8 *pp = p_data->p_value->p_value;
         UINT16 min, max, latency, tout;
         STREAM_TO_UINT16 (min, pp);
@@ -1858,6 +1869,11 @@ void bta_hh_le_read_char_cmpl (tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
 
     const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id,
                                                                           p_data->handle);
+    if (p_char == NULL) {
+        APPL_TRACE_ERROR("%s: p_char is NULL %d", __func__, p_data->handle);
+        return;
+    }
+
     UINT16 char_uuid = p_char->uuid.uu.uuid16;
 
     switch (char_uuid)
@@ -1898,6 +1914,10 @@ void bta_hh_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
     UINT8   *pp;
 
     const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(p_data->conn_id, p_data->handle);
+    if (p_desc == NULL) {
+        APPL_TRACE_ERROR("%s: p_descr is NULL %d", __func__, p_data->handle);
+        return;
+    }
 
     /* if a report client configuration */
     if (p_desc->uuid.uu.uuid16 == GATT_UUID_CHAR_CLIENT_CONFIG)
@@ -1934,7 +1954,6 @@ void bta_hh_w4_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
         return;
 
     const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(p_data->conn_id, p_data->handle);
-
     if (p_desc == NULL) {
         APPL_TRACE_ERROR("%s: p_descr is NULL %d", __func__, p_data->handle);
         return;
