@@ -37,11 +37,4 @@ interface IBluetoothLowEnergy {
       in ScanSettings settings,
       in ScanFilter[] filters);
   boolean StopScan(int client_id);
-
-  boolean StartMultiAdvertising(
-      int client_if,
-      in AdvertiseData advertise_data,
-      in AdvertiseData scan_response,
-      in AdvertiseSettings settings);
-  boolean StopMultiAdvertising(int client_if);
 }

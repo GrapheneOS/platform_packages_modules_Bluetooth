@@ -39,20 +39,6 @@ class MockGattHandler
   MOCK_METHOD4(Connect, bt_status_t(int , const bt_bdaddr_t *, bool, int));
   MOCK_METHOD3(Disconnect, bt_status_t(int , const bt_bdaddr_t *, int));
 
-  // Stub implementations for uninteresting TestClientHandler methods:
-  bt_status_t MultiAdvEnable(int, int, int, int, int, int, int) override {
-    return BT_STATUS_FAIL;
-  }
-
-  bt_status_t MultiAdvSetInstData(int, bool, bool, bool, int, vector<uint8_t>,
-                                  vector<uint8_t>, vector<uint8_t> ) override {
-    return BT_STATUS_FAIL;
-  }
-
-  bt_status_t MultiAdvDisable(int) override {
-    return BT_STATUS_FAIL;
-  }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
 };
@@ -68,6 +54,7 @@ class GattClientTest : public ::testing::Test {
       mock_handler_.reset(new MockGattHandler());
 
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
+        nullptr,
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestClientHandler>(mock_handler_),
         nullptr);

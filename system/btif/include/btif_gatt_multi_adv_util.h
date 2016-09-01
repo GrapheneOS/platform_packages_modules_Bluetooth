@@ -19,6 +19,7 @@
 #pragma once
 
 #include <hardware/bluetooth.h>
+#include <vector>
 
 #include "bta_api.h"
 
@@ -34,7 +35,7 @@
 
 typedef struct
 {
-    int client_if;
+    int advertiser_id;
     bool set_scan_rsp;
     bool include_name;
     bool include_txpower;
@@ -52,7 +53,7 @@ typedef struct
 
 typedef struct
 {
-    uint8_t client_if;
+    uint8_t advertiser_id;
     tBTA_BLE_AD_MASK mask;
     tBTA_BLE_ADV_DATA data;
     tBTA_BLE_ADV_PARAMS param;
@@ -72,20 +73,20 @@ extern btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb();
 
 extern void btif_gattc_incr_app_count(void);
 extern void btif_gattc_decr_app_count(void);
-extern int btif_multi_adv_add_instid_map(int client_if, int inst_id,
+extern int btif_multi_adv_add_instid_map(int advertiser_id, int inst_id,
         bool gen_temp_instid);
-extern int btif_multi_adv_instid_for_clientif(int client_if);
+extern int btif_multi_adv_instid_for_clientif(int advertiser_id);
 extern int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index);
-extern void btif_gattc_clear_clientif(int client_if, bool stop_timer);
+extern void btif_gattc_clear_clientif(int advertiser_id, bool stop_timer);
 extern void btif_gattc_cleanup_inst_cb(int inst_id, bool stop_timer);
 extern void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_inst_cb,
                                                     bool stop_timer);
 extern bool btif_gattc_copy_datacb(int arrindex, const btif_adv_data_t *p_adv_data,
                                             bool bInstData);
-extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
+extern void btif_gattc_adv_data_packager(int advertiser_id, bool set_scan_rsp,
                 bool include_name, bool include_txpower, int min_interval, int max_interval,
-                int appearance, const vector<uint8_t> &manufacturer_data,
-                const vector<uint8_t> &service_data, const vector<uint8_t> &service_uuid,
+                int appearance, const std::vector<uint8_t> &manufacturer_data,
+                const std::vector<uint8_t> &service_data, const std::vector<uint8_t> &service_uuid,
                 btif_adv_data_t *p_multi_adv_inst);
 extern void btif_gattc_adv_data_cleanup(btif_adv_data_t* adv);
-void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb);
+void btif_multi_adv_timer_ctrl(int advertiser_id, alarm_callback_t cb);

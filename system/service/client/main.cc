@@ -36,8 +36,10 @@
 #include <android/bluetooth/BnBluetoothCallback.h>
 #include <android/bluetooth/BnBluetoothGattClientCallback.h>
 #include <android/bluetooth/BnBluetoothLowEnergyCallback.h>
+#include <android/bluetooth/BnBluetoothLeAdvertiserCallback.h>
 #include <android/bluetooth/IBluetooth.h>
 #include <android/bluetooth/IBluetoothGattClient.h>
+#include <android/bluetooth/IBluetoothLeAdvertiser.h>
 #include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <bluetooth/low_energy_constants.h>
 #include <bluetooth/scan_filter.h>
@@ -55,6 +57,7 @@ using android::getService;
 
 using android::bluetooth::IBluetooth;
 using android::bluetooth::IBluetoothGattClient;
+using android::bluetooth::IBluetoothLeAdvertiser;
 using android::bluetooth::IBluetoothLowEnergy;
 
 namespace {
@@ -91,6 +94,11 @@ std::atomic_bool showing_prompt(false);
 // true then an operation to register the client is in progress.
 std::atomic_bool ble_registering(false);
 std::atomic_int ble_client_id(0);
+
+// The registered IBluetoothLeAdvertiser handle. If |ble_advertiser_registering| is
+// true then an operation to register the advertiser is in progress.
+std::atomic_bool ble_advertiser_registering(false);
+std::atomic_int ble_advertiser_id(0);
 
 // The registered IBluetoothGattClient client handle. If |gatt_registering| is
 // true then an operation to register the client is in progress.
@@ -210,6 +218,32 @@ class CLIBluetoothLowEnergyCallback
     return Status::ok();
   }
 
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
+};
+
+class CLIBluetoothLeAdvertiserCallback
+    : public android::bluetooth::BnBluetoothLeAdvertiserCallback {
+ public:
+  CLIBluetoothLeAdvertiserCallback() = default;
+  ~CLIBluetoothLeAdvertiserCallback() override = default;
+
+  // IBluetoothLowEnergyCallback overrides:
+  Status OnAdvertiserRegistered(int status, int advertiser_id) override {
+    BeginAsyncOut();
+    if (status != bluetooth::BLE_STATUS_SUCCESS) {
+      PrintError("Failed to register BLE advertiser");
+    } else {
+      ble_advertiser_id = advertiser_id;
+      cout << COLOR_BOLDWHITE "Registered BLE advertiser with ID: " COLOR_OFF
+           << COLOR_GREEN << advertiser_id << COLOR_OFF;
+    }
+    EndAsyncOut();
+
+    ble_advertiser_registering = false;
+    return Status::ok();
+  }
+
   Status OnMultiAdvertiseCallback(
       int status, bool is_start,
       const android::bluetooth::AdvertiseSettings& /* settings */) {
@@ -222,7 +256,7 @@ class CLIBluetoothLowEnergyCallback
   }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
+  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLeAdvertiserCallback);
 };
 
 class CLIGattClientCallback
@@ -365,6 +399,52 @@ void HandleSupportsMultiAdv(IBluetooth* bt_iface, const vector<string>& args) {
   bool multi_adv;
   bt_iface->IsMultiAdvertisementSupported(&multi_adv);
   PrintFieldAndBoolValue("Multi-advertisement support", multi_adv);
+}
+
+void HandleRegisterBLEAdvertiser(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (ble_advertiser_registering.load()) {
+    PrintError("In progress");
+    return;
+  }
+
+  if (ble_advertiser_id.load()) {
+    PrintError("Already registered");
+    return;
+  }
+
+  sp<IBluetoothLeAdvertiser> ble_advertiser_iface;
+  bt_iface->GetLeAdvertiserInterface(&ble_advertiser_iface);
+  if (!ble_advertiser_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Le Advertiser interface");
+    return;
+  }
+
+  bool status;
+  ble_advertiser_iface->RegisterAdvertiser(new CLIBluetoothLeAdvertiserCallback(), &status);
+  ble_advertiser_registering = status;
+  PrintCommandStatus(status);
+}
+
+void HandleUnregisterBLEAdvertiser(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (!ble_advertiser_id.load()) {
+    PrintError("Not registered");
+    return;
+  }
+
+  sp<IBluetoothLeAdvertiser> ble_advertiser_iface;
+  bt_iface->GetLeAdvertiserInterface(&ble_advertiser_iface);
+  if (!ble_advertiser_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  ble_advertiser_iface->UnregisterAdvertiser(ble_advertiser_id.load());
+  ble_advertiser_id = 0;
+  PrintCommandStatus(true);
 }
 
 void HandleRegisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
@@ -525,15 +605,15 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
     }
   }
 
-  if (!ble_client_id.load()) {
-    PrintError("BLE not registered");
+  if (!ble_advertiser_id.load()) {
+    PrintError("BLE advertiser not registered");
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface;
-  bt_iface->GetLowEnergyInterface(&ble_iface);
-  if (!ble_iface.get()) {
-    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+  sp<IBluetoothLeAdvertiser> ble_advertiser_iface;
+  bt_iface->GetLeAdvertiserInterface(&ble_advertiser_iface);
+  if (!ble_advertiser_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Le Advertiser interface");
     return;
   }
 
@@ -578,26 +658,26 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
   bluetooth::AdvertiseData scan_rsp;
 
   bool status;
-  ble_iface->StartMultiAdvertising(ble_client_id.load(), adv_data, scan_rsp,
+  ble_advertiser_iface->StartMultiAdvertising(ble_advertiser_id.load(), adv_data, scan_rsp,
                                    settings, &status);
   PrintCommandStatus(status);
 }
 
 void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
-  if (!ble_client_id.load()) {
-    PrintError("BLE not registered");
+  if (!ble_advertiser_id.load()) {
+    PrintError("BLE advertiser not registered");
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface;
-  bt_iface->GetLowEnergyInterface(&ble_iface);
-  if (!ble_iface.get()) {
+  sp<IBluetoothLeAdvertiser> ble_advertiser_iface;
+  bt_iface->GetLeAdvertiserInterface(&ble_advertiser_iface);
+  if (!ble_advertiser_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
   bool status;
-  ble_iface->StopMultiAdvertising(ble_client_id.load(), &status);
+  ble_advertiser_iface->StopMultiAdvertising(ble_advertiser_id.load(), &status);
   PrintCommandStatus(status);
 }
 
@@ -767,6 +847,10 @@ struct {
     {"adapter-info", HandleAdapterInfo, "\t\tPrint adapter properties"},
     {"supports-multi-adv", HandleSupportsMultiAdv,
      "\tWhether multi-advertisement is currently supported"},
+    {"register-le-advertiser", HandleRegisterBLEAdvertiser,
+     "\t\tRegister with the Bluetooth Low Energy Advertiser interface"},
+    {"unregister-le-advertiser", HandleUnregisterBLEAdvertiser,
+     "\t\tUnregister from the Bluetooth LE Advertiser interface"},
     {"register-ble", HandleRegisterBLE,
      "\t\tRegister with the Bluetooth Low Energy interface"},
     {"unregister-ble", HandleUnregisterBLE,

@@ -59,7 +59,7 @@ class IPCLinuxTest : public ::testing::Test {
     bluetooth::hal::BluetoothInterface::InitializeForTesting(
         new bluetooth::hal::FakeBluetoothInterface());
     bluetooth::hal::BluetoothGattInterface::InitializeForTesting(
-        new bluetooth::hal::FakeBluetoothGattInterface(nullptr, nullptr));
+        new bluetooth::hal::FakeBluetoothGattInterface(nullptr, nullptr, nullptr));
 
     adapter_ = bluetooth::Adapter::Create();
     ipc_manager_.reset(new ipc::IPCManager(adapter_.get()));

@@ -21,8 +21,8 @@
 #include <base/logging.h>
 #include <base/rand_util.h>
 
-#include <android/bluetooth/BnBluetoothLowEnergyCallback.h>
-#include <android/bluetooth/IBluetoothLowEnergy.h>
+#include <android/bluetooth/BnBluetoothLeAdvertiserCallback.h>
+#include <android/bluetooth/IBluetoothLeAdvertiser.h>
 #include <bluetooth/low_energy_constants.h>
 
 #include "service/example/heart_rate/constants.h"
@@ -31,39 +31,25 @@ using android::binder::Status;
 using android::String8;
 using android::String16;
 
-using android::bluetooth::IBluetoothLowEnergy;
+using android::bluetooth::IBluetoothLeAdvertiser;
 using android::bluetooth::BluetoothGattService;
 
 namespace heart_rate {
 
-class CLIBluetoothLowEnergyCallback
-    : public android::bluetooth::BnBluetoothLowEnergyCallback {
+class CLIBluetoothLeAdvertiserCallback
+    : public android::bluetooth::BnBluetoothLeAdvertiserCallback {
  public:
-  explicit CLIBluetoothLowEnergyCallback(android::sp<android::bluetooth::IBluetooth> bt)
+  explicit CLIBluetoothLeAdvertiserCallback(android::sp<android::bluetooth::IBluetooth> bt)
       : bt_(bt) {}
 
-  // IBluetoothLowEnergyCallback overrides:
-  Status OnConnectionState(int status, int client_id, const String16& address,
-                           bool connected) override {
-    return Status::ok();
-  }
-
-  Status OnMtuChanged(int status, const String16& address, int mtu) override {
-    return Status::ok();
-  }
-
-  Status OnScanResult(
-      const android::bluetooth::ScanResult& scan_result) override {
-    return Status::ok();
-  }
-
-  Status OnClientRegistered(int status, int client_id) {
+  // IBluetoothLeAdvertiserCallback overrides:
+  Status OnAdvertiserRegistered(int status, int advertiser_id) {
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
-      LOG(ERROR) << "Failed to register BLE client, will not start advertising";
+      LOG(ERROR) << "Failed to register BLE advertiser, will not start advertising";
       return Status::ok();
     }
 
-    LOG(INFO) << "Registered BLE client with ID: " << client_id;
+    LOG(INFO) << "Registered BLE advertiser with ID: " << advertiser_id;
 
     /* Advertising data: 16-bit Service UUID: Heart Rate Service */
     std::vector<uint8_t> data{0x03, 0x03, 0x0D, 0x18};
@@ -79,10 +65,10 @@ class CLIBluetoothLowEnergyCallback
 
     bluetooth::AdvertiseData scan_rsp;
 
-    android::sp<IBluetoothLowEnergy> ble;
-    bt_->GetLowEnergyInterface(&ble);
+    android::sp<IBluetoothLeAdvertiser> ble;
+    bt_->GetLeAdvertiserInterface(&ble);
     bool start_status;
-    ble->StartMultiAdvertising(client_id, adv_data, scan_rsp, settings,
+    ble->StartMultiAdvertising(advertiser_id, adv_data, scan_rsp, settings,
                                &start_status);
     return Status::ok();
   }
@@ -96,8 +82,9 @@ class CLIBluetoothLowEnergyCallback
 
  private:
   android::sp<android::bluetooth::IBluetooth> bt_;
-  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
+  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLeAdvertiserCallback);
 };
+
 
 HeartRateServer::HeartRateServer(
     android::sp<android::bluetooth::IBluetooth> bluetooth,
@@ -292,10 +279,10 @@ Status HeartRateServer::OnServiceAdded(
   pending_run_cb_(true);
 
   if (advertise_) {
-    android::sp<IBluetoothLowEnergy> ble;
-    bluetooth_->GetLowEnergyInterface(&ble);
+    android::sp<IBluetoothLeAdvertiser> ble;
+    bluetooth_->GetLeAdvertiserInterface(&ble);
     bool status;
-    ble->RegisterClient(new CLIBluetoothLowEnergyCallback(bluetooth_), &status);
+    ble->RegisterAdvertiser(new CLIBluetoothLeAdvertiserCallback(bluetooth_), &status);
   }
 
   return Status::ok();
