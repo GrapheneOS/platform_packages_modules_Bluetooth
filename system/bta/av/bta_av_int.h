@@ -144,12 +144,8 @@ enum
 /* the number of ACL links with AVDT */
 #define BTA_AV_NUM_LINKS            AVDT_NUM_LINKS
 
-#define BTA_AV_CO_ID_TO_BE_STREAM(p, u32) {*(p)++ = (uint8_t)((u32) >> 16); *(p)++ = (uint8_t)((u32) >> 8); *(p)++ = (uint8_t)(u32); }
 #define BTA_AV_BE_STREAM_TO_CO_ID(u32, p) {(u32) = (((uint32_t)(*((p) + 2))) + (((uint32_t)(*((p) + 1))) << 8) + (((uint32_t)(*(p))) << 16)); (p) += 3;}
 
-/* these bits are defined for bta_av_cb.multi_av */
-#define BTA_AV_MULTI_AV_SUPPORTED   0x01
-#define BTA_AV_MULTI_AV_IN_USE      0x02
 
 
 /*****************************************************************************
@@ -439,21 +435,8 @@ typedef union
     tBTA_AV_API_STATUS_RSP  api_status_rsp;
 } tBTA_AV_DATA;
 
-typedef void (tBTA_AV_VDP_DATA_ACT)(void *p_scb);
-
-typedef struct
-{
-    tBTA_AV_VDP_DATA_ACT    *p_act;
-    uint8_t                 *p_frame;
-    uint16_t                buf_size;
-    uint32_t                len;
-    uint32_t                offset;
-    uint32_t                timestamp;
-} tBTA_AV_VF_INFO;
-
 typedef union
 {
-    tBTA_AV_VF_INFO     vdp;            /* used for video channels only */
     tBTA_AV_API_OPEN    open;           /* used only before open and role switch
                                            is needed on another AV channel */
 } tBTA_AV_Q_INFO;
@@ -626,7 +609,6 @@ extern uint16_t *p_bta_av_rc_id_ac;
 
 extern const tBTA_AV_SACT bta_av_a2d_action[];
 extern const tBTA_AV_CO_FUNCTS bta_av_a2d_cos;
-extern const tBTA_AV_SACT bta_av_vdp_action[];
 extern tAVDT_CTRL_CBACK * const bta_av_dt_cback[];
 extern void bta_av_sink_data_cback(uint8_t handle, BT_HDR *p_pkt,
                                    uint32_t time_stamp, uint8_t m_pt);
@@ -740,11 +722,5 @@ extern void bta_av_delay_co (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_offload_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_offload_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
-
-
-/* ssm action functions - vdp specific */
-extern void bta_av_do_disc_vdp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
-extern void bta_av_vdp_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
-extern void bta_av_reg_vdp (tAVDT_CS *p_cs, char *p_service_name, void *p_data);
 
 #endif /* BTA_AV_INT_H */
