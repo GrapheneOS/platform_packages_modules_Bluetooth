@@ -101,6 +101,15 @@ class AdvertiseManager {
         }
     }
 
+    void registerAdvertiser(UUID uuid) {
+        mAdvertiseNative.registerAdvertiserNative(
+            uuid.getLeastSignificantBits(), uuid.getMostSignificantBits());
+    }
+
+    void unregisterAdvertiser(int advertiserId) {
+        mAdvertiseNative.unregisterAdvertiserNative(advertiserId);
+    }
+
     /**
      * Start BLE advertising.
      *
@@ -132,34 +141,34 @@ class AdvertiseManager {
     /**
      * Signals the callback is received.
      *
-     * @param clientIf Identifier for the client.
+     * @param advertiserId Identifier for the client.
      * @param status Status of the callback.
      */
-    void callbackDone(int clientIf, int status) {
+    void callbackDone(int advertiserId, int status) {
         if (status == AdvertiseCallback.ADVERTISE_SUCCESS) {
             mLatch.countDown();
         } else {
             // Note in failure case we'll wait for the latch to timeout(which takes 100ms) and
             // the mClientHandler thread will be blocked till timeout.
-            postCallback(clientIf, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
+            postCallback(advertiserId, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
         }
     }
 
     // Post callback status to app process.
-    private void postCallback(int clientIf, int status) {
+    private void postCallback(int advertiserId, int status) {
         try {
-            AdvertiseClient client = getAdvertiseClient(clientIf);
+            AdvertiseClient client = getAdvertiseClient(advertiserId);
             AdvertiseSettings settings = (client == null) ? null : client.settings;
             boolean isStart = true;
-            mService.onMultipleAdvertiseCallback(clientIf, status, isStart, settings);
+            mService.onMultipleAdvertiseCallback(advertiserId, status, isStart, settings);
         } catch (RemoteException e) {
             loge("failed onMultipleAdvertiseCallback", e);
         }
     }
 
-    private AdvertiseClient getAdvertiseClient(int clientIf) {
+    private AdvertiseClient getAdvertiseClient(int advertiserId) {
         for (AdvertiseClient client : mAdvertiseClients) {
-            if (client.clientIf == clientIf) {
+            if (client.advertiserId == advertiserId) {
                 return client;
             }
         }
@@ -193,23 +202,24 @@ class AdvertiseManager {
 
         private void handleStartAdvertising(AdvertiseClient client) {
             Utils.enforceAdminPermission(mService);
-            int clientIf = client.clientIf;
+            int advertiserId = client.advertiserId;
             if (mAdvertiseClients.contains(client)) {
-                postCallback(clientIf, AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED);
+                postCallback(advertiserId, AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED);
                 return;
             }
 
             if (mAdvertiseClients.size() >= maxAdvertiseInstances()) {
-                postCallback(clientIf,
+                postCallback(advertiserId,
                         AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS);
                 return;
             }
             if (!mAdvertiseNative.startAdverising(client)) {
-                postCallback(clientIf, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
+                postCallback(advertiserId, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
                 return;
             }
+
             mAdvertiseClients.add(client);
-            postCallback(clientIf, AdvertiseCallback.ADVERTISE_SUCCESS);
+            postCallback(advertiserId, AdvertiseCallback.ADVERTISE_SUCCESS);
         }
 
         // Handles stop advertising.
@@ -218,11 +228,11 @@ class AdvertiseManager {
             if (client == null) {
                 return;
             }
-            logd("stop advertise for client " + client.clientIf);
+            logd("stop advertise for client " + client.advertiserId);
             mAdvertiseNative.stopAdvertising(client);
             if (client.appDied) {
-                logd("app died - unregistering client : " + client.clientIf);
-                mService.unregisterClient(client.clientIf);
+                logd("app died - unregistering client : " + client.advertiserId);
+                mAdvertiseNative.unregisterAdvertiserNative(client.advertiserId);
             }
             if (mAdvertiseClients.contains(client)) {
                 mAdvertiseClients.remove(client);
@@ -321,12 +331,12 @@ class AdvertiseManager {
 
         void stopAdvertising(AdvertiseClient client) {
             if (mAdapterService.isMultiAdvertisementSupported()) {
-                gattClientDisableAdvNative(client.clientIf);
+                gattClientDisableAdvNative(client.advertiserId);
             } else {
-                gattAdvertiseNative(client.clientIf, false);
+                gattAdvertiseNative(client.advertiserId, false);
                 try {
                     mService.onAdvertiseInstanceDisabled(
-                            AdvertiseCallback.ADVERTISE_SUCCESS, client.clientIf);
+                            AdvertiseCallback.ADVERTISE_SUCCESS, client.advertiserId);
                 } catch (RemoteException e) {
                     Log.d(TAG, "failed onAdvertiseInstanceDisabled", e);
                 }
@@ -347,7 +357,7 @@ class AdvertiseManager {
         }
 
         private void enableAdvertising(AdvertiseClient client) {
-            int clientIf = client.clientIf;
+            int advertiserId = client.advertiserId;
             int minAdvertiseUnit = (int) getAdvertisingIntervalUnit(client.settings);
             int maxAdvertiseUnit = minAdvertiseUnit + ADVERTISING_INTERVAL_DELTA_UNIT;
             int advertiseEventType = getAdvertisingEventType(client);
@@ -356,14 +366,14 @@ class AdvertiseManager {
                     client.settings.getTimeout());
             if (mAdapterService.isMultiAdvertisementSupported()) {
                 gattClientEnableAdvNative(
-                        clientIf,
+                        advertiserId,
                         minAdvertiseUnit, maxAdvertiseUnit,
                         advertiseEventType,
                         ADVERTISING_CHANNEL_ALL,
                         txPowerLevel,
                         advertiseTimeoutSeconds);
             } else {
-                gattAdvertiseNative(client.clientIf, true);
+                gattAdvertiseNative(client.advertiserId, true);
             }
         }
 
@@ -395,11 +405,11 @@ class AdvertiseManager {
                 serviceUuids = advertisingUuidBytes.array();
             }
             if (mAdapterService.isMultiAdvertisementSupported()) {
-                gattClientSetAdvDataNative(client.clientIf, isScanResponse, includeName,
+                gattClientSetAdvDataNative(client.advertiserId, isScanResponse, includeName,
                         includeTxPower, appearance,
                         manufacturerData, serviceData, serviceUuids);
             } else {
-                gattSetAdvDataNative(client.clientIf, isScanResponse, includeName,
+                gattSetAdvDataNative(client.advertiserId, isScanResponse, includeName,
                         includeTxPower, 0, 0, appearance,
                         manufacturerData, serviceData, serviceUuids);
             }
@@ -488,25 +498,31 @@ class AdvertiseManager {
         }
 
         // Native functions
-        private native void gattClientDisableAdvNative(int client_if);
 
-        private native void gattClientEnableAdvNative(int client_if,
+        private native void registerAdvertiserNative(long app_uuid_lsb,
+                                                     long app_uuid_msb);
+
+        private native void unregisterAdvertiserNative(int advertiserId);
+
+        private native void gattClientDisableAdvNative(int advertiserId);
+
+        private native void gattClientEnableAdvNative(int advertiserId,
                 int min_interval, int max_interval, int adv_type, int chnl_map,
                 int tx_power, int timeout_s);
 
-        private native void gattClientUpdateAdvNative(int client_if,
+        private native void gattClientUpdateAdvNative(int advertiserId,
                 int min_interval, int max_interval, int adv_type, int chnl_map,
                 int tx_power, int timeout_s);
 
-        private native void gattClientSetAdvDataNative(int client_if,
+        private native void gattClientSetAdvDataNative(int advertiserId,
                 boolean set_scan_rsp, boolean incl_name, boolean incl_txpower, int appearance,
                 byte[] manufacturer_data, byte[] service_data, byte[] service_uuid);
 
-        private native void gattSetAdvDataNative(int serverIf, boolean setScanRsp, boolean inclName,
+        private native void gattSetAdvDataNative(int advertiserId, boolean setScanRsp, boolean inclName,
                 boolean inclTxPower, int minSlaveConnectionInterval, int maxSlaveConnectionInterval,
                 int appearance, byte[] manufacturerData, byte[] serviceData, byte[] serviceUuid);
 
-        private native void gattAdvertiseNative(int client_if, boolean start);
+        private native void gattAdvertiseNative(int advertiserId, boolean start);
     }
 
     private void logd(String s) {
