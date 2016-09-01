@@ -27,6 +27,7 @@
 #include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
+#include "a2d_api.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
@@ -829,7 +830,8 @@ void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     if (!p_scb->in_use)
     {
         p_cfg = p_data->msg.config_cmd.p_cfg;
-        if(p_scb->cs.cfg.codec_info[AVDT_CODEC_TYPE_INDEX] == p_cfg->codec_info[AVDT_CODEC_TYPE_INDEX])
+        if (A2D_GetCodecType(p_scb->cs.cfg.codec_info) ==
+            A2D_GetCodecType(p_cfg->codec_info))
         {
             /* set sep as in use */
             p_scb->in_use = true;
@@ -1223,6 +1225,7 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     uint8_t *p;
     uint32_t ssrc;
+    bool add_rtp_header = !(p_data->apiwrite.opt & AVDT_DATA_OPT_NO_RTP);
 
     /* free packet we're holding, if any; to be replaced with new */
     if (p_scb->p_pkt != NULL) {
@@ -1231,10 +1234,15 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     }
     osi_free_and_reset((void **)&p_scb->p_pkt);
 
-    /* build a media packet */
-    /* Add RTP header if required */
-    if ( !(p_data->apiwrite.opt & AVDT_DATA_OPT_NO_RTP) )
-    {
+    /* Recompute only if the RTP header wasn't disabled by the API */
+    if (add_rtp_header) {
+        bool is_content_protection = (p_scb->curr_cfg.num_protect > 0);
+        add_rtp_header = A2D_UsesRtpHeader(is_content_protection,
+                                           p_scb->curr_cfg.codec_info);
+    }
+
+    /* Build a media packet, and add an RTP header if required. */
+    if (add_rtp_header) {
         ssrc = avdt_scb_gen_ssrc(p_scb);
 
         p_data->apiwrite.p_buf->len += AVDT_MEDIA_HDR_SIZE;

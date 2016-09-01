@@ -18,7 +18,7 @@
 
 /******************************************************************************
  *
- *  ommon API for the Advanced Audio Distribution Profile (A2DP)
+ *  Common API for the Advanced Audio Distribution Profile (A2DP)
  *
  ******************************************************************************/
 #include <string.h>
@@ -27,6 +27,7 @@
 #include "sdpdefs.h"
 #include "a2d_api.h"
 #include "a2d_int.h"
+#include "a2d_vendor.h"
 #include "avdt_api.h"
 
 /*****************************************************************************
@@ -397,3 +398,34 @@ void A2D_Init(void)
 #endif
 }
 
+tA2D_CODEC A2D_GetCodecType(const uint8_t *p_codec_info)
+{
+    return (tA2D_CODEC)(p_codec_info[AVDT_CODEC_TYPE_INDEX]);
+}
+
+bool A2D_IsCodecSupported(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC codec_type = A2D_GetCodecType(p_codec_info);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return true;
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_IsVendorCodecSupported(p_codec_info);
+    default:
+        return false;
+    }
+
+    return false;
+}
+
+bool A2D_UsesRtpHeader(bool content_protection_enabled,
+                       const uint8_t *p_codec_info)
+{
+    tA2D_CODEC codec_type = A2D_GetCodecType(p_codec_info);
+
+    if (codec_type != A2D_MEDIA_CT_NON_A2DP)
+        return true;
+
+    return A2D_VendorUsesRtpHeader(content_protection_enabled, p_codec_info);
+}
