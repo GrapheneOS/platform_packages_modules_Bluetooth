@@ -78,7 +78,7 @@ enum
     BTA_AV_RC_VENDOR_CMD,
     BTA_AV_RC_VENDOR_RSP,
     BTA_AV_RC_FREE_RSP,
-    BTA_AV_RC_FREE_MSG,
+    BTA_AV_RC_FREE_BROWSE_MSG,
     BTA_AV_RC_META_RSP,
     BTA_AV_RC_MSG,
     BTA_AV_RC_CLOSE,
@@ -99,7 +99,7 @@ const tBTA_AV_ACTION bta_av_action[] =
     bta_av_rc_vendor_cmd,
     bta_av_rc_vendor_rsp,
     bta_av_rc_free_rsp,
-    bta_av_rc_free_msg,
+    bta_av_rc_free_browse_msg,
     bta_av_rc_meta_rsp,
     bta_av_rc_msg,
     bta_av_rc_close,
@@ -122,7 +122,7 @@ static const uint8_t bta_av_st_init[][BTA_AV_NUM_COLS] =
 /* API_META_RSP_EVT */      {BTA_AV_RC_FREE_RSP,    BTA_AV_INIT_ST },
 /* API_RC_CLOSE_EVT */      {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
 /* AVRC_OPEN_EVT */         {BTA_AV_RC_OPENED,      BTA_AV_OPEN_ST },
-/* AVRC_MSG_EVT */          {BTA_AV_RC_FREE_MSG,    BTA_AV_INIT_ST },
+/* AVRC_MSG_EVT */         {BTA_AV_RC_FREE_BROWSE_MSG, BTA_AV_INIT_ST },
 /* AVRC_NONE_EVT */         {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
 };
 
@@ -176,6 +176,8 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
     bta_av_signalling_timer, /* BTA_AV_SIGNALLING_TIMER_EVT */
     bta_av_rc_disc_done,    /* BTA_AV_SDP_AVRC_DISC_EVT */
     bta_av_rc_closed,       /* BTA_AV_AVRC_CLOSE_EVT */
+    bta_av_rc_browse_opened,/* BTA_AV_AVRC_BROWSE_OPEN_EVT */
+    bta_av_rc_browse_closed,/* BTA_AV_AVRC_BROWSE_CLOSE_EVT */
     bta_av_conn_chg,        /* BTA_AV_CONN_CHG_EVT */
     bta_av_dereg_comp,      /* BTA_AV_DEREG_COMP_EVT */
 #if (AVDT_REPORTING == TRUE)
@@ -456,10 +458,16 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         p_bta_av_cfg  = (tBTA_AV_CFG *) &bta_av_cfg;
     }
 
+    if (p_bta_av_cfg == NULL)
+    {
+        APPL_TRACE_ERROR("AV configuration is null!");
+        return;
+    }
+
     do
     {
         p_scb = bta_av_alloc_scb(registr.chnl);
-        if(p_scb == NULL)
+        if (p_scb == NULL)
         {
             APPL_TRACE_ERROR("failed to alloc SCB");
             break;
@@ -471,7 +479,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         /* initialize the stream control block */
         registr.status = BTA_AV_SUCCESS;
 
-        if((bta_av_cb.reg_audio + bta_av_cb.reg_video) == 0)
+        if ((bta_av_cb.reg_audio + bta_av_cb.reg_video) == 0)
         {
             /* the first channel registered. register to AVDTP */
             reg.ctrl_mtu = p_bta_av_cfg->sig_mtu;
@@ -496,19 +504,19 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                 (uint8_t)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
 #endif
+                uint16_t profile_version = AVRC_REV_1_0;
                 if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
                 {
-                    bta_ar_reg_avrc(UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target",
-                                   NULL, p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
-                                   (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_3);
+                    profile_version = AVRC_REV_1_6;
                 }
                 else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
                 {
                     // Initialize AVRCP1.4 to provide Absolute Volume control.
-                    bta_ar_reg_avrc(UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target",
-                                   NULL, p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
-                                   (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_4);
+                    profile_version = AVRC_REV_1_4;
                 }
+                bta_ar_reg_avrc(UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target",
+                               NULL, p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
+                               (bta_av_cb.features & BTA_AV_FEAT_BROWSE), profile_version);
 #endif
             }
 
@@ -1331,6 +1339,8 @@ char *bta_av_evt_code(uint16_t evt_code)
     case BTA_AV_SIGNALLING_TIMER_EVT: return "SIGNALLING_TIMER";
     case BTA_AV_SDP_AVRC_DISC_EVT: return "SDP_AVRC_DISC";
     case BTA_AV_AVRC_CLOSE_EVT: return "AVRC_CLOSE";
+    case BTA_AV_AVRC_BROWSE_OPEN_EVT: return "AVRC_BROWSE_OPEN";
+    case BTA_AV_AVRC_BROWSE_CLOSE_EVT: return "AVRC_BROWSE_CLOSE";
     case BTA_AV_CONN_CHG_EVT: return "CONN_CHG";
     case BTA_AV_DEREG_COMP_EVT: return "DEREG_COMP";
 #if (AVDT_REPORTING == TRUE)

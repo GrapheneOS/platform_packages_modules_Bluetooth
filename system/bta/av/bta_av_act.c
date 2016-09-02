@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2004-2012 Broadcom Corporation
+ *  Copyright (C) 2004-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -227,6 +227,14 @@ static void bta_av_rc_ctrl_cback(uint8_t handle, uint8_t event, uint16_t result,
     {
         msg_event = BTA_AV_AVRC_CLOSE_EVT;
     }
+    else if (event == AVRC_BROWSE_OPEN_IND_EVT)
+    {
+        msg_event = BTA_AV_AVRC_BROWSE_OPEN_EVT;
+    }
+    else if (event == AVRC_BROWSE_CLOSE_IND_EVT)
+    {
+        msg_event = BTA_AV_AVRC_BROWSE_CLOSE_EVT;
+    }
 
     if (msg_event) {
         tBTA_AV_RC_CONN_CHG *p_msg =
@@ -255,7 +263,10 @@ static void bta_av_rc_msg_cback(uint8_t handle, uint8_t label, uint8_t opcode, t
 
     APPL_TRACE_DEBUG("%s handle: %u opcode=0x%x", __func__, handle, opcode);
 
-    /* Determine the size of the buffer we need */
+    /* Copy avrc packet into BTA message buffer (for sending to BTA state machine) */
+
+    /* Get size of payload data  (for vendor and passthrough messages only; for browsing
+     * messages, use zero-copy) */
     if (opcode == AVRC_OP_VENDOR && p_msg->vendor.p_vendor_data != NULL) {
         p_data_src = p_msg->vendor.p_vendor_data;
         data_len = (uint16_t) p_msg->vendor.vendor_len;
@@ -267,6 +278,7 @@ static void bta_av_rc_msg_cback(uint8_t handle, uint8_t label, uint8_t opcode, t
     /* Create a copy of the message */
     tBTA_AV_RC_MSG *p_buf =
         (tBTA_AV_RC_MSG *)osi_malloc(sizeof(tBTA_AV_RC_MSG) + data_len);
+
     p_buf->hdr.event = BTA_AV_AVRC_MSG_EVT;
     p_buf->handle = handle;
     p_buf->label = label;
@@ -276,13 +288,23 @@ static void bta_av_rc_msg_cback(uint8_t handle, uint8_t label, uint8_t opcode, t
     if (p_data_src != NULL) {
         uint8_t *p_data_dst = (uint8_t *)(p_buf + 1);
         memcpy(p_data_dst, p_data_src, data_len);
+
+        /* Update bta message buffer to point to payload data */
+        /* (Note AVRC_OP_BROWSING uses zero-copy: p_buf->msg.browse.p_browse_data
+         * already points to original avrc buffer) */
         if (opcode == AVRC_OP_VENDOR)
             p_buf->msg.vendor.p_vendor_data = p_data_dst;
         else if (opcode == AVRC_OP_PASS_THRU)
             p_buf->msg.pass.p_pass_data = p_data_dst;
     }
 
+    if (opcode == AVRC_OP_BROWSE) {
+        /* set p_pkt to NULL, so avrc would not free the buffer */
+        p_msg->browse.p_browse_pkt = NULL;
+    }
+
     bta_sys_sendmsg(p_buf);
+
 }
 
 /*******************************************************************************
@@ -323,7 +345,8 @@ uint8_t bta_av_rc_create(tBTA_AV_CB *p_cb, uint8_t role, uint8_t shdl, uint8_t l
     ccb.company_id = p_bta_av_cfg->company_id;
     ccb.conn = role;
     /* note: BTA_AV_FEAT_RCTG = AVRC_CT_TARGET, BTA_AV_FEAT_RCCT = AVRC_CT_CONTROL */
-    ccb.control = p_cb->features & (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_RCCT | AVRC_CT_PASSIVE);
+    ccb.control = p_cb->features & (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_RCCT | BTA_AV_FEAT_METADATA |
+        AVRC_CT_PASSIVE);
 
     if (AVRC_Open(&rc_handle, &ccb, bda) != AVRC_SUCCESS)
         return BTA_AV_RC_HANDLE_NONE;
@@ -512,6 +535,14 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         return;
     }
 
+    if (p_cb->features & BTA_AV_FEAT_RCTG)
+    {
+        /* listen to browsing channel when the connection is open,
+         * if peer initiated AVRCP connection and local device supports browsing channel */
+        if ((p_cb->features & BTA_AV_FEAT_BROWSE) && (p_cb->rcb[i].peer_features == 0))
+            AVRC_OpenBrowse(p_data->rc_conn_chg.handle, AVCT_ACP);
+    }
+
     if (p_cb->rcb[i].lidx == (BTA_AV_NUM_LINKS + 1) && shdl != 0)
     {
         /* rc is opened on the RC only ACP channel, but is for a specific
@@ -571,6 +602,15 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         bta_av_rc_disc(disc);
     }
     (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, (tBTA_AV *) &rc_open);
+
+    /* if local initiated AVRCP connection and both peer and locals device support
+     * browsing channel, open the browsing channel now */
+    if ((p_cb->features & BTA_AV_FEAT_BROWSE) &&
+        (rc_open.peer_features & BTA_AV_FEAT_BROWSE) &&
+        ((p_cb->rcb[i].status & BTA_AV_RC_ROLE_MASK) == BTA_AV_RC_ROLE_INT))
+    {
+        AVRC_OpenBrowse (p_data->rc_conn_chg.handle, AVCT_INT);
+    }
 
 }
 
@@ -696,17 +736,20 @@ void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_av_rc_meta_req
+** Function         bta_av_rc_free_browse_msg
 **
-** Description      Send an AVRCP metadata command.
+** Description      free an AVRCP browse message buffer.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rc_free_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
+void bta_av_rc_free_browse_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_cb);
-    UNUSED(p_data);
+    if (p_data->rc_msg.opcode == AVRC_OP_BROWSE)
+    {
+        osi_free_and_reset((void **)&p_data->rc_msg.msg.browse.p_browse_pkt);
+    }
 }
 
 /*******************************************************************************
@@ -778,7 +821,8 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
         /* reject it */
         evt=0;
         p_vendor->hdr.ctype = BTA_AV_RSP_NOT_IMPL;
-        AVRC_VendorRsp(p_msg->handle, p_msg->label, &p_msg->msg.vendor);
+        p_vendor->vendor_len = 0;
+        p_rc_rsp->rsp.status = AVRC_STS_BAD_PARAM;
     }
     else if (!AVRC_IsValidAvcType(pdu, p_vendor->hdr.ctype) )
     {
@@ -872,6 +916,15 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     rc_rsp.rsp.status = BTA_AV_STS_NO_RSP;
 #endif
 
+    if (NULL == p_data)
+    {
+        APPL_TRACE_ERROR("Message from peer with no data in %s", __func__);
+        return;
+    }
+
+    APPL_TRACE_DEBUG("%s: opcode=%x, ctype=%x", __func__, p_data->rc_msg.opcode,
+            p_data->rc_msg.msg.hdr.ctype);
+
     if (p_data->rc_msg.opcode == AVRC_OP_PASS_THRU)
     {
         /* if this is a pass thru command */
@@ -893,7 +946,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
                         p_data->rc_msg.msg.pass.p_pass_data, is_inquiry);
 #endif
             }
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
             else if (((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_UP)||
                       (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_DOWN)) &&
                      !strcmp(avrcp_ct_support, "true"))
@@ -974,6 +1027,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
                (p_vendor->company_id == AVRC_CO_METADATA))
             {
                 av.meta_msg.p_msg = &p_data->rc_msg.msg;
+                rc_rsp.rsp.status = BTA_AV_STS_NO_RSP;
                 evt = bta_av_proc_meta_cmd (&rc_rsp, &p_data->rc_msg, &ctype);
             }
             else
@@ -1011,6 +1065,19 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
            AVRC_VendorRsp(p_data->rc_msg.handle, p_data->rc_msg.label, &p_data->rc_msg.msg.vendor);
         }
     }
+    else if (p_data->rc_msg.opcode == AVRC_OP_BROWSE)
+    {
+        /* set up for callback */
+        av.meta_msg.rc_handle = p_data->rc_msg.handle;
+        av.meta_msg.company_id = p_vendor->company_id;
+        av.meta_msg.code = p_data->rc_msg.msg.hdr.ctype;
+        av.meta_msg.label = p_data->rc_msg.label;
+        av.meta_msg.p_msg = &p_data->rc_msg.msg;
+        av.meta_msg.p_data = p_data->rc_msg.msg.browse.p_browse_data;
+        av.meta_msg.len = p_data->rc_msg.msg.browse.browse_len;
+        evt = BTA_AV_META_MSG_EVT;
+    }
+
 #if (AVRC_METADATA_INCLUDED == TRUE)
     if (evt == 0 && rc_rsp.rsp.status != BTA_AV_STS_NO_RSP)
     {
@@ -1029,6 +1096,8 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     {
         av.remote_cmd.rc_handle = p_data->rc_msg.handle;
         (*p_cb->p_cback)(evt, &av);
+        /* If browsing message, then free the browse message buffer */
+        bta_av_rc_free_browse_msg(p_cb, p_data);
     }
 }
 
@@ -1328,6 +1397,8 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
             if (bta_av_cb.rcb[i].shdl == index + 1)
             {
                 bta_av_del_rc(&bta_av_cb.rcb[i]);
+                /* since the connection is already down and info was removed, clean reference */
+                bta_av_cb.rcb[i].shdl = 0;
                 break;
             }
         }
@@ -2032,6 +2103,61 @@ void bta_av_rc_closed(tBTA_AV_DATA *p_data)
         bdcpy(rc_close.peer_addr, p_msg->peer_addr);
     }
     (*p_cb->p_cback)(BTA_AV_RC_CLOSE_EVT, (tBTA_AV *) &rc_close);
+}
+
+/*******************************************************************************
+**
+** Function         bta_av_rc_browse_opened
+**
+** Description      AVRC browsing channel is opened
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_av_rc_browse_opened(tBTA_AV_DATA *p_data)
+{
+    tBTA_AV_CB   *p_cb = &bta_av_cb;
+    tBTA_AV_RC_CONN_CHG *p_msg = (tBTA_AV_RC_CONN_CHG *)p_data;
+    tBTA_AV_RC_BROWSE_OPEN  rc_browse_open;
+
+    APPL_TRACE_DEBUG("bta_av_rc_browse_opened bd_addr:%02x-%02x-%02x-%02x-%02x-%02x",
+              p_msg->peer_addr[0], p_msg->peer_addr[1],
+              p_msg->peer_addr[2], p_msg->peer_addr[3],
+              p_msg->peer_addr[4], p_msg->peer_addr[5]);
+    APPL_TRACE_DEBUG("bta_av_rc_browse_opened rc_handle:%d", p_msg->handle);
+
+    rc_browse_open.status = BTA_AV_SUCCESS;
+    rc_browse_open.rc_handle = p_msg->handle;
+    bdcpy(rc_browse_open.peer_addr, p_msg->peer_addr);
+
+    (*p_cb->p_cback)(BTA_AV_RC_BROWSE_OPEN_EVT, (tBTA_AV *)&rc_browse_open);
+}
+
+/*******************************************************************************
+**
+** Function         bta_av_rc_browse_closed
+**
+** Description      AVRC browsing channel is closed
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_av_rc_browse_closed(tBTA_AV_DATA *p_data)
+{
+    tBTA_AV_CB   *p_cb = &bta_av_cb;
+    tBTA_AV_RC_CONN_CHG *p_msg = (tBTA_AV_RC_CONN_CHG *)p_data;
+    tBTA_AV_RC_BROWSE_CLOSE  rc_browse_close;
+
+    APPL_TRACE_DEBUG("bta_av_rc_browse_closed bd_addr:%02x-%02x-%02x-%02x-%02x-%02x",
+              p_msg->peer_addr[0], p_msg->peer_addr[1],
+              p_msg->peer_addr[2], p_msg->peer_addr[3],
+              p_msg->peer_addr[4], p_msg->peer_addr[5]);
+    APPL_TRACE_DEBUG("bta_av_rc_browse_closed rc_handle:%d", p_msg->handle);
+
+    rc_browse_close.rc_handle = p_msg->handle;
+    bdcpy(rc_browse_close.peer_addr, p_msg->peer_addr);
+
+    (*p_cb->p_cback)(BTA_AV_RC_BROWSE_CLOSE_EVT, (tBTA_AV *)&rc_browse_close);
 }
 
 /*******************************************************************************

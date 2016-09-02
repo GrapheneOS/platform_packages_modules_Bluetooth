@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  *  Copyright (c) 2014 The Android Open Source Project
- *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright (C) 2009-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -485,6 +485,8 @@ const char *dump_rc_event(uint8_t event)
    switch(event) {
         CASE_RETURN_STR(BTA_AV_RC_OPEN_EVT)
         CASE_RETURN_STR(BTA_AV_RC_CLOSE_EVT)
+        CASE_RETURN_STR(BTA_AV_RC_BROWSE_OPEN_EVT)
+        CASE_RETURN_STR(BTA_AV_RC_BROWSE_CLOSE_EVT)
         CASE_RETURN_STR(BTA_AV_REMOTE_CMD_EVT)
         CASE_RETURN_STR(BTA_AV_REMOTE_RSP_EVT)
         CASE_RETURN_STR(BTA_AV_VENDOR_CMD_EVT)
@@ -509,6 +511,10 @@ const char * dump_rc_notification_event_id(uint8_t event_id)
         CASE_RETURN_STR(AVRC_EVT_SYSTEM_STATUS_CHANGE)
         CASE_RETURN_STR(AVRC_EVT_APP_SETTING_CHANGE)
         CASE_RETURN_STR(AVRC_EVT_VOLUME_CHANGE)
+        CASE_RETURN_STR(AVRC_EVT_ADDR_PLAYER_CHANGE)
+        CASE_RETURN_STR(AVRC_EVT_AVAL_PLAYERS_CHANGE)
+        CASE_RETURN_STR(AVRC_EVT_NOW_PLAYING_CHANGE)
+        CASE_RETURN_STR(AVRC_EVT_UIDS_CHANGE)
 
         default:
             return "Unhandled Event ID";
@@ -536,6 +542,15 @@ const char*  dump_rc_pdu(uint8_t pdu)
         CASE_RETURN_STR(AVRC_PDU_SET_ADDRESSED_PLAYER)
         CASE_RETURN_STR(AVRC_PDU_CHANGE_PATH)
         CASE_RETURN_STR(AVRC_PDU_GET_CAPABILITIES)
+        CASE_RETURN_STR(AVRC_PDU_SET_BROWSED_PLAYER)
+        CASE_RETURN_STR(AVRC_PDU_GET_FOLDER_ITEMS)
+        CASE_RETURN_STR(AVRC_PDU_GET_ITEM_ATTRIBUTES)
+        CASE_RETURN_STR(AVRC_PDU_PLAY_ITEM)
+        CASE_RETURN_STR(AVRC_PDU_SEARCH)
+        CASE_RETURN_STR(AVRC_PDU_ADD_TO_NOW_PLAYING)
+        CASE_RETURN_STR(AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS)
+        CASE_RETURN_STR(AVRC_PDU_GENERAL_REJECT)
+
         default:
             return "Unknown PDU";
     }
