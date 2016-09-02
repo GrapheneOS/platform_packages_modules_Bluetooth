@@ -65,12 +65,14 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
     src/async_manager.cc \
+    src/bt_address.cc \
     src/command_packet.cc \
     src/event_packet.cc \
     src/hci_transport.cc \
     src/packet.cc \
     src/packet_stream.cc \
     test/async_manager_unittest.cc \
+    test/bt_address_unittest.cc \
     test/hci_transport_unittest.cc \
     test/packet_stream_unittest.cc
 
