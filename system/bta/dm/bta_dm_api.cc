@@ -1362,6 +1362,19 @@ void BTA_DmBleConfigLocalPrivacy(bool privacy_enable)
 }
 
 #if (BLE_INCLUDED == TRUE)
+
+/*******************************************************************************
+**
+** Register an advertising instance, status will be returned in |p_cback|
+** callback, with assigned id, if operation succeeds. Instance is freed when
+** advertising is disabled by calling |BTA_BleDisableAdvInstance|, or when any
+** of the operations fails.
+*******************************************************************************/
+void BTA_BleAdvRegisterInstance(tBTA_BLE_MULTI_ADV_CBACK *p_cback) {
+    do_in_bta_thread(FROM_HERE,
+        base::Bind(&bta_dm_ble_multi_adv_register, p_cback));
+}
+
 /*******************************************************************************
 **
 ** Function         BTA_BleEnableAdvInstance
@@ -1369,16 +1382,13 @@ void BTA_DmBleConfigLocalPrivacy(bool privacy_enable)
 ** Description      This function enable a Multi-ADV instance with the specififed
 **                  adv parameters
 **
-** Parameters       p_params: pointer to the adv parameter structure.
-**                  p_cback: callback function associated to this adv instance.
-**                  p_ref: reference data pointer to this adv instance.
+** Parameters       inst_id: Adv instance to update the parameter.
+**                  p_params: pointer to the adv parameter structure.
 **
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
-                               tBTA_BLE_MULTI_ADV_CBACK *p_cback,
-                               void *p_ref)
+void BTA_BleEnableAdvInstance (uint8_t inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 {
     APPL_TRACE_API("%s", __func__);
 
@@ -1386,11 +1396,10 @@ void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
         tBTA_BLE_ADV_PARAMS *params = new tBTA_BLE_ADV_PARAMS;
         memcpy(params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
         do_in_bta_thread(FROM_HERE,
-            base::Bind(&bta_dm_ble_multi_adv_enb, base::Owned(params),
-                       p_cback, p_ref));
+            base::Bind(&bta_dm_ble_multi_adv_enb, inst_id, base::Owned(params)));
     } else {
         do_in_bta_thread(FROM_HERE,
-            base::Bind(&bta_dm_ble_multi_adv_enb, nullptr, p_cback, p_ref));
+            base::Bind(&bta_dm_ble_multi_adv_enb, inst_id, nullptr));
     }
 }
 
