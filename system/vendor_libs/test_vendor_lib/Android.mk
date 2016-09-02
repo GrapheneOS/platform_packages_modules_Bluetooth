@@ -8,6 +8,7 @@ BT_DIR := $(TOP_DIR)packages/modules/Bluetooth/system
 
 LOCAL_SRC_FILES := \
     src/async_manager.cc \
+    src/bt_address.cc \
     src/bt_vendor.cc \
     src/command_packet.cc \
     src/dual_mode_controller.cc \
