@@ -469,6 +469,8 @@ typedef struct
     uint8_t                 tx_power;
 }tBTM_BLE_ADV_DATA;
 
+typedef void (tBTM_BLE_ADV_DATA_CMPL_CBACK) (tBTM_STATUS status);
+
 #ifndef BTM_BLE_MULTI_ADV_MAX
 #define BTM_BLE_MULTI_ADV_MAX   16 /* controller returned adv_inst_max should be less
                                       than this number */
@@ -963,8 +965,8 @@ extern tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min, uint16_t adv_int_ma
 ** Returns          void
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK  data_mask,
-                                       tBTM_BLE_ADV_DATA *p_data);
+extern void BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+                                tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
 **
@@ -1126,8 +1128,8 @@ extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cbac
 ** Returns          status
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask,
-                                       tBTM_BLE_ADV_DATA *p_data);
+extern void BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+                                tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
 **
@@ -1755,11 +1757,11 @@ extern void  BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback);
 **                  p_params: pointer to the adv parameter structure, set as default
 **                            adv parameter when the instance is enabled.
 **
-** Returns          status
+** Returns          void
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleEnableAdvInstance (uint8_t inst_id,
-                                             tBTM_BLE_ADV_PARAMS *p_params);
+extern void BTM_BleEnableAdvInstance(uint8_t inst_id,
+                                     tBTM_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
 **
@@ -1771,10 +1773,10 @@ extern tBTM_STATUS BTM_BleEnableAdvInstance (uint8_t inst_id,
 ** Parameters       inst_id: adv instance ID
 **                  p_params: pointer to the adv parameter structure.
 **
-** Returns          status
+** Returns          void
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleUpdateAdvInstParam (uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params);
+extern void BTM_BleUpdateAdvInstParam(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
 **
@@ -1788,10 +1790,10 @@ extern tBTM_STATUS BTM_BleUpdateAdvInstParam (uint8_t inst_id, tBTM_BLE_ADV_PARA
 **                  data_mask: adv data mask.
 **                  p_data: pointer to the adv data structure.
 **
-** Returns          status
+** Returns          void
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleCfgAdvInstData (uint8_t inst_id, bool    is_scan_rsp,
+extern void BTM_BleCfgAdvInstData(uint8_t inst_id, bool is_scan_rsp,
                                     tBTM_BLE_AD_MASK data_mask,
                                     tBTM_BLE_ADV_DATA *p_data);
 
@@ -1803,10 +1805,10 @@ extern tBTM_STATUS BTM_BleCfgAdvInstData (uint8_t inst_id, bool    is_scan_rsp,
 **
 ** Parameters       inst_id: adv instance ID
 **
-** Returns          status
+** Returns          void
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleDisableAdvInstance (uint8_t inst_id);
+extern void BTM_BleDisableAdvInstance(uint8_t inst_id);
 
 /*******************************************************************************
 **

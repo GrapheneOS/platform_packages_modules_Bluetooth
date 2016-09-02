@@ -193,14 +193,13 @@ void btm_ble_multi_adv_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
 ** Parameters       enable: enable or disable
 **                  inst_id:    adv instance ID, can not be 0
 **
-** Returns          status
+** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_enable_multi_adv (bool    enable, uint8_t inst_id, uint8_t cb_evt)
+void btm_ble_enable_multi_adv(bool    enable, uint8_t inst_id, uint8_t cb_evt)
 {
     uint8_t         param[BTM_BLE_MULTI_ADV_ENB_LEN], *pp;
     uint8_t         enb = enable ? 1: 0;
-    tBTM_STATUS     rt;
 
     pp = param;
     memset(param, 0, BTM_BLE_MULTI_ADV_ENB_LEN);
@@ -211,15 +210,11 @@ tBTM_STATUS btm_ble_enable_multi_adv (bool    enable, uint8_t inst_id, uint8_t c
 
     BTM_TRACE_EVENT (" btm_ble_enable_multi_adv: enb %d, Inst ID %d",enb,inst_id);
 
-    if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
-                                    BTM_BLE_MULTI_ADV_ENB_LEN,
-                                    param,
-                                    btm_ble_multi_adv_vsc_cmpl_cback))
-                                     == BTM_CMD_STARTED)
-    {
-        btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_ENB, inst_id, cb_evt);
-    }
-    return rt;
+    BTM_VendorSpecificCommand(HCI_BLE_MULTI_ADV_OCF,
+                              BTM_BLE_MULTI_ADV_ENB_LEN,
+                              param,
+                              btm_ble_multi_adv_vsc_cmpl_cback);
+    btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_ENB, inst_id, cb_evt);
 }
 /*******************************************************************************
 **
@@ -247,15 +242,14 @@ char btm_ble_map_adv_tx_power(int tx_power_index)
 **
 ** Parameters       advertise parameters used for this instance.
 **
-** Returns          status
+** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
+void btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
                                           tBTM_BLE_ADV_PARAMS *p_params,
                                           uint8_t cb_evt)
 {
     uint8_t         param[BTM_BLE_MULTI_ADV_SET_PARAM_LEN], *pp;
-    tBTM_STATUS     rt;
     BD_ADDR         dummy ={0,0,0,0,0,0};
 
     pp = param;
@@ -303,25 +297,22 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     BTM_TRACE_EVENT("set_params:Chnl Map %d,adv_fltr policy %d,ID:%d, TX Power%d",
         p_params->channel_map,p_params->adv_filter_policy,p_inst->inst_id,p_params->tx_power);
 
-    if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
-                                    BTM_BLE_MULTI_ADV_SET_PARAM_LEN,
-                                    param,
-                                    btm_ble_multi_adv_vsc_cmpl_cback))
-           == BTM_CMD_STARTED)
-    {
-        p_inst->adv_evt = p_params->adv_type;
+    BTM_VendorSpecificCommand(HCI_BLE_MULTI_ADV_OCF,
+                              BTM_BLE_MULTI_ADV_SET_PARAM_LEN,
+                              param,
+                              btm_ble_multi_adv_vsc_cmpl_cback);
+
+    p_inst->adv_evt = p_params->adv_type;
 
 #if (BLE_PRIVACY_SPT == TRUE)
-        if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
-            alarm_set_on_queue(p_inst->adv_raddr_timer,
-                               BTM_BLE_PRIVATE_ADDR_INT_MS,
-                               btm_ble_adv_raddr_timer_timeout, p_inst,
-                               btu_general_alarm_queue);
-        }
-#endif
-        btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_PARAM, p_inst->inst_id, cb_evt);
+    if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
+        alarm_set_on_queue(p_inst->adv_raddr_timer,
+                           BTM_BLE_PRIVATE_ADDR_INT_MS,
+                           btm_ble_adv_raddr_timer_timeout, p_inst,
+                           btu_general_alarm_queue);
     }
-    return rt;
+#endif
+    btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_PARAM, p_inst->inst_id, cb_evt);
 }
 
 /*******************************************************************************
@@ -333,13 +324,12 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
 **
 ** Parameters
 **
-** Returns          status
+** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_multi_adv_write_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADDR random_addr)
+void btm_ble_multi_adv_write_rpa(tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADDR random_addr)
 {
     uint8_t         param[BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN], *pp = param;
-    tBTM_STATUS     rt;
 
     BTM_TRACE_EVENT ("%s-BD_ADDR:%02x-%02x-%02x-%02x-%02x-%02x,inst_id:%d",
                       __func__, random_addr[5], random_addr[4], random_addr[3], random_addr[2],
@@ -351,21 +341,19 @@ tBTM_STATUS btm_ble_multi_adv_write_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADD
     BDADDR_TO_STREAM(pp, random_addr);
     UINT8_TO_STREAM(pp,  p_inst->inst_id);
 
-    if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
-                                    BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN,
-                                    param,
-                                    btm_ble_multi_adv_vsc_cmpl_cback)) == BTM_CMD_STARTED)
-    {
-        /* start a periodical timer to refresh random addr */
-        /* TODO: is the above comment correct - is the timer periodical? */
-        alarm_set_on_queue(p_inst->adv_raddr_timer,
-                           BTM_BLE_PRIVATE_ADDR_INT_MS,
-                           btm_ble_adv_raddr_timer_timeout, p_inst,
-                           btu_general_alarm_queue);
-        btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR,
-                                   p_inst->inst_id, 0);
-    }
-    return rt;
+    BTM_VendorSpecificCommand(HCI_BLE_MULTI_ADV_OCF,
+                              BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN,
+                              param,
+                              btm_ble_multi_adv_vsc_cmpl_cback);
+
+    /* start a periodical timer to refresh random addr */
+    /* TODO: is the above comment correct - is the timer periodical? */
+    alarm_set_on_queue(p_inst->adv_raddr_timer,
+                       BTM_BLE_PRIVATE_ADDR_INT_MS,
+                       btm_ble_adv_raddr_timer_timeout, p_inst,
+                       btu_general_alarm_queue);
+    btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR,
+                               p_inst->inst_id, 0);
 }
 
 /*******************************************************************************
@@ -567,43 +555,31 @@ void BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback) {
 ** Returns          status
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleEnableAdvInstance (uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
+void BTM_BleEnableAdvInstance(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
 {
-    tBTM_STATUS rt = BTM_NO_RESOURCES;
-
     BTM_TRACE_EVENT("%s:", __func__);
 
     if (0 == btm_cb.cmn_ble_vsc_cb.adv_inst_max) {
-        BTM_TRACE_ERROR("%s: Controller does not support Multi ADV", __func__);
-        return BTM_ERR_PROCESSING;
+        BTM_TRACE_ERROR("%s: multi adv not supported", __func__);
+        return;
     }
 
     tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
     if (!p_inst || !p_inst->in_use) {
         BTM_TRACE_ERROR("%s: Invalid or not active instance", __func__);
-        return BTM_ERR_PROCESSING;
+        (p_inst->p_cback)(BTM_BLE_MULTI_ADV_ENB_EVT, inst_id, BTM_BLE_MULTI_ADV_FAILURE);
+        return;
     }
 
     /* configure adv parameter */
     if (p_params)
-        rt = btm_ble_multi_adv_set_params(p_inst, p_params, 0);
-    else
-        rt = BTM_CMD_STARTED;
+        btm_ble_multi_adv_set_params(p_inst, p_params, 0);
 
     /* enable adv */
     BTM_TRACE_EVENT("%s: being called with inst_id:%d", __func__, p_inst->inst_id);
 
-    if (BTM_CMD_STARTED == rt) {
-        rt = btm_ble_enable_multi_adv(true, p_inst->inst_id,
-                                      BTM_BLE_MULTI_ADV_ENB_EVT);
-    }
-
-    if (BTM_CMD_STARTED != rt) {
-        p_inst->in_use = false;
-        BTM_TRACE_ERROR("%s: failed", __func__);
-    }
-
-    return rt;
+    btm_ble_enable_multi_adv(true, p_inst->inst_id,
+                             BTM_BLE_MULTI_ADV_ENB_EVT);
 }
 
 /*******************************************************************************
@@ -619,35 +595,32 @@ tBTM_STATUS BTM_BleEnableAdvInstance (uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_pa
 ** Returns          status
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleUpdateAdvInstParam (uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
+void BTM_BleUpdateAdvInstParam(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
 {
-    tBTM_STATUS rt = BTM_ILLEGAL_VALUE;
     tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
 
     BTM_TRACE_EVENT("BTM_BleUpdateAdvInstParam called with inst_id:%d", inst_id);
 
-    if (0 == btm_cb.cmn_ble_vsc_cb.adv_inst_max)
-    {
-        BTM_TRACE_ERROR("Controller does not support Multi ADV");
-        return BTM_ERR_PROCESSING;
+    if (0 == btm_cb.cmn_ble_vsc_cb.adv_inst_max) {
+        BTM_TRACE_ERROR("%s: multi adv not supported", __func__);
+        return;
     }
 
-    if (inst_id <  BTM_BleMaxMultiAdvInstanceCount() &&
-        inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD &&
-        p_params != NULL)
-    {
-        if (false == p_inst->in_use)
-        {
-            BTM_TRACE_DEBUG("adv instance %d is not active", inst_id);
-            return BTM_WRONG_MODE;
-        }
-        else
-            btm_ble_enable_multi_adv(false, inst_id, 0);
-
-        if (BTM_CMD_STARTED == btm_ble_multi_adv_set_params(p_inst, p_params, 0))
-            rt = btm_ble_enable_multi_adv(true, inst_id, BTM_BLE_MULTI_ADV_PARAM_EVT);
+    if (inst_id > BTM_BleMaxMultiAdvInstanceCount() || inst_id < 0 ||
+        inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
+        BTM_TRACE_ERROR("%s: bad instance id %d", __func__, inst_id);
+        return;
     }
-    return rt;
+
+    if (!p_inst->in_use) {
+        BTM_TRACE_ERROR("adv instance %d is not active", inst_id);
+        (p_inst->p_cback)(BTM_BLE_MULTI_ADV_PARAM_EVT, inst_id, BTM_BLE_MULTI_ADV_FAILURE);
+        return;
+    }
+
+    btm_ble_enable_multi_adv(false, inst_id, 0);
+    btm_ble_multi_adv_set_params(p_inst, p_params, 0);
+    btm_ble_enable_multi_adv(true, inst_id, BTM_BLE_MULTI_ADV_PARAM_EVT);
 }
 
 /*******************************************************************************
@@ -665,31 +638,31 @@ tBTM_STATUS BTM_BleUpdateAdvInstParam (uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_p
 ** Returns          status
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleCfgAdvInstData (uint8_t inst_id, bool    is_scan_rsp,
-                                    tBTM_BLE_AD_MASK data_mask,
-                                    tBTM_BLE_ADV_DATA *p_data)
+void BTM_BleCfgAdvInstData(uint8_t inst_id, bool is_scan_rsp,
+                           tBTM_BLE_AD_MASK data_mask,
+                           tBTM_BLE_ADV_DATA *p_data)
 {
     uint8_t     param[BTM_BLE_MULTI_ADV_WRITE_DATA_LEN], *pp = param;
     uint8_t     sub_code = (is_scan_rsp) ?
                            BTM_BLE_MULTI_ADV_WRITE_SCAN_RSP_DATA : BTM_BLE_MULTI_ADV_WRITE_ADV_DATA;
     uint8_t     *p_len;
-    tBTM_STATUS rt;
     uint8_t *pp_temp = (uint8_t*)(param + BTM_BLE_MULTI_ADV_WRITE_DATA_LEN -1);
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
-    if (0 == cmn_ble_vsc_cb.adv_inst_max)
-    {
-        BTM_TRACE_ERROR("Controller does not support Multi ADV");
-        return BTM_ERR_PROCESSING;
+    if (0 == cmn_ble_vsc_cb.adv_inst_max) {
+        BTM_TRACE_ERROR("%s: multi adv not supported", __func__);
+        return;
     }
 
     btm_ble_update_dmt_flag_bits(&p_data->flag, btm_cb.btm_inq_vars.connectable_mode,
                                         btm_cb.btm_inq_vars.discoverable_mode);
 
-    BTM_TRACE_EVENT("BTM_BleCfgAdvInstData called with inst_id:%d", inst_id);
-    if (inst_id > BTM_BLE_MULTI_ADV_MAX || inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD)
-        return BTM_ILLEGAL_VALUE;
+    if (inst_id > BTM_BleMaxMultiAdvInstanceCount() || inst_id < 0 ||
+        inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
+        BTM_TRACE_ERROR("%s: bad instance id %d", __func__, inst_id);
+        return;
+    }
 
     memset(param, 0, BTM_BLE_MULTI_ADV_WRITE_DATA_LEN);
 
@@ -699,15 +672,12 @@ tBTM_STATUS BTM_BleCfgAdvInstData (uint8_t inst_id, bool    is_scan_rsp,
     *p_len = (uint8_t)(pp - param - 2);
     UINT8_TO_STREAM(pp_temp, inst_id);
 
-    if ((rt = BTM_VendorSpecificCommand (HCI_BLE_MULTI_ADV_OCF,
-                                    (uint8_t)BTM_BLE_MULTI_ADV_WRITE_DATA_LEN,
-                                    param,
-                                    btm_ble_multi_adv_vsc_cmpl_cback))
-                                     == BTM_CMD_STARTED)
-    {
-        btm_ble_multi_adv_enq_op_q(sub_code, inst_id, BTM_BLE_MULTI_ADV_DATA_EVT);
-    }
-    return rt;
+    BTM_VendorSpecificCommand(HCI_BLE_MULTI_ADV_OCF,
+                              (uint8_t)BTM_BLE_MULTI_ADV_WRITE_DATA_LEN,
+                              param,
+                              btm_ble_multi_adv_vsc_cmpl_cback);
+
+    btm_ble_multi_adv_enq_op_q(sub_code, inst_id, BTM_BLE_MULTI_ADV_DATA_EVT);
 }
 
 /*******************************************************************************
@@ -721,34 +691,33 @@ tBTM_STATUS BTM_BleCfgAdvInstData (uint8_t inst_id, bool    is_scan_rsp,
 ** Returns          status
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleDisableAdvInstance (uint8_t inst_id)
+void BTM_BleDisableAdvInstance(uint8_t inst_id)
 {
-     tBTM_STATUS rt = BTM_ILLEGAL_VALUE;
-     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
+    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
-     BTM_TRACE_EVENT("BTM_BleDisableAdvInstance with inst_id:%d", inst_id);
+    BTM_TRACE_EVENT("%s: with inst_id:%d", __func__, inst_id);
 
-     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+    BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
 
-     if (0 == cmn_ble_vsc_cb.adv_inst_max)
-     {
-         BTM_TRACE_ERROR("Controller does not support Multi ADV");
-         return BTM_ERR_PROCESSING;
-     }
+    if (0 == cmn_ble_vsc_cb.adv_inst_max) {
+        BTM_TRACE_ERROR("%s: multi adv not supported", __func__);
+        return;
+    }
 
-     if (inst_id < BTM_BleMaxMultiAdvInstanceCount() &&
-         inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD)
-     {
-         if ((rt = btm_ble_enable_multi_adv(false, inst_id, BTM_BLE_MULTI_ADV_DISABLE_EVT))
-            == BTM_CMD_STARTED)
-         {
-            btm_ble_multi_adv_configure_rpa(&btm_multi_adv_cb.p_adv_inst[inst_id - 1]);
-            alarm_cancel(btm_multi_adv_cb.p_adv_inst[inst_id - 1].adv_raddr_timer);
-            btm_multi_adv_cb.p_adv_inst[inst_id - 1].in_use = false;
-         }
-     }
-    return rt;
+    if (inst_id > BTM_BleMaxMultiAdvInstanceCount() || inst_id < 0 ||
+        inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
+        BTM_TRACE_ERROR("%s: bad instance id %d", __func__, inst_id);
+        return;
+    }
+
+    btm_ble_enable_multi_adv(false, inst_id, BTM_BLE_MULTI_ADV_DISABLE_EVT);
+
+    btm_ble_multi_adv_configure_rpa(p_inst);
+    alarm_cancel(p_inst->adv_raddr_timer);
+    p_inst->in_use = false;
 }
+
 /*******************************************************************************
 **
 ** Function         btm_ble_multi_adv_vse_cback
