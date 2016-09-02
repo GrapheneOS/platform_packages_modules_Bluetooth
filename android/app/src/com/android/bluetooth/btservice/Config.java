@@ -98,9 +98,7 @@ public class Config {
                 profiles.add(PROFILE_SERVICES[i]);
             }
         }
-        int totalProfiles = profiles.size();
-        SUPPORTED_PROFILES = new Class[totalProfiles];
-        profiles.toArray(SUPPORTED_PROFILES);
+        SUPPORTED_PROFILES = profiles.toArray(new Class[profiles.size()]);
     }
 
     static Class[]  getSupportedProfiles() {
