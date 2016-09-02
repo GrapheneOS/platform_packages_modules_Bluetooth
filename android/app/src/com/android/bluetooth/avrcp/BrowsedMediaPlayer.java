@@ -1,0 +1,799 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.android.bluetooth.avrcp;
+
+import android.content.ComponentName;
+import android.content.Context;
+import android.media.MediaDescription;
+import android.media.MediaMetadata;
+import android.media.browse.MediaBrowser;
+import android.media.browse.MediaBrowser.MediaItem;
+import android.media.session.MediaController;
+import android.media.session.MediaSession;
+import android.media.session.MediaSession.QueueItem;
+import android.util.Log;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Stack;
+
+/*************************************************************************************************
+ * Provides functionality required for Browsed Media Player like browsing Virtual File System, get
+ * Item Attributes, play item from the file system, etc.
+ * Acts as an Interface to communicate with Media Browsing APIs for browsing FileSystem.
+ ************************************************************************************************/
+
+class BrowsedMediaPlayer {
+    private static final boolean DEBUG = false;
+    private static final String TAG = "BrowsedMediaPlayer";
+
+    /* connection state with MediaBrowseService */
+    private static final int DISCONNECTED = 0;
+    private static final int CONNECTED = 1;
+    private static final int SUSPENDED = 2;
+
+    private static final String[] ROOT_FOLDER = {"root"};
+
+    /*  package and service name of target Media Player which is set for browsing */
+    private String mPackageName;
+    private String mClassName;
+    private Context mContext;
+    private AvrcpMediaRspInterface mMediaInterface;
+    private byte[] mBDAddr;
+
+    /* Object used to connect to MediaBrowseService of Media Player */
+    private MediaBrowser mMediaBrowser = null;
+    private MediaController mMediaController = null;
+
+    /* The mediaId to be used for subscribing for children using the MediaBrowser */
+    private String mMediaId = null;
+    private String mRootFolderUid = null;
+    private int mConnState = DISCONNECTED;
+
+    /* stores the path trail during changePath */
+    private Stack<String> mPathStack = null;
+
+    /* Number of items in current folder */
+    private int mCurrFolderNumItems = 0;
+
+    /* store mapping between uid(Avrcp) and mediaId(Media Player). */
+    private HashMap<Integer, String> mHmap = new HashMap<Integer, String>();
+
+    /* command objects from avrcp handler */
+    private AvrcpCmd.FolderItemsCmd mFolderItemsReqObj;
+
+    private AvrcpCmd.ItemAttrCmd mItemAttrReqObj;
+
+    /* store result of getfolderitems with scope="vfs" */
+    private List<MediaBrowser.MediaItem> mFolderItems = null;
+
+    /* Connection state callback handler */
+    private MediaBrowser.ConnectionCallback browseMediaConnectionCallback =
+            new MediaBrowser.ConnectionCallback() {
+
+        @Override
+        public void onConnected() {
+            mConnState = CONNECTED;
+            if (DEBUG) Log.d(TAG, "mediaBrowser CONNECTED to " + mPackageName);
+            /* perform init tasks and set player as browsed player on successful connection */
+            onBrowseConnect();
+        }
+
+        @Override
+        public void onConnectionFailed() {
+            mConnState = DISCONNECTED;
+            Log.e(TAG, "mediaBrowser Connection failed with " + mPackageName
+                    + ", Sending fail response!");
+            mMediaInterface.setBrowsedPlayerRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR,
+                (byte)0x00, 0, null);
+        }
+
+        @Override
+        public void onConnectionSuspended() {
+            mConnState = SUSPENDED;
+            Log.e(TAG, "mediaBrowser SUSPENDED connection with " + mPackageName);
+        }
+    };
+
+    /* Subscription callback handler. Subscribe to a folder to get its contents */
+    private MediaBrowser.SubscriptionCallback folderItemsCb =
+            new MediaBrowser.SubscriptionCallback() {
+
+        @Override
+        public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
+            if (DEBUG) Log.d(TAG, "OnChildren Loaded folder items: childrens= " + children.size());
+
+            /*
+             * cache current folder items and send as rsp when remote requests
+             * get_folder_items (scope = vfs)
+             */
+            if (mFolderItems == null) {
+                if (DEBUG) Log.d(TAG, "sending setbrowsed player rsp");
+                mFolderItems = children;
+                mMediaInterface.setBrowsedPlayerRsp(mBDAddr, AvrcpConstants.RSP_NO_ERROR,
+                        (byte)0x01, children.size(), ROOT_FOLDER);
+            } else {
+                mFolderItems = children;
+                mCurrFolderNumItems = mFolderItems.size();
+                mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_NO_ERROR,
+                        mCurrFolderNumItems);
+            }
+            mMediaBrowser.unsubscribe(parentId);
+        }
+
+        /* UID is invalid */
+        @Override
+        public void onError(String id) {
+            Log.e(TAG, "set browsed player rsp. Could not get root folder items");
+            mMediaInterface.setBrowsedPlayerRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR,
+                    (byte)0x00, 0, null);
+        }
+    };
+
+    /* callback from media player in response to getitemAttr request */
+    private MediaBrowser.SubscriptionCallback itemAttrCb =
+            new MediaBrowser.SubscriptionCallback() {
+        @Override
+        public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
+            if (DEBUG) Log.d(TAG, "itemAttrCb OnChildren Loaded");
+            int status = AvrcpConstants.RSP_NO_ERROR;
+
+            if (children != null) {
+                boolean isChildrenFound = false;
+                /* some players may return all items in folder containing requested media item */
+                for (int itemIndex = 0; itemIndex < children.size(); itemIndex++) {
+                    if (children.get(itemIndex).getMediaId().equals(parentId)) {
+                        if (DEBUG) Log.d(TAG, "found an item " + itemIndex +
+                                children.get(itemIndex).getMediaId());
+                        getItemAttrFilterAttr(children.get(itemIndex));
+                        isChildrenFound = true;
+                        break;
+                    }
+                }
+
+                if (!isChildrenFound) {
+                    Log.e(TAG, "not able to find the item:" + parentId);
+                    status = AvrcpConstants.RSP_INV_ITEM;
+                }
+            } else {
+                Log.e(TAG, "children list is null for parent id:" + parentId);
+                status = AvrcpConstants.RSP_INV_ITEM;
+            }
+            //  send only error from here, in case of success it will sent the attributes from getItemAttrFilterAttr
+            if (status != AvrcpConstants.RSP_NO_ERROR) {
+                /* send invalid uid rsp to remote device */
+                mMediaInterface.getItemAttrRsp(mBDAddr, status, null);
+            }
+        }
+        @Override
+        public void onError(String id) {
+            Log.e(TAG, "Could not get attributes from media player. id: " + id);
+            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, null);
+        }
+    };
+
+    /* Constructor */
+    public BrowsedMediaPlayer(byte[] address, Context context,
+            AvrcpMediaRspInterface mAvrcpMediaRspInterface) {
+        mContext = context;
+        mMediaInterface = mAvrcpMediaRspInterface;
+        mBDAddr = address;
+    }
+
+    /* initialize mediacontroller in order to communicate with media player. */
+    private void onBrowseConnect() {
+        boolean isError = false;
+        MediaSession.Token token = null;
+        try {
+            /* get rootfolder uid from media player */
+            if (mMediaId == null) {
+                mMediaId = mMediaBrowser.getRoot();
+                /*
+                 * assuming that root folder uid will not change on uids changed
+                 */
+                mRootFolderUid = mMediaId;
+                /* store root folder uid to stack */
+                mPathStack.push(mMediaId);
+            }
+
+            if (!mMediaBrowser.isConnected()) {
+                isError = true;
+                Log.e(TAG, "setBrowsedPlayer : Not connected");
+            }
+
+            if ((token = mMediaBrowser.getSessionToken()) == null) {
+                isError = true;
+                Log.e(TAG, "setBrowsedPlayer : No Session token");
+            }
+
+            if (isError == false) {
+                mMediaController = new MediaController(mContext, token);
+                /* get root folder items */
+                mMediaBrowser.subscribe(mRootFolderUid, folderItemsCb);
+            }
+        } catch (NullPointerException ex) {
+            isError = true;
+            Log.e(TAG, "setBrowsedPlayer : Null pointer during init");
+            ex.printStackTrace();
+        }
+
+        if (isError) {
+            mMediaInterface.setBrowsedPlayerRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR,
+                    (byte)0x00, 0, null);
+        }
+    }
+
+    public void setBrowsed(String packageName, String cls) {
+        mPackageName = packageName;
+        mClassName = cls;
+        /* cleanup variables from previous browsed calls */
+        mFolderItems = null;
+        mMediaId = null;
+        mRootFolderUid = null;
+        /*
+         * create stack to store the navigation trail (current folder ID). This
+         * will be required while navigating up the folder
+         */
+        mPathStack = new Stack<String>();
+        /* Bind to MediaBrowseService of MediaPlayer */
+        mMediaBrowser = new MediaBrowser(mContext, new ComponentName(mPackageName, mClassName),
+                browseMediaConnectionCallback, null);
+        connectToPlayer();
+    }
+
+    /* called when connection to media player is closed */
+    public void cleanup() {
+        if (DEBUG)
+            Log.d(TAG, "cleanup");
+        if (mConnState != DISCONNECTED) {
+            disconnectFromPlayer();
+        }
+
+        mHmap = null;
+        mMediaController = null;
+        mMediaBrowser = null;
+    }
+
+    private void connectToPlayer() {
+        if (DEBUG) Log.d(TAG, "connectToPlayer");
+        mMediaBrowser.connect();
+    }
+
+    public void disconnectFromPlayer() {
+        if (DEBUG) Log.d(TAG, "disconnectFromPlayer");
+        mMediaBrowser.disconnect();
+    }
+
+    public boolean isPlayerConnected() {
+        if (mMediaBrowser != null) {
+            return mMediaBrowser.isConnected();
+        } else {
+            if (DEBUG) Log.d(TAG, "isPlayerConnected: mMediaBrowser = null!");
+            return false;
+        }
+    }
+
+    /* returns number of items in new path as reponse */
+    public void changePath(byte[] folderUid, byte direction) {
+        if (DEBUG) Log.d(TAG, "changePath.direction = " + direction);
+        String newPath = "";
+
+        if (isPlayerConnected() == false) {
+            Log.w(TAG, "changePath:disconnected from player service, sending internal error");
+            mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, 0);
+            return;
+        }
+
+        if (mMediaBrowser == null) {
+            Log.e(TAG, "mediaController is null, sending internal error");
+            mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, 0);
+            return;
+        }
+
+        /* check direction and change the path */
+        if (direction == AvrcpConstants.DIR_DOWN) { /* move down */
+            if ((newPath = byteToString(folderUid)) == null) {
+                Log.e(TAG, "Could not get media item from folder Uid, sending err response");
+                mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_ITEM, 0);
+            } else if (isBrowsableFolderDn(newPath) == false) {
+                /* new path is not browsable */
+                Log.e(TAG, "ItemUid received from changePath cmd is not browsable");
+                mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRECTORY, 0);
+            } else if (mPathStack.peek().equals(newPath) == true) {
+                /* new_folder is same as current folder */
+                Log.e(TAG, "new_folder is same as current folder, Invalid direction!");
+                mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRN, 0);
+            } else {
+                mMediaBrowser.subscribe(newPath, folderItemsCb);
+                /* assume that call is success and update stack with new folder path */
+                mPathStack.push(newPath);
+            }
+        } else if (direction == AvrcpConstants.DIR_UP) { /* move up */
+            if (isBrowsableFolderUp() == false) {
+                /* Already on the root, cannot allow up: PTS: test case TC_TG_MCN_CB_BI_02_C
+                 * This is required, otherwise some CT will keep on sending change path up
+                 * until they receive error */
+                Log.w(TAG, "Cannot go up from now, already in the root, Invalid direction!");
+                mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRN, 0);
+            } else {
+                /* move folder up */
+                mPathStack.pop();
+                newPath = mPathStack.peek();
+                mMediaBrowser.subscribe(newPath, folderItemsCb);
+            }
+        } else { /* invalid direction */
+            Log.w(TAG, "changePath : Invalid direction " + direction);
+            mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRN, 0);
+        }
+    }
+
+    public void getItemAttr(AvrcpCmd.ItemAttrCmd itemAttr) {
+        String mediaID;
+        if (DEBUG) Log.d(TAG, "getItemAttr");
+
+        /*
+         * store request parameters for reference. To be used to filter
+         * attributes when sending response
+         */
+        mItemAttrReqObj = itemAttr;
+
+        /* check if uid is valid by doing a lookup in hashmap */
+        if ((mediaID = byteToString(itemAttr.mUid)) == null) {
+            Log.e(TAG, "uid is invalid");
+            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_INV_ITEM, null);
+            return;
+        }
+
+        /* check scope */
+        if (itemAttr.mScope == AvrcpConstants.BTRC_SCOPE_FILE_SYSTEM) {
+            if (mMediaBrowser != null) {
+                mMediaBrowser.subscribe(mediaID, itemAttrCb);
+            } else {
+                Log.e(TAG, "mMediaBrowser is null");
+                mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, null);
+            }
+        } else {
+            Log.e(TAG, "invalid scope");
+            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_INV_SCOPE, null);
+        }
+    }
+
+    public void getTotalNumOfItems(byte scope) {
+        if (DEBUG) Log.d(TAG, "getTotalNumOfItems scope = " + scope);
+        switch (scope) {
+            case AvrcpConstants.BTRC_SCOPE_FILE_SYSTEM:
+                if (mFolderItems != null) {
+                     /* find num items using size of already cached folder items */
+                    mMediaInterface.getTotalNumOfItemsRsp(mBDAddr,
+                            AvrcpConstants.RSP_NO_ERROR, 0, mFolderItems.size());
+                } else {
+                    Log.e(TAG, "mFolderItems is null, sending internal error");
+                    /* folderitems were not fetched during change path */
+                    mMediaInterface.getTotalNumOfItemsRsp(mBDAddr,
+                            AvrcpConstants.RSP_INTERNAL_ERR, 0, 0);
+                }
+                break;
+            default:
+                Log.e(TAG, "getTotalNumOfItems error" + scope);
+                mMediaInterface.getTotalNumOfItemsRsp(mBDAddr, AvrcpConstants.RSP_INV_SCOPE, 0, 0);
+                break;
+        }
+    }
+
+    public void getFolderItemsVFS(AvrcpCmd.FolderItemsCmd reqObj) {
+        if (isPlayerConnected()) {
+            if (DEBUG) Log.d(TAG, "getFolderItemsVFS");
+            mFolderItemsReqObj = reqObj;
+
+            if (mFolderItems == null) {
+                /* Failed to fetch folder items from media player. Send error to remote device */
+                Log.e(TAG, "Failed to fetch folder items during getFolderItemsVFS");
+                mMediaInterface.folderItemsRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, null);
+            } else {
+                /* Filter attributes based on the request and send response to remote device */
+                getFolderItemsFilterAttr(mBDAddr, reqObj, mFolderItems,
+                        AvrcpConstants.BTRC_SCOPE_FILE_SYSTEM,
+                        mFolderItemsReqObj.mStartItem, mFolderItemsReqObj.mEndItem);
+            }
+        } else {
+            Log.e(TAG, "unable to connect to media player, sending internal error");
+            /* unable to connect to media player. Send error response to remote device */
+            mMediaInterface.folderItemsRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, null);
+        }
+    }
+
+    /* Instructs media player to play particular media item */
+    public void playItem(byte[] uid, byte scope) {
+        String folderUid;
+
+        if (isPlayerConnected()) {
+            /* check if uid is valid */
+            if ((folderUid = byteToString(uid)) == null) {
+                Log.e(TAG, "uid is invalid!");
+                mMediaInterface.playItemRsp(mBDAddr, AvrcpConstants.RSP_INV_ITEM);
+                return;
+            }
+
+            if (mMediaController != null) {
+                MediaController.TransportControls mediaControllerCntrl =
+                        mMediaController.getTransportControls();
+                if (DEBUG) Log.d(TAG, "Sending playID: " + folderUid);
+
+                if (scope == AvrcpConstants.BTRC_SCOPE_FILE_SYSTEM) {
+                    mediaControllerCntrl.playFromMediaId(folderUid, null);
+                    mMediaInterface.playItemRsp(mBDAddr, AvrcpConstants.RSP_NO_ERROR);
+                } else {
+                    Log.e(TAG, "playItem received for invalid scope!");
+                    mMediaInterface.playItemRsp(mBDAddr, AvrcpConstants.RSP_INV_SCOPE);
+                }
+            } else {
+                Log.e(TAG, "mediaController is null");
+                mMediaInterface.playItemRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR);
+            }
+        } else {
+            Log.e(TAG, "playItem: Not connected to media player");
+            mMediaInterface.playItemRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR);
+        }
+    }
+
+    /*
+     * helper method to check if startItem and endItem index is with range of
+     * MediaItem list. (Resultset containing all items in current path)
+     */
+    private List<MediaBrowser.MediaItem> checkIndexOutofBounds(byte[] bdaddr,
+        List<MediaBrowser.MediaItem> children, int startItem, int endItem) {
+        try {
+            List<MediaBrowser.MediaItem> childrenSubList =
+                children.subList(startItem, Math.min(children.size(), endItem + 1));
+            if (childrenSubList.isEmpty()) {
+                Log.i(TAG, "childrenSubList is empty.");
+                throw new IndexOutOfBoundsException();
+            }
+            return childrenSubList;
+        } catch (IndexOutOfBoundsException ex) {
+            Log.w(TAG, "Index out of bounds start item ="+ startItem + " end item = "+
+                    Math.min(children.size(), endItem + 1));
+            mMediaInterface.folderItemsRsp(bdaddr, AvrcpConstants.RSP_INV_RANGE, null);
+            return null;
+        } catch (IllegalArgumentException ex) {
+            Log.i(TAG, "Index out of bounds start item =" + startItem + " > size");
+            mMediaInterface.folderItemsRsp(bdaddr, AvrcpConstants.RSP_INV_RANGE, null);
+            return null;
+        }
+    }
+
+
+    /*
+     * helper method to filter required attibutes before sending GetFolderItems response
+     */
+    public void getFolderItemsFilterAttr(byte[] bdaddr, AvrcpCmd.FolderItemsCmd mFolderItemsReqObj,
+        List<MediaBrowser.MediaItem> children, byte scope, int startItem, int endItem) {
+        if (DEBUG) Log.d(TAG, "getFolderItemsFilterAttr: startItem =" + startItem +
+            ", endItem = " + endItem);
+
+        List<MediaBrowser.MediaItem> result_items = new ArrayList<MediaBrowser.MediaItem>();
+
+        if (children != null) {
+            /* check for index out of bound errors */
+            if ((result_items = checkIndexOutofBounds(bdaddr, children, startItem, endItem)) == null) {
+               Log.w(TAG, "result_items is null.");
+               mMediaInterface.folderItemsRsp(bdaddr, AvrcpConstants.RSP_INV_RANGE, null);
+               return;
+        }
+        FolderItemsData folderDataNative = new FolderItemsData(result_items.size());
+
+       /* variables to temperorily add attrs */
+        ArrayList<String> attrArray = new ArrayList<String>();
+        ArrayList<Integer> attrId = new ArrayList<Integer>();
+
+        for (int itemIndex = 0; itemIndex < result_items.size(); itemIndex++) {
+            /* item type. Needs to be set by media player */
+            if ((result_items.get(itemIndex).getFlags() &
+                MediaBrowser.MediaItem.FLAG_BROWSABLE) != 0) {
+                    folderDataNative.mItemTypes[itemIndex] = AvrcpConstants.BTRC_ITEM_FOLDER;
+            } else {
+                folderDataNative.mItemTypes[itemIndex] = AvrcpConstants.BTRC_ITEM_MEDIA;
+            }
+
+            /* set playable */
+            if ((result_items.get(itemIndex).getFlags()
+                & MediaBrowser.MediaItem.FLAG_PLAYABLE) != 0) {
+                folderDataNative.mPlayable[itemIndex] = AvrcpConstants.ITEM_PLAYABLE;
+            } else {
+                folderDataNative.mPlayable[itemIndex] = AvrcpConstants.ITEM_NOT_PLAYABLE;
+            }
+            /* set uid for current item */
+            byte[] uid =
+                    stringToByte(result_items.get(itemIndex).getDescription().getMediaId());
+            for (int idx = 0; idx < AvrcpConstants.UID_SIZE; idx++) {
+                folderDataNative.mItemUid[itemIndex * AvrcpConstants.UID_SIZE + idx] = uid[idx];
+            }
+
+            /* Set display name for current item */
+            folderDataNative.mDisplayNames[itemIndex] =
+                    result_items.get(itemIndex).getDescription().getTitle().toString();
+
+            int maxAttributesRequested = 0;
+            boolean isAllAttribRequested = false;
+            /* check if remote requested for attributes */
+            if (mFolderItemsReqObj.mNumAttr != AvrcpConstants.NUM_ATTR_NONE) {
+                int attrCnt = 0;
+
+                /* add requested attr ids to a temp array */
+                if (mFolderItemsReqObj.mNumAttr == AvrcpConstants.NUM_ATTR_ALL) {
+                    isAllAttribRequested = true;
+                    maxAttributesRequested = AvrcpConstants.MAX_NUM_ATTR;
+                } else {
+                /* get only the requested attribute ids from the request */
+                    maxAttributesRequested = mFolderItemsReqObj.mNumAttr;
+                }
+
+                /* lookup and copy values of attributes for ids requested above */
+                for (int idx = 0; idx < maxAttributesRequested; idx++) {
+                /* check if media player provided requested attributes */
+                    String value = null;
+
+                    int attribId = isAllAttribRequested ? (idx + 1) :
+                            mFolderItemsReqObj.mAttrIDs[idx];
+                    if(attribId >= AvrcpConstants.ATTRID_TITLE &&
+                        attribId <= AvrcpConstants.ATTRID_PLAY_TIME) {
+                        if ((value = getAttrValue(attribId, result_items,
+                            itemIndex)) != null) {
+                            attrArray.add(value);
+                            attrId.add(attribId);
+                            attrCnt++;
+                        }
+                    } else {
+                        Log.d(TAG, "invalid attributed id is requested: " + attribId);
+                    }
+                }
+                /* add num attr actually received from media player for a particular item */
+                folderDataNative.mAttributesNum[itemIndex] = attrCnt;
+                }
+            }
+
+            /* copy filtered attr ids and attr values to response parameters */
+            if (mFolderItemsReqObj.mNumAttr != AvrcpConstants.NUM_ATTR_NONE) {
+                folderDataNative.mAttrIds = new int[attrId.size()];
+                for (int attrIndex = 0; attrIndex < attrId.size(); attrIndex++)
+                    folderDataNative.mAttrIds[attrIndex] = attrId.get(attrIndex);
+                folderDataNative.mAttrValues = attrArray.toArray(new String[attrArray.size()]);
+            }
+
+            /* create rsp object and send response to remote device */
+            FolderItemsRsp rspObj = new FolderItemsRsp(AvrcpConstants.RSP_NO_ERROR,
+                    Avrcp.sUIDCounter, scope, folderDataNative.mNumItems,
+                    folderDataNative.mFolderTypes, folderDataNative.mPlayable,
+                    folderDataNative.mItemTypes,folderDataNative.mItemUid,
+                    folderDataNative.mDisplayNames, folderDataNative.mAttributesNum,
+                    folderDataNative.mAttrIds, folderDataNative.mAttrValues);
+            mMediaInterface.folderItemsRsp(bdaddr, AvrcpConstants.RSP_NO_ERROR, rspObj);
+        } else {
+            Log.e(TAG, "Error: children are null in getFolderItemsFilterAttr");
+            mMediaInterface.folderItemsRsp(bdaddr, AvrcpConstants.RSP_INV_RANGE, null);
+            return;
+        }
+    }
+
+    public static String getAttrValue(int attr, List<MediaBrowser.MediaItem> resultItems,
+            int itemIndex) {
+
+        String attrValue = null;
+        try {
+            switch (attr) {
+                /* Title is mandatory attribute */
+                case AvrcpConstants.ATTRID_TITLE:
+                    attrValue = resultItems.get(itemIndex).getDescription().getTitle().toString();
+                    break;
+                case AvrcpConstants.ATTRID_ARTIST:
+                    attrValue = resultItems.get(itemIndex).getDescription().getExtras()
+                            .getString(MediaMetadata.METADATA_KEY_ARTIST);
+                    break;
+
+                case AvrcpConstants.ATTRID_ALBUM:
+                    attrValue = resultItems.get(itemIndex).getDescription().getExtras()
+                            .getString(MediaMetadata.METADATA_KEY_ALBUM);
+                    break;
+
+                case AvrcpConstants.ATTRID_TRACK_NUM:
+                    attrValue = resultItems.get(itemIndex).getDescription().getExtras()
+                            .getString(MediaMetadata.METADATA_KEY_TRACK_NUMBER);
+                    break;
+
+                case AvrcpConstants.ATTRID_NUM_TRACKS:
+                    attrValue = resultItems.get(itemIndex).getDescription().getExtras()
+                            .getString(MediaMetadata.METADATA_KEY_NUM_TRACKS);
+                    break;
+
+                case AvrcpConstants.ATTRID_GENRE:
+                    attrValue = resultItems.get(itemIndex).getDescription().getExtras()
+                            .getString(MediaMetadata.METADATA_KEY_GENRE);
+
+                case AvrcpConstants.ATTRID_PLAY_TIME:
+                    attrValue = resultItems.get(itemIndex).getDescription().getExtras()
+                            .getString(MediaMetadata.METADATA_KEY_DURATION);
+                    break;
+
+                default:
+                    Log.e(TAG, "Unknown attribute ID");
+            }
+        } catch (IndexOutOfBoundsException ex) {
+            Log.w(TAG, "getAttrValue: requested item index out of bounds");
+            return null;
+        } catch (NullPointerException ex) {
+            Log.w(TAG, "getAttrValue: attr id not found in result");
+            /* checking if attribute is title, then it is mandatory and cannot send null */
+            if (attr == AvrcpConstants.ATTRID_TITLE) {
+                return "<Unknown Title>";
+            }
+            return null;
+        }
+        if(DEBUG) Log.d(TAG, "getAttrValue: attrvalue = "+ attrValue + "attr id:" + attr);
+        return attrValue;
+    }
+
+    /* helper method to filter required attibutes before sending getItemAttrdg response */
+    private void getItemAttrFilterAttr(MediaBrowser.MediaItem mediaItem) {
+        /* Response parameters */
+        int[] attrIds = null; /* array of attr ids */
+        String[] attrValues = null; /* array of attr values */
+        int attrCounter = 0; /* num attributes for each item */
+        List<MediaBrowser.MediaItem> resultItems = new ArrayList<MediaBrowser.MediaItem>();
+        resultItems.add(mediaItem);
+        /* variables to temperorily add attrs */
+        ArrayList<String> attrArray = new ArrayList<String>();
+        ArrayList<Integer> attrId = new ArrayList<Integer>();
+
+        if (mediaItem == null) {
+            Log.e(TAG, "getItemAttrFilterAttr: media item is null");
+            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, null);
+            return;
+        }
+
+        ArrayList<Integer> attrTempId = new ArrayList<Integer>();
+
+        /* check if remote device has requested for attributes */
+        if (mItemAttrReqObj.mNumAttr != AvrcpConstants.NUM_ATTR_NONE) {
+            if (mItemAttrReqObj.mNumAttr == AvrcpConstants.NUM_ATTR_ALL ||
+                    mItemAttrReqObj.mNumAttr == AvrcpConstants.MAX_NUM_ATTR) {
+                for (int idx = 1; idx <= AvrcpConstants.MAX_NUM_ATTR; idx++) {
+                    attrTempId.add(idx); /* attr id 0x00 is unused */
+                }
+            } else {
+                /* get only the requested attribute ids from the request */
+                for (int idx = 0; idx < mItemAttrReqObj.mNumAttr; idx++) {
+                    attrTempId.add(mItemAttrReqObj.mAttrIDs[idx]);
+                }
+            }
+
+            /* lookup and copy values of attributes for ids requested above */
+            for (int idx = 0; idx < attrTempId.size(); idx++) {
+                /* check if media player provided requested attributes */
+                String value = null;
+                if ((value = getAttrValue(attrTempId.get(idx), resultItems, 0)) != null) {
+                    attrArray.add(value);
+                    attrId.add(attrTempId.get(idx));
+                    attrCounter++;
+                }
+            }
+            attrTempId = null;
+        } else {
+            Log.i(TAG, "getItemAttrFilterAttr: No attributes requested");
+        }
+
+        /* copy filtered attr ids and attr values to response parameters */
+        if (this.mItemAttrReqObj.mNumAttr != AvrcpConstants.NUM_ATTR_NONE) {
+            attrIds = new int[attrId.size()];
+
+            for (int attrIndex = 0; attrIndex < attrId.size(); attrIndex++)
+                attrIds[attrIndex] = attrId.get(attrIndex);
+
+            attrValues = attrArray.toArray(new String[attrId.size()]);
+
+            /* create rsp object and send response */
+            ItemAttrRsp rspObj = new ItemAttrRsp(AvrcpConstants.RSP_NO_ERROR,
+                    (byte)attrCounter, attrIds, attrValues);
+            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_NO_ERROR, rspObj);
+        }
+    }
+
+    public String getPackageName() {
+        return mPackageName;
+    }
+
+    /* Helper methods */
+
+    /* check if item is browsable Down*/
+    private boolean isBrowsableFolderDn(String uid) {
+        for (MediaBrowser.MediaItem item : mFolderItems) {
+            if (item.getMediaId().equals(uid) &&
+                ((item.getFlags() & MediaBrowser.MediaItem.FLAG_BROWSABLE) ==
+                    MediaBrowser.MediaItem.FLAG_BROWSABLE))
+                return true;
+        }
+        return false;
+    }
+
+    /* check if browsable Up*/
+    private boolean isBrowsableFolderUp() {
+        if (mPathStack.peek().equals(mRootFolderUid)) {
+            /* Already on the root, cannot go up */
+            return false;
+        }
+        return true;
+    }
+
+    /* convert uid to mediaId */
+    private String byteToString(byte[] byteArray) {
+        int key = new BigInteger(byteArray).intValue();
+        String value = mHmap.get(key);
+        return value;
+    }
+
+    /* convert mediaId to uid */
+    private byte[] stringToByte(String mediaId) {
+        /* check if this mediaId already exists in hashmap */
+        if (!mHmap.containsValue(mediaId)) { /* add to hashmap */
+            int key = mHmap.size();
+            mHmap.put(key, mediaId);
+            return intToByteArray(key);
+        } else { /* search key for give mediaId */
+            for (int key : mHmap.keySet()) {
+                if (mHmap.get(key).equals(mediaId)) {
+                    return intToByteArray(key);
+                }
+            }
+        }
+        return null;
+    }
+
+    /* converts queue item received from getQueue call, to MediaItem used by FilterAttr method */
+    private List<MediaBrowser.MediaItem> queueItem2MediaItem(
+            List<MediaSession.QueueItem> tempItems) {
+
+        List<MediaBrowser.MediaItem> tempMedia = new ArrayList<MediaBrowser.MediaItem>();
+        for (int itemCount = 0; itemCount < tempItems.size(); itemCount++) {
+            MediaDescription.Builder build = new MediaDescription.Builder();
+            build.setMediaId(Long.toString(tempItems.get(itemCount).getQueueId()));
+            build.setTitle(tempItems.get(itemCount).getDescription().getTitle());
+            build.setExtras(tempItems.get(itemCount).getDescription().getExtras());
+            MediaDescription des = build.build();
+            MediaItem item = new MediaItem((des), MediaItem.FLAG_PLAYABLE);
+            tempMedia.add(item);
+        }
+        return tempMedia;
+    }
+
+    /* convert integer to byte array of size 8 bytes */
+    public byte[] intToByteArray(int value) {
+        int index = 0;
+        byte[] encodedValue = new byte[AvrcpConstants.UID_SIZE];
+
+        encodedValue[index++] = (byte)0x00;
+        encodedValue[index++] = (byte)0x00;
+        encodedValue[index++] = (byte)0x00;
+        encodedValue[index++] = (byte)0x00;
+        encodedValue[index++] = (byte)(value >> 24);
+        encodedValue[index++] = (byte)(value >> 16);
+        encodedValue[index++] = (byte)(value >> 8);
+        encodedValue[index++] = (byte)value;
+
+        return encodedValue;
+    }
+}

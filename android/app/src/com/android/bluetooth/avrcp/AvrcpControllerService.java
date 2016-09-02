@@ -355,8 +355,7 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-    // Called by JNI when a passthrough key was received.
-    private void handlePassthroughRsp(int id, int keyState) {
+    private void handlePassthroughRsp(int id, int keyState, byte[] address) {
         Log.d(TAG, "passthrough response received as: key: " + id + " state: " + keyState);
     }
 

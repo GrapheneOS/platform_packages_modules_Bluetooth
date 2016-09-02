@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,18 +56,31 @@ static bool checkCallbackThread() {
     return true;
 }
 
-static void btavrcp_passthrough_response_callback(int id, int pressed) {
-    ALOGI("%s", __FUNCTION__);
+static void btavrcp_passthrough_response_callback(int id, int pressed, bt_bdaddr_t* bd_addr) {
+    jbyteArray addr;
+
+    ALOGI("%s", __func__);
     ALOGI("id: %d, pressed: %d", id, pressed);
 
     if (!checkCallbackThread()) {
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
+        ALOGE("Callback: '%s' is not called on the correct thread", __func__);
+        return;
+    }
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (!addr) {
+        ALOGE("Fail to new jbyteArray bd addr for passthrough response");
+        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
+
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_handlePassthroughRsp, (jint)id,
-                                                                             (jint)pressed);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
+                                                                             (jint)pressed,
+                                                                             addr);
+    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
+
+    sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void btavrcp_groupnavigation_response_callback(int id, int pressed) {
@@ -429,7 +442,7 @@ static btrc_ctrl_callbacks_t sBluetoothAvrcpCallbacks = {
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
     method_handlePassthroughRsp =
-        env->GetMethodID(clazz, "handlePassthroughRsp", "(II)V");
+        env->GetMethodID(clazz, "handlePassthroughRsp", "(II[B)V");
 
     method_handleGroupNavigationRsp =
         env->GetMethodID(clazz, "handleGroupNavigationRsp", "(II)V");
