@@ -54,57 +54,57 @@ void btif_multi_adv_stop_cb(void *data) {
   btif_multiadv_disable(advertiser_id);  // Does context switch
 }
 
-void multi_adv_enable_cb_impl(int advertiser_id, int status, int inst_id) {
-  if (0xFF != inst_id) btif_multi_adv_add_instid_map(advertiser_id, inst_id, false);
+void multi_adv_enable_cb_impl(int advertiser_id, int status) {
   HAL_CBACK(bt_gatt_callbacks, advertiser->multi_adv_enable_cb, advertiser_id,
             status);
   btif_multi_adv_timer_ctrl(
       advertiser_id, (status == BTA_GATT_OK) ? btif_multi_adv_stop_cb : NULL);
 }
 
-void multi_adv_update_cb_impl(int advertiser_id, int status, int inst_id) {
+void multi_adv_update_cb_impl(int advertiser_id, int status) {
   HAL_CBACK(bt_gatt_callbacks, advertiser->multi_adv_update_cb, advertiser_id,
             status);
   btif_multi_adv_timer_ctrl(
       advertiser_id, (status == BTA_GATT_OK) ? btif_multi_adv_stop_cb : NULL);
 }
 
-void multi_adv_data_cb_impl(int advertiser_id, int status, int inst_id) {
+void multi_adv_data_cb_impl(int advertiser_id, int status) {
   btif_gattc_clear_clientif(advertiser_id, false);
   HAL_CBACK(bt_gatt_callbacks, advertiser->multi_adv_data_cb, advertiser_id,
             status);
 }
 
-void multi_adv_disable_cb_impl(int advertiser_id, int status, int inst_id) {
+void multi_adv_disable_cb_impl(int advertiser_id, int status) {
   btif_gattc_clear_clientif(advertiser_id, true);
   HAL_CBACK(bt_gatt_callbacks, advertiser->multi_adv_disable_cb, advertiser_id,
             status);
 }
 
-void bta_multiadv_cback(tBTA_BLE_MULTI_ADV_EVT event, uint8_t inst_id,
-                               void *p_ref, tBTA_STATUS status) {
-  uint8_t advertiser_id = 0;
+bt_uuid_t registering_uuid;
 
-  if (p_ref == NULL) {
-    BTIF_TRACE_WARNING("%s: Invalid p_ref received", __func__);
-  } else {
-    advertiser_id = *(uint8_t *)p_ref;
-  }
+void multi_adv_reg_cb_impl(int advertiser_id, int status) {
+  HAL_CBACK(bt_gatt_callbacks, advertiser->register_advertiser_cb, status,
+            advertiser_id, &registering_uuid);
+}
 
-  BTIF_TRACE_DEBUG("%s: Inst ID %d, Status:%x, advertiser_id:%d", __func__, inst_id,
-                   status, advertiser_id);
+void bta_gattc_multi_adv_cback(tBTA_BLE_MULTI_ADV_EVT event, uint8_t advertiser_id,
+                               tBTA_STATUS status) {
+
+  BTIF_TRACE_DEBUG("%s: advertiser_id: %d, Status:%x", __func__, advertiser_id, status);
 
   if (event == BTA_BLE_MULTI_ADV_ENB_EVT)
     do_in_jni_thread(
-        Bind(multi_adv_enable_cb_impl, advertiser_id, status, inst_id));
+        Bind(multi_adv_enable_cb_impl, advertiser_id, status));
   else if (event == BTA_BLE_MULTI_ADV_DISABLE_EVT)
     do_in_jni_thread(
-        Bind(multi_adv_disable_cb_impl, advertiser_id, status, inst_id));
+        Bind(multi_adv_disable_cb_impl, advertiser_id, status));
   else if (event == BTA_BLE_MULTI_ADV_PARAM_EVT)
     do_in_jni_thread(
-        Bind(multi_adv_update_cb_impl, advertiser_id, status, inst_id));
+        Bind(multi_adv_update_cb_impl, advertiser_id, status));
   else if (event == BTA_BLE_MULTI_ADV_DATA_EVT)
-    do_in_jni_thread(Bind(multi_adv_data_cb_impl, advertiser_id, status, inst_id));
+    do_in_jni_thread(Bind(multi_adv_data_cb_impl, advertiser_id, status));
+  else if (event == BTA_BLE_MULTI_ADV_REG_EVT)
+    do_in_jni_thread(Bind(multi_adv_reg_cb_impl, advertiser_id, status));
 }
 
 void bta_adv_set_data_cback(tBTA_STATUS call_status) {
@@ -132,12 +132,12 @@ void btif_adv_set_data_impl(btif_adv_data_t *p_adv_data) {
 }
 
 bt_status_t btif_adv_set_data(int advertiser_id, bool set_scan_rsp,
-                                    bool include_name, bool include_txpower,
-                                    int min_interval, int max_interval,
-                                    int appearance,
-                                    vector<uint8_t> manufacturer_data,
-                                    vector<uint8_t> service_data,
-                                    vector<uint8_t> service_uuid) {
+                              bool include_name, bool include_txpower,
+                              int min_interval, int max_interval,
+                              int appearance,
+                              vector<uint8_t> manufacturer_data,
+                              vector<uint8_t> service_data,
+                              vector<uint8_t> service_uuid) {
   CHECK_BTGATT_INIT();
 
   btif_adv_data_t *adv_data = new btif_adv_data_t;
@@ -152,9 +152,11 @@ bt_status_t btif_adv_set_data(int advertiser_id, bool set_scan_rsp,
 }
 
 void btif_multiadv_enable_impl(int advertiser_id, int min_interval,
-                                      int max_interval, int adv_type,
-                                      int chnl_map, int tx_power,
-                                      int timeout_s) {
+                               int max_interval, int adv_type,
+                               int chnl_map, int tx_power,
+                               int timeout_s) {
+  BTIF_TRACE_DEBUG("%s: advertiser_id: %d", __func__, advertiser_id);
+
   tBTA_BLE_ADV_PARAMS param;
   param.adv_int_min = min_interval;
   param.adv_int_max = max_interval;
@@ -163,30 +165,13 @@ void btif_multiadv_enable_impl(int advertiser_id, int min_interval,
   param.adv_filter_policy = 0;
   param.tx_power = tx_power;
 
-  int cbindex = -1;
-  int arrindex =
-      btif_multi_adv_add_instid_map(advertiser_id, INVALID_ADV_INST, true);
-  if (arrindex >= 0)
-    cbindex = btif_gattc_obtain_idx_for_datacb(advertiser_id, CLNT_IF_IDX);
-
-  if (cbindex >= 0 && arrindex >= 0) {
-    btgatt_multi_adv_common_data *p_multi_adv_data_cb =
-        btif_obtain_multi_adv_data_cb();
-    memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].param, &param,
-           sizeof(tBTA_BLE_ADV_PARAMS));
-    p_multi_adv_data_cb->inst_cb[cbindex].timeout_s = timeout_s;
-    BTIF_TRACE_DEBUG("%s: advertiser_id value: %d", __func__,
-                     p_multi_adv_data_cb->clntif_map[arrindex + arrindex]);
-    BTA_BleEnableAdvInstance(
-        &(p_multi_adv_data_cb->inst_cb[cbindex].param),
-        bta_multiadv_cback,
-        &(p_multi_adv_data_cb->clntif_map[arrindex + arrindex]));
-  } else {
-    // let the error propagate up from BTA layer
-    BTIF_TRACE_ERROR("%s: invalid index arrindex: %d, cbindex: %d", __func__,
-                     arrindex, cbindex);
-    BTA_BleEnableAdvInstance(&param, bta_multiadv_cback, NULL);
-  }
+  btgatt_multi_adv_common_data *p_multi_adv_data_cb =
+      btif_obtain_multi_adv_data_cb();
+  memcpy(&p_multi_adv_data_cb->inst_cb[advertiser_id].param, &param,
+         sizeof(tBTA_BLE_ADV_PARAMS));
+  p_multi_adv_data_cb->inst_cb[advertiser_id].timeout_s = timeout_s;
+  BTA_BleEnableAdvInstance(advertiser_id,
+      &(p_multi_adv_data_cb->inst_cb[advertiser_id].param));
 }
 
 bt_status_t btif_multiadv_enable(int advertiser_id, int min_interval,
@@ -210,18 +195,12 @@ void btif_multiadv_update_impl(int advertiser_id, int min_interval,
   param.adv_filter_policy = 0;
   param.tx_power = tx_power;
 
-  int inst_id = btif_multi_adv_instid_for_clientif(advertiser_id);
-  int cbindex = btif_gattc_obtain_idx_for_datacb(advertiser_id, CLNT_IF_IDX);
-  if (inst_id >= 0 && cbindex >= 0) {
-    btgatt_multi_adv_common_data *p_multi_adv_data_cb =
-        btif_obtain_multi_adv_data_cb();
-    memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].param, &param,
-           sizeof(tBTA_BLE_ADV_PARAMS));
-    BTA_BleUpdateAdvInstParam((uint8_t)inst_id,
-                              &(p_multi_adv_data_cb->inst_cb[cbindex].param));
-  } else {
-    BTIF_TRACE_ERROR("%s: invalid index in BTIF_GATTC_UPDATE_ADV", __func__);
-  }
+  btgatt_multi_adv_common_data *p_multi_adv_data_cb =
+      btif_obtain_multi_adv_data_cb();
+  memcpy(&p_multi_adv_data_cb->inst_cb[advertiser_id].param, &param,
+         sizeof(tBTA_BLE_ADV_PARAMS));
+  BTA_BleUpdateAdvInstParam((uint8_t)advertiser_id,
+                            &(p_multi_adv_data_cb->inst_cb[advertiser_id].param));
 }
 
 bt_status_t btif_multiadv_update(int advertiser_id, int min_interval,
@@ -235,21 +214,18 @@ bt_status_t btif_multiadv_update(int advertiser_id, int min_interval,
 }
 
 void btif_multiadv_set_data_impl(btif_adv_data_t *p_adv_data) {
-  int cbindex =
-      btif_gattc_obtain_idx_for_datacb(p_adv_data->advertiser_id, CLNT_IF_IDX);
-  int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->advertiser_id);
-  if (inst_id >= 0 && cbindex >= 0 &&
-      btif_gattc_copy_datacb(cbindex, p_adv_data, true)) {
-    btgatt_multi_adv_common_data *p_multi_adv_data_cb =
-        btif_obtain_multi_adv_data_cb();
-    BTA_BleCfgAdvInstData((uint8_t)inst_id, p_adv_data->set_scan_rsp,
-                          p_multi_adv_data_cb->inst_cb[cbindex].mask,
-                          &p_multi_adv_data_cb->inst_cb[cbindex].data);
-  } else {
-    BTIF_TRACE_ERROR(
-        "%s: failed to get invalid instance data: inst_id:%d cbindex:%d",
-        __func__, inst_id, cbindex);
+  uint8_t advertiser_id = p_adv_data->advertiser_id;
+  if (!btif_gattc_copy_datacb(advertiser_id, p_adv_data, true)) {
+    BTIF_TRACE_ERROR("%s: failed to copy instance data: advertiser_id:%d",
+                     __func__, advertiser_id);
+    return;
   }
+
+  btgatt_multi_adv_common_data *p_multi_adv_data_cb =
+      btif_obtain_multi_adv_data_cb();
+  BTA_BleCfgAdvInstData(advertiser_id, p_adv_data->set_scan_rsp,
+                        p_multi_adv_data_cb->inst_cb[advertiser_id].mask,
+                        &p_multi_adv_data_cb->inst_cb[advertiser_id].data);
 }
 
 bt_status_t btif_multiadv_set_data(int advertiser_id, bool set_scan_rsp,
@@ -275,11 +251,7 @@ bt_status_t btif_multiadv_set_data(int advertiser_id, bool set_scan_rsp,
 }
 
 void btif_multiadv_disable_impl(int advertiser_id) {
-  int inst_id = btif_multi_adv_instid_for_clientif(advertiser_id);
-  if (inst_id >= 0)
-    BTA_BleDisableAdvInstance((uint8_t)inst_id);
-  else
-    BTIF_TRACE_ERROR("%s: invalid instance ID", __func__);
+  BTA_BleDisableAdvInstance((uint8_t)advertiser_id);
 }
 
 bt_status_t btif_multiadv_disable(int advertiser_id) {
@@ -287,22 +259,12 @@ bt_status_t btif_multiadv_disable(int advertiser_id) {
   return do_in_jni_thread(Bind(btif_multiadv_disable_impl, advertiser_id));
 }
 
-void btif_multiadv_register_cb_impl(int status, int advertiser_id,
-                                      bt_uuid_t uuid) {
-  HAL_CBACK(bt_gatt_callbacks, advertiser->register_advertiser_cb, status,
-            advertiser_id, &uuid);
-}
-
-int nextAdvertiserId = 36;
-
 bt_status_t btif_multiadv_register(bt_uuid_t *uuid) {
   btif_gattc_incr_app_count();
 
-  // TODO: there should be code that reserve advertising inst_id and return it
-  // here, so that we don't need mapping between advertiser_id and instance_id
-
-  return do_in_jni_thread(Bind(btif_multiadv_register_cb_impl, BTA_GATT_OK,
-                               nextAdvertiserId++, *uuid));
+  registering_uuid = *uuid;
+  BTA_BleAdvRegisterInstance(bta_gattc_multi_adv_cback);
+  return (bt_status_t)BTA_GATT_OK;
 }
 
 bt_status_t btif_multiadv_unregister(int advertiser_id) {
