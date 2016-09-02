@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2013 Broadcom Corporation
+ *  Copyright (C) 2003-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -123,7 +123,8 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
     AVRC_TRACE_DEBUG("%s pdu:0x%x", __func__, p_result->pdu);
     if (!AVRC_IsValidAvcType (p_result->pdu, p_msg->hdr.ctype))
     {
-        AVRC_TRACE_DEBUG("%s detects wrong AV/C type!", __func__);
+        AVRC_TRACE_DEBUG("%s detects wrong AV/C type(0x%x)!", __func__,
+                           p_msg->hdr.ctype);
         status = AVRC_STS_BAD_CMD;
     }
 
@@ -131,6 +132,7 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
     BE_STREAM_TO_UINT16 (len, p);
     if ((len+4) != (p_msg->vendor_len))
     {
+        AVRC_TRACE_ERROR("%s incorrect length :%d, %d", __func__, len, p_msg->vendor_len);
         status = AVRC_STS_INTERNAL_ERR;
     }
 
@@ -195,7 +197,8 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
             {
                 p_app_set[xx].attr_id = *p++;
                 p_app_set[xx].attr_val = *p++;
-                if (!avrc_is_valid_player_attrib_value(p_app_set[xx].attr_id, p_app_set[xx].attr_val))
+                if (!avrc_is_valid_player_attrib_value(p_app_set[xx].attr_id,
+                    p_app_set[xx].attr_val))
                     status = AVRC_STS_BAD_PARAM;
             }
             if (xx != p_result->set_app_val.num_val)
@@ -321,9 +324,11 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
         }
         break;
 
-    case AVRC_PDU_SET_ABSOLUTE_VOLUME:
+    case AVRC_PDU_SET_ABSOLUTE_VOLUME:      /* 0x50 */
         if (len != 1)
             status = AVRC_STS_INTERNAL_ERR;
+        else
+            p_result->volume.volume = *p++;
         break;
 
     case AVRC_PDU_REQUEST_CONTINUATION_RSP: /* 0x40 */
@@ -338,6 +343,28 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
             status = AVRC_STS_INTERNAL_ERR;
         }
         BE_STREAM_TO_UINT8(p_result->abort.target_pdu, p);
+        break;
+
+    case AVRC_PDU_SET_ADDRESSED_PLAYER:     /* 0x60 */
+        if (len != 2)
+        {
+            AVRC_TRACE_ERROR("AVRC_PDU_SET_ADDRESSED_PLAYER length is incorrect:%d",len);
+            status = AVRC_STS_INTERNAL_ERR;
+        }
+        BE_STREAM_TO_UINT16 (p_result->addr_player.player_id, p);
+        break;
+
+    case AVRC_PDU_PLAY_ITEM:                /* 0x74 */
+    case AVRC_PDU_ADD_TO_NOW_PLAYING:       /* 0x90 */
+        if (len != (AVRC_UID_SIZE + 3))
+            status = AVRC_STS_INTERNAL_ERR;
+        BE_STREAM_TO_UINT8 (p_result->play_item.scope, p);
+        if (p_result->play_item.scope > AVRC_SCOPE_NOW_PLAYING)
+        {
+            status = AVRC_STS_BAD_SCOPE;
+        }
+        BE_STREAM_TO_ARRAY (p, p_result->play_item.uid, AVRC_UID_SIZE);
+        BE_STREAM_TO_UINT16 (p_result->play_item.uid_counter, p);
         break;
 
     default:
@@ -386,6 +413,140 @@ tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result)
 
 /*******************************************************************************
 **
+** Function         avrc_pars_browsing_cmd
+**
+** Description      This function parses the commands that go through the
+**                  browsing channel
+**
+** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+**                  Otherwise, the error code defined by AVRCP+1
+**
+*******************************************************************************/
+static tAVRC_STS avrc_pars_browsing_cmd(tAVRC_MSG_BROWSE *p_msg, tAVRC_COMMAND *p_result,
+                                                uint8_t *p_buf, uint16_t buf_len)
+{
+    tAVRC_STS  status = AVRC_STS_NO_ERROR;
+    uint8_t   *p = p_msg->p_browse_data;
+    int     count;
+
+    p_result->pdu = *p++;
+    AVRC_TRACE_DEBUG("avrc_pars_browsing_cmd() pdu:0x%x", p_result->pdu);
+    /* skip over len */
+    p += 2;
+
+    switch (p_result->pdu)
+    {
+    case AVRC_PDU_SET_BROWSED_PLAYER:   /* 0x70 */
+        // For current implementation all players are browsable.
+        BE_STREAM_TO_UINT16 (p_result->br_player.player_id, p);
+        break;
+
+    case AVRC_PDU_GET_FOLDER_ITEMS:     /* 0x71 */
+        STREAM_TO_UINT8 (p_result->get_items.scope, p);
+        // To be modified later here (Scope) when all browsing commands are supported
+        if (p_result->get_items.scope > AVRC_SCOPE_NOW_PLAYING)
+        {
+            status = AVRC_STS_BAD_SCOPE;
+        }
+        BE_STREAM_TO_UINT32 (p_result->get_items.start_item, p);
+        BE_STREAM_TO_UINT32 (p_result->get_items.end_item, p);
+        if (p_result->get_items.start_item > p_result->get_items.end_item)
+        {
+            status = AVRC_STS_BAD_RANGE;
+        }
+        STREAM_TO_UINT8 (p_result->get_items.attr_count, p);
+        p_result->get_items.p_attr_list = NULL;
+        if (p_result->get_items.attr_count && p_buf &&
+            (p_result->get_items.attr_count != AVRC_FOLDER_ITEM_COUNT_NONE))
+        {
+            p_result->get_items.p_attr_list = (uint32_t *)p_buf;
+            count = p_result->get_items.attr_count;
+            if (buf_len < (count << 2))
+                p_result->get_items.attr_count = count = (buf_len >> 2);
+            for (int idx = 0; idx < count; idx++)
+            {
+                BE_STREAM_TO_UINT32 (p_result->get_items.p_attr_list[idx], p);
+            }
+        }
+        break;
+
+    case AVRC_PDU_CHANGE_PATH:          /* 0x72 */
+        BE_STREAM_TO_UINT16 (p_result->chg_path.uid_counter, p);
+        BE_STREAM_TO_UINT8 (p_result->chg_path.direction, p);
+        if (p_result->chg_path.direction != AVRC_DIR_UP
+            && p_result->chg_path.direction != AVRC_DIR_DOWN)
+        {
+            status = AVRC_STS_BAD_DIR;
+        }
+        BE_STREAM_TO_ARRAY (p, p_result->chg_path.folder_uid, AVRC_UID_SIZE);
+        break;
+
+    case AVRC_PDU_GET_ITEM_ATTRIBUTES:  /* 0x73 */
+        BE_STREAM_TO_UINT8 (p_result->get_attrs.scope, p);
+        if (p_result->get_attrs.scope > AVRC_SCOPE_NOW_PLAYING)
+        {
+            status = AVRC_STS_BAD_SCOPE;
+            break;
+        }
+        BE_STREAM_TO_ARRAY (p, p_result->get_attrs.uid, AVRC_UID_SIZE);
+        BE_STREAM_TO_UINT16 (p_result->get_attrs.uid_counter, p);
+        BE_STREAM_TO_UINT8 (p_result->get_attrs.attr_count, p);
+        p_result->get_attrs.p_attr_list = NULL;
+        if (p_result->get_attrs.attr_count && p_buf)
+        {
+            p_result->get_attrs.p_attr_list = (uint32_t *)p_buf;
+            count = p_result->get_attrs.attr_count;
+            if (buf_len < (count << 2))
+                p_result->get_attrs.attr_count = count = (buf_len >> 2);
+            for (int idx = 0, count = 0; idx < p_result->get_attrs.attr_count; idx++)
+            {
+                BE_STREAM_TO_UINT32 (p_result->get_attrs.p_attr_list[count], p);
+                if (AVRC_IS_VALID_MEDIA_ATTRIBUTE(p_result->get_attrs.p_attr_list[count]))
+                {
+                    count++;
+                }
+            }
+
+            if (p_result->get_attrs.attr_count != count && count == 0)
+                status = AVRC_STS_BAD_PARAM;
+            else
+                p_result->get_attrs.attr_count = count;
+        }
+        break;
+
+    case AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS:   /* 0x75 */
+        BE_STREAM_TO_UINT8 (p_result->get_num_of_items.scope, p);
+        if (p_result->get_num_of_items.scope > AVRC_SCOPE_NOW_PLAYING)
+        {
+            status = AVRC_STS_BAD_SCOPE;
+        }
+        break;
+
+    case AVRC_PDU_SEARCH:               /* 0x80 */
+        BE_STREAM_TO_UINT16 (p_result->search.string.charset_id, p);
+        BE_STREAM_TO_UINT16 (p_result->search.string.str_len, p);
+        p_result->search.string.p_str = p_buf;
+        if (p_buf)
+        {
+            if (buf_len > p_result->search.string.str_len)
+                buf_len = p_result->search.string.str_len;
+            BE_STREAM_TO_ARRAY (p, p_buf, p_result->search.string.str_len);
+        }
+        else
+        {
+            status = AVRC_STS_INTERNAL_ERR;
+        }
+        break;
+
+    default:
+        status = AVRC_STS_BAD_CMD;
+        break;
+    }
+    return status;
+}
+
+/*******************************************************************************
+**
 ** Function         AVRC_ParsCommand
 **
 ** Description      This function is a superset of AVRC_ParsMetadata to parse the command.
@@ -394,10 +555,11 @@ tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result)
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, uint8_t *p_buf, uint16_t buf_len)
+tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result,
+                                     uint8_t *p_buf, uint16_t buf_len)
 {
     tAVRC_STS  status = AVRC_STS_INTERNAL_ERR;
-    uint16_t id;
+    uint16_t  id;
 
     if (p_msg && p_result)
     {
@@ -415,6 +577,10 @@ tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, uint8_t *
             }
             break;
 
+        case AVRC_OP_BROWSE:
+            status = avrc_pars_browsing_cmd(&p_msg->browse, p_result, p_buf, buf_len);
+            break;
+
         default:
             AVRC_TRACE_ERROR("%s unknown opcode:0x%x", __func__, p_msg->hdr.opcode);
             break;
@@ -426,5 +592,5 @@ tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result, uint8_t *
     return status;
 }
 
-#endif /* (AVRC_METADATA_INCLUDED == TRUE) */
+#endif /* (AVRC_METADATA_INCLUDED == true) */
 
