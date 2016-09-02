@@ -1055,15 +1055,15 @@ extern void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data);
 extern void bta_dm_scan_filter_param_setup (tBTA_DM_MSG *p_data);
 extern void bta_dm_enable_scan_filter(tBTA_DM_MSG *p_data);
 #endif
+extern void bta_dm_ble_multi_adv_register(tBTA_BLE_MULTI_ADV_CBACK *p_cback);
 extern void btm_dm_ble_multi_adv_disable(uint8_t inst_id);
 extern void bta_dm_ble_multi_adv_data(uint8_t inst_id, bool is_scan_rsp,
                                       tBTA_BLE_AD_MASK data_mask,
                                       tBTA_BLE_ADV_DATA data);
 extern void bta_dm_ble_multi_adv_upd_param(uint8_t inst_id,
                                            tBTA_BLE_ADV_PARAMS *p_params);
-extern void bta_dm_ble_multi_adv_enb(tBTA_BLE_ADV_PARAMS *p_params,
-                                     tBTA_BLE_MULTI_ADV_CBACK *p_cback,
-                                     void *p_ref);
+extern void bta_dm_ble_multi_adv_enb(uint8_t inst_id,
+                                     tBTA_BLE_ADV_PARAMS *p_params);
 
 extern void bta_dm_ble_setup_storage(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_enable_batch_scan(tBTA_DM_MSG * p_data);

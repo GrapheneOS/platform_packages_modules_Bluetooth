@@ -63,7 +63,6 @@ typedef struct
 
 typedef struct
 {
-    int8_t *clntif_map;
     // Includes the stored data for standard LE instance
     btgatt_multi_adv_inst_cb *inst_cb;
 
@@ -73,10 +72,6 @@ extern btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb();
 
 extern void btif_gattc_incr_app_count(void);
 extern void btif_gattc_decr_app_count(void);
-extern int btif_multi_adv_add_instid_map(int advertiser_id, int inst_id,
-        bool gen_temp_instid);
-extern int btif_multi_adv_instid_for_clientif(int advertiser_id);
-extern int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index);
 extern void btif_gattc_clear_clientif(int advertiser_id, bool stop_timer);
 extern void btif_gattc_cleanup_inst_cb(int inst_id, bool stop_timer);
 extern void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_inst_cb,
