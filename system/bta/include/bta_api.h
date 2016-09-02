@@ -909,12 +909,13 @@ typedef void (tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data);
 #define BTA_BLE_MULTI_ADV_DISABLE_EVT       2
 #define BTA_BLE_MULTI_ADV_PARAM_EVT         3
 #define BTA_BLE_MULTI_ADV_DATA_EVT          4
+#define BTA_BLE_MULTI_ADV_REG_EVT           5
 
 typedef uint8_t tBTA_BLE_MULTI_ADV_EVT;
 
 /* multi adv callback */
 typedef void (tBTA_BLE_MULTI_ADV_CBACK)(tBTA_BLE_MULTI_ADV_EVT event,
-                                        uint8_t inst_id, void *p_ref, tBTA_STATUS status);
+                                        uint8_t inst_id, tBTA_STATUS status);
 typedef uint32_t tBTA_DM_BLE_REF_VALUE;
 
 #define BTA_DM_BLE_PF_ENABLE_EVT       BTM_BLE_PF_ENABLE
@@ -2045,6 +2046,14 @@ extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask,
 *******************************************************************************/
 extern void BTA_DmBleBroadcast (bool start);
 
+/*******************************************************************************
+**
+** Register an advertising instance, status will be returned in |p_cback|
+** callback, with assigned id, if operation succeeds. Instance is freed when
+** advertising is disabled by calling |BTA_BleDisableAdvInstance|, or when any
+** of the operations fails.
+*******************************************************************************/
+extern void BTA_BleAdvRegisterInstance(tBTA_BLE_MULTI_ADV_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -2052,15 +2061,13 @@ extern void BTA_DmBleBroadcast (bool start);
 **
 ** Description      This function enables the Multi ADV instance feature
 **
-** Parameters       p_params Pointer to ADV param user defined structure
-**                  p_cback  Pointer to Multi ADV callback structure
-**                  p_ref - Reference pointer
+** Parameters       inst_id Instance ID
+**                  p_params Pointer to ADV param user defined structure
 **
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
-                                tBTA_BLE_MULTI_ADV_CBACK *p_cback,void *p_ref);
+extern void BTA_BleEnableAdvInstance(uint8_t inst_id, tBTA_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
 **

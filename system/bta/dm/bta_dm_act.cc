@@ -4810,6 +4810,13 @@ void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data)
     BTM_BleBroadcast(p_data->ble_observe.start);
 }
 
+
+void bta_dm_ble_multi_adv_register(tBTA_BLE_MULTI_ADV_CBACK *p_cback) {
+    bta_dm_cb.p_multi_adv_cback = p_cback;
+
+    BTM_BleAdvRegister((tBTM_BLE_MULTI_ADV_CBACK *)p_cback);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_dm_ble_multi_adv_enb
@@ -4819,20 +4826,18 @@ void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data)
 ** Parameters:
 **
 *******************************************************************************/
-void bta_dm_ble_multi_adv_enb(tBTA_BLE_ADV_PARAMS *p_params,
-                              tBTA_BLE_MULTI_ADV_CBACK *p_cback,void *p_ref)
+void bta_dm_ble_multi_adv_enb(uint8_t inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 {
     tBTM_STATUS btm_status = 0;
 
-    bta_dm_cb.p_multi_adv_cback = p_cback;
-    if (BTM_BleMaxMultiAdvInstanceCount() > 0 && NULL != p_ref) {
-        btm_status = BTM_BleEnableAdvInstance((tBTM_BLE_ADV_PARAMS *)p_params,
-                                              p_cback, p_ref);
+    if (BTM_BleMaxMultiAdvInstanceCount() > 0) {
+        btm_status = BTM_BleEnableAdvInstance(inst_id,
+                                              (tBTM_BLE_ADV_PARAMS *)p_params);
     }
 
     if (BTM_CMD_STARTED != btm_status) {
-        bta_dm_cb.p_multi_adv_cback(BTA_BLE_MULTI_ADV_ENB_EVT, 0xFF,
-                                    p_ref, BTA_FAILURE);
+        bta_dm_cb.p_multi_adv_cback(BTA_BLE_MULTI_ADV_ENB_EVT, inst_id,
+                                    BTA_FAILURE);
     }
 }
 /*******************************************************************************
@@ -4847,7 +4852,6 @@ void bta_dm_ble_multi_adv_enb(tBTA_BLE_ADV_PARAMS *p_params,
 void bta_dm_ble_multi_adv_upd_param(uint8_t inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 {
     tBTM_STATUS btm_status = 0;
-    void *p_ref = NULL;
 
     if (BTM_BleMaxMultiAdvInstanceCount() > 0 && inst_id > 0
         && inst_id < BTM_BleMaxMultiAdvInstanceCount()) {
@@ -4856,8 +4860,7 @@ void bta_dm_ble_multi_adv_upd_param(uint8_t inst_id, tBTA_BLE_ADV_PARAMS *p_para
     }
 
     if (BTM_CMD_STARTED != btm_status) {
-       p_ref = btm_ble_multi_adv_get_ref(inst_id);
-       bta_dm_cb.p_multi_adv_cback(BTA_BLE_MULTI_ADV_PARAM_EVT, inst_id, p_ref, BTA_FAILURE);
+       bta_dm_cb.p_multi_adv_cback(BTA_BLE_MULTI_ADV_PARAM_EVT, inst_id, BTA_FAILURE);
     }
 }
 /*******************************************************************************
@@ -4874,7 +4877,6 @@ void bta_dm_ble_multi_adv_data(uint8_t inst_id, bool is_scan_rsp,
                                tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA data)
 {
     tBTM_STATUS btm_status = 0;
-    void *p_ref = NULL;
 
     if (BTM_BleMaxMultiAdvInstanceCount() > 0 && inst_id > 0
         && inst_id < BTM_BleMaxMultiAdvInstanceCount()) {
@@ -4883,9 +4885,8 @@ void bta_dm_ble_multi_adv_data(uint8_t inst_id, bool is_scan_rsp,
     }
 
     if (BTM_CMD_STARTED != btm_status) {
-       p_ref = btm_ble_multi_adv_get_ref(inst_id);
        bta_dm_cb.p_multi_adv_cback(BTA_BLE_MULTI_ADV_DATA_EVT,
-                                   inst_id, p_ref, BTA_FAILURE);
+                                   inst_id, BTA_FAILURE);
     }
 }
 /*******************************************************************************
@@ -4900,7 +4901,6 @@ void bta_dm_ble_multi_adv_data(uint8_t inst_id, bool is_scan_rsp,
 void btm_dm_ble_multi_adv_disable(uint8_t inst_id)
 {
     tBTM_STATUS btm_status = 0;
-    void *p_ref = NULL;
 
     if (BTM_BleMaxMultiAdvInstanceCount() > 0 && inst_id > 0
         && inst_id < BTM_BleMaxMultiAdvInstanceCount()) {
@@ -4908,9 +4908,8 @@ void btm_dm_ble_multi_adv_disable(uint8_t inst_id)
     }
 
     if (BTM_CMD_STARTED != btm_status) {
-       p_ref = btm_ble_multi_adv_get_ref(inst_id);
        bta_dm_cb.p_multi_adv_cback(BTA_BLE_MULTI_ADV_DISABLE_EVT,
-                                   inst_id, p_ref, BTA_FAILURE);
+                                   inst_id, BTA_FAILURE);
     }
 }
 

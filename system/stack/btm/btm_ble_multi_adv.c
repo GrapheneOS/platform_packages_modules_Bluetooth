@@ -179,7 +179,7 @@ void btm_ble_multi_adv_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
 
     if (cb_evt != 0 && p_inst->p_cback != NULL)
     {
-        (p_inst->p_cback)(cb_evt, inst_id, p_inst->p_ref, status);
+        (p_inst->p_cback)(cb_evt, inst_id, status);
     }
     return;
 }
@@ -495,7 +495,7 @@ void btm_ble_multi_adv_reenable(uint8_t inst_id)
         else
           /* mark directed adv as disabled if adv has been stopped */
         {
-            (p_inst->p_cback)(BTM_BLE_MULTI_ADV_DISABLE_EVT,p_inst->inst_id,p_inst->p_ref,0);
+            (p_inst->p_cback)(BTM_BLE_MULTI_ADV_DISABLE_EVT,p_inst->inst_id,0);
              p_inst->in_use = false;
         }
      }
@@ -527,6 +527,32 @@ void btm_ble_multi_adv_enb_privacy(bool    enable)
     }
 }
 
+void BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback) {
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
+    BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+    if (cmn_ble_vsc_cb.adv_inst_max == 0)
+    {
+        BTM_TRACE_ERROR("%s: multi adv not supported", __func__);
+        (p_cback)(BTM_BLE_MULTI_ADV_REG_EVT, 0xFF, BTM_BLE_MULTI_ADV_FAILURE);
+        return;
+    }
+
+    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[0];
+    for (uint8_t i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i++, p_inst++) {
+        if (!p_inst->in_use) {
+            p_inst->in_use = TRUE;
+            p_inst->p_cback = p_cback;
+            (p_inst->p_cback)(BTM_BLE_MULTI_ADV_REG_EVT,
+                              p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
+            return;
+        }
+    }
+
+    BTM_TRACE_WARNING("%s: no free advertiser instance", __func__);
+    if (p_cback)
+        (p_cback)(BTM_BLE_MULTI_ADV_REG_EVT, 0xFF, BTM_BLE_MULTI_ADV_FAILURE);
+}
+
 /*******************************************************************************
 **
 ** Function         BTM_BleEnableAdvInstance
@@ -534,68 +560,49 @@ void btm_ble_multi_adv_enb_privacy(bool    enable)
 ** Description      This function enable a Multi-ADV instance with the specified
 **                  adv parameters
 **
-** Parameters       p_params: pointer to the adv parameter structure, set as default
+** Parameters       inst_id: adv instance ID
+**                  p_params: pointer to the adv parameter structure, set as default
 **                            adv parameter when the instance is enabled.
-**                  p_cback: callback function for the adv instance.
-**                  p_ref:  reference data attach to the adv instance to be enabled.
 **
 ** Returns          status
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
-                                      tBTM_BLE_MULTI_ADV_CBACK *p_cback,void *p_ref)
+tBTM_STATUS BTM_BleEnableAdvInstance (uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
 {
-    uint8_t i;
     tBTM_STATUS rt = BTM_NO_RESOURCES;
-    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[0];
 
-    BTM_TRACE_EVENT("BTM_BleEnableAdvInstance called");
+    BTM_TRACE_EVENT("%s:", __func__);
 
-    if (0 == btm_cb.cmn_ble_vsc_cb.adv_inst_max)
-    {
-        BTM_TRACE_ERROR("Controller does not support Multi ADV");
+    if (0 == btm_cb.cmn_ble_vsc_cb.adv_inst_max) {
+        BTM_TRACE_ERROR("%s: Controller does not support Multi ADV", __func__);
         return BTM_ERR_PROCESSING;
     }
 
-    if (NULL == p_inst)
-    {
-        BTM_TRACE_ERROR("Invalid instance in BTM_BleEnableAdvInstance");
+    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
+    if (!p_inst || !p_inst->in_use) {
+        BTM_TRACE_ERROR("%s: Invalid or not active instance", __func__);
         return BTM_ERR_PROCESSING;
     }
 
-    for (i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i ++, p_inst++)
-    {
-        if (false == p_inst->in_use)
-        {
-            p_inst->in_use = true;
-            /* configure adv parameter */
-            if (p_params)
-                rt = btm_ble_multi_adv_set_params(p_inst, p_params, 0);
-            else
-                rt = BTM_CMD_STARTED;
+    /* configure adv parameter */
+    if (p_params)
+        rt = btm_ble_multi_adv_set_params(p_inst, p_params, 0);
+    else
+        rt = BTM_CMD_STARTED;
 
-            /* enable adv */
-            BTM_TRACE_EVENT("btm_ble_enable_multi_adv being called with inst_id:%d",
-                p_inst->inst_id);
+    /* enable adv */
+    BTM_TRACE_EVENT("%s: being called with inst_id:%d", __func__, p_inst->inst_id);
 
-            if (BTM_CMD_STARTED == rt)
-            {
-                if ((rt = btm_ble_enable_multi_adv (true, p_inst->inst_id,
-                          BTM_BLE_MULTI_ADV_ENB_EVT)) == BTM_CMD_STARTED)
-                {
-                    p_inst->p_cback = p_cback;
-                    p_inst->p_ref   = p_ref;
-                }
-            }
-
-            if (BTM_CMD_STARTED != rt)
-            {
-                p_inst->in_use = false;
-                BTM_TRACE_ERROR("BTM_BleEnableAdvInstance failed");
-            }
-            break;
-        }
+    if (BTM_CMD_STARTED == rt) {
+        rt = btm_ble_enable_multi_adv(true, p_inst->inst_id,
+                                      BTM_BLE_MULTI_ADV_ENB_EVT);
     }
+
+    if (BTM_CMD_STARTED != rt) {
+        p_inst->in_use = false;
+        BTM_TRACE_ERROR("%s: failed", __func__);
+    }
+
     return rt;
 }
 
@@ -862,29 +869,5 @@ void btm_ble_multi_adv_cleanup(void)
     osi_free_and_reset((void **)&btm_multi_adv_cb.op_q.p_inst_id);
 }
 
-/*******************************************************************************
-**
-** Function         btm_ble_multi_adv_get_ref
-**
-** Description      This function obtains the reference pointer for the instance ID provided
-**
-** Parameters       inst_id - Instance ID
-**
-** Returns          void*
-**
-*******************************************************************************/
-void* btm_ble_multi_adv_get_ref(uint8_t inst_id)
-{
-    tBTM_BLE_MULTI_ADV_INST *p_inst = NULL;
-
-    if (inst_id < BTM_BleMaxMultiAdvInstanceCount())
-    {
-        p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
-        if (NULL != p_inst)
-            return p_inst->p_ref;
-    }
-
-    return NULL;
-}
 #endif
 
