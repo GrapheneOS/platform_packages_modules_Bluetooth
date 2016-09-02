@@ -172,6 +172,11 @@ typedef struct
     uint8_t             control;        /* Control role (Control/Target) */
 } tAVRC_CONN_CB;
 
+typedef struct {
+    uint8_t handle;
+    uint8_t label;
+    uint8_t msg_mask;
+} tAVRC_PARAM;
 
 
 /*****************************************************************************
