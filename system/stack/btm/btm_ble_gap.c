@@ -1197,15 +1197,18 @@ void BTM_BleSetScanParams(tGATT_IF client_if, uint32_t scan_interval, uint32_t s
 ** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data)
+void BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+                         tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
     uint8_t rsp_data[BTM_BLE_AD_DATA_LEN],
             *p = rsp_data;
 
     BTM_TRACE_EVENT ("%s: data_mask:%08x", __func__, data_mask);
-    if (!controller_get_interface()->supports_ble())
-        return BTM_ILLEGAL_VALUE;
+    if (!controller_get_interface()->supports_ble()) {
+        p_adv_data_cback(BTM_ILLEGAL_VALUE);
+        return;
+    }
 
     memset(rsp_data, 0, BTM_BLE_AD_DATA_LEN);
     btm_ble_build_adv_data(&data_mask, &p, p_data);
@@ -1222,7 +1225,7 @@ tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
     else
         status = BTM_ILLEGAL_VALUE;
 
-    return status;
+    p_adv_data_cback(status);
 }
 
 /*******************************************************************************
@@ -1236,7 +1239,8 @@ tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 ** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data)
+void BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+                         tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
     tBTM_BLE_LOCAL_ADV_DATA *p_cb_data = &btm_cb.ble_ctr_cb.inq_var.adv_data;
     uint8_t *p;
@@ -1244,8 +1248,10 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     BTM_TRACE_EVENT ("BTM_BleWriteAdvData ");
 
-    if (!controller_get_interface()->supports_ble())
-        return BTM_ILLEGAL_VALUE;
+    if (!controller_get_interface()->supports_ble()) {
+        p_adv_data_cback(BTM_ILLEGAL_VALUE);
+        return;
+    }
 
     memset(p_cb_data, 0, sizeof(tBTM_BLE_LOCAL_ADV_DATA));
     p = p_cb_data->ad_data;
@@ -1264,9 +1270,9 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     if (btsnd_hcic_ble_set_adv_data((uint8_t)(p_cb_data->p_pad - p_cb_data->ad_data),
                                     p_cb_data->ad_data))
-        return BTM_SUCCESS;
+        p_adv_data_cback(BTM_SUCCESS);
     else
-        return BTM_NO_RESOURCES;
+        p_adv_data_cback(BTM_NO_RESOURCES);
 
 }
 
