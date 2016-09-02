@@ -799,7 +799,6 @@ typedef struct
     tBTA_DM_BLE_PF_CFG_CBACK     *p_scan_filt_cfg_cback;
     tBTA_DM_BLE_PF_STATUS_CBACK  *p_scan_filt_status_cback;
     tBTA_DM_BLE_PF_PARAM_CBACK   *p_scan_filt_param_cback;
-    tBTA_BLE_MULTI_ADV_CBACK     *p_multi_adv_cback;
     tBTA_BLE_ENERGY_INFO_CBACK   *p_energy_info_cback;
 #endif
     uint16_t                      state;
@@ -1040,12 +1039,6 @@ extern void bta_dm_ble_update_conn_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_params(uint16_t adv_int_min, uint16_t adv_int_max,
                                       tBLE_BD_ADDR *p_dir_bda);
-extern void bta_dm_ble_set_adv_config (tBTA_BLE_AD_MASK data_mask,
-                                       tBTA_BLE_ADV_DATA *adv_cfg,
-                                       tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
-extern void bta_dm_ble_set_scan_rsp (tBTA_BLE_AD_MASK data_mask,
-                                     tBTA_BLE_ADV_DATA *adv_cfg,
-                                     tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 extern void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_data_length(tBTA_DM_MSG *p_data);
@@ -1055,15 +1048,6 @@ extern void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data);
 extern void bta_dm_scan_filter_param_setup (tBTA_DM_MSG *p_data);
 extern void bta_dm_enable_scan_filter(tBTA_DM_MSG *p_data);
 #endif
-extern void bta_dm_ble_multi_adv_register(tBTA_BLE_MULTI_ADV_CBACK *p_cback);
-extern void btm_dm_ble_multi_adv_disable(uint8_t inst_id);
-extern void bta_dm_ble_multi_adv_data(uint8_t inst_id, bool is_scan_rsp,
-                                      tBTA_BLE_AD_MASK data_mask,
-                                      tBTA_BLE_ADV_DATA data);
-extern void bta_dm_ble_multi_adv_upd_param(uint8_t inst_id,
-                                           tBTA_BLE_ADV_PARAMS *p_params);
-extern void bta_dm_ble_multi_adv_enb(uint8_t inst_id,
-                                     tBTA_BLE_ADV_PARAMS *p_params);
 
 extern void bta_dm_ble_setup_storage(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_enable_batch_scan(tBTA_DM_MSG * p_data);

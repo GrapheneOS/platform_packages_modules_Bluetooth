@@ -56,7 +56,7 @@ typedef struct
     uint8_t advertiser_id;
     tBTA_BLE_AD_MASK mask;
     tBTA_BLE_ADV_DATA data;
-    tBTA_BLE_ADV_PARAMS param;
+    tBTM_BLE_ADV_PARAMS param;
     alarm_t *multi_adv_timer;
     int timeout_s;
 } btgatt_multi_adv_inst_cb;
