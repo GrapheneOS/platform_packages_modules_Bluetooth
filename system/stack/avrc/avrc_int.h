@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@
 
 #include "avct_defs.h"
 #include "avrc_api.h"
+#include "osi/include/alarm.h"
+
+#include "osi/include/fixed_queue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,6 +99,14 @@ extern "C" {
 
 #define AVRC_MAX_CTRL_DATA_LEN      (AVRC_PACKET_LEN)
 
+/* Timeout for waiting for avrc command responses (in milliseconds) */
+#ifndef AVRC_CMD_TOUT_MS
+#define AVRC_CMD_TOUT_MS               (2*1000)
+#endif
+
+/* Flags for avrc_cb.ccb_int[].flags */
+#define AVRC_CB_FLAGS_RSP_PENDING   0x01        /* Waiting for AVRC response */
+
 /*****************************************************************************
 **  Type definitions
 *****************************************************************************/
@@ -118,9 +129,17 @@ typedef struct
 } tAVRC_RASM_CB;
 #endif
 
+/* AVRC internal connection control block */
 typedef struct
 {
-    tAVRC_CONN_CB       ccb[AVCT_NUM_CONN];
+    fixed_queue_t       *cmd_q;          /* Command queue for serializing vendor specific commands */
+    uint8_t               flags;          /* See AVRC_CB_FLAGS_* definitions */
+    alarm_t *           tle;            /* Command timeout timer */
+} tAVRC_CONN_INT_CB;
+
+typedef struct {
+    tAVRC_CONN_CB       ccb[AVCT_NUM_CONN];     /* Connection control block from AVRC_Open API */
+    tAVRC_CONN_INT_CB   ccb_int[AVCT_NUM_CONN]; /* Internal connection control block  */
 #if (AVRC_METADATA_INCLUDED == TRUE)
     tAVRC_FRAG_CB       fcb[AVCT_NUM_CONN];
     tAVRC_RASM_CB       rcb[AVCT_NUM_CONN];
@@ -141,12 +160,15 @@ extern tAVRC_CB *avrc_cb_ptr;
 #define avrc_cb (*avrc_cb_ptr)
 #endif
 
-extern bool    avrc_is_valid_pdu_id(uint8_t pdu_id);
-extern bool    avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value);
+extern bool avrc_is_valid_pdu_id(uint8_t pdu_id);
+extern bool avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value);
 extern BT_HDR * avrc_alloc_ctrl_pkt (uint8_t pdu);
 extern tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, uint16_t *p_vendor_unique_id);
 extern uint8_t avrc_opcode_from_pdu(uint8_t pdu);
-extern bool    avrc_is_valid_opcode(uint8_t opcode);
+extern bool avrc_is_valid_opcode(uint8_t opcode);
+extern void avrc_flush_cmd_q(uint8_t handle);
+void avrc_start_cmd_timer(uint8_t handle, uint8_t label, uint8_t msg_mask);
+void avrc_send_next_vendor_cmd (uint8_t handle);
 
 #ifdef __cplusplus
 }

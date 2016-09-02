@@ -233,7 +233,6 @@ void avct_lcb_event(tAVCT_LCB *p_lcb, uint8_t event, tAVCT_LCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-#if (AVCT_BROWSE_INCLUDED == TRUE)
 void avct_bcb_event(tAVCT_BCB *p_bcb, uint8_t event, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_LCB_ST_TBL    state_table;
@@ -265,7 +264,6 @@ void avct_bcb_event(tAVCT_BCB *p_bcb, uint8_t event, tAVCT_LCB_EVT *p_data)
         }
     }
 }
-#endif
 
 /*******************************************************************************
 **

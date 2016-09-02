@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2006-2012 Broadcom Corporation
+ *  Copyright (C) 2006-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@
 #define AVRC_REV_1_0        0x0100
 #define AVRC_REV_1_3        0x0103
 #define AVRC_REV_1_4        0x0104
+#define AVRC_REV_1_5        0x0105
+#define AVRC_REV_1_6        0x0106
 
 #define AVRC_PACKET_LEN             512 /* Per the spec, you must support 512 byte RC packets */
 
@@ -107,6 +109,7 @@
 #define AVRC_CO_BLUETOOTH_SIG   0x00FFFFFF
 #define AVRC_CO_WIDCOMM         0x00000361
 #define AVRC_CO_BROADCOM        0x00001018
+#define AVRC_CO_GOOGLE          0x00DAA119
 #define AVRC_CO_METADATA        0x00001958  /* Unique COMPANY ID for Metadata messages */
 
 /* State flag for Passthrough commands
@@ -211,6 +214,7 @@
 #define AVRC_PDU_CHANGE_PATH                    0x72
 #define AVRC_PDU_GET_ITEM_ATTRIBUTES            0x73
 #define AVRC_PDU_PLAY_ITEM                      0x74
+#define AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS         0x75        /* Added in post 1.5 */
 #define AVRC_PDU_SEARCH                         0x80
 #define AVRC_PDU_ADD_TO_NOW_PLAYING             0x90
 #define AVRC_PDU_GENERAL_REJECT                 0xA0
@@ -748,6 +752,12 @@ typedef uint8_t tAVRC_UID[AVRC_UID_SIZE];
 #define AVRC_PF_UID_PERSIST_OFF         8
 #define AVRC_PF_UID_PERSIST_SUPPORTED(x) ((x)[AVRC_PF_UID_PERSIST_OFF] & AVRC_PF_UID_PERSIST_MASK)
 
+/* NumberOfItems. This bit is set if player supports the GetTotalNumberOfItems browsing command. */
+#define AVRC_PF_GET_NUM_OF_ITEMS_BIT_NO    67
+#define AVRC_PF_GET_NUM_OF_ITEMS_MASK      0x08
+#define AVRC_PF_GET_NUM_OF_ITEMS_OFF       8
+#define AVRC_PF_GET_NUM_OF_ITEMS_SUPPORTED(x) ((x)[AVRC_PF_GET_NUM_OF_ITEMS_OFF] & AVRC_PF_GET_NUM_OF_ITEMS_MASK)
+
 /*****************************************************************************
 **  data type definitions
 *****************************************************************************/
@@ -1152,6 +1162,15 @@ typedef struct
     uint16_t    uid_counter;
 } tAVRC_ADD_TO_PLAY_CMD;
 
+/* GetTotalNumOfItems */
+typedef struct
+{
+    uint8_t       pdu;
+    tAVRC_STS   status;
+    uint8_t       opcode;         /* Op Code (assigned by AVRC_BldCommand according to pdu) */
+    uint8_t       scope;
+} tAVRC_GET_NUM_OF_ITEMS_CMD;
+
 typedef struct
 {
     uint8_t     pdu;
@@ -1196,6 +1215,7 @@ typedef union
     tAVRC_SEARCH_CMD            search;                 /* Search */
     tAVRC_PLAY_ITEM_CMD         play_item;              /* PlayItem */
     tAVRC_ADD_TO_PLAY_CMD       add_to_play;            /* AddToNowPlaying */
+    tAVRC_GET_NUM_OF_ITEMS_CMD  get_num_of_items;       /* GetTotalNumOfItems */
 } tAVRC_COMMAND;
 
 /* GetCapability */
@@ -1364,6 +1384,16 @@ typedef struct
     tAVRC_ATTR_ENTRY    *p_attr_list;
 } tAVRC_GET_ATTRS_RSP;
 
+/* Get Total Number of Items */
+typedef struct
+{
+    uint8_t               pdu;
+    tAVRC_STS           status;
+    uint8_t               opcode;         /* Op Code (copied from avrc_cmd.opcode by AVRC_BldResponse user. invalid one to generate according to pdu) */
+    uint16_t              uid_counter;
+    uint32_t              num_items;
+} tAVRC_GET_NUM_OF_ITEMS_RSP;
+
 /* Search */
 typedef struct
 {
@@ -1414,6 +1444,7 @@ typedef union
     tAVRC_GET_ITEMS_RSP             get_items;              /* GetFolderItems */
     tAVRC_CHG_PATH_RSP              chg_path;               /* ChangePath */
     tAVRC_GET_ATTRS_RSP             get_attrs;              /* GetItemAttrs */
+    tAVRC_GET_NUM_OF_ITEMS_RSP      get_num_of_items;       /* GetTotalNumberOfItems */
     tAVRC_SEARCH_RSP                search;                 /* Search */
     tAVRC_RSP                       play_item;              /* PlayItem */
     tAVRC_RSP                       add_to_play;            /* AddToNowPlaying */

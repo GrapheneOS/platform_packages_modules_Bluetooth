@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,17 +68,16 @@ void AVCT_Register(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask)
     /* initialize AVCTP data structures */
     memset(&avct_cb, 0, sizeof(tAVCT_CB));
 
-#if (AVCT_BROWSE_INCLUDED == TRUE)
     /* Include the browsing channel which uses eFCR */
     L2CA_Register(AVCT_BR_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_br_appl);
 
-    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
-    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
+    /* AVCTP browsing channel uses the same security service as AVCTP control channel */
+    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM, 0, 0);
+    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM, 0, 0);
 
     if (mtu_br < AVCT_MIN_BROWSE_MTU)
         mtu_br = AVCT_MIN_BROWSE_MTU;
     avct_cb.mtu_br = mtu_br;
-#endif
 
 #if defined(AVCT_INITIAL_TRACE_LEVEL)
     avct_cb.trace_level = AVCT_INITIAL_TRACE_LEVEL;
@@ -236,7 +235,6 @@ uint16_t AVCT_RemoveConn(uint8_t handle)
 *******************************************************************************/
 uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
 {
-#if (AVCT_BROWSE_INCLUDED == TRUE)
     uint16_t    result = AVCT_SUCCESS;
     tAVCT_CCB   *p_ccb;
     tAVCT_BCB   *p_bcb;
@@ -285,17 +283,13 @@ uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
         {
             /* bind bcb to ccb */
             p_ccb->p_bcb = p_bcb;
+            memcpy(p_bcb->peer_addr, p_ccb->p_lcb->peer_addr, BD_ADDR_LEN);
             AVCT_TRACE_DEBUG("ch_state: %d", p_bcb->ch_state);
             avct_bcb_event(p_bcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
         }
     }
 
     return result;
-#else
-    UNUSED(handle);
-    UNUSED(role);
-    return AVCT_NO_RESOURCES;
-#endif
 }
 
 /*******************************************************************************
@@ -313,7 +307,6 @@ uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
 *******************************************************************************/
 uint16_t AVCT_RemoveBrowse (uint8_t handle)
 {
-#if (AVCT_BROWSE_INCLUDED == TRUE)
     uint16_t            result = AVCT_SUCCESS;
     tAVCT_CCB           *p_ccb;
 
@@ -329,11 +322,8 @@ uint16_t AVCT_RemoveBrowse (uint8_t handle)
     {
         avct_bcb_event(p_ccb->p_bcb, AVCT_LCB_UL_UNBIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
     }
+
     return result;
-#else
-    UNUSED(handle);
-    return AVCT_NO_RESOURCES;
-#endif
 }
 
 /*******************************************************************************
@@ -349,16 +339,14 @@ uint16_t AVCT_RemoveBrowse (uint8_t handle)
 uint16_t AVCT_GetBrowseMtu (uint8_t handle)
 {
     uint16_t peer_mtu = AVCT_MIN_BROWSE_MTU;
-#if (AVCT_BROWSE_INCLUDED == TRUE)
+
     tAVCT_CCB           *p_ccb;
 
     if ((p_ccb = avct_ccb_by_idx(handle)) != NULL && p_ccb->p_bcb != NULL)
     {
         peer_mtu = p_ccb->p_bcb->peer_mtu;
     }
-#else
-    UNUSED(handle);
-#endif
+
     return peer_mtu;
 }
 
@@ -445,7 +433,6 @@ uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg)
         ul_msg.label = label;
         ul_msg.cr = cr;
 
-#if (AVCT_BROWSE_INCLUDED == TRUE)
         /* send msg event to bcb */
         if (p_msg->layer_specific == AVCT_DATA_BROWSE)
         {
@@ -463,7 +450,6 @@ uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg)
         }
         /* send msg event to lcb */
         else
-#endif
         {
             avct_lcb_event(p_ccb->p_lcb, AVCT_LCB_UL_MSG_EVT, (tAVCT_LCB_EVT *) &ul_msg);
         }
