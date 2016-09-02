@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright (C) 2009-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include <system/audio.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_av.h>
+#include <hardware/bt_rc.h>
 
 #include "bt_utils.h"
 #include "bta_api.h"
@@ -113,6 +114,8 @@ else\
 #define CHECK_RC_EVENT(e, d) \
     case BTA_AV_RC_OPEN_EVT: \
     case BTA_AV_RC_CLOSE_EVT: \
+    case BTA_AV_RC_BROWSE_OPEN_EVT: \
+    case BTA_AV_RC_BROWSE_CLOSE_EVT: \
     case BTA_AV_REMOTE_CMD_EVT: \
     case BTA_AV_VENDOR_CMD_EVT: \
     case BTA_AV_META_MSG_EVT: \
@@ -144,7 +147,7 @@ static void btif_av_event_free_data(btif_sm_event_t event, void *p_data);
 *************************************************************************/
 extern void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data);
 extern bool btif_rc_get_connected_peer(BD_ADDR peer_addr);
-extern uint8_t btif_rc_get_connected_peer_handle(void);
+extern uint8_t btif_rc_get_connected_peer_handle(BD_ADDR peer_addr);
 extern void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, bool bSendToApp);
 
 extern fixed_queue_t *btu_general_alarm_queue;
@@ -180,6 +183,8 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
         CASE_RETURN_STR(BTA_AV_PROTECT_RSP_EVT)
         CASE_RETURN_STR(BTA_AV_RC_OPEN_EVT)
         CASE_RETURN_STR(BTA_AV_RC_CLOSE_EVT)
+        CASE_RETURN_STR(BTA_AV_RC_BROWSE_OPEN_EVT)
+        CASE_RETURN_STR(BTA_AV_RC_BROWSE_CLOSE_EVT)
         CASE_RETURN_STR(BTA_AV_REMOTE_CMD_EVT)
         CASE_RETURN_STR(BTA_AV_REMOTE_RSP_EVT)
         CASE_RETURN_STR(BTA_AV_VENDOR_CMD_EVT)
@@ -369,6 +374,11 @@ static bool btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             btif_rc_handler(event, (tBTA_AV*)p_data);
             break;
 
+       case BTA_AV_RC_BROWSE_OPEN_EVT:
+           BTIF_TRACE_DEBUG("BTA_AV_RC_BROWSE_OPEN_EVT received");
+           btif_rc_handler(event, (tBTA_AV*)p_data);
+           break;
+
            /*
             * In case Signalling channel is not down
             * and remote started Streaming Procedure
@@ -516,6 +526,7 @@ static bool btif_av_state_opening_handler(btif_sm_event_t event, void *p_data)
                 BTIF_TRACE_WARNING("BTA_AV_OPEN_EVT::FAILED status: %d",
                                      p_bta_data->open.status );
                 BD_ADDR peer_addr;
+                uint8_t peer_handle = BTRC_HANDLE_NONE;
                 if ((btif_rc_get_connected_peer(peer_addr))
                     &&(!bdcmp(btif_av_cb.peer_bda.address, peer_addr)))
                 {
@@ -524,7 +535,10 @@ static bool btif_av_state_opening_handler(btif_sm_event_t event, void *p_data)
                      * A2DP conneciton failed, for any reason
                      */
                     BTIF_TRACE_WARNING(" Disconnecting AVRCP ");
-                    BTA_AvCloseRc(btif_rc_get_connected_peer_handle());
+                    peer_handle = btif_rc_get_connected_peer_handle(peer_addr);
+                    if (peer_handle != BTRC_HANDLE_NONE) {
+                        BTA_AvCloseRc(peer_handle);
+                    }
                 }
                 state = BTAV_CONNECTION_STATE_DISCONNECTED;
                 av_state  = BTIF_AV_STATE_IDLE;
@@ -677,6 +691,11 @@ static bool btif_av_state_closing_handler(btif_sm_event_t event, void *p_data)
 
         /* Handle the RC_CLOSE event for the cleanup */
         case BTA_AV_RC_CLOSE_EVT:
+            btif_rc_handler(event, (tBTA_AV*)p_data);
+            break;
+
+        /* Handle the RC_BROWSE_CLOSE event for tetsing*/
+        case BTA_AV_RC_BROWSE_CLOSE_EVT:
             btif_rc_handler(event, (tBTA_AV*)p_data);
             break;
 
@@ -1086,14 +1105,17 @@ void btif_av_event_deep_copy(uint16_t event, char *p_dest, char *p_src)
                 memcpy(av_dest->meta_msg.p_msg, av_src->meta_msg.p_msg,
                        sizeof(tAVRC_MSG));
 
-                if (av_src->meta_msg.p_msg->vendor.p_vendor_data &&
-                    av_src->meta_msg.p_msg->vendor.vendor_len)
-                {
-                    av_dest->meta_msg.p_msg->vendor.p_vendor_data = (uint8_t *)osi_calloc(
-                        av_src->meta_msg.p_msg->vendor.vendor_len);
-                    memcpy(av_dest->meta_msg.p_msg->vendor.p_vendor_data,
-                        av_src->meta_msg.p_msg->vendor.p_vendor_data,
-                        av_src->meta_msg.p_msg->vendor.vendor_len);
+                tAVRC_MSG *p_msg_src = av_src->meta_msg.p_msg;
+                tAVRC_MSG *p_msg_dest = av_dest->meta_msg.p_msg;
+
+                if ((p_msg_src->hdr.opcode == AVRC_OP_VENDOR) &&
+                        (p_msg_src->vendor.p_vendor_data &&
+                         p_msg_src->vendor.vendor_len)) {
+                    p_msg_dest->vendor.p_vendor_data = (uint8_t *)osi_calloc(
+                        p_msg_src->vendor.vendor_len);
+                    memcpy(p_msg_dest->vendor.p_vendor_data,
+                        p_msg_src->vendor.p_vendor_data,
+                        p_msg_src->vendor.vendor_len);
                 }
             }
             break;
@@ -1113,7 +1135,9 @@ static void btif_av_event_free_data(btif_sm_event_t event, void *p_data)
                 osi_free_and_reset((void **)&av->meta_msg.p_data);
 
                 if (av->meta_msg.p_msg) {
-                    osi_free(av->meta_msg.p_msg->vendor.p_vendor_data);
+                    if (av->meta_msg.p_msg->hdr.opcode == AVRC_OP_VENDOR) {
+                        osi_free(av->meta_msg.p_msg->vendor.p_vendor_data);
+                    }
                     osi_free_and_reset((void **)&av->meta_msg.p_msg);
                 }
             }
@@ -1541,6 +1565,7 @@ bt_status_t btif_av_execute_service(bool b_enable)
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
              |BTA_AV_FEAT_RCCT
              |BTA_AV_FEAT_ADV_CTRL
+             |BTA_AV_FEAT_BROWSE
 #endif
              ,bte_av_callback);
 #else
