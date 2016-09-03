@@ -2306,6 +2306,9 @@ void bta_hh_le_remove_dev_bg_conn(tBTA_HH_DEV_CB *p_dev_cb)
 
         BTA_GATTC_CancelOpen(bta_hh_cb.gatt_if, p_dev_cb->addr, false);
     }
+
+    /* deregister all notifications */
+    bta_hh_le_deregister_input_notif(p_dev_cb);
 }
 
 /*******************************************************************************
