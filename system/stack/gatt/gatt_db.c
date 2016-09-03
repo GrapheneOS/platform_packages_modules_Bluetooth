@@ -888,7 +888,7 @@ static void uuid_to_str(const tBT_UUID bt_uuid, char *str_buf)
 
     if (bt_uuid.len == LEN_UUID_16) {
         sprintf(str_buf, "0x%04x", bt_uuid.uu.uuid16);
-    } else if (bt_uuid.len == LEN_UUID_16) {
+    } else if (bt_uuid.len == LEN_UUID_32) {
         sprintf(str_buf, "0x%08x", bt_uuid.uu.uuid32);
     } else if (bt_uuid.len == LEN_UUID_128)
     {
