@@ -21,7 +21,7 @@
 #include <hardware/bluetooth.h>
 #include <vector>
 
-#include "bta_api.h"
+#include "ble_advertiser.h"
 
 #define CLNT_IF_IDX 0
 #define INST_ID_IDX 1

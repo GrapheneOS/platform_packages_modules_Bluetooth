@@ -28,6 +28,7 @@
 #include "btm_int.h"
 #include "bt_utils.h"
 #include "hcidefs.h"
+#include "ble_advertiser.h"
 #include "btm_ble_api.h"
 
 typedef void (*tBTM_BLE_MULTI_ADV_CMPL_CB) (uint8_t status, uint8_t inst_id);
@@ -84,7 +85,8 @@ tBTM_BLE_MULTI_ADV_INST_IDX_Q btm_multi_adv_idx_q;
 **  Externs
 ************************************************************************************/
 extern fixed_queue_t *btu_general_alarm_queue;
-extern void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
+//TODO(jpawlowski): get rid of this extern
+extern "C" void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
                                                const uint16_t connect_mode, const uint16_t disc_mode);
 
 /*******************************************************************************
@@ -808,17 +810,20 @@ void btm_ble_multi_adv_init()
     btm_multi_adv_idx_q.rear = -1;
 
     if (btm_cb.cmn_ble_vsc_cb.adv_inst_max > 0) {
-        btm_multi_adv_cb.p_adv_inst = osi_calloc(sizeof(tBTM_BLE_MULTI_ADV_INST) *
-                                                 (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
+        btm_multi_adv_cb.p_adv_inst = reinterpret_cast<tBTM_BLE_MULTI_ADV_INST *>(
+            osi_calloc(sizeof(tBTM_BLE_MULTI_ADV_INST) *
+                       (btm_cb.cmn_ble_vsc_cb.adv_inst_max)));
 
-        btm_multi_adv_cb.op_q.p_sub_code = osi_calloc(sizeof(uint8_t) *
-                                                      (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
+        btm_multi_adv_cb.op_q.p_sub_code = reinterpret_cast<uint8_t *>(
+            osi_calloc(sizeof(uint8_t) * (btm_cb.cmn_ble_vsc_cb.adv_inst_max)));
 
-        btm_multi_adv_cb.op_q.p_inst_id = osi_calloc(sizeof(uint8_t) *
-                                                     (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
+        btm_multi_adv_cb.op_q.p_inst_id = reinterpret_cast<uint8_t *>(
+            osi_calloc(sizeof(uint8_t) * (btm_cb.cmn_ble_vsc_cb.adv_inst_max)));
 
-        btm_multi_adv_cb.op_q.callback = osi_calloc(sizeof(tBTM_BLE_MULTI_ADV_CMPL_CB) *
-                                                     (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
+        btm_multi_adv_cb.op_q.callback =
+            reinterpret_cast<tBTM_BLE_MULTI_ADV_CMPL_CB *>(
+                osi_calloc(sizeof(tBTM_BLE_MULTI_ADV_CMPL_CB) *
+                           (btm_cb.cmn_ble_vsc_cb.adv_inst_max)));
     }
 
     /* Initialize adv instance indices and IDs. */
