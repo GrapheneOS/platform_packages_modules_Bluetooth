@@ -154,7 +154,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libbt-stack
 LOCAL_STATIC_LIBRARIES := libbt-hci
-LOCAL_SHARED_LIBRARIES := libcutils
+LOCAL_SHARED_LIBRARIES := libcutils libchrome
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
