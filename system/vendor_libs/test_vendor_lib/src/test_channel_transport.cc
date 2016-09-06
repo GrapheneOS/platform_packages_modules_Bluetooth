@@ -30,68 +30,78 @@ extern "C" {
 
 namespace test_vendor_lib {
 
-TestChannelTransport::TestChannelTransport(bool enabled, int port)
-    : enabled_(enabled), port_(port) {}
-
-bool TestChannelTransport::SetUp() {
-  CHECK(enabled_);
-
-  struct sockaddr_in listen_address, test_channel_address;
+int TestChannelTransport::SetUp(int port) {
+  struct sockaddr_in listen_address;
   socklen_t sockaddr_in_size = sizeof(struct sockaddr_in);
-  int listen_fd = -1;
-  int accept_fd = -1;
   memset(&listen_address, 0, sockaddr_in_size);
-  memset(&test_channel_address, 0, sockaddr_in_size);
 
-  if ((listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+  OSI_NO_INTR(listen_fd_ = socket(AF_INET, SOCK_STREAM, 0));
+  if (listen_fd_ < 0) {
     LOG_INFO(LOG_TAG, "Error creating socket for test channel.");
-    return false;
+    return -1;
   }
 
-  LOG_INFO(LOG_TAG, "port: %d", port_);
+  LOG_INFO(LOG_TAG, "port: %d", port);
   listen_address.sin_family = AF_INET;
-  listen_address.sin_port = htons(port_);
+  listen_address.sin_port = htons(port);
   listen_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-  if (bind(listen_fd,
+  if (bind(listen_fd_,
            reinterpret_cast<sockaddr*>(&listen_address),
            sockaddr_in_size) < 0) {
     LOG_INFO(LOG_TAG, "Error binding test channel listener socket to address.");
-    close(listen_fd);
-    return false;
+    close(listen_fd_);
+    return -1;
   }
 
-  if (listen(listen_fd, 1) < 0) {
+  if (listen(listen_fd_, 1) < 0) {
     LOG_INFO(LOG_TAG, "Error listening for test channel.");
-    close(listen_fd);
-    return false;
+    close(listen_fd_);
+    return -1;
+  }
+  return listen_fd_;
+}
+
+void TestChannelTransport::CleanUp() {
+  if (listen_fd_ == -1) {
+    return;
+  }
+  if (close(listen_fd_)) {
+    LOG_ERROR(LOG_TAG, "Error closing listen_fd_.");
+  }
+  listen_fd_ = -1;
+}
+
+int TestChannelTransport::Accept(int listen_fd_) {
+  int accept_fd = -1;
+  struct sockaddr_in test_channel_address;
+  socklen_t sockaddr_in_size = sizeof(struct sockaddr_in);
+  memset(&test_channel_address, 0, sockaddr_in_size);
+
+  OSI_NO_INTR(accept_fd =
+                  accept(listen_fd_,
+                         reinterpret_cast<sockaddr*>(&test_channel_address),
+                         &sockaddr_in_size));
+  if (accept_fd < 0) {
+    LOG_INFO(LOG_TAG,
+             "Error accepting test channel connection errno=%d (%s).",
+             errno,
+             strerror(errno));
+
+    if (errno != EAGAIN && errno != EWOULDBLOCK) {
+      LOG_ERROR(LOG_TAG, "Closing listen_fd_ (won't try again).");
+      close(listen_fd_);
+      return -1;
+    }
   }
 
-  if ((accept_fd = accept(listen_fd,
-                          reinterpret_cast<sockaddr*>(&test_channel_address),
-                          &sockaddr_in_size)) < 0) {
-    LOG_INFO(LOG_TAG, "Error accepting test channel connection.");
-    close(listen_fd);
-    return false;
-  }
+  LOG_INFO(LOG_TAG, "accept_fd = %d.", accept_fd);
 
-  fd_.reset(new base::ScopedFD(accept_fd));
-  return GetFd() >= 0;
+  return accept_fd;
 }
 
-int TestChannelTransport::GetFd() {
-  return fd_->get();
-}
-
-bool TestChannelTransport::IsEnabled() {
-  return enabled_;
-}
-
-// base::MessageLoopForIO::Watcher overrides:
-void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
-  CHECK(fd == GetFd());
-
-  LOG_INFO(LOG_TAG, "Event ready in TestChannelTransport on fd: %d", fd);
+void TestChannelTransport::OnCommandReady(int fd,
+                                          std::function<void(void)> unwatch) {
   uint8_t command_name_size = 0;
   read(fd, &command_name_size, 1);
   vector<uint8_t> command_name_raw;
@@ -101,8 +111,10 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   LOG_INFO(
       LOG_TAG, "Received command from test channel: %s", command_name.data());
 
-  if (command_name == "CLOSE_TEST_CHANNEL") {
-    fd_.reset(nullptr);
+  if (command_name == "CLOSE_TEST_CHANNEL" || command_name == "") {
+    LOG_INFO(LOG_TAG, "Test channel closed");
+    unwatch();
+    close(fd);
     return;
   }
 
@@ -129,10 +141,6 @@ void TestChannelTransport::RegisterCommandHandler(
     const std::function<void(const std::string&, const vector<std::string>&)>&
         callback) {
   command_handler_ = callback;
-}
-
-void TestChannelTransport::Disable() {
-  enabled_ = false;
 }
 
 }  // namespace test_vendor_lib {
