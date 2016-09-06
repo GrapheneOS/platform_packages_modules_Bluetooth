@@ -32,23 +32,20 @@ namespace test_vendor_lib {
 // Contains the three core objects that make up the test vendor library: the
 // HciTransport for communication, the HciHandler for processing commands, and
 // the Controller for actual command implementations. The VendorManager shall
-// operate as a global singleton and be used in bt_vendor.cc to perform vendor
-// specific operations, via |vendor_callbacks_|, and to provide access to the
-// test controller by setting up a message loop (on another thread) that the HCI
-// will talk to and controller methods will execute on.
+// be used in bt_vendor.cc to provide access to the test controller by setting
+// up a message loop (on another thread) that the HCI will talk to and
+// controller methods will execute on.
 class VendorManager {
  public:
-  // Functions that operate on the global manager instance. Initialize()
-  // is called by the vendor library's TestVendorInitialize() function to create
-  // the global manager and must be called before Get() and CleanUp().
-  // CleanUp() should be called when a call to TestVendorCleanUp() is made
-  // since the global manager should live throughout the entire time the test
-  // vendor library is in use.
-  static void CleanUp();
+  VendorManager();
 
-  static VendorManager* Get();
+  ~VendorManager() = default;
 
-  static void Initialize();
+  void CleanUp();
+
+  // Initializes the controller and sets up the test channel to wait for
+  // connections.
+  bool Initialize();
 
   void CloseHciFd();
 
@@ -60,17 +57,9 @@ class VendorManager {
   // the vendor library from the HCI in TestVendorInit().
   void SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks);
 
-  // Returns true if |thread_| is able to be started and the
-  // StartingWatchingOnThread() task has been posted to the task runner.
-  bool Run();
-
  private:
-  VendorManager();
-
-  ~VendorManager() = default;
-
-  // Starts watching for incoming data from the HCI and the test hook.
-  void StartWatchingOnThread();
+  // Set up a test channel on _port_
+  void SetUpTestChannel(int port);
 
   // Creates the HCI's communication channel and overrides IO callbacks to
   // receive and send packets.
@@ -85,9 +74,6 @@ class VendorManager {
 
   // Configuration callbacks provided by the HCI for use in TestVendorOp().
   bt_vendor_callbacks_t vendor_callbacks_;
-
-  // True if the underlying message loop (in |thread_|) is running.
-  bool running_;
 
   // The object that manages asynchronous tasks such as watching a file
   // descriptor or doing something in the future
