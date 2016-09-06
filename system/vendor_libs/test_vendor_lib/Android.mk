@@ -56,6 +56,8 @@ LOCAL_CFLAGS += \
   -UNDEBUG \
   -DLOG_NDEBUG=1
 
+LOCAL_CFLAGS += -DEXPORT_SYMBOL="__attribute__((visibility(\"default\")))"
+
 include $(BUILD_SHARED_LIBRARY)
 
 # test-vendor unit tests for host
