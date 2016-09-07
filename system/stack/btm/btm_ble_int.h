@@ -347,7 +347,6 @@ typedef struct
     uint8_t link_count[2]; /* total link count master and slave*/
 } tBTM_BLE_CB;
 
-extern void btm_ble_adv_raddr_timer_timeout(void *data);
 extern void btm_ble_refresh_raddr_timer_timeout(void *data);
 extern void btm_ble_process_adv_pkt (uint8_t *p);
 extern void btm_ble_proc_scan_rsp_rpt (uint8_t *p);
@@ -458,7 +457,6 @@ extern void btm_ble_resolving_list_init(uint8_t max_irk_list_sz);
 extern void btm_ble_resolving_list_cleanup(void);
 #endif
 
-extern void btm_ble_multi_adv_configure_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst);
 extern void btm_ble_multi_adv_init(void);
 extern void* btm_ble_multi_adv_get_ref(uint8_t inst_id);
 extern void btm_ble_multi_adv_cleanup(void);
