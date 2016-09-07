@@ -1311,7 +1311,7 @@ tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
 *******************************************************************************/
 void btm_ble_adv_filter_init(void)
 {
-    memset(&btm_ble_adv_filt_cb, 0, sizeof(tBTM_BLE_MULTI_ADV_CB));
+    memset(&btm_ble_adv_filt_cb, 0, sizeof(tBTM_BLE_ADV_FILTER_CB));
     if (BTM_SUCCESS != btm_ble_obtain_vsc_details())
        return;
 
