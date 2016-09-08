@@ -30,6 +30,38 @@
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 
+typedef struct
+{
+    uint8_t *p_sub_code; /* dynamic array to store sub code */
+    uint8_t *p_inst_id;  /* dynamic array to store instance id */
+    uint8_t pending_idx;
+    uint8_t next_idx;
+}tBTM_BLE_MULTI_ADV_OPQ;
+
+typedef struct
+{
+    uint8_t                     inst_id;
+    bool                        in_use;
+    uint8_t                     adv_evt;
+    BD_ADDR                     rpa;
+    alarm_t                     *adv_raddr_timer;
+    tBTM_BLE_MULTI_ADV_CBACK    *p_cback;
+    uint8_t                     index;
+}tBTM_BLE_MULTI_ADV_INST;
+
+typedef struct
+{
+    uint8_t inst_index_queue[BTM_BLE_MULTI_ADV_MAX];
+    int front;
+    int rear;
+}tBTM_BLE_MULTI_ADV_INST_IDX_Q;
+
+typedef struct
+{
+    tBTM_BLE_MULTI_ADV_INST *p_adv_inst; /* dynamic array to store adv instance */
+    tBTM_BLE_MULTI_ADV_OPQ  op_q;
+}tBTM_BLE_MULTI_ADV_CB;
+
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -184,6 +216,16 @@ void btm_ble_multi_adv_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
     return;
 }
 
+void btm_ble_multi_adv_configure_rpa(tBTM_BLE_MULTI_ADV_INST *p_inst);
+
+void btm_ble_adv_raddr_timer_timeout(void *data)
+{
+    if (BTM_BleLocalPrivacyEnabled() &&
+        (BTM_BleMaxMultiAdvInstanceCount() > 0)) {
+        btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST *)data);
+    }
+}
+
 /*******************************************************************************
 **
 ** Function         btm_ble_enable_multi_adv
@@ -262,7 +304,7 @@ void btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     UINT8_TO_STREAM  (pp, p_params->adv_type);
 
 #if (BLE_PRIVACY_SPT == TRUE)
-    if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE)
+    if (BTM_BleLocalPrivacyEnabled())
     {
         UINT8_TO_STREAM  (pp, BLE_ADDR_RANDOM);
         BDADDR_TO_STREAM (pp, p_inst->rpa);
@@ -305,7 +347,7 @@ void btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     p_inst->adv_evt = p_params->adv_type;
 
 #if (BLE_PRIVACY_SPT == TRUE)
-    if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
+    if (BTM_BleLocalPrivacyEnabled()) {
         alarm_set_on_queue(p_inst->adv_raddr_timer,
                            BTM_BLE_PRIVATE_ADDR_INT_MS,
                            btm_ble_adv_raddr_timer_timeout, p_inst,
@@ -747,7 +789,7 @@ void btm_ble_multi_adv_vse_cback(uint8_t len, uint8_t *p)
         if ((idx = btm_handle_to_acl_index(conn_handle)) != MAX_L2CAP_LINKS)
         {
 #if (BLE_PRIVACY_SPT == TRUE)
-            if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE &&
+            if (BTM_BleLocalPrivacyEnabled() &&
                 adv_inst <= BTM_BLE_MULTI_ADV_MAX && adv_inst !=  BTM_BLE_MULTI_ADV_DEFAULT_STD)
             {
                 memcpy(btm_cb.acl_db[idx].conn_addr, btm_multi_adv_cb.p_adv_inst[adv_inst - 1].rpa,
