@@ -130,6 +130,10 @@ static bool bta_av_co_audio_peer_supports_codec(tBTA_AV_CO_PEER *p_peer, uint8_t
 static bool bta_av_co_audio_peer_src_supports_codec(tBTA_AV_CO_PEER *p_peer, uint8_t *p_src_index);
 
 
+const uint8_t *bta_av_co_get_codec_info(void)
+{
+    return bta_av_co_cb.codec_cfg.info;
+}
 
 /*******************************************************************************
  **

@@ -46,11 +46,6 @@ extern "C" {
 #define A2D_SUPF_RECORDER   0x0004
 #define A2D_SUPF_AMP        0x0008
 
-/* AV Media Types */
-#define A2D_MEDIA_TYPE_AUDIO    0x00    /* audio media type + RFA */
-#define A2D_MEDIA_TYPE_VIDEO    0x10    /* video media type + RFA */
-#define A2D_MEDIA_TYPE_MULTI    0x20    /* multimedia media type + RFA */
-
 /* AV Media Codec Type (Audio Codec ID) */
 #define A2D_MEDIA_CT_SBC        0x00    /* SBC media codec type */
 #define A2D_MEDIA_CT_NON_A2DP   0xFF    /* Non-A2DP media codec type (vendor-specific codec) */
@@ -70,8 +65,8 @@ typedef uint8_t tA2D_CODEC_TYPE;    /* A2DP Codec type: A2D_MEDIA_CT_* */
 #define A2D_NS_CH_MODE        0xC6  /* Channel Mode is not supported */
 #define A2D_BAD_SUBBANDS      0xC7  /* None or multiple values have been selected for Number of Subbands */
 #define A2D_NS_SUBBANDS       0xC8  /* Number of Subbands is not supported */
-#define A2D_BAD_ALLOC_MTHD    0xC9  /* None or multiple values have been selected for Allocation Method */
-#define A2D_NS_ALLOC_MTHD     0xCA  /* Allocation Method is not supported */
+#define A2D_BAD_ALLOC_METHOD  0xC9  /* None or multiple values have been selected for Allocation Method */
+#define A2D_NS_ALLOC_METHOD   0xCA  /* Allocation Method is not supported */
 #define A2D_BAD_MIN_BITPOOL   0xCB  /* Minimum Bitpool Value is not valid */
 #define A2D_NS_MIN_BITPOOL    0xCC  /* Minimum Bitpool Value is not supported */
 #define A2D_BAD_MAX_BITPOOL   0xCD  /* Maximum Bitpool Value is not valid */
@@ -343,8 +338,73 @@ const char *A2D_CodecSepIndexStr(tA2D_CODEC_SEP_INDEX codec_sep_index);
 // Initializes codec-specific information into |tAVDT_CFG| configuration
 // entry pointed by |p_cfg|. The selected codec is defined by
 // |codec_sep_index|.
+// Returns true on success, otherwise false.
 bool A2D_InitCodecConfig(tA2D_CODEC_SEP_INDEX codec_sep_index,
                          tAVDT_CFG *p_cfg);
+
+// Gets the |AVDT_MEDIA_TYPE_*| media type from the codec capability
+// in |p_codec_info|.
+uint8_t A2D_GetMediaType(const uint8_t *p_codec_info);
+
+// Gets the track sampling frequency value for the A2DP codec.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the track sampling frequency on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetTrackFrequency(const uint8_t *p_codec_info);
+
+// Gets the channel count for the A2DP codec.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the channel count on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetTrackChannelCount(const uint8_t *p_codec_info);
+
+// Gets the number of subbands for the A2DP codec.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the number of subbands on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetNumberOfSubbands(const uint8_t *p_codec_info);
+
+// Gets the number of blocks for the A2DP codec.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the number of blocks on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetNumberOfBlocks(const uint8_t *p_codec_info);
+
+// Gets the allocation method code for the A2DP codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the allocation method code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetAllocationMethodCode(const uint8_t *p_codec_info);
+
+// Gets the channel mode code for the A2DP codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the channel mode code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetChannelModeCode(const uint8_t *p_codec_info);
+
+// Gets the sampling frequency code for the A2DP codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the sampling frequency code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetSamplingFrequencyCode(const uint8_t *p_codec_info);
+
+// Gets the channel type for the A2DP sink codec:
+// 1 for mono, or 3 for dual/stereo/joint.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the channel type on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetSinkTrackChannelType(const uint8_t *p_codec_info);
+
+// Computes the number of frames to process in a time window for the A2DP
+// sink codec. |time_interval_ms| is the time interval (in milliseconds).
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the number of frames to process on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetSinkFramesCountToProcess(uint64_t time_interval_ms,
+                                    const uint8_t *p_codec_info);
 
 #ifdef __cplusplus
 }

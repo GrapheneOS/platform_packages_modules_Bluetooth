@@ -1170,22 +1170,23 @@ static void bte_av_sink_media_callback(tBTA_AV_EVT event,
     }
     case BTA_AV_SINK_MEDIA_CFG_EVT: {
         btif_av_sink_config_req_t config_req;
-        tA2D_SBC_CIE sbc_cie;
 
         /* send a command to BT Media Task */
         btif_reset_decoder((uint8_t *)(p_data->avk_config.codec_info));
-        tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie,
-                (uint8_t *)(p_data->avk_config.codec_info), false);
-        if (a2d_status != A2D_SUCCESS) {
-            APPL_TRACE_ERROR("%s: A2D_ParsSbcInfo fail: %d", __func__,
-                             a2d_status);
-            break;
-        }
         /* Switch to BTIF context */
         config_req.sample_rate =
-            A2D_sbc_get_track_frequency(sbc_cie.samp_freq);
+            A2D_GetTrackFrequency(p_data->avk_config.codec_info);
+        if (config_req.sample_rate == -1) {
+            APPL_TRACE_ERROR("%s: cannot get the track frequency", __func__);
+            break;
+        }
         config_req.channel_count =
-            A2D_sbc_get_track_channel_count(sbc_cie.ch_mode);
+            A2D_GetTrackChannelCount(p_data->avk_config.codec_info);
+        if (config_req.channel_count == -1) {
+            APPL_TRACE_ERROR("%s: cannot get the channel count", __func__);
+            break;
+        }
+
         memcpy(&config_req.peer_bd, (uint8_t *)(p_data->avk_config.bd_addr),
                sizeof(config_req.peer_bd));
         btif_transfer_context(btif_av_handle_event,
