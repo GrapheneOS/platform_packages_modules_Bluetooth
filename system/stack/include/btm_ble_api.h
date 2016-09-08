@@ -501,40 +501,8 @@ typedef struct
     tBTM_BLE_ADV_TX_POWER tx_power;
 }tBTM_BLE_ADV_PARAMS;
 
-typedef struct
-{
-    uint8_t *p_sub_code; /* dynamic array to store sub code */
-    uint8_t *p_inst_id;  /* dynamic array to store instance id */
-    uint8_t pending_idx;
-    uint8_t next_idx;
-}tBTM_BLE_MULTI_ADV_OPQ;
-
 typedef void (tBTM_BLE_MULTI_ADV_CBACK)(tBTM_BLE_MULTI_ADV_EVT evt, uint8_t inst_id,
                 tBTM_STATUS status);
-
-typedef struct
-{
-    uint8_t                     inst_id;
-    bool                        in_use;
-    uint8_t                     adv_evt;
-    BD_ADDR                     rpa;
-    alarm_t                     *adv_raddr_timer;
-    tBTM_BLE_MULTI_ADV_CBACK    *p_cback;
-    uint8_t                     index;
-}tBTM_BLE_MULTI_ADV_INST;
-
-typedef struct
-{
-    uint8_t inst_index_queue[BTM_BLE_MULTI_ADV_MAX];
-    int front;
-    int rear;
-}tBTM_BLE_MULTI_ADV_INST_IDX_Q;
-
-typedef struct
-{
-    tBTM_BLE_MULTI_ADV_INST *p_adv_inst; /* dynamic array to store adv instance */
-    tBTM_BLE_MULTI_ADV_OPQ  op_q;
-}tBTM_BLE_MULTI_ADV_CB;
 
 typedef uint8_t tGATT_IF;
 
