@@ -51,7 +51,12 @@ class HciTransportTest : public ::testing::Test {
     StartThread();
   }
 
-  ~HciTransportTest() { transport_.CloseHciFd(); }
+  ~HciTransportTest() {
+    async_manager_.StopWatchingFileDescriptor(transport_.GetVendorFd());
+    transport_.CloseVendorFd();
+    async_manager_.StopWatchingFileDescriptor(transport_.GetHciFd());
+    transport_.CloseHciFd();
+  }
 
   void CommandCallback(std::unique_ptr<CommandPacket> command) {
     ++command_callback_count_;
@@ -59,7 +64,6 @@ class HciTransportTest : public ::testing::Test {
     EXPECT_EQ(DATA_TYPE_COMMAND, command->GetType());
     EXPECT_EQ(HCI_RESET, command->GetOpcode());
     EXPECT_EQ(static_cast<size_t>(1), command->GetPayloadSize());
-    transport_.CloseVendorFd();
     SignalCommandhandlerFinished();
   }
 
@@ -70,7 +74,6 @@ class HciTransportTest : public ::testing::Test {
     EXPECT_EQ(HCI_RESET, command->GetOpcode());
     EXPECT_EQ(static_cast<size_t>(1), command->GetPayloadSize());
     if (command_callback_count_ == kMultiIterations) {
-      transport_.CloseVendorFd();
       SignalCommandhandlerFinished();
     }
   }
@@ -92,14 +95,13 @@ class HciTransportTest : public ::testing::Test {
   }
 
  private:
-  // Workaround because ASSERT cannot be used directly in a constructor
+  // Workarounds because ASSERT cannot be used directly in a constructor
   void SetUpTransport() { ASSERT_TRUE(transport_.SetUp()); }
 
   void StartThread() {
     ASSERT_TRUE(async_manager_.WatchFdForNonBlockingReads(
-                    transport_.GetVendorFd(), [this](int fd) {
-                      transport_.OnFileCanReadWithoutBlocking(fd);
-                    }) == 0);
+                    transport_.GetVendorFd(),
+                    [this](int fd) { transport_.OnCommandReady(fd); }) == 0);
   }
 
   void SignalCommandhandlerFinished() {
@@ -132,8 +134,5 @@ TEST_F(HciTransportTest, MultiCommandCallback) {
   WaitCommandhandlerFinish();
   EXPECT_EQ(kMultiIterations, command_callback_count_);
 }
-
-// TODO(dennischeng): Add tests for PostEventResponse and
-// PostDelayedEventResponse.
 
 }  // namespace test_vendor_lib

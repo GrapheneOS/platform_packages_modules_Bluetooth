@@ -16,16 +16,13 @@
 
 #define LOG_TAG "hci_transport"
 
-#include <cinttypes>
-
 #include "hci_transport.h"
 
-extern "C" {
+#include <assert.h>
 #include <sys/socket.h>
 
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
-}  // extern "C"
 
 namespace test_vendor_lib {
 
@@ -49,7 +46,7 @@ int HciTransport::GetVendorFd() const {
 
 bool HciTransport::SetUp() {
   int socketpair_fds[2];
-  // TODO(dennischeng): Use SOCK_SEQPACKET here.
+
   const int success = socketpair(AF_LOCAL, SOCK_STREAM, 0, socketpair_fds);
   if (success < 0)
     return false;
@@ -58,40 +55,33 @@ bool HciTransport::SetUp() {
   return true;
 }
 
-void HciTransport::OnFileCanReadWithoutBlocking(int fd) {
+void HciTransport::OnCommandReady(int fd) {
   CHECK(fd == GetVendorFd());
-  LOG_INFO(LOG_TAG, "Event ready in HciTransport on fd: %d.", fd);
+  LOG_VERBOSE(LOG_TAG, "Command ready in HciTransport on fd: %d.", fd);
 
   const serial_data_type_t packet_type = packet_stream_.ReceivePacketType(fd);
   switch (packet_type) {
     case (DATA_TYPE_COMMAND): {
-      ReceiveReadyCommand();
+      command_handler_(packet_stream_.ReceiveCommand(fd));
       break;
     }
 
     case (DATA_TYPE_ACL): {
-      LOG_INFO(LOG_TAG, "ACL data packets not currently supported.");
+      LOG_ERROR(LOG_TAG, "ACL data packets not currently supported.");
       break;
     }
 
     case (DATA_TYPE_SCO): {
-      LOG_INFO(LOG_TAG, "SCO data packets not currently supported.");
+      LOG_ERROR(LOG_TAG, "SCO data packets not currently supported.");
       break;
     }
 
-    // TODO(dennischeng): Add debug level assert here.
     default: {
-      LOG_INFO(LOG_TAG, "Error received an invalid packet type from the HCI.");
+      LOG_ERROR(LOG_TAG, "Error received an invalid packet type from the HCI.");
+      assert(packet_type == DATA_TYPE_COMMAND);
       break;
     }
   }
-}
-
-void HciTransport::ReceiveReadyCommand() const {
-  std::unique_ptr<CommandPacket> command =
-      packet_stream_.ReceiveCommand(GetVendorFd());
-  LOG_INFO(LOG_TAG, "Received command packet.");
-  command_handler_(std::move(command));
 }
 
 void HciTransport::RegisterCommandHandler(
@@ -99,51 +89,8 @@ void HciTransport::RegisterCommandHandler(
   command_handler_ = callback;
 }
 
-void HciTransport::RegisterEventScheduler(
-    const std::function<void(std::chrono::milliseconds, const TaskCallback&)>&
-        evtScheduler) {
-  schedule_event_ = evtScheduler;
-}
-
-void HciTransport::RegisterPeriodicEventScheduler(
-    const std::function<void(std::chrono::milliseconds,
-                             std::chrono::milliseconds,
-                             const TaskCallback&)>& periodicEvtScheduler) {
-  schedule_periodic_event_ = periodicEvtScheduler;
-}
-
-void HciTransport::PostEventResponse(const EventPacket& event) {
-  schedule_event_(std::chrono::milliseconds(0), [this, event]() {
-    packet_stream_.SendEvent(event, GetVendorFd());
-  });
-}
-
-void HciTransport::PostDelayedEventResponse(const EventPacket& event,
-                                            std::chrono::milliseconds delay) {
-  // TODO(dennischeng): When it becomes available for MessageLoopForIO, use the
-  // thread's task runner to post |PostEventResponse| as a delayed task, being
-  // sure to CHECK the appropriate task runner attributes using
-  // base::ThreadTaskRunnerHandle.
-
-  // The system does not support high resolution timing and the clock could be
-  // as coarse as ~15.6 ms so the event is sent without a delay to avoid
-  // inconsistent event responses.
-  if (!base::TimeTicks::IsHighResolution()) {
-    LOG_INFO(LOG_TAG,
-             "System does not support high resolution timing. Sending event "
-             "without delay.");
-    schedule_event_(std::chrono::milliseconds(0), [this, event]() {
-      packet_stream_.SendEvent(event, GetVendorFd());
-    });
-  }
-
-  LOG_INFO(LOG_TAG,
-           "Posting event response with delay of %" PRId64 " ms.",
-           static_cast<int64_t>(std::chrono::milliseconds(delay).count()));
-
-  schedule_event_(delay, [this, event]() {
-    packet_stream_.SendEvent(event, GetVendorFd());
-  });
+void HciTransport::PostEvent(const EventPacket& event) {
+  packet_stream_.SendEvent(event, GetVendorFd());
 }
 
 }  // namespace test_vendor_lib
