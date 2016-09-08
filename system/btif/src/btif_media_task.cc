@@ -311,7 +311,7 @@ typedef struct
     uint32_t timestamp;
     uint8_t TxTranscoding;
     tBTIF_AV_FEEDING_MODE feeding_mode;
-    tBTIF_AV_MEDIA_FEEDINGS media_feeding;
+    tA2D_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_AV_MEDIA_FEEDINGS_STATE media_feeding_state;
     SBC_ENC_PARAMS encoder;
     uint8_t busy_level;
@@ -956,7 +956,7 @@ void btif_a2dp_on_init(void)
 
 void btif_a2dp_setup_codec(void)
 {
-    tBTIF_AV_MEDIA_FEEDINGS media_feeding;
+    tA2D_AV_MEDIA_FEEDINGS media_feeding;
 
     APPL_TRACE_EVENT("## A2DP SETUP CODEC ##");
 
@@ -966,7 +966,7 @@ void btif_a2dp_setup_codec(void)
     media_feeding.cfg.pcm.sampling_freq = BTIF_A2DP_SRC_SAMPLING_RATE;
     media_feeding.cfg.pcm.bit_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
     media_feeding.cfg.pcm.num_channel = BTIF_A2DP_SRC_NUM_CHANNELS;
-    media_feeding.format = BTIF_AV_CODEC_PCM;
+    media_feeding.format = tA2D_AV_CODEC_PCM;
 
     if (bta_av_co_audio_set_codec(&media_feeding))
     {
@@ -2119,7 +2119,7 @@ static void btif_media_task_audio_feeding_init(BT_HDR *p_msg)
     /* Handle different feeding formats */
     switch (p_feeding->feeding.format)
     {
-        case BTIF_AV_CODEC_PCM:
+        case tA2D_AV_CODEC_PCM:
             btif_media_cb.TxTranscoding = BTIF_MEDIA_TRSCD_PCM_2_SBC;
             btif_media_task_pcm2sbc_init(p_feeding);
             break;

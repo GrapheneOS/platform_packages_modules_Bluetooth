@@ -18,11 +18,14 @@
  * Vendor Specific A2DP Codecs Support
  */
 
+#define LOG_TAG "a2d_vendor"
+
 #include "bt_target.h"
 #include "a2d_vendor.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 
-bool A2D_IsVendorCodecSupported(UNUSED_ATTR const uint8_t *p_codec_info)
+bool A2D_IsVendorSourceCodecSupported(UNUSED_ATTR const uint8_t *p_codec_info)
 {
     // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
     // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
@@ -30,6 +33,37 @@ bool A2D_IsVendorCodecSupported(UNUSED_ATTR const uint8_t *p_codec_info)
     // Add checks based on <vendor_id, codec_id>
 
     return false;
+}
+
+bool A2D_IsVendorSinkCodecSupported(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
+}
+
+bool A2D_IsVendorPeerSourceCodecSupported(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id> and peer codec capabilities
+
+    return false;
+}
+
+tA2D_STATUS A2D_VendorBuildSrc2SinkConfig(uint8_t *p_pref_cfg,
+                                          const uint8_t *p_src_cap)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return A2D_NS_CODEC_TYPE;
 }
 
 uint32_t A2D_VendorCodecGetVendorId(const uint8_t *p_codec_info)

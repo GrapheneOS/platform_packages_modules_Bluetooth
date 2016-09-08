@@ -18,6 +18,7 @@ static_library("stack") {
   sources = [
     "a2dp/a2d_api.c",
     "a2dp/a2d_sbc.c",
+    "a2dp/a2d_vendor.c",
     "avrc/avrc_api.c",
     "avrc/avrc_sdp.c",
     "avrc/avrc_opt.c",
