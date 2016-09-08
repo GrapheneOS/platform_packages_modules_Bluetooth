@@ -23,6 +23,7 @@
 #include <vector>
 using std::vector;
 
+#include "async_manager.h"
 #include "base/json/json_value_converter.h"
 #include "base/time/time.h"
 #include "command_packet.h"
@@ -181,15 +182,21 @@ class DualModeController {
   void RegisterHandlersWithTestChannelTransport(
       TestChannelTransport& transport);
 
+  // Set the callbacks for scheduling tasks.
+  void RegisterTaskScheduler(
+      std::function<AsyncTaskId(std::chrono::milliseconds, const TaskCallback&)>
+          evtScheduler);
+
+  void RegisterPeriodicTaskScheduler(
+      std::function<AsyncTaskId(std::chrono::milliseconds,
+                                std::chrono::milliseconds,
+                                const TaskCallback&)> periodicEvtScheduler);
+
+  void RegisterTaskCancel(std::function<void(AsyncTaskId)> cancel);
+
   // Sets the callback to be used for sending events back to the HCI.
-  // TODO(dennischeng): Once PostDelayedTask works, get rid of this and only use
-  // |RegisterDelayedEventChannel|.
   void RegisterEventChannel(
       const std::function<void(std::unique_ptr<EventPacket>)>& send_event);
-
-  void RegisterDelayedEventChannel(
-      const std::function<void(std::unique_ptr<EventPacket>,
-                               std::chrono::milliseconds)>& send_event);
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).
@@ -324,6 +331,8 @@ class DualModeController {
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.1.1
   void HciInquiry(const vector<uint8_t>& args);
 
+  void InquiryTimeout();
+
   // OGF: 0x0001
   // OCF: 0x0002
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.1.2
@@ -443,6 +452,11 @@ class DualModeController {
   // Causes all future HCI commands to timeout.
   void TestChannelTimeoutAll(const vector<std::string>& args);
 
+  void HandleTimerTick();
+  void SetTimerPeriod(std::chrono::milliseconds new_period);
+  void StartTimer();
+  void StopTimer();
+
  private:
   // Current link layer state of the controller.
   enum State {
@@ -455,6 +469,10 @@ class DualModeController {
     kTimeoutAll,       // All commands should time out, i.e. send no response.
     kDelayedResponse,  // Event responses are sent after a delay.
   };
+
+  // Set a timer for a future action
+  void AddControllerEvent(std::chrono::milliseconds,
+                          const TaskCallback& callback);
 
   // Creates a command complete event and sends it back to the HCI.
   void SendCommandComplete(const uint16_t command_opcode,
@@ -477,11 +495,18 @@ class DualModeController {
 
   void SetEventDelay(int64_t delay);
 
+  // Callbacks to schedule tasks.
+  std::function<AsyncTaskId(std::chrono::milliseconds, const TaskCallback&)>
+      schedule_task_;
+  std::function<AsyncTaskId(std::chrono::milliseconds,
+                            std::chrono::milliseconds,
+                            const TaskCallback&)>
+      schedule_periodic_task_;
+
+  std::function<void(AsyncTaskId)> cancel_task_;
+
   // Callback provided to send events from the controller back to the HCI.
   std::function<void(std::unique_ptr<EventPacket>)> send_event_;
-
-  std::function<void(std::unique_ptr<EventPacket>, std::chrono::milliseconds)>
-      send_delayed_event_;
 
   // Maintains the commands to be registered and used in the HciHandler object.
   // Keys are command opcodes and values are the callbacks to handle each
@@ -519,6 +544,10 @@ class DualModeController {
   Properties properties_;
 
   TestChannelState test_channel_state_;
+
+  std::vector<AsyncTaskId> controller_events_;
+  AsyncTaskId timer_tick_task_;
+  std::chrono::milliseconds timer_period_ = std::chrono::milliseconds(1000);
 
   DualModeController(const DualModeController& cmdPckt) = delete;
   DualModeController& operator=(const DualModeController& cmdPckt) = delete;
