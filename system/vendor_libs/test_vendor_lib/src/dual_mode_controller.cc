@@ -73,6 +73,11 @@ bool ParseUint16t(const base::StringPiece& value, uint16_t* field) {
 
 namespace test_vendor_lib {
 
+void DualModeController::AddControllerEvent(std::chrono::milliseconds delay,
+                                            const TaskCallback& task) {
+  controller_events_.push_back(schedule_task_(delay, task));
+}
+
 void DualModeController::SendCommandCompleteSuccess(
     const uint16_t command_opcode) const {
   send_event_(EventPacket::CreateCommandCompleteOnlyStatusEvent(
@@ -179,6 +184,24 @@ void DualModeController::RegisterHandlersWithTestChannelTransport(
       });
 }
 
+void DualModeController::RegisterTaskScheduler(
+    std::function<AsyncTaskId(std::chrono::milliseconds, const TaskCallback&)>
+        oneshotScheduler) {
+  schedule_task_ = oneshotScheduler;
+}
+
+void DualModeController::RegisterPeriodicTaskScheduler(
+    std::function<AsyncTaskId(std::chrono::milliseconds,
+                              std::chrono::milliseconds,
+                              const TaskCallback&)> periodicScheduler) {
+  schedule_periodic_task_ = periodicScheduler;
+}
+
+void DualModeController::RegisterTaskCancel(
+    std::function<void(AsyncTaskId)> task_cancel) {
+  cancel_task_ = task_cancel;
+}
+
 void DualModeController::HandleTestChannelCommand(
     const std::string& name, const vector<std::string>& args) {
   if (active_test_channel_commands_.count(name) == 0)
@@ -209,26 +232,42 @@ void DualModeController::RegisterEventChannel(
   send_event_ = callback;
 }
 
-void DualModeController::RegisterDelayedEventChannel(
-    const std::function<void(std::unique_ptr<EventPacket>,
-                             std::chrono::milliseconds)>& callback) {
-  send_delayed_event_ = callback;
-  SetEventDelay(0);
+void DualModeController::HandleTimerTick() {
+  // PageScan();
+  if (le_scan_enable_)
+    LOG_ERROR(LOG_TAG, "LE scan");
+  // LeScan();
 }
 
-void DualModeController::SetEventDelay(int64_t delay) {
-  if (delay < 0)
-    delay = 0;
-  send_event_ = [this, delay](std::unique_ptr<EventPacket> arg) {
-    send_delayed_event_(std::move(arg), std::chrono::milliseconds(delay));
-  };
+void DualModeController::SetTimerPeriod(std::chrono::milliseconds new_period) {
+  timer_period_ = new_period;
+
+  if (timer_tick_task_ == 0)
+    return;
+
+  // Restart the timer with the new period
+  StopTimer();
+  StartTimer();
+}
+
+void DualModeController::StartTimer() {
+  LOG_ERROR(LOG_TAG, "StartTimer");
+  timer_tick_task_ = schedule_periodic_task_(
+      std::chrono::milliseconds(0), timer_period_, [this]() {
+        DualModeController::HandleTimerTick();
+      });
+}
+
+void DualModeController::StopTimer() {
+  LOG_ERROR(LOG_TAG, "StopTimer");
+  cancel_task_(timer_tick_task_);
+  timer_tick_task_ = 0;
 }
 
 void DualModeController::TestChannelClear(
     UNUSED_ATTR const vector<std::string>& args) {
   LogCommand("TestChannel Clear");
   test_channel_state_ = kNone;
-  SetEventDelay(0);
 }
 
 void DualModeController::TestChannelDiscover(
@@ -249,22 +288,27 @@ void DualModeController::TestChannelTimeoutAll(
 }
 
 void DualModeController::TestChannelSetEventDelay(
-    const vector<std::string>& args) {
+    const vector<std::string>& args UNUSED_ATTR) {
   LogCommand("TestChannel Set Event Delay");
   test_channel_state_ = kDelayedResponse;
-  SetEventDelay(std::stoi(args[1]));
 }
 
 void DualModeController::TestChannelClearEventDelay(
     UNUSED_ATTR const vector<std::string>& args) {
   LogCommand("TestChannel Clear Event Delay");
   test_channel_state_ = kNone;
-  SetEventDelay(0);
 }
 
 void DualModeController::HciReset(UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Reset");
   state_ = kStandby;
+  if (timer_tick_task_ != 0) {
+    LOG_INFO(LOG_TAG, "The timer was already running!");
+    StopTimer();
+  }
+  LOG_INFO(LOG_TAG, "Starting timer.");
+  StartTimer();
+
   SendCommandCompleteSuccess(HCI_RESET);
 }
 
@@ -494,8 +538,8 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
       /* TODO: Return responses from modeled devices */
     } break;
   }
-  send_delayed_event_(EventPacket::CreateInquiryCompleteEvent(kSuccessStatus),
-                      std::chrono::milliseconds(args[4] * 1280));
+  AddControllerEvent(std::chrono::milliseconds(args[4] * 1280),
+                     [this]() { DualModeController::InquiryTimeout(); });
 }
 
 void DualModeController::HciInquiryCancel(
@@ -504,6 +548,14 @@ void DualModeController::HciInquiryCancel(
   CHECK(state_ == kInquiry);
   state_ = kStandby;
   SendCommandCompleteSuccess(HCI_INQUIRY_CANCEL);
+}
+
+void DualModeController::InquiryTimeout() {
+  LOG_INFO(LOG_TAG, "InquiryTimer fired");
+  if (state_ == kInquiry) {
+    state_ = kStandby;
+    send_event_(EventPacket::CreateInquiryCompleteEvent(kSuccessStatus));
+  }
 }
 
 void DualModeController::HciDeleteStoredLinkKey(

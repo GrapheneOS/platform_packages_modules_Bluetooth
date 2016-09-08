@@ -20,13 +20,7 @@
 #include <list>
 #include <memory>
 
-extern "C" {
-#include <sys/epoll.h>
-}  // extern "C"
-
-#include "async_manager.h"
 #include "base/files/scoped_file.h"
-#include "base/time/time.h"
 #include "command_packet.h"
 #include "event_packet.h"
 #include "packet.h"
@@ -35,7 +29,7 @@ extern "C" {
 namespace test_vendor_lib {
 
 // Manages communication channel between HCI and the controller by providing the
-// socketing mechanisms for reading/writing between the HCI and the controller.
+// socket mechanisms for sending HCI [commands|events] [to|from] the controller.
 class HciTransport {
  public:
   HciTransport();
@@ -59,44 +53,16 @@ class HciTransport {
   void RegisterCommandHandler(
       const std::function<void(std::unique_ptr<CommandPacket>)>& callback);
 
-  // Sets the callback that is to schedule events.
-  void RegisterEventScheduler(
-      const std::function<void(std::chrono::milliseconds, const TaskCallback&)>&
-          evtScheduler);
+  // Blocks while it tries to writes the event to the vendor file descriptor.
+  void PostEvent(const EventPacket& event);
 
-  // Sets the callback that is to schedule events.
-  void RegisterPeriodicEventScheduler(
-      const std::function<void(std::chrono::milliseconds,
-                               std::chrono::milliseconds,
-                               const TaskCallback&)>& periodicEvtScheduler);
-
-  // Posts the event onto |outbound_events_| to be written sometime in the
-  // future when the vendor file descriptor is ready for writing.
-  void PostEventResponse(const EventPacket& event);
-
-  // Posts the event onto |outbound_events_| after |delay| ms. A call to
-  // |PostEventResponse| with |delay| 0 is equivalent to a call to |PostEvent|.
-  void PostDelayedEventResponse(const EventPacket& event,
-                                std::chrono::milliseconds delay);
-
-  void OnFileCanReadWithoutBlocking(int fd);
+  // Called when there is a command to read on |fd|.
+  void OnCommandReady(int fd);
 
  private:
-  // Reads in a command packet and calls the command ready callback,
-  // |command_handler_|, passing ownership of the command packet to the handler.
-  void ReceiveReadyCommand() const;
-
   // Callback executed in ReceiveReadyCommand() to pass the incoming command
   // over to the handler for further processing.
   std::function<void(std::unique_ptr<CommandPacket>)> command_handler_;
-
-  // Callbacks to schedule events.
-  std::function<void(std::chrono::milliseconds, const TaskCallback&)>
-      schedule_event_;
-  std::function<void(std::chrono::milliseconds,
-                     std::chrono::milliseconds,
-                     const TaskCallback&)>
-      schedule_periodic_event_;
 
   // For performing packet-based IO.
   PacketStream packet_stream_;
