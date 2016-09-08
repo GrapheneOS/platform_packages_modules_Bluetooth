@@ -313,15 +313,6 @@ void btm_ble_multi_adv_set_params(tBTM_BLE_MULTI_ADV_INST *p_inst,
                               param,
                               btm_ble_multi_adv_vsc_cmpl_cback);
     p_inst->adv_evt = p_params->adv_type;
-
-#if (BLE_PRIVACY_SPT == TRUE)
-    if (BTM_BleLocalPrivacyEnabled()) {
-        alarm_set_on_queue(p_inst->adv_raddr_timer,
-                           BTM_BLE_PRIVATE_ADDR_INT_MS,
-                           btm_ble_adv_raddr_timer_timeout, p_inst,
-                           btu_general_alarm_queue);
-    }
-#endif
     btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_PARAM, p_inst->inst_id, cb);
 }
 
@@ -356,12 +347,6 @@ void btm_ble_multi_adv_write_rpa(tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADDR random
                               param,
                               btm_ble_multi_adv_vsc_cmpl_cback);
 
-    /* start a periodical timer to refresh random addr */
-    /* TODO: is the above comment correct - is the timer periodical? */
-    alarm_set_on_queue(p_inst->adv_raddr_timer,
-                       BTM_BLE_PRIVATE_ADDR_INT_MS,
-                       btm_ble_adv_raddr_timer_timeout, p_inst,
-                       btu_general_alarm_queue);
     btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR,
                                p_inst->inst_id, NULL);
 }
@@ -499,32 +484,6 @@ void btm_ble_multi_adv_reenable(uint8_t inst_id)
      }
 }
 
-/*******************************************************************************
-**
-** Function         btm_ble_multi_adv_enb_privacy
-**
-** Description      This function enable/disable privacy setting in multi adv
-**
-** Parameters       enable: enable or disable the adv instance.
-**
-** Returns          none.
-**
-*******************************************************************************/
-void btm_ble_multi_adv_enb_privacy(bool    enable)
-{
-    uint8_t i;
-    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[0];
-
-    for (i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i ++, p_inst++)
-    {
-        p_inst->in_use = false;
-        if (enable)
-            btm_ble_multi_adv_configure_rpa(p_inst);
-        else
-            alarm_cancel(p_inst->adv_raddr_timer);
-    }
-}
-
 void BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback) {
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
@@ -539,6 +498,19 @@ void BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback) {
     for (uint8_t i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i++, p_inst++) {
         if (!p_inst->in_use) {
             p_inst->in_use = TRUE;
+
+#if (BLE_PRIVACY_SPT == TRUE)
+            // configure the address, and set up periodic timer to update it.
+            btm_ble_multi_adv_configure_rpa(p_inst);
+
+            if (BTM_BleLocalPrivacyEnabled()) {
+                alarm_set_on_queue(p_inst->adv_raddr_timer,
+                                   BTM_BLE_PRIVATE_ADDR_INT_MS,
+                                   btm_ble_adv_raddr_timer_timeout, p_inst,
+                                   btu_general_alarm_queue);
+            }
+#endif
+
             p_inst->p_cback = p_cback;
             (p_inst->p_cback)(BTM_BLE_MULTI_ADV_REG_EVT,
                               p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
@@ -756,7 +728,6 @@ void BTM_BleAdvUnregister(uint8_t inst_id)
     //TODO(jpawlowski): only disable when enabled or enabling
     btm_ble_enable_multi_adv(false, inst_id, NULL);
 
-    btm_ble_multi_adv_configure_rpa(p_inst);
     alarm_cancel(p_inst->adv_raddr_timer);
     p_inst->in_use = false;
 }
@@ -855,7 +826,7 @@ void btm_ble_multi_adv_init()
         btm_multi_adv_cb.p_adv_inst[i].index = i;
         btm_multi_adv_cb.p_adv_inst[i].inst_id = i + 1;
         btm_multi_adv_cb.p_adv_inst[i].adv_raddr_timer =
-            alarm_new("btm_ble.adv_raddr_timer");
+            alarm_new_periodic("btm_ble.adv_raddr_timer");
     }
 
     BTM_RegisterForVSEvents(btm_ble_multi_adv_vse_cback, true);
