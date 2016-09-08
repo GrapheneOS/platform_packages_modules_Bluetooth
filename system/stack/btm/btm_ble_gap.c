@@ -3172,14 +3172,6 @@ static void btm_ble_observer_timer_timeout(UNUSED_ATTR void *data)
     btm_ble_stop_observe();
 }
 
-void btm_ble_adv_raddr_timer_timeout(void *data)
-{
-    if ((btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM) &&
-        (BTM_BleMaxMultiAdvInstanceCount() > 0)) {
-        btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST *)data);
-    }
-}
-
 void btm_ble_refresh_raddr_timer_timeout(UNUSED_ATTR void *data)
 {
     if (btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM) {
