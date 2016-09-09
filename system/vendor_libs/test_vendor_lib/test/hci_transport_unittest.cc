@@ -24,9 +24,7 @@
 #include <mutex>
 #include <thread>
 
-extern "C" {
 #include "stack/include/hcidefs.h"
-}  // extern "C"
 
 namespace {
 const vector<uint8_t> stub_command({DATA_TYPE_COMMAND,

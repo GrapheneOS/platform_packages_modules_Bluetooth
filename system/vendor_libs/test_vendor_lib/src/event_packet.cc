@@ -18,10 +18,8 @@
 
 #include "event_packet.h"
 
-extern "C" {
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
-}  // extern "C"
 
 namespace test_vendor_lib {
 

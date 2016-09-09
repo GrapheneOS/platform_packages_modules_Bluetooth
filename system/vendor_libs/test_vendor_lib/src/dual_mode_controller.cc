@@ -27,11 +27,9 @@
 #include "event_packet.h"
 #include "hci_transport.h"
 
-extern "C" {
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/hcidefs.h"
-}  // extern "C"
 
 namespace {
 
