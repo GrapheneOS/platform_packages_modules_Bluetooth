@@ -20,6 +20,7 @@
 #include <vector>
 using std::vector;
 
+#include "bt_address.h"
 #include "hci/include/hci_hal.h"
 
 namespace test_vendor_lib {
@@ -78,6 +79,10 @@ class Packet {
   bool AddPayloadOctets8(const uint64_t value) {
     return AddPayloadOctets(8, value);
   }
+
+  // Add |address| to the payload.  Return true if:
+  // - the new size of the payload is still < |kMaxPacketOctets|
+  bool AddPayloadBtAddress(const BtAddress& address);
 
  protected:
   // Constructs an empty packet of type |type| and header |header|
