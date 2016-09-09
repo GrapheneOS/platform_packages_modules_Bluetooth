@@ -21,6 +21,8 @@
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
 
+using std::vector;
+
 namespace test_vendor_lib {
 
 EventPacket::EventPacket(uint8_t event_code)

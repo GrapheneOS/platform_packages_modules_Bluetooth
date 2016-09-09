@@ -25,6 +25,8 @@
 
 #include "osi/include/log.h"
 
+using std::vector;
+
 namespace test_vendor_lib {
 
 std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand(int fd) const {

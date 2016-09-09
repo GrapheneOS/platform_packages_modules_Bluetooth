@@ -23,6 +23,8 @@
 #include "base/logging.h"
 #include "osi/include/log.h"
 
+using std::vector;
+
 namespace test_vendor_lib {
 
 Packet::Packet(serial_data_type_t type, vector<uint8_t> header)

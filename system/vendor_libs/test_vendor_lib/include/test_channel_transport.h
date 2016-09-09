@@ -20,7 +20,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-using std::vector;
 
 #include "base/files/scoped_file.h"
 
@@ -48,13 +47,13 @@ class TestChannelTransport {
 
   // Sets the callback that fires when data is read in WatchFd().
   void RegisterCommandHandler(
-      const std::function<void(const std::string&, const vector<std::string>&)>&
-          callback);
+      const std::function<void(const std::string&,
+                               const std::vector<std::string>&)>& callback);
 
   void OnCommandReady(int fd, std::function<void(void)> unwatch);
 
  private:
-  std::function<void(const std::string&, const vector<std::string>&)>
+  std::function<void(const std::string&, const std::vector<std::string>&)>
       command_handler_;
 
   int listen_fd_ = -1;

@@ -22,6 +22,8 @@
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
 
+using std::vector;
+
 namespace test_vendor_lib {
 
 CommandPacket::CommandPacket(vector<uint8_t> header)

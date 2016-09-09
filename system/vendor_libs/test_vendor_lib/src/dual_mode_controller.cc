@@ -31,6 +31,8 @@
 #include "osi/include/osi.h"
 #include "stack/include/hcidefs.h"
 
+using std::vector;
+
 namespace {
 
 // Included in certain events to indicate success (specific to the event

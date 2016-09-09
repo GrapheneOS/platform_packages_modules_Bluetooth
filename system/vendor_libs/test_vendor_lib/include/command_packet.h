@@ -18,7 +18,6 @@
 
 #include <cstdint>
 #include <vector>
-using std::vector;
 
 #include "base/macros.h"
 #include "packet.h"
@@ -43,9 +42,9 @@ namespace test_vendor_lib {
 // in size.
 class CommandPacket : public Packet {
  public:
-  explicit CommandPacket(vector<uint8_t> header);
+  explicit CommandPacket(std::vector<uint8_t> header);
   explicit CommandPacket(uint16_t opcode);
-  CommandPacket(vector<uint8_t> header, vector<uint8_t> payload);
+  CommandPacket(std::vector<uint8_t> header, std::vector<uint8_t> payload);
 
   virtual ~CommandPacket() override = default;
 
