@@ -18,13 +18,10 @@
 
 #include "packet.h"
 
-#include "base/logging.h"
-
 #include <algorithm>
 
-extern "C" {
+#include "base/logging.h"
 #include "osi/include/log.h"
-}  // extern "C"
 
 namespace test_vendor_lib {
 

@@ -20,12 +20,10 @@
 
 #include "base/logging.h"
 
-extern "C" {
 #include <errno.h>
 #include <unistd.h>
 
 #include "osi/include/log.h"
-}  // extern "C"
 
 namespace test_vendor_lib {
 

@@ -18,11 +18,9 @@
 
 #include "command_packet.h"
 
-extern "C" {
 #include "hci/include/hci_hal.h"
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
-}  // extern "C"
 
 namespace test_vendor_lib {
 
