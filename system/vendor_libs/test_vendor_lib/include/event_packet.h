@@ -20,7 +20,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-using std::vector;
 
 #include "base/logging.h"
 #include "bt_address.h"
@@ -47,7 +46,7 @@ class EventPacket : public Packet {
   // Most code should use the more specific functions that follow
   static std::unique_ptr<EventPacket> CreateCommandCompleteEvent(
       const uint16_t command_opcode,
-      const vector<uint8_t>& event_return_parameters);
+      const std::vector<uint8_t>& event_return_parameters);
 
   static std::unique_ptr<EventPacket> CreateCommandCompleteOnlyStatusEvent(
       const uint16_t command_opcode, const uint8_t status);
@@ -73,7 +72,7 @@ class EventPacket : public Packet {
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.2
   static std::unique_ptr<EventPacket>
   CreateCommandCompleteReadLocalSupportedCommands(
-      const uint8_t status, const vector<uint8_t>& supported_commands);
+      const uint8_t status, const std::vector<uint8_t>& supported_commands);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.4
   static std::unique_ptr<EventPacket>
@@ -99,8 +98,8 @@ class EventPacket : public Packet {
   static std::unique_ptr<EventPacket>
   CreateCommandCompleteReadLocalSupportedCodecs(
       const uint8_t status,
-      const vector<uint8_t>& supported_codecs,
-      const vector<uint32_t>& vendor_specific_codecs);
+      const std::vector<uint8_t>& supported_codecs,
+      const std::vector<uint32_t>& vendor_specific_codecs);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.2
   enum PageScanRepetitionMode {
@@ -127,7 +126,7 @@ class EventPacket : public Packet {
       const uint32_t class_of_device,
       const uint16_t clock_offset,
       const uint8_t rssi,
-      const vector<uint8_t>& extended_inquiry_response);
+      const std::vector<uint8_t>& extended_inquiry_response);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.2
   static std::unique_ptr<EventPacket> CreateCommandCompleteLeReadBufferSize(
@@ -156,14 +155,14 @@ class EventPacket : public Packet {
   // Vendor-specific commands (see hcidefs.h)
 
   static std::unique_ptr<EventPacket> CreateCommandCompleteLeVendorCap(
-      const uint8_t status, const vector<uint8_t>& vendor_cap);
+      const uint8_t status, const std::vector<uint8_t>& vendor_cap);
 
   // Size of a data packet header, which consists of a 1 octet event code
   static const size_t kEventHeaderSize = 1;
 
  private:
   explicit EventPacket(const uint8_t event_code);
-  EventPacket(const uint8_t event_code, const vector<uint8_t>& payload);
+  EventPacket(const uint8_t event_code, const std::vector<uint8_t>& payload);
 };
 
 }  // namespace test_vendor_lib

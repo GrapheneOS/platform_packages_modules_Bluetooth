@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-using std::vector;
 
 #include "command_packet.h"
 #include "event_packet.h"
@@ -55,13 +54,13 @@ class PacketStream {
 
   // Attempts to receive |num_octets_to_receive| into |destination| from |fd|,
   // returning false if an error occurs.
-  bool ReceiveAll(vector<uint8_t>& destination,
+  bool ReceiveAll(std::vector<uint8_t>& destination,
                   size_t num_octets_to_receive,
                   int fd) const;
 
   // Attempts to send |num_octets_to_send| from |source| to |fd|, returning
   // false if an error occurs.
-  bool SendAll(const vector<uint8_t>& source,
+  bool SendAll(const std::vector<uint8_t>& source,
                size_t num_octets_to_send,
                int fd) const;
 };

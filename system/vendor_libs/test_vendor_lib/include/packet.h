@@ -18,7 +18,6 @@
 
 #include <cstdint>
 #include <vector>
-using std::vector;
 
 #include "bt_address.h"
 #include "hci/include/hci_hal.h"
@@ -38,11 +37,11 @@ class Packet {
   // octet, the header, and the payload.
   size_t GetPacketSize() const;
 
-  const vector<uint8_t>& GetPayload() const;
+  const std::vector<uint8_t>& GetPayload() const;
 
   size_t GetPayloadSize() const;
 
-  const vector<uint8_t>& GetHeader() const;
+  const std::vector<uint8_t>& GetHeader() const;
 
   uint8_t GetHeaderSize() const;
 
@@ -51,7 +50,7 @@ class Packet {
   // Add |octets| bytes to the payload.  Return true if:
   // - the size of |bytes| is equal to |octets| and
   // - the new size of the payload is still < |kMaxPacketOctets|
-  bool AddPayloadOctets(const size_t octets, const vector<uint8_t>& bytes);
+  bool AddPayloadOctets(const size_t octets, const std::vector<uint8_t>& bytes);
 
  private:
   // Add |octets| bytes to the payload.  Return true if:
@@ -86,7 +85,7 @@ class Packet {
 
  protected:
   // Constructs an empty packet of type |type| and header |header|
-  Packet(serial_data_type_t type, vector<uint8_t> header);
+  Packet(serial_data_type_t type, std::vector<uint8_t> header);
 
   bool IncrementPayloadCounter(const size_t index);
   bool IncrementPayloadCounter(const size_t index, const uint8_t max_val);
@@ -100,9 +99,9 @@ class Packet {
   // DATA_TYPE_EVENT, or DATA_TYPE_SCO.
   serial_data_type_t type_;
 
-  vector<uint8_t> header_;
+  std::vector<uint8_t> header_;
 
-  vector<uint8_t> payload_;
+  std::vector<uint8_t> payload_;
 };
 
 }  // namespace test_vendor_lib
