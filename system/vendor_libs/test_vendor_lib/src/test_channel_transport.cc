@@ -20,13 +20,11 @@
 
 #include "base/logging.h"
 
-extern "C" {
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
 #include <netinet/in.h>
 #include <sys/socket.h>
-}  // extern "C"
 
 namespace test_vendor_lib {
 
