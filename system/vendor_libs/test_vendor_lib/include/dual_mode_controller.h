@@ -26,6 +26,7 @@ using std::vector;
 #include "async_manager.h"
 #include "base/json/json_value_converter.h"
 #include "base/time/time.h"
+#include "bt_address.h"
 #include "command_packet.h"
 #include "hci_transport.h"
 #include "test_channel_transport.h"
@@ -87,8 +88,7 @@ class DualModeController {
       return num_sco_data_packets_;
     }
 
-    // Specification Version 4.2, Volume 2, Part E, Section 7.4.6
-    const vector<uint8_t>& GetBdAddress() const { return bd_address_; }
+    const BtAddress& GetAddress() const { return address_; }
 
     // Specification Version 4.2, Volume 2, Part E, Section 7.4.8
     const vector<uint8_t>& GetSupportedCodecs() const {
@@ -148,7 +148,7 @@ class DualModeController {
     vector<uint8_t> local_supported_commands_;
     std::string local_name_;
     vector<uint64_t> local_extended_features_;
-    vector<uint8_t> bd_address_;
+    BtAddress address_;
 
     uint16_t le_data_packet_length_;
     uint8_t num_le_data_packets_;
@@ -528,7 +528,7 @@ class DualModeController {
 
   vector<uint8_t> le_event_mask_;
 
-  vector<uint8_t> le_random_address_;
+  BtAddress le_random_address_;
 
   uint8_t le_scan_type_;
   uint16_t le_scan_interval_;
