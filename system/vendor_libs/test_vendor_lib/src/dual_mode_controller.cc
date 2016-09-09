@@ -348,7 +348,7 @@ void DualModeController::HciReadBdAddr(
     UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadBdAddr(kSuccessStatus,
-                                                   properties_.GetBdAddress());
+                                                   properties_.GetAddress());
   send_event_(std::move(command_complete));
 }
 
@@ -497,6 +497,8 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
       EventPacket::kR0;
   const uint32_t kClassOfDevice = 0x030201;
   const uint16_t kClockOffset = 513;
+  BtAddress other_addr;
+  other_addr.FromVector(kOtherDeviceBdAddress);
 
   LogCommand("Inquiry");
   state_ = kInquiry;
@@ -504,7 +506,7 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
   switch (inquiry_mode_) {
     case (kStandardInquiry): {
       std::unique_ptr<EventPacket> inquiry_result_evt =
-          EventPacket::CreateInquiryResultEvent(kOtherDeviceBdAddress,
+          EventPacket::CreateInquiryResultEvent(other_addr,
                                                 kPageScanRepetitionMode,
                                                 kClassOfDevice,
                                                 kClockOffset);
@@ -527,7 +529,7 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
 
       uint8_t rssi = static_cast<uint8_t>(-20);
       send_event_(
-          EventPacket::CreateExtendedInquiryResultEvent(kOtherDeviceBdAddress,
+          EventPacket::CreateExtendedInquiryResultEvent(other_addr,
                                                         kPageScanRepetitionMode,
                                                         kClassOfDevice,
                                                         kClockOffset,
@@ -596,7 +598,10 @@ void DualModeController::HciLeReadLocalSupportedFeatures(
 
 void DualModeController::HciLeSetRandomAddress(const vector<uint8_t>& args) {
   LogCommand("LE SetRandomAddress");
-  le_random_address_ = args;
+  CHECK(args.size() == 7);
+  vector<uint8_t> new_addr = {
+      args[1], args[2], args[3], args[4], args[5], args[6]};
+  CHECK(le_random_address_.FromVector(new_addr));
   SendCommandCompleteSuccess(HCI_BLE_WRITE_RANDOM_ADDR);
 }
 
@@ -714,7 +719,7 @@ DualModeController::Properties::Properties(const std::string& file_name)
 
   local_extended_features_ = {0xffffffffffffffff, 0x7};
 
-  bd_address_ = {1, 2, 3, 4, 5, 6};
+  CHECK(address_.FromString("01:02:03:04:05:06"));
   local_name_ = "DefaultName";
 
   supported_codecs_ = {1};
