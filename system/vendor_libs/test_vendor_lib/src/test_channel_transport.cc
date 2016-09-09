@@ -26,6 +26,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+using std::vector;
+
 namespace test_vendor_lib {
 
 int TestChannelTransport::SetUp(int port) {

@@ -21,7 +21,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-using std::vector;
 
 #include "async_manager.h"
 #include "base/json/json_value_converter.h"
@@ -39,7 +38,7 @@ namespace test_vendor_lib {
 // commands sent by the HCI. These methods will be registered as callbacks from
 // a controller instance with the HciHandler. To implement a new Bluetooth
 // command, simply add the method declaration below, with return type void and a
-// single const vector<uint8_t>& argument. After implementing the
+// single const std::vector<uint8_t>& argument. After implementing the
 // method, simply register it with the HciHandler using the SET_HANDLER macro in
 // the controller's default constructor. Be sure to name your method after the
 // corresponding Bluetooth command in the Core Specification with the prefix
@@ -53,10 +52,10 @@ class DualModeController {
     // Access private configuration data
 
     // Specification Version 4.2, Volume 2, Part E, Section 7.4.1
-    const vector<uint8_t>& GetLocalVersionInformation() const;
+    const std::vector<uint8_t>& GetLocalVersionInformation() const;
 
     // Specification Version 4.2, Volume 2, Part E, Section 7.4.2
-    const vector<uint8_t>& GetLocalSupportedCommands() const {
+    const std::vector<uint8_t>& GetLocalSupportedCommands() const {
       return local_supported_commands_;
     }
 
@@ -91,11 +90,11 @@ class DualModeController {
     const BtAddress& GetAddress() const { return address_; }
 
     // Specification Version 4.2, Volume 2, Part E, Section 7.4.8
-    const vector<uint8_t>& GetSupportedCodecs() const {
+    const std::vector<uint8_t>& GetSupportedCodecs() const {
       return supported_codecs_;
     }
 
-    const vector<uint32_t>& GetVendorSpecificCodecs() const {
+    const std::vector<uint32_t>& GetVendorSpecificCodecs() const {
       return vendor_specific_codecs_;
     }
 
@@ -128,7 +127,9 @@ class DualModeController {
     uint64_t GetLeSupportedStates() const { return le_supported_states_; }
 
     // Vendor-specific commands (see hcidefs.h)
-    const vector<uint8_t>& GetLeVendorCap() const { return le_vendor_cap_; }
+    const std::vector<uint8_t>& GetLeVendorCap() const {
+      return le_vendor_cap_;
+    }
 
     static void RegisterJSONConverter(
         base::JSONValueConverter<Properties>* converter);
@@ -143,11 +144,11 @@ class DualModeController {
     uint8_t lmp_pal_version_;
     uint16_t manufacturer_name_;
     uint16_t lmp_pal_subversion_;
-    vector<uint8_t> supported_codecs_;
-    vector<uint32_t> vendor_specific_codecs_;
-    vector<uint8_t> local_supported_commands_;
+    std::vector<uint8_t> supported_codecs_;
+    std::vector<uint32_t> vendor_specific_codecs_;
+    std::vector<uint8_t> local_supported_commands_;
     std::string local_name_;
-    vector<uint64_t> local_extended_features_;
+    std::vector<uint64_t> local_extended_features_;
     BtAddress address_;
 
     uint16_t le_data_packet_length_;
@@ -155,7 +156,7 @@ class DualModeController {
     uint8_t le_white_list_size_;
     uint64_t le_supported_features_;
     uint64_t le_supported_states_;
-    vector<uint8_t> le_vendor_cap_;
+    std::vector<uint8_t> le_vendor_cap_;
   };
 
   // Sets all of the methods to be used as callbacks in the HciHandler.
@@ -171,7 +172,7 @@ class DualModeController {
   // Dispatches the test channel action corresponding to the command specified
   // by |name|.
   void HandleTestChannelCommand(const std::string& name,
-                                const vector<std::string>& args);
+                                const std::vector<std::string>& args);
 
   // Sets the controller Handle* methods as callbacks for the transport to call
   // when data is received.
@@ -204,253 +205,253 @@ class DualModeController {
   // OGF: 0x0003
   // OCF: 0x0003
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.2
-  void HciReset(const vector<uint8_t>& args);
+  void HciReset(const std::vector<uint8_t>& args);
 
   // OGF: 0x0004
   // OGF: 0x0005
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.5
-  void HciReadBufferSize(const vector<uint8_t>& args);
+  void HciReadBufferSize(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0033
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.39
-  void HciHostBufferSize(const vector<uint8_t>& args);
+  void HciHostBufferSize(const std::vector<uint8_t>& args);
 
   // OGF: 0x0004
   // OCF: 0x0001
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.1
-  void HciReadLocalVersionInformation(const vector<uint8_t>& args);
+  void HciReadLocalVersionInformation(const std::vector<uint8_t>& args);
 
   // OGF: 0x0004
   // OCF: 0x0009
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.6
-  void HciReadBdAddr(const vector<uint8_t>& args);
+  void HciReadBdAddr(const std::vector<uint8_t>& args);
 
   // OGF: 0x0004
   // OCF: 0x0002
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.2
-  void HciReadLocalSupportedCommands(const vector<uint8_t>& args);
+  void HciReadLocalSupportedCommands(const std::vector<uint8_t>& args);
 
   // OGF: 0x0004
   // OCF: 0x0004
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.4
-  void HciReadLocalExtendedFeatures(const vector<uint8_t>& args);
+  void HciReadLocalExtendedFeatures(const std::vector<uint8_t>& args);
 
   // OGF: 0x0004
   // OCF: 0x000B
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.8
-  void HciReadLocalSupportedCodecs(const vector<uint8_t>& args);
+  void HciReadLocalSupportedCodecs(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0056
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.59
-  void HciWriteSimplePairingMode(const vector<uint8_t>& args);
+  void HciWriteSimplePairingMode(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x006D
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.79
-  void HciWriteLeHostSupport(const vector<uint8_t>& args);
+  void HciWriteLeHostSupport(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0001
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.1
-  void HciSetEventMask(const vector<uint8_t>& args);
+  void HciSetEventMask(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0045
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.50
-  void HciWriteInquiryMode(const vector<uint8_t>& args);
+  void HciWriteInquiryMode(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0047
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.52
-  void HciWritePageScanType(const vector<uint8_t>& args);
+  void HciWritePageScanType(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0043
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.48
-  void HciWriteInquiryScanType(const vector<uint8_t>& args);
+  void HciWriteInquiryScanType(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0024
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.26
-  void HciWriteClassOfDevice(const vector<uint8_t>& args);
+  void HciWriteClassOfDevice(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0018
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.16
-  void HciWritePageTimeout(const vector<uint8_t>& args);
+  void HciWritePageTimeout(const std::vector<uint8_t>& args);
 
   // OGF: 0x0002
   // OCF: 0x000F
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.2.12
-  void HciWriteDefaultLinkPolicySettings(const vector<uint8_t>& args);
+  void HciWriteDefaultLinkPolicySettings(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0014
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.12
-  void HciReadLocalName(const vector<uint8_t>& args);
+  void HciReadLocalName(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0013
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.11
-  void HciWriteLocalName(const vector<uint8_t>& args);
+  void HciWriteLocalName(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0052
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.56
-  void HciWriteExtendedInquiryResponse(const vector<uint8_t>& args);
+  void HciWriteExtendedInquiryResponse(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0026
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.28
-  void HciWriteVoiceSetting(const vector<uint8_t>& args);
+  void HciWriteVoiceSetting(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x003A
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.45
-  void HciWriteCurrentIacLap(const vector<uint8_t>& args);
+  void HciWriteCurrentIacLap(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x001E
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.22
-  void HciWriteInquiryScanActivity(const vector<uint8_t>& args);
+  void HciWriteInquiryScanActivity(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x001A
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.18
-  void HciWriteScanEnable(const vector<uint8_t>& args);
+  void HciWriteScanEnable(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0005
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.3
-  void HciSetEventFilter(const vector<uint8_t>& args);
+  void HciSetEventFilter(const std::vector<uint8_t>& args);
 
   // OGF: 0x0001
   // OCF: 0x0001
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.1.1
-  void HciInquiry(const vector<uint8_t>& args);
+  void HciInquiry(const std::vector<uint8_t>& args);
 
   void InquiryTimeout();
 
   // OGF: 0x0001
   // OCF: 0x0002
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.1.2
-  void HciInquiryCancel(const vector<uint8_t>& args);
+  void HciInquiryCancel(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0012
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.10
-  void HciDeleteStoredLinkKey(const vector<uint8_t>& args);
+  void HciDeleteStoredLinkKey(const std::vector<uint8_t>& args);
 
   // OGF: 0x0001
   // OCF: 0x0019
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.1.19
-  void HciRemoteNameRequest(const vector<uint8_t>& args);
+  void HciRemoteNameRequest(const std::vector<uint8_t>& args);
 
   // LE Controller Commands
 
   // OGF: 0x0008
   // OCF: 0x0001
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.1
-  void HciLeSetEventMask(const vector<uint8_t>& args);
+  void HciLeSetEventMask(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x0002
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.2
-  void HciLeReadBufferSize(const vector<uint8_t>& args);
+  void HciLeReadBufferSize(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x0003
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.3
-  void HciLeReadLocalSupportedFeatures(const vector<uint8_t>& args);
+  void HciLeReadLocalSupportedFeatures(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x0005
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.4
-  void HciLeSetRandomAddress(const vector<uint8_t>& args);
+  void HciLeSetRandomAddress(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x0006
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.5
-  void HciLeSetAdvertisingParameters(const vector<uint8_t>& args);
+  void HciLeSetAdvertisingParameters(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x0008
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.7
-  void HciLeSetAdvertisingData(const vector<uint8_t>& args);
+  void HciLeSetAdvertisingData(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x000B
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.10
-  void HciLeSetScanParameters(const vector<uint8_t>& args);
+  void HciLeSetScanParameters(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x000C
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.11
-  void HciLeSetScanEnable(const vector<uint8_t>& args);
+  void HciLeSetScanEnable(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x000F
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.14
-  void HciLeReadWhiteListSize(const vector<uint8_t>& args);
+  void HciLeReadWhiteListSize(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x0018
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.23
-  void HciLeRand(const vector<uint8_t>& args);
+  void HciLeRand(const std::vector<uint8_t>& args);
 
   // OGF: 0x0008
   // OCF: 0x001C
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.27
-  void HciLeReadSupportedStates(const vector<uint8_t>& args);
+  void HciLeReadSupportedStates(const std::vector<uint8_t>& args);
 
   // Vendor-specific commands (see hcidefs.h)
 
   // OGF: 0x00FC
   // OCF: 0x0027
-  void HciBleVendorSleepMode(const vector<uint8_t>& args);
+  void HciBleVendorSleepMode(const std::vector<uint8_t>& args);
 
   // OGF: 0x00FC
   // OCF: 0x0153
-  void HciBleVendorCap(const vector<uint8_t>& args);
+  void HciBleVendorCap(const std::vector<uint8_t>& args);
 
   // OGF: 0x00FC
   // OCF: 0x0154
-  void HciBleVendorMultiAdv(const vector<uint8_t>& args);
+  void HciBleVendorMultiAdv(const std::vector<uint8_t>& args);
 
   // OGF: 0x00FC
   // OCF: 0x0155
-  void HciBleVendor155(const vector<uint8_t>& args);
+  void HciBleVendor155(const std::vector<uint8_t>& args);
 
   // OGF: 0x00FC
   // OCF: 0x0157
-  void HciBleVendor157(const vector<uint8_t>& args);
+  void HciBleVendor157(const std::vector<uint8_t>& args);
 
   // OGF: 0x00FC
   // OCF: 0x0159
-  void HciBleEnergyInfo(const vector<uint8_t>& args);
+  void HciBleEnergyInfo(const std::vector<uint8_t>& args);
 
   // OGF: 0x00FC
   // OCF: 0x015A
-  void HciBleExtendedScanParams(const vector<uint8_t>& args);
+  void HciBleExtendedScanParams(const std::vector<uint8_t>& args);
 
   // Test Channel commands:
 
   // Clears all test channel modifications.
-  void TestChannelClear(const vector<std::string>& args);
+  void TestChannelClear(const std::vector<std::string>& args);
 
   // Sets the response delay for events to 0.
-  void TestChannelClearEventDelay(const vector<std::string>& args);
+  void TestChannelClearEventDelay(const std::vector<std::string>& args);
 
   // Discovers a fake device.
-  void TestChannelDiscover(const vector<std::string>& args);
+  void TestChannelDiscover(const std::vector<std::string>& args);
 
   // Causes events to be sent after a delay.
-  void TestChannelSetEventDelay(const vector<std::string>& args);
+  void TestChannelSetEventDelay(const std::vector<std::string>& args);
 
   // Causes all future HCI commands to timeout.
-  void TestChannelTimeoutAll(const vector<std::string>& args);
+  void TestChannelTimeoutAll(const std::vector<std::string>& args);
 
   void HandleTimerTick();
   void SetTimerPeriod(std::chrono::milliseconds new_period);
@@ -476,7 +477,7 @@ class DualModeController {
 
   // Creates a command complete event and sends it back to the HCI.
   void SendCommandComplete(const uint16_t command_opcode,
-                           const vector<uint8_t>& return_parameters) const;
+                           const std::vector<uint8_t>& return_parameters) const;
 
   // Sends a command complete event with no return parameters. This event is
   // typically sent for commands that can be completed immediately.
@@ -511,11 +512,11 @@ class DualModeController {
   // Maintains the commands to be registered and used in the HciHandler object.
   // Keys are command opcodes and values are the callbacks to handle each
   // command.
-  std::unordered_map<uint16_t, std::function<void(const vector<uint8_t>&)>>
+  std::unordered_map<uint16_t, std::function<void(const std::vector<uint8_t>&)>>
       active_hci_commands_;
 
   std::unordered_map<std::string,
-                     std::function<void(const vector<std::string>&)>>
+                     std::function<void(const std::vector<std::string>&)>>
       active_test_channel_commands_;
 
   // Specifies the format of Inquiry Result events to be returned during the
@@ -526,7 +527,7 @@ class DualModeController {
   // 0x03-0xFF: Reserved.
   uint8_t inquiry_mode_;
 
-  vector<uint8_t> le_event_mask_;
+  std::vector<uint8_t> le_event_mask_;
 
   BtAddress le_random_address_;
 
