@@ -248,12 +248,15 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
-        // These are not yet supported.
         @Override
         public void onStop() {
             Log.d(TAG, "onStop");
+            mAvrcpCommandQueue.obtainMessage(
+                    MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_STOP)
+                    .sendToTarget();
         }
 
+        // These are not yet supported.
         @Override
         public void onCustomAction(String action, Bundle extras) {
             Log.d(TAG, "onCustomAction action=" + action + " extras=" + extras);
