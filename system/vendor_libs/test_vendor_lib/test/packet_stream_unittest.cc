@@ -25,12 +25,10 @@
 #include <vector>
 using std::vector;
 
-extern "C" {
 #include "hci/include/hci_hal.h"
 #include "stack/include/hcidefs.h"
 
 #include <sys/socket.h>
-}  // extern "C"
 
 namespace {
 const char small_payload[] = "foo bar baz";

@@ -20,9 +20,7 @@
 #include <vector>
 using std::vector;
 
-extern "C" {
 #include "hci/include/hci_hal.h"
-}  // extern "C"
 
 namespace test_vendor_lib {
 
