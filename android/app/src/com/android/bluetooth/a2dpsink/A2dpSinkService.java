@@ -17,13 +17,14 @@
 package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothAudioConfig;
-import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothA2dpSink;
 import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
+
+import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.a2dpsink.mbs.A2dpMediaBrowserService;
 
 import com.android.bluetooth.btservice.ProfileService;
@@ -192,12 +193,12 @@ public class A2dpSinkService extends ProfileService {
      */
     public void informAvrcpPassThroughCmd(BluetoothDevice device, int keyCode, int keyState) {
         if (mStateMachine != null) {
-            if (keyCode == BluetoothAvrcpController.PASS_THRU_CMD_ID_PLAY &&
-                keyState == BluetoothAvrcpController.KEY_STATE_RELEASED) {
+            if (keyCode == AvrcpControllerService.PASS_THRU_CMD_ID_PLAY &&
+                keyState == AvrcpControllerService.KEY_STATE_RELEASED) {
                 mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_CT_PLAY);
-            } else if ((keyCode == BluetoothAvrcpController.PASS_THRU_CMD_ID_PAUSE ||
-                       keyCode == BluetoothAvrcpController.PASS_THRU_CMD_ID_STOP) &&
-                       keyState == BluetoothAvrcpController.KEY_STATE_RELEASED) {
+            } else if ((keyCode == AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE ||
+                       keyCode == AvrcpControllerService.PASS_THRU_CMD_ID_STOP) &&
+                       keyState == AvrcpControllerService.KEY_STATE_RELEASED) {
                 mStateMachine.sendMessage(A2dpSinkStateMachine.EVENT_AVRCP_CT_PAUSE);
             }
         }

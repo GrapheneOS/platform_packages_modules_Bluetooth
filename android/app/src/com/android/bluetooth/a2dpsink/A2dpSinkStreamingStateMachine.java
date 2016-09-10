@@ -17,7 +17,6 @@
 package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothA2dpSink;
-import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.media.AudioManager;
@@ -25,7 +24,7 @@ import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Message;
 import android.util.Log;
 
-import com.android.bluetooth.avrcp.AvrcpControllerService;
+import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.R;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
@@ -209,12 +208,12 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
             }
             avrcpService.sendPassThroughCmd(
                 avrcpService.getConnectedDevices().get(0),
-                BluetoothAvrcpController.PASS_THRU_CMD_ID_PAUSE,
-                BluetoothAvrcpController.KEY_STATE_PRESSED);
+                AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE,
+                AvrcpControllerService.KEY_STATE_PRESSED);
             avrcpService.sendPassThroughCmd(
                 avrcpService.getConnectedDevices().get(0),
-                BluetoothAvrcpController.PASS_THRU_CMD_ID_PAUSE,
-                BluetoothAvrcpController.KEY_STATE_RELEASED);
+                AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE,
+                AvrcpControllerService.KEY_STATE_RELEASED);
         } else {
             Log.e(TAG, "Passthrough not sent, connection un-available.");
         }
@@ -233,12 +232,12 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
             }
             avrcpService.sendPassThroughCmd(
                 avrcpService.getConnectedDevices().get(0),
-                BluetoothAvrcpController.PASS_THRU_CMD_ID_PLAY,
-                BluetoothAvrcpController.KEY_STATE_PRESSED);
+                AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
+                AvrcpControllerService.KEY_STATE_PRESSED);
             avrcpService.sendPassThroughCmd(
                 avrcpService.getConnectedDevices().get(0),
-                BluetoothAvrcpController.PASS_THRU_CMD_ID_PLAY,
-                BluetoothAvrcpController.KEY_STATE_RELEASED);
+                AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
+                AvrcpControllerService.KEY_STATE_RELEASED);
         } else {
             Log.e(TAG, "Passthrough not sent, connection un-available.");
         }
