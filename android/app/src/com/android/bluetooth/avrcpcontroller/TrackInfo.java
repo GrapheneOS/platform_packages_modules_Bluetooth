@@ -15,11 +15,14 @@
  */
 
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.avrcpcontroller;
 
 import android.media.MediaMetadata;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.HashMap;
 
 /*
@@ -29,7 +32,7 @@ import java.util.HashMap;
  */
 class TrackInfo {
     private static final String TAG = "AvrcpTrackInfo";
-    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    private static final boolean DBG = true;
 
     /*
      * Default values for each of the items from JNI
@@ -60,19 +63,21 @@ class TrackInfo {
     private final long mTrackLen;// full length of AudioFile.
 
     public TrackInfo() {
-        this(new HashMap<Integer,String>());
+        this(new ArrayList<Integer>(), new ArrayList<String>());
     }
 
-    public TrackInfo(HashMap<Integer, String> attributeMap) {
+    public TrackInfo(List<Integer> attrIds, List<String> attrMap) {
+        Map<Integer, String> attributeMap = new HashMap<>();
+        for (int i = 0; i < attrIds.size(); i++) {
+            attributeMap.put(attrIds.get(i), attrMap.get(i));
+        }
+
         String attribute;
-        attribute = attributeMap.get(MEDIA_ATTRIBUTE_TITLE);
-        mTrackTitle = (attribute != null) ? attribute : UNPOPULATED_ATTRIBUTE;
+        mTrackTitle = attributeMap.getOrDefault(MEDIA_ATTRIBUTE_TITLE, UNPOPULATED_ATTRIBUTE);
 
-        attribute = attributeMap.get(MEDIA_ATTRIBUTE_ARTIST_NAME);
-        mArtistName = (attribute != null) ? attribute : UNPOPULATED_ATTRIBUTE;
+        mArtistName = attributeMap.getOrDefault(MEDIA_ATTRIBUTE_ARTIST_NAME, UNPOPULATED_ATTRIBUTE);
 
-        attribute = attributeMap.get(MEDIA_ATTRIBUTE_ALBUM_NAME);
-        mAlbumTitle = (attribute != null) ? attribute : UNPOPULATED_ATTRIBUTE;
+        mAlbumTitle = attributeMap.getOrDefault(MEDIA_ATTRIBUTE_ALBUM_NAME, UNPOPULATED_ATTRIBUTE);
 
         attribute = attributeMap.get(MEDIA_ATTRIBUTE_TRACK_NUMBER);
         mTrackNum = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute) : TRACK_NUM_INVALID;
@@ -80,8 +85,7 @@ class TrackInfo {
         attribute = attributeMap.get(MEDIA_ATTRIBUTE_TOTAL_TRACK_NUMBER);
         mTotalTracks = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute) : TOTAL_TRACKS_INVALID;
 
-        attribute = attributeMap.get(MEDIA_ATTRIBUTE_GENRE);
-        mGenre = (attribute != null) ? attribute : UNPOPULATED_ATTRIBUTE;
+        mGenre = attributeMap.getOrDefault(MEDIA_ATTRIBUTE_GENRE, UNPOPULATED_ATTRIBUTE);
 
         attribute = attributeMap.get(MEDIA_ATTRIBUTE_PLAYING_TIME);
         mTrackLen = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute) : TOTAL_TRACK_TIME_INVALID;
