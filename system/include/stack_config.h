@@ -42,7 +42,7 @@ typedef struct {
   config_t *(*get_all)(void);
 } stack_config_t;
 
-const stack_config_t *stack_config_get_interface();
+const stack_config_t *stack_config_get_interface(void);
 
 #ifdef __cplusplus
 }
