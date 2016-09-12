@@ -56,14 +56,6 @@ extern uint8_t btu_trace_level;
 
 extern const BD_ADDR BT_BD_ANY;
 
-/* Functions provided by btu_task.cc
- ***********************************
-*/
-
-#if (HCILP_INCLUDED == TRUE)
-extern void btu_check_bt_sleep(void);
-#endif
-
 /* Functions provided by btu_hcif.cc
  ***********************************
 */
