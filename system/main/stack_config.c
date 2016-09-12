@@ -131,6 +131,6 @@ const stack_config_t interface = {
   get_all
 };
 
-const stack_config_t *stack_config_get_interface() {
+const stack_config_t *stack_config_get_interface(void) {
   return &interface;
 }
