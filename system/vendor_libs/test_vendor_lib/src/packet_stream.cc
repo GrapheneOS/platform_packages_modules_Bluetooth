@@ -52,8 +52,6 @@ std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand(int fd) const {
 }
 
 serial_data_type_t PacketStream::ReceivePacketType(int fd) const {
-  LOG_INFO(LOG_TAG, "Receiving packet type.");
-
   vector<uint8_t> raw_type_octet;
 
   if (!ReceiveAll(raw_type_octet, 1, fd)) {
@@ -73,10 +71,12 @@ serial_data_type_t PacketStream::ReceivePacketType(int fd) const {
 }
 
 bool PacketStream::SendEvent(const EventPacket& event, int fd) const {
-  LOG_INFO(
-      LOG_TAG, "Sending event with event code: 0x%04X", event.GetEventCode());
-  LOG_INFO(
-      LOG_TAG, "Sending event with size: %zu octets", event.GetPacketSize());
+  if (event.GetPayload()[0] != event.GetPayloadSize() - 1)
+    LOG_WARN(LOG_TAG,
+             "Malformed event: 0x%04X, payload size %zu, reported %u",
+             event.GetEventCode(),
+             event.GetPacketSize(),
+             event.GetPayload()[0]);
 
   if (!SendAll({static_cast<uint8_t>(event.GetType())}, 1, fd)) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event type.");
@@ -96,7 +96,6 @@ bool PacketStream::SendEvent(const EventPacket& event, int fd) const {
 }
 
 bool PacketStream::ValidateTypeOctet(serial_data_type_t type) const {
-  LOG_INFO(LOG_TAG, "Signal octet is 0x%02X.", type);
   // The only types of packets that should be received from the HCI are command
   // packets and data packets.
   return (type >= DATA_TYPE_COMMAND) && (type <= DATA_TYPE_SCO);
