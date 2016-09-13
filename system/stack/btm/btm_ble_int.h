@@ -460,8 +460,6 @@ extern void btm_ble_resolving_list_cleanup(void);
 extern void btm_ble_multi_adv_init(void);
 extern void* btm_ble_multi_adv_get_ref(uint8_t inst_id);
 extern void btm_ble_multi_adv_cleanup(void);
-extern void btm_ble_multi_adv_reenable(uint8_t inst_id);
-extern void btm_ble_multi_adv_enb_privacy(bool    enable);
 extern char btm_ble_map_adv_tx_power(int tx_power_index);
 extern void btm_ble_batchscan_init(void);
 extern void btm_ble_batchscan_cleanup(void);

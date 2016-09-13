@@ -687,9 +687,6 @@ bool    BTM_BleConfigPrivacy(bool    privacy_mode)
         p_cb->addr_mgnt_cb.own_addr_type = BLE_ADDR_RANDOM;
         btm_gen_resolvable_private_addr((void *)btm_gen_resolve_paddr_low);
 
-        if (BTM_BleMaxMultiAdvInstanceCount() > 0)
-            btm_ble_multi_adv_enb_privacy(privacy_mode);
-
         /* 4.2 controller only allow privacy 1.2 or mixed mode, resolvable private address in controller */
         if (controller_get_interface()->supports_ble_privacy())
         {
