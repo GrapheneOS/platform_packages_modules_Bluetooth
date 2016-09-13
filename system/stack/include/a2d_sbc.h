@@ -95,26 +95,6 @@ typedef struct
 *****************************************************************************/
 /******************************************************************************
 **
-** Function         A2D_SbcChkFrInit
-**
-** Description      check if need to init the descramble control block.
-**
-** Returns          nothing.
-******************************************************************************/
-extern void A2D_SbcChkFrInit(uint8_t *p_pkt);
-
-/******************************************************************************
-**
-** Function         A2D_SbcDescramble
-**
-** Description      descramble the packet.
-**
-** Returns          nothing.
-******************************************************************************/
-extern void A2D_SbcDescramble(uint8_t *p_pkt, uint16_t len);
-
-/******************************************************************************
-**
 ** Function         A2D_BldSbcInfo
 **
 ** Description      This function is called by an application to build
@@ -131,7 +111,7 @@ extern void A2D_SbcDescramble(uint8_t *p_pkt, uint16_t len);
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-extern tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, tA2D_SBC_CIE *p_ie,
+extern tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, const tA2D_SBC_CIE *p_ie,
                                   uint8_t *p_result);
 
 /******************************************************************************
@@ -142,7 +122,7 @@ extern tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, tA2D_SBC_CIE *p_ie,
 **                  the SBC Media Codec Capabilities byte sequence
 **                  beginning from the LOSC octet.
 **                  Input Parameters:
-**                      p_info:  the byte sequence to parse.
+**                      p_codec_info:  the codec info byte sequence to parse.
 **
 **                      for_caps:  true, if the byte sequence is for get capabilities response.
 **
@@ -152,8 +132,8 @@ extern tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, tA2D_SBC_CIE *p_ie,
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const uint8_t *p_info,
-                                   bool    for_caps);
+extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie,
+                                   const uint8_t *p_codec_info, bool for_caps);
 
 /******************************************************************************
 **
@@ -205,6 +185,54 @@ extern void A2D_BldSbcMplHdr(uint8_t *p_dst, bool    frag, bool    start,
 extern void A2D_ParsSbcMplHdr(uint8_t *p_src, bool    *p_frag,
                               bool    *p_start, bool    *p_last,
                               uint8_t *p_num);
+
+// Initializes SBC Source codec information into |tAVDT_CFG| configuration
+// entry pointed by |p_cfg|.
+bool A2D_InitCodecConfigSbc(tAVDT_CFG *p_cfg);
+
+// Initializes SBC Sink codec information into |tAVDT_CFG| configuration
+// entry pointed by |p_cfg|.
+bool A2D_InitCodecConfigSbcSink(tAVDT_CFG *p_cfg);
+
+// Checks whether A2DP SBC source codec is supported.
+// |p_codec_info| contains information about the codec capabilities.
+// Returns true if the A2DP SBC source codec is supported, otherwise false.
+bool A2D_IsSourceCodecSupportedSbc(const uint8_t *p_codec_info);
+
+// Checks whether A2DP SBC sink codec is supported.
+// |p_codec_info| contains information about the codec capabilities.
+// Returns true if the A2DP SBC sink codec is supported, otherwise false.
+bool A2D_IsSinkCodecSupportedSbc(const uint8_t *p_codec_info);
+
+// Checks whether an A2DP SBC source codec for a peer source device is
+// supported.
+// |p_codec_info| contains information about the codec capabilities of the
+// peer device.
+// Returns true if the A2DP SBC source codec for a peer source device is
+// supported, otherwise false.
+bool A2D_IsPeerSourceCodecSupportedSbc(const uint8_t *p_codec_info);
+
+// Initialize state with the default A2DP SBC codec.
+// The initialized state with the codec capabilities is stored in
+// |p_codec_info|.
+void A2D_InitDefaultCodecSbc(uint8_t *p_codec_info);
+
+// Set A2DB SBC codec state based on the feeding information from |p_feeding|.
+// The state with the codec capabilities is stored in |p_codec_info|.
+bool A2D_SetCodecSbc(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
+                     uint8_t *p_codec_info);
+
+// Builds A2DP preferred SBC Sink capability from SBC Source capability.
+// |p_pref_cfg| is the result Sink capability to store. |p_src_cap| is
+// the Source capability to use.
+// Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
+// status code.
+tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(uint8_t *p_pref_cfg,
+                                       const uint8_t *p_src_cap);
+
+// Get the default A2DP SBC config.
+// TODO: This is a temporary function that should be removed.
+const tA2D_SBC_CIE *A2D_GetDefaultConfigSbc();
 
 // Get the A2DP SBC track sampling frequency value.
 // |frequency_type| is the frequency type - see |A2D_SBC_IE_SAMP_FREQ_*|.
