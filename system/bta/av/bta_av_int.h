@@ -135,9 +135,6 @@ enum
 /* size of database for service discovery */
 #define BTA_AV_DISC_BUF_SIZE        1000
 
-/* offset of media type in codec info byte array */
-#define BTA_AV_MEDIA_TYPE_IDX       1
-
 /* maximum length of AVDTP security data */
 #define BTA_AV_SECURITY_MAX_LEN     400
 
@@ -484,7 +481,7 @@ typedef struct
     uint16_t            avdt_version;   /* the avdt version of peer device */
     tBTA_SEC            sec_mask;       /* security mask */
     tA2D_CODEC_TYPE     codec_type;     /* codec type */
-    uint8_t             media_type;     /* Media type */
+    uint8_t             media_type;     /* Media type: AVDT_MEDIA_TYPE_* */
     bool                cong;           /* true if AVDTP congested */
     tBTA_AV_STATUS      open_status;    /* open failure status */
     tBTA_AV_CHNL        chnl;           /* the channel: audio/video */

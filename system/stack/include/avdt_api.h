@@ -82,10 +82,11 @@ extern "C" {
 #define AVDT_INT                0       /* initiator */
 #define AVDT_ACP                1       /* acceptor */
 
-/* Media Type.  This indicates the media type of the stream endpoint. */
-#define AVDT_MEDIA_AUDIO            0       /* Audio SEP */
-#define AVDT_MEDIA_VIDEO            1       /* Video SEP */
-#define AVDT_MEDIA_MULTI            2       /* Multimedia SEP */
+/* Media Type of the stream endpoint */
+/* The value does not include the reserved 4-bit LSBs field */
+#define AVDT_MEDIA_TYPE_AUDIO   0       /* Audio SEP */
+#define AVDT_MEDIA_TYPE_VIDEO   1       /* Video SEP */
+#define AVDT_MEDIA_TYPE_MULTI   2       /* Multimedia SEP */
 
 /* for reporting packets */
 #define AVDT_RTCP_PT_SR         200     /* the packet type - SR (Sender Report) */
@@ -249,7 +250,7 @@ typedef struct {
 typedef struct {
     bool        in_use;         /* true if stream is currently in use */
     uint8_t     seid;           /* Stream endpoint identifier */
-    uint8_t     media_type;     /* Media type */
+    uint8_t     media_type;     /* Media type: AVDT_MEDIA_TYPE_* */
     uint8_t     tsep;           /* SEP type */
 } tAVDT_SEP_INFO;
 
@@ -405,7 +406,7 @@ typedef struct {
     uint16_t            mtu;            /* The L2CAP MTU of the transport channel */
     uint16_t            flush_to;       /* The L2CAP flush timeout of the transport channel */
     uint8_t             tsep;           /* SEP type */
-    uint8_t             media_type;     /* Media type */
+    uint8_t             media_type;     /* Media type: AVDT_MEDIA_TYPE_* */
     uint16_t            nsc_mask;       /* Nonsupported protocol command messages */
 } tAVDT_CS;
 
