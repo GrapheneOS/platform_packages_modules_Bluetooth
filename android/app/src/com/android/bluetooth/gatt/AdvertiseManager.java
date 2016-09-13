@@ -219,7 +219,6 @@ class AdvertiseManager {
             }
 
             mAdvertiseClients.add(client);
-            postCallback(advertiserId, AdvertiseCallback.ADVERTISE_SUCCESS);
         }
 
         // Handles stop advertising.
@@ -299,7 +298,7 @@ class AdvertiseManager {
         boolean startMultiAdvertising(AdvertiseClient client) {
             logd("starting multi advertising");
             resetCountDownLatch();
-            enableAdvertising(client);
+            setAdvertisingParameters(client);
             if (!waitForCallback()) {
                 return false;
             }
@@ -315,13 +314,19 @@ class AdvertiseManager {
                     return false;
                 }
             }
+            resetCountDownLatch();
+            enableAdvertising(client, true);
+            if (!waitForCallback()) {
+                return false;
+            }
+
             return true;
         }
 
         boolean startSingleAdvertising(AdvertiseClient client) {
             logd("starting single advertising");
             resetCountDownLatch();
-            enableAdvertising(client);
+            enableAdvertising(client, true);
             if (!waitForCallback()) {
                 return false;
             }
@@ -331,14 +336,14 @@ class AdvertiseManager {
 
         void stopAdvertising(AdvertiseClient client) {
             if (mAdapterService.isMultiAdvertisementSupported()) {
-                gattClientDisableAdvNative(client.advertiserId);
+                gattClientEnableAdvNative(client.advertiserId, false, 0);
             } else {
                 gattAdvertiseNative(client.advertiserId, false);
                 try {
-                    mService.onAdvertiseInstanceDisabled(
-                            AdvertiseCallback.ADVERTISE_SUCCESS, client.advertiserId);
+                    mService.onAdvertiseInstanceEnabled(
+                            AdvertiseCallback.ADVERTISE_SUCCESS, client.advertiserId, false);
                 } catch (RemoteException e) {
-                    Log.d(TAG, "failed onAdvertiseInstanceDisabled", e);
+                        Log.d(TAG, "failed onAdvertiseInstanceDisabled", e);
                 }
             }
         }
@@ -356,24 +361,32 @@ class AdvertiseManager {
             }
         }
 
-        private void enableAdvertising(AdvertiseClient client) {
+        private void setAdvertisingParameters(AdvertiseClient client) {
             int advertiserId = client.advertiserId;
             int minAdvertiseUnit = (int) getAdvertisingIntervalUnit(client.settings);
             int maxAdvertiseUnit = minAdvertiseUnit + ADVERTISING_INTERVAL_DELTA_UNIT;
             int advertiseEventType = getAdvertisingEventType(client);
             int txPowerLevel = getTxPowerLevel(client.settings);
-            int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
-                    client.settings.getTimeout());
             if (mAdapterService.isMultiAdvertisementSupported()) {
-                gattClientEnableAdvNative(
+                gattClientSetParamsNative(
                         advertiserId,
                         minAdvertiseUnit, maxAdvertiseUnit,
                         advertiseEventType,
                         ADVERTISING_CHANNEL_ALL,
-                        txPowerLevel,
-                        advertiseTimeoutSeconds);
+                        txPowerLevel);
             } else {
-                gattAdvertiseNative(client.advertiserId, true);
+                //there is no method to set parameters if multi advertising not enabled
+            }
+        }
+
+        private void enableAdvertising(AdvertiseClient client, boolean enable) {
+            int advertiserId = client.advertiserId;
+            int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
+                    client.settings.getTimeout());
+            if (mAdapterService.isMultiAdvertisementSupported()) {
+                gattClientEnableAdvNative(advertiserId, enable, advertiseTimeoutSeconds);
+            } else {
+                gattAdvertiseNative(client.advertiserId, enable);
             }
         }
 
@@ -504,19 +517,14 @@ class AdvertiseManager {
 
         private native void unregisterAdvertiserNative(int advertiserId);
 
-        private native void gattClientDisableAdvNative(int advertiserId);
-
-        private native void gattClientEnableAdvNative(int advertiserId,
-                int min_interval, int max_interval, int adv_type, int chnl_map,
-                int tx_power, int timeout_s);
-
-        private native void gattClientUpdateAdvNative(int advertiserId,
-                int min_interval, int max_interval, int adv_type, int chnl_map,
-                int tx_power, int timeout_s);
+        private native void gattClientSetParamsNative(int advertiserId,
+                int min_interval, int max_interval, int adv_type, int chnl_map, int tx_power);
 
         private native void gattClientSetAdvDataNative(int advertiserId,
                 boolean set_scan_rsp, boolean incl_name, boolean incl_txpower, int appearance,
                 byte[] manufacturer_data, byte[] service_data, byte[] service_uuid);
+
+        private native void gattClientEnableAdvNative(int advertiserId, boolean enable, int timeout_s);
 
         private native void gattSetAdvDataNative(int advertiserId, boolean setScanRsp, boolean inclName,
                 boolean inclTxPower, int minSlaveConnectionInterval, int maxSlaveConnectionInterval,
