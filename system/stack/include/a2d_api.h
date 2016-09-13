@@ -285,6 +285,12 @@ extern uint8_t A2D_BitsSet(uint8_t num);
 *******************************************************************************/
 extern void A2D_Init(void);
 
+// Checks whether the codec capabilities contain a valid A2DP codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid codec,
+// otherwise false.
+bool A2D_IsValidCodec(const uint8_t *p_codec_info);
+
 // Gets the A2DP codec type.
 // |p_codec_info| contains information about the codec capabilities.
 tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info);
@@ -311,8 +317,9 @@ bool A2D_IsPeerSourceCodecSupported(const uint8_t *p_codec_info);
 // |p_codec_info|.
 void A2D_InitDefaultCodec(uint8_t *p_codec_info);
 
-// Set A2DB codec state based on the feeding information from |p_feeding|.
+// Sets A2DB codec state based on the feeding information from |p_feeding|.
 // The state with the codec capabilities is stored in |p_codec_info|.
+// Returns true on success, otherwise false.
 bool A2D_SetCodec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
                   uint8_t *p_codec_info);
 
@@ -345,6 +352,11 @@ bool A2D_InitCodecConfig(tA2D_CODEC_SEP_INDEX codec_sep_index,
 // Gets the |AVDT_MEDIA_TYPE_*| media type from the codec capability
 // in |p_codec_info|.
 uint8_t A2D_GetMediaType(const uint8_t *p_codec_info);
+
+// Checks whether two A2DP codecs have same type.
+// Returns true if the two codecs have same type, otherwise false.
+bool A2D_CodecTypeEquals(const uint8_t *p_codec_info_a,
+                         const uint8_t *p_codec_info_b);
 
 // Gets the track sampling frequency value for the A2DP codec.
 // |p_codec_info| is a pointer to the codec_info to decode.
@@ -390,6 +402,20 @@ int A2D_GetChannelModeCode(const uint8_t *p_codec_info);
 // Returns the sampling frequency code on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2D_GetSamplingFrequencyCode(const uint8_t *p_codec_info);
+
+// Gets the minimum bitpool for the A2DP codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the minimum bitpool on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetMinBitpool(const uint8_t *p_codec_info);
+
+// Gets the maximum bitpool for the A2DP codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the maximum bitpool on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetMaxBitpool(const uint8_t *p_codec_info);
 
 // Gets the channel type for the A2DP sink codec:
 // 1 for mono, or 3 for dual/stereo/joint.
