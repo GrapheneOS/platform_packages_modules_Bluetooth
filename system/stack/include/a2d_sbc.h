@@ -84,9 +84,9 @@ typedef struct
     uint8_t ch_mode;        /* Channel mode */
     uint8_t block_len;      /* Block length */
     uint8_t num_subbands;   /* Number of subbands */
-    uint8_t alloc_mthd;     /* Allocation method */
-    uint8_t max_bitpool;    /* Maximum bitpool */
+    uint8_t alloc_method;   /* Allocation method */
     uint8_t min_bitpool;    /* Minimum bitpool */
+    uint8_t max_bitpool;    /* Maximum bitpool */
 } tA2D_SBC_CIE;
 
 
@@ -234,17 +234,69 @@ tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(uint8_t *p_pref_cfg,
 // TODO: This is a temporary function that should be removed.
 const tA2D_SBC_CIE *A2D_GetDefaultConfigSbc();
 
-// Get the A2DP SBC track sampling frequency value.
-// |frequency_type| is the frequency type - see |A2D_SBC_IE_SAMP_FREQ_*|.
-int A2D_sbc_get_track_frequency(uint8_t frequency_type);
+// Gets the track sampling frequency value for the A2DP SBC codec.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the track sampling frequency on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetTrackFrequencySbc(const uint8_t *p_codec_info);
 
-// Get the A2DP SBC channel count.
-// |channel_type| is the channel type - see |A2D_SBC_IE_CH_MD_*|.
-int A2D_sbc_get_track_channel_count(uint8_t channel_type);
+// Gets the channel count for the A2DP SBC codec.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the channel count on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetTrackChannelCountSbc(const uint8_t *p_codec_info);
 
-// Decode and display SBC codec_info (for debugging).
-// |p_codec| is a pointer to the SBC codec_info to decode and display.
-void A2D_sbc_dump_codec_info(uint8_t *p_codec);
+// Gets the number of subbands for the A2DP SBC codec.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the number of subbands on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetNumberOfSubbandsSbc(const uint8_t *p_codec_info);
+
+// Gets the number of blocks for the A2DP SBC codec.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the number of blocks on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetNumberOfBlocksSbc(const uint8_t *p_codec_info);
+
+// Gets the allocation method code for the A2DP SBC codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the allocation method code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetAllocationMethodCodeSbc(const uint8_t *p_codec_info);
+
+// Gets the channel mode code for the A2DP SBC codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the channel mode code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetChannelModeCodeSbc(const uint8_t *p_codec_info);
+
+// Gets the sampling frequency code for the A2DP SBC codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the sampling frequency code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetSamplingFrequencyCodeSbc(const uint8_t *p_codec_info);
+
+// Gets the channel type for the A2DP SBC sink codec:
+// 1 for mono, or 3 for dual/stereo/joint.
+// |p_codec_info| is a pointer to the SBC codec_info to decode.
+// Returns the channel type on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetSinkTrackChannelTypeSbc(const uint8_t *p_codec_info);
+
+// Computes the number of frames to process in a time window for the A2DP
+// SBC sink codec. |time_interval_ms| is the time interval (in milliseconds).
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the number of frames to process on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
+                                       const uint8_t *p_codec_info);
+
+// Decodes and displays SBC codec info (for debugging).
+// |p_codec_info| is a pointer to the SBC codec_info to decode and display.
+void A2D_DumpCodecInfoSbc(const uint8_t *p_codec_info);
 
 #ifdef __cplusplus
 }

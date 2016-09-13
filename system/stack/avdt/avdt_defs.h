@@ -143,61 +143,90 @@
 *****************************************************************************/
 
 #define AVDT_MSG_PRS_HDR(p, lbl, pkt, msg) \
-    (lbl) = *(p) >> 4; \
+do { \
+    (lbl) = (*(p) >> 4) & 0x0F; \
     (pkt) = (*(p) >> 2) & 0x03; \
-    (msg) = *(p)++ & 0x03;
+    (msg) = *(p)++ & 0x03; \
+} while (0)
 
 #define AVDT_MSG_PRS_DISC(p, seid, in_use, type, tsep) \
+do { \
     (seid) = *(p) >> 2; \
     (in_use) = (*(p)++ >> 1) & 0x01; \
-    (type) = *(p) >> 4; \
-    (tsep) = (*(p)++ >> 3) & 0x01;
+    (type) = (*(p) >> 4) & 0x0F; \
+    (tsep) = (*(p)++ >> 3) & 0x01; \
+} while (0)
 
 #define AVDT_MSG_PRS_SIG(p, sig) \
-    sig = *(p)++ & 0x3F;
+do { \
+    (sig) = (*(p)++) & 0x3F; \
+} while (0)
 
 #define AVDT_MSG_PRS_SEID(p, seid) \
-    seid = *(p)++ >> 2;
+do { \
+    (seid) = ((*(p)++) >> 2) & 0x3F; \
+} while (0)
 
 #define AVDT_MSG_PRS_PKT_TYPE(p, pkt) \
-    pkt = (*(p) >> 2) & 0x03;
+do { \
+    (pkt) = (*(p) >> 2) & 0x03; \
+} while (0)
 
 #define AVDT_MSG_PRS_OCTET1(p, o_v, o_p, o_x, o_cc) \
-    (o_v) = *(p) >> 6; \
+do { \
+    (o_v) = (*(p) >> 6) & 0x02; \
     (o_p) = (*(p) >> 5) & 0x01; \
     (o_x) = (*(p) >> 4) & 0x01; \
-    (o_cc) = *(p)++ & 0x0F;
+    (o_cc) = (*(p)++) & 0x0F; \
+} while (0)
 
 #define AVDT_MSG_PRS_RPT_OCTET1(p, o_v, o_p, o_cc) \
-    (o_v) = *(p) >> 6; \
+do { \
+    (o_v) = (*(p) >> 6) & 0x02; \
     (o_p) = (*(p) >> 5) & 0x01; \
-    (o_cc) = *(p)++ & 0x1F;
+    (o_cc) = (*(p)++) & 0x1F; \
+} while (0)
 
 #define AVDT_MSG_PRS_M_PT(p, m_pt, marker) \
-    (marker) = *(p) >> 7; \
-    (m_pt) = *(p)++ & 0x7F;
+do { \
+    (marker) = (*(p) >> 7) & 0x01; \
+    (m_pt) = (*(p)++) & 0x7F; \
+} while (0)
 
 #define AVDT_MSG_BLD_HDR(p, lbl, pkt, msg) \
-    *(p)++ = (uint8_t) ((lbl) << 4) | ((pkt) << 2) | (msg);
+do { \
+    *(p)++ = (uint8_t) ((lbl) << 4) | ((pkt) << 2) | (msg); \
+} while (0)
 
 #define AVDT_MSG_BLD_DISC(p, seid, in_use, type, tsep) \
+do { \
     *(p)++ = (uint8_t) (((seid) << 2) | ((in_use) << 1)); \
-    *(p)++ = (uint8_t) (((type) << 4) | ((tsep) << 3));
+    *(p)++ = (uint8_t) (((type) << 4) | ((tsep) << 3)); \
+} while (0)
 
 #define AVDT_MSG_BLD_SIG(p, sig) \
-    *(p)++ = (uint8_t) (sig);
+do { \
+    *(p)++ = (uint8_t) (sig); \
+} while (0)
 
 #define AVDT_MSG_BLD_SEID(p, seid) \
-    *(p)++ = (uint8_t) ((seid) << 2);
+do { \
+    *(p)++ = (uint8_t) ((seid) << 2); \
+} while (0)
 
 #define AVDT_MSG_BLD_ERR(p, err) \
-    *(p)++ = (uint8_t) (err);
+do { \
+    *(p)++ = (uint8_t) (err); \
+} while (0)
 
 #define AVDT_MSG_BLD_PARAM(p, param) \
-    *(p)++ = (uint8_t) (param);
+do { \
+    *(p)++ = (uint8_t) (param); \
+} while (0)
 
 #define AVDT_MSG_BLD_NOSP(p, nosp) \
-    *(p)++ = (uint8_t) (nosp);
+do { \
+    *(p)++ = (uint8_t) (nosp); \
+} while (0)
 
 #endif /* AVDT_DEFS_H */
-
