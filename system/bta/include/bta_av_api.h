@@ -92,10 +92,6 @@ typedef uint8_t tBTA_AV_HNDL;
 #define BTA_AV_NUM_STRS         2
 #endif
 
-#ifndef BTA_AV_MAX_SEPS
-#define BTA_AV_MAX_SEPS         2
-#endif
-
 #ifndef BTA_AV_MAX_A2DP_MTU
  /*#define BTA_AV_MAX_A2DP_MTU     668 //224 (DM5) * 3 - 4(L2CAP header) */
 #define BTA_AV_MAX_A2DP_MTU     1008

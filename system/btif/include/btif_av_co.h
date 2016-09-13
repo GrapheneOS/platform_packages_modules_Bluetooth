@@ -25,14 +25,6 @@
 **  Constants & Macros
 ********************************************************************************/
 
-enum
-{
-    BTIF_SV_AV_AA_SBC_INDEX = 0,
-    BTIF_SV_AV_AA_SBC_SINK_INDEX,
-    BTIF_SV_AV_AA_SEP_INDEX  /* Last index */
-};
-
-
 /*******************************************************************************
 **  Functions
 ********************************************************************************/
@@ -110,7 +102,7 @@ bool bta_av_co_audio_codec_supported(void);
  ** Returns          true if successful, false otherwise
  **
  *******************************************************************************/
-bool bta_av_co_audio_set_codec(const tBTIF_AV_MEDIA_FEEDINGS *p_feeding);
+bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding);
 
 /*******************************************************************************
  **
