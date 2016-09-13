@@ -558,9 +558,9 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             /* set up the audio stream control block */
             p_scb->p_act_tbl = (const tBTA_AV_ACT *)bta_av_a2d_action;
             p_scb->p_cos     = &bta_av_a2d_cos;
-            p_scb->media_type= AVDT_MEDIA_AUDIO;
+            p_scb->media_type= AVDT_MEDIA_TYPE_AUDIO;
             cs.cfg.psc_mask  = AVDT_PSC_TRANS;
-            cs.media_type    = AVDT_MEDIA_AUDIO;
+            cs.media_type    = AVDT_MEDIA_TYPE_AUDIO;
             cs.mtu           = p_bta_av_cfg->audio_mtu;
             cs.flush_to      = L2CAP_DEFAULT_FLUSH_TO;
             tA2D_CODEC_SEP_INDEX codec_sep_index = A2D_CODEC_SEP_INDEX_SBC;

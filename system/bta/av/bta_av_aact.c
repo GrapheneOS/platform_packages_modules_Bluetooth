@@ -1880,7 +1880,7 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     cfg.num_protect = p_scb->p_cap->num_protect;
     memcpy(cfg.codec_info, p_scb->p_cap->codec_info, AVDT_CODEC_SIZE);
     memcpy(cfg.protect_info, p_scb->p_cap->protect_info, AVDT_PROTECT_SIZE);
-    media_type = p_scb->p_cap->codec_info[BTA_AV_MEDIA_TYPE_IDX] >> 4;
+    media_type = A2D_GetMediaType(p_scb->p_cap->codec_info);
 
     APPL_TRACE_DEBUG("%s: num_codec %d", __func__, p_scb->p_cap->num_codec);
     APPL_TRACE_DEBUG("%s: media type x%x, x%x", __func__, media_type,
@@ -2429,7 +2429,7 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     bta_sys_busy(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
 
-    if(p_scb->media_type == AVDT_MEDIA_AUDIO)
+    if(p_scb->media_type == AVDT_MEDIA_TYPE_AUDIO)
     {
         /* in normal logic, conns should be bta_av_cb.audio_count - 1,
          * However, bta_av_stream_chg is not called to increase bta_av_cb.audio_count yet.

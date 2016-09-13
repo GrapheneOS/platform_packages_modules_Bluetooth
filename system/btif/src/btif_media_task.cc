@@ -796,27 +796,19 @@ static void btif_a2dp_encoder_init(void)
     tBTIF_MEDIA_INIT_AUDIO msg;
     tA2D_SBC_CIE sbc_config;
 
-    /* lookup table for converting channel mode */
-    uint16_t codec_mode_tbl[5] = { SBC_JOINT_STEREO, SBC_STEREO, SBC_DUAL, 0, SBC_MONO };
-
-    /* lookup table for converting number of blocks */
-    uint16_t codec_block_tbl[5] = { 16, 12, 8, 0, 4 };
-
-    /* lookup table to convert freq */
-    uint16_t freq_block_tbl[5] = { SBC_sf48000, SBC_sf44100, SBC_sf32000, 0, SBC_sf16000 };
-
-    APPL_TRACE_DEBUG("btif_a2dp_encoder_init");
+    APPL_TRACE_DEBUG("%s", __func__);
 
     /* Retrieve the current SBC configuration (default if currently not used) */
     bta_av_co_audio_get_sbc_config(&sbc_config, &minmtu);
-    msg.NumOfSubBands = (sbc_config.num_subbands == A2D_SBC_IE_SUBBAND_4) ? 4 : 8;
-    msg.NumOfBlocks = codec_block_tbl[sbc_config.block_len >> 5];
-    msg.AllocationMethod = (sbc_config.alloc_mthd == A2D_SBC_IE_ALLOC_MD_L) ? SBC_LOUDNESS : SBC_SNR;
-    msg.ChannelMode = codec_mode_tbl[sbc_config.ch_mode >> 1];
-    msg.SamplingFreq = freq_block_tbl[sbc_config.samp_freq >> 5];
+    const uint8_t *p_codec_info = bta_av_co_get_codec_info();
+    msg.NumOfSubBands = A2D_GetNumberOfSubbands(p_codec_info);
+    msg.NumOfBlocks = A2D_GetNumberOfBlocks(p_codec_info);
+    msg.AllocationMethod = A2D_GetAllocationMethodCode(p_codec_info);
+    msg.ChannelMode = A2D_GetChannelModeCode(p_codec_info);
+    msg.SamplingFreq = A2D_GetSamplingFrequencyCode(p_codec_info);
     msg.MtuSize = minmtu;
 
-    APPL_TRACE_EVENT("msg.ChannelMode %x", msg.ChannelMode);
+    APPL_TRACE_EVENT("%s: msg.ChannelMode 0x%x", __func__, msg.ChannelMode);
 
     /* Init the media task to encode SBC properly */
     btif_media_task_enc_init_req(&msg);
@@ -2130,23 +2122,6 @@ static void btif_media_task_audio_feeding_init(BT_HDR *p_msg)
     }
 }
 
-#ifdef USE_AUDIO_TRACK
-int a2dp_get_track_channel_type(uint8_t channeltype) {
-    int count = 1;
-    switch (channeltype) {
-        case A2D_SBC_IE_CH_MD_MONO:
-            count = 1;
-            break;
-        case A2D_SBC_IE_CH_MD_DUAL:
-        case A2D_SBC_IE_CH_MD_STEREO:
-        case A2D_SBC_IE_CH_MD_JOINT:
-            count = 3;
-            break;
-    }
-    return count;
-}
-#endif
-
 void btif_a2dp_set_peer_sep(uint8_t sep) {
     btif_media_cb.peer_sep = sep;
 }
@@ -2205,25 +2180,29 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
 {
     tBTIF_MEDIA_SINK_CFG_UPDATE *p_buf = (tBTIF_MEDIA_SINK_CFG_UPDATE*) p_msg;
     tA2D_STATUS a2d_status;
-    tA2D_SBC_CIE sbc_cie;
     OI_STATUS       status;
-    uint32_t          freq_multiple = 48*20; /* frequency multiple for 20ms of data , initialize with 48K*/
-    uint32_t          num_blocks = 16;
-    uint32_t          num_subbands = 8;
 
     APPL_TRACE_DEBUG("%s: p_codec_info[%x:%x:%x:%x:%x:%x]", __func__,
             p_buf->codec_info[1], p_buf->codec_info[2], p_buf->codec_info[3],
             p_buf->codec_info[4], p_buf->codec_info[5], p_buf->codec_info[6]);
 
-    a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_buf->codec_info, false);
-    if (a2d_status != A2D_SUCCESS)
-    {
-        APPL_TRACE_ERROR("%s: A2D_ParsSbcInfo fail:%d", __func__, a2d_status);
+    int sample_rate = A2D_GetTrackFrequency(p_buf->codec_info);
+    if (sample_rate == -1) {
+        APPL_TRACE_ERROR("%s: cannot get the track frequency", __func__);
         return;
     }
-
-    btif_media_cb.sample_rate = A2D_sbc_get_track_frequency(sbc_cie.samp_freq);
-    btif_media_cb.channel_count = A2D_sbc_get_track_channel_count(sbc_cie.ch_mode);
+    int channel_count = A2D_GetTrackChannelCount(p_buf->codec_info);
+    if (channel_count == -1) {
+        APPL_TRACE_ERROR("%s: cannot get the channel count", __func__);
+        return;
+    }
+    int channel_type = A2D_GetSinkTrackChannelType(p_buf->codec_info);
+    if (channel_type == -1) {
+        APPL_TRACE_ERROR("%s: cannot get the sink channel type", __func__);
+        return;
+    }
+    btif_media_cb.sample_rate = sample_rate;
+    btif_media_cb.channel_count = channel_count;
 
     btif_media_cb.rx_flush = false;
     APPL_TRACE_DEBUG("Reset to sink role");
@@ -2234,9 +2213,8 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
 
 #ifdef USE_AUDIO_TRACK
     APPL_TRACE_DEBUG("%s A2dpSink: sbc Create Track", __func__);
-    btif_media_cb.audio_track =
-        BtifAvrcpAudioTrackCreate(A2D_sbc_get_track_frequency(sbc_cie.samp_freq),
-                                  a2dp_get_track_channel_type(sbc_cie.ch_mode));
+    btif_media_cb.audio_track = BtifAvrcpAudioTrackCreate(sample_rate,
+                                                          channel_type);
     if (btif_media_cb.audio_track == NULL) {
         APPL_TRACE_ERROR("%s A2dpSink: Track creation fails!!!", __func__);
         return;
@@ -2245,103 +2223,13 @@ static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
     UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
 #endif
 
-    switch (sbc_cie.samp_freq)
-    {
-        case A2D_SBC_IE_SAMP_FREQ_16:
-            APPL_TRACE_DEBUG("\tsamp_freq:%d (16000)", sbc_cie.samp_freq);
-            freq_multiple = 16*20;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_32:
-            APPL_TRACE_DEBUG("\tsamp_freq:%d (32000)", sbc_cie.samp_freq);
-            freq_multiple = 32*20;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_44:
-            APPL_TRACE_DEBUG("\tsamp_freq:%d (44100)", sbc_cie.samp_freq);
-            freq_multiple = 441*2;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_48:
-            APPL_TRACE_DEBUG("\tsamp_freq:%d (48000)", sbc_cie.samp_freq);
-            freq_multiple = 48*20;
-            break;
-        default:
-            APPL_TRACE_DEBUG(" Unknown Frequency ");
-            break;
+    btif_media_cb.frames_to_process =
+        A2D_GetSinkFramesCountToProcess(20, p_buf->codec_info);
+    APPL_TRACE_DEBUG("Frames to be processed in 20 ms %d",
+                     btif_media_cb.frames_to_process);
+    if (btif_media_cb.frames_to_process == 0) {
+        APPL_TRACE_ERROR("Cannot compute the number of frames to process");
     }
-
-    switch (sbc_cie.ch_mode)
-    {
-        case A2D_SBC_IE_CH_MD_MONO:
-            APPL_TRACE_DEBUG("\tch_mode:%d (Mono)", sbc_cie.ch_mode);
-            break;
-        case A2D_SBC_IE_CH_MD_DUAL:
-            APPL_TRACE_DEBUG("\tch_mode:%d (DUAL)", sbc_cie.ch_mode);
-            break;
-        case A2D_SBC_IE_CH_MD_STEREO:
-            APPL_TRACE_DEBUG("\tch_mode:%d (STEREO)", sbc_cie.ch_mode);
-            break;
-        case A2D_SBC_IE_CH_MD_JOINT:
-            APPL_TRACE_DEBUG("\tch_mode:%d (JOINT)", sbc_cie.ch_mode);
-            break;
-        default:
-            APPL_TRACE_DEBUG(" Unknown Mode ");
-            break;
-    }
-
-    switch (sbc_cie.block_len)
-    {
-        case A2D_SBC_IE_BLOCKS_4:
-            APPL_TRACE_DEBUG("\tblock_len:%d (4)", sbc_cie.block_len);
-            num_blocks = 4;
-            break;
-        case A2D_SBC_IE_BLOCKS_8:
-            APPL_TRACE_DEBUG("\tblock_len:%d (8)", sbc_cie.block_len);
-            num_blocks = 8;
-            break;
-        case A2D_SBC_IE_BLOCKS_12:
-            APPL_TRACE_DEBUG("\tblock_len:%d (12)", sbc_cie.block_len);
-            num_blocks = 12;
-            break;
-        case A2D_SBC_IE_BLOCKS_16:
-            APPL_TRACE_DEBUG("\tblock_len:%d (16)", sbc_cie.block_len);
-            num_blocks = 16;
-            break;
-        default:
-            APPL_TRACE_DEBUG(" Unknown BlockLen ");
-            break;
-    }
-
-    switch (sbc_cie.num_subbands)
-    {
-        case A2D_SBC_IE_SUBBAND_4:
-            APPL_TRACE_DEBUG("\tnum_subbands:%d (4)", sbc_cie.num_subbands);
-            num_subbands = 4;
-            break;
-        case A2D_SBC_IE_SUBBAND_8:
-            APPL_TRACE_DEBUG("\tnum_subbands:%d (8)", sbc_cie.num_subbands);
-            num_subbands = 8;
-            break;
-        default:
-            APPL_TRACE_DEBUG(" Unknown SubBands ");
-            break;
-    }
-
-    switch (sbc_cie.alloc_mthd)
-    {
-        case A2D_SBC_IE_ALLOC_MD_S:
-            APPL_TRACE_DEBUG("\talloc_mthd:%d (SNR)", sbc_cie.alloc_mthd);
-            break;
-        case A2D_SBC_IE_ALLOC_MD_L:
-            APPL_TRACE_DEBUG("\talloc_mthd:%d (Loudness)", sbc_cie.alloc_mthd);
-            break;
-        default:
-            APPL_TRACE_DEBUG(" Unknown Allocation Method");
-            break;
-    }
-
-    APPL_TRACE_DEBUG("\tBit pool Min:%d Max:%d", sbc_cie.min_bitpool, sbc_cie.max_bitpool);
-
-    btif_media_cb.frames_to_process = ((freq_multiple)/(num_blocks*num_subbands)) + 1;
-    APPL_TRACE_DEBUG(" Frames to be processed in 20 ms %d",btif_media_cb.frames_to_process);
 }
 #endif
 
