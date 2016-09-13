@@ -47,8 +47,6 @@ class BtVendor {
   static int Op(bt_vendor_opcode_t opcode, void* param) {
     LOG_INFO(LOG_TAG, "Opcode received in vendor library: %d", opcode);
 
-    CHECK(vendor_manager_);
-
     switch (opcode) {
       case BT_VND_OP_POWER_CTRL: {
         LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_POWER_CTRL");
@@ -63,6 +61,7 @@ class BtVendor {
       // Give the HCI its fd to communicate with the HciTransport.
       case BT_VND_OP_USERIAL_OPEN: {
         LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_OPEN");
+        CHECK(vendor_manager_);
         int* fd_list = static_cast<int*>(param);
         fd_list[0] = vendor_manager_->GetHciFd();
         LOG_INFO(LOG_TAG, "Setting HCI's fd to: %d", fd_list[0]);
@@ -72,6 +71,7 @@ class BtVendor {
       // Close the HCI's file descriptor.
       case BT_VND_OP_USERIAL_CLOSE:
         LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_CLOSE");
+        CHECK(vendor_manager_);
         LOG_INFO(
             LOG_TAG, "Closing HCI's fd (fd: %d)", vendor_manager_->GetHciFd());
         vendor_manager_->CloseHciFd();
