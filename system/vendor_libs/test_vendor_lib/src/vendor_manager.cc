@@ -42,9 +42,8 @@ bool VendorManager::Initialize() {
 
   controller_.RegisterEventChannel([this](std::unique_ptr<EventPacket> event) {
     EventPacket evt = *event;
-    async_manager_.ExecAsync(std::chrono::milliseconds(0), [evt,this]() {
-      transport_.PostEvent(evt);
-    });
+    async_manager_.ExecAsync(std::chrono::milliseconds(0),
+                             [evt, this]() { transport_.PostEvent(evt); });
   });
 
   controller_.RegisterTaskScheduler(
