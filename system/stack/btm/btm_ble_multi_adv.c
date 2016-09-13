@@ -30,10 +30,13 @@
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 
+typedef void (*tBTM_BLE_MULTI_ADV_CMPL_CB) (uint8_t status, uint8_t inst_id);
+
 typedef struct
 {
     uint8_t *p_sub_code; /* dynamic array to store sub code */
     uint8_t *p_inst_id;  /* dynamic array to store instance id */
+    tBTM_BLE_MULTI_ADV_CMPL_CB *callback;  /* dynamic array to store pointers to callbacks */
     uint8_t pending_idx;
     uint8_t next_idx;
 }tBTM_BLE_MULTI_ADV_OPQ;
@@ -71,9 +74,6 @@ typedef struct
 #define BTM_BLE_MULTI_ADV_WRITE_DATA_LEN                (BTM_BLE_AD_DATA_LEN + 3)
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN           8
 
-#define BTM_BLE_MULTI_ADV_CB_EVT_MASK   0xF0
-#define BTM_BLE_MULTI_ADV_SUBCODE_MASK  0x0F
-
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
@@ -97,13 +97,15 @@ extern void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_multi_adv_enq_op_q(uint8_t opcode, uint8_t inst_id, uint8_t cb_evt)
+void btm_ble_multi_adv_enq_op_q(uint8_t opcode, uint8_t inst_id, tBTM_BLE_MULTI_ADV_CMPL_CB cb)
 {
     tBTM_BLE_MULTI_ADV_OPQ  *p_op_q = &btm_multi_adv_cb.op_q;
 
     p_op_q->p_inst_id[p_op_q->next_idx] = inst_id;
 
-    p_op_q->p_sub_code[p_op_q->next_idx] = (opcode |(cb_evt << 4));
+    p_op_q->p_sub_code[p_op_q->next_idx] = opcode;
+
+    p_op_q->callback[p_op_q->next_idx] = cb;
 
     p_op_q->next_idx = (p_op_q->next_idx + 1) %  BTM_BleMaxMultiAdvInstanceCount();
 }
@@ -118,13 +120,13 @@ void btm_ble_multi_adv_enq_op_q(uint8_t opcode, uint8_t inst_id, uint8_t cb_evt)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_multi_adv_deq_op_q(uint8_t *p_opcode, uint8_t *p_inst_id, uint8_t *p_cb_evt)
+void btm_ble_multi_adv_deq_op_q(uint8_t *p_opcode, uint8_t *p_inst_id, tBTM_BLE_MULTI_ADV_CMPL_CB *cb)
 {
     tBTM_BLE_MULTI_ADV_OPQ  *p_op_q = &btm_multi_adv_cb.op_q;
 
     *p_inst_id = p_op_q->p_inst_id[p_op_q->pending_idx] & 0x7F;
-    *p_cb_evt = (p_op_q->p_sub_code[p_op_q->pending_idx] >> 4);
-    *p_opcode = (p_op_q->p_sub_code[p_op_q->pending_idx] & BTM_BLE_MULTI_ADV_SUBCODE_MASK);
+    *cb = p_op_q->callback[p_op_q->pending_idx];
+    *p_opcode = p_op_q->p_sub_code[p_op_q->pending_idx];
 
     p_op_q->pending_idx = (p_op_q->pending_idx + 1) %  BTM_BleMaxMultiAdvInstanceCount();
 }
@@ -145,75 +147,42 @@ void btm_ble_multi_adv_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
     uint8_t status, subcode;
     uint8_t *p = p_params->p_param_buf, inst_id;
     uint16_t len = p_params->param_len;
-    tBTM_BLE_MULTI_ADV_INST *p_inst ;
-    uint8_t cb_evt = 0, opcode;
+    tBTM_BLE_MULTI_ADV_INST *p_inst;
+    uint8_t opcode;
+    tBTM_BLE_MULTI_ADV_CMPL_CB cb;
 
-    if (len  < 2)
-    {
-        BTM_TRACE_ERROR("wrong length for btm_ble_multi_adv_vsc_cmpl_cback");
+    if (len  < 2) {
+        BTM_TRACE_ERROR("%s: wrong length", __func__);
         return;
     }
 
     STREAM_TO_UINT8(status, p);
     STREAM_TO_UINT8(subcode, p);
 
-    btm_ble_multi_adv_deq_op_q(&opcode, &inst_id, &cb_evt);
+    btm_ble_multi_adv_deq_op_q(&opcode, &inst_id, &cb);
 
-    BTM_TRACE_DEBUG("op_code = %02x inst_id = %d cb_evt = %02x", opcode, inst_id, cb_evt);
+    BTM_TRACE_DEBUG("%s: op_code = %02x inst_id = %d cb = %02x status = %02x",
+                    __func__, opcode, inst_id, cb, status);
 
-    if (opcode != subcode || inst_id == 0)
-    {
-        BTM_TRACE_ERROR("get unexpected VSC cmpl, expect: %d get: %d",subcode,opcode);
+    if (opcode != subcode || inst_id == 0) {
+        BTM_TRACE_ERROR("%s: unexpected VSC cmpl, expect: %d get: %d",
+                        __func__, subcode, opcode);
         return;
     }
 
     p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
 
-    switch (subcode)
-    {
-        case BTM_BLE_MULTI_ADV_ENB:
-        {
-            BTM_TRACE_DEBUG("BTM_BLE_MULTI_ADV_ENB status = %d", status);
-
-            /* Mark as not in use here, if instance cannot be enabled */
-            if (HCI_SUCCESS != status && BTM_BLE_MULTI_ADV_ENB_EVT == cb_evt)
-                btm_multi_adv_cb.p_adv_inst[inst_id-1].in_use = false;
-            break;
-        }
-
-        case BTM_BLE_MULTI_ADV_SET_PARAM:
-        {
-            BTM_TRACE_DEBUG("BTM_BLE_MULTI_ADV_SET_PARAM status = %d", status);
-            break;
-        }
-
-        case BTM_BLE_MULTI_ADV_WRITE_ADV_DATA:
-        {
-            BTM_TRACE_DEBUG("BTM_BLE_MULTI_ADV_WRITE_ADV_DATA status = %d", status);
-            break;
-        }
-
-        case BTM_BLE_MULTI_ADV_WRITE_SCAN_RSP_DATA:
-        {
-            BTM_TRACE_DEBUG("BTM_BLE_MULTI_ADV_WRITE_SCAN_RSP_DATA status = %d", status);
-            break;
-        }
-
-        case BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR:
-        {
-            BTM_TRACE_DEBUG("BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR status = %d", status);
-            break;
-        }
-
-        default:
-            break;
+    if (subcode == BTM_BLE_MULTI_ADV_ENB && cb != NULL) {
+        (cb)(status, inst_id);
+    } else if ((subcode == BTM_BLE_MULTI_ADV_WRITE_ADV_DATA ||
+                subcode == BTM_BLE_MULTI_ADV_WRITE_SCAN_RSP_DATA)
+               && cb != NULL) {
+        (cb)(status, inst_id);
+    } else if (subcode == BTM_BLE_MULTI_ADV_SET_PARAM
+               && cb != NULL) {
+        (cb)(status, inst_id);
     }
 
-    if (cb_evt != 0 && p_inst->p_cback != NULL)
-    {
-        (p_inst->p_cback)(cb_evt, inst_id, status);
-    }
-    return;
 }
 
 void btm_ble_multi_adv_configure_rpa(tBTM_BLE_MULTI_ADV_INST *p_inst);
@@ -238,7 +207,7 @@ void btm_ble_adv_raddr_timer_timeout(void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_enable_multi_adv(bool    enable, uint8_t inst_id, uint8_t cb_evt)
+void btm_ble_enable_multi_adv(bool enable, uint8_t inst_id, tBTM_BLE_MULTI_ADV_CMPL_CB cb)
 {
     uint8_t         param[BTM_BLE_MULTI_ADV_ENB_LEN], *pp;
     uint8_t         enb = enable ? 1: 0;
@@ -250,13 +219,13 @@ void btm_ble_enable_multi_adv(bool    enable, uint8_t inst_id, uint8_t cb_evt)
     UINT8_TO_STREAM (pp, enb);
     UINT8_TO_STREAM (pp, inst_id);
 
-    BTM_TRACE_EVENT (" btm_ble_enable_multi_adv: enb %d, Inst ID %d",enb,inst_id);
+    BTM_TRACE_EVENT ("btm_ble_enable_multi_adv: enb %d, Inst ID %d",enb,inst_id);
 
     BTM_VendorSpecificCommand(HCI_BLE_MULTI_ADV_OCF,
                               BTM_BLE_MULTI_ADV_ENB_LEN,
                               param,
                               btm_ble_multi_adv_vsc_cmpl_cback);
-    btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_ENB, inst_id, cb_evt);
+    btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_ENB, inst_id, cb);
 }
 /*******************************************************************************
 **
@@ -287,9 +256,9 @@ char btm_ble_map_adv_tx_power(int tx_power_index)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
-                                          tBTM_BLE_ADV_PARAMS *p_params,
-                                          uint8_t cb_evt)
+void btm_ble_multi_adv_set_params(tBTM_BLE_MULTI_ADV_INST *p_inst,
+                                  tBTM_BLE_ADV_PARAMS *p_params,
+                                  tBTM_BLE_MULTI_ADV_CMPL_CB cb)
 {
     uint8_t         param[BTM_BLE_MULTI_ADV_SET_PARAM_LEN], *pp;
     BD_ADDR         dummy ={0,0,0,0,0,0};
@@ -316,7 +285,7 @@ void btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
         BDADDR_TO_STREAM (pp, controller_get_interface()->get_address()->address);
     }
 
-    BTM_TRACE_EVENT (" btm_ble_multi_adv_set_params,Min %d, Max %d,adv_type %d",
+    BTM_TRACE_EVENT ("%s: Min %d, Max %d,adv_type %d", __func__,
         p_params->adv_int_min,p_params->adv_int_max,p_params->adv_type);
 
     UINT8_TO_STREAM  (pp, 0);
@@ -343,7 +312,6 @@ void btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
                               BTM_BLE_MULTI_ADV_SET_PARAM_LEN,
                               param,
                               btm_ble_multi_adv_vsc_cmpl_cback);
-
     p_inst->adv_evt = p_params->adv_type;
 
 #if (BLE_PRIVACY_SPT == TRUE)
@@ -354,7 +322,7 @@ void btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
                            btu_general_alarm_queue);
     }
 #endif
-    btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_PARAM, p_inst->inst_id, cb_evt);
+    btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_PARAM, p_inst->inst_id, cb);
 }
 
 /*******************************************************************************
@@ -395,7 +363,7 @@ void btm_ble_multi_adv_write_rpa(tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADDR random
                        btm_ble_adv_raddr_timer_timeout, p_inst,
                        btu_general_alarm_queue);
     btm_ble_multi_adv_enq_op_q(BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR,
-                               p_inst->inst_id, 0);
+                               p_inst->inst_id, NULL);
 }
 
 /*******************************************************************************
@@ -521,7 +489,7 @@ void btm_ble_multi_adv_reenable(uint8_t inst_id)
     if (true == p_inst->in_use)
     {
         if (p_inst->adv_evt != BTM_BLE_CONNECT_DIR_EVT)
-            btm_ble_enable_multi_adv (true, p_inst->inst_id, 0);
+            btm_ble_enable_multi_adv(true, p_inst->inst_id, NULL);
         else
           /* mark directed adv as disabled if adv has been stopped */
         {
@@ -583,9 +551,23 @@ void BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback) {
         (p_cback)(BTM_BLE_MULTI_ADV_REG_EVT, 0xFF, BTM_BLE_MULTI_ADV_FAILURE);
 }
 
+void BTM_BleAdvEnableCb(uint8_t status, uint8_t inst_id) {
+    BTM_TRACE_DEBUG("%s: status = %d, inst_id = %d", __func__, status, inst_id);
+
+    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
+    (p_inst->p_cback)(BTM_BLE_MULTI_ADV_ENB_EVT, inst_id, status);
+}
+
+void BTM_BleAdvDisableCb(uint8_t status, uint8_t inst_id) {
+    BTM_TRACE_DEBUG("%s: status = %d, inst_id = %d", __func__, status, inst_id);
+
+    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
+    (p_inst->p_cback)(BTM_BLE_MULTI_ADV_DISABLE_EVT, inst_id, status);
+}
+
 /*******************************************************************************
 **
-** Function         BTM_BleEnableAdvInstance
+** Function         BTM_BleAdvEnable
 **
 ** Description      This function enable a Multi-ADV instance with the specified
 **                  adv parameters
@@ -597,9 +579,9 @@ void BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback) {
 ** Returns          status
 **
 *******************************************************************************/
-void BTM_BleEnableAdvInstance(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
+void BTM_BleAdvEnable(uint8_t inst_id, bool enable)
 {
-    BTM_TRACE_EVENT("%s:", __func__);
+    BTM_TRACE_EVENT("%s: inst_id: %d, enable: %d", __func__, inst_id, enable);
 
     if (0 == btm_cb.cmn_ble_vsc_cb.adv_inst_max) {
         BTM_TRACE_ERROR("%s: multi adv not supported", __func__);
@@ -613,20 +595,22 @@ void BTM_BleEnableAdvInstance(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
         return;
     }
 
-    /* configure adv parameter */
-    if (p_params)
-        btm_ble_multi_adv_set_params(p_inst, p_params, 0);
+    if (enable)
+        btm_ble_enable_multi_adv(enable, p_inst->inst_id, BTM_BleAdvEnableCb);
+    else
+        btm_ble_enable_multi_adv(enable, p_inst->inst_id, BTM_BleAdvDisableCb);
+}
 
-    /* enable adv */
-    BTM_TRACE_EVENT("%s: being called with inst_id:%d", __func__, p_inst->inst_id);
+void BTM_BleAdvSetParametersCb(uint8_t status, uint8_t inst_id) {
+    BTM_TRACE_DEBUG("%s: status = %d, inst_id = %d", __func__, status, inst_id);
 
-    btm_ble_enable_multi_adv(true, p_inst->inst_id,
-                             BTM_BLE_MULTI_ADV_ENB_EVT);
+    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
+    (p_inst->p_cback)(BTM_BLE_MULTI_ADV_PARAM_EVT, inst_id, status);
 }
 
 /*******************************************************************************
 **
-** Function         BTM_BleUpdateAdvInstParam
+** Function         BTM_BleAdvSetParameters
 **
 ** Description      This function update a Multi-ADV instance with the specified
 **                  adv parameters.
@@ -637,7 +621,7 @@ void BTM_BleEnableAdvInstance(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
 ** Returns          status
 **
 *******************************************************************************/
-void BTM_BleUpdateAdvInstParam(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
+void BTM_BleAdvSetParameters(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
 {
     tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
 
@@ -655,19 +639,32 @@ void BTM_BleUpdateAdvInstParam(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
     }
 
     if (!p_inst->in_use) {
-        BTM_TRACE_ERROR("adv instance %d is not active", inst_id);
+        BTM_TRACE_ERROR("%s: adv instance %d is not in use", __func__, inst_id);
         (p_inst->p_cback)(BTM_BLE_MULTI_ADV_PARAM_EVT, inst_id, BTM_BLE_MULTI_ADV_FAILURE);
         return;
     }
 
-    btm_ble_enable_multi_adv(false, inst_id, 0);
-    btm_ble_multi_adv_set_params(p_inst, p_params, 0);
-    btm_ble_enable_multi_adv(true, inst_id, BTM_BLE_MULTI_ADV_PARAM_EVT);
+    //TODO: disable only if was enabled, currently no use scenario needs that,
+    // we always set parameters before enabling
+    // btm_ble_enable_multi_adv(false, inst_id, NULL);
+    btm_ble_multi_adv_set_params(p_inst, p_params, &BTM_BleAdvSetParametersCb);
+
+    //TODO: re-enable only if it was enabled, properly call BTM_BleAdvSetParametersCb
+    // currently no use scenario needs that
+    // btm_ble_enable_multi_adv(true, inst_id, BTM_BleUpdateAdvInstParamCb);
+}
+
+void BTM_BleAdvSetDataCb(uint8_t status, uint8_t inst_id)
+{
+    BTM_TRACE_DEBUG("%s: status = %d, inst_id = %d", __func__, status, inst_id);
+
+    tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
+    (p_inst->p_cback)(BTM_BLE_MULTI_ADV_DATA_EVT, inst_id, status);
 }
 
 /*******************************************************************************
 **
-** Function         BTM_BleCfgAdvInstData
+** Function         BTM_BleAdvSetData
 **
 ** Description      This function configure a Multi-ADV instance with the specified
 **                  adv data or scan response data.
@@ -680,10 +677,13 @@ void BTM_BleUpdateAdvInstParam(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params)
 ** Returns          status
 **
 *******************************************************************************/
-void BTM_BleCfgAdvInstData(uint8_t inst_id, bool is_scan_rsp,
+void BTM_BleAdvSetData(uint8_t inst_id, bool is_scan_rsp,
                            tBTM_BLE_AD_MASK data_mask,
                            tBTM_BLE_ADV_DATA *p_data)
 {
+    BTM_TRACE_DEBUG("%s: inst_id = %d is_scan_rsp = %d",
+                    __func__, inst_id, is_scan_rsp);
+
     uint8_t     param[BTM_BLE_MULTI_ADV_WRITE_DATA_LEN], *pp = param;
     uint8_t     sub_code = (is_scan_rsp) ?
                            BTM_BLE_MULTI_ADV_WRITE_SCAN_RSP_DATA : BTM_BLE_MULTI_ADV_WRITE_ADV_DATA;
@@ -719,21 +719,21 @@ void BTM_BleCfgAdvInstData(uint8_t inst_id, bool is_scan_rsp,
                               param,
                               btm_ble_multi_adv_vsc_cmpl_cback);
 
-    btm_ble_multi_adv_enq_op_q(sub_code, inst_id, BTM_BLE_MULTI_ADV_DATA_EVT);
+    btm_ble_multi_adv_enq_op_q(sub_code, inst_id, BTM_BleAdvSetDataCb);
 }
 
 /*******************************************************************************
 **
-** Function         BTM_BleDisableAdvInstance
+** Function         BTM_BleAdvUnregister
 **
-** Description      This function disables a Multi-ADV instance.
+** Description      This function unregister a Multi-ADV instance.
 **
 ** Parameters       inst_id: adv instance ID
 **
 ** Returns          status
 **
 *******************************************************************************/
-void BTM_BleDisableAdvInstance(uint8_t inst_id)
+void BTM_BleAdvUnregister(uint8_t inst_id)
 {
     tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
@@ -753,7 +753,8 @@ void BTM_BleDisableAdvInstance(uint8_t inst_id)
         return;
     }
 
-    btm_ble_enable_multi_adv(false, inst_id, BTM_BLE_MULTI_ADV_DISABLE_EVT);
+    //TODO(jpawlowski): only disable when enabled or enabling
+    btm_ble_enable_multi_adv(false, inst_id, NULL);
 
     btm_ble_multi_adv_configure_rpa(p_inst);
     alarm_cancel(p_inst->adv_raddr_timer);
@@ -844,6 +845,9 @@ void btm_ble_multi_adv_init()
 
         btm_multi_adv_cb.op_q.p_inst_id = osi_calloc(sizeof(uint8_t) *
                                                      (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
+
+        btm_multi_adv_cb.op_q.callback = osi_calloc(sizeof(tBTM_BLE_MULTI_ADV_CMPL_CB) *
+                                                     (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
     }
 
     /* Initialize adv instance indices and IDs. */
@@ -878,6 +882,7 @@ void btm_ble_multi_adv_cleanup(void)
 
     osi_free_and_reset((void **)&btm_multi_adv_cb.op_q.p_sub_code);
     osi_free_and_reset((void **)&btm_multi_adv_cb.op_q.p_inst_id);
+    osi_free_and_reset((void **)&btm_multi_adv_cb.op_q.callback);
 }
 
 #endif

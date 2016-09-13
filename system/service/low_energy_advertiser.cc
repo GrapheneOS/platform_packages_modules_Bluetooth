@@ -291,7 +291,7 @@ LowEnergyAdvertiser::~LowEnergyAdvertiser() {
 
   // Stop advertising and ignore the result.
   hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->multi_adv_disable(advertiser_id_);
+      GetAdvertiserHALInterface()->multi_adv_enable(advertiser_id_, false, 0);
   hal::BluetoothGattInterface::Get()->
       GetAdvertiserHALInterface()->unregister_advertiser(advertiser_id_);
 }
@@ -334,16 +334,15 @@ bool LowEnergyAdvertiser::StartAdvertising(const AdvertiseSettings& settings,
   GetAdvertiseParams(settings, !scan_response_.data().empty(), &params);
 
   bt_status_t status = hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->multi_adv_enable(
+      GetAdvertiserHALInterface()->multi_adv_set_params(
           advertiser_id_,
           params.min_interval,
           params.max_interval,
           params.event_type,
           kAdvertisingChannelAll,
-          params.tx_power_level,
-          params.timeout_s);
+          params.tx_power_level);
   if (status != BT_STATUS_SUCCESS) {
-    LOG(ERROR) << "Failed to initiate call to enable multi-advertising";
+    LOG(ERROR) << "Failed to initiate call to set multi-advertising parameters";
     return false;
   }
 
@@ -378,7 +377,7 @@ bool LowEnergyAdvertiser::StopAdvertising(const StatusCallback& callback) {
   CHECK(!adv_start_callback_);
 
   bt_status_t status = hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->multi_adv_disable(advertiser_id_);
+      GetAdvertiserHALInterface()->multi_adv_enable(advertiser_id_, false, 0);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to initiate call to disable multi-advertising";
     return false;
@@ -410,30 +409,6 @@ int LowEnergyAdvertiser::GetInstanceId() const {
   return advertiser_id_;
 }
 
-void LowEnergyAdvertiser::MultiAdvEnableCallback(
-    hal::BluetoothGattInterface* gatt_iface,
-    int advertiser_id, int status) {
-  if (advertiser_id != advertiser_id_)
-    return;
-
-  lock_guard<mutex> lock(adv_fields_lock_);
-
-  VLOG(1) << __func__ << "advertiser_id: " << advertiser_id << " status: " << status;
-
-  CHECK(adv_start_callback_);
-  CHECK(!adv_stop_callback_);
-
-  // Terminate operation in case of error.
-  if (status != BT_STATUS_SUCCESS) {
-    LOG(ERROR) << "Failed to enable multi-advertising";
-    InvokeAndClearStartCallback(GetBLEStatus(status));
-    return;
-  }
-
-  // Now handle deferred tasks.
-  HandleDeferredAdvertiseData(gatt_iface);
-}
-
 void LowEnergyAdvertiser::HandleDeferredAdvertiseData(
     hal::BluetoothGattInterface* gatt_iface) {
   VLOG(2) << __func__;
@@ -461,9 +436,37 @@ void LowEnergyAdvertiser::HandleDeferredAdvertiseData(
     return;
   }
 
-  // All pending tasks are complete. Report success.
-  adv_started_ = true;
-  InvokeAndClearStartCallback(BLE_STATUS_SUCCESS);
+  AdvertiseParams params;
+  GetAdvertiseParams(advertise_settings_, !scan_response_.data().empty(), &params);
+
+  bt_status_t status = hal::BluetoothGattInterface::Get()->
+      GetAdvertiserHALInterface()->multi_adv_enable(
+          advertiser_id_, true, params.timeout_s);
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "Failed to initiate call to enable multi-advertising";
+    InvokeAndClearStartCallback(GetBLEStatus(status));
+  }
+}
+
+void LowEnergyAdvertiser::MultiAdvSetParamsCallback(
+    hal::BluetoothGattInterface* gatt_iface,
+    int advertiser_id, int status) {
+  if (advertiser_id != advertiser_id_)
+    return;
+
+  lock_guard<mutex> lock(adv_fields_lock_);
+
+  VLOG(1) << __func__ << "advertiser_id: " << advertiser_id << " status: " << status;
+
+  // Terminate operation in case of error.
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "Failed to set advertising parameters";
+    InvokeAndClearStartCallback(GetBLEStatus(status));
+    return;
+  }
+
+  // Now handle deferred tasks.
+  HandleDeferredAdvertiseData(gatt_iface);
 }
 
 void LowEnergyAdvertiser::MultiAdvDataCallback(
@@ -489,27 +492,46 @@ void LowEnergyAdvertiser::MultiAdvDataCallback(
   HandleDeferredAdvertiseData(gatt_iface);
 }
 
-void LowEnergyAdvertiser::MultiAdvDisableCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int advertiser_id, int status) {
+void LowEnergyAdvertiser::MultiAdvEnableCallback(
+    hal::BluetoothGattInterface* gatt_iface,
+    int advertiser_id, int status, bool enable) {
   if (advertiser_id != advertiser_id_)
     return;
 
   lock_guard<mutex> lock(adv_fields_lock_);
 
-  VLOG(1) << __func__ << "advertiser_id: " << advertiser_id << " status: " << status;
+  VLOG(1) << __func__ << "advertiser_id: " << advertiser_id
+          << " status: " << status
+          << " enable: " << enable;
 
-  CHECK(!adv_start_callback_);
-  CHECK(adv_stop_callback_);
+  if (enable) {
+    CHECK(adv_start_callback_);
+    CHECK(!adv_stop_callback_);
 
-  if (status == BT_STATUS_SUCCESS) {
-    VLOG(1) << "Multi-advertising stopped for advertiser_id: " << advertiser_id;
-    adv_started_ = false;
+    // Terminate operation in case of error.
+    if (status != BT_STATUS_SUCCESS) {
+      LOG(ERROR) << "Failed to enable multi-advertising";
+      InvokeAndClearStartCallback(GetBLEStatus(status));
+      return;
+    }
+
+    // All pending tasks are complete. Report success.
+    adv_started_ = true;
+    InvokeAndClearStartCallback(BLE_STATUS_SUCCESS);
+
   } else {
-    LOG(ERROR) << "Failed to stop multi-advertising";
-  }
+    CHECK(!adv_start_callback_);
+    CHECK(adv_stop_callback_);
 
-  InvokeAndClearStopCallback(GetBLEStatus(status));
+    if (status == BT_STATUS_SUCCESS) {
+      VLOG(1) << "Multi-advertising stopped for advertiser_id: " << advertiser_id;
+      adv_started_ = false;
+    } else {
+      LOG(ERROR) << "Failed to stop multi-advertising";
+    }
+
+    InvokeAndClearStopCallback(GetBLEStatus(status));
+  }
 }
 
 bt_status_t LowEnergyAdvertiser::SetAdvertiseData(

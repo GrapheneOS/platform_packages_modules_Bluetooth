@@ -464,10 +464,9 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
 
 const ble_advertiser_callbacks_t bt_le_advertiser_callbacks = {
     nullptr, /* multi_adv_register_cb; */
+    nullptr, /* multi_adv_set_params_cb */
+    nullptr, /* multi_adv_data_cb*/
     nullptr, /* multi_adv_enable_cb; */
-    nullptr, /* multi_adv_update_cb; */
-    nullptr, /* multi_adv_data_cb; */
-    nullptr, /* multi_adv_disable_cb; */
 };
 
 const btgatt_callbacks_t gatt_callbacks = {
