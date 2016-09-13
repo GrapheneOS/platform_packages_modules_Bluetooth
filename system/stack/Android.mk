@@ -176,8 +176,8 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := test/stack_a2d_test.cc
 LOCAL_SHARED_LIBRARIES :=
-LOCAL_STATIC_LIBRARIES := libbt-stack
-LOCAL_MODULE_TAGS := optional
+LOCAL_STATIC_LIBRARIES := libbt-stack liblog
+LOCAL_MODULE_TAGS := tests
 LOCAL_MODULE := net_test_stack
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)

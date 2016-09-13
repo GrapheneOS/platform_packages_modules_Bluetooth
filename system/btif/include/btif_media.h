@@ -72,7 +72,7 @@ typedef struct
 {
         BT_HDR hdr;
         tBTIF_AV_FEEDING_MODE feeding_mode;
-        tBTIF_AV_MEDIA_FEEDINGS feeding;
+        tA2D_AV_MEDIA_FEEDINGS feeding;
 } tBTIF_MEDIA_INIT_AUDIO_FEEDING;
 
 typedef struct

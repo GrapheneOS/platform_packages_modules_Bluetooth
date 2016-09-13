@@ -23,6 +23,8 @@
  ******************************************************************************/
 #ifndef A2D_API_H
 #define A2D_API_H
+
+#include "avdt_api.h"
 #include "sdp_api.h"
 
 #ifdef __cplusplus
@@ -53,7 +55,7 @@ extern "C" {
 #define A2D_MEDIA_CT_SBC        0x00    /* SBC media codec type */
 #define A2D_MEDIA_CT_NON_A2DP   0xFF    /* Non-A2DP media codec type (vendor-specific codec) */
 
-typedef uint8_t tA2D_CODEC;     /* A2DP Codec type: A2D_MEDIA_CT_* */
+typedef uint8_t tA2D_CODEC_TYPE;    /* A2DP Codec type: A2D_MEDIA_CT_* */
 
 #define A2D_SUCCESS           0     /* Success */
 #define A2D_FAIL              0x0A  /* Failed */
@@ -128,6 +130,45 @@ typedef struct
 /* This is the callback to notify the result of the SDP discovery process. */
 typedef void (tA2D_FIND_CBACK)(bool    found, tA2D_Service * p_service);
 
+/*
+ * Enum values for each supported codec per SEP.
+ * There should be a separate entry for each codec that is supported
+ * for encoding (SRC), and for decoding purpose (SINK).
+ */
+typedef enum {
+    A2D_CODEC_SEP_INDEX_SBC = 0,
+    A2D_CODEC_SEP_INDEX_SBC_SINK,
+    /* Add an entry for each new codec here */
+    A2D_CODEC_SEP_INDEX_MAX
+} tA2D_CODEC_SEP_INDEX;
+
+/**
+ * Structure used to configure the AV media feeding
+ */
+
+/* Codec type */
+/* TODO: Those should be removed */
+#define tA2D_AV_CODEC_NONE       0xFF
+#define tA2D_AV_CODEC_PCM        0x5                     /* Raw PCM */
+typedef uint8_t tA2D_AV_CODEC_ID;
+
+typedef struct
+{
+    uint16_t sampling_freq;   /* 44100, 48000 etc */
+    uint16_t num_channel;     /* 1 for mono or 2 stereo */
+    uint8_t  bit_per_sample;  /* Number of bits per sample (8, 16) */
+} tA2D_AV_MEDIA_FEED_CFG_PCM;
+
+typedef union
+{
+    tA2D_AV_MEDIA_FEED_CFG_PCM pcm;     /* Raw PCM feeding format */
+} tA2D_AV_MEDIA_FEED_CFG;
+
+typedef struct
+{
+    tA2D_AV_CODEC_ID format;        /* Media codec identifier */
+    tA2D_AV_MEDIA_FEED_CFG cfg;     /* Media codec configuration */
+} tA2D_AV_MEDIA_FEEDINGS;
 
 /*****************************************************************************
 **  external function declarations
@@ -251,12 +292,42 @@ extern void A2D_Init(void);
 
 // Gets the A2DP codec type.
 // |p_codec_info| contains information about the codec capabilities.
-tA2D_CODEC A2D_GetCodecType(const uint8_t *p_codec_info);
+tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info);
 
-// Checks whether an A2DP codec is supported.
+// Checks whether an A2DP source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
-// Returns true if the A2DP codec is supported, otherwise false.
-bool A2D_IsCodecSupported(const uint8_t *p_codec_info);
+// Returns true if the A2DP source codec is supported, otherwise false.
+bool A2D_IsSourceCodecSupported(const uint8_t *p_codec_info);
+
+// Checks whether an A2DP sink codec is supported.
+// |p_codec_info| contains information about the codec capabilities.
+// Returns true if the A2DP sink codec is supported, otherwise false.
+bool A2D_IsSinkCodecSupported(const uint8_t *p_codec_info);
+
+// Checks whether an A2DP source codec for a peer source device is supported.
+// |p_codec_info| contains information about the codec capabilities of the
+// peer device.
+// Returns true if the A2DP source codec for a peer source device is supported,
+// otherwise false.
+bool A2D_IsPeerSourceCodecSupported(const uint8_t *p_codec_info);
+
+// Initialize state with the default A2DP codec.
+// The initialized state with the codec capabilities is stored in
+// |p_codec_info|.
+void A2D_InitDefaultCodec(uint8_t *p_codec_info);
+
+// Set A2DB codec state based on the feeding information from |p_feeding|.
+// The state with the codec capabilities is stored in |p_codec_info|.
+bool A2D_SetCodec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
+                  uint8_t *p_codec_info);
+
+// Builds A2DP preferred Sink capability from Source capability.
+// |p_pref_cfg| is the result Sink capability to store. |p_src_cap| is
+// the Source capability to use.
+// Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
+// status code.
+tA2D_STATUS A2D_BuildSrc2SinkConfig(uint8_t *p_pref_cfg,
+                                    const uint8_t *p_src_cap);
 
 // Checks whether the A2DP data packets should contain RTP header.
 // |content_protection_enabled| is true if Content Protection is
@@ -265,6 +336,15 @@ bool A2D_IsCodecSupported(const uint8_t *p_codec_info);
 // false.
 bool A2D_UsesRtpHeader(bool content_protection_enabled,
                        const uint8_t *p_codec_info);
+
+// Gets the codec name for a given |codec_sep_index|.
+const char *A2D_CodecSepIndexStr(tA2D_CODEC_SEP_INDEX codec_sep_index);
+
+// Initializes codec-specific information into |tAVDT_CFG| configuration
+// entry pointed by |p_cfg|. The selected codec is defined by
+// |codec_sep_index|.
+bool A2D_InitCodecConfig(tA2D_CODEC_SEP_INDEX codec_sep_index,
+                         tAVDT_CFG *p_cfg);
 
 #ifdef __cplusplus
 }

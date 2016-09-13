@@ -250,7 +250,7 @@ tAVDT_CTRL_CBACK * const bta_av_dt_cback[] =
 ***********************************************/
 static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, uint8_t local_sep)
 {
-    for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
+    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
         if ((p_scb->seps[i].tsep == local_sep) &&
             (p_scb->seps[i].codec_type == p_scb->codec_type))
             return (p_scb->seps[i].av_handle);
@@ -270,7 +270,7 @@ static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, uint8_t local_sep)
 ***********************************************/
 static uint8_t bta_av_get_scb_sep_type(tBTA_AV_SCB *p_scb, uint8_t tavdt_handle)
 {
-    for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
+    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
         if (p_scb->seps[i].av_handle == tavdt_handle)
             return (p_scb->seps[i].tsep);
     }
@@ -744,7 +744,7 @@ static void bta_av_a2d_sdp_cback(bool found, tA2D_Service *p_service)
 static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 {
     APPL_TRACE_DEBUG("%s: codec_type: %d", __func__, p_scb->codec_type);
-    for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
+    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
         APPL_TRACE_DEBUG("%s: av_handle: %d codec_type: %d", __func__,
             p_scb->seps[i].av_handle, p_scb->seps[i].codec_type);
         if((p_scb->seps[i].av_handle && p_scb->codec_type == p_scb->seps[i].codec_type)
@@ -1091,7 +1091,7 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     if (p_scb->deregistring)
     {
         /* remove stream */
-        for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
+        for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
             if (p_scb->seps[i].av_handle)
                 AVDT_RemoveStream(p_scb->seps[i].av_handle);
             p_scb->seps[i].av_handle = 0;
@@ -1897,7 +1897,7 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                               A2D_GetCodecType(p_scb->p_cap->codec_info),
                               cfg.codec_info, &p_scb->sep_info_idx,
                               p_info->seid, &cfg.num_protect,
-                              cfg.protect_info) == 0))
+                              cfg.protect_info) == A2D_SUCCESS))
     {
 #if AVDT_MULTIPLEXING == TRUE
         cfg.mux_mask &= p_scb->p_cap->mux_mask;

@@ -21,14 +21,19 @@
  *  Common API for the Advanced Audio Distribution Profile (A2DP)
  *
  ******************************************************************************/
+
+#define LOG_TAG "a2d_api"
+
 #include <string.h>
 #include "bt_target.h"
 #include "bt_common.h"
 #include "sdpdefs.h"
 #include "a2d_api.h"
 #include "a2d_int.h"
+#include "a2d_sbc.h"
 #include "a2d_vendor.h"
 #include "avdt_api.h"
+#include "osi/include/log.h"
 
 /*****************************************************************************
 **  Global data
@@ -61,7 +66,7 @@ static void a2d_sdp_cback(uint16_t status)
     tA2D_Service        a2d_svc;
     tSDP_PROTOCOL_ELEM  elem;
 
-    A2D_TRACE_API("a2d_sdp_cback status: %d", status);
+    LOG_DEBUG(LOG_TAG, "%s: status: %d", __func__, status);
 
     if (status == SDP_SUCCESS)
     {
@@ -103,7 +108,7 @@ static void a2d_sdp_cback(uint16_t status)
             if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_AVDTP, &elem))
             {
                 a2d_svc.avdt_version = elem.params[0];
-                A2D_TRACE_DEBUG("avdt_version: 0x%x", a2d_svc.avdt_version);
+                LOG_DEBUG(LOG_TAG, "avdt_version: 0x%x", a2d_svc.avdt_version);
             }
 
             /* we've got everything, we're done */
@@ -178,7 +183,7 @@ tA2D_STATUS A2D_AddRecord(uint16_t service_uuid, char *p_service_name, char *p_p
     uint8_t     *p;
     tSDP_PROTOCOL_ELEM  proto_list [A2D_NUM_PROTO_ELEMS];
 
-    A2D_TRACE_API("A2D_AddRecord uuid: %x", service_uuid);
+    LOG_DEBUG(LOG_TAG, "%s: uuid: 0x%x", __func__, service_uuid);
 
     if( (sdp_handle == 0) ||
         (service_uuid != UUID_SERVCLASS_AUDIO_SOURCE && service_uuid != UUID_SERVCLASS_AUDIO_SINK) )
@@ -280,7 +285,7 @@ tA2D_STATUS A2D_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                                    ATTR_ID_PROTOCOL_DESC_LIST,
                                    ATTR_ID_PROVIDER_NAME};
 
-    A2D_TRACE_API("A2D_FindService uuid: %x", service_uuid);
+    LOG_DEBUG(LOG_TAG, "%s: uuid: 0x%x", __func__, service_uuid);
     if( (service_uuid != UUID_SERVCLASS_AUDIO_SOURCE && service_uuid != UUID_SERVCLASS_AUDIO_SINK) ||
         p_db == NULL || p_cback == NULL)
         return A2D_INVALID_PARAMS;
@@ -398,34 +403,147 @@ void A2D_Init(void)
 #endif
 }
 
-tA2D_CODEC A2D_GetCodecType(const uint8_t *p_codec_info)
+tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info)
 {
-    return (tA2D_CODEC)(p_codec_info[AVDT_CODEC_TYPE_INDEX]);
+    return (tA2D_CODEC_TYPE)(p_codec_info[AVDT_CODEC_TYPE_INDEX]);
 }
 
-bool A2D_IsCodecSupported(const uint8_t *p_codec_info)
+bool A2D_IsSourceCodecSupported(const uint8_t *p_codec_info)
 {
-    tA2D_CODEC codec_type = A2D_GetCodecType(p_codec_info);
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
-        return true;
+        return A2D_IsSourceCodecSupportedSbc(p_codec_info);
     case A2D_MEDIA_CT_NON_A2DP:
-        return A2D_IsVendorCodecSupported(p_codec_info);
+        return A2D_IsVendorSourceCodecSupported(p_codec_info);
     default:
-        return false;
+        break;
     }
 
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
     return false;
+}
+
+bool A2D_IsSinkCodecSupported(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_IsSinkCodecSupportedSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_IsVendorSinkCodecSupported(p_codec_info);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return false;
+}
+
+bool A2D_IsPeerSourceCodecSupported(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_IsPeerSourceCodecSupportedSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_IsVendorPeerSourceCodecSupported(p_codec_info);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return false;
+}
+
+void A2D_InitDefaultCodec(uint8_t *p_codec_info)
+{
+    A2D_InitDefaultCodecSbc(p_codec_info);
+}
+
+bool A2D_SetCodec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
+                  uint8_t *p_codec_info)
+{
+    // TODO: Needs to support vendor-specific codecs as well.
+    return A2D_SetCodecSbc(p_feeding, p_codec_info);
+}
+
+tA2D_STATUS A2D_BuildSrc2SinkConfig(uint8_t *p_pref_cfg,
+                                    const uint8_t *p_src_cap)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_src_cap);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_BuildSrc2SinkConfigSbc(p_pref_cfg, p_src_cap);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorBuildSrc2SinkConfig(p_pref_cfg, p_src_cap);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return A2D_NS_CODEC_TYPE;
 }
 
 bool A2D_UsesRtpHeader(bool content_protection_enabled,
                        const uint8_t *p_codec_info)
 {
-    tA2D_CODEC codec_type = A2D_GetCodecType(p_codec_info);
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
     if (codec_type != A2D_MEDIA_CT_NON_A2DP)
         return true;
 
     return A2D_VendorUsesRtpHeader(content_protection_enabled, p_codec_info);
+}
+
+const char *A2D_CodecSepIndexStr(tA2D_CODEC_SEP_INDEX codec_sep_index)
+{
+    switch (codec_sep_index) {
+    case A2D_CODEC_SEP_INDEX_SBC:
+      return "SBC";
+    case A2D_CODEC_SEP_INDEX_SBC_SINK:
+      return "SBC SINK";
+    case A2D_CODEC_SEP_INDEX_MAX:
+        break;
+    }
+
+    return "UNKNOWN CODEC SEP INDEX";
+}
+
+bool A2D_InitCodecConfig(tA2D_CODEC_SEP_INDEX codec_sep_index,
+                         tAVDT_CFG *p_cfg)
+{
+    LOG_DEBUG(LOG_TAG, "%s: codec %s", __func__,
+              A2D_CodecSepIndexStr(codec_sep_index));
+
+    /* Default: no content protection info */
+    p_cfg->num_protect = 0;
+    p_cfg->protect_info[0] = 0;
+
+    switch (codec_sep_index) {
+    case A2D_CODEC_SEP_INDEX_SBC:
+        return A2D_InitCodecConfigSbc(p_cfg);
+    case A2D_CODEC_SEP_INDEX_SBC_SINK:
+        return A2D_InitCodecConfigSbcSink(p_cfg);
+    case A2D_CODEC_SEP_INDEX_MAX:
+        break;
+    }
+
+    return false;
 }
