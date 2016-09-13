@@ -1171,17 +1171,11 @@ public class GattService extends ProfileService {
         }
     }
 
-    // Callback when advertise instance is enabled.
-    void onAdvertiseInstanceEnabled(int status, int advertiserId) {
-        if (DBG) Log.d(TAG, "onAdvertiseInstanceEnabled() - "
-                + "advertiserId=" + advertiserId + ", status=" + status);
-        mAdvertiseManager.callbackDone(advertiserId, status);
-    }
-
-    // Not really used.
-    void onAdvertiseDataUpdated(int status, int advertiserId) {
-        if (DBG) Log.d(TAG, "onAdvertiseDataUpdated() - advertiserId=" + advertiserId
+    // Callback when advertise parameters are set.
+    void onAdvertiseParamsSet(int status, int advertiserId) {
+        if (DBG) Log.d(TAG, "onAdvertiseParamsSet() - advertiserId=" + advertiserId
             + ", status=" + status);
+        mAdvertiseManager.callbackDone(advertiserId, status);
     }
 
     // Callback when advertise data or scan response is set.
@@ -1191,20 +1185,23 @@ public class GattService extends ProfileService {
         mAdvertiseManager.callbackDone(advertiserId, status);
     }
 
-    // Callback when advertise instance is disabled
-    void onAdvertiseInstanceDisabled(int status, int advertiserId) throws RemoteException {
-        if (DBG) Log.d(TAG, "onAdvertiseInstanceDisabled() - advertiserId=" + advertiserId
-            + ", status=" + status);
+    // Callback when advertise instance is enabled.
+    void onAdvertiseInstanceEnabled(int status, int advertiserId,
+                                    boolean enable) throws RemoteException {
+        if (DBG) Log.d(TAG, "onAdvertiseInstanceEnabled() - "
+                + "advertiserId=" + advertiserId + ", status=" + status + ", enable=" + enable);
+
+        if (enable)
+            mAdvertiseManager.callbackDone(advertiserId, status);
+
         AdvertiserMap.App app = mAdvertiserMap.getById(advertiserId);
         if (app != null) {
-            Log.d(TAG, "Advertiser app is not null!");
-            boolean isStart = false;
             if (status == 0) {
                 app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS,
-                        isStart, null);
+                        enable, null);
             } else {
                 app.callback.onMultiAdvertiseCallback(
-                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR, isStart, null);
+                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR, enable, null);
             }
         }
     }
