@@ -22,6 +22,7 @@
 #define A2D_VENDOR_H
 
 #include <stdbool.h>
+#include "a2d_api.h"
 
 /* Offset for A2DP vendor codec */
 #define A2D_VENDOR_CODEC_START_IDX              3
@@ -38,11 +39,34 @@ extern "C"
 {
 #endif
 
-// Checks whether a vendor-specific A2DP codec is supported.
+// Checks whether a vendor-specific A2DP source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
-// Returns true if the vendor-specific A2DP codec is supported, otherwise
-// false.
-bool A2D_IsVendorCodecSupported(const uint8_t *p_codec_info);
+// Returns true if the vendor-specific A2DP source codec is supported,
+// otherwise false.
+bool A2D_IsVendorSourceCodecSupported(const uint8_t *p_codec_info);
+
+// Checks whether a vendor-specific A2DP sink codec is supported.
+// |p_codec_info| contains information about the codec capabilities.
+// Returns true if the vendor-specific A2DP sink codec is supported,
+// otherwise false.
+bool A2D_IsVendorSinkCodecSupported(const uint8_t *p_codec_info);
+
+// Checks whether a vendor-specific A2DP source codec for a peer source device
+// is supported.
+// |p_codec_info| contains information about the codec capabilities of the
+// peer device.
+// Returns true if the vendor-specific A2DP source codec for a peer source
+// device is supported, otherwise false.
+bool A2D_IsVendorPeerSourceCodecSupported(const uint8_t *p_codec_info);
+
+// Builds a vendor-specific A2DP preferred Sink capability from a vendor
+// Source capability.
+// |p_pref_cfg| is the result Sink capability to store. |p_src_cap| is
+// the Source capability to use.
+// Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
+// status code.
+tA2D_STATUS A2D_VendorBuildSrc2SinkConfig(uint8_t *p_pref_cfg,
+                                          const uint8_t *p_src_cap);
 
 // Gets the Vendor ID for the vendor-specific A2DP codec.
 // |p_codec_info| contains information about the codec capabilities.

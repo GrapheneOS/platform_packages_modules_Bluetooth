@@ -170,30 +170,6 @@ extern int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
 
 /*******************************************************************************
 **
-** Function         bta_av_sbc_cfg_in_cap
-**
-** Description      This function checks whether an SBC codec configuration
-**                  is allowable for the given codec capabilities.
-**
-** Returns          0 if ok, nonzero if error.
-**
-*******************************************************************************/
-extern uint8_t bta_av_sbc_cfg_in_cap(uint8_t *p_cfg, tA2D_SBC_CIE *p_cap);
-
-/*******************************************************************************
-**
-** Function         bta_av_sbc_cfg_matches_cap
-**
-** Description      This function checks whether an SBC codec configuration
-**                  matched with capabilities. Here we check subset.
-**
-** Returns          0 if ok, nonzero if error.
-**
-*******************************************************************************/
-extern uint8_t bta_av_sbc_cfg_matches_cap(uint8_t *p_cfg, tA2D_SBC_CIE *p_cap);
-
-/*******************************************************************************
-**
 ** Function         bta_av_sbc_bld_hdr
 **
 ** Description      This function builds the packet header for MPF1.
