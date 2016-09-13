@@ -88,15 +88,15 @@ class LowEnergyAdvertiser : private hal::BluetoothGattInterface::AdvertiserObser
   LowEnergyAdvertiser(const UUID& uuid, int advertiser_id);
 
   // BluetoothGattInterface::AdvertiserObserver overrides:
-  void MultiAdvEnableCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int advertiser_id, int status) override;
   void MultiAdvDataCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int advertiser_id, int status) override;
-  void MultiAdvDisableCallback(
+  void MultiAdvSetParamsCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int advertiser_id, int status) override;
+  void MultiAdvEnableCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int advertiser_id, int status, bool enable) override;
 
   // Helper method called from SetAdvertiseData/SetScanResponse.
   bt_status_t SetAdvertiseData(

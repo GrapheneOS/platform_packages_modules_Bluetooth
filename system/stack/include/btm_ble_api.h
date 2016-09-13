@@ -1716,24 +1716,21 @@ extern void  BTM_BleAdvRegister(tBTM_BLE_MULTI_ADV_CBACK *p_cback);
 
 /*******************************************************************************
 **
-** Function         BTM_BleEnableAdvInstance
+** Function         BTM_BleAdvEnable
 **
-** Description      This function enable a Multi-ADV instance with the specified
-**                  adv parameters
+** Description      This function enable a Multi-ADV instance
 **
 ** Parameters       inst_id: adv instance ID
-**                  p_params: pointer to the adv parameter structure, set as default
-**                            adv parameter when the instance is enabled.
+** Parameters       enable: true to enable, false to disable
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_BleEnableAdvInstance(uint8_t inst_id,
-                                     tBTM_BLE_ADV_PARAMS *p_params);
+extern void BTM_BleAdvEnable(uint8_t inst_id, bool enable);
 
 /*******************************************************************************
 **
-** Function         BTM_BleUpdateAdvInstParam
+** Function         BTM_BleAdvSetParameters
 **
 ** Description      This function update a Multi-ADV instance with the specififed
 **                  adv parameters.
@@ -1744,11 +1741,11 @@ extern void BTM_BleEnableAdvInstance(uint8_t inst_id,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_BleUpdateAdvInstParam(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params);
+extern void BTM_BleAdvSetParameters(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
 **
-** Function         BTM_BleCfgAdvInstData
+** Function         BTM_BleAdvSetData
 **
 ** Description      This function configure a Multi-ADV instance with the specified
 **                  adv data or scan response data.
@@ -1761,13 +1758,13 @@ extern void BTM_BleUpdateAdvInstParam(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_pa
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_BleCfgAdvInstData(uint8_t inst_id, bool is_scan_rsp,
-                                    tBTM_BLE_AD_MASK data_mask,
-                                    tBTM_BLE_ADV_DATA *p_data);
+extern void BTM_BleAdvSetData (uint8_t inst_id, bool is_scan_rsp,
+                               tBTM_BLE_AD_MASK data_mask,
+                               tBTM_BLE_ADV_DATA *p_data);
 
 /*******************************************************************************
 **
-** Function         BTM_BleDisableAdvInstance
+** Function         BTM_BleAdvUnregister
 **
 ** Description      This function disable a Multi-ADV instance.
 **
@@ -1776,7 +1773,7 @@ extern void BTM_BleCfgAdvInstData(uint8_t inst_id, bool is_scan_rsp,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_BleDisableAdvInstance(uint8_t inst_id);
+extern void BTM_BleAdvUnregister (uint8_t inst_id);
 
 /*******************************************************************************
 **

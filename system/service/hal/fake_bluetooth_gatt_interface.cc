@@ -158,12 +158,12 @@ bt_status_t FakeUnregisterAdvertiser(int advertiser_id) {
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeMultiAdvEnable(
+bt_status_t FakeMultiAdvSetParameters(
     int advertiser_id, int min_interval, int max_interval, int adv_type,
-    int chnl_map, int tx_power, int timeout_s) {
+    int chnl_map, int tx_power) {
   if (g_advertiser_handler)
-    return g_advertiser_handler->MultiAdvEnable(advertiser_id, min_interval, max_interval,
-                                     adv_type, chnl_map, tx_power, timeout_s);
+    return g_advertiser_handler->MultiAdvSetParameters(advertiser_id, min_interval, max_interval,
+                                     adv_type, chnl_map, tx_power);
 
   return BT_STATUS_FAIL;
 }
@@ -181,9 +181,10 @@ bt_status_t FakeMultiAdvSetInstData(
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeMultiAdvDisable(int advertiser_id) {
+bt_status_t FakeMultiAdvEnable(
+    int advertiser_id, bool enable, int timeout_s) {
   if (g_advertiser_handler)
-    return g_advertiser_handler->MultiAdvDisable(advertiser_id);
+    return g_advertiser_handler->MultiAdvEnable(advertiser_id, enable, timeout_s);
 
   return BT_STATUS_FAIL;
 }
@@ -192,10 +193,9 @@ ble_advertiser_interface_t fake_bt_advertiser_iface = {
   FakeRegisterAdvertiser,
   FakeUnregisterAdvertiser,
   nullptr,  // set_adv_data
-  FakeMultiAdvEnable,
-  nullptr,  // multi_adv_update
+  FakeMultiAdvSetParameters,
   FakeMultiAdvSetInstData,
-  FakeMultiAdvDisable,
+  FakeMultiAdvEnable,
 };
 
 btgatt_server_interface_t fake_btgatts_iface = {
@@ -278,10 +278,10 @@ void FakeBluetoothGattInterface::NotifyRegisterAdvertiserCallback(
                     RegisterAdvertiserCallback(this, status, advertiser_id, app_uuid));
 }
 
-void FakeBluetoothGattInterface::NotifyMultiAdvEnableCallback(
+void FakeBluetoothGattInterface::NotifyMultiAdvSetParamsCallback(
     int advertiser_id, int status) {
   FOR_EACH_OBSERVER(AdvertiserObserver, advertiser_observers_,
-                    MultiAdvEnableCallback(this, advertiser_id, status));
+                    MultiAdvSetParamsCallback(this, advertiser_id, status));
 }
 
 void FakeBluetoothGattInterface::NotifyMultiAdvDataCallback(
@@ -290,10 +290,10 @@ void FakeBluetoothGattInterface::NotifyMultiAdvDataCallback(
                     MultiAdvDataCallback(this, advertiser_id, status));
 }
 
-void FakeBluetoothGattInterface::NotifyMultiAdvDisableCallback(
-    int advertiser_id, int status) {
+void FakeBluetoothGattInterface::NotifyMultiAdvEnableCallback(
+    int advertiser_id, int status, bool enable) {
   FOR_EACH_OBSERVER(AdvertiserObserver, advertiser_observers_,
-                    MultiAdvDisableCallback(this, advertiser_id, status));
+                    MultiAdvEnableCallback(this, advertiser_id, status, enable));
 }
 
 void FakeBluetoothGattInterface::NotifyRegisterServerCallback(
