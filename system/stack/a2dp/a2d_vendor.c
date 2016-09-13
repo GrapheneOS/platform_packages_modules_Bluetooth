@@ -55,8 +55,8 @@ bool A2D_IsVendorPeerSourceCodecSupported(UNUSED_ATTR const uint8_t *p_codec_inf
     return false;
 }
 
-tA2D_STATUS A2D_VendorBuildSrc2SinkConfig(uint8_t *p_pref_cfg,
-                                          const uint8_t *p_src_cap)
+tA2D_STATUS A2D_VendorBuildSrc2SinkConfig(UNUSED_ATTR uint8_t *p_pref_cfg,
+                                          UNUSED_ATTR const uint8_t *p_src_cap)
 {
     // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
     // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
@@ -97,4 +97,95 @@ bool A2D_VendorUsesRtpHeader(UNUSED_ATTR bool content_protection_enabled,
     // Add checks based on <content_protection_enabled, vendor_id, codec_id>
 
     return true;
+}
+
+int A2D_VendorGetTrackFrequency(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetTrackChannelCount(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetNumberOfSubbands(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetNumberOfBlocks(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetAllocationMethodCode(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetChannelModeCode(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetSamplingFrequencyCode(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetSinkTrackChannelType(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetSinkFramesCountToProcess(UNUSED_ATTR uint64_t time_interval_ms,
+                                          UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
 }

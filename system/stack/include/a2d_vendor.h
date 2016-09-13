@@ -86,6 +86,67 @@ uint16_t A2D_VendorCodecGetCodecId(const uint8_t *p_codec_info);
 bool A2D_VendorUsesRtpHeader(bool content_protection_enabled,
                              const uint8_t *p_codec_info);
 
+// Gets the track sampling frequency value for the A2DP vendor-specific codec.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the track sampling frequency on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetTrackFrequency(const uint8_t *p_codec_info);
+
+// Gets the channel count for the A2DP vendor-specific codec.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the channel count on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetTrackChannelCount(const uint8_t *p_codec_info);
+
+// Gets the number of subbands for the A2DP vendor-specific codec.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the number of subbands on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetNumberOfSubbands(const uint8_t *p_codec_info);
+
+// Gets the number of blocks for the A2DP vendor-specific codec.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the number of blocks on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetNumberOfBlocks(const uint8_t *p_codec_info);
+
+// Gets the allocation method code for the A2DP vendor-specific codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the allocation method code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetAllocationMethodCode(const uint8_t *p_codec_info);
+
+// Gets the channel mode code for the A2DP vendor-specific codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the channel mode code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetChannelModeCode(const uint8_t *p_codec_info);
+
+// Gets the sampling frequency code for the A2DP vendor-specific codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the sampling frequency code on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetSamplingFrequencyCode(const uint8_t *p_codec_info);
+
+// Gets the channel type for the A2DP vendor-specific sink codec:
+// 1 for mono, or 3 for dual/stereo/joint.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the channel type on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetSinkTrackChannelType(const uint8_t *p_codec_info);
+
+// Computes the number of frames to process in a time window for the A2DP
+// vendor-specific sink codec. |time_interval_ms| is the time interval
+// (in milliseconds).
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the number of frames to process on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetSinkFramesCountToProcess(uint64_t time_interval_ms,
+                                          const uint8_t *p_codec_info);
+
 #ifdef __cplusplus
 }
 #endif

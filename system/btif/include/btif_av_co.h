@@ -29,6 +29,9 @@
 **  Functions
 ********************************************************************************/
 
+// Gets the current codec info.
+const uint8_t *bta_av_co_get_codec_info(void);
+
 /*******************************************************************************
  **
  ** Function         bta_av_co_cp_is_active

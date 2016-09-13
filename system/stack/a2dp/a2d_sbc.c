@@ -32,6 +32,7 @@
 #include "a2d_int.h"
 #include "a2d_sbc.h"
 #include "bt_utils.h"
+#include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
 
 // Checks whether A2DP SBC codec configuration matches with a device's codec
@@ -56,9 +57,9 @@ static const tA2D_SBC_CIE a2d_sbc_caps =
     A2D_SBC_IE_CH_MD_JOINT,             /* ch_mode */
     A2D_SBC_IE_BLOCKS_16,               /* block_len */
     A2D_SBC_IE_SUBBAND_8,               /* num_subbands */
-    A2D_SBC_IE_ALLOC_MD_L,              /* alloc_mthd */
-    A2D_SBC_MAX_BITPOOL,                /* max_bitpool */
-    A2D_SBC_IE_MIN_BITPOOL              /* min_bitpool */
+    A2D_SBC_IE_ALLOC_MD_L,              /* alloc_method */
+    A2D_SBC_IE_MIN_BITPOOL,             /* min_bitpool */
+    A2D_SBC_MAX_BITPOOL                 /* max_bitpool */
 };
 
 /* SBC SINK codec capabilities */
@@ -70,9 +71,9 @@ static const tA2D_SBC_CIE a2d_sbc_sink_caps =
     (A2D_SBC_IE_BLOCKS_16 | A2D_SBC_IE_BLOCKS_12 |
      A2D_SBC_IE_BLOCKS_8 | A2D_SBC_IE_BLOCKS_4),                /* block_len */
     (A2D_SBC_IE_SUBBAND_4 | A2D_SBC_IE_SUBBAND_8),      /* num_subbands */
-    (A2D_SBC_IE_ALLOC_MD_L | A2D_SBC_IE_ALLOC_MD_S),    /* alloc_mthd */
-    A2D_SBC_IE_MAX_BITPOOL,                             /* max_bitpool */
-    A2D_SBC_IE_MIN_BITPOOL                              /* min_bitpool */
+    (A2D_SBC_IE_ALLOC_MD_L | A2D_SBC_IE_ALLOC_MD_S),    /* alloc_method */
+    A2D_SBC_IE_MIN_BITPOOL,                             /* min_bitpool */
+    A2D_SBC_IE_MAX_BITPOOL                              /* max_bitpool */
 };
 
 /* Default SBC codec configuration */
@@ -82,9 +83,9 @@ const tA2D_SBC_CIE a2d_sbc_default_config =
     A2D_SBC_IE_CH_MD_JOINT,             /* ch_mode */
     A2D_SBC_IE_BLOCKS_16,               /* block_len */
     A2D_SBC_IE_SUBBAND_8,               /* num_subbands */
-    A2D_SBC_IE_ALLOC_MD_L,              /* alloc_mthd */
-    A2D_SBC_MAX_BITPOOL,                /* max_bitpool */
-    A2D_SBC_IE_MIN_BITPOOL              /* min_bitpool */
+    A2D_SBC_IE_ALLOC_MD_L,              /* alloc_method */
+    A2D_SBC_IE_MIN_BITPOOL,             /* min_bitpool */
+    A2D_SBC_MAX_BITPOOL                 /* max_bitpool */
 };
 
 /******************************************************************************
@@ -115,12 +116,12 @@ tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, const tA2D_SBC_CIE *p_ie,
         (p_ie->ch_mode & ~A2D_SBC_IE_CH_MD_MSK) ||
         (p_ie->block_len & ~A2D_SBC_IE_BLOCKS_MSK) ||
         (p_ie->num_subbands & ~A2D_SBC_IE_SUBBAND_MSK) ||
-        (p_ie->alloc_mthd & ~A2D_SBC_IE_ALLOC_MD_MSK) ||
-        (p_ie->max_bitpool < p_ie->min_bitpool) ||
-        (p_ie->max_bitpool < A2D_SBC_IE_MIN_BITPOOL) ||
-        (p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL) ||
+        (p_ie->alloc_method & ~A2D_SBC_IE_ALLOC_MD_MSK) ||
+        (p_ie->min_bitpool > p_ie->max_bitpool) ||
         (p_ie->min_bitpool < A2D_SBC_IE_MIN_BITPOOL) ||
-        (p_ie->min_bitpool > A2D_SBC_IE_MAX_BITPOOL) )
+        (p_ie->min_bitpool > A2D_SBC_IE_MAX_BITPOOL) ||
+        (p_ie->max_bitpool < A2D_SBC_IE_MIN_BITPOOL) ||
+        (p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL))
     {
         /* if any unused bit is set */
         status = A2D_INVALID_PARAMS;
@@ -129,13 +130,13 @@ tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, const tA2D_SBC_CIE *p_ie,
     {
         status = A2D_SUCCESS;
         *p_result++ = A2D_SBC_INFO_LEN;
-        *p_result++ = media_type;
+        *p_result++ = (media_type << 4);
         *p_result++ = A2D_MEDIA_CT_SBC;
 
         /* Media Codec Specific Information Element */
         *p_result++ = p_ie->samp_freq | p_ie->ch_mode;
 
-        *p_result++ = p_ie->block_len | p_ie->num_subbands | p_ie->alloc_mthd;
+        *p_result++ = p_ie->block_len | p_ie->num_subbands | p_ie->alloc_method;
 
         *p_result++ = p_ie->min_bitpool;
         *p_result   = p_ie->max_bitpool;
@@ -166,33 +167,44 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const uint8_t *p_codec_info,
 {
     tA2D_STATUS status = A2D_SUCCESS;
     uint8_t losc;
+    uint8_t media_type;
+    tA2D_CODEC_TYPE codec_type;
 
     if (p_ie == NULL || p_codec_info == NULL)
         return A2D_INVALID_PARAMS;
 
-    losc = *p_codec_info;
-    p_codec_info += 2;
-
-    /* If the function is called for the wrong Media Type or Media Codec Type */
-    if (losc != A2D_SBC_INFO_LEN || *p_codec_info != A2D_MEDIA_CT_SBC)
+    // Check the codec capability length
+    losc = *p_codec_info++;
+    if (losc != A2D_SBC_INFO_LEN)
         return A2D_WRONG_CODEC;
 
-    p_codec_info++;
+    media_type = (*p_codec_info++) >> 4;
+    codec_type = *p_codec_info++;
+    /* Check the Media Type and Media Codec Type */
+    if (media_type != AVDT_MEDIA_TYPE_AUDIO ||
+        codec_type != A2D_MEDIA_CT_SBC) {
+        return A2D_WRONG_CODEC;
+    }
+
     p_ie->samp_freq = *p_codec_info & A2D_SBC_IE_SAMP_FREQ_MSK;
     p_ie->ch_mode   = *p_codec_info & A2D_SBC_IE_CH_MD_MSK;
     p_codec_info++;
     p_ie->block_len     = *p_codec_info & A2D_SBC_IE_BLOCKS_MSK;
     p_ie->num_subbands  = *p_codec_info & A2D_SBC_IE_SUBBAND_MSK;
-    p_ie->alloc_mthd    = *p_codec_info & A2D_SBC_IE_ALLOC_MD_MSK;
+    p_ie->alloc_method  = *p_codec_info & A2D_SBC_IE_ALLOC_MD_MSK;
     p_codec_info++;
     p_ie->min_bitpool = *p_codec_info++;
     p_ie->max_bitpool = *p_codec_info;
-    if (p_ie->min_bitpool < A2D_SBC_IE_MIN_BITPOOL || p_ie->min_bitpool > A2D_SBC_IE_MAX_BITPOOL )
+    if (p_ie->min_bitpool < A2D_SBC_IE_MIN_BITPOOL ||
+        p_ie->min_bitpool > A2D_SBC_IE_MAX_BITPOOL) {
         status = A2D_BAD_MIN_BITPOOL;
+    }
 
-    if (p_ie->max_bitpool < A2D_SBC_IE_MIN_BITPOOL || p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL ||
-         p_ie->max_bitpool < p_ie->min_bitpool)
+    if (p_ie->max_bitpool < A2D_SBC_IE_MIN_BITPOOL ||
+        p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL ||
+        p_ie->max_bitpool < p_ie->min_bitpool) {
         status = A2D_BAD_MAX_BITPOOL;
+    }
 
     if (is_peer_src_codec_info)
         return status;
@@ -205,8 +217,8 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const uint8_t *p_codec_info,
         status = A2D_BAD_BLOCK_LEN;
     if (A2D_BitsSet(p_ie->num_subbands) != A2D_SET_ONE_BIT)
         status = A2D_BAD_SUBBANDS;
-    if (A2D_BitsSet(p_ie->alloc_mthd) != A2D_SET_ONE_BIT)
-        status = A2D_BAD_ALLOC_MTHD;
+    if (A2D_BitsSet(p_ie->alloc_method) != A2D_SET_ONE_BIT)
+        status = A2D_BAD_ALLOC_METHOD;
 
     return status;
 }
@@ -281,29 +293,9 @@ void A2D_ParsSbcMplHdr(uint8_t *p_src, bool *p_frag, bool *p_start, bool *p_last
     }
 }
 
-int A2D_sbc_get_track_frequency(uint8_t frequency) {
-    int freq = 48000;
-    switch (frequency) {
-        case A2D_SBC_IE_SAMP_FREQ_16:
-            freq = 16000;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_32:
-            freq = 32000;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_44:
-            freq = 44100;
-            break;
-        case A2D_SBC_IE_SAMP_FREQ_48:
-            freq = 48000;
-            break;
-    }
-    return freq;
-}
-
-
 bool A2D_InitCodecConfigSbc(tAVDT_CFG *p_cfg)
 {
-    if (A2D_BldSbcInfo(AVDT_MEDIA_AUDIO, &a2d_sbc_caps,
+    if (A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &a2d_sbc_caps,
                        p_cfg->codec_info) != A2D_SUCCESS) {
         return false;
     }
@@ -321,7 +313,7 @@ bool A2D_InitCodecConfigSbc(tAVDT_CFG *p_cfg)
 
 bool A2D_InitCodecConfigSbcSink(tAVDT_CFG *p_cfg)
 {
-    if (A2D_BldSbcInfo(AVDT_MEDIA_AUDIO, &a2d_sbc_sink_caps,
+    if (A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &a2d_sbc_sink_caps,
                        p_cfg->codec_info) != A2D_SUCCESS) {
         return false;
     }
@@ -349,7 +341,7 @@ bool A2D_IsPeerSourceCodecSupportedSbc(const uint8_t *p_codec_info)
 
 void A2D_InitDefaultCodecSbc(uint8_t *p_codec_info)
 {
-    if (A2D_BldSbcInfo(A2D_MEDIA_TYPE_AUDIO, &a2d_sbc_default_config,
+    if (A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &a2d_sbc_default_config,
                        p_codec_info) != A2D_SUCCESS) {
         LOG_ERROR(LOG_TAG, "%s: A2D_BldSbcInfo failed", __func__);
     }
@@ -400,7 +392,7 @@ bool A2D_SetCodecSbc(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
         }
 
         /* Build the codec config */
-        if (A2D_BldSbcInfo(A2D_MEDIA_TYPE_AUDIO, &sbc_config, p_codec_info)
+        if (A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &sbc_config, p_codec_info)
             != A2D_SUCCESS) {
             LOG_ERROR(LOG_TAG, "%s: A2D_BldSbcInfo failed", __func__);
             return false;
@@ -441,12 +433,12 @@ static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
               cfg_cie.block_len, p_cap->block_len);
     LOG_DEBUG(LOG_TAG, "SUB_BAND peer: 0x%x, capability 0x%x",
               cfg_cie.num_subbands, p_cap->num_subbands);
-    LOG_DEBUG(LOG_TAG, "ALLOC_MTHD peer: 0x%x, capability 0x%x",
-              cfg_cie.alloc_mthd, p_cap->alloc_mthd);
-    LOG_DEBUG(LOG_TAG, "MAX_BitPool peer: 0x%x, capability 0x%x",
-              cfg_cie.max_bitpool, p_cap->max_bitpool);
+    LOG_DEBUG(LOG_TAG, "ALLOC_METHOD peer: 0x%x, capability 0x%x",
+              cfg_cie.alloc_method, p_cap->alloc_method);
     LOG_DEBUG(LOG_TAG, "MIN_BitPool peer: 0x%x, capability 0x%x",
               cfg_cie.min_bitpool, p_cap->min_bitpool);
+    LOG_DEBUG(LOG_TAG, "MAX_BitPool peer: 0x%x, capability 0x%x",
+              cfg_cie.max_bitpool, p_cap->max_bitpool);
 
     /* sampling frequency */
     if ((cfg_cie.samp_freq & p_cap->samp_freq) == 0)
@@ -465,16 +457,16 @@ static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
         return A2D_NS_SUBBANDS;
 
     /* allocation method */
-    if ((cfg_cie.alloc_mthd & p_cap->alloc_mthd) == 0)
-        return A2D_NS_ALLOC_MTHD;
-
-    /* max bitpool */
-    if (cfg_cie.max_bitpool > p_cap->max_bitpool)
-        return A2D_NS_MAX_BITPOOL;
+    if ((cfg_cie.alloc_method & p_cap->alloc_method) == 0)
+        return A2D_NS_ALLOC_METHOD;
 
     /* min bitpool */
     if (cfg_cie.min_bitpool < p_cap->min_bitpool)
         return A2D_NS_MIN_BITPOOL;
+
+    /* max bitpool */
+    if (cfg_cie.max_bitpool > p_cap->max_bitpool)
+        return A2D_NS_MAX_BITPOOL;
 
     return A2D_SUCCESS;
 }
@@ -491,7 +483,7 @@ tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(uint8_t *p_pref_cfg,
     tA2D_SBC_CIE    pref_cap;
 
     /* initialize it to default SBC configuration */
-    A2D_BldSbcInfo(AVDT_MEDIA_AUDIO, &a2d_sbc_default_config, p_pref_cfg);
+    A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &a2d_sbc_default_config, p_pref_cfg);
 
     /* now try to build a preferred one */
     /* parse configuration */
@@ -530,15 +522,15 @@ tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(uint8_t *p_pref_cfg,
     else if(src_cap.num_subbands & A2D_SBC_IE_SUBBAND_4)
         pref_cap.num_subbands = A2D_SBC_IE_SUBBAND_4;
 
-    if (src_cap.alloc_mthd & A2D_SBC_IE_ALLOC_MD_L)
-        pref_cap.alloc_mthd = A2D_SBC_IE_ALLOC_MD_L;
-    else if(src_cap.alloc_mthd & A2D_SBC_IE_ALLOC_MD_S)
-        pref_cap.alloc_mthd = A2D_SBC_IE_ALLOC_MD_S;
+    if (src_cap.alloc_method & A2D_SBC_IE_ALLOC_MD_L)
+        pref_cap.alloc_method = A2D_SBC_IE_ALLOC_MD_L;
+    else if(src_cap.alloc_method & A2D_SBC_IE_ALLOC_MD_S)
+        pref_cap.alloc_method = A2D_SBC_IE_ALLOC_MD_S;
 
-    pref_cap.max_bitpool = src_cap.max_bitpool;
     pref_cap.min_bitpool = src_cap.min_bitpool;
+    pref_cap.max_bitpool = src_cap.max_bitpool;
 
-    A2D_BldSbcInfo(AVDT_MEDIA_AUDIO, &pref_cap, p_pref_cfg);
+    A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &pref_cap, p_pref_cfg);
 
     return A2D_SUCCESS;
 }
@@ -548,30 +540,356 @@ const tA2D_SBC_CIE *A2D_GetDefaultConfigSbc()
     return &a2d_sbc_default_config;
 }
 
-int A2D_sbc_get_track_channel_count(uint8_t channeltype)
+int A2D_GetTrackFrequencySbc(const uint8_t *p_codec_info)
 {
-    int count = 1;
-    switch (channeltype) {
-        case A2D_SBC_IE_CH_MD_MONO:
-            count = 1;
-            break;
-        case A2D_SBC_IE_CH_MD_DUAL:
-        case A2D_SBC_IE_CH_MD_STEREO:
-        case A2D_SBC_IE_CH_MD_JOINT:
-            count = 2;
-            break;
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
     }
-    return count;
+
+    switch (sbc_cie.samp_freq) {
+    case A2D_SBC_IE_SAMP_FREQ_16:
+        return 16000;
+    case A2D_SBC_IE_SAMP_FREQ_32:
+        return 32000;
+    case A2D_SBC_IE_SAMP_FREQ_44:
+        return 44100;
+    case A2D_SBC_IE_SAMP_FREQ_48:
+        return 48000;
+    default:
+        break;
+    }
+
+    return -1;
 }
 
-void A2D_sbc_dump_codec_info(unsigned char *p_codec)
+int A2D_GetTrackChannelCountSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    switch (sbc_cie.ch_mode) {
+    case A2D_SBC_IE_CH_MD_MONO:
+        return 1;
+    case A2D_SBC_IE_CH_MD_DUAL:
+    case A2D_SBC_IE_CH_MD_STEREO:
+    case A2D_SBC_IE_CH_MD_JOINT:
+        return 2;
+    default:
+        break;
+    }
+
+    return -1;
+}
+
+int A2D_GetNumberOfSubbandsSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    switch (sbc_cie.num_subbands) {
+    case A2D_SBC_IE_SUBBAND_4:
+        return 4;
+    case A2D_SBC_IE_SUBBAND_8:
+        return 8;
+    default:
+        break;
+    }
+
+    return -1;
+}
+
+int A2D_GetNumberOfBlocksSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    switch (sbc_cie.block_len) {
+    case A2D_SBC_IE_BLOCKS_4:
+        return 4;
+    case A2D_SBC_IE_BLOCKS_8:
+        return 8;
+    case A2D_SBC_IE_BLOCKS_12:
+        return 12;
+    case A2D_SBC_IE_BLOCKS_16:
+        return 16;
+    default:
+        break;
+    }
+
+    return -1;
+}
+
+int A2D_GetAllocationMethodCodeSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    switch (sbc_cie.alloc_method) {
+    case A2D_SBC_IE_ALLOC_MD_S:
+        return SBC_SNR;
+    case A2D_SBC_IE_ALLOC_MD_L:
+        return SBC_LOUDNESS;
+    default:
+        break;
+    }
+
+    return -1;
+}
+
+int A2D_GetChannelModeCodeSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    switch (sbc_cie.ch_mode) {
+    case A2D_SBC_IE_CH_MD_MONO:
+        return SBC_MONO;
+    case A2D_SBC_IE_CH_MD_DUAL:
+        return SBC_DUAL;
+    case A2D_SBC_IE_CH_MD_STEREO:
+        return SBC_STEREO;
+    case A2D_SBC_IE_CH_MD_JOINT:
+        return SBC_JOINT_STEREO;
+    default:
+        break;
+    }
+
+    return -1;
+}
+
+int A2D_GetSamplingFrequencyCodeSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    switch (sbc_cie.samp_freq) {
+    case A2D_SBC_IE_SAMP_FREQ_16:
+        return SBC_sf16000;
+    case A2D_SBC_IE_SAMP_FREQ_32:
+        return SBC_sf32000;
+    case A2D_SBC_IE_SAMP_FREQ_44:
+        return SBC_sf44100;
+    case A2D_SBC_IE_SAMP_FREQ_48:
+        return SBC_sf48000;
+    default:
+        break;
+    }
+
+    return -1;
+}
+
+int A2D_GetSinkTrackChannelTypeSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    switch (sbc_cie.ch_mode) {
+    case A2D_SBC_IE_CH_MD_MONO:
+        return 1;
+    case A2D_SBC_IE_CH_MD_DUAL:
+    case A2D_SBC_IE_CH_MD_STEREO:
+    case A2D_SBC_IE_CH_MD_JOINT:
+        return 3;
+    default:
+        break;
+    }
+
+    return -1;
+}
+
+int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
+                                       const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+    uint32_t freq_multiple;
+    uint32_t num_blocks;
+    uint32_t num_subbands;
+    int frames_to_process;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    // Check the sample frequency
+    switch (sbc_cie.samp_freq) {
+    case A2D_SBC_IE_SAMP_FREQ_16:
+        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (16000)", __func__,
+                  sbc_cie.samp_freq);
+        freq_multiple = 16 * time_interval_ms;
+        break;
+    case A2D_SBC_IE_SAMP_FREQ_32:
+        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (32000)", __func__,
+                  sbc_cie.samp_freq);
+        freq_multiple = 32 * time_interval_ms;
+        break;
+    case A2D_SBC_IE_SAMP_FREQ_44:
+        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (44100)", __func__,
+                  sbc_cie.samp_freq);
+        freq_multiple = (441 * time_interval_ms) / 10;
+        break;
+    case A2D_SBC_IE_SAMP_FREQ_48:
+        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (48000)", __func__,
+                  sbc_cie.samp_freq);
+        freq_multiple = 48 * time_interval_ms;
+        break;
+    default:
+        LOG_ERROR(LOG_TAG, "%s: unknown frequency: %d", __func__,
+                  sbc_cie.samp_freq);
+        return -1;
+    }
+
+    // Check the channel mode
+    switch (sbc_cie.ch_mode) {
+    case A2D_SBC_IE_CH_MD_MONO:
+        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (Mono)", __func__,
+                  sbc_cie.ch_mode);
+        break;
+    case A2D_SBC_IE_CH_MD_DUAL:
+        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (DUAL)", __func__,
+                  sbc_cie.ch_mode);
+        break;
+    case A2D_SBC_IE_CH_MD_STEREO:
+        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (STEREO)", __func__,
+                  sbc_cie.ch_mode);
+        break;
+    case A2D_SBC_IE_CH_MD_JOINT:
+        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (JOINT)", __func__,
+                  sbc_cie.ch_mode);
+        break;
+    default:
+        LOG_ERROR(LOG_TAG, "%s: unknown channel mode: %d", __func__,
+                  sbc_cie.ch_mode);
+        return -1;
+    }
+
+    // Check the block length
+    switch (sbc_cie.block_len) {
+    case A2D_SBC_IE_BLOCKS_4:
+        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (4)", __func__,
+                  sbc_cie.block_len);
+        num_blocks = 4;
+        break;
+    case A2D_SBC_IE_BLOCKS_8:
+        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (8)", __func__,
+                  sbc_cie.block_len);
+        num_blocks = 8;
+        break;
+    case A2D_SBC_IE_BLOCKS_12:
+        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (12)", __func__,
+                  sbc_cie.block_len);
+        num_blocks = 12;
+        break;
+    case A2D_SBC_IE_BLOCKS_16:
+        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (16)", __func__,
+                  sbc_cie.block_len);
+        num_blocks = 16;
+        break;
+    default:
+        LOG_ERROR(LOG_TAG, "%s: unknown block length: %d", __func__,
+                  sbc_cie.block_len);
+        return -1;
+    }
+
+    // Check the number of sub-bands
+    switch (sbc_cie.num_subbands) {
+    case A2D_SBC_IE_SUBBAND_4:
+        LOG_DEBUG(LOG_TAG, "%s: num_subbands:%d (4)", __func__,
+                  sbc_cie.num_subbands);
+        num_subbands = 4;
+        break;
+    case A2D_SBC_IE_SUBBAND_8:
+        LOG_DEBUG(LOG_TAG, "%s: num_subbands:%d (8)", __func__,
+                  sbc_cie.num_subbands);
+        num_subbands = 8;
+        break;
+    default:
+        LOG_ERROR(LOG_TAG, "%s: unknown number of subbands: %d", __func__,
+                  sbc_cie.num_subbands);
+        return -1;
+    }
+
+    // Check the allocation method
+    switch (sbc_cie.alloc_method) {
+    case A2D_SBC_IE_ALLOC_MD_S:
+        LOG_DEBUG(LOG_TAG, "%s: alloc_method:%d (SNR)", __func__,
+                  sbc_cie.alloc_method);
+        break;
+    case A2D_SBC_IE_ALLOC_MD_L:
+        LOG_DEBUG(LOG_TAG, "%s: alloc_method:%d (Loudness)", __func__,
+                  sbc_cie.alloc_method);
+        break;
+    default:
+        LOG_ERROR(LOG_TAG, "%s: unknown allocation method: %d", __func__,
+                  sbc_cie.alloc_method);
+        return -1;
+    }
+
+    LOG_DEBUG(LOG_TAG, "%s: Bit pool Min:%d Max:%d", __func__,
+              sbc_cie.min_bitpool, sbc_cie.max_bitpool);
+
+    frames_to_process = ((freq_multiple) / (num_blocks * num_subbands)) + 1;
+
+    return frames_to_process;
+}
+
+void A2D_DumpCodecInfoSbc(const uint8_t *p_codec_info)
 {
     tA2D_STATUS a2d_status;
     tA2D_SBC_CIE sbc_cie;
 
     LOG_DEBUG(LOG_TAG, "%s", __func__);
 
-    a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec, false);
+    a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
     if (a2d_status != A2D_SUCCESS) {
         LOG_ERROR(LOG_TAG, "%s: A2D_ParsSbcInfo fail:%d",
                   __func__, a2d_status);
@@ -622,12 +940,12 @@ void A2D_sbc_dump_codec_info(unsigned char *p_codec)
         LOG_DEBUG(LOG_TAG, "\tBAD num_subbands:%d", sbc_cie.num_subbands);
     }
 
-    if (sbc_cie.alloc_mthd == A2D_SBC_IE_ALLOC_MD_S) {
-        LOG_DEBUG(LOG_TAG, "\talloc_mthd:%d (SNR)", sbc_cie.alloc_mthd);
-    } else if (sbc_cie.alloc_mthd == A2D_SBC_IE_ALLOC_MD_L) {
-        LOG_DEBUG(LOG_TAG, "\talloc_mthd:%d (Loundess)", sbc_cie.alloc_mthd);
+    if (sbc_cie.alloc_method == A2D_SBC_IE_ALLOC_MD_S) {
+        LOG_DEBUG(LOG_TAG, "\talloc_method:%d (SNR)", sbc_cie.alloc_method);
+    } else if (sbc_cie.alloc_method == A2D_SBC_IE_ALLOC_MD_L) {
+        LOG_DEBUG(LOG_TAG, "\talloc_method:%d (Loundess)", sbc_cie.alloc_method);
     } else {
-        LOG_DEBUG(LOG_TAG, "\tBAD alloc_mthd:%d", sbc_cie.alloc_mthd);
+        LOG_DEBUG(LOG_TAG, "\tBAD alloc_method:%d", sbc_cie.alloc_method);
     }
 
     LOG_DEBUG(LOG_TAG, "\tBit pool Min:%d Max:%d", sbc_cie.min_bitpool,
