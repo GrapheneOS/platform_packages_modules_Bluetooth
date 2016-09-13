@@ -1212,7 +1212,7 @@ uint16_t AVRC_MsgReq (uint8_t handle, uint8_t label, uint8_t ctype, BT_HDR *p_pk
     tAVRC_FRAG_CB   *p_fcb;
     uint16_t len;
     uint16_t status;
-    bool msg_mask = 0;
+    uint8_t msg_mask = 0;
     uint16_t  peer_mtu;
 
     if (!p_pkt)
