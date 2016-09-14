@@ -79,13 +79,13 @@ void DualModeController::AddControllerEvent(std::chrono::milliseconds delay,
 }
 
 void DualModeController::SendCommandCompleteSuccess(
-    const uint16_t command_opcode) const {
+    uint16_t command_opcode) const {
   send_event_(EventPacket::CreateCommandCompleteOnlyStatusEvent(
       command_opcode, kSuccessStatus));
 }
 
-void DualModeController::SendCommandCompleteOnlyStatus(
-    const uint16_t command_opcode, const uint8_t status) const {
+void DualModeController::SendCommandCompleteOnlyStatus(uint16_t command_opcode,
+                                                       uint8_t status) const {
   send_event_(EventPacket::CreateCommandCompleteOnlyStatusEvent(command_opcode,
                                                                 status));
 }
