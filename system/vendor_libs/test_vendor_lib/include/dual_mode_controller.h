@@ -476,17 +476,17 @@ class DualModeController {
                           const TaskCallback& callback);
 
   // Creates a command complete event and sends it back to the HCI.
-  void SendCommandComplete(const uint16_t command_opcode,
+  void SendCommandComplete(uint16_t command_opcode,
                            const std::vector<uint8_t>& return_parameters) const;
 
   // Sends a command complete event with no return parameters. This event is
   // typically sent for commands that can be completed immediately.
-  void SendCommandCompleteSuccess(const uint16_t command_opcode) const;
+  void SendCommandCompleteSuccess(uint16_t command_opcode) const;
 
   // Sends a command complete event with no return parameters. This event is
   // typically sent for commands that can be completed immediately.
-  void SendCommandCompleteOnlyStatus(const uint16_t command_opcode,
-                                     const uint8_t status) const;
+  void SendCommandCompleteOnlyStatus(uint16_t command_opcode,
+                                     uint8_t status) const;
 
   // Creates a command status event and sends it back to the HCI.
   void SendCommandStatus(uint8_t status, uint16_t command_opcode) const;
