@@ -2179,7 +2179,6 @@ static void btif_media_task_aa_handle_clear_track (void)
 static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg)
 {
     tBTIF_MEDIA_SINK_CFG_UPDATE *p_buf = (tBTIF_MEDIA_SINK_CFG_UPDATE*) p_msg;
-    tA2D_STATUS a2d_status;
     OI_STATUS       status;
 
     APPL_TRACE_DEBUG("%s: p_codec_info[%x:%x:%x:%x:%x:%x]", __func__,
