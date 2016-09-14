@@ -39,65 +39,64 @@ class EventPacket : public Packet {
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.1
   static std::unique_ptr<EventPacket> CreateInquiryCompleteEvent(
-      const uint8_t status);
+      uint8_t status);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.14
   // This should only be used for testing to send non-standard packets
   // Most code should use the more specific functions that follow
   static std::unique_ptr<EventPacket> CreateCommandCompleteEvent(
-      const uint16_t command_opcode,
+      uint16_t command_opcode,
       const std::vector<uint8_t>& event_return_parameters);
 
   static std::unique_ptr<EventPacket> CreateCommandCompleteOnlyStatusEvent(
-      const uint16_t command_opcode, const uint8_t status);
+      uint16_t command_opcode, uint8_t status);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.15
   static std::unique_ptr<EventPacket> CreateCommandStatusEvent(
-      const uint8_t status, const uint16_t command_opcode);
+      uint8_t status, uint16_t command_opcode);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.3.12
   static std::unique_ptr<EventPacket> CreateCommandCompleteReadLocalName(
-      const uint8_t status, const std::string& local_name);
+      uint8_t status, const std::string& local_name);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.1
   static std::unique_ptr<EventPacket>
-  CreateCommandCompleteReadLocalVersionInformation(
-      const uint8_t status,
-      const uint8_t hci_version,
-      const uint16_t hci_revision,
-      const uint8_t lmp_pal_version,
-      const uint16_t manufacturer_name,
-      const uint16_t lmp_pal_subversion);
+  CreateCommandCompleteReadLocalVersionInformation(uint8_t status,
+                                                   uint8_t hci_version,
+                                                   uint16_t hci_revision,
+                                                   uint8_t lmp_pal_version,
+                                                   uint16_t manufacturer_name,
+                                                   uint16_t lmp_pal_subversion);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.2
   static std::unique_ptr<EventPacket>
   CreateCommandCompleteReadLocalSupportedCommands(
-      const uint8_t status, const std::vector<uint8_t>& supported_commands);
+      uint8_t status, const std::vector<uint8_t>& supported_commands);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.4
   static std::unique_ptr<EventPacket>
   CreateCommandCompleteReadLocalExtendedFeatures(
-      const uint8_t status,
-      const uint8_t page_number,
-      const uint8_t maximum_page_number,
-      const uint64_t extended_lmp_features);
+      uint8_t status,
+      uint8_t page_number,
+      uint8_t maximum_page_number,
+      uint64_t extended_lmp_features);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.5
   static std::unique_ptr<EventPacket> CreateCommandCompleteReadBufferSize(
-      const uint8_t status,
-      const uint16_t hc_acl_data_packet_length,
-      const uint8_t hc_synchronous_data_packet_length,
-      const uint16_t hc_total_num_acl_data_packets,
-      const uint16_t hc_total_synchronous_data_packets);
+      uint8_t status,
+      uint16_t hc_acl_data_packet_length,
+      uint8_t hc_synchronous_data_packet_length,
+      uint16_t hc_total_num_acl_data_packets,
+      uint16_t hc_total_synchronous_data_packets);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.6
   static std::unique_ptr<EventPacket> CreateCommandCompleteReadBdAddr(
-      const uint8_t status, const BtAddress& bt_address);
+      uint8_t status, const BtAddress& bt_address);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.8
   static std::unique_ptr<EventPacket>
   CreateCommandCompleteReadLocalSupportedCodecs(
-      const uint8_t status,
+      uint8_t status,
       const std::vector<uint8_t>& supported_codecs,
       const std::vector<uint32_t>& vendor_specific_codecs);
 
@@ -111,58 +110,58 @@ class EventPacket : public Packet {
   static std::unique_ptr<EventPacket> CreateInquiryResultEvent(
       const BtAddress& bt_address,
       const PageScanRepetitionMode page_scan_repetition_mode,
-      const uint32_t class_of_device,
-      const uint16_t clock_offset);
+      uint32_t class_of_device,
+      uint16_t clock_offset);
 
   void AddInquiryResult(const BtAddress& bt_address,
                         const PageScanRepetitionMode page_scan_repetition_mode,
-                        const uint32_t class_of_device,
-                        const uint16_t clock_offset);
+                        uint32_t class_of_device,
+                        uint16_t clock_offset);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.38
   static std::unique_ptr<EventPacket> CreateExtendedInquiryResultEvent(
       const BtAddress& bt_address,
       const PageScanRepetitionMode page_scan_repetition_mode,
-      const uint32_t class_of_device,
-      const uint16_t clock_offset,
-      const uint8_t rssi,
+      uint32_t class_of_device,
+      uint16_t clock_offset,
+      uint8_t rssi,
       const std::vector<uint8_t>& extended_inquiry_response);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.2
   static std::unique_ptr<EventPacket> CreateCommandCompleteLeReadBufferSize(
-      const uint8_t status,
-      const uint16_t hc_le_data_packet_length,
-      const uint8_t hc_total_num_le_data_packets);
+      uint8_t status,
+      uint16_t hc_le_data_packet_length,
+      uint8_t hc_total_num_le_data_packets);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.3
   static std::unique_ptr<EventPacket>
-  CreateCommandCompleteLeReadLocalSupportedFeatures(const uint8_t status,
-                                                    const uint64_t le_features);
+  CreateCommandCompleteLeReadLocalSupportedFeatures(uint8_t status,
+                                                    uint64_t le_features);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.14
   static std::unique_ptr<EventPacket> CreateCommandCompleteLeReadWhiteListSize(
-      const uint8_t status, const uint8_t white_list_size);
+      uint8_t status, uint8_t white_list_size);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.23
   static std::unique_ptr<EventPacket> CreateCommandCompleteLeRand(
-      const uint8_t status, const uint64_t random_val);
+      uint8_t status, uint64_t random_val);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.27
   static std::unique_ptr<EventPacket>
-  CreateCommandCompleteLeReadSupportedStates(const uint8_t status,
-                                             const uint64_t le_states);
+  CreateCommandCompleteLeReadSupportedStates(uint8_t status,
+                                             uint64_t le_states);
 
   // Vendor-specific commands (see hcidefs.h)
 
   static std::unique_ptr<EventPacket> CreateCommandCompleteLeVendorCap(
-      const uint8_t status, const std::vector<uint8_t>& vendor_cap);
+      uint8_t status, const std::vector<uint8_t>& vendor_cap);
 
   // Size of a data packet header, which consists of a 1 octet event code
   static const size_t kEventHeaderSize = 1;
 
  private:
-  explicit EventPacket(const uint8_t event_code);
-  EventPacket(const uint8_t event_code, const std::vector<uint8_t>& payload);
+  explicit EventPacket(uint8_t event_code);
+  EventPacket(uint8_t event_code, const std::vector<uint8_t>& payload);
 };
 
 }  // namespace test_vendor_lib

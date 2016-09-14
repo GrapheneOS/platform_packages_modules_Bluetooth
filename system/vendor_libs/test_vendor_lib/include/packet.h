@@ -50,34 +50,22 @@ class Packet {
   // Add |octets| bytes to the payload.  Return true if:
   // - the size of |bytes| is equal to |octets| and
   // - the new size of the payload is still < |kMaxPacketOctets|
-  bool AddPayloadOctets(const size_t octets, const std::vector<uint8_t>& bytes);
+  bool AddPayloadOctets(size_t octets, const std::vector<uint8_t>& bytes);
 
  private:
   // Add |octets| bytes to the payload.  Return true if:
   // - the value of |value| fits in |octets| bytes and
   // - the new size of the payload is still < |kMaxPacketOctets|
-  bool AddPayloadOctets(const size_t octets, const uint64_t value);
+  bool AddPayloadOctets(size_t octets, uint64_t value);
 
  public:
   // Add type-checking versions
-  bool AddPayloadOctets1(const uint8_t value) {
-    return AddPayloadOctets(1, value);
-  }
-  bool AddPayloadOctets2(const uint16_t value) {
-    return AddPayloadOctets(2, value);
-  }
-  bool AddPayloadOctets3(const uint32_t value) {
-    return AddPayloadOctets(3, value);
-  }
-  bool AddPayloadOctets4(const uint32_t value) {
-    return AddPayloadOctets(4, value);
-  }
-  bool AddPayloadOctets6(const uint64_t value) {
-    return AddPayloadOctets(6, value);
-  }
-  bool AddPayloadOctets8(const uint64_t value) {
-    return AddPayloadOctets(8, value);
-  }
+  bool AddPayloadOctets1(uint8_t value) { return AddPayloadOctets(1, value); }
+  bool AddPayloadOctets2(uint16_t value) { return AddPayloadOctets(2, value); }
+  bool AddPayloadOctets3(uint32_t value) { return AddPayloadOctets(3, value); }
+  bool AddPayloadOctets4(uint32_t value) { return AddPayloadOctets(4, value); }
+  bool AddPayloadOctets6(uint64_t value) { return AddPayloadOctets(6, value); }
+  bool AddPayloadOctets8(uint64_t value) { return AddPayloadOctets(8, value); }
 
   // Add |address| to the payload.  Return true if:
   // - the new size of the payload is still < |kMaxPacketOctets|
@@ -87,8 +75,8 @@ class Packet {
   // Constructs an empty packet of type |type| and header |header|
   Packet(serial_data_type_t type, std::vector<uint8_t> header);
 
-  bool IncrementPayloadCounter(const size_t index);
-  bool IncrementPayloadCounter(const size_t index, const uint8_t max_val);
+  bool IncrementPayloadCounter(size_t index);
+  bool IncrementPayloadCounter(size_t index, uint8_t max_val);
 
  private:
   const size_t kMaxPacketOctets = 256;  // Includes the Octet count
