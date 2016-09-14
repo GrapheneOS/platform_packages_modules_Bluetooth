@@ -45,7 +45,7 @@ bool Packet::AddPayloadOctets(size_t octets, const vector<uint8_t>& bytes) {
   return true;
 }
 
-bool Packet::AddPayloadOctets(size_t octets, const uint64_t value) {
+bool Packet::AddPayloadOctets(size_t octets, uint64_t value) {
   vector<uint8_t> val_vector;
 
   uint64_t v = value;
@@ -75,7 +75,7 @@ bool Packet::AddPayloadBtAddress(const BtAddress& address) {
   return true;
 }
 
-bool Packet::IncrementPayloadCounter(const size_t index) {
+bool Packet::IncrementPayloadCounter(size_t index) {
   if (payload_.size() < index - 1)
     return false;
 
@@ -83,8 +83,7 @@ bool Packet::IncrementPayloadCounter(const size_t index) {
   return true;
 }
 
-bool Packet::IncrementPayloadCounter(const size_t index,
-                                     const uint8_t max_val) {
+bool Packet::IncrementPayloadCounter(size_t index, uint8_t max_val) {
   if (payload_.size() < index - 1)
     return false;
 
