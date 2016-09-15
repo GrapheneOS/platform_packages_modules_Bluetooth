@@ -370,7 +370,7 @@ void RequestWriteCharacteristicCallback(int conn_id, int trans_id,
 
   FOR_EACH_SERVER_OBSERVER(RequestWriteCharacteristicCallback(
       g_interface, conn_id, trans_id, *bda, attr_handle, offset,
-      need_rsp, is_prep, std::move(value)));
+      need_rsp, is_prep, value));
 }
 
 void RequestWriteDescriptorCallback(int conn_id, int trans_id,
