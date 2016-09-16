@@ -1046,6 +1046,15 @@ public class AvrcpControllerService extends ProfileService {
         mAvrcpCtSm.sendMessage(msg);
     }
 
+    private void handleSetAddressedPlayerRsp(int status) {
+        if (DBG) {
+            Log.d(TAG, "handleSetAddressedPlayerRsp status: " + status);
+        }
+        Message msg = mAvrcpCtSm.obtainMessage(
+            AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ADDRESSED_PLAYER);
+        mAvrcpCtSm.sendMessage(msg);
+    }
+
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
@@ -1110,4 +1119,5 @@ public class AvrcpControllerService extends ProfileService {
     native static void playItemNative(
         byte[] address, byte scope, byte[] uid, int uidCounter);
     native static void setBrowsedPlayerNative(byte[] address, int playerId);
+    native static void setAddressedPlayerNative(byte[] address, int playerId);
 }
