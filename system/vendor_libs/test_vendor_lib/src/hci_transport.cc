@@ -89,8 +89,8 @@ void HciTransport::RegisterCommandHandler(
   command_handler_ = callback;
 }
 
-void HciTransport::PostEvent(const EventPacket& event) {
-  packet_stream_.SendEvent(event, GetVendorFd());
+void HciTransport::SendEvent(std::unique_ptr<EventPacket> event) {
+  packet_stream_.SendEvent(std::move(event), GetVendorFd());
 }
 
 }  // namespace test_vendor_lib

@@ -54,7 +54,7 @@ class HciTransport {
       const std::function<void(std::unique_ptr<CommandPacket>)>& callback);
 
   // Blocks while it tries to writes the event to the vendor file descriptor.
-  void PostEvent(const EventPacket& event);
+  void SendEvent(std::unique_ptr<EventPacket> event);
 
   // Called when there is a command to read on |fd|.
   void OnCommandReady(int fd);

@@ -45,7 +45,7 @@ class PacketStream {
 
   // Sends an event to file descriptor |fd|. The ownership of the event is left
   // with the caller.
-  bool SendEvent(const EventPacket& event, int fd) const;
+  bool SendEvent(std::unique_ptr<EventPacket> event, int fd) const;
 
  private:
   // Checks if |type| is in the valid range from DATA_TYPE_COMMAND to
