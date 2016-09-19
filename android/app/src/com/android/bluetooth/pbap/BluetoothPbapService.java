@@ -777,23 +777,25 @@ public class BluetoothPbapService extends Service {
         Intent deleteIntent = new Intent();
         deleteIntent.setClass(this, BluetoothPbapReceiver.class);
 
-        Notification notification = null;
         String name = getRemoteDeviceName();
 
         if (action.equals(AUTH_CHALL_ACTION)) {
-            deleteIntent.setAction(AUTH_CANCELLED_ACTION);
-            notification = new Notification(android.R.drawable.stat_sys_data_bluetooth,
-                getString(R.string.auth_notif_ticker), System.currentTimeMillis());
-            notification.color = getResources().getColor(
-                    com.android.internal.R.color.system_notification_accent_color);
-            notification.setLatestEventInfo(this, getString(R.string.auth_notif_title),
-                    getString(R.string.auth_notif_message, name), PendingIntent
-                            .getActivity(this, 0, clickIntent, 0));
-
-            notification.flags |= Notification.FLAG_AUTO_CANCEL;
-            notification.flags |= Notification.FLAG_ONLY_ALERT_ONCE;
-            notification.defaults = Notification.DEFAULT_SOUND;
-            notification.deleteIntent = PendingIntent.getBroadcast(this, 0, deleteIntent, 0);
+            Notification notification = new Notification.Builder(this)
+                    .setWhen(System.currentTimeMillis())
+                    .setContentTitle(getString(R.string.auth_notif_title))
+                    .setContentText(getString(R.string.auth_notif_message, name))
+                    .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+                    .setTicker(getString(R.string.auth_notif_ticker))
+                    .setColor(getResources().getColor(
+                            com.android.internal.R.color.system_notification_accent_color,
+                            this.getTheme()))
+                    .setFlag(Notification.FLAG_AUTO_CANCEL, true)
+                    .setFlag(Notification.FLAG_ONLY_ALERT_ONCE, true)
+                    .setDefaults(Notification.DEFAULT_SOUND)
+                    .setContentIntent(PendingIntent.getActivity(this, 0, clickIntent, 0))
+                    .setDeleteIntent(PendingIntent.getBroadcast(this, 0,
+                            deleteIntent.setAction(AUTH_CANCELLED_ACTION), 0))
+                    .build();
             nm.notify(NOTIFICATION_ID_AUTH, notification);
         }
     }
