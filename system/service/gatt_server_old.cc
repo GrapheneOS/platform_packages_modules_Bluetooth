@@ -151,7 +151,7 @@ void ServiceAddedCallback(int status, int server_if, vector<btgatt_db_element_t>
   uint16_t prev_char_properties = 0;
   for (size_t i = 1; i<service.size(); i++) {
     const btgatt_db_element_t &el = service[i];
-    if (el.type == BTGATT_DB_CHARACTERISTIC) {
+    if (el.type == BTGATT_DB_DESCRIPTOR) {
       LOG_INFO(LOG_TAG, "%s: descr_handle:%d", __func__, el.attribute_handle);
     } else if (el.type == BTGATT_DB_CHARACTERISTIC) {
       bluetooth::UUID id(el.uuid);
