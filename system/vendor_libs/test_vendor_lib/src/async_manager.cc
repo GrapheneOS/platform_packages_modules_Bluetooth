@@ -75,7 +75,6 @@ namespace test_vendor_lib {
 // at a given time
 static const uint16_t kMaxTaskId =
     -1; /* 2^16 - 1, permisible ids are {1..2^16-1}*/
-static const uint16_t kInvalidTaskId = 0;
 static inline AsyncTaskId NextAsyncTaskId(const AsyncTaskId id) {
   return (id == kMaxTaskId) ? 1 : id + 1;
 }
