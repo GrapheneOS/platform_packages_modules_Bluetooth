@@ -792,80 +792,25 @@ static uint16_t btif_media_task_get_sbc_rate(void)
 
 static void btif_a2dp_encoder_init(void)
 {
-    uint16_t minmtu;
     tBTIF_MEDIA_INIT_AUDIO msg;
-    tA2D_SBC_CIE sbc_config;
 
     APPL_TRACE_DEBUG("%s", __func__);
 
-    /* Retrieve the current SBC configuration (default if currently not used) */
-    bta_av_co_audio_get_sbc_config(&sbc_config, &minmtu);
-    const uint8_t *p_codec_info = bta_av_co_get_codec_info();
-    msg.NumOfSubBands = A2D_GetNumberOfSubbands(p_codec_info);
-    msg.NumOfBlocks = A2D_GetNumberOfBlocks(p_codec_info);
-    msg.AllocationMethod = A2D_GetAllocationMethodCode(p_codec_info);
-    msg.ChannelMode = A2D_GetChannelModeCode(p_codec_info);
-    msg.SamplingFreq = A2D_GetSamplingFrequencyCode(p_codec_info);
-    msg.MtuSize = minmtu;
+    bta_av_co_audio_encoder_init(&msg);
 
-    APPL_TRACE_EVENT("%s: msg.ChannelMode 0x%x", __func__, msg.ChannelMode);
-
-    /* Init the media task to encode SBC properly */
+    /* Init the media task to encode audio properly */
     btif_media_task_enc_init_req(&msg);
 }
 
 static void btif_a2dp_encoder_update(void)
 {
-    uint16_t minmtu;
-    tA2D_SBC_CIE sbc_config;
     tBTIF_MEDIA_UPDATE_AUDIO msg;
-    uint8_t pref_min;
-    uint8_t pref_max;
 
-    APPL_TRACE_DEBUG("btif_a2dp_encoder_update");
+    APPL_TRACE_DEBUG("%s", __func__);
 
-    /* Retrieve the current SBC configuration (default if currently not used) */
-    bta_av_co_audio_get_sbc_config(&sbc_config, &minmtu);
+    bta_av_co_audio_encoder_update(&msg);
 
-    APPL_TRACE_DEBUG("btif_a2dp_encoder_update: Common min_bitpool:%d(0x%x) max_bitpool:%d(0x%x)",
-            sbc_config.min_bitpool, sbc_config.min_bitpool,
-            sbc_config.max_bitpool, sbc_config.max_bitpool);
-
-    if (sbc_config.min_bitpool > sbc_config.max_bitpool)
-    {
-        APPL_TRACE_ERROR("btif_a2dp_encoder_update: ERROR btif_a2dp_encoder_update min_bitpool > max_bitpool");
-    }
-
-    /* check if remote sink has a preferred bitpool range */
-    if (bta_av_co_get_remote_bitpool_pref(&pref_min, &pref_max) == true)
-    {
-        /* adjust our preferred bitpool with the remote preference if within
-           our capable range */
-
-        if (pref_min < sbc_config.min_bitpool)
-            pref_min = sbc_config.min_bitpool;
-
-        if (pref_max > sbc_config.max_bitpool)
-            pref_max = sbc_config.max_bitpool;
-
-        msg.MinBitPool = pref_min;
-        msg.MaxBitPool = pref_max;
-
-        if ((pref_min != sbc_config.min_bitpool) || (pref_max != sbc_config.max_bitpool))
-        {
-            APPL_TRACE_EVENT("## adjusted our bitpool range to peer pref [%d:%d] ##",
-                pref_min, pref_max);
-        }
-    }
-    else
-    {
-        msg.MinBitPool = sbc_config.min_bitpool;
-        msg.MaxBitPool = sbc_config.max_bitpool;
-    }
-
-    msg.MinMtuSize = minmtu;
-
-    /* Update the media task to encode SBC properly */
+    /* Update the media task to encode audio properly */
     btif_media_task_enc_update_req(&msg);
 }
 

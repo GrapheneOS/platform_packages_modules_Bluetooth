@@ -25,6 +25,16 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+bool A2D_IsVendorValidCodec(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
+}
+
 bool A2D_IsVendorSourceCodecSupported(UNUSED_ATTR const uint8_t *p_codec_info)
 {
     // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
@@ -99,6 +109,28 @@ bool A2D_VendorUsesRtpHeader(UNUSED_ATTR bool content_protection_enabled,
     return true;
 }
 
+bool A2D_VendorCodecTypeEquals(const uint8_t *p_codec_info_a,
+                               const uint8_t *p_codec_info_b)
+{
+    tA2D_CODEC_TYPE codec_type_a = A2D_GetCodecType(p_codec_info_a);
+    tA2D_CODEC_TYPE codec_type_b = A2D_GetCodecType(p_codec_info_b);
+
+    if ((codec_type_a != codec_type_b) ||
+        (codec_type_a != A2D_MEDIA_CT_NON_A2DP)) {
+        return false;
+    }
+
+    uint32_t vendor_id_a = A2D_VendorCodecGetVendorId(p_codec_info_a);
+    uint16_t codec_id_a = A2D_VendorCodecGetCodecId(p_codec_info_a);
+    uint32_t vendor_id_b = A2D_VendorCodecGetVendorId(p_codec_info_b);
+    uint16_t codec_id_b = A2D_VendorCodecGetCodecId(p_codec_info_b);
+
+    // OPTIONAL: Add extra vendor-specific checks based on the
+    // vendor-specific data stored in "p_codec_info_a" and "p_codec_info_b".
+
+    return (vendor_id_a == vendor_id_b) && (codec_id_a == codec_id_b);
+}
+
 int A2D_VendorGetTrackFrequency(UNUSED_ATTR const uint8_t *p_codec_info)
 {
     // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
@@ -160,6 +192,26 @@ int A2D_VendorGetChannelModeCode(UNUSED_ATTR const uint8_t *p_codec_info)
 }
 
 int A2D_VendorGetSamplingFrequencyCode(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetMinBitpool(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return -1;
+}
+
+int A2D_VendorGetMaxBitpool(UNUSED_ATTR const uint8_t *p_codec_info)
 {
     // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
     // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);

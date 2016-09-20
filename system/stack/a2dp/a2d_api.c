@@ -407,6 +407,24 @@ void A2D_Init(void)
 #endif
 }
 
+bool A2D_IsValidCodec(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_IsValidCodecSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_IsVendorValidCodec(p_codec_info);
+    default:
+        break;
+    }
+
+    return false;
+}
+
 tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info)
 {
     return (tA2D_CODEC_TYPE)(p_codec_info[AVDT_CODEC_TYPE_INDEX]);
@@ -558,6 +576,29 @@ uint8_t A2D_GetMediaType(const uint8_t *p_codec_info)
     return media_type;
 }
 
+bool A2D_CodecTypeEquals(const uint8_t *p_codec_info_a,
+                         const uint8_t *p_codec_info_b)
+{
+    tA2D_CODEC_TYPE codec_type_a = A2D_GetCodecType(p_codec_info_a);
+    tA2D_CODEC_TYPE codec_type_b = A2D_GetCodecType(p_codec_info_b);
+
+    if (codec_type_a != codec_type_b)
+        return false;
+
+    switch (codec_type_a) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_CodecTypeEqualsSbc(p_codec_info_a, p_codec_info_b);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorCodecTypeEquals(p_codec_info_a, p_codec_info_b);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type_a);
+    return false;
+}
+
 int A2D_GetTrackFrequency(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
@@ -689,6 +730,46 @@ int A2D_GetSamplingFrequencyCode(const uint8_t *p_codec_info)
         return A2D_GetSamplingFrequencyCodeSbc(p_codec_info);
     case A2D_MEDIA_CT_NON_A2DP:
         return A2D_VendorGetSamplingFrequencyCode(p_codec_info);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return -1;
+}
+
+int A2D_GetMinBitpool(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_GetMinBitpoolSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorGetMinBitpool(p_codec_info);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return -1;
+}
+
+int A2D_GetMaxBitpool(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_GetMaxBitpoolSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorGetMaxBitpool(p_codec_info);
     default:
         break;
     }

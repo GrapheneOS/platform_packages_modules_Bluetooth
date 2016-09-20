@@ -39,6 +39,13 @@ extern "C"
 {
 #endif
 
+// Checks whether the codec capabilities contain a valid A2DP vendor-specific
+// codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid
+// vendor-specific codec, otherwise false.
+bool A2D_IsVendorValidCodec(const uint8_t *p_codec_info);
+
 // Checks whether a vendor-specific A2DP source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
 // Returns true if the vendor-specific A2DP source codec is supported,
@@ -86,6 +93,11 @@ uint16_t A2D_VendorCodecGetCodecId(const uint8_t *p_codec_info);
 bool A2D_VendorUsesRtpHeader(bool content_protection_enabled,
                              const uint8_t *p_codec_info);
 
+// Checks whether two A2DP vendor-specific codecs have same type.
+// Returns true if the two codecs have same type, otherwise false.
+bool A2D_VendorCodecTypeEquals(const uint8_t *p_codec_info_a,
+                               const uint8_t *p_codec_info_b);
+
 // Gets the track sampling frequency value for the A2DP vendor-specific codec.
 // |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
 // Returns the track sampling frequency on success, or -1 if |p_codec_info|
@@ -130,6 +142,20 @@ int A2D_VendorGetChannelModeCode(const uint8_t *p_codec_info);
 // Returns the sampling frequency code on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2D_VendorGetSamplingFrequencyCode(const uint8_t *p_codec_info);
+
+// Gets the minimum bitpool for the A2DP vendor-specific codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the minimum bitpool on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetMinBitpool(const uint8_t *p_codec_info);
+
+// Gets the maximum bitpool for the A2DP vendor-specific codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the maximum bitpool on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_VendorGetMaxBitpool(const uint8_t *p_codec_info);
 
 // Gets the channel type for the A2DP vendor-specific sink codec:
 // 1 for mono, or 3 for dual/stereo/joint.
