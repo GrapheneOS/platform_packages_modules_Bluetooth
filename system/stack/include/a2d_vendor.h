@@ -68,12 +68,23 @@ bool A2D_IsVendorPeerSourceCodecSupported(const uint8_t *p_codec_info);
 
 // Builds a vendor-specific A2DP preferred Sink capability from a vendor
 // Source capability.
-// |p_pref_cfg| is the result Sink capability to store. |p_src_cap| is
-// the Source capability to use.
+// |p_src_cap| is the Source capability to use.
+// |p_pref_cfg| is the result Sink capability to store.
 // Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
 // status code.
-tA2D_STATUS A2D_VendorBuildSrc2SinkConfig(uint8_t *p_pref_cfg,
-                                          const uint8_t *p_src_cap);
+tA2D_STATUS A2D_VendorBuildSrc2SinkConfig(const uint8_t *p_src_cap,
+                                          uint8_t *p_pref_cfg);
+
+// Builds a vendor-specific A2DP Sink codec config from a vendor-specific
+// Source codec config and Sink codec capability.
+// |p_src_config| is the A2DP vendor-specific Source codec config to use.
+// |p_sink_cap| is the A2DP vendor-specific Sink codec capability to use.
+// The result is stored in |p_result_sink_config|.
+// Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
+// status code.
+tA2D_STATUS A2D_VendorBuildSinkConfig(const uint8_t *p_src_config,
+                                      const uint8_t *p_sink_cap,
+                                      uint8_t *p_result_sink_config);
 
 // Gets the Vendor ID for the vendor-specific A2DP codec.
 // |p_codec_info| contains information about the codec capabilities.
@@ -93,10 +104,33 @@ uint16_t A2D_VendorCodecGetCodecId(const uint8_t *p_codec_info);
 bool A2D_VendorUsesRtpHeader(bool content_protection_enabled,
                              const uint8_t *p_codec_info);
 
-// Checks whether two A2DP vendor-specific codecs have same type.
-// Returns true if the two codecs have same type, otherwise false.
+// Checks whether two A2DP vendor-specific codecs |p_codec_info_a| and
+// |p_codec_info_b| have the same type.
+// Returns true if the two codecs have the same type, otherwise false.
+// If the codec type is not recognized, the return value is false.
 bool A2D_VendorCodecTypeEquals(const uint8_t *p_codec_info_a,
                                const uint8_t *p_codec_info_b);
+
+// Checks whether two A2DP vendor-specific codecs |p_codec_info_a| and
+// |p_codec_info_b| are exactly the same.
+// Returns true if the two codecs are exactly the same, otherwise false.
+// If the codec type is not recognized, the return value is false.
+bool A2D_VendorCodecEquals(const uint8_t *p_codec_info_a,
+                           const uint8_t *p_codec_info_b);
+
+// Checks whether two A2DP vendor-specific codecs |p_codec_info_a| and
+// |p_codec_info_b| are different, and A2DP requires reconfiguration.
+// Returns true if the two codecs are different and A2DP requires
+// reconfiguration, otherwise false.
+// If the codec type is not recognized, the return value is true.
+bool A2D_VendorCodecRequiresReconfig(const uint8_t *p_codec_info_a,
+                                     const uint8_t *p_codec_info_b);
+
+// Checks if an A2DP vendor-specific codec config |p_codec_config| matches
+// an A2DP vendor-specific codec capabilities |p_codec_caps|.
+// Returns true if the codec config is supported, otherwise false.
+bool A2D_VendorCodecConfigMatchesCapabilities(const uint8_t *p_codec_config,
+                                              const uint8_t *p_codec_caps);
 
 // Gets the track sampling frequency value for the A2DP vendor-specific codec.
 // |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
