@@ -107,17 +107,13 @@ bool bta_av_co_audio_codec_supported(void);
  *******************************************************************************/
 bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding);
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_audio_get_sbc_config
- **
- ** Description      Retrieves the SBC codec configuration.  If the codec in use
- **                  is not SBC, return the default SBC codec configuration.
- **
- ** Returns          true if codec is SBC, false otherwise
- **
- *******************************************************************************/
-bool bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, uint16_t *p_minmtu);
+// Prepares a message to initialize the encoder. The prepared message is
+// stored in |msg|.
+void bta_av_co_audio_encoder_init(tBTIF_MEDIA_INIT_AUDIO *msg);
+
+// Prepares a message to update the encoder. The prepared message is
+// stored in |msg|.
+void bta_av_co_audio_encoder_update(tBTIF_MEDIA_UPDATE_AUDIO *msg);
 
 /*******************************************************************************
  **
@@ -152,18 +148,5 @@ void bta_av_co_init(void);
  **
  *******************************************************************************/
 bool bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl);
-
-/*******************************************************************************
- **
- ** Function         bta_av_co_get_remote_bitpool_pref
- **
- ** Description      Check if remote side did a setconfig within the limits
- **                  of our exported bitpool range. If set we will set the
- **                  remote preference.
- **
- ** Returns          true if config set, false otherwize
- **
- *******************************************************************************/
-bool bta_av_co_get_remote_bitpool_pref(uint8_t *min, uint8_t *max);
 
 #endif
