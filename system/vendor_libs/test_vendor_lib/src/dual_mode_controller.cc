@@ -242,7 +242,7 @@ void DualModeController::HandleTimerTick() {
 void DualModeController::SetTimerPeriod(std::chrono::milliseconds new_period) {
   timer_period_ = new_period;
 
-  if (timer_tick_task_ == 0)
+  if (timer_tick_task_ == kInvalidTaskId)
     return;
 
   // Restart the timer with the new period
@@ -261,7 +261,7 @@ void DualModeController::StartTimer() {
 void DualModeController::StopTimer() {
   LOG_ERROR(LOG_TAG, "StopTimer");
   cancel_task_(timer_tick_task_);
-  timer_tick_task_ = 0;
+  timer_tick_task_ = kInvalidTaskId;
 }
 
 void DualModeController::TestChannelClear(
@@ -302,7 +302,7 @@ void DualModeController::TestChannelClearEventDelay(
 void DualModeController::HciReset(UNUSED_ATTR const vector<uint8_t>& args) {
   LogCommand("Reset");
   state_ = kStandby;
-  if (timer_tick_task_ != 0) {
+  if (timer_tick_task_ != kInvalidTaskId) {
     LOG_INFO(LOG_TAG, "The timer was already running!");
     StopTimer();
   }
