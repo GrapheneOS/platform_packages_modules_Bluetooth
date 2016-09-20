@@ -22,6 +22,7 @@ using TaskCallback = std::function<void(void)>;
 using ReadCallback = std::function<void(int)>;
 using CriticalCallback = std::function<void(void)>;
 using AsyncTaskId = uint16_t;
+constexpr uint16_t kInvalidTaskId = 0;
 
 // Manages tasks that should be done in the future. It can watch file
 // descriptors to call a given callback when it is certain that a block will not
