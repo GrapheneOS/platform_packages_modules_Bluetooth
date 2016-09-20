@@ -177,17 +177,50 @@ bool A2D_SetCodecSbc(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
                      uint8_t *p_codec_info);
 
 // Builds A2DP preferred SBC Sink capability from SBC Source capability.
-// |p_pref_cfg| is the result Sink capability to store. |p_src_cap| is
-// the Source capability to use.
+// |p_src_cap| is the Source capability to use.
+// |p_pref_cfg| is the result Sink capability to store.
 // Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
 // status code.
-tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(uint8_t *p_pref_cfg,
-                                       const uint8_t *p_src_cap);
+tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(const uint8_t *p_src_cap,
+                                       uint8_t *p_pref_cfg);
 
-// Checks whether two A2DP SBC codecs have same type.
-// Returns true if the two codecs have same type, otherwise false.
+// Builds A2DP SBC Sink codec config from SBC Source codec config and SBC Sink
+// codec capability.
+// |p_src_config| is the A2DP SBC Source codec config to use.
+// |p_sink_cap| is the A2DP SBC Sink codec capability to use.
+// The result is stored in |p_result_sink_config|.
+// Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
+// status code.
+tA2D_STATUS A2D_BuildSinkConfigSbc(const uint8_t *p_src_config,
+                                   const uint8_t *p_sink_cap,
+                                   uint8_t *p_result_sink_config);
+
+// Checks whether two A2DP SBC codecs |p_codec_info_a| and |p_codec_info_b|
+// have the same type.
+// Returns true if the two codecs have the same type, otherwise false.
 bool A2D_CodecTypeEqualsSbc(const uint8_t *p_codec_info_a,
                             const uint8_t *p_codec_info_b);
+
+// Checks whether two A2DP SBC codecs |p_codec_info_a| and |p_codec_info_b|
+// are exactly the same.
+// Returns true if the two codecs are exactly the same, otherwise false.
+// If the codec type is not SBC, the return value is false.
+bool A2D_CodecEqualsSbc(const uint8_t *p_codec_info_a,
+                        const uint8_t *p_codec_info_b);
+
+// Checks whether two A2DP SBC codecs |p_codec_info_a| and |p_codec_info_b|
+// are different, and A2DP requires reconfiguration.
+// Returns true if the two codecs are different and A2DP requires
+// reconfiguration, otherwise false.
+// If the codec type is not SBC, the return value is true.
+bool A2D_CodecRequiresReconfigSbc(const uint8_t *p_codec_info_a,
+                                  const uint8_t *p_codec_info_b);
+
+// Checks if an A2DP SBC codec config |p_codec_config| matches an A2DP SBC
+// codec capabilities |p_codec_caps|.
+// Returns true if the codec config is supported, otherwise false.
+bool A2D_CodecConfigMatchesCapabilitiesSbc(const uint8_t *p_codec_config,
+                                           const uint8_t *p_codec_caps);
 
 // Gets the track sampling frequency value for the A2DP SBC codec.
 // |p_codec_info| is a pointer to the SBC codec_info to decode.
