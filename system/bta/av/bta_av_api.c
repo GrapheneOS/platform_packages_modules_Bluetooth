@@ -309,7 +309,8 @@ void BTA_AvStop(bool suspend)
 **
 *******************************************************************************/
 void BTA_AvReconfig(tBTA_AV_HNDL hndl, bool suspend, uint8_t sep_info_idx,
-                    uint8_t *p_codec_info, uint8_t num_protect, uint8_t *p_protect_info)
+                    uint8_t *p_codec_info, uint8_t num_protect,
+                    const uint8_t *p_protect_info)
 {
     tBTA_AV_API_RCFG *p_buf =
         (tBTA_AV_API_RCFG *)osi_malloc(sizeof(tBTA_AV_API_RCFG) + num_protect);

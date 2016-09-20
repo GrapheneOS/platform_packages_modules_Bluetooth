@@ -69,6 +69,7 @@
 #include "osi/include/metrics.h"
 #include "osi/include/mutex.h"
 #include "osi/include/thread.h"
+#include "uipc.h"
 
 #include "sbc_encoder.h"
 
@@ -310,7 +311,6 @@ typedef struct
     uint16_t TxAaMtuSize;
     uint32_t timestamp;
     uint8_t TxTranscoding;
-    tBTIF_AV_FEEDING_MODE feeding_mode;
     tA2D_AV_MEDIA_FEEDINGS media_feeding;
     tBTIF_AV_MEDIA_FEEDINGS_STATE media_feeding_state;
     SBC_ENC_PARAMS encoder;
@@ -900,10 +900,9 @@ void btif_a2dp_setup_codec(void)
     mutex_global_lock();
 
     /* for now hardcode 44.1 khz 16 bit stereo PCM format */
-    media_feeding.cfg.pcm.sampling_freq = BTIF_A2DP_SRC_SAMPLING_RATE;
-    media_feeding.cfg.pcm.bit_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
-    media_feeding.cfg.pcm.num_channel = BTIF_A2DP_SRC_NUM_CHANNELS;
-    media_feeding.format = tA2D_AV_CODEC_PCM;
+    media_feeding.sampling_freq = BTIF_A2DP_SRC_SAMPLING_RATE;
+    media_feeding.bit_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
+    media_feeding.num_channel = BTIF_A2DP_SRC_NUM_CHANNELS;
 
     if (bta_av_co_audio_set_codec(&media_feeding))
     {
@@ -914,7 +913,6 @@ void btif_a2dp_setup_codec(void)
 
         /* Build the media task configuration */
         mfeed.feeding = media_feeding;
-        mfeed.feeding_mode = BTIF_AV_FEEDING_ASYNCHRONOUS;
         /* Send message to Media task to configure transcoding */
         btif_media_task_audio_feeding_init_req(&mfeed);
     }
@@ -1968,12 +1966,12 @@ static void btif_media_task_pcm2sbc_init(tBTIF_MEDIA_INIT_AUDIO_FEEDING * p_feed
     bool reconfig_needed = false;
 
     APPL_TRACE_DEBUG("PCM feeding:");
-    APPL_TRACE_DEBUG("sampling_freq:%d", p_feeding->feeding.cfg.pcm.sampling_freq);
-    APPL_TRACE_DEBUG("num_channel:%d", p_feeding->feeding.cfg.pcm.num_channel);
-    APPL_TRACE_DEBUG("bit_per_sample:%d", p_feeding->feeding.cfg.pcm.bit_per_sample);
+    APPL_TRACE_DEBUG("sampling_freq:%d", p_feeding->feeding.sampling_freq);
+    APPL_TRACE_DEBUG("num_channel:%d", p_feeding->feeding.num_channel);
+    APPL_TRACE_DEBUG("bit_per_sample:%d", p_feeding->feeding.bit_per_sample);
 
     /* Check the PCM feeding sampling_freq */
-    switch (p_feeding->feeding.cfg.pcm.sampling_freq)
+    switch (p_feeding->feeding.sampling_freq)
     {
         case  8000:
         case 12000:
@@ -2047,24 +2045,13 @@ static void btif_media_task_audio_feeding_init(BT_HDR *p_msg)
 {
     tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_feeding = (tBTIF_MEDIA_INIT_AUDIO_FEEDING *) p_msg;
 
-    APPL_TRACE_DEBUG("btif_media_task_audio_feeding_init format:%d", p_feeding->feeding.format);
+    APPL_TRACE_DEBUG("%s", __func__);
 
     /* Save Media Feeding information */
-    btif_media_cb.feeding_mode = p_feeding->feeding_mode;
     btif_media_cb.media_feeding = p_feeding->feeding;
+    btif_media_cb.TxTranscoding = BTIF_MEDIA_TRSCD_PCM_2_SBC;
 
-    /* Handle different feeding formats */
-    switch (p_feeding->feeding.format)
-    {
-        case tA2D_AV_CODEC_PCM:
-            btif_media_cb.TxTranscoding = BTIF_MEDIA_TRSCD_PCM_2_SBC;
-            btif_media_task_pcm2sbc_init(p_feeding);
-            break;
-
-        default :
-            APPL_TRACE_ERROR("unknown feeding format %d", p_feeding->feeding.format);
-            break;
-    }
+    btif_media_task_pcm2sbc_init(p_feeding);
 }
 
 void btif_a2dp_set_peer_sep(uint8_t sep) {
@@ -2194,9 +2181,9 @@ static void btif_media_task_feeding_state_reset(void)
     if (btif_media_cb.TxTranscoding == BTIF_MEDIA_TRSCD_PCM_2_SBC)
     {
         btif_media_cb.media_feeding_state.pcm.bytes_per_tick =
-                (btif_media_cb.media_feeding.cfg.pcm.sampling_freq *
-                 btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8 *
-                 btif_media_cb.media_feeding.cfg.pcm.num_channel *
+                (btif_media_cb.media_feeding.sampling_freq *
+                 btif_media_cb.media_feeding.bit_per_sample / 8 *
+                 btif_media_cb.media_feeding.num_channel *
                  BTIF_MEDIA_TIME_TICK)/1000;
 
         APPL_TRACE_WARNING("pcm bytes per tick %d",
@@ -2219,9 +2206,8 @@ static void btif_media_task_alarm_cb(UNUSED_ATTR void *context) {
  *******************************************************************************/
 static void btif_media_task_aa_start_tx(void)
 {
-    APPL_TRACE_DEBUG("%s media_alarm %srunning, feeding mode %d", __func__,
-                     alarm_is_scheduled(btif_media_cb.media_alarm)? "" : "not ",
-                     btif_media_cb.feeding_mode);
+    APPL_TRACE_DEBUG("%s media_alarm %srunning", __func__,
+                     alarm_is_scheduled(btif_media_cb.media_alarm)? "" : "not ");
 
     last_frame_us = 0;
 
@@ -2427,8 +2413,8 @@ static void btif_get_num_aa_frame_iteration(uint8_t *num_of_iterations, uint8_t 
             uint32_t projected_nof = 0;
             uint32_t pcm_bytes_per_frame = btif_media_cb.encoder.s16NumOfSubBands *
                              btif_media_cb.encoder.s16NumOfBlocks *
-                             btif_media_cb.media_feeding.cfg.pcm.num_channel *
-                             btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
+                             btif_media_cb.media_feeding.num_channel *
+                             btif_media_cb.media_feeding.bit_per_sample / 8;
             APPL_TRACE_DEBUG("%s pcm_bytes_per_frame %u", __func__, pcm_bytes_per_frame);
 
             uint32_t us_this_tick = BTIF_MEDIA_TIME_TICK * 1000;
@@ -2606,10 +2592,10 @@ bool btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
     uint16_t blocm_x_subband = btif_media_cb.encoder.s16NumOfSubBands * \
                              btif_media_cb.encoder.s16NumOfBlocks;
     uint32_t read_size;
-    uint16_t sbc_sampling = 48000;
+    uint32_t sbc_sampling = 48000;
     uint32_t src_samples;
     uint16_t bytes_needed = blocm_x_subband * btif_media_cb.encoder.s16NumOfChannels * \
-                          btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
+                          btif_media_cb.media_feeding.bit_per_sample / 8;
     static uint16_t up_sampled_buffer[SBC_MAX_NUM_FRAME * SBC_MAX_NUM_OF_BLOCKS
             * SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS * 2];
     static uint16_t read_buffer[SBC_MAX_NUM_FRAME * SBC_MAX_NUM_OF_BLOCKS
@@ -2638,7 +2624,7 @@ bool btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
         break;
     }
 
-    if (sbc_sampling == btif_media_cb.media_feeding.cfg.pcm.sampling_freq) {
+    if (sbc_sampling == btif_media_cb.media_feeding.sampling_freq) {
         read_size = bytes_needed - btif_media_cb.media_feeding_state.pcm.aa_feed_residue;
         nb_byte_read = UIPC_Read(channel_id, &event,
                   ((uint8_t *)btif_media_cb.encoder.as16PcmBuffer) +
@@ -2662,7 +2648,7 @@ bool btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
     /* to read. */
     /* E.g 128/6=21.3333 => read 22 and 21 and 21 => max = 2; threshold = 0*/
     fract_needed = false;   /* Default */
-    switch (btif_media_cb.media_feeding.cfg.pcm.sampling_freq)
+    switch (btif_media_cb.media_feeding.sampling_freq)
     {
     case 32000:
     case 8000:
@@ -2679,7 +2665,7 @@ bool btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
 
     /* Compute number of sample to read from source */
     src_samples = blocm_x_subband;
-    src_samples *= btif_media_cb.media_feeding.cfg.pcm.sampling_freq;
+    src_samples *= btif_media_cb.media_feeding.sampling_freq;
     src_samples /= sbc_sampling;
 
     /* The previous division may have a remainder not null */
@@ -2700,8 +2686,8 @@ bool btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
 
     /* Compute number of bytes to read from source */
     read_size = src_samples;
-    read_size *= btif_media_cb.media_feeding.cfg.pcm.num_channel;
-    read_size *= (btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8);
+    read_size *= btif_media_cb.media_feeding.num_channel;
+    read_size *= (btif_media_cb.media_feeding.bit_per_sample / 8);
 
     /* Read Data from UIPC channel */
     nb_byte_read = UIPC_Read(channel_id, &event, (uint8_t *)read_buffer, read_size);
@@ -2719,18 +2705,15 @@ bool btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
         if (nb_byte_read == 0)
             return false;
 
-        if(btif_media_cb.feeding_mode == BTIF_AV_FEEDING_ASYNCHRONOUS)
-        {
-            /* Fill the unfilled part of the read buffer with silence (0) */
-            memset(((uint8_t *)read_buffer) + nb_byte_read, 0, read_size - nb_byte_read);
-            nb_byte_read = read_size;
-        }
+        /* Fill the unfilled part of the read buffer with silence (0) */
+        memset(((uint8_t *)read_buffer) + nb_byte_read, 0, read_size - nb_byte_read);
+        nb_byte_read = read_size;
     }
 
     /* Initialize PCM up-sampling engine */
-    bta_av_sbc_init_up_sample(btif_media_cb.media_feeding.cfg.pcm.sampling_freq,
-            sbc_sampling, btif_media_cb.media_feeding.cfg.pcm.bit_per_sample,
-            btif_media_cb.media_feeding.cfg.pcm.num_channel);
+    bta_av_sbc_init_up_sample(btif_media_cb.media_feeding.sampling_freq,
+            sbc_sampling, btif_media_cb.media_feeding.bit_per_sample,
+            btif_media_cb.media_feeding.num_channel);
 
     /* re-sample read buffer */
     /* The output PCM buffer will be stereo, 16 bit per sample */
@@ -2814,8 +2797,8 @@ static void btif_media_aa_prep_sbc_2_send(uint8_t nb_frame,
                 btif_media_cb.media_feeding_state.pcm.counter += nb_frame *
                      btif_media_cb.encoder.s16NumOfSubBands *
                      btif_media_cb.encoder.s16NumOfBlocks *
-                     btif_media_cb.media_feeding.cfg.pcm.num_channel *
-                     btif_media_cb.media_feeding.cfg.pcm.bit_per_sample / 8;
+                     btif_media_cb.media_feeding.num_channel *
+                     btif_media_cb.media_feeding.bit_per_sample / 8;
                 /* no more pcm to read */
                 nb_frame = 0;
 

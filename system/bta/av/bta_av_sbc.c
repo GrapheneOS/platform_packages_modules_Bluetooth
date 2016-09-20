@@ -38,8 +38,8 @@ typedef struct
     uint32_t              src_sps;    /* samples per second (source audio data) */
     uint32_t              dst_sps;    /* samples per second (converted audio data) */
     tBTA_AV_SBC_ACT     *p_act;     /* the action function to do the conversion */
-    uint16_t              bits;       /* number of bits per pcm sample */
-    uint16_t              n_channels; /* number of channels (i.e. mono(1), stereo(2)...) */
+    uint8_t               bits;       /* number of bits per pcm sample */
+    uint8_t               n_channels; /* number of channels (i.e. mono(1), stereo(2)...) */
     int16_t               worker1;
     int16_t               worker2;
     uint8_t               div;
@@ -61,7 +61,8 @@ tBTA_AV_SBC_UPS_CB bta_av_sbc_ups_cb;
 ** Returns          none
 **
 *******************************************************************************/
-void bta_av_sbc_init_up_sample (uint32_t src_sps, uint32_t dst_sps, uint16_t bits, uint16_t n_channels)
+void bta_av_sbc_init_up_sample (uint32_t src_sps, uint32_t dst_sps,
+                                uint8_t bits, uint8_t n_channels)
 {
     bta_av_sbc_ups_cb.cur_pos   = -1;
     bta_av_sbc_ups_cb.src_sps   = src_sps;
