@@ -345,6 +345,9 @@ bool A2D_InitCodecConfig(tA2D_CODEC_SEP_INDEX codec_sep_index,
 // in |p_codec_info|.
 uint8_t A2D_GetMediaType(const uint8_t *p_codec_info);
 
+// Gets the A2DP codec name for a given |p_codec_info|.
+const char *A2D_CodecName(const uint8_t *p_codec_info);
+
 // Checks whether two A2DP codecs |p_codec_info_a| and |p_codec_info_b| have
 // the same type.
 // Returns true if the two codecs have the same type, otherwise false.
@@ -446,6 +449,22 @@ int A2D_GetSinkTrackChannelType(const uint8_t *p_codec_info);
 // contains invalid codec information.
 int A2D_GetSinkFramesCountToProcess(uint64_t time_interval_ms,
                                     const uint8_t *p_codec_info);
+
+// Gets the A2DP audio data timestamp from an audio packet.
+// |p_codec_info| contains the codec information.
+// |p_data| contains the audio data.
+// The timestamp is stored in |p_timestamp|.
+// Returns true on success, otherwise false.
+bool A2D_GetPacketTimestamp(const uint8_t *p_codec_info, const uint8_t *p_data,
+                            uint32_t *p_timestamp);
+
+// Builds A2DP codec header for audio data.
+// |p_codec_info| contains the codec information.
+// |p_buf| contains the audio data.
+// |frames_per_packet| is the number of frames in this packet.
+// Returns true on success, otherwise false.
+bool A2D_BuildCodecHeader(const uint8_t *p_codec_info, BT_HDR *p_buf,
+                          uint16_t frames_per_packet);
 
 #ifdef __cplusplus
 }

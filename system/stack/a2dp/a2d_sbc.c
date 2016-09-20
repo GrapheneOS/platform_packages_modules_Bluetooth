@@ -34,6 +34,7 @@
 #include "bt_utils.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 
 #define A2D_SBC_MAX_BITPOOL  53
@@ -222,19 +223,20 @@ static tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie,
 **
 ** Returns          void.
 ******************************************************************************/
-void A2D_BldSbcMplHdr(uint8_t *p_dst, bool frag, bool start, bool last, uint8_t num)
+static void A2D_BldSbcMplHdr(uint8_t *p_dst, bool frag, bool start, bool last,
+                             uint8_t num)
 {
-    if(p_dst)
-    {
-        *p_dst  = 0;
-        if(frag)
-            *p_dst  |= A2D_SBC_HDR_F_MSK;
-        if(start)
-            *p_dst  |= A2D_SBC_HDR_S_MSK;
-        if(last)
-            *p_dst  |= A2D_SBC_HDR_L_MSK;
-        *p_dst  |= (A2D_SBC_HDR_NUM_MSK & num);
-    }
+    if (p_dst == NULL)
+        return;
+
+    *p_dst = 0;
+    if (frag)
+        *p_dst |= A2D_SBC_HDR_F_MSK;
+    if (start)
+        *p_dst |= A2D_SBC_HDR_S_MSK;
+    if (last)
+        *p_dst |= A2D_SBC_HDR_L_MSK;
+    *p_dst |= (A2D_SBC_HDR_NUM_MSK & num);
 }
 
 /******************************************************************************
@@ -286,6 +288,11 @@ bool A2D_InitCodecConfigSbc(tAVDT_CFG *p_cfg)
 #endif
 
     return true;
+}
+
+const char *A2D_CodecNameSbc(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    return "SBC";
 }
 
 bool A2D_InitCodecConfigSbcSink(tAVDT_CFG *p_cfg)
@@ -1045,6 +1052,26 @@ int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
     frames_to_process = ((freq_multiple) / (num_blocks * num_subbands)) + 1;
 
     return frames_to_process;
+}
+
+bool A2D_GetPacketTimestampSbc(const uint8_t *p_codec_info,
+                               const uint8_t *p_data, uint32_t *p_timestamp)
+{
+    *p_timestamp = *(const uint32_t *)p_data;
+    return true;
+}
+
+bool A2D_BuildCodecHeaderSbc(UNUSED_ATTR const uint8_t *p_codec_info,
+                             BT_HDR *p_buf, uint16_t frames_per_packet)
+{
+    uint8_t *p;
+
+    p_buf->offset -= A2D_SBC_MPL_HDR_LEN;
+    p = (uint8_t *) (p_buf + 1) + p_buf->offset;
+    p_buf->len += A2D_SBC_MPL_HDR_LEN;
+    A2D_BldSbcMplHdr(p, false, false, false, (uint8_t) frames_per_packet);
+
+    return true;
 }
 
 void A2D_DumpCodecInfoSbc(const uint8_t *p_codec_info)

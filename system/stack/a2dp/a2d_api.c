@@ -603,6 +603,26 @@ uint8_t A2D_GetMediaType(const uint8_t *p_codec_info)
     return media_type;
 }
 
+const char *A2D_CodecName(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_CodecNameSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorCodecName(p_codec_info);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return "UNKNOWN CODEC";
+}
+
 bool A2D_CodecTypeEquals(const uint8_t *p_codec_info_a,
                          const uint8_t *p_codec_info_b)
 {
@@ -918,4 +938,43 @@ int A2D_GetSinkFramesCountToProcess(uint64_t time_interval_ms,
     LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
               codec_type);
     return -1;
+}
+
+bool A2D_GetPacketTimestamp(const uint8_t *p_codec_info, const uint8_t *p_data,
+                            uint32_t *p_timestamp)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_GetPacketTimestampSbc(p_codec_info, p_data, p_timestamp);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorGetPacketTimestamp(p_codec_info, p_data, p_timestamp);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return false;
+}
+
+bool A2D_BuildCodecHeader(const uint8_t *p_codec_info,
+                          BT_HDR *p_buf, uint16_t frames_per_packet)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_BuildCodecHeaderSbc(p_codec_info, p_buf, frames_per_packet);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorBuildCodecHeader(p_codec_info, p_buf,
+                                          frames_per_packet);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return false;
 }
