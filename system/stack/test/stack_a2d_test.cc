@@ -73,7 +73,35 @@ const uint8_t codec_info_non_a2dp[AVDT_CODEC_SIZE] = {
   9                     // Dummy
 };
 
+const uint8_t codec_info_non_a2dp_dummy[AVDT_CODEC_SIZE] = {
+  8,                    // Length
+  0,                    // Media Type: AVDT_MEDIA_TYPE_AUDIO
+  0xFF,                 // Media Codec Type: A2D_MEDIA_CT_NON_A2DP
+  3, 4, 0, 0,           // Vendor ID: LSB first, upper two octets should be 0
+  7, 8,                 // Codec ID: LSB first
+  10                    // Dummy
+};
+
 } // namespace
+
+TEST(StackA2dpTest, test_a2d_is_valid_codec) {
+  EXPECT_TRUE(A2D_IsValidCodec(codec_info_sbc));
+  EXPECT_TRUE(A2D_IsValidCodec(codec_info_sbc_sink));
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_non_a2dp));
+
+  // Test with invalid SBC codecs
+  uint8_t codec_info_sbc_invalid[AVDT_CODEC_SIZE];
+  memset(codec_info_sbc_invalid, 0, sizeof(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+
+  memcpy(codec_info_sbc_invalid, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_invalid[0] = 0;        // Corrupt the Length field
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+
+  memcpy(codec_info_sbc_invalid, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_invalid[1] = 0xff;        // Corrupt the Media Type field
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+}
 
 TEST(StackA2dpTest, test_a2d_get_codec_type) {
   tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(codec_info_sbc);
@@ -265,6 +293,13 @@ TEST(StackA2dpTest, test_a2d_vendor) {
   EXPECT_TRUE(A2D_VendorUsesRtpHeader(false, codec_info_non_a2dp));
 }
 
+TEST(StackA2dpTest, test_a2d_codec_type_equals) {
+  EXPECT_TRUE(A2D_CodecTypeEquals(codec_info_sbc, codec_info_sbc_sink));
+  EXPECT_TRUE(A2D_CodecTypeEquals(codec_info_non_a2dp,
+                                  codec_info_non_a2dp_dummy));
+  EXPECT_FALSE(A2D_CodecTypeEquals(codec_info_sbc, codec_info_non_a2dp));
+}
+
 TEST(StackA2dpTest, test_a2d_get_track_frequency) {
   EXPECT_EQ(A2D_GetTrackFrequency(codec_info_sbc), 44100);
   EXPECT_EQ(A2D_GetTrackFrequency(codec_info_non_a2dp), -1);
@@ -298,6 +333,18 @@ TEST(StackA2dpTest, test_a2d_get_channel_mode_code) {
 TEST(StackA2dpTest, test_a2d_get_sampling_frequency_code) {
   EXPECT_EQ(A2D_GetSamplingFrequencyCode(codec_info_sbc), 2);
   EXPECT_EQ(A2D_GetSamplingFrequencyCode(codec_info_non_a2dp), -1);
+}
+
+TEST(StackA2dpTest, test_a2d_get_min_bitpool) {
+  EXPECT_EQ(A2D_GetMinBitpool(codec_info_sbc), 2);
+  EXPECT_EQ(A2D_GetMinBitpool(codec_info_sbc_sink), 2);
+  EXPECT_EQ(A2D_GetMinBitpool(codec_info_non_a2dp), -1);
+}
+
+TEST(StackA2dpTest, test_a2d_get_max_bitpool) {
+  EXPECT_EQ(A2D_GetMaxBitpool(codec_info_sbc), 53);
+  EXPECT_EQ(A2D_GetMaxBitpool(codec_info_sbc_sink), 250);
+  EXPECT_EQ(A2D_GetMaxBitpool(codec_info_non_a2dp), -1);
 }
 
 TEST(StackA2dpTest, test_a2d_get_sink_track_channel_type) {

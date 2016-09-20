@@ -23,9 +23,8 @@
  *
  ******************************************************************************/
 
-#include "string.h"
+#include <string.h>
 #include "a2d_api.h"
-#include "a2d_sbc.h"
 #include "bt_target.h"
 #include "bta_sys.h"
 #include "bta_av_api.h"
@@ -237,6 +236,8 @@ bool bta_av_co_audio_init(tA2D_CODEC_SEP_INDEX codec_sep_index,
                           tAVDT_CFG *p_cfg)
 {
     /* reset remote preference through setconfig */
+    memset(bta_av_co_cb.codec_cfg_setconfig.info, 0,
+           sizeof(bta_av_co_cb.codec_cfg_setconfig.info));
     bta_av_co_cb.codec_cfg_setconfig.id = tA2D_AV_CODEC_NONE;
 
     return A2D_InitCodecConfig(codec_sep_index, p_cfg);
@@ -817,6 +818,8 @@ void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
     }
 
     /* reset remote preference through setconfig */
+    memset(bta_av_co_cb.codec_cfg_setconfig.info, 0,
+           sizeof(bta_av_co_cb.codec_cfg_setconfig.info));
     bta_av_co_cb.codec_cfg_setconfig.id = tA2D_AV_CODEC_NONE;
 }
 
@@ -1362,7 +1365,7 @@ bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding)
 {
     tBTIF_AV_CODEC_INFO new_cfg;
 
-    if (! A2D_SetCodec(p_feeding, new_cfg.info))
+    if (!A2D_SetCodec(p_feeding, new_cfg.info))
         return false;
     new_cfg.id = A2D_GetCodecType(new_cfg.info);
 
@@ -1373,75 +1376,113 @@ bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding)
     return bta_av_co_audio_codec_supported();
 }
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_audio_get_sbc_config
- **
- ** Description      Retrieves the SBC codec configuration.  If the codec in use
- **                  is not SBC, return the default SBC codec configuration.
- **
- ** Returns          true if codec is SBC, false otherwise
- **
- *******************************************************************************/
-bool bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, uint16_t *p_minmtu)
+void bta_av_co_audio_encoder_init(tBTIF_MEDIA_INIT_AUDIO *msg)
 {
-    bool result = false;
-    uint8_t index, jndex;
-    tBTA_AV_CO_PEER *p_peer;
-    tBTA_AV_CO_SINK *p_sink;
+    uint16_t min_mtu = 0xFFFF;
 
-    APPL_TRACE_EVENT("%s: bta_av_co_cb.codec_cfg.id : codec 0x%x",
-                     __func__, bta_av_co_cb.codec_cfg.id);
+    APPL_TRACE_DEBUG("%s", __func__);
 
-    /* Minimum MTU is by default very large */
-    *p_minmtu = 0xFFFF;
-
+    /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_lock();
-    if (bta_av_co_cb.codec_cfg.id == A2D_MEDIA_CT_SBC) {
-        if (A2D_ParsSbcInfo(p_sbc_config, bta_av_co_cb.codec_cfg.info, false) == A2D_SUCCESS)
-        {
-            for (index = 0; index < BTA_AV_CO_NUM_ELEMENTS(bta_av_co_cb.peers); index++)
-            {
-                p_peer = &bta_av_co_cb.peers[index];
-                if (p_peer->opened)
-                {
-                    if (p_peer->mtu < *p_minmtu)
-                    {
-                        *p_minmtu = p_peer->mtu;
-                    }
-                    for (jndex = 0; jndex < p_peer->num_sup_snks; jndex++)
-                    {
-                        p_sink = &p_peer->snks[jndex];
-                        if (p_sink->codec_type == A2D_MEDIA_CT_SBC)
-                        {
-                            /* Update the bitpool boundaries of the current config */
-                            p_sbc_config->min_bitpool =
-                               BTA_AV_CO_MAX(p_sink->codec_caps[BTA_AV_CO_SBC_MIN_BITPOOL_OFF],
-                                             p_sbc_config->min_bitpool);
-                            p_sbc_config->max_bitpool =
-                               BTA_AV_CO_MIN(p_sink->codec_caps[BTA_AV_CO_SBC_MAX_BITPOOL_OFF],
-                                             p_sbc_config->max_bitpool);
-                            APPL_TRACE_EVENT("%s: sink bitpool min %d, max %d",
-                                             __func__,
-                                             p_sbc_config->min_bitpool,
-                                             p_sbc_config->max_bitpool);
-                            break;
-                        }
-                    }
-                }
-            }
-            result = true;
+
+    /* Compute the MTU */
+    for (size_t i = 0; i < BTA_AV_CO_NUM_ELEMENTS(bta_av_co_cb.peers); i++) {
+        const tBTA_AV_CO_PEER *p_peer = &bta_av_co_cb.peers[i];
+        if (!p_peer->opened)
+            continue;
+        if (p_peer->mtu < min_mtu)
+            min_mtu = p_peer->mtu;
+    }
+
+    const uint8_t *p_codec_info = bta_av_co_cb.codec_cfg.info;
+    msg->NumOfSubBands = A2D_GetNumberOfSubbands(p_codec_info);
+    msg->NumOfBlocks = A2D_GetNumberOfBlocks(p_codec_info);
+    msg->AllocationMethod = A2D_GetAllocationMethodCode(p_codec_info);
+    msg->ChannelMode = A2D_GetChannelModeCode(p_codec_info);
+    msg->SamplingFreq = A2D_GetSamplingFrequencyCode(p_codec_info);
+    msg->MtuSize = min_mtu;
+
+    /* Protect access to bta_av_co_cb.codec_cfg */
+    mutex_global_unlock();
+}
+
+void bta_av_co_audio_encoder_update(tBTIF_MEDIA_UPDATE_AUDIO *msg)
+{
+    uint16_t min_mtu = 0xFFFF;
+
+    APPL_TRACE_DEBUG("%s", __func__);
+
+    /* Protect access to bta_av_co_cb.codec_cfg */
+    mutex_global_lock();
+
+    const uint8_t *p_codec_info = bta_av_co_cb.codec_cfg.info;
+    int min_bitpool = A2D_GetMinBitpool(p_codec_info);
+    int max_bitpool = A2D_GetMaxBitpool(p_codec_info);
+
+    if ((min_bitpool < 0) || (max_bitpool < 0)) {
+        APPL_TRACE_ERROR("%s: Invalid min/max bitpool: [%d, %d]",
+                         __func__, min_bitpool, max_bitpool);
+        mutex_global_unlock();
+        return;
+    }
+
+    for (size_t i = 0; i < BTA_AV_CO_NUM_ELEMENTS(bta_av_co_cb.peers); i++) {
+        const tBTA_AV_CO_PEER *p_peer = &bta_av_co_cb.peers[i];
+        if (!p_peer->opened)
+            continue;
+
+        if (p_peer->mtu < min_mtu)
+            min_mtu = p_peer->mtu;
+
+        for (int j = 0; j < p_peer->num_sup_snks; j++) {
+            const tBTA_AV_CO_SINK *p_sink = &p_peer->snks[j];
+            if (!A2D_CodecTypeEquals(p_codec_info, p_sink->codec_caps))
+                continue;
+            /* Update the bitpool boundaries of the current config */
+            int peer_min_bitpool = A2D_GetMinBitpool(p_sink->codec_caps);
+            int peer_max_bitpool = A2D_GetMaxBitpool(p_sink->codec_caps);
+            if (peer_min_bitpool >= 0)
+                min_bitpool = BTA_AV_CO_MAX(min_bitpool, peer_min_bitpool);
+            if (peer_max_bitpool >= 0)
+                max_bitpool = BTA_AV_CO_MIN(max_bitpool, peer_max_bitpool);
+            APPL_TRACE_EVENT("%s: sink bitpool min %d, max %d",
+                             __func__, min_bitpool, max_bitpool);
+            break;
         }
     }
 
-    if (!result)
-    {
-        /* Not SBC, still return the default values */
-        *p_sbc_config = *A2D_GetDefaultConfigSbc();
+    /*
+     * Check if the remote Sink has a preferred bitpool range.
+     * Adjust our preferred bitpool with the remote preference if within
+     * our capable range.
+     */
+    if (A2D_IsValidCodec(bta_av_co_cb.codec_cfg_setconfig.info) &&
+        A2D_CodecTypeEquals(p_codec_info,
+                            bta_av_co_cb.codec_cfg_setconfig.info)) {
+        int setconfig_min_bitpool =
+            A2D_GetMinBitpool(bta_av_co_cb.codec_cfg_setconfig.info);
+        int setconfig_max_bitpool =
+            A2D_GetMaxBitpool(bta_av_co_cb.codec_cfg_setconfig.info);
+        if (setconfig_min_bitpool >= 0)
+            min_bitpool = BTA_AV_CO_MAX(min_bitpool, setconfig_min_bitpool);
+        if (setconfig_max_bitpool >= 0)
+            max_bitpool = BTA_AV_CO_MIN(max_bitpool, setconfig_max_bitpool);
+        APPL_TRACE_EVENT("%s: sink adjusted bitpool min %d, max %d",
+                         __func__, min_bitpool, max_bitpool);
     }
+
+    /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_unlock();
 
-    return result;
+    if (min_bitpool > max_bitpool) {
+        APPL_TRACE_ERROR("%s: Irrational min/max bitpool: [%d, %d]",
+                         __func__, min_bitpool, max_bitpool);
+        return;
+    }
+
+    msg->MinMtuSize = min_mtu;
+    msg->MinBitPool = min_bitpool;
+    msg->MaxBitPool = max_bitpool;
 }
 
 /*******************************************************************************
@@ -1535,29 +1576,4 @@ bool bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl)
     }
     APPL_TRACE_ERROR("%s: did not find SBC sink", __func__);
     return false;
-}
-
-
-/*******************************************************************************
- **
- ** Function         bta_av_co_get_remote_bitpool_pref
- **
- ** Description      Check if remote side did a setconfig within the limits
- **                  of our exported bitpool range. If set we will set the
- **                  remote preference.
- **
- ** Returns          true if config set, false otherwize
- **
- *******************************************************************************/
-
-bool bta_av_co_get_remote_bitpool_pref(uint8_t *min, uint8_t *max)
-{
-    /* check if remote peer did a set config */
-    if (bta_av_co_cb.codec_cfg_setconfig.id == tA2D_AV_CODEC_NONE)
-        return false;
-
-    *min = bta_av_co_cb.codec_cfg_setconfig.info[BTA_AV_CO_SBC_MIN_BITPOOL_OFF];
-    *max = bta_av_co_cb.codec_cfg_setconfig.info[BTA_AV_CO_SBC_MAX_BITPOOL_OFF];
-
-    return true;
 }
