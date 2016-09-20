@@ -140,29 +140,10 @@ typedef enum {
 /**
  * Structure used to configure the AV media feeding
  */
-
-/* Codec type */
-/* TODO: Those should be removed */
-#define tA2D_AV_CODEC_NONE       0xFF
-#define tA2D_AV_CODEC_PCM        0x5                     /* Raw PCM */
-typedef uint8_t tA2D_AV_CODEC_ID;
-
-typedef struct
-{
-    uint16_t sampling_freq;   /* 44100, 48000 etc */
-    uint16_t num_channel;     /* 1 for mono or 2 stereo */
+typedef struct {
+    uint32_t sampling_freq;   /* 44100, 48000 etc */
+    uint8_t  num_channel;     /* 1 for mono or 2 stereo */
     uint8_t  bit_per_sample;  /* Number of bits per sample (8, 16) */
-} tA2D_AV_MEDIA_FEED_CFG_PCM;
-
-typedef union
-{
-    tA2D_AV_MEDIA_FEED_CFG_PCM pcm;     /* Raw PCM feeding format */
-} tA2D_AV_MEDIA_FEED_CFG;
-
-typedef struct
-{
-    tA2D_AV_CODEC_ID format;        /* Media codec identifier */
-    tA2D_AV_MEDIA_FEED_CFG cfg;     /* Media codec configuration */
 } tA2D_AV_MEDIA_FEEDINGS;
 
 /*****************************************************************************
@@ -285,6 +266,12 @@ extern uint8_t A2D_BitsSet(uint8_t num);
 *******************************************************************************/
 extern void A2D_Init(void);
 
+// Checks whether the codec capabilities contain a valid A2DP codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid codec,
+// otherwise false.
+bool A2D_IsValidCodec(const uint8_t *p_codec_info);
+
 // Gets the A2DP codec type.
 // |p_codec_info| contains information about the codec capabilities.
 tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info);
@@ -311,18 +298,30 @@ bool A2D_IsPeerSourceCodecSupported(const uint8_t *p_codec_info);
 // |p_codec_info|.
 void A2D_InitDefaultCodec(uint8_t *p_codec_info);
 
-// Set A2DB codec state based on the feeding information from |p_feeding|.
+// Sets A2DB codec state based on the feeding information from |p_feeding|.
 // The state with the codec capabilities is stored in |p_codec_info|.
+// Returns true on success, otherwise false.
 bool A2D_SetCodec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
                   uint8_t *p_codec_info);
 
 // Builds A2DP preferred Sink capability from Source capability.
-// |p_pref_cfg| is the result Sink capability to store. |p_src_cap| is
-// the Source capability to use.
+// |p_src_cap| is the Source capability to use.
+// |p_pref_cfg| is the result Sink capability to store.
 // Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
 // status code.
-tA2D_STATUS A2D_BuildSrc2SinkConfig(uint8_t *p_pref_cfg,
-                                    const uint8_t *p_src_cap);
+tA2D_STATUS A2D_BuildSrc2SinkConfig(const uint8_t *p_src_cap,
+                                    uint8_t *p_pref_cfg);
+
+// Builds A2DP Sink codec config from Source codec config and Sink codec
+// capability.
+// |p_src_config| is the A2DP Source codec config to use.
+// |p_sink_cap| is the A2DP Sink codec capability to use.
+// The result is stored in |p_result_sink_config|.
+// Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
+// status code.
+tA2D_STATUS A2D_BuildSinkConfig(const uint8_t *p_src_config,
+                                const uint8_t *p_sink_cap,
+                                uint8_t *p_result_sink_config);
 
 // Checks whether the A2DP data packets should contain RTP header.
 // |content_protection_enabled| is true if Content Protection is
@@ -345,6 +344,34 @@ bool A2D_InitCodecConfig(tA2D_CODEC_SEP_INDEX codec_sep_index,
 // Gets the |AVDT_MEDIA_TYPE_*| media type from the codec capability
 // in |p_codec_info|.
 uint8_t A2D_GetMediaType(const uint8_t *p_codec_info);
+
+// Checks whether two A2DP codecs |p_codec_info_a| and |p_codec_info_b| have
+// the same type.
+// Returns true if the two codecs have the same type, otherwise false.
+// If the codec type is not recognized, the return value is false.
+bool A2D_CodecTypeEquals(const uint8_t *p_codec_info_a,
+                         const uint8_t *p_codec_info_b);
+
+// Checks whether two A2DP codecs p_codec_info_a| and |p_codec_info_b| are
+// exactly the same.
+// Returns true if the two codecs are exactly the same, otherwise false.
+// If the codec type is not recognized, the return value is false.
+bool A2D_CodecEquals(const uint8_t *p_codec_info_a,
+                     const uint8_t *p_codec_info_b);
+
+// Checks whether two A2DP codecs |p_codec_info_a| and |p_codec_info_b|
+// are different, and A2DP requires reconfiguration.
+// Returns true if the two codecs are different and A2DP requires
+// reconfiguration, otherwise false.
+// If the codec type is not recognized, the return value is true.
+bool A2D_CodecRequiresReconfig(const uint8_t *p_codec_info_a,
+                               const uint8_t *p_codec_info_b);
+
+// Checks if a codec config |p_codec_config| matches a codec capabilities
+// |p_codec_caps|.
+// Returns true if the codec config is supported, otherwise false.
+bool A2D_CodecConfigMatchesCapabilities(const uint8_t *p_codec_config,
+                                        const uint8_t *p_codec_caps);
 
 // Gets the track sampling frequency value for the A2DP codec.
 // |p_codec_info| is a pointer to the codec_info to decode.
@@ -390,6 +417,20 @@ int A2D_GetChannelModeCode(const uint8_t *p_codec_info);
 // Returns the sampling frequency code on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2D_GetSamplingFrequencyCode(const uint8_t *p_codec_info);
+
+// Gets the minimum bitpool for the A2DP codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the minimum bitpool on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetMinBitpool(const uint8_t *p_codec_info);
+
+// Gets the maximum bitpool for the A2DP codec.
+// The actual value is codec-specific.
+// |p_codec_info| is a pointer to the codec_info to decode.
+// Returns the maximum bitpool on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2D_GetMaxBitpool(const uint8_t *p_codec_info);
 
 // Gets the channel type for the A2DP sink codec:
 // 1 for mono, or 3 for dual/stereo/joint.

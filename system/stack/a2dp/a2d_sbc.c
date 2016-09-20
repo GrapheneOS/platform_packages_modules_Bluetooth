@@ -35,20 +35,20 @@
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
 
-// Checks whether A2DP SBC codec configuration matches with a device's codec
-// capabilities. |p_cap| is the SBC codec configuration. |p_codec_info| is
-// the device's codec capabilities. |is_peer_src_codec_info| is true if
-// |p_codec_info| contains the codec capabilities for a peer device that
-// is acting as an A2DP source.
-// Returns A2D_SUCCESS if the codec configuration matches with capabilities,
-// otherwise the corresponding A2DP error status code.
-static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
-        const tA2D_SBC_CIE *p_cap,
-        const uint8_t *p_codec_info,
-        bool is_peer_codec_info);
-
 
 #define A2D_SBC_MAX_BITPOOL  53
+
+/* data type for the SBC Codec Information Element*/
+typedef struct
+{
+    uint8_t samp_freq;      /* Sampling frequency */
+    uint8_t ch_mode;        /* Channel mode */
+    uint8_t block_len;      /* Block length */
+    uint8_t num_subbands;   /* Number of subbands */
+    uint8_t alloc_method;   /* Allocation method */
+    uint8_t min_bitpool;    /* Minimum bitpool */
+    uint8_t max_bitpool;    /* Maximum bitpool */
+} tA2D_SBC_CIE;
 
 /* SBC SRC codec capabilities */
 static const tA2D_SBC_CIE a2d_sbc_caps =
@@ -88,26 +88,18 @@ const tA2D_SBC_CIE a2d_sbc_default_config =
     A2D_SBC_MAX_BITPOOL                 /* max_bitpool */
 };
 
-/******************************************************************************
-**
-** Function         A2D_BldSbcInfo
-**
-** Description      This function is called by an application to build
-**                  the SBC Media Codec Capabilities byte sequence
-**                  beginning from the LOSC octet.
-**                  Input Parameters:
-**                      media_type:  Indicates Audio, or Multimedia.
-**
-**                      p_ie:  The SBC Codec Information Element information.
-**
-**                  Output Parameters:
-**                      p_result:  the resulting codec info byte sequence.
-**
-** Returns          A2D_SUCCESS if function execution succeeded.
-**                  Error status code, otherwise.
-******************************************************************************/
-tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, const tA2D_SBC_CIE *p_ie,
-                           uint8_t *p_result)
+static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
+        const tA2D_SBC_CIE *p_cap,
+        const uint8_t *p_codec_info,
+        bool is_peer_codec_info);
+
+// Builds the SBC Media Codec Capabilities byte sequence beginning from the
+// LOSC octet. |media_type| is the media type |AVDT_MEDIA_TYPE_*|.
+// |p_ie| is a pointer to the SBC Codec Information Element information.
+// The result is stored in |p_result|. Returns A2D_SUCCESS on success,
+// otherwise the corresponding A2DP error status code.
+static tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, const tA2D_SBC_CIE *p_ie,
+                                  uint8_t *p_result)
 {
     tA2D_STATUS status;
 
@@ -121,13 +113,10 @@ tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, const tA2D_SBC_CIE *p_ie,
         (p_ie->min_bitpool < A2D_SBC_IE_MIN_BITPOOL) ||
         (p_ie->min_bitpool > A2D_SBC_IE_MAX_BITPOOL) ||
         (p_ie->max_bitpool < A2D_SBC_IE_MIN_BITPOOL) ||
-        (p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL))
-    {
+        (p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL)) {
         /* if any unused bit is set */
         status = A2D_INVALID_PARAMS;
-    }
-    else
-    {
+    } else {
         status = A2D_SUCCESS;
         *p_result++ = A2D_SBC_INFO_LEN;
         *p_result++ = (media_type << 4);
@@ -144,26 +133,14 @@ tA2D_STATUS A2D_BldSbcInfo(uint8_t media_type, const tA2D_SBC_CIE *p_ie,
     return status;
 }
 
-/******************************************************************************
-**
-** Function         A2D_ParsSbcInfo
-**
-** Description      This function is called by an application to parse
-**                  the SBC Media Codec Capabilities byte sequence
-**                  beginning from the LOSC octet.
-**                  Input Parameters:
-**                      p_codec_info:  the codec info byte sequence to parse.
-**
-**                      for_caps:  true, if the byte sequence is for get capabilities response.
-**
-**                  Output Parameters:
-**                      p_ie:  The SBC Codec Information Element information.
-**
-** Returns          A2D_SUCCESS if function execution succeeded.
-**                  Error status code, otherwise.
-******************************************************************************/
-tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const uint8_t *p_codec_info,
-                            bool is_peer_src_codec_info)
+// Parses the SBC Media Codec Capabilities byte sequence beginning from the
+// LOSC octet. The result is stored in |p_ie|. The byte sequence to parse is
+// |p_codec_info|. If |for_caps| is true, the byte sequence is for get
+// capabilities response. Returns A2D_SUCCESS on success, otherwise the
+// corresponding A2DP error status code.
+static tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie,
+                                   const uint8_t *p_codec_info,
+                                   bool is_peer_src_codec_info)
 {
     tA2D_STATUS status = A2D_SUCCESS;
     uint8_t losc;
@@ -321,6 +298,15 @@ bool A2D_InitCodecConfigSbcSink(tAVDT_CFG *p_cfg)
     return true;
 }
 
+bool A2D_IsValidCodecSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE cfg_cie;
+
+    /* Use a liberal check when parsing the codec info */
+    return (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, false) == A2D_SUCCESS) ||
+      (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, true) == A2D_SUCCESS);
+}
+
 bool A2D_IsSourceCodecSupportedSbc(const uint8_t *p_codec_info)
 {
     return (A2D_CodecInfoMatchesCapabilitySbc(&a2d_sbc_caps, p_codec_info,
@@ -350,64 +336,63 @@ void A2D_InitDefaultCodecSbc(uint8_t *p_codec_info)
 bool A2D_SetCodecSbc(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
                      uint8_t *p_codec_info)
 {
-    tA2D_SBC_CIE sbc_config;
+    tA2D_SBC_CIE sbc_config = a2d_sbc_default_config;
 
-    LOG_DEBUG(LOG_TAG, "%s: feeding_format = 0x%x",
-              __func__, p_feeding->format);
+    LOG_DEBUG(LOG_TAG, "%s", __func__);
 
-    /* Supported feeding formats */
-    switch (p_feeding->format) {
-    case tA2D_AV_CODEC_PCM:
-        sbc_config = a2d_sbc_default_config;
-        if ((p_feeding->cfg.pcm.num_channel != 1) &&
-            (p_feeding->cfg.pcm.num_channel != 2)) {
-            LOG_ERROR(LOG_TAG, "%s: Unsupported PCM channel number %d",
-                      __func__, p_feeding->cfg.pcm.num_channel);
-            return false;
-        }
-        if ((p_feeding->cfg.pcm.bit_per_sample != 8) &&
-            (p_feeding->cfg.pcm.bit_per_sample != 16)) {
-            LOG_ERROR(LOG_TAG, "%s: Unsupported PCM sample size %d",
-                      __func__, p_feeding->cfg.pcm.bit_per_sample);
-            return false;
-        }
-        switch (p_feeding->cfg.pcm.sampling_freq) {
-        case 8000:
-        case 12000:
-        case 16000:
-        case 24000:
-        case 32000:
-        case 48000:
-            sbc_config.samp_freq = A2D_SBC_IE_SAMP_FREQ_48;
-            break;
-        case 11025:
-        case 22050:
-        case 44100:
-            sbc_config.samp_freq = A2D_SBC_IE_SAMP_FREQ_44;
-            break;
-        default:
-            LOG_ERROR(LOG_TAG, "%s: Unsupported PCM sampling frequency %d",
-                      __func__, p_feeding->cfg.pcm.sampling_freq);
-            return false;
-        }
+    /* Check the number of channels */
+    if ((p_feeding->num_channel != 1) && (p_feeding->num_channel != 2)) {
+        LOG_ERROR(LOG_TAG, "%s: Unsupported PCM channel number %d",
+                  __func__, p_feeding->num_channel);
+        return false;
+    }
 
-        /* Build the codec config */
-        if (A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &sbc_config, p_codec_info)
-            != A2D_SUCCESS) {
-            LOG_ERROR(LOG_TAG, "%s: A2D_BldSbcInfo failed", __func__);
-            return false;
-        }
+    /* Check the bits per sample */
+    if ((p_feeding->bit_per_sample != 8) &&
+        (p_feeding->bit_per_sample != 16)) {
+        LOG_ERROR(LOG_TAG, "%s: Unsupported PCM sample size %d",
+                  __func__, p_feeding->bit_per_sample);
+        return false;
+    }
+
+    /* Check the sampling frequency */
+    switch (p_feeding->sampling_freq) {
+    case 8000:
+    case 12000:
+    case 16000:
+    case 24000:
+    case 32000:
+    case 48000:
+        sbc_config.samp_freq = A2D_SBC_IE_SAMP_FREQ_48;
         break;
-
+    case 11025:
+    case 22050:
+    case 44100:
+        sbc_config.samp_freq = A2D_SBC_IE_SAMP_FREQ_44;
+        break;
     default:
-        LOG_ERROR(LOG_TAG, "%s: Unsupported feeding format 0x%x",
-                  __func__, p_feeding->format);
+        LOG_ERROR(LOG_TAG, "%s: Unsupported PCM sampling frequency %d",
+                  __func__, p_feeding->sampling_freq);
+        return false;
+    }
+
+    /* Build the codec config */
+    if (A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &sbc_config, p_codec_info)
+        != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: A2D_BldSbcInfo failed", __func__);
         return false;
     }
 
     return true;
 }
 
+// Checks whether A2DP SBC codec configuration matches with a device's codec
+// capabilities. |p_cap| is the SBC codec configuration. |p_codec_info| is
+// the device's codec capabilities. |is_peer_src_codec_info| is true if
+// |p_codec_info| contains the codec capabilities for a peer device that
+// is acting as an A2DP source.
+// Returns A2D_SUCCESS if the codec configuration matches with capabilities,
+// otherwise the corresponding A2DP error status code.
 static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
         const tA2D_SBC_CIE *p_cap,
         const uint8_t *p_codec_info,
@@ -471,13 +456,8 @@ static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
     return A2D_SUCCESS;
 }
 
-// Builds A2DP preferred Sink capability from Source capability.
-// |p_pref_cfg| is the result Sink capability to store. |p_src_cap| is
-// the Source capability to use.
-// Returns |A2D_SUCCESS| on success, otherwise the corresponding A2DP error
-// status code.
-tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(uint8_t *p_pref_cfg,
-                                       const uint8_t *p_src_cap)
+tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(const uint8_t *p_src_cap,
+                                       uint8_t *p_pref_cfg)
 {
     tA2D_SBC_CIE    src_cap;
     tA2D_SBC_CIE    pref_cap;
@@ -535,9 +515,166 @@ tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(uint8_t *p_pref_cfg,
     return A2D_SUCCESS;
 }
 
-const tA2D_SBC_CIE *A2D_GetDefaultConfigSbc()
+tA2D_STATUS A2D_BuildSinkConfigSbc(const uint8_t *p_src_config,
+                                   const uint8_t *p_sink_cap,
+                                   uint8_t *p_result_sink_config)
 {
-    return &a2d_sbc_default_config;
+    tA2D_SBC_CIE src_config_cie;
+    tA2D_SBC_CIE sink_cap_cie;
+
+    /* Decode the source codec config */
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&src_config_cie,
+                                             p_src_config, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode source codec information: %d",
+                  __func__, a2d_status);
+        return A2D_FAIL;
+    }
+
+    /* Decode the sink codec capabilities */
+    a2d_status = A2D_ParsSbcInfo(&sink_cap_cie, p_sink_cap, true);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode sink capability information: %d",
+                  __func__, a2d_status);
+        return A2D_FAIL;
+    }
+
+    /* Update the bitpool boundaries from the sink codec capabilities */
+    src_config_cie.min_bitpool = sink_cap_cie.min_bitpool;
+    src_config_cie.max_bitpool = sink_cap_cie.max_bitpool;
+
+    /* Build the result sink config from the source config */
+    A2D_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &src_config_cie,
+                   p_result_sink_config);
+
+    return A2D_SUCCESS;
+}
+
+bool A2D_CodecTypeEqualsSbc(const uint8_t *p_codec_info_a,
+                            const uint8_t *p_codec_info_b)
+{
+    tA2D_SBC_CIE sbc_cie_a;
+    tA2D_SBC_CIE sbc_cie_b;
+
+    // Check whether the codec info contains valid data
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie_a, p_codec_info_a, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return false;
+    }
+    a2d_status = A2D_ParsSbcInfo(&sbc_cie_b, p_codec_info_b, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return false;
+    }
+
+    tA2D_CODEC_TYPE codec_type_a = A2D_GetCodecType(p_codec_info_a);
+    tA2D_CODEC_TYPE codec_type_b = A2D_GetCodecType(p_codec_info_b);
+
+    return (codec_type_a == codec_type_b) && (codec_type_a == A2D_MEDIA_CT_SBC);
+}
+
+bool A2D_CodecEqualsSbc(const uint8_t *p_codec_info_a,
+                        const uint8_t *p_codec_info_b)
+{
+    tA2D_SBC_CIE sbc_cie_a;
+    tA2D_SBC_CIE sbc_cie_b;
+
+    // Check whether the codec info contains valid data
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie_a, p_codec_info_a, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return false;
+    }
+    a2d_status = A2D_ParsSbcInfo(&sbc_cie_b, p_codec_info_b, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return false;
+    }
+
+    tA2D_CODEC_TYPE codec_type_a = A2D_GetCodecType(p_codec_info_a);
+    tA2D_CODEC_TYPE codec_type_b = A2D_GetCodecType(p_codec_info_b);
+
+    if ((codec_type_a != codec_type_b) || (codec_type_a != A2D_MEDIA_CT_SBC))
+        return false;
+
+    return (sbc_cie_a.samp_freq == sbc_cie_b.samp_freq) &&
+      (sbc_cie_a.ch_mode == sbc_cie_b.ch_mode) &&
+      (sbc_cie_a.block_len == sbc_cie_b.block_len) &&
+      (sbc_cie_a.num_subbands == sbc_cie_b.num_subbands) &&
+      (sbc_cie_a.alloc_method == sbc_cie_b.alloc_method) &&
+      (sbc_cie_a.min_bitpool == sbc_cie_b.min_bitpool) &&
+      (sbc_cie_a.max_bitpool == sbc_cie_b.max_bitpool);
+}
+
+bool A2D_CodecRequiresReconfigSbc(const uint8_t *p_codec_info_a,
+                                  const uint8_t *p_codec_info_b)
+{
+    tA2D_SBC_CIE sbc_cie_a;
+    tA2D_SBC_CIE sbc_cie_b;
+
+    // Check whether the codec info contains valid data
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie_a, p_codec_info_a, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return true;
+    }
+    a2d_status = A2D_ParsSbcInfo(&sbc_cie_b, p_codec_info_b, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return true;
+    }
+
+    tA2D_CODEC_TYPE codec_type_a = A2D_GetCodecType(p_codec_info_a);
+    tA2D_CODEC_TYPE codec_type_b = A2D_GetCodecType(p_codec_info_b);
+
+    if ((codec_type_a != codec_type_b) || (codec_type_a != A2D_MEDIA_CT_SBC))
+        return true;
+
+    /* NOTE: The min_bitpool and max_bitpool fields are ignored */
+    return (sbc_cie_a.samp_freq != sbc_cie_b.samp_freq) ||
+      (sbc_cie_a.ch_mode != sbc_cie_b.ch_mode) ||
+      (sbc_cie_a.block_len != sbc_cie_b.block_len) ||
+      (sbc_cie_a.num_subbands != sbc_cie_b.num_subbands) ||
+      (sbc_cie_a.alloc_method != sbc_cie_b.alloc_method);
+}
+
+bool A2D_CodecConfigMatchesCapabilitiesSbc(const uint8_t *p_codec_config,
+                                           const uint8_t *p_codec_caps)
+{
+    tA2D_SBC_CIE sbc_cie_config;
+    tA2D_SBC_CIE sbc_cie_caps;
+
+    // Check whether the codec info contains valid data
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie_config, p_codec_config,
+                                             false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec config: %d",
+                  __func__, a2d_status);
+        return false;
+    }
+    a2d_status = A2D_ParsSbcInfo(&sbc_cie_caps, p_codec_caps, true);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec capabilities: %d",
+                  __func__, a2d_status);
+        return false;
+    }
+
+    /*
+     * Must match all SBC codec fields except min/max bitpool boundaries which
+     * can be adjusted.
+     */
+    return (sbc_cie_config.samp_freq & sbc_cie_caps.samp_freq) &&
+      (sbc_cie_config.ch_mode & sbc_cie_caps.ch_mode) &&
+      (sbc_cie_config.block_len & sbc_cie_caps.block_len) &&
+      (sbc_cie_config.num_subbands & sbc_cie_caps.num_subbands) &&
+      (sbc_cie_config.alloc_method & sbc_cie_caps.alloc_method);
 }
 
 int A2D_GetTrackFrequencySbc(const uint8_t *p_codec_info)
@@ -717,6 +854,34 @@ int A2D_GetSamplingFrequencyCodeSbc(const uint8_t *p_codec_info)
     }
 
     return -1;
+}
+
+int A2D_GetMinBitpoolSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    return sbc_cie.min_bitpool;
+}
+
+int A2D_GetMaxBitpoolSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE sbc_cie;
+
+    tA2D_STATUS a2d_status = A2D_ParsSbcInfo(&sbc_cie, p_codec_info, false);
+    if (a2d_status != A2D_SUCCESS) {
+        LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d",
+                  __func__, a2d_status);
+        return -1;
+    }
+
+    return sbc_cie.max_bitpool;
 }
 
 int A2D_GetSinkTrackChannelTypeSbc(const uint8_t *p_codec_info)

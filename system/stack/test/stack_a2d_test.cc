@@ -73,7 +73,35 @@ const uint8_t codec_info_non_a2dp[AVDT_CODEC_SIZE] = {
   9                     // Dummy
 };
 
+const uint8_t codec_info_non_a2dp_dummy[AVDT_CODEC_SIZE] = {
+  8,                    // Length
+  0,                    // Media Type: AVDT_MEDIA_TYPE_AUDIO
+  0xFF,                 // Media Codec Type: A2D_MEDIA_CT_NON_A2DP
+  3, 4, 0, 0,           // Vendor ID: LSB first, upper two octets should be 0
+  7, 8,                 // Codec ID: LSB first
+  10                    // Dummy
+};
+
 } // namespace
+
+TEST(StackA2dpTest, test_a2d_is_valid_codec) {
+  EXPECT_TRUE(A2D_IsValidCodec(codec_info_sbc));
+  EXPECT_TRUE(A2D_IsValidCodec(codec_info_sbc_sink));
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_non_a2dp));
+
+  // Test with invalid SBC codecs
+  uint8_t codec_info_sbc_invalid[AVDT_CODEC_SIZE];
+  memset(codec_info_sbc_invalid, 0, sizeof(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+
+  memcpy(codec_info_sbc_invalid, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_invalid[0] = 0;        // Corrupt the Length field
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+
+  memcpy(codec_info_sbc_invalid, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_invalid[1] = 0xff;        // Corrupt the Media Type field
+  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+}
 
 TEST(StackA2dpTest, test_a2d_get_codec_type) {
   tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(codec_info_sbc);
@@ -114,15 +142,11 @@ TEST(StackA2dpTest, test_set_codec) {
   uint8_t codec_info_result[AVDT_CODEC_SIZE];
 
   const tA2D_AV_MEDIA_FEEDINGS feeding = {
-    .format = tA2D_AV_CODEC_PCM,
-    .cfg = {
-      .pcm = {
-        .sampling_freq = 44100,
-        .num_channel = 2,
-        .bit_per_sample = 16
-      }
-    }
+      .sampling_freq = 44100,
+      .num_channel = 2,
+      .bit_per_sample = 16
   };
+  tA2D_AV_MEDIA_FEEDINGS bad_feeding;
 
   EXPECT_TRUE(A2D_SetCodec(&feeding, codec_info_result));
 
@@ -131,31 +155,27 @@ TEST(StackA2dpTest, test_set_codec) {
     EXPECT_EQ(codec_info_result[i], codec_info_sbc[i]);
   }
 
-  // Test invalid feeding - invalid format
-  tA2D_AV_MEDIA_FEEDINGS bad_feeding = feeding;
-  bad_feeding.format = 0;
-  EXPECT_FALSE(A2D_SetCodec(&bad_feeding, codec_info_result));
-
   // Test invalid feeding - invalid num_channel
   bad_feeding = feeding;
-  bad_feeding.cfg.pcm.num_channel = 3;
+  bad_feeding.num_channel = 3;
   EXPECT_FALSE(A2D_SetCodec(&bad_feeding, codec_info_result));
 
   // Test invalid feeding - invalid bit_per_sample
   bad_feeding = feeding;
-  bad_feeding.cfg.pcm.bit_per_sample = 7;
+  bad_feeding.bit_per_sample = 7;
   EXPECT_FALSE(A2D_SetCodec(&bad_feeding, codec_info_result));
 
   // Test invalid feeding - invalid sampling_freq
   bad_feeding = feeding;
-  bad_feeding.cfg.pcm.sampling_freq = 7999;
+  bad_feeding.sampling_freq = 7999;
   EXPECT_FALSE(A2D_SetCodec(&bad_feeding, codec_info_result));
 }
 
 TEST(StackA2dpTest, test_build_src2sink_config) {
   uint8_t codec_info_result[AVDT_CODEC_SIZE];
 
-  EXPECT_EQ(A2D_BuildSrc2SinkConfig(codec_info_result, codec_info_sbc),
+  memset(codec_info_result, 0, sizeof(codec_info_result));
+  EXPECT_EQ(A2D_BuildSrc2SinkConfig(codec_info_sbc, codec_info_result),
             A2D_SUCCESS);
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
@@ -164,7 +184,6 @@ TEST(StackA2dpTest, test_build_src2sink_config) {
 
   // Include extra (less preferred) capabilities and test again
   uint8_t codec_info_sbc_test1[AVDT_CODEC_SIZE];
-  memset(codec_info_result, 0, sizeof(codec_info_result));
   memcpy(codec_info_sbc_test1, codec_info_sbc, sizeof(codec_info_sbc));
   codec_info_sbc_test1[3] |= (A2D_SBC_IE_CH_MD_STEREO | A2D_SBC_IE_CH_MD_DUAL |
                               A2D_SBC_IE_CH_MD_MONO);
@@ -172,7 +191,8 @@ TEST(StackA2dpTest, test_build_src2sink_config) {
                               A2D_SBC_IE_BLOCKS_4);
   codec_info_sbc_test1[4] |= A2D_SBC_IE_SUBBAND_4;
   codec_info_sbc_test1[4] |= A2D_SBC_IE_ALLOC_MD_S;
-  EXPECT_EQ(A2D_BuildSrc2SinkConfig(codec_info_result, codec_info_sbc_test1),
+  memset(codec_info_result, 0, sizeof(codec_info_result));
+  EXPECT_EQ(A2D_BuildSrc2SinkConfig(codec_info_sbc_test1, codec_info_result),
             A2D_SUCCESS);
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
@@ -182,7 +202,49 @@ TEST(StackA2dpTest, test_build_src2sink_config) {
   // Test invalid codec info
   memset(codec_info_result, 0, sizeof(codec_info_result));
   memset(codec_info_sbc_test1, 0, sizeof(codec_info_sbc_test1));
-  EXPECT_NE(A2D_BuildSrc2SinkConfig(codec_info_result, codec_info_sbc_test1),
+  EXPECT_NE(A2D_BuildSrc2SinkConfig(codec_info_sbc_test1, codec_info_result),
+            A2D_SUCCESS);
+}
+
+TEST(StackA2dpTest, test_build_sink_config) {
+  uint8_t codec_info_result[AVDT_CODEC_SIZE];
+  uint8_t codec_info_expected[AVDT_CODEC_SIZE];
+
+  memcpy(codec_info_expected, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_expected[5] = codec_info_sbc_sink[5];
+  codec_info_expected[6] = codec_info_sbc_sink[6];
+
+  memset(codec_info_result, 0, sizeof(codec_info_result));
+  EXPECT_EQ(A2D_BuildSinkConfig(codec_info_sbc, codec_info_sbc_sink,
+                                codec_info_result),
+            A2D_SUCCESS);
+  // Compare the result codec with the local test codec info
+  for (size_t i = 0; i < codec_info_expected[0] + 1; i++) {
+    EXPECT_EQ(codec_info_result[i], codec_info_expected[i]);
+  }
+
+  // Change the min/max bitpool and test again
+  uint8_t codec_info_sbc_sink_test1[AVDT_CODEC_SIZE];
+  memcpy(codec_info_sbc_sink_test1, codec_info_sbc_sink,
+         sizeof(codec_info_sbc_sink));
+  codec_info_sbc_sink_test1[5] = 3;
+  codec_info_sbc_sink_test1[6] = 200;
+  codec_info_expected[5] = codec_info_sbc_sink_test1[5];
+  codec_info_expected[6] = codec_info_sbc_sink_test1[6];
+  memset(codec_info_result, 0, sizeof(codec_info_result));
+  EXPECT_EQ(A2D_BuildSinkConfig(codec_info_sbc, codec_info_sbc_sink_test1,
+                                codec_info_result),
+            A2D_SUCCESS);
+  // Compare the result codec with the local test codec info
+  for (size_t i = 0; i < codec_info_expected[0] + 1; i++) {
+    EXPECT_EQ(codec_info_result[i], codec_info_expected[i]);
+  }
+
+  // Test invalid codec info
+  uint8_t codec_info_sbc_test1[AVDT_CODEC_SIZE];
+  memset(codec_info_sbc_test1, 0, sizeof(codec_info_sbc_test1));
+  EXPECT_NE(A2D_BuildSinkConfig(codec_info_sbc_test1, codec_info_sbc_sink,
+                                codec_info_result),
             A2D_SUCCESS);
 }
 
@@ -265,6 +327,93 @@ TEST(StackA2dpTest, test_a2d_vendor) {
   EXPECT_TRUE(A2D_VendorUsesRtpHeader(false, codec_info_non_a2dp));
 }
 
+TEST(StackA2dpTest, test_a2d_codec_type_equals) {
+  EXPECT_TRUE(A2D_CodecTypeEquals(codec_info_sbc, codec_info_sbc_sink));
+  EXPECT_TRUE(A2D_CodecTypeEquals(codec_info_non_a2dp,
+                                  codec_info_non_a2dp_dummy));
+  EXPECT_FALSE(A2D_CodecTypeEquals(codec_info_sbc, codec_info_non_a2dp));
+}
+
+TEST(StackA2dpTest, test_a2d_codec_equals) {
+  uint8_t codec_info_sbc_test[AVDT_CODEC_SIZE];
+  uint8_t codec_info_non_a2dp_test[AVDT_CODEC_SIZE];
+
+  // Test two identical SBC codecs
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  EXPECT_TRUE(A2D_CodecEquals(codec_info_sbc, codec_info_sbc_test));
+
+  // Test two identical non-A2DP codecs that are not recognized
+  memset(codec_info_non_a2dp_test, 0xAB, sizeof(codec_info_non_a2dp_test));
+  memcpy(codec_info_non_a2dp_test, codec_info_non_a2dp,
+         sizeof(codec_info_non_a2dp));
+  EXPECT_FALSE(A2D_CodecEquals(codec_info_non_a2dp, codec_info_non_a2dp_test));
+
+  // Test two codecs that have different types
+  EXPECT_FALSE(A2D_CodecEquals(codec_info_sbc, codec_info_non_a2dp));
+
+  // Test two SBC codecs that are slightly different
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_test[5] = codec_info_sbc[5] + 1;
+  EXPECT_FALSE(A2D_CodecEquals(codec_info_sbc, codec_info_sbc_test));
+  codec_info_sbc_test[5] = codec_info_sbc[5];
+  codec_info_sbc_test[6] = codec_info_sbc[6] + 1;
+  EXPECT_FALSE(A2D_CodecEquals(codec_info_sbc, codec_info_sbc_test));
+
+  // Test two SBC codecs that are identical, but with different dummy
+  // trailer data.
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_test[7] = codec_info_sbc[7] + 1;
+  EXPECT_TRUE(A2D_CodecEquals(codec_info_sbc, codec_info_sbc_test));
+}
+
+TEST(StackA2dpTest, test_a2d_codec_requires_reconfig) {
+  uint8_t codec_info_sbc_test[AVDT_CODEC_SIZE];
+
+  // Test two identical SBC codecs
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  EXPECT_FALSE(A2D_CodecRequiresReconfig(codec_info_sbc, codec_info_sbc_test));
+
+  // Test two codecs that have different types
+  EXPECT_TRUE(A2D_CodecRequiresReconfig(codec_info_sbc, codec_info_non_a2dp));
+
+  // Test two SBC codecs that are slightly different, and don't require
+  // reconfig.
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_test[5] = codec_info_sbc[5] + 1;
+  EXPECT_FALSE(A2D_CodecRequiresReconfig(codec_info_sbc, codec_info_sbc_test));
+  codec_info_sbc_test[5] = codec_info_sbc[5];
+  codec_info_sbc_test[6] = codec_info_sbc[6] + 1;
+  EXPECT_FALSE(A2D_CodecRequiresReconfig(codec_info_sbc, codec_info_sbc_test));
+
+  // Test two SBC codecs that are slightly different, and require reconfig.
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_test[3] = 0x10 | 0x01; // A2D_SBC_IE_SAMP_FREQ_48 |
+                                        // A2D_SBC_IE_CH_MD_JOINT
+  EXPECT_TRUE(A2D_CodecRequiresReconfig(codec_info_sbc, codec_info_sbc_test));
+
+  // Test two SBC codecs that are identical, but with different dummy
+  // trailer data.
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_test[7] = codec_info_sbc[7] + 1;
+  EXPECT_FALSE(A2D_CodecRequiresReconfig(codec_info_sbc, codec_info_sbc_test));
+}
+
+TEST(StackA2dpTest, test_a2d_codec_config_matches_capabilities) {
+  EXPECT_TRUE(A2D_CodecConfigMatchesCapabilities(codec_info_sbc,
+                                                 codec_info_sbc_sink));
+  EXPECT_FALSE(A2D_CodecConfigMatchesCapabilities(codec_info_non_a2dp,
+                                                  codec_info_non_a2dp_dummy));
+  EXPECT_FALSE(A2D_CodecConfigMatchesCapabilities(codec_info_sbc,
+                                                  codec_info_non_a2dp));
+}
+
 TEST(StackA2dpTest, test_a2d_get_track_frequency) {
   EXPECT_EQ(A2D_GetTrackFrequency(codec_info_sbc), 44100);
   EXPECT_EQ(A2D_GetTrackFrequency(codec_info_non_a2dp), -1);
@@ -298,6 +447,18 @@ TEST(StackA2dpTest, test_a2d_get_channel_mode_code) {
 TEST(StackA2dpTest, test_a2d_get_sampling_frequency_code) {
   EXPECT_EQ(A2D_GetSamplingFrequencyCode(codec_info_sbc), 2);
   EXPECT_EQ(A2D_GetSamplingFrequencyCode(codec_info_non_a2dp), -1);
+}
+
+TEST(StackA2dpTest, test_a2d_get_min_bitpool) {
+  EXPECT_EQ(A2D_GetMinBitpool(codec_info_sbc), 2);
+  EXPECT_EQ(A2D_GetMinBitpool(codec_info_sbc_sink), 2);
+  EXPECT_EQ(A2D_GetMinBitpool(codec_info_non_a2dp), -1);
+}
+
+TEST(StackA2dpTest, test_a2d_get_max_bitpool) {
+  EXPECT_EQ(A2D_GetMaxBitpool(codec_info_sbc), 53);
+  EXPECT_EQ(A2D_GetMaxBitpool(codec_info_sbc_sink), 250);
+  EXPECT_EQ(A2D_GetMaxBitpool(codec_info_non_a2dp), -1);
 }
 
 TEST(StackA2dpTest, test_a2d_get_sink_track_channel_type) {

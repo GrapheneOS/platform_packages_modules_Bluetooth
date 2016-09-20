@@ -30,8 +30,8 @@
 #include <stdbool.h>
 
 #include "bta_api.h"
+#include "bta_av_api.h"
 #include "bt_common.h"
-#include "btif_av_api.h"
 
 /*******************************************************************************
  **  Constants
@@ -71,7 +71,6 @@ typedef struct
 typedef struct
 {
         BT_HDR hdr;
-        tBTIF_AV_FEEDING_MODE feeding_mode;
         tA2D_AV_MEDIA_FEEDINGS feeding;
 } tBTIF_MEDIA_INIT_AUDIO_FEEDING;
 
