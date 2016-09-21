@@ -162,6 +162,9 @@ static uint16_t transmit_data(serial_data_type_t type, uint8_t *data, uint16_t l
     OSI_NO_INTR(ret = write(uart_fd, data + transmitted_length, length));
     switch (ret) {
       case -1:
+        if (errno == EAGAIN)
+            continue;
+
         LOG_ERROR(LOG_TAG, "In %s, error writing to the uart serial port: %s", __func__, strerror(errno));
         goto done;
       case 0:
