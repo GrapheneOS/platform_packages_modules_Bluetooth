@@ -29,7 +29,6 @@
 package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothA2dpSink;
-import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAudioConfig;
 import android.bluetooth.BluetoothDevice;
@@ -49,7 +48,7 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.avrcp.AvrcpControllerService;
+import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -696,16 +695,21 @@ final class A2dpSinkStateMachine extends StateMachine {
         return false;
     }
 
+    // Utility Functions
     boolean okToConnect(BluetoothDevice device) {
         AdapterService adapterService = AdapterService.getAdapterService();
-        boolean ret = true;
-        //check if this is an incoming connection in Quiet mode.
-        if((adapterService == null) ||
-           ((adapterService.isQuietModeEnabled() == true) &&
-           (mTargetDevice == null))){
-            ret = false;
+        int priority = mService.getPriority(device);
+
+        // check priority and accept or reject the connection. if priority is undefined
+        // it is likely that our SDP has not completed and peer is initiating the
+        // connection. Allow this connection, provided the device is bonded
+        if((BluetoothProfile.PRIORITY_OFF < priority) ||
+                ((BluetoothProfile.PRIORITY_UNDEFINED == priority) &&
+                (device.getBondState() != BluetoothDevice.BOND_NONE))){
+            return true;
         }
-        return ret;
+        logw("okToConnect not OK to connect " + device);
+        return false;
     }
 
     synchronized List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
@@ -804,6 +808,7 @@ final class A2dpSinkStateMachine extends StateMachine {
             this.type = type;
         }
     }
+
     /** Handles A2DP connection state change intent broadcasts. */
     private class IntentBroadcastHandler extends Handler {
 
@@ -835,11 +840,11 @@ final class A2dpSinkStateMachine extends StateMachine {
             if ((avrcpCtrlService != null) && (mDevice != null) &&
                 (avrcpCtrlService.getConnectedDevices().contains(mDevice))){
                 avrcpCtrlService.sendPassThroughCmd(mDevice,
-                    BluetoothAvrcpController.PASS_THRU_CMD_ID_PLAY,
-                    BluetoothAvrcpController.KEY_STATE_PRESSED);
+                    AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
+                    AvrcpControllerService.KEY_STATE_PRESSED);
                 avrcpCtrlService.sendPassThroughCmd(mDevice,
-                    BluetoothAvrcpController.PASS_THRU_CMD_ID_PLAY,
-                    BluetoothAvrcpController.KEY_STATE_RELEASED);
+                    AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
+                    AvrcpControllerService.KEY_STATE_RELEASED);
                 log(" SendPassThruPlay command sent - ");
                 return true;
             } else {

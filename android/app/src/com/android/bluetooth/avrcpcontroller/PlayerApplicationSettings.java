@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothAvrcpPlayerSettings;
 

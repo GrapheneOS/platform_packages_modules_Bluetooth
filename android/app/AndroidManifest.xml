@@ -317,7 +317,7 @@
         </service>
         <service
             android:process="@string/process"
-            android:name = ".avrcp.AvrcpControllerService"
+            android:name = ".avrcpcontroller.AvrcpControllerService"
             android:enabled="@bool/profile_supported_avrcp_controller">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothAvrcpController" />

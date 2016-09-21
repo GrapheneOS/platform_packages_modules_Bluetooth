@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothAvrcpPlayerSettings;
 import android.media.session.PlaybackState;
@@ -25,31 +25,54 @@ import java.util.ArrayList;
 /*
  * Contains information about remote player
  */
-class PlayerInfo {
+class AvrcpPlayer {
+    private static final String TAG = "AvrcpPlayer";
+    private static final boolean DBG = true;
 
+    public static final int INVALID_ID = -1;
 
-    private static final String TAG = "PlayerInfo";
-    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+    private int mPlayStatus = PlaybackState.STATE_NONE;
+    private long mPlayTime   = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
+    private int mId;
+    private String mName = "";
+    private int mPlayerType;
+    private TrackInfo mCurrentTrack = new TrackInfo();
 
-    int mPlayStatus = PlaybackState.STATE_NONE;
-    long mPlayTime   = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
-
-    PlayerApplicationSettings mPlayerAppSetting =
-        new PlayerApplicationSettings();
-
-    public void setSupportedPlayerAppSetting(PlayerApplicationSettings supportedSettings) {
-        mPlayerAppSetting = supportedSettings;
+    AvrcpPlayer() {
+        mId = INVALID_ID;
     }
 
-    public void updatePlayerAppSetting(BluetoothAvrcpPlayerSettings settingValues) {
-        mPlayerAppSetting.setValues(settingValues);
+    AvrcpPlayer(int id, String name, int transportFlags, int playStatus, int playerType) {
+        mId = id;
+        mName = name;
+        mPlayerType = playerType;
     }
 
-    public BluetoothAvrcpPlayerSettings getSupportedPlayerAppSetting() {
-        return mPlayerAppSetting.getAvrcpSettings();
+    public int getId() {
+        return mId;
+    }
+
+    public String getName() {
+      return mName;
+    }
+
+    public void setPlayTime(int playTime) {
+        mPlayTime = playTime;
+    }
+
+    public long getPlayTime() {
+        return mPlayTime;
+    }
+
+    public void setPlayStatus(int playStatus) {
+        mPlayStatus = playStatus;
     }
 
     public PlaybackState getPlaybackState() {
+        if (DBG) {
+            Log.d(TAG, "getPlayBackState state " + mPlayStatus + " time " + mPlayTime);
+        }
+
         long position = mPlayTime;
         float speed = 1;
         switch (mPlayStatus) {
@@ -70,11 +93,11 @@ class PlayerInfo {
         return new PlaybackState.Builder().setState(mPlayStatus, position, speed).build();
     }
 
-   /*
-     * Checks if current setting is supported by remote.
-     * input would be in form of flattened strucuture <id,val>
-     */
-    public boolean isPlayerAppSettingSupported(BluetoothAvrcpPlayerSettings desiredSettings) {
-        return mPlayerAppSetting.supportsSettings(desiredSettings);
+    synchronized public void updateCurrentTrack(TrackInfo update) {
+        mCurrentTrack = update;
+    }
+
+    synchronized public TrackInfo getCurrentTrack() {
+        return mCurrentTrack;
     }
 }
