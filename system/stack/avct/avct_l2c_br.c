@@ -36,7 +36,36 @@
 #define AVCT_L2C_CFG_IND_DONE   (1<<0)
 #define AVCT_L2C_CFG_CFM_DONE   (1<<1)
 
-#if (AVCT_BROWSE_INCLUDED == TRUE)
+/* AVCTP Browsing channel FCR Option:
+ * Size of the transmission window when using enhanced retransmission mode. Not used
+ * in basic and streaming modes. Range: 1 - 63
+ */
+#define AVCT_BR_FCR_OPT_TX_WINDOW_SIZE      10
+
+/* AVCTP Browsing channel FCR Option:
+ * Number of transmission attempts for a single I-Frame before taking
+ * Down the connection. Used In ERTM mode only. Value is Ignored in basic and
+ * Streaming modes.
+ * Range: 0, 1-0xFF
+ *     0 - infinite retransmissions
+ *     1 - single transmission
+ */
+#define AVCT_BR_FCR_OPT_MAX_TX_B4_DISCNT    20
+
+/* AVCTP Browsing channel FCR Option: Retransmission Timeout
+ * The AVRCP specification set a value in the range of 300 - 2000 ms
+ * Timeout (in msecs) to detect Lost I-Frames. Only used in Enhanced retransmission mode.
+ * Range: Minimum 2000 (2 secs) when supporting PBF.
+ */
+#define AVCT_BR_FCR_OPT_RETX_TOUT           2000
+
+/* AVCTP Browsing channel FCR Option: Monitor Timeout
+ * The AVRCP specification set a value in the range of 300 - 2000 ms
+ * Timeout (in msecs) to detect Lost S-Frames. Only used in Enhanced retransmission mode.
+ * Range: Minimum 12000 (12 secs) when supporting PBF.
+ */
+#define AVCT_BR_FCR_OPT_MONITOR_TOUT        12000
+
 /* callback function declarations */
 void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
 void avct_l2c_br_connect_cfm_cback(uint16_t lcid, uint16_t result);
@@ -408,4 +437,3 @@ void avct_l2c_br_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 
     avct_bcb_event(p_lcb, AVCT_LCB_LL_MSG_EVT, (tAVCT_LCB_EVT *) &p_buf);
 }
-#endif /* (AVCT_BROWSE_INCLUDED == true) */

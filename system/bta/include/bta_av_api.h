@@ -197,39 +197,37 @@ typedef uint8_t tBTA_AV_CODE;
 
 typedef uint8_t tBTA_AV_ERR;
 
-
 /* AV callback events */
-#define BTA_AV_ENABLE_EVT            0  /* AV enabled */
-#define BTA_AV_REGISTER_EVT          1  /* registered to AVDT */
-#define BTA_AV_OPEN_EVT              2  /* connection opened */
-#define BTA_AV_CLOSE_EVT             3  /* connection closed */
-#define BTA_AV_START_EVT             4  /* stream data transfer started */
-#define BTA_AV_STOP_EVT              5  /* stream data transfer stopped */
-#define BTA_AV_PROTECT_REQ_EVT       6  /* content protection request */
-#define BTA_AV_PROTECT_RSP_EVT       7  /* content protection response */
-#define BTA_AV_RC_OPEN_EVT           8  /* remote control channel open */
-#define BTA_AV_RC_CLOSE_EVT          9  /* remote control channel closed */
-#define BTA_AV_RC_BROWSE_OPEN_EVT    10 /* remote control browse channel open */
-#define BTA_AV_RC_BROWSE_CLOSE_EVT   11 /* remote control browse channel closed */
-#define BTA_AV_REMOTE_CMD_EVT        12 /* remote control command */
-#define BTA_AV_REMOTE_RSP_EVT        13 /* remote control response */
-#define BTA_AV_VENDOR_CMD_EVT        14 /* vendor dependent remote control command */
-#define BTA_AV_VENDOR_RSP_EVT        15 /* vendor dependent remote control response */
-#define BTA_AV_RECONFIG_EVT          16 /* reconfigure response */
-#define BTA_AV_SUSPEND_EVT           17 /* suspend response */
-#define BTA_AV_PENDING_EVT           18 /* incoming connection pending:
-                                        * signal channel is open and stream is
-                                        * not open after
-                                        * BTA_AV_SIGNALLING_TIMEOUT_MS */
-#define BTA_AV_META_MSG_EVT          19 /* metadata messages */
-#define BTA_AV_REJECT_EVT            20 /* incoming connection rejected */
-#define BTA_AV_RC_FEAT_EVT           21 /* remote control channel peer supported features update */
-#define BTA_AV_SINK_MEDIA_CFG_EVT    22 /* command to configure sink codec */
-#define BTA_AV_SINK_MEDIA_DATA_EVT   23 /* sending sink data to Media Task */
-#define BTA_AV_OFFLOAD_START_RSP_EVT 24 /* a2dp offload start response */
+#define BTA_AV_ENABLE_EVT              0       /* AV enabled */
+#define BTA_AV_REGISTER_EVT            1       /* registered to AVDT */
+#define BTA_AV_OPEN_EVT                2       /* connection opened */
+#define BTA_AV_CLOSE_EVT               3       /* connection closed */
+#define BTA_AV_START_EVT               4       /* stream data transfer started */
+#define BTA_AV_STOP_EVT                5       /* stream data transfer stopped */
+#define BTA_AV_PROTECT_REQ_EVT         6       /* content protection request */
+#define BTA_AV_PROTECT_RSP_EVT         7       /* content protection response */
+#define BTA_AV_RC_OPEN_EVT             8       /* remote control channel open */
+#define BTA_AV_RC_CLOSE_EVT            9       /* remote control channel closed */
+#define BTA_AV_REMOTE_CMD_EVT          10      /* remote control command */
+#define BTA_AV_REMOTE_RSP_EVT          11      /* remote control response */
+#define BTA_AV_VENDOR_CMD_EVT          12      /* vendor dependent remote control command */
+#define BTA_AV_VENDOR_RSP_EVT          13      /* vendor dependent remote control response */
+#define BTA_AV_RECONFIG_EVT            14      /* reconfigure response */
+#define BTA_AV_SUSPEND_EVT             15      /* suspend response */
+#define BTA_AV_PENDING_EVT             16      /* incoming connection pending:
+                                                * signal channel is open and stream is
+                                                * not open after
+                                                * BTA_AV_SIGNALLING_TIMEOUT_MS */
+#define BTA_AV_META_MSG_EVT            17      /* metadata messages */
+#define BTA_AV_REJECT_EVT              18      /* incoming connection rejected */
+#define BTA_AV_RC_FEAT_EVT             19      /* remote control channel peer supported features update */
+#define BTA_AV_SINK_MEDIA_CFG_EVT      20      /* command to configure codec */
+#define BTA_AV_SINK_MEDIA_DATA_EVT     21      /* sending data to Media Task */
+#define BTA_AV_OFFLOAD_START_RSP_EVT   22      /* a2dp offload start response */
+#define BTA_AV_RC_BROWSE_OPEN_EVT      23      /* remote control channel open */
+#define BTA_AV_RC_BROWSE_CLOSE_EVT     24      /* remote control channel closed */
 /* Max BTA event */
-#define BTA_AV_MAX_EVT               25
-
+#define BTA_AV_MAX_EVT                 25
 
 typedef uint8_t tBTA_AV_EVT;
 

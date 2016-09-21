@@ -436,7 +436,6 @@ void avct_bcb_cong_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 *******************************************************************************/
 void avct_bcb_discard_msg(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
-
     osi_free_and_reset((void **)&p_bcb->p_tx_msg);
 
     /* if control channel is up, save the message and open the browsing channel */

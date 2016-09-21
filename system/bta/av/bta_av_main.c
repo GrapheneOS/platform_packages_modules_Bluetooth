@@ -82,6 +82,7 @@ enum
     BTA_AV_RC_META_RSP,
     BTA_AV_RC_MSG,
     BTA_AV_RC_CLOSE,
+    BTA_AV_RC_BROWSE_CLOSE,
     BTA_AV_NUM_ACTIONS
 };
 
@@ -103,7 +104,6 @@ const tBTA_AV_ACTION bta_av_action[] =
     bta_av_rc_meta_rsp,
     bta_av_rc_msg,
     bta_av_rc_close,
-    NULL
 };
 
 /* state table information */
@@ -114,31 +114,31 @@ const tBTA_AV_ACTION bta_av_action[] =
 /* state table for init state */
 static const uint8_t bta_av_st_init[][BTA_AV_NUM_COLS] =
 {
-/* Event                     Action 1               Next state */
-/* API_DISABLE_EVT */       {BTA_AV_DISABLE,        BTA_AV_INIT_ST },
-/* API_REMOTE_CMD_EVT */    {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
-/* API_VENDOR_CMD_EVT */    {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
-/* API_VENDOR_RSP_EVT */    {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
-/* API_META_RSP_EVT */      {BTA_AV_RC_FREE_RSP,    BTA_AV_INIT_ST },
-/* API_RC_CLOSE_EVT */      {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
-/* AVRC_OPEN_EVT */         {BTA_AV_RC_OPENED,      BTA_AV_OPEN_ST },
-/* AVRC_MSG_EVT */         {BTA_AV_RC_FREE_BROWSE_MSG, BTA_AV_INIT_ST },
-/* AVRC_NONE_EVT */         {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
+/* Event                     Action 1                   Next state */
+/* API_DISABLE_EVT */       {BTA_AV_DISABLE,            BTA_AV_INIT_ST },
+/* API_REMOTE_CMD_EVT */    {BTA_AV_IGNORE,             BTA_AV_INIT_ST },
+/* API_VENDOR_CMD_EVT */    {BTA_AV_IGNORE,             BTA_AV_INIT_ST },
+/* API_VENDOR_RSP_EVT */    {BTA_AV_IGNORE,             BTA_AV_INIT_ST },
+/* API_META_RSP_EVT */      {BTA_AV_RC_FREE_RSP,        BTA_AV_INIT_ST },
+/* API_RC_CLOSE_EVT */      {BTA_AV_IGNORE,             BTA_AV_INIT_ST },
+/* AVRC_OPEN_EVT */         {BTA_AV_RC_OPENED,          BTA_AV_OPEN_ST },
+/* AVRC_MSG_EVT */          {BTA_AV_RC_FREE_BROWSE_MSG, BTA_AV_INIT_ST },
+/* AVRC_NONE_EVT */         {BTA_AV_IGNORE,             BTA_AV_INIT_ST },
 };
 
 /* state table for open state */
 static const uint8_t bta_av_st_open[][BTA_AV_NUM_COLS] =
 {
-/* Event                     Action 1               Next state */
-/* API_DISABLE_EVT */       {BTA_AV_DISABLE,        BTA_AV_INIT_ST },
-/* API_REMOTE_CMD_EVT */    {BTA_AV_RC_REMOTE_CMD,  BTA_AV_OPEN_ST },
-/* API_VENDOR_CMD_EVT */    {BTA_AV_RC_VENDOR_CMD,  BTA_AV_OPEN_ST },
-/* API_VENDOR_RSP_EVT */    {BTA_AV_RC_VENDOR_RSP,  BTA_AV_OPEN_ST },
-/* API_META_RSP_EVT */      {BTA_AV_RC_META_RSP,    BTA_AV_OPEN_ST },
-/* API_RC_CLOSE_EVT */      {BTA_AV_RC_CLOSE,       BTA_AV_OPEN_ST },
-/* AVRC_OPEN_EVT */         {BTA_AV_RC_OPENED,      BTA_AV_OPEN_ST },
-/* AVRC_MSG_EVT */          {BTA_AV_RC_MSG,         BTA_AV_OPEN_ST },
-/* AVRC_NONE_EVT */         {BTA_AV_IGNORE,         BTA_AV_INIT_ST },
+/* Event                     Action 1                   Next state */
+/* API_DISABLE_EVT */       {BTA_AV_DISABLE,            BTA_AV_INIT_ST },
+/* API_REMOTE_CMD_EVT */    {BTA_AV_RC_REMOTE_CMD,      BTA_AV_OPEN_ST },
+/* API_VENDOR_CMD_EVT */    {BTA_AV_RC_VENDOR_CMD,      BTA_AV_OPEN_ST },
+/* API_VENDOR_RSP_EVT */    {BTA_AV_RC_VENDOR_RSP,      BTA_AV_OPEN_ST },
+/* API_META_RSP_EVT */      {BTA_AV_RC_META_RSP,        BTA_AV_OPEN_ST },
+/* API_RC_CLOSE_EVT */      {BTA_AV_RC_CLOSE,           BTA_AV_OPEN_ST },
+/* AVRC_OPEN_EVT */         {BTA_AV_RC_OPENED,          BTA_AV_OPEN_ST },
+/* AVRC_MSG_EVT */          {BTA_AV_RC_MSG,             BTA_AV_OPEN_ST },
+/* AVRC_NONE_EVT */         {BTA_AV_IGNORE,             BTA_AV_INIT_ST },
 };
 
 /* type for state table */
@@ -504,6 +504,11 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                                 (uint8_t)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
 #endif
 
+                /* Both Audio Source and Audio Sink support AVRCP 1.6 for the
+                 * major roles (i.e. Audio Source -> TG 1.6 and vice versa). For
+                 * Audio Sink role we support additional TG 1.3 to support
+                 * absolute volume. Here we only do TG registration.
+                 */
                 uint16_t profile_version = AVRC_REV_1_0;
                 if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
                 {
@@ -664,13 +669,20 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                     /* create an SDP record as AVRC CT. We create 1.3 for SOURCE
                      * because we rely on feature bits being scanned by external
                      * devices more than the profile version itself.
+                     *
+                     * We create 1.4 for SINK since we support browsing.
                      */
-                    if ((profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE) ||
-                        (profile_initialized == UUID_SERVCLASS_AUDIO_SINK))
+                    if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
                     {
                         bta_ar_reg_avrc(UUID_SERVCLASS_AV_REMOTE_CONTROL, NULL, NULL,
                         p_bta_av_cfg->avrc_ct_cat, BTA_ID_AV,
                         (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_3);
+                    }
+                    else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
+                    {
+                        bta_ar_reg_avrc(UUID_SERVCLASS_AV_REMOTE_CONTROL, NULL, NULL,
+                        p_bta_av_cfg->avrc_ct_cat, BTA_ID_AV,
+                        (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_4);
                     }
 #endif
                 }
@@ -1195,11 +1207,12 @@ void bta_av_sm_execute(tBTA_AV_CB *p_cb, uint16_t event, tBTA_AV_DATA *p_data)
 
     /* set next state */
     p_cb->state = state_table[event][BTA_AV_NEXT_STATE];
-    APPL_TRACE_EVENT("next state=%d", p_cb->state);
+    APPL_TRACE_EVENT("next state=%d event offset:%d", p_cb->state, event);
 
     /* execute action functions */
     if ((action = state_table[event][BTA_AV_ACTION_COL]) != BTA_AV_IGNORE)
     {
+        APPL_TRACE_EVENT("%s action executed %d", __func__, action);
         (*bta_av_action[action])(p_cb, p_data);
     }
 }

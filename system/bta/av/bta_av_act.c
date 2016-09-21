@@ -535,13 +535,12 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         return;
     }
 
-    if (p_cb->features & BTA_AV_FEAT_RCTG)
-    {
-        /* listen to browsing channel when the connection is open,
-         * if peer initiated AVRCP connection and local device supports browsing channel */
-        if ((p_cb->features & BTA_AV_FEAT_BROWSE) && (p_cb->rcb[i].peer_features == 0))
-            AVRC_OpenBrowse(p_data->rc_conn_chg.handle, AVCT_ACP);
-    }
+    APPL_TRACE_DEBUG("%s local features %d peer features %d",
+                     __func__, p_cb->features, p_cb->rcb[i].peer_features);
+
+    /* listen to browsing channel when the connection is open,
+     * if peer initiated AVRCP connection and local device supports browsing channel */
+    AVRC_OpenBrowse (p_data->rc_conn_chg.handle, AVCT_ACP);
 
     if (p_cb->rcb[i].lidx == (BTA_AV_NUM_LINKS + 1) && shdl != 0)
     {
@@ -588,7 +587,7 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     bdcpy(rc_open.peer_addr, p_data->rc_conn_chg.peer_addr);
     rc_open.peer_features = p_cb->rcb[i].peer_features;
     rc_open.status = BTA_AV_SUCCESS;
-    APPL_TRACE_DEBUG("local features:x%x peer_features:x%x", p_cb->features,
+    APPL_TRACE_DEBUG("%s local features:x%x peer_features:x%x", __func__, p_cb->features,
                       rc_open.peer_features);
     if (rc_open.peer_features == 0)
     {
@@ -604,14 +603,15 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, (tBTA_AV *) &rc_open);
 
     /* if local initiated AVRCP connection and both peer and locals device support
-     * browsing channel, open the browsing channel now */
+     * browsing channel, open the browsing channel now
+     * TODO (sanketa): Some TG would not broadcast browse feature hence check inter-op. */
     if ((p_cb->features & BTA_AV_FEAT_BROWSE) &&
         (rc_open.peer_features & BTA_AV_FEAT_BROWSE) &&
         ((p_cb->rcb[i].status & BTA_AV_RC_ROLE_MASK) == BTA_AV_RC_ROLE_INT))
     {
+        APPL_TRACE_DEBUG("%s opening AVRC Browse channel", __func__);
         AVRC_OpenBrowse (p_data->rc_conn_chg.handle, AVCT_INT);
     }
-
 }
 
 /*******************************************************************************
@@ -1143,6 +1143,20 @@ void bta_av_rc_close (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 
 /*******************************************************************************
 **
+** Function         bta_av_rc_browse_close
+**
+** Description      Empty placeholder.
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_av_rc_browse_close (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
+{
+    APPL_TRACE_WARNING("%s empty placeholder does nothing!", __func__);
+}
+
+/*******************************************************************************
+**
 ** Function         bta_av_get_shdl
 **
 ** Returns          The index to p_scb[]
@@ -1473,8 +1487,11 @@ void bta_av_disable(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
      * expect BTA_AV_DEREG_COMP_EVT when deregister is complete */
     for(xx=0; xx<BTA_AV_NUM_STRS; xx++)
     {
-        hdr.layer_specific = xx + 1;
-        bta_av_api_deregister((tBTA_AV_DATA *)&hdr);
+        if (p_cb->p_scb[xx] != NULL)
+        {
+            hdr.layer_specific = xx + 1;
+            bta_av_api_deregister((tBTA_AV_DATA *)&hdr);
+        }
     }
 
     alarm_free(p_cb->link_signalling_timer);
@@ -1855,7 +1872,7 @@ tBTA_AV_FEAT bta_avk_check_peer_features (uint16_t service_uuid)
              */
             if (peer_rc_version >= AVRC_REV_1_3)
             {
-                /* get supported categories */
+                /* get supported features */
                 tSDP_DISC_ATTR *p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES);
                 if (p_attr != NULL)
                 {
@@ -1864,6 +1881,8 @@ tBTA_AV_FEAT bta_avk_check_peer_features (uint16_t service_uuid)
                         peer_features |= (BTA_AV_FEAT_ADV_CTRL);
                     if (categories & AVRC_SUPF_CT_APP_SETTINGS)
                         peer_features |= (BTA_AV_FEAT_APP_SETTING);
+                    if (categories & AVRC_SUPF_CT_BROWSE)
+                        peer_features |= (BTA_AV_FEAT_BROWSE);
                 }
             }
         }
@@ -1930,6 +1949,7 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     {
         /* This is Sink + CT + TG(Abs Vol) */
         peer_features = bta_avk_check_peer_features(UUID_SERVCLASS_AV_REM_CTRL_TARGET);
+        APPL_TRACE_DEBUG("%s populating rem ctrl target features %d", __func__, peer_features);
         if (BTA_AV_FEAT_ADV_CTRL & bta_avk_check_peer_features(UUID_SERVCLASS_AV_REMOTE_CONTROL))
             peer_features |= (BTA_AV_FEAT_ADV_CTRL|BTA_AV_FEAT_RCCT);
     }
