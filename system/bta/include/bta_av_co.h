@@ -92,7 +92,6 @@ void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
 **
 *******************************************************************************/
 tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
-                                      tA2D_CODEC_TYPE codec_type,
                                       uint8_t *p_codec_info,
                                       uint8_t *p_sep_info_idx, uint8_t seid,
                                       uint8_t *p_num_protect,
@@ -109,9 +108,8 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
-                               uint8_t *p_codec_info, uint8_t seid,
-                               BD_ADDR addr, uint8_t num_protect,
+void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
+                               uint8_t seid, BD_ADDR addr, uint8_t num_protect,
                                uint8_t *p_protect_info,uint8_t t_local_sep,
                                uint8_t avdt_handle);
 
@@ -128,8 +126,8 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
-                          uint8_t *p_codec_info, uint16_t mtu);
+void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t *p_codec_info,
+                          uint16_t mtu);
 
 /*******************************************************************************
 **
@@ -145,8 +143,7 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
-                           uint16_t mtu);
+void bta_av_co_audio_close(tBTA_AV_HNDL hndl, uint16_t mtu);
 
 /*******************************************************************************
 **
@@ -159,8 +156,8 @@ void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
-                           uint8_t *p_codec_info, bool *p_no_rtp_hdr);
+void bta_av_co_audio_start(tBTA_AV_HNDL hndl, uint8_t *p_codec_info,
+                           bool *p_no_rtp_hdr);
 
 /*******************************************************************************
 **
@@ -173,7 +170,7 @@ void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type);
+void bta_av_co_audio_stop(tBTA_AV_HNDL hndl);
 
 /*******************************************************************************
 **
@@ -183,10 +180,10 @@ void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tA2D_CODEC_TYPE codec_type);
 **                  the audio codec
 **
 ** Returns          NULL if data is not ready.
-**                  Otherwise, a GKI buffer (BT_HDR*) containing the audio data.
+**                  Otherwise, a buffer (BT_HDR*) containing the audio data.
 **
 *******************************************************************************/
-void *bta_av_co_audio_src_data_path(tA2D_CODEC_TYPE codec_type, uint32_t *p_len,
+void *bta_av_co_audio_src_data_path(const uint8_t *p_codec_info,
                                     uint32_t *p_timestamp);
 
 /*******************************************************************************

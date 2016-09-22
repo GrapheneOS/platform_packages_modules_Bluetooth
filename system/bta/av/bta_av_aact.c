@@ -252,8 +252,10 @@ static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, uint8_t local_sep)
 {
     for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
         if ((p_scb->seps[i].tsep == local_sep) &&
-            (p_scb->seps[i].codec_type == p_scb->codec_type))
+            A2D_CodecTypeEquals(p_scb->seps[i].codec_info,
+                                p_scb->cfg.codec_info)) {
             return (p_scb->seps[i].av_handle);
+        }
     }
     APPL_TRACE_DEBUG("%s: local sep_type %d not found", __func__, local_sep)
     return 0; /* return invalid handle */
@@ -743,13 +745,16 @@ static void bta_av_a2d_sdp_cback(bool found, tA2D_Service *p_service)
 *******************************************************************************/
 static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 {
-    APPL_TRACE_DEBUG("%s: codec_type: %d", __func__, p_scb->codec_type);
-    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
-        APPL_TRACE_DEBUG("%s: av_handle: %d codec_type: %d", __func__,
-            p_scb->seps[i].av_handle, p_scb->seps[i].codec_type);
-        if((p_scb->seps[i].av_handle && p_scb->codec_type == p_scb->seps[i].codec_type)
-            && (p_scb->seps[i].av_handle == avdt_handle))
-        {
+    APPL_TRACE_DEBUG("%s: codec: %s", __func__,
+                     A2D_CodecName(p_scb->cfg.codec_info));
+    for (tA2D_CODEC_SEP_INDEX i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
+        APPL_TRACE_DEBUG("%s: av_handle: %d codec: %d", __func__,
+                         p_scb->seps[i].av_handle,
+                         A2D_CodecName(p_scb->seps[i].codec_info));
+        if (p_scb->seps[i].av_handle &&
+            (p_scb->seps[i].av_handle == avdt_handle) &&
+            A2D_CodecTypeEquals(p_scb->seps[i].codec_info,
+                                p_scb->cfg.codec_info)) {
             p_scb->sep_idx = i;
             p_scb->avdt_handle = p_scb->seps[i].av_handle;
             break;
@@ -1145,7 +1150,6 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     local_sep = bta_av_get_scb_sep_type(p_scb, p_msg->handle);
     p_scb->avdt_label = p_data->str_msg.msg.hdr.label;
     memcpy(p_scb->cfg.codec_info, p_evt_cfg->codec_info, AVDT_CODEC_SIZE);
-    p_scb->codec_type = A2D_GetCodecType(p_evt_cfg->codec_info);
     bta_av_save_addr(p_scb, p_data->str_msg.bd_addr);
 
     /* Clear collision mask */
@@ -1189,7 +1193,7 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         /*  in case of A2DP SINK this is the first time peer data is being sent to co functions */
         if (local_sep == AVDT_TSEP_SNK)
         {
-            p_scb->p_cos->setcfg(p_scb->hndl, p_scb->codec_type,
+            p_scb->p_cos->setcfg(p_scb->hndl,
                              p_evt_cfg->codec_info,
                              p_info->seid,
                              p_scb->peer_addr,
@@ -1200,7 +1204,7 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         }
         else
         {
-            p_scb->p_cos->setcfg(p_scb->hndl, p_scb->codec_type,
+            p_scb->p_cos->setcfg(p_scb->hndl,
                              p_evt_cfg->codec_info,
                              p_info->seid,
                              p_scb->peer_addr,
@@ -1337,8 +1341,8 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             p_scb->avdt_version = AVDT_VERSION_SYNC;
 
 
-        if (p_scb->codec_type == A2D_MEDIA_CT_SBC || num > 1)
-        {
+        if (A2D_GetCodecType(p_scb->cfg.codec_info) == A2D_MEDIA_CT_SBC ||
+            num > 1) {
             /* if SBC is used by the SNK as INT, discover req is not sent in bta_av_config_ind.
                        * call disc_res now */
            /* this is called in A2DP SRC path only, In case of SINK we don't need it  */
@@ -1417,8 +1421,7 @@ void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     memset(&p_scb->q_info, 0, sizeof(tBTA_AV_Q_INFO));
 
     p_scb->l2c_bufs = 0;
-    p_scb->p_cos->open(p_scb->hndl,
-        p_scb->codec_type, p_scb->cfg.codec_info, mtu);
+    p_scb->p_cos->open(p_scb->hndl, p_scb->cfg.codec_info, mtu);
 
     {
         /* TODO check if other audio channel is open.
@@ -1735,9 +1738,8 @@ void bta_av_save_caps(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->num_seps, p_scb->sep_info_idx, p_scb->wait);
     memcpy(&cfg, p_scb->p_cap, sizeof(tAVDT_CFG));
     /* let application know the capability of the SNK */
-    p_scb->p_cos->getcfg(p_scb->hndl, A2D_GetCodecType(cfg.codec_info),
-        cfg.codec_info, &p_scb->sep_info_idx, p_info->seid,
-        &cfg.num_protect, cfg.protect_info);
+    p_scb->p_cos->getcfg(p_scb->hndl, cfg.codec_info, &p_scb->sep_info_idx,
+                         p_info->seid, &cfg.num_protect, cfg.protect_info);
 
     p_scb->sep_info_idx++;
     if(p_scb->num_seps > p_scb->sep_info_idx)
@@ -1796,7 +1798,7 @@ void bta_av_cco_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     mtu = bta_av_chk_mtu(p_scb, BTA_AV_MAX_A2DP_MTU);
 
-    p_scb->p_cos->close(p_scb->hndl, p_scb->codec_type, mtu);
+    p_scb->p_cos->close(p_scb->hndl, mtu);
 }
 
 /*******************************************************************************
@@ -1893,18 +1895,15 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* if codec present and we get a codec configuration */
     if ((p_scb->p_cap->num_codec != 0) &&
         (media_type == p_scb->media_type) &&
-        (p_scb->p_cos->getcfg(p_scb->hndl,
-                              A2D_GetCodecType(p_scb->p_cap->codec_info),
-                              cfg.codec_info, &p_scb->sep_info_idx,
-                              p_info->seid, &cfg.num_protect,
-                              cfg.protect_info) == A2D_SUCCESS))
-    {
+        (p_scb->p_cos->getcfg(p_scb->hndl, cfg.codec_info,
+                              &p_scb->sep_info_idx, p_info->seid,
+                              &cfg.num_protect, cfg.protect_info) ==
+         A2D_SUCCESS)) {
 #if AVDT_MULTIPLEXING == TRUE
         cfg.mux_mask &= p_scb->p_cap->mux_mask;
         APPL_TRACE_DEBUG("%s: mux_mask used x%x", __func__, cfg.mux_mask);
 #endif
-        /* save copy of codec type and configuration */
-        p_scb->codec_type = A2D_GetCodecType(cfg.codec_info);
+        /* save copy of codec configuration */
         memcpy(&p_scb->cfg, &cfg, sizeof(tAVDT_CFG));
 
         uuid_int = p_scb->uuid_int;
@@ -2109,7 +2108,7 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         bta_av_stream_chg(p_scb, false);
         p_scb->co_started = false;
 
-        p_scb->p_cos->stop(p_scb->hndl, p_scb->codec_type);
+        p_scb->p_cos->stop(p_scb->hndl);
         L2CA_SetFlushTimeout(p_scb->peer_addr, L2CAP_DEFAULT_FLUSH_TO);
     }
 
@@ -2246,17 +2245,15 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     BT_HDR  *p_buf = NULL;
-    uint32_t  data_len;
     uint32_t  timestamp;
     bool new_buf = false;
-    uint8_t   m_pt = 0x60 | p_scb->codec_type;
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_scb->cfg.codec_info);
+    uint8_t   m_pt = 0x60 | codec_type;
     tAVDT_DATA_OPT_MASK     opt;
     UNUSED(p_data);
 
     if (p_scb->cong)
-    {
         return;
-    }
 
     //Always get the current number of bufs que'd up
     p_scb->l2c_bufs = (uint8_t)L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_GET);
@@ -2271,8 +2268,8 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     {
         new_buf = true;
         /* a2d_list empty, call co_data, dup data to other channels */
-        p_buf = (BT_HDR *)p_scb->p_cos->data(p_scb->codec_type, &data_len,
-                                         &timestamp);
+        p_buf = (BT_HDR *)p_scb->p_cos->data(p_scb->cfg.codec_info,
+                                             &timestamp);
 
         if (p_buf)
         {
@@ -2483,7 +2480,8 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->role &= ~BTA_AV_ROLE_SUSPEND_OPT;
 
         p_scb->no_rtp_hdr = false;
-        p_scb->p_cos->start(p_scb->hndl, p_scb->codec_type, p_scb->cfg.codec_info, &p_scb->no_rtp_hdr);
+        p_scb->p_cos->start(p_scb->hndl, p_scb->cfg.codec_info,
+                            &p_scb->no_rtp_hdr);
         p_scb->co_started = true;
 
         APPL_TRACE_DEBUG("%s: suspending: %d, role:x%x, init %d", __func__,
@@ -2501,7 +2499,7 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             p_scb->role |= BTA_AV_ROLE_SUSPEND;
             p_scb->cong = true;  /* do not allow the media data to go through */
             /* do not duplicate the media packets to this channel */
-            p_scb->p_cos->stop(p_scb->hndl, p_scb->codec_type);
+            p_scb->p_cos->stop(p_scb->hndl);
             p_scb->co_started = false;
             stop.flush   = false;
             stop.suspend = true;
@@ -2590,7 +2588,7 @@ void bta_av_str_closed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         mtu = bta_av_chk_mtu(p_scb, BTA_AV_MAX_A2DP_MTU);
 
         {
-            p_scb->p_cos->close(p_scb->hndl, p_scb->codec_type, mtu);
+            p_scb->p_cos->close(p_scb->hndl, mtu);
             data.close.chnl = p_scb->chnl;
             data.close.hndl = p_scb->hndl;
             event = BTA_AV_CLOSE_EVT;
@@ -2695,7 +2693,7 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
         {
             p_scb->co_started = false;
-            p_scb->p_cos->stop(p_scb->hndl, p_scb->codec_type);
+            p_scb->p_cos->stop(p_scb->hndl);
         }
         L2CA_SetFlushTimeout(p_scb->peer_addr, L2CAP_DEFAULT_FLUSH_TO);
     }
@@ -2943,14 +2941,13 @@ void bta_av_rcfg_open (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     if (p_scb->num_disc_snks == 0)
     {
         /* Need to update call-out module so that it will be ready for discover */
-        p_scb->p_cos->stop(p_scb->hndl, p_scb->codec_type);
+        p_scb->p_cos->stop(p_scb->hndl);
 
         /* send avdtp discover request */
         AVDT_DiscoverReq(p_scb->peer_addr, p_scb->sep_info, BTA_AV_NUM_SEPS, bta_av_dt_cback[p_scb->hdi]);
     }
     else
     {
-        p_scb->codec_type = A2D_GetCodecType(p_scb->p_cap->codec_info);
         memcpy(p_scb->cfg.codec_info, p_scb->p_cap->codec_info, AVDT_CODEC_SIZE);
         /* we may choose to use a different SEP at reconfig.
          * adjust the sep_idx now */
