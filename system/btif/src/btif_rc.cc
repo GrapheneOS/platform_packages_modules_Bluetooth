@@ -590,7 +590,7 @@ void handle_rc_ctrl_features(btif_rc_device_cb_t *p_dev)
 
 void handle_rc_features(btif_rc_device_cb_t *p_dev)
 {
-    if (bt_rc_callbacks != NULL)
+    if (bt_rc_callbacks == NULL)
     {
         BTIF_TRACE_ERROR("%s: bt_rc_callbacks NULL, returning", __func__);
         return;
