@@ -68,6 +68,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
   // Motorola Key Link
   {{{0x1c, 0x96, 0x5a,      0,0,0}}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
 
+  // Motorola Roadster
+  {{{0x00, 0x24, 0x1C,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
+
   // Mpow Cheetah - unacceptably loud volume
   {{{0x00, 0x11, 0xb1,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
 
