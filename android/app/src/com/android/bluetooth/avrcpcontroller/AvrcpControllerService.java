@@ -365,7 +365,13 @@ public class AvrcpControllerService extends ProfileService {
         return mAvrcpCtSm.getCurrentMetaData();
     }
 
-    public synchronized PlaybackState getPlaybackState(BluetoothDevice device) {
+    public PlaybackState getPlaybackState(BluetoothDevice device) {
+        // Get the cached state by default.
+        return getPlaybackState(device, true);
+    }
+
+    // cached can be used to force a getPlaybackState command. Useful for PTS testing.
+    public synchronized PlaybackState getPlaybackState(BluetoothDevice device, boolean cached) {
         if (DBG) {
             Log.d(TAG, "getPlayBackState device = " + device);
         }
@@ -381,7 +387,7 @@ public class AvrcpControllerService extends ProfileService {
 
         }
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        return mAvrcpCtSm.getCurrentPlayBackState();
+        return mAvrcpCtSm.getCurrentPlayBackState(cached);
     }
 
     public synchronized BluetoothAvrcpPlayerSettings getPlayerSettings(BluetoothDevice device) {
@@ -1108,6 +1114,8 @@ public class AvrcpControllerService extends ProfileService {
     native static void sendRegisterAbsVolRspNative(byte[] address, byte rspType, int absVol,
         int label);
 
+    /* API used to fetch the playback state */
+    native static void getPlaybackStateNative(byte[] address);
     /* API used to fetch the current now playing list */
     native static void getNowPlayingListNative(byte[] address, byte start, byte end);
     /* API used to fetch the current folder's listing */
