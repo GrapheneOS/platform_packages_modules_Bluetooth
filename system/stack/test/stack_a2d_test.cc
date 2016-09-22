@@ -318,6 +318,24 @@ TEST(StackA2dpTest, test_a2d_get_media_type) {
   EXPECT_EQ(A2D_GetMediaType(codec_info_test), AVDT_MEDIA_TYPE_MULTI);
 }
 
+TEST(StackA2dpTest, test_a2d_codec_name) {
+  uint8_t codec_info_test[AVDT_CODEC_SIZE];
+
+  // Explicit tests for known codecs
+  EXPECT_STREQ(A2D_CodecName(codec_info_sbc), "SBC");
+  EXPECT_STREQ(A2D_CodecName(codec_info_sbc_sink), "SBC");
+  EXPECT_STREQ(A2D_CodecName(codec_info_non_a2dp), "UNKNOWN VENDOR CODEC");
+
+  // Test all unknown codecs
+  memcpy(codec_info_test, codec_info_sbc, sizeof(codec_info_sbc));
+  for (uint8_t codec_type = A2D_MEDIA_CT_SBC + 1;
+       codec_type < A2D_MEDIA_CT_NON_A2DP;
+       codec_type++) {
+    codec_info_test[2] = codec_type;        // Unknown codec type
+    EXPECT_STREQ(A2D_CodecName(codec_info_test), "UNKNOWN CODEC");
+  }
+}
+
 TEST(StackA2dpTest, test_a2d_vendor) {
   EXPECT_FALSE(A2D_IsVendorSourceCodecSupported(codec_info_non_a2dp));
   EXPECT_EQ(A2D_VendorCodecGetVendorId(codec_info_non_a2dp),
@@ -469,4 +487,46 @@ TEST(StackA2dpTest, test_a2d_get_sink_track_channel_type) {
 TEST(StackA2dpTest, test_a2d_get_sink_frames_count_to_process) {
   EXPECT_EQ(A2D_GetSinkFramesCountToProcess(20, codec_info_sbc), 7);
   EXPECT_EQ(A2D_GetSinkFramesCountToProcess(20, codec_info_non_a2dp), -1);
+}
+
+TEST(StackA2dpTest, test_a2d_get_packet_timestamp) {
+  uint8_t a2dp_data[1000];
+  uint32_t timestamp;
+  uint32_t *p_ts = reinterpret_cast<uint32_t *>(a2dp_data);
+
+  memset(a2dp_data, 0xAB, sizeof(a2dp_data));
+  *p_ts = 0x12345678;
+  timestamp = 0xFFFFFFFF;
+  EXPECT_TRUE(A2D_GetPacketTimestamp(codec_info_sbc, a2dp_data, &timestamp));
+  EXPECT_EQ(timestamp, static_cast<uint32_t>(0x12345678));
+
+  memset(a2dp_data, 0xAB, sizeof(a2dp_data));
+  *p_ts = 0x12345678;
+  timestamp = 0xFFFFFFFF;
+  EXPECT_FALSE(A2D_GetPacketTimestamp(codec_info_non_a2dp, a2dp_data,
+                                      &timestamp));
+}
+
+TEST(StackA2dpTest, test_a2d_build_codec_header) {
+  uint8_t a2dp_data[1000];
+  BT_HDR *p_buf = reinterpret_cast<BT_HDR *>(a2dp_data);
+  const uint16_t BT_HDR_LEN = 500;
+  const uint16_t BT_HDR_OFFSET = 50;
+  const uint8_t FRAMES_PER_PACKET = 0xCD;
+
+  memset(a2dp_data, 0xAB, sizeof(a2dp_data));
+  p_buf->len = BT_HDR_LEN;
+  p_buf->offset = BT_HDR_OFFSET;
+  EXPECT_TRUE(A2D_BuildCodecHeader(codec_info_sbc, p_buf, FRAMES_PER_PACKET));
+  EXPECT_EQ(p_buf->offset + 1, BT_HDR_OFFSET);  // Modified by A2D_SBC_MPL_HDR_LEN
+  EXPECT_EQ(p_buf->len - 1, BT_HDR_LEN);        // Modified by A2D_SBC_MPL_HDR_LEN
+  const uint8_t *p =
+      reinterpret_cast<const uint8_t *>(p_buf + 1) + p_buf->offset;
+  EXPECT_EQ(*p, static_cast<uint8_t>(0x0D));    // 0xCD masked with A2D_SBC_HDR_NUM_MSK
+
+  memset(a2dp_data, 0xAB, sizeof(a2dp_data));
+  p_buf->len = BT_HDR_LEN;
+  p_buf->offset = BT_HDR_OFFSET;
+  EXPECT_FALSE(A2D_BuildCodecHeader(codec_info_non_a2dp, p_buf,
+                                    FRAMES_PER_PACKET));
 }

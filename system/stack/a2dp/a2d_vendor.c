@@ -76,9 +76,9 @@ tA2D_STATUS A2D_VendorBuildSrc2SinkConfig(UNUSED_ATTR const uint8_t *p_src_cap,
     return A2D_NS_CODEC_TYPE;
 }
 
-tA2D_STATUS A2D_VendorBuildSinkConfig(const uint8_t *p_src_config,
-                                      const uint8_t *p_sink_cap,
-                                      uint8_t *p_result_sink_config)
+tA2D_STATUS A2D_VendorBuildSinkConfig(UNUSED_ATTR const uint8_t *p_src_config,
+                                      UNUSED_ATTR const uint8_t *p_sink_cap,
+                                      UNUSED_ATTR uint8_t *p_result_sink_config)
 {
     // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_src_config);
     // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_src_config);
@@ -119,6 +119,16 @@ bool A2D_VendorUsesRtpHeader(UNUSED_ATTR bool content_protection_enabled,
     // Add checks based on <content_protection_enabled, vendor_id, codec_id>
 
     return true;
+}
+
+const char *A2D_VendorCodecName(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_src_config);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_src_config);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return "UNKNOWN VENDOR CODEC";
 }
 
 bool A2D_VendorCodecTypeEquals(const uint8_t *p_codec_info_a,
@@ -316,4 +326,28 @@ int A2D_VendorGetSinkFramesCountToProcess(UNUSED_ATTR uint64_t time_interval_ms,
     // Add checks based on <vendor_id, codec_id>
 
     return -1;
+}
+
+bool A2D_VendorGetPacketTimestamp(UNUSED_ATTR const uint8_t *p_codec_info,
+                                  UNUSED_ATTR const uint8_t *p_data,
+                                  UNUSED_ATTR uint32_t *p_timestamp)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
+}
+
+bool A2D_VendorBuildCodecHeader(UNUSED_ATTR const uint8_t *p_codec_info,
+                                UNUSED_ATTR BT_HDR *p_buf,
+                                UNUSED_ATTR uint16_t frames_per_packet)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
 }
