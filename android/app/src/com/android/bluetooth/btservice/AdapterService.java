@@ -2525,6 +2525,7 @@ public class AdapterService extends Service {
 
     private void dumpJava(FileDescriptor fd) {
         BluetoothProto.BluetoothLog log = new BluetoothProto.BluetoothLog();
+        log.setNumBondedDevices(getBondedDevices().length);
 
         for (ProfileService profile : mProfiles) {
             profile.dumpProto(log);
