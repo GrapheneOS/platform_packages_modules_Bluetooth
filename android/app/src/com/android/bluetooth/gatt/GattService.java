@@ -248,10 +248,6 @@ public class GattService extends ProfileService {
                 ScanClient client = new ScanClient(mAppIf, false);
                 client.appDied = true;
                 stopScan(client);
-            } else {
-                AdvertiseClient client = new AdvertiseClient(mAppIf);
-                client.appDied = true;
-                stopMultiAdvertising(client);
             }
         }
 
