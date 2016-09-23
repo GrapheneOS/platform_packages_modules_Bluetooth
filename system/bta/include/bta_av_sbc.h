@@ -166,17 +166,6 @@ extern int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
                                      uint32_t src_samples, uint32_t dst_samples,
                                      uint32_t *p_ret);
 
-/*******************************************************************************
-**
-** Function         bta_av_sbc_bld_hdr
-**
-** Description      This function builds the packet header for MPF1.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void bta_av_sbc_bld_hdr(BT_HDR *p_buf, uint16_t fr_per_pkt);
-
 #ifdef __cplusplus
 }
 #endif

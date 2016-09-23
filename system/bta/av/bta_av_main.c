@@ -606,8 +606,9 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             if ((*bta_av_a2d_cos.init)(codec_sep_index, &cs.cfg)) {
                 if (AVDT_CreateStream(&p_scb->seps[codec_sep_index].av_handle, &cs)
                     == AVDT_SUCCESS) {
-                    p_scb->seps[codec_sep_index].codec_type =
-                        A2D_GetCodecType(cs.cfg.codec_info);
+                    /* Save a copy of the codec */
+                    memcpy(p_scb->seps[codec_sep_index].codec_info,
+                           cs.cfg.codec_info, AVDT_CODEC_SIZE);
                     p_scb->seps[codec_sep_index].tsep = cs.tsep;
                     if (cs.tsep == AVDT_TSEP_SNK) {
                         p_scb->seps[codec_sep_index].p_app_sink_data_cback =

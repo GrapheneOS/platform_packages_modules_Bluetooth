@@ -84,31 +84,6 @@ extern "C" {
 
 /******************************************************************************
 **
-** Function         A2D_BldSbcMplHdr
-**
-** Description      This function is called by an application to parse
-**                  the SBC Media Payload header.
-**                  Input Parameters:
-**                      frag:  1, if fragmented. 0, otherwise.
-**
-**                      start:  1, if the starting packet of a fragmented frame.
-**
-**                      last:  1, if the last packet of a fragmented frame.
-**
-**                      num:  If frag is 1, this is the number of remaining fragments
-**                            (including this fragment) of this frame.
-**                            If frag is 0, this is the number of frames in this packet.
-**
-**                  Output Parameters:
-**                      p_dst:  the resulting media payload header byte sequence.
-**
-** Returns          void.
-******************************************************************************/
-extern void A2D_BldSbcMplHdr(uint8_t *p_dst, bool    frag, bool    start,
-                             bool    last, uint8_t num);
-
-/******************************************************************************
-**
 ** Function         A2D_ParsSbcMplHdr
 **
 ** Description      This function is called by an application to parse
@@ -194,6 +169,9 @@ tA2D_STATUS A2D_BuildSrc2SinkConfigSbc(const uint8_t *p_src_cap,
 tA2D_STATUS A2D_BuildSinkConfigSbc(const uint8_t *p_src_config,
                                    const uint8_t *p_sink_cap,
                                    uint8_t *p_result_sink_config);
+
+// Gets the A2DP SBC codec name for a given |p_codec_info|.
+const char *A2D_CodecNameSbc(const uint8_t *p_codec_info);
 
 // Checks whether two A2DP SBC codecs |p_codec_info_a| and |p_codec_info_b|
 // have the same type.
@@ -295,6 +273,22 @@ int A2D_GetSinkTrackChannelTypeSbc(const uint8_t *p_codec_info);
 // contains invalid codec information.
 int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
                                        const uint8_t *p_codec_info);
+
+// Gets the A2DP SBC audio data timestamp from an audio packet.
+// |p_codec_info| contains the codec information.
+// |p_data| contains the audio data.
+// The timestamp is stored in |p_timestamp|.
+// Returns true on success, otherwise false.
+bool A2D_GetPacketTimestampSbc(const uint8_t *p_codec_info,
+                               const uint8_t *p_data, uint32_t *p_timestamp);
+
+// Builds A2DP SBC codec header for audio data.
+// |p_codec_info| contains the codec information.
+// |p_buf| contains the audio data.
+// |frames_per_packet| is the number of frames in this packet.
+// Returns true on success, otherwise false.
+bool A2D_BuildCodecHeaderSbc(const uint8_t *p_codec_info, BT_HDR *p_buf,
+                             uint16_t frames_per_packet);
 
 // Decodes and displays SBC codec info (for debugging).
 // |p_codec_info| is a pointer to the SBC codec_info to decode and display.

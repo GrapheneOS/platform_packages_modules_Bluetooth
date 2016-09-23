@@ -406,23 +406,3 @@ int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
     *p_ret = ((char *)p_src_tmp - (char *)p_src);
     return ((char *)p_dst_tmp - (char *)p_dst);
 }
-
-/*******************************************************************************
-**
-** Function         bta_av_sbc_bld_hdr
-**
-** Description      This function builds the packet header for MPF1.
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_av_sbc_bld_hdr(BT_HDR *p_buf, uint16_t fr_per_pkt)
-{
-    uint8_t   *p;
-
-    p_buf->offset -= BTA_AV_SBC_HDR_SIZE;
-    p = (uint8_t *) (p_buf + 1) + p_buf->offset;
-    p_buf->len += BTA_AV_SBC_HDR_SIZE;
-    A2D_BldSbcMplHdr(p, false, false, false, (uint8_t) fr_per_pkt);
-}
-
