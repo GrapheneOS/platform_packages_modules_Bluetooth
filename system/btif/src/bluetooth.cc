@@ -46,6 +46,7 @@
 #include <hardware/bt_sock.h>
 
 #include "bt_utils.h"
+#include "btif_a2dp.h"
 #include "btif_api.h"
 #include "btif_debug.h"
 #include "btsnoop.h"
@@ -62,7 +63,6 @@
 #include "btif_storage.h"
 #include "btif/include/btif_debug_btsnoop.h"
 #include "btif/include/btif_debug_conn.h"
-#include "btif/include/btif_media.h"
 
 /************************************************************************************
 **  Static variables

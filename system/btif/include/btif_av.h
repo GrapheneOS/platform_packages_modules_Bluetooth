@@ -45,7 +45,6 @@ typedef enum {
     BTIF_AV_SUSPEND_STREAM_REQ_EVT,
     BTIF_AV_SINK_CONFIG_REQ_EVT,
     BTIF_AV_OFFLOAD_START_REQ_EVT,
-    BTIF_AV_SINK_FOCUS_REQ_EVT,
     BTIF_AV_CLEANUP_REQ_EVT,
 } btif_av_sm_event_t;
 
@@ -138,6 +137,18 @@ bt_status_t btif_av_init(int service_id);
 
 bool btif_av_is_connected(void);
 
+/*******************************************************************************
+**
+** Function         btif_av_get_peer_sep
+**
+** Description      Get the stream endpoint type.
+**
+** Returns          The stream endpoint type: either AVDT_TSEP_SRC or
+**                  AVDT_TSEP_SNK.
+**
+*******************************************************************************/
+
+uint8_t btif_av_get_peer_sep(void);
 
 /*******************************************************************************
 **

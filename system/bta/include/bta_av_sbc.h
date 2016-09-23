@@ -25,13 +25,6 @@
 #ifndef BTA_AV_SBC_H
 #define BTA_AV_SBC_H
 
-/*****************************************************************************
-**  constants
-*****************************************************************************/
-
-/* SBC packet header size */
-#define BTA_AV_SBC_HDR_SIZE         A2D_SBC_MPL_HDR_LEN
-
 #ifdef __cplusplus
 extern "C" {
 #endif

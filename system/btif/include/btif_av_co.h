@@ -19,11 +19,16 @@
 #ifndef BTIF_AV_CO_H
 #define BTIF_AV_CO_H
 
-#include "btif_media.h"
+#include "btif/include/btif_a2dp_source.h"
+#include "stack/include/a2d_api.h"
 
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*******************************************************************************
 **  Functions
@@ -45,11 +50,11 @@ bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding);
 
 // Prepares a message to initialize the encoder. The prepared message is
 // stored in |msg|.
-void bta_av_co_audio_encoder_init(tBTIF_MEDIA_INIT_AUDIO *msg);
+void bta_av_co_audio_encoder_init(tBTIF_A2DP_SOURCE_INIT_AUDIO *msg);
 
 // Prepares a message to update the encoder. The prepared message is
 // stored in |msg|.
-void bta_av_co_audio_encoder_update(tBTIF_MEDIA_UPDATE_AUDIO *msg);
+void bta_av_co_audio_encoder_update(tBTIF_A2DP_SOURCE_UPDATE_AUDIO *msg);
 
 /*******************************************************************************
  **
@@ -61,5 +66,9 @@ void bta_av_co_audio_encoder_update(tBTIF_MEDIA_UPDATE_AUDIO *msg);
  **
  *******************************************************************************/
 void bta_av_co_init(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BTIF_AV_CO_H */
