@@ -126,12 +126,11 @@ void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_gen_resolvable_private_addr (void *p_cmd_cplt_cback)
+void btm_gen_resolvable_private_addr(void *p_cmd_cplt_cback)
 {
-    BTM_TRACE_EVENT ("btm_gen_resolvable_private_addr");
+    BTM_TRACE_EVENT ("%s", __func__);
     /* generate 3B rand as BD LSB, SRK with it, get BD MSB */
-    if (!btsnd_hcic_ble_rand((void *)p_cmd_cplt_cback))
-        btm_gen_resolve_paddr_cmpl(NULL);
+    btsnd_hcic_ble_rand(p_cmd_cplt_cback);
 }
 /*******************************************************************************
 **
