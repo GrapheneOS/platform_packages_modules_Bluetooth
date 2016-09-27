@@ -20,7 +20,7 @@ import android.accounts.Account;
 import android.util.Log;
 
 import com.android.vcard.VCardEntry;
-import com.android.bluetooth.pbapclient.utils.ObexAppParameters;
+import com.android.bluetooth.pbapclient.ObexAppParameters;
 
 import java.io.IOException;
 import java.io.InputStream;
