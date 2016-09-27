@@ -167,4 +167,8 @@ static_library("stack") {
     "//utils/include",
     "//",
   ]
+
+  deps = [
+    "//third_party/libchrome:base"
+  ]
 }
