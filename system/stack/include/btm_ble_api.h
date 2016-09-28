@@ -953,6 +953,8 @@ extern tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback
 *******************************************************************************/
 extern tBTM_STATUS BTM_SetBleDataLength(BD_ADDR bd_addr, uint16_t tx_pdu_length);
 
+extern void btm_ble_multi_adv_cleanup(void);
+
 #ifdef __cplusplus
 }
 #endif
