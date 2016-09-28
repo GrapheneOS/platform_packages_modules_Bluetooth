@@ -4,11 +4,28 @@ LOCAL_PATH:= $(call my-dir)
 # ========================================================
 include $(CLEAR_VARS)
 
+LOCAL_CPP_EXTENSION := .cc
+
+#
+# Workaround for libchrome and -DNDEBUG usage.
+#
+# Test whether the original TARGET_GLOBAL_CFLAGS contains -DNDEBUG.
+# This is needed as a workaround to make sure that
+# libchrome and local files calling logging::InitLogging()
+# are consistent with the usage of -DNDEBUG .
+# ========================================================
+ifneq (,$(findstring NDEBUG,$(TARGET_GLOBAL_CFLAGS)))
+  btmain_orig_TARGET_NDEBUG := -DBT_LIBCHROME_NDEBUG
+else
+  btmain_orig_TARGET_NDEBUG :=
+endif
+
 # platform specific
 LOCAL_SRC_FILES := \
 	bte_main.c \
 	bte_init.c \
 	bte_logmsg.c \
+	bte_init_cpp_logging.cc \
 	bte_conf.c \
 	stack_config.c
 
@@ -101,7 +118,7 @@ LOCAL_REQUIRED_MODULES := \
     libbt-hci \
     libbt-vendor
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG $(btmain_orig_TARGET_NDEBUG)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
