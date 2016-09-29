@@ -416,6 +416,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
                         position += readLength;
 
+                        if (position == fileInfo.mLength) {
+                            // if file length is smaller than buffer size, only one packet
+                            // so block point is here
+                            outputStream.close();
+                            outputStream = null;
+                        }
+
                         mCallback.removeMessages(BluetoothOppObexSession.MSG_CONNECT_TIMEOUT);
                         synchronized (this) {
                             mWaitingForRemote = false;
