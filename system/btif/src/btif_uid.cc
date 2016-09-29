@@ -22,12 +22,10 @@
  *                 socket usage per app UID.
  *
  ***********************************************************************************/
-#define LOG_TAG "bt_uid_set"
+#include <pthread.h>
+
 #include "bt_common.h"
 #include "btif_uid.h"
-
-#include <log/log.h>
-#include <pthread.h>
 
 typedef struct uid_set_node_t {
     struct uid_set_node_t* next;
