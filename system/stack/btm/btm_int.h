@@ -203,6 +203,7 @@ extern void btm_report_device_status (tBTM_DEV_STATUS status);
 */
 extern bool    btm_dev_support_switch (BD_ADDR bd_addr);
 
+extern tBTM_SEC_DEV_REC  *btm_sec_allocate_dev_rec(void);
 extern tBTM_SEC_DEV_REC  *btm_sec_alloc_dev (BD_ADDR bd_addr);
 extern void               btm_sec_free_dev (tBTM_SEC_DEV_REC *p_dev_rec);
 extern tBTM_SEC_DEV_REC  *btm_find_dev (const BD_ADDR bd_addr);
