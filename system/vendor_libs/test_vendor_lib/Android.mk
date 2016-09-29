@@ -42,6 +42,13 @@ ifneq (,$(BOARD_BLUETOOTH_USE_TEST_AS_VENDOR))
 LOCAL_MODULE := libbt-vendor
 LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
 LOCAL_CFLAGS += -DBLUETOOTH_USE_TEST_AS_VENDOR
+ifeq ($(TARGET_TRANSLATE_2ND_ARCH),true)
+# If its vendor library and secondary arch is translated then only one library
+# is provided
+ifneq (1,$(words $(LOCAL_MODULE_TARGET_ARCH)))
+LOCAL_MULTILIB := first
+endif
+endif
 else
 LOCAL_MODULE := test-vendor
 endif
