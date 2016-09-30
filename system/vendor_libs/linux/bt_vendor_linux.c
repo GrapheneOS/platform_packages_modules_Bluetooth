@@ -20,49 +20,49 @@
 #define LOG_TAG "bt_vendor"
 
 #include <errno.h>
-#include <stdbool.h>
-#include <stdlib.h>
 #include <fcntl.h>
-#include <stdint.h>
-#include <string.h>
 #include <poll.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
 
 #include "hci/include/bt_vendor_lib.h"
-#include "osi/include/osi.h"
-#include "osi/include/log.h"
-#include "osi/include/properties.h"
 #include "osi/include/compat.h"
+#include "osi/include/log.h"
+#include "osi/include/osi.h"
+#include "osi/include/properties.h"
 
-#define BTPROTO_HCI     1
-#define HCI_CHANNEL_USER        1
-#define HCI_CHANNEL_CONTROL     3
-#define HCI_DEV_NONE    0xffff
+#define BTPROTO_HCI 1
+#define HCI_CHANNEL_USER 1
+#define HCI_CHANNEL_CONTROL 3
+#define HCI_DEV_NONE 0xffff
 
-#define RFKILL_TYPE_BLUETOOTH   2
-#define RFKILL_OP_CHANGE_ALL    3
+#define RFKILL_TYPE_BLUETOOTH 2
+#define RFKILL_OP_CHANGE_ALL 3
 
-#define MGMT_OP_INDEX_LIST      0x0003
-#define MGMT_EV_INDEX_ADDED     0x0004
-#define MGMT_EV_COMMAND_COMP    0x0001
-#define MGMT_EV_SIZE_MAX        1024
-#define MGMT_EV_POLL_TIMEOUT    3000 /* 3000ms */
+#define MGMT_OP_INDEX_LIST 0x0003
+#define MGMT_EV_INDEX_ADDED 0x0004
+#define MGMT_EV_COMMAND_COMP 0x0001
+#define MGMT_EV_SIZE_MAX 1024
+#define MGMT_EV_POLL_TIMEOUT 3000 /* 3000ms */
 
-#define IOCTL_HCIDEVDOWN        _IOW('H', 202, int)
+#define IOCTL_HCIDEVDOWN _IOW('H', 202, int)
 
 struct sockaddr_hci {
-  sa_family_t    hci_family;
+  sa_family_t hci_family;
   unsigned short hci_dev;
   unsigned short hci_channel;
 };
 
 struct rfkill_event {
   uint32_t idx;
-  uint8_t  type;
-  uint8_t  op;
-  uint8_t  soft, hard;
+  uint8_t type;
+  uint8_t op;
+  uint8_t soft, hard;
 } __attribute__((packed));
 
 struct mgmt_pkt {
@@ -79,16 +79,15 @@ struct mgmt_event_read_index {
   uint16_t index[0];
 } __attribute__((packed));
 
-static const bt_vendor_callbacks_t *bt_vendor_callbacks;
+static const bt_vendor_callbacks_t* bt_vendor_callbacks;
 static unsigned char bt_vendor_local_bdaddr[6];
 static int bt_vendor_fd = -1;
 static int hci_interface;
 static int rfkill_en;
 static int bt_hwcfg_en;
 
-static int bt_vendor_init(const bt_vendor_callbacks_t *p_cb,
-                          unsigned char *local_bdaddr)
-{
+static int bt_vendor_init(const bt_vendor_callbacks_t* p_cb,
+                          unsigned char* local_bdaddr) {
   char prop_value[PROPERTY_VALUE_MAX];
 
   LOG_INFO(LOG_TAG, "%s", __func__);
@@ -100,8 +99,7 @@ static int bt_vendor_init(const bt_vendor_callbacks_t *p_cb,
 
   bt_vendor_callbacks = p_cb;
 
-  memcpy(bt_vendor_local_bdaddr, local_bdaddr,
-         sizeof(bt_vendor_local_bdaddr));
+  memcpy(bt_vendor_local_bdaddr, local_bdaddr, sizeof(bt_vendor_local_bdaddr));
 
   osi_property_get("bluetooth.interface", prop_value, "0");
 
@@ -110,29 +108,24 @@ static int bt_vendor_init(const bt_vendor_callbacks_t *p_cb,
     hci_interface = strtol(prop_value, NULL, 10);
   else
     hci_interface = strtol(prop_value + 3, NULL, 10);
-  if (errno)
-    hci_interface = 0;
+  if (errno) hci_interface = 0;
 
   LOG_INFO(LOG_TAG, "Using interface hci%d", hci_interface);
 
   osi_property_get("bluetooth.rfkill", prop_value, "0");
 
   rfkill_en = atoi(prop_value);
-  if (rfkill_en)
-    LOG_INFO(LOG_TAG, "RFKILL enabled");
+  if (rfkill_en) LOG_INFO(LOG_TAG, "RFKILL enabled");
 
-  bt_hwcfg_en = osi_property_get("bluetooth.hwcfg",
-                             prop_value, NULL) > 0 ? 1 : 0;
-  if (bt_hwcfg_en)
-    LOG_INFO(LOG_TAG, "HWCFG enabled");
+  bt_hwcfg_en =
+      osi_property_get("bluetooth.hwcfg", prop_value, NULL) > 0 ? 1 : 0;
+  if (bt_hwcfg_en) LOG_INFO(LOG_TAG, "HWCFG enabled");
 
   return 0;
 }
 
-static int bt_vendor_hw_cfg(int stop)
-{
-  if (!bt_hwcfg_en)
-    return 0;
+static int bt_vendor_hw_cfg(int stop) {
+  if (!bt_hwcfg_en) return 0;
 
   if (stop) {
     if (osi_property_set("bluetooth.hwcfg", "stop") < 0) {
@@ -148,8 +141,7 @@ static int bt_vendor_hw_cfg(int stop)
   return 0;
 }
 
-static int bt_vendor_wait_hcidev(void)
-{
+static int bt_vendor_wait_hcidev(void) {
   struct sockaddr_hci addr;
   struct pollfd fds[1];
   struct mgmt_pkt ev;
@@ -169,7 +161,7 @@ static int bt_vendor_wait_hcidev(void)
   addr.hci_dev = HCI_DEV_NONE;
   addr.hci_channel = HCI_CHANNEL_CONTROL;
 
-  if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+  if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
     LOG_ERROR(LOG_TAG, "HCI Channel Control: %s", strerror(errno));
     close(fd);
     return -1;
@@ -216,17 +208,15 @@ static int bt_vendor_wait_hcidev(void)
       if (ev.opcode == MGMT_EV_INDEX_ADDED && ev.index == hci_interface) {
         goto end;
       } else if (ev.opcode == MGMT_EV_COMMAND_COMP) {
-        struct mgmt_event_read_index *cc;
+        struct mgmt_event_read_index* cc;
         int i;
 
-        cc = (struct mgmt_event_read_index *)ev.data;
+        cc = (struct mgmt_event_read_index*)ev.data;
 
-        if (cc->cc_opcode != MGMT_OP_INDEX_LIST || cc->status != 0)
-          continue;
+        if (cc->cc_opcode != MGMT_OP_INDEX_LIST || cc->status != 0) continue;
 
         for (i = 0; i < cc->num_intf; i++) {
-          if (cc->index[i] == hci_interface)
-            goto end;
+          if (cc->index[i] == hci_interface) goto end;
         }
       }
     }
@@ -237,9 +227,8 @@ end:
   return ret;
 }
 
-static int bt_vendor_open(void *param)
-{
-  int (*fd_array)[] = (int (*)[]) param;
+static int bt_vendor_open(void* param) {
+  int(*fd_array)[] = (int(*)[])param;
   int fd;
 
   LOG_INFO(LOG_TAG, "%s", __func__);
@@ -262,8 +251,7 @@ static int bt_vendor_open(void *param)
   return 1;
 }
 
-static int bt_vendor_close(void *param)
-{
+static int bt_vendor_close(void* param) {
   (void)(param);
 
   LOG_INFO(LOG_TAG, "%s", __func__);
@@ -276,8 +264,7 @@ static int bt_vendor_close(void *param)
   return 0;
 }
 
-static int bt_vendor_rfkill(int block)
-{
+static int bt_vendor_rfkill(int block) {
   struct rfkill_event event;
   int fd;
 
@@ -308,8 +295,7 @@ static int bt_vendor_rfkill(int block)
 }
 
 /* TODO: fw config should thread the device waiting and return immedialty */
-static void bt_vendor_fw_cfg(void)
-{
+static void bt_vendor_fw_cfg(void) {
   struct sockaddr_hci addr;
   int fd = bt_vendor_fd;
 
@@ -330,7 +316,7 @@ static void bt_vendor_fw_cfg(void)
     goto failure;
   }
 
-  if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+  if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
     LOG_ERROR(LOG_TAG, "socket bind error %s", strerror(errno));
     goto failure;
   }
@@ -346,70 +332,66 @@ failure:
   bt_vendor_callbacks->fwcfg_cb(BT_VND_OP_RESULT_FAIL);
 }
 
-static int bt_vendor_op(bt_vendor_opcode_t opcode, void *param)
-{
+static int bt_vendor_op(bt_vendor_opcode_t opcode, void* param) {
   int retval = 0;
 
   LOG_INFO(LOG_TAG, "%s op %d", __func__, opcode);
 
   switch (opcode) {
-  case BT_VND_OP_POWER_CTRL:
-    if (!rfkill_en || !param)
+    case BT_VND_OP_POWER_CTRL:
+      if (!rfkill_en || !param) break;
+
+      if (*((int*)param) == BT_VND_PWR_ON) {
+        retval = bt_vendor_rfkill(0);
+        if (!retval) retval = bt_vendor_hw_cfg(0);
+      } else {
+        retval = bt_vendor_hw_cfg(1);
+        if (!retval) retval = bt_vendor_rfkill(1);
+      }
+
       break;
 
-    if (*((int *)param) == BT_VND_PWR_ON) {
-      retval = bt_vendor_rfkill(0);
-      if (!retval)
-        retval = bt_vendor_hw_cfg(0);
-    } else {
-      retval = bt_vendor_hw_cfg(1);
-      if (!retval)
-        retval = bt_vendor_rfkill(1);
-    }
+    case BT_VND_OP_FW_CFG:
+      bt_vendor_fw_cfg();
+      break;
 
-    break;
+    case BT_VND_OP_SCO_CFG:
+      bt_vendor_callbacks->scocfg_cb(BT_VND_OP_RESULT_SUCCESS);
+      break;
 
-  case BT_VND_OP_FW_CFG:
-    bt_vendor_fw_cfg();
-    break;
+    case BT_VND_OP_USERIAL_OPEN:
+      retval = bt_vendor_open(param);
+      break;
 
-  case BT_VND_OP_SCO_CFG:
-    bt_vendor_callbacks->scocfg_cb(BT_VND_OP_RESULT_SUCCESS);
-    break;
+    case BT_VND_OP_USERIAL_CLOSE:
+      retval = bt_vendor_close(param);
+      break;
 
-  case BT_VND_OP_USERIAL_OPEN:
-    retval = bt_vendor_open(param);
-    break;
+    case BT_VND_OP_GET_LPM_IDLE_TIMEOUT:
+      *((uint32_t*)param) = 3000;
+      retval = 0;
+      break;
 
-  case BT_VND_OP_USERIAL_CLOSE:
-    retval = bt_vendor_close(param);
-    break;
+    case BT_VND_OP_LPM_SET_MODE:
+      bt_vendor_callbacks->lpm_cb(BT_VND_OP_RESULT_SUCCESS);
+      break;
 
-  case BT_VND_OP_GET_LPM_IDLE_TIMEOUT:
-    *((uint32_t *)param) = 3000;
-    retval = 0;
-    break;
+    case BT_VND_OP_LPM_WAKE_SET_STATE:
+      break;
 
-  case BT_VND_OP_LPM_SET_MODE:
-    bt_vendor_callbacks->lpm_cb(BT_VND_OP_RESULT_SUCCESS);
-    break;
+    case BT_VND_OP_SET_AUDIO_STATE:
+      bt_vendor_callbacks->audio_state_cb(BT_VND_OP_RESULT_SUCCESS);
+      break;
 
-  case BT_VND_OP_LPM_WAKE_SET_STATE:
-    break;
+    case BT_VND_OP_EPILOG:
+      bt_vendor_callbacks->epilog_cb(BT_VND_OP_RESULT_SUCCESS);
+      break;
 
-  case BT_VND_OP_SET_AUDIO_STATE:
-    bt_vendor_callbacks->audio_state_cb(BT_VND_OP_RESULT_SUCCESS);
-    break;
+    case BT_VND_OP_A2DP_OFFLOAD_START:
+      break;
 
-  case BT_VND_OP_EPILOG:
-    bt_vendor_callbacks->epilog_cb(BT_VND_OP_RESULT_SUCCESS);
-    break;
-
-  case BT_VND_OP_A2DP_OFFLOAD_START:
-    break;
-
-  case BT_VND_OP_A2DP_OFFLOAD_STOP:
-    break;
+    case BT_VND_OP_A2DP_OFFLOAD_STOP:
+      break;
   }
 
   LOG_INFO(LOG_TAG, "%s op %d retval %d", __func__, opcode, retval);
@@ -417,16 +399,13 @@ static int bt_vendor_op(bt_vendor_opcode_t opcode, void *param)
   return retval;
 }
 
-static void bt_vendor_cleanup(void)
-{
+static void bt_vendor_cleanup(void) {
   LOG_INFO(LOG_TAG, "%s", __func__);
 
   bt_vendor_callbacks = NULL;
 }
 
 EXPORT_SYMBOL const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
-  sizeof(bt_vendor_interface_t),
-  bt_vendor_init,
-  bt_vendor_op,
-  bt_vendor_cleanup,
+    sizeof(bt_vendor_interface_t), bt_vendor_init, bt_vendor_op,
+    bt_vendor_cleanup,
 };

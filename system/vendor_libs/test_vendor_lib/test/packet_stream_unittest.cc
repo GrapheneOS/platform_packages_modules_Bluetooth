@@ -63,8 +63,7 @@ class PacketStreamTest : public ::testing::Test {
     packet.push_back(payload_size);
 
     // Set the packet's payload.
-    for (int i = 0; i < payload_size; ++i)
-      packet.push_back(payload[i]);
+    for (int i = 0; i < payload_size; ++i) packet.push_back(payload[i]);
 
     // Send the packet to |packet_stream_|.
     write(socketpair_fds_[1], &packet[1], packet.size());

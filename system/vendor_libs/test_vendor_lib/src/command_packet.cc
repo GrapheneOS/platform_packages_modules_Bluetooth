@@ -30,9 +30,8 @@ CommandPacket::CommandPacket(vector<uint8_t> header)
     : Packet(DATA_TYPE_COMMAND, std::move(header)) {}
 
 CommandPacket::CommandPacket(uint16_t opcode)
-    : Packet(
-          DATA_TYPE_COMMAND,
-          {static_cast<uint8_t>(opcode), static_cast<uint8_t>(opcode >> 8)}) {}
+    : Packet(DATA_TYPE_COMMAND, {static_cast<uint8_t>(opcode),
+                                 static_cast<uint8_t>(opcode >> 8)}) {}
 
 CommandPacket::CommandPacket(vector<uint8_t> header, vector<uint8_t> payload)
     : Packet(DATA_TYPE_COMMAND, std::move(header)) {
@@ -43,12 +42,8 @@ uint16_t CommandPacket::GetOpcode() const {
   return 0 | (GetHeader()[0] | (GetHeader()[1] << 8));
 }
 
-uint8_t CommandPacket::GetOGF() const {
-  return HCI_OGF(GetOpcode());
-}
+uint8_t CommandPacket::GetOGF() const { return HCI_OGF(GetOpcode()); }
 
-uint16_t CommandPacket::GetOCF() const {
-  return HCI_OCF(GetOpcode());
-}
+uint16_t CommandPacket::GetOCF() const { return HCI_OCF(GetOpcode()); }
 
 }  // namespace test_vendor_lib

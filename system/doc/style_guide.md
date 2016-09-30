@@ -265,11 +265,11 @@ result in faster compilation.
 Code formatting is done automatically using clang-format.
 
 The style file is located at the root of the source tree in .clang-format.  The
---style=file option instructs clang-format to look for this file.  You may find
+-style=file option instructs clang-format to look for this file.  You may find
 clang-format --help useful for more advanced usage. The [Online clang-format
 Documentation](http://clang.llvm.org/docs/ClangFormat.html) can also be helpful.
 
-`clang-format --style=file -i path_to_files/filename_or_*`
+`clang-format -style=file -i path_to_files/filename_or_*`
 
 ### My Patch Doesn't Apply Anymore!
 Choose one of the options below.  The fewer patches that have been applied to
@@ -316,7 +316,7 @@ and remove their changes
 
 ##### Reformat the code
 
-`clang-format --style=file -i path_to_files/filename_or_*`
+`clang-format -style=file -i path_to_files/filename_or_*`
 
 ##### Commit the code that your patch touched
 
@@ -352,7 +352,7 @@ and remove their changes
 
 ##### Reformat the code
 
-`clang-format --style=file -i path_to_files/filename_or_*`
+`clang-format -style=file -i path_to_files/filename_or_*`
 
 ##### Commit your temporary formatting patch
 
@@ -372,7 +372,7 @@ and remove their changes
 
 ##### Reformat the code
 
-`clang-format --style=file -i path_to_files/filename_or_*`
+`clang-format -style=file -i path_to_files/filename_or_*`
 
 ##### Commit your second temporary formatting patch
 
@@ -406,7 +406,7 @@ and remove their changes
 
 ##### Remember to edit the commit message!
 
-`clang-format --style=file -i path_to_files/filename_or_*`
+`clang-format -style=file -i path_to_files/filename_or_*`
 
 ##### Check to see that everything looks right
 
