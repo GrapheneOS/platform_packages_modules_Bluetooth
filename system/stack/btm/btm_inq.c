@@ -1061,6 +1061,11 @@ tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb
     if ((p_i = btm_inq_db_find (remote_bda)) != NULL)
     {
         p_cur = &p_i->inq_info;
+        if ((p_cur->results.ble_evt_type == BTM_BLE_EVT_NON_CONN_ADV) &&
+            (p_cur->results.device_type != BT_DEVICE_TYPE_BREDR))
+        {/* Non-connectable LE device: do not request its name! */
+          return BTM_ERR_PROCESSING;
+        }
     }
     BTM_TRACE_API ("no device found in inquiry db");
 
