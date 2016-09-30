@@ -27,6 +27,8 @@ extern "C" {
 
 #if __GLIBC__
 
+#include <unistd.h>
+
 /* Get thread identification. */
 pid_t gettid(void);
 
