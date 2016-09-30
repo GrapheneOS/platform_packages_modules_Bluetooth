@@ -660,7 +660,7 @@ static bt_status_t send_at_cmd(int cmd,int val1,int val2,const char *arg)
 {
     CHECK_BTHF_CLIENT_SLC_CONNECTED();
     BTIF_TRACE_EVENT("%s Cmd %d val1 %d val2 %d arg %s",
-            __func__,cmd,val1,val2,arg);
+                     __func__, cmd, val1, val2, (arg != NULL) ? arg : "<null>");
     BTA_HfClientSendAT(btif_hf_client_cb.handle, cmd, val1, val2, arg);
 
     return BT_STATUS_SUCCESS;
