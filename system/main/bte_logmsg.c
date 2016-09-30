@@ -40,6 +40,7 @@
 #include "port_api.h"
 #include "sdp_api.h"
 #include "stack_config.h"
+#include "main_int.h"
 
 #if (AVDT_INCLUDED == TRUE)
 #include "avdt_api.h"
@@ -231,11 +232,14 @@ static void load_levels_from_config(const config_t *config) {
 }
 
 static future_t *init(void) {
+
   const stack_config_t *stack_config = stack_config_get_interface();
   if (!stack_config->get_trace_config_enabled()) {
     LOG_INFO(LOG_TAG, "using compile default trace settings");
     return NULL;
   }
+
+  init_cpp_logging(stack_config->get_all());
 
   load_levels_from_config(stack_config->get_all());
   return NULL;
