@@ -168,22 +168,6 @@ DualModeController::DualModeController()
 #undef SET_TEST_HANDLER
 }
 
-void DualModeController::RegisterHandlersWithHciTransport(
-    HciTransport& transport) {
-  transport.RegisterCommandHandler(
-      [this](std::unique_ptr<CommandPacket> command) {
-        HandleCommand(std::move(command));
-      });
-}
-
-void DualModeController::RegisterHandlersWithTestChannelTransport(
-    TestChannelTransport& transport) {
-  transport.RegisterCommandHandler(
-      [this](const std::string& name, const vector<std::string>& args) {
-        HandleTestChannelCommand(name, args);
-      });
-}
-
 void DualModeController::RegisterTaskScheduler(
     std::function<AsyncTaskId(std::chrono::milliseconds, const TaskCallback&)>
         oneshotScheduler) {
@@ -212,11 +196,8 @@ void DualModeController::HandleTestChannelCommand(
 void DualModeController::HandleCommand(
     std::unique_ptr<CommandPacket> command_packet) {
   uint16_t opcode = command_packet->GetOpcode();
-  LOG_INFO(LOG_TAG,
-           "Command opcode: 0x%04X, OGF: 0x%04X, OCF: 0x%04X",
-           opcode,
-           command_packet->GetOGF(),
-           command_packet->GetOCF());
+  LOG_INFO(LOG_TAG, "Command opcode: 0x%04X, OGF: 0x%04X, OCF: 0x%04X", opcode,
+           command_packet->GetOGF(), command_packet->GetOCF());
 
   // The command hasn't been registered with the handler yet. There is nothing
   // to do.

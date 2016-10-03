@@ -22,6 +22,8 @@
 
 #include "osi/include/log.h"
 
+#include <vector>
+
 namespace test_vendor_lib {
 
 VendorManager* g_manager = nullptr;
@@ -36,14 +38,26 @@ bool VendorManager::Initialize() {
     return false;
   }
 
-  controller_.RegisterHandlersWithHciTransport(transport_);
+  transport_.RegisterCommandHandler(
+      [this](std::unique_ptr<CommandPacket> command) {
+        CommandPacket& cmd =
+            *command;  // only to be copied into the lambda, not a memory leak
+        async_manager_.ExecAsync(std::chrono::milliseconds(0), [this, cmd]() {
+          controller_.HandleCommand(std::unique_ptr<CommandPacket>(
+              new CommandPacket(std::move(cmd))));
+        });
+      });
 
-  controller_.RegisterHandlersWithTestChannelTransport(test_channel_transport_);
+  test_channel_transport_.RegisterCommandHandler(
+      [this](const std::string& name, const std::vector<std::string>& args) {
+        async_manager_.ExecAsync(
+            std::chrono::milliseconds(0), [this, name, args]() {
+              controller_.HandleTestChannelCommand(name, args);
+            });
+      });
 
   controller_.RegisterEventChannel([this](std::unique_ptr<EventPacket> event) {
-    EventPacket evt = *event;
-    async_manager_.ExecAsync(std::chrono::milliseconds(0),
-                             [evt, this]() { transport_.PostEvent(evt); });
+    transport_.SendEvent(std::move(event));
   });
 
   controller_.RegisterTaskScheduler(

@@ -70,25 +70,23 @@ serial_data_type_t PacketStream::ReceivePacketType(int fd) const {
   return type;
 }
 
-bool PacketStream::SendEvent(const EventPacket& event, int fd) const {
-  if (event.GetPayload()[0] != event.GetPayloadSize() - 1)
-    LOG_WARN(LOG_TAG,
-             "Malformed event: 0x%04X, payload size %zu, reported %u",
-             event.GetEventCode(),
-             event.GetPacketSize(),
-             event.GetPayload()[0]);
+bool PacketStream::SendEvent(std::unique_ptr<EventPacket> event, int fd) const {
+  if (event->GetPayload()[0] != event->GetPayloadSize() - 1)
+    LOG_WARN(LOG_TAG, "Malformed event: 0x%04X, payload size %zu, reported %u",
+             event->GetEventCode(), event->GetPacketSize(),
+             event->GetPayload()[0]);
 
-  if (!SendAll({static_cast<uint8_t>(event.GetType())}, 1, fd)) {
+  if (!SendAll({static_cast<uint8_t>(event->GetType())}, 1, fd)) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event type.");
     return false;
   }
 
-  if (!SendAll(event.GetHeader(), event.GetHeaderSize(), fd)) {
+  if (!SendAll(event->GetHeader(), event->GetHeaderSize(), fd)) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event header.");
     return false;
   }
 
-  if (!SendAll(event.GetPayload(), event.GetPayloadSize(), fd)) {
+  if (!SendAll(event->GetPayload(), event->GetPayloadSize(), fd)) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event payload.");
     return false;
   }
