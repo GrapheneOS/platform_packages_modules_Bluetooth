@@ -87,7 +87,12 @@ class PacketStreamTest : public ::testing::Test {
   }
 
   void CheckedSendEvent(std::unique_ptr<EventPacket> event) {
-    EXPECT_TRUE(packet_stream_.SendEvent(*(event.get()), socketpair_fds_[0]));
+    const vector<uint8_t> expected_payload = event->GetPayload();
+    auto expected_size = event->GetPacketSize();
+    auto expected_code = event->GetEventCode();
+    auto expected_payload_size = event->GetPayloadSize();
+
+    EXPECT_TRUE(packet_stream_.SendEvent(std::move(event), socketpair_fds_[0]));
 
     // Read the packet sent by |packet_stream_|.
     uint8_t event_header[2];
@@ -99,15 +104,12 @@ class PacketStreamTest : public ::testing::Test {
     uint8_t return_parameters[return_parameters_size];
     read(socketpair_fds_[1], return_parameters, sizeof(return_parameters));
 
-    const vector<uint8_t> expected_payload = event->GetPayload();
-
     // Validate the packet by checking that it's the
     // appropriate size and then checking each byte.
-    EXPECT_EQ(event->GetPacketSize(),
-              sizeof(event_header) + return_parameters_size + 1);
+    EXPECT_EQ(expected_size, sizeof(event_header) + return_parameters_size + 1);
     EXPECT_EQ(DATA_TYPE_EVENT, event_header[0]);
-    EXPECT_EQ(event->GetEventCode(), event_header[1]);
-    EXPECT_EQ(event->GetPayloadSize(),
+    EXPECT_EQ(expected_code, event_header[1]);
+    EXPECT_EQ(expected_payload_size,
               static_cast<size_t>(return_parameters_size) + 1);
     for (int i = 0; i < return_parameters_size; ++i)
       EXPECT_EQ(expected_payload[i + 1], return_parameters[i]);
