@@ -23,6 +23,7 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
 #include <string.h>
 #include "a2d_api.h"
 #include "bt_target.h"
@@ -765,7 +766,7 @@ void* bta_av_co_audio_src_data_path(const uint8_t *p_codec_info,
 
     APPL_TRACE_DEBUG("%s: codec: %s", __func__, A2D_CodecName(p_codec_info));
 
-    p_buf = btif_a2dp_source_aa_readbuf();
+    p_buf = btif_a2dp_source_audio_readbuf();
     if (p_buf == NULL)
         return NULL;
 
@@ -1069,11 +1070,11 @@ static void bta_av_co_audio_codec_reset(void)
  ** Returns          true if successful, false otherwise
  **
  *******************************************************************************/
-bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding)
+bool bta_av_co_audio_set_codec(const tA2D_FEEDING_PARAMS *p_feeding_params)
 {
     uint8_t new_cfg[AVDT_CODEC_SIZE];
 
-    if (!A2D_SetCodec(p_feeding, new_cfg))
+    if (!A2D_SetCodec(p_feeding_params, new_cfg))
         return false;
 
     /* The new config was correctly built */
@@ -1083,11 +1084,12 @@ bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding)
     return bta_av_co_audio_codec_supported();
 }
 
-void bta_av_co_audio_encoder_init(tBTIF_A2DP_SOURCE_INIT_AUDIO *msg)
+void bta_av_co_audio_encoder_init(tA2D_ENCODER_INIT_PARAMS *p_init_params)
 {
     uint16_t min_mtu = 0xFFFF;
 
     APPL_TRACE_DEBUG("%s", __func__);
+    assert(p_init_params != nullptr);
 
     /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_lock();
@@ -1102,22 +1104,23 @@ void bta_av_co_audio_encoder_init(tBTIF_A2DP_SOURCE_INIT_AUDIO *msg)
     }
 
     const uint8_t *p_codec_info = bta_av_co_cb.codec_cfg;
-    msg->NumOfSubBands = A2D_GetNumberOfSubbands(p_codec_info);
-    msg->NumOfBlocks = A2D_GetNumberOfBlocks(p_codec_info);
-    msg->AllocationMethod = A2D_GetAllocationMethodCode(p_codec_info);
-    msg->ChannelMode = A2D_GetChannelModeCode(p_codec_info);
-    msg->SamplingFreq = A2D_GetSamplingFrequencyCode(p_codec_info);
-    msg->MtuSize = min_mtu;
+    p_init_params->NumOfSubBands = A2D_GetNumberOfSubbands(p_codec_info);
+    p_init_params->NumOfBlocks = A2D_GetNumberOfBlocks(p_codec_info);
+    p_init_params->AllocationMethod = A2D_GetAllocationMethodCode(p_codec_info);
+    p_init_params->ChannelMode = A2D_GetChannelModeCode(p_codec_info);
+    p_init_params->SamplingFreq = A2D_GetSamplingFrequencyCode(p_codec_info);
+    p_init_params->MtuSize = min_mtu;
 
     /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_unlock();
 }
 
-void bta_av_co_audio_encoder_update(tBTIF_A2DP_SOURCE_UPDATE_AUDIO *msg)
+void bta_av_co_audio_encoder_update(tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
 {
     uint16_t min_mtu = 0xFFFF;
 
     APPL_TRACE_DEBUG("%s", __func__);
+    assert(p_update_params != nullptr);
 
     /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_lock();
@@ -1186,9 +1189,23 @@ void bta_av_co_audio_encoder_update(tBTIF_A2DP_SOURCE_UPDATE_AUDIO *msg)
         return;
     }
 
-    msg->MinMtuSize = min_mtu;
-    msg->MinBitPool = min_bitpool;
-    msg->MaxBitPool = max_bitpool;
+    p_update_params->MinMtuSize = min_mtu;
+    p_update_params->MinBitPool = min_bitpool;
+    p_update_params->MaxBitPool = max_bitpool;
+}
+
+const tA2D_ENCODER_INTERFACE *bta_av_co_get_encoder_interface(void)
+{
+    /* Protect access to bta_av_co_cb.codec_cfg */
+    mutex_global_lock();
+
+    const tA2D_ENCODER_INTERFACE *encoder_interface =
+        A2D_GetEncoderInterface(bta_av_co_cb.codec_cfg);
+
+    /* Protect access to bta_av_co_cb.codec_cfg */
+    mutex_global_unlock();
+
+    return encoder_interface;
 }
 
 /*******************************************************************************

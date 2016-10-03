@@ -24,6 +24,7 @@
 #ifndef A2D_API_H
 #define A2D_API_H
 
+#include "osi/include/time.h"
 #include "avdt_api.h"
 #include "sdp_api.h"
 
@@ -34,6 +35,14 @@ extern "C" {
 /*****************************************************************************
 **  constants
 *****************************************************************************/
+
+//
+// |MAX_PCM_FRAME_NUM_PER_TICK| controls how many buffers we can hold in
+// the A2DP buffer queues during temporary link congestion.
+//
+#ifndef MAX_PCM_FRAME_NUM_PER_TICK
+#define MAX_PCM_FRAME_NUM_PER_TICK     14
+#endif
 
 /* Profile supported features */
 #define A2D_SUPF_PLAYER     0x0001
@@ -138,13 +147,89 @@ typedef enum {
 } tA2D_CODEC_SEP_INDEX;
 
 /**
- * Structure used to configure the AV media feeding
+ * Structure used to configure the A2DP feeding.
  */
 typedef struct {
     uint32_t sampling_freq;   /* 44100, 48000 etc */
     uint8_t  num_channel;     /* 1 for mono or 2 stereo */
     uint8_t  bit_per_sample;  /* Number of bits per sample (8, 16) */
-} tA2D_AV_MEDIA_FEEDINGS;
+} tA2D_FEEDING_PARAMS;
+
+/**
+ * Structure used to initialize the A2DP encoder.
+ */
+typedef struct {
+    uint16_t SamplingFreq;      /* 16k, 32k, 44.1k or 48k */
+    uint8_t ChannelMode;        /* mono, dual, stereo or joint stereo */
+    uint8_t NumOfSubBands;      /* 4 or 8 */
+    uint8_t NumOfBlocks;        /* 4, 8, 12 or 16 */
+    uint8_t AllocationMethod;   /* loudness or SNR */
+    uint16_t MtuSize;           /* peer mtu size */
+} tA2D_ENCODER_INIT_PARAMS;
+
+/**
+ * Structure used to update the A2DP encoder.
+ */
+typedef struct {
+    uint16_t MinMtuSize;        /* Minimum peer mtu size */
+    uint8_t MaxBitPool;         /* Maximum peer bitpool */
+    uint8_t MinBitPool;         /* Minimum peer bitpool */
+} tA2D_ENCODER_UPDATE_PARAMS;
+
+// Prototype for a callback to read audio data for encoding.
+// |p_buf| is the buffer to store the data. |len| is the number of octets to
+// read.
+// Returns the number of octets read.
+typedef uint32_t (*a2d_source_read_callback_t)(uint8_t *p_buf, uint32_t len);
+
+// Prototype for a callback to enqueue A2DP source packets for transmission.
+// |p_buf| is the buffer with the audio data to enqueue. The callback is
+// responsible for freeing |p_buf|.
+// |frames_n| is the number of audio frames in |p_buf| - it is used for
+// statistics purpose.
+// Returns true if the packet was enqueued, otherwise false.
+typedef bool (*a2d_source_enqueue_callback_t)(BT_HDR *p_buf, size_t frames_n);
+
+//
+// A2DP encoder callbacks interface.
+//
+typedef struct {
+    // Initialize the A2DP encoder.
+    // If |is_peer_edr| is true, the A2DP peer device supports EDR.
+    // If |peer_supports_3mbps| is true, the A2DP peer device supports 3Mbps
+    // EDR.
+    // The encoder initialization parameters are in |p_init_params|.
+    // |enqueue_callback} is the callback for enqueueing the encoded audio
+    // data.
+    void (*encoder_init)(bool is_peer_edr, bool peer_supports_3mbps,
+                         const tA2D_ENCODER_INIT_PARAMS *p_init_params,
+                         a2d_source_read_callback_t read_callback,
+                         a2d_source_enqueue_callback_t enqueue_callback);
+
+    // Update the A2DP encoder.
+    // The encoder update parameters are in |p_update_params|.
+    void (*encoder_update)(const tA2D_ENCODER_UPDATE_PARAMS *p_update_params);
+
+    // Cleanup the A2DP encoder.
+    void (*encoder_cleanup)(void);
+
+    // Initialize the feeding for the A2DP encoder.
+    // The feeding initialization parameters are in |p_feeding_params|.
+    void (*feeding_init)(const tA2D_FEEDING_PARAMS *p_feeding_params);
+
+    // Reset the feeding for the A2DP encoder.
+    void (*feeding_reset)(void);
+
+    // Flush the feeding for the A2DP encoder.
+    void (*feeding_flush)(void);
+
+    // Get the A2DP encoder interval (in milliseconds).
+    period_ms_t (*get_encoder_interval_ms)(void);
+
+    // Prepare and send A2DP encoded frames.
+    // |timestamp_us| is the current timestamp (in microseconds).
+    void (*send_frames)(uint64_t timestamp_us);
+} tA2D_ENCODER_INTERFACE;
 
 /*****************************************************************************
 **  external function declarations
@@ -317,10 +402,11 @@ bool A2D_IsPeerSourceCodecSupported(const uint8_t *p_codec_info);
 // |p_codec_info|.
 void A2D_InitDefaultCodec(uint8_t *p_codec_info);
 
-// Sets A2DB codec state based on the feeding information from |p_feeding|.
+// Sets A2DB codec state based on the feeding information from
+// |p_feeding_params|.
 // The state with the codec capabilities is stored in |p_codec_info|.
 // Returns true on success, otherwise false.
-bool A2D_SetCodec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
+bool A2D_SetCodec(const tA2D_FEEDING_PARAMS *p_feeding_params,
                   uint8_t *p_codec_info);
 
 // Builds A2DP preferred Sink capability from Source capability.
@@ -484,6 +570,14 @@ bool A2D_GetPacketTimestamp(const uint8_t *p_codec_info, const uint8_t *p_data,
 // Returns true on success, otherwise false.
 bool A2D_BuildCodecHeader(const uint8_t *p_codec_info, BT_HDR *p_buf,
                           uint16_t frames_per_packet);
+
+// Gets the A2DP encoder interface that can be used to encode and prepare
+// A2DP packets for transmission - see |tA2D_ENCODER_INTERFACE|.
+// |p_codec_info| contains the codec information.
+// Returns the A2DP encoder interface if the |p_codec_info| is valid and
+// supported, otherwise NULL.
+const tA2D_ENCODER_INTERFACE *A2D_GetEncoderInterface(
+    const uint8_t *p_codec_info);
 
 #ifdef __cplusplus
 }

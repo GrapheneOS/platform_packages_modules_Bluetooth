@@ -38,6 +38,8 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
     ./a2dp/a2d_api.c \
     ./a2dp/a2d_sbc.c \
+    ./a2dp/a2d_sbc_encoder.c \
+    ./a2dp/a2d_sbc_up_sample.c \
     ./a2dp/a2d_vendor.c \
     ./avrc/avrc_api.c \
     ./avrc/avrc_sdp.c \
