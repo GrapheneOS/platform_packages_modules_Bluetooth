@@ -174,15 +174,6 @@ class DualModeController {
   void HandleTestChannelCommand(const std::string& name,
                                 const std::vector<std::string>& args);
 
-  // Sets the controller Handle* methods as callbacks for the transport to call
-  // when data is received.
-  void RegisterHandlersWithHciTransport(HciTransport& transport);
-
-  // Sets the test channel handler with the transport dedicated to test channel
-  // communications.
-  void RegisterHandlersWithTestChannelTransport(
-      TestChannelTransport& transport);
-
   // Set the callbacks for scheduling tasks.
   void RegisterTaskScheduler(
       std::function<AsyncTaskId(std::chrono::milliseconds, const TaskCallback&)>
