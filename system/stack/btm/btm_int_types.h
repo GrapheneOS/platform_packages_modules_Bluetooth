@@ -30,9 +30,7 @@
 extern "C" {
 #endif
 
-#if BTM_MAX_LOC_BD_NAME_LEN > 0
 typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
-#endif
 
 #define  BTM_ACL_IS_CONNECTED(bda)   (btm_bda_to_acl (bda, BT_TRANSPORT_BR_EDR) != NULL)
 
@@ -615,9 +613,7 @@ typedef struct
 */
 typedef struct
 {
-#if BTM_MAX_LOC_BD_NAME_LEN > 0
     tBTM_LOC_BD_NAME bd_name;                    /* local Bluetooth device name */
-#endif
     bool             pin_type;                   /* true if PIN type is fixed */
     uint8_t          pin_code_len;               /* Bonding information */
     PIN_CODE         pin_code;                   /* PIN CODE if pin type is fixed */

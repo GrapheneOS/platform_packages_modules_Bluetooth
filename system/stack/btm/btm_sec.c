@@ -1760,10 +1760,8 @@ uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c,
 {
     uint8_t *p = p_data;
     uint16_t len = 0;
-#if BTM_MAX_LOC_BD_NAME_LEN > 0
     uint16_t name_size;
     uint8_t name_type = BTM_EIR_SHORTENED_LOCAL_NAME_TYPE;
-#endif
 
     if (p_data && max_len >= BTM_OOB_MANDATORY_SIZE)
     {
@@ -1808,7 +1806,6 @@ uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c,
             len     += delta;
             max_len -= delta;
         }
-#if BTM_MAX_LOC_BD_NAME_LEN > 0
         name_size = name_len;
         if (name_size > strlen(btm_cb.cfg.bd_name))
         {
@@ -1824,7 +1821,6 @@ uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c,
             len     += delta;
             max_len -= delta;
         }
-#endif
         /* update len */
         p = p_data;
         UINT16_TO_STREAM(p, len);
