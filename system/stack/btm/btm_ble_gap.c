@@ -1395,7 +1395,6 @@ uint8_t *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, uint8_t **p_dst,
             data_mask &= ~BTM_BLE_AD_BIT_APPEARANCE;
         }
         /* device name */
-#if BTM_MAX_LOC_BD_NAME_LEN > 0
         if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_DEV_NAME)
         {
             if (strlen(btm_cb.cfg.bd_name) > (uint16_t)(len - MIN_ADV_LENGTH))
@@ -1414,7 +1413,6 @@ uint8_t *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, uint8_t **p_dst,
             len -= (cp_len + MIN_ADV_LENGTH);
             data_mask &= ~BTM_BLE_AD_BIT_DEV_NAME;
         }
-#endif
         /* manufacturer data */
         if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_MANU &&
             p_data && p_data->manu.len != 0)
