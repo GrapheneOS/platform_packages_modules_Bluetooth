@@ -25,7 +25,37 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
-bool A2D_IsVendorValidCodec(UNUSED_ATTR const uint8_t *p_codec_info)
+bool A2D_IsVendorSourceCodecValid(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
+}
+
+bool A2D_IsVendorSinkCodecValid(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
+}
+
+bool A2D_IsVendorPeerSourceCodecValid(UNUSED_ATTR const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return false;
+}
+
+bool A2D_IsVendorPeerSinkCodecValid(UNUSED_ATTR const uint8_t *p_codec_info)
 {
     // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
     // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);

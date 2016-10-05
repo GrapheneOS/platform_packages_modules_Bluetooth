@@ -84,23 +84,39 @@ const uint8_t codec_info_non_a2dp_dummy[AVDT_CODEC_SIZE] = {
 
 } // namespace
 
-TEST(StackA2dpTest, test_a2d_is_valid_codec) {
-  EXPECT_TRUE(A2D_IsValidCodec(codec_info_sbc));
-  EXPECT_TRUE(A2D_IsValidCodec(codec_info_sbc_sink));
-  EXPECT_FALSE(A2D_IsValidCodec(codec_info_non_a2dp));
+TEST(StackA2dpTest, test_a2d_is_codec_valid) {
+  EXPECT_TRUE(A2D_IsSourceCodecValid(codec_info_sbc));
+  EXPECT_TRUE(A2D_IsPeerSourceCodecValid(codec_info_sbc));
+
+  EXPECT_TRUE(A2D_IsSinkCodecValid(codec_info_sbc_sink));
+  EXPECT_TRUE(A2D_IsPeerSinkCodecValid(codec_info_sbc_sink));
+
+  EXPECT_FALSE(A2D_IsSourceCodecValid(codec_info_non_a2dp));
+  EXPECT_FALSE(A2D_IsSinkCodecValid(codec_info_non_a2dp));
+  EXPECT_FALSE(A2D_IsPeerSourceCodecValid(codec_info_non_a2dp));
+  EXPECT_FALSE(A2D_IsPeerSinkCodecValid(codec_info_non_a2dp));
 
   // Test with invalid SBC codecs
   uint8_t codec_info_sbc_invalid[AVDT_CODEC_SIZE];
   memset(codec_info_sbc_invalid, 0, sizeof(codec_info_sbc_invalid));
-  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsSourceCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsSinkCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsPeerSourceCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsPeerSinkCodecValid(codec_info_sbc_invalid));
 
   memcpy(codec_info_sbc_invalid, codec_info_sbc, sizeof(codec_info_sbc));
   codec_info_sbc_invalid[0] = 0;        // Corrupt the Length field
-  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsSourceCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsSinkCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsPeerSourceCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsPeerSinkCodecValid(codec_info_sbc_invalid));
 
   memcpy(codec_info_sbc_invalid, codec_info_sbc, sizeof(codec_info_sbc));
   codec_info_sbc_invalid[1] = 0xff;        // Corrupt the Media Type field
-  EXPECT_FALSE(A2D_IsValidCodec(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsSourceCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsSinkCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsPeerSourceCodecValid(codec_info_sbc_invalid));
+  EXPECT_FALSE(A2D_IsPeerSinkCodecValid(codec_info_sbc_invalid));
 }
 
 TEST(StackA2dpTest, test_a2d_get_codec_type) {
