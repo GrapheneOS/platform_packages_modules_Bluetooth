@@ -741,22 +741,23 @@ class BrowsedMediaPlayer {
 
     /* convert uid to mediaId */
     private String byteToString(byte[] byteArray) {
-        int key = new BigInteger(byteArray).intValue();
-        String value = mHmap.get(key);
-        return value;
+        int uid = new BigInteger(byteArray).intValue();
+        String mediaId = mHmap.get(uid);
+        return mediaId;
     }
 
     /* convert mediaId to uid */
     private byte[] stringToByte(String mediaId) {
         /* check if this mediaId already exists in hashmap */
         if (!mHmap.containsValue(mediaId)) { /* add to hashmap */
-            int key = mHmap.size();
-            mHmap.put(key, mediaId);
-            return intToByteArray(key);
+            // Offset by one as uid 0 is reserved
+            int uid = mHmap.size() + 1;
+            mHmap.put(uid, mediaId);
+            return intToByteArray(uid);
         } else { /* search key for give mediaId */
-            for (int key : mHmap.keySet()) {
-                if (mHmap.get(key).equals(mediaId)) {
-                    return intToByteArray(key);
+            for (int uid : mHmap.keySet()) {
+                if (mHmap.get(uid).equals(mediaId)) {
+                    return intToByteArray(uid);
                 }
             }
         }
