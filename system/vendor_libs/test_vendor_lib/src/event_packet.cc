@@ -28,9 +28,7 @@ namespace test_vendor_lib {
 EventPacket::EventPacket(uint8_t event_code)
     : Packet(DATA_TYPE_EVENT, {event_code}) {}
 
-uint8_t EventPacket::GetEventCode() const {
-  return GetHeader()[0];
-}
+uint8_t EventPacket::GetEventCode() const { return GetHeader()[0]; }
 
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.1
 std::unique_ptr<EventPacket> EventPacket::CreateInquiryCompleteEvent(
@@ -100,11 +98,8 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteReadLocalName(
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.1
 std::unique_ptr<EventPacket>
 EventPacket::CreateCommandCompleteReadLocalVersionInformation(
-    uint8_t status,
-    uint8_t hci_version,
-    uint16_t hci_revision,
-    uint8_t lmp_pal_version,
-    uint16_t manufacturer_name,
+    uint8_t status, uint8_t hci_version, uint16_t hci_revision,
+    uint8_t lmp_pal_version, uint16_t manufacturer_name,
     uint16_t lmp_pal_subversion) {
   std::unique_ptr<EventPacket> evt_ptr =
       EventPacket::CreateCommandCompleteOnlyStatusEvent(
@@ -135,9 +130,7 @@ EventPacket::CreateCommandCompleteReadLocalSupportedCommands(
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.4
 std::unique_ptr<EventPacket>
 EventPacket::CreateCommandCompleteReadLocalExtendedFeatures(
-    uint8_t status,
-    uint8_t page_number,
-    uint8_t maximum_page_number,
+    uint8_t status, uint8_t page_number, uint8_t maximum_page_number,
     uint64_t extended_lmp_features) {
   std::unique_ptr<EventPacket> evt_ptr =
       EventPacket::CreateCommandCompleteOnlyStatusEvent(
@@ -152,8 +145,7 @@ EventPacket::CreateCommandCompleteReadLocalExtendedFeatures(
 
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.5
 std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteReadBufferSize(
-    uint8_t status,
-    uint16_t hc_acl_data_packet_length,
+    uint8_t status, uint16_t hc_acl_data_packet_length,
     uint8_t hc_synchronous_data_packet_length,
     uint16_t hc_total_num_acl_data_packets,
     uint16_t hc_total_synchronous_data_packets) {
@@ -184,8 +176,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteReadBdAddr(
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.8
 std::unique_ptr<EventPacket>
 EventPacket::CreateCommandCompleteReadLocalSupportedCodecs(
-    uint8_t status,
-    const vector<uint8_t>& supported_codecs,
+    uint8_t status, const vector<uint8_t>& supported_codecs,
     const vector<uint32_t>& vendor_specific_codecs) {
   std::unique_ptr<EventPacket> evt_ptr =
       EventPacket::CreateCommandCompleteOnlyStatusEvent(
@@ -201,8 +192,7 @@ EventPacket::CreateCommandCompleteReadLocalSupportedCodecs(
 std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
     const BtAddress& address,
     const PageScanRepetitionMode page_scan_repetition_mode,
-    uint32_t class_of_device,
-    uint16_t clock_offset) {
+    uint32_t class_of_device, uint16_t clock_offset) {
   std::unique_ptr<EventPacket> evt_ptr =
       std::unique_ptr<EventPacket>(new EventPacket(HCI_INQUIRY_RESULT_EVT));
 
@@ -221,8 +211,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
 void EventPacket::AddInquiryResult(
     const BtAddress& address,
     const PageScanRepetitionMode page_scan_repetition_mode,
-    uint32_t class_of_device,
-    uint16_t clock_offset) {
+    uint32_t class_of_device, uint16_t clock_offset) {
   CHECK(GetEventCode() == HCI_INQUIRY_RESULT_EVT);
 
   CHECK(IncrementPayloadCounter(1));  // Increment the number of responses
@@ -238,9 +227,7 @@ void EventPacket::AddInquiryResult(
 std::unique_ptr<EventPacket> EventPacket::CreateExtendedInquiryResultEvent(
     const BtAddress& address,
     const PageScanRepetitionMode page_scan_repetition_mode,
-    uint32_t class_of_device,
-    uint16_t clock_offset,
-    uint8_t rssi,
+    uint32_t class_of_device, uint16_t clock_offset, uint8_t rssi,
     const vector<uint8_t>& extended_inquiry_response) {
   std::unique_ptr<EventPacket> evt_ptr = std::unique_ptr<EventPacket>(
       new EventPacket(HCI_EXTENDED_INQUIRY_RESULT_EVT));
@@ -263,8 +250,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateExtendedInquiryResultEvent(
 
 // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.2
 std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteLeReadBufferSize(
-    uint8_t status,
-    uint16_t hc_le_data_packet_length,
+    uint8_t status, uint16_t hc_le_data_packet_length,
     uint8_t hc_total_num_le_data_packets) {
   std::unique_ptr<EventPacket> evt_ptr =
       EventPacket::CreateCommandCompleteOnlyStatusEvent(

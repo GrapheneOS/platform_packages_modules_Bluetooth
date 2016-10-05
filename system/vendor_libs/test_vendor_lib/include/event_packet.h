@@ -76,15 +76,12 @@ class EventPacket : public Packet {
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.4
   static std::unique_ptr<EventPacket>
   CreateCommandCompleteReadLocalExtendedFeatures(
-      uint8_t status,
-      uint8_t page_number,
-      uint8_t maximum_page_number,
+      uint8_t status, uint8_t page_number, uint8_t maximum_page_number,
       uint64_t extended_lmp_features);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.5
   static std::unique_ptr<EventPacket> CreateCommandCompleteReadBufferSize(
-      uint8_t status,
-      uint16_t hc_acl_data_packet_length,
+      uint8_t status, uint16_t hc_acl_data_packet_length,
       uint8_t hc_synchronous_data_packet_length,
       uint16_t hc_total_num_acl_data_packets,
       uint16_t hc_total_synchronous_data_packets);
@@ -96,8 +93,7 @@ class EventPacket : public Packet {
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.8
   static std::unique_ptr<EventPacket>
   CreateCommandCompleteReadLocalSupportedCodecs(
-      uint8_t status,
-      const std::vector<uint8_t>& supported_codecs,
+      uint8_t status, const std::vector<uint8_t>& supported_codecs,
       const std::vector<uint32_t>& vendor_specific_codecs);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.2
@@ -110,27 +106,22 @@ class EventPacket : public Packet {
   static std::unique_ptr<EventPacket> CreateInquiryResultEvent(
       const BtAddress& bt_address,
       const PageScanRepetitionMode page_scan_repetition_mode,
-      uint32_t class_of_device,
-      uint16_t clock_offset);
+      uint32_t class_of_device, uint16_t clock_offset);
 
   void AddInquiryResult(const BtAddress& bt_address,
                         const PageScanRepetitionMode page_scan_repetition_mode,
-                        uint32_t class_of_device,
-                        uint16_t clock_offset);
+                        uint32_t class_of_device, uint16_t clock_offset);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.7.38
   static std::unique_ptr<EventPacket> CreateExtendedInquiryResultEvent(
       const BtAddress& bt_address,
       const PageScanRepetitionMode page_scan_repetition_mode,
-      uint32_t class_of_device,
-      uint16_t clock_offset,
-      uint8_t rssi,
+      uint32_t class_of_device, uint16_t clock_offset, uint8_t rssi,
       const std::vector<uint8_t>& extended_inquiry_response);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.2
   static std::unique_ptr<EventPacket> CreateCommandCompleteLeReadBufferSize(
-      uint8_t status,
-      uint16_t hc_le_data_packet_length,
+      uint8_t status, uint16_t hc_le_data_packet_length,
       uint8_t hc_total_num_le_data_packets);
 
   // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.8.3

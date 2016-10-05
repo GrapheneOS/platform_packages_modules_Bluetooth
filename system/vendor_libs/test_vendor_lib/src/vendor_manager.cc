@@ -28,9 +28,7 @@ namespace test_vendor_lib {
 
 VendorManager* g_manager = nullptr;
 
-void VendorManager::CleanUp() {
-  test_channel_transport_.CleanUp();
-}
+void VendorManager::CleanUp() { test_channel_transport_.CleanUp(); }
 
 bool VendorManager::Initialize() {
   if (!transport_.SetUp()) {
@@ -66,8 +64,7 @@ bool VendorManager::Initialize() {
       });
 
   controller_.RegisterPeriodicTaskScheduler(
-      [this](std::chrono::milliseconds delay,
-             std::chrono::milliseconds period,
+      [this](std::chrono::milliseconds delay, std::chrono::milliseconds period,
              const TaskCallback& task) {
         return async_manager_.ExecAsyncPeriodically(delay, period, task);
       });
@@ -113,12 +110,8 @@ void VendorManager::SetUpTestChannel(int port) {
   });
 }
 
-void VendorManager::CloseHciFd() {
-  transport_.CloseHciFd();
-}
+void VendorManager::CloseHciFd() { transport_.CloseHciFd(); }
 
-int VendorManager::GetHciFd() const {
-  return transport_.GetHciFd();
-}
+int VendorManager::GetHciFd() const { return transport_.GetHciFd(); }
 
 }  // namespace test_vendor_lib

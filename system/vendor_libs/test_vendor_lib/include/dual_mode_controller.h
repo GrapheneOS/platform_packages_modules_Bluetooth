@@ -181,8 +181,8 @@ class DualModeController {
 
   void RegisterPeriodicTaskScheduler(
       std::function<AsyncTaskId(std::chrono::milliseconds,
-                                std::chrono::milliseconds,
-                                const TaskCallback&)> periodicEvtScheduler);
+                                std::chrono::milliseconds, const TaskCallback&)>
+          periodicEvtScheduler);
 
   void RegisterTaskCancel(std::function<void(AsyncTaskId)> cancel);
 
@@ -491,8 +491,7 @@ class DualModeController {
   std::function<AsyncTaskId(std::chrono::milliseconds, const TaskCallback&)>
       schedule_task_;
   std::function<AsyncTaskId(std::chrono::milliseconds,
-                            std::chrono::milliseconds,
-                            const TaskCallback&)>
+                            std::chrono::milliseconds, const TaskCallback&)>
       schedule_periodic_task_;
 
   std::function<void(AsyncTaskId)> cancel_task_;
