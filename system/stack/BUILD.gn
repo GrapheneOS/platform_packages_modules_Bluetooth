@@ -151,7 +151,6 @@ static_library("stack") {
     "sdp",
     "smp",
     "srvc",
-    "//osi/include",
     "//btcore/include",
     "//vnd/include",
     "//vnd/ble",
@@ -172,3 +171,42 @@ static_library("stack") {
     "//third_party/libchrome:base"
   ]
 }
+
+executable("stack_unittests") {
+  testonly = true
+  sources = [
+    "test/ble_advertiser_test.cc",
+    "test/stack_a2d_test.cc",
+  ]
+
+  include_dirs = [
+    "include",
+    "//",
+    "//audio_a2dp_hw",
+    "//bta/include",
+    "//bta/sys",
+    "//btcore/include",
+    "//embdrv/sbc/encoder/include",
+    "//hci/include",
+    "//include",
+    "//stack/a2dp",
+    "//stack/btm",
+    "//stack/include",
+    "//third_party/tinyxml2",
+    "//udrv/include",
+    "//utils/include",
+    "//vnd/include"
+  ]
+
+  deps = [
+    ":stack",
+    "//osi",
+    "//btcore",
+    "//device",
+    "//hci",
+    "//main:bluetooth.default",
+    "//third_party/googletest:gmock_main",
+    "//third_party/libchrome:base",
+  ]
+}
+

@@ -584,6 +584,12 @@ bt_status_t btif_disable_bluetooth(void)
 {
     BTIF_TRACE_DEBUG("BTIF DISABLE BLUETOOTH");
 
+#if (BLE_INCLUDED == TRUE)
+    btm_ble_multi_adv_cleanup();
+    // TODO(jpawlowski): this should do whole BTA_VendorCleanup(), but it would kill
+    // the stack now.
+#endif
+
     btif_dm_on_disable();
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();

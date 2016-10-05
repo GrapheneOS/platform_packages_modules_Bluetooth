@@ -340,6 +340,12 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
     }
 }
 
+void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address) {
+    uint8_t idx = btm_handle_to_acl_index(conn_handle);
+    if (idx != MAX_L2CAP_LINKS) {
+        memcpy(btm_cb.acl_db[idx].conn_addr, address, BD_ADDR_LEN);
+    }
+}
 
 /*******************************************************************************
 **

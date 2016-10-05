@@ -54,6 +54,7 @@ LOCAL_SRC_FILES := \
     ./bnep/bnep_api.c \
     ./hcic/hciblecmds.c \
     ./hcic/hcicmds.c \
+    ./btm/ble_advertiser_hci_interface.cc \
     ./btm/btm_ble.c \
     ./btm/btm_sec.c \
     ./btm/btm_inq.c \
@@ -179,6 +180,38 @@ LOCAL_SHARED_LIBRARIES :=
 LOCAL_STATIC_LIBRARIES := libbt-stack liblog
 LOCAL_MODULE_TAGS := tests
 LOCAL_MODULE := net_test_stack
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
+include $(BUILD_NATIVE_TEST)
+
+
+# Bluetooth stack multi-advertising unit tests for target
+# ========================================================
+include $(CLEAR_VARS)
+
+LOCAL_CPP_EXTENSION := .cc
+
+LOCAL_C_INCLUDES := \
+                   $(LOCAL_PATH)/include \
+                   $(LOCAL_PATH)/../include \
+                   $(LOCAL_PATH)/../ \
+                   $(LOCAL_PATH)/btm \
+                   $(LOCAL_PATH)/../btcore/include \
+                   $(LOCAL_PATH)/../hci/include \
+                   $(LOCAL_PATH)/../include \
+                   $(LOCAL_PATH)/../utils/include \
+                   $(LOCAL_PATH)/../ \
+                   $(bluetooth_C_INCLUDES)
+
+LOCAL_SRC_FILES := btm/btm_ble_multi_adv.cc \
+                   test/ble_advertiser_test.cc
+LOCAL_SHARED_LIBRARIES := libcutils libchrome
+LOCAL_STATIC_LIBRARIES := liblog libgmock libgtest
+LOCAL_MODULE_TAGS := tests
+LOCAL_MODULE := net_test_stack_multi_adv
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
