@@ -63,7 +63,7 @@ import java.util.Map;
  ******************************************************************************/
 
 public final class Avrcp {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final String TAG = "Avrcp";
     private static final String ABSOLUTE_VOLUME_BLACKLIST = "absolute_volume_blacklist";
 
@@ -1917,20 +1917,18 @@ public final class Avrcp {
      * @return true if it supports browsing, else false.
      */
     private synchronized boolean isBrowseSupported(String packageName) {
-        boolean response = false;
-
         /* check if Browsable Player's list contains this package name */
         for (BrowsePlayerInfo info : mBrowsePlayerInfoList) {
             if (info.packageName.equals(packageName)) {
-                // TODO: (apanicke) Currently browsing isn't implemented
-                // properly and causes metadata to break. Fix browsing
-                // interface and change this to true.
-                response = false;
+                if (DEBUG) Log.v(TAG, "isBrowseSupported for " + packageName +
+                                      ": true");
+                return true;
             }
         }
 
-        if (DEBUG) Log.v(TAG, "isBrowseSupported for " + packageName + ": " + response);
-        return response;
+        if (DEBUG) Log.v(TAG, "isBrowseSupported for " + packageName +
+                              ": false");
+        return false;
     }
 
     /* from the global object, getting the current addressed player's package name */
