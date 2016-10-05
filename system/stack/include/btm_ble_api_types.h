@@ -291,53 +291,15 @@ typedef void (tBTM_RAND_ENC_CB) (tBTM_RAND_ENC *p1);
 #define BTM_BLE_ADV_FLAG_MASK           (BTM_BLE_LIMIT_DISC_FLAG | BTM_BLE_BREDR_NOT_SPT | BTM_BLE_GEN_DISC_FLAG)
 #define BTM_BLE_LIMIT_DISC_MASK         (BTM_BLE_LIMIT_DISC_FLAG )
 
-#define BTM_BLE_AD_BIT_DEV_NAME        (0x00000001 << 0)
+//TODO(jpawlowski): this should be removed with code that depend on it.
 #define BTM_BLE_AD_BIT_FLAGS           (0x00000001 << 1)
-#define BTM_BLE_AD_BIT_MANU            (0x00000001 << 2)
-#define BTM_BLE_AD_BIT_TX_PWR          (0x00000001 << 3)
-#define BTM_BLE_AD_BIT_INT_RANGE       (0x00000001 << 5)
-#define BTM_BLE_AD_BIT_SERVICE         (0x00000001 << 6)
-#define BTM_BLE_AD_BIT_SERVICE_SOL     (0x00000001 << 7)
-#define BTM_BLE_AD_BIT_SERVICE_DATA    (0x00000001 << 8)
-#define BTM_BLE_AD_BIT_SIGN_DATA       (0x00000001 << 9)
-#define BTM_BLE_AD_BIT_SERVICE_128SOL  (0x00000001 << 10)
-#define BTM_BLE_AD_BIT_APPEARANCE      (0x00000001 << 11)
-#define BTM_BLE_AD_BIT_PUBLIC_ADDR      (0x00000001 << 12)
-#define BTM_BLE_AD_BIT_RANDOM_ADDR       (0x00000001 << 13)
-#define BTM_BLE_AD_BIT_SERVICE_32        (0x00000001 << 4)
-#define BTM_BLE_AD_BIT_SERVICE_32SOL     (0x00000001 << 14)
-#define BTM_BLE_AD_BIT_PROPRIETARY     (0x00000001 << 15)
-#define BTM_BLE_AD_BIT_SERVICE_128      (0x00000001 << 16)      /*128-bit Service UUIDs*/
-
-typedef  uint32_t tBTM_BLE_AD_MASK;
 
 #define BTM_BLE_AD_TYPE_FLAG            HCI_EIR_FLAGS_TYPE                  /* 0x01 */
-#define BTM_BLE_AD_TYPE_16SRV_PART      HCI_EIR_MORE_16BITS_UUID_TYPE       /* 0x02 */
 #define BTM_BLE_AD_TYPE_16SRV_CMPL      HCI_EIR_COMPLETE_16BITS_UUID_TYPE   /* 0x03 */
-#define BTM_BLE_AD_TYPE_32SRV_PART      HCI_EIR_MORE_32BITS_UUID_TYPE       /* 0x04 */
-#define BTM_BLE_AD_TYPE_32SRV_CMPL      HCI_EIR_COMPLETE_32BITS_UUID_TYPE   /* 0x05 */
-#define BTM_BLE_AD_TYPE_128SRV_PART     HCI_EIR_MORE_128BITS_UUID_TYPE       /* 0x06 */
-#define BTM_BLE_AD_TYPE_128SRV_CMPL     HCI_EIR_COMPLETE_128BITS_UUID_TYPE   /* 0x07 */
 #define BTM_BLE_AD_TYPE_NAME_SHORT      HCI_EIR_SHORTENED_LOCAL_NAME_TYPE       /* 0x08 */
 #define BTM_BLE_AD_TYPE_NAME_CMPL       HCI_EIR_COMPLETE_LOCAL_NAME_TYPE        /* 0x09 */
-#define BTM_BLE_AD_TYPE_TX_PWR          HCI_EIR_TX_POWER_LEVEL_TYPE             /* 0x0A */
-#define BTM_BLE_AD_TYPE_DEV_CLASS       0x0D
-#define BTM_BLE_AD_TYPE_SM_TK           0x10
-#define BTM_BLE_AD_TYPE_SM_OOB_FLAG     0x11
-#define BTM_BLE_AD_TYPE_INT_RANGE       0x12
-#define BTM_BLE_AD_TYPE_SOL_SRV_UUID    0x14
-#define BTM_BLE_AD_TYPE_128SOL_SRV_UUID 0x15
-#define BTM_BLE_AD_TYPE_SERVICE_DATA    0x16
-#define BTM_BLE_AD_TYPE_PUBLIC_TARGET   0x17
-#define BTM_BLE_AD_TYPE_RANDOM_TARGET   0x18
-#define BTM_BLE_AD_TYPE_APPEARANCE      0x19
-#define BTM_BLE_AD_TYPE_ADV_INT         0x1a
-#define BTM_BLE_AD_TYPE_32SOL_SRV_UUID  0x1b
-#define BTM_BLE_AD_TYPE_32SERVICE_DATA  0x1c
-#define BTM_BLE_AD_TYPE_128SERVICE_DATA 0x1d
 
-#define BTM_BLE_AD_TYPE_MANU            HCI_EIR_MANUFACTURER_SPECIFIC_TYPE      /* 0xff */
-typedef uint8_t tBTM_BLE_AD_TYPE;
+#define BTM_BLE_AD_TYPE_APPEARANCE      0x19
 
 /*  Security settings used with L2CAP LE COC */
 #define BTM_SEC_LE_LINK_ENCRYPTED           0x01
@@ -378,87 +340,6 @@ typedef struct
     uint8_t extended_scan_support;
     uint8_t debug_logging_supported;
 }tBTM_BLE_VSC_CB;
-
-/* slave preferred connection interval range */
-typedef struct
-{
-    uint16_t low;
-    uint16_t hi;
-
-}tBTM_BLE_INT_RANGE;
-
-/* Service tag supported in the device */
-#define MAX_16BIT_SERVICES 16
-typedef struct
-{
-    uint8_t     num_service;
-    bool        list_cmpl;
-    uint16_t    uuid[MAX_16BIT_SERVICES];
-}tBTM_BLE_SERVICE;
-
-/* 32 bits Service supported in the device */
-#define MAX_32BIT_SERVICES 4
-typedef struct
-{
-    uint8_t     num_service;
-    bool        list_cmpl;
-    uint32_t    uuid[MAX_32BIT_SERVICES];
-}tBTM_BLE_32SERVICE;
-
-/* 128 bits Service supported in the device */
-typedef struct
-{
-    uint8_t     num_service;
-    bool        list_cmpl;
-    uint8_t     uuid128[MAX_UUID_SIZE];
-}tBTM_BLE_128SERVICE;
-
-#define MAX_SIZE_MANUFACTURER_DATA 32
-typedef struct
-{
-    uint8_t len;
-    uint8_t val[MAX_SIZE_MANUFACTURER_DATA];
-}tBTM_BLE_MANU;
-
-#define MAX_SIZE_SERVICE_DATA 32
-typedef struct
-{
-    tBT_UUID    service_uuid;
-    uint8_t     len;
-    uint8_t     val[MAX_SIZE_SERVICE_DATA];
-}tBTM_BLE_SERVICE_DATA;
-
-#define MAX_SIZE_PROPRIETARY_ELEMENT 32
-typedef struct
-{
-    uint8_t     adv_type;
-    uint8_t     len;
-    uint8_t     val[MAX_SIZE_PROPRIETARY_ELEMENT];     /* number of len byte */
-}tBTM_BLE_PROP_ELEM;
-
-#define MAX_PROPRIETARY_ELEMENTS 4
-typedef struct
-{
-    uint8_t                 num_elem;
-    tBTM_BLE_PROP_ELEM      elem[MAX_PROPRIETARY_ELEMENTS];
-}tBTM_BLE_PROPRIETARY;
-
-typedef struct
-{
-    tBTM_BLE_INT_RANGE      int_range;      /* slave prefered conn interval range */
-    tBTM_BLE_MANU           manu;           /* manufactuer data */
-    tBTM_BLE_SERVICE        services;       /* services */
-    tBTM_BLE_128SERVICE     services_128b;  /* 128 bits service */
-    tBTM_BLE_32SERVICE      service_32b;     /* 32 bits Service UUID */
-    tBTM_BLE_SERVICE        sol_services;    /* 16 bits services Solicitation UUIDs */
-    tBTM_BLE_32SERVICE      sol_service_32b;    /* List of 32 bit Service Solicitation UUIDs */
-    tBTM_BLE_128SERVICE     sol_service_128b;    /* List of 128 bit Service Solicitation UUIDs */
-    tBTM_BLE_PROPRIETARY    proprietary;
-    tBTM_BLE_SERVICE_DATA   service_data;    /* service data */
-    uint16_t                appearance;
-    uint8_t                 flag;
-    uint8_t                 tx_power;
-}tBTM_BLE_ADV_DATA;
 
 typedef void (tBTM_BLE_ADV_DATA_CMPL_CBACK) (tBTM_STATUS status);
 
@@ -745,20 +626,6 @@ typedef uint8_t BTM_BLE_ADV_STATE;
 typedef uint8_t BTM_BLE_ADV_INFO_PRESENT;
 typedef uint8_t BTM_BLE_RSSI_VALUE;
 typedef uint16_t BTM_BLE_ADV_INFO_TIMESTAMP;
-
-/* These are the fields returned in each device adv packet.  It
-** is returned in the results callback if registered.
-*/
-typedef struct
-{
-    uint8_t             conn_mode;
-    tBTM_BLE_AD_MASK    ad_mask;        /* mask of the valid adv data field */
-    uint8_t             flag;
-    uint8_t             tx_power_level;
-    uint8_t             remote_name_len;
-    uint8_t             *p_remote_name;
-    tBTM_BLE_SERVICE    service;
-} tBTM_BLE_INQ_DATA;
 
 enum
 {
