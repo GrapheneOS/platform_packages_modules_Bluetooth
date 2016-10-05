@@ -33,11 +33,9 @@ Packet::Packet(serial_data_type_t type, vector<uint8_t> header)
 }
 
 bool Packet::AddPayloadOctets(size_t octets, const vector<uint8_t>& bytes) {
-  if (octets + payload_.size() > kMaxPacketOctets)
-    return false;
+  if (octets + payload_.size() > kMaxPacketOctets) return false;
 
-  if (octets != bytes.size())
-    return false;
+  if (octets != bytes.size()) return false;
 
   payload_.insert(payload_.end(), bytes.begin(), bytes.end());
   payload_[0] = payload_.size() - 1;
@@ -50,23 +48,20 @@ bool Packet::AddPayloadOctets(size_t octets, uint64_t value) {
 
   uint64_t v = value;
 
-  if (octets > sizeof(uint64_t))
-    return false;
+  if (octets > sizeof(uint64_t)) return false;
 
   for (size_t i = 0; i < octets; i++) {
     val_vector.push_back(v & 0xff);
     v = v >> 8;
   }
 
-  if (v != 0)
-    return false;
+  if (v != 0) return false;
 
   return AddPayloadOctets(octets, val_vector);
 }
 
 bool Packet::AddPayloadBtAddress(const BtAddress& address) {
-  if (BtAddress::kOctets + payload_.size() > kMaxPacketOctets)
-    return false;
+  if (BtAddress::kOctets + payload_.size() > kMaxPacketOctets) return false;
 
   address.ToVector(payload_);
 
@@ -76,19 +71,16 @@ bool Packet::AddPayloadBtAddress(const BtAddress& address) {
 }
 
 bool Packet::IncrementPayloadCounter(size_t index) {
-  if (payload_.size() < index - 1)
-    return false;
+  if (payload_.size() < index - 1) return false;
 
   payload_[index]++;
   return true;
 }
 
 bool Packet::IncrementPayloadCounter(size_t index, uint8_t max_val) {
-  if (payload_.size() < index - 1)
-    return false;
+  if (payload_.size() < index - 1) return false;
 
-  if (payload_[index] + 1 > max_val)
-    return false;
+  if (payload_[index] + 1 > max_val) return false;
 
   payload_[index]++;
   return true;
@@ -100,25 +92,17 @@ const vector<uint8_t>& Packet::GetHeader() const {
   return header_;
 }
 
-uint8_t Packet::GetHeaderSize() const {
-  return header_.size();
-}
+uint8_t Packet::GetHeaderSize() const { return header_.size(); }
 
 size_t Packet::GetPacketSize() const {
   // Add one for the type octet.
   return 1 + header_.size() + payload_.size();
 }
 
-const vector<uint8_t>& Packet::GetPayload() const {
-  return payload_;
-}
+const vector<uint8_t>& Packet::GetPayload() const { return payload_; }
 
-size_t Packet::GetPayloadSize() const {
-  return payload_.size();
-}
+size_t Packet::GetPayloadSize() const { return payload_.size(); }
 
-serial_data_type_t Packet::GetType() const {
-  return type_;
-}
+serial_data_type_t Packet::GetType() const { return type_; }
 
 }  // namespace test_vendor_lib

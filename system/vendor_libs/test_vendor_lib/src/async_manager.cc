@@ -181,8 +181,7 @@ class AsyncManager::AsyncFdWatcher {
   int notifyThread() {
     char buffer = '0';
     if (TEMP_FAILURE_RETRY(write(notification_write_fd_, &buffer, 1)) < 0) {
-      LOG_ERROR(LOG_TAG,
-                "%s: Unable to send message to reading thread",
+      LOG_ERROR(LOG_TAG, "%s: Unable to send message to reading thread",
                 __FUNCTION__);
       return -1;
     }
@@ -209,8 +208,8 @@ class AsyncManager::AsyncFdWatcher {
   bool consumeThreadNotifications(fd_set& read_fds) {
     if (FD_ISSET(notification_listen_fd_, &read_fds)) {
       char buffer[kNotificationBufferSize];
-      while (TEMP_FAILURE_RETRY(read(
-                 notification_listen_fd_, buffer, kNotificationBufferSize)) ==
+      while (TEMP_FAILURE_RETRY(read(notification_listen_fd_, buffer,
+                                     kNotificationBufferSize)) ==
              kNotificationBufferSize) {
       }
       return true;
@@ -310,8 +309,7 @@ class AsyncManager::AsyncTaskManager {
   class Task {
    public:
     Task(std::chrono::steady_clock::time_point time,
-         std::chrono::milliseconds period,
-         const TaskCallback& callback)
+         std::chrono::milliseconds period, const TaskCallback& callback)
         : time(time),
           periodic(true),
           period(period),
@@ -457,8 +455,7 @@ class AsyncManager::AsyncTaskManager {
           internal_cond_var_.wait(guard);
         }
         // check for termination right after being notified (and maybe before?)
-        if (!running_)
-          break;
+        if (!running_) break;
       }
     }
   }
@@ -499,8 +496,7 @@ AsyncTaskId AsyncManager::ExecAsync(std::chrono::milliseconds delay,
 }
 
 AsyncTaskId AsyncManager::ExecAsyncPeriodically(
-    std::chrono::milliseconds delay,
-    std::chrono::milliseconds period,
+    std::chrono::milliseconds delay, std::chrono::milliseconds period,
     const TaskCallback& callback) {
   return taskManager_p_->ExecAsyncPeriodically(delay, period, callback);
 }
