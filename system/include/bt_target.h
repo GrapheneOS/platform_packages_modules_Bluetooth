@@ -424,8 +424,7 @@
 #define BTM_MAX_REM_BD_NAME_LEN     248
 #endif
 
-/* Maximum local device name length stored btm database.
-  '0' disables storage of the local name in BTM */
+/* Maximum local device name length stored btm database */
 #ifndef BTM_MAX_LOC_BD_NAME_LEN
 #define BTM_MAX_LOC_BD_NAME_LEN     248
 #endif
