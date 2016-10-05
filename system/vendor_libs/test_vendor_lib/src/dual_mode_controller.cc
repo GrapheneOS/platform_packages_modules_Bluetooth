@@ -176,8 +176,8 @@ void DualModeController::RegisterTaskScheduler(
 
 void DualModeController::RegisterPeriodicTaskScheduler(
     std::function<AsyncTaskId(std::chrono::milliseconds,
-                              std::chrono::milliseconds,
-                              const TaskCallback&)> periodicScheduler) {
+                              std::chrono::milliseconds, const TaskCallback&)>
+        periodicScheduler) {
   schedule_periodic_task_ = periodicScheduler;
 }
 
@@ -188,8 +188,7 @@ void DualModeController::RegisterTaskCancel(
 
 void DualModeController::HandleTestChannelCommand(
     const std::string& name, const vector<std::string>& args) {
-  if (active_test_channel_commands_.count(name) == 0)
-    return;
+  if (active_test_channel_commands_.count(name) == 0) return;
   active_test_channel_commands_[name](args);
 }
 
@@ -215,16 +214,14 @@ void DualModeController::RegisterEventChannel(
 
 void DualModeController::HandleTimerTick() {
   // PageScan();
-  if (le_scan_enable_)
-    LOG_ERROR(LOG_TAG, "LE scan");
+  if (le_scan_enable_) LOG_ERROR(LOG_TAG, "LE scan");
   // LeScan();
 }
 
 void DualModeController::SetTimerPeriod(std::chrono::milliseconds new_period) {
   timer_period_ = new_period;
 
-  if (timer_tick_task_ == kInvalidTaskId)
-    return;
+  if (timer_tick_task_ == kInvalidTaskId) return;
 
   // Restart the timer with the new period
   StopTimer();
@@ -234,9 +231,8 @@ void DualModeController::SetTimerPeriod(std::chrono::milliseconds new_period) {
 void DualModeController::StartTimer() {
   LOG_ERROR(LOG_TAG, "StartTimer");
   timer_tick_task_ = schedule_periodic_task_(
-      std::chrono::milliseconds(0), timer_period_, [this]() {
-        DualModeController::HandleTimerTick();
-      });
+      std::chrono::milliseconds(0), timer_period_,
+      [this]() { DualModeController::HandleTimerTick(); });
 }
 
 void DualModeController::StopTimer() {
@@ -298,8 +294,7 @@ void DualModeController::HciReadBufferSize(
   LogCommand("Read Buffer Size");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadBufferSize(
-          kSuccessStatus,
-          properties_.GetAclDataPacketSize(),
+          kSuccessStatus, properties_.GetAclDataPacketSize(),
           properties_.GetSynchronousDataPacketSize(),
           properties_.GetTotalNumAclDataPackets(),
           properties_.GetTotalNumSynchronousDataPackets());
@@ -318,11 +313,8 @@ void DualModeController::HciReadLocalVersionInformation(
   LogCommand("Read Local Version Information");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadLocalVersionInformation(
-          kSuccessStatus,
-          properties_.GetVersion(),
-          properties_.GetRevision(),
-          properties_.GetLmpPalVersion(),
-          properties_.GetManufacturerName(),
+          kSuccessStatus, properties_.GetVersion(), properties_.GetRevision(),
+          properties_.GetLmpPalVersion(), properties_.GetManufacturerName(),
           properties_.GetLmpPalSubversion());
   send_event_(std::move(command_complete));
 }
@@ -349,8 +341,7 @@ void DualModeController::HciReadLocalSupportedCodecs(
   LogCommand("Read Local Supported Codecs");
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadLocalSupportedCodecs(
-          kSuccessStatus,
-          properties_.GetSupportedCodecs(),
+          kSuccessStatus, properties_.GetSupportedCodecs(),
           properties_.GetVendorSpecificCodecs());
   send_event_(std::move(command_complete));
 }
@@ -361,8 +352,7 @@ void DualModeController::HciReadLocalExtendedFeatures(
   CHECK(args.size() == 2);
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteReadLocalExtendedFeatures(
-          kSuccessStatus,
-          args[1],
+          kSuccessStatus, args[1],
           properties_.GetLocalExtendedFeaturesMaximumPageNumber(),
           properties_.GetLocalExtendedFeatures(args[1]));
   send_event_(std::move(command_complete));
@@ -491,8 +481,7 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
       std::unique_ptr<EventPacket> inquiry_result_evt =
           EventPacket::CreateInquiryResultEvent(other_addr,
                                                 kPageScanRepetitionMode,
-                                                kClassOfDevice,
-                                                kClockOffset);
+                                                kClassOfDevice, kClockOffset);
       send_event_(std::move(inquiry_result_evt));
       /* TODO: Return responses from modeled devices */
     } break;
@@ -511,13 +500,9 @@ void DualModeController::HciInquiry(const vector<uint8_t>& args) {
       extended_inquiry_data.push_back('\0');
 
       uint8_t rssi = static_cast<uint8_t>(-20);
-      send_event_(
-          EventPacket::CreateExtendedInquiryResultEvent(other_addr,
-                                                        kPageScanRepetitionMode,
-                                                        kClassOfDevice,
-                                                        kClockOffset,
-                                                        rssi,
-                                                        extended_inquiry_data));
+      send_event_(EventPacket::CreateExtendedInquiryResultEvent(
+          other_addr, kPageScanRepetitionMode, kClassOfDevice, kClockOffset,
+          rssi, extended_inquiry_data));
       /* TODO: Return responses from modeled devices */
     } break;
   }
@@ -565,8 +550,7 @@ void DualModeController::HciLeReadBufferSize(
     UNUSED_ATTR const vector<uint8_t>& args) {
   std::unique_ptr<EventPacket> command_complete =
       EventPacket::CreateCommandCompleteLeReadBufferSize(
-          kSuccessStatus,
-          properties_.GetLeDataPacketLength(),
+          kSuccessStatus, properties_.GetLeDataPacketLength(),
           properties_.GetTotalNumLeDataPackets());
   send_event_(std::move(command_complete));
 }
@@ -582,8 +566,8 @@ void DualModeController::HciLeReadLocalSupportedFeatures(
 void DualModeController::HciLeSetRandomAddress(const vector<uint8_t>& args) {
   LogCommand("LE SetRandomAddress");
   CHECK(args.size() == 7);
-  vector<uint8_t> new_addr = {
-      args[1], args[2], args[3], args[4], args[5], args[6]};
+  vector<uint8_t> new_addr = {args[1], args[2], args[3],
+                              args[4], args[5], args[6]};
   CHECK(le_random_address_.FromVector(new_addr));
   SendCommandCompleteSuccess(HCI_BLE_WRITE_RANDOM_ADDR);
 }
@@ -708,28 +692,15 @@ DualModeController::Properties::Properties(const std::string& file_name)
   supported_codecs_ = {1};
   vendor_specific_codecs_ = {};
 
-  for (int i = 0; i < 64; i++)
-    local_supported_commands_.push_back(0xff);
+  for (int i = 0; i < 64; i++) local_supported_commands_.push_back(0xff);
 
   le_supported_features_ = 0x1f;
   le_supported_states_ = 0x3ffffffffff;
-  le_vendor_cap_ = {0x05,
-                    0x01,
-                    0x00,
-                    0x04,
-                    0x80,
-                    0x01,
-                    0x10,
-                    0x01,
-                    0x60,
-                    0x00,
-                    0x0a,
-                    0x00,
-                    0x01,
-                    0x01};
+  le_vendor_cap_ = {0x05, 0x01, 0x00, 0x04, 0x80, 0x01, 0x10,
+                    0x01, 0x60, 0x00, 0x0a, 0x00, 0x01, 0x01};
 
-  LOG_INFO(
-      LOG_TAG, "Reading controller properties from %s.", file_name.c_str());
+  LOG_INFO(LOG_TAG, "Reading controller properties from %s.",
+           file_name.c_str());
   if (!base::ReadFileToString(base::FilePath(file_name), &properties_raw)) {
     LOG_ERROR(LOG_TAG, "Error reading controller properties from file.");
     return;

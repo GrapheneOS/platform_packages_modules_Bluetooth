@@ -100,32 +100,27 @@ bool PacketStream::ValidateTypeOctet(serial_data_type_t type) const {
 }
 
 bool PacketStream::ReceiveAll(vector<uint8_t>& destination,
-                              size_t num_octets_to_receive,
-                              int fd) const {
+                              size_t num_octets_to_receive, int fd) const {
   destination.resize(num_octets_to_receive);
   size_t octets_remaining = num_octets_to_receive;
   while (octets_remaining > 0) {
     const int num_octets_received =
-        read(fd,
-             &destination[num_octets_to_receive - octets_remaining],
+        read(fd, &destination[num_octets_to_receive - octets_remaining],
              octets_remaining);
-    if (num_octets_received < 0)
-      return false;
+    if (num_octets_received < 0) return false;
     octets_remaining -= num_octets_received;
   }
   return true;
 }
 
 bool PacketStream::SendAll(const vector<uint8_t>& source,
-                           size_t num_octets_to_send,
-                           int fd) const {
+                           size_t num_octets_to_send, int fd) const {
   CHECK(source.size() >= num_octets_to_send);
   size_t octets_remaining = num_octets_to_send;
   while (octets_remaining > 0) {
     const int num_octets_sent = write(
         fd, &source[num_octets_to_send - octets_remaining], octets_remaining);
-    if (num_octets_sent < 0)
-      return false;
+    if (num_octets_sent < 0) return false;
     octets_remaining -= num_octets_sent;
   }
   return true;

@@ -72,8 +72,8 @@ class BtVendor {
       case BT_VND_OP_USERIAL_CLOSE:
         LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_CLOSE");
         CHECK(vendor_manager_);
-        LOG_INFO(
-            LOG_TAG, "Closing HCI's fd (fd: %d)", vendor_manager_->GetHciFd());
+        LOG_INFO(LOG_TAG, "Closing HCI's fd (fd: %d)",
+                 vendor_manager_->GetHciFd());
         vendor_manager_->CloseHciFd();
         return 1;
 
@@ -139,7 +139,5 @@ bt_vendor_callbacks_t BtVendor::vendor_callbacks_;
 // Entry point of DLib.
 EXPORT_SYMBOL
 const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
-    sizeof(bt_vendor_interface_t),
-    test_vendor_lib::BtVendor::Initialize,
-    test_vendor_lib::BtVendor::Op,
-    test_vendor_lib::BtVendor::CleanUp};
+    sizeof(bt_vendor_interface_t), test_vendor_lib::BtVendor::Initialize,
+    test_vendor_lib::BtVendor::Op, test_vendor_lib::BtVendor::CleanUp};

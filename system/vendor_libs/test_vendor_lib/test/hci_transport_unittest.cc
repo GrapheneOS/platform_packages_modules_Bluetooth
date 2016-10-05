@@ -31,8 +31,7 @@ using std::vector;
 namespace {
 const vector<uint8_t> stub_command({DATA_TYPE_COMMAND,
                                     static_cast<uint8_t>(HCI_RESET),
-                                    static_cast<uint8_t>(HCI_RESET >> 8),
-                                    0});
+                                    static_cast<uint8_t>(HCI_RESET >> 8), 0});
 
 const int kMultiIterations = 10000;
 
