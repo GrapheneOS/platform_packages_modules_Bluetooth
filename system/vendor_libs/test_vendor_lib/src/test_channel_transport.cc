@@ -46,8 +46,7 @@ int TestChannelTransport::SetUp(int port) {
   listen_address.sin_port = htons(port);
   listen_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-  if (bind(listen_fd_,
-           reinterpret_cast<sockaddr*>(&listen_address),
+  if (bind(listen_fd_, reinterpret_cast<sockaddr*>(&listen_address),
            sockaddr_in_size) < 0) {
     LOG_INFO(LOG_TAG, "Error binding test channel listener socket to address.");
     close(listen_fd_);
@@ -78,15 +77,12 @@ int TestChannelTransport::Accept(int listen_fd_) {
   socklen_t sockaddr_in_size = sizeof(struct sockaddr_in);
   memset(&test_channel_address, 0, sockaddr_in_size);
 
-  OSI_NO_INTR(accept_fd =
-                  accept(listen_fd_,
-                         reinterpret_cast<sockaddr*>(&test_channel_address),
-                         &sockaddr_in_size));
+  OSI_NO_INTR(accept_fd = accept(listen_fd_, reinterpret_cast<sockaddr*>(
+                                                 &test_channel_address),
+                                 &sockaddr_in_size));
   if (accept_fd < 0) {
-    LOG_INFO(LOG_TAG,
-             "Error accepting test channel connection errno=%d (%s).",
-             errno,
-             strerror(errno));
+    LOG_INFO(LOG_TAG, "Error accepting test channel connection errno=%d (%s).",
+             errno, strerror(errno));
 
     if (errno != EAGAIN && errno != EWOULDBLOCK) {
       LOG_ERROR(LOG_TAG, "Closing listen_fd_ (won't try again).");
@@ -108,8 +104,8 @@ void TestChannelTransport::OnCommandReady(int fd,
   command_name_raw.resize(command_name_size);
   read(fd, &command_name_raw[0], command_name_size);
   std::string command_name(command_name_raw.begin(), command_name_raw.end());
-  LOG_INFO(
-      LOG_TAG, "Received command from test channel: %s", command_name.data());
+  LOG_INFO(LOG_TAG, "Received command from test channel: %s",
+           command_name.data());
 
   if (command_name == "CLOSE_TEST_CHANNEL" || command_name == "") {
     LOG_INFO(LOG_TAG, "Test channel closed");

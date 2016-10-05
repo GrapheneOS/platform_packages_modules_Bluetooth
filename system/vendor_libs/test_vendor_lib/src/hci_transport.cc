@@ -28,28 +28,19 @@ namespace test_vendor_lib {
 
 HciTransport::HciTransport() = default;
 
-void HciTransport::CloseHciFd() {
-  hci_fd_.reset(nullptr);
-}
+void HciTransport::CloseHciFd() { hci_fd_.reset(nullptr); }
 
-void HciTransport::CloseVendorFd() {
-  vendor_fd_.reset(nullptr);
-}
+void HciTransport::CloseVendorFd() { vendor_fd_.reset(nullptr); }
 
-int HciTransport::GetHciFd() const {
-  return hci_fd_->get();
-}
+int HciTransport::GetHciFd() const { return hci_fd_->get(); }
 
-int HciTransport::GetVendorFd() const {
-  return vendor_fd_->get();
-}
+int HciTransport::GetVendorFd() const { return vendor_fd_->get(); }
 
 bool HciTransport::SetUp() {
   int socketpair_fds[2];
 
   const int success = socketpair(AF_LOCAL, SOCK_STREAM, 0, socketpair_fds);
-  if (success < 0)
-    return false;
+  if (success < 0) return false;
   hci_fd_.reset(new base::ScopedFD(socketpair_fds[0]));
   vendor_fd_.reset(new base::ScopedFD(socketpair_fds[1]));
   return true;

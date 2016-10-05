@@ -25,16 +25,13 @@ using std::vector;
 namespace test_vendor_lib {
 
 bool BtAddress::IsValid(const std::string& addr) {
-  if (addr.length() < kStringLength)
-    return false;
+  if (addr.length() < kStringLength) return false;
 
   for (size_t i = 0; i < kStringLength; i++) {
     if (i % 3 == 2) {  // Every third character must be ':'
-      if (addr[i] != ':')
-        return false;
+      if (addr[i] != ':') return false;
     } else {  // The rest must be hexadecimal digits
-      if (!isxdigit(addr[i]))
-        return false;
+      if (!isxdigit(addr[i])) return false;
     }
   }
   return true;
@@ -44,8 +41,7 @@ bool BtAddress::FromString(const std::string& str) {
   std::string tok;
   std::istringstream iss(str);
 
-  if (IsValid(str) == false)
-    return false;
+  if (IsValid(str) == false) return false;
 
   address_ = 0;
   for (size_t i = 0; i < kOctets; i++) {
@@ -57,8 +53,7 @@ bool BtAddress::FromString(const std::string& str) {
 }
 
 bool BtAddress::FromVector(const vector<uint8_t>& octets) {
-  if (octets.size() < kOctets)
-    return false;
+  if (octets.size() < kOctets) return false;
 
   address_ = 0;
   for (size_t i = 0; i < kOctets; i++) {
@@ -81,8 +76,7 @@ std::string BtAddress::ToString() const {
   for (size_t i = 0; i < kOctets; i++) {
     uint64_t octet = (address_ >> (8 * ((kOctets - 1) - i))) & 0xff;
     ss << std::hex << std::setfill('0') << std::setw(2) << octet;
-    if (i != kOctets - 1)
-      ss << std::string(":");
+    if (i != kOctets - 1) ss << std::string(":");
   }
 
   return ss.str();
