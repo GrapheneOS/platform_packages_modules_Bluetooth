@@ -266,15 +266,34 @@ extern uint8_t A2D_BitsSet(uint8_t num);
 *******************************************************************************/
 extern void A2D_Init(void);
 
-// Checks whether the codec capabilities contain a valid A2DP codec.
-// NOTE: only codecs that are implemented are considered valid.
-// Returns true if |p_codec_info| contains information about a valid codec,
-// otherwise false.
-bool A2D_IsValidCodec(const uint8_t *p_codec_info);
-
 // Gets the A2DP codec type.
 // |p_codec_info| contains information about the codec capabilities.
 tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid A2DP source codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid codec,
+// otherwise false.
+bool A2D_IsSourceCodecValid(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid A2DP sink codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid codec,
+// otherwise false.
+bool A2D_IsSinkCodecValid(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid peer A2DP source
+// codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid codec,
+// otherwise false.
+bool A2D_IsPeerSourceCodecValid(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid peer A2DP sink codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid codec,
+// otherwise false.
+bool A2D_IsPeerSinkCodecValid(const uint8_t *p_codec_info);
 
 // Checks whether an A2DP source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.

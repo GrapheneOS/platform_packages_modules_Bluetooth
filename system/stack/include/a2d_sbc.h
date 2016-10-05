@@ -116,11 +116,31 @@ bool A2D_InitCodecConfigSbc(tAVDT_CFG *p_cfg);
 // entry pointed by |p_cfg|.
 bool A2D_InitCodecConfigSbcSink(tAVDT_CFG *p_cfg);
 
-// Checks whether the codec capabilities contain a valid A2DP SBC codec.
+// Checks whether the codec capabilities contain a valid A2DP SBC source codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid SBC codec,
 // otherwise false.
-bool A2D_IsValidCodecSbc(const uint8_t *p_codec_info);
+bool A2D_IsSourceCodecValidSbc(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid A2DP SBC sink codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid SBC codec,
+// otherwise false.
+bool A2D_IsSinkCodecValidSbc(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid peer A2DP SBC source
+// codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid SBC codec,
+// otherwise false.
+bool A2D_IsPeerSourceCodecValidSbc(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid peer A2DP SBC sink
+// codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid SBC codec,
+// otherwise false.
+bool A2D_IsPeerSinkCodecValidSbc(const uint8_t *p_codec_info);
 
 // Checks whether A2DP SBC source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
