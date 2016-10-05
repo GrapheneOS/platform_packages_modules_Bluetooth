@@ -82,9 +82,7 @@ void btm_dev_init (void)
 #endif
 
     /* Initialize nonzero defaults */
-#if (BTM_MAX_LOC_BD_NAME_LEN > 0)
     memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
-#endif
 
     btm_cb.devcb.read_local_name_timer =
         alarm_new("btm.read_local_name_timer");
@@ -449,15 +447,10 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 
     if (!controller_get_interface()->get_is_ready())
         return (BTM_DEV_RESET);
-
-#if BTM_MAX_LOC_BD_NAME_LEN > 0
     /* Save the device name if local storage is enabled */
     p = (uint8_t *)btm_cb.cfg.bd_name;
     if (p != (uint8_t *)p_name)
         strlcpy(btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN);
-#else
-    p = (uint8_t *)p_name;
-#endif
 
     if (btsnd_hcic_change_name(p))
         return (BTM_CMD_STARTED);
@@ -482,13 +475,8 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 *******************************************************************************/
 tBTM_STATUS BTM_ReadLocalDeviceName (char **p_name)
 {
-#if BTM_MAX_LOC_BD_NAME_LEN > 0
     *p_name = btm_cb.cfg.bd_name;
     return(BTM_SUCCESS);
-#else
-    *p_name = NULL;
-    return(BTM_NO_RESOURCES);
-#endif
 }
 
 
