@@ -407,7 +407,12 @@ void A2D_Init(void)
 #endif
 }
 
-bool A2D_IsValidCodec(const uint8_t *p_codec_info)
+tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info)
+{
+    return (tA2D_CODEC_TYPE)(p_codec_info[AVDT_CODEC_TYPE_INDEX]);
+}
+
+bool A2D_IsSourceCodecValid(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
@@ -415,9 +420,9 @@ bool A2D_IsValidCodec(const uint8_t *p_codec_info)
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
-        return A2D_IsValidCodecSbc(p_codec_info);
+        return A2D_IsSourceCodecValidSbc(p_codec_info);
     case A2D_MEDIA_CT_NON_A2DP:
-        return A2D_IsVendorValidCodec(p_codec_info);
+        return A2D_IsVendorSourceCodecValid(p_codec_info);
     default:
         break;
     }
@@ -425,9 +430,58 @@ bool A2D_IsValidCodec(const uint8_t *p_codec_info)
     return false;
 }
 
-tA2D_CODEC_TYPE A2D_GetCodecType(const uint8_t *p_codec_info)
+bool A2D_IsSinkCodecValid(const uint8_t *p_codec_info)
 {
-    return (tA2D_CODEC_TYPE)(p_codec_info[AVDT_CODEC_TYPE_INDEX]);
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_IsSinkCodecValidSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_IsVendorSinkCodecValid(p_codec_info);
+    default:
+        break;
+    }
+
+    return false;
+}
+
+bool A2D_IsPeerSourceCodecValid(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_IsPeerSourceCodecValidSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_IsVendorPeerSourceCodecValid(p_codec_info);
+    default:
+        break;
+    }
+
+    return false;
+}
+
+bool A2D_IsPeerSinkCodecValid(const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_IsPeerSinkCodecValidSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_IsVendorPeerSinkCodecValid(p_codec_info);
+    default:
+        break;
+    }
+
+    return false;
 }
 
 bool A2D_IsSourceCodecSupported(const uint8_t *p_codec_info)
