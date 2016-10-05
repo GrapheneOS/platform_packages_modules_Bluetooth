@@ -131,6 +131,7 @@ extern void         btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, uint16_t *p
 extern uint16_t btm_get_max_packet_size (BD_ADDR addr);
 extern tACL_CONN *btm_bda_to_acl (const BD_ADDR bda, tBT_TRANSPORT transport);
 extern bool       btm_acl_notif_conn_collision (BD_ADDR bda);
+extern void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address);
 
 extern void btm_pm_reset(void);
 extern void btm_pm_sm_alloc(uint8_t ind);
