@@ -305,7 +305,34 @@ bool A2D_InitCodecConfigSbcSink(tAVDT_CFG *p_cfg)
     return true;
 }
 
-bool A2D_IsValidCodecSbc(const uint8_t *p_codec_info)
+bool A2D_IsSourceCodecValidSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE cfg_cie;
+
+    /* Use a liberal check when parsing the codec info */
+    return (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, false) == A2D_SUCCESS) ||
+      (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, true) == A2D_SUCCESS);
+}
+
+bool A2D_IsSinkCodecValidSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE cfg_cie;
+
+    /* Use a liberal check when parsing the codec info */
+    return (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, false) == A2D_SUCCESS) ||
+      (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, true) == A2D_SUCCESS);
+}
+
+bool A2D_IsPeerSourceCodecValidSbc(const uint8_t *p_codec_info)
+{
+    tA2D_SBC_CIE cfg_cie;
+
+    /* Use a liberal check when parsing the codec info */
+    return (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, false) == A2D_SUCCESS) ||
+      (A2D_ParsSbcInfo(&cfg_cie, p_codec_info, true) == A2D_SUCCESS);
+}
+
+bool A2D_IsPeerSinkCodecValidSbc(const uint8_t *p_codec_info)
 {
     tA2D_SBC_CIE cfg_cie;
 
@@ -677,11 +704,28 @@ bool A2D_CodecConfigMatchesCapabilitiesSbc(const uint8_t *p_codec_config,
      * Must match all SBC codec fields except min/max bitpool boundaries which
      * can be adjusted.
      */
-    return (sbc_cie_config.samp_freq & sbc_cie_caps.samp_freq) &&
+    bool result =
+      (sbc_cie_config.samp_freq & sbc_cie_caps.samp_freq) &&
       (sbc_cie_config.ch_mode & sbc_cie_caps.ch_mode) &&
       (sbc_cie_config.block_len & sbc_cie_caps.block_len) &&
       (sbc_cie_config.num_subbands & sbc_cie_caps.num_subbands) &&
       (sbc_cie_config.alloc_method & sbc_cie_caps.alloc_method);
+
+    LOG_DEBUG(LOG_TAG, "%s: result=%s", __func__, result ? "true" : "false");
+    LOG_DEBUG(LOG_TAG, "%s: config samp_freq=0x%x ch_mode=0x%x block_len=0x%x "
+              "num_subbands=0x%x alloc_method=0x%x",
+              __func__,
+              sbc_cie_config.samp_freq, sbc_cie_config.ch_mode,
+              sbc_cie_config.block_len, sbc_cie_config.num_subbands,
+              sbc_cie_config.alloc_method);
+    LOG_DEBUG(LOG_TAG, "%s: caps   samp_freq=0x%x ch_mode=0x%x block_len=0x%x "
+              "num_subbands=0x%x alloc_method=0x%x",
+              __func__,
+              sbc_cie_caps.samp_freq, sbc_cie_caps.ch_mode,
+              sbc_cie_caps.block_len, sbc_cie_caps.num_subbands,
+              sbc_cie_caps.alloc_method);
+
+    return result;
 }
 
 int A2D_GetTrackFrequencySbc(const uint8_t *p_codec_info)

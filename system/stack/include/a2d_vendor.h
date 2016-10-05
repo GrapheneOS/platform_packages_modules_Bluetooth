@@ -40,11 +40,32 @@ extern "C"
 #endif
 
 // Checks whether the codec capabilities contain a valid A2DP vendor-specific
-// codec.
+// source codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid
 // vendor-specific codec, otherwise false.
-bool A2D_IsVendorValidCodec(const uint8_t *p_codec_info);
+bool A2D_IsVendorSourceCodecValid(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid A2DP vendor-specific
+// sink codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid
+// vendor-specific codec, otherwise false.
+bool A2D_IsVendorSinkCodecValid(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid peer A2DP
+// vendor-specific source codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid
+// vendor-specific codec, otherwise false.
+bool A2D_IsVendorPeerSourceCodecValid(const uint8_t *p_codec_info);
+
+// Checks whether the codec capabilities contain a valid peer A2DP
+// vendor-specific sink codec.
+// NOTE: only codecs that are implemented are considered valid.
+// Returns true if |p_codec_info| contains information about a valid
+// vendor-specific codec, otherwise false.
+bool A2D_IsVendorPeerSinkCodecValid(const uint8_t *p_codec_info);
 
 // Checks whether a vendor-specific A2DP source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.

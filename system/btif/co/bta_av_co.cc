@@ -306,7 +306,7 @@ static tA2D_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
     p_peer->num_rx_srcs++;
 
     /* Check the peer's SOURCE codec */
-    if (A2D_IsSinkCodecSupported(p_codec_info)) {
+    if (A2D_IsPeerSourceCodecValid(p_codec_info)) {
         /* If there is room for a new one */
         if (p_peer->num_sup_srcs < BTA_AV_CO_NUM_ELEMENTS(p_peer->srcs))
         {
@@ -430,7 +430,7 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
     p_peer->num_rx_sinks++;
 
     /* Check the peer's SINK codec */
-    if (A2D_IsSourceCodecSupported(p_codec_info)) {
+    if (A2D_IsPeerSinkCodecValid(p_codec_info)) {
         /* If there is room for a new one */
         if (p_peer->num_sup_sinks < BTA_AV_CO_NUM_ELEMENTS(p_peer->sinks)) {
             tBTA_AV_CO_SINK *p_sink = &p_peer->sinks[p_peer->num_sup_sinks++];
@@ -460,7 +460,10 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
         /* Find a sink that matches the codec config */
         const tBTA_AV_CO_SINK *p_sink =
             bta_av_co_find_peer_sink_supports_codec(p_peer);
-        if (p_sink != NULL) {
+        if (p_sink == NULL) {
+            APPL_TRACE_ERROR("%s: cannot find peer SINK for this codec config",
+                             __func__);
+        } else {
             /* stop fetching caps once we retrieved a supported codec */
             if (p_peer->acp) {
                 APPL_TRACE_EVENT("%s: no need to fetch more SEPs", __func__);
@@ -921,7 +924,8 @@ static bool bta_av_co_audio_sink_supports_cp(const tBTA_AV_CO_SINK *p_sink)
 static const tBTA_AV_CO_SINK* bta_av_co_find_peer_sink_supports_codec(
     const tBTA_AV_CO_PEER *p_peer)
 {
-    APPL_TRACE_DEBUG("%s", __func__);
+    APPL_TRACE_DEBUG("%s: peer num_sup_sinks = %d",
+                     __func__, p_peer->num_sup_sinks);
 
     for (size_t index = 0; index < p_peer->num_sup_sinks; index++) {
         if (A2D_CodecConfigMatchesCapabilities(bta_av_co_cb.codec_cfg,
@@ -944,7 +948,8 @@ static const tBTA_AV_CO_SINK* bta_av_co_find_peer_sink_supports_codec(
 static const tBTA_AV_CO_SINK* bta_av_co_find_peer_src_supports_codec(
     const tBTA_AV_CO_PEER *p_peer)
 {
-    APPL_TRACE_DEBUG("%s", __func__);
+    APPL_TRACE_DEBUG("%s: peer num_sup_srcs = %d",
+                     __func__, p_peer->num_sup_srcs);
 
     for (size_t index = 0; index < p_peer->num_sup_srcs; index++) {
         const uint8_t *p_codec_caps = p_peer->srcs[index].codec_caps;
@@ -1159,7 +1164,7 @@ void bta_av_co_audio_encoder_update(tBTIF_MEDIA_UPDATE_AUDIO *msg)
      * Adjust our preferred bitpool with the remote preference if within
      * our capable range.
      */
-    if (A2D_IsValidCodec(bta_av_co_cb.codec_cfg_setconfig) &&
+    if (A2D_IsSourceCodecValid(bta_av_co_cb.codec_cfg_setconfig) &&
         A2D_CodecTypeEquals(p_codec_info, bta_av_co_cb.codec_cfg_setconfig)) {
         int setconfig_min_bitpool =
             A2D_GetMinBitpool(bta_av_co_cb.codec_cfg_setconfig);
