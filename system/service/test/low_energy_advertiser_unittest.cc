@@ -26,84 +26,52 @@
 #include "test/mock_adapter.h"
 
 using ::testing::_;
-using ::testing::Return;
-using ::testing::Pointee;
 using ::testing::DoAll;
+using ::testing::Exactly;
 using ::testing::Invoke;
+using ::testing::Pointee;
+using ::testing::Return;
+using ::testing::SaveArg;
+using ::testing::Matcher;
+using status_cb = base::Callback<void(uint8_t)>;
+using reg_cb =
+    base::Callback<void(uint8_t /* advertiser_id */, uint8_t /* status */)>;
 
 namespace bluetooth {
 namespace {
 
-class MockAdvertiserHandler
-    : public hal::FakeBluetoothGattInterface::TestAdvertiserHandler {
+class MockAdvertiserHandler : public BleAdvertiserInterface {
  public:
-  MockAdvertiserHandler() {
-  }
+  MockAdvertiserHandler() {}
   ~MockAdvertiserHandler() override = default;
 
-  MOCK_METHOD1(RegisterAdvertiser, bt_status_t(bt_uuid_t*));
-  MOCK_METHOD1(UnregisterAdvertiser, bt_status_t(int));
-  MOCK_METHOD6(MultiAdvSetParameters, bt_status_t(int, int, int, int, int, int));
-  MOCK_METHOD7(
-      MultiAdvSetInstDataMock,
-      bt_status_t(bool, bool, bool, int, vector<uint8_t>, vector<uint8_t>,
-                  vector<uint8_t>));
-  MOCK_METHOD3(MultiAdvEnable, bt_status_t(int, bool, int));
+  MOCK_METHOD1(RegisterAdvertiser,
+               void(base::Callback<void(uint8_t /* advertiser_id */,
+                                        uint8_t /* status */)>));
+  MOCK_METHOD1(Unregister, void(uint8_t));
 
-  // GMock has macros for up to 10 arguments (11 is really just too many...).
-  // For now we forward this call to a 10 argument mock, omitting the
-  // |client_if| argument.
-  bt_status_t MultiAdvSetInstData(
-      int /* client_if */,
-      bool set_scan_rsp, bool include_name,
-      bool incl_txpower, int appearance,
-      vector<uint8_t> manufacturer_data,
-      vector<uint8_t> service_data,
-      vector<uint8_t> service_uuid) override {
-    return MultiAdvSetInstDataMock(
-        set_scan_rsp, include_name, incl_txpower, appearance,
-        manufacturer_data, service_data, service_uuid);
-  }
+  MOCK_METHOD10(SetData,
+                void(int advertiser_id, bool set_scan_rsp, bool include_name,
+                     bool include_txpower, int min_interval, int max_interval,
+                     int appearance, vector<uint8_t> manufacturer_data,
+                     vector<uint8_t> service_data,
+                     vector<uint8_t> service_uuid));
+  MOCK_METHOD7(MultiAdvSetParameters,
+               void(int advertiser_id, int min_interval, int max_interval,
+                    int adv_type, int chnl_map, int tx_power,
+                    BleAdvertiserCb cb));
+  MOCK_METHOD9(MultiAdvSetInstData,
+               void(int advertiser_id, bool set_scan_rsp, bool include_name,
+                    bool incl_txpower, int appearance,
+                    vector<uint8_t> manufacturer_data,
+                    vector<uint8_t> service_data, vector<uint8_t> service_uuid,
+                    BleAdvertiserCb cb));
+  MOCK_METHOD5(MultiAdvEnable,
+               void(uint8_t advertiser_id, bool enable, BleAdvertiserCb cb,
+                    int timeout_s, BleAdvertiserCb timeout_cb));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockAdvertiserHandler);
-};
-
-// Created this class for testing Advertising Data Setting
-// It provides a work around in order to verify the arguments
-// in the arrays passed to MultiAdvSetInstData due to mocks
-// not having an easy way to verify entire arrays
-class AdvertiseDataHandler : public MockAdvertiserHandler {
- public:
-  AdvertiseDataHandler() : call_count_(0) {}
-  ~AdvertiseDataHandler() override = default;
-
-  bt_status_t MultiAdvSetInstData(
-      int /* client_if */,
-      bool set_scan_rsp, bool include_name,
-      bool incl_txpower, int appearance,
-      vector<uint8_t> manufacturer_data,
-      vector<uint8_t> service_data,
-      vector<uint8_t> service_uuid) override {
-    call_count_++;
-    service_data_ = std::move(service_data);
-    manufacturer_data_ = std::move(manufacturer_data);
-    uuid_data_ = std::move(service_uuid);
-    return BT_STATUS_SUCCESS;
-  }
-
-  const std::vector<uint8_t>& manufacturer_data() const {
-    return manufacturer_data_;
-  }
-  const std::vector<uint8_t>& service_data() const { return service_data_; }
-  const std::vector<uint8_t>& uuid_data() const { return uuid_data_; }
-  int call_count() const { return call_count_; }
-
- private:
-  int call_count_;
-  std::vector<uint8_t> manufacturer_data_;
-  std::vector<uint8_t> service_data_;
-  std::vector<uint8_t> uuid_data_;
 };
 
 class LowEnergyAdvertiserTest : public ::testing::Test {
@@ -113,26 +81,22 @@ class LowEnergyAdvertiserTest : public ::testing::Test {
 
   void SetUp() override {
     // Only set |mock_handler_| if a test hasn't set it.
-    if (!mock_handler_)
-        mock_handler_.reset(new MockAdvertiserHandler());
-    fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
-        std::static_pointer_cast<
-            hal::FakeBluetoothGattInterface::TestAdvertiserHandler>(mock_handler_),
-        nullptr,
-        nullptr);
-    hal::BluetoothGattInterface::InitializeForTesting(fake_hal_gatt_iface_);
-    ble_factory_.reset(new LowEnergyAdvertiserFactory());
+    if (!mock_handler_) mock_handler_.reset(new MockAdvertiserHandler());
+    hal::BluetoothGattInterface::InitializeForTesting(
+        new hal::FakeBluetoothGattInterface(
+            std::static_pointer_cast<BleAdvertiserInterface>(mock_handler_),
+            nullptr, nullptr));
+    ble_advertiser_factory_.reset(new LowEnergyAdvertiserFactory());
   }
 
   void TearDown() override {
-    ble_factory_.reset();
+    ble_advertiser_factory_.reset();
     hal::BluetoothGattInterface::CleanUp();
   }
 
  protected:
-  hal::FakeBluetoothGattInterface* fake_hal_gatt_iface_;
   std::shared_ptr<MockAdvertiserHandler> mock_handler_;
-  std::unique_ptr<LowEnergyAdvertiserFactory> ble_factory_;
+  std::unique_ptr<LowEnergyAdvertiserFactory> ble_advertiser_factory_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LowEnergyAdvertiserTest);
@@ -141,8 +105,7 @@ class LowEnergyAdvertiserTest : public ::testing::Test {
 // Used for tests that operate on a pre-registered advertiser.
 class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
  public:
-  LowEnergyAdvertiserPostRegisterTest() : next_client_id_(0) {
-  }
+  LowEnergyAdvertiserPostRegisterTest() : next_client_id_(0) {}
   ~LowEnergyAdvertiserPostRegisterTest() override = default;
 
   void SetUp() override {
@@ -154,12 +117,8 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
   }
 
   void TearDown() override {
-    EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, false, _))
-        .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
-    EXPECT_CALL(*mock_handler_, UnregisterAdvertiser(_))
-        .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
+    EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, false, _, _, _)).Times(1);
+    EXPECT_CALL(*mock_handler_, Unregister(_)).Times(1);
     le_advertiser_.reset();
     LowEnergyAdvertiserTest::TearDown();
   }
@@ -178,15 +137,14 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
           static_cast<LowEnergyAdvertiser*>(in_client.release())));
     };
 
+    reg_cb reg_adv_cb;
     EXPECT_CALL(*mock_handler_, RegisterAdvertiser(_))
         .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
+        .WillOnce(SaveArg<0>(&reg_adv_cb));
 
-    ble_factory_->RegisterInstance(uuid, api_callback);
+    ble_advertiser_factory_->RegisterInstance(uuid, api_callback);
 
-    bt_uuid_t hal_uuid = uuid.GetBlueDroid();
-    fake_hal_gatt_iface_->NotifyRegisterAdvertiserCallback(
-        0, next_client_id_++, hal_uuid);
+    reg_adv_cb.Run(next_client_id_++, BT_STATUS_SUCCESS);
     ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
   }
 
@@ -195,16 +153,18 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
     ASSERT_FALSE(le_advertiser_->IsStartingAdvertising());
     ASSERT_FALSE(le_advertiser_->IsStoppingAdvertising());
 
-    EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _))
+    status_cb set_params_cb;
+    EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
         .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
-    EXPECT_CALL(*mock_handler_,
-                MultiAdvSetInstDataMock(_, _, _, _, _, _, _))
+        .WillOnce(SaveArg<6>(&set_params_cb));
+    status_cb set_data_cb;
+    EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _, _, _, _, _, _))
         .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
-    EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, true, _))
+        .WillOnce(SaveArg<8>(&set_data_cb));
+    status_cb enable_cb;
+    EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, true, _, _, _))
         .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
+        .WillOnce(SaveArg<2>(&enable_cb));
 
     AdvertiseSettings settings;
     AdvertiseData adv, scan_rsp;
@@ -212,31 +172,44 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
         settings, adv, scan_rsp, LowEnergyAdvertiser::StatusCallback()));
     ASSERT_TRUE(le_advertiser_->IsStartingAdvertising());
 
-    fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-        le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-    fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-        le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-    fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-        le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS, true);
+    set_params_cb.Run(BT_STATUS_SUCCESS);
+    set_data_cb.Run(BT_STATUS_SUCCESS);
+    enable_cb.Run(BT_STATUS_SUCCESS);
 
     ASSERT_TRUE(le_advertiser_->IsAdvertisingStarted());
     ASSERT_FALSE(le_advertiser_->IsStartingAdvertising());
     ASSERT_FALSE(le_advertiser_->IsStoppingAdvertising());
   }
 
-  void AdvertiseDataTestHelper(AdvertiseData data, std::function<void(BLEStatus)> callback) {
+  void AdvertiseDataTestHelper(AdvertiseData data, std::function<void(BLEStatus)> callback, status_cb *set_data_cb) {
     AdvertiseSettings settings;
+
+    LOG_ASSERT(set_data_cb) << "set_data_cb must be set";
+
+    status_cb set_params_cb;
+    EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
+        .Times(1)
+        .WillOnce(SaveArg<6>(&set_params_cb));
+
+    status_cb enable_cb;
+    EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, true, _, _, _))
+        .Times(1)
+        .WillOnce(SaveArg<2>(&enable_cb));
+
     EXPECT_TRUE(le_advertiser_->StartAdvertising(
         settings, data, AdvertiseData(), callback));
-    fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-        le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-    fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-        le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-    fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-        le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS, true);
+
+    set_params_cb.Run(BT_STATUS_SUCCESS);
+    set_data_cb->Run(BT_STATUS_SUCCESS);
+    enable_cb.Run(BT_STATUS_SUCCESS);
+
+    status_cb disable_cb;
+    EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, false, _, _, _))
+        .Times(1)
+        .WillOnce(SaveArg<2>(&disable_cb));
+
     EXPECT_TRUE(le_advertiser_->StopAdvertising(LowEnergyAdvertiser::StatusCallback()));
-    fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-        le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS, false);
+    disable_cb.Run(BT_STATUS_SUCCESS);
   }
 
  protected:
@@ -249,11 +222,6 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
 };
 
 TEST_F(LowEnergyAdvertiserTest, RegisterInstance) {
-  EXPECT_CALL(*mock_handler_, RegisterAdvertiser(_))
-      .Times(2)
-      .WillOnce(Return(BT_STATUS_FAIL))
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-
   // These will be asynchronously populated with a result when the callback
   // executes.
   BLEStatus status = BLE_STATUS_SUCCESS;
@@ -272,38 +240,32 @@ TEST_F(LowEnergyAdvertiserTest, RegisterInstance) {
 
   UUID uuid0 = UUID::GetRandom();
 
-  // HAL returns failure.
-  EXPECT_FALSE(ble_factory_->RegisterInstance(uuid0, callback));
-  EXPECT_EQ(0, callback_count);
+  reg_cb reg_adv1_cb;
+  EXPECT_CALL(*mock_handler_, RegisterAdvertiser(_))
+      .Times(1)
+      .WillOnce(SaveArg<0>(&reg_adv1_cb));
 
-  // HAL returns success.
-  EXPECT_TRUE(ble_factory_->RegisterInstance(uuid0, callback));
+  // Success.
+  EXPECT_TRUE(ble_advertiser_factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
 
   // Calling twice with the same UUID should fail with no additional call into
   // the stack.
-  EXPECT_FALSE(ble_factory_->RegisterInstance(uuid0, callback));
+  EXPECT_FALSE(ble_advertiser_factory_->RegisterInstance(uuid0, callback));
 
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // Call with a different UUID while one is pending.
   UUID uuid1 = UUID::GetRandom();
+  reg_cb reg_adv2_cb;
   EXPECT_CALL(*mock_handler_, RegisterAdvertiser(_))
       .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(ble_factory_->RegisterInstance(uuid1, callback));
-
-  // Trigger callback with an unknown UUID. This should get ignored.
-  UUID uuid2 = UUID::GetRandom();
-  bt_uuid_t hal_uuid = uuid2.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterAdvertiserCallback(0, 0, hal_uuid);
-  EXPECT_EQ(0, callback_count);
+      .WillOnce(SaveArg<0>(&reg_adv2_cb));
+  EXPECT_TRUE(ble_advertiser_factory_->RegisterInstance(uuid1, callback));
 
   // |uuid0| succeeds.
   int client_if0 = 2;  // Pick something that's not 0.
-  hal_uuid = uuid0.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterAdvertiserCallback(
-      BT_STATUS_SUCCESS, client_if0, hal_uuid);
+  reg_adv1_cb.Run(client_if0, BT_STATUS_SUCCESS);
 
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(advertiser.get() != nullptr);  // Assert to terminate in case of error
@@ -313,20 +275,16 @@ TEST_F(LowEnergyAdvertiserTest, RegisterInstance) {
   EXPECT_EQ(uuid0, cb_uuid);
 
   // The advertiser should unregister itself when deleted.
-  EXPECT_CALL(*mock_handler_, MultiAdvEnable(client_if0, false, _))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_CALL(*mock_handler_, UnregisterAdvertiser(client_if0))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_, MultiAdvEnable(client_if0, false, _, _, _))
+      .Times(1);
+  EXPECT_CALL(*mock_handler_, Unregister(client_if0))
+      .Times(1);
   advertiser.reset();
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // |uuid1| fails.
-  int client_if1 = 3;
-  hal_uuid = uuid1.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterAdvertiserCallback(
-      BT_STATUS_FAIL, client_if1, hal_uuid);
+  uint8_t client_if1 = 10;
+  reg_adv2_cb.Run(client_if1, BT_STATUS_FAIL);
 
   EXPECT_EQ(2, callback_count);
   ASSERT_TRUE(advertiser.get() == nullptr);  // Assert to terminate in case of error
@@ -349,22 +307,15 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
     callback_count++;
   };
 
-  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _))
-      .Times(5)
-      .WillOnce(Return(BT_STATUS_FAIL))
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
-
-  // Stack call returns failure.
-  EXPECT_FALSE(le_advertiser_->StartAdvertising(
-      settings, adv_data, scan_rsp, callback));
-  EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
-  EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
-  EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(0, callback_count);
+  status_cb set_params_cb;
+  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
+      .Times(3)
+      .WillRepeatedly(SaveArg<6>(&set_params_cb));
 
   // Stack call returns success.
   EXPECT_TRUE(le_advertiser_->StartAdvertising(
       settings, adv_data, scan_rsp, callback));
+
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_TRUE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
@@ -375,8 +326,8 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
       settings, adv_data, scan_rsp, callback));
 
   // Notify failure.
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_FAIL);
+  set_params_cb.Run(BT_STATUS_FAIL);
+
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
@@ -392,50 +343,30 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
   EXPECT_EQ(1, callback_count);
 
   // Success notification should trigger advertise data update.
+  status_cb set_data_cb;
   EXPECT_CALL(*mock_handler_,
-              MultiAdvSetInstDataMock(
+              MultiAdvSetInstData(_,
                   false,  // set_scan_rsp
                   false,  // include_name
                   false,  // incl_txpower
-                  _, _, _, _))
-      .Times(3)
-      .WillOnce(Return(BT_STATUS_FAIL))
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+                  _, _, _, _, _))
+      .Times(2)
+      .WillRepeatedly(SaveArg<8>(&set_data_cb));
 
-  // Notify success for setting params. The procedure will fail since setting data will
-  // fail.
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
-  EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
-  EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(2, callback_count);
-  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
-
-  // Try again.
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(
-      settings, adv_data, scan_rsp, callback));
-  EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
-  EXPECT_TRUE(le_advertiser_->IsStartingAdvertising());
-  EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(2, callback_count);
-
-  // Notify success for enable. the advertise data call should succeed but
+  // Notify success for set params. the advertise data call should succeed but
   // operation will remain pending.
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
+  set_params_cb.Run(BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_TRUE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(2, callback_count);
+  EXPECT_EQ(1, callback_count);
 
   // Notify failure from advertising call.
-  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_FAIL);
+  set_data_cb.Run(BT_STATUS_FAIL);
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(3, callback_count);
+  EXPECT_EQ(2, callback_count);
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
 
   // Try again. Make everything succeed.
@@ -444,22 +375,20 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_TRUE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(3, callback_count);
+  EXPECT_EQ(2, callback_count);
 
-  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, true, _))
+  status_cb enable_cb;
+  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, true, _, _, _))
       .Times(1)
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+      .WillOnce(SaveArg<2>(&enable_cb));
 
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS, true);
+  set_params_cb.Run(BT_STATUS_SUCCESS);
+  set_data_cb.Run(BT_STATUS_SUCCESS);
+  enable_cb.Run(BT_STATUS_SUCCESS);
   EXPECT_TRUE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(4, callback_count);
+  EXPECT_EQ(3, callback_count);
   EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
 
   // Already started.
@@ -484,17 +413,10 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StopAdvertisingBasic) {
     callback_count++;
   };
 
-  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, false, _))
-      .Times(3)
-      .WillOnce(Return(BT_STATUS_FAIL))
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
-
-  // Stack call returns failure.
-  EXPECT_FALSE(le_advertiser_->StopAdvertising(callback));
-  EXPECT_TRUE(le_advertiser_->IsAdvertisingStarted());
-  EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
-  EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
-  EXPECT_EQ(0, callback_count);
+  status_cb enable_cb;
+  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, false, _, _, _))
+      .Times(2)
+      .WillRepeatedly(SaveArg<2>(&enable_cb));
 
   // Stack returns success.
   EXPECT_TRUE(le_advertiser_->StopAdvertising(callback));
@@ -511,8 +433,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StopAdvertisingBasic) {
   EXPECT_EQ(0, callback_count);
 
   // Notify failure.
-  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_FAIL, false);
+  enable_cb.Run(BT_STATUS_FAIL);
   EXPECT_TRUE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
@@ -527,8 +448,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StopAdvertisingBasic) {
   EXPECT_EQ(1, callback_count);
 
   // Notify success.
-  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS, false);
+  enable_cb.Run(BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_FALSE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
@@ -559,9 +479,8 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, InvalidAdvertiseData) {
   const std::vector<uint8_t> data2{ 0x01, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE };
   AdvertiseData invalid_mfc(data2);
 
-  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
+      .Times(1);
   EXPECT_TRUE(le_advertiser_->StartAdvertising(
       settings, invalid_mfc, valid_adv, LowEnergyAdvertiser::StatusCallback()));
 }
@@ -595,65 +514,62 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, ScanResponse) {
   AdvertiseData adv1(data1);
   adv1.set_include_device_name(true);
 
+  status_cb set_params_cb;
   EXPECT_CALL(*mock_handler_,
               MultiAdvSetParameters(le_advertiser_->GetInstanceId(), _, _,
                              kAdvertisingEventTypeScannable,
-                             _, _))
+                             _, _, _))
       .Times(2)
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+      .WillRepeatedly(SaveArg<6>(&set_params_cb));
+  status_cb set_adv_data_cb;
   EXPECT_CALL(
       *mock_handler_,
-      MultiAdvSetInstDataMock(
+      MultiAdvSetInstData(_,
           false,  // set_scan_rsp
           false,  // include_name
           true,  // incl_txpower,
           _,
           // 0,  // 0 bytes
           _,
-          _, _))
+          _, _, _))
       .Times(2)
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+      .WillRepeatedly(SaveArg<8>(&set_adv_data_cb));
+  status_cb set_scan_rsp_cb;
   EXPECT_CALL(
       *mock_handler_,
-      MultiAdvSetInstDataMock(
+      MultiAdvSetInstData(_,
           true,  // set_scan_rsp
           true,  // include_name
           false,  // incl_txpower,
           _,
           // data1.size() - 2,  // Mfc. Specific data field bytes.
           _,
-          _, _))
+          _, _, _))
       .Times(2)
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+      .WillRepeatedly(SaveArg<8>(&set_scan_rsp_cb));
 
   // Enable success; Adv. data success; Scan rsp. fail.
   EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, adv0, adv1, callback));
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_FAIL);
+  set_params_cb.Run(BT_STATUS_SUCCESS);
+  set_adv_data_cb.Run(BT_STATUS_SUCCESS);
+  set_adv_data_cb.Run(BT_STATUS_FAIL);
 
   EXPECT_EQ(1, callback_count);
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
 
+  status_cb enable_cb;
   EXPECT_CALL(*mock_handler_,
-              MultiAdvEnable(le_advertiser_->GetInstanceId(), true, _))
+              MultiAdvEnable(le_advertiser_->GetInstanceId(), true, _, _, _))
       .Times(1)
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+      .WillOnce(SaveArg<2>(&enable_cb));
 
   // Second time everything succeeds.
   EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, adv0, adv1, callback));
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS, true);
+  set_params_cb.Run(BT_STATUS_SUCCESS);
+  set_adv_data_cb.Run(BT_STATUS_SUCCESS);
+  set_adv_data_cb.Run(BT_STATUS_SUCCESS);
+  enable_cb.Run(BT_STATUS_SUCCESS);
 
   EXPECT_EQ(2, callback_count);
   EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
@@ -661,12 +577,6 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, ScanResponse) {
 }
 
 TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
-  // Re-initialize the test with our own custom handler.
-  TearDown();
-  std::shared_ptr<AdvertiseDataHandler> adv_handler(new AdvertiseDataHandler());
-  mock_handler_ = std::static_pointer_cast<MockAdvertiserHandler>(adv_handler);
-  SetUp();
-
   const std::vector<uint8_t> kUUID16BitData{
     0x03, HCI_EIR_COMPLETE_16BITS_UUID_TYPE, 0xDE, 0xAD,
   };
@@ -741,102 +651,128 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
     callback_count++;
   };
 
-  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _))
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
-  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, false, 0))
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
-  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, true, _))
-      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+  status_cb set_params_cb;
+  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
+      .WillOnce(SaveArg<6>(&set_params_cb))
+      .WillOnce(SaveArg<6>(&set_params_cb));
+
+  // Make sure no call to set data .
+  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _, _, _, _, _, _))
+      .Times(Exactly(0));
 
   // Multiple UUID test, should fail due to only one UUID allowed
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(
-              settings, multi_uuid_adv, AdvertiseData(), callback));
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-          le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
+  EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, multi_uuid_adv,
+                                               AdvertiseData(), callback));
+  set_params_cb.Run(BT_STATUS_SUCCESS);
   EXPECT_EQ(1, callback_count);
-  EXPECT_EQ(0, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
 
-  // Multiple Service Data test, should fail due to only one service data allowed
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(
-              settings, multi_uuid_adv, AdvertiseData(), callback));
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-          le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
+  // Make sure no call to set data .
+  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _, _, _, _, _, _))
+      .Times(Exactly(0));
+
+  // Multiple Service Data test, should fail due to only one service data
+  // allowed
+  EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, multi_uuid_adv,
+                                               AdvertiseData(), callback));
+  set_params_cb.Run(BT_STATUS_SUCCESS);
   EXPECT_EQ(2, callback_count);
-  EXPECT_EQ(0, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+
+  status_cb set_data_cb;
 
   // 16bit uuid test, should succeed with correctly parsed uuid in little-endian
   // 128-bit format.
-  AdvertiseDataTestHelper(uuid_16bit_adv, callback);
-  EXPECT_EQ(3, callback_count);
-  EXPECT_EQ(1, adv_handler->call_count());
   const std::vector<uint8_t> uuid_16bit_canonical{
-    0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00,
-    0xDE, 0xAD, 0x00, 0x00
-  };
-  EXPECT_EQ(uuid_16bit_canonical, adv_handler->uuid_data());
+      0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80,
+      0x00, 0x10, 0x00, 0x00, 0xDE, 0xAD, 0x00, 0x00};
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvSetInstData(_, _, _, _, _, _, _, uuid_16bit_canonical, _))
+      .Times(1)
+      .WillOnce(SaveArg<8>(&set_data_cb));
+  AdvertiseDataTestHelper(uuid_16bit_adv, callback, &set_data_cb);
+  EXPECT_EQ(3, callback_count);
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // 32bit uuid test, should succeed with correctly parsed uuid
-  AdvertiseDataTestHelper(uuid_32bit_adv, callback);
-  EXPECT_EQ(4, callback_count);
-  EXPECT_EQ(2, adv_handler->call_count());
   const std::vector<uint8_t> uuid_32bit_canonical{
     0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00,
     0xDE, 0xAD, 0x01, 0x02
   };
-  EXPECT_EQ(uuid_32bit_canonical, adv_handler->uuid_data());
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvSetInstData(_, _, _, _, _, _, _, uuid_32bit_canonical, _))
+      .Times(1)
+      .WillOnce(SaveArg<8>(&set_data_cb));
+  AdvertiseDataTestHelper(uuid_32bit_adv, callback, &set_data_cb);
+  EXPECT_EQ(4, callback_count);
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // 128bit uuid test, should succeed with correctly parsed uuid
-  AdvertiseDataTestHelper(uuid_128bit_adv, callback);
-  EXPECT_EQ(5, callback_count);
-  EXPECT_EQ(3, adv_handler->call_count());
   const std::vector<uint8_t> uuid_128bit{
     0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
     0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E
   };
-  EXPECT_EQ(uuid_128bit, adv_handler->uuid_data());
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvSetInstData(_, _, _, _, _, _, _, uuid_128bit, _))
+      .Times(1)
+      .WillOnce(SaveArg<8>(&set_data_cb));
+  AdvertiseDataTestHelper(uuid_128bit_adv, callback, &set_data_cb);
+  EXPECT_EQ(5, callback_count);
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
-  const std::vector<uint8_t> service_data{ 0xBE, 0xEF };
+  const std::vector<uint8_t> service_data{0xBE, 0xEF};
 
   // Service data with 16bit uuid included, should succeed with
   // uuid and service data parsed out
-  AdvertiseDataTestHelper(service_16bit_adv, callback);
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvSetInstData(_, _, _, _, _, _, service_data,
+                                  uuid_16bit_canonical, _))
+      .Times(1)
+      .WillOnce(SaveArg<8>(&set_data_cb));
+  AdvertiseDataTestHelper(service_16bit_adv, callback, &set_data_cb);
   EXPECT_EQ(6, callback_count);
-  EXPECT_EQ(4, adv_handler->call_count());
-  EXPECT_EQ(service_data, adv_handler->service_data());
-  EXPECT_EQ(uuid_16bit_canonical, adv_handler->uuid_data());
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // Service data with 32bit uuid included, should succeed with
   // uuid and service data parsed out
-  AdvertiseDataTestHelper(service_32bit_adv, callback);
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvSetInstData(_, _, _, _, _, _, service_data,
+                                  uuid_32bit_canonical, _))
+      .Times(1)
+      .WillOnce(SaveArg<8>(&set_data_cb));
+  AdvertiseDataTestHelper(service_32bit_adv, callback, &set_data_cb);
   EXPECT_EQ(7, callback_count);
-  EXPECT_EQ(5, adv_handler->call_count());
-  EXPECT_EQ(service_data, adv_handler->service_data());
-  EXPECT_EQ(uuid_32bit_canonical, adv_handler->uuid_data());
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // Service data with 128bit uuid included, should succeed with
   // uuid and service data parsed out
-  AdvertiseDataTestHelper(service_128bit_adv, callback);
+  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _, _, _,
+                                                  service_data, uuid_128bit, _))
+      .Times(1)
+      .WillOnce(SaveArg<8>(&set_data_cb));
+  AdvertiseDataTestHelper(service_128bit_adv, callback, &set_data_cb);
   EXPECT_EQ(8, callback_count);
-  EXPECT_EQ(6, adv_handler->call_count());
-  EXPECT_EQ(service_data, adv_handler->service_data());
-  EXPECT_EQ(uuid_128bit, adv_handler->uuid_data());
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // Service data and UUID where the UUID for both match, should succeed.
-  AdvertiseDataTestHelper(service_uuid_match, callback);
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvSetInstData(_, _, _, _, _, _, service_data,
+                                  uuid_32bit_canonical, _))
+      .Times(1)
+      .WillOnce(SaveArg<8>(&set_data_cb));
+  AdvertiseDataTestHelper(service_uuid_match, callback, &set_data_cb);
   EXPECT_EQ(9, callback_count);
-  EXPECT_EQ(7, adv_handler->call_count());
-  EXPECT_EQ(service_data, adv_handler->service_data());
-  EXPECT_EQ(uuid_32bit_canonical, adv_handler->uuid_data());
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+
+  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
+      .Times(1)
+      .WillOnce(SaveArg<6>(&set_params_cb));
 
   // Service data and UUID where the UUID for dont match, should fail
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(
-              settings, service_uuid_mismatch, AdvertiseData(), callback));
-  fake_hal_gatt_iface_->NotifyMultiAdvSetParamsCallback(
-      le_advertiser_->GetInstanceId(), BT_STATUS_SUCCESS);
+  EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, service_uuid_mismatch,
+                                               AdvertiseData(), callback));
+  set_params_cb.Run(BT_STATUS_SUCCESS);
   EXPECT_EQ(10, callback_count);
-  EXPECT_EQ(7, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
 }
 

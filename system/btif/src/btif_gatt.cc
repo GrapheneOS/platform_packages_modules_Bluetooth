@@ -58,7 +58,6 @@ const btgatt_callbacks_t *bt_gatt_callbacks = NULL;
 static bt_status_t btif_gatt_init( const btgatt_callbacks_t* callbacks )
 {
     bt_gatt_callbacks = callbacks;
-
     return BT_STATUS_SUCCESS;
 }
 
@@ -80,7 +79,7 @@ static void  btif_gatt_cleanup( void )
     BTA_GATTS_Disable();
 }
 
-static const btgatt_interface_t btgattInterface = {
+static btgatt_interface_t btgattInterface = {
     sizeof(btgattInterface),
 
     btif_gatt_init,
@@ -88,7 +87,7 @@ static const btgatt_interface_t btgattInterface = {
 
     &btgattClientInterface,
     &btgattServerInterface,
-    &btLeAdvertiserInstance
+    nullptr //filled in btif_gatt_get_interface
 };
 
 /*******************************************************************************
@@ -102,7 +101,11 @@ static const btgatt_interface_t btgattInterface = {
 *******************************************************************************/
 const btgatt_interface_t *btif_gatt_get_interface()
 {
-    return &btgattInterface;
+  // TODO(jpawlowski) right now initializing advertiser field in static
+  // structure cause explosion of dependencies. It must be initialized here
+  // until those dependencies are properly abstracted for tests.
+  btgattInterface.advertiser = get_ble_advertiser_instance();
+  return &btgattInterface;
 }
 
 #endif
