@@ -24,6 +24,9 @@
 #include "stack/include/ble_advertiser.h"
 
 using ::testing::_;
+using ::testing::Args;
+using ::testing::ElementsAreArray;
+using ::testing::IsEmpty;
 using ::testing::SaveArg;
 using status_cb = BleAdvertiserHciInterface::status_cb;
 
@@ -46,10 +49,6 @@ bool SMP_Encrypt(uint8_t *key, uint8_t key_len, uint8_t *plain_text,
 }
 void BTM_GetDeviceIDRoot(BT_OCTET16 irk) {}
 tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode) { return 0; }
-uint8_t *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, uint8_t **p_dst,
-                                tBTM_BLE_ADV_DATA *p_data) {
-  return nullptr;
-}
 void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
                                   const uint16_t connect_mode,
                                   const uint16_t disc_mode) {}
@@ -63,6 +62,7 @@ void alarm_set_on_queue(alarm_t *alarm, period_ms_t interval_ms,
 }
 void alarm_cancel(alarm_t *alarm) {}
 alarm_t *alarm_new_periodic(const char *name) { return nullptr; }
+alarm_t *alarm_new(const char *name) { return nullptr; }
 void alarm_free(alarm_t *alarm) {}
 const controller_t *controller_get_interface() { return nullptr; }
 fixed_queue_t *btu_general_alarm_queue = nullptr;
@@ -74,8 +74,10 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
   AdvertiserHciMock() = default;
   ~AdvertiserHciMock() override = default;
 
-  MOCK_METHOD4(SetAdvertisingData, void(uint8_t, uint8_t *, uint8_t, status_cb));
-  MOCK_METHOD4(SetScanResponseData, void(uint8_t, uint8_t *, uint8_t, status_cb));
+  MOCK_METHOD4(SetAdvertisingData,
+               void(uint8_t, uint8_t *, uint8_t, status_cb));
+  MOCK_METHOD4(SetScanResponseData,
+               void(uint8_t, uint8_t *, uint8_t, status_cb));
   MOCK_METHOD3(SetRandomAddress, void(BD_ADDR, uint8_t, status_cb));
   MOCK_METHOD3(Enable, void(uint8_t, uint8_t, status_cb));
 
@@ -85,15 +87,15 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
                void(BD_ADDR, uint8_t, uint8_t, uint8_t, uint8_t, status_cb));
 
   void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
-                 uint8_t advertising_type, uint8_t own_address_type,
-                 BD_ADDR own_address, uint8_t direct_address_type,
-                 BD_ADDR direct_address, uint8_t channel_map,
-                 uint8_t filter_policy, uint8_t instance, uint8_t tx_power,
-                 status_cb cmd_complete) override {
+                     uint8_t advertising_type, uint8_t own_address_type,
+                     BD_ADDR own_address, uint8_t direct_address_type,
+                     BD_ADDR direct_address, uint8_t channel_map,
+                     uint8_t filter_policy, uint8_t instance, uint8_t tx_power,
+                     status_cb cmd_complete) override {
     SetParameters1(adv_int_min, adv_int_max, advertising_type, own_address_type,
-               own_address, direct_address_type);
-    SetParameters2(direct_address, channel_map, filter_policy, instance, tx_power,
-               cmd_complete);
+                   own_address, direct_address_type);
+    SetParameters2(direct_address, channel_map, filter_policy, instance,
+                   tx_power, cmd_complete);
   };
 
  private:
@@ -188,7 +190,7 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
       .Times(1)
       .WillOnce(SaveArg<3>(&set_data_cb));
   BleAdvertisingManager::Get()->SetData(
-      advertiser_id, false, 0, nullptr,
+      advertiser_id, false, std::vector<uint8_t>(),
       base::Bind(&BleAdvertisingManagerTest::SetDataCb,
                  base::Unretained(this)));
   set_data_cb.Run(0);
@@ -201,7 +203,8 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
       .WillOnce(SaveArg<2>(&enable_cb));
   BleAdvertisingManager::Get()->Enable(
       advertiser_id, true,
-      base::Bind(&BleAdvertisingManagerTest::EnableCb, base::Unretained(this)));
+      base::Bind(&BleAdvertisingManagerTest::EnableCb, base::Unretained(this)),
+      0, base::Callback<void(uint8_t)>());
   enable_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, enable_status);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
@@ -214,5 +217,96 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
   BleAdvertisingManager::Get()->Unregister(advertiser_id);
   enable_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, enable_status);
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+}
+
+/* This test verifies that when advertising data is set, tx power and flags will
+ * be properly filled. */
+TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
+  BleAdvertisingManager::Get()->RegisterAdvertiser(base::Bind(
+      &BleAdvertisingManagerTest::RegistrationCb, base::Unretained(this)));
+  EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, reg_status);
+  int advertiser_id = reg_inst_id;
+
+  status_cb set_params_cb;
+  tBTM_BLE_ADV_PARAMS params;
+  params.adv_type = BTM_BLE_CONNECT_EVT;
+  params.tx_power = -15;
+  EXPECT_CALL(*hci_mock, SetParameters1(_, _, _, _, _, _)).Times(1);
+  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, advertiser_id,
+                                        (uint8_t)params.tx_power, _))
+      .Times(1)
+      .WillOnce(SaveArg<5>(&set_params_cb));
+  BleAdvertisingManager::Get()->SetParameters(
+      advertiser_id, &params,
+      base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
+                 base::Unretained(this)));
+
+  // let the set parameters command succeed!
+  set_params_cb.Run(0);
+  EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
+  status_cb set_data_cb;
+  /* verify that flags will be added, and tx power filled, if call to SetData
+   * contained only tx power, and the advertisement is connectable */
+  uint8_t expected_adv_data[] = {0x02 /* len */,         0x01 /* flags */,
+                                 0x02 /* flags value */, 0x02 /* len */,
+                                 0x0A /* tx_power */,    params.tx_power};
+  EXPECT_CALL(*hci_mock, SetAdvertisingData(_, _, advertiser_id, _))
+      .With(Args<1, 0>(ElementsAreArray(expected_adv_data)))
+      .Times(1)
+      .WillOnce(SaveArg<3>(&set_data_cb));
+  BleAdvertisingManager::Get()->SetData(
+      advertiser_id, false,
+      std::vector<uint8_t>({0x02 /* len */, 0x0A /* tx_power */, 0x00}),
+      base::Bind(&BleAdvertisingManagerTest::SetDataCb,
+                 base::Unretained(this)));
+  set_data_cb.Run(0);
+  EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_data_status);
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+}
+
+/* This test verifies that when advertising is non-connectable, flags will not
+ * be added. */
+TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
+  BleAdvertisingManager::Get()->RegisterAdvertiser(base::Bind(
+      &BleAdvertisingManagerTest::RegistrationCb, base::Unretained(this)));
+  EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, reg_status);
+  int advertiser_id = reg_inst_id;
+
+  status_cb set_params_cb;
+  tBTM_BLE_ADV_PARAMS params;
+  params.adv_type = BTM_BLE_NON_CONNECT_EVT;
+  params.tx_power = -15;
+  EXPECT_CALL(*hci_mock, SetParameters1(_, _, _, _, _, _)).Times(1);
+  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, advertiser_id,
+                                        (uint8_t)params.tx_power, _))
+      .Times(1)
+      .WillOnce(SaveArg<5>(&set_params_cb));
+  BleAdvertisingManager::Get()->SetParameters(
+      advertiser_id, &params,
+      base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
+                 base::Unretained(this)));
+
+  // let the set parameters command succeed!
+  set_params_cb.Run(0);
+  EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
+  status_cb set_data_cb;
+  /* verify that flags will not be added */
+  uint8_t expected_adv_data[] = {
+      0x02 /* len */, 0xFF /* manufacturer specific */, 0x01 /* data */};
+  EXPECT_CALL(*hci_mock, SetAdvertisingData(_, _, advertiser_id, _))
+      .With(Args<1, 0>(ElementsAreArray(expected_adv_data)))
+      .Times(1)
+      .WillOnce(SaveArg<3>(&set_data_cb));
+  BleAdvertisingManager::Get()->SetData(
+      advertiser_id, false, std::vector<uint8_t>({0x02 /* len */, 0xFF, 0x01}),
+      base::Bind(&BleAdvertisingManagerTest::SetDataCb,
+                 base::Unretained(this)));
+  set_data_cb.Run(0);
+  EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_data_status);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 }

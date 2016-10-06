@@ -41,12 +41,26 @@ struct AdvertisingInstance {
   uint8_t adv_evt;
   BD_ADDR rpa;
   alarm_t *adv_raddr_timer;
+  int8_t tx_power;
+  int timeout_s;
+  MultiAdvCb timeout_cb;
+  alarm_t *timeout_timer;
   AdvertisingInstance(int inst_id)
-      : inst_id(inst_id), in_use(false), adv_evt(0), rpa{0} {
+      : inst_id(inst_id),
+        in_use(false),
+        adv_evt(0),
+        rpa{0},
+        tx_power(0),
+        timeout_s(0),
+        timeout_cb(),
+        timeout_timer(nullptr) {
     adv_raddr_timer = alarm_new_periodic("btm_ble.adv_raddr_timer");
   }
 
-  ~AdvertisingInstance() { alarm_free(adv_raddr_timer); }
+  ~AdvertisingInstance() {
+    alarm_free(adv_raddr_timer);
+    if (timeout_timer) alarm_free(timeout_timer);
+  }
 };
 
 /************************************************************************************
@@ -55,14 +69,6 @@ struct AdvertisingInstance {
 extern fixed_queue_t *btu_general_alarm_queue;
 
 void DoNothing(uint8_t) {}
-
-/* return the actual power in dBm based on the mapping in config file */
-int btm_ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1] = BTM_BLE_ADV_TX_POWER;
-char btm_ble_map_adv_tx_power(int tx_power_index) {
-  if (0 <= tx_power_index && tx_power_index < BTM_BLE_ADV_TX_POWER_MAX)
-    return (char)btm_ble_tx_power[tx_power_index];
-  return 0;
-}
 
 std::queue<base::Callback<void(tBTM_RAND_ENC *p)>> *rand_gen_inst_id = nullptr;
 
@@ -173,22 +179,47 @@ class BleAdvertisingManagerImpl
     cb.Run(0xFF, BTM_BLE_MULTI_ADV_FAILURE);
   }
 
-  void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb) {
-    VLOG(1) << __func__ << " inst_id: " << +inst_id << ", enable: " << enable;
+  void EnableWithTimerCb(uint8_t inst_id, int timeout_s, MultiAdvCb timeout_cb,
+                         uint8_t status) {
+    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
+    p_inst->timeout_s = timeout_s;
+    p_inst->timeout_cb = std::move(timeout_cb);
 
+    p_inst->timeout_timer = alarm_new("btm_ble.adv_timeout");
+    alarm_set_on_queue(p_inst->timeout_timer, p_inst->timeout_s * 1000, nullptr,
+                       p_inst, btu_general_alarm_queue);
+  }
+
+  void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb, int timeout_s,
+              MultiAdvCb timeout_cb) {
+    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
+
+    VLOG(1) << __func__ << " inst_id: " << +inst_id << ", enable: " << enable;
     if (BTM_BleMaxMultiAdvInstanceCount() == 0) {
       LOG(ERROR) << "multi adv not supported";
       return;
     }
 
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
     if (!p_inst || !p_inst->in_use) {
       LOG(ERROR) << "Invalid or no active instance";
       cb.Run(BTM_BLE_MULTI_ADV_FAILURE);
       return;
     }
 
-    GetHciInterface()->Enable(enable, p_inst->inst_id, cb);
+    if (enable && timeout_s) {
+      GetHciInterface()->Enable(
+          enable, p_inst->inst_id,
+          Bind(&BleAdvertisingManagerImpl::EnableWithTimerCb,
+               base::Unretained(this), inst_id, timeout_s, timeout_cb));
+    } else {
+      if (p_inst->timeout_timer) {
+        alarm_cancel(p_inst->timeout_timer);
+        alarm_free(p_inst->timeout_timer);
+        p_inst->timeout_timer = nullptr;
+      }
+
+      GetHciInterface()->Enable(enable, p_inst->inst_id, cb);
+    }
   }
 
   void SetParameters(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params,
@@ -231,15 +262,17 @@ class BleAdvertisingManagerImpl
 #endif
       memcpy(own_address, controller_get_interface()->get_address()->address,
              BD_ADDR_LEN);
-      p_inst->adv_evt = p_params->adv_type;
     }
 
     BD_ADDR dummy = {0, 0, 0, 0, 0, 0};
+
+    p_inst->adv_evt = p_params->adv_type;
+    p_inst->tx_power = p_params->tx_power;
+
     GetHciInterface()->SetParameters(
         p_params->adv_int_min, p_params->adv_int_max, p_params->adv_type,
         own_address_type, own_address, 0, dummy, p_params->channel_map,
-        p_params->adv_filter_policy, p_inst->inst_id,
-        btm_ble_map_adv_tx_power(p_params->tx_power), cb);
+        p_params->adv_filter_policy, p_inst->inst_id, p_inst->tx_power, cb);
 
     // TODO: re-enable only if it was enabled, properly call
     // SetParamsCallback
@@ -247,8 +280,10 @@ class BleAdvertisingManagerImpl
     // GetHciInterface()->Enable(true, inst_id, BTM_BleUpdateAdvInstParamCb);
   }
 
-  void SetData(uint8_t inst_id, bool is_scan_rsp, tBTM_BLE_AD_MASK data_mask,
-               tBTM_BLE_ADV_DATA *p_data, MultiAdvCb cb) override {
+  void SetData(uint8_t inst_id, bool is_scan_rsp, std::vector<uint8_t> data,
+               MultiAdvCb cb) override {
+    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
+
     VLOG(1) << "inst_id = " << +inst_id << ", is_scan_rsp = " << is_scan_rsp;
 
     if (BTM_BleMaxMultiAdvInstanceCount() == 0) {
@@ -256,9 +291,31 @@ class BleAdvertisingManagerImpl
       return;
     }
 
-    btm_ble_update_dmt_flag_bits(&p_data->flag,
-                                 BTM_ReadConnectability(nullptr, nullptr),
-                                 BTM_ReadDiscoverability(nullptr, nullptr));
+    if (!is_scan_rsp && p_inst->adv_evt != BTM_BLE_NON_CONNECT_EVT) {
+      uint8_t flags_val = BTM_GENERAL_DISCOVERABLE;
+
+      if (p_inst->timeout_s) flags_val = BTM_LIMITED_DISCOVERABLE;
+
+      std::vector<uint8_t> flags;
+      flags.push_back(2); // length
+      flags.push_back(HCI_EIR_FLAGS_TYPE);
+      flags.push_back(flags_val);
+
+      data.insert(data.begin(), flags.begin(), flags.end());
+    }
+
+    // Find and fill TX Power with the correct value
+    if (data.size()) {
+      size_t i = 0;
+      while (i < data.size()) {
+        uint8_t type = data[i + 1];
+        if (type == HCI_EIR_TX_POWER_LEVEL_TYPE) {
+          int8_t tx_power = adv_inst[inst_id - 1].tx_power;
+          data[i + 2] = tx_power;
+        }
+        i += data[i] + 1;
+      }
+    }
 
     if (inst_id > BTM_BleMaxMultiAdvInstanceCount() || inst_id < 0 ||
         inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
@@ -266,18 +323,14 @@ class BleAdvertisingManagerImpl
       return;
     }
 
-    uint8_t data[BTM_BLE_AD_DATA_LEN], *pp = data;
-    memset(data, 0, BTM_BLE_AD_DATA_LEN);
-
-    btm_ble_build_adv_data(&data_mask, &pp, p_data);
-    uint8_t len = (uint8_t)(pp - data);
-
-    VLOG(1) << "data is: " << base::HexEncode(data, len);
+    VLOG(1) << "data is: " << base::HexEncode(data.data(), data.size());
 
     if (is_scan_rsp) {
-      GetHciInterface()->SetScanResponseData(len, data, inst_id, cb);
+      GetHciInterface()->SetScanResponseData(data.size(), data.data(), inst_id,
+                                             cb);
     } else {
-      GetHciInterface()->SetAdvertisingData(len, data, inst_id, cb);
+      GetHciInterface()->SetAdvertisingData(data.size(), data.data(), inst_id,
+                                            cb);
     }
   }
 
