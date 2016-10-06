@@ -35,6 +35,7 @@ import java.util.List;
 
 public class CallLogPullRequest extends PullRequest {
     private static boolean DBG = true;
+    private static boolean VDBG = false;
     private static String TAG = "PbapCallLogPullRequest";
     private static final String TIMESTAMP_PROPERTY = "X-IRMC-CALL-DATETIME";
     private static final String TIMESTAMP_FORMAT = "yyyyMMdd'T'HHmmss";
@@ -54,7 +55,10 @@ public class CallLogPullRequest extends PullRequest {
         }
 
         if (DBG) {
-            Log.d(TAG, "onPullComplete with " + mEntries.size() + " count.");
+            Log.d(TAG, "onPullComplete");
+            if (VDBG) {
+                Log.d(TAG, " with " + mEntries.size() + " count.");
+            }
         }
         int type;
         try {
@@ -73,7 +77,9 @@ public class CallLogPullRequest extends PullRequest {
             for (VCardEntry vcard : mEntries) {
                 List<PhoneData> phones = vcard.getPhoneList();
                 if (phones == null || phones.size() != 1) {
-                    Log.d(TAG, "Incorrect number of phones: " + vcard);
+                    if (VDBG) {
+                        Log.d(TAG, "Incorrect number of phones: " + vcard);
+                    }
                     continue;
                 }
 
@@ -85,7 +91,10 @@ public class CallLogPullRequest extends PullRequest {
                         try {
                             date = parser.parse(pair.second);
                         } catch (ParseException e) {
-                            Log.d(TAG, "Failed to parse date " + pair.second);
+                            Log.d(TAG, "Failed to parse date ");
+                            if (VDBG) {
+                                Log.d(TAG, pair.second);
+                            }
                         }
                     }
                 }
