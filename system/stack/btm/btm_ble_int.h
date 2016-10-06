@@ -67,8 +67,6 @@ extern void btm_ble_conn_complete(uint8_t *p, uint16_t evt_len, bool    enhanced
 extern void btm_read_ble_local_supported_states_complete(uint8_t *p, uint16_t evt_len);
 extern tBTM_BLE_CONN_ST btm_ble_get_conn_st(void);
 extern void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st);
-extern uint8_t *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, uint8_t **p_dst,
-                                     tBTM_BLE_ADV_DATA *p_data);
 extern tBTM_STATUS btm_ble_start_adv(void);
 extern tBTM_STATUS btm_ble_stop_adv(void);
 extern tBTM_STATUS btm_ble_start_scan(void);
@@ -155,7 +153,6 @@ extern void btm_ble_resolving_list_cleanup(void);
 extern void btm_ble_multi_adv_init(void);
 extern void* btm_ble_multi_adv_get_ref(uint8_t inst_id);
 extern void btm_ble_multi_adv_cleanup(void);
-extern char btm_ble_map_adv_tx_power(int tx_power_index);
 extern void btm_ble_batchscan_init(void);
 extern void btm_ble_batchscan_cleanup(void);
 extern void btm_ble_adv_filter_init(void);

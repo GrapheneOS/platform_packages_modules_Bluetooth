@@ -20,6 +20,7 @@
 #define BLE_ADVERTISER_H
 
 #include <base/bind.h>
+#include <vector>
 #include "btm_ble_api.h"
 
 #define BTM_BLE_MULTI_ADV_DEFAULT_STD 0
@@ -36,14 +37,11 @@ void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
                                   const uint16_t connect_mode,
                                   const uint16_t disc_mode);
 void btm_gen_resolvable_private_addr(void *p_cmd_cplt_cback);
-uint8_t *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, uint8_t **p_dst,
-                                tBTM_BLE_ADV_DATA *p_data);
 void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address);
 
 // methods we expose to c code:
 void btm_ble_multi_adv_cleanup(void);
 void btm_ble_multi_adv_init();
-char btm_ble_map_adv_tx_power(int tx_power_index);
 }
 
 typedef struct {
@@ -74,7 +72,8 @@ class BleAdvertisingManager {
 
   /* This function enables/disables an advertising instance. Operation status is
    * returned in |cb| */
-  virtual void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb);
+  virtual void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb, int timeout_s,
+                    MultiAdvCb timeout_cb);
 
   /* This function update a Multi-ADV instance with the specififed adv
    * parameters. */
@@ -84,8 +83,7 @@ class BleAdvertisingManager {
   /* This function configure a Multi-ADV instance with the specified adv data or
    * scan response data.*/
   virtual void SetData(uint8_t inst_id, bool is_scan_rsp,
-                       tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
-                       MultiAdvCb cb);
+                       std::vector<uint8_t> data, MultiAdvCb cb);
 
   /*  This function disable a Multi-ADV instance */
   virtual void Unregister(uint8_t inst_id);

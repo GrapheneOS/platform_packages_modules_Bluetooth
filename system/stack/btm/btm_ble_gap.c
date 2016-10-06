@@ -67,8 +67,6 @@ static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
 *******************************************************************************/
 static void btm_ble_update_adv_flag(uint8_t flag);
 static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type, uint8_t evt_type, uint8_t *p);
-uint8_t *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, uint8_t **p_dst,
-                              tBTM_BLE_ADV_DATA *p_data);
 static uint8_t btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                                      BD_ADDR_PTR p_peer_addr_ptr,
                                      tBLE_ADDR_TYPE *p_peer_addr_type,
@@ -1194,27 +1192,22 @@ void BTM_BleSetScanParams(tGATT_IF client_if, uint32_t scan_interval, uint32_t s
 ** Returns          void
 **
 *******************************************************************************/
-void BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+void BTM_BleWriteScanRsp(uint8_t* data, uint8_t length,
                          tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
     tBTM_STATUS     status = BTM_NO_RESOURCES;
-    uint8_t rsp_data[BTM_BLE_AD_DATA_LEN],
-            *p = rsp_data;
 
-    BTM_TRACE_EVENT ("%s: data_mask:%08x", __func__, data_mask);
+    BTM_TRACE_EVENT ("%s: length: %d", __func__, length);
     if (!controller_get_interface()->supports_ble()) {
         p_adv_data_cback(BTM_ILLEGAL_VALUE);
         return;
     }
 
-    memset(rsp_data, 0, BTM_BLE_AD_DATA_LEN);
-    btm_ble_build_adv_data(&data_mask, &p, p_data);
-
-    if (btsnd_hcic_ble_set_scan_rsp_data((uint8_t)(p - rsp_data), rsp_data))
+    if (btsnd_hcic_ble_set_scan_rsp_data(length, data))
     {
         status = BTM_SUCCESS;
 
-        if (data_mask != 0)
+        if (length != 0)
             btm_cb.ble_ctr_cb.inq_var.scan_rsp = true;
         else
             btm_cb.ble_ctr_cb.inq_var.scan_rsp = false;
@@ -1236,13 +1229,10 @@ void BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
 ** Returns          void
 **
 *******************************************************************************/
-void BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+void BTM_BleWriteAdvData(uint8_t* data, uint8_t length,
                          tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-    tBTM_BLE_LOCAL_ADV_DATA *p_cb_data = &btm_cb.ble_ctr_cb.inq_var.adv_data;
-    uint8_t *p;
-    tBTM_BLE_AD_MASK   mask = data_mask;
-
+    //TODO(jpawlowski) : delete btm_cb.ble_ctr_cb.inq_var.adv_data ??
     BTM_TRACE_EVENT ("BTM_BleWriteAdvData ");
 
     if (!controller_get_interface()->supports_ble()) {
@@ -1250,27 +1240,12 @@ void BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
         return;
     }
 
-    memset(p_cb_data, 0, sizeof(tBTM_BLE_LOCAL_ADV_DATA));
-    p = p_cb_data->ad_data;
-    p_cb_data->data_mask = data_mask;
+    //TODO(jpawlowski): fill flags, old code had them empty always.
 
-    p_cb_data->p_flags = btm_ble_build_adv_data(&mask, &p, p_data);
-
-    p_cb_data->p_pad = p;
-
-    if (mask != 0)
-    {
-        BTM_TRACE_ERROR("Partial data write into ADV");
-    }
-
-    p_cb_data->data_mask &= ~mask;
-
-    if (btsnd_hcic_ble_set_adv_data((uint8_t)(p_cb_data->p_pad - p_cb_data->ad_data),
-                                    p_cb_data->ad_data))
+    if (btsnd_hcic_ble_set_adv_data(length, data))
         p_adv_data_cback(BTM_SUCCESS);
     else
         p_adv_data_cback(BTM_NO_RESOURCES);
-
 }
 
 /*******************************************************************************
@@ -1348,275 +1323,6 @@ uint16_t BTM_BleReadConnectability()
     return (btm_cb.ble_ctr_cb.inq_var.connectable_mode);
 }
 
-/*******************************************************************************
-**
-** Function         btm_ble_build_adv_data
-**
-** Description      This function is called build the adv data and rsp data.
-*******************************************************************************/
-uint8_t *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, uint8_t **p_dst,
-                              tBTM_BLE_ADV_DATA *p_data)
-{
-    uint32_t data_mask = *p_data_mask;
-    uint8_t *p = *p_dst,
-    *p_flag = NULL;
-    uint16_t len = BTM_BLE_AD_DATA_LEN, cp_len = 0;
-    uint8_t i = 0;
-    tBTM_BLE_PROP_ELEM      *p_elem;
-
-    BTM_TRACE_EVENT (" btm_ble_build_adv_data");
-
-    /* build the adv data structure and build the data string */
-    if (data_mask)
-    {
-        /* flags */
-        if (data_mask & BTM_BLE_AD_BIT_FLAGS)
-        {
-            *p++ = MIN_ADV_LENGTH;
-            *p++ = BTM_BLE_AD_TYPE_FLAG;
-            p_flag = p;
-            if (p_data)
-                *p++ = p_data->flag;
-            else
-                *p++ = 0;
-
-            len -= 3;
-
-            data_mask &= ~BTM_BLE_AD_BIT_FLAGS;
-        }
-        /* appearance data */
-        if (len > 3 && data_mask & BTM_BLE_AD_BIT_APPEARANCE)
-        {
-            *p++ = 3; /* length */
-            *p++ = BTM_BLE_AD_TYPE_APPEARANCE;
-            UINT16_TO_STREAM(p, p_data->appearance);
-            len -= 4;
-
-            data_mask &= ~BTM_BLE_AD_BIT_APPEARANCE;
-        }
-        /* device name */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_DEV_NAME)
-        {
-            if (strlen(btm_cb.cfg.bd_name) > (uint16_t)(len - MIN_ADV_LENGTH))
-            {
-                *p++ = len - MIN_ADV_LENGTH + 1;
-                *p++ = BTM_BLE_AD_TYPE_NAME_SHORT;
-                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, len - MIN_ADV_LENGTH);
-            }
-            else
-            {
-                cp_len = (uint16_t)strlen(btm_cb.cfg.bd_name);
-                *p++ = cp_len + 1;
-                *p++ = BTM_BLE_AD_TYPE_NAME_CMPL;
-                ARRAY_TO_STREAM(p, btm_cb.cfg.bd_name, cp_len);
-            }
-            len -= (cp_len + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_DEV_NAME;
-        }
-        /* manufacturer data */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_MANU &&
-            p_data && p_data->manu.len != 0)
-        {
-            if (p_data->manu.len > (len - MIN_ADV_LENGTH))
-                cp_len = len - MIN_ADV_LENGTH;
-            else
-                cp_len = p_data->manu.len;
-
-            *p++ = cp_len + 1;
-            *p++ = BTM_BLE_AD_TYPE_MANU;
-            ARRAY_TO_STREAM(p, p_data->manu.val, cp_len);
-
-            len -= (cp_len + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_MANU;
-        }
-        /* TX power */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_TX_PWR)
-        {
-            *p++ = MIN_ADV_LENGTH;
-            *p++ = BTM_BLE_AD_TYPE_TX_PWR;
-            if (p_data->tx_power > BTM_BLE_ADV_TX_POWER_MAX)
-                p_data->tx_power = BTM_BLE_ADV_TX_POWER_MAX;
-            *p++ = btm_ble_map_adv_tx_power(p_data->tx_power);
-            len -= 3;
-            data_mask &= ~BTM_BLE_AD_BIT_TX_PWR;
-        }
-        /* 16 bits services */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE &&
-            p_data && p_data->services.num_service != 0)
-        {
-            if (p_data->services.num_service * LEN_UUID_16 > (len - MIN_ADV_LENGTH))
-            {
-                cp_len = (len - MIN_ADV_LENGTH)/LEN_UUID_16;
-                *p ++ = 1 + cp_len * LEN_UUID_16;
-                *p++ = BTM_BLE_AD_TYPE_16SRV_PART;
-            }
-            else
-            {
-                cp_len = p_data->services.num_service;
-                *p++ = 1 + cp_len * LEN_UUID_16;
-                *p++ = BTM_BLE_AD_TYPE_16SRV_CMPL;
-            }
-            for (i = 0; i < cp_len; i ++)
-            {
-                UINT16_TO_STREAM(p, *(p_data->services.uuid + i));
-            }
-
-            len -= (cp_len * MIN_ADV_LENGTH + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE;
-        }
-        /* 32 bits service uuid */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE_32 &&
-            p_data && p_data->service_32b.num_service != 0)
-        {
-            if ((p_data->service_32b.num_service * LEN_UUID_32) > (len - MIN_ADV_LENGTH))
-            {
-                cp_len = (len - MIN_ADV_LENGTH)/LEN_UUID_32;
-                *p ++ = 1 + cp_len * LEN_UUID_32;
-                *p++ = BTM_BLE_AD_TYPE_32SRV_PART;
-            }
-            else
-            {
-                cp_len = p_data->service_32b.num_service;
-                *p++ = 1 + cp_len * LEN_UUID_32;
-                *p++ = BTM_BLE_AD_TYPE_32SRV_CMPL;
-            }
-            for (i = 0; i < cp_len; i ++)
-            {
-                UINT32_TO_STREAM(p, *(p_data->service_32b.uuid + i));
-            }
-
-            len -= (cp_len * LEN_UUID_32 + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_32;
-        }
-        /* 128 bits services */
-        if (len >= (MAX_UUID_SIZE + 2) && data_mask & BTM_BLE_AD_BIT_SERVICE_128 &&
-            p_data && p_data->services_128b.num_service)
-        {
-            *p ++ = 1 + MAX_UUID_SIZE;
-            if (!p_data->services_128b.list_cmpl)
-                *p++ = BTM_BLE_AD_TYPE_128SRV_PART;
-            else
-                *p++ = BTM_BLE_AD_TYPE_128SRV_CMPL;
-
-            ARRAY_TO_STREAM(p, p_data->services_128b.uuid128, MAX_UUID_SIZE);
-
-            len -= (MAX_UUID_SIZE + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_128;
-        }
-        /* 32 bits Service Solicitation UUIDs */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE_32SOL &&
-            p_data->sol_service_32b.num_service != 0)
-        {
-            if ((p_data->sol_service_32b.num_service * LEN_UUID_32) > (len - MIN_ADV_LENGTH))
-            {
-                cp_len = (len - MIN_ADV_LENGTH)/LEN_UUID_32;
-                *p ++ = 1 + cp_len * LEN_UUID_32;
-            }
-            else
-            {
-                cp_len = p_data->sol_service_32b.num_service;
-                *p++ = 1 + cp_len * LEN_UUID_32;
-            }
-
-            *p++ = BTM_BLE_AD_TYPE_32SOL_SRV_UUID;
-            for (i = 0; i < cp_len; i ++)
-            {
-                UINT32_TO_STREAM(p, *(p_data->sol_service_32b.uuid + i));
-            }
-
-            len -= (cp_len * LEN_UUID_32 + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_32SOL;
-        }
-        /* 128 bits Solicitation services UUID */
-        if (len >= (MAX_UUID_SIZE + MIN_ADV_LENGTH) && data_mask & BTM_BLE_AD_BIT_SERVICE_128SOL &&
-            p_data && p_data->sol_service_128b.num_service)
-        {
-            *p ++ = 1 + MAX_UUID_SIZE;
-            *p++ = BTM_BLE_AD_TYPE_128SOL_SRV_UUID;
-            ARRAY_TO_STREAM(p, p_data->sol_service_128b.uuid128, MAX_UUID_SIZE);
-            len -= (MAX_UUID_SIZE + MIN_ADV_LENGTH);
-            data_mask &= ~BTM_BLE_AD_BIT_SERVICE_128SOL;
-        }
-        /* 16bits/32bits/128bits Service Data */
-        if (len > MIN_ADV_LENGTH && data_mask & BTM_BLE_AD_BIT_SERVICE_DATA &&
-            p_data && p_data->service_data.len != 0)
-        {
-            if (len  > (p_data->service_data.service_uuid.len + MIN_ADV_LENGTH))
-            {
-                if (p_data->service_data.len > (len - MIN_ADV_LENGTH))
-                    cp_len = len - MIN_ADV_LENGTH- p_data->service_data.service_uuid.len;
-                else
-                    cp_len = p_data->service_data.len;
-
-                *p++ = cp_len + 1 + p_data->service_data.service_uuid.len;
-                if (p_data->service_data.service_uuid.len == LEN_UUID_16)
-                {
-                    *p++ = BTM_BLE_AD_TYPE_SERVICE_DATA;
-                    UINT16_TO_STREAM(p, p_data->service_data.service_uuid.uu.uuid16);
-                }
-                else if (p_data->service_data.service_uuid.len == LEN_UUID_32)
-                {
-                    *p++ = BTM_BLE_AD_TYPE_32SERVICE_DATA;
-                    UINT32_TO_STREAM(p, p_data->service_data.service_uuid.uu.uuid32);
-                }
-                else
-                {
-                    *p++ = BTM_BLE_AD_TYPE_128SERVICE_DATA;
-                    ARRAY_TO_STREAM(p, p_data->service_data.service_uuid.uu.uuid128,
-                                    LEN_UUID_128);
-                }
-
-                ARRAY_TO_STREAM(p, p_data->service_data.val, cp_len);
-
-                len -= (cp_len + MIN_ADV_LENGTH + p_data->service_data.service_uuid.len);
-                data_mask &= ~BTM_BLE_AD_BIT_SERVICE_DATA;
-            }
-            else
-            {
-                BTM_TRACE_WARNING("service data does not fit");
-            }
-        }
-
-        if (len >= 6 && data_mask & BTM_BLE_AD_BIT_INT_RANGE &&
-            p_data)
-        {
-            *p++ = 5;
-            *p++ = BTM_BLE_AD_TYPE_INT_RANGE;
-            UINT16_TO_STREAM(p, p_data->int_range.low);
-            UINT16_TO_STREAM(p, p_data->int_range.hi);
-            len -= 6;
-            data_mask &= ~BTM_BLE_AD_BIT_INT_RANGE;
-        }
-        if (data_mask & BTM_BLE_AD_BIT_PROPRIETARY && p_data)
-        {
-            for (i = 0; i < p_data->proprietary.num_elem; ++i)
-            {
-                p_elem = &p_data->proprietary.elem[i];
-
-                if (len >= (MIN_ADV_LENGTH + p_elem->len))/* len byte(1) + ATTR type(1) + Uuid len(2)
-                                                          + value length */
-                {
-                    *p ++ = p_elem->len + 1; /* Uuid len + value length */
-                    *p ++ = p_elem->adv_type;
-                    ARRAY_TO_STREAM(p, p_elem->val, p_elem->len);
-
-                    len -= (MIN_ADV_LENGTH + p_elem->len);
-                }
-                else
-                {
-                    BTM_TRACE_WARNING("data exceed max adv packet length");
-                    break;
-                }
-            }
-            data_mask &= ~BTM_BLE_AD_BIT_PROPRIETARY;
-        }
-    }
-
-    *p_data_mask = data_mask;
-    *p_dst = p;
-
-    return p_flag;
-}
 /*******************************************************************************
 **
 ** Function         btm_ble_select_adv_interval
@@ -2172,108 +1878,6 @@ static void btm_ble_update_adv_flag(uint8_t flag)
         p_adv_data->data_mask |= BTM_BLE_AD_BIT_FLAGS;
 
 }
-
-#if 0
-/*******************************************************************************
-**
-** Function         btm_ble_parse_adv_data
-**
-** Description      This function parse the adv data into a structure.
-**
-** Returns          pointer to entry, or NULL if not found
-**
-*******************************************************************************/
-static void btm_ble_parse_adv_data(tBTM_INQ_INFO *p_info, uint8_t *p_data,
-                                   uint8_t len, tBTM_BLE_INQ_DATA *p_adv_data, uint8_t *p_buf)
-{
-    uint8_t *p_cur = p_data;
-    uint8_t ad_len, ad_type, ad_flag;
-
-    BTM_TRACE_EVENT (" btm_ble_parse_adv_data");
-
-    while (len > 0)
-    {
-        BTM_TRACE_DEBUG("btm_ble_parse_adv_data: len = %d", len);
-        if ((ad_len = *p_cur ++) == 0)
-            break;
-
-        ad_type = *p_cur ++;
-
-        BTM_TRACE_DEBUG("     ad_type = %02x ad_len = %d", ad_type, ad_len);
-
-        switch (ad_type)
-        {
-            case BTM_BLE_AD_TYPE_NAME_SHORT:
-
-            case BTM_BLE_AD_TYPE_NAME_CMPL:
-                p_adv_data->ad_mask |= BTM_BLE_AD_BIT_DEV_NAME;
-                if (p_info)
-                {
-                    p_info->remote_name_type =(ad_type == BTM_BLE_AD_TYPE_NAME_SHORT) ?
-                                              BTM_BLE_NAME_SHORT: BTM_BLE_NAME_CMPL;
-                    memcpy(p_info->remote_name, p_cur, ad_len -1);
-                    p_info->remote_name[ad_len] = 0;
-                    p_adv_data->p_remote_name = p_info->remote_name;
-                    p_info->remote_name_len = p_adv_data->remote_name_len = ad_len - 1;
-                    BTM_TRACE_DEBUG("BTM_BLE_AD_TYPE_NAME name = %s",p_adv_data->p_remote_name);
-                }
-                p_cur += (ad_len -1);
-
-                break;
-
-            case BTM_BLE_AD_TYPE_FLAG:
-                p_adv_data->ad_mask |= BTM_BLE_AD_BIT_FLAGS;
-                ad_flag = *p_cur ++;
-                p_adv_data->flag = (uint8_t)(ad_flag & BTM_BLE_ADV_FLAG_MASK) ;
-                BTM_TRACE_DEBUG("BTM_BLE_AD_TYPE_FLAG flag = %s | %s | %s",
-                                 (p_adv_data->flag & BTM_BLE_LIMIT_DISC_FLAG)? "LE_LIMIT_DISC" : "",
-                                 (p_adv_data->flag & BTM_BLE_GEN_DISC_FLAG)? "LE_GENERAL_DISC" : "",
-                                 (p_adv_data->flag & BTM_BLE_BREDR_NOT_SPT)? "LE Only device" : "");
-                break;
-
-            case BTM_BLE_AD_TYPE_TX_PWR:
-                p_adv_data->ad_mask |= BTM_BLE_AD_BIT_TX_PWR;
-                p_adv_data->tx_power_level = (int8_t)*p_cur ++;
-                BTM_TRACE_DEBUG("BTM_BLE_AD_TYPE_TX_PWR tx_level = %d", p_adv_data->tx_power_level);
-                break;
-
-            case BTM_BLE_AD_TYPE_MANU:
-
-            case BTM_BLE_AD_TYPE_16SRV_PART:
-            case BTM_BLE_AD_TYPE_16SRV_CMPL:
-                p_adv_data->ad_mask |= BTM_BLE_AD_BIT_SERVICE;
-                /* need allocate memory to store UUID list */
-                p_adv_data->service.num_service = (ad_len - 1)/2;
-                BTM_TRACE_DEBUG("service UUID list, num = %d", p_adv_data->service.num_service);
-                p_cur += (ad_len - 1);
-                break;
-
-            case BTM_BLE_AD_TYPE_SOL_SRV_UUID:
-                p_adv_data->ad_mask |= BTM_BLE_AD_BIT_SERVICE_SOL;
-                /* need allocate memory to store UUID list */
-                p_adv_data->service.num_service = (ad_len - 1)/2;
-                BTM_TRACE_DEBUG("service UUID list, num = %d", p_adv_data->service.num_service);
-                p_cur += (ad_len - 1);
-                break;
-
-            case BTM_BLE_AD_TYPE_128SOL_SRV_UUID:
-                p_adv_data->ad_mask |= BTM_BLE_AD_BIT_SERVICE_128SOL;
-                /* need allocate memory to store UUID list */
-                p_adv_data->service.num_service = (ad_len - 1)/16;
-                BTM_TRACE_DEBUG("service UUID list, num = %d", p_adv_data->service.num_service);
-                p_cur += (ad_len - 1);
-                break;
-
-            case BTM_BLE_AD_TYPE_APPEARANCE:
-            case BTM_BLE_AD_TYPE_PUBLIC_TARGET:
-            case BTM_BLE_AD_TYPE_RANDOM_TARGET:
-            default:
-                break;
-        }
-        len -= (ad_len + 1);
-    }
-}
-#endif
 
 /*******************************************************************************
 **

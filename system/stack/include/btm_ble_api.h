@@ -102,7 +102,7 @@ extern tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min, uint16_t adv_int_ma
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+extern void BTM_BleWriteAdvData(uint8_t* data, uint8_t length,
                                 tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
@@ -265,7 +265,7 @@ extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cbac
 ** Returns          status
 **
 *******************************************************************************/
-extern void BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p_data,
+extern void BTM_BleWriteScanRsp(uint8_t* data, uint8_t length,
                                 tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
