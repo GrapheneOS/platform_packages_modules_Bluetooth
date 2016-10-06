@@ -184,7 +184,6 @@ typedef uint16_t tBTA_SEC;
 /* Discoverable Modes */
 #define BTA_DM_NON_DISC         BTM_NON_DISCOVERABLE        /* Device is not discoverable. */
 #define BTA_DM_GENERAL_DISC     BTM_GENERAL_DISCOVERABLE    /* General discoverable. */
-#define BTA_DM_LIMITED_DISC     BTM_LIMITED_DISCOVERABLE    /* Limited discoverable. */
 #if (BLE_INCLUDED == TRUE)
 #define BTA_DM_BLE_NON_DISCOVERABLE        BTM_BLE_NON_DISCOVERABLE        /* Device is not LE discoverable */
 #define BTA_DM_BLE_GENERAL_DISCOVERABLE    BTM_BLE_GENERAL_DISCOVERABLE    /* Device is LE General discoverable */
@@ -313,78 +312,9 @@ typedef struct
 } tBTA_DM_EIR_CONF;
 
 #if (BLE_INCLUDED == TRUE)
-/* ADV data flag bit definition used for BTM_BLE_AD_TYPE_FLAG */
-#define BTA_BLE_LIMIT_DISC_FLAG     BTM_BLE_LIMIT_DISC_FLAG
-#define BTA_BLE_GEN_DISC_FLAG       BTM_BLE_GEN_DISC_FLAG
-#define BTA_BLE_BREDR_NOT_SPT       BTM_BLE_BREDR_NOT_SPT
-#define BTA_BLE_DMT_CONTROLLER_SPT  BTM_BLE_DMT_CONTROLLER_SPT
-#define BTA_BLE_DMT_HOST_SPT        BTM_BLE_DMT_HOST_SPT
-#define BTA_BLE_NON_LIMIT_DISC_FLAG BTM_BLE_NON_LIMIT_DISC_FLAG
-#define BTA_BLE_ADV_FLAG_MASK       BTM_BLE_ADV_FLAG_MASK
-#define BTA_BLE_LIMIT_DISC_MASK     BTM_BLE_LIMIT_DISC_MASK
-
-/* ADV data bit mask */
-#define BTA_BLE_AD_BIT_DEV_NAME        BTM_BLE_AD_BIT_DEV_NAME
-#define BTA_BLE_AD_BIT_FLAGS           BTM_BLE_AD_BIT_FLAGS
-#define BTA_BLE_AD_BIT_MANU            BTM_BLE_AD_BIT_MANU
-#define BTA_BLE_AD_BIT_TX_PWR          BTM_BLE_AD_BIT_TX_PWR
-#define BTA_BLE_AD_BIT_INT_RANGE       BTM_BLE_AD_BIT_INT_RANGE
-#define BTA_BLE_AD_BIT_SERVICE         BTM_BLE_AD_BIT_SERVICE
-#define BTA_BLE_AD_BIT_APPEARANCE      BTM_BLE_AD_BIT_APPEARANCE
-#define BTA_BLE_AD_BIT_PROPRIETARY     BTM_BLE_AD_BIT_PROPRIETARY
-#define BTA_DM_BLE_AD_BIT_SERVICE_SOL     BTM_BLE_AD_BIT_SERVICE_SOL
-#define BTA_DM_BLE_AD_BIT_SERVICE_DATA    BTM_BLE_AD_BIT_SERVICE_DATA
-#define BTA_DM_BLE_AD_BIT_SIGN_DATA       BTM_BLE_AD_BIT_SIGN_DATA
-#define BTA_DM_BLE_AD_BIT_SERVICE_128SOL  BTM_BLE_AD_BIT_SERVICE_128SOL
-#define BTA_DM_BLE_AD_BIT_PUBLIC_ADDR     BTM_BLE_AD_BIT_PUBLIC_ADDR
-#define BTA_DM_BLE_AD_BIT_RANDOM_ADDR     BTM_BLE_AD_BIT_RANDOM_ADDR
-#define BTA_DM_BLE_AD_BIT_SERVICE_128     BTM_BLE_AD_BIT_SERVICE_128      /*128-bit Service UUIDs*/
-
-typedef tBTM_BLE_AD_MASK tBTA_BLE_AD_MASK;
-typedef tBTM_BLE_INT_RANGE tBTA_BLE_INT_RANGE;
-typedef tBTM_BLE_SERVICE tBTA_BLE_SERVICE;
-typedef tBTM_BLE_PROP_ELEM tBTA_BLE_PROP_ELEM;
-typedef tBTM_BLE_PROPRIETARY tBTA_BLE_PROPRIETARY;
-typedef tBTM_BLE_MANU tBTA_BLE_MANU;
-typedef tBTM_BLE_SERVICE_DATA tBTA_BLE_SERVICE_DATA;
-typedef tBTM_BLE_128SERVICE tBTA_BLE_128SERVICE;
-typedef tBTM_BLE_32SERVICE  tBTA_BLE_32SERVICE;
-
-typedef struct
-{
-    tBTA_BLE_INT_RANGE      int_range;          /* slave prefered conn interval range */
-    tBTA_BLE_MANU           manu;            /* manufacturer data */
-    tBTA_BLE_SERVICE        services;        /* 16 bits services */
-    tBTA_BLE_128SERVICE     services_128b;   /* 128 bits service */
-    tBTA_BLE_32SERVICE      service_32b;     /* 32 bits Service UUID */
-    tBTA_BLE_SERVICE        sol_services;    /* 16 bits services Solicitation UUIDs */
-    tBTA_BLE_32SERVICE      sol_service_32b; /* List of 32 bit Service Solicitation UUIDs */
-    tBTA_BLE_128SERVICE     sol_service_128b;/* List of 128 bit Service Solicitation UUIDs */
-    tBTA_BLE_PROPRIETARY    proprietary;     /* proprietary data */
-    tBTA_BLE_SERVICE_DATA   service_data;    /* service data */
-    uint16_t                  appearance;         /* appearance data */
-    uint8_t                   flag;
-    uint8_t                   tx_power;
-}tBTA_BLE_ADV_DATA;
-
-typedef void (tBTA_SET_ADV_DATA_CMPL_CBACK) (tBTA_STATUS status);
 
 /* advertising filter policy */
 typedef tBTM_BLE_AFP   tBTA_BLE_AFP;
-
-/* These are the fields returned in each device adv packet.  It
-** is returned in the results callback if registered.
-*/
-typedef struct
-{
-    uint8_t               conn_mode;
-    tBTA_BLE_AD_MASK    ad_mask;        /* mask of the valid adv data field */
-    uint8_t               flag;
-    uint8_t               tx_power_level;
-    uint8_t               remote_name_len;
-    uint8_t               *p_remote_name;
-    tBTA_BLE_SERVICE    service;
-} tBTA_BLE_INQ_DATA;
 
 enum
 {

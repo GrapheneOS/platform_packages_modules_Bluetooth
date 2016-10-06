@@ -41,7 +41,6 @@ btifCommonSrc += \
   src/btif_dm.cc \
   src/btif_gatt.cc \
   src/btif_gatt_client.cc \
-  src/btif_gatt_multi_adv_util.cc \
   src/btif_gatt_server.cc \
   src/btif_gatt_test.cc \
   src/btif_gatt_util.cc \
