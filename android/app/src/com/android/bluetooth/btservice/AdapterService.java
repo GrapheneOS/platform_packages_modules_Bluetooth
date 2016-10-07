@@ -1123,6 +1123,13 @@ public class AdapterService extends Service {
             return service.getBondState(device);
         }
 
+        public boolean isBondingInitiatedLocally(BluetoothDevice device) {
+            // don't check caller, may be called from system UI
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.isBondingInitiatedLocally(device);
+        }
+
         public int getConnectionState(BluetoothDevice device) {
             AdapterService service = getService();
             if (service == null) return 0;
@@ -1599,6 +1606,8 @@ public class AdapterService extends Service {
             return false;
         }
 
+        deviceProp.setBondingInitiatedLocally(true);
+
         // Pairing is unreliable while scanning, so cancel discovery
         // Note, remove this when native stack improves
         cancelDiscoveryNative();
@@ -1925,6 +1934,12 @@ public class AdapterService extends Service {
      boolean cancelBondProcess(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
+
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp != null) {
+            deviceProp.setBondingInitiatedLocally(false);
+        }
+
         return cancelBondNative(addr);
     }
 
@@ -1934,6 +1949,8 @@ public class AdapterService extends Service {
         if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
             return false;
         }
+        deviceProp.setBondingInitiatedLocally(false);
+
         Message msg = mBondStateMachine.obtainMessage(BondStateMachine.REMOVE_BOND);
         msg.obj = device;
         mBondStateMachine.sendMessage(msg);
@@ -1947,6 +1964,15 @@ public class AdapterService extends Service {
             return BluetoothDevice.BOND_NONE;
         }
         return deviceProp.getBondState();
+    }
+
+    boolean isBondingInitiatedLocally(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) {
+            return false;
+        }
+        return deviceProp.isBondingInitiatedLocally();
     }
 
     int getConnectionState(BluetoothDevice device) {
