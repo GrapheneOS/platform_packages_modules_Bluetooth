@@ -44,6 +44,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
+import android.os.UserManager;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -182,6 +183,7 @@ public final class Avrcp {
 
     /* Broadcast receiver for device connections intent broadcasts */
     private final BroadcastReceiver mAvrcpReceiver = new AvrcpServiceBroadcastReceiver();
+    private final BroadcastReceiver mBootReceiver = new AvrcpServiceBootReceiver();
 
     static {
         classInitNative();
@@ -240,6 +242,10 @@ public final class Avrcp {
         pkgFilter.addAction(Intent.ACTION_PACKAGE_DATA_CLEARED);
         pkgFilter.addDataScheme("package");
         context.registerReceiver(mAvrcpReceiver, pkgFilter);
+
+        IntentFilter bootFilter = new IntentFilter();
+        bootFilter.addAction(Intent.ACTION_BOOT_COMPLETED);
+        context.registerReceiver(mBootReceiver, bootFilter);
     }
 
     private void start() {
@@ -258,12 +264,16 @@ public final class Avrcp {
         /* create object to communicate with addressed player */
         mAddressedMediaPlayer = new AddressedMediaPlayer(mAvrcpMediaRsp);
 
-        /* initializing media player's list */
-        buildBrowsablePlayersList();
-        buildMediaPlayersList();
-
         /* initialize BrowseMananger which manages Browse commands and response */
         mAvrcpBrowseManager = new AvrcpBrowseManager(mContext, mAvrcpMediaRsp);
+
+        UserManager manager = UserManager.get(mContext);
+        if (manager == null || manager.isUserUnlocked()) {
+            if (DEBUG) Log.d(TAG, "User already unlocked, initializing player lists");
+            /* initializing media player's list */
+            buildBrowsablePlayersList();
+            buildMediaPlayersList();
+        }
     }
 
     public static Avrcp make(Context context) {
@@ -287,6 +297,7 @@ public final class Avrcp {
         mHandler = null;
         mMPLObj = null;
         mContext.unregisterReceiver(mAvrcpReceiver);
+        mContext.unregisterReceiver(mBootReceiver);
 
         mAddressedMediaPlayer.cleanup();
         mAvrcpBrowseManager.cleanup();
@@ -1402,6 +1413,19 @@ public final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
+    private class AvrcpServiceBootReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
+                if (DEBUG) Log.d(TAG, "Boot completed, initializing player lists");
+                /* initializing media player's list */
+                buildBrowsablePlayersList();
+                buildMediaPlayersList();
+            }
+        }
+    }
+
     private class AvrcpServiceBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -1443,6 +1467,7 @@ public final class Avrcp {
             if (isBrowsableListUpdated(packageName)) {
                 // Rebuilding browsable players list
                 buildBrowsablePlayersList();
+                buildMediaPlayersList();
             }
         }
     }
@@ -1454,7 +1479,8 @@ public final class Avrcp {
         // getting the browsable media players list from package manager
         ArrayList<String> browsePlayersList = new ArrayList<String>();
         Intent intent = new Intent("android.media.browse.MediaBrowserService");
-        List<ResolveInfo> resInfos = mPackageManager.queryIntentServices(intent, 0);
+        List<ResolveInfo> resInfos = mPackageManager.queryIntentServices(intent,
+                                         PackageManager.MATCH_ALL);
         for (ResolveInfo resolveInfo : resInfos) {
             browsePlayersList.add(resolveInfo.serviceInfo.packageName);
         }
@@ -1734,7 +1760,8 @@ public final class Avrcp {
         mBrowsePlayerInfoList.clear();
 
         Intent intent = new Intent(android.service.media.MediaBrowserService.SERVICE_INTERFACE);
-        List<ResolveInfo> resInfos = mPackageManager.queryIntentServices(intent, 0);
+        List<ResolveInfo> resInfos = mPackageManager.queryIntentServices(intent,
+                                         PackageManager.MATCH_ALL);
 
         for (ResolveInfo resolveInfo : resInfos) {
             String displayableName = resolveInfo.loadLabel(mPackageManager).toString();
