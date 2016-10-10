@@ -305,10 +305,8 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
 **                  addr_type_own - Own address type
 **                  scan_filter_policy - Scan filter policy
 **
-** Returns          true or false
-**
 *******************************************************************************/
-bool    btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
+void btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
                                           uint32_t scan_win, uint8_t addr_type_own,
                                           uint8_t scan_filter_policy)
 {
@@ -324,13 +322,8 @@ bool    btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
     UINT8_TO_STREAM(pp_scan, scan_filter_policy);
 
     BTM_TRACE_DEBUG("%s, %d, %d", __func__, scan_int, scan_win);
-    if ((BTM_VendorSpecificCommand(HCI_BLE_EXTENDED_SCAN_PARAMS_OCF,
-         HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM, scan_param, NULL)) != BTM_SUCCESS)
-    {
-        BTM_TRACE_ERROR("%s error sending extended scan parameters", __func__);
-        return false;
-    }
-    return true;
+    BTM_VendorSpecificCommand(HCI_BLE_EXTENDED_SCAN_PARAMS_OCF,
+         HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM, scan_param, NULL);
 }
 
 /*******************************************************************************
@@ -611,14 +604,8 @@ extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_c
     BTM_TRACE_DEBUG("BTM_BleReadControllerFeatures");
 
     p_ctrl_le_feature_rd_cmpl_cback = p_vsc_cback;
-    if ( BTM_VendorSpecificCommand (HCI_BLE_VENDOR_CAP_OCF,
-                                    0,
-                                    NULL,
-                                    btm_ble_vendor_capability_vsc_cmpl_cback)
-                                    != BTM_CMD_STARTED)
-    {
-        BTM_TRACE_ERROR("LE Get_Vendor Capabilities Command Failed.");
-    }
+    BTM_VendorSpecificCommand(HCI_BLE_VENDOR_CAP_OCF, 0, NULL,
+                              btm_ble_vendor_capability_vsc_cmpl_cback);
 #else
     UNUSED(p_vsc_cback);
 #endif
