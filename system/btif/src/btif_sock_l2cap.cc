@@ -276,7 +276,7 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
     else
     {
         // Only call if we are non server connections
-        if (sock->handle && (sock->server == false)) {
+        if ((sock->handle >= 0) && (sock->server == false)) {
             if (sock->fixed_chan)
                 BTA_JvL2capCloseLE(sock->handle);
             else
