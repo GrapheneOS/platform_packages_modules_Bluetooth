@@ -186,18 +186,11 @@ extern tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, bool    is_reg
 **
 ** Description      Send a vendor specific HCI command to the controller.
 **
-** Returns
-**      BTM_SUCCESS         Command sent. Does not expect command complete
-**                              event. (command cmpl callback param is NULL)
-**      BTM_CMD_STARTED     Command sent. Waiting for command cmpl event.
-**      BTM_BUSY            Command not sent. Waiting for cmd cmpl event for
-**                              prior command.
-**
 *******************************************************************************/
-extern tBTM_STATUS BTM_VendorSpecificCommand(uint16_t opcode,
-                                             uint8_t param_len,
-                                             uint8_t *p_param_buf,
-                                             tBTM_VSC_CMPL_CB *p_cb);
+extern void BTM_VendorSpecificCommand(uint16_t opcode,
+                                      uint8_t param_len,
+                                      uint8_t *p_param_buf,
+                                      tBTM_VSC_CMPL_CB *p_cb);
 
 
 /*******************************************************************************
