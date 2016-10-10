@@ -31,7 +31,6 @@ public class MapStepsFolder {
      */
     protected static void addGoToMsgFolderSteps(TestSequencer sequencer) {
         SeqStep step;
-        //BluetoothMapFolderElement rootDir = new BluetoothMapFolderElement("root", null);
 
         // MAP Get Folder Listing Steps
         // The telecom folder

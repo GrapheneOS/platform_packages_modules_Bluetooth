@@ -518,10 +518,8 @@ public class BluetoothMapContentTest extends AndroidTestCase {
         BluetoothMapFolderElement fe = getInbox();
         if (fe != null)
         {
-            String where ="";
-            //where = BluetoothMapContract.MessageColumns.FOLDER_ID + " = " + fe.getEmailFolderId();
             Cursor c = mResolver.query(mEmailMessagesUri, BT_MESSAGE_PROJECTION,
-                    where, null, "_id DESC");
+                    "", null, "_id DESC");
             if (c != null) {
                 dumpCursor(c);
             } else {
@@ -537,9 +535,6 @@ public class BluetoothMapContentTest extends AndroidTestCase {
         initTestSetup();
 
         Log.d(TAG, "**** testDumpMessageContent **** from: " + mEmailMessagesUri.toString());
-//        BluetoothMapFolderElement fe = getInbox();
-//        String where = BluetoothMapContract.MessageColumns.FOLDER_ID + " = " + fe.getEmailFolderId();
-//        where += " AND " + BluetoothMapContract.MessageColumns.FLAG_HIGH_PRIORITY + " = 0";
 
         Cursor c = mResolver.query(mEmailMessagesUri, BT_MESSAGE_PROJECTION, null, null, "_id DESC");
         if (c != null && c.moveToNext()) {
@@ -555,7 +550,6 @@ public class BluetoothMapContentTest extends AndroidTestCase {
         Log.d(TAG, "**** testWriteMessageContent **** from: " + mEmailMessagesUri.toString());
         BluetoothMapFolderElement fe = getInbox();
         String where = BluetoothMapContract.MessageColumns.FOLDER_ID + " = " + fe.getFolderId();
-//        where += " AND " + BluetoothMapContract.MessageColumns.HIGH_PRIORITY + " = 0";
         Cursor c = mResolver.query(mEmailMessagesUri, BT_MESSAGE_PROJECTION, where, null, "_id DESC");
         if (c != null) {
             writeMessage(c);
@@ -649,8 +643,6 @@ public class BluetoothMapContentTest extends AndroidTestCase {
         long date = System.currentTimeMillis();
         Log.i(TAG, "Preparing messages...");
         for (int x=0;x<count;x++){
-            //if (D) Log.d(TAG, "*** Adding dummy sms #"+x);
-
             ContentValues item = new ContentValues(4);
             item.put("address", "1234");
             item.put("body", "test message "+x);
@@ -658,7 +650,6 @@ public class BluetoothMapContentTest extends AndroidTestCase {
             item.put("read", "0");
 
             values[x] = item;
-            // Uri mUri = mResolver.insert(Uri.parse("content://sms"), item);
         }
         Log.i(TAG, "Starting bulk insert...");
         mResolver.bulkInsert(Uri.parse("content://sms"), values);
