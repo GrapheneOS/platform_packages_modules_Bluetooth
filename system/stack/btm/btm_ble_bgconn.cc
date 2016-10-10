@@ -142,30 +142,37 @@ bool    btm_add_dev_to_controller (bool    to_add, BD_ADDR bd_addr)
     if (p_dev_rec != NULL && p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) {
         if (to_add) {
             if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC || !BTM_BLE_IS_RESOLVE_BDA(bd_addr)) {
-                started = btsnd_hcic_ble_add_white_list(p_dev_rec->ble.ble_addr_type, bd_addr);
+                btsnd_hcic_ble_add_white_list(p_dev_rec->ble.ble_addr_type, bd_addr);
+                started = true;
                 p_dev_rec->ble.in_controller_list |= BTM_WHITE_LIST_BIT;
             } else if (memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) != 0 &&
                 memcmp(p_dev_rec->ble.static_addr, dummy_bda, BD_ADDR_LEN) != 0) {
-                started = btsnd_hcic_ble_add_white_list(p_dev_rec->ble.static_addr_type,
-                                                        p_dev_rec->ble.static_addr);
+                btsnd_hcic_ble_add_white_list(p_dev_rec->ble.static_addr_type,
+                                              p_dev_rec->ble.static_addr);
+                started = true;
                 p_dev_rec->ble.in_controller_list |= BTM_WHITE_LIST_BIT;
             }
         } else {
-            if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC || !BTM_BLE_IS_RESOLVE_BDA(bd_addr))
-                started = btsnd_hcic_ble_remove_from_white_list(p_dev_rec->ble.ble_addr_type, bd_addr);
+            if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_PUBLIC || !BTM_BLE_IS_RESOLVE_BDA(bd_addr)) {
+                btsnd_hcic_ble_remove_from_white_list(p_dev_rec->ble.ble_addr_type, bd_addr);
+                started = true;
+            }
 
             if (memcmp(p_dev_rec->ble.static_addr, dummy_bda, BD_ADDR_LEN) != 0 &&
-                memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) != 0)
-                started = btsnd_hcic_ble_remove_from_white_list(p_dev_rec->ble.static_addr_type, p_dev_rec->ble.static_addr);
+                memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) != 0) {
+                btsnd_hcic_ble_remove_from_white_list(p_dev_rec->ble.static_addr_type, p_dev_rec->ble.static_addr);
+                started = true;
+            }
 
             p_dev_rec->ble.in_controller_list &= ~BTM_WHITE_LIST_BIT;
         }
     } else {
         /* not a known device, i.e. attempt to connect to device never seen before */
         uint8_t addr_type = BTM_IS_PUBLIC_BDA(bd_addr) ? BLE_ADDR_PUBLIC : BLE_ADDR_RANDOM;
-        started = btsnd_hcic_ble_remove_from_white_list(addr_type, bd_addr);
+        btsnd_hcic_ble_remove_from_white_list(addr_type, bd_addr);
+        started = true;
         if (to_add)
-            started = btsnd_hcic_ble_add_white_list(addr_type, bd_addr);
+            btsnd_hcic_ble_add_white_list(addr_type, bd_addr);
     }
 
     return started;

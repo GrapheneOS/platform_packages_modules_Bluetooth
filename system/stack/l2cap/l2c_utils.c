@@ -2834,9 +2834,9 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
             p_lcb->link_state = LST_DISCONNECTING;
             start_timeout = false;
         }
-        else if ( (p_lcb->is_bonding)
-            &&   (btsnd_hcic_disconnect (p_lcb->handle, HCI_ERR_PEER_USER)) )
+        else if (p_lcb->is_bonding)
         {
+            btsnd_hcic_disconnect(p_lcb->handle, HCI_ERR_PEER_USER);
             l2cu_process_fixed_disc_cback(p_lcb);
             p_lcb->link_state = LST_DISCONNECTING;
             timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;

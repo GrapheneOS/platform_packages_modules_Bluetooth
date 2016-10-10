@@ -805,8 +805,9 @@ bool    btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 
                     BTM_TRACE_DEBUG("%s:adding device to controller resolving list", __func__);
                     // use identical IRK for now
-                    rt = btsnd_hcic_ble_add_device_resolving_list(p_dev_rec->ble.static_addr_type,
+                    btsnd_hcic_ble_add_device_resolving_list(p_dev_rec->ble.static_addr_type,
                               p_dev_rec->ble.static_addr, peer_irk, local_irk);
+                    rt = true;
                 }
                 else
                 {
