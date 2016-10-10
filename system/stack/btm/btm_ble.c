@@ -747,10 +747,7 @@ void BTM_BleReceiverTest(uint8_t rx_freq, tBTM_CMPL_CB *p_cmd_cmpl_cback)
 {
      btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
 
-     if (btsnd_hcic_ble_receiver_test(rx_freq) == false)
-     {
-          BTM_TRACE_ERROR("%s: Unable to Trigger LE receiver test", __func__);
-     }
+     btsnd_hcic_ble_receiver_test(rx_freq);
 }
 
 /*******************************************************************************
@@ -769,10 +766,7 @@ void BTM_BleTransmitterTest(uint8_t tx_freq, uint8_t test_data_len,
                                  uint8_t packet_payload, tBTM_CMPL_CB *p_cmd_cmpl_cback)
 {
      btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
-     if (btsnd_hcic_ble_transmitter_test(tx_freq, test_data_len, packet_payload) == false)
-     {
-          BTM_TRACE_ERROR("%s: Unable to Trigger LE transmitter test", __func__);
-     }
+     btsnd_hcic_ble_transmitter_test(tx_freq, test_data_len, packet_payload);
 }
 
 /*******************************************************************************
@@ -788,10 +782,7 @@ void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback)
 {
      btm_cb.devcb.p_le_test_cmd_cmpl_cb = p_cmd_cmpl_cback;
 
-     if (btsnd_hcic_ble_test_end() == false)
-     {
-          BTM_TRACE_ERROR("%s: Unable to End the LE TX/RX test", __func__);
-     }
+     btsnd_hcic_ble_test_end();
 }
 
 /*******************************************************************************
@@ -1564,7 +1555,6 @@ tBTM_STATUS btm_ble_start_encrypt(BD_ADDR bda, bool    use_stk, BT_OCTET16 stk)
     tBTM_CB *p_cb = &btm_cb;
     tBTM_SEC_DEV_REC    *p_rec = btm_find_dev (bda);
     BT_OCTET8    dummy_rand = {0};
-    tBTM_STATUS  rt = BTM_NO_RESOURCES;
 
     BTM_TRACE_DEBUG ("btm_ble_start_encrypt");
 
@@ -1584,26 +1574,23 @@ tBTM_STATUS btm_ble_start_encrypt(BD_ADDR bda, bool    use_stk, BT_OCTET16 stk)
 
     if (use_stk)
     {
-        if (btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, dummy_rand, 0, stk))
-            rt = BTM_CMD_STARTED;
+        btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, dummy_rand, 0, stk);
     }
     else if (p_rec->ble.key_type & BTM_LE_KEY_PENC)
     {
-        if (btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, p_rec->ble.keys.rand,
-                                     p_rec->ble.keys.ediv, p_rec->ble.keys.pltk))
-            rt = BTM_CMD_STARTED;
+        btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, p_rec->ble.keys.rand,
+                                 p_rec->ble.keys.ediv, p_rec->ble.keys.pltk);
     }
     else
     {
         BTM_TRACE_ERROR("No key available to encrypt the link");
-    }
-    if (rt == BTM_CMD_STARTED)
-    {
-        if (p_rec->sec_state == BTM_SEC_STATE_IDLE)
-            p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
+        return BTM_NO_RESOURCES;
     }
 
-    return rt;
+    if (p_rec->sec_state == BTM_SEC_STATE_IDLE)
+        p_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
+
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -2508,11 +2495,7 @@ static void btm_ble_process_er(tBTM_RAND_ENC *p)
     {
         memcpy(&btm_cb.devcb.ble_encryption_key_value[0], p->param_buf, BT_OCTET8_LEN);
 
-        if (!btsnd_hcic_ble_rand((void *)btm_ble_process_er2))
-        {
-            memset(&btm_cb.devcb.ble_encryption_key_value, 0, sizeof(BT_OCTET16));
-            BTM_TRACE_ERROR("Generating ER2 failed.");
-        }
+        btsnd_hcic_ble_rand((void *)btm_ble_process_er2);
     }
     else
     {
@@ -2552,10 +2535,7 @@ static void btm_ble_process_irk(tSMP_ENC *p)
     }
 
     /* proceed generate ER */
-    if (!btsnd_hcic_ble_rand((void *)btm_ble_process_er))
-    {
-        BTM_TRACE_ERROR("Generating ER failed.");
-    }
+    btsnd_hcic_ble_rand((void *)btm_ble_process_er);
 }
 
 /*******************************************************************************
@@ -2660,11 +2640,7 @@ static void btm_ble_process_ir(tBTM_RAND_ENC *p)
         /* remembering in control block */
         memcpy(btm_cb.devcb.id_keys.ir, p->param_buf, BT_OCTET8_LEN);
 
-        if (!btsnd_hcic_ble_rand((void *)btm_ble_process_ir2))
-        {
-            BTM_TRACE_ERROR("Generating IR2 failed.");
-            memset(&btm_cb.devcb.id_keys, 0, sizeof(tBTM_BLE_LOCAL_ID_KEYS));
-        }
+        btsnd_hcic_ble_rand((void *)btm_ble_process_ir2);
     }
 }
 
@@ -2682,10 +2658,7 @@ void btm_ble_reset_id( void )
     BTM_TRACE_DEBUG ("btm_ble_reset_id");
 
     /* regenrate Identity Root*/
-    if (!btsnd_hcic_ble_rand((void *)btm_ble_process_ir))
-    {
-        BTM_TRACE_DEBUG("Generating IR failed.");
-    }
+    btsnd_hcic_ble_rand((void *)btm_ble_process_ir);
 }
 
     #if BTM_BLE_CONFORMANCE_TESTING == true
