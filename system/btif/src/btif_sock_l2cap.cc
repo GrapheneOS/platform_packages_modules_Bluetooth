@@ -20,12 +20,13 @@
 #include "btif_sock_l2cap.h"
 
 #include <errno.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <mutex>
 
 #include <hardware/bt_sock.h>
 
@@ -90,7 +91,7 @@ typedef struct l2cap_socket {
 
 static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock);
 
-static pthread_mutex_t state_lock;
+static std::mutex state_lock;
 
 l2cap_socket *socks = NULL;
 static uid_set_t* uid_set = NULL;
@@ -203,25 +204,20 @@ static char packet_put_tail_l(l2cap_socket *sock, const void *data, uint32_t len
 static inline void bd_copy(uint8_t* dest, uint8_t* src, bool swap)
 {
     if (swap) {
-        int i;
-        for (i =0; i < 6 ;i++)
-            dest[i]= src[5-i];
+        for (int i=0; i < 6; i++)
+            dest[i] = src[5-i];
+    } else {
+      memcpy(dest, src, 6);
     }
-    else memcpy(dest, src, 6);
 }
 
 static char is_inited(void)
 {
-    char ret;
-
-    pthread_mutex_lock(&state_lock);
-    ret = pth != -1;
-    pthread_mutex_unlock(&state_lock);
-
-    return ret;
+    std::unique_lock<std::mutex> lock(state_lock);
+    return pth != -1;
 }
 
-/* only call with mutex taken */
+/* only call with std::mutex taken */
 static l2cap_socket *btsock_l2cap_find_by_id_l(uint32_t id)
 {
     l2cap_socket *sock = socks;
@@ -362,25 +358,19 @@ fail_sockpair:
 bt_status_t btsock_l2cap_init(int handle, uid_set_t* set)
 {
     APPL_TRACE_DEBUG("%s handle = %d", __func__);
-    pthread_mutex_init(&state_lock, NULL);
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     pth = handle;
     socks = NULL;
     uid_set = set;
-    pthread_mutex_unlock(&state_lock);
-
     return BT_STATUS_SUCCESS;
 }
 
 bt_status_t btsock_l2cap_cleanup()
 {
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     pth = -1;
     while (socks)
         btsock_l2cap_free_l(socks);
-    pthread_mutex_unlock(&state_lock);
-    pthread_mutex_destroy(&state_lock);
-
     return BT_STATUS_SUCCESS;
 }
 
@@ -414,45 +404,47 @@ static void on_srv_l2cap_listen_started(tBTA_JV_L2CAP_START *p_start, uint32_t i
 {
     l2cap_socket *sock;
 
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
-    if (sock) {
-        if (p_start->status != BTA_JV_SUCCESS) {
-            APPL_TRACE_ERROR("Error starting l2cap_listen - status: 0x%04x", p_start->status);
+    if (!sock)
+      return;
+
+    if (p_start->status != BTA_JV_SUCCESS) {
+        APPL_TRACE_ERROR("Error starting l2cap_listen - status: 0x%04x", p_start->status);
+        btsock_l2cap_free_l(sock);
+        return;
+    }
+
+    sock->handle = p_start->handle;
+    APPL_TRACE_DEBUG("on_srv_l2cap_listen_started() sock->handle =%d id:%d",
+            sock->handle, sock->id);
+
+    if(sock->server_psm_sent == false) {
+        if (!send_app_psm_or_chan_l(sock)) {
+            //closed
+            APPL_TRACE_DEBUG("send_app_psm() failed, close rs->id:%d", sock->id);
             btsock_l2cap_free_l(sock);
-        }
-        else {
-            sock->handle = p_start->handle;
-            APPL_TRACE_DEBUG("on_srv_l2cap_listen_started() sock->handle =%d id:%d",
-                    sock->handle, sock->id);
-            if(sock->server_psm_sent == false) {
-                if (!send_app_psm_or_chan_l(sock)) {
-                    //closed
-                    APPL_TRACE_DEBUG("send_app_psm() failed, close rs->id:%d", sock->id);
-                    btsock_l2cap_free_l(sock);
-                } else {
-                    sock->server_psm_sent = true;
-                }
-            }
+        } else {
+            sock->server_psm_sent = true;
         }
     }
-    pthread_mutex_unlock(&state_lock);
 }
 
 static void on_cl_l2cap_init(tBTA_JV_L2CAP_CL_INIT *p_init, uint32_t id)
 {
     l2cap_socket *sock;
 
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
-    if (sock) {
-        if (p_init->status != BTA_JV_SUCCESS) {
-            btsock_l2cap_free_l(sock);
-        } else {
-            sock->handle = p_init->handle;
-        }
+    if (!sock)
+      return;
+
+    if (p_init->status != BTA_JV_SUCCESS) {
+        btsock_l2cap_free_l(sock);
+        return;
     }
-    pthread_mutex_unlock(&state_lock);
+
+    sock->handle = p_init->handle;
 }
 
 /**
@@ -464,7 +456,7 @@ static void on_srv_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN *p_open, l2cap_socket 
     l2cap_socket *accept_rs;
     uint32_t new_listen_id;
 
-    // Mutex locked by caller
+    // std::mutex locked by caller
     accept_rs = btsock_l2cap_alloc_l(sock->name, (const bt_bdaddr_t*)p_open->rem_bda, false, 0);
     accept_rs->connected = true;
     accept_rs->security = sock->security;
@@ -505,7 +497,7 @@ static void on_srv_l2cap_le_connect_l(tBTA_JV_L2CAP_LE_OPEN *p_open, l2cap_socke
     l2cap_socket *accept_rs;
     uint32_t new_listen_id;
 
-    // mutex locked by caller
+    // std::mutex locked by caller
     accept_rs = btsock_l2cap_alloc_l(sock->name, (const bt_bdaddr_t*)p_open->rem_bda, false, 0);
     if (accept_rs) {
 
@@ -582,64 +574,64 @@ static void on_l2cap_connect(tBTA_JV *p_data, uint32_t id)
     tBTA_JV_L2CAP_OPEN *psm_open = &p_data->l2c_open;
     tBTA_JV_L2CAP_LE_OPEN *le_open = &p_data->l2c_le_open;
 
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
     if (!sock) {
         APPL_TRACE_ERROR("on_l2cap_connect on unknown socket");
-    } else {
-        if (sock->fixed_chan && le_open->status == BTA_JV_SUCCESS) {
-            if (!sock->server)
-                on_cl_l2cap_le_connect_l(le_open, sock);
-            else
-                on_srv_l2cap_le_connect_l(le_open, sock);
-        } else if (!sock->fixed_chan && psm_open->status == BTA_JV_SUCCESS) {
-            if (!sock->server)
-                on_cl_l2cap_psm_connect_l(psm_open, sock);
-            else
-                on_srv_l2cap_psm_connect_l(psm_open, sock);
-        }
-        else
-            btsock_l2cap_free_l(sock);
+        return;
     }
-    pthread_mutex_unlock(&state_lock);
+
+    if (sock->fixed_chan && le_open->status == BTA_JV_SUCCESS) {
+        if (!sock->server)
+            on_cl_l2cap_le_connect_l(le_open, sock);
+        else
+            on_srv_l2cap_le_connect_l(le_open, sock);
+    } else if (!sock->fixed_chan && psm_open->status == BTA_JV_SUCCESS) {
+        if (!sock->server)
+            on_cl_l2cap_psm_connect_l(psm_open, sock);
+        else
+            on_srv_l2cap_psm_connect_l(psm_open, sock);
+    }
+    else
+        btsock_l2cap_free_l(sock);
 }
 
 static void on_l2cap_close(tBTA_JV_L2CAP_CLOSE * p_close, uint32_t id)
 {
     l2cap_socket *sock;
 
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
-    if (sock) {
-        APPL_TRACE_DEBUG("on_l2cap_close, slot id:%d, fd:%d, %s:%d, server:%d",
-                sock->id, sock->our_fd, sock->fixed_chan ? "fixed_chan" : "PSM",
-                sock->channel, sock->server);
-        // TODO: This does not seem to be called...
-        // I'm not sure if this will be called for non-server sockets?
-        if(!sock->fixed_chan && (sock->server == true)) {
-            BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
-        }
-        btsock_l2cap_free_l(sock);
+    if (!sock)
+      return;
+
+    APPL_TRACE_DEBUG("on_l2cap_close, slot id:%d, fd:%d, %s:%d, server:%d",
+            sock->id, sock->our_fd, sock->fixed_chan ? "fixed_chan" : "PSM",
+            sock->channel, sock->server);
+    // TODO: This does not seem to be called...
+    // I'm not sure if this will be called for non-server sockets?
+    if(!sock->fixed_chan && (sock->server == true)) {
+        BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
     }
-    pthread_mutex_unlock(&state_lock);
+    btsock_l2cap_free_l(sock);
 }
 
 static void on_l2cap_outgoing_congest(tBTA_JV_L2CAP_CONG *p, uint32_t id)
 {
     l2cap_socket *sock;
 
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
-    if (sock) {
-        sock->outgoing_congest = p->cong ? 1 : 0;
-        //mointer the fd for any outgoing data
-        if (!sock->outgoing_congest) {
-            APPL_TRACE_DEBUG("on_l2cap_outgoing_congest: adding fd to btsock_thread...");
-            btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
+    if (!sock)
+      return;
 
-        }
+    sock->outgoing_congest = p->cong ? 1 : 0;
+    //mointer the fd for any outgoing data
+    if (!sock->outgoing_congest) {
+        APPL_TRACE_DEBUG("on_l2cap_outgoing_congest: adding fd to btsock_thread...");
+        btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
+
     }
-    pthread_mutex_unlock(&state_lock);
 }
 
 static void on_l2cap_write_done(void* req_id, uint16_t len, uint32_t id)
@@ -652,17 +644,17 @@ static void on_l2cap_write_done(void* req_id, uint16_t len, uint32_t id)
 
     int app_uid = -1;
 
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
-    if (sock) {
-        app_uid = sock->app_uid;
-        if (!sock->outgoing_congest) {
-            //monitor the fd for any outgoing data
-            APPL_TRACE_DEBUG("on_l2cap_write_done: adding fd to btsock_thread...");
-            btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
-        }
+    if (!sock)
+        return;
+
+    app_uid = sock->app_uid;
+    if (!sock->outgoing_congest) {
+        // monitor the fd for any outgoing data
+        APPL_TRACE_DEBUG("on_l2cap_write_done: adding fd to btsock_thread...");
+        btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
     }
-    pthread_mutex_unlock(&state_lock);
 
     uid_set_add_tx(uid_set, app_uid, len);
 }
@@ -676,17 +668,16 @@ static void on_l2cap_write_fixed_done(void* req_id, uint16_t len, uint32_t id)
     }
 
     int app_uid = -1;
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
-    if (sock) {
-        app_uid = sock->app_uid;
-        if (!sock->outgoing_congest) {
-            //monitor the fd for any outgoing data
-            btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
-        }
-    }
-    pthread_mutex_unlock(&state_lock);
+    if (!sock)
+        return;
 
+    app_uid = sock->app_uid;
+    if (!sock->outgoing_congest) {
+        //monitor the fd for any outgoing data
+        btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
+    }
     uid_set_add_tx(uid_set, app_uid, len);
 }
 
@@ -697,49 +688,48 @@ static void on_l2cap_data_ind(tBTA_JV *evt, uint32_t id)
     int app_uid = -1;
     uint32_t bytes_read = 0;
 
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
-    if (sock) {
-        app_uid = sock->app_uid;
+    if (!sock)
+        return;
 
-        if (sock->fixed_chan) { /* we do these differently */
+    app_uid = sock->app_uid;
 
-            tBTA_JV_LE_DATA_IND *p_le_data_ind = &evt->le_data_ind;
-            BT_HDR *p_buf = p_le_data_ind->p_buf;
-            uint8_t *data = (uint8_t*)(p_buf + 1) + p_buf->offset;
+    if (sock->fixed_chan) { /* we do these differently */
 
-            if (packet_put_tail_l(sock, data, p_buf->len)) {
-                bytes_read = p_buf->len;
-                btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_WR, sock->id);
-            } else {//connection must be dropped
-                APPL_TRACE_DEBUG("on_l2cap_data_ind() unable to push data to socket - closing"
-                        " fixed channel");
-                BTA_JvL2capCloseLE(sock->handle);
-                btsock_l2cap_free_l(sock);
-            }
+        tBTA_JV_LE_DATA_IND *p_le_data_ind = &evt->le_data_ind;
+        BT_HDR *p_buf = p_le_data_ind->p_buf;
+        uint8_t *data = (uint8_t*)(p_buf + 1) + p_buf->offset;
 
-        } else {
+        if (packet_put_tail_l(sock, data, p_buf->len)) {
+            bytes_read = p_buf->len;
+            btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_WR, sock->id);
+        } else {//connection must be dropped
+            APPL_TRACE_DEBUG("on_l2cap_data_ind() unable to push data to socket - closing"
+                    " fixed channel");
+            BTA_JvL2capCloseLE(sock->handle);
+            btsock_l2cap_free_l(sock);
+        }
 
-            uint8_t buffer[L2CAP_MAX_SDU_LENGTH];
-            uint32_t  count;
+    } else {
+        uint8_t buffer[L2CAP_MAX_SDU_LENGTH];
+        uint32_t count;
 
-            if (BTA_JvL2capReady(sock->handle, &count) == BTA_JV_SUCCESS) {
-                if (BTA_JvL2capRead(sock->handle, sock->id, buffer, count) == BTA_JV_SUCCESS) {
-                    if (packet_put_tail_l(sock, buffer, count)) {
-                        bytes_read = count;
-                        btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_WR,
-                                sock->id);
-                    } else {//connection must be dropped
-                        APPL_TRACE_DEBUG("on_l2cap_data_ind() unable to push data to socket"
-                                " - closing channel");
-                        BTA_JvL2capClose(sock->handle);
-                        btsock_l2cap_free_l(sock);
-                    }
+        if (BTA_JvL2capReady(sock->handle, &count) == BTA_JV_SUCCESS) {
+            if (BTA_JvL2capRead(sock->handle, sock->id, buffer, count) == BTA_JV_SUCCESS) {
+                if (packet_put_tail_l(sock, buffer, count)) {
+                    bytes_read = count;
+                    btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_WR,
+                            sock->id);
+                } else {//connection must be dropped
+                    APPL_TRACE_DEBUG("on_l2cap_data_ind() unable to push data to socket"
+                            " - closing channel");
+                    BTA_JvL2capClose(sock->handle);
+                    btsock_l2cap_free_l(sock);
                 }
             }
         }
     }
-    pthread_mutex_unlock(&state_lock);
 
     uid_set_add_rx(uid_set, app_uid, bytes_read);
 }
@@ -824,19 +814,17 @@ const tL2CAP_ERTM_INFO obex_l2c_etm_opt =
 void on_l2cap_psm_assigned(int id, int psm) {
     /* Setup ETM settings:
      *  mtu will be set below */
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     l2cap_socket *sock = btsock_l2cap_find_by_id_l(id);
-
-    if (sock) {
-        sock->channel = psm;
-
-        if (btSock_start_l2cap_server_l(sock) != BT_STATUS_SUCCESS)
-            btsock_l2cap_free_l(sock);
-    } else {
+    if (!sock) {
         APPL_TRACE_ERROR("%s: Error: sock is null", __func__);
+        return;
     }
 
-    pthread_mutex_unlock(&state_lock);
+    sock->channel = psm;
+
+    if (btSock_start_l2cap_server_l(sock) != BT_STATUS_SUCCESS)
+        btsock_l2cap_free_l(sock);
 }
 
 static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock) {
@@ -915,11 +903,9 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
         return BT_STATUS_NOT_READY;
 
     // TODO: This is kind of bad to lock here, but it is needed for the current design.
-    pthread_mutex_lock(&state_lock);
-
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_alloc_l(name, addr, listen, flags);
     if (!sock) {
-        pthread_mutex_unlock(&state_lock);
         return BT_STATUS_NOMEM;
     }
 
@@ -976,7 +962,6 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
     } else {
        btsock_l2cap_free_l(sock);
     }
-    pthread_mutex_unlock(&state_lock);
 
     return stat;
 }
@@ -1028,83 +1013,83 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
     char drop_it = false;
 
     /* We use MSG_DONTWAIT when sending data to JAVA, hence it can be accepted to hold the lock. */
-    pthread_mutex_lock(&state_lock);
+    std::unique_lock<std::mutex> lock(state_lock);
     sock = btsock_l2cap_find_by_id_l(user_id);
-    if (sock) {
-        if ((flags & SOCK_THREAD_FD_RD) && !sock->server) {
-            //app sending data
-            if (sock->connected) {
-                int size = 0;
+    if (!sock)
+        return;
 
-                if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(sock->our_fd, FIONREAD, &size)
-                        == 0 && size)) {
-                    uint8_t *buffer = (uint8_t*) osi_malloc(L2CAP_MAX_SDU_LENGTH);
-                    /* Apparently we hijack the req_id (uint32_t) to pass the pointer to the buffer to
-                     * the write complete callback, which call a free... wonder if this works on a
-                     * 64 bit platform? */
-                    /* The socket is created with SOCK_SEQPACKET, hence we read one message at
-                     * the time. The maximum size of a message is allocated to ensure data is
-                     * not lost. This is okay to do as Android uses virtual memory, hence even
-                     * if we only use a fraction of the memory it should not block for others
-                     * to use the memory. As the definition of ioctl(FIONREAD) do not clearly
-                     * define what value will be returned if multiple messages are written to
-                     * the socket before any message is read from the socket, we could
-                     * potentially risk to allocate way more memory than needed. One of the use
-                     * cases for this socket is obex where multiple 64kbyte messages are
-                     * typically written to the socket in a tight loop, hence we risk the ioctl
-                     * will return the total amount of data in the buffer, which could be
-                     * multiple 64kbyte chunks.
-                     * UPDATE: As the stack cannot handle 64kbyte buffers, the size is reduced
-                     * to around 8kbyte - and using malloc for buffer allocation here seems to
-                     * be wrong
-                     * UPDATE: Since we are responsible for freeing the buffer in the
-                     * write_complete_ind, it is OK to use malloc. */
-                    ssize_t count;
-                    OSI_NO_INTR(count = recv(fd, buffer, L2CAP_MAX_SDU_LENGTH,
-                                             MSG_NOSIGNAL | MSG_DONTWAIT));
-                    APPL_TRACE_DEBUG("btsock_l2cap_signaled - %d bytes received from socket",
-                                     count);
+    if ((flags & SOCK_THREAD_FD_RD) && !sock->server) {
+        // app sending data
+        if (sock->connected) {
+            int size = 0;
 
-                    // TODO(armansito): |buffer|, which is created above via
-                    // malloc, is being cast below to uint32_t to be used as
-                    // the |req_id| parameter of BTA_JvL2capWriteFixed and
-                    // BTA_JvL2capWrite. The "id" then gets freed in an
-                    // obscure callback elsewhere. We need to watch out for
-                    // this type of unsafe practice, as this is error prone
-                    // and difficult to follow.
-                    if (sock->fixed_chan) {
-                        if (BTA_JvL2capWriteFixed(sock->channel,
-                                                  (BD_ADDR*)&sock->addr,
-                                                  PTR_TO_UINT(buffer),
-                                                  btsock_l2cap_cbk, buffer,
-                                                  count,
-                                                  UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
-                            // On fail, free the buffer
-                            on_l2cap_write_fixed_done(buffer, count, user_id);
-                        }
-                    } else {
-                        if (BTA_JvL2capWrite(sock->handle, PTR_TO_UINT(buffer),
-                                             buffer, count,
-                                             UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
-                          // On fail, free the buffer
-                          on_l2cap_write_done(buffer, count, user_id);
-                        }
+            if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(sock->our_fd, FIONREAD, &size)
+                    == 0 && size)) {
+                uint8_t *buffer = (uint8_t*) osi_malloc(L2CAP_MAX_SDU_LENGTH);
+                /* Apparently we hijack the req_id (uint32_t) to pass the pointer to the buffer to
+                 * the write complete callback, which call a free... wonder if this works on a
+                 * 64 bit platform? */
+                /* The socket is created with SOCK_SEQPACKET, hence we read one message at
+                 * the time. The maximum size of a message is allocated to ensure data is
+                 * not lost. This is okay to do as Android uses virtual memory, hence even
+                 * if we only use a fraction of the memory it should not block for others
+                 * to use the memory. As the definition of ioctl(FIONREAD) do not clearly
+                 * define what value will be returned if multiple messages are written to
+                 * the socket before any message is read from the socket, we could
+                 * potentially risk to allocate way more memory than needed. One of the use
+                 * cases for this socket is obex where multiple 64kbyte messages are
+                 * typically written to the socket in a tight loop, hence we risk the ioctl
+                 * will return the total amount of data in the buffer, which could be
+                 * multiple 64kbyte chunks.
+                 * UPDATE: As the stack cannot handle 64kbyte buffers, the size is reduced
+                 * to around 8kbyte - and using malloc for buffer allocation here seems to
+                 * be wrong
+                 * UPDATE: Since we are responsible for freeing the buffer in the
+                 * write_complete_ind, it is OK to use malloc. */
+                ssize_t count;
+                OSI_NO_INTR(count = recv(fd, buffer, L2CAP_MAX_SDU_LENGTH,
+                                         MSG_NOSIGNAL | MSG_DONTWAIT));
+                APPL_TRACE_DEBUG("btsock_l2cap_signaled - %d bytes received from socket",
+                                 count);
+
+                // TODO(armansito): |buffer|, which is created above via
+                // malloc, is being cast below to uint32_t to be used as
+                // the |req_id| parameter of BTA_JvL2capWriteFixed and
+                // BTA_JvL2capWrite. The "id" then gets freed in an
+                // obscure callback elsewhere. We need to watch out for
+                // this type of unsafe practice, as this is error prone
+                // and difficult to follow.
+                if (sock->fixed_chan) {
+                    if (BTA_JvL2capWriteFixed(sock->channel,
+                                              (BD_ADDR*)&sock->addr,
+                                              PTR_TO_UINT(buffer),
+                                              btsock_l2cap_cbk, buffer,
+                                              count,
+                                              UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
+                        // On fail, free the buffer
+                        on_l2cap_write_fixed_done(buffer, count, user_id);
+                    }
+                } else {
+                    if (BTA_JvL2capWrite(sock->handle, PTR_TO_UINT(buffer),
+                                         buffer, count,
+                                         UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
+                      // On fail, free the buffer
+                      on_l2cap_write_done(buffer, count, user_id);
                     }
                 }
-            } else
-                drop_it = true;
-        }
-        if (flags & SOCK_THREAD_FD_WR) {
-            //app is ready to receive more data, tell stack to enable the data flow
-            if (flush_incoming_que_on_wr_signal_l(sock) && sock->connected)
-                btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_WR, sock->id);
-        }
-        if (drop_it || (flags & SOCK_THREAD_FD_EXCEPTION)) {
-            int size = 0;
-            if (drop_it || ioctl(sock->our_fd, FIONREAD, &size) != 0 || size == 0)
-                btsock_l2cap_free_l(sock);
-        }
+            }
+        } else
+            drop_it = true;
     }
-    pthread_mutex_unlock(&state_lock);
+    if (flags & SOCK_THREAD_FD_WR) {
+        //app is ready to receive more data, tell stack to enable the data flow
+        if (flush_incoming_que_on_wr_signal_l(sock) && sock->connected)
+            btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_WR, sock->id);
+    }
+    if (drop_it || (flags & SOCK_THREAD_FD_EXCEPTION)) {
+        int size = 0;
+        if (drop_it || ioctl(sock->our_fd, FIONREAD, &size) != 0 || size == 0)
+            btsock_l2cap_free_l(sock);
+    }
 }
 

@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <mutex>
+
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sdp.h>
 
@@ -42,7 +44,8 @@
 #include "osi/include/allocator.h"
 #include "utl.h"
 
-static pthread_mutex_t sdp_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+// Protects the sdp_slots array from concurrent access.
+static std::recursive_mutex sdp_lock;
 
 /**
  * The need for a state variable have been reduced to two states.
@@ -108,7 +111,7 @@ bt_status_t sdp_server_init()
 void sdp_server_cleanup()
 {
     BTIF_TRACE_DEBUG("Sdp Server %s", __func__);
-    pthread_mutex_lock(&sdp_lock);
+    std::unique_lock<std::recursive_mutex> lock(sdp_lock);
     int i;
     for(i = 0; i < MAX_SDP_SLOTS; i++)
     {
@@ -117,7 +120,6 @@ void sdp_server_cleanup()
          */
         free_sdp_slot(i);
     }
-    pthread_mutex_unlock(&sdp_lock);
 }
 
 int get_sdp_records_size(bluetooth_sdp_record* in_record, int count) {
@@ -185,31 +187,26 @@ void copy_sdp_records(bluetooth_sdp_record* in_records,
  *   user1_ptr and
  *   user2_ptr. */
 static int alloc_sdp_slot(bluetooth_sdp_record* in_record) {
-    int i;
     int record_size = get_sdp_records_size(in_record, 1);
+    /* We are optimists here, and preallocate the record.
+     * This is to reduce the time we hold the sdp_lock. */
     bluetooth_sdp_record* record = (bluetooth_sdp_record*)osi_malloc(record_size);
 
     copy_sdp_records(in_record, record, 1);
-
-    /* We are optimists here, and preallocate the record.
-     * This is to reduce the time we hold the sdp_lock. */
-    pthread_mutex_lock(&sdp_lock);
-    for(i = 0; i < MAX_SDP_SLOTS; i++)
     {
-        if(sdp_slots[i].state == SDP_RECORD_FREE) {
-            sdp_slots[i].state = SDP_RECORD_ALLOCED;
-            sdp_slots[i].record_data = record;
-            break;
-        }
+      std::unique_lock<std::recursive_mutex> lock(sdp_lock);
+      for (int i = 0; i < MAX_SDP_SLOTS; i++) {
+          if(sdp_slots[i].state == SDP_RECORD_FREE) {
+              sdp_slots[i].state = SDP_RECORD_ALLOCED;
+              sdp_slots[i].record_data = record;
+              return i;
+          }
+      }
     }
-    pthread_mutex_unlock(&sdp_lock);
-    if(i >= MAX_SDP_SLOTS) {
-        APPL_TRACE_ERROR("%s() failed - no more free slots!", __func__);
-        /* Rearly the optimist is too optimistic, and cleanup is needed...*/
-        osi_free(record);
-        return -1;
-    }
-    return i;
+    APPL_TRACE_ERROR("%s() failed - no more free slots!", __func__);
+    /* Rearly the optimist is too optimistic, and cleanup is needed...*/
+    osi_free(record);
+    return -1;
 }
 
 static int free_sdp_slot(int id) {
@@ -219,18 +216,19 @@ static int free_sdp_slot(int id) {
         APPL_TRACE_ERROR("%s() failed - id %d is invalid", __func__, id);
         return handle;
     }
-    pthread_mutex_lock(&sdp_lock);
-    handle = sdp_slots[id].sdp_handle;
-    sdp_slots[id].sdp_handle = 0;
-    if(sdp_slots[id].state != SDP_RECORD_FREE)
-    {
-        /* safe a copy of the pointer, and free after unlock() */
-        record = sdp_slots[id].record_data;
-    }
-    sdp_slots[id].state = SDP_RECORD_FREE;
-    pthread_mutex_unlock(&sdp_lock);
 
-    if(record != NULL) {
+    {
+      std::unique_lock<std::recursive_mutex> lock(sdp_lock);
+      handle = sdp_slots[id].sdp_handle;
+      sdp_slots[id].sdp_handle = 0;
+      if (sdp_slots[id].state != SDP_RECORD_FREE) {
+          /* safe a copy of the pointer, and free after unlock() */
+          record = sdp_slots[id].record_data;
+      }
+      sdp_slots[id].state = SDP_RECORD_FREE;
+    }
+
+    if (record != NULL) {
         osi_free(record);
     } else {
         // Record have already been freed
@@ -244,31 +242,26 @@ static int free_sdp_slot(int id) {
  * SDP_RECORD_CREATE_INITIATED.
  */
 static const sdp_slot_t* start_create_sdp(int id) {
-    sdp_slot_t* sdp_slot;
-    if(id >= MAX_SDP_SLOTS) {
+    if (id >= MAX_SDP_SLOTS) {
         APPL_TRACE_ERROR("%s() failed - id %d is invalid", __func__, id);
         return NULL;
     }
-    pthread_mutex_lock(&sdp_lock);
-    if(sdp_slots[id].state == SDP_RECORD_ALLOCED) {
-        sdp_slot = &(sdp_slots[id]);
-    } else {
+
+    std::unique_lock<std::recursive_mutex> lock(sdp_lock);
+    if (sdp_slots[id].state != SDP_RECORD_ALLOCED) {
         /* The record have been removed before this event occurred - e.g. deinit */
-        sdp_slot = NULL;
-    }
-    pthread_mutex_unlock(&sdp_lock);
-    if(sdp_slot == NULL) {
         APPL_TRACE_ERROR("%s() failed - state for id %d is "
                 "sdp_slots[id].state = %d expected %d", __func__,
                 id, sdp_slots[id].state, SDP_RECORD_ALLOCED);
+        return NULL;
     }
-    return sdp_slot;
+
+    return &(sdp_slots[id]);
 }
 
 static void set_sdp_handle(int id, int handle) {
-    pthread_mutex_lock(&sdp_lock);
+    std::unique_lock<std::recursive_mutex> lock(sdp_lock);
     sdp_slots[id].sdp_handle = handle;
-    pthread_mutex_unlock(&sdp_lock);
     BTIF_TRACE_DEBUG("%s() id=%d to handle=0x%08x", __func__, id, handle);
 }
 

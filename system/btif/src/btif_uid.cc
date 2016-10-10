@@ -16,13 +16,13 @@
 
 /************************************************************************************
  *
- *  Filename:      btif_uid.c
+ *  Filename:      btif_uid.cc
  *
  *  Description:   Contains data structures and functions for keeping track of
  *                 socket usage per app UID.
  *
  ***********************************************************************************/
-#include <pthread.h>
+#include <mutex>
 
 #include "bt_common.h"
 #include "btif_uid.h"
@@ -33,18 +33,17 @@ typedef struct uid_set_node_t {
 } uid_set_node_t;
 
 typedef struct uid_set_t {
-    pthread_mutex_t lock;
+    std::mutex lock;
     uid_set_node_t* head;
 } uid_set_t;
 
 uid_set_t* uid_set_create(void) {
     uid_set_t* set = (uid_set_t*)osi_calloc(sizeof(uid_set_t));
-    pthread_mutex_init(&set->lock, NULL);
     return set;
 }
 
 void uid_set_destroy(uid_set_t* set) {
-    pthread_mutex_lock(&set->lock);
+    std::unique_lock<std::mutex> lock(set->lock);
     uid_set_node_t* node = set->head;
     while (node) {
         uid_set_node_t* temp = node;
@@ -52,8 +51,6 @@ void uid_set_destroy(uid_set_t* set) {
         osi_free(temp);
     }
     set->head = NULL;
-    pthread_mutex_unlock(&set->lock);
-    pthread_mutex_destroy(&set->lock);
     osi_free(set);
 }
 
@@ -74,29 +71,25 @@ static uid_set_node_t* uid_set_find_or_create_node(uid_set_t* set, int32_t app_u
 }
 
 void uid_set_add_tx(uid_set_t* set, int32_t app_uid, uint64_t bytes) {
-    if (app_uid == -1 || bytes == 0) {
+    if (app_uid == -1 || bytes == 0)
         return;
-    }
 
-    pthread_mutex_lock(&set->lock);
+    std::unique_lock<std::mutex> lock(set->lock);
     uid_set_node_t* node = uid_set_find_or_create_node(set, app_uid);
     node->data.tx_bytes += bytes;
-    pthread_mutex_unlock(&set->lock);
 }
 
 void uid_set_add_rx(uid_set_t* set, int32_t app_uid, uint64_t bytes) {
-    if (app_uid == -1 || bytes == 0) {
+    if (app_uid == -1 || bytes == 0)
         return;
-    }
 
-    pthread_mutex_lock(&set->lock);
+    std::unique_lock<std::mutex> lock(set->lock);
     uid_set_node_t* node = uid_set_find_or_create_node(set, app_uid);
     node->data.rx_bytes += bytes;
-    pthread_mutex_unlock(&set->lock);
 }
 
 bt_uid_traffic_t* uid_set_read_and_clear(uid_set_t* set) {
-    pthread_mutex_lock(&set->lock);
+    std::unique_lock<std::mutex> lock(set->lock);
 
     // Find the length
     size_t len = 0;
@@ -124,8 +117,6 @@ bt_uid_traffic_t* uid_set_read_and_clear(uid_set_t* set) {
 
     // Mark the last entry
     data->app_uid = -1;
-
-    pthread_mutex_unlock(&set->lock);
 
     return result;
 }
