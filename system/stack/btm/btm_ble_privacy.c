@@ -454,12 +454,10 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
     if (controller_get_interface()->get_ble_resolving_list_max_size() == 0)
         return BTM_WRONG_MODE;
 
-    tBTM_STATUS st = BTM_NO_RESOURCES;
     if (controller_get_interface()->supports_ble_privacy())
     {
         btsnd_hcic_ble_rm_device_resolving_list(p_dev_rec->ble.static_addr_type,
                                                 p_dev_rec->ble.static_addr);
-        st =  BTM_CMD_STARTED;
     }
     else
     {
@@ -470,16 +468,14 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
         UINT8_TO_STREAM(p, p_dev_rec->ble.static_addr_type);
         BDADDR_TO_STREAM(p, p_dev_rec->ble.static_addr);
 
-        st = BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC,
+        BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC,
                                        BTM_BLE_META_REMOVE_IRK_LEN,
                                        param,
                                        btm_ble_resolving_list_vsc_op_cmpl);
     }
 
-    if (st == BTM_CMD_STARTED)
-        btm_ble_enq_resolving_list_pending( p_dev_rec->bd_addr, BTM_BLE_META_REMOVE_IRK_ENTRY);
-
-    return st;
+    btm_ble_enq_resolving_list_pending( p_dev_rec->bd_addr, BTM_BLE_META_REMOVE_IRK_ENTRY);
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -490,17 +486,13 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 **
 ** Parameters       None.
 **
-** Returns          status
-**
 *******************************************************************************/
-tBTM_STATUS btm_ble_clear_resolving_list(void)
+void btm_ble_clear_resolving_list(void)
 {
-    tBTM_STATUS st = BTM_NO_RESOURCES;
 
     if (controller_get_interface()->supports_ble_privacy())
     {
         btsnd_hcic_ble_clear_resolving_list();
-        st =  BTM_SUCCESS;
     }
     else
     {
@@ -508,13 +500,11 @@ tBTM_STATUS btm_ble_clear_resolving_list(void)
         uint8_t *p = param;
 
         UINT8_TO_STREAM(p, BTM_BLE_META_CLEAR_IRK_LIST);
-        st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC,
-                                        BTM_BLE_META_CLEAR_IRK_LEN,
-                                        param,
-                                        btm_ble_resolving_list_vsc_op_cmpl);
+        BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC,
+                                  BTM_BLE_META_CLEAR_IRK_LEN,
+                                  param,
+                                  btm_ble_resolving_list_vsc_op_cmpl);
     }
-
-    return st;
 }
 
 /*******************************************************************************
@@ -530,8 +520,6 @@ tBTM_STATUS btm_ble_clear_resolving_list(void)
 *******************************************************************************/
 tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 {
-    tBTM_STATUS st = BTM_NO_RESOURCES;
-
     if (!(p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT))
         return BTM_WRONG_MODE;
 
@@ -539,7 +527,6 @@ tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
     {
         btsnd_hcic_ble_read_resolvable_addr_peer(p_dev_rec->ble.static_addr_type,
                                                      p_dev_rec->ble.static_addr);
-        st =  BTM_CMD_STARTED;
     }
     else
     {
@@ -549,17 +536,16 @@ tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
         UINT8_TO_STREAM(p, BTM_BLE_META_READ_IRK_ENTRY);
         UINT8_TO_STREAM(p, p_dev_rec->ble.resolving_list_index);
 
-        st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC,
-                                        BTM_BLE_META_READ_IRK_LEN,
-                                        param,
-                                        btm_ble_resolving_list_vsc_op_cmpl);
+        BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC,
+                                  BTM_BLE_META_READ_IRK_LEN,
+                                  param,
+                                  btm_ble_resolving_list_vsc_op_cmpl);
     }
 
-    if (st == BTM_CMD_STARTED)
-        btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
-                                           BTM_BLE_META_READ_IRK_ENTRY);
+    btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
+                                       BTM_BLE_META_READ_IRK_ENTRY);
 
-    return st;
+    return BTM_CMD_STARTED;
 }
 
 
@@ -649,13 +635,10 @@ void btm_ble_resume_resolving_list_activity(void)
 **
 ** Parameters       enable: enable or disable the RRA offloading feature
 **
-** Returns          BTM_SUCCESS if successful
-**
 *******************************************************************************/
-tBTM_STATUS btm_ble_vendor_enable_irk_feature(bool    enable)
+void btm_ble_vendor_enable_irk_feature(bool enable)
 {
     uint8_t         param[20], *p;
-    tBTM_STATUS     st = BTM_MODE_UNSUPPORTED;
 
     p = param;
     memset(param, 0, 20);
@@ -664,10 +647,8 @@ tBTM_STATUS btm_ble_vendor_enable_irk_feature(bool    enable)
     UINT8_TO_STREAM(p, BTM_BLE_META_IRK_ENABLE);
     UINT8_TO_STREAM(p, enable ? 0x01 : 0x00);
 
-    st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_IRK_ENABLE_LEN,
-                                    param, btm_ble_resolving_list_vsc_op_cmpl);
-
-    return st;
+    BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_IRK_ENABLE_LEN,
+                              param, btm_ble_resolving_list_vsc_op_cmpl);
 }
 
 /*******************************************************************************
@@ -807,7 +788,6 @@ bool    btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
                     // use identical IRK for now
                     btsnd_hcic_ble_add_device_resolving_list(p_dev_rec->ble.static_addr_type,
                               p_dev_rec->ble.static_addr, peer_irk, local_irk);
-                    rt = true;
                 }
                 else
                 {
@@ -819,17 +799,15 @@ bool    btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
                     UINT8_TO_STREAM(p, p_dev_rec->ble.static_addr_type);
                     BDADDR_TO_STREAM(p,p_dev_rec->ble.static_addr);
 
-                    if (BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC,
-                                                   BTM_BLE_META_ADD_IRK_LEN,
-                                                   param,
-                                                   btm_ble_resolving_list_vsc_op_cmpl)
-                                                   == BTM_CMD_STARTED)
-                        rt = true;
+                    BTM_VendorSpecificCommand(HCI_VENDOR_BLE_RPA_VSC,
+                                              BTM_BLE_META_ADD_IRK_LEN,
+                                              param,
+                                              btm_ble_resolving_list_vsc_op_cmpl);
                 }
 
-               if (rt)
-                   btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
-                                                      BTM_BLE_META_ADD_IRK_ENTRY);
+                rt = true;
+                btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
+                                                  BTM_BLE_META_ADD_IRK_ENTRY);
 
                 /* if resolving list has been turned on, re-enable it */
                 if (rl_mask)

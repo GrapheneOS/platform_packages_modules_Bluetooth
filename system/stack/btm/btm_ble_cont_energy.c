@@ -83,7 +83,6 @@ void btm_ble_cont_energy_cmpl_cback (tBTM_VSC_CMPL *p_params)
 *******************************************************************************/
 tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback)
 {
-    tBTM_STATUS status = BTM_ILLEGAL_VALUE;
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
@@ -97,14 +96,9 @@ tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback)
     }
 
     ble_energy_info_cb.p_ener_cback = p_ener_cback;
-    if ((status = BTM_VendorSpecificCommand (HCI_BLE_ENERGY_INFO_OCF, 0, NULL,
-                   btm_ble_cont_energy_cmpl_cback)) != BTM_CMD_STARTED)
-    {
-        BTM_TRACE_ERROR("BTM_BleGetEnergyInfo status: %d", status);
-        return BTM_ILLEGAL_VALUE;
-    }
-
-    return status;
+    BTM_VendorSpecificCommand(HCI_BLE_ENERGY_INFO_OCF, 0, NULL,
+                              btm_ble_cont_energy_cmpl_cback);
+    return BTM_CMD_STARTED;
 }
 
 #endif
