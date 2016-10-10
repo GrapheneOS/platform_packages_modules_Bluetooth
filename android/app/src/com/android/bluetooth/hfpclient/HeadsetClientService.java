@@ -166,6 +166,8 @@ public class HeadsetClientService extends ProfileService {
             if (mService != null && mService.isAvailable()) {
                 return mService;
             }
+
+            Log.e(TAG, "HeadsetClientService is not available.");
             return null;
         }
 
@@ -484,12 +486,14 @@ public class HeadsetClientService extends ProfileService {
                 "Need BLUETOOTH ADMIN permission");
 
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+            Log.w(TAG, "Connection not allowed: <" + device.getAddress() + "> is PRIORITY_OFF");
             return false;
         }
 
         int connectionState = mStateMachine.getConnectionState(device);
         if (connectionState == BluetoothProfile.STATE_CONNECTED ||
                 connectionState == BluetoothProfile.STATE_CONNECTING) {
+            Log.w(TAG, "Unable to connect: state is CONNECTING or CONNECTED.");
             return false;
         }
 
