@@ -841,8 +841,10 @@ tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda, uint16_t *settings)
         }
     }
 
-    if ((p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR)) != NULL)
-        return(btsnd_hcic_write_policy_set (p->hci_handle, *settings) ? BTM_CMD_STARTED : BTM_NO_RESOURCES);
+    if ((p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR)) != NULL) {
+        btsnd_hcic_write_policy_set(p->hci_handle, *settings);
+        return BTM_CMD_STARTED;
+    }
 
     /* If here, no BD Addr found */
     return(BTM_UNKNOWN_ADDR);
@@ -2045,7 +2047,6 @@ tBTM_STATUS BTM_ReadLinkQuality (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_CMPL_CB *p_cb)
 {
     tACL_CONN   *p;
-    bool        ret;
 #define BTM_READ_RSSI_TYPE_CUR  0x00
 #define BTM_READ_RSSI_TYPE_MAX  0X01
 
@@ -2070,21 +2071,15 @@ tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_C
         if (p->transport == BT_TRANSPORT_LE)
         {
             memcpy(btm_cb.devcb.read_tx_pwr_addr, remote_bda, BD_ADDR_LEN);
-            ret = btsnd_hcic_ble_read_adv_chnl_tx_power();
+            btsnd_hcic_ble_read_adv_chnl_tx_power();
         }
         else
 #endif
         {
-            ret = btsnd_hcic_read_tx_power (p->hci_handle, BTM_READ_RSSI_TYPE_CUR);
+            btsnd_hcic_read_tx_power(p->hci_handle, BTM_READ_RSSI_TYPE_CUR);
         }
-        if (!ret)
-        {
-            btm_cb.devcb.p_tx_power_cmpl_cb = NULL;
-            alarm_cancel(btm_cb.devcb.read_tx_power_timer);
-            return(BTM_NO_RESOURCES);
-        }
-        else
-            return(BTM_CMD_STARTED);
+
+        return(BTM_CMD_STARTED);
     }
 
     /* If here, no BD Addr found */
@@ -2385,7 +2380,6 @@ uint8_t BTM_SetTraceLevel (uint8_t new_level)
 void btm_cont_rswitch (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
                                      uint8_t hci_status)
 {
-    bool    sw_ok = true;
     BTM_TRACE_DEBUG ("btm_cont_rswitch");
     /* Check to see if encryption needs to be turned off if pending
        change of link key or role switch */
@@ -2411,14 +2405,8 @@ void btm_cont_rswitch (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
                 if (p_dev_rec)
                     p_dev_rec->rs_disc_pending = BTM_SEC_RS_PENDING;
 #endif
-                sw_ok = btsnd_hcic_switch_role (p->remote_addr, (uint8_t)!p->link_role);
+                btsnd_hcic_switch_role(p->remote_addr, (uint8_t)!p->link_role);
             }
-        }
-
-        if (!sw_ok)
-        {
-            p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
-            btm_acl_report_role_change(hci_status, p->remote_addr);
         }
     }
 }
