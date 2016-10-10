@@ -209,22 +209,19 @@ public class BluetoothPbapService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //int retCode = super.onStartCommand(intent, flags, startId);
-        //if (retCode == START_STICKY) {
-            mStartId = startId;
-            if (mAdapter == null) {
-                Log.w(TAG, "Stopping BluetoothPbapService: "
-                        + "device does not have BT or device is not ready");
-                // Release all resources
-                closeService();
-            } else {
-                // No need to handle the null intent case, because we have
-                // all restart work done in onCreate()
-                if (intent != null) {
-                    parseIntent(intent);
-                }
+        mStartId = startId;
+        if (mAdapter == null) {
+            Log.w(TAG, "Stopping BluetoothPbapService: "
+                    + "device does not have BT or device is not ready");
+            // Release all resources
+            closeService();
+        } else {
+            // No need to handle the null intent case, because we have
+            // all restart work done in onCreate()
+            if (intent != null) {
+                parseIntent(intent);
             }
-        //}
+        }
         return START_NOT_STICKY;
     }
 
