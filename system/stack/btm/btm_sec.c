@@ -67,7 +67,7 @@ static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (uint8_t is_originator, uint16_t 
 static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec);
 static bool     btm_sec_start_get_name (tBTM_SEC_DEV_REC *p_dev_rec);
 static bool     btm_sec_start_authentication (tBTM_SEC_DEV_REC *p_dev_rec);
-static bool     btm_sec_start_encryption (tBTM_SEC_DEV_REC *p_dev_rec);
+static void     btm_sec_start_encryption (tBTM_SEC_DEV_REC *p_dev_rec);
 static void     btm_sec_collision_timeout(void *data);
 static void     btm_restore_mode(void);
 static void     btm_sec_pairing_timeout(void *data);
@@ -1273,10 +1273,8 @@ tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr)
             /* If the HCI link creation was started by Bonding process */
             if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_DISC_WHEN_DONE)
             {
-                if (btsnd_hcic_create_conn_cancel(bd_addr))
-                    return BTM_CMD_STARTED;
-
-                return BTM_NO_RESOURCES;
+                btsnd_hcic_create_conn_cancel(bd_addr);
+                return BTM_CMD_STARTED;
             }
             if (btm_cb.pairing_state == BTM_PAIR_STATE_GET_REM_NAME)
             {
@@ -1506,11 +1504,9 @@ static tBTM_STATUS btm_sec_send_hci_disconnect (tBTM_SEC_DEV_REC *p_dev_rec, uin
         status = BTM_SUCCESS;
     }
     /* Tear down the HCI link */
-    else if (!btsnd_hcic_disconnect (conn_handle, reason))
+    else
     {
-         /* could not send disconnect. restore old state */
-         p_dev_rec->sec_state = old_state;
-         status = BTM_NO_RESOURCES;
+        btsnd_hcic_disconnect(conn_handle, reason);
     }
 
     return status;
@@ -1645,7 +1641,7 @@ void BTM_SendKeypressNotif(BD_ADDR bd_addr, tBTM_SP_KEY_TYPE type)
 {
     /* This API only make sense between PASSKEY_REQ and SP complete */
     if (btm_cb.pairing_state == BTM_PAIR_STATE_KEY_ENTRY)
-        btsnd_hcic_send_keypress_notif (bd_addr, type);
+        btsnd_hcic_send_keypress_notif(bd_addr, type);
 }
 #endif
 
@@ -1693,14 +1689,9 @@ void BTM_IoCapRsp(BD_ADDR bd_addr, tBTM_IO_CAP io_cap, tBTM_OOB_DATA oob, tBTM_A
 **                  LM
 **
 *******************************************************************************/
-tBTM_STATUS BTM_ReadLocalOobData(void)
+void BTM_ReadLocalOobData(void)
 {
-    tBTM_STATUS status = BTM_SUCCESS;
-
-    if (btsnd_hcic_read_local_oob_data() == false)
-        status = BTM_NO_RESOURCES;
-
-    return status;
+    btsnd_hcic_read_local_oob_data();
 }
 
 /*******************************************************************************
@@ -4932,8 +4923,7 @@ void btm_sec_link_key_notification (uint8_t *p_bda, uint8_t *p_link_key, uint8_t
         /* If it is for bonding nothing else will follow, so we need to start name resolution */
         if (we_are_bonding)
         {
-            if (!(btsnd_hcic_rmt_name_req (p_bda, HCI_PAGE_SCAN_REP_MODE_R1, HCI_MANDATARY_PAGE_SCAN_MODE, 0)))
-                btm_inq_rmt_name_failed();
+            btsnd_hcic_rmt_name_req(p_bda, HCI_PAGE_SCAN_REP_MODE_R1, HCI_MANDATARY_PAGE_SCAN_MODE, 0);
         }
 
         BTM_TRACE_EVENT ("rmt_io_caps:%d, sec_flags:x%x, dev_class[1]:x%02x", p_dev_rec->rmt_io_caps, p_dev_rec->sec_flags, p_dev_rec->dev_class[1])
@@ -5265,22 +5255,9 @@ void btm_sec_pin_code_request (uint8_t *p_bda)
             /* We received PIN code request for the device with unknown name */
             /* it is not user friendly just to ask for the PIN without name */
             /* try to get name at first */
-            if (!btsnd_hcic_rmt_name_req (p_dev_rec->bd_addr,
-                                          HCI_PAGE_SCAN_REP_MODE_R1,
-                                          HCI_MANDATARY_PAGE_SCAN_MODE, 0))
-            {
-                p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
-                p_dev_rec->sec_bd_name[0] = 'f';
-                p_dev_rec->sec_bd_name[1] = '0';
-                BTM_TRACE_ERROR ("can not send rmt_name_req?? fake a name and call callback");
-
-                btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
-                if (p_cb->api.p_pin_callback)
-                    (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class,
-                            p_dev_rec->sec_bd_name, (p_dev_rec->p_cur_service == NULL) ? false
-                                    : (p_dev_rec->p_cur_service->security_flags
-                                       & BTM_SEC_IN_MIN_16_DIGIT_PIN));
-            }
+            btsnd_hcic_rmt_name_req(p_dev_rec->bd_addr,
+                                    HCI_PAGE_SCAN_REP_MODE_R1,
+                                    HCI_MANDATARY_PAGE_SCAN_MODE, 0);
         }
     }
 
@@ -5418,10 +5395,7 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
 
         BTM_TRACE_EVENT ("Security Manager: Start encryption");
 
-        if (!btm_sec_start_encryption (p_dev_rec))
-        {
-            return(BTM_NO_RESOURCES);
-        }
+        btm_sec_start_encryption(p_dev_rec);
         return(BTM_CMD_STARTED);
     }
 
@@ -5515,16 +5489,11 @@ static bool    btm_sec_start_authentication (tBTM_SEC_DEV_REC *p_dev_rec)
 **
 ** Description      This function is called to start encryption
 **
-** Returns          true if started
-**
 *******************************************************************************/
-static bool    btm_sec_start_encryption (tBTM_SEC_DEV_REC *p_dev_rec)
+static void btm_sec_start_encryption(tBTM_SEC_DEV_REC *p_dev_rec)
 {
-    if (!btsnd_hcic_set_conn_encrypt (p_dev_rec->hci_handle, true))
-        return(false);
-
+    btsnd_hcic_set_conn_encrypt(p_dev_rec->hci_handle, true);
     p_dev_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
-    return(true);
 }
 
 /*******************************************************************************

@@ -381,27 +381,19 @@ bool    btm_ble_start_auto_conn(bool    start)
             }
 #endif
 
-            if (!btsnd_hcic_ble_create_ll_conn (scan_int,  /* uint16_t scan_int      */
-                                                scan_win,    /* uint16_t scan_win      */
-                                                0x01,                   /* uint8_t white_list     */
-                                                peer_addr_type,        /* uint8_t addr_type_peer */
-                                                dummy_bda,              /* BD_ADDR bda_peer     */
-                                                own_addr_type,          /* uint8_t addr_type_own */
-                                                BTM_BLE_CONN_INT_MIN_DEF,   /* uint16_t conn_int_min  */
-                                                BTM_BLE_CONN_INT_MAX_DEF,   /* uint16_t conn_int_max  */
-                                                BTM_BLE_CONN_SLAVE_LATENCY_DEF,  /* uint16_t conn_latency  */
-                                                BTM_BLE_CONN_TIMEOUT_DEF,        /* uint16_t conn_timeout  */
-                                                0,                       /* uint16_t min_len       */
-                                                0))                      /* uint16_t max_len       */
-            {
-                /* start auto connection failed */
-                exec =  false;
-                p_cb->wl_state &= ~BTM_BLE_WL_INIT;
-            }
-            else
-            {
-                btm_ble_set_conn_st (BLE_BG_CONN);
-            }
+            btsnd_hcic_ble_create_ll_conn(scan_int,  /* uint16_t scan_int      */
+                                          scan_win,    /* uint16_t scan_win      */
+                                          0x01,                   /* uint8_t white_list     */
+                                          peer_addr_type,        /* uint8_t addr_type_peer */
+                                          dummy_bda,              /* BD_ADDR bda_peer     */
+                                          own_addr_type,          /* uint8_t addr_type_own */
+                                          BTM_BLE_CONN_INT_MIN_DEF,   /* uint16_t conn_int_min  */
+                                          BTM_BLE_CONN_INT_MAX_DEF,   /* uint16_t conn_int_max  */
+                                          BTM_BLE_CONN_SLAVE_LATENCY_DEF,  /* uint16_t conn_latency  */
+                                          BTM_BLE_CONN_TIMEOUT_DEF,        /* uint16_t conn_timeout  */
+                                          0,                       /* uint16_t min_len       */
+                                          0);                      /* uint16_t max_len       */
+            btm_ble_set_conn_st (BLE_BG_CONN);
         }
         else
         {
@@ -462,14 +454,11 @@ bool    btm_ble_start_select_conn(bool    start, tBTM_BLE_SEL_CBACK *p_select_cb
             if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0)
             {
                 /* use passive scan by default */
-                if (!btsnd_hcic_ble_set_scan_params(BTM_BLE_SCAN_MODE_PASS,
-                                                    scan_int,
-                                                    scan_win,
-                                                    p_cb->addr_mgnt_cb.own_addr_type,
-                                                    SP_ADV_WL))
-                {
-                    return false;
-                }
+                btsnd_hcic_ble_set_scan_params(BTM_BLE_SCAN_MODE_PASS,
+                                               scan_int,
+                                               scan_win,
+                                               p_cb->addr_mgnt_cb.own_addr_type,
+                                               SP_ADV_WL);
             }
             else
             {
@@ -493,8 +482,7 @@ bool    btm_ble_start_select_conn(bool    start, tBTM_BLE_SEL_CBACK *p_select_cb
 #if (BLE_PRIVACY_SPT == TRUE)
                 btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
 #endif
-                if (!btsnd_hcic_ble_set_scan_enable(true, true)) /* duplicate filtering enabled */
-                     return false;
+                btsnd_hcic_ble_set_scan_enable(true, true); /* duplicate filtering enabled */
 
                  /* mark up inquiry status flag */
                  p_cb->scan_activity |= BTM_LE_SELECT_CONN_ACTIVE;

@@ -72,23 +72,20 @@ bool    L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
         return(false);
     }
 
-    if (btsnd_hcic_ble_create_conn_cancel())
-    {
-        p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, BT_TRANSPORT_LE);
-        /* Do not remove lcb if an LE link is already up as a peripheral */
-        if (p_lcb != NULL &&
-            !(p_lcb->link_role == HCI_ROLE_SLAVE && btm_bda_to_acl(rem_bda, BT_TRANSPORT_LE) != NULL))
-        {
-            p_lcb->disc_reason = L2CAP_CONN_CANCEL;
-            l2cu_release_lcb (p_lcb);
-        }
-        /* update state to be cancel, wait for connection cancel complete */
-        btm_ble_set_conn_st (BLE_CONN_CANCEL);
+    btsnd_hcic_ble_create_conn_cancel();
 
-        return(true);
+    p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, BT_TRANSPORT_LE);
+    /* Do not remove lcb if an LE link is already up as a peripheral */
+    if (p_lcb != NULL &&
+        !(p_lcb->link_role == HCI_ROLE_SLAVE && btm_bda_to_acl(rem_bda, BT_TRANSPORT_LE) != NULL))
+    {
+        p_lcb->disc_reason = L2CAP_CONN_CANCEL;
+        l2cu_release_lcb (p_lcb);
     }
-    else
-        return(false);
+    /* update state to be cancel, wait for connection cancel complete */
+    btm_ble_set_conn_st (BLE_CONN_CANCEL);
+
+    return(true);
 }
 
 /*******************************************************************************
@@ -945,12 +942,12 @@ bool    l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         return false;
     }
 
-    if (!btsnd_hcic_ble_create_ll_conn (scan_int,/* uint16_t scan_int      */
-                                        scan_win, /* uint16_t scan_win      */
-                                        false,                   /* uint8_t white_list     */
-                                        peer_addr_type,          /* uint8_t addr_type_peer */
-                                        peer_addr,               /* BD_ADDR bda_peer     */
-                                        own_addr_type,         /* uint8_t addr_type_own  */
+    btsnd_hcic_ble_create_ll_conn(scan_int,/* uint16_t scan_int      */
+                                  scan_win, /* uint16_t scan_win      */
+                                  false,                   /* uint8_t white_list     */
+                                  peer_addr_type,          /* uint8_t addr_type_peer */
+                                  peer_addr,               /* BD_ADDR bda_peer     */
+                                  own_addr_type,         /* uint8_t addr_type_own  */
         (uint16_t) ((p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ?
         p_dev_rec->conn_params.min_conn_int : BTM_BLE_CONN_INT_MIN_DEF),  /* uint16_t conn_int_min  */
         (uint16_t) ((p_dev_rec->conn_params.max_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ?
@@ -959,26 +956,19 @@ bool    l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         p_dev_rec->conn_params.slave_latency : BTM_BLE_CONN_SLAVE_LATENCY_DEF), /* uint16_t conn_latency  */
         (uint16_t) ((p_dev_rec->conn_params.supervision_tout != BTM_BLE_CONN_PARAM_UNDEF) ?
         p_dev_rec->conn_params.supervision_tout : BTM_BLE_CONN_TIMEOUT_DEF), /* conn_timeout */
-                                        0,                       /* uint16_t min_len       */
-                                        0))                      /* uint16_t max_len       */
-    {
-        l2cu_release_lcb (p_lcb);
-        L2CAP_TRACE_ERROR("initate direct connection fail, no resources");
-        return (false);
-    }
-    else
-    {
-        p_lcb->link_state = LST_CONNECTING;
-        l2cb.is_ble_connecting = true;
-        memcpy (l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN);
-        alarm_set_on_queue(p_lcb->l2c_lcb_timer,
-                           L2CAP_BLE_LINK_CONNECT_TIMEOUT_MS,
-                           l2c_lcb_timer_timeout, p_lcb,
-                           btu_general_alarm_queue);
-        btm_ble_set_conn_st (BLE_DIR_CONN);
+                                  0,                       /* uint16_t min_len       */
+                                  0);                      /* uint16_t max_len       */
 
-        return (true);
-    }
+    p_lcb->link_state = LST_CONNECTING;
+    l2cb.is_ble_connecting = true;
+    memcpy (l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN);
+    alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                       L2CAP_BLE_LINK_CONNECT_TIMEOUT_MS,
+                       l2c_lcb_timer_timeout, p_lcb,
+                       btu_general_alarm_queue);
+    btm_ble_set_conn_st (BLE_DIR_CONN);
+
+    return (true);
 }
 
 /*******************************************************************************

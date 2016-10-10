@@ -189,8 +189,7 @@ void smp_generate_passkey(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     p_cb->rand_enc_proc_state = SMP_GEN_TK;
 
     /* generate MRand or SRand */
-    if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-        smp_rand_back(NULL);
+    btsnd_hcic_ble_rand((void *)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -295,8 +294,7 @@ void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     SMP_TRACE_DEBUG ("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND;
     /* generate MRand or SRand */
-    if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-        smp_rand_back(NULL);
+    btsnd_hcic_ble_rand((void *)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -316,8 +314,7 @@ void smp_generate_rand_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     SMP_TRACE_DEBUG ("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND_CONT;
     /* generate 64 MSB of MRand or SRand */
-    if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-        smp_rand_back(NULL);
+    btsnd_hcic_ble_rand((void *)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -363,8 +360,7 @@ void smp_generate_ltk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         SMP_TRACE_DEBUG ("Generate DIV for LTK");
         p_cb->rand_enc_proc_state = SMP_GEN_DIV_LTK;
         /* generate MRand or SRand */
-        if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-            smp_rand_back(NULL);
+        btsnd_hcic_ble_rand((void *)smp_rand_back);
     }
 }
 
@@ -442,8 +438,7 @@ void smp_generate_csrk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     {
         SMP_TRACE_DEBUG ("Generate DIV for CSRK");
         p_cb->rand_enc_proc_state = SMP_GEN_DIV_CSRK;
-        if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-            smp_rand_back(NULL);
+        btsnd_hcic_ble_rand((void *)smp_rand_back);
     }
 }
 
@@ -880,8 +875,7 @@ static void smp_generate_rand_vector (tSMP_CB *p_cb, tSMP_INT_DATA *p)
     /* generate random vector */
     SMP_TRACE_DEBUG ("smp_generate_rand_vector ");
     p_cb->rand_enc_proc_state = SMP_GEN_RAND_V;
-    if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-        smp_rand_back(NULL);
+    btsnd_hcic_ble_rand((void *)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -965,8 +959,7 @@ void smp_create_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG ("%s",__func__);
     p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_0_7;
-    if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-        smp_rand_back(NULL);
+    btsnd_hcic_ble_rand((void *)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -1025,22 +1018,19 @@ void smp_continue_private_key_creation (tSMP_CB *p_cb, tBTM_RAND_ENC *p)
         case SMP_GENERATE_PRIVATE_KEY_0_7:
             memcpy((void *)p_cb->private_key, p->param_buf, p->param_len);
             p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_8_15;
-            if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-                smp_rand_back(NULL);
+            btsnd_hcic_ble_rand((void *)smp_rand_back);
             break;
 
         case SMP_GENERATE_PRIVATE_KEY_8_15:
             memcpy((void *)&p_cb->private_key[8], p->param_buf, p->param_len);
             p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_16_23;
-            if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-                smp_rand_back(NULL);
+            btsnd_hcic_ble_rand((void *)smp_rand_back);
             break;
 
         case SMP_GENERATE_PRIVATE_KEY_16_23:
             memcpy((void *)&p_cb->private_key[16], p->param_buf, p->param_len);
             p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_24_31;
-            if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-                smp_rand_back(NULL);
+            btsnd_hcic_ble_rand((void *)smp_rand_back);
             break;
 
         case SMP_GENERATE_PRIVATE_KEY_24_31:
@@ -2155,8 +2145,7 @@ void smp_start_nonce_generation(tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_NONCE_0_7;
-    if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-        smp_rand_back(NULL);
+    btsnd_hcic_ble_rand((void *)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -2172,8 +2161,7 @@ void smp_finish_nonce_generation(tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_NONCE_8_15;
-    if (!btsnd_hcic_ble_rand((void *)smp_rand_back))
-        smp_rand_back(NULL);
+    btsnd_hcic_ble_rand((void *)smp_rand_back);
 }
 
 /*******************************************************************************
