@@ -226,13 +226,11 @@ tBTM_STATUS BTM_SetDiscoverability (uint16_t inq_mode, uint16_t window, uint16_t
             memcpy (temp_lap[0], limited_inq_lap, LAP_LEN);
             memcpy (temp_lap[1], general_inq_lap, LAP_LEN);
 
-            if (!btsnd_hcic_write_cur_iac_lap (2, (LAP * const) temp_lap))
-                return (BTM_NO_RESOURCES);  /* Cannot continue */
+            btsnd_hcic_write_cur_iac_lap(2, (LAP * const) temp_lap);
         }
         else
         {
-            if (!btsnd_hcic_write_cur_iac_lap (1, (LAP * const) &general_inq_lap))
-                return (BTM_NO_RESOURCES);  /* Cannot continue */
+            btsnd_hcic_write_cur_iac_lap(1, (LAP * const) &general_inq_lap);
         }
 
         scan_mode |= HCI_INQUIRY_SCAN_ENABLED;
@@ -242,25 +240,17 @@ tBTM_STATUS BTM_SetDiscoverability (uint16_t inq_mode, uint16_t window, uint16_t
     if ((window != btm_cb.btm_inq_vars.inq_scan_window) ||
         (interval != btm_cb.btm_inq_vars.inq_scan_period))
     {
-        if (btsnd_hcic_write_inqscan_cfg (interval, window))
-        {
-            btm_cb.btm_inq_vars.inq_scan_window = window;
-            btm_cb.btm_inq_vars.inq_scan_period = interval;
-        }
-        else
-            return (BTM_NO_RESOURCES);
+        btsnd_hcic_write_inqscan_cfg(interval, window);
+        btm_cb.btm_inq_vars.inq_scan_window = window;
+        btm_cb.btm_inq_vars.inq_scan_period = interval;
     }
 
     if (btm_cb.btm_inq_vars.connectable_mode & BTM_CONNECTABLE_MASK)
         scan_mode |= HCI_PAGE_SCAN_ENABLED;
 
-    if (btsnd_hcic_write_scan_enable (scan_mode))
-    {
-        btm_cb.btm_inq_vars.discoverable_mode &= (~BTM_DISCOVERABLE_MASK);
-        btm_cb.btm_inq_vars.discoverable_mode |= inq_mode;
-    }
-    else
-        return (BTM_NO_RESOURCES);
+    btsnd_hcic_write_scan_enable (scan_mode);
+    btm_cb.btm_inq_vars.discoverable_mode &= (~BTM_DISCOVERABLE_MASK);
+    btm_cb.btm_inq_vars.discoverable_mode |= inq_mode;
 
     /* Change the service class bit if mode has changed */
     p_cod = BTM_ReadDeviceClass();
@@ -311,10 +301,8 @@ tBTM_STATUS BTM_SetInquiryScanType (uint16_t scan_type)
     {
         if (BTM_IsDeviceUp())
         {
-            if (btsnd_hcic_write_inqscan_type ((uint8_t)scan_type))
-                btm_cb.btm_inq_vars.inq_scan_type = scan_type;
-            else
-                return (BTM_NO_RESOURCES);
+            btsnd_hcic_write_inqscan_type((uint8_t)scan_type);
+            btm_cb.btm_inq_vars.inq_scan_type = scan_type;
         }
         else return (BTM_WRONG_MODE);
     }
@@ -348,10 +336,8 @@ tBTM_STATUS BTM_SetPageScanType (uint16_t scan_type)
     {
         if (BTM_IsDeviceUp())
         {
-            if (btsnd_hcic_write_pagescan_type ((uint8_t)scan_type))
-                btm_cb.btm_inq_vars.page_scan_type  = scan_type;
-            else
-                return (BTM_NO_RESOURCES);
+            btsnd_hcic_write_pagescan_type ((uint8_t)scan_type);
+            btm_cb.btm_inq_vars.page_scan_type  = scan_type;
         }
         else return (BTM_WRONG_MODE);
     }
@@ -398,8 +384,7 @@ tBTM_STATUS BTM_SetInquiryMode (uint8_t mode)
     if (!BTM_IsDeviceUp())
         return (BTM_WRONG_MODE);
 
-    if (!btsnd_hcic_write_inquiry_mode (mode))
-        return (BTM_NO_RESOURCES);
+    btsnd_hcic_write_inquiry_mode(mode);
 
     return (BTM_SUCCESS);
 }
@@ -562,8 +547,7 @@ tBTM_STATUS BTM_CancelPeriodicInquiry(void)
         btm_cb.btm_inq_vars.inq_active = BTM_INQUIRY_INACTIVE;
         btm_cb.btm_inq_vars.p_inq_results_cb = (tBTM_INQ_RESULTS_CB *) NULL;
 
-        if (!btsnd_hcic_exit_per_inq ())
-            status = BTM_NO_RESOURCES;
+        btsnd_hcic_exit_per_inq();
 
         /* If the event filter is in progress, mark it so that the processing of the return
            event will be ignored */
@@ -651,23 +635,17 @@ tBTM_STATUS BTM_SetConnectability (uint16_t page_mode, uint16_t window, uint16_t
     {
         p_inq->page_scan_window = window;
         p_inq->page_scan_period = interval;
-        if (!btsnd_hcic_write_pagescan_cfg (interval, window))
-            return (BTM_NO_RESOURCES);
+        btsnd_hcic_write_pagescan_cfg(interval, window);
     }
 
     /* Keep the inquiry scan as previouosly set */
     if (p_inq->discoverable_mode & BTM_DISCOVERABLE_MASK)
         scan_mode |= HCI_INQUIRY_SCAN_ENABLED;
 
-    if (btsnd_hcic_write_scan_enable (scan_mode))
-    {
-        p_inq->connectable_mode &= (~BTM_CONNECTABLE_MASK);
-        p_inq->connectable_mode |= page_mode;
-
-        return (BTM_SUCCESS);
-    }
-
-    return (BTM_NO_RESOURCES);
+    btsnd_hcic_write_scan_enable (scan_mode);
+    p_inq->connectable_mode &= (~BTM_CONNECTABLE_MASK);
+    p_inq->connectable_mode |= page_mode;
+    return (BTM_SUCCESS);
 }
 
 
@@ -767,8 +745,7 @@ tBTM_STATUS BTM_CancelInquiry(void)
 #endif
             )
             {
-                if (!btsnd_hcic_inq_cancel())
-                    status = BTM_NO_RESOURCES;
+                btsnd_hcic_inq_cancel();
             }
 #if (BLE_INCLUDED == TRUE)
             if (((p_inq->inqparms.mode & BTM_BLE_INQUIRY_MASK) != 0)
@@ -1116,10 +1093,8 @@ tBTM_STATUS  BTM_CancelRemoteDeviceName (void)
         }
         else
 #endif
-        if (btsnd_hcic_rmt_name_req_cancel (p_inq->remname_bda))
-            return (BTM_CMD_STARTED);
-        else
-            return (BTM_NO_RESOURCES);
+        btsnd_hcic_rmt_name_req_cancel(p_inq->remname_bda);
+        return (BTM_CMD_STARTED);
     }
     else
         return (BTM_WRONG_MODE);
@@ -1262,14 +1237,8 @@ tBTM_STATUS BTM_ReadInquiryRspTxPower (tBTM_CMPL_CB *p_cb)
                        btm_read_inq_tx_power_timeout, NULL,
                        btu_general_alarm_queue);
 
-    if (!btsnd_hcic_read_inq_tx_power ())
-    {
-        btm_cb.devcb.p_inq_tx_power_cmpl_cb = NULL;
-        alarm_cancel(btm_cb.devcb.read_inq_tx_power_timer);
-        return (BTM_NO_RESOURCES);
-    }
-    else
-        return (BTM_CMD_STARTED);
+    btsnd_hcic_read_inq_tx_power();
+    return (BTM_CMD_STARTED);
 }
 
 /*********************************************************************************
@@ -1671,12 +1640,9 @@ static tBTM_STATUS btm_set_inq_event_filter (uint8_t filter_cond_type,
     btm_cb.btm_inq_vars.inqfilt_active = true;
 
     /* Filter the inquiry results for the specified condition type and value */
-    if (btsnd_hcic_set_event_filter(HCI_FILTER_INQUIRY_RESULT, filter_cond_type,
-                                    p_cond, condition_length))
-
-        return (BTM_CMD_STARTED);
-    else
-        return (BTM_NO_RESOURCES);
+    btsnd_hcic_set_event_filter(HCI_FILTER_INQUIRY_RESULT, filter_cond_type,
+                                p_cond, condition_length);
+    return (BTM_CMD_STARTED);
 }
 
 
@@ -1816,11 +1782,10 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
 
     if (p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE)
     {
-        if (!btsnd_hcic_per_inq_mode (p_inq->per_max_delay,
-                                      p_inq->per_min_delay,
-                                      *lap, p_inqparms->duration,
-                                      p_inqparms->max_resps))
-            btm_process_inq_complete (BTM_NO_RESOURCES, (uint8_t)(p_inqparms->mode & BTM_BR_INQUIRY_MASK));
+        btsnd_hcic_per_inq_mode (p_inq->per_max_delay,
+                                 p_inq->per_min_delay,
+                                 *lap, p_inqparms->duration,
+                                 p_inqparms->max_resps);
     }
     else
     {
@@ -1830,8 +1795,7 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
         p_inq->p_bd_db = (tINQ_BDADDR *)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
         p_inq->max_bd_entries = (uint16_t)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
 
-        if (!btsnd_hcic_inquiry(*lap, p_inqparms->duration, 0))
-            btm_process_inq_complete (BTM_NO_RESOURCES, (uint8_t)(p_inqparms->mode & BTM_BR_INQUIRY_MASK));
+        btsnd_hcic_inquiry(*lap, p_inqparms->duration, 0);
     }
 }
 
