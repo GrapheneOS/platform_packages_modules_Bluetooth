@@ -35,7 +35,7 @@
 
 #if (BLE_INCLUDED == TRUE)
 
-bool    btsnd_hcic_ble_set_local_used_feat (uint8_t feat_set[8])
+void btsnd_hcic_ble_set_local_used_feat (uint8_t feat_set[8])
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -47,10 +47,9 @@ bool    btsnd_hcic_ble_set_local_used_feat (uint8_t feat_set[8])
     ARRAY_TO_STREAM (pp, feat_set, HCIC_PARAM_SIZE_SET_USED_FEAT_CMD);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_set_random_addr (BD_ADDR random_bda)
+void btsnd_hcic_ble_set_random_addr (BD_ADDR random_bda)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -64,10 +63,9 @@ bool    btsnd_hcic_ble_set_random_addr (BD_ADDR random_bda)
     BDADDR_TO_STREAM (pp, random_bda);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_write_adv_params (uint16_t adv_int_min, uint16_t adv_int_max,
+void btsnd_hcic_ble_write_adv_params (uint16_t adv_int_min, uint16_t adv_int_max,
                                        uint8_t adv_type, uint8_t addr_type_own,
                                        uint8_t addr_type_dir, BD_ADDR direct_bda,
                                        uint8_t channel_map, uint8_t adv_filter_policy)
@@ -91,9 +89,8 @@ bool    btsnd_hcic_ble_write_adv_params (uint16_t adv_int_min, uint16_t adv_int_
     UINT8_TO_STREAM (pp, adv_filter_policy);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
-bool    btsnd_hcic_ble_read_adv_chnl_tx_power (void)
+void btsnd_hcic_ble_read_adv_chnl_tx_power (void)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -105,11 +102,10 @@ bool    btsnd_hcic_ble_read_adv_chnl_tx_power (void)
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 
 }
 
-bool    btsnd_hcic_ble_set_adv_data (uint8_t data_len, uint8_t *p_data)
+void btsnd_hcic_ble_set_adv_data (uint8_t data_len, uint8_t *p_data)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -133,9 +129,8 @@ bool    btsnd_hcic_ble_set_adv_data (uint8_t data_len, uint8_t *p_data)
     }
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
 
-    return (true);
 }
-bool    btsnd_hcic_ble_set_scan_rsp_data (uint8_t data_len, uint8_t *p_scan_rsp)
+void btsnd_hcic_ble_set_scan_rsp_data (uint8_t data_len, uint8_t *p_scan_rsp)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -161,10 +156,9 @@ bool    btsnd_hcic_ble_set_scan_rsp_data (uint8_t data_len, uint8_t *p_scan_rsp)
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_set_adv_enable (uint8_t adv_enable)
+void btsnd_hcic_ble_set_adv_enable (uint8_t adv_enable)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -178,9 +172,8 @@ bool    btsnd_hcic_ble_set_adv_enable (uint8_t adv_enable)
     UINT8_TO_STREAM (pp, adv_enable);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
-bool    btsnd_hcic_ble_set_scan_params (uint8_t scan_type,
+void btsnd_hcic_ble_set_scan_params (uint8_t scan_type,
                                           uint16_t scan_int, uint16_t scan_win,
                                           uint8_t addr_type_own, uint8_t scan_filter_policy)
 {
@@ -200,10 +193,9 @@ bool    btsnd_hcic_ble_set_scan_params (uint8_t scan_type,
     UINT8_TO_STREAM (pp, scan_filter_policy);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_set_scan_enable (uint8_t scan_enable, uint8_t duplicate)
+void btsnd_hcic_ble_set_scan_enable (uint8_t scan_enable, uint8_t duplicate)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -218,11 +210,10 @@ bool    btsnd_hcic_ble_set_scan_enable (uint8_t scan_enable, uint8_t duplicate)
     UINT8_TO_STREAM (pp, duplicate);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
 /* link layer connection management commands */
-bool    btsnd_hcic_ble_create_ll_conn (uint16_t scan_int, uint16_t scan_win,
+void btsnd_hcic_ble_create_ll_conn (uint16_t scan_int, uint16_t scan_win,
                                        uint8_t init_filter_policy,
                                        uint8_t addr_type_peer, BD_ADDR bda_peer,
                                        uint8_t addr_type_own,
@@ -256,10 +247,9 @@ bool    btsnd_hcic_ble_create_ll_conn (uint16_t scan_int, uint16_t scan_win,
     UINT16_TO_STREAM (pp, max_ce_len);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_create_conn_cancel (void)
+void btsnd_hcic_ble_create_conn_cancel (void)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -271,10 +261,9 @@ bool    btsnd_hcic_ble_create_conn_cancel (void)
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_BLE_CREATE_CONN_CANCEL);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_clear_white_list (void)
+void btsnd_hcic_ble_clear_white_list (void)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -286,10 +275,9 @@ bool    btsnd_hcic_ble_clear_white_list (void)
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_CLEAR_WHITE_LIST);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_add_white_list (uint8_t addr_type, BD_ADDR bda)
+void btsnd_hcic_ble_add_white_list (uint8_t addr_type, BD_ADDR bda)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -304,10 +292,9 @@ bool    btsnd_hcic_ble_add_white_list (uint8_t addr_type, BD_ADDR bda)
     BDADDR_TO_STREAM (pp, bda);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_remove_from_white_list (uint8_t addr_type, BD_ADDR bda)
+void btsnd_hcic_ble_remove_from_white_list (uint8_t addr_type, BD_ADDR bda)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -322,10 +309,9 @@ bool    btsnd_hcic_ble_remove_from_white_list (uint8_t addr_type, BD_ADDR bda)
     BDADDR_TO_STREAM (pp, bda);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_upd_ll_conn_params (uint16_t handle,
+void btsnd_hcic_ble_upd_ll_conn_params (uint16_t handle,
                                            uint16_t conn_int_min, uint16_t conn_int_max,
                                            uint16_t conn_latency, uint16_t conn_timeout,
                                            uint16_t min_ce_len, uint16_t max_ce_len)
@@ -349,10 +335,9 @@ bool    btsnd_hcic_ble_upd_ll_conn_params (uint16_t handle,
     UINT16_TO_STREAM (pp, max_ce_len);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_set_host_chnl_class (uint8_t chnl_map[HCIC_BLE_CHNL_MAP_SIZE])
+void btsnd_hcic_ble_set_host_chnl_class (uint8_t chnl_map[HCIC_BLE_CHNL_MAP_SIZE])
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -366,10 +351,9 @@ bool    btsnd_hcic_ble_set_host_chnl_class (uint8_t chnl_map[HCIC_BLE_CHNL_MAP_S
     ARRAY_TO_STREAM (pp, chnl_map, HCIC_BLE_CHNL_MAP_SIZE);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_read_chnl_map (uint16_t handle)
+void btsnd_hcic_ble_read_chnl_map (uint16_t handle)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -383,10 +367,9 @@ bool    btsnd_hcic_ble_read_chnl_map (uint16_t handle)
     UINT16_TO_STREAM (pp, handle);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_read_remote_feat (uint16_t handle)
+void btsnd_hcic_ble_read_remote_feat (uint16_t handle)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -400,11 +383,10 @@ bool    btsnd_hcic_ble_read_remote_feat (uint16_t handle)
     UINT16_TO_STREAM (pp, handle);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
 /* security management commands */
-bool    btsnd_hcic_ble_encrypt (uint8_t *key, uint8_t key_len,
+void btsnd_hcic_ble_encrypt (uint8_t *key, uint8_t key_len,
                                 uint8_t *plain_text, uint8_t pt_len,
                                 void *p_cmd_cplt_cback)
 {
@@ -431,10 +413,9 @@ bool    btsnd_hcic_ble_encrypt (uint8_t *key, uint8_t key_len,
     ARRAY_TO_STREAM (pp, plain_text, pt_len);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_rand (void *p_cmd_cplt_cback)
+void btsnd_hcic_ble_rand (void *p_cmd_cplt_cback)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -449,10 +430,9 @@ bool    btsnd_hcic_ble_rand (void *p_cmd_cplt_cback)
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_BLE_RAND);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_start_enc (uint16_t handle, uint8_t rand[HCIC_BLE_RAND_DI_SIZE],
+void btsnd_hcic_ble_start_enc (uint16_t handle, uint8_t rand[HCIC_BLE_RAND_DI_SIZE],
                                 uint16_t ediv, uint8_t ltk[HCIC_BLE_ENCRYT_KEY_SIZE])
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
@@ -470,10 +450,9 @@ bool    btsnd_hcic_ble_start_enc (uint16_t handle, uint8_t rand[HCIC_BLE_RAND_DI
     ARRAY_TO_STREAM (pp, ltk, HCIC_BLE_ENCRYT_KEY_SIZE);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_ltk_req_reply (uint16_t handle, uint8_t ltk[HCIC_BLE_ENCRYT_KEY_SIZE])
+void btsnd_hcic_ble_ltk_req_reply (uint16_t handle, uint8_t ltk[HCIC_BLE_ENCRYT_KEY_SIZE])
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -488,10 +467,9 @@ bool    btsnd_hcic_ble_ltk_req_reply (uint16_t handle, uint8_t ltk[HCIC_BLE_ENCR
     ARRAY_TO_STREAM (pp, ltk, HCIC_BLE_ENCRYT_KEY_SIZE);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_ltk_req_neg_reply (uint16_t handle)
+void btsnd_hcic_ble_ltk_req_neg_reply (uint16_t handle)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -505,10 +483,9 @@ bool    btsnd_hcic_ble_ltk_req_neg_reply (uint16_t handle)
     UINT16_TO_STREAM (pp, handle);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_receiver_test(uint8_t rx_freq)
+void btsnd_hcic_ble_receiver_test(uint8_t rx_freq)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -522,10 +499,9 @@ bool    btsnd_hcic_ble_receiver_test(uint8_t rx_freq)
     UINT8_TO_STREAM (pp, rx_freq);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len, uint8_t payload)
+void btsnd_hcic_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len, uint8_t payload)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -541,10 +517,9 @@ bool    btsnd_hcic_ble_transmitter_test(uint8_t tx_freq, uint8_t test_data_len, 
     UINT8_TO_STREAM (pp, payload);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_test_end(void)
+void btsnd_hcic_ble_test_end(void)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -556,10 +531,9 @@ bool    btsnd_hcic_ble_test_end(void)
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_read_host_supported (void)
+void btsnd_hcic_ble_read_host_supported (void)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -571,12 +545,11 @@ bool    btsnd_hcic_ble_read_host_supported (void)
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
 #if (BLE_LLT_INCLUDED == TRUE)
 
-bool    btsnd_hcic_ble_rc_param_req_reply(  uint16_t handle,
+void btsnd_hcic_ble_rc_param_req_reply(  uint16_t handle,
                                             uint16_t conn_int_min, uint16_t conn_int_max,
                                             uint16_t conn_latency, uint16_t conn_timeout,
                                             uint16_t min_ce_len, uint16_t max_ce_len  )
@@ -599,10 +572,9 @@ bool    btsnd_hcic_ble_rc_param_req_reply(  uint16_t handle,
     UINT16_TO_STREAM (pp, max_ce_len);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 
-bool    btsnd_hcic_ble_rc_param_req_neg_reply(uint16_t handle, uint8_t reason)
+void btsnd_hcic_ble_rc_param_req_neg_reply(uint16_t handle, uint8_t reason)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -617,11 +589,10 @@ bool    btsnd_hcic_ble_rc_param_req_neg_reply(uint16_t handle, uint8_t reason)
     UINT8_TO_STREAM (pp, reason);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (true);
 }
 #endif
 
-bool    btsnd_hcic_ble_add_device_resolving_list (uint8_t addr_type_peer, BD_ADDR bda_peer,
+void btsnd_hcic_ble_add_device_resolving_list (uint8_t addr_type_peer, BD_ADDR bda_peer,
     uint8_t irk_peer[HCIC_BLE_IRK_SIZE],
     uint8_t irk_local[HCIC_BLE_IRK_SIZE])
 {
@@ -640,10 +611,9 @@ bool    btsnd_hcic_ble_add_device_resolving_list (uint8_t addr_type_peer, BD_ADD
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_rm_device_resolving_list (uint8_t addr_type_peer, BD_ADDR bda_peer)
+void btsnd_hcic_ble_rm_device_resolving_list (uint8_t addr_type_peer, BD_ADDR bda_peer)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -658,10 +628,9 @@ bool    btsnd_hcic_ble_rm_device_resolving_list (uint8_t addr_type_peer, BD_ADDR
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_clear_resolving_list (void)
+void btsnd_hcic_ble_clear_resolving_list (void)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -674,10 +643,9 @@ bool    btsnd_hcic_ble_clear_resolving_list (void)
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_read_resolvable_addr_peer (uint8_t addr_type_peer, BD_ADDR bda_peer)
+void btsnd_hcic_ble_read_resolvable_addr_peer (uint8_t addr_type_peer, BD_ADDR bda_peer)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -692,10 +660,9 @@ bool    btsnd_hcic_ble_read_resolvable_addr_peer (uint8_t addr_type_peer, BD_ADD
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_read_resolvable_addr_local (uint8_t addr_type_peer, BD_ADDR bda_peer)
+void btsnd_hcic_ble_read_resolvable_addr_local (uint8_t addr_type_peer, BD_ADDR bda_peer)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -710,10 +677,9 @@ bool    btsnd_hcic_ble_read_resolvable_addr_local (uint8_t addr_type_peer, BD_AD
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_set_addr_resolution_enable (uint8_t addr_resolution_enable)
+void btsnd_hcic_ble_set_addr_resolution_enable (uint8_t addr_resolution_enable)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -727,10 +693,9 @@ bool    btsnd_hcic_ble_set_addr_resolution_enable (uint8_t addr_resolution_enabl
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_set_rand_priv_addr_timeout (uint16_t rpa_timout)
+void btsnd_hcic_ble_set_rand_priv_addr_timeout (uint16_t rpa_timout)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -744,10 +709,9 @@ bool    btsnd_hcic_ble_set_rand_priv_addr_timeout (uint16_t rpa_timout)
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 
-    return (true);
 }
 
-bool    btsnd_hcic_ble_set_data_length(uint16_t conn_handle, uint16_t tx_octets, uint16_t tx_time)
+void btsnd_hcic_ble_set_data_length(uint16_t conn_handle, uint16_t tx_octets, uint16_t tx_time)
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
     uint8_t *pp = (uint8_t *)(p + 1);
@@ -763,7 +727,6 @@ bool    btsnd_hcic_ble_set_data_length(uint16_t conn_handle, uint16_t tx_octets,
     UINT16_TO_STREAM(pp, tx_time);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
-    return true;
 }
 
 #endif
