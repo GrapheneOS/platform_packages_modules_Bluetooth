@@ -77,10 +77,6 @@ static void btm_decode_ext_features_page (uint8_t page_number, const BD_FEATURES
 *******************************************************************************/
 void btm_dev_init (void)
 {
-#if 0  /* cleared in btm_init; put back in if called from anywhere else! */
-    memset (&btm_cb.devcb, 0, sizeof (tBTM_DEVCB));
-#endif
-
     /* Initialize nonzero defaults */
     memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
 

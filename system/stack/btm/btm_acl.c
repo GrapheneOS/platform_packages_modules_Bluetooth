@@ -70,13 +70,6 @@ static void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, uint8_t num_re
 void btm_acl_init (void)
 {
     BTM_TRACE_DEBUG ("btm_acl_init");
-#if 0  /* cleared in btm_init; put back in if called from anywhere else! */
-    memset (&btm_cb.acl_db, 0, sizeof (btm_cb.acl_db));
-    memset (btm_cb.btm_scn, 0, BTM_MAX_SCN);          /* Initialize the SCN usage to false */
-    btm_cb.btm_def_link_policy     = 0;
-    btm_cb.p_bl_changed_cb         = NULL;
-#endif
-
     /* Initialize nonzero defaults */
     btm_cb.btm_def_link_super_tout = HCI_DEFAULT_INACT_TOUT;
     btm_cb.acl_disc_reason         = 0xff ;
