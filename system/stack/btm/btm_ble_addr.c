@@ -193,11 +193,7 @@ void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
 
     p_mgnt_cb->p_generate_cback = p_cback;
     p_mgnt_cb->p                = p;
-    if (!btsnd_hcic_ble_rand((void *)btm_gen_non_resolve_paddr_cmpl))
-    {
-        btm_gen_non_resolve_paddr_cmpl(NULL);
-    }
-
+    btsnd_hcic_ble_rand((void *)btm_gen_non_resolve_paddr_cmpl);
 }
 
 #if (SMP_INCLUDED == TRUE)

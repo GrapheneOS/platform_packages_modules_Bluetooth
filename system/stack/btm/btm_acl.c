@@ -683,19 +683,15 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, uint8_t new_role, tBTM_CMPL_
             /* bypass turning off encryption if change link key is already doing it */
             if (p->encrypt_state != BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF)
             {
-                if (!btsnd_hcic_set_conn_encrypt (p->hci_handle, false))
-                    return(BTM_NO_RESOURCES);
-                else
-                    p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF;
+                btsnd_hcic_set_conn_encrypt (p->hci_handle, false);
+                p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF;
             }
 
             p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_OFF;
         }
         else
         {
-            if (!btsnd_hcic_switch_role (remote_bd_addr, new_role))
-                return(BTM_NO_RESOURCES);
-
+            btsnd_hcic_switch_role (remote_bd_addr, new_role);
             p->switch_role_state = BTM_ACL_SWKEY_STATE_IN_PROGRESS;
 
 #if (BTM_DISC_DURING_RS == TRUE)
@@ -761,18 +757,10 @@ void btm_acl_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
             p->encrypt_state = BTM_ACL_ENCRYPT_STATE_TEMP_FUNC;
         }
 
-        if (!btsnd_hcic_switch_role (p->remote_addr, (uint8_t)!p->link_role))
-        {
-            p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
-            p->encrypt_state = BTM_ACL_ENCRYPT_STATE_IDLE;
-            btm_acl_report_role_change(btm_cb.devcb.switch_role_ref_data.hci_status, p->remote_addr);
-        }
+        btsnd_hcic_switch_role(p->remote_addr, (uint8_t)!p->link_role);
 #if (BTM_DISC_DURING_RS == TRUE)
-        else
-        {
-            if ((p_dev_rec = btm_find_dev (p->remote_addr)) != NULL)
-                p_dev_rec->rs_disc_pending = BTM_SEC_RS_PENDING;
-        }
+        if ((p_dev_rec = btm_find_dev (p->remote_addr)) != NULL)
+            p_dev_rec->rs_disc_pending = BTM_SEC_RS_PENDING;
 #endif
 
     }
@@ -1315,10 +1303,8 @@ tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda, uint16_t timeout)
         /* Only send if current role is Master; 2.0 spec requires this */
         if (p->link_role == BTM_ROLE_MASTER)
         {
-            if (!btsnd_hcic_write_link_super_tout (LOCAL_BR_EDR_CONTROLLER_ID,
-                                                   p->hci_handle, timeout))
-                return(BTM_NO_RESOURCES);
-
+            btsnd_hcic_write_link_super_tout(LOCAL_BR_EDR_CONTROLLER_ID,
+                                             p->hci_handle, timeout);
             return(BTM_CMD_STARTED);
         }
         else
@@ -1503,12 +1489,10 @@ void btm_acl_role_changed (uint8_t hci_status, BD_ADDR bd_addr, uint8_t new_role
     /* if idle, we did not change encryption */
     if (p->switch_role_state == BTM_ACL_SWKEY_STATE_SWITCHING)
     {
-        if (btsnd_hcic_set_conn_encrypt (p->hci_handle, true))
-        {
-            p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_ON;
-            p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_ON;
-            return;
-        }
+        btsnd_hcic_set_conn_encrypt (p->hci_handle, true);
+        p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_ON;
+        p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_ON;
+        return;
     }
 
     /* Set the switch_role_state to IDLE since the reply received from HCI */
@@ -1658,11 +1642,7 @@ tBTM_STATUS btm_set_packet_types (tACL_CONN *p, uint16_t pkt_types)
 
     BTM_TRACE_DEBUG ("SetPacketType Mask -> 0x%04x", temp_pkt_types);
 
-    if (!btsnd_hcic_change_conn_type (p->hci_handle, temp_pkt_types))
-    {
-        return(BTM_NO_RESOURCES);
-    }
-
+    btsnd_hcic_change_conn_type (p->hci_handle, temp_pkt_types);
     p->pkt_types_mask = temp_pkt_types;
 
     return(BTM_CMD_STARTED);
@@ -1894,16 +1874,10 @@ tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
                            btm_qos_setup_timeout, NULL,
                            btu_general_alarm_queue);
 
-        if (!btsnd_hcic_qos_setup (p->hci_handle, p_flow->qos_flags, p_flow->service_type,
+        btsnd_hcic_qos_setup(p->hci_handle, p_flow->qos_flags, p_flow->service_type,
                                    p_flow->token_rate, p_flow->peak_bandwidth,
-                                   p_flow->latency,p_flow->delay_variation))
-        {
-            btm_cb.devcb.p_qos_setup_cmpl_cb = NULL;
-            alarm_cancel(btm_cb.devcb.qos_setup_timer);
-            return(BTM_NO_RESOURCES);
-        }
-        else
-            return(BTM_CMD_STARTED);
+                                   p_flow->latency,p_flow->delay_variation);
+        return(BTM_CMD_STARTED);
     }
 
     /* If here, no BD Addr found */
@@ -2008,14 +1982,8 @@ tBTM_STATUS BTM_ReadRSSI (const BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
                            BTM_DEV_REPLY_TIMEOUT_MS, btm_read_rssi_timeout,
                            NULL, btu_general_alarm_queue);
 
-        if (!btsnd_hcic_read_rssi (p->hci_handle))
-        {
-            btm_cb.devcb.p_rssi_cmpl_cb = NULL;
-            alarm_cancel(btm_cb.devcb.read_rssi_timer);
-            return(BTM_NO_RESOURCES);
-        }
-        else
-            return(BTM_CMD_STARTED);
+        btsnd_hcic_read_rssi (p->hci_handle);
+        return(BTM_CMD_STARTED);
     }
 
     /* If here, no BD Addr found */
@@ -2054,14 +2022,8 @@ tBTM_STATUS BTM_ReadLinkQuality (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
                            btm_read_link_quality_timeout, NULL,
                            btu_general_alarm_queue);
 
-        if (!btsnd_hcic_get_link_quality (p->hci_handle))
-        {
-            btm_cb.devcb.p_link_qual_cmpl_cb = NULL;
-            alarm_cancel(btm_cb.devcb.read_link_quality_timer);
-            return(BTM_NO_RESOURCES);
-        }
-        else
-            return(BTM_CMD_STARTED);
+        btsnd_hcic_get_link_quality(p->hci_handle);
+        return(BTM_CMD_STARTED);
     }
 
     /* If here, no BD Addr found */
@@ -2380,8 +2342,7 @@ tBTM_STATUS btm_remove_acl (BD_ADDR bd_addr, tBT_TRANSPORT transport)
         if (hci_handle != 0xFFFF && p_dev_rec &&
              p_dev_rec->sec_state!= BTM_SEC_STATE_DISCONNECTING)
         {
-            if (!btsnd_hcic_disconnect (hci_handle, HCI_ERR_PEER_USER))
-                status = BTM_NO_RESOURCES;
+            btsnd_hcic_disconnect(hci_handle, HCI_ERR_PEER_USER);
         }
         else
             status = BTM_UNKNOWN_ADDR;
@@ -2435,18 +2396,10 @@ void btm_cont_rswitch (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
         if (p_dev_rec != NULL && ((p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED) != 0)
             && !BTM_EPR_AVAILABLE(p))
         {
-            if (btsnd_hcic_set_conn_encrypt (p->hci_handle, false))
-            {
-                p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF;
-                if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
-                    p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_OFF;
-            }
-            else
-            {
-                /* Error occurred; set states back to Idle */
-                if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
-                    sw_ok = false;
-            }
+            btsnd_hcic_set_conn_encrypt(p->hci_handle, false);
+            p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF;
+            if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
+                p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_OFF;
         }
         else    /* Encryption not used or EPR supported, continue with switch
                    and/or change of link key */

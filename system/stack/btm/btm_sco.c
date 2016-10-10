@@ -167,17 +167,11 @@ static void btm_esco_conn_rsp (uint16_t sco_inx, uint8_t hci_status, BD_ADDR bda
 
         if (!btm_cb.sco_cb.esco_supported)
         {
-            if (!btsnd_hcic_reject_conn (bda, hci_status))
-            {
-                BTM_TRACE_ERROR("Could not reject (e)SCO conn: No Buffer!!!");
-            }
+            btsnd_hcic_reject_conn(bda, hci_status);
         }
         else
         {
-            if (!btsnd_hcic_reject_esco_conn (bda, hci_status))
-            {
-                BTM_TRACE_ERROR("Could not reject (e)SCO conn: No Buffer!!!");
-            }
+            btsnd_hcic_reject_esco_conn(bda, hci_status);
         }
     }
     else    /* Connection is being accepted */
@@ -218,16 +212,10 @@ static void btm_esco_conn_rsp (uint16_t sco_inx, uint8_t hci_status, BD_ADDR bda
                 (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
         }
 
-        if (btsnd_hcic_accept_esco_conn (bda, p_setup->tx_bw, p_setup->rx_bw,
-                                     p_setup->max_latency, p_setup->voice_contfmt,
-                                         p_setup->retrans_effort, temp_pkt_types))
-        {
-            p_setup->packet_types = temp_pkt_types;
-        }
-        else
-        {
-            BTM_TRACE_ERROR("Could not accept SCO conn: No Buffer!!!");
-        }
+        btsnd_hcic_accept_esco_conn(bda, p_setup->tx_bw, p_setup->rx_bw,
+                                    p_setup->max_latency, p_setup->voice_contfmt,
+                                    p_setup->retrans_effort, temp_pkt_types);
+        p_setup->packet_types = temp_pkt_types;
     }
 #endif
 }
@@ -407,8 +395,7 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
     /* Send connect request depending on version of spec */
     if (!btm_cb.sco_cb.esco_supported)
     {
-        if (!btsnd_hcic_add_SCO_conn (acl_handle, BTM_ESCO_2_SCO(p_setup->packet_types)))
-            return (BTM_NO_RESOURCES);
+        btsnd_hcic_add_SCO_conn(acl_handle, BTM_ESCO_2_SCO(p_setup->packet_types));
     }
     else
     {
@@ -470,16 +457,14 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
             p_setup->max_latency, p_setup->voice_contfmt,
             p_setup->retrans_effort, temp_pkt_types);
 
-        if (!btsnd_hcic_setup_esco_conn(acl_handle,
-                                        p_setup->tx_bw,
-                                        p_setup->rx_bw,
-                                        p_setup->max_latency,
-                                        p_setup->voice_contfmt,
-                                        p_setup->retrans_effort,
-                                        temp_pkt_types))
-            return (BTM_NO_RESOURCES);
-        else
-            p_setup->packet_types = temp_pkt_types;
+        btsnd_hcic_setup_esco_conn(acl_handle,
+                                   p_setup->tx_bw,
+                                   p_setup->rx_bw,
+                                   p_setup->max_latency,
+                                   p_setup->voice_contfmt,
+                                   p_setup->retrans_effort,
+                                   temp_pkt_types);
+        p_setup->packet_types = temp_pkt_types;
     }
 
     return (BTM_CMD_STARTED);
@@ -1094,11 +1079,7 @@ tBTM_STATUS BTM_RemoveSco (uint16_t sco_inx)
     tempstate = p->state;
     p->state = SCO_ST_DISCONNECTING;
 
-    if (!btsnd_hcic_disconnect (p->hci_handle, HCI_ERR_PEER_USER))
-    {
-        p->state = tempstate;
-        return (BTM_NO_RESOURCES);
-    }
+    btsnd_hcic_disconnect(p->hci_handle, HCI_ERR_PEER_USER);
 
     return (BTM_CMD_STARTED);
 #else
@@ -1577,9 +1558,8 @@ tBTM_STATUS BTM_ChangeEScoLinkParms (uint16_t sco_inx, tBTM_CHG_ESCO_PARAMS *p_p
         BTM_TRACE_API("BTM_ChangeEScoLinkParms -> SCO Link for handle 0x%04x, pkt 0x%04x",
                          p_sco->hci_handle, p_setup->packet_types);
 
-        if (!btsnd_hcic_change_conn_type (p_sco->hci_handle,
-                                     BTM_ESCO_2_SCO(p_setup->packet_types)))
-            return (BTM_NO_RESOURCES);
+        btsnd_hcic_change_conn_type(p_sco->hci_handle,
+                                    BTM_ESCO_2_SCO(p_setup->packet_types));
     }
     else
     {
@@ -1596,14 +1576,12 @@ tBTM_STATUS BTM_ChangeEScoLinkParms (uint16_t sco_inx, tBTM_CHG_ESCO_PARAMS *p_p
                          p_setup->voice_contfmt, p_parms->retrans_effort, temp_pkt_types);
 
         /* When changing an existing link, only change latency, retrans, and pkts */
-        if (!btsnd_hcic_setup_esco_conn(p_sco->hci_handle, p_setup->tx_bw,
-                                        p_setup->rx_bw, p_parms->max_latency,
-                                        p_setup->voice_contfmt,
-                                        p_parms->retrans_effort,
-                                        temp_pkt_types))
-            return (BTM_NO_RESOURCES);
-        else
-            p_parms->packet_types = temp_pkt_types;
+        btsnd_hcic_setup_esco_conn(p_sco->hci_handle, p_setup->tx_bw,
+                                   p_setup->rx_bw, p_parms->max_latency,
+                                   p_setup->voice_contfmt,
+                                   p_parms->retrans_effort,
+                                   temp_pkt_types);
+        p_parms->packet_types = temp_pkt_types;
     }
 
     return (BTM_CMD_STARTED);

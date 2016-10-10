@@ -255,12 +255,8 @@ extern uint8_t BTM_SetTraceLevel (uint8_t new_level);
 **
 ** Description      Send HCI Wite Page Timeout.
 **
-** Returns
-**      BTM_SUCCESS         Command sent.
-**      BTM_NO_RESOURCES    If out of resources to send the command.
-**
 *******************************************************************************/
-extern tBTM_STATUS BTM_WritePageTimeout(uint16_t timeout);
+extern void BTM_WritePageTimeout(uint16_t timeout);
 
 /*******************************************************************************
 **
@@ -269,13 +265,8 @@ extern tBTM_STATUS BTM_WritePageTimeout(uint16_t timeout);
 ** Description      Send HCI Write Voice Settings command.
 **                  See hcidefs.h for settings bitmask values.
 **
-** Returns
-**      BTM_SUCCESS         Command sent.
-**      BTM_NO_RESOURCES     If out of resources to send the command.
-**
-**
 *******************************************************************************/
-extern tBTM_STATUS BTM_WriteVoiceSettings(uint16_t settings);
+extern void BTM_WriteVoiceSettings(uint16_t settings);
 
 /*******************************************************************************
 **
@@ -1672,7 +1663,7 @@ extern void BTM_IoCapRsp(BD_ADDR bd_addr, tBTM_IO_CAP io_cap,
 **                  LM
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_ReadLocalOobData(void);
+extern void BTM_ReadLocalOobData(void);
 
 /*******************************************************************************
 **

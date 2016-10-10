@@ -1645,12 +1645,9 @@ bool    l2cu_start_post_bond_timer (uint16_t handle)
         period_ms_t timeout_ms = L2CAP_BONDING_TIMEOUT * 1000;
 
         if (p_lcb->idle_timeout == 0) {
-            if (btsnd_hcic_disconnect (p_lcb->handle, HCI_ERR_PEER_USER)) {
-                p_lcb->link_state = LST_DISCONNECTING;
-                timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
-            } else {
-                timeout_ms = BT_1SEC_TIMEOUT_MS;
-            }
+            btsnd_hcic_disconnect (p_lcb->handle, HCI_ERR_PEER_USER);
+            p_lcb->link_state = LST_DISCONNECTING;
+            timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
         }
         alarm_set_on_queue(p_lcb->l2c_lcb_timer, timeout_ms,
                            l2c_lcb_timer_timeout, p_lcb,
@@ -2433,20 +2430,14 @@ bool    l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
         clock_offset = (p_dev_rec) ? p_dev_rec->clock_offset : 0;
     }
 
-    if (!btsnd_hcic_create_conn (p_lcb->remote_bd_addr,
-                                 ( HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1
-                                 | HCI_PKT_TYPES_MASK_DM3 | HCI_PKT_TYPES_MASK_DH3
-                                 | HCI_PKT_TYPES_MASK_DM5 | HCI_PKT_TYPES_MASK_DH5 ),
-                                 page_scan_rep_mode,
-                                 page_scan_mode,
-                                 clock_offset,
-                                 allow_switch))
-
-    {
-        L2CAP_TRACE_ERROR ("L2CAP - no buffer for l2cu_create_conn");
-        l2cu_release_lcb (p_lcb);
-        return (false);
-    }
+    btsnd_hcic_create_conn(p_lcb->remote_bd_addr,
+                           ( HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1
+                           | HCI_PKT_TYPES_MASK_DM3 | HCI_PKT_TYPES_MASK_DH3
+                           | HCI_PKT_TYPES_MASK_DM5 | HCI_PKT_TYPES_MASK_DH5 ),
+                           page_scan_rep_mode,
+                           page_scan_mode,
+                           clock_offset,
+                           allow_switch);
 
     btm_acl_update_busy_level (BTM_BLI_PAGE_EVT);
 
