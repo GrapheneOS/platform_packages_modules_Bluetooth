@@ -206,13 +206,9 @@ public class BluetoothMapbMessageTest extends AndroidTestCase {
         msg.setType(TYPE.SMS_GSM);
         try {
             byte[] encodedBytes = msg.encode();
-//            InputStream is = new ByteArrayInputStream(encodedBytes);
             encoded = new String(encodedBytes);
-//            BluetoothMapbMessage newMsg = BluetoothMapbMessage.parse(is, BluetoothMapAppParams.CHARSET_NATIVE);
-//            String decoded = ((BluetoothMapbMessageSms) newMsg).getSmsBody();
             if(D) Log.d(TAG, "\nExpected: \n" + expected);
             if(D) Log.d(TAG, "\nEncoded: \n" + encoded);
-//            if(D) Log.d(TAG, "\nDecoded: \n" + decoded);
             assertTrue(expected.equalsIgnoreCase(encoded));
         } catch (UnsupportedEncodingException e) {
             Log.d(TAG, "Encoding failed.",e);
