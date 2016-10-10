@@ -452,10 +452,8 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
     if (p != (uint8_t *)p_name)
         strlcpy(btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN);
 
-    if (btsnd_hcic_change_name(p))
-        return (BTM_CMD_STARTED);
-    else
-        return (BTM_NO_RESOURCES);
+    btsnd_hcic_change_name(p);
+    return (BTM_CMD_STARTED);
 }
 
 
@@ -559,8 +557,7 @@ tBTM_STATUS BTM_SetDeviceClass (DEV_CLASS dev_class)
     if (!controller_get_interface()->get_is_ready())
         return (BTM_DEV_RESET);
 
-    if (!btsnd_hcic_write_dev_class (dev_class))
-        return (BTM_NO_RESOURCES);
+    btsnd_hcic_write_dev_class(dev_class);
 
     return (BTM_SUCCESS);
 }
@@ -773,21 +770,13 @@ void btm_vendor_specific_evt (uint8_t *p, uint8_t evt_len)
 **
 ** Description      Send HCI Write Page Timeout.
 **
-** Returns
-**      BTM_SUCCESS         Command sent.
-**      BTM_NO_RESOURCES     If out of resources to send the command.
-**
-**
 *******************************************************************************/
-tBTM_STATUS BTM_WritePageTimeout(uint16_t timeout)
+void BTM_WritePageTimeout(uint16_t timeout)
 {
     BTM_TRACE_EVENT ("BTM: BTM_WritePageTimeout: Timeout: %d.", timeout);
 
     /* Send the HCI command */
-    if (btsnd_hcic_write_page_tout (timeout))
-        return (BTM_SUCCESS);
-    else
-        return (BTM_NO_RESOURCES);
+    btsnd_hcic_write_page_tout(timeout);
 }
 
 /*******************************************************************************
@@ -797,21 +786,13 @@ tBTM_STATUS BTM_WritePageTimeout(uint16_t timeout)
 ** Description      Send HCI Write Voice Settings command.
 **                  See hcidefs.h for settings bitmask values.
 **
-** Returns
-**      BTM_SUCCESS         Command sent.
-**      BTM_NO_RESOURCES     If out of resources to send the command.
-**
-**
 *******************************************************************************/
-tBTM_STATUS BTM_WriteVoiceSettings(uint16_t settings)
+void BTM_WriteVoiceSettings(uint16_t settings)
 {
     BTM_TRACE_EVENT ("BTM: BTM_WriteVoiceSettings: Settings: 0x%04x.", settings);
 
     /* Send the HCI command */
-    if (btsnd_hcic_write_voice_settings ((uint16_t)(settings & 0x03ff)))
-        return (BTM_SUCCESS);
-
-    return (BTM_NO_RESOURCES);
+    btsnd_hcic_write_voice_settings((uint16_t)(settings & 0x03ff));
 }
 
 /*******************************************************************************
@@ -838,12 +819,9 @@ tBTM_STATUS BTM_EnableTestMode(void)
     /* set auto accept connection as this is needed during test mode */
     /* Allocate a buffer to hold HCI command */
     cond = HCI_DO_AUTO_ACCEPT_CONNECT;
-    if (!btsnd_hcic_set_event_filter(HCI_FILTER_CONNECTION_SETUP,
-                                     HCI_FILTER_COND_NEW_DEVICE,
-                                     &cond, sizeof(cond)))
-    {
-        return (BTM_NO_RESOURCES);
-    }
+    btsnd_hcic_set_event_filter(HCI_FILTER_CONNECTION_SETUP,
+                                HCI_FILTER_COND_NEW_DEVICE,
+                                &cond, sizeof(cond));
 
     /* put device to connectable mode */
     if (BTM_SetConnectability(BTM_CONNECTABLE, BTM_DEFAULT_CONN_WINDOW,
@@ -866,10 +844,8 @@ tBTM_STATUS BTM_EnableTestMode(void)
       NULL);
 
     /* Send the HCI command */
-    if (btsnd_hcic_enable_test_mode ())
-        return (BTM_SUCCESS);
-    else
-        return (BTM_NO_RESOURCES);
+    btsnd_hcic_enable_test_mode();
+    return (BTM_SUCCESS);
 }
 
 /*******************************************************************************
@@ -908,12 +884,8 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
 
     /* Send the HCI command */
     btm_cb.devcb.p_stored_link_key_cmpl_cb = p_cb;
-    if (!btsnd_hcic_delete_stored_key (bd_addr, delete_all_flag))
-    {
-        return (BTM_NO_RESOURCES);
-    }
-    else
-        return (BTM_SUCCESS);
+    btsnd_hcic_delete_stored_key(bd_addr, delete_all_flag);
+    return (BTM_SUCCESS);
 }
 
 /*******************************************************************************

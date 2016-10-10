@@ -457,9 +457,9 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
     tBTM_STATUS st = BTM_NO_RESOURCES;
     if (controller_get_interface()->supports_ble_privacy())
     {
-        if (btsnd_hcic_ble_rm_device_resolving_list(p_dev_rec->ble.static_addr_type,
-                                                    p_dev_rec->ble.static_addr))
-            st =  BTM_CMD_STARTED;
+        btsnd_hcic_ble_rm_device_resolving_list(p_dev_rec->ble.static_addr_type,
+                                                p_dev_rec->ble.static_addr);
+        st =  BTM_CMD_STARTED;
     }
     else
     {
@@ -499,8 +499,8 @@ tBTM_STATUS btm_ble_clear_resolving_list(void)
 
     if (controller_get_interface()->supports_ble_privacy())
     {
-        if (btsnd_hcic_ble_clear_resolving_list())
-            st =  BTM_SUCCESS;
+        btsnd_hcic_ble_clear_resolving_list();
+        st =  BTM_SUCCESS;
     }
     else
     {
@@ -537,9 +537,9 @@ tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 
     if (controller_get_interface()->supports_ble_privacy())
     {
-        if (btsnd_hcic_ble_read_resolvable_addr_peer(p_dev_rec->ble.static_addr_type,
-                                                     p_dev_rec->ble.static_addr))
-            st =  BTM_CMD_STARTED;
+        btsnd_hcic_ble_read_resolvable_addr_peer(p_dev_rec->ble.static_addr_type,
+                                                     p_dev_rec->ble.static_addr);
+        st =  BTM_CMD_STARTED;
     }
     else
     {

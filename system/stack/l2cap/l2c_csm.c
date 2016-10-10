@@ -547,13 +547,7 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_d
 
     case L2CEVT_TIMEOUT:
         /* SM4 related. */
-        if (!btsnd_hcic_disconnect (p_ccb->p_lcb->handle, HCI_ERR_AUTH_FAILURE))
-        {
-            L2CAP_TRACE_API ("L2CAP - Calling btsnd_hcic_disconnect for handle %i failed", p_ccb->p_lcb->handle);
-            alarm_set_on_queue(p_ccb->l2c_ccb_timer, BT_1SEC_TIMEOUT_MS,
-                               l2c_ccb_timer_timeout, p_ccb,
-                               btu_general_alarm_queue);
-        }
+        btsnd_hcic_disconnect(p_ccb->p_lcb->handle, HCI_ERR_AUTH_FAILURE);
         break;
 
     case L2CEVT_SEC_RE_SEND_CMD:                    /* BTM has enough info to proceed */

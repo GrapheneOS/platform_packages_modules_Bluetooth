@@ -1510,8 +1510,7 @@ bool    L2CA_SetFlushTimeout (BD_ADDR bd_addr, uint16_t flush_tout)
                 L2CAP_TRACE_API ("L2CA_SetFlushTimeout 0x%04x ms for bd_addr [...;%02x%02x%02x]",
                                   flush_tout, bd_addr[3], bd_addr[4], bd_addr[5]);
 
-                if (!btsnd_hcic_write_auto_flush_tout (p_lcb->handle, hci_flush_to))
-                    return (false);
+                btsnd_hcic_write_auto_flush_tout(p_lcb->handle, hci_flush_to);
             }
         }
         else
@@ -1538,8 +1537,7 @@ bool    L2CA_SetFlushTimeout (BD_ADDR bd_addr, uint16_t flush_tout)
                                       flush_tout, p_lcb->remote_bd_addr[3],
                                       p_lcb->remote_bd_addr[4], p_lcb->remote_bd_addr[5]);
 
-                    if (!btsnd_hcic_write_auto_flush_tout(p_lcb->handle, hci_flush_to))
-                        return (false);
+                    btsnd_hcic_write_auto_flush_tout(p_lcb->handle, hci_flush_to);
                 }
             }
         }

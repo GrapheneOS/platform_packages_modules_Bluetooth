@@ -355,11 +355,9 @@ tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, uint16_t max_lat,
     if(BTM_PM_STS_ACTIVE == btm_cb.pm_mode_db[acl_ind].state ||
         BTM_PM_STS_SNIFF == btm_cb.pm_mode_db[acl_ind].state)
     {
-        if (btsnd_hcic_sniff_sub_rate(btm_cb.acl_db[acl_ind].hci_handle, max_lat,
-                                      min_rmt_to, min_loc_to))
-            return BTM_SUCCESS;
-        else
-            return BTM_NO_RESOURCES;
+        btsnd_hcic_sniff_sub_rate(btm_cb.acl_db[acl_ind].hci_handle, max_lat,
+                                  min_rmt_to, min_loc_to);
+        return BTM_SUCCESS;
     }
     p_cb = &btm_cb.pm_mode_db[acl_ind];
     p_cb->max_lat       = max_lat;
@@ -660,16 +658,12 @@ static tBTM_STATUS btm_pm_snd_md_req(uint8_t pm_id, int link_ind, tBTM_PM_PWR_MD
         switch(p_cb->state)
         {
         case BTM_PM_MD_SNIFF:
-            if (btsnd_hcic_exit_sniff_mode(btm_cb.acl_db[link_ind].hci_handle))
-            {
-                btm_cb.pm_pend_link = link_ind;
-            }
+            btsnd_hcic_exit_sniff_mode(btm_cb.acl_db[link_ind].hci_handle);
+            btm_cb.pm_pend_link = link_ind;
             break;
         case BTM_PM_MD_PARK:
-            if (btsnd_hcic_exit_park_mode(btm_cb.acl_db[link_ind].hci_handle))
-            {
-                btm_cb.pm_pend_link = link_ind;
-            }
+            btsnd_hcic_exit_park_mode(btm_cb.acl_db[link_ind].hci_handle);
+            btm_cb.pm_pend_link = link_ind;
             break;
         default:
             /* Failure btm_cb.pm_pend_link = MAX_L2CAP_LINKS */
@@ -678,28 +672,22 @@ static tBTM_STATUS btm_pm_snd_md_req(uint8_t pm_id, int link_ind, tBTM_PM_PWR_MD
         break;
 
     case BTM_PM_MD_HOLD:
-        if (btsnd_hcic_hold_mode (btm_cb.acl_db[link_ind].hci_handle,
-                                  md_res.max, md_res.min))
-        {
-            btm_cb.pm_pend_link = link_ind;
-        }
+        btsnd_hcic_hold_mode(btm_cb.acl_db[link_ind].hci_handle,
+                             md_res.max, md_res.min);
+        btm_cb.pm_pend_link = link_ind;
         break;
 
     case BTM_PM_MD_SNIFF:
-        if (btsnd_hcic_sniff_mode (btm_cb.acl_db[link_ind].hci_handle,
-                                   md_res.max, md_res.min, md_res.attempt,
-                                   md_res.timeout))
-        {
-            btm_cb.pm_pend_link = link_ind;
-        }
+        btsnd_hcic_sniff_mode(btm_cb.acl_db[link_ind].hci_handle,
+                              md_res.max, md_res.min, md_res.attempt,
+                              md_res.timeout);
+        btm_cb.pm_pend_link = link_ind;
         break;
 
     case BTM_PM_MD_PARK:
-        if (btsnd_hcic_park_mode (btm_cb.acl_db[link_ind].hci_handle,
-                                  md_res.max, md_res.min))
-        {
-            btm_cb.pm_pend_link = link_ind;
-        }
+        btsnd_hcic_park_mode(btm_cb.acl_db[link_ind].hci_handle,
+                             md_res.max, md_res.min);
+        btm_cb.pm_pend_link = link_ind;
         break;
     default:
         /* Failure btm_cb.pm_pend_link = MAX_L2CAP_LINKS */
