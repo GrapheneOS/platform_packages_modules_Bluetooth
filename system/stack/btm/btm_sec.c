@@ -66,7 +66,7 @@ static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (uint8_t is_originator, uint16_t 
 
 static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec);
 static bool     btm_sec_start_get_name (tBTM_SEC_DEV_REC *p_dev_rec);
-static bool     btm_sec_start_authentication (tBTM_SEC_DEV_REC *p_dev_rec);
+static void     btm_sec_start_authentication (tBTM_SEC_DEV_REC *p_dev_rec);
 static void     btm_sec_start_encryption (tBTM_SEC_DEV_REC *p_dev_rec);
 static void     btm_sec_collision_timeout(void *data);
 static void     btm_restore_mode(void);
@@ -1092,8 +1092,7 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
     /* If connection already exists... */
     if (p && p->hci_handle != BTM_SEC_INVALID_HANDLE)
     {
-        if (!btm_sec_start_authentication (p_dev_rec))
-            return(BTM_NO_RESOURCES);
+        btm_sec_start_authentication(p_dev_rec);
 
         btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_PIN_REQ);
 
@@ -5373,10 +5372,7 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
                     | BTM_SEC_AUTHENTICATED);
         }
 
-        if (!btm_sec_start_authentication (p_dev_rec))
-        {
-            return(BTM_NO_RESOURCES);
-        }
+        btm_sec_start_authentication(p_dev_rec);
         return(BTM_CMD_STARTED);
     }
 
@@ -5473,14 +5469,11 @@ static bool    btm_sec_start_get_name (tBTM_SEC_DEV_REC *p_dev_rec)
 **
 ** Description      This function is called to start authentication
 **
-** Returns          true if started
-**
 *******************************************************************************/
-static bool    btm_sec_start_authentication (tBTM_SEC_DEV_REC *p_dev_rec)
+static void btm_sec_start_authentication(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
-
-    return(btsnd_hcic_auth_request (p_dev_rec->hci_handle));
+    btsnd_hcic_auth_request(p_dev_rec->hci_handle);
 }
 
 /*******************************************************************************
