@@ -82,7 +82,6 @@ public class ObexTest extends AndroidTestCase implements ITestSequenceConfigurat
     private static final int L2CAP_PSM = 29; /* If SDP is not used */
     private static final int RFCOMM_CHANNEL = 29; /* If SDP is not used */
 
-    //public static final String SERVER_ADDRESS = "10:68:3F:5E:F9:2E";
     public static final String SERVER_ADDRESS = "F8:CF:C5:A8:70:7E";
 
     private static final String SDP_SERVER_NAME = "Samsung Server";
@@ -143,9 +142,7 @@ public class ObexTest extends AndroidTestCase implements ITestSequenceConfigurat
 
             TestSequencer sequencer = createBtPayloadTestSequence(clientTransport, serverTransport);
 
-            //Debug.startMethodTracing("ObexTrace");
             assertTrue(sequencer.run(mContext));
-            //Debug.stopMethodTracing();
         } catch (IOException e) {
             Log.e(TAG, "IOException", e);
         }
@@ -177,9 +174,7 @@ public class ObexTest extends AndroidTestCase implements ITestSequenceConfigurat
 
             TestSequencer sequencer = createBtPayloadTestSequence(clientTransport, serverTransport);
 
-            //Debug.startMethodTracing("ObexTrace");
             assertTrue(sequencer.run(mContext));
-            //Debug.stopMethodTracing();
 
             clientSock.close();
             acceptSock.close();
@@ -514,9 +509,7 @@ public class ObexTest extends AndroidTestCase implements ITestSequenceConfigurat
                 break;
 
             }
-            //Debug.startMethodTracing("ObexTrace");
             assertTrue(sequencer.run(mContext));
-            //Debug.stopMethodTracing();
             // Same as below... serverTransport.close();
             // This is done by the obex server socket.close();
             serverSocket.close();
@@ -603,9 +596,7 @@ public class ObexTest extends AndroidTestCase implements ITestSequenceConfigurat
                 break;
 
             }
-            //Debug.startMethodTracing("ObexTrace");
             assertTrue(sequencer.run(mContext));
-            //Debug.stopMethodTracing();
             socket.close(); // Only the streams are closed by the obex client
             sequencer.shutdown();
 
