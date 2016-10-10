@@ -2215,8 +2215,6 @@ tBTM_STATUS  btm_initiate_rem_name (BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur,
                                     tBTM_CMPL_CB *p_cb)
 {
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
-    bool                 cmd_ok;
-
 
     /*** Make sure the device is ready ***/
     if (!BTM_IsDeviceUp())
@@ -2225,12 +2223,9 @@ tBTM_STATUS  btm_initiate_rem_name (BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur,
 
     if (origin == BTM_RMT_NAME_SEC)
     {
-        cmd_ok = btsnd_hcic_rmt_name_req (remote_bda, HCI_PAGE_SCAN_REP_MODE_R1,
-                                         HCI_MANDATARY_PAGE_SCAN_MODE, 0);
-        if (cmd_ok)
-            return BTM_CMD_STARTED;
-        else
-            return BTM_NO_RESOURCES;
+        btsnd_hcic_rmt_name_req(remote_bda, HCI_PAGE_SCAN_REP_MODE_R1,
+                                HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+        return BTM_CMD_STARTED;
     }
     /* Make sure there are no two remote name requests from external API in progress */
     else if (origin == BTM_RMT_NAME_EXT)
@@ -2252,24 +2247,20 @@ tBTM_STATUS  btm_initiate_rem_name (BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur,
             /* If the database entry exists for the device, use its clock offset */
             if (p_cur)
             {
-                cmd_ok = btsnd_hcic_rmt_name_req (remote_bda,
-                                         p_cur->results.page_scan_rep_mode,
-                                         p_cur->results.page_scan_mode,
-                                         (uint16_t)(p_cur->results.clock_offset |
-                                                  BTM_CLOCK_OFFSET_VALID));
+                btsnd_hcic_rmt_name_req(remote_bda,
+                                        p_cur->results.page_scan_rep_mode,
+                                        p_cur->results.page_scan_mode,
+                                        (uint16_t)(p_cur->results.clock_offset |
+                                                 BTM_CLOCK_OFFSET_VALID));
             }
             else /* Otherwise use defaults and mark the clock offset as invalid */
             {
-                cmd_ok = btsnd_hcic_rmt_name_req (remote_bda, HCI_PAGE_SCAN_REP_MODE_R1,
-                                         HCI_MANDATARY_PAGE_SCAN_MODE, 0);
+                btsnd_hcic_rmt_name_req(remote_bda, HCI_PAGE_SCAN_REP_MODE_R1,
+                                        HCI_MANDATARY_PAGE_SCAN_MODE, 0);
             }
-            if (cmd_ok)
-            {
-                p_inq->remname_active = true;
-                return BTM_CMD_STARTED;
-            }
-            else
-                return BTM_NO_RESOURCES;
+
+            p_inq->remname_active = true;
+            return BTM_CMD_STARTED;
         }
     }
     else
