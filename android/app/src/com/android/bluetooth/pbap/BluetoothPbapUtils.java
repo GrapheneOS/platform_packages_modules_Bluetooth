@@ -98,21 +98,12 @@ public class BluetoothPbapUtils {
     public static VCardComposer createFilteredVCardComposer(final Context ctx,
             final int vcardType, final byte[] filter) {
         int vType = vcardType;
-        /*
-        boolean isNameNumberOnly = isNameAndNumberOnly(filter);
-        if (isNameNumberOnly) {
-            if (V)
-                Log.v(TAG, "Creating Name/Number only VCardComposer...");
-            vType |= VCardConfig.FLAG_NAME_NUMBER_ONLY_EXPORT;
-        } else {
-        */
         boolean includePhoto = BluetoothPbapConfig.includePhotosInVcard()
                     && (!hasFilter(filter) || isFilterBitSet(filter, FILTER_PHOTO));
         if (!includePhoto) {
             if (V) Log.v(TAG, "Excluding images from VCardComposer...");
             vType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
         }
-        //}
         return new VCardComposer(ctx, vType, true);
     }
 
@@ -172,8 +163,6 @@ public class BluetoothPbapUtils {
     }
 
     public static boolean createProfileVCardFile(File file, Context context) {
-        // File defaultFile = new
-        // File(OppApplicationConfig.OPP_OWNER_VCARD_PATH);
         FileInputStream is = null;
         FileOutputStream os = null;
         boolean success = true;
