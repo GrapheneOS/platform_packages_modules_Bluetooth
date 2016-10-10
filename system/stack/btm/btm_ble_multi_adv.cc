@@ -87,15 +87,22 @@ class BleAdvertisingManagerImpl
     : public BleAdvertisingManager,
       public BleAdvertiserHciInterface::AdvertisingEventObserver {
  public:
-  BleAdvertisingManagerImpl() {
-    adv_inst.reserve(BTM_BleMaxMultiAdvInstanceCount());
-    /* Initialize adv instance indices and IDs. */
-    for (uint8_t i = 0; i < BTM_BleMaxMultiAdvInstanceCount(); i++) {
-      adv_inst.emplace_back(i + 1);
-    }
+  BleAdvertisingManagerImpl(BleAdvertiserHciInterface *interface) {
+    this->hci_interface = interface;
+    hci_interface->ReadInstanceCount(base::Bind(
+        &BleAdvertisingManagerImpl::ReadInstanceCountCb, base::Unretained(this)));
   }
 
   ~BleAdvertisingManagerImpl() { adv_inst.clear(); }
+
+  void ReadInstanceCountCb(uint8_t instance_count) {
+    this->inst_count = instance_count;
+    adv_inst.reserve(inst_count);
+    /* Initialize adv instance indices and IDs. */
+    for (uint8_t i = 0; i < inst_count; i++) {
+      adv_inst.emplace_back(i + 1);
+    }
+  }
 
   void OnRpaGenerationComplete(uint8_t inst_id, tBTM_RAND_ENC *p) {
 #if (SMP_INCLUDED == TRUE)
@@ -125,7 +132,7 @@ class BleAdvertisingManagerImpl
     p_inst->rpa[3] = output.param_buf[2];
 
     if (p_inst->inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD &&
-        p_inst->inst_id < BTM_BleMaxMultiAdvInstanceCount()) {
+        p_inst->inst_id < inst_count) {
       /* set it to controller */
       GetHciInterface()->SetRandomAddress(p_inst->rpa, p_inst->inst_id,
                                           Bind(DoNothing));
@@ -147,14 +154,14 @@ class BleAdvertisingManagerImpl
   void RegisterAdvertiser(
       base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)> cb)
       override {
-    if (BTM_BleMaxMultiAdvInstanceCount() == 0) {
+    if (inst_count == 0) {
       LOG(ERROR) << "multi adv not supported";
       cb.Run(0xFF, BTM_BLE_MULTI_ADV_FAILURE);
       return;
     }
 
     AdvertisingInstance *p_inst = &adv_inst[0];
-    for (uint8_t i = 0; i < BTM_BleMaxMultiAdvInstanceCount() - 1;
+    for (uint8_t i = 0; i < inst_count - 1;
          i++, p_inst++) {
       if (!p_inst->in_use) {
         p_inst->in_use = TRUE;
@@ -195,7 +202,7 @@ class BleAdvertisingManagerImpl
     AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
 
     VLOG(1) << __func__ << " inst_id: " << +inst_id << ", enable: " << enable;
-    if (BTM_BleMaxMultiAdvInstanceCount() == 0) {
+    if (inst_count == 0) {
       LOG(ERROR) << "multi adv not supported";
       return;
     }
@@ -228,12 +235,12 @@ class BleAdvertisingManagerImpl
 
     VLOG(1) << __func__ << " inst_id:" << +inst_id;
 
-    if (BTM_BleMaxMultiAdvInstanceCount() == 0) {
+    if (inst_count == 0) {
       LOG(ERROR) << "multi adv not supported";
       return;
     }
 
-    if (inst_id > BTM_BleMaxMultiAdvInstanceCount() || inst_id < 0 ||
+    if (inst_id > inst_count || inst_id < 0 ||
         inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
       LOG(ERROR) << "bad instance id " << +inst_id;
       return;
@@ -286,7 +293,7 @@ class BleAdvertisingManagerImpl
 
     VLOG(1) << "inst_id = " << +inst_id << ", is_scan_rsp = " << is_scan_rsp;
 
-    if (BTM_BleMaxMultiAdvInstanceCount() == 0) {
+    if (inst_count == 0) {
       LOG(ERROR) << "multi adv not supported";
       return;
     }
@@ -317,7 +324,7 @@ class BleAdvertisingManagerImpl
       }
     }
 
-    if (inst_id > BTM_BleMaxMultiAdvInstanceCount() || inst_id < 0 ||
+    if (inst_id > inst_count || inst_id < 0 ||
         inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
       LOG(ERROR) << "bad instance id " << +inst_id;
       return;
@@ -339,12 +346,12 @@ class BleAdvertisingManagerImpl
 
     VLOG(1) << __func__ << " inst_id: " << +inst_id;
 
-    if (BTM_BleMaxMultiAdvInstanceCount() == 0) {
+    if (inst_count == 0) {
       LOG(ERROR) << "multi adv not supported";
       return;
     }
 
-    if (inst_id > BTM_BleMaxMultiAdvInstanceCount() || inst_id < 0 ||
+    if (inst_id > inst_count || inst_id < 0 ||
         inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
       LOG(ERROR) << "bad instance id " << +inst_id;
       return;
@@ -371,7 +378,7 @@ class BleAdvertisingManagerImpl
     }
 #endif
 
-    if (inst_id < BTM_BleMaxMultiAdvInstanceCount() &&
+    if (inst_id < inst_count &&
         inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD) {
       VLOG(1) << "reneabling advertising";
 
@@ -394,23 +401,20 @@ class BleAdvertisingManagerImpl
     }
   }
 
-  void SetHciInterface(BleAdvertiserHciInterface *interface) {
-    hci_interface = interface;
-  };
-
  private:
   BleAdvertiserHciInterface *GetHciInterface() { return hci_interface; }
 
   BleAdvertiserHciInterface *hci_interface = nullptr;
   std::vector<AdvertisingInstance> adv_inst;
+  uint8_t inst_count;
 };
 
 namespace {
 BleAdvertisingManager *instance;
 }
 
-void BleAdvertisingManager::Initialize() {
-  instance = new BleAdvertisingManagerImpl();
+void BleAdvertisingManager::Initialize(BleAdvertiserHciInterface *interface) {
+  instance = new BleAdvertisingManagerImpl(interface);
 }
 
 BleAdvertisingManager *BleAdvertisingManager::Get() {
@@ -440,9 +444,8 @@ void btm_ble_adv_raddr_timer_timeout(void *data) {
 **
 *******************************************************************************/
 void btm_ble_multi_adv_init() {
-  BleAdvertisingManager::Initialize();
   BleAdvertiserHciInterface::Initialize();
-  BleAdvertisingManager::Get()->SetHciInterface(
+  BleAdvertisingManager::Initialize(
       BleAdvertiserHciInterface::Get());
 }
 
