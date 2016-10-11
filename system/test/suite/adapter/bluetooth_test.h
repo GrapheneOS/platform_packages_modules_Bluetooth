@@ -18,13 +18,7 @@
 
 #pragma once
 
-#include "service/hal/bluetooth_interface.h"
-
 #include <gtest/gtest.h>
-#include <map>
-#include <string>
-
-extern "C" {
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 #include <hardware/bt_pan.h>
@@ -32,9 +26,10 @@ extern "C" {
 #include <hardware/hardware.h>
 #include <signal.h>
 #include <time.h>
-
+#include <map>
+#include <string>
 #include "osi/include/semaphore.h"
-}
+#include "service/hal/bluetooth_interface.h"
 
 namespace bttest {
 

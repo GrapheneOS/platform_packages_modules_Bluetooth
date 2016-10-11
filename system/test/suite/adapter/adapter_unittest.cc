@@ -17,11 +17,8 @@
  ******************************************************************************/
 
 #include "adapter/bluetooth_test.h"
-
-extern "C" {
 #include "btcore/include/property.h"
 #include "stack/include/bt_types.h"
-}
 
 namespace {
 
