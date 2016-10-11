@@ -48,9 +48,6 @@ static const interop_addr_entry_t interop_addr_database[] = {
   // iKross IKBT83B HS - unacceptably loud volume
   {{{0x00, 0x14, 0x02,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
 
-  // Jabra EXTREME 2 - unacceptably loud volume
-  {{{0x1c, 0x48, 0xf9,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
-
   // JayBird BlueBuds X - low granularity on volume control
   {{{0x44, 0x5e, 0xf3,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
   {{{0xd4, 0x9c, 0x28,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
