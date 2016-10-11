@@ -244,7 +244,8 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
     if ( (p_ccb->local_cid >= L2CAP_BASE_APPL_CID) && (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) )
     {
         uint32_t dur = time_get_os_boottime_ms() - p_ccb->fcrb.connect_tick_count;
-        char    *p_str = (char *)osi_malloc(120);
+        size_t p_str_size = 120;
+        char    *p_str = (char *)osi_malloc(p_str_size);
         uint16_t i;
         uint32_t throughput_avg, ack_delay_avg, ack_q_count_avg;
 
@@ -258,14 +259,14 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
         BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "max_held_acks:%08u, in_cfg.fcr.tx_win_sz:%08u", p_ccb->fcrb.max_held_acks, p_ccb->peer_cfg.fcr.tx_win_sz );
 
-        sprintf(p_str, "Sent Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
+        snprintf(p_str, p_str_size, "Sent Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
                 p_ccb->fcrb.ertm_pkt_counts[0], p_ccb->fcrb.ertm_byte_counts[0],
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[0] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_sent[0], p_ccb->fcrb.s_frames_sent[1], p_ccb->fcrb.s_frames_sent[2], p_ccb->fcrb.s_frames_sent[3]);
 
         BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
-        sprintf(p_str, "Rcvd Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
+        snprintf(p_str, p_str_size, "Rcvd Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
                 p_ccb->fcrb.ertm_pkt_counts[1], p_ccb->fcrb.ertm_byte_counts[1],
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[1] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_rcvd[0], p_ccb->fcrb.s_frames_rcvd[1], p_ccb->fcrb.s_frames_rcvd[2], p_ccb->fcrb.s_frames_rcvd[3]);
@@ -283,7 +284,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
                 continue;
             }
 
-            sprintf(p_str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
+            snprintf(p_str, p_str_size, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
                     i, p_ccb->fcrb.throughput[i],
                     p_ccb->fcrb.ack_delay_avg[i], p_ccb->fcrb.ack_delay_min[i], p_ccb->fcrb.ack_delay_max[i],
                     p_ccb->fcrb.ack_q_count_avg[i], p_ccb->fcrb.ack_q_count_min[i], p_ccb->fcrb.ack_q_count_max[i] );
@@ -2497,7 +2498,7 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, uint8_t num_bufs_acked)
 
         p_ccb->fcrb.throughput_start = timestamp;
 
-        sprintf(str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
+        snprintf(str, sizeof(str), "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
                 index, p_ccb->fcrb.throughput[index],
                 p_ccb->fcrb.ack_delay_avg[index], p_ccb->fcrb.ack_delay_min[index], p_ccb->fcrb.ack_delay_max[index],
                 p_ccb->fcrb.ack_q_count_avg[index], p_ccb->fcrb.ack_q_count_min[index], p_ccb->fcrb.ack_q_count_max[index] );

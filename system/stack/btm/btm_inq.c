@@ -2735,7 +2735,8 @@ uint8_t BTM_GetEirUuidList( uint8_t *p_eir, uint8_t uuid_size, uint8_t *p_num_uu
         {
             STREAM_TO_ARRAY16(p_uuid_list + yy * LEN_UUID_128, p_uuid_data);
             for( xx = 0; xx < LEN_UUID_128; xx++ )
-                sprintf(buff + xx*2, "%02X", *(p_uuid_list + yy * LEN_UUID_128 + xx));
+                snprintf(buff + xx*2, sizeof(buff) - xx*2, "%02X",
+                         *(p_uuid_list + yy * LEN_UUID_128 + xx));
             BTM_TRACE_DEBUG("                     0x%s", buff);
         }
     }

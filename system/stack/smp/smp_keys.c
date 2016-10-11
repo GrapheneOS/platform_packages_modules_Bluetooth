@@ -77,7 +77,7 @@ void smp_debug_print_nbyte_little_endian(uint8_t *p, const uint8_t *key_name, ui
     {
         for (int column = 0, x = 0; (ind < len) && (column < col_count); column++, ind++)
         {
-            x += sprintf((char *)&p_buf[x], "%02x ", p[ind]);
+            x += snprintf((char *)&p_buf[x], sizeof(p_buf) - x, "%02x ", p[ind]);
         }
         SMP_TRACE_WARNING("  [%03d]: %s", row * col_count, p_buf);
     }
@@ -101,7 +101,7 @@ void smp_debug_print_nbyte_big_endian (uint8_t *p, const uint8_t *key_name, uint
     {
         for (int col = 0, x = 0; (ind < len) && (col < ncols); col++, ind++)
         {
-            x += sprintf ((char *)&p_buf[len-x-1], "%02x ", p[ind]);
+            x += snprintf ((char *)&p_buf[len-x-1], sizeof(p_buf) - (len-x-1), "%02x ", p[ind]);
         }
         SMP_TRACE_WARNING("[%03d]: %s", row * ncols, p_buf);
     }

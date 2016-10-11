@@ -139,25 +139,31 @@ void uuid_to_string(const bt_uuid_t *uuid, uuid_string_t *uuid_string) {
   assert(uuid_string != NULL);
 
   char *string = uuid_string->string;
+  char *end = string + UUID_WELL_FORMED_STRING_LEN_WITH_NULL;
 
+  // XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX
   for (int i = 0; i < 4; i++) {
-    string += sprintf(string, "%02x", uuid->uu[i]);
+    string += snprintf(string, end - string, "%02x", uuid->uu[i]);
   }
-  string += sprintf(string, "-");
+  *string = '-';
+  ++string;
   for (int i = 4; i < 6; i++) {
-    string += sprintf(string, "%02x", uuid->uu[i]);
+    string += snprintf(string, end - string, "%02x", uuid->uu[i]);
   }
-  string += sprintf(string, "-");
+  *string = '-';
+  ++string;
   for (int i = 6; i < 8; i++) {
-    string += sprintf(string, "%02x", uuid->uu[i]);
+    string += snprintf(string, end - string, "%02x", uuid->uu[i]);
   }
-  string += sprintf(string, "-");
+  *string = '-';
+  ++string;
   for (int i = 8; i < 10; i++) {
-    string += sprintf(string, "%02x", uuid->uu[i]);
+    string += snprintf(string, end - string, "%02x", uuid->uu[i]);
   }
-  string += sprintf(string, "-");
+  *string = '-';
+  ++string;
   for (int i = 10; i < 16; i++) {
-    string += sprintf(string, "%02x", uuid->uu[i]);
+    string += snprintf(string, end - string, "%02x", uuid->uu[i]);
   }
 }
 
