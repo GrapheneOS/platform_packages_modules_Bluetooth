@@ -40,8 +40,7 @@ class Adapter;
 // A LowEnergyAdvertiser represents an application's handle to perform various
 // Bluetooth Low Energy GAP operations. Instances cannot be created directly and
 // should be obtained through the factory.
-class LowEnergyAdvertiser : private hal::BluetoothGattInterface::AdvertiserObserver,
-                        public BluetoothInstance {
+class LowEnergyAdvertiser : public BluetoothInstance {
  public:
 
   // The destructor automatically unregisters this client instance from the
@@ -89,25 +88,21 @@ class LowEnergyAdvertiser : private hal::BluetoothGattInterface::AdvertiserObser
 
   // BluetoothGattInterface::AdvertiserObserver overrides:
   void MultiAdvDataCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int advertiser_id, int status) override;
+      uint8_t advertiser_id, uint8_t status);
   void MultiAdvSetParamsCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int advertiser_id, int status) override;
+      uint8_t advertiser_id, uint8_t status);
   void MultiAdvEnableCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int advertiser_id, int status, bool enable) override;
+      bool enable, uint8_t advertiser_id, uint8_t status);
 
   // Helper method called from SetAdvertiseData/SetScanResponse.
   bt_status_t SetAdvertiseData(
-      hal::BluetoothGattInterface* gatt_iface,
       const AdvertiseData& data,
       bool set_scan_rsp);
 
   // Handles deferred advertise/scan-response data updates. We set the data if
   // there's data to be set, otherwise we either defer it if advertisements
   // aren't enabled or do nothing.
-  void HandleDeferredAdvertiseData(hal::BluetoothGattInterface* gatt_iface);
+  void HandleDeferredAdvertiseData();
 
   // Calls and clears the pending callbacks.
   void InvokeAndClearStartCallback(BLEStatus status);
@@ -146,8 +141,7 @@ class LowEnergyAdvertiser : private hal::BluetoothGattInterface::AdvertiserObser
 // own unique LowEnergyAdvertiser instance that has been registered with the
 // Bluetooth stack.
 class LowEnergyAdvertiserFactory
-    : private hal::BluetoothGattInterface::AdvertiserObserver,
-      public BluetoothInstanceFactory {
+    : public BluetoothInstanceFactory {
  public:
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
@@ -161,14 +155,13 @@ class LowEnergyAdvertiserFactory
   friend class LowEnergyAdvertiser;
 
   // BluetoothGattInterface::AdvertiserObserver overrides:
-  void RegisterAdvertiserCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int status, int advertiser_id,
-      const bt_uuid_t& app_uuid) override;
+  void RegisterAdvertiserCallback(const RegisterCallback& callback,
+                                  const UUID& app_uuid, uint8_t advertiser_id,
+                                  uint8_t status);
 
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;
-  std::map<UUID, RegisterCallback> pending_calls_;
+  std::unordered_set<UUID> pending_calls_;
 
   DISALLOW_COPY_AND_ASSIGN(LowEnergyAdvertiserFactory);
 };
