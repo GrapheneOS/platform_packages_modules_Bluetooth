@@ -354,7 +354,8 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, bool    offset)
 
     for (i = 0; i < p_ccb->list_len; i++)
     {
-        sprintf((char *)&num_array[i*2],"%02X",(uint8_t)(p_ccb->rsp_list[i]));
+        snprintf((char *)&num_array[i*2], sizeof(num_array) - i*2,
+            "%02X",(uint8_t)(p_ccb->rsp_list[i]));
     }
     SDP_TRACE_WARNING("result :%s",num_array);
 #endif

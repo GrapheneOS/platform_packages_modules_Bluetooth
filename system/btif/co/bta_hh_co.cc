@@ -527,7 +527,7 @@ void bta_hh_le_co_rpt_info(BD_ADDR remote_bda, tBTA_HH_RPT_CACHE_ENTRY *p_entry,
     unsigned idx = 0;
 
     bdstr_t bdstr;
-    sprintf(bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
+    snprintf(bdstr, sizeof(bdstr), "%02x:%02x:%02x:%02x:%02x:%02x",
         remote_bda[0], remote_bda[1], remote_bda[2],
         remote_bda[3], remote_bda[4], remote_bda[5]);
 
@@ -569,7 +569,7 @@ tBTA_HH_RPT_CACHE_ENTRY * bta_hh_le_co_cache_load (BD_ADDR remote_bda,
     UNUSED(app_id);
 
     bdstr_t bdstr;
-    sprintf(bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
+    snprintf(bdstr, sizeof(bdstr), "%02x:%02x:%02x:%02x:%02x:%02x",
         remote_bda[0], remote_bda[1], remote_bda[2],
         remote_bda[3], remote_bda[4], remote_bda[5]);
 
@@ -603,7 +603,7 @@ void bta_hh_le_co_reset_rpt_cache (BD_ADDR remote_bda, uint8_t app_id)
     UNUSED(app_id);
 
     bdstr_t bdstr;
-    sprintf(bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
+    snprintf(bdstr, sizeof(bdstr), "%02x:%02x:%02x:%02x:%02x:%02x",
         remote_bda[0], remote_bda[1], remote_bda[2],
         remote_bda[3], remote_bda[4], remote_bda[5]);
     btif_config_remove(bdstr, "HidReport");

@@ -143,7 +143,7 @@ bool string_to_uuid(const char *str, bt_uuid_t *p_uuid)
     return true;
 }
 
-void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str)
+void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str, size_t str_len)
 {
     uint32_t uuid0, uuid4;
     uint16_t uuid1, uuid2, uuid3, uuid5;
@@ -155,10 +155,10 @@ void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str)
     memcpy(&uuid4, &(p_uuid->uu[10]), 4);
     memcpy(&uuid5, &(p_uuid->uu[14]), 2);
 
-    sprintf((char *)str, "%.8x-%.4x-%.4x-%.4x-%.8x%.4x",
-            ntohl(uuid0), ntohs(uuid1),
-            ntohs(uuid2), ntohs(uuid3),
-            ntohl(uuid4), ntohs(uuid5));
+    snprintf(str, str_len, "%.8x-%.4x-%.4x-%.4x-%.8x%.4x",
+             ntohl(uuid0), ntohs(uuid1),
+             ntohs(uuid2), ntohs(uuid3),
+             ntohl(uuid4), ntohs(uuid5));
     return;
 }
 

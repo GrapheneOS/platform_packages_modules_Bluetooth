@@ -1513,7 +1513,8 @@ static void btif_dm_search_services_evt(uint16_t event, char *p_param)
                  for (i=0; i < p_data->disc_res.num_uuids; i++)
                  {
                       char temp[256];
-                      uuid_to_string_legacy((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp);
+                      uuid_to_string_legacy((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp,
+                                            sizeof(temp));
                       LOG_INFO(LOG_TAG, "%s index:%d uuid:%s", __func__, i, temp);
                  }
             }
@@ -1586,7 +1587,7 @@ static void btif_dm_search_services_evt(uint16_t event, char *p_param)
                     j--;
                 }
 
-                uuid_to_string_legacy(&uuid, temp);
+                uuid_to_string_legacy(&uuid, temp, sizeof(temp));
                 LOG_INFO(LOG_TAG, "%s uuid:%s", __func__, temp);
 
                 bdcpy(bd_addr.address, p_data->disc_ble_res.bd_addr);
@@ -3012,17 +3013,17 @@ bool btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
             fclose(fp);
         }
         BTIF_TRACE_DEBUG("----%s: true", __func__);
-        sprintf(t, "%02x:%02x:%02x:%02x:%02x:%02x",
+        snprintf(t, sizeof(t), "%02x:%02x:%02x:%02x:%02x:%02x",
                 oob_cb.bdaddr[0], oob_cb.bdaddr[1], oob_cb.bdaddr[2],
                 oob_cb.bdaddr[3], oob_cb.bdaddr[4], oob_cb.bdaddr[5]);
         BTIF_TRACE_DEBUG("----%s: peer_bdaddr = %s", __func__, t);
-        sprintf(t, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
-                p_c[0], p_c[1], p_c[2],  p_c[3],  p_c[4],  p_c[5],  p_c[6],  p_c[7],
-                p_c[8], p_c[9], p_c[10], p_c[11], p_c[12], p_c[13], p_c[14], p_c[15]);
+        snprintf(t, sizeof(t), "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                 p_c[0], p_c[1], p_c[2],  p_c[3],  p_c[4],  p_c[5],  p_c[6],  p_c[7],
+                 p_c[8], p_c[9], p_c[10], p_c[11], p_c[12], p_c[13], p_c[14], p_c[15]);
         BTIF_TRACE_DEBUG("----%s: c = %s", __func__, t);
-        sprintf(t, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
-                p_r[0], p_r[1], p_r[2],  p_r[3],  p_r[4],  p_r[5],  p_r[6],  p_r[7],
-                p_r[8], p_r[9], p_r[10], p_r[11], p_r[12], p_r[13], p_r[14], p_r[15]);
+        snprintf(t, sizeof(t), "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                 p_r[0], p_r[1], p_r[2],  p_r[3],  p_r[4],  p_r[5],  p_r[6],  p_r[7],
+                 p_r[8], p_r[9], p_r[10], p_r[11], p_r[12], p_r[13], p_r[14], p_r[15]);
         BTIF_TRACE_DEBUG("----%s: r = %s", __func__, t);
         bdcpy(bt_bd_addr.address, bd_addr);
         btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_BOND_STATE_BONDING,

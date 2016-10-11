@@ -409,13 +409,13 @@ bool    SDP_AddAttribute (uint32_t handle, uint16_t attr_id, uint8_t attr_type,
             (attr_type == DATA_ELE_ALT_DESC_TYPE))
         {
             uint8_t num_array[400];
-            uint32_t i;
             uint32_t len = (attr_len > 200) ? 200 : attr_len;
 
             num_array[0] ='\0';
-            for (i = 0; i < len; i++)
+            for (uint32_t i = 0; i < len; i++)
             {
-                sprintf((char *)&num_array[i*2],"%02X",(uint8_t)(p_val[i]));
+                snprintf((char *)&num_array[i*2], sizeof(num_array) - i*2,
+                    "%02X",(uint8_t)(p_val[i]));
             }
             SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%s",
                             handle,attr_id,attr_type,attr_len,p_val,num_array);

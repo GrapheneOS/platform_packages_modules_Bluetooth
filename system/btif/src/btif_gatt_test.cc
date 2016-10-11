@@ -70,29 +70,32 @@ static btif_test_cb_t test_cb;
  * Callback functions
  *******************************************************************************/
 
-static char * format_uuid(tBT_UUID bt_uuid, char *str_buf)
+static char * format_uuid(tBT_UUID bt_uuid, char *str_buf, size_t buf_size)
 {
-    int x = 0;
+
 
     if (bt_uuid.len == LEN_UUID_16)
     {
-        sprintf(str_buf, "0x%04x", bt_uuid.uu.uuid16);
+        snprintf(str_buf, buf_size, "0x%04x", bt_uuid.uu.uuid16);
     }
     else if (bt_uuid.len == LEN_UUID_128)
     {
-        x += sprintf(&str_buf[x], "%02x%02x%02x%02x-%02x%02x-%02x%02x",
+        int x = snprintf(str_buf, buf_size,
+                "%02x%02x%02x%02x-%02x%02x-%02x%02x",
                 bt_uuid.uu.uuid128[15], bt_uuid.uu.uuid128[14],
                 bt_uuid.uu.uuid128[13], bt_uuid.uu.uuid128[12],
                 bt_uuid.uu.uuid128[11], bt_uuid.uu.uuid128[10],
                 bt_uuid.uu.uuid128[9], bt_uuid.uu.uuid128[8]);
-        sprintf(&str_buf[x], "%02x%02x-%02x%02x%02x%02x%02x%02x",
+        snprintf(&str_buf[x], buf_size - x,
+                "%02x%02x-%02x%02x%02x%02x%02x%02x",
                 bt_uuid.uu.uuid128[7], bt_uuid.uu.uuid128[6],
                 bt_uuid.uu.uuid128[5], bt_uuid.uu.uuid128[4],
                 bt_uuid.uu.uuid128[3], bt_uuid.uu.uuid128[2],
                 bt_uuid.uu.uuid128[1], bt_uuid.uu.uuid128[0]);
     }
-    else
-        sprintf(str_buf, "Unknown (len=%d)", bt_uuid.len);
+    else {
+        snprintf(str_buf, buf_size, "Unknown (len=%d)", bt_uuid.len);
+    }
 
     return str_buf;
 }
@@ -144,7 +147,7 @@ static void btif_test_discovery_result_cback(uint16_t conn_id, tGATT_DISC_TYPE d
     LOG_DEBUG(LOG_TAG, "      Attribute handle: 0x%04x (%d)", p_data->handle, p_data->handle);
 
     if (disc_type != GATT_DISC_CHAR_DSCPT) {
-        LOG_DEBUG(LOG_TAG, "        Attribute type: %s", format_uuid(p_data->type, str_buf));
+        LOG_DEBUG(LOG_TAG, "        Attribute type: %s", format_uuid(p_data->type, str_buf, sizeof(str_buf)));
     }
 
     switch (disc_type)
@@ -154,7 +157,7 @@ static void btif_test_discovery_result_cback(uint16_t conn_id, tGATT_DISC_TYPE d
                   p_data->handle, p_data->value.group_value.e_handle,
                   p_data->handle, p_data->value.group_value.e_handle);
             LOG_DEBUG(LOG_TAG, "          Service UUID: %s",
-                    format_uuid(p_data->value.group_value.service_type, str_buf));
+                    format_uuid(p_data->value.group_value.service_type, str_buf, sizeof(str_buf)));
             break;
 
         case GATT_DISC_SRVC_BY_UUID:
@@ -168,18 +171,18 @@ static void btif_test_discovery_result_cback(uint16_t conn_id, tGATT_DISC_TYPE d
                   p_data->value.incl_service.s_handle, p_data->value.incl_service.e_handle,
                   p_data->value.incl_service.s_handle, p_data->value.incl_service.e_handle);
             LOG_DEBUG(LOG_TAG, "          Service UUID: %s",
-                  format_uuid(p_data->value.incl_service.service_type, str_buf));
+                  format_uuid(p_data->value.incl_service.service_type, str_buf, sizeof(str_buf)));
             break;
 
         case GATT_DISC_CHAR:
             LOG_DEBUG(LOG_TAG, "            Properties: 0x%02x",
                   p_data->value.dclr_value.char_prop);
             LOG_DEBUG(LOG_TAG, "   Characteristic UUID: %s",
-                  format_uuid(p_data->value.dclr_value.char_uuid, str_buf));
+                  format_uuid(p_data->value.dclr_value.char_uuid, str_buf, sizeof(str_buf)));
             break;
 
         case GATT_DISC_CHAR_DSCPT:
-            LOG_DEBUG(LOG_TAG, "       Descriptor UUID: %s", format_uuid(p_data->type, str_buf));
+            LOG_DEBUG(LOG_TAG, "       Descriptor UUID: %s", format_uuid(p_data->type, str_buf, sizeof(str_buf)));
             break;
     }
 
@@ -272,7 +275,7 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
 
             LOG_DEBUG(LOG_TAG, "%s: DISCOVER (%s), conn_id=%d, uuid=%s, handles=0x%04x-0x%04x",
                   __func__, disc_name[params->u1], test_cb.conn_id,
-                  format_uuid(param.service, buf), params->u2, params->u3);
+                  format_uuid(param.service, buf, sizeof(buf)), params->u2, params->u3);
             GATTC_Discover(test_cb.conn_id, params->u1, &param);
             break;
         }
