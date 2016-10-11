@@ -91,7 +91,7 @@
     <string name="status_pending" msgid="2503691772030877944">"Bestandsoverdracht nog niet gestart."</string>
     <string name="status_running" msgid="6562808920311008696">"Bestandsoverdracht wordt uitgevoerd."</string>
     <string name="status_success" msgid="239573225847565868">"Bestandsoverdracht is voltooid."</string>
-    <string name="status_not_accept" msgid="1695082417193780738">"Inhoud wordt niet ondersteund."</string>
+    <string name="status_not_accept" msgid="1695082417193780738">"Content wordt niet ondersteund."</string>
     <string name="status_forbidden" msgid="613956401054050725">"Overdracht wordt niet toegestaan door het doelapparaat."</string>
     <string name="status_canceled" msgid="6664490318773098285">"Overdracht geannuleerd door gebruiker."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Probleem met opslagruimte."</string>
