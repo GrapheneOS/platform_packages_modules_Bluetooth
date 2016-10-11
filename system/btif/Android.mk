@@ -37,7 +37,6 @@ btifCommonSrc += \
   src/btif_debug.cc \
   src/btif_debug_btsnoop.cc \
   src/btif_debug_conn.cc \
-  src/btif_debug_l2c.cc \
   src/btif_dm.cc \
   src/btif_gatt.cc \
   src/btif_gatt_client.cc \
