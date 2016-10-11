@@ -58,9 +58,10 @@ tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p
 #define GATT_CACHE_PREFIX "/data/misc/bluetooth/gatt_cache_"
 #define GATT_CACHE_VERSION 2
 
-static void bta_gattc_generate_cache_file_name(char *buffer, BD_ADDR bda)
+static void bta_gattc_generate_cache_file_name(char *buffer,
+    size_t buffer_len, BD_ADDR bda)
 {
-    sprintf(buffer, "%s%02x%02x%02x%02x%02x%02x", GATT_CACHE_PREFIX,
+    snprintf(buffer, buffer_len, "%s%02x%02x%02x%02x%02x%02x", GATT_CACHE_PREFIX,
             bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
 }
 
@@ -1522,7 +1523,7 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, uint16_t conn_id)
 bool bta_gattc_cache_load(tBTA_GATTC_CLCB *p_clcb)
 {
     char fname[255] = {0};
-    bta_gattc_generate_cache_file_name(fname, p_clcb->p_srcb->server_bda);
+    bta_gattc_generate_cache_file_name(fname, sizeof(fname), p_clcb->p_srcb->server_bda);
 
     FILE *fd = fopen(fname, "rb");
     if (!fd) {
@@ -1586,7 +1587,7 @@ static void bta_gattc_cache_write(BD_ADDR server_bda, uint16_t num_attr,
                            tBTA_GATTC_NV_ATTR *attr)
 {
     char fname[255] = {0};
-    bta_gattc_generate_cache_file_name(fname, server_bda);
+    bta_gattc_generate_cache_file_name(fname, sizeof(fname), server_bda);
 
     FILE *fd = fopen(fname, "wb");
     if (!fd) {
@@ -1632,7 +1633,7 @@ void bta_gattc_cache_reset(BD_ADDR server_bda)
 {
     BTIF_TRACE_DEBUG("%s", __func__);
     char fname[255] = {0};
-    bta_gattc_generate_cache_file_name(fname, server_bda);
+    bta_gattc_generate_cache_file_name(fname, sizeof(fname), server_bda);
     unlink(fname);
 }
 #endif /* BTA_GATT_INCLUDED */

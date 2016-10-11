@@ -882,29 +882,27 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, uint8_t op_code,
     return status;
 }
 
-static void uuid_to_str(const tBT_UUID bt_uuid, char *str_buf)
+static void uuid_to_str(const tBT_UUID bt_uuid, char *str_buf, size_t buf_len)
 {
-    int x = 0;
-
     if (bt_uuid.len == LEN_UUID_16) {
-        sprintf(str_buf, "0x%04x", bt_uuid.uu.uuid16);
+        snprintf(str_buf, buf_len, "0x%04x", bt_uuid.uu.uuid16);
     } else if (bt_uuid.len == LEN_UUID_32) {
-        sprintf(str_buf, "0x%08x", bt_uuid.uu.uuid32);
+        snprintf(str_buf, buf_len, "0x%08x", bt_uuid.uu.uuid32);
     } else if (bt_uuid.len == LEN_UUID_128)
     {
-        x += sprintf(&str_buf[x], "%02x%02x%02x%02x-%02x%02x-%02x%02x-",
+        int x = snprintf(str_buf, buf_len, "%02x%02x%02x%02x-%02x%02x-%02x%02x-",
                 bt_uuid.uu.uuid128[15], bt_uuid.uu.uuid128[14],
                 bt_uuid.uu.uuid128[13], bt_uuid.uu.uuid128[12],
                 bt_uuid.uu.uuid128[11], bt_uuid.uu.uuid128[10],
                 bt_uuid.uu.uuid128[9], bt_uuid.uu.uuid128[8]);
-        sprintf(&str_buf[x], "%02x%02x-%02x%02x%02x%02x%02x%02x",
+        snprintf(&str_buf[x], buf_len - x, "%02x%02x-%02x%02x%02x%02x%02x%02x",
                 bt_uuid.uu.uuid128[7], bt_uuid.uu.uuid128[6],
                 bt_uuid.uu.uuid128[5], bt_uuid.uu.uuid128[4],
                 bt_uuid.uu.uuid128[3], bt_uuid.uu.uuid128[2],
                 bt_uuid.uu.uuid128[1], bt_uuid.uu.uuid128[0]);
     }
     else
-        sprintf(str_buf, "Unknown (len=%d)", bt_uuid.len);
+        snprintf(str_buf, buf_len, "Unknown (len=%d)", bt_uuid.len);
 }
 
 /*******************************************************************************
@@ -967,7 +965,7 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
     }
 
     char uuid_str[37];
-    uuid_to_str(p_attr->uuid, uuid_str);
+    uuid_to_str(p_attr->uuid, uuid_str, sizeof(uuid_str));
     GATT_TRACE_ERROR("=====> handle = [0x%04x] uuid = [%s] perm=0x%02x ",
                      p_attr->handle, uuid_str, p_attr->permission);
 
