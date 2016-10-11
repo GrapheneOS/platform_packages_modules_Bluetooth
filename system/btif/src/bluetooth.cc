@@ -62,7 +62,6 @@
 #include "btif_storage.h"
 #include "btif/include/btif_debug_btsnoop.h"
 #include "btif/include/btif_debug_conn.h"
-#include "btif/include/btif_debug_l2c.h"
 #include "btif/include/btif_media.h"
 
 /************************************************************************************
@@ -354,7 +353,6 @@ static void dump(int fd, const char **arguments)
     btif_debug_conn_dump(fd);
     btif_debug_bond_event_dump(fd);
     btif_debug_a2dp_dump(fd);
-    btif_debug_l2c_dump(fd);
     btif_debug_config_dump(fd);
     wakelock_debug_dump(fd);
     alarm_debug_dump(fd);
