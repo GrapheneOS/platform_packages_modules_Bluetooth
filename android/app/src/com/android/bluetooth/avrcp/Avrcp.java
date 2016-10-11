@@ -272,8 +272,8 @@ public final class Avrcp {
             if (DEBUG) Log.d(TAG, "User already unlocked, initializing player lists");
             /* initializing media player's list */
             buildBrowsablePlayersList();
-            buildMediaPlayersList();
         }
+        buildMediaPlayersList();
     }
 
     public static Avrcp make(Context context) {
