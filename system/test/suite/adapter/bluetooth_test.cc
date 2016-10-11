@@ -17,13 +17,9 @@
  ******************************************************************************/
 
 #include "adapter/bluetooth_test.h"
-
 #include <mutex>
-
-extern "C" {
-#include "btcore/include/property.h"
 #include "btcore/include/bdaddr.h"
-}
+#include "btcore/include/property.h"
 
 namespace {
 
