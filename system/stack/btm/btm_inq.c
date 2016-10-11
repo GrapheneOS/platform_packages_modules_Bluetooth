@@ -1344,9 +1344,6 @@ void btm_inq_db_reset (void)
 *******************************************************************************/
 void btm_inq_db_init (void)
 {
-#if 0  /* cleared in btm_init; put back in if called from anywhere else! */
-    memset (&btm_cb.btm_inq_vars, 0, sizeof (tBTM_INQUIRY_VAR_ST));
-#endif
     alarm_free(btm_cb.btm_inq_vars.remote_name_timer);
     btm_cb.btm_inq_vars.remote_name_timer =
         alarm_new("btm_inq.remote_name_timer");
