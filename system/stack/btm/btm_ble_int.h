@@ -55,7 +55,7 @@ extern void btm_ble_stop_scan(void);
 extern void btm_clear_all_pending_le_entry(void);
 
 extern void btm_ble_stop_scan();
-extern bool    btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
+extern void btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
                                                  uint32_t scan_win, uint8_t addr_type_own,
                                                  uint8_t scan_filter_policy);
 extern void btm_ble_stop_inquiry(void);
