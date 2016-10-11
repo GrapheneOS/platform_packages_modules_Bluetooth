@@ -486,20 +486,10 @@ tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
     }
 
     /* send local name filter */
-    if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
-                              len,
-                              param,
-                              btm_ble_scan_pf_cmpl_cback))
-            != BTM_NO_RESOURCES)
-    {
-        memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-    }
-    else
-    {
-        BTM_TRACE_ERROR("Local Name PF filter update failed");
-    }
-
-    return st;
+    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF, len, param,
+                              btm_ble_scan_pf_cmpl_cback);
+    memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -637,19 +627,10 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
     }
 
     /* send manufacturer*/
-    if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
-                              len,
-                              param,
-                              btm_ble_scan_pf_cmpl_cback)) != BTM_NO_RESOURCES)
-    {
-        memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-    }
-    else
-    {
-        BTM_TRACE_ERROR("manufacturer data PF filter update failed");
-    }
-
-    return st;
+    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF, len, param,
+                              btm_ble_scan_pf_cmpl_cback);
+    memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -727,7 +708,7 @@ uint8_t btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
 ** Description      this function update(add,delete or clear) the address filter of adv.
 **
 **
-** Returns          BTM_SUCCESS if sucessful,
+** Returns          BTM_CMD_STARTED if sucessful,
 **                  BTM_ILLEGAL_VALUE if paramter is not valid.
 **
 *******************************************************************************/
@@ -737,7 +718,6 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
 {
     uint8_t     param[BTM_BLE_META_ADDR_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH],
                 * p= param;
-    tBTM_STATUS st = BTM_ILLEGAL_VALUE;
     tBLE_BD_ADDR *p_addr = (p_cond == NULL) ? NULL : &p_cond->target_addr;
 
     memset(param, 0, BTM_BLE_META_ADDR_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH);
@@ -752,24 +732,18 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
         BTM_BLE_SCAN_COND_DELETE == action)
     {
         if (NULL == p_addr)
-            return st;
+            return BTM_ILLEGAL_VALUE;
 
         BDADDR_TO_STREAM(p, p_addr->bda);
         UINT8_TO_STREAM(p, p_addr->type);
     }
     /* send address filter */
-    if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
+    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
                               (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_META_ADDR_LEN),
                               param,
-                              btm_ble_scan_pf_cmpl_cback)) != BTM_NO_RESOURCES)
-    {
-        memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-    }
-    else
-    {
-        BTM_TRACE_ERROR("Broadcaster Address Filter Update failed");
-    }
-    return st;
+                              btm_ble_scan_pf_cmpl_cback);
+    memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -779,7 +753,7 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
 ** Description      this function update(add,delete or clear) service UUID filter.
 **
 **
-** Returns          BTM_SUCCESS if sucessful,
+** Returns          BTM_CMD_STARTED if sucessful,
 **                  BTM_ILLEGAL_VALUE if paramter is not valid.
 **
 *******************************************************************************/
@@ -793,7 +767,6 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
     uint8_t     param[BTM_BLE_META_UUID_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH],
                 * p= param,
                 len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
-    tBTM_STATUS st = BTM_ILLEGAL_VALUE;
     tBTM_BLE_PF_UUID_COND *p_uuid_cond;
     uint8_t         evt_type;
 
@@ -813,7 +786,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
     if (NULL == p_uuid_cond && action != BTM_BLE_SCAN_COND_CLEAR)
     {
         BTM_TRACE_ERROR("Illegal param for add/delete UUID filter");
-        return st;
+        return BTM_ILLEGAL_VALUE;
     }
 
     /* need to add address filter first, if adding per bda UUID filter without address filter */
@@ -831,15 +804,10 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
         UINT8_TO_STREAM(p, p_uuid_cond->p_target_addr->type);
 
         /* send address filter */
-        if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
+        BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
                                   (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_META_ADDR_LEN),
                                   param,
-                                  btm_ble_scan_pf_cmpl_cback)) == BTM_NO_RESOURCES)
-        {
-            BTM_TRACE_ERROR("Update Address filter into controller failed.");
-            return st;
-        }
-
+                                  btm_ble_scan_pf_cmpl_cback);
         btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_ADDR, cb_evt, ref_value, NULL, NULL);
         BTM_TRACE_DEBUG("Updated Address filter");
     }
@@ -904,23 +872,17 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
     }
 
     /* send UUID filter update */
-    if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
+    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
                               len,
                               param,
-                              btm_ble_scan_pf_cmpl_cback)) != BTM_NO_RESOURCES)
-    {
-        if (p_uuid_cond && p_uuid_cond->p_target_addr)
-            memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_uuid_cond->p_target_addr,
-                    sizeof(tBLE_BD_ADDR));
-        else
-            memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-    }
+                              btm_ble_scan_pf_cmpl_cback);
+    if (p_uuid_cond && p_uuid_cond->p_target_addr)
+        memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_uuid_cond->p_target_addr,
+                sizeof(tBLE_BD_ADDR));
     else
-    {
-        BTM_TRACE_ERROR("UUID filter udpating failed");
-    }
+        memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
 
-    return st;
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -930,7 +892,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
 ** Description      clear all adv payload filter by de-select all the adv pf feature bits
 **
 **
-** Returns          BTM_SUCCESS if sucessful,
+** Returns          BTM_CMD_STARTED if sucessful,
 **                  BTM_ILLEGAL_VALUE if paramter is not valid.
 **
 *******************************************************************************/
@@ -1016,18 +978,15 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
     /* set logic condition as OR as default */
     UINT8_TO_STREAM(p, BTM_BLE_PF_LOGIC_OR);
 
-    if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
+    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
                                (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_PF_FEAT_SEL_LEN),
                                 param,
-                                btm_ble_scan_pf_cmpl_cback))
-            != BTM_NO_RESOURCES)
-    {
-        if (p_target)
-            memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_target, sizeof(tBLE_BD_ADDR));
-        else
-            memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-    }
-    return st;
+                                btm_ble_scan_pf_cmpl_cback);
+    if (p_target)
+        memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_target, sizeof(tBLE_BD_ADDR));
+    else
+        memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -1052,14 +1011,13 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
                                 tBLE_BD_ADDR *p_target, tBTM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
                                 tBTM_BLE_REF_VALUE ref_value)
 {
-    tBTM_STATUS st = BTM_WRONG_MODE;
     tBTM_BLE_PF_COUNT *p_bda_filter = NULL;
     uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN +
                 BTM_BLE_ADV_FILT_TRACK_NUM;
     uint8_t param[len], *p;
 
     if (BTM_SUCCESS  != btm_ble_obtain_vsc_details())
-        return st;
+        return BTM_WRONG_MODE;
 
     p = param;
     memset(param, 0, len);
@@ -1071,7 +1029,7 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
         if (NULL == p_bda_filter)
         {
            BTM_TRACE_ERROR("BD Address not found!");
-           return st;
+           return BTM_WRONG_MODE;
         }
 
         BTM_TRACE_DEBUG("BTM_BleAdvFilterParamSetup : Feat mask:%d", p_filt_params->feat_seln);
@@ -1114,14 +1072,10 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
             len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN +
                   BTM_BLE_ADV_FILT_TRACK_NUM;
 
-        if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
-                                (uint8_t)len,
-                                 param,
-                                 btm_ble_scan_pf_cmpl_cback))
-               == BTM_NO_RESOURCES)
-        {
-            return st;
-        }
+        BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
+                                  (uint8_t)len,
+                                  param,
+                                  btm_ble_scan_pf_cmpl_cback);
         btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_FEAT_SEL, BTM_BLE_FILT_ADV_PARAM,
                                  ref_value, NULL, p_cmpl_cback);
     }
@@ -1134,14 +1088,10 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
         /* Filter index */
         UINT8_TO_STREAM(p, filt_index);
 
-        if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
-                                (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH),
-                                 param,
-                                 btm_ble_scan_pf_cmpl_cback))
-               == BTM_NO_RESOURCES)
-        {
-            return st;
-        }
+        BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
+                                  (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH),
+                                  param,
+                                  btm_ble_scan_pf_cmpl_cback);
         btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_FEAT_SEL,  BTM_BLE_FILT_ADV_PARAM,
                                  ref_value, NULL, p_cmpl_cback);
     }
@@ -1155,19 +1105,14 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
         UINT8_TO_STREAM(p, BTM_BLE_META_PF_FEAT_SEL);
         UINT8_TO_STREAM(p, BTM_BLE_SCAN_COND_CLEAR);
 
-        if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
-                                (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH-1),
-                                 param,
-                                 btm_ble_scan_pf_cmpl_cback))
-               == BTM_NO_RESOURCES)
-        {
-            return st;
-        }
+        BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
+                                  (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH-1),
+                                  param,
+                                  btm_ble_scan_pf_cmpl_cback);
         btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_FEAT_SEL,  BTM_BLE_FILT_ADV_PARAM,
                                  ref_value, NULL, p_cmpl_cback);
     }
-
-    return st;
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -1202,15 +1147,13 @@ tBTM_STATUS BTM_BleEnableDisableFilterFeature(uint8_t enable,
     /* enable adv data payload filtering */
     UINT8_TO_STREAM(p, enable);
 
-    if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
+    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
                               BTM_BLE_PCF_ENABLE_LEN, param,
-                              btm_ble_scan_pf_cmpl_cback)) == BTM_CMD_STARTED)
-    {
-         btm_ble_adv_filt_cb.p_filt_stat_cback = p_stat_cback;
-         btm_ble_advfilt_enq_op_q(enable, BTM_BLE_META_PF_ENABLE, BTM_BLE_FILT_ENABLE_DISABLE,
-                                  ref_value, NULL, NULL);
-    }
-    return st;
+                              btm_ble_scan_pf_cmpl_cback);
+    btm_ble_adv_filt_cb.p_filt_stat_cback = p_stat_cback;
+    btm_ble_advfilt_enq_op_q(enable, BTM_BLE_META_PF_ENABLE, BTM_BLE_FILT_ENABLE_DISABLE,
+                             ref_value, NULL, NULL);
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************

@@ -622,16 +622,11 @@ tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
 **
 ** Description      Send a vendor specific HCI command to the controller.
 **
-** Returns
-**      BTM_SUCCESS         Command sent. Does not expect command complete
-**                              event. (command cmpl callback param is NULL)
-**      BTM_CMD_STARTED     Command sent. Waiting for command cmpl event.
-**
 ** Notes
 **      Opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC.
 **
 *******************************************************************************/
-tBTM_STATUS BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
+void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
                                       uint8_t *p_param_buf, tBTM_VSC_CMPL_CB *p_cb)
 {
     /* Allocate a buffer to hold HCI command plus the callback function */
@@ -643,12 +638,6 @@ tBTM_STATUS BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
 
     /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
     btsnd_hcic_vendor_spec_cmd(p_buf, opcode, param_len, p_param_buf, (void *)p_cb);
-
-    /* Return value */
-    if (p_cb != NULL)
-        return (BTM_CMD_STARTED);
-    else
-        return (BTM_SUCCESS);
 }
 
 
