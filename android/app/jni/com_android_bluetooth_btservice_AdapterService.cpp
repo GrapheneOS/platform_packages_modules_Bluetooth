@@ -20,6 +20,7 @@
 #include "com_android_bluetooth.h"
 #include "cutils/properties.h"
 #include "hardware/bt_sock.h"
+#include "nativehelper/ScopedLocalFrame.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 
@@ -36,7 +37,6 @@ namespace android {
 #define OOB_LE_SC_C_SIZE 16
 #define OOB_LE_SC_R_SIZE 16
 
-#define ADDITIONAL_NREFS 50
 static jmethodID method_stateChangeCallback;
 static jmethodID method_adapterPropertyChangedCallback;
 static jmethodID method_devicePropertyChangedCallback;
@@ -79,23 +79,20 @@ static void adapter_state_change_callback(bt_state_t status) {
 
 static int get_properties(int num_properties, bt_property_t* properties,
                           jintArray* types, jobjectArray* props) {
-  jbyteArray propVal;
   for (int i = 0; i < num_properties; i++) {
-    propVal = callbackEnv->NewByteArray(properties[i].len);
-    if (propVal == NULL) goto Fail;
+    ScopedLocalRef<jbyteArray> propVal(
+        callbackEnv, callbackEnv->NewByteArray(properties[i].len));
+    if (!propVal.get()) {
+      ALOGE("Error while allocation of array in %s", __func__);
+      return -1;
+    }
 
-    callbackEnv->SetByteArrayRegion(propVal, 0, properties[i].len,
+    callbackEnv->SetByteArrayRegion(propVal.get(), 0, properties[i].len,
                                     (jbyte*)properties[i].val);
-    callbackEnv->SetObjectArrayElement(*props, i, propVal);
-    // Delete reference to propVal
-    callbackEnv->DeleteLocalRef(propVal);
+    callbackEnv->SetObjectArrayElement(*props, i, propVal.get());
     callbackEnv->SetIntArrayRegion(*types, i, 1, (jint*)&properties[i].type);
   }
   return 0;
-Fail:
-  if (propVal) callbackEnv->DeleteLocalRef(propVal);
-  ALOGE("Error while allocation of array in %s", __func__);
-  return -1;
 }
 
 static void adapter_properties_callback(bt_status_t status, int num_properties,
@@ -110,43 +107,44 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
     return;
   }
 
-  jbyteArray val = (jbyteArray)sCallbackEnv->NewByteArray(num_properties);
-  if (val == NULL) {
+  ScopedLocalRef<jbyteArray> val(
+      sCallbackEnv.get(),
+      (jbyteArray)sCallbackEnv->NewByteArray(num_properties));
+  if (!val.get()) {
     ALOGE("%s: Error allocating byteArray", __func__);
     return;
   }
 
-  jclass mclass = sCallbackEnv->GetObjectClass(val);
+  ScopedLocalRef<jclass> mclass(sCallbackEnv.get(),
+                                sCallbackEnv->GetObjectClass(val.get()));
 
   /* (BT) Initialize the jobjectArray and jintArray here itself and send the
    initialized array pointers alone to get_properties */
 
-  jobjectArray props =
-      sCallbackEnv->NewObjectArray(num_properties, mclass, NULL);
-  if (props == NULL) {
+  ScopedLocalRef<jobjectArray> props(
+      sCallbackEnv.get(),
+      sCallbackEnv->NewObjectArray(num_properties, mclass.get(), NULL));
+  if (!props.get()) {
     ALOGE("%s: Error allocating object Array for properties", __func__);
     return;
   }
 
-  jintArray types = (jintArray)sCallbackEnv->NewIntArray(num_properties);
-  if (types == NULL) {
+  ScopedLocalRef<jintArray> types(
+      sCallbackEnv.get(), (jintArray)sCallbackEnv->NewIntArray(num_properties));
+  if (!types.get()) {
     ALOGE("%s: Error allocating int Array for values", __func__);
     return;
   }
-  // Delete the reference to val and mclass
-  sCallbackEnv->DeleteLocalRef(mclass);
-  sCallbackEnv->DeleteLocalRef(val);
 
-  if (get_properties(num_properties, properties, &types, &props) < 0) {
-    if (props) sCallbackEnv->DeleteLocalRef(props);
-    if (types) sCallbackEnv->DeleteLocalRef(types);
+  jintArray typesPtr = types.get();
+  jobjectArray propsPtr = props.get();
+  if (get_properties(num_properties, properties, &typesPtr, &propsPtr) < 0) {
     return;
   }
 
-  sCallbackEnv->CallVoidMethod(
-      sJniCallbacksObj, method_adapterPropertyChangedCallback, types, props);
-  sCallbackEnv->DeleteLocalRef(props);
-  sCallbackEnv->DeleteLocalRef(types);
+  sCallbackEnv->CallVoidMethod(sJniCallbacksObj,
+                               method_adapterPropertyChangedCallback,
+                               types.get(), props.get());
 }
 
 static void remote_device_properties_callback(bt_status_t status,
@@ -163,58 +161,56 @@ static void remote_device_properties_callback(bt_status_t status,
     return;
   }
 
-  sCallbackEnv->PushLocalFrame(ADDITIONAL_NREFS);
+  ScopedLocalFrame local_frame(sCallbackEnv.get());
 
-  jbyteArray val = (jbyteArray)sCallbackEnv->NewByteArray(num_properties);
-  if (val == NULL) {
+  ScopedLocalRef<jbyteArray> val(
+      sCallbackEnv.get(),
+      (jbyteArray)sCallbackEnv->NewByteArray(num_properties));
+  if (!val.get()) {
     ALOGE("%s: Error allocating byteArray", __func__);
     return;
   }
 
-  jclass mclass = sCallbackEnv->GetObjectClass(val);
+  ScopedLocalRef<jclass> mclass(sCallbackEnv.get(),
+                                sCallbackEnv->GetObjectClass(val.get()));
 
   /* Initialize the jobjectArray and jintArray here itself and send the
    initialized array pointers alone to get_properties */
 
-  jobjectArray props =
-      sCallbackEnv->NewObjectArray(num_properties, mclass, NULL);
-  if (props == NULL) {
+  ScopedLocalRef<jobjectArray> props(
+      sCallbackEnv.get(),
+      sCallbackEnv->NewObjectArray(num_properties, mclass.get(), NULL));
+  if (!props.get()) {
     ALOGE("%s: Error allocating object Array for properties", __func__);
     return;
   }
 
-  jintArray types = (jintArray)sCallbackEnv->NewIntArray(num_properties);
-  if (types == NULL) {
+  ScopedLocalRef<jintArray> types(
+      sCallbackEnv.get(), (jintArray)sCallbackEnv->NewIntArray(num_properties));
+  if (!types.get()) {
     ALOGE("%s: Error allocating int Array for values", __func__);
     return;
   }
-  // Delete the reference to val and mclass
-  sCallbackEnv->DeleteLocalRef(mclass);
-  sCallbackEnv->DeleteLocalRef(val);
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (addr == NULL) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Error while allocation byte array in %s", __func__);
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
 
-  if (get_properties(num_properties, properties, &types, &props) < 0) {
-    if (props) sCallbackEnv->DeleteLocalRef(props);
-    if (types) sCallbackEnv->DeleteLocalRef(types);
-    sCallbackEnv->PopLocalFrame(NULL);
+  jintArray typesPtr = types.get();
+  jobjectArray propsPtr = props.get();
+  if (get_properties(num_properties, properties, &typesPtr, &propsPtr) < 0) {
     return;
   }
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj,
-                               method_devicePropertyChangedCallback, addr,
-                               types, props);
-  sCallbackEnv->DeleteLocalRef(props);
-  sCallbackEnv->DeleteLocalRef(types);
-  sCallbackEnv->DeleteLocalRef(addr);
-  sCallbackEnv->PopLocalFrame(NULL);
+                               method_devicePropertyChangedCallback, addr.get(),
+                               types.get(), props.get());
 }
 
 static void device_found_callback(int num_properties,
@@ -222,22 +218,21 @@ static void device_found_callback(int num_properties,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = NULL;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), NULL);
   int addr_index;
   for (int i = 0; i < num_properties; i++) {
     if (properties[i].type == BT_PROPERTY_BDADDR) {
-      addr = sCallbackEnv->NewByteArray(properties[i].len);
-      if (addr) {
-        sCallbackEnv->SetByteArrayRegion(addr, 0, properties[i].len,
-                                         (jbyte*)properties[i].val);
-        addr_index = i;
-      } else {
+      addr.reset(sCallbackEnv->NewByteArray(properties[i].len));
+      if (!addr.get()) {
         ALOGE("Address is NULL (unable to allocate) in %s", __func__);
         return;
       }
+      sCallbackEnv->SetByteArrayRegion(addr.get(), 0, properties[i].len,
+                                       (jbyte*)properties[i].val);
+      addr_index = i;
     }
   }
-  if (addr == NULL) {
+  if (!addr.get()) {
     ALOGE("Address is NULL in %s", __func__);
     return;
   }
@@ -250,8 +245,7 @@ static void device_found_callback(int num_properties,
                                     num_properties, properties);
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_deviceFoundCallback,
-                               addr);
-  sCallbackEnv->DeleteLocalRef(addr);
+                               addr.get());
 }
 
 static void bond_state_changed_callback(bt_status_t status,
@@ -265,17 +259,17 @@ static void bond_state_changed_callback(bt_status_t status,
     return;
   }
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (addr == NULL) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Address allocation failed in %s", __func__);
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_bondStateChangeCallback,
-                               (jint)status, addr, (jint)state);
-  sCallbackEnv->DeleteLocalRef(addr);
+                               (jint)status, addr.get(), (jint)state);
 }
 
 static void acl_state_changed_callback(bt_status_t status, bt_bdaddr_t* bd_addr,
@@ -288,17 +282,17 @@ static void acl_state_changed_callback(bt_status_t status, bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (addr == NULL) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Address allocation failed in %s", __func__);
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_aclStateChangeCallback,
-                               (jint)status, addr, (jint)state);
-  sCallbackEnv->DeleteLocalRef(addr);
+                               (jint)status, addr.get(), (jint)state);
 }
 
 static void discovery_state_changed_callback(bt_discovery_state_t state) {
@@ -321,29 +315,28 @@ static void pin_request_callback(bt_bdaddr_t* bd_addr, bt_bdname_t* bdname,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (addr == NULL) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Error while allocating in: %s", __func__);
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
 
-  jbyteArray devname = sCallbackEnv->NewByteArray(sizeof(bt_bdname_t));
-  if (devname == NULL) {
+  ScopedLocalRef<jbyteArray> devname(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdname_t)));
+  if (!devname.get()) {
     ALOGE("Error while allocating in: %s", __func__);
-    sCallbackEnv->DeleteLocalRef(addr);
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t),
+  sCallbackEnv->SetByteArrayRegion(devname.get(), 0, sizeof(bt_bdname_t),
                                    (jbyte*)bdname);
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback,
-                               addr, devname, cod, min_16_digits);
-  sCallbackEnv->DeleteLocalRef(addr);
-  sCallbackEnv->DeleteLocalRef(devname);
+                               addr.get(), devname.get(), cod, min_16_digits);
 }
 
 static void ssp_request_callback(bt_bdaddr_t* bd_addr, bt_bdname_t* bdname,
@@ -356,31 +349,29 @@ static void ssp_request_callback(bt_bdaddr_t* bd_addr, bt_bdname_t* bdname,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (addr == NULL) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Error while allocating in: %s", __func__);
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
 
-  jbyteArray devname = sCallbackEnv->NewByteArray(sizeof(bt_bdname_t));
-  if (devname == NULL) {
-    sCallbackEnv->DeleteLocalRef(addr);
+  ScopedLocalRef<jbyteArray> devname(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdname_t)));
+  if (!devname.get()) {
     ALOGE("Error while allocating in: %s", __func__);
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t),
+  sCallbackEnv->SetByteArrayRegion(devname.get(), 0, sizeof(bt_bdname_t),
                                    (jbyte*)bdname);
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_sspRequestCallback,
-                               addr, devname, cod, (jint)pairing_variant,
-                               pass_key);
-
-  sCallbackEnv->DeleteLocalRef(addr);
-  sCallbackEnv->DeleteLocalRef(devname);
+                               addr.get(), devname.get(), cod,
+                               (jint)pairing_variant, pass_key);
 }
 
 static void callback_thread_event(bt_cb_thread_evt event) {
@@ -421,24 +412,24 @@ static void energy_info_recv_callback(bt_activity_energy_info* p_energy_info,
     len++;
   }
 
-  jobjectArray array = sCallbackEnv->NewObjectArray(
-      len, android_bluetooth_UidTraffic.clazz, NULL);
+  ScopedLocalRef<jobjectArray> array(
+      sCallbackEnv.get(), sCallbackEnv->NewObjectArray(
+                              len, android_bluetooth_UidTraffic.clazz, NULL));
   jsize i = 0;
   for (bt_uid_traffic_t* data = uid_data; data->app_uid != -1; data++) {
-    jobject uidObj = sCallbackEnv->NewObject(
-        android_bluetooth_UidTraffic.clazz,
-        android_bluetooth_UidTraffic.constructor, (jint)data->app_uid,
-        (jlong)data->rx_bytes, (jlong)data->tx_bytes);
-    sCallbackEnv->SetObjectArrayElement(array, i++, uidObj);
-    sCallbackEnv->DeleteLocalRef(uidObj);
+    ScopedLocalRef<jobject> uidObj(
+        sCallbackEnv.get(),
+        sCallbackEnv->NewObject(android_bluetooth_UidTraffic.clazz,
+                                android_bluetooth_UidTraffic.constructor,
+                                (jint)data->app_uid, (jlong)data->rx_bytes,
+                                (jlong)data->tx_bytes));
+    sCallbackEnv->SetObjectArrayElement(array.get(), i++, uidObj.get());
   }
 
   sCallbackEnv->CallVoidMethod(
       sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
       p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
-      p_energy_info->idle_time, p_energy_info->energy_used, array);
-
-  sCallbackEnv->DeleteLocalRef(array);
+      p_energy_info->idle_time, p_energy_info->energy_used, array.get());
 }
 
 static bt_callbacks_t sBluetoothCallbacks = {
@@ -510,15 +501,16 @@ static int acquire_wake_lock_callout(const char* lock_name) {
   }
 
   jint ret = BT_STATUS_SUCCESS;
-  jstring lock_name_jni = env->NewStringUTF(lock_name);
-  if (lock_name_jni) {
-    bool acquired = env->CallBooleanMethod(
-        sJniAdapterServiceObj, method_acquireWakeLock, lock_name_jni);
-    if (!acquired) ret = BT_STATUS_WAKELOCK_ERROR;
-    env->DeleteLocalRef(lock_name_jni);
-  } else {
-    ALOGE("%s unable to allocate string: %s", __func__, lock_name);
-    ret = BT_STATUS_NOMEM;
+  {
+    ScopedLocalRef<jstring> lock_name_jni(env, env->NewStringUTF(lock_name));
+    if (lock_name_jni.get()) {
+      bool acquired = env->CallBooleanMethod(
+          sJniAdapterServiceObj, method_acquireWakeLock, lock_name_jni.get());
+      if (!acquired) ret = BT_STATUS_WAKELOCK_ERROR;
+    } else {
+      ALOGE("%s unable to allocate string: %s", __func__, lock_name);
+      ret = BT_STATUS_NOMEM;
+    }
   }
 
   if (status == JNI_EDETACHED) {
@@ -543,15 +535,16 @@ static int release_wake_lock_callout(const char* lock_name) {
   }
 
   jint ret = BT_STATUS_SUCCESS;
-  jstring lock_name_jni = env->NewStringUTF(lock_name);
-  if (lock_name_jni) {
-    bool released = env->CallBooleanMethod(
-        sJniAdapterServiceObj, method_releaseWakeLock, lock_name_jni);
-    if (!released) ret = BT_STATUS_WAKELOCK_ERROR;
-    env->DeleteLocalRef(lock_name_jni);
-  } else {
-    ALOGE("%s unable to allocate string: %s", __func__, lock_name);
-    ret = BT_STATUS_NOMEM;
+  {
+    ScopedLocalRef<jstring> lock_name_jni(env, env->NewStringUTF(lock_name));
+    if (lock_name_jni.get()) {
+      bool released = env->CallBooleanMethod(
+          sJniAdapterServiceObj, method_releaseWakeLock, lock_name_jni.get());
+      if (!released) ret = BT_STATUS_WAKELOCK_ERROR;
+    } else {
+      ALOGE("%s unable to allocate string: %s", __func__, lock_name);
+      ret = BT_STATUS_NOMEM;
+    }
   }
 
   if (status == JNI_EDETACHED) {
