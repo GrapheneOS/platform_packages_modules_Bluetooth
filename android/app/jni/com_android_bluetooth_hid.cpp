@@ -18,12 +18,6 @@
 
 #define LOG_NDEBUG 1
 
-#define CHECK_CALLBACK_ENV                                                      \
-   if (!checkCallbackThread()) {                                                \
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
-       return;                                                                  \
-   }
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hh.h"
 #include "utils/Log.h"
@@ -41,59 +35,41 @@ static jmethodID method_onVirtualUnplug;
 
 static const bthh_interface_t *sBluetoothHidInterface = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
-
-static bool checkCallbackThread() {
-
-    // Always fetch the latest callbackEnv from AdapterService.
-    // Caching this could cause this sCallbackEnv to go out-of-sync
-    // with the AdapterService's ENV if an ASSOCIATE/DISASSOCIATE event
-    // is received
-
-    sCallbackEnv = getCallbackEnv();
-
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
-    return true;
-}
 
 static void connection_state_callback(bt_bdaddr_t *bd_addr, bthh_connection_state_t state) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for HID channel state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectStateChanged, addr, (jint) state);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void get_protocol_mode_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_status,bthh_protocol_mode_t mode) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     if (hh_status != BTHH_OK) {
         ALOGE("BTHH Status is not OK!");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for get protocal mode callback");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetProtocolMode, addr, (jint) mode);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -101,23 +77,21 @@ static void get_report_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_status, u
     jbyteArray addr;
     jbyteArray data;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     if (hh_status != BTHH_OK) {
         ALOGE("BTHH Status is not OK!");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for get report callback");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     data = sCallbackEnv->NewByteArray(rpt_size);
     if (!data) {
         ALOGE("Fail to new jbyteArray data for get report callback");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         sCallbackEnv->DeleteLocalRef(addr);
         return;
     }
@@ -126,7 +100,6 @@ static void get_report_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_status, u
     sCallbackEnv->SetByteArrayRegion(data, 0, rpt_size, (jbyte *) rpt_data);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetReport, addr, data, (jint) rpt_size);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
     sCallbackEnv->DeleteLocalRef(data);
 }
@@ -135,32 +108,30 @@ static void virtual_unplug_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_statu
     ALOGV("call to virtual_unplug_callback");
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for HID channel state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVirtualUnplug, addr, (jint) hh_status);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 
     /*jbyteArray addr;
     jint status = hh_status;
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for HID report");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVirtualUnplug, addr, status);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);*/
 }
 
@@ -168,17 +139,16 @@ static void handshake_callback(bt_bdaddr_t *bd_addr, bthh_status_t hh_status)
 {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for handshake callback");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onHandshake, addr, (jint) hh_status);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
