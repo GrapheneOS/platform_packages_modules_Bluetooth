@@ -2856,7 +2856,7 @@ static bt_status_t set_volume(uint8_t volume)
     for (int idx = 0; idx < BTIF_RC_NUM_CONN; idx++)
     {
 
-        if (btif_rc_cb.rc_multi_cb[idx].rc_connected) {
+        if (!btif_rc_cb.rc_multi_cb[idx].rc_connected) {
             status = BT_STATUS_NOT_READY;
             BTIF_TRACE_ERROR("%s: RC is not connected for device: 0x%x",__func__,
                 btif_rc_cb.rc_multi_cb[idx].rc_addr);
