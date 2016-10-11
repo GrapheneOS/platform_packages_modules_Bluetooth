@@ -30,6 +30,7 @@
 
 extern const btgatt_client_interface_t btgattClientInterface;
 extern const btgatt_server_interface_t btgattServerInterface;
-extern const ble_advertiser_interface_t btLeAdvertiserInstance;
+
+BleAdvertiserInterface* get_ble_advertiser_instance();
 #endif
 

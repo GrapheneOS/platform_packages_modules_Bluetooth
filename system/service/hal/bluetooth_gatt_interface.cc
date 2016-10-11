@@ -49,16 +49,10 @@ shared_timed_mutex g_instance_lock;
 
 // Helper for obtaining the observer lists. This is forward declared here
 // and defined below since it depends on BluetoothInterfaceImpl.
-base::ObserverList<BluetoothGattInterface::AdvertiserObserver>*
-    GetAdvertiserObservers();
 base::ObserverList<BluetoothGattInterface::ClientObserver>*
     GetClientObservers();
 base::ObserverList<BluetoothGattInterface::ServerObserver>*
     GetServerObservers();
-
-#define FOR_EACH_ADVERTISER_OBSERVER(func) \
-  FOR_EACH_OBSERVER(BluetoothGattInterface::AdvertiserObserver, \
-                    *GetAdvertiserObservers(), func)
 
 #define FOR_EACH_CLIENT_OBSERVER(func) \
   FOR_EACH_OBSERVER(BluetoothGattInterface::ClientObserver, \
@@ -201,46 +195,6 @@ void MtuChangedCallback(int conn_id, int status, int mtu) {
           << " mtu: " << mtu;
 
   FOR_EACH_CLIENT_OBSERVER(MtuChangedCallback(g_interface, conn_id, status, mtu));
-}
-
-void RegisterAdvertiserCallback(int status, int advertiser_id, bt_uuid_t* app_uuid) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
-  VERIFY_INTERFACE_OR_RETURN();
-  CHECK(app_uuid);
-
-  FOR_EACH_ADVERTISER_OBSERVER(
-      RegisterAdvertiserCallback(g_interface, status, advertiser_id, *app_uuid));
-}
-
-void MultiAdvSetParamsCallback(int advertiser_id, int status) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
-  VERIFY_INTERFACE_OR_RETURN();
-
-  FOR_EACH_ADVERTISER_OBSERVER(
-      MultiAdvSetParamsCallback(g_interface, advertiser_id, status));
-}
-
-void MultiAdvDataCallback(int advertiser_id, int status) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " advertiser_id: " << advertiser_id;
-  VERIFY_INTERFACE_OR_RETURN();
-
-  FOR_EACH_ADVERTISER_OBSERVER(
-      MultiAdvDataCallback(g_interface, advertiser_id, status));
-}
-
-void MultiAdvEnableCallback(int advertiser_id, int status, bool enable) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__
-          << " - status: " << status
-          << " advertiser_id: " << advertiser_id
-          << " enable: " << enable;
-  VERIFY_INTERFACE_OR_RETURN();
-
-  FOR_EACH_ADVERTISER_OBSERVER(
-      MultiAdvEnableCallback(g_interface, advertiser_id, status, enable));
 }
 
 void GetGattDbCallback(int conn_id, btgatt_db_element_t *db, int size) {
@@ -462,13 +416,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     ServicesAddedCallback,
 };
 
-const ble_advertiser_callbacks_t le_advertiser_callbacks = {
-    RegisterAdvertiserCallback,
-    MultiAdvSetParamsCallback,
-    MultiAdvDataCallback,
-    MultiAdvEnableCallback
-};
-
 const btgatt_server_callbacks_t gatt_server_callbacks = {
     RegisterServerCallback,
     ConnectionCallback,
@@ -490,7 +437,6 @@ const btgatt_callbacks_t gatt_callbacks = {
   sizeof(btgatt_callbacks_t),
   &gatt_client_callbacks,
   &gatt_server_callbacks,
-  &le_advertiser_callbacks,
 };
 
 }  // namespace
@@ -504,15 +450,6 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   ~BluetoothGattInterfaceImpl() override {
     if (hal_iface_)
         hal_iface_->cleanup();
-  }
-
-  // BluetoothGattInterface overrides:
-  void AddAdvertiserObserver(AdvertiserObserver* observer) override {
-    advertiser_observers_.AddObserver(observer);
-  }
-
-  void RemoveAdvertiserObserver(AdvertiserObserver* observer) override {
-    advertiser_observers_.RemoveObserver(observer);
   }
 
   void AddClientObserver(ClientObserver* observer) override {
@@ -531,7 +468,7 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
     server_observers_.RemoveObserver(observer);
   }
 
-  const ble_advertiser_interface_t* GetAdvertiserHALInterface() const override {
+  BleAdvertiserInterface* GetAdvertiserHALInterface() const override {
     return hal_iface_->advertiser;
   }
 
@@ -568,10 +505,6 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
     return true;
   }
 
-  base::ObserverList<AdvertiserObserver>* advertiser_observers() {
-    return &advertiser_observers_;
-  }
-
   base::ObserverList<ClientObserver>* client_observers() {
     return &client_observers_;
   }
@@ -585,7 +518,6 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   // We're not using a base::ObserverListThreadSafe, which it posts observer
   // events automatically on the origin threads, as we want to avoid that
   // overhead and simply forward the events to the upper layer.
-  base::ObserverList<AdvertiserObserver> advertiser_observers_;
   base::ObserverList<ClientObserver> client_observers_;
   base::ObserverList<ServerObserver> server_observers_;
 
@@ -597,13 +529,6 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
 };
 
 namespace {
-
-base::ObserverList<BluetoothGattInterface::AdvertiserObserver>*
-GetAdvertiserObservers() {
-  CHECK(g_interface);
-  return static_cast<BluetoothGattInterfaceImpl*>(
-      g_interface)->advertiser_observers();
-}
 
 base::ObserverList<BluetoothGattInterface::ClientObserver>*
 GetClientObservers() {
@@ -620,36 +545,6 @@ GetServerObservers() {
 }
 
 }  // namespace
-
-
-void BluetoothGattInterface::AdvertiserObserver::RegisterAdvertiserCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* advertiser_id */,
-    const bt_uuid_t& /* app_uuid */) {
-  // Do nothing.
-}
-
-void BluetoothGattInterface::AdvertiserObserver::MultiAdvSetParamsCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* advertiser_id */) {
-  // Do nothing.
-}
-void BluetoothGattInterface::AdvertiserObserver::MultiAdvDataCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* advertiser_id */) {
-  // Do nothing.
-}
-
-void BluetoothGattInterface::AdvertiserObserver::MultiAdvEnableCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* advertiser_id */,
-    bool /* enable */) {
-  // Do nothing.
-}
 
 // Default observer implementations. These are provided so that the methods
 // themselves are optional.

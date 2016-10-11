@@ -26,9 +26,7 @@
 
 #include "service/logging_helpers.h"
 
-extern "C" {
 #include "btcore/include/hal_util.h"
-}  // extern "C"
 
 using std::lock_guard;
 using std::unique_lock;

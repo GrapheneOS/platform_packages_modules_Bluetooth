@@ -16,12 +16,9 @@
  *
  ******************************************************************************/
 
-#include "adapter/bluetooth_test.h"
 #include "gatt/gatt_test.h"
-
-extern "C" {
+#include "adapter/bluetooth_test.h"
 #include "btcore/include/bdaddr.h"
-}
 
 namespace bttest {
 

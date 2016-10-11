@@ -40,10 +40,8 @@
 #include "service/hal/bluetooth_interface.h"
 #include "service/logging_helpers.h"
 
-extern "C" {
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-}  // extern "C"
 
 namespace {
 
@@ -343,7 +341,7 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   g_internal->client_if = client_if;
 
   // Setup our advertisement. This has no callback.
-  bt_status_t btstat = g_internal->gatt->advertiser->set_adv_data(
+  g_internal->gatt->advertiser->SetData(
       client_if, false, /* beacon, not scan response */
       false,            /* name */
       false,            /* no txpower */
@@ -352,14 +350,10 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
       {},       /* no mfg data */
       {},       /* no service data */
       {} /* no service id yet */);
-  if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR(LOG_TAG, "Failed to set advertising data");
-    return;
-  }
 
   // TODO(icoolidge): Deprecated, use multi-adv interface.
   // This calls back to ListenCallback.
-  btstat = g_internal->gatt->client->listen(client_if, true);
+  bt_status_t btstat = g_internal->gatt->client->listen(client_if, true);
   if (btstat != BT_STATUS_SUCCESS) {
     LOG_ERROR(LOG_TAG, "Failed to start listening");
   }
@@ -462,13 +456,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr, /* services_added_cb */
 };
 
-const ble_advertiser_callbacks_t bt_le_advertiser_callbacks = {
-    nullptr, /* multi_adv_register_cb; */
-    nullptr, /* multi_adv_set_params_cb */
-    nullptr, /* multi_adv_data_cb*/
-    nullptr, /* multi_adv_enable_cb; */
-};
-
 const btgatt_callbacks_t gatt_callbacks = {
     /** Set to sizeof(btgatt_callbacks_t) */
     sizeof(btgatt_callbacks_t),
@@ -478,9 +465,6 @@ const btgatt_callbacks_t gatt_callbacks = {
 
     /** GATT Server callbacks */
     &gatt_server_callbacks,
-
-    /** GATT Advertiser callbacks */
-    &bt_le_advertiser_callbacks,
 };
 
 }  // namespace
@@ -598,7 +582,7 @@ bool Server::SetAdvertisement(const std::vector<UUID>& ids,
   std::lock_guard<std::mutex> lock(internal_->lock);
 
   // Setup our advertisement. This has no callback.
-  bt_status_t btstat = internal_->gatt->advertiser->set_adv_data(
+  internal_->gatt->advertiser->SetData(
       internal_->client_if, false, /* beacon, not scan response */
       transmit_name,               /* name */
       false,                       /* no txpower */
@@ -607,10 +591,6 @@ bool Server::SetAdvertisement(const std::vector<UUID>& ids,
       mutable_manufacturer_data,
       mutable_service_data,
       id_data);
-  if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR(LOG_TAG, "Failed to set advertising data");
-    return false;
-  }
   return true;
 }
 
@@ -630,7 +610,7 @@ bool Server::SetScanResponse(const std::vector<UUID>& ids,
   std::lock_guard<std::mutex> lock(internal_->lock);
 
   // Setup our advertisement. This has no callback.
-  bt_status_t btstat = internal_->gatt->advertiser->set_adv_data(
+  internal_->gatt->advertiser->SetData(
       internal_->client_if, true, /* scan response */
       transmit_name,              /* name */
       false,                      /* no txpower */
@@ -639,10 +619,6 @@ bool Server::SetScanResponse(const std::vector<UUID>& ids,
       mutable_manufacturer_data,
       mutable_service_data,
       id_data);
-  if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR(LOG_TAG, "Failed to set scan response data");
-    return false;
-  }
   return true;
 }
 
