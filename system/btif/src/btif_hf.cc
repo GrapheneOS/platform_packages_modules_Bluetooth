@@ -1067,7 +1067,7 @@ static bt_status_t cops_response(const char *cops, bt_bdaddr_t *bd_addr)
         tBTA_AG_RES_DATA    ag_res;
 
         /* Format the response */
-        sprintf (ag_res.str, "0,0,\"%.16s\"", cops);
+        snprintf (ag_res.str, sizeof(ag_res.str), "0,0,\"%.16s\"", cops);
         ag_res.ok_flag = BTA_AG_OK_DONE;
 
         BTA_AgResult (btif_hf_cb[idx].handle, BTA_AG_COPS_RES, &ag_res);
@@ -1108,14 +1108,14 @@ static bt_status_t cind_response(int svc, int num_active, int num_held,
         /* per the errata 2043, call=1 implies atleast one call is in progress (active/held)
         ** https://www.bluetooth.org/errata/errata_view.cfm?errata_id=2043
         **/
-        sprintf (ag_res.str, "%d,%d,%d,%d,%d,%d,%d",
-                (num_active + num_held) ? 1 : 0,                       /* Call state */
-                callstate_to_callsetup(call_setup_state),              /* Callsetup state */
-                svc,                                                   /* network service */
-                signal,                                                /* Signal strength */
-                roam,                                                  /* Roaming indicator */
-                batt_chg,                                              /* Battery level */
-                ((num_held == 0) ? 0 : ((num_active == 0) ? 2 : 1))); /* Call held */
+        snprintf (ag_res.str, sizeof(ag_res.str), "%d,%d,%d,%d,%d,%d,%d",
+                 (num_active + num_held) ? 1 : 0,                       /* Call state */
+                 callstate_to_callsetup(call_setup_state),              /* Callsetup state */
+                 svc,                                                   /* network service */
+                 signal,                                                /* Signal strength */
+                 roam,                                                  /* Roaming indicator */
+                 batt_chg,                                              /* Battery level */
+                 ((num_held == 0) ? 0 : ((num_active == 0) ? 2 : 1))); /* Call held */
 
         BTA_AgResult (btif_hf_cb[idx].handle, BTA_AG_CIND_RES, &ag_res);
 
@@ -1247,7 +1247,6 @@ static bt_status_t clcc_response(int index, bthf_call_direction_t dir,
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
         tBTA_AG_RES_DATA    ag_res;
-        int                 xx;
 
         memset (&ag_res, 0, sizeof (ag_res));
 
@@ -1260,15 +1259,16 @@ static bt_status_t clcc_response(int index, bthf_call_direction_t dir,
         {
             BTIF_TRACE_EVENT("clcc_response: [%d] dir %d state %d mode %d number = %s type = %d",
                           index, dir, state, mode, number, type);
-            xx = sprintf (ag_res.str, "%d,%d,%d,%d,%d",
-                         index, dir, state, mode, mpty);
+            int xx = snprintf (ag_res.str, sizeof(ag_res.str), "%d,%d,%d,%d,%d",
+                          index, dir, state, mode, mpty);
 
             if (number)
             {
+                size_t rem_bytes = sizeof(ag_res.str) - xx;
                 if ((type == BTHF_CALL_ADDRTYPE_INTERNATIONAL) && (*number != '+'))
-                    sprintf (&ag_res.str[xx], ",\"+%s\",%d", number, type);
+                    snprintf (&ag_res.str[xx], rem_bytes, ",\"+%s\",%d", number, type);
                 else
-                    sprintf (&ag_res.str[xx], ",\"%s\",%d", number, type);
+                    snprintf (&ag_res.str[xx], rem_bytes, ",\"%s\",%d", number, type);
             }
         }
         BTA_AgResult (btif_hf_cb[idx].handle, BTA_AG_CLCC_RES, &ag_res);
@@ -1422,13 +1422,13 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
                 {
                     int xx = 0;
                     if ((type == BTHF_CALL_ADDRTYPE_INTERNATIONAL) && (*number != '+'))
-                        xx = sprintf (ag_res.str, "\"+%s\"", number);
+                        xx = snprintf (ag_res.str, sizeof(ag_res.str), "\"+%s\"", number);
                     else
-                        xx = sprintf (ag_res.str, "\"%s\"", number);
+                        xx = snprintf (ag_res.str, sizeof(ag_res.str), "\"%s\"", number);
                     ag_res.num = type;
 
                     if (res == BTA_AG_CALL_WAIT_RES)
-                        sprintf(&ag_res.str[xx], ",%d", type);
+                        snprintf(&ag_res.str[xx], sizeof(ag_res.str) - xx, ",%d", type);
                 }
                 break;
             case BTHF_CALL_STATE_DIALING:

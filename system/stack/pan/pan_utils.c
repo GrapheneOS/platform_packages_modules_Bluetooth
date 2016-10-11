@@ -334,7 +334,8 @@ void pan_dump_status (void)
 
     for (i = 0, p_pcb = pan_cb.pcb; i < MAX_PAN_CONNS; i++, p_pcb++)
     {
-        sprintf (buff, "%d state %d, handle %d, src 0x%x, dst 0x%x, BD %x.%x.%x.%x.%x.%x",
+        snprintf (buff, sizeof(buff),
+            "%d state %d, handle %d, src 0x%x, dst 0x%x, BD %x.%x.%x.%x.%x.%x",
             i, p_pcb->con_state, p_pcb->handle, p_pcb->src_uuid, p_pcb->dst_uuid,
             p_pcb->rem_bda[0], p_pcb->rem_bda[1], p_pcb->rem_bda[2],
             p_pcb->rem_bda[3], p_pcb->rem_bda[4], p_pcb->rem_bda[5]);
