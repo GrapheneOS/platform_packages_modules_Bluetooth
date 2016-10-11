@@ -219,8 +219,6 @@ extern tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 **
 ** Parameters       void
 **
-** Returns          void
-**
 *******************************************************************************/
 extern tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
 
