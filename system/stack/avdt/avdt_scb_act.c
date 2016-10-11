@@ -1986,11 +1986,6 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #if (AVDT_MULTIPLEXING == TRUE)
         else
         {
-#if 0
-            AVDT_TRACE_DEBUG("num_q=%d",
-                L2CA_FlushChannel(avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_scb->p_ccb)][avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb)].lcid),
-                                  L2CAP_FLUSH_CHANS_GET);
-#endif
             while ((p_pkt = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
             {
                 sent = true;
