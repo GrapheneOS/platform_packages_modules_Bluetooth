@@ -81,11 +81,6 @@ uint32_t pan_register_with_sdp (uint16_t uuid, uint8_t sec_mask, char *p_name, c
     SDP_AddAttribute (sdp_handle, ATTR_ID_PROTOCOL_DESC_LIST, DATA_ELE_SEQ_DESC_TYPE,
                       proto_len, (uint8_t *)(pan_proto_elem_data+2));
 
-#if 0
-    availability = 0xFF;
-    SDP_AddAttribute (sdp_handle, ATTR_ID_SERVICE_AVAILABILITY, UINT_DESC_TYPE, 1, &availability);
-#endif
-
     /* Language base */
     SDP_AddLanguageBaseAttrIDList (sdp_handle, LANG_ID_CODE_ENGLISH, LANG_ID_CHAR_ENCODE_UTF8, LANGUAGE_BASE_ID);
 

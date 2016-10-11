@@ -113,10 +113,6 @@ void btm_sco_flush_sco_data(uint16_t sco_inx)
 *******************************************************************************/
 void btm_sco_init (void)
 {
-#if 0  /* cleared in btm_init; put back in if called from anywhere else! */
-    memset (&btm_cb.sco_cb, 0, sizeof(tSCO_CB));
-#endif
-
 #if (BTM_SCO_HCI_INCLUDED == TRUE)
     for (int i = 0; i < BTM_MAX_SCO_LINKS; i++)
         btm_cb.sco_cb.sco_db[i].xmit_data_q = fixed_queue_new(SIZE_MAX);
