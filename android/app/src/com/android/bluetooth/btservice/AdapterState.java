@@ -82,27 +82,19 @@ final class AdapterState extends StateMachine {
     private BleOnState mBleOnState = new BleOnState();
 
     public boolean isTurningOn() {
-        boolean isTurningOn=  mPendingCommandState.isTurningOn();
-        verboseLog("isTurningOn()=" + isTurningOn);
-        return isTurningOn;
+        return mPendingCommandState.isTurningOn();
     }
 
     public boolean isBleTurningOn() {
-        boolean isBleTurningOn=  mPendingCommandState.isBleTurningOn();
-        verboseLog("isBleTurningOn()=" + isBleTurningOn);
-        return isBleTurningOn;
+        return mPendingCommandState.isBleTurningOn();
     }
 
     public boolean isBleTurningOff() {
-        boolean isBleTurningOff =  mPendingCommandState.isBleTurningOff();
-        verboseLog("isBleTurningOff()=" + isBleTurningOff);
-        return isBleTurningOff;
+        return mPendingCommandState.isBleTurningOff();
     }
 
     public boolean isTurningOff() {
-        boolean isTurningOff= mPendingCommandState.isTurningOff();
-        verboseLog("isTurningOff()=" + isTurningOff);
-        return isTurningOff;
+        return mPendingCommandState.isTurningOff();
     }
 
     private AdapterState(AdapterService service, AdapterProperties adapterProperties) {
@@ -312,10 +304,17 @@ final class AdapterState extends StateMachine {
         @Override
         public boolean processMessage(Message msg) {
 
-            boolean isTurningOn= isTurningOn();
+            /* Cache current states */
+            /* TODO(eisenbach): Not sure why this is done at all.
+             * Seems like the mIs* variables should be protected,
+             * or really, removed. Which reminds me: This file needs
+             * a serious refactor...*/
+            boolean isTurningOn = isTurningOn();
             boolean isTurningOff = isTurningOff();
             boolean isBleTurningOn = isBleTurningOn();
             boolean isBleTurningOff = isBleTurningOff();
+
+            logTransientStates();
 
             AdapterService adapterService = mAdapterService;
             AdapterProperties adapterProperties = mAdapterProperties;
@@ -481,6 +480,18 @@ final class AdapterState extends StateMachine {
             }
             return true;
         }
+
+        private void logTransientStates() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("PendingCommand - transient state(s):");
+
+            if (isTurningOn()) sb.append(" isTurningOn");
+            if (isTurningOff()) sb.append(" isTurningOff");
+            if (isBleTurningOn()) sb.append(" isBleTurningOn");
+            if (isBleTurningOff()) sb.append(" isBleTurningOff");
+
+            verboseLog(sb.toString());
+        }
     }
 
     private void notifyAdapterStateChange(int newState) {
@@ -519,7 +530,7 @@ final class AdapterState extends StateMachine {
     }
 
     private void warningLog(String msg) {
-        if (DBG) Log.d(TAG, msg);
+        if (DBG) Log.w(TAG, msg);
     }
 
     private void verboseLog(String msg) {
