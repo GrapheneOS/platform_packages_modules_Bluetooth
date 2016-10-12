@@ -21,9 +21,9 @@
 #include "osi/include/allocation_tracker.h"
 
 #include <assert.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mutex>
 #include <unordered_map>
 
 #include "osi/include/allocator.h"
@@ -40,10 +40,11 @@ typedef struct {
 static const size_t canary_size = 8;
 static char canary[canary_size];
 static std::unordered_map<void*, allocation_t*> allocations;
-static pthread_mutex_t lock;
+static std::mutex tracker_lock;
 static bool enabled = false;
 
 void allocation_tracker_init(void) {
+  std::unique_lock<std::mutex> lock(tracker_lock);
   if (enabled)
     return;
 
@@ -53,38 +54,31 @@ void allocation_tracker_init(void) {
 
   LOG_DEBUG(LOG_TAG, "canary initialized");
 
-  pthread_mutex_init(&lock, NULL);
-
-  pthread_mutex_lock(&lock);
   enabled = true;
-  pthread_mutex_unlock(&lock);
 }
 
 // Test function only. Do not call in the normal course of operations.
 void allocation_tracker_uninit(void) {
+  std::unique_lock<std::mutex> lock(tracker_lock);
   if (!enabled)
     return;
 
-  pthread_mutex_lock(&lock);
   allocations.clear();
   enabled = false;
-  pthread_mutex_unlock(&lock);
 }
 
 void allocation_tracker_reset(void) {
+  std::unique_lock<std::mutex> lock(tracker_lock);
   if (!enabled)
     return;
 
-  pthread_mutex_lock(&lock);
   allocations.clear();
-  pthread_mutex_unlock(&lock);
 }
 
 size_t allocation_tracker_expect_no_allocations(void) {
+  std::unique_lock<std::mutex> lock(tracker_lock);
   if (!enabled)
     return 0;
-
-  pthread_mutex_lock(&lock);
 
   size_t unfreed_memory_size = 0;
 
@@ -96,37 +90,34 @@ size_t allocation_tracker_expect_no_allocations(void) {
     }
   }
 
-  pthread_mutex_unlock(&lock);
-
   return unfreed_memory_size;
 }
 
 void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t requested_size) {
-  if (!enabled || !ptr)
-    return ptr;
+  char *return_ptr;
+  {
+    std::unique_lock<std::mutex> lock(tracker_lock);
+    if (!enabled || !ptr)
+      return ptr;
 
-  char *return_ptr = (char *)ptr;
+    return_ptr = ((char *)ptr) + canary_size;
 
-  return_ptr += canary_size;
+    auto map_entry = allocations.find(return_ptr);
+    allocation_t *allocation;
+    if (map_entry != allocations.end()) {
+      allocation = map_entry->second;
+      assert(allocation->freed); // Must have been freed before
+    } else {
+      allocation = (allocation_t *)calloc(1, sizeof(allocation_t));
+      allocations[return_ptr] = allocation;
+    }
 
-  pthread_mutex_lock(&lock);
+    allocation->allocator_id = allocator_id;
+    allocation->freed = false;
+    allocation->size = requested_size;
+    allocation->ptr = return_ptr;
 
-  auto map_entry = allocations.find(return_ptr);
-  allocation_t *allocation;
-  if (map_entry != allocations.end()) {
-    allocation = map_entry->second;
-    assert(allocation->freed); // Must have been freed before
-  } else {
-    allocation = (allocation_t *)calloc(1, sizeof(allocation_t));
-    allocations[return_ptr] = allocation;
   }
-
-  allocation->allocator_id = allocator_id;
-  allocation->freed = false;
-  allocation->size = requested_size;
-  allocation->ptr = return_ptr;
-
-  pthread_mutex_unlock(&lock);
 
   // Add the canary on both sides
   memcpy(return_ptr - canary_size, canary, canary_size);
@@ -136,10 +127,9 @@ void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t re
 }
 
 void *allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id, void *ptr) {
+  std::unique_lock<std::mutex> lock(tracker_lock);
   if (!enabled || !ptr)
     return ptr;
-
-  pthread_mutex_lock(&lock);
 
   auto map_entry = allocations.find(ptr);
   assert(map_entry != allocations.end());
@@ -161,8 +151,6 @@ void *allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id, void *ptr
   // Double-free of memory is detected with "assert(allocation)" above
   // as the allocation entry will not be present.
   allocations.erase(ptr);
-
-  pthread_mutex_unlock(&lock);
 
   return ((char *)ptr) - canary_size;
 }
