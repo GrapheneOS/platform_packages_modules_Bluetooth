@@ -28,6 +28,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <mutex>
+
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 
@@ -94,7 +96,7 @@ typedef struct {
 static rfc_slot_t rfc_slots[MAX_RFC_CHANNEL];
 static uint32_t rfc_slot_id;
 static volatile int pth = -1; // poll thread handle
-static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static std::recursive_mutex slot_lock;
 static uid_set_t* uid_set = NULL;
 
 static rfc_slot_t *find_free_slot(void);
@@ -134,14 +136,13 @@ void btsock_rfc_cleanup(void) {
 
   BTA_JvDisable();
 
-  pthread_mutex_lock(&slot_lock);
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   for (size_t i = 0; i < ARRAY_SIZE(rfc_slots); ++i) {
     if (rfc_slots[i].id)
       cleanup_rfc_slot(&rfc_slots[i]);
     list_free(rfc_slots[i].incoming_queue);
     rfc_slots[i].incoming_queue = NULL;
   }
-  pthread_mutex_unlock(&slot_lock);
 }
 
 static rfc_slot_t *find_free_slot(void) {
@@ -291,13 +292,12 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
     }
   }
 
-  int status = BT_STATUS_FAIL;
-  pthread_mutex_lock(&slot_lock);
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
 
   rfc_slot_t *slot = alloc_rfc_slot(NULL, service_name, service_uuid, channel, flags, true);
   if (!slot) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate RFCOMM slot.", __func__);
-    goto out;
+    return BT_STATUS_FAIL;
   }
   APPL_TRACE_DEBUG("BTA_JvGetChannelId: service_name: %s - channel: %d", service_name, channel);
   BTA_JvGetChannelId(BTA_JV_CONN_TYPE_RFCOMM, UINT_TO_PTR(slot->id), channel);
@@ -313,11 +313,7 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
   slot->app_uid = app_uid;
   btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_EXCEPTION, slot->id);
 
-  status = BT_STATUS_SUCCESS;
-
-out:;
-  pthread_mutex_unlock(&slot_lock);
-  return (bt_status_t)status;
+  return BT_STATUS_SUCCESS;
 }
 
 bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *service_uuid, int channel, int *sock_fd, int flags, int app_uid) {
@@ -331,13 +327,12 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *servic
   if (!is_init_done())
     return BT_STATUS_NOT_READY;
 
-  int status = BT_STATUS_FAIL;
-  pthread_mutex_lock(&slot_lock);
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
 
   rfc_slot_t *slot = alloc_rfc_slot(bd_addr, NULL, service_uuid, channel, flags, false);
   if (!slot) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate RFCOMM slot.", __func__);
-    goto out;
+    return BT_STATUS_FAIL;
   }
 
   if (is_uuid_empty(service_uuid)) {
@@ -345,13 +340,13 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *servic
     if (ret != BTA_JV_SUCCESS) {
       LOG_ERROR(LOG_TAG, "%s unable to initiate RFCOMM connection: %d", __func__, ret);
       cleanup_rfc_slot(slot);
-      goto out;
+      return BT_STATUS_FAIL;
     }
 
     if (!send_app_scn(slot)) {
       LOG_ERROR(LOG_TAG, "%s unable to send channel number.", __func__);
       cleanup_rfc_slot(slot);
-      goto out;
+      return BT_STATUS_FAIL;
     }
   } else {
     tSDP_UUID sdp_uuid;
@@ -372,11 +367,8 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *servic
   slot->app_fd = INVALID_FD;  // Drop our reference to the fd.
   slot->app_uid = app_uid;
   btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, slot->id);
-  status = BT_STATUS_SUCCESS;
 
-out:;
-  pthread_mutex_unlock(&slot_lock);
-  return (bt_status_t)status;
+  return BT_STATUS_SUCCESS;
 }
 
 static int create_server_sdp_record(rfc_slot_t *slot) {
@@ -456,96 +448,78 @@ static bool send_app_connect_signal(int fd, const bt_bdaddr_t* addr, int channel
 }
 
 static void on_cl_rfc_init(tBTA_JV_RFCOMM_CL_INIT *p_init, uint32_t id) {
-  pthread_mutex_lock(&slot_lock);
-
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
-    goto out;
+    return;
 
-  if (p_init->status == BTA_JV_SUCCESS)
+  if (p_init->status == BTA_JV_SUCCESS) {
     slot->rfc_handle = p_init->handle;
-  else
+  } else {
     cleanup_rfc_slot(slot);
-
-out:;
-  pthread_mutex_unlock(&slot_lock);
+  }
 }
 
 static void on_srv_rfc_listen_started(tBTA_JV_RFCOMM_START *p_start, uint32_t id) {
-  pthread_mutex_lock(&slot_lock);
-
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
-    goto out;
+    return;
 
   if (p_start->status == BTA_JV_SUCCESS) {
     slot->rfc_handle = p_start->handle;
-  } else
+  } else {
     cleanup_rfc_slot(slot);
-
-out:;
-  pthread_mutex_unlock(&slot_lock);
+  }
 }
 
 static uint32_t on_srv_rfc_connect(tBTA_JV_RFCOMM_SRV_OPEN *p_open, uint32_t id) {
-  uint32_t new_listen_slot_id = 0;
-  pthread_mutex_lock(&slot_lock);
-
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t *accept_rs;
-
   rfc_slot_t *srv_rs = find_rfc_slot_by_id(id);
   if (!srv_rs)
-    goto out;
+    return 0;
 
   accept_rs = create_srv_accept_rfc_slot(srv_rs, (const bt_bdaddr_t *)p_open->rem_bda, p_open->handle, p_open->new_listen_handle);
   if (!accept_rs)
-    goto out;
+    return 0;
 
   // Start monitoring the socket.
   btsock_thread_add_fd(pth, srv_rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_EXCEPTION, srv_rs->id);
   btsock_thread_add_fd(pth, accept_rs->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, accept_rs->id);
   send_app_connect_signal(srv_rs->fd, &accept_rs->addr, srv_rs->scn, 0, accept_rs->app_fd);
   accept_rs->app_fd = INVALID_FD;  // Ownership of the application fd has been transferred.
-  new_listen_slot_id = srv_rs->id;
-
-out:;
-  pthread_mutex_unlock(&slot_lock);
-  return new_listen_slot_id;
+  return srv_rs->id;
 }
 
 static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN *p_open, uint32_t id) {
-  pthread_mutex_lock(&slot_lock);
-
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
-    goto out;
+    return;
 
   if (p_open->status != BTA_JV_SUCCESS) {
     cleanup_rfc_slot(slot);
-    goto out;
+    return;
   }
 
   slot->rfc_port_handle = BTA_JvRfcommGetPortHdl(p_open->handle);
   memcpy(slot->addr.address, p_open->rem_bda, 6);
 
-  if (send_app_connect_signal(slot->fd, &slot->addr, slot->scn, 0, -1))
+  if (send_app_connect_signal(slot->fd, &slot->addr, slot->scn, 0, -1)) {
     slot->f.connected = true;
-  else
+  } else {
     LOG_ERROR(LOG_TAG, "%s unable to send connect completion signal to caller.", __func__);
-
-out:;
-  pthread_mutex_unlock(&slot_lock);
+  }
 }
 
 static void on_rfc_close(UNUSED_ATTR tBTA_JV_RFCOMM_CLOSE *p_close, uint32_t id) {
-  pthread_mutex_lock(&slot_lock);
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
 
   // rfc_handle already closed when receiving rfcomm close event from stack.
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (slot)
     cleanup_rfc_slot(slot);
-
-  pthread_mutex_unlock(&slot_lock);
 }
 
 static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE *p, uint32_t id) {
@@ -555,7 +529,7 @@ static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE *p, uint32_t id) {
   }
 
   int app_uid = -1;
-  pthread_mutex_lock(&slot_lock);
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (slot) {
@@ -565,13 +539,11 @@ static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE *p, uint32_t id) {
     }
   }
 
-  pthread_mutex_unlock(&slot_lock);
-
   uid_set_add_tx(uid_set, app_uid, p->len);
 }
 
 static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG *p, uint32_t id) {
-  pthread_mutex_lock(&slot_lock);
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (slot) {
@@ -579,8 +551,6 @@ static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG *p, uint32_t id) {
     if (!slot->f.outgoing_congest)
       btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, slot->id);
   }
-
-  pthread_mutex_unlock(&slot_lock);
 }
 
 static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
@@ -634,12 +604,11 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
   switch(event) {
     case BTA_JV_GET_SCN_EVT:
     {
-      pthread_mutex_lock(&slot_lock);
+      std::unique_lock<std::recursive_mutex> lock(slot_lock);
       rfc_slot_t* rs = find_rfc_slot_by_id(id);
       int new_scn = p_data->scn;
 
-      if(rs && (new_scn != 0))
-      {
+      if (rs && (new_scn != 0)) {
         rs->scn = new_scn;
         /* BTA_JvCreateRecordByUser will only create a record if a UUID is specified,
          * else it just allocate a RFC channel and start the RFCOMM thread - needed
@@ -649,12 +618,12 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
          * has received the RFCOMM and L2CAP channel numbers through the sockets.*/
 
         // Send channel ID to java layer
-        if(!send_app_scn(rs)){
+        if (!send_app_scn(rs)) {
           //closed
           APPL_TRACE_DEBUG("send_app_scn() failed, close rs->id:%d", rs->id);
           cleanup_rfc_slot(rs);
         } else {
-          if(rs->is_service_uuid_valid == true) {
+          if (rs->is_service_uuid_valid == true) {
             // We already have data for SDP record, create it (RFC-only profiles)
             BTA_JvCreateRecordByUser(UINT_TO_PTR(rs->id));
           } else {
@@ -665,11 +634,10 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
                     rfcomm_cback, UINT_TO_PTR(rs->id));
           }
         }
-      } else if(rs) {
+      } else if (rs) {
         APPL_TRACE_ERROR("jv_dm_cback: Error: allocate channel %d, slot found:%p", rs->scn, rs);
         cleanup_rfc_slot(rs);
       }
-      pthread_mutex_unlock(&slot_lock);
       break;
     }
     case BTA_JV_GET_PSM_EVT:
@@ -678,10 +646,11 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
       on_l2cap_psm_assigned(id, p_data->psm);
       break;
     }
-    case BTA_JV_CREATE_RECORD_EVT: {
-      pthread_mutex_lock(&slot_lock);
-
+    case BTA_JV_CREATE_RECORD_EVT:
+    {
+      std::unique_lock<std::recursive_mutex> lock(slot_lock);
       rfc_slot_t *slot = find_rfc_slot_by_id(id);
+
       if (slot && create_server_sdp_record(slot)) {
         // Start the rfcomm server after sdp & channel # assigned.
         BTA_JvRfcommStartServer(slot->security, slot->role, slot->scn, MAX_RFC_SESSION, rfcomm_cback, (void *)(uintptr_t)slot->id);
@@ -689,13 +658,12 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
         APPL_TRACE_ERROR("jv_dm_cback: cannot start server, slot found:%p", slot);
         cleanup_rfc_slot(slot);
       }
-
-      pthread_mutex_unlock(&slot_lock);
       break;
     }
 
-    case BTA_JV_DISCOVERY_COMP_EVT: {
-      pthread_mutex_lock(&slot_lock);
+    case BTA_JV_DISCOVERY_COMP_EVT:
+    {
+      std::unique_lock<std::recursive_mutex> lock(slot_lock);
       rfc_slot_t *slot = find_rfc_slot_by_id(id);
       if (p_data->disc_comp.status == BTA_JV_SUCCESS && p_data->disc_comp.scn) {
         if (slot && slot->f.doing_sdp_request) {
@@ -726,8 +694,6 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
         slot->f.pending_sdp_request = false;
         slot->f.doing_sdp_request = true;
       }
-
-      pthread_mutex_unlock(&slot_lock);
       break;
     }
 
@@ -799,13 +765,11 @@ static bool flush_incoming_que_on_wr_signal(rfc_slot_t *slot) {
 }
 
 void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
-  pthread_mutex_lock(&slot_lock);
-
   bool need_close = false;
-
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t *slot = find_rfc_slot_by_id(user_id);
   if (!slot)
-    goto out;
+    return;
 
   // Data available from app, tell stack we have outgoing data.
   if (flags & SOCK_THREAD_FD_RD && !slot->f.server) {
@@ -835,22 +799,17 @@ void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
     if (need_close || ioctl(slot->fd, FIONREAD, &size) != 0 || !size)
       cleanup_rfc_slot(slot);
   }
-
-out:;
-  pthread_mutex_unlock(&slot_lock);
 }
 
 int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
   int app_uid = -1;
   uint64_t bytes_rx = 0;
-
-  pthread_mutex_lock(&slot_lock);
-
   int ret = 0;
   uint32_t id = (uintptr_t)user_data;
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
-    goto out;
+    return 0;
 
   app_uid = slot->app_uid;
   bytes_rx = p_buf->len;
@@ -877,56 +836,43 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
     list_append(slot->incoming_queue, p_buf);
   }
 
-out:;
-  pthread_mutex_unlock(&slot_lock);
-
   uid_set_add_rx(uid_set, app_uid, bytes_rx);
 
   return ret;  // Return 0 to disable data flow.
 }
 
 int bta_co_rfc_data_outgoing_size(void *user_data, int *size) {
-  pthread_mutex_lock(&slot_lock);
-
   uint32_t id = (uintptr_t)user_data;
-  int ret = false;
   *size = 0;
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
-    goto out;
+    return false;
 
-  if (ioctl(slot->fd, FIONREAD, size) == 0) {
-    ret = true;
-  } else {
+  if (ioctl(slot->fd, FIONREAD, size) != 0) {
     LOG_ERROR(LOG_TAG, "%s unable to determine bytes remaining to be read on fd %d: %s", __func__, slot->fd, strerror(errno));
     cleanup_rfc_slot(slot);
+    return false;
   }
 
-out:;
-  pthread_mutex_unlock(&slot_lock);
-  return ret;
+  return true;
 }
 
 int bta_co_rfc_data_outgoing(void *user_data, uint8_t *buf, uint16_t size) {
-  pthread_mutex_lock(&slot_lock);
-
+  std::unique_lock<std::recursive_mutex> lock(slot_lock);
   uint32_t id = (uintptr_t)user_data;
-  int ret = false;
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
-    goto out;
+    return false;
 
   ssize_t received;
   OSI_NO_INTR(received = recv(slot->fd, buf, size, 0));
 
-  if(received == size) {
-    ret = true;
-  } else {
+  if(received != size) {
     LOG_ERROR(LOG_TAG, "%s error receiving RFCOMM data from app: %s", __func__, strerror(errno));
     cleanup_rfc_slot(slot);
+    return false;
   }
 
-out:;
-  pthread_mutex_unlock(&slot_lock);
-  return ret;
+  return true;
 }
