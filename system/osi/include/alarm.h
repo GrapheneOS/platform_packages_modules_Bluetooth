@@ -20,6 +20,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "osi/include/time.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +29,6 @@ extern "C" {
 typedef struct alarm_t alarm_t;
 typedef struct fixed_queue_t fixed_queue_t;
 typedef struct thread_t thread_t;
-typedef uint64_t period_ms_t;
 
 // Prototype for the alarm callback function.
 typedef void (*alarm_callback_t)(void *data);
