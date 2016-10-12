@@ -1113,6 +1113,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
     APPL_TRACE_DEBUG("HFP AT cmd:%d arg_type:%d arg:%d arg:%s", cmd, arg_type,
                       int_arg, p_arg);
 
+    memset(&val, 0, sizeof(tBTA_AG_VAL));
     val.hdr.handle = bta_ag_scb_to_idx(p_scb);
     val.hdr.app_id = p_scb->app_id;
     val.hdr.status = BTA_AG_SUCCESS;
