@@ -24,6 +24,8 @@
 extern "C" {
 #endif
 
+typedef uint64_t period_ms_t;
+
 // Get the OS boot time in milliseconds.
 //
 // NOTE: The return value will rollover every 49.7 days,
@@ -31,6 +33,10 @@ extern "C" {
 // Relative time comparison using 32-bits integers such
 // as (t2_u32 - t1_u32 < delta_u32) should work as expected as long
 // as there is no multiple rollover between t2_u32 and t1_u32.
+//
+// TODO: This function's return type should be modified to |period_ms_t|.
+// Be careful: some of the code that is using it assumes the return type
+// is uint32_t.
 uint32_t time_get_os_boottime_ms(void);
 
 // Get the OS boot time in microseconds.
