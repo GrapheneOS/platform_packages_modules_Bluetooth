@@ -126,11 +126,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define BT_TRACE_VERBOSE    FALSE
 #endif
 
-/* Enables or disables all trace messages. */
-#ifndef BT_USE_TRACES
-#define BT_USE_TRACES       TRUE
-#endif
-
 /******************************************************************************
 **
 ** Trace Levels
@@ -203,10 +198,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 
 #ifndef APPL_INITIAL_TRACE_LEVEL
 #define APPL_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
-#endif
-
-#ifndef BT_TRACE_APPL
-#define BT_TRACE_APPL   BT_USE_TRACES
 #endif
 
 #ifndef GATT_INITIAL_TRACE_LEVEL
