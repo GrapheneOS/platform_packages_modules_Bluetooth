@@ -22,12 +22,13 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <string>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <mutex>
 
 #include "bt_types.h"
 #include "btcore/include/bdaddr.h"
@@ -123,15 +124,14 @@ bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
     return true;
 }
 
-static pthread_mutex_t lock;  // protects operations on |config|.
+static std::mutex config_lock;  // protects operations on |config|.
 static config_t *config;
 static alarm_t *config_timer;
 
 // Module lifecycle functions
 
 static future_t *init(void) {
-  pthread_mutex_init(&lock, NULL);
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
 
   if (is_factory_reset())
     delete_config_files();
@@ -197,14 +197,11 @@ static future_t *init(void) {
 
   LOG_EVENT_INT(BT_CONFIG_SOURCE_TAG_NUM, btif_config_source);
 
-  pthread_mutex_unlock(&lock);
   return future_new_immediate(FUTURE_SUCCESS);
 
 error:
   alarm_free(config_timer);
   config_free(config);
-  pthread_mutex_unlock(&lock);
-  pthread_mutex_destroy(&lock);
   config_timer = NULL;
   config = NULL;
   btif_config_source = NOT_LOADED;
@@ -235,7 +232,6 @@ static future_t *clean_up(void) {
 
   alarm_free(config_timer);
   config_free(config);
-  pthread_mutex_destroy(&lock);
   config_timer = NULL;
   config = NULL;
   return future_new_immediate(FUTURE_SUCCESS);
@@ -253,11 +249,8 @@ bool btif_config_has_section(const char *section) {
   assert(config != NULL);
   assert(section != NULL);
 
-  pthread_mutex_lock(&lock);
-  bool ret = config_has_section(config, section);
-  pthread_mutex_unlock(&lock);
-
-  return ret;
+  std::unique_lock<std::mutex> lock(config_lock);
+  return config_has_section(config, section);
 }
 
 bool btif_config_exist(const char *section, const char *key) {
@@ -265,11 +258,8 @@ bool btif_config_exist(const char *section, const char *key) {
   assert(section != NULL);
   assert(key != NULL);
 
-  pthread_mutex_lock(&lock);
-  bool ret = config_has_key(config, section, key);
-  pthread_mutex_unlock(&lock);
-
-  return ret;
+  std::unique_lock<std::mutex> lock(config_lock);
+  return config_has_key(config, section, key);
 }
 
 bool btif_config_get_int(const char *section, const char *key, int *value) {
@@ -278,11 +268,10 @@ bool btif_config_get_int(const char *section, const char *key, int *value) {
   assert(key != NULL);
   assert(value != NULL);
 
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
   bool ret = config_has_key(config, section, key);
   if (ret)
     *value = config_get_int(config, section, key, *value);
-  pthread_mutex_unlock(&lock);
 
   return ret;
 }
@@ -292,9 +281,8 @@ bool btif_config_set_int(const char *section, const char *key, int value) {
   assert(section != NULL);
   assert(key != NULL);
 
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
   config_set_int(config, section, key, value);
-  pthread_mutex_unlock(&lock);
 
   return true;
 }
@@ -306,16 +294,15 @@ bool btif_config_get_str(const char *section, const char *key, char *value, int 
   assert(value != NULL);
   assert(size_bytes != NULL);
 
-  pthread_mutex_lock(&lock);
-  const char *stored_value = config_get_string(config, section, key, NULL);
-  pthread_mutex_unlock(&lock);
+  {
+    std::unique_lock<std::mutex> lock(config_lock);
+    const char *stored_value = config_get_string(config, section, key, NULL);
+    if (!stored_value)
+      return false;
+    strlcpy(value, stored_value, *size_bytes);
+  }
 
-  if (!stored_value)
-    return false;
-
-  strlcpy(value, stored_value, *size_bytes);
   *size_bytes = strlen(value) + 1;
-
   return true;
 }
 
@@ -325,10 +312,8 @@ bool btif_config_set_str(const char *section, const char *key, const char *value
   assert(key != NULL);
   assert(value != NULL);
 
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
   config_set_string(config, section, key, value);
-  pthread_mutex_unlock(&lock);
-
   return true;
 }
 
@@ -339,9 +324,8 @@ bool btif_config_get_bin(const char *section, const char *key, uint8_t *value, s
   assert(value != NULL);
   assert(length != NULL);
 
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
   const char *value_str = config_get_string(config, section, key, NULL);
-  pthread_mutex_unlock(&lock);
 
   if (!value_str)
     return false;
@@ -365,10 +349,8 @@ size_t btif_config_get_bin_length(const char *section, const char *key) {
   assert(section != NULL);
   assert(key != NULL);
 
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
   const char *value_str = config_get_string(config, section, key, NULL);
-  pthread_mutex_unlock(&lock);
-
   if (!value_str)
     return 0;
 
@@ -393,9 +375,10 @@ bool btif_config_set_bin(const char *section, const char *key, const uint8_t *va
     str[(i * 2) + 1] = lookup[value[i] & 0x0F];
   }
 
-  pthread_mutex_lock(&lock);
-  config_set_string(config, section, key, str);
-  pthread_mutex_unlock(&lock);
+  {
+    std::unique_lock<std::mutex> lock(config_lock);
+    config_set_string(config, section, key, str);
+  }
 
   osi_free(str);
   return true;
@@ -428,11 +411,8 @@ bool btif_config_remove(const char *section, const char *key) {
   assert(section != NULL);
   assert(key != NULL);
 
-  pthread_mutex_lock(&lock);
-  bool ret = config_remove_key(config, section, key);
-  pthread_mutex_unlock(&lock);
-
-  return ret;
+  std::unique_lock<std::mutex> lock(config_lock);
+  return config_remove_key(config, section, key);
 }
 
 void btif_config_save(void) {
@@ -456,18 +436,15 @@ bool btif_config_clear(void) {
 
   alarm_cancel(config_timer);
 
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
   config_free(config);
 
   config = config_new_empty();
-  if (config == NULL) {
-    pthread_mutex_unlock(&lock);
+  if (config == NULL)
     return false;
-  }
 
   bool ret = config_save(config, CONFIG_FILE_PATH);
   btif_config_source = RESET;
-  pthread_mutex_unlock(&lock);
   return ret;
 }
 
@@ -482,13 +459,12 @@ static void btif_config_write(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_pa
   assert(config != NULL);
   assert(config_timer != NULL);
 
-  pthread_mutex_lock(&lock);
+  std::unique_lock<std::mutex> lock(config_lock);
   rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
   config_t *config_paired = config_new_clone(config);
   btif_config_remove_unpaired(config_paired);
   config_save(config_paired, CONFIG_FILE_PATH);
   config_free(config_paired);
-  pthread_mutex_unlock(&lock);
 }
 
 static void btif_config_remove_unpaired(config_t *conf) {

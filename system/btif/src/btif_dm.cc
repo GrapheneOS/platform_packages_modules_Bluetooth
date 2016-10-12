@@ -30,7 +30,6 @@
 #include "btif_dm.h"
 
 #include <assert.h>
-#include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,6 +37,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <mutex>
 
 #include <hardware/bluetooth.h>
 
@@ -208,7 +209,7 @@ static uid_set_t* uid_set = NULL;
 /* A circular array to keep track of the most recent bond events */
 static btif_bond_event_t btif_dm_bond_events[MAX_BTIF_BOND_EVENT_ENTRIES + 1];
 
-static pthread_mutex_t bond_event_lock;
+static std::mutex bond_event_lock;
 
 /* |btif_num_bond_events| keeps track of the total number of events and can be
    greater than |MAX_BTIF_BOND_EVENT_ENTRIES| */
@@ -297,7 +298,6 @@ static void btif_dm_data_free(uint16_t event, tBTA_DM_SEC *dm_sec)
 void btif_dm_init(uid_set_t* set)
 {
     uid_set = set;
-    pthread_mutex_init(&bond_event_lock, NULL);
 }
 
 void btif_dm_cleanup(void)
@@ -306,7 +306,6 @@ void btif_dm_cleanup(void)
         uid_set_destroy(uid_set);
         uid_set = NULL;
     }
-    pthread_mutex_destroy(&bond_event_lock);
 }
 
 bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
@@ -3529,7 +3528,7 @@ static char* btif_get_default_local_name() {
 static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
                                       bt_bond_function_t function,
                                       bt_bond_state_t state) {
-    pthread_mutex_lock(&bond_event_lock);
+    std::unique_lock<std::mutex> lock(bond_event_lock);
 
     btif_bond_event_t* event = &btif_dm_bond_events[btif_events_end_index];
     memcpy(&event->bd_addr, bd_addr, sizeof(bt_bdaddr_t));
@@ -3567,11 +3566,10 @@ static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
                   event->timestamp.tv_nsec / 1000000;
     metrics_pair_event(0, ts, cod, device_type);
 
-    pthread_mutex_unlock(&bond_event_lock);
 }
 
 void btif_debug_bond_event_dump(int fd) {
-    pthread_mutex_lock(&bond_event_lock);
+    std::unique_lock<std::mutex> lock(bond_event_lock);
     dprintf(fd, "\nBond Events: \n");
     dprintf(fd, "  Total Number of events: %zu\n", btif_num_bond_events);
     if (btif_num_bond_events > 0)
@@ -3624,5 +3622,4 @@ void btif_debug_bond_event_dump(int fd) {
         }
         dprintf(fd, "  %s  %s  %s  %s\n", eventtime, bdaddr, func_name, bond_state);
     }
-    pthread_mutex_unlock(&bond_event_lock);
 }

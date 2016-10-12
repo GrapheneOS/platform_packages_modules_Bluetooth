@@ -18,10 +18,9 @@
 
 /************************************************************************************
  *
- *  Filename:      btif_sock_thread.c
+ *  Filename:      btif_sock_thread.cc
  *
  *  Description:   socket select thread
- *
  *
  ***********************************************************************************/
 
@@ -46,6 +45,8 @@
 #include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <mutex>
 
 #include "bta_api.h"
 #include "btif_common.h"
@@ -102,7 +103,7 @@ static inline void close_cmd_fd(int h);
 
 static inline void add_poll(int h, int fd, int type, int flags, uint32_t user_id);
 
-static pthread_mutex_t thread_slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static std::recursive_mutex thread_slot_lock;
 
 static inline int create_thread(void *(*start_routine)(void *), void * arg,
                                 pthread_t * thread_id)
@@ -112,7 +113,7 @@ static inline int create_thread(void *(*start_routine)(void *), void * arg,
     pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
     int policy;
     int min_pri=0;
-	int ret = -1;
+    int ret = -1;
     struct sched_param param;
 
     if ((ret = pthread_create(thread_id, &thread_attr, start_routine, arg))!=0 )
@@ -133,8 +134,9 @@ static inline int create_thread(void *(*start_routine)(void *), void * arg,
 static void init_poll(int cmd_fd);
 static int alloc_thread_slot()
 {
+    std::unique_lock<std::recursive_mutex> lock(thread_slot_lock);
     int i;
-    //revserd order to save guard uninitialized access to 0 index
+    // reversed order to save guard uninitialized access to 0 index
     for(i = MAX_THREAD - 1; i >=0; i--)
     {
         APPL_TRACE_DEBUG("ts[%d].used:%d", i, ts[i].used);
@@ -179,9 +181,7 @@ int btsock_thread_init()
 int btsock_thread_create(btsock_signaled_cb callback, btsock_cmd_cb cmd_callback)
 {
     asrt(callback || cmd_callback);
-    pthread_mutex_lock(&thread_slot_lock);
     int h = alloc_thread_slot();
-    pthread_mutex_unlock(&thread_slot_lock);
     APPL_TRACE_DEBUG("alloc_thread_slot ret:%d", h);
     if(h >= 0)
     {
@@ -366,9 +366,7 @@ int btsock_thread_exit(int h)
 
     if (ret == sizeof(cmd)) {
         pthread_join(ts[h].thread_id, 0);
-        pthread_mutex_lock(&thread_slot_lock);
         free_thread_slot(h);
-        pthread_mutex_unlock(&thread_slot_lock);
         return true;
     }
     return false;
