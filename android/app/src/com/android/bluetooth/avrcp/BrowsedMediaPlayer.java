@@ -127,7 +127,7 @@ class BrowsedMediaPlayer {
                 if (DEBUG) Log.d(TAG, "sending setbrowsed player rsp");
                 mFolderItems = children;
                 mMediaInterface.setBrowsedPlayerRsp(mBDAddr, AvrcpConstants.RSP_NO_ERROR,
-                        (byte)0x01, children.size(), ROOT_FOLDER);
+                        (byte)0x00, children.size(), ROOT_FOLDER);
             } else {
                 mFolderItems = children;
                 mCurrFolderNumItems = mFolderItems.size();
