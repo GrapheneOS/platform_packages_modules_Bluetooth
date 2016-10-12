@@ -16,7 +16,7 @@
 
 /*****************************************************************************
  *
- *  Filename:      btif_rc.c
+ *  Filename:      btif_rc.cc
  *
  *  Description:   Bluetooth AVRC implementation
  *
@@ -30,6 +30,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <mutex>
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_rc.h>
@@ -190,7 +192,7 @@ typedef struct {
 } btif_rc_device_cb_t;
 
 typedef struct {
-    pthread_mutex_t     lock;
+    std::mutex lock;
     btif_rc_device_cb_t rc_multi_cb[BTIF_RC_NUM_CONN];
 } rc_cb_t;
 
@@ -204,7 +206,7 @@ typedef struct {
 
 typedef struct
 {
-    pthread_mutex_t  lbllock;
+    std::recursive_mutex lbllock;
     rc_transaction_t transaction[MAX_TRANSACTIONS_PER_SESSION];
 } rc_device_t;
 
@@ -284,7 +286,6 @@ static void send_metamsg_rsp (btif_rc_device_cb_t *p_dev, int index, uint8_t lab
 static void register_volumechange(uint8_t label, btif_rc_device_cb_t *p_dev);
 #endif
 static void lbl_init();
-static void lbl_destroy();
 static void init_all_transactions();
 static bt_status_t  get_transaction(rc_transaction_t **ptransaction);
 static void release_transaction(uint8_t label);
@@ -2274,7 +2275,7 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
 {
     tAVRC_RESPONSE avrc_rsp;
     BTIF_TRACE_EVENT("%s: event_id: %s", __func__, dump_rc_notification_event_id(event_id));
-    pthread_mutex_lock(&btif_rc_cb.lock);
+    std::unique_lock<std::mutex> lock(btif_rc_cb.lock);
 
     memset(&(avrc_rsp.reg_notif), 0, sizeof(tAVRC_REG_NOTIF_RSP));
 
@@ -2334,7 +2335,6 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
 
             default:
                 BTIF_TRACE_WARNING("%s: Unhandled event ID: 0x%x", __func__, event_id);
-                pthread_mutex_unlock(&btif_rc_cb.lock);
                 return BT_STATUS_UNHANDLED;
         }
 
@@ -2359,7 +2359,6 @@ static bt_status_t register_notification_rsp(btrc_event_id_t event_id,
             }
         }
     }
-    pthread_mutex_unlock(&btif_rc_cb.lock);
     return BT_STATUS_SUCCESS;
 }
 
@@ -4875,7 +4874,6 @@ static void cleanup()
         memset(&btif_rc_cb.rc_multi_cb[idx], 0, sizeof(btif_rc_cb.rc_multi_cb[idx]));
     }
 
-    lbl_destroy();
     BTIF_TRACE_EVENT("%s: completed", __func__);
 }
 
@@ -4903,7 +4901,6 @@ static void cleanup_ctrl()
     }
 
     memset(&btif_rc_cb, 0, sizeof(rc_cb_t));
-    lbl_destroy();
     BTIF_TRACE_EVENT("%s: completed", __func__);
 }
 
@@ -6091,7 +6088,7 @@ const btrc_ctrl_interface_t *btif_rc_ctrl_get_interface(void)
 *******************************************************************************/
 static void initialize_transaction(int lbl)
 {
-    pthread_mutex_lock(&device.lbllock);
+    std::unique_lock<std::recursive_mutex>(device.lbllock);
     if (lbl < MAX_TRANSACTIONS_PER_SESSION) {
         if (alarm_is_scheduled(device.transaction[lbl].txn_timer)) {
             clear_cmd_timeout(lbl);
@@ -6100,7 +6097,6 @@ static void initialize_transaction(int lbl)
         device.transaction[lbl].in_use=false;
         device.transaction[lbl].handle=0;
     }
-    pthread_mutex_unlock(&device.lbllock);
 }
 
 /*******************************************************************************
@@ -6113,11 +6109,6 @@ static void initialize_transaction(int lbl)
 void lbl_init()
 {
     memset(&device,0,sizeof(rc_device_t));
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&(device.lbllock), &attr);
-    pthread_mutexattr_destroy(&attr);
     init_all_transactions();
 }
 
@@ -6150,7 +6141,7 @@ void init_all_transactions()
 rc_transaction_t *get_transaction_by_lbl(uint8_t lbl)
 {
     rc_transaction_t *transaction = NULL;
-    pthread_mutex_lock(&device.lbllock);
+    std::unique_lock<std::recursive_mutex> lock(device.lbllock);
 
     /* Determine if this is a valid label */
     if (lbl < MAX_TRANSACTIONS_PER_SESSION)
@@ -6166,7 +6157,6 @@ rc_transaction_t *get_transaction_by_lbl(uint8_t lbl)
         }
     }
 
-    pthread_mutex_unlock(&device.lbllock);
     return transaction;
 }
 
@@ -6183,7 +6173,7 @@ bt_status_t  get_transaction(rc_transaction_t **ptransaction)
 {
     bt_status_t result = BT_STATUS_NOMEM;
     uint8_t i=0;
-    pthread_mutex_lock(&device.lbllock);
+    std::unique_lock<std::recursive_mutex> lock(device.lbllock);
 
     // Check for unused transactions
     for (i=0; i<MAX_TRANSACTIONS_PER_SESSION; i++)
@@ -6198,7 +6188,6 @@ bt_status_t  get_transaction(rc_transaction_t **ptransaction)
         }
     }
 
-    pthread_mutex_unlock(&device.lbllock);
     return result;
 }
 
@@ -6221,19 +6210,6 @@ void release_transaction(uint8_t lbl)
         BTIF_TRACE_DEBUG("%s: lbl: %d", __func__, lbl);
         initialize_transaction(lbl);
     }
-}
-
-/*******************************************************************************
-**
-** Function         lbl_destroy
-**
-** Description    Cleanup of the mutex
-**
-** Returns          void
-*******************************************************************************/
-void lbl_destroy()
-{
-    pthread_mutex_destroy(&(device.lbllock));
 }
 
 /*******************************************************************************
