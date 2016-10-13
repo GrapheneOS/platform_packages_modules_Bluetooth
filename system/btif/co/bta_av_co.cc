@@ -31,7 +31,6 @@
 #include "bta_av_co.h"
 #include "bta_av_ci.h"
 
-#include "btif_media.h"
 #include "btif_av_co.h"
 #include "btif_util.h"
 #include "osi/include/mutex.h"
@@ -766,7 +765,7 @@ void* bta_av_co_audio_src_data_path(const uint8_t *p_codec_info,
 
     APPL_TRACE_DEBUG("%s: codec: %s", __func__, A2D_CodecName(p_codec_info));
 
-    p_buf = btif_media_aa_readbuf();
+    p_buf = btif_a2dp_source_aa_readbuf();
     if (p_buf == NULL)
         return NULL;
 
@@ -1084,7 +1083,7 @@ bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding)
     return bta_av_co_audio_codec_supported();
 }
 
-void bta_av_co_audio_encoder_init(tBTIF_MEDIA_INIT_AUDIO *msg)
+void bta_av_co_audio_encoder_init(tBTIF_A2DP_SOURCE_INIT_AUDIO *msg)
 {
     uint16_t min_mtu = 0xFFFF;
 
@@ -1114,7 +1113,7 @@ void bta_av_co_audio_encoder_init(tBTIF_MEDIA_INIT_AUDIO *msg)
     mutex_global_unlock();
 }
 
-void bta_av_co_audio_encoder_update(tBTIF_MEDIA_UPDATE_AUDIO *msg)
+void bta_av_co_audio_encoder_update(tBTIF_A2DP_SOURCE_UPDATE_AUDIO *msg)
 {
     uint16_t min_mtu = 0xFFFF;
 
