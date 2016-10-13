@@ -25,6 +25,7 @@
 #define LOG_TAG "bt_btm_sec"
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "device/include/controller.h"
@@ -37,11 +38,6 @@
 #include "btu.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-
-#if (BT_USE_TRACES == TRUE && BT_TRACE_VERBOSE == FALSE)
-/* needed for snprintf() */
-#include <stdio.h>
-#endif
 
 #if (BLE_INCLUDED == TRUE)
     #include "gatt_int.h"
@@ -74,9 +70,7 @@ static void     btm_sec_pairing_timeout(void *data);
 static tBTM_STATUS btm_sec_dd_create_conn (tBTM_SEC_DEV_REC *p_dev_rec);
 static void     btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state);
 
-#if (BT_USE_TRACES == TRUE)
 static char     *btm_pair_state_descr (tBTM_PAIRING_STATE state);
-#endif
 
 static void     btm_sec_check_pending_reqs(void);
 static bool     btm_sec_queue_mx_request (BD_ADDR bd_addr,  uint16_t psm,  bool    is_orig,
@@ -255,7 +249,7 @@ bool    BTM_SecRegister(tBTM_APPL_INFO *p_cb_info)
     {
       LOG_WARN(LOG_TAG, "%s p_cb_info->p_le_callback == NULL", __func__);
     }
-#endif
+#endif /* (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE) */
 
     btm_cb.api = *p_cb_info;
 #if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
@@ -3084,7 +3078,6 @@ void btm_sec_rmt_name_request_complete (uint8_t *p_bd_addr, uint8_t *p_bd_name, 
 
     /* Commenting out trace due to obf/compilation problems.
     */
-#if (BT_USE_TRACES == TRUE)
     if (!p_bd_name)
         p_bd_name = (uint8_t *)"";
 
@@ -3098,7 +3091,6 @@ void btm_sec_rmt_name_request_complete (uint8_t *p_bd_addr, uint8_t *p_bd_name, 
                           btm_pair_state_descr (btm_cb.pairing_state), p_bd_name,
                           status);
     }
-#endif
 
     if (p_dev_rec)
     {
@@ -3976,9 +3968,6 @@ void btm_sec_auth_complete (uint16_t handle, uint8_t status)
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev_by_handle (handle);
     bool                are_bonding = false;
 
-    /* Commenting out trace due to obf/compilation problems.
-    */
-#if (BT_USE_TRACES == TRUE)
     if (p_dev_rec)
     {
         BTM_TRACE_EVENT ("Security Manager: auth_complete PairState: %s  handle:%u  status:%d  dev->sec_state: %u  Bda:%08x, RName:%s",
@@ -3994,7 +3983,6 @@ void btm_sec_auth_complete (uint16_t handle, uint8_t status)
                           btm_pair_state_descr (btm_cb.pairing_state),
                           handle, status);
     }
-#endif
 
     /* For transaction collision we need to wait and repeat.  There is no need */
     /* for random timeout because only slave should receive the result */
@@ -4382,9 +4370,6 @@ void btm_sec_connected (uint8_t *bda, uint16_t handle, uint8_t status, uint8_t e
 
     btm_acl_resubmit_page();
 
-    /* Commenting out trace due to obf/compilation problems.
-    */
-#if (BT_USE_TRACES == TRUE)
     if (p_dev_rec)
     {
         BTM_TRACE_EVENT ("Security Manager: btm_sec_connected in state: %s  handle:%d status:%d enc_mode:%d  bda:%x RName:%s",
@@ -4398,7 +4383,6 @@ void btm_sec_connected (uint8_t *bda, uint16_t handle, uint8_t status, uint8_t e
                           btm_pair_state_descr(btm_cb.pairing_state), handle, status, enc_mode,
                           (bda[2]<<24)+(bda[3]<<16)+(bda[4]<<8)+bda[5]);
     }
-#endif
 
     if (!p_dev_rec)
     {
@@ -5864,7 +5848,6 @@ static void btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state)
 ** Description      Return state description for tracing
 **
 *******************************************************************************/
-#if (BT_USE_TRACES == TRUE)
 static char *btm_pair_state_descr (tBTM_PAIRING_STATE state)
 {
 #if (BT_TRACE_VERBOSE == TRUE)
@@ -5891,7 +5874,6 @@ static char *btm_pair_state_descr (tBTM_PAIRING_STATE state)
     return(btm_cb.state_temp_buffer);
 #endif
 }
-#endif
 
 /*******************************************************************************
 **

@@ -184,9 +184,7 @@ void btu_task_start_up(UNUSED_ATTR void *context) {
   /* Initialise platform trace levels at this point as BTE_InitStack() and bta_sys_init()
    * reset the control blocks and preset the trace level with XXX_INITIAL_TRACE_LEVEL
    */
-#if (BT_USE_TRACES == TRUE)
   module_init(get_module(BTE_LOGMSG_MODULE));
-#endif
 
   // Inform the bt jni thread initialization is ok.
   btif_transfer_context(btif_init_ok, 0, NULL, 0, NULL);
@@ -209,9 +207,7 @@ void btu_task_shut_down(UNUSED_ATTR void *context) {
   fixed_queue_unregister_dequeue(btu_hci_msg_queue);
   alarm_unregister_processing_queue(btu_general_alarm_queue);
 
-#if (BT_USE_TRACES == TRUE)
   module_clean_up(get_module(BTE_LOGMSG_MODULE));
-#endif
 
   bta_sys_free();
   btu_free_core();
