@@ -21,10 +21,7 @@
 
 #include "btif/include/btif_debug.h"
 #include "btif/include/btif_debug_btsnoop.h"
-#include "btif/include/btif_debug_conn.h"
-#include "btif/include/btif_media.h"
 #include "include/bt_target.h"
-#include "osi/include/wakelock.h"
 
 void btif_debug_init(void) {
 #if (BTSNOOP_MEM == TRUE)
