@@ -24,6 +24,7 @@ shared_library("bluetooth.default") {
   sources += [
     "bte_main.c",
     "bte_init.c",
+    "bte_init_cpp_logging.cc",
     "bte_logmsg.c",
     "bte_conf.c",
     "stack_config.c",
@@ -66,6 +67,7 @@ shared_library("bluetooth.default") {
     "//hci",
     "//osi",
     "//stack",
+    "//third_party/libchrome:base",
     "//third_party/tinyxml2",
     "//udrv",
     "//utils",
