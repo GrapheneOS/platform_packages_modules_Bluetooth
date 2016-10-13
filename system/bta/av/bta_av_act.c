@@ -1987,13 +1987,9 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
                 {
                     rc_handle = bta_av_rc_create(p_cb, AVCT_INT, (uint8_t)(p_scb->hdi + 1), p_lcb->lidx);
                     p_cb->rcb[rc_handle].peer_features = peer_features;
-                }
-#if (BT_USE_TRACES == TRUE || BT_TRACE_APPL == TRUE)
-                else
-                {
+                } else {
                     APPL_TRACE_ERROR("can not find LCB!!");
                 }
-#endif
             }
             else if (p_scb->use_rc)
             {
