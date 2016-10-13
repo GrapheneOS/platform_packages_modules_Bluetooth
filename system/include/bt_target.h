@@ -136,10 +136,6 @@
 #define BTA_HOST_INTERLEAVE_SEARCH FALSE
 #endif
 
-#ifndef BT_USE_TRACES
-#define BT_USE_TRACES  TRUE
-#endif
-
 #ifndef BT_TRACE_VERBOSE
 #define BT_TRACE_VERBOSE  FALSE
 #endif
