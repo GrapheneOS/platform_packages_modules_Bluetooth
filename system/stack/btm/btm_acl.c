@@ -606,9 +606,7 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, uint8_t new_role, tBTM_CMPL_
     tBTM_STATUS  status;
     tBTM_PM_MODE pwr_mode;
     tBTM_PM_PWR_MD settings;
-#if (BT_USE_TRACES == TRUE)
     BD_ADDR_PTR  p_bda;
-#endif
     BTM_TRACE_API ("BTM_SwitchRole BDA: %02x-%02x-%02x-%02x-%02x-%02x",
                     remote_bd_addr[0], remote_bd_addr[1], remote_bd_addr[2],
                     remote_bd_addr[3], remote_bd_addr[4], remote_bd_addr[5]);
@@ -619,12 +617,10 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, uint8_t new_role, tBTM_CMPL_
 
     if (btm_cb.devcb.p_switch_role_cb && p_cb)
     {
-#if (BT_USE_TRACES == TRUE)
         p_bda = btm_cb.devcb.switch_role_ref_data.remote_bd_addr;
         BTM_TRACE_DEBUG ("Role switch on other device is in progress 0x%02x%02x%02x%02x%02x%02x",
                           p_bda[0], p_bda[1], p_bda[2],
                           p_bda[3], p_bda[4], p_bda[5]);
-#endif
         return(BTM_BUSY);
     }
 

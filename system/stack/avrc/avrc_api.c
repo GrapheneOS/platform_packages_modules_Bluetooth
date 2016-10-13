@@ -660,18 +660,14 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
     uint8_t     *p_rsp_data;
     int         xx;
     bool        reject = false;
-#if (BT_USE_TRACES == TRUE)
     char        *p_drop_msg = "dropped";
-#endif
     tAVRC_MSG_VENDOR *p_msg = &msg.vendor;
 
     if (cr == AVCT_CMD &&
         (p_pkt->layer_specific & AVCT_DATA_CTRL && AVRC_PACKET_LEN < sizeof(p_pkt->len)))
     {
         /* Ignore the invalid AV/C command frame */
-#if (BT_USE_TRACES == TRUE)
         p_drop_msg = "dropped - too long AV/C cmd frame size";
-#endif
         osi_free(p_pkt);
         return;
     }
@@ -735,9 +731,7 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
                 AVRC_CO_ID_TO_BE_STREAM(p_rsp_data, avrc_cb.ccb[handle].company_id);
                 p_rsp->len      = (uint16_t) (p_rsp_data - (uint8_t *)(p_rsp + 1) - p_rsp->offset);
                 cr = AVCT_RSP;
-#if (BT_USE_TRACES == TRUE)
                 p_drop_msg = "auto respond";
-#endif
             }
             else
             {
@@ -766,9 +760,7 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
                 p_rsp_data      += AVRC_SUBRSP_OPRND_BYTES;
                 p_rsp->len      = (uint16_t) (p_rsp_data - (uint8_t *)(p_rsp + 1) - p_rsp->offset);
                 cr = AVCT_RSP;
-#if (BT_USE_TRACES == TRUE)
                 p_drop_msg = "auto responded";
-#endif
             }
             else
             {
@@ -825,7 +817,6 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
             {
                 if (drop_code != 4)
                     do_free = false;
-#if (BT_USE_TRACES == TRUE)
                 switch (drop_code)
                 {
                 case 1:
@@ -843,7 +834,6 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
                 default:
                     p_drop_msg = "sent_fragd";
                 }
-#endif
             }
 #endif /* (AVRC_METADATA_INCLUDED == TRUE) */
            /* If vendor response received, and did not ask for continuation */
@@ -909,9 +899,7 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
         p_rsp = avrc_copy_packet(p_pkt, AVRC_OP_REJ_MSG_LEN);
         p_rsp_data = avrc_get_data_ptr(p_rsp);
         *p_rsp_data = AVRC_RSP_REJ;
-#if (BT_USE_TRACES == TRUE)
         p_drop_msg = "rejected";
-#endif
         cr      = AVCT_RSP;
         drop    = true;
     }
@@ -927,15 +915,11 @@ static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
     {
         msg.hdr.opcode = opcode;
         (*avrc_cb.ccb[handle].p_msg_cback)(handle, label, opcode, &msg);
-    }
-#if (BT_USE_TRACES == TRUE)
-    else
-    {
+    } else {
         AVRC_TRACE_WARNING("%s %s msg handle:%d, control:%d, cr:%d, opcode:x%x",
                 __func__, p_drop_msg,
                 handle, avrc_cb.ccb[handle].control, cr, opcode);
     }
-#endif
 
     if (opcode == AVRC_OP_BROWSE && msg.browse.p_browse_pkt == NULL)
     {

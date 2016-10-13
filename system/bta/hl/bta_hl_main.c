@@ -37,7 +37,7 @@
 #include "mca_defs.h"
 
 
-#if (BTA_HL_DEBUG == TRUE && BT_USE_TRACES == TRUE)
+#if (BTA_HL_DEBUG == TRUE)
 static char *bta_hl_cch_state_code(tBTA_HL_CCH_STATE state_code);
 static char *bta_hl_dch_state_code(tBTA_HL_DCH_STATE state_code);
 #endif
@@ -419,7 +419,7 @@ void bta_hl_cch_sm_execute(uint8_t app_idx, uint8_t mcl_idx,
     int                 i;
     tBTA_HL_MCL_CB      *p_cb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
 
-#if (BTA_HL_DEBUG == TRUE && BT_USE_TRACES == TRUE)
+#if (BTA_HL_DEBUG == TRUE)
     tBTA_HL_CCH_STATE in_state = p_cb->cch_state;
     uint16_t             cur_evt = event;
     APPL_TRACE_DEBUG("HDP CCH Event Handler: State 0x%02x [%s], Event [%s]", in_state,
@@ -448,7 +448,7 @@ void bta_hl_cch_sm_execute(uint8_t app_idx, uint8_t mcl_idx,
             break;
         }
     }
-#if (BTA_HL_DEBUG == TRUE && BT_USE_TRACES == TRUE)
+#if (BTA_HL_DEBUG == TRUE)
     if (in_state != p_cb->cch_state)
     {
         APPL_TRACE_DEBUG("HL CCH State Change: [%s] -> [%s] after [%s]",
@@ -477,7 +477,7 @@ void bta_hl_dch_sm_execute(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
     int                 i;
     tBTA_HL_MDL_CB      *p_cb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
 
-#if (BTA_HL_DEBUG == TRUE && BT_USE_TRACES == TRUE)
+#if (BTA_HL_DEBUG == TRUE)
     tBTA_HL_DCH_STATE in_state = p_cb->dch_state;
     uint16_t             cur_evt = event;
     APPL_TRACE_DEBUG("HDP DCH Event Handler: State 0x%02x [%s], Event [%s]", in_state,
@@ -507,7 +507,7 @@ void bta_hl_dch_sm_execute(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
     }
 
 
-#if (BTA_HL_DEBUG == TRUE && BT_USE_TRACES == TRUE)
+#if (BTA_HL_DEBUG == TRUE)
     if (in_state != p_cb->dch_state)
     {
         APPL_TRACE_DEBUG("HL DCH State Change: [%s] -> [%s] after [%s]",
@@ -2052,7 +2052,7 @@ bool bta_hl_hdl_event(BT_HDR *p_msg)
 /*****************************************************************************
 **  Debug Functions
 *****************************************************************************/
-#if (BTA_HL_DEBUG == TRUE && BT_USE_TRACES == TRUE)
+#if (BTA_HL_DEBUG == TRUE)
 
 /*******************************************************************************
 **
