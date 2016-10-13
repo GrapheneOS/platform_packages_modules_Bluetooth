@@ -159,10 +159,8 @@ void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, ui
         AVCT_TRACE_DEBUG("avct_l2c snd Cfg Req");
     }
 
-#if (BT_USE_TRACES == TRUE)
-    if(p_lcb)
-        AVCT_TRACE_DEBUG("ch_state cni: %d ", p_lcb->ch_state);
-#endif
+    if (p_lcb)
+      AVCT_TRACE_DEBUG("ch_state cni: %d ", p_lcb->ch_state);
 }
 
 /*******************************************************************************

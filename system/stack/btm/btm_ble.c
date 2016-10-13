@@ -1867,7 +1867,6 @@ void btm_ble_connected (uint8_t *bda, uint16_t handle, uint8_t enc_mode, uint8_t
 
     /* Commenting out trace due to obf/compilation problems.
     */
-#if (BT_USE_TRACES == TRUE)
     if (p_dev_rec)
     {
         BTM_TRACE_EVENT ("Security Manager: btm_ble_connected :  handle:%d  enc_mode:%d  bda:%x RName:%s",
@@ -1883,7 +1882,6 @@ void btm_ble_connected (uint8_t *bda, uint16_t handle, uint8_t enc_mode, uint8_t
                           handle,  enc_mode,
                           (bda[2]<<24)+(bda[3]<<16)+(bda[4]<<8)+bda[5]);
     }
-#endif
 
     if (!p_dev_rec)
     {
