@@ -24,6 +24,11 @@
 #include <stdbool.h>
 #include "a2d_api.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /* Offset for A2DP vendor codec */
 #define A2D_VENDOR_CODEC_START_IDX              3
 
@@ -33,11 +38,6 @@
 /* Offset for Codec ID for A2DP vendor codec */
 #define A2D_VENDOR_CODEC_CODEC_ID_START_IDX     \
                 (A2D_VENDOR_CODEC_VENDOR_ID_START_IDX + sizeof(uint32_t))
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 // Checks whether the codec capabilities contain a valid A2DP vendor-specific
 // source codec.

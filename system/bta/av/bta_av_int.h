@@ -562,9 +562,7 @@ typedef struct
     alarm_t             *link_signalling_timer;
     alarm_t             *accept_signalling_timer; /* timer to monitor signalling when accepting */
     uint32_t            sdp_a2d_handle; /* SDP record handle for audio src */
-#if (BTA_AV_SINK_INCLUDED == TRUE)
     uint32_t            sdp_a2d_snk_handle; /* SDP record handle for audio snk */
-#endif
     uint32_t            sdp_vdp_handle; /* SDP record handle for video src */
     tBTA_AV_FEAT        features;       /* features mask */
     tBTA_SEC            sec_mask;       /* security mask */

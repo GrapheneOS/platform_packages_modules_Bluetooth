@@ -28,6 +28,11 @@ btifCommonSrc += \
 
 # BTIF implementation
 btifCommonSrc += \
+  ../audio_a2dp_hw/audio_a2dp_hw_utils.cc \
+  src/btif_a2dp.cc \
+  src/btif_a2dp_control.cc \
+  src/btif_a2dp_sink.cc \
+  src/btif_a2dp_source.cc \
   src/btif_av.cc \
   src/btif_avrcp_audio_track.cc \
   src/btif_ble_advertiser.cc \
@@ -48,7 +53,6 @@ btifCommonSrc += \
   src/btif_hh.cc \
   src/btif_hl.cc \
   src/btif_sdp.cc \
-  src/btif_media_task.cc \
   src/btif_pan.cc \
   src/btif_profile_queue.cc \
   src/btif_rc.cc \

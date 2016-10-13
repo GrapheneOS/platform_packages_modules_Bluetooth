@@ -625,9 +625,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             if(!bta_av_cb.reg_audio)
             {
                 bta_av_cb.sdp_a2d_handle = 0;
-#if (BTA_AV_SINK_INCLUDED == TRUE)
                 bta_av_cb.sdp_a2d_snk_handle = 0;
-#endif
                 if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
                 {
                     /* create the SDP records on the 1st audio channel */
