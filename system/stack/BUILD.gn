@@ -34,6 +34,7 @@ static_library("stack") {
     "bnep/bnep_api.c",
     "hcic/hciblecmds.c",
     "hcic/hcicmds.c",
+    "btm/ble_advertiser_hci_interface.cc",
     "btm/btm_ble.c",
     "btm/btm_sec.c",
     "btm/btm_inq.c",
