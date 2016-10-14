@@ -635,7 +635,7 @@ extern void bta_av_sm_execute(tBTA_AV_CB *p_cb, uint16_t event, tBTA_AV_DATA *p_
 extern void bta_av_ssm_execute(tBTA_AV_SCB *p_scb, uint16_t event, tBTA_AV_DATA *p_data);
 extern bool bta_av_hdl_event(BT_HDR *p_msg);
 #if (BTA_AV_DEBUG == TRUE)
-extern char *bta_av_evt_code(uint16_t evt_code);
+extern const char *bta_av_evt_code(uint16_t evt_code);
 #endif
 extern bool bta_av_switch_if_needed(tBTA_AV_SCB *p_scb);
 extern bool bta_av_link_role_ok(tBTA_AV_SCB *p_scb, uint8_t bits);

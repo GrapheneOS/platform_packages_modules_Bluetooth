@@ -378,7 +378,7 @@ static const tBTA_AV_SST_TBL bta_av_sst_tbl[] =
 
 
 #if (BTA_AV_DEBUG == TRUE)
-static char *bta_av_sst_code(uint8_t state);
+static const char *bta_av_sst_code(uint8_t state);
 #endif
 
 /*******************************************************************************
@@ -594,7 +594,7 @@ void bta_av_set_scb_sst_incoming (tBTA_AV_SCB *p_scb)
 ** Returns          char *
 **
 *******************************************************************************/
-static char *bta_av_sst_code(uint8_t state)
+static const char *bta_av_sst_code(uint8_t state)
 {
     switch(state)
     {

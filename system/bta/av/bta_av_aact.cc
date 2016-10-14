@@ -747,7 +747,7 @@ static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 {
     APPL_TRACE_DEBUG("%s: codec: %s", __func__,
                      A2D_CodecName(p_scb->cfg.codec_info));
-    for (tA2D_CODEC_SEP_INDEX i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
+    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
         APPL_TRACE_DEBUG("%s: av_handle: %d codec: %d", __func__,
                          p_scb->seps[i].av_handle,
                          A2D_CodecName(p_scb->seps[i].codec_info));

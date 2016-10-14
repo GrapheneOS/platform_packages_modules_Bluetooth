@@ -36,11 +36,11 @@ LOCAL_C_INCLUDES := \
                    $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-    ./a2dp/a2d_api.c \
-    ./a2dp/a2d_sbc.c \
-    ./a2dp/a2d_sbc_encoder.c \
-    ./a2dp/a2d_sbc_up_sample.c \
-    ./a2dp/a2d_vendor.c \
+    ./a2dp/a2d_api.cc \
+    ./a2dp/a2d_sbc.cc \
+    ./a2dp/a2d_sbc_encoder.cc \
+    ./a2dp/a2d_sbc_up_sample.cc \
+    ./a2dp/a2d_vendor.cc \
     ./avrc/avrc_api.c \
     ./avrc/avrc_sdp.c \
     ./avrc/avrc_opt.c \
