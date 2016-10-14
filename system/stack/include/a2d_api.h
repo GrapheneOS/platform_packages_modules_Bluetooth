@@ -229,6 +229,11 @@ typedef struct {
     // Prepare and send A2DP encoded frames.
     // |timestamp_us| is the current timestamp (in microseconds).
     void (*send_frames)(uint64_t timestamp_us);
+
+    // Dump codec-related statistics.
+    // |fd| is the file descriptor to use to dump the statistics information
+    // in user-friendly test format.
+    void (*debug_codec_dump)(int fd);
 } tA2D_ENCODER_INTERFACE;
 
 /*****************************************************************************
