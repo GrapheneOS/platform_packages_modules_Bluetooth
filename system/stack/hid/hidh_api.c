@@ -35,9 +35,7 @@
 #include "btu.h"
 #include "btm_int.h"
 
-#if (HID_DYNAMIC_MEMORY == FALSE)
-tHID_HOST_CTB   hh_cb;
-#endif
+tHID_HOST_CTB hh_cb;
 
 static void hidh_search_callback (uint16_t sdp_result);
 

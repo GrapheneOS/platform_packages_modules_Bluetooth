@@ -61,13 +61,7 @@ typedef struct
 }tSRVC_ENG_CB;
 
 /* Global GATT data */
-#if (GATT_DYNAMIC_MEMORY == FALSE)
 extern tSRVC_ENG_CB srvc_eng_cb;
-#else
-extern tSRVC_ENG_CB srvc_eng_cb_ptr;
-#define srvc_eng_cb (*srvc_eng_cb_ptr)
-
-#endif
 
 extern tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(uint16_t conn_id);
 extern tSRVC_CLCB *srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda);

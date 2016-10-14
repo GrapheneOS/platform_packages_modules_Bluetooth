@@ -346,12 +346,7 @@ extern void mca_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf);
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if (MCA_DYNAMIC_MEMORY == FALSE)
-extern tMCA_CB  mca_cb;
-#else
-extern tMCA_CB *mca_cb_ptr;
-#define mca_cb (*mca_cb_ptr)
-#endif
+extern tMCA_CB mca_cb;
 
 /* L2CAP callback registration structure */
 extern const tL2CAP_APPL_INFO mca_l2c_int_appl;

@@ -233,12 +233,7 @@ typedef struct
 } tSDP_CB;
 
 /* Global SDP data */
-#if (SDP_DYNAMIC_MEMORY == FALSE)
 extern tSDP_CB  sdp_cb;
-#else
-extern tSDP_CB *sdp_cb_ptr;
-#define sdp_cb (*sdp_cb_ptr)
-#endif
 
 /* Functions provided by sdp_main.c */
 extern void     sdp_init (void);
