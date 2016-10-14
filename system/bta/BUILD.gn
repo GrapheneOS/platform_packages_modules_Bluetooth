@@ -33,7 +33,6 @@ static_library("bta") {
     "av/bta_av_cfg.c",
     "av/bta_av_ci.c",
     "av/bta_av_main.c",
-    "av/bta_av_sbc.c",
     "av/bta_av_ssm.c",
     "closure/bta_closure.cc",
     "dm/bta_dm_act.cc",
