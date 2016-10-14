@@ -283,6 +283,11 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
                 BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP_LE);
             else
                 BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
+
+            if (!sock->fixed_chan) {
+                APPL_TRACE_DEBUG("%s stopping L2CAP server channel %d", __func__, sock->channel);
+                BTA_JvL2capStopServer(sock->channel, UINT_TO_PTR(sock->id));
+            }
         }
     }
 
