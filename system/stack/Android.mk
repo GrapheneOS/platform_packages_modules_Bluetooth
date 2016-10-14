@@ -36,11 +36,11 @@ LOCAL_C_INCLUDES := \
                    $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-    ./a2dp/a2d_api.cc \
-    ./a2dp/a2d_sbc.cc \
-    ./a2dp/a2d_sbc_encoder.cc \
-    ./a2dp/a2d_sbc_up_sample.cc \
-    ./a2dp/a2d_vendor.cc \
+    ./a2dp/a2dp_api.cc \
+    ./a2dp/a2dp_sbc.cc \
+    ./a2dp/a2dp_sbc_encoder.cc \
+    ./a2dp/a2dp_sbc_up_sample.cc \
+    ./a2dp/a2dp_vendor.cc \
     ./avrc/avrc_api.c \
     ./avrc/avrc_sdp.c \
     ./avrc/avrc_opt.c \
@@ -177,7 +177,7 @@ LOCAL_C_INCLUDES := \
                    $(LOCAL_PATH)/../ \
                    $(bluetooth_C_INCLUDES)
 
-LOCAL_SRC_FILES := test/stack_a2d_test.cc
+LOCAL_SRC_FILES := test/stack_a2dp_test.cc
 LOCAL_SHARED_LIBRARIES :=
 LOCAL_STATIC_LIBRARIES := libbt-stack liblog
 LOCAL_MODULE_TAGS := tests
