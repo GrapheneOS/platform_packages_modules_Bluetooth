@@ -98,7 +98,8 @@ static const tA2D_ENCODER_INTERFACE a2d_encoder_interface_sbc = {
     a2d_sbc_feeding_reset,
     a2d_sbc_feeding_flush,
     a2d_sbc_get_encoder_interval_ms,
-    a2d_sbc_send_frames
+    a2d_sbc_send_frames,
+    a2d_sbc_debug_codec_dump
 };
 
 static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
