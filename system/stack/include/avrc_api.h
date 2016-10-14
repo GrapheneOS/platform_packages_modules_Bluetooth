@@ -214,9 +214,12 @@ typedef struct {
 **                  AVRC_NO_RESOURCES if not enough resources to build the SDP record.
 **
 ******************************************************************************/
-extern uint16_t AVRC_AddRecord(uint16_t service_uuid, char *p_service_name,
-                char *p_provider_name, uint16_t categories, uint32_t sdp_handle,
-                bool    browse_supported, uint16_t profile_version);
+extern uint16_t AVRC_AddRecord(uint16_t service_uuid,
+                               const char *p_service_name,
+                               const char *p_provider_name,
+                               uint16_t categories, uint32_t sdp_handle,
+                               bool browse_supported,
+                               uint16_t profile_version);
 
 /******************************************************************************
 **

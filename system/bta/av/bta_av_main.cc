@@ -195,7 +195,7 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
 tBTA_AV_CB  bta_av_cb;
 
 #if (BTA_AV_DEBUG == TRUE)
-static char *bta_av_st_code(uint8_t state);
+static const char *bta_av_st_code(uint8_t state);
 #endif
 
 /*******************************************************************************
@@ -1152,7 +1152,7 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
         if (list_length(p_scbi->a2d_list) > p_bta_av_cfg->audio_mqs) {
             // Drop the oldest packet
             bta_av_co_audio_drop(p_scbi->hndl);
-            BT_HDR *p_buf_drop = list_front(p_scbi->a2d_list);
+            BT_HDR *p_buf_drop = static_cast<BT_HDR *>(list_front(p_scbi->a2d_list));
             list_remove(p_scbi->a2d_list, p_buf_drop);
             osi_free(p_buf_drop);
         }
@@ -1260,7 +1260,7 @@ bool bta_av_hdl_event(BT_HDR *p_msg)
 ** Returns          char *
 **
 *******************************************************************************/
-static char *bta_av_st_code(uint8_t state)
+static const char *bta_av_st_code(uint8_t state)
 {
     switch(state)
     {
@@ -1278,7 +1278,7 @@ static char *bta_av_st_code(uint8_t state)
 ** Returns          char *
 **
 *******************************************************************************/
-char *bta_av_evt_code(uint16_t evt_code)
+const char *bta_av_evt_code(uint16_t evt_code)
 {
     switch(evt_code)
     {

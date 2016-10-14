@@ -27,6 +27,10 @@
 #include "features.h"
 #include "version.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
   void (*parse_generic_command_complete)(BT_HDR *response);
 
@@ -103,3 +107,7 @@ const hci_packet_parser_t *hci_packet_parser_get_interface();
 const hci_packet_parser_t *hci_packet_parser_get_test_interface(
   allocator_t *buffer_allocator_interface
 );
+
+#ifdef __cplusplus
+}
+#endif
