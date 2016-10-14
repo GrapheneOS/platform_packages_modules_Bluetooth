@@ -24,6 +24,8 @@
 #ifndef A2D_API_H
 #define A2D_API_H
 
+#include <stddef.h>
+
 #include "osi/include/time.h"
 #include "avdt_api.h"
 #include "sdp_api.h"
