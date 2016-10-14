@@ -157,14 +157,14 @@ TEST(StackA2dpTest, test_init_default_codec) {
 TEST(StackA2dpTest, test_set_codec) {
   uint8_t codec_info_result[AVDT_CODEC_SIZE];
 
-  const tA2D_AV_MEDIA_FEEDINGS feeding = {
+  const tA2D_FEEDING_PARAMS feeding_params = {
       .sampling_freq = 44100,
       .num_channel = 2,
       .bit_per_sample = 16
   };
-  tA2D_AV_MEDIA_FEEDINGS bad_feeding;
+  tA2D_FEEDING_PARAMS bad_feeding_params;
 
-  EXPECT_TRUE(A2D_SetCodec(&feeding, codec_info_result));
+  EXPECT_TRUE(A2D_SetCodec(&feeding_params, codec_info_result));
 
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
@@ -172,19 +172,19 @@ TEST(StackA2dpTest, test_set_codec) {
   }
 
   // Test invalid feeding - invalid num_channel
-  bad_feeding = feeding;
-  bad_feeding.num_channel = 3;
-  EXPECT_FALSE(A2D_SetCodec(&bad_feeding, codec_info_result));
+  bad_feeding_params = feeding_params;
+  bad_feeding_params.num_channel = 3;
+  EXPECT_FALSE(A2D_SetCodec(&bad_feeding_params, codec_info_result));
 
   // Test invalid feeding - invalid bit_per_sample
-  bad_feeding = feeding;
-  bad_feeding.bit_per_sample = 7;
-  EXPECT_FALSE(A2D_SetCodec(&bad_feeding, codec_info_result));
+  bad_feeding_params = feeding_params;
+  bad_feeding_params.bit_per_sample = 7;
+  EXPECT_FALSE(A2D_SetCodec(&bad_feeding_params, codec_info_result));
 
   // Test invalid feeding - invalid sampling_freq
-  bad_feeding = feeding;
-  bad_feeding.sampling_freq = 7999;
-  EXPECT_FALSE(A2D_SetCodec(&bad_feeding, codec_info_result));
+  bad_feeding_params = feeding_params;
+  bad_feeding_params.sampling_freq = 7999;
+  EXPECT_FALSE(A2D_SetCodec(&bad_feeding_params, codec_info_result));
 }
 
 TEST(StackA2dpTest, test_build_src2sink_config) {
