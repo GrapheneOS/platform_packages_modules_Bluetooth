@@ -20,6 +20,7 @@
 #define LOG_TAG "a2d_sbc_encoder"
 
 #include <assert.h>
+#include <stdio.h>
 
 #include "bt_target.h"
 #include "bt_common.h"
@@ -30,6 +31,13 @@
 #include "avdt_api.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
+#include "osi/include/time.h"
+
+#define STATS_UPDATE_MAX(current_value_storage, new_value) \
+do { \
+    if ((new_value) > (current_value_storage)) \
+        (current_value_storage) = (new_value); \
+} while (0)
 
 /* Buffer pool */
 #define A2D_SBC_BUFFER_SIZE  BT_DEFAULT_BUFFER_SIZE
@@ -79,6 +87,18 @@ typedef struct {
 } tA2D_FEEDING_STATE;
 
 typedef struct {
+    uint64_t session_start_us;
+
+    size_t media_read_total_expected_frames;
+    size_t media_read_max_expected_frames;
+    size_t media_read_expected_count;
+
+    size_t media_read_total_limited_frames;
+    size_t media_read_max_limited_frames;
+    size_t media_read_limited_count;
+} a2d_sbc_encoder_stats_t;
+
+typedef struct {
     a2d_source_read_callback_t read_callback;
     a2d_source_enqueue_callback_t enqueue_callback;
     uint16_t TxAaMtuSize;
@@ -89,6 +109,8 @@ typedef struct {
     SBC_ENC_PARAMS sbc_encoder_params;
     tA2D_FEEDING_PARAMS feeding_params;
     tA2D_FEEDING_STATE feeding_state;
+
+    a2d_sbc_encoder_stats_t stats;
 } tA2D_SBC_ENCODER_CB;
 
 static tA2D_SBC_ENCODER_CB a2d_sbc_encoder_cb;
@@ -110,6 +132,8 @@ void a2d_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
     SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
 
     memset(&a2d_sbc_encoder_cb, 0, sizeof(a2d_sbc_encoder_cb));
+
+    a2d_sbc_encoder_cb.stats.session_start_us = time_get_os_boottime_us();
 
     a2d_sbc_encoder_cb.read_callback = read_callback;
     a2d_sbc_encoder_cb.enqueue_callback = enqueue_callback;
@@ -457,11 +481,25 @@ static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
         us_this_tick / (A2D_SBC_ENCODER_INTERVAL_MS * 1000);
 
     /* Calculate the number of frames pending for this media tick */
-    projected_nof = a2d_sbc_encoder_cb.feeding_state.counter / pcm_bytes_per_frame;
+    projected_nof =
+        a2d_sbc_encoder_cb.feeding_state.counter / pcm_bytes_per_frame;
+    // Update the stats
+    STATS_UPDATE_MAX(a2d_sbc_encoder_cb.stats.media_read_max_expected_frames,
+                     projected_nof);
+    a2d_sbc_encoder_cb.stats.media_read_total_expected_frames += projected_nof;
+    a2d_sbc_encoder_cb.stats.media_read_expected_count++;
 
     if (projected_nof > MAX_PCM_FRAME_NUM_PER_TICK) {
         LOG_WARN(LOG_TAG, "%s: limiting frames to be sent from %d to %d",
                  __func__, projected_nof, MAX_PCM_FRAME_NUM_PER_TICK);
+
+        // Update the stats
+        size_t delta = projected_nof - MAX_PCM_FRAME_NUM_PER_TICK;
+        a2d_sbc_encoder_cb.stats.media_read_limited_count++;
+        a2d_sbc_encoder_cb.stats.media_read_total_limited_frames += delta;
+        STATS_UPDATE_MAX(a2d_sbc_encoder_cb.stats.media_read_max_limited_frames,
+                         delta);
+
         projected_nof = MAX_PCM_FRAME_NUM_PER_TICK;
     }
 
@@ -877,4 +915,36 @@ static uint32_t a2d_sbc_frame_length(void)
     LOG_VERBOSE(LOG_TAG, "%s: calculated frame length: %d",
                 __func__, frame_len);
     return frame_len;
+}
+
+void a2d_sbc_debug_codec_dump(int fd)
+{
+    a2d_sbc_encoder_stats_t *stats = &a2d_sbc_encoder_cb.stats;
+    size_t ave_size;
+
+    dprintf(fd, "\nA2DP SBC State:\n");
+
+    ave_size = 0;
+    if (stats->media_read_expected_count != 0) {
+        ave_size = stats->media_read_total_expected_frames /
+            stats->media_read_expected_count;
+    }
+    dprintf(fd, "  Frames expected (total/max/ave)                         : %zu / %zu / %zu\n",
+            stats->media_read_total_expected_frames,
+            stats->media_read_max_expected_frames,
+            ave_size);
+
+    ave_size = 0;
+    if (stats->media_read_limited_count != 0) {
+        ave_size = stats->media_read_total_limited_frames /
+            stats->media_read_limited_count;
+    }
+    dprintf(fd, "  Frames limited (total/max/ave)                          : %zu / %zu / %zu\n",
+            stats->media_read_total_limited_frames,
+            stats->media_read_max_limited_frames,
+            ave_size);
+
+    dprintf(fd, "  Counts (expected/limited)                               : %zu / %zu\n",
+            stats->media_read_expected_count,
+            stats->media_read_limited_count);
 }

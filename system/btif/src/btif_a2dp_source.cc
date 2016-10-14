@@ -940,6 +940,12 @@ void btif_a2dp_source_debug_dump(int fd)
             (unsigned long long)dequeue_stats->max_premature_scheduling_delta_us / 1000,
             (unsigned long long)ave_time_us / 1000);
 
+
+    //
+    // Codec-specific stats
+    //
+    if (btif_a2dp_source_cb.encoder_interface != NULL)
+        btif_a2dp_source_cb.encoder_interface->debug_codec_dump(fd);
 }
 
 void btif_a2dp_source_update_metrics(void)
