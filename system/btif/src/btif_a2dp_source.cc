@@ -20,6 +20,7 @@
 #define LOG_TAG "bt_btif_a2dp_source"
 
 #include <assert.h>
+#include <limits.h>
 #include <system/audio.h>
 
 #include "audio_a2dp_hw.h"
