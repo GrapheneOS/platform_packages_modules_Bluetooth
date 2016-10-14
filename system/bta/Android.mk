@@ -79,7 +79,6 @@ LOCAL_SRC_FILES:= \
     ./av/bta_av_main.c \
     ./av/bta_av_cfg.c \
     ./av/bta_av_ssm.c \
-    ./av/bta_av_sbc.c \
     ./ar/bta_ar.c \
     ./hl/bta_hl_act.c \
     ./hl/bta_hl_api.c \
