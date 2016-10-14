@@ -20,6 +20,10 @@
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct hci_t hci_t;
 
 typedef struct hci_inject_t {
@@ -32,3 +36,7 @@ typedef struct hci_inject_t {
 } hci_inject_t;
 
 const hci_inject_t *hci_inject_get_interface();
+
+#ifdef __cplusplus
+}
+#endif

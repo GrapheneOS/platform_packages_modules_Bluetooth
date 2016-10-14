@@ -27,6 +27,10 @@
 #include "osi/include/osi.h"
 #include "bt_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char HCI_MODULE[] = "hci_module";
 
 ///// LEGACY DEFINITIONS /////
@@ -112,3 +116,7 @@ const hci_t *hci_layer_get_test_interface(
     const low_power_manager_t *low_power_manager_interface);
 
 void hci_layer_cleanup_interface();
+
+#ifdef __cplusplus
+}
+#endif

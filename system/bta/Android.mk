@@ -72,13 +72,13 @@ LOCAL_SRC_FILES:= \
     ./pan/bta_pan_ci.c \
     ./pan/bta_pan_act.c \
     ./pan/bta_pan_api.c \
-    ./av/bta_av_act.c \
-    ./av/bta_av_ci.c \
-    ./av/bta_av_api.c \
-    ./av/bta_av_aact.c \
-    ./av/bta_av_main.c \
-    ./av/bta_av_cfg.c \
-    ./av/bta_av_ssm.c \
+    ./av/bta_av_aact.cc \
+    ./av/bta_av_act.cc \
+    ./av/bta_av_api.cc \
+    ./av/bta_av_cfg.cc \
+    ./av/bta_av_ci.cc \
+    ./av/bta_av_main.cc \
+    ./av/bta_av_ssm.cc \
     ./ar/bta_ar.c \
     ./hl/bta_hl_act.c \
     ./hl/bta_hl_api.c \

@@ -20,6 +20,10 @@
 
 #include "hci_layer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct thread_t thread_t;
 typedef struct vendor_t vendor_t;
 
@@ -45,3 +49,7 @@ typedef struct low_power_manager_t {
 
 const low_power_manager_t *low_power_manager_get_interface();
 const low_power_manager_t *low_power_manager_get_test_interface(const vendor_t *vendor_interface);
+
+#ifdef __cplusplus
+}
+#endif

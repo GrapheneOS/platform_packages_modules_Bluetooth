@@ -240,8 +240,9 @@ void bta_ar_dereg_avct(tBTA_SYS_ID sys_id)
 ** Returns          void
 **
 ******************************************************************************/
-void bta_ar_reg_avrc(uint16_t service_uuid, char *service_name, char *provider_name,
-                     uint16_t categories, tBTA_SYS_ID sys_id, bool browse_supported,
+void bta_ar_reg_avrc(uint16_t service_uuid, const char *service_name,
+                     const char *provider_name, uint16_t categories,
+                     tBTA_SYS_ID sys_id, bool browse_supported,
                      uint16_t profile_version)
 {
     uint8_t   mask = bta_ar_id (sys_id);

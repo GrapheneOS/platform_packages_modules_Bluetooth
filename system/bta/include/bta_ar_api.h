@@ -33,6 +33,10 @@
 #include "bta_av_api.h"
 #include "bta_sys.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -118,9 +122,10 @@ extern void bta_ar_dereg_avct(tBTA_SYS_ID sys_id);
 ** Returns          void
 **
 ******************************************************************************/
-extern void bta_ar_reg_avrc(uint16_t service_uuid, char *p_service_name,
-                            char *p_provider_name, uint16_t categories, tBTA_SYS_ID sys_id,
-                            bool browse_supported, uint16_t profile_version);
+extern void bta_ar_reg_avrc(uint16_t service_uuid, const char *p_service_name,
+                            const char *p_provider_name, uint16_t categories,
+                            tBTA_SYS_ID sys_id, bool browse_supported,
+                            uint16_t profile_version);
 
 /******************************************************************************
 **
