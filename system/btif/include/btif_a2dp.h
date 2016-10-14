@@ -28,14 +28,6 @@
 extern "C" {
 #endif
 
-//
-// |MAX_PCM_FRAME_NUM_PER_TICK| controls how many buffers we can hold in
-// the A2DP buffer queues during temporary link congestion.
-//
-#ifndef MAX_PCM_FRAME_NUM_PER_TICK
-#define MAX_PCM_FRAME_NUM_PER_TICK     14
-#endif
-
 // Process 'idle' request from the BTIF state machine during initialization.
 void btif_a2dp_on_idle(void);
 

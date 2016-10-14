@@ -28,26 +28,6 @@
 extern "C" {
 #endif
 
-// A2DP Source media timer in milliseconds.
-#define BTIF_A2DP_SOURCE_MEDIA_TIMER_MS         20
-
-typedef struct {
-    BT_HDR hdr;
-    uint16_t SamplingFreq;      /* 16k, 32k, 44.1k or 48k */
-    uint8_t ChannelMode;        /* mono, dual, stereo or joint stereo */
-    uint8_t NumOfSubBands;      /* 4 or 8 */
-    uint8_t NumOfBlocks;        /* 4, 8, 12 or 16 */
-    uint8_t AllocationMethod;   /* loudness or SNR */
-    uint16_t MtuSize;           /* peer mtu size */
-} tBTIF_A2DP_SOURCE_INIT_AUDIO;
-
-typedef struct {
-    BT_HDR hdr;
-    uint16_t MinMtuSize;        /* Minimum peer mtu size */
-    uint8_t MaxBitPool;         /* Maximum peer bitpool */
-    uint8_t MinBitPool;         /* Minimum peer bitpool */
-} tBTIF_A2DP_SOURCE_UPDATE_AUDIO;
-
 // Initialize and startup the A2DP Source module.
 // This function should be called by the BTIF state machine prior to using the
 // module.
@@ -74,10 +54,10 @@ bool btif_a2dp_source_is_streaming(void);
 void btif_a2dp_source_setup_codec(void);
 
 // Process a request to start the A2DP audio encoding task.
-void btif_a2dp_source_start_aa_req(void);
+void btif_a2dp_source_start_audio_req(void);
 
 // Process a request to stop the A2DP audio encoding task.
-void btif_a2dp_source_stop_aa_req(void);
+void btif_a2dp_source_stop_audio_req(void);
 
 // Process 'idle' request from the BTIF state machine during initialization.
 void btif_a2dp_source_on_idle(void);
@@ -102,7 +82,7 @@ void btif_a2dp_source_encoder_update(void);
 
 // Get the next A2DP buffer to send.
 // Returns the next A2DP buffer to send if available, otherwise NULL.
-BT_HDR *btif_a2dp_source_aa_readbuf(void);
+BT_HDR *btif_a2dp_source_audio_readbuf(void);
 
 // Dump debug-related information for the A2DP Source module.
 // |fd| is the file descriptor to use for writing the ASCII formatted

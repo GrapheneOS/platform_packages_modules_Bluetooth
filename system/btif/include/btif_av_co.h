@@ -46,15 +46,23 @@ extern "C" {
  ** Returns          true if successful, false otherwise
  **
  *******************************************************************************/
-bool bta_av_co_audio_set_codec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding);
+bool bta_av_co_audio_set_codec(const tA2D_FEEDING_PARAMS *p_feeding_params);
 
 // Prepares a message to initialize the encoder. The prepared message is
-// stored in |msg|.
-void bta_av_co_audio_encoder_init(tBTIF_A2DP_SOURCE_INIT_AUDIO *msg);
+// stored in |p_init_params|.
+// |p_init_params| cannot be null.
+void bta_av_co_audio_encoder_init(tA2D_ENCODER_INIT_PARAMS *p_init_params);
 
 // Prepares a message to update the encoder. The prepared message is
-// stored in |msg|.
-void bta_av_co_audio_encoder_update(tBTIF_A2DP_SOURCE_UPDATE_AUDIO *msg);
+// stored in |p_update_params|.
+// |p_update_params| cannot be null.
+void bta_av_co_audio_encoder_update(tA2D_ENCODER_UPDATE_PARAMS *p_update_params);
+
+// Gets the current A2DP encoder interface that can be used to encode and
+// prepare A2DP packets for transmission - see |tA2D_ENCODER_INTERFACE|.
+// Returns the A2DP encoder interface if the current codec is setup,
+// otherwise NULL.
+const tA2D_ENCODER_INTERFACE *bta_av_co_get_encoder_interface(void);
 
 /*******************************************************************************
  **

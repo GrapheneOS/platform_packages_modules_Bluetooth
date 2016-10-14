@@ -70,7 +70,7 @@ static void a2d_sdp_cback(uint16_t status)
     tA2D_Service        a2d_svc;
     tSDP_PROTOCOL_ELEM  elem;
 
-    LOG_DEBUG(LOG_TAG, "%s: status: %d", __func__, status);
+    LOG_VERBOSE(LOG_TAG, "%s: status: %d", __func__, status);
 
     if (status == SDP_SUCCESS)
     {
@@ -112,7 +112,8 @@ static void a2d_sdp_cback(uint16_t status)
             if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_AVDTP, &elem))
             {
                 a2d_svc.avdt_version = elem.params[0];
-                LOG_DEBUG(LOG_TAG, "avdt_version: 0x%x", a2d_svc.avdt_version);
+                LOG_VERBOSE(LOG_TAG, "avdt_version: 0x%x",
+                            a2d_svc.avdt_version);
             }
 
             /* we've got everything, we're done */
@@ -187,7 +188,7 @@ tA2D_STATUS A2D_AddRecord(uint16_t service_uuid, char *p_service_name, char *p_p
     uint8_t     *p;
     tSDP_PROTOCOL_ELEM  proto_list [A2D_NUM_PROTO_ELEMS];
 
-    LOG_DEBUG(LOG_TAG, "%s: uuid: 0x%x", __func__, service_uuid);
+    LOG_VERBOSE(LOG_TAG, "%s: uuid: 0x%x", __func__, service_uuid);
 
     if( (sdp_handle == 0) ||
         (service_uuid != UUID_SERVCLASS_AUDIO_SOURCE && service_uuid != UUID_SERVCLASS_AUDIO_SINK) )
@@ -289,7 +290,7 @@ tA2D_STATUS A2D_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                                    ATTR_ID_PROTOCOL_DESC_LIST,
                                    ATTR_ID_PROVIDER_NAME};
 
-    LOG_DEBUG(LOG_TAG, "%s: uuid: 0x%x", __func__, service_uuid);
+    LOG_VERBOSE(LOG_TAG, "%s: uuid: 0x%x", __func__, service_uuid);
     if( (service_uuid != UUID_SERVCLASS_AUDIO_SOURCE && service_uuid != UUID_SERVCLASS_AUDIO_SINK) ||
         p_db == NULL || p_cback == NULL)
         return A2D_INVALID_PARAMS;
@@ -416,7 +417,7 @@ bool A2D_IsSourceCodecValid(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -434,7 +435,7 @@ bool A2D_IsSinkCodecValid(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -452,7 +453,7 @@ bool A2D_IsPeerSourceCodecValid(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -470,7 +471,7 @@ bool A2D_IsPeerSinkCodecValid(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -488,7 +489,7 @@ bool A2D_IsSourceCodecSupported(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -508,7 +509,7 @@ bool A2D_IsSinkCodecSupported(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -528,7 +529,7 @@ bool A2D_IsPeerSourceCodecSupported(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -549,11 +550,11 @@ void A2D_InitDefaultCodec(uint8_t *p_codec_info)
     A2D_InitDefaultCodecSbc(p_codec_info);
 }
 
-bool A2D_SetCodec(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
+bool A2D_SetCodec(const tA2D_FEEDING_PARAMS *p_feeding_params,
                   uint8_t *p_codec_info)
 {
     // TODO: Needs to support vendor-specific codecs as well.
-    return A2D_SetCodecSbc(p_feeding, p_codec_info);
+    return A2D_SetCodecSbc(p_feeding_params, p_codec_info);
 }
 
 tA2D_STATUS A2D_BuildSrc2SinkConfig(const uint8_t *p_src_cap,
@@ -561,7 +562,7 @@ tA2D_STATUS A2D_BuildSrc2SinkConfig(const uint8_t *p_src_cap,
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_src_cap);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -586,7 +587,7 @@ tA2D_STATUS A2D_BuildSinkConfig(const uint8_t *p_src_config,
     if (codec_type != A2D_GetCodecType(p_sink_cap))
         return A2D_FAIL;
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -632,8 +633,8 @@ const char *A2D_CodecSepIndexStr(tA2D_CODEC_SEP_INDEX codec_sep_index)
 bool A2D_InitCodecConfig(tA2D_CODEC_SEP_INDEX codec_sep_index,
                          tAVDT_CFG *p_cfg)
 {
-    LOG_DEBUG(LOG_TAG, "%s: codec %s", __func__,
-              A2D_CodecSepIndexStr(codec_sep_index));
+    LOG_VERBOSE(LOG_TAG, "%s: codec %s", __func__,
+                A2D_CodecSepIndexStr(codec_sep_index));
 
     /* Default: no content protection info */
     p_cfg->num_protect = 0;
@@ -661,7 +662,7 @@ const char *A2D_CodecName(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -775,7 +776,7 @@ int A2D_GetTrackFrequency(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -795,7 +796,7 @@ int A2D_GetTrackChannelCount(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -815,7 +816,7 @@ int A2D_GetNumberOfSubbands(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -835,7 +836,7 @@ int A2D_GetNumberOfBlocks(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -855,7 +856,7 @@ int A2D_GetAllocationMethodCode(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -875,7 +876,7 @@ int A2D_GetChannelModeCode(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -895,7 +896,7 @@ int A2D_GetSamplingFrequencyCode(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -915,7 +916,7 @@ int A2D_GetMinBitpool(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -935,7 +936,7 @@ int A2D_GetMaxBitpool(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -955,7 +956,7 @@ int A2D_GetSinkTrackChannelType(const uint8_t *p_codec_info)
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -976,7 +977,7 @@ int A2D_GetSinkFramesCountToProcess(uint64_t time_interval_ms,
 {
     tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
 
-    LOG_DEBUG(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
     switch (codec_type) {
     case A2D_MEDIA_CT_SBC:
@@ -1031,4 +1032,25 @@ bool A2D_BuildCodecHeader(const uint8_t *p_codec_info,
     LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
               codec_type);
     return false;
+}
+
+const tA2D_ENCODER_INTERFACE *A2D_GetEncoderInterface(
+    const uint8_t *p_codec_info)
+{
+    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_codec_info);
+
+    LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+    switch (codec_type) {
+    case A2D_MEDIA_CT_SBC:
+        return A2D_GetEncoderInterfaceSbc(p_codec_info);
+    case A2D_MEDIA_CT_NON_A2DP:
+        return A2D_VendorGetEncoderInterface(p_codec_info);
+    default:
+        break;
+    }
+
+    LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__,
+              codec_type);
+    return NULL;
 }

@@ -40,7 +40,7 @@ extern "C" {
 typedef enum {
   BTIF_A2DP_SINK_FOCUS_NOT_GRANTED = 0,
   BTIF_A2DP_SINK_FOCUS_GRANTED = 1
-} btif_a2dp_sink_audio_focus_state_t;
+} btif_a2dp_sink_focus_state_t;
 
 // Initialize and startup the A2DP Sink module.
 // This function should be called by the BTIF state machine prior to using the
@@ -97,9 +97,9 @@ void btif_a2dp_sink_debug_dump(int fd);
 void btif_a2dp_sink_update_metrics(void);
 
 // Create a request to set the audio focus state for the audio track.
-// |state| is the new state value - see |btif_a2dp_sink_audio_focus_state_t|
+// |state| is the new state value - see |btif_a2dp_sink_focus_state_t|
 // for valid values.
-void btif_a2dp_sink_set_audio_focus_state_req(btif_a2dp_sink_audio_focus_state_t state);
+void btif_a2dp_sink_set_focus_state_req(btif_a2dp_sink_focus_state_t state);
 
 // Set the audio track gain for the audio track.
 // |gain| is the audio track gain value to use.
