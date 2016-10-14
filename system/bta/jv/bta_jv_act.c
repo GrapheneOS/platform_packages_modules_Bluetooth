@@ -2026,29 +2026,36 @@ void bta_jv_rfcomm_write(tBTA_JV_MSG *p_data)
     tBTA_JV_API_RFCOMM_WRITE *wc = &(p_data->rfcomm_write);
     tBTA_JV_RFC_CB  *p_cb = wc->p_cb;
     tBTA_JV_PCB     *p_pcb = wc->p_pcb;
-    tBTA_JV_RFCOMM_WRITE    evt_data;
 
+    if (p_pcb->state == BTA_JV_ST_NONE) {
+        APPL_TRACE_ERROR("%s in state BTA_JV_ST_NONE - cannot write", __func__);
+        return;
+    }
+
+    tBTA_JV_RFCOMM_WRITE evt_data;
     evt_data.status = BTA_JV_FAILURE;
     evt_data.handle = p_cb->handle;
     evt_data.req_id = wc->req_id;
     evt_data.cong   = p_pcb->cong;
     evt_data.len    = 0;
+  
     bta_jv_pm_conn_busy(p_pcb->p_pm_cb);
+  
     if (!evt_data.cong &&
         PORT_WriteDataCO(p_pcb->port_handle, &evt_data.len) ==
         PORT_SUCCESS)
     {
         evt_data.status = BTA_JV_SUCCESS;
     }
-    //update congestion flag
+  
+    // Update congestion flag
     evt_data.cong   = p_pcb->cong;
+  
     if (p_cb->p_cback)
     {
         p_cb->p_cback(BTA_JV_RFCOMM_WRITE_EVT, (tBTA_JV *)&evt_data, p_pcb->user_data);
-    }
-    else
-    {
-        APPL_TRACE_ERROR("bta_jv_rfcomm_write :: WARNING ! No JV callback set");
+    } else {
+        APPL_TRACE_ERROR("%s No JV callback set", __func__);
     }
 }
 
