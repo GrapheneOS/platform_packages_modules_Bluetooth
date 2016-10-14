@@ -1115,7 +1115,8 @@ void bta_jv_l2cap_connect(tBTA_JV_MSG *p_data)
     }
 
     evt_data.handle = handle;
-    cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, (tBTA_JV *)&evt_data, cc->user_data);
+    if(cc->p_cback)
+        cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, (tBTA_JV *)&evt_data, cc->user_data);
 }
 
 
@@ -1280,7 +1281,8 @@ void bta_jv_l2cap_start_server(tBTA_JV_MSG *p_data)
         p_cb->psm = ls->local_psm;
     }
 
-    ls->p_cback(BTA_JV_L2CAP_START_EVT, (tBTA_JV *)&evt_data, ls->user_data);
+    if(ls->p_cback)
+        ls->p_cback(BTA_JV_L2CAP_START_EVT, (tBTA_JV *)&evt_data, ls->user_data);
 }
 
 /*******************************************************************************
@@ -1309,7 +1311,8 @@ void bta_jv_l2cap_stop_server(tBTA_JV_MSG *p_data)
             evt_data.handle = p_cb->handle;
             evt_data.status = bta_jv_free_l2c_cb(p_cb);
             evt_data.async = false;
-            p_cback(BTA_JV_L2CAP_CLOSE_EVT, (tBTA_JV *)&evt_data, user_data);
+            if(p_cback)
+                p_cback(BTA_JV_L2CAP_CLOSE_EVT, (tBTA_JV *)&evt_data, user_data);
             break;
         }
     }
