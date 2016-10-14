@@ -149,7 +149,13 @@ static inline int create_server_socket(const char* name)
 
     BTIF_TRACE_EVENT("create_server_socket %s", name);
 
-    if(osi_socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) < 0)
+    if(osi_socket_local_server_bind(s, name,
+#if defined(OS_GENERIC)
+        ANDROID_SOCKET_NAMESPACE_FILESYSTEM
+#else  // !defined(OS_GENERIC)
+        ANDROID_SOCKET_NAMESPACE_ABSTRACT
+#endif  // defined(OS_GENERIC)
+        ) < 0)
     {
         BTIF_TRACE_EVENT("socket failed to create (%s)", strerror(errno));
         close(s);
