@@ -46,7 +46,7 @@ extern "C" {
 **
 *******************************************************************************/
 void a2dp_sbc_init_up_sample(uint32_t src_sps, uint32_t dst_sps, uint8_t bits,
-                            uint8_t n_channels);
+                             uint8_t n_channels);
 
 /*******************************************************************************
 **
@@ -54,7 +54,8 @@ void a2dp_sbc_init_up_sample(uint32_t src_sps, uint32_t dst_sps, uint8_t bits,
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
-**                  This function converts it to audio data in the desired format
+**                  This function converts it to audio data in the desired
+**                  format
 **
 **                  p_src: the data buffer that holds the source audio data
 **                  p_dst: the data buffer to hold the converted audio data
@@ -73,8 +74,8 @@ void a2dp_sbc_init_up_sample(uint32_t src_sps, uint32_t dst_sps, uint8_t bits,
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2dp_sbc_up_sample(void *p_src, void *p_dst, uint32_t src_samples,
-                      uint32_t dst_samples, uint32_t *p_ret);
+int a2dp_sbc_up_sample(void* p_src, void* p_dst, uint32_t src_samples,
+                       uint32_t dst_samples, uint32_t* p_ret);
 
 /*******************************************************************************
 **
@@ -82,19 +83,21 @@ int a2dp_sbc_up_sample(void *p_src, void *p_dst, uint32_t src_samples,
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
-**                  This function converts it to audio data in the desired format
+**                  This function converts it to audio data in the desired
+**                  format
 **
 **                  p_src: the data buffer that holds the source audio data
 **                  p_dst: the data buffer to hold the converted audio data
-**                  src_samples: The number of source samples (in uint of 4 bytes)
+**                  src_samples: The number of source samples (in uint of 4
+**                               bytes)
 **                  dst_samples: The size of p_dst (in uint of 4 bytes)
 **
 ** Returns          The number of bytes used in p_dst
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2dp_sbc_up_sample_16s(void *p_src, void *p_dst, uint32_t src_samples,
-                          uint32_t dst_samples, uint32_t *p_ret);
+int a2dp_sbc_up_sample_16s(void* p_src, void* p_dst, uint32_t src_samples,
+                           uint32_t dst_samples, uint32_t* p_ret);
 
 /*******************************************************************************
 **
@@ -102,19 +105,21 @@ int a2dp_sbc_up_sample_16s(void *p_src, void *p_dst, uint32_t src_samples,
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
-**                  This function converts it to audio data in the desired format
+**                  This function converts it to audio data in the desired
+**                  format
 **
 **                  p_src: the data buffer that holds the source audio data
 **                  p_dst: the data buffer to hold the converted audio data
-**                  src_samples: The number of source samples (in uint of 2 bytes)
+**                  src_samples: The number of source samples (in uint of 2
+**                               bytes)
 **                  dst_samples: The size of p_dst (in uint of 2 bytes)
 **
 ** Returns          The number of bytes used in p_dst
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2dp_sbc_up_sample_16m(void *p_src, void *p_dst, uint32_t src_samples,
-                          uint32_t dst_samples, uint32_t *p_ret);
+int a2dp_sbc_up_sample_16m(void* p_src, void* p_dst, uint32_t src_samples,
+                           uint32_t dst_samples, uint32_t* p_ret);
 
 /*******************************************************************************
 **
@@ -122,19 +127,21 @@ int a2dp_sbc_up_sample_16m(void *p_src, void *p_dst, uint32_t src_samples,
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
-**                  This function converts it to audio data in the desired format
+**                  This function converts it to audio data in the desired
+**                  format
 **
 **                  p_src: the data buffer that holds the source audio data
 **                  p_dst: the data buffer to hold the converted audio data
-**                  src_samples: The number of source samples (in uint of 2 bytes)
+**                  src_samples: The number of source samples (in uint of 2
+**                               bytes)
 **                  dst_samples: The size of p_dst (in uint of 2 bytes)
 **
 ** Returns          The number of bytes used in p_dst
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2dp_sbc_up_sample_8s(void *p_src, void *p_dst, uint32_t src_samples,
-                         uint32_t dst_samples, uint32_t *p_ret);
+int a2dp_sbc_up_sample_8s(void* p_src, void* p_dst, uint32_t src_samples,
+                          uint32_t dst_samples, uint32_t* p_ret);
 
 /*******************************************************************************
 **
@@ -142,7 +149,8 @@ int a2dp_sbc_up_sample_8s(void *p_src, void *p_dst, uint32_t src_samples,
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
-**                  This function converts it to audio data in the desired format
+**                  This function converts it to audio data in the desired
+**                  format
 **
 **                  p_src: the data buffer that holds the source audio data
 **                  p_dst: the data buffer to hold the converted audio data
@@ -153,8 +161,8 @@ int a2dp_sbc_up_sample_8s(void *p_src, void *p_dst, uint32_t src_samples,
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2dp_sbc_up_sample_8m(void *p_src, void *p_dst, uint32_t src_samples,
-                         uint32_t dst_samples, uint32_t *p_ret);
+int a2dp_sbc_up_sample_8m(void* p_src, void* p_dst, uint32_t src_samples,
+                          uint32_t dst_samples, uint32_t* p_ret);
 
 #ifdef __cplusplus
 }

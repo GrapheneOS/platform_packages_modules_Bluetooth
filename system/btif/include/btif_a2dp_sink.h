@@ -60,7 +60,7 @@ uint8_t btif_a2dp_sink_get_channel_count(void);
 
 // Update the decoder for the A2DP Sink module.
 // |p_codec_info| contains the new codec information.
-void btif_a2dp_sink_update_decoder(const uint8_t *p_codec_info);
+void btif_a2dp_sink_update_decoder(const uint8_t* p_codec_info);
 
 // Process 'idle' request from the BTIF state machine during initialization.
 void btif_a2dp_sink_on_idle(void);
@@ -68,13 +68,13 @@ void btif_a2dp_sink_on_idle(void);
 // Process 'stop' request from the BTIF state machine to stop A2DP streaming.
 // |p_av_suspend| is the data associated with the request - see
 // |tBTA_AV_SUSPEND|.
-void btif_a2dp_sink_on_stopped(tBTA_AV_SUSPEND *p_av_suspend);
+void btif_a2dp_sink_on_stopped(tBTA_AV_SUSPEND* p_av_suspend);
 
 // Process 'suspend' request from the BTIF state machine to suspend A2DP
 // streaming.
 // |p_av_suspend| is the data associated with the request - see
 // |tBTA_AV_SUSPEND|.
-void btif_a2dp_sink_on_suspended(tBTA_AV_SUSPEND *p_av_suspend);
+void btif_a2dp_sink_on_suspended(tBTA_AV_SUSPEND* p_av_suspend);
 
 // Enable/disable discarding of received A2DP frames.
 // If |enable| is true, the discarding is enabled, otherwise is disabled.
@@ -85,7 +85,7 @@ void btif_a2dp_sink_set_rx_flush(bool enable);
 // removed from the queue.
 // |p_buf| is the buffer to enqueue.
 // Returns the number of buffers in the Sink queue after the enqueing.
-uint8_t btif_a2dp_sink_enqueue_buf(BT_HDR *p_buf);
+uint8_t btif_a2dp_sink_enqueue_buf(BT_HDR* p_buf);
 
 // Dump debug-related information for the A2DP Sink module.
 // |fd| is the file descriptor to use for writing the ASCII formatted
