@@ -244,9 +244,9 @@ bool    gatt_disconnect (tGATT_TCB *p_tcb)
                 }
                 else
                 {
-                    gatt_set_ch_state(p_tcb, GATT_CH_CLOSING);
                     ret = L2CA_CancelBleConnectReq (p_tcb->peer_bda);
                 }
+                gatt_set_ch_state(p_tcb, GATT_CH_CLOSING);
             }
             else
             {
