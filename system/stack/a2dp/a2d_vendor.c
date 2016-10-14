@@ -381,3 +381,14 @@ bool A2D_VendorBuildCodecHeader(UNUSED_ATTR const uint8_t *p_codec_info,
 
     return false;
 }
+
+const tA2D_ENCODER_INTERFACE *A2D_VendorGetEncoderInterface(
+    const uint8_t *p_codec_info)
+{
+    // uint32_t vendor_id = A2D_VendorCodecGetVendorId(p_codec_info);
+    // uint16_t codec_id = A2D_VendorCodecGetCodecId(p_codec_info);
+
+    // Add checks based on <vendor_id, codec_id>
+
+    return NULL;
+}

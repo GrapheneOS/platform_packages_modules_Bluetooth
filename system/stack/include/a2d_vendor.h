@@ -248,6 +248,14 @@ bool A2D_VendorGetPacketTimestamp(const uint8_t *p_codec_info,
 bool A2D_VendorBuildCodecHeader(const uint8_t *p_codec_info, BT_HDR *p_buf,
                                 uint16_t frames_per_packet);
 
+// Gets the A2DP vendor encoder interface that can be used to encode and
+// prepare A2DP packets for transmission - see |tA2D_ENCODER_INTERFACE|.
+// |p_codec_info| contains the codec information.
+// Returns the A2DP vendor encoder interface if the |p_codec_info| is valid and
+// supported, otherwise NULL.
+const tA2D_ENCODER_INTERFACE *A2D_VendorGetEncoderInterface(
+    const uint8_t *p_codec_info);
+
 #ifdef __cplusplus
 }
 #endif

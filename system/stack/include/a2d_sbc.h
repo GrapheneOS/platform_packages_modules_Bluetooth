@@ -18,11 +18,14 @@
 
 /******************************************************************************
  *
- *  nterface to low complexity subband codec (SBC)
+ *  Interface to low complexity subband codec (SBC)
  *
  ******************************************************************************/
 #ifndef A2D_SBC_H
 #define A2D_SBC_H
+
+#include "avdt_api.h"
+#include "a2d_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -165,10 +168,11 @@ bool A2D_IsPeerSourceCodecSupportedSbc(const uint8_t *p_codec_info);
 // |p_codec_info|.
 void A2D_InitDefaultCodecSbc(uint8_t *p_codec_info);
 
-// Sets A2DB SBC codec state based on the feeding information from |p_feeding|.
+// Sets A2DB SBC codec state based on the feeding information from
+// |p_feeding_params|.
 // The state with the codec capabilities is stored in |p_codec_info|.
 // Returns true on success, otherwise false.
-bool A2D_SetCodecSbc(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
+bool A2D_SetCodecSbc(const tA2D_FEEDING_PARAMS *p_feeding_params,
                      uint8_t *p_codec_info);
 
 // Builds A2DP preferred SBC Sink capability from SBC Source capability.
@@ -313,6 +317,14 @@ bool A2D_BuildCodecHeaderSbc(const uint8_t *p_codec_info, BT_HDR *p_buf,
 // Decodes and displays SBC codec info (for debugging).
 // |p_codec_info| is a pointer to the SBC codec_info to decode and display.
 void A2D_DumpCodecInfoSbc(const uint8_t *p_codec_info);
+
+// Gets the A2DP SBC encoder interface that can be used to encode and prepare
+// A2DP packets for transmission - see |tA2D_ENCODER_INTERFACE|.
+// |p_codec_info| contains the codec information.
+// Returns the A2DP SBC encoder interface if the |p_codec_info| is valid and
+// supported, otherwise NULL.
+const tA2D_ENCODER_INTERFACE *A2D_GetEncoderInterfaceSbc(
+    const uint8_t *p_codec_info);
 
 #ifdef __cplusplus
 }

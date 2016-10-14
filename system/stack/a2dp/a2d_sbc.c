@@ -31,6 +31,7 @@
 #include "a2d_api.h"
 #include "a2d_int.h"
 #include "a2d_sbc.h"
+#include "a2d_sbc_encoder.h"
 #include "bt_utils.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
@@ -87,6 +88,17 @@ const tA2D_SBC_CIE a2d_sbc_default_config =
     A2D_SBC_IE_ALLOC_MD_L,              /* alloc_method */
     A2D_SBC_IE_MIN_BITPOOL,             /* min_bitpool */
     A2D_SBC_MAX_BITPOOL                 /* max_bitpool */
+};
+
+static const tA2D_ENCODER_INTERFACE a2d_encoder_interface_sbc = {
+    a2d_sbc_encoder_init,
+    a2d_sbc_encoder_update,
+    a2d_sbc_encoder_cleanup,
+    a2d_sbc_feeding_init,
+    a2d_sbc_feeding_reset,
+    a2d_sbc_feeding_flush,
+    a2d_sbc_get_encoder_interval_ms,
+    a2d_sbc_send_frames
 };
 
 static tA2D_STATUS A2D_CodecInfoMatchesCapabilitySbc(
@@ -367,30 +379,31 @@ void A2D_InitDefaultCodecSbc(uint8_t *p_codec_info)
     }
 }
 
-bool A2D_SetCodecSbc(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
+bool A2D_SetCodecSbc(const tA2D_FEEDING_PARAMS *p_feeding_params,
                      uint8_t *p_codec_info)
 {
     tA2D_SBC_CIE sbc_config = a2d_sbc_default_config;
 
-    LOG_DEBUG(LOG_TAG, "%s", __func__);
+    LOG_VERBOSE(LOG_TAG, "%s", __func__);
 
     /* Check the number of channels */
-    if ((p_feeding->num_channel != 1) && (p_feeding->num_channel != 2)) {
+    if ((p_feeding_params->num_channel != 1) &&
+        (p_feeding_params->num_channel != 2)) {
         LOG_ERROR(LOG_TAG, "%s: Unsupported PCM channel number %d",
-                  __func__, p_feeding->num_channel);
+                  __func__, p_feeding_params->num_channel);
         return false;
     }
 
     /* Check the bits per sample */
-    if ((p_feeding->bit_per_sample != 8) &&
-        (p_feeding->bit_per_sample != 16)) {
+    if ((p_feeding_params->bit_per_sample != 8) &&
+        (p_feeding_params->bit_per_sample != 16)) {
         LOG_ERROR(LOG_TAG, "%s: Unsupported PCM sample size %d",
-                  __func__, p_feeding->bit_per_sample);
+                  __func__, p_feeding_params->bit_per_sample);
         return false;
     }
 
     /* Check the sampling frequency */
-    switch (p_feeding->sampling_freq) {
+    switch (p_feeding_params->sampling_freq) {
     case 8000:
     case 12000:
     case 16000:
@@ -406,7 +419,7 @@ bool A2D_SetCodecSbc(const tA2D_AV_MEDIA_FEEDINGS *p_feeding,
         break;
     default:
         LOG_ERROR(LOG_TAG, "%s: Unsupported PCM sampling frequency %d",
-                  __func__, p_feeding->sampling_freq);
+                  __func__, p_feeding_params->sampling_freq);
         return false;
     }
 
@@ -712,14 +725,14 @@ bool A2D_CodecConfigMatchesCapabilitiesSbc(const uint8_t *p_codec_config,
       (sbc_cie_config.alloc_method & sbc_cie_caps.alloc_method);
 
     LOG_DEBUG(LOG_TAG, "%s: result=%s", __func__, result ? "true" : "false");
-    LOG_DEBUG(LOG_TAG, "%s: config samp_freq=0x%x ch_mode=0x%x block_len=0x%x "
-              "num_subbands=0x%x alloc_method=0x%x",
+    LOG_DEBUG(LOG_TAG, "%s: config samp_freq=0x%x ch_mode=0x%x "
+              "block_len=0x%x num_subbands=0x%x alloc_method=0x%x",
               __func__,
               sbc_cie_config.samp_freq, sbc_cie_config.ch_mode,
               sbc_cie_config.block_len, sbc_cie_config.num_subbands,
               sbc_cie_config.alloc_method);
-    LOG_DEBUG(LOG_TAG, "%s: caps   samp_freq=0x%x ch_mode=0x%x block_len=0x%x "
-              "num_subbands=0x%x alloc_method=0x%x",
+    LOG_DEBUG(LOG_TAG, "%s: caps   samp_freq=0x%x ch_mode=0x%x "
+              "block_len=0x%x num_subbands=0x%x alloc_method=0x%x",
               __func__,
               sbc_cie_caps.samp_freq, sbc_cie_caps.ch_mode,
               sbc_cie_caps.block_len, sbc_cie_caps.num_subbands,
@@ -979,23 +992,23 @@ int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
     // Check the sample frequency
     switch (sbc_cie.samp_freq) {
     case A2D_SBC_IE_SAMP_FREQ_16:
-        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (16000)", __func__,
-                  sbc_cie.samp_freq);
+        LOG_VERBOSE(LOG_TAG, "%s: samp_freq:%d (16000)", __func__,
+                    sbc_cie.samp_freq);
         freq_multiple = 16 * time_interval_ms;
         break;
     case A2D_SBC_IE_SAMP_FREQ_32:
-        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (32000)", __func__,
-                  sbc_cie.samp_freq);
+        LOG_VERBOSE(LOG_TAG, "%s: samp_freq:%d (32000)", __func__,
+                    sbc_cie.samp_freq);
         freq_multiple = 32 * time_interval_ms;
         break;
     case A2D_SBC_IE_SAMP_FREQ_44:
-        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (44100)", __func__,
-                  sbc_cie.samp_freq);
+        LOG_VERBOSE(LOG_TAG, "%s: samp_freq:%d (44100)", __func__,
+                    sbc_cie.samp_freq);
         freq_multiple = (441 * time_interval_ms) / 10;
         break;
     case A2D_SBC_IE_SAMP_FREQ_48:
-        LOG_DEBUG(LOG_TAG, "%s: samp_freq:%d (48000)", __func__,
-                  sbc_cie.samp_freq);
+        LOG_VERBOSE(LOG_TAG, "%s: samp_freq:%d (48000)", __func__,
+                    sbc_cie.samp_freq);
         freq_multiple = 48 * time_interval_ms;
         break;
     default:
@@ -1007,20 +1020,20 @@ int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
     // Check the channel mode
     switch (sbc_cie.ch_mode) {
     case A2D_SBC_IE_CH_MD_MONO:
-        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (Mono)", __func__,
-                  sbc_cie.ch_mode);
+        LOG_VERBOSE(LOG_TAG, "%s: ch_mode:%d (Mono)", __func__,
+                    sbc_cie.ch_mode);
         break;
     case A2D_SBC_IE_CH_MD_DUAL:
-        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (DUAL)", __func__,
-                  sbc_cie.ch_mode);
+        LOG_VERBOSE(LOG_TAG, "%s: ch_mode:%d (DUAL)", __func__,
+                    sbc_cie.ch_mode);
         break;
     case A2D_SBC_IE_CH_MD_STEREO:
-        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (STEREO)", __func__,
-                  sbc_cie.ch_mode);
+        LOG_VERBOSE(LOG_TAG, "%s: ch_mode:%d (STEREO)", __func__,
+                    sbc_cie.ch_mode);
         break;
     case A2D_SBC_IE_CH_MD_JOINT:
-        LOG_DEBUG(LOG_TAG, "%s: ch_mode:%d (JOINT)", __func__,
-                  sbc_cie.ch_mode);
+        LOG_VERBOSE(LOG_TAG, "%s: ch_mode:%d (JOINT)", __func__,
+                    sbc_cie.ch_mode);
         break;
     default:
         LOG_ERROR(LOG_TAG, "%s: unknown channel mode: %d", __func__,
@@ -1031,23 +1044,23 @@ int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
     // Check the block length
     switch (sbc_cie.block_len) {
     case A2D_SBC_IE_BLOCKS_4:
-        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (4)", __func__,
-                  sbc_cie.block_len);
+        LOG_VERBOSE(LOG_TAG, "%s: block_len:%d (4)", __func__,
+                    sbc_cie.block_len);
         num_blocks = 4;
         break;
     case A2D_SBC_IE_BLOCKS_8:
-        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (8)", __func__,
-                  sbc_cie.block_len);
+        LOG_VERBOSE(LOG_TAG, "%s: block_len:%d (8)", __func__,
+                    sbc_cie.block_len);
         num_blocks = 8;
         break;
     case A2D_SBC_IE_BLOCKS_12:
-        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (12)", __func__,
-                  sbc_cie.block_len);
+        LOG_VERBOSE(LOG_TAG, "%s: block_len:%d (12)", __func__,
+                    sbc_cie.block_len);
         num_blocks = 12;
         break;
     case A2D_SBC_IE_BLOCKS_16:
-        LOG_DEBUG(LOG_TAG, "%s: block_len:%d (16)", __func__,
-                  sbc_cie.block_len);
+        LOG_VERBOSE(LOG_TAG, "%s: block_len:%d (16)", __func__,
+                    sbc_cie.block_len);
         num_blocks = 16;
         break;
     default:
@@ -1059,13 +1072,13 @@ int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
     // Check the number of sub-bands
     switch (sbc_cie.num_subbands) {
     case A2D_SBC_IE_SUBBAND_4:
-        LOG_DEBUG(LOG_TAG, "%s: num_subbands:%d (4)", __func__,
-                  sbc_cie.num_subbands);
+        LOG_VERBOSE(LOG_TAG, "%s: num_subbands:%d (4)", __func__,
+                    sbc_cie.num_subbands);
         num_subbands = 4;
         break;
     case A2D_SBC_IE_SUBBAND_8:
-        LOG_DEBUG(LOG_TAG, "%s: num_subbands:%d (8)", __func__,
-                  sbc_cie.num_subbands);
+        LOG_VERBOSE(LOG_TAG, "%s: num_subbands:%d (8)", __func__,
+                    sbc_cie.num_subbands);
         num_subbands = 8;
         break;
     default:
@@ -1077,12 +1090,12 @@ int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
     // Check the allocation method
     switch (sbc_cie.alloc_method) {
     case A2D_SBC_IE_ALLOC_MD_S:
-        LOG_DEBUG(LOG_TAG, "%s: alloc_method:%d (SNR)", __func__,
-                  sbc_cie.alloc_method);
+        LOG_VERBOSE(LOG_TAG, "%s: alloc_method:%d (SNR)", __func__,
+                    sbc_cie.alloc_method);
         break;
     case A2D_SBC_IE_ALLOC_MD_L:
-        LOG_DEBUG(LOG_TAG, "%s: alloc_method:%d (Loudness)", __func__,
-                  sbc_cie.alloc_method);
+        LOG_VERBOSE(LOG_TAG, "%s: alloc_method:%d (Loudness)", __func__,
+                    sbc_cie.alloc_method);
         break;
     default:
         LOG_ERROR(LOG_TAG, "%s: unknown allocation method: %d", __func__,
@@ -1090,8 +1103,8 @@ int A2D_GetSinkFramesCountToProcessSbc(uint64_t time_interval_ms,
         return -1;
     }
 
-    LOG_DEBUG(LOG_TAG, "%s: Bit pool Min:%d Max:%d", __func__,
-              sbc_cie.min_bitpool, sbc_cie.max_bitpool);
+    LOG_VERBOSE(LOG_TAG, "%s: Bit pool Min:%d Max:%d", __func__,
+                sbc_cie.min_bitpool, sbc_cie.max_bitpool);
 
     frames_to_process = ((freq_multiple) / (num_blocks * num_subbands)) + 1;
 
@@ -1186,4 +1199,13 @@ void A2D_DumpCodecInfoSbc(const uint8_t *p_codec_info)
 
     LOG_DEBUG(LOG_TAG, "\tBit pool Min:%d Max:%d", sbc_cie.min_bitpool,
               sbc_cie.max_bitpool);
+}
+
+const tA2D_ENCODER_INTERFACE *A2D_GetEncoderInterfaceSbc(
+    const uint8_t *p_codec_info)
+{
+    if (!A2D_IsSourceCodecValidSbc(p_codec_info))
+        return NULL;
+
+    return &a2d_encoder_interface_sbc;
 }
