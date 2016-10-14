@@ -20,6 +20,7 @@
 #define LOG_TAG "a2d_sbc_encoder"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 
 #include "bt_target.h"
