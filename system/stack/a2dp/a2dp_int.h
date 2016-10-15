@@ -21,10 +21,10 @@
  *  2DP internal header file
  *
  ******************************************************************************/
-#ifndef A2D_INT_H
-#define A2D_INT_H
+#ifndef A2DP_INT_H
+#define A2DP_INT_H
 
-#include "a2d_api.h"
+#include "a2dp_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,48 +33,48 @@ extern "C" {
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
-#define A2D_VERSION             0x0102
+#define A2DP_VERSION            0x0102
 
-/* Number of attributes in A2D SDP record. */
-#define A2D_NUM_ATTR            6
+/* Number of attributes in A2DP SDP record. */
+#define A2DP_NUM_ATTR           6
 
 /* Number of protocol elements in protocol element list. */
-#define A2D_NUM_PROTO_ELEMS     2
+#define A2DP_NUM_PROTO_ELEMS     2
 
 /*****************************************************************************
 **  Type definitions
 *****************************************************************************/
 
-/* Control block used by A2D_FindService(). */
+/* Control block used by A2DP_FindService(). */
 typedef struct
 {
-    tA2D_FIND_CBACK     *p_cback;       /* pointer to application callback */
+    tA2DP_FIND_CBACK    *p_cback;       /* pointer to application callback */
     tSDP_DISCOVERY_DB   *p_db;          /* pointer to discovery database */
     uint16_t            service_uuid;   /* service UUID of search */
-} tA2D_FIND_CB;
+} tA2DP_FIND_CB;
 
 typedef struct
 {
-    tA2D_FIND_CB    find;   /* find service control block */
+    tA2DP_FIND_CB   find;   /* find service control block */
     uint8_t         trace_level;
     uint16_t        avdt_sdp_ver;   /* AVDTP version */
-} tA2D_CB;
+} tA2DP_CB;
 
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if (A2D_DYNAMIC_MEMORY == FALSE)
-extern tA2D_CB  a2d_cb;
+#if (A2DP_DYNAMIC_MEMORY == FALSE)
+extern tA2DP_CB  a2dp_cb;
 #else
-extern tA2D_CB *a2d_cb_ptr;
-#define a2d_cb (*a2d_cb_ptr)
+extern tA2DP_CB *a2dp_cb_ptr;
+#define a2dp_cb (*a2dp_cb_ptr)
 #endif
 
 /* Used only for conformance testing */
-extern void a2d_set_avdt_sdp_ver (uint16_t avdt_sdp_ver);
+extern void a2dp_set_avdt_sdp_ver (uint16_t avdt_sdp_ver);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* A2D_INT_H */
+#endif /* A2DP_INT_H */

@@ -71,7 +71,7 @@ void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, uint8_t err_code, uint8_t category,
         (tBTA_AV_CI_SETCONFIG *)osi_malloc(sizeof(tBTA_AV_CI_SETCONFIG));
 
     p_buf->hdr.layer_specific   = hndl;
-    p_buf->hdr.event = (err_code == A2D_SUCCESS) ?
+    p_buf->hdr.event = (err_code == A2DP_SUCCESS) ?
         BTA_AV_CI_SETCONFIG_OK_EVT : BTA_AV_CI_SETCONFIG_FAIL_EVT;
     p_buf->err_code = err_code;
     p_buf->category = category;

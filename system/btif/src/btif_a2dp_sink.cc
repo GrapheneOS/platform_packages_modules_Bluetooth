@@ -465,17 +465,17 @@ static void btif_a2dp_sink_decoder_update_event(
             p_buf->codec_info[1], p_buf->codec_info[2], p_buf->codec_info[3],
             p_buf->codec_info[4], p_buf->codec_info[5], p_buf->codec_info[6]);
 
-    int sample_rate = A2D_GetTrackFrequency(p_buf->codec_info);
+    int sample_rate = A2DP_GetTrackFrequency(p_buf->codec_info);
     if (sample_rate == -1) {
         APPL_TRACE_ERROR("%s: cannot get the track frequency", __func__);
         return;
     }
-    int channel_count = A2D_GetTrackChannelCount(p_buf->codec_info);
+    int channel_count = A2DP_GetTrackChannelCount(p_buf->codec_info);
     if (channel_count == -1) {
         APPL_TRACE_ERROR("%s: cannot get the channel count", __func__);
         return;
     }
-    int channel_type = A2D_GetSinkTrackChannelType(p_buf->codec_info);
+    int channel_type = A2DP_GetSinkTrackChannelType(p_buf->codec_info);
     if (channel_type == -1) {
         APPL_TRACE_ERROR("%s: cannot get the Sink channel type", __func__);
         return;
@@ -503,7 +503,7 @@ static void btif_a2dp_sink_decoder_update_event(
     }
 
     btif_a2dp_sink_cb.frames_to_process =
-        A2D_GetSinkFramesCountToProcess(BTIF_SINK_MEDIA_TIME_TICK_MS,
+        A2DP_GetSinkFramesCountToProcess(BTIF_SINK_MEDIA_TIME_TICK_MS,
                                         p_buf->codec_info);
     APPL_TRACE_DEBUG("Frames to be processed in 20 ms %d",
                      btif_a2dp_sink_cb.frames_to_process);

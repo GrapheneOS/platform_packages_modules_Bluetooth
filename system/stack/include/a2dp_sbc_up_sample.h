@@ -22,8 +22,8 @@
  *  frames and codec capabilities.
  *
  ******************************************************************************/
-#ifndef A2D_SBC_UP_SAMPLE_H
-#define A2D_SBC_UP_SAMPLE_H
+#ifndef A2DP_SBC_UP_SAMPLE_H
+#define A2DP_SBC_UP_SAMPLE_H
 
 #include <stdint.h>
 
@@ -33,7 +33,7 @@ extern "C" {
 
 /*******************************************************************************
 **
-** Function         a2d_sbc_init_up_sample
+** Function         a2dp_sbc_init_up_sample
 **
 ** Description      initialize the up sample
 **
@@ -45,12 +45,12 @@ extern "C" {
 ** Returns          none
 **
 *******************************************************************************/
-void a2d_sbc_init_up_sample(uint32_t src_sps, uint32_t dst_sps, uint8_t bits,
+void a2dp_sbc_init_up_sample(uint32_t src_sps, uint32_t dst_sps, uint8_t bits,
                             uint8_t n_channels);
 
 /*******************************************************************************
 **
-** Function         a2d_sbc_up_sample
+** Function         a2dp_sbc_up_sample
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
@@ -62,7 +62,7 @@ void a2d_sbc_init_up_sample(uint32_t src_sps, uint32_t dst_sps, uint8_t bits,
 **                  dst_samples: The size of p_dst (number of bytes)
 **
 ** Note:            An AE reported an issue with this function.
-**                  When called with a2d_sbc_up_sample(src, uint8_array_dst..)
+**                  When called with a2dp_sbc_up_sample(src, uint8_array_dst..)
 **                  the byte before uint8_array_dst may get overwritten.
 **                  Using uint16_array_dst avoids the problem.
 **                  This issue is related to endian-ness and is hard to resolve
@@ -73,12 +73,12 @@ void a2d_sbc_init_up_sample(uint32_t src_sps, uint32_t dst_sps, uint8_t bits,
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2d_sbc_up_sample(void *p_src, void *p_dst, uint32_t src_samples,
+int a2dp_sbc_up_sample(void *p_src, void *p_dst, uint32_t src_samples,
                       uint32_t dst_samples, uint32_t *p_ret);
 
 /*******************************************************************************
 **
-** Function         a2d_sbc_up_sample_16s (16bits-stereo)
+** Function         a2dp_sbc_up_sample_16s (16bits-stereo)
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
@@ -93,12 +93,12 @@ int a2d_sbc_up_sample(void *p_src, void *p_dst, uint32_t src_samples,
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2d_sbc_up_sample_16s(void *p_src, void *p_dst, uint32_t src_samples,
+int a2dp_sbc_up_sample_16s(void *p_src, void *p_dst, uint32_t src_samples,
                           uint32_t dst_samples, uint32_t *p_ret);
 
 /*******************************************************************************
 **
-** Function         a2d_sbc_up_sample_16m (16bits-mono)
+** Function         a2dp_sbc_up_sample_16m (16bits-mono)
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
@@ -113,12 +113,12 @@ int a2d_sbc_up_sample_16s(void *p_src, void *p_dst, uint32_t src_samples,
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2d_sbc_up_sample_16m(void *p_src, void *p_dst, uint32_t src_samples,
+int a2dp_sbc_up_sample_16m(void *p_src, void *p_dst, uint32_t src_samples,
                           uint32_t dst_samples, uint32_t *p_ret);
 
 /*******************************************************************************
 **
-** Function         a2d_sbc_up_sample_8s (8bits-stereo)
+** Function         a2dp_sbc_up_sample_8s (8bits-stereo)
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
@@ -133,12 +133,12 @@ int a2d_sbc_up_sample_16m(void *p_src, void *p_dst, uint32_t src_samples,
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2d_sbc_up_sample_8s(void *p_src, void *p_dst, uint32_t src_samples,
+int a2dp_sbc_up_sample_8s(void *p_src, void *p_dst, uint32_t src_samples,
                          uint32_t dst_samples, uint32_t *p_ret);
 
 /*******************************************************************************
 **
-** Function         a2d_sbc_up_sample_8m (8bits-mono)
+** Function         a2dp_sbc_up_sample_8m (8bits-mono)
 **
 ** Description      Given the source (p_src) audio data and
 **                  source speed (src_sps, samples per second),
@@ -153,11 +153,11 @@ int a2d_sbc_up_sample_8s(void *p_src, void *p_dst, uint32_t src_samples,
 **                  The number of bytes used in p_src (in *p_ret)
 **
 *******************************************************************************/
-int a2d_sbc_up_sample_8m(void *p_src, void *p_dst, uint32_t src_samples,
+int a2dp_sbc_up_sample_8m(void *p_src, void *p_dst, uint32_t src_samples,
                          uint32_t dst_samples, uint32_t *p_ret);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* A2D_SBC_UP_SAMPLE_H */
+#endif /* A2DP_SBC_UP_SAMPLE_H */
