@@ -732,13 +732,7 @@ extern void avdt_scb_transport_channel_timer_timeout(void *data);
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if (AVDT_DYNAMIC_MEMORY == FALSE)
-extern tAVDT_CB  avdt_cb;
-#else
-extern tAVDT_CB *avdt_cb_ptr;
-#define avdt_cb (*avdt_cb_ptr)
-#endif
-
+extern tAVDT_CB avdt_cb;
 
 /* L2CAP callback registration structure */
 extern const tL2CAP_APPL_INFO avdt_l2c_appl;

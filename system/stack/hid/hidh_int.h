@@ -79,12 +79,7 @@ extern void hidh_try_repage(uint8_t dhandle);
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if (HID_DYNAMIC_MEMORY == FALSE)
 extern tHID_HOST_CTB  hh_cb;
-#else
-extern tHID_HOST_CTB *hidh_cb_ptr;
-#define hh_cb (*hidh_cb_ptr)
-#endif
 
 #ifdef __cplusplus
 }

@@ -34,9 +34,7 @@
 #include "avct_int.h"
 
 /* Control block for AVCT */
-#if (AVCT_DYNAMIC_MEMORY == FALSE)
 tAVCT_CB avct_cb;
-#endif
 
 /*******************************************************************************
 **

@@ -717,9 +717,8 @@ static const tSMP_ENTRY_TBL smp_entry_table[] =
     smp_slave_entry_map
 };
 
-#if (SMP_DYNAMIC_MEMORY == FALSE)
-tSMP_CB  smp_cb;
-#endif
+tSMP_CB smp_cb;
+
 #define SMP_ALL_TBL_MASK        0x80
 
 /*******************************************************************************

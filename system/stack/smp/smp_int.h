@@ -351,12 +351,7 @@ typedef struct
 /* Server Action functions are of this type */
 typedef void (*tSMP_ACT)(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 
-#if (SMP_DYNAMIC_MEMORY == FALSE)
-extern tSMP_CB  smp_cb;
-#else
-extern tSMP_CB *smp_cb_ptr;
-#define smp_cb (*smp_cb_ptr)
-#endif
+extern tSMP_CB smp_cb;
 
 #ifdef __cplusplus
 }

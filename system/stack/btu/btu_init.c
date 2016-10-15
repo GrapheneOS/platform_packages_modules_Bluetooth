@@ -26,7 +26,6 @@
 #include "btm_int.h"
 #include "btu.h"
 #include "device/include/controller.h"
-#include "dyn_mem.h"
 #include "l2c_int.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"

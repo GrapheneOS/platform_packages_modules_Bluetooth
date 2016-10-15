@@ -63,12 +63,7 @@ typedef struct
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if (A2DP_DYNAMIC_MEMORY == FALSE)
-extern tA2DP_CB  a2dp_cb;
-#else
-extern tA2DP_CB *a2dp_cb_ptr;
-#define a2dp_cb (*a2dp_cb_ptr)
-#endif
+extern tA2DP_CB a2dp_cb;
 
 /* Used only for conformance testing */
 extern void a2dp_set_avdt_sdp_ver (uint16_t avdt_sdp_ver);
