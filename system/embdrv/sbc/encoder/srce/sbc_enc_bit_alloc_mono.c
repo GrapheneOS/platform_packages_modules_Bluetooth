@@ -28,9 +28,9 @@
 #include "sbc_enc_func_declare.h"
 
 /*global arrays*/
-const SINT16 sbc_enc_as16Offset4[4][4] = {  {-1, 0, 0, 0}, {-2, 0, 0, 1},
+const int16_t sbc_enc_as16Offset4[4][4] = {  {-1, 0, 0, 0}, {-2, 0, 0, 1},
                                     {-2, 0, 0, 1}, {-2, 0, 0, 1} };
-const SINT16 sbc_enc_as16Offset8[4][8] = {  {-2, 0, 0, 0, 0, 0, 0, 1},
+const int16_t sbc_enc_as16Offset8[4][8] = {  {-2, 0, 0, 0, 0, 0, 0, 1},
                                     {-3, 0, 0, 0, 0, 0, 1, 2},
                                     {-4, 0, 0, 0, 0, 0, 1, 2},
                                     {-4, 0, 0, 0, 0, 0, 1, 2} };
@@ -44,18 +44,18 @@ const SINT16 sbc_enc_as16Offset8[4][8] = {  {-2, 0, 0, 0, 0, 0, 0, 1},
 
 void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
 {
-    SINT32 s32MaxBitNeed;   /*to store the max bits needed per sb*/
-    SINT32 s32BitCount;     /*the used number of bits*/
-    SINT32 s32SliceCount;   /*to store hwo many slices can be put in bitpool*/
-    SINT32 s32BitSlice;     /*number of bitslices in bitpool*/
-    SINT32 s32Sb;           /*counter for sub-band*/
-    SINT32 s32Ch;           /*counter for channel*/
-    SINT16 *ps16BitNeed;    /*temp memory to store required number of bits*/
-    SINT32 s32Loudness;     /*used in Loudness calculation*/
-    SINT16 *ps16GenBufPtr;
-    SINT16 *ps16GenArrPtr;
-    SINT16 *ps16GenTabPtr;
-    SINT32  s32NumOfSubBands = pstrCodecParams->s16NumOfSubBands;
+    int32_t s32MaxBitNeed;   /*to store the max bits needed per sb*/
+    int32_t s32BitCount;     /*the used number of bits*/
+    int32_t s32SliceCount;   /*to store hwo many slices can be put in bitpool*/
+    int32_t s32BitSlice;     /*number of bitslices in bitpool*/
+    int32_t s32Sb;           /*counter for sub-band*/
+    int32_t s32Ch;           /*counter for channel*/
+    int16_t *ps16BitNeed;    /*temp memory to store required number of bits*/
+    int32_t s32Loudness;     /*used in Loudness calculation*/
+    int16_t *ps16GenBufPtr;
+    int16_t *ps16GenArrPtr;
+    int16_t *ps16GenTabPtr;
+    int32_t  s32NumOfSubBands = pstrCodecParams->s16NumOfSubBands;
 
     ps16BitNeed = pstrCodecParams->s16ScartchMemForBitAlloc;
 
@@ -75,12 +75,12 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
             ps16GenBufPtr = ps16BitNeed + s32Ch*s32NumOfSubBands;
             if(s32NumOfSubBands == 4)
             {
-                ps16GenTabPtr = (SINT16 *)
+                ps16GenTabPtr = (int16_t *)
                     sbc_enc_as16Offset4[pstrCodecParams->s16SamplingFreq];
             }
             else
             {
-                ps16GenTabPtr = (SINT16 *)
+                ps16GenTabPtr = (int16_t *)
                     sbc_enc_as16Offset8[pstrCodecParams->s16SamplingFreq];
             }
             for(s32Sb=0; s32Sb<s32NumOfSubBands; s32Sb++)
@@ -90,12 +90,12 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
                 else
                 {
                     s32Loudness =
-                        (SINT32)(pstrCodecParams->as16ScaleFactor[s32Ch*s32NumOfSubBands+s32Sb]
+                        (int32_t)(pstrCodecParams->as16ScaleFactor[s32Ch*s32NumOfSubBands+s32Sb]
                                                             - *ps16GenTabPtr);
                     if(s32Loudness > 0)
-                        *(ps16GenBufPtr) = (SINT16)(s32Loudness >>1);
+                        *(ps16GenBufPtr) = (int16_t)(s32Loudness >>1);
                     else
-                        *(ps16GenBufPtr) = (SINT16)s32Loudness;
+                        *(ps16GenBufPtr) = (int16_t)s32Loudness;
                 }
                 ps16GenBufPtr++;
                 ps16GenTabPtr++;
@@ -154,7 +154,7 @@ void sbc_enc_bit_alloc_mono(SBC_ENC_PARAMS *pstrCodecParams)
                 *(ps16GenArrPtr) = 0;
             else
                 *(ps16GenArrPtr) = ((*(ps16GenBufPtr)-s32BitSlice)<16) ?
-                    (SINT16)(*(ps16GenBufPtr)-s32BitSlice) : 16;
+                    (int16_t)(*(ps16GenBufPtr)-s32BitSlice) : 16;
 
             ps16GenBufPtr++;
             ps16GenArrPtr++;
