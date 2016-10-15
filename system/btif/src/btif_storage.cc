@@ -161,6 +161,8 @@ static bt_status_t btif_in_fetch_bonded_ble_device(const char *remote_bd_addr,in
                                               btif_bonded_devices_t *p_bonded_devices);
 static bt_status_t btif_in_fetch_bonded_device(const char *bdstr);
 
+static bool btif_has_ble_keys(const char *bdstr);
+
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
@@ -1190,7 +1192,8 @@ static bt_status_t btif_in_fetch_bonded_ble_device(const char *remote_bd_addr, i
     if (!btif_config_get_int(remote_bd_addr, "DevType", &device_type))
         return BT_STATUS_FAIL;
 
-    if ((device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE)
+    if ((device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE ||
+            btif_has_ble_keys(remote_bd_addr))
     {
         BTIF_TRACE_DEBUG("%s Found a LE device: %s", __func__, remote_bd_addr);
 
@@ -1241,6 +1244,11 @@ bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
     bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     int ret = btif_config_set_int(bdstr, "AddrType", (int)addr_type);
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
+}
+
+bool btif_has_ble_keys(const char *bdstr)
+{
+    return btif_config_exist(bdstr, "LE_KEY_PENC");
 }
 
 /*******************************************************************************
