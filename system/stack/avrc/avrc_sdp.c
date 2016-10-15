@@ -38,7 +38,7 @@ tAVRC_CB avrc_cb;
 **
 ** Function         avrc_sdp_cback
 **
-** Description      This is the SDP callback function used by A2D_FindService.
+** Description      This is the SDP callback function used by A2DP_FindService.
 **                  This function will be executed by SDP when the service
 **                  search is completed.  If the search is successful, it
 **                  finds the first record in the database that matches the
@@ -104,7 +104,7 @@ uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
 {
     tSDP_UUID   uuid_list;
     bool        result = true;
-    uint16_t    a2d_attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, /* update AVRC_NUM_ATTR, if changed */
+    uint16_t    a2dp_attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, /* update AVRC_NUM_ATTR, if changed */
                                    ATTR_ID_PROTOCOL_DESC_LIST,
                                    ATTR_ID_BT_PROFILE_DESC_LIST,
                                    ATTR_ID_SERVICE_NAME,
@@ -127,7 +127,7 @@ uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
 
     if(p_db->p_attrs == NULL || p_db->num_attr == 0)
     {
-        p_db->p_attrs  = a2d_attr_list;
+        p_db->p_attrs  = a2dp_attr_list;
         p_db->num_attr = AVRC_NUM_ATTR;
     }
 

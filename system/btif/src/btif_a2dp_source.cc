@@ -70,19 +70,19 @@ enum {
 /* tBTIF_A2DP_AUDIO_FEEDING_INIT msg structure */
 typedef struct {
     BT_HDR hdr;
-    tA2D_FEEDING_PARAMS feeding_params;
+    tA2DP_FEEDING_PARAMS feeding_params;
 } tBTIF_A2DP_AUDIO_FEEDING_INIT;
 
 /* tBTIF_A2DP_SOURCE_ENCODER_INIT msg structure */
 typedef struct {
     BT_HDR hdr;
-    tA2D_ENCODER_INIT_PARAMS init_params;
+    tA2DP_ENCODER_INIT_PARAMS init_params;
 } tBTIF_A2DP_SOURCE_ENCODER_INIT;
 
 /* tBTIF_A2DP_SOURCE_ENCODER_UPDATE msg structure */
 typedef struct {
     BT_HDR hdr;
-    tA2D_ENCODER_UPDATE_PARAMS update_params;
+    tA2DP_ENCODER_UPDATE_PARAMS update_params;
 } tBTIF_A2DP_SOURCE_ENCODER_UPDATE;
 
 typedef struct {
@@ -152,7 +152,7 @@ typedef struct {
     bool tx_flush;              /* Discards any outgoing data when true */
     bool is_streaming;
     alarm_t *media_alarm;
-    const tA2D_ENCODER_INTERFACE *encoder_interface;
+    const tA2DP_ENCODER_INTERFACE *encoder_interface;
     period_ms_t encoder_interval_ms; /* Local copy of the encoder interval */
     btif_media_stats_t stats;
 } tBTIF_A2DP_SOURCE_CB;
@@ -331,7 +331,7 @@ static void btif_a2dp_source_command_ready(fixed_queue_t *queue,
 
 void btif_a2dp_source_setup_codec(void)
 {
-    tA2D_FEEDING_PARAMS feeding_params;
+    tA2DP_FEEDING_PARAMS feeding_params;
 
     APPL_TRACE_EVENT("## A2DP SOURCE SETUP CODEC ##");
 

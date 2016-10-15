@@ -60,7 +60,7 @@ extern "C" {
 ** Returns          Stream codec and content protection capabilities info.
 **
 *******************************************************************************/
-bool bta_av_co_audio_init(tA2D_CODEC_SEP_INDEX codec_sep_index,
+bool bta_av_co_audio_init(tA2DP_CODEC_SEP_INDEX codec_sep_index,
                           tAVDT_CFG *p_cfg);
 
 /*******************************************************************************
@@ -91,11 +91,11 @@ void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
 ** Returns          Stream codec and content protection configuration info.
 **
 *******************************************************************************/
-tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
-                                      uint8_t *p_codec_info,
-                                      uint8_t *p_sep_info_idx, uint8_t seid,
-                                      uint8_t *p_num_protect,
-                                      uint8_t *p_protect_info);
+tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
+                                       uint8_t *p_codec_info,
+                                       uint8_t *p_sep_info_idx, uint8_t seid,
+                                       uint8_t *p_num_protect,
+                                       uint8_t *p_protect_info);
 
 /*******************************************************************************
 **

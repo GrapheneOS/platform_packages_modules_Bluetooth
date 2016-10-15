@@ -346,7 +346,7 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
                 p_ret->chnl = chnl;
                 p_ret->hndl = (tBTA_AV_HNDL)((xx + 1) | chnl);
                 p_ret->hdi  = xx;
-                p_ret->a2d_list = list_new(NULL);
+                p_ret->a2dp_list = list_new(NULL);
                 p_ret->avrc_ct_timer = alarm_new("bta_av.avrc_ct_timer");
                 bta_av_cb.p_scb[xx] = p_ret;
                 break;
@@ -561,14 +561,14 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         if(registr.chnl == BTA_AV_CHNL_AUDIO)
         {
             /* set up the audio stream control block */
-            p_scb->p_act_tbl = (const tBTA_AV_ACT *)bta_av_a2d_action;
-            p_scb->p_cos     = &bta_av_a2d_cos;
+            p_scb->p_act_tbl = (const tBTA_AV_ACT *)bta_av_a2dp_action;
+            p_scb->p_cos     = &bta_av_a2dp_cos;
             p_scb->media_type= AVDT_MEDIA_TYPE_AUDIO;
             cs.cfg.psc_mask  = AVDT_PSC_TRANS;
             cs.media_type    = AVDT_MEDIA_TYPE_AUDIO;
             cs.mtu           = p_bta_av_cfg->audio_mtu;
             cs.flush_to      = L2CAP_DEFAULT_FLUSH_TO;
-            tA2D_CODEC_SEP_INDEX codec_sep_index = A2D_CODEC_SEP_INDEX_SBC;
+            tA2DP_CODEC_SEP_INDEX codec_sep_index = A2DP_CODEC_SEP_INDEX_SBC;
 
 #if (AVDT_REPORTING == TRUE)
             if(bta_av_cb.features & BTA_AV_FEAT_REPORT)
@@ -586,24 +586,24 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
             {
                 cs.tsep = AVDT_TSEP_SRC;
-                codec_sep_index = A2D_CODEC_SEP_INDEX_SBC;
+                codec_sep_index = A2DP_CODEC_SEP_INDEX_SBC;
             }
             else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
             {
                 cs.tsep = AVDT_TSEP_SNK;
                 cs.p_sink_data_cback = bta_av_sink_data_cback;
-                codec_sep_index = A2D_CODEC_SEP_INDEX_SBC_SINK;
+                codec_sep_index = A2DP_CODEC_SEP_INDEX_SBC_SINK;
             }
 
             /* Initialize handles to zero */
-            for (int xx = 0; xx < A2D_CODEC_SEP_INDEX_MAX; xx++)
+            for (int xx = 0; xx < A2DP_CODEC_SEP_INDEX_MAX; xx++)
             {
                 p_scb->seps[xx].av_handle = 0;
             }
 
             /* keep the configuration in the stream control block */
             memcpy(&p_scb->cfg, &cs.cfg, sizeof(tAVDT_CFG));
-            if ((*bta_av_a2d_cos.init)(codec_sep_index, &cs.cfg)) {
+            if ((*bta_av_a2dp_cos.init)(codec_sep_index, &cs.cfg)) {
                 if (AVDT_CreateStream(&p_scb->seps[codec_sep_index].av_handle, &cs)
                     == AVDT_SUCCESS) {
                     /* Save a copy of the codec */
@@ -624,22 +624,24 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
 
             if(!bta_av_cb.reg_audio)
             {
-                bta_av_cb.sdp_a2d_handle = 0;
-                bta_av_cb.sdp_a2d_snk_handle = 0;
+                bta_av_cb.sdp_a2dp_handle = 0;
+                bta_av_cb.sdp_a2dp_snk_handle = 0;
                 if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
                 {
                     /* create the SDP records on the 1st audio channel */
-                    bta_av_cb.sdp_a2d_handle = SDP_CreateRecord();
-                    A2D_AddRecord(UUID_SERVCLASS_AUDIO_SOURCE, p_service_name, NULL,
-                                  A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_handle);
+                    bta_av_cb.sdp_a2dp_handle = SDP_CreateRecord();
+                    A2DP_AddRecord(UUID_SERVCLASS_AUDIO_SOURCE, p_service_name,
+                                   NULL, A2DP_SUPF_PLAYER,
+                                   bta_av_cb.sdp_a2dp_handle);
                     bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
                 }
                 else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
                 {
 #if (BTA_AV_SINK_INCLUDED == TRUE)
-                    bta_av_cb.sdp_a2d_snk_handle = SDP_CreateRecord();
-                    A2D_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_service_name, NULL,
-                                  A2D_SUPF_PLAYER, bta_av_cb.sdp_a2d_snk_handle);
+                    bta_av_cb.sdp_a2dp_snk_handle = SDP_CreateRecord();
+                    A2DP_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_service_name,
+                                   NULL, A2DP_SUPF_PLAYER,
+                                   bta_av_cb.sdp_a2dp_snk_handle);
                     bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SINK);
 #endif
                 }
@@ -936,7 +938,7 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,uint8_t id, uint8_t
                 p_scb->q_info.open.switch_res = BTA_AV_RS_FAIL;
 
             /* Continue av open process */
-            bta_av_do_disc_a2d (p_scb, (tBTA_AV_DATA *)&(p_scb->q_info.open));
+            bta_av_do_disc_a2dp(p_scb, (tBTA_AV_DATA *)&(p_scb->q_info.open));
         }
 
         bta_av_cb.rs_idx = 0;
@@ -1072,8 +1074,9 @@ bool bta_av_link_role_ok(tBTA_AV_SCB *p_scb, uint8_t bits)
         LOG_INFO(LOG_TAG, "%s hndl:x%x role:%d conn_audio:x%x bits:%d features:x%x",
                 __func__, p_scb->hndl, role, bta_av_cb.conn_audio, bits,
                 bta_av_cb.features);
-        if (BTM_ROLE_MASTER != role && (A2D_BitsSet(bta_av_cb.conn_audio) > bits || (bta_av_cb.features & BTA_AV_FEAT_MASTER)))
-        {
+        if (BTM_ROLE_MASTER != role &&
+            (A2DP_BitsSet(bta_av_cb.conn_audio) > bits ||
+             (bta_av_cb.features & BTA_AV_FEAT_MASTER)))  {
             if (bta_av_cb.features & BTA_AV_FEAT_MASTER)
                 bta_sys_clear_policy(BTA_ID_AV, HCI_ENABLE_MASTER_SLAVE_SWITCH, p_scb->peer_addr);
 
@@ -1140,7 +1143,7 @@ uint16_t bta_av_chk_mtu(tBTA_AV_SCB *p_scb, uint16_t mtu)
 **
 ** Function         bta_av_dup_audio_buf
 **
-** Description      dup the audio data to the q_info.a2d of other audio channels
+** Description      dup the audio data to the q_info.a2dp of other audio channels
 **
 ** Returns          void
 **
@@ -1165,13 +1168,13 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
         /* Enqueue the data */
         BT_HDR *p_new = (BT_HDR *)osi_malloc(copy_size);
         memcpy(p_new, p_buf, copy_size);
-        list_append(p_scbi->a2d_list, p_new);
+        list_append(p_scbi->a2dp_list, p_new);
 
-        if (list_length(p_scbi->a2d_list) > p_bta_av_cfg->audio_mqs) {
+        if (list_length(p_scbi->a2dp_list) > p_bta_av_cfg->audio_mqs) {
             // Drop the oldest packet
             bta_av_co_audio_drop(p_scbi->hndl);
-            BT_HDR *p_buf_drop = static_cast<BT_HDR *>(list_front(p_scbi->a2d_list));
-            list_remove(p_scbi->a2d_list, p_buf_drop);
+            BT_HDR *p_buf_drop = static_cast<BT_HDR *>(list_front(p_scbi->a2dp_list));
+            list_remove(p_scbi->a2dp_list, p_buf_drop);
             osi_free(p_buf_drop);
         }
     }

@@ -28,7 +28,7 @@
 
 #include "avrc_api.h"
 #include "avdt_api.h"
-#include "a2d_api.h"
+#include "a2dp_api.h"
 #include "bta_api.h"
 
 #ifdef __cplusplus
@@ -189,11 +189,11 @@ typedef uint8_t tBTA_AV_CMD;
 typedef uint8_t tBTA_AV_CODE;
 
 /* error codes for BTA_AvProtectRsp */
-#define BTA_AV_ERR_NONE             A2D_SUCCESS         /* Success, no error */
+#define BTA_AV_ERR_NONE             A2DP_SUCCESS        /* Success, no error */
 #define BTA_AV_ERR_BAD_STATE        AVDT_ERR_BAD_STATE  /* Message cannot be processed in this state */
 #define BTA_AV_ERR_RESOURCE         AVDT_ERR_RESOURCE   /* Insufficient resources */
-#define BTA_AV_ERR_BAD_CP_TYPE      A2D_BAD_CP_TYPE     /* The requested Content Protection Type is not supported */
-#define BTA_AV_ERR_BAD_CP_FORMAT    A2D_BAD_CP_FORMAT   /* The format of Content Protection Data is not correct */
+#define BTA_AV_ERR_BAD_CP_TYPE      A2DP_BAD_CP_TYPE    /* The requested Content Protection Type is not supported */
+#define BTA_AV_ERR_BAD_CP_FORMAT    A2DP_BAD_CP_FORMAT  /* The format of Content Protection Data is not correct */
 
 typedef uint8_t tBTA_AV_ERR;
 

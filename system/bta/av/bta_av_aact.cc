@@ -82,7 +82,7 @@ enum
 
 
 /* the call out functions for audio stream */
-const tBTA_AV_CO_FUNCTS bta_av_a2d_cos =
+const tBTA_AV_CO_FUNCTS bta_av_a2dp_cos =
 {
     bta_av_co_audio_init,
     bta_av_co_audio_disc_res,
@@ -97,9 +97,9 @@ const tBTA_AV_CO_FUNCTS bta_av_a2d_cos =
 };
 
 /* ssm action functions for audio stream */
-const tBTA_AV_SACT bta_av_a2d_action[] =
+const tBTA_AV_SACT bta_av_a2dp_action[] =
 {
-    bta_av_do_disc_a2d,     /* BTA_AV_DO_DISC  */
+    bta_av_do_disc_a2dp,    /* BTA_AV_DO_DISC  */
     bta_av_cleanup,         /* BTA_AV_CLEANUP */
     bta_av_free_sdb,        /* BTA_AV_FREE_SDB */
     bta_av_config_ind,      /* BTA_AV_CONFIG_IND */
@@ -250,10 +250,10 @@ tAVDT_CTRL_CBACK * const bta_av_dt_cback[] =
 ***********************************************/
 static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, uint8_t local_sep)
 {
-    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
+    for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
         if ((p_scb->seps[i].tsep == local_sep) &&
-            A2D_CodecTypeEquals(p_scb->seps[i].codec_info,
-                                p_scb->cfg.codec_info)) {
+            A2DP_CodecTypeEquals(p_scb->seps[i].codec_info,
+                                 p_scb->cfg.codec_info)) {
             return (p_scb->seps[i].av_handle);
         }
     }
@@ -272,7 +272,7 @@ static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, uint8_t local_sep)
 ***********************************************/
 static uint8_t bta_av_get_scb_sep_type(tBTA_AV_SCB *p_scb, uint8_t tavdt_handle)
 {
-    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
+    for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
         if (p_scb->seps[i].av_handle == tavdt_handle)
             return (p_scb->seps[i].tsep);
     }
@@ -704,14 +704,14 @@ static void bta_av_stream5_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 
 /*******************************************************************************
 **
-** Function         bta_av_a2d_sdp_cback
+** Function         bta_av_a2dp_sdp_cback
 **
 ** Description      A2DP service discovery callback.
 **
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_a2d_sdp_cback(bool found, tA2D_Service *p_service)
+static void bta_av_a2dp_sdp_cback(bool found, tA2DP_Service *p_service)
 {
     tBTA_AV_SCB *p_scb = bta_av_hndl_to_scb(bta_av_cb.handle);
 
@@ -746,15 +746,15 @@ static void bta_av_a2d_sdp_cback(bool found, tA2D_Service *p_service)
 static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 {
     APPL_TRACE_DEBUG("%s: codec: %s", __func__,
-                     A2D_CodecName(p_scb->cfg.codec_info));
-    for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
+                     A2DP_CodecName(p_scb->cfg.codec_info));
+    for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
         APPL_TRACE_DEBUG("%s: av_handle: %d codec: %d", __func__,
                          p_scb->seps[i].av_handle,
-                         A2D_CodecName(p_scb->seps[i].codec_info));
+                         A2DP_CodecName(p_scb->seps[i].codec_info));
         if (p_scb->seps[i].av_handle &&
             (p_scb->seps[i].av_handle == avdt_handle) &&
-            A2D_CodecTypeEquals(p_scb->seps[i].codec_info,
-                                p_scb->cfg.codec_info)) {
+            A2DP_CodecTypeEquals(p_scb->seps[i].codec_info,
+                                 p_scb->cfg.codec_info)) {
             p_scb->sep_idx = i;
             p_scb->avdt_handle = p_scb->seps[i].av_handle;
             break;
@@ -787,14 +787,14 @@ void bta_av_switch_role (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     if (p_scb->q_tag == BTA_AV_Q_TAG_OPEN)
     {
-        if (bta_av_switch_if_needed(p_scb) || !bta_av_link_role_ok(p_scb, A2D_SET_MULTL_BIT))
-        {
+        if (bta_av_switch_if_needed(p_scb) ||
+            !bta_av_link_role_ok(p_scb, A2DP_SET_MULTL_BIT)) {
             p_scb->wait |= BTA_AV_WAIT_ROLE_SW_RES_OPEN;
         }
         else
         {
             /* this should not happen in theory. Just in case...
-             * continue to do_disc_a2d */
+             * continue to do_disc_a2dp */
             switch_res = BTA_AV_RS_DONE;
         }
     }
@@ -813,7 +813,7 @@ void bta_av_switch_role (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->wait &= ~BTA_AV_WAIT_ROLE_SW_RETRY;
         p_scb->q_tag = 0;
         p_buf->switch_res = switch_res;
-        bta_av_do_disc_a2d(p_scb, (tBTA_AV_DATA *)p_buf);
+        bta_av_do_disc_a2dp(p_scb, (tBTA_AV_DATA *)p_buf);
     }
 }
 
@@ -886,7 +886,7 @@ void bta_av_role_res (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             {
                 /* Continue av open process */
                 p_scb->q_info.open.switch_res = BTA_AV_RS_DONE;
-                bta_av_do_disc_a2d (p_scb, (tBTA_AV_DATA *)&(p_scb->q_info.open));
+                bta_av_do_disc_a2dp(p_scb, (tBTA_AV_DATA *)&(p_scb->q_info.open));
             }
         }
         else
@@ -917,17 +917,17 @@ void bta_av_delay_co (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_av_do_disc_a2d
+** Function         bta_av_do_disc_a2dp
 **
 ** Description      Do service discovery for A2DP.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_do_disc_a2dp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     bool        ok_continue = false;
-    tA2D_SDP_DB_PARAMS  db_params;
+    tA2DP_SDP_DB_PARAMS db_params;
     uint16_t            attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST,
                                        ATTR_ID_PROTOCOL_DESC_LIST,
                                        ATTR_ID_BT_PROFILE_DESC_LIST};
@@ -941,8 +941,8 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     switch(p_data->api_open.switch_res)
     {
     case BTA_AV_RS_NONE:
-        if (bta_av_switch_if_needed(p_scb) || !bta_av_link_role_ok(p_scb, A2D_SET_MULTL_BIT))
-        {
+        if (bta_av_switch_if_needed(p_scb) ||
+            !bta_av_link_role_ok(p_scb, A2DP_SET_MULTL_BIT)) {
             /* waiting for role switch result. save the api to control block */
             memcpy(&p_scb->q_info.open, &p_data->api_open, sizeof(tBTA_AV_API_OPEN));
             p_scb->wait |= BTA_AV_WAIT_ROLE_SW_RES_OPEN;
@@ -963,7 +963,7 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     case BTA_AV_RS_OK:
         p_data = (tBTA_AV_DATA *)&p_scb->q_info.open;
         /* continue to open if link role is ok */
-        if (bta_av_link_role_ok(p_scb, A2D_SET_MULTL_BIT))
+        if (bta_av_link_role_ok(p_scb, A2DP_SET_MULTL_BIT))
         {
             ok_continue = true;
         }
@@ -1012,19 +1012,19 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     if (p_scb->skip_sdp == true)
     {
-        tA2D_Service a2d_ser;
-        a2d_ser.avdt_version = AVDT_VERSION;
+        tA2DP_Service a2dp_ser;
+        a2dp_ser.avdt_version = AVDT_VERSION;
         p_scb->skip_sdp = false;
         p_scb->uuid_int = p_data->api_open.uuid;
-        /* only one A2D find service is active at a time */
+        /* only one A2DP find service is active at a time */
         bta_av_cb.handle = p_scb->hndl;
         APPL_TRACE_WARNING("%s: Skip Sdp for incoming A2dp connection",
                            __func__);
-        bta_av_a2d_sdp_cback(true, &a2d_ser);
+        bta_av_a2dp_sdp_cback(true, &a2dp_ser);
         return;
     }
 
-    /* only one A2D find service is active at a time */
+    /* only one A2DP find service is active at a time */
     bta_av_cb.handle = p_scb->hndl;
 
     /* set up parameters */
@@ -1040,13 +1040,13 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     APPL_TRACE_DEBUG("%s: uuid_int 0x%x, Doing SDP For 0x%x", __func__,
                     p_scb->uuid_int, sdp_uuid);
-    if (A2D_FindService(sdp_uuid, p_scb->peer_addr, &db_params,
-                    bta_av_a2d_sdp_cback) == A2D_SUCCESS)
+    if (A2DP_FindService(sdp_uuid, p_scb->peer_addr, &db_params,
+                         bta_av_a2dp_sdp_cback) == A2DP_SUCCESS)
         return;
 
     /* when the code reaches here, either the DB is NULL
-     * or A2D_FindService is not successful */
-    bta_av_a2d_sdp_cback(false, NULL);
+     * or A2DP_FindService is not successful */
+    bta_av_a2dp_sdp_cback(false, NULL);
 }
 
 /*******************************************************************************
@@ -1096,7 +1096,7 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     if (p_scb->deregistring)
     {
         /* remove stream */
-        for (int i = 0; i < A2D_CODEC_SEP_INDEX_MAX; i++) {
+        for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
             if (p_scb->seps[i].av_handle)
                 AVDT_RemoveStream(p_scb->seps[i].av_handle);
             p_scb->seps[i].av_handle = 0;
@@ -1341,7 +1341,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             p_scb->avdt_version = AVDT_VERSION_SYNC;
 
 
-        if (A2D_GetCodecType(p_scb->cfg.codec_info) == A2D_MEDIA_CT_SBC ||
+        if (A2DP_GetCodecType(p_scb->cfg.codec_info) == A2DP_MEDIA_CT_SBC ||
             num > 1) {
             /* if SBC is used by the SNK as INT, discover req is not sent in bta_av_config_ind.
                        * call disc_res now */
@@ -1882,7 +1882,7 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     cfg.num_protect = p_scb->p_cap->num_protect;
     memcpy(cfg.codec_info, p_scb->p_cap->codec_info, AVDT_CODEC_SIZE);
     memcpy(cfg.protect_info, p_scb->p_cap->protect_info, AVDT_PROTECT_SIZE);
-    media_type = A2D_GetMediaType(p_scb->p_cap->codec_info);
+    media_type = A2DP_GetMediaType(p_scb->p_cap->codec_info);
 
     APPL_TRACE_DEBUG("%s: num_codec %d", __func__, p_scb->p_cap->num_codec);
     APPL_TRACE_DEBUG("%s: media type x%x, x%x", __func__, media_type,
@@ -1898,7 +1898,7 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         (p_scb->p_cos->getcfg(p_scb->hndl, cfg.codec_info,
                               &p_scb->sep_info_idx, p_info->seid,
                               &cfg.num_protect, cfg.protect_info) ==
-         A2D_SUCCESS)) {
+         A2DP_SUCCESS)) {
 #if AVDT_MULTIPLEXING == TRUE
         cfg.mux_mask &= p_scb->p_cap->mux_mask;
         APPL_TRACE_DEBUG("%s: mux_mask used x%x", __func__, cfg.mux_mask);
@@ -2112,12 +2112,12 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         L2CA_SetFlushTimeout(p_scb->peer_addr, L2CAP_DEFAULT_FLUSH_TO);
     }
 
-    /* if q_info.a2d_list is not empty, drop it now */
+    /* if q_info.a2dp_list is not empty, drop it now */
     if (BTA_AV_CHNL_AUDIO == p_scb->chnl) {
-        while (!list_is_empty(p_scb->a2d_list))
+        while (!list_is_empty(p_scb->a2dp_list))
         {
-            p_buf = (BT_HDR *)list_front(p_scb->a2d_list);
-            list_remove(p_scb->a2d_list, p_buf);
+            p_buf = (BT_HDR *)list_front(p_scb->a2dp_list);
+            list_remove(p_scb->a2dp_list, p_buf);
             osi_free(p_buf);
         }
 
@@ -2247,7 +2247,7 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     BT_HDR  *p_buf = NULL;
     uint32_t  timestamp;
     bool new_buf = false;
-    tA2D_CODEC_TYPE codec_type = A2D_GetCodecType(p_scb->cfg.codec_info);
+    tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_scb->cfg.codec_info);
     uint8_t   m_pt = 0x60 | codec_type;
     tAVDT_DATA_OPT_MASK     opt;
     UNUSED(p_data);
@@ -2258,16 +2258,16 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     //Always get the current number of bufs que'd up
     p_scb->l2c_bufs = (uint8_t)L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_GET);
 
-    if (!list_is_empty(p_scb->a2d_list)) {
-        p_buf = (BT_HDR *)list_front(p_scb->a2d_list);
-        list_remove(p_scb->a2d_list, p_buf);
-         /* use q_info.a2d data, read the timestamp */
+    if (!list_is_empty(p_scb->a2dp_list)) {
+        p_buf = (BT_HDR *)list_front(p_scb->a2dp_list);
+        list_remove(p_scb->a2dp_list, p_buf);
+         /* use q_info.a2dp data, read the timestamp */
         timestamp = *(uint32_t *)(p_buf + 1);
     }
     else
     {
         new_buf = true;
-        /* a2d_list empty, call co_data, dup data to other channels */
+        /* A2DP_list empty, call co_data, dup data to other channels */
         p_buf = (BT_HDR *)p_scb->p_cos->data(p_scb->cfg.codec_info,
                                              &timestamp);
 
@@ -2307,18 +2307,18 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             {
                 /* just got this buffer from co_data,
                  * put it in queue */
-                list_append(p_scb->a2d_list, p_buf);
+                list_append(p_scb->a2dp_list, p_buf);
             }
             else
             {
-                /* just dequeue it from the a2d_list */
-                if (list_length(p_scb->a2d_list) < 3) {
+                /* just dequeue it from the a2dp_list */
+                if (list_length(p_scb->a2dp_list) < 3) {
                     /* put it back to the queue */
-                    list_prepend(p_scb->a2d_list, p_buf);
+                    list_prepend(p_scb->a2dp_list, p_buf);
                 }
                 else
                 {
-                    /* too many buffers in a2d_list, drop it. */
+                    /* too many buffers in a2dp_list, drop it. */
                     bta_av_co_audio_drop(p_scb->hndl);
                     osi_free(p_buf);
                 }
@@ -2392,7 +2392,7 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         }
     }
 
-    if (!bta_av_link_role_ok(p_scb, A2D_SET_ONE_BIT))
+    if (!bta_av_link_role_ok(p_scb, A2DP_SET_ONE_BIT))
         p_scb->q_tag = BTA_AV_Q_TAG_START;
     else
     {
@@ -3043,7 +3043,7 @@ void bta_av_open_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     if ((p_scb->wait & BTA_AV_WAIT_ROLE_SW_BITS) && (p_scb->q_tag == BTA_AV_Q_TAG_START))
     {
         /* waiting for role switch for some reason & the timer expires */
-        if (!bta_av_link_role_ok(p_scb, A2D_SET_ONE_BIT))
+        if (!bta_av_link_role_ok(p_scb, A2DP_SET_ONE_BIT))
         {
             APPL_TRACE_ERROR ("%s: failed to start streaming for role management reasons!!",
                               __func__);

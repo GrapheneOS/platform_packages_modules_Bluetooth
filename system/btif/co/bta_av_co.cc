@@ -25,7 +25,7 @@
 
 #include <assert.h>
 #include <string.h>
-#include "a2d_api.h"
+#include "a2dp_api.h"
 #include "bt_target.h"
 #include "bta_sys.h"
 #include "bta_av_api.h"
@@ -72,8 +72,8 @@ typedef struct
 typedef struct
 {
     BD_ADDR         addr;                 /* address of audio/video peer */
-    tBTA_AV_CO_SINK sinks[A2D_CODEC_SEP_INDEX_MAX]; /* array of supported sinks */
-    tBTA_AV_CO_SINK srcs[A2D_CODEC_SEP_INDEX_MAX];  /* array of supported srcs */
+    tBTA_AV_CO_SINK sinks[A2DP_CODEC_SEP_INDEX_MAX]; /* array of supported sinks */
+    tBTA_AV_CO_SINK srcs[A2DP_CODEC_SEP_INDEX_MAX];  /* array of supported srcs */
     uint8_t           num_sinks;          /* total number of sinks at peer */
     uint8_t           num_srcs;           /* total number of srcs at peer */
     uint8_t           num_seps;           /* total number of seids at peer */
@@ -203,14 +203,14 @@ static tBTA_AV_CO_PEER *bta_av_co_get_peer(tBTA_AV_HNDL hndl)
  ** Returns          Stream codec and content protection capabilities info.
  **
  *******************************************************************************/
-bool bta_av_co_audio_init(tA2D_CODEC_SEP_INDEX codec_sep_index,
+bool bta_av_co_audio_init(tA2DP_CODEC_SEP_INDEX codec_sep_index,
                           tAVDT_CFG *p_cfg)
 {
     /* reset remote preference through setconfig */
     memset(bta_av_co_cb.codec_cfg_setconfig, 0,
            sizeof(bta_av_co_cb.codec_cfg_setconfig));
 
-    return A2D_InitCodecConfig(codec_sep_index, p_cfg);
+    return A2DP_InitCodecConfig(codec_sep_index, p_cfg);
 }
 
 /*******************************************************************************
@@ -274,19 +274,19 @@ void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
  ** Returns          Pass or Fail for current getconfig.
  **
  *******************************************************************************/
-static tA2D_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
+static tA2DP_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
                                                uint8_t *p_codec_info,
                                                uint8_t *p_sep_info_idx,
                                                uint8_t seid,
                                                uint8_t *p_num_protect,
                                                uint8_t *p_protect_info)
 {
-    tA2D_STATUS result = A2D_FAIL;
+    tA2DP_STATUS result = A2DP_FAIL;
     tBTA_AV_CO_PEER *p_peer;
     uint8_t pref_cfg[AVDT_CODEC_SIZE];
 
     APPL_TRACE_DEBUG("%s: handle:0x%x codec:%s seid:%d",
-                     __func__, hndl, A2D_CodecName(p_codec_info), seid);
+                     __func__, hndl, A2DP_CodecName(p_codec_info), seid);
     APPL_TRACE_DEBUG("%s: num_protect:0x%02x protect_info:0x%02x%02x%02x",
                      __func__, *p_num_protect, p_protect_info[0],
                      p_protect_info[1], p_protect_info[2]);
@@ -296,7 +296,7 @@ static tA2D_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
     if (p_peer == NULL)
     {
         APPL_TRACE_ERROR("%s: could not find peer entry", __func__);
-        return A2D_FAIL;
+        return A2DP_FAIL;
     }
 
     APPL_TRACE_DEBUG("%s: peer(o=%d,n_sinks=%d,n_rx_sinks=%d,n_sup_sinks=%d)",
@@ -306,7 +306,7 @@ static tA2D_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
     p_peer->num_rx_srcs++;
 
     /* Check the peer's SOURCE codec */
-    if (A2D_IsPeerSourceCodecValid(p_codec_info)) {
+    if (A2DP_IsPeerSourceCodecValid(p_codec_info)) {
         /* If there is room for a new one */
         if (p_peer->num_sup_srcs < BTA_AV_CO_NUM_ELEMENTS(p_peer->srcs))
         {
@@ -349,10 +349,10 @@ static tA2D_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
                 /* Save the new configuration */
                 p_peer->p_src = p_src;
                 /* get preferred config from src_caps */
-                if (A2D_BuildSrc2SinkConfig(p_src->codec_caps, pref_cfg) !=
-                    A2D_SUCCESS) {
+                if (A2DP_BuildSrc2SinkConfig(p_src->codec_caps, pref_cfg) !=
+                    A2DP_SUCCESS) {
                     mutex_global_unlock();
-                    return A2D_FAIL;
+                    return A2DP_FAIL;
                 }
                 memcpy(p_peer->codec_cfg, pref_cfg, AVDT_CODEC_SIZE);
 
@@ -371,7 +371,7 @@ static tA2D_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
 
                     *p_sep_info_idx = p_src->sep_info_idx;
                     memcpy(p_codec_info, p_peer->codec_cfg, AVDT_CODEC_SIZE);
-                result =  A2D_SUCCESS;
+                result =  A2DP_SUCCESS;
             }
         }
         /* Protect access to bta_av_co_cb.codec_cfg */
@@ -391,13 +391,13 @@ static tA2D_STATUS bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl,
  ** Returns          Stream codec and content protection configuration info.
  **
  *******************************************************************************/
-tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
+tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
                                       uint8_t *p_codec_info,
                                       uint8_t *p_sep_info_idx, uint8_t seid,
                                       uint8_t *p_num_protect,
                                       uint8_t *p_protect_info)
 {
-    tA2D_STATUS result = A2D_FAIL;
+    tA2DP_STATUS result = A2DP_FAIL;
     tBTA_AV_CO_PEER *p_peer;
     uint8_t codec_cfg[AVDT_CODEC_SIZE];
 
@@ -408,7 +408,7 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
     if (p_peer == NULL)
     {
         APPL_TRACE_ERROR("%s: could not find peer entry", __func__);
-        return A2D_FAIL;
+        return A2DP_FAIL;
     }
 
     if (p_peer->uuid_to_connect == UUID_SERVCLASS_AUDIO_SOURCE)
@@ -419,7 +419,7 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
         return result;
     }
     APPL_TRACE_DEBUG("%s: handle:0x%x codec:%s seid:%d",
-                     __func__, hndl, A2D_CodecName(p_codec_info), seid);
+                     __func__, hndl, A2DP_CodecName(p_codec_info), seid);
     APPL_TRACE_DEBUG("%s: num_protect:0x%02x protect_info:0x%02x%02x%02x",
                      __func__, *p_num_protect, p_protect_info[0],
                      p_protect_info[1], p_protect_info[2]);
@@ -430,7 +430,7 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
     p_peer->num_rx_sinks++;
 
     /* Check the peer's SINK codec */
-    if (A2D_IsPeerSinkCodecValid(p_codec_info)) {
+    if (A2DP_IsPeerSinkCodecValid(p_codec_info)) {
         /* If there is room for a new one */
         if (p_peer->num_sup_sinks < BTA_AV_CO_NUM_ELEMENTS(p_peer->sinks)) {
             tBTA_AV_CO_SINK *p_sink = &p_peer->sinks[p_peer->num_sup_sinks++];
@@ -472,9 +472,9 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
 
             /* Build the codec configuration for this sink */
             memset(codec_cfg, 0, AVDT_CODEC_SIZE);
-            if (A2D_BuildSinkConfig(bta_av_co_cb.codec_cfg,
+            if (A2DP_BuildSinkConfig(bta_av_co_cb.codec_cfg,
                                     p_sink->codec_caps, codec_cfg) ==
-                A2D_SUCCESS) {
+                A2DP_SUCCESS) {
                 APPL_TRACE_DEBUG("%s: reconfig codec_cfg[%x:%x:%x:%x:%x:%x]",
                         __func__,
                         codec_cfg[1], codec_cfg[2], codec_cfg[3],
@@ -515,7 +515,7 @@ tA2D_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
                     *p_sep_info_idx = p_sink->sep_info_idx;
                     memcpy(p_codec_info, p_peer->codec_cfg, AVDT_CODEC_SIZE);
                 }
-                result =  A2D_SUCCESS;
+                result =  A2DP_SUCCESS;
             }
         }
         /* Protect access to bta_av_co_cb.codec_cfg */
@@ -542,8 +542,8 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
                                uint8_t avdt_handle)
 {
     tBTA_AV_CO_PEER *p_peer;
-    tA2D_STATUS status = A2D_SUCCESS;
-    uint8_t category = A2D_SUCCESS;
+    tA2DP_STATUS status = A2DP_SUCCESS;
+    uint8_t category = A2DP_SUCCESS;
     bool recfg_needed = false;
 
     APPL_TRACE_DEBUG("%s: p_codec_info[%x:%x:%x:%x:%x:%x]",
@@ -558,7 +558,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
     if (p_peer == NULL) {
         APPL_TRACE_ERROR("%s: could not find peer entry", __func__);
         /* Call call-in rejecting the configuration */
-        bta_av_ci_setconfig(hndl, A2D_BUSY, AVDT_ASC_CODEC, 0, NULL, false,
+        bta_av_ci_setconfig(hndl, A2DP_BUSY, AVDT_ASC_CODEC, 0, NULL, false,
                             avdt_handle);
         return;
     }
@@ -578,26 +578,26 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
         if ((num_protect != 1) ||
             (bta_av_co_cp_is_scmst(p_protect_info) == false)) {
             APPL_TRACE_ERROR("%s: wrong CP configuration", __func__);
-            status = A2D_BAD_CP_TYPE;
+            status = A2DP_BAD_CP_TYPE;
             category = AVDT_ASC_PROTECT;
         }
 #else
         /* Do not support content protection for the time being */
         APPL_TRACE_ERROR("%s: wrong CP configuration", __func__);
-        status = A2D_BAD_CP_TYPE;
+        status = A2DP_BAD_CP_TYPE;
         category = AVDT_ASC_PROTECT;
 #endif
     }
 
-    if (status == A2D_SUCCESS) {
+    if (status == A2DP_SUCCESS) {
         bool codec_cfg_supported = false;
         if (t_local_sep == AVDT_TSEP_SNK) {
             APPL_TRACE_DEBUG("%s: peer is A2DP SRC", __func__);
-            codec_cfg_supported = A2D_IsSinkCodecSupported(p_codec_info);
+            codec_cfg_supported = A2DP_IsSinkCodecSupported(p_codec_info);
         }
         if (t_local_sep == AVDT_TSEP_SRC) {
             APPL_TRACE_DEBUG("%s: peer is A2DP SINK", __func__);
-            codec_cfg_supported = A2D_IsSourceCodecSupported(p_codec_info);
+            codec_cfg_supported = A2DP_IsSourceCodecSupported(p_codec_info);
         }
 
         /* Check if codec configuration is supported */
@@ -607,7 +607,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
             mutex_global_lock();
 
             /* Check if the configuration matches the current codec config */
-            if (A2D_CodecRequiresReconfig(p_codec_info,
+            if (A2DP_CodecRequiresReconfig(p_codec_info,
                                           bta_av_co_cb.codec_cfg)) {
                 recfg_needed = true;
             } else if ((num_protect == 1) && (!bta_av_co_cb.cp.active)) {
@@ -627,11 +627,11 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
             mutex_global_unlock();
         } else {
             category = AVDT_ASC_CODEC;
-            status = A2D_WRONG_CODEC;
+            status = A2DP_WRONG_CODEC;
         }
     }
 
-    if (status != A2D_SUCCESS) {
+    if (status != A2DP_SUCCESS) {
         APPL_TRACE_DEBUG("%s: reject s=%d c=%d", __func__, status, category);
         /* Call call-in rejecting the configuration */
         bta_av_ci_setconfig(hndl, status, category, 0, NULL, false,
@@ -644,7 +644,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
     p_peer->recfg_needed = recfg_needed;
     APPL_TRACE_DEBUG("%s: accept reconf=%d", __func__, recfg_needed);
     /* Call call-in accepting the configuration */
-    bta_av_ci_setconfig(hndl, A2D_SUCCESS, A2D_SUCCESS, 0, NULL, recfg_needed,
+    bta_av_ci_setconfig(hndl, A2DP_SUCCESS, A2DP_SUCCESS, 0, NULL, recfg_needed,
                         avdt_handle);
 }
 
@@ -665,7 +665,7 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t *p_codec_info,
     tBTA_AV_CO_PEER *p_peer;
 
     APPL_TRACE_DEBUG("%s: mtu:%d codec:%s", __func__, mtu,
-                     A2D_CodecName(p_codec_info));
+                     A2DP_CodecName(p_codec_info));
 
     /* Retrieve the peer info */
     p_peer = bta_av_co_get_peer(hndl);
@@ -764,7 +764,7 @@ void* bta_av_co_audio_src_data_path(const uint8_t *p_codec_info,
 {
     BT_HDR *p_buf;
 
-    APPL_TRACE_DEBUG("%s: codec: %s", __func__, A2D_CodecName(p_codec_info));
+    APPL_TRACE_DEBUG("%s: codec: %s", __func__, A2DP_CodecName(p_codec_info));
 
     p_buf = btif_a2dp_source_audio_readbuf();
     if (p_buf == NULL)
@@ -778,11 +778,11 @@ void* bta_av_co_audio_src_data_path(const uint8_t *p_codec_info,
      * p_buf->layer_specific : number of audio frames in the packet
      * p_buf->word[0] : timestamp
      */
-    if (!A2D_GetPacketTimestamp(p_codec_info, (const uint8_t *)(p_buf + 1),
+    if (!A2DP_GetPacketTimestamp(p_codec_info, (const uint8_t *)(p_buf + 1),
                                 p_timestamp) ||
-        !A2D_BuildCodecHeader(p_codec_info, p_buf, p_buf->layer_specific)) {
+        !A2DP_BuildCodecHeader(p_codec_info, p_buf, p_buf->layer_specific)) {
         APPL_TRACE_ERROR("%s: unsupported codec type (%d)", __func__,
-                         A2D_GetCodecType(p_codec_info));
+                         A2DP_GetCodecType(p_codec_info));
     }
 
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
@@ -928,7 +928,7 @@ static const tBTA_AV_CO_SINK* bta_av_co_find_peer_sink_supports_codec(
                      __func__, p_peer->num_sup_sinks);
 
     for (size_t index = 0; index < p_peer->num_sup_sinks; index++) {
-        if (A2D_CodecConfigMatchesCapabilities(bta_av_co_cb.codec_cfg,
+        if (A2DP_CodecConfigMatchesCapabilities(bta_av_co_cb.codec_cfg,
                                 p_peer->sinks[index].codec_caps)) {
             return &p_peer->sinks[index];
         }
@@ -953,8 +953,8 @@ static const tBTA_AV_CO_SINK* bta_av_co_find_peer_src_supports_codec(
 
     for (size_t index = 0; index < p_peer->num_sup_srcs; index++) {
         const uint8_t *p_codec_caps = p_peer->srcs[index].codec_caps;
-        if (A2D_CodecTypeEquals(bta_av_co_cb.codec_cfg, p_codec_caps) &&
-            A2D_IsPeerSourceCodecSupported(p_codec_caps)) {
+        if (A2DP_CodecTypeEquals(bta_av_co_cb.codec_cfg, p_codec_caps) &&
+            A2DP_IsPeerSourceCodecSupported(p_codec_caps)) {
             return &p_peer->srcs[index];
         }
     }
@@ -1001,8 +1001,8 @@ static bool bta_av_co_audio_codec_supported(void)
 
         /* Build the codec configuration for this sink */
         memset(codec_cfg, 0, AVDT_CODEC_SIZE);
-        if (A2D_BuildSinkConfig(bta_av_co_cb.codec_cfg, p_sink->codec_caps,
-                                codec_cfg) != A2D_SUCCESS) {
+        if (A2DP_BuildSinkConfig(bta_av_co_cb.codec_cfg, p_sink->codec_caps,
+                                codec_cfg) != A2DP_SUCCESS) {
             continue;
         }
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
@@ -1011,7 +1011,7 @@ static bool bta_av_co_audio_codec_supported(void)
 #endif
         /* Check if this is a new configuration (new sink or new config) */
         if ((p_sink != p_peer->p_sink) ||
-            (!A2D_CodecEquals(codec_cfg, p_peer->codec_cfg))
+            (!A2DP_CodecEquals(codec_cfg, p_peer->codec_cfg))
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
             || (p_peer->cp_active != cp_active)
 #endif
@@ -1054,7 +1054,7 @@ static void bta_av_co_audio_codec_reset(void)
     mutex_global_lock();
 
     /* Reset the current configuration to the default codec */
-    A2D_InitDefaultCodec(bta_av_co_cb.codec_cfg);
+    A2DP_InitDefaultCodec(bta_av_co_cb.codec_cfg);
 
     mutex_global_unlock();
 }
@@ -1070,11 +1070,11 @@ static void bta_av_co_audio_codec_reset(void)
  ** Returns          true if successful, false otherwise
  **
  *******************************************************************************/
-bool bta_av_co_audio_set_codec(const tA2D_FEEDING_PARAMS *p_feeding_params)
+bool bta_av_co_audio_set_codec(const tA2DP_FEEDING_PARAMS *p_feeding_params)
 {
     uint8_t new_cfg[AVDT_CODEC_SIZE];
 
-    if (!A2D_SetCodec(p_feeding_params, new_cfg))
+    if (!A2DP_SetCodec(p_feeding_params, new_cfg))
         return false;
 
     /* The new config was correctly built */
@@ -1084,7 +1084,7 @@ bool bta_av_co_audio_set_codec(const tA2D_FEEDING_PARAMS *p_feeding_params)
     return bta_av_co_audio_codec_supported();
 }
 
-void bta_av_co_audio_encoder_init(tA2D_ENCODER_INIT_PARAMS *p_init_params)
+void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS *p_init_params)
 {
     uint16_t min_mtu = 0xFFFF;
 
@@ -1104,18 +1104,18 @@ void bta_av_co_audio_encoder_init(tA2D_ENCODER_INIT_PARAMS *p_init_params)
     }
 
     const uint8_t *p_codec_info = bta_av_co_cb.codec_cfg;
-    p_init_params->NumOfSubBands = A2D_GetNumberOfSubbands(p_codec_info);
-    p_init_params->NumOfBlocks = A2D_GetNumberOfBlocks(p_codec_info);
-    p_init_params->AllocationMethod = A2D_GetAllocationMethodCode(p_codec_info);
-    p_init_params->ChannelMode = A2D_GetChannelModeCode(p_codec_info);
-    p_init_params->SamplingFreq = A2D_GetSamplingFrequencyCode(p_codec_info);
+    p_init_params->NumOfSubBands = A2DP_GetNumberOfSubbands(p_codec_info);
+    p_init_params->NumOfBlocks = A2DP_GetNumberOfBlocks(p_codec_info);
+    p_init_params->AllocationMethod = A2DP_GetAllocationMethodCode(p_codec_info);
+    p_init_params->ChannelMode = A2DP_GetChannelModeCode(p_codec_info);
+    p_init_params->SamplingFreq = A2DP_GetSamplingFrequencyCode(p_codec_info);
     p_init_params->MtuSize = min_mtu;
 
     /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_unlock();
 }
 
-void bta_av_co_audio_encoder_update(tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
+void bta_av_co_audio_encoder_update(tA2DP_ENCODER_UPDATE_PARAMS *p_update_params)
 {
     uint16_t min_mtu = 0xFFFF;
 
@@ -1126,8 +1126,8 @@ void bta_av_co_audio_encoder_update(tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
     mutex_global_lock();
 
     const uint8_t *p_codec_info = bta_av_co_cb.codec_cfg;
-    int min_bitpool = A2D_GetMinBitpool(p_codec_info);
-    int max_bitpool = A2D_GetMaxBitpool(p_codec_info);
+    int min_bitpool = A2DP_GetMinBitpool(p_codec_info);
+    int max_bitpool = A2DP_GetMaxBitpool(p_codec_info);
 
     if ((min_bitpool < 0) || (max_bitpool < 0)) {
         APPL_TRACE_ERROR("%s: Invalid min/max bitpool: [%d, %d]",
@@ -1146,11 +1146,11 @@ void bta_av_co_audio_encoder_update(tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
 
         for (int j = 0; j < p_peer->num_sup_sinks; j++) {
             const tBTA_AV_CO_SINK *p_sink = &p_peer->sinks[j];
-            if (!A2D_CodecTypeEquals(p_codec_info, p_sink->codec_caps))
+            if (!A2DP_CodecTypeEquals(p_codec_info, p_sink->codec_caps))
                 continue;
             /* Update the bitpool boundaries of the current config */
-            int peer_min_bitpool = A2D_GetMinBitpool(p_sink->codec_caps);
-            int peer_max_bitpool = A2D_GetMaxBitpool(p_sink->codec_caps);
+            int peer_min_bitpool = A2DP_GetMinBitpool(p_sink->codec_caps);
+            int peer_max_bitpool = A2DP_GetMaxBitpool(p_sink->codec_caps);
             if (peer_min_bitpool >= 0)
                 min_bitpool = BTA_AV_CO_MAX(min_bitpool, peer_min_bitpool);
             if (peer_max_bitpool >= 0)
@@ -1166,12 +1166,12 @@ void bta_av_co_audio_encoder_update(tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
      * Adjust our preferred bitpool with the remote preference if within
      * our capable range.
      */
-    if (A2D_IsSourceCodecValid(bta_av_co_cb.codec_cfg_setconfig) &&
-        A2D_CodecTypeEquals(p_codec_info, bta_av_co_cb.codec_cfg_setconfig)) {
+    if (A2DP_IsSourceCodecValid(bta_av_co_cb.codec_cfg_setconfig) &&
+        A2DP_CodecTypeEquals(p_codec_info, bta_av_co_cb.codec_cfg_setconfig)) {
         int setconfig_min_bitpool =
-            A2D_GetMinBitpool(bta_av_co_cb.codec_cfg_setconfig);
+            A2DP_GetMinBitpool(bta_av_co_cb.codec_cfg_setconfig);
         int setconfig_max_bitpool =
-            A2D_GetMaxBitpool(bta_av_co_cb.codec_cfg_setconfig);
+            A2DP_GetMaxBitpool(bta_av_co_cb.codec_cfg_setconfig);
         if (setconfig_min_bitpool >= 0)
             min_bitpool = BTA_AV_CO_MAX(min_bitpool, setconfig_min_bitpool);
         if (setconfig_max_bitpool >= 0)
@@ -1194,13 +1194,13 @@ void bta_av_co_audio_encoder_update(tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
     p_update_params->MaxBitPool = max_bitpool;
 }
 
-const tA2D_ENCODER_INTERFACE *bta_av_co_get_encoder_interface(void)
+const tA2DP_ENCODER_INTERFACE *bta_av_co_get_encoder_interface(void)
 {
     /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_lock();
 
-    const tA2D_ENCODER_INTERFACE *encoder_interface =
-        A2D_GetEncoderInterface(bta_av_co_cb.codec_cfg);
+    const tA2DP_ENCODER_INTERFACE *encoder_interface =
+        A2DP_GetEncoderInterface(bta_av_co_cb.codec_cfg);
 
     /* Protect access to bta_av_co_cb.codec_cfg */
     mutex_global_unlock();
