@@ -24,8 +24,8 @@
 #ifndef A2DP_SBC_ENCODER_H
 #define A2DP_SBC_ENCODER_H
 
-#include "osi/include/time.h"
 #include "a2dp_api.h"
+#include "osi/include/time.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,20 +37,21 @@ extern "C" {
 // The encoder initialization parameters are in |p_init_params|.
 // |enqueue_callback} is the callback for enqueueing the encoded audio data.
 void a2dp_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
-                          const tA2DP_ENCODER_INIT_PARAMS *p_init_params,
-                          a2dp_source_read_callback_t read_callback,
-                          a2dp_source_enqueue_callback_t enqueue_callback);
+                           const tA2DP_ENCODER_INIT_PARAMS* p_init_params,
+                           a2dp_source_read_callback_t read_callback,
+                           a2dp_source_enqueue_callback_t enqueue_callback);
 
 // Update the A2DP SBC encoder.
 // The encoder update parameters are in |p_update_params|.
-void a2dp_sbc_encoder_update(const tA2DP_ENCODER_UPDATE_PARAMS *p_update_params);
+void a2dp_sbc_encoder_update(
+    const tA2DP_ENCODER_UPDATE_PARAMS* p_update_params);
 
 // Cleanup the A2DP SBC encoder.
 void a2dp_sbc_encoder_cleanup(void);
 
 // Initialize the feeding for the A2DP SBC encoder.
 // The feeding initialization parameters are in |p_feeding_params|.
-void a2dp_sbc_feeding_init(const tA2DP_FEEDING_PARAMS *p_feeding_params);
+void a2dp_sbc_feeding_init(const tA2DP_FEEDING_PARAMS* p_feeding_params);
 
 // Reset the feeding for the A2DP SBC encoder.
 void a2dp_sbc_feeding_reset(void);
@@ -74,4 +75,4 @@ void a2dp_sbc_debug_codec_dump(int fd);
 }
 #endif
 
-#endif // A2DP_SBC_ENCODER_H
+#endif  // A2DP_SBC_ENCODER_H

@@ -65,13 +65,13 @@ void btif_a2dp_source_on_idle(void);
 // Process 'stop' request from the BTIF state machine to stop A2DP streaming.
 // |p_av_suspend| is the data associated with the request - see
 // |tBTA_AV_SUSPEND|.
-void btif_a2dp_source_on_stopped(tBTA_AV_SUSPEND *p_av_suspend);
+void btif_a2dp_source_on_stopped(tBTA_AV_SUSPEND* p_av_suspend);
 
 // Process 'suspend' request from the BTIF state machine to suspend A2DP
 // streaming.
 // |p_av_suspend| is the data associated with the request - see
 // |tBTA_AV_SUSPEND|.
-void btif_a2dp_source_on_suspended(tBTA_AV_SUSPEND *p_av_suspend);
+void btif_a2dp_source_on_suspended(tBTA_AV_SUSPEND* p_av_suspend);
 
 // Enable/disable discarding of transmitted frames.
 // If |enable| is true, the discarding is enabled, otherwise is disabled.
@@ -82,7 +82,7 @@ void btif_a2dp_source_encoder_update(void);
 
 // Get the next A2DP buffer to send.
 // Returns the next A2DP buffer to send if available, otherwise NULL.
-BT_HDR *btif_a2dp_source_audio_readbuf(void);
+BT_HDR* btif_a2dp_source_audio_readbuf(void);
 
 // Dump debug-related information for the A2DP Source module.
 // |fd| is the file descriptor to use for writing the ASCII formatted

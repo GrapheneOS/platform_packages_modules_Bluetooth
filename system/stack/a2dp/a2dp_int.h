@@ -33,31 +33,29 @@ extern "C" {
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
-#define A2DP_VERSION            0x0102
+#define A2DP_VERSION 0x0102
 
 /* Number of attributes in A2DP SDP record. */
-#define A2DP_NUM_ATTR           6
+#define A2DP_NUM_ATTR 6
 
 /* Number of protocol elements in protocol element list. */
-#define A2DP_NUM_PROTO_ELEMS     2
+#define A2DP_NUM_PROTO_ELEMS 2
 
 /*****************************************************************************
 **  Type definitions
 *****************************************************************************/
 
 /* Control block used by A2DP_FindService(). */
-typedef struct
-{
-    tA2DP_FIND_CBACK    *p_cback;       /* pointer to application callback */
-    tSDP_DISCOVERY_DB   *p_db;          /* pointer to discovery database */
-    uint16_t            service_uuid;   /* service UUID of search */
+typedef struct {
+  tA2DP_FIND_CBACK* p_cback; /* pointer to application callback */
+  tSDP_DISCOVERY_DB* p_db;   /* pointer to discovery database */
+  uint16_t service_uuid;     /* service UUID of search */
 } tA2DP_FIND_CB;
 
-typedef struct
-{
-    tA2DP_FIND_CB   find;   /* find service control block */
-    uint8_t         trace_level;
-    uint16_t        avdt_sdp_ver;   /* AVDTP version */
+typedef struct {
+  tA2DP_FIND_CB find; /* find service control block */
+  uint8_t trace_level;
+  uint16_t avdt_sdp_ver; /* AVDTP version */
 } tA2DP_CB;
 
 /******************************************************************************
@@ -66,7 +64,7 @@ typedef struct
 extern tA2DP_CB a2dp_cb;
 
 /* Used only for conformance testing */
-extern void a2dp_set_avdt_sdp_ver (uint16_t avdt_sdp_ver);
+extern void a2dp_set_avdt_sdp_ver(uint16_t avdt_sdp_ver);
 
 #ifdef __cplusplus
 }

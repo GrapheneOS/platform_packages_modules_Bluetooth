@@ -33,7 +33,7 @@
 #include "btif_hf.h"
 #include "uipc.h"
 
-#define A2DP_DATA_READ_POLL_MS    10
+#define A2DP_DATA_READ_POLL_MS 10
 
 static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
 static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
@@ -41,245 +41,234 @@ static void btif_a2dp_ctrl_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event);
 /* We can have max one command pending */
 static tA2DP_CTRL_CMD a2dp_cmd_pending = A2DP_CTRL_CMD_NONE;
 
-void btif_a2dp_control_init(void)
-{
-    UIPC_Init(NULL);
-    UIPC_Open(UIPC_CH_ID_AV_CTRL, btif_a2dp_ctrl_cb);
+void btif_a2dp_control_init(void) {
+  UIPC_Init(NULL);
+  UIPC_Open(UIPC_CH_ID_AV_CTRL, btif_a2dp_ctrl_cb);
 }
 
-void btif_a2dp_control_cleanup(void)
-{
-    /* This calls blocks until UIPC is fully closed */
-    UIPC_Close(UIPC_CH_ID_ALL);
+void btif_a2dp_control_cleanup(void) {
+  /* This calls blocks until UIPC is fully closed */
+  UIPC_Close(UIPC_CH_ID_ALL);
 }
 
-static void btif_a2dp_recv_ctrl_data(void)
-{
-    tA2DP_CTRL_CMD cmd = A2DP_CTRL_CMD_NONE;
-    int n;
+static void btif_a2dp_recv_ctrl_data(void) {
+  tA2DP_CTRL_CMD cmd = A2DP_CTRL_CMD_NONE;
+  int n;
 
-    uint8_t read_cmd = 0;       /* The read command size is one octet */
-    n = UIPC_Read(UIPC_CH_ID_AV_CTRL, NULL, &read_cmd, 1);
-    cmd = static_cast<tA2DP_CTRL_CMD>(read_cmd);
+  uint8_t read_cmd = 0; /* The read command size is one octet */
+  n = UIPC_Read(UIPC_CH_ID_AV_CTRL, NULL, &read_cmd, 1);
+  cmd = static_cast<tA2DP_CTRL_CMD>(read_cmd);
 
-    /* detach on ctrl channel means audioflinger process was terminated */
-    if (n == 0) {
-        APPL_TRACE_EVENT("CTRL CH DETACHED");
-        UIPC_Close(UIPC_CH_ID_AV_CTRL);
+  /* detach on ctrl channel means audioflinger process was terminated */
+  if (n == 0) {
+    APPL_TRACE_EVENT("CTRL CH DETACHED");
+    UIPC_Close(UIPC_CH_ID_AV_CTRL);
+    return;
+  }
+
+  APPL_TRACE_DEBUG("a2dp-ctrl-cmd : %s", audio_a2dp_hw_dump_ctrl_event(cmd));
+  a2dp_cmd_pending = cmd;
+
+  switch (cmd) {
+    case A2DP_CTRL_CMD_CHECK_READY:
+      if (btif_a2dp_source_media_task_is_shutting_down()) {
+        APPL_TRACE_WARNING("%s: A2DP command %s while media task shutting down",
+                           __func__, audio_a2dp_hw_dump_ctrl_event(cmd));
+        btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
         return;
+      }
+
+      /* check whether AV is ready to setup A2DP datapath */
+      if (btif_av_stream_ready() || btif_av_stream_started_ready()) {
+        btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+      } else {
+        APPL_TRACE_WARNING("%s: A2DP command %s while AV stream is not ready",
+                           __func__, audio_a2dp_hw_dump_ctrl_event(cmd));
+        btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
+      }
+      break;
+
+    case A2DP_CTRL_CMD_START:
+      /*
+       * Don't send START request to stack while we are in a call.
+       * Some headsets such as "Sony MW600", don't allow AVDTP START
+       * while in a call, and respond with BAD_STATE.
+       */
+      if (!btif_hf_is_call_idle()) {
+        btif_a2dp_command_ack(A2DP_CTRL_ACK_INCALL_FAILURE);
+        break;
+      }
+
+      if (btif_a2dp_source_is_streaming()) {
+        APPL_TRACE_WARNING("%s: A2DP command %s while source is streaming",
+                           __func__, audio_a2dp_hw_dump_ctrl_event(cmd));
+        btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
+        break;
+      }
+
+      if (btif_av_stream_ready()) {
+        /* Setup audio data channel listener */
+        UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
+
+        /*
+         * Post start event and wait for audio path to open.
+         * If we are the source, the ACK will be sent after the start
+         * procedure is completed, othewise send it now.
+         */
+        btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
+        if (btif_av_get_peer_sep() == AVDT_TSEP_SRC)
+          btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+        break;
+      }
+
+      if (btif_av_stream_started_ready()) {
+        /*
+         * Already started, setup audio data channel listener and ACK
+         * back immediately.
+         */
+        UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
+        btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+        break;
+      }
+      APPL_TRACE_WARNING("%s: A2DP command %s while AV stream is not ready",
+                         __func__, audio_a2dp_hw_dump_ctrl_event(cmd));
+      btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
+      break;
+
+    case A2DP_CTRL_CMD_STOP:
+      if (btif_av_get_peer_sep() == AVDT_TSEP_SNK &&
+          !btif_a2dp_source_is_streaming()) {
+        /* We are already stopped, just ack back */
+        btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+        break;
+      }
+
+      btif_dispatch_sm_event(BTIF_AV_STOP_STREAM_REQ_EVT, NULL, 0);
+      btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+      break;
+
+    case A2DP_CTRL_CMD_SUSPEND:
+      /* Local suspend */
+      if (btif_av_stream_started_ready()) {
+        btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
+        break;
+      }
+      /* If we are not in started state, just ack back ok and let
+       * audioflinger close the channel. This can happen if we are
+       * remotely suspended, clear REMOTE SUSPEND flag.
+       */
+      btif_av_clear_remote_suspend_flag();
+      btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+      break;
+
+    case A2DP_CTRL_GET_AUDIO_CONFIG: {
+      uint32_t sample_rate = btif_a2dp_sink_get_sample_rate();
+      uint8_t channel_count = btif_a2dp_sink_get_channel_count();
+
+      btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+      UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, reinterpret_cast<uint8_t*>(&sample_rate),
+                sizeof(sample_rate));
+      UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &channel_count, sizeof(channel_count));
+      break;
     }
 
-    APPL_TRACE_DEBUG("a2dp-ctrl-cmd : %s", audio_a2dp_hw_dump_ctrl_event(cmd));
-    a2dp_cmd_pending = cmd;
+    case A2DP_CTRL_CMD_OFFLOAD_START:
+      btif_dispatch_sm_event(BTIF_AV_OFFLOAD_START_REQ_EVT, NULL, 0);
+      break;
 
-    switch (cmd) {
-        case A2DP_CTRL_CMD_CHECK_READY:
-            if (btif_a2dp_source_media_task_is_shutting_down()) {
-                APPL_TRACE_WARNING("%s: A2DP command %s while media task shutting down",
-                                   __func__,
-                                   audio_a2dp_hw_dump_ctrl_event(cmd));
-                btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
-                return;
-            }
-
-            /* check whether AV is ready to setup A2DP datapath */
-            if (btif_av_stream_ready() || btif_av_stream_started_ready()) {
-                btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-            } else {
-                APPL_TRACE_WARNING("%s: A2DP command %s while AV stream is not ready",
-                                   __func__,
-                                   audio_a2dp_hw_dump_ctrl_event(cmd));
-                btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
-            }
-            break;
-
-        case A2DP_CTRL_CMD_START:
-            /*
-             * Don't send START request to stack while we are in a call.
-             * Some headsets such as "Sony MW600", don't allow AVDTP START
-             * while in a call, and respond with BAD_STATE.
-             */
-            if (!btif_hf_is_call_idle()) {
-                btif_a2dp_command_ack(A2DP_CTRL_ACK_INCALL_FAILURE);
-                break;
-            }
-
-            if (btif_a2dp_source_is_streaming()) {
-                APPL_TRACE_WARNING("%s: A2DP command %s while source is streaming",
-                                   __func__,
-                                   audio_a2dp_hw_dump_ctrl_event(cmd));
-                btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
-                break;
-            }
-
-            if (btif_av_stream_ready()) {
-                /* Setup audio data channel listener */
-                UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
-
-                /*
-                 * Post start event and wait for audio path to open.
-                 * If we are the source, the ACK will be sent after the start
-                 * procedure is completed, othewise send it now.
-                 */
-                btif_dispatch_sm_event(BTIF_AV_START_STREAM_REQ_EVT, NULL, 0);
-                if (btif_av_get_peer_sep() == AVDT_TSEP_SRC)
-                    btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-                break;
-            }
-
-            if (btif_av_stream_started_ready()) {
-                /*
-                 * Already started, setup audio data channel listener and ACK
-                 * back immediately.
-                 */
-                UIPC_Open(UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb);
-                btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-                break;
-            }
-            APPL_TRACE_WARNING("%s: A2DP command %s while AV stream is not ready",
-                               __func__, audio_a2dp_hw_dump_ctrl_event(cmd));
-            btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
-            break;
-
-        case A2DP_CTRL_CMD_STOP:
-            if (btif_av_get_peer_sep() == AVDT_TSEP_SNK &&
-                !btif_a2dp_source_is_streaming()) {
-                /* We are already stopped, just ack back */
-                btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-                break;
-            }
-
-            btif_dispatch_sm_event(BTIF_AV_STOP_STREAM_REQ_EVT, NULL, 0);
-            btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-            break;
-
-        case A2DP_CTRL_CMD_SUSPEND:
-            /* Local suspend */
-            if (btif_av_stream_started_ready()) {
-                btif_dispatch_sm_event(BTIF_AV_SUSPEND_STREAM_REQ_EVT, NULL, 0);
-                break;
-            }
-            /* If we are not in started state, just ack back ok and let
-             * audioflinger close the channel. This can happen if we are
-             * remotely suspended, clear REMOTE SUSPEND flag.
-             */
-            btif_av_clear_remote_suspend_flag();
-            btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-            break;
-
-        case A2DP_CTRL_GET_AUDIO_CONFIG: {
-            uint32_t sample_rate = btif_a2dp_sink_get_sample_rate();
-            uint8_t channel_count = btif_a2dp_sink_get_channel_count();
-
-            btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-            UIPC_Send(UIPC_CH_ID_AV_CTRL, 0,
-                      reinterpret_cast<uint8_t *>(&sample_rate),
-                      sizeof(sample_rate));
-            UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &channel_count,
-                      sizeof(channel_count));
-            break;
-        }
-
-        case A2DP_CTRL_CMD_OFFLOAD_START:
-            btif_dispatch_sm_event(BTIF_AV_OFFLOAD_START_REQ_EVT, NULL, 0);
-            break;
-
-        default:
-            APPL_TRACE_ERROR("UNSUPPORTED CMD (%d)", cmd);
-            btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
-            break;
-    }
-    APPL_TRACE_DEBUG("a2dp-ctrl-cmd : %s DONE",
-                     audio_a2dp_hw_dump_ctrl_event(cmd));
+    default:
+      APPL_TRACE_ERROR("UNSUPPORTED CMD (%d)", cmd);
+      btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
+      break;
+  }
+  APPL_TRACE_DEBUG("a2dp-ctrl-cmd : %s DONE",
+                   audio_a2dp_hw_dump_ctrl_event(cmd));
 }
 
-static void btif_a2dp_ctrl_cb(UNUSED_ATTR tUIPC_CH_ID ch_id, tUIPC_EVENT event)
-{
-    APPL_TRACE_DEBUG("A2DP-CTRL-CHANNEL EVENT %s", dump_uipc_event(event));
+static void btif_a2dp_ctrl_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
+                              tUIPC_EVENT event) {
+  APPL_TRACE_DEBUG("A2DP-CTRL-CHANNEL EVENT %s", dump_uipc_event(event));
 
-    switch (event) {
-        case UIPC_OPEN_EVT:
-            break;
+  switch (event) {
+    case UIPC_OPEN_EVT:
+      break;
 
-        case UIPC_CLOSE_EVT:
-            /* restart ctrl server unless we are shutting down */
-            if (btif_a2dp_source_media_task_is_running())
-                UIPC_Open(UIPC_CH_ID_AV_CTRL, btif_a2dp_ctrl_cb);
-            break;
+    case UIPC_CLOSE_EVT:
+      /* restart ctrl server unless we are shutting down */
+      if (btif_a2dp_source_media_task_is_running())
+        UIPC_Open(UIPC_CH_ID_AV_CTRL, btif_a2dp_ctrl_cb);
+      break;
 
-        case UIPC_RX_DATA_READY_EVT:
-            btif_a2dp_recv_ctrl_data();
-            break;
+    case UIPC_RX_DATA_READY_EVT:
+      btif_a2dp_recv_ctrl_data();
+      break;
 
-        default:
-            APPL_TRACE_ERROR("### A2DP-CTRL-CHANNEL EVENT %d NOT HANDLED ###", event);
-            break;
-    }
+    default:
+      APPL_TRACE_ERROR("### A2DP-CTRL-CHANNEL EVENT %d NOT HANDLED ###", event);
+      break;
+  }
 }
 
-static void btif_a2dp_data_cb(UNUSED_ATTR tUIPC_CH_ID ch_id, tUIPC_EVENT event)
-{
-    APPL_TRACE_DEBUG("BTIF MEDIA (A2DP-DATA) EVENT %s",
-                     dump_uipc_event(event));
+static void btif_a2dp_data_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
+                              tUIPC_EVENT event) {
+  APPL_TRACE_DEBUG("BTIF MEDIA (A2DP-DATA) EVENT %s", dump_uipc_event(event));
 
-    switch (event) {
-        case UIPC_OPEN_EVT:
-            /*
-             * Read directly from media task from here on (keep callback for
-             * connection events.
-             */
-            UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_REMOVE_ACTIVE_READSET,
-                       NULL);
-            UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_SET_READ_POLL_TMO,
-                       reinterpret_cast<void *>(A2DP_DATA_READ_POLL_MS));
+  switch (event) {
+    case UIPC_OPEN_EVT:
+      /*
+       * Read directly from media task from here on (keep callback for
+       * connection events.
+       */
+      UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_REMOVE_ACTIVE_READSET, NULL);
+      UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_SET_READ_POLL_TMO,
+                 reinterpret_cast<void*>(A2DP_DATA_READ_POLL_MS));
 
-            if (btif_av_get_peer_sep() == AVDT_TSEP_SNK) {
-                /* Start the media task to encode the audio */
-                btif_a2dp_source_start_audio_req();
+      if (btif_av_get_peer_sep() == AVDT_TSEP_SNK) {
+        /* Start the media task to encode the audio */
+        btif_a2dp_source_start_audio_req();
 
-                /* Make sure we update any changed encoder params */
-                btif_a2dp_source_encoder_update();
-            }
+        /* Make sure we update any changed encoder params */
+        btif_a2dp_source_encoder_update();
+      }
 
-            /* ACK back when media task is fully started */
-            break;
+      /* ACK back when media task is fully started */
+      break;
 
-        case UIPC_CLOSE_EVT:
-            APPL_TRACE_EVENT("## AUDIO PATH DETACHED ##");
-            btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
-            /*
-             * Send stop request only if we are actively streaming and haven't
-             * received a stop request. Potentially, the audioflinger detached
-             * abnormally.
-             */
-            if (btif_a2dp_source_is_streaming()) {
-                /* Post stop event and wait for audio path to stop */
-                btif_dispatch_sm_event(BTIF_AV_STOP_STREAM_REQ_EVT, NULL, 0);
-            }
-            break;
+    case UIPC_CLOSE_EVT:
+      APPL_TRACE_EVENT("## AUDIO PATH DETACHED ##");
+      btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+      /*
+       * Send stop request only if we are actively streaming and haven't
+       * received a stop request. Potentially, the audioflinger detached
+       * abnormally.
+       */
+      if (btif_a2dp_source_is_streaming()) {
+        /* Post stop event and wait for audio path to stop */
+        btif_dispatch_sm_event(BTIF_AV_STOP_STREAM_REQ_EVT, NULL, 0);
+      }
+      break;
 
-        default:
-            APPL_TRACE_ERROR("### A2DP-DATA EVENT %d NOT HANDLED ###", event);
-            break;
-    }
+    default:
+      APPL_TRACE_ERROR("### A2DP-DATA EVENT %d NOT HANDLED ###", event);
+      break;
+  }
 }
 
-void btif_a2dp_command_ack(tA2DP_CTRL_ACK status)
-{
-    uint8_t ack = status;
+void btif_a2dp_command_ack(tA2DP_CTRL_ACK status) {
+  uint8_t ack = status;
 
-    APPL_TRACE_EVENT("## a2dp ack : %s, status %d ##",
-                     audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_pending), status);
+  APPL_TRACE_EVENT("## a2dp ack : %s, status %d ##",
+                   audio_a2dp_hw_dump_ctrl_event(a2dp_cmd_pending), status);
 
-    /* Sanity check */
-    if (a2dp_cmd_pending == A2DP_CTRL_CMD_NONE) {
-        APPL_TRACE_ERROR("warning : no command pending, ignore ack");
-        return;
-    }
+  /* Sanity check */
+  if (a2dp_cmd_pending == A2DP_CTRL_CMD_NONE) {
+    APPL_TRACE_ERROR("warning : no command pending, ignore ack");
+    return;
+  }
 
-    /* Clear pending */
-    a2dp_cmd_pending = A2DP_CTRL_CMD_NONE;
+  /* Clear pending */
+  a2dp_cmd_pending = A2DP_CTRL_CMD_NONE;
 
-    /* Acknowledge start request */
-    UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &ack, sizeof(ack));
+  /* Acknowledge start request */
+  UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &ack, sizeof(ack));
 }
