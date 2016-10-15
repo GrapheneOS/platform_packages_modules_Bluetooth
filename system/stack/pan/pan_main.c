@@ -36,9 +36,7 @@
 #include "hcidefs.h"
 
 
-#if (PAN_DYNAMIC_MEMORY == FALSE)
-tPAN_CB  pan_cb;
-#endif
+tPAN_CB pan_cb;
 
 #define UUID_CONSTANT_PART  12
 uint8_t constant_pan_uuid[UUID_CONSTANT_PART] = {0, 0, 0x10, 0, 0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb};

@@ -558,12 +558,7 @@ typedef void (tL2C_FCR_MGMT_EVT_HDLR) (uint8_t, tL2C_CCB *);
 /* L2CAP global data
 ************************************
 */
-#if (L2C_DYNAMIC_MEMORY == FALSE)
 extern tL2C_CB  l2cb;
-#else
-extern tL2C_CB *l2c_cb_ptr;
-#define l2cb (*l2c_cb_ptr)
-#endif
 
 
 /* Functions provided by l2c_main.c

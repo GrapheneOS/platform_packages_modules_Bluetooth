@@ -75,9 +75,7 @@ static const tL2CAP_APPL_INFO dyn_info =
     NULL
 } ;
 
-#if (GATT_DYNAMIC_MEMORY == FALSE)
-tGATT_CB  gatt_cb;
-#endif
+tGATT_CB gatt_cb;
 
 /*******************************************************************************
 **

@@ -35,9 +35,7 @@
 
 
 /* Control block for AVDT */
-#if (AVDT_DYNAMIC_MEMORY == FALSE)
 tAVDT_CB avdt_cb;
-#endif
 
 void avdt_ccb_idle_ccb_timer_timeout(void *data)
 {

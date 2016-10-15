@@ -190,12 +190,7 @@ typedef struct
 
 /* Global BNEP data
 */
-#if (BNEP_DYNAMIC_MEMORY == FALSE)
-extern tBNEP_CB  bnep_cb;
-#else
-extern tBNEP_CB  *bnep_cb_ptr;
-#define bnep_cb (*bnep_cb_ptr)
-#endif
+extern tBNEP_CB bnep_cb;
 
 /* Functions provided by bnep_main.c
 */

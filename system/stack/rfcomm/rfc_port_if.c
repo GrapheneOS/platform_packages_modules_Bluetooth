@@ -33,9 +33,7 @@
 #include "rfc_int.h"
 #include "bt_utils.h"
 
-#if (RFC_DYNAMIC_MEMORY == FALSE)
 tRFC_CB rfc_cb;
-#endif
 
 /*******************************************************************************
 **

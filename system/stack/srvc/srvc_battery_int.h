@@ -59,12 +59,7 @@ typedef struct
 }tBATTERY_CB;
 
 /* Global GATT data */
-#if (GATT_DYNAMIC_MEMORY == FALSE)
 extern tBATTERY_CB battery_cb;
-#else
-extern tBATTERY_CB *battery_cb_ptr;
-#define battery_cb (*battery_cb_ptr)
-#endif
 
 
 extern bool    battery_valid_handle_range(uint16_t handle);
