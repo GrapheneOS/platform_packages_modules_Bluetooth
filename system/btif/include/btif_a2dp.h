@@ -37,18 +37,18 @@ void btif_a2dp_on_idle(void);
 // |pending_start| should be set to true if the BTIF state machine is in
 // 'pending start' state.
 // Returns true if an ACK for the local command was sent, otherwise false.
-bool btif_a2dp_on_started(tBTA_AV_START *p_av_start, bool pending_start);
+bool btif_a2dp_on_started(tBTA_AV_START* p_av_start, bool pending_start);
 
 // Process 'stop' request from the BTIF state machine to stop A2DP streaming.
 // |p_av_suspend| is the data associated with the request - see
 // |tBTA_AV_SUSPEND|.
-void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av_suspend);
+void btif_a2dp_on_stopped(tBTA_AV_SUSPEND* p_av_suspend);
 
 // Process 'suspend' request from the BTIF state machine to suspend A2DP
 // streaming.
 // |p_av_suspend| is the data associated with the request - see
 // |tBTA_AV_SUSPEND|.
-void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av_suspend);
+void btif_a2dp_on_suspended(tBTA_AV_SUSPEND* p_av_suspend);
 
 // Process 'offload start' request from the BTIF state machine to start
 // offloading of the A2DP streaming.
