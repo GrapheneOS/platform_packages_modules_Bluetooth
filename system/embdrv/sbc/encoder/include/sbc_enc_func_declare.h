@@ -28,11 +28,11 @@
 /*#include "sbc_encoder.h"*/
 /* Global data */
 #if (SBC_IS_64_MULT_IN_WINDOW_ACCU == FALSE)
-extern const SINT16 gas32CoeffFor4SBs[];
-extern const SINT16 gas32CoeffFor8SBs[];
+extern const int16_t gas32CoeffFor4SBs[];
+extern const int16_t gas32CoeffFor8SBs[];
 #else
-extern const SINT32 gas32CoeffFor4SBs[];
-extern const SINT32 gas32CoeffFor8SBs[];
+extern const int32_t gas32CoeffFor4SBs[];
+extern const int32_t gas32CoeffFor8SBs[];
 #endif
 
 /* Global functions*/
@@ -45,13 +45,13 @@ extern void SbcAnalysisInit (void);
 extern void SbcAnalysisFilter4(SBC_ENC_PARAMS *strEncParams);
 extern void SbcAnalysisFilter8(SBC_ENC_PARAMS *strEncParams);
 
-extern void SBC_FastIDCT8 (SINT32 *pInVect, SINT32 *pOutVect);
-extern void SBC_FastIDCT4 (SINT32 *x0, SINT32 *pOutVect);
+extern void SBC_FastIDCT8 (int32_t *pInVect, int32_t *pOutVect);
+extern void SBC_FastIDCT4 (int32_t *x0, int32_t *pOutVect);
 
 extern void EncPacking(SBC_ENC_PARAMS *strEncParams);
 extern void EncQuantizer(SBC_ENC_PARAMS *);
 #if (SBC_DSP_OPT == TRUE)
-    SINT32 SBC_Multiply_32_16_Simplified(SINT32 s32In2Temp,SINT32 s32In1Temp);
+    int32_t SBC_Multiply_32_16_Simplified(int32_t s32In2Temp,int32_t s32In1Temp);
 #endif
 #endif
 

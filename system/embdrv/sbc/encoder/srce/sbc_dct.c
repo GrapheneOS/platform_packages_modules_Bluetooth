@@ -61,31 +61,31 @@
 #endif /* SBC_IS_64_MULT_IN_IDCT */
 
 #if (SBC_FAST_DCT == FALSE)
-extern const SINT16 gas16AnalDCTcoeff8[];
-extern const SINT16 gas16AnalDCTcoeff4[];
+extern const int16_t gas16AnalDCTcoeff8[];
+extern const int16_t gas16AnalDCTcoeff4[];
 #endif
 
-void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
+void SBC_FastIDCT8(int32_t *pInVect, int32_t *pOutVect)
 {
 #if (SBC_FAST_DCT == TRUE)
 #if (SBC_ARM_ASM_OPT == TRUE)
 #else
 #if (SBC_IPAQ_OPT == TRUE)
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
-    SINT64 s64Temp;
+    int64_t s64Temp;
 #endif
 #else
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
-    SINT32 s32HiTemp;
+    int32_t s32HiTemp;
 #else
-    SINT32 s32In2Temp;
-    register SINT32 s32In1Temp;
+    int32_t s32In2Temp;
+    register int32_t s32In1Temp;
 #endif
 #endif
 #endif
 
-    register SINT32 x0, x1, x2, x3, x4, x5, x6, x7,temp;
-    SINT32 res_even[4], res_odd[4];
+    register int32_t x0, x1, x2, x3, x4, x5, x6, x7,temp;
+    int32_t res_even[4], res_odd[4];
     /*x0= (pInVect[4])/2 ;*/
     SBC_IDCT_MULT(SBC_COS_PI_SUR_4,pInVect[4], x0);
     /*printf("x0 0x%x = %d = %d * %d\n", x0, x0, SBC_COS_PI_SUR_4, pInVect[4]);*/
@@ -159,14 +159,14 @@ void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
     pOutVect[4] = (res_even[ 3 ] - res_odd[ 3 ])  ;
 #else
     uint8_t Index, k;
-    SINT32 temp;
+    int32_t temp;
 	/*Calculate 4 subband samples by matrixing*/
     for(Index=0; Index<8; Index++)
     {
         temp = 0;
         for(k=0; k<16; k++)
         {
-            /*temp += (SINT32)(((SINT64)M[(Index*strEncParams->numOfSubBands*2)+k] * Y[k]) >> 16 );*/
+            /*temp += (int32_t)(((int64_t)M[(Index*strEncParams->numOfSubBands*2)+k] * Y[k]) >> 16 );*/
             temp += (gas16AnalDCTcoeff8[(Index*8*2)+k] * (pInVect[k] >> 16));
             temp += ((gas16AnalDCTcoeff8[(Index*8*2)+k] * (pInVect[k] & 0xFFFF)) >> 16);
         }
@@ -188,26 +188,26 @@ void SBC_FastIDCT8(SINT32 *pInVect, SINT32 *pOutVect)
 **
 **
 *******************************************************************************/
-void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
+void SBC_FastIDCT4(int32_t *pInVect, int32_t *pOutVect)
 {
 #if (SBC_FAST_DCT == TRUE)
 #if (SBC_ARM_ASM_OPT == TRUE)
 #else
 #if (SBC_IPAQ_OPT == TRUE)
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
-    SINT64 s64Temp;
+    int64_t s64Temp;
 #endif
 #else
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
-    SINT32 s32HiTemp;
+    int32_t s32HiTemp;
 #else
     uint16_t s32In2Temp;
-    SINT32 s32In1Temp;
+    int32_t s32In1Temp;
 #endif
 #endif
 #endif
-    SINT32 temp,x2;
-    SINT32 tmp[8];
+    int32_t temp,x2;
+    int32_t tmp[8];
 
     x2=pInVect[2]>>1;
     temp=(pInVect[0]+pInVect[4]);
@@ -228,14 +228,14 @@ void SBC_FastIDCT4(SINT32 *pInVect, SINT32 *pOutVect)
     pOutVect[3] = (tmp[0]-tmp[6]);
 #else
     uint8_t Index, k;
-    SINT32 temp;
+    int32_t temp;
 	/*Calculate 4 subband samples by matrixing*/
     for(Index=0; Index<4; Index++)
     {
         temp = 0;
         for(k=0; k<8; k++)
         {
-            /*temp += (SINT32)(((SINT64)M[(Index*strEncParams->numOfSubBands*2)+k] * Y[k]) >> 16 ); */
+            /*temp += (int32_t)(((int64_t)M[(Index*strEncParams->numOfSubBands*2)+k] * Y[k]) >> 16 ); */
             temp += (gas16AnalDCTcoeff4[(Index*4*2)+k] * (pInVect[k] >> 16));
             temp += ((gas16AnalDCTcoeff4[(Index*4*2)+k] * (pInVect[k] & 0xFFFF)) >> 16);
         }
