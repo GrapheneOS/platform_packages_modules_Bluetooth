@@ -97,7 +97,7 @@
 #endif
 
 /* Set SBC_IPAQ_OPT to TRUE in case the target is an ARM */
-/* 32 and 64 bit mult will be performed using SINT64 ( usualy __int64 ) cast that usualy give optimal performance if supported */
+/* 32 and 64 bit mult will be performed using int64_t ( usualy __int64 ) cast that usualy give optimal performance if supported */
 #ifndef SBC_IPAQ_OPT
 #define SBC_IPAQ_OPT TRUE
 #endif
@@ -153,35 +153,35 @@
 
 typedef struct SBC_ENC_PARAMS_TAG
 {
-    SINT16 s16SamplingFreq;                         /* 16k, 32k, 44.1k or 48k*/
-    SINT16 s16ChannelMode;                          /* mono, dual, streo or joint streo*/
-    SINT16 s16NumOfSubBands;                        /* 4 or 8 */
-    SINT16 s16NumOfChannels;
-    SINT16 s16NumOfBlocks;                          /* 4, 8, 12 or 16*/
-    SINT16 s16AllocationMethod;                     /* loudness or SNR*/
-    SINT16 s16BitPool;                              /* 16*numOfSb for mono & dual;
+    int16_t s16SamplingFreq;                         /* 16k, 32k, 44.1k or 48k*/
+    int16_t s16ChannelMode;                          /* mono, dual, streo or joint streo*/
+    int16_t s16NumOfSubBands;                        /* 4 or 8 */
+    int16_t s16NumOfChannels;
+    int16_t s16NumOfBlocks;                          /* 4, 8, 12 or 16*/
+    int16_t s16AllocationMethod;                     /* loudness or SNR*/
+    int16_t s16BitPool;                              /* 16*numOfSb for mono & dual;
                                                        32*numOfSb for stereo & joint stereo */
     uint16_t u16BitRate;
     uint8_t u8NumPacketToEncode;                    /* number of sbc frame to encode. Default is 1 */
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
-    SINT16 as16Join[SBC_MAX_NUM_OF_SUBBANDS];       /*1 if JS, 0 otherwise*/
+    int16_t as16Join[SBC_MAX_NUM_OF_SUBBANDS];       /*1 if JS, 0 otherwise*/
 #endif
 
-    SINT16 s16MaxBitNeed;
-    SINT16 as16ScaleFactor[SBC_MAX_NUM_OF_CHANNELS*SBC_MAX_NUM_OF_SUBBANDS];
+    int16_t s16MaxBitNeed;
+    int16_t as16ScaleFactor[SBC_MAX_NUM_OF_CHANNELS*SBC_MAX_NUM_OF_SUBBANDS];
 
-    SINT16 *ps16NextPcmBuffer;
+    int16_t *ps16NextPcmBuffer;
 #if (SBC_NO_PCM_CPY_OPTION == TRUE)
-    SINT16 *ps16PcmBuffer;
+    int16_t *ps16PcmBuffer;
 #else
-    SINT16 as16PcmBuffer[SBC_MAX_NUM_FRAME*SBC_MAX_NUM_OF_BLOCKS * SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS];
+    int16_t as16PcmBuffer[SBC_MAX_NUM_FRAME*SBC_MAX_NUM_OF_BLOCKS * SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS];
 #endif
 
-    SINT16  s16ScartchMemForBitAlloc[16];
+    int16_t  s16ScartchMemForBitAlloc[16];
 
-    SINT32  s32SbBuffer[SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS * SBC_MAX_NUM_OF_BLOCKS];
+    int32_t  s32SbBuffer[SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS * SBC_MAX_NUM_OF_BLOCKS];
 
-    SINT16 as16Bits[SBC_MAX_NUM_OF_CHANNELS*SBC_MAX_NUM_OF_SUBBANDS];
+    int16_t as16Bits[SBC_MAX_NUM_OF_CHANNELS*SBC_MAX_NUM_OF_SUBBANDS];
 
     uint8_t  *pu8Packet;
     uint8_t  *pu8NextPacket;

@@ -27,31 +27,31 @@
 #include "sbc_encoder.h"
 #include "sbc_enc_func_declare.h"
 
-SINT16 EncMaxShiftCounter;
+int16_t EncMaxShiftCounter;
 
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
-SINT32   s32LRDiff[SBC_MAX_NUM_OF_BLOCKS]    = {0};
-SINT32   s32LRSum[SBC_MAX_NUM_OF_BLOCKS]     = {0};
+int32_t   s32LRDiff[SBC_MAX_NUM_OF_BLOCKS]    = {0};
+int32_t   s32LRSum[SBC_MAX_NUM_OF_BLOCKS]     = {0};
 #endif
 
 void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
 {
-    SINT32 s32Ch;                               /* counter for ch*/
-    SINT32 s32Sb;                               /* counter for sub-band*/
+    int32_t s32Ch;                               /* counter for ch*/
+    int32_t s32Sb;                               /* counter for sub-band*/
     uint32_t u32Count, maxBit = 0;                          /* loop count*/
-    SINT32 s32MaxValue;                         /* temp variable to store max value */
+    int32_t s32MaxValue;                         /* temp variable to store max value */
 
-    SINT16 *ps16ScfL;
-    SINT32 *SbBuffer;
-    SINT32 s32Blk;                              /* counter for block*/
-    SINT32  s32NumOfBlocks   = pstrEncParams->s16NumOfBlocks;
+    int16_t *ps16ScfL;
+    int32_t *SbBuffer;
+    int32_t s32Blk;                              /* counter for block*/
+    int32_t  s32NumOfBlocks   = pstrEncParams->s16NumOfBlocks;
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
-    SINT32 s32MaxValue2;
+    int32_t s32MaxValue2;
     uint32_t u32CountSum,u32CountDiff;
-    SINT32 *pSum, *pDiff;
+    int32_t *pSum, *pDiff;
 #endif
     uint8_t  *pu8;
-    register SINT32  s32NumOfSubBands = pstrEncParams->s16NumOfSubBands;
+    register int32_t  s32NumOfSubBands = pstrEncParams->s16NumOfSubBands;
 
     pstrEncParams->pu8NextPacket = pstrEncParams->pu8Packet;
 
@@ -89,10 +89,10 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
 
             for ( ; u32Count < 15; u32Count++)
             {
-                if (s32MaxValue <= (SINT32)(0x8000 << u32Count))
+                if (s32MaxValue <= (int32_t)(0x8000 << u32Count))
                     break;
             }
-            *ps16ScfL++ = (SINT16)u32Count;
+            *ps16ScfL++ = (int16_t)u32Count;
 
             if (u32Count > maxBit)
                 maxBit = u32Count;
@@ -126,18 +126,18 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
                 u32Count = (s32MaxValue > 0x800000) ? 9 : 0;
                 for ( ; u32Count < 15; u32Count++)
                 {
-                    if (s32MaxValue <= (SINT32)(0x8000 << u32Count))
+                    if (s32MaxValue <= (int32_t)(0x8000 << u32Count))
                         break;
                 }
                 u32CountSum=u32Count;
                 u32Count = (s32MaxValue2 > 0x800000) ? 9 : 0;
                 for ( ; u32Count < 15; u32Count++)
                 {
-                    if (s32MaxValue2 <= (SINT32)(0x8000 << u32Count))
+                    if (s32MaxValue2 <= (int32_t)(0x8000 << u32Count))
                         break;
                 }
                 u32CountDiff=u32Count;
-                if ( (*ps16ScfL + *(ps16ScfL+s32NumOfSubBands)) > (SINT16)(u32CountSum + u32CountDiff) )
+                if ( (*ps16ScfL + *(ps16ScfL+s32NumOfSubBands)) > (int16_t)(u32CountSum + u32CountDiff) )
                 {
 
                     if (u32CountSum > maxBit)
@@ -146,8 +146,8 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
                     if (u32CountDiff > maxBit)
                         maxBit = u32CountDiff;
 
-                    *ps16ScfL = (SINT16)u32CountSum;
-                    *(ps16ScfL+s32NumOfSubBands) = (SINT16)u32CountDiff;
+                    *ps16ScfL = (int16_t)u32CountSum;
+                    *(ps16ScfL+s32NumOfSubBands) = (int16_t)u32CountDiff;
 
                     SbBuffer=pstrEncParams->s32SbBuffer+s32Sb;
                     pSum       = s32LRSum;
@@ -175,7 +175,7 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
         }
 #endif
 
-        pstrEncParams->s16MaxBitNeed = (SINT16)maxBit;
+        pstrEncParams->s16MaxBitNeed = (int16_t)maxBit;
 
         /* bit allocation */
         if ((pstrEncParams->s16ChannelMode == SBC_STEREO) || (pstrEncParams->s16ChannelMode == SBC_JOINT_STEREO))
@@ -202,9 +202,9 @@ void SBC_Encoder(SBC_ENC_PARAMS *pstrEncParams)
 void SBC_Encoder_Init(SBC_ENC_PARAMS *pstrEncParams)
 {
     uint16_t s16SamplingFreq; /*temp variable to store smpling freq*/
-    SINT16 s16Bitpool;      /*to store bit pool value*/
-    SINT16 s16BitRate;      /*to store bitrate*/
-    SINT16 s16FrameLen;     /*to store frame length*/
+    int16_t s16Bitpool;      /*to store bit pool value*/
+    int16_t s16BitRate;      /*to store bitrate*/
+    int16_t s16FrameLen;     /*to store frame length*/
     uint16_t HeaderParams;
 
     pstrEncParams->u8NumPacketToEncode = 1; /* default is one for retrocompatibility purpose */
@@ -228,7 +228,7 @@ void SBC_Encoder_Init(SBC_ENC_PARAMS *pstrEncParams)
     if ( (pstrEncParams->s16ChannelMode == SBC_JOINT_STEREO)
         ||  (pstrEncParams->s16ChannelMode == SBC_STEREO) )
     {
-        s16Bitpool = (SINT16)( (pstrEncParams->u16BitRate *
+        s16Bitpool = (int16_t)( (pstrEncParams->u16BitRate *
             pstrEncParams->s16NumOfSubBands * 1000 / s16SamplingFreq)
             -( (32 + (4 * pstrEncParams->s16NumOfSubBands *
             pstrEncParams->s16NumOfChannels)
@@ -256,7 +256,7 @@ void SBC_Encoder_Init(SBC_ENC_PARAMS *pstrEncParams)
     }
     else
     {
-        s16Bitpool = (SINT16)( ((pstrEncParams->s16NumOfSubBands *
+        s16Bitpool = (int16_t)( ((pstrEncParams->s16NumOfSubBands *
             pstrEncParams->u16BitRate * 1000)
             / (s16SamplingFreq * pstrEncParams->s16NumOfChannels))
             -( ( (32 / pstrEncParams->s16NumOfChannels) +

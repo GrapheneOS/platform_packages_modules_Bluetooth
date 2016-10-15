@@ -28,8 +28,8 @@
 #include "sbc_enc_func_declare.h"
 
 /*global arrays*/
-extern const SINT16 sbc_enc_as16Offset4[4][4];
-extern const SINT16 sbc_enc_as16Offset8[4][8];
+extern const int16_t sbc_enc_as16Offset4[4][4];
+extern const int16_t sbc_enc_as16Offset8[4][8];
 
 /****************************************************************************
 * BitAlloc - Calculates the required number of bits for the given scale factor
@@ -40,21 +40,21 @@ extern const SINT16 sbc_enc_as16Offset8[4][8];
 
 void sbc_enc_bit_alloc_ste(SBC_ENC_PARAMS *pstrCodecParams)
 {
-	/* CAUTIOM -> mips optim for arm 32 require to use SINT32 instead of SINT16 */
+	/* CAUTIOM -> mips optim for arm 32 require to use int32_t instead of int16_t */
 	/* Do not change variable type or name */
-    SINT32 s32MaxBitNeed;   /*to store the max bits needed per sb*/
-    SINT32 s32BitCount;     /*the used number of bits*/
-    SINT32 s32SliceCount;   /*to store hwo many slices can be put in bitpool*/
-    SINT32 s32BitSlice;     /*number of bitslices in bitpool*/
-    SINT32 s32Sb;           /*counter for sub-band*/
-    SINT32 s32Ch;           /*counter for channel*/
-    SINT16 *ps16BitNeed;    /*temp memory to store required number of bits*/
-    SINT32 s32Loudness;     /*used in Loudness calculation*/
-    SINT16 *ps16GenBufPtr,*pas16ScaleFactor;
-    SINT16 *ps16GenArrPtr;
-    SINT16 *ps16GenTabPtr;
-    SINT32  s32NumOfSubBands = pstrCodecParams->s16NumOfSubBands;
-    SINT32  s32BitPool       = pstrCodecParams->s16BitPool;
+    int32_t s32MaxBitNeed;   /*to store the max bits needed per sb*/
+    int32_t s32BitCount;     /*the used number of bits*/
+    int32_t s32SliceCount;   /*to store hwo many slices can be put in bitpool*/
+    int32_t s32BitSlice;     /*number of bitslices in bitpool*/
+    int32_t s32Sb;           /*counter for sub-band*/
+    int32_t s32Ch;           /*counter for channel*/
+    int16_t *ps16BitNeed;    /*temp memory to store required number of bits*/
+    int32_t s32Loudness;     /*used in Loudness calculation*/
+    int16_t *ps16GenBufPtr,*pas16ScaleFactor;
+    int16_t *ps16GenArrPtr;
+    int16_t *ps16GenTabPtr;
+    int32_t  s32NumOfSubBands = pstrCodecParams->s16NumOfSubBands;
+    int32_t  s32BitPool       = pstrCodecParams->s16BitPool;
 
     /* bitneed values are derived from scale factor */
     if (pstrCodecParams->s16AllocationMethod == SBC_SNR)
@@ -72,11 +72,11 @@ void sbc_enc_bit_alloc_ste(SBC_ENC_PARAMS *pstrCodecParams)
         {
             if (s32NumOfSubBands == 4)
             {
-                ps16GenTabPtr = (SINT16 *)sbc_enc_as16Offset4[pstrCodecParams->s16SamplingFreq];
+                ps16GenTabPtr = (int16_t *)sbc_enc_as16Offset4[pstrCodecParams->s16SamplingFreq];
             }
             else
             {
-                ps16GenTabPtr = (SINT16 *)sbc_enc_as16Offset8[pstrCodecParams->s16SamplingFreq];
+                ps16GenTabPtr = (int16_t *)sbc_enc_as16Offset8[pstrCodecParams->s16SamplingFreq];
             }
 
             for (s32Sb = 0; s32Sb < s32NumOfSubBands; s32Sb++)
@@ -85,12 +85,12 @@ void sbc_enc_bit_alloc_ste(SBC_ENC_PARAMS *pstrCodecParams)
                     *ps16GenBufPtr = -5;
                 else
                 {
-                    s32Loudness = (SINT32)(*pas16ScaleFactor - *ps16GenTabPtr);
+                    s32Loudness = (int32_t)(*pas16ScaleFactor - *ps16GenTabPtr);
 
                     if (s32Loudness > 0)
-                        *ps16GenBufPtr = (SINT16)(s32Loudness >> 1);
+                        *ps16GenBufPtr = (int16_t)(s32Loudness >> 1);
                     else
-                        *ps16GenBufPtr = (SINT16)s32Loudness;
+                        *ps16GenBufPtr = (int16_t)s32Loudness;
                 }
 
                 if (*ps16GenBufPtr > s32MaxBitNeed)
@@ -143,7 +143,7 @@ void sbc_enc_bit_alloc_ste(SBC_ENC_PARAMS *pstrCodecParams)
                 *ps16GenArrPtr = 0;
             else
                 *ps16GenArrPtr = ((*(ps16GenBufPtr)-s32BitSlice) < 16) ?
-                                        (SINT16)(*(ps16GenBufPtr)-s32BitSlice):16;
+                                        (int16_t)(*(ps16GenBufPtr)-s32BitSlice):16;
             ps16GenBufPtr++;
             ps16GenArrPtr++;
         }

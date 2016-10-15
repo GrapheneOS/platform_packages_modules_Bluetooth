@@ -41,11 +41,11 @@
     }														    						\
 }
 #else
-#define Mult32(s32In1,s32In2,s32OutLow) s32OutLow=(SINT32)(s32In1)*(SINT32)(s32In2);
+#define Mult32(s32In1,s32In2,s32OutLow) s32OutLow=(int32_t)(s32In1)*(int32_t)(s32In2);
 #define Mult64(s32In1, s32In2, s32OutLow, s32OutHi)                                     \
 {                                                                                       \
-	(s32OutLow) = ((SINT32)(uint16_t)(s32In1) * (uint16_t)(s32In2));                \
-	s32TempVal2 = (SINT32)(((s32In1) >> 16) * (uint16_t)(s32In2));                  \
+	(s32OutLow) = ((int32_t)(uint16_t)(s32In1) * (uint16_t)(s32In2));                \
+	s32TempVal2 = (int32_t)(((s32In1) >> 16) * (uint16_t)(s32In2));                  \
 	s32Carry    = ((((uint32_t)(s32OutLow)>>16)&0xFFFF) +                           \
 										+ (s32TempVal2 & 0xFFFF) ) >> 16;               \
 	(s32OutLow) += (s32TempVal2 << 16);                                             \
@@ -57,28 +57,28 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
 {
     uint8_t     *pu8PacketPtr;                      /* packet ptr*/
     uint8_t Temp;
-    SINT32      s32Blk;                             /* counter for block*/
-    SINT32      s32Ch;                              /* counter for channel*/
-    SINT32      s32Sb;                              /* counter for sub-band*/
-    SINT32 s32PresentBit;                      /* represents bit to be stored*/
-    /*SINT32 s32LoopCountI;                       loop counter*/
-    SINT32 s32LoopCountJ;                      /* loop counter*/
+    int32_t      s32Blk;                             /* counter for block*/
+    int32_t      s32Ch;                              /* counter for channel*/
+    int32_t      s32Sb;                              /* counter for sub-band*/
+    int32_t s32PresentBit;                      /* represents bit to be stored*/
+    /*int32_t s32LoopCountI;                       loop counter*/
+    int32_t s32LoopCountJ;                      /* loop counter*/
     uint32_t u32QuantizedSbValue,u32QuantizedSbValue0; /* temp variable to store quantized sb val*/
-    SINT32 s32LoopCount;                       /* loop counter*/
+    int32_t s32LoopCount;                       /* loop counter*/
     uint8_t u8XoredVal;                         /* to store XORed value in CRC calculation*/
     uint8_t u8CRC;                              /* to store CRC value*/
-    SINT16 *ps16GenPtr;
-    SINT32 s32NumOfBlocks;
-    SINT32 s32NumOfSubBands = pstrEncParams->s16NumOfSubBands;
-    SINT32 s32NumOfChannels = pstrEncParams->s16NumOfChannels;
+    int16_t *ps16GenPtr;
+    int32_t s32NumOfBlocks;
+    int32_t s32NumOfSubBands = pstrEncParams->s16NumOfSubBands;
+    int32_t s32NumOfChannels = pstrEncParams->s16NumOfChannels;
 	uint32_t u32SfRaisedToPow2;	/*scale factor raised to power 2*/
-    SINT16 *ps16ScfPtr;
-    SINT32 *ps32SbPtr;
+    int16_t *ps16ScfPtr;
+    int32_t *ps32SbPtr;
 	uint16_t u16Levels;	/*to store levels*/
-	SINT32 s32Temp1;	/*used in 64-bit multiplication*/
-	SINT32 s32Low;	/*used in 64-bit multiplication*/
+	int32_t s32Temp1;	/*used in 64-bit multiplication*/
+	int32_t s32Low;	/*used in 64-bit multiplication*/
 #if (SBC_IS_64_MULT_IN_QUANTIZER == TRUE)
-	SINT32 s32Hi1,s32Low1,s32Carry,s32TempVal2,s32Hi, s32Temp2;
+	int32_t s32Hi1,s32Low1,s32Carry,s32TempVal2,s32Hi, s32Temp2;
 #endif
 
     pu8PacketPtr    = pstrEncParams->pu8NextPacket;    /*Initialize the ptr*/

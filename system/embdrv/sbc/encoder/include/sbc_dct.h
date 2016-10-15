@@ -30,28 +30,28 @@
 {																			    \
     __asm																		\
 {																				\
-    MUL s32OutLow,(SINT32)s16In2, (s32In1>>15)        \
+    MUL s32OutLow,(int32_t)s16In2, (s32In1>>15)        \
 }																				\
 }
 #else
 #if (SBC_DSP_OPT == TRUE)
-#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow = SBC_Multiply_32_16_Simplified((SINT32)s16In2,s32In1);
+#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow = SBC_Multiply_32_16_Simplified((int32_t)s16In2,s32In1);
 #else
 #if (SBC_IPAQ_OPT == TRUE)
-/*#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(SINT32)((SINT32)(s16In2)*(SINT32)(s32In1>>15)); */
-#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(SINT32)(((SINT64)(s16In2)*(SINT64)(s32In1))>>15);
+/*#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(int32_t)((int32_t)(s16In2)*(int32_t)(s32In1>>15)); */
+#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(int32_t)(((int64_t)(s16In2)*(int64_t)(s32In1))>>15);
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
 #define SBC_MULT_32_32(s32In2, s32In1, s32OutLow)                           \
 {                                                                           \
-    s64Temp = ((SINT64) s32In2) * ((SINT64) s32In1)>>31;            \
-    s32OutLow = (SINT32) s64Temp;                                                    \
+    s64Temp = ((int64_t) s32In2) * ((int64_t) s32In1)>>31;            \
+    s32OutLow = (int32_t) s64Temp;                                                    \
 }
 #endif
 #else
 #define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow)                   \
 {                                                                               \
     s32In1Temp = s32In1;                                                        \
-    s32In2Temp = (SINT32)s16In2;                                                \
+    s32In2Temp = (int32_t)s16In2;                                                \
                                                                                 \
     /* Multiply one +ve and the other -ve number */                             \
     if (s32In1Temp < 0)                                                         \
@@ -73,8 +73,8 @@
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
 #define SBC_MULT_64(s32In1, s32In2, s32OutLow, s32OutHi)  \
 {\
-        s32OutLow=(SINT32)(((SINT64)s32In1*(SINT64)s32In2)& 0x00000000FFFFFFFF);\
-        s32OutHi=(SINT32)(((SINT64)s32In1*(SINT64)s32In2)>>32);\
+        s32OutLow=(int32_t)(((int64_t)s32In1*(int64_t)s32In2)& 0x00000000FFFFFFFF);\
+        s32OutHi=(int32_t)(((int64_t)s32In1*(int64_t)s32In2)>>32);\
 }
 #define SBC_MULT_32_32(s32In2, s32In1, s32OutLow)                           \
 {                                                                           \
