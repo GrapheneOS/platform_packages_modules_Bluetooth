@@ -409,6 +409,20 @@ extern int PORT_Control (uint16_t handle, uint8_t signal);
 *******************************************************************************/
 extern int PORT_FlowControl (uint16_t handle, bool    enable);
 
+/*******************************************************************************
+**
+** Function         PORT_FlowControl_MaxCredit
+**
+** Description      This function directs a specified connection to pass
+**                  flow control message to the peer device.  Enable flag passed
+**                  shows if port can accept more data. It also sends max credit
+**                  when data flow enabled
+**
+** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
+**                  enable     - enables data flow
+**
+*******************************************************************************/
+extern int PORT_FlowControl_MaxCredit(uint16_t handle, bool enable);
 
 /*******************************************************************************
 **
@@ -587,8 +601,8 @@ extern int PORT_Write (uint16_t handle, BT_HDR *p_buf);
 **                  p_len       - Bytes written
 **
 *******************************************************************************/
-extern int PORT_WriteData (uint16_t handle, char *p_data, uint16_t max_len,
-                           uint16_t *p_len);
+extern int PORT_WriteData (uint16_t handle, const char *p_data,
+                           uint16_t max_len, uint16_t *p_len);
 
 /*******************************************************************************
 **

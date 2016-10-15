@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-extern "C" {
+#include "btcore/include/hal_util.h"
 
 // TODO(armansito): This provides a fake implementation of the function defined
 // in btcore/include/hal_util.h. We have to provide this to prevent having to
@@ -25,5 +25,3 @@ extern "C" {
 int hal_util_load_bt_library(const struct hw_module_t** module) {
   return -1;
 }
-
-}  // extern "C"

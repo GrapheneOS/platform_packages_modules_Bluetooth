@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "osi/include/ringbuffer.h"
 #include "osi/include/osi.h"
-}
 
 TEST(RingbufferTest, test_new_simple) {
   ringbuffer_t *rb = ringbuffer_init(4096);

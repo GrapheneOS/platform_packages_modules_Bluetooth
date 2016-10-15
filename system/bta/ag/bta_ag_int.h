@@ -29,6 +29,10 @@
 #include "bta_ag_api.h"
 #include "bta_ag_at.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Send RING & CLIP in one AT cmd */
 #ifndef BTA_AG_MULTI_RESULT_INCLUDED
 #define BTA_AG_MULTI_RESULT_INCLUDED FALSE
@@ -339,7 +343,7 @@ extern tBTA_AG_CB bta_ag_cb;
 
 /* config struct */
 extern tBTA_AG_CFG *p_bta_ag_cfg;
-extern tBTA_AG_HF_IND bta_ag_local_hf_ind_cfg[];
+extern const tBTA_AG_HF_IND bta_ag_local_hf_ind_cfg[];
 
 /*****************************************************************************
 **  Function prototypes
@@ -428,4 +432,9 @@ extern void bta_ag_ci_sco_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 extern void bta_ag_set_esco_param(bool set_reset, tBTM_ESCO_PARAMS *param);
 extern void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 extern void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* BTA_AG_INT_H */

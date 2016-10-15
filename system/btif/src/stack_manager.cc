@@ -55,7 +55,6 @@ static void event_signal_stack_down(void *context);
 
 // Unvetted includes/imports, etc which should be removed or vetted in the future
 static future_t *hack_future;
-extern "C" void bte_main_enable();
 void btif_thread_post(thread_fn func, void *context);
 // End unvetted section
 

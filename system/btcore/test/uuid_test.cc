@@ -19,9 +19,7 @@
 #include <gtest/gtest.h>
 #include "osi/test/AllocationTestHarness.h"
 
-extern "C" {
 #include "btcore/include/uuid.h"
-}
 
 static const char *UUID_EMPTY = "00000000-0000-0000-0000-000000000000";
 static const char *UUID_ONES = "11111111-1111-1111-1111-111111111111";

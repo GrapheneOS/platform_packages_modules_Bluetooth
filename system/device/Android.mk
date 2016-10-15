@@ -33,8 +33,8 @@ LOCAL_C_INCLUDES := \
     $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-    src/controller.c \
-    src/interop.c
+    src/controller.cc \
+    src/interop.cc
 
 LOCAL_MODULE := libbtdevice
 LOCAL_MODULE_TAGS := optional

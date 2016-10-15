@@ -862,8 +862,8 @@ extern tBTA_HL_CB  bta_hl_cb;
                                             tBTA_HL_STATUS status);
 
 #if (BTA_HL_DEBUG == TRUE)
-    extern  char *bta_hl_status_code(tBTA_HL_STATUS status);
-    extern char *bta_hl_evt_code(tBTA_HL_INT_EVT evt_code);
+    extern  const char *bta_hl_status_code(tBTA_HL_STATUS status);
+    extern const char *bta_hl_evt_code(tBTA_HL_INT_EVT evt_code);
 #endif
 #ifdef __cplusplus
 }

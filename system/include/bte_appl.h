@@ -24,6 +24,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 #if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
     uint8_t ble_auth_req;
@@ -35,3 +39,7 @@ typedef struct {
 } tBTE_APPL_CFG;
 
 extern tBTE_APPL_CFG bte_appl_cfg;
+
+#ifdef __cplusplus
+}
+#endif

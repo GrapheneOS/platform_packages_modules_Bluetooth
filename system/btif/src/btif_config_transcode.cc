@@ -20,10 +20,8 @@
 
 #include <tinyxml2.h>
 
-extern "C" {
 #include "osi/include/config.h"
 #include "osi/include/log.h"
-}
 
 using namespace tinyxml2;
 

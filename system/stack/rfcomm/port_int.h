@@ -220,7 +220,7 @@ typedef struct
 } tPORT_CB;
 
 /*
-** Functions provided by the port_utils.c
+** Functions provided by the port_utils.cc
 */
 extern tPORT    *port_allocate_port (uint8_t dlci, BD_ADDR bd_addr);
 extern void     port_set_defaults (tPORT *p_port);
@@ -235,7 +235,7 @@ extern uint32_t port_flow_control_user (tPORT *p_port);
 extern void     port_flow_control_peer(tPORT *p_port, bool    enable, uint16_t count);
 
 /*
-** Functions provided by the port_rfc.c
+** Functions provided by the port_rfc.cc
 */
 extern int  port_open_continue (tPORT *p_port);
 extern void port_start_port_open (tPORT *p_port);

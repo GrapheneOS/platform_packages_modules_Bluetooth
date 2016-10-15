@@ -22,12 +22,12 @@ shared_library("bluetooth.default") {
 
   # platform specific
   sources += [
-    "bte_main.c",
-    "bte_init.c",
+    "bte_conf.cc",
+    "bte_init.cc",
     "bte_init_cpp_logging.cc",
-    "bte_logmsg.c",
-    "bte_conf.c",
-    "stack_config.c",
+    "bte_logmsg.cc",
+    "bte_main.cc",
+    "stack_config.cc",
   ]
 
   include_dirs = [

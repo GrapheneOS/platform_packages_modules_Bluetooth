@@ -276,4 +276,4 @@ extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
 }
 #endif
 
-#endif
+#endif /* BTA_DM_CO_H */

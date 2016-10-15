@@ -4,15 +4,17 @@ LOCAL_PATH := $(call my-dir)
 # ========================================================
 include $(CLEAR_VARS)
 
+LOCAL_CPP_EXTENSION := .cc
+
 LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/include \
-	$(LOCAL_PATH)/../btcore/include \
-	$(LOCAL_PATH)/../stack/include \
-	$(LOCAL_PATH)/../ \
-	$(bluetooth_C_INCLUDES)
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/../btcore/include \
+    $(LOCAL_PATH)/../stack/include \
+    $(LOCAL_PATH)/../ \
+    $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-	./src/bt_utils.c
+    ./src/bt_utils.cc
 
 LOCAL_MODULE := libbt-utils
 LOCAL_MODULE_TAGS := optional

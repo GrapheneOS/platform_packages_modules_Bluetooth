@@ -6,10 +6,8 @@
 
 #include "osi/include/data_dispatcher.h"
 
-extern "C" {
 #include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"
-}
 
 #define DUMMY_TYPE_0 34
 #define DUMMY_TYPE_1 42
