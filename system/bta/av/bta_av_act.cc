@@ -1926,7 +1926,7 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
 
     APPL_TRACE_DEBUG("%s rc_handle %d", __func__, rc_handle);
 #if (BTA_AV_SINK_INCLUDED == TRUE)
-    if (p_cb->sdp_a2d_snk_handle)
+    if (p_cb->sdp_a2dp_snk_handle)
     {
         /* This is Sink + CT + TG(Abs Vol) */
         peer_features = bta_avk_check_peer_features(UUID_SERVCLASS_AV_REM_CTRL_TARGET);
@@ -1935,7 +1935,7 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     }
     else
 #endif
-    if (p_cb->sdp_a2d_handle)
+    if (p_cb->sdp_a2dp_handle)
     {
         /* check peer version and whether support CT and TG role */
         peer_features = bta_av_check_peer_features(UUID_SERVCLASS_AV_REMOTE_CONTROL);
@@ -2257,11 +2257,11 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
             }
             p_cb->conn_audio &= ~mask;
 
-            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM && p_scb->a2d_list) {
-                /* make sure no buffers are in a2d_list */
-                while (!list_is_empty(p_scb->a2d_list)) {
-                    p_buf = (BT_HDR*)list_front(p_scb->a2d_list);
-                    list_remove(p_scb->a2d_list, p_buf);
+            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM && p_scb->a2dp_list) {
+                /* make sure no buffers are in a2dp_list */
+                while (!list_is_empty(p_scb->a2dp_list)) {
+                    p_buf = (BT_HDR*)list_front(p_scb->a2dp_list);
+                    list_remove(p_scb->a2dp_list, p_buf);
                     osi_free(p_buf);
                 }
             }
@@ -2272,18 +2272,18 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
 #if (BTA_AR_INCLUDED == TRUE)
                 bta_ar_dereg_avrc (UUID_SERVCLASS_AV_REMOTE_CONTROL, BTA_ID_AV);
 #endif
-                if (p_cb->sdp_a2d_handle)
+                if (p_cb->sdp_a2dp_handle)
                 {
-                    bta_av_del_sdp_rec(&p_cb->sdp_a2d_handle);
-                    p_cb->sdp_a2d_handle = 0;
+                    bta_av_del_sdp_rec(&p_cb->sdp_a2dp_handle);
+                    p_cb->sdp_a2dp_handle = 0;
                     bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
                 }
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
-                if (p_cb->sdp_a2d_snk_handle)
+                if (p_cb->sdp_a2dp_snk_handle)
                 {
-                    bta_av_del_sdp_rec(&p_cb->sdp_a2d_snk_handle);
-                    p_cb->sdp_a2d_snk_handle = 0;
+                    bta_av_del_sdp_rec(&p_cb->sdp_a2dp_snk_handle);
+                    p_cb->sdp_a2dp_snk_handle = 0;
                     bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
                 }
 #endif

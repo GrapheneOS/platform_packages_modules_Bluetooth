@@ -27,7 +27,7 @@
 #include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
-#include "a2d_api.h"
+#include "a2dp_api.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
@@ -830,8 +830,8 @@ void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     if (!p_scb->in_use)
     {
         p_cfg = p_data->msg.config_cmd.p_cfg;
-        if (A2D_GetCodecType(p_scb->cs.cfg.codec_info) ==
-            A2D_GetCodecType(p_cfg->codec_info))
+        if (A2DP_GetCodecType(p_scb->cs.cfg.codec_info) ==
+            A2DP_GetCodecType(p_cfg->codec_info))
         {
             /* set sep as in use */
             p_scb->in_use = true;
@@ -1237,7 +1237,7 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     /* Recompute only if the RTP header wasn't disabled by the API */
     if (add_rtp_header) {
         bool is_content_protection = (p_scb->curr_cfg.num_protect > 0);
-        add_rtp_header = A2D_UsesRtpHeader(is_content_protection,
+        add_rtp_header = A2DP_UsesRtpHeader(is_content_protection,
                                            p_scb->curr_cfg.codec_info);
     }
 
