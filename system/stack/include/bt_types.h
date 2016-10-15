@@ -572,7 +572,7 @@ typedef uint8_t tBT_DEVICE_TYPE;
 #define TRACE_LAYER_HID             0x001e0000
 #define TRACE_LAYER_BIP             0x001f0000
 #define TRACE_LAYER_AVP             0x00200000
-#define TRACE_LAYER_A2D             0x00210000
+#define TRACE_LAYER_A2DP            0x00210000
 #define TRACE_LAYER_SAP             0x00220000
 #define TRACE_LAYER_AMP             0x00230000
 #define TRACE_LAYER_MCA             0x00240000

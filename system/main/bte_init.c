@@ -46,7 +46,7 @@
 #include "avrc_api.h"
 
 #if (A2D_INCLUDED == TRUE)
-#include "a2d_api.h"
+#include "a2dp_api.h"
 #endif
 
 #if (HID_HOST_INCLUDED == TRUE)
@@ -104,7 +104,7 @@ void BTE_InitStack(void)
 ** AVDT and its profiles **
 ***************************/
 #if (A2D_INCLUDED == TRUE)
-    A2D_Init();
+    A2DP_Init();
 #endif  /* AADP */
 
 

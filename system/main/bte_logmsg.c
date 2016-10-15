@@ -46,7 +46,7 @@
 #include "avdt_api.h"
 #endif
 #if (A2D_INCLUDED == TRUE)
-#include "a2d_api.h"
+#include "a2dp_api.h"
 #endif
 #if (BNEP_INCLUDED == TRUE)
 #include "bnep_api.h"
@@ -140,7 +140,7 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
   //{BTTRC_ID_AVDT_SCB, BTTRC_ID_AVDT_CCB, NULL, "TRC_AVDT_SCB", DEFAULT_CONF_TRACE_LEVEL},
 #endif
 #if (A2D_INCLUDED == TRUE)
-  {BTTRC_ID_STK_A2D, BTTRC_ID_STK_A2D, A2D_SetTraceLevel, "TRC_A2D", DEFAULT_CONF_TRACE_LEVEL},
+  {BTTRC_ID_STK_A2DP, BTTRC_ID_STK_A2DP, A2DP_SetTraceLevel, "TRC_A2D", DEFAULT_CONF_TRACE_LEVEL},
 #endif
 #if (BNEP_INCLUDED == TRUE)
   {BTTRC_ID_STK_BNEP, BTTRC_ID_STK_BNEP, BNEP_SetTraceLevel, "TRC_BNEP", DEFAULT_CONF_TRACE_LEVEL},

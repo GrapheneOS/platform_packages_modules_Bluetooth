@@ -70,8 +70,8 @@
 ** Define memory usage for each PROFILE component (if not defined in bdroid_buildcfg.h)
 **  The default for each component is to use static memory allocations.
 */
-#ifndef A2D_DYNAMIC_MEMORY
-#define A2D_DYNAMIC_MEMORY  false
+#ifndef A2DP_DYNAMIC_MEMORY
+#define A2DP_DYNAMIC_MEMORY  false
 #endif
 
 #ifndef VDP_DYNAMIC_MEMORY

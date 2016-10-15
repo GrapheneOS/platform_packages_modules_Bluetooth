@@ -17,7 +17,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "a2d_sbc_encoder"
+#define LOG_TAG "a2dp_sbc_encoder"
 
 #include <assert.h>
 #include <limits.h>
@@ -25,10 +25,10 @@
 
 #include "bt_target.h"
 #include "bt_common.h"
-#include "a2d_api.h"
-#include "a2d_sbc.h"
-#include "a2d_sbc_encoder.h"
-#include "a2d_sbc_up_sample.h"
+#include "a2dp_api.h"
+#include "a2dp_sbc.h"
+#include "a2dp_sbc_encoder.h"
+#include "a2dp_sbc_up_sample.h"
 #include "avdt_api.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
@@ -41,41 +41,41 @@ do { \
 } while (0)
 
 /* Buffer pool */
-#define A2D_SBC_BUFFER_SIZE  BT_DEFAULT_BUFFER_SIZE
+#define A2DP_SBC_BUFFER_SIZE  BT_DEFAULT_BUFFER_SIZE
 
 // A2DP SBC encoder interval in milliseconds.
-#define A2D_SBC_ENCODER_INTERVAL_MS     20
+#define A2DP_SBC_ENCODER_INTERVAL_MS     20
 
 /* High quality quality setting @ 44.1 khz */
-#define A2D_SBC_DEFAULT_BITRATE         328
+#define A2DP_SBC_DEFAULT_BITRATE         328
 
-#define A2D_SBC_NON_EDR_MAX_RATE        229
+#define A2DP_SBC_NON_EDR_MAX_RATE        229
 
 /*
  * 2DH5 payload size of:
  * 679 bytes - (4 bytes L2CAP Header + 12 bytes AVDTP Header)
  */
 #define MAX_2MBPS_AVDTP_MTU             663
-#define A2D_SBC_MAX_PCM_ITER_NUM_PER_TICK 3
+#define A2DP_SBC_MAX_PCM_ITER_NUM_PER_TICK 3
 
-#define A2D_SBC_MAX_HQ_FRAME_SIZE_44_1  119
-#define A2D_SBC_MAX_HQ_FRAME_SIZE_48    115
+#define A2DP_SBC_MAX_HQ_FRAME_SIZE_44_1  119
+#define A2DP_SBC_MAX_HQ_FRAME_SIZE_48    115
 
 /* Define the bitrate step when trying to match bitpool value */
-#define A2D_SBC_BITRATE_STEP 5
+#define A2DP_SBC_BITRATE_STEP 5
 
 /* Readability constants */
-#define A2D_SBC_FRAME_HEADER_SIZE_BYTES 4 // A2DP Spec v1.3, 12.4, Table 12.12
-#define A2D_SBC_SCALE_FACTOR_BITS       4 // A2DP Spec v1.3, 12.4, Table 12.13
+#define A2DP_SBC_FRAME_HEADER_SIZE_BYTES 4 // A2DP Spec v1.3, 12.4, Table 12.12
+#define A2DP_SBC_SCALE_FACTOR_BITS       4 // A2DP Spec v1.3, 12.4, Table 12.13
 
 /* offset */
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
 /* A2DP header will contain a CP header of size 1 */
 #define A2DP_HDR_SIZE               2
-#define A2D_SBC_OFFSET (AVDT_MEDIA_OFFSET + A2D_SBC_MPL_HDR_LEN + 1)
+#define A2DP_SBC_OFFSET (AVDT_MEDIA_OFFSET + A2DP_SBC_MPL_HDR_LEN + 1)
 #else
 #define A2DP_HDR_SIZE               1
-#define A2D_SBC_OFFSET (AVDT_MEDIA_OFFSET + A2D_SBC_MPL_HDR_LEN)
+#define A2DP_SBC_OFFSET (AVDT_MEDIA_OFFSET + A2DP_SBC_MPL_HDR_LEN)
 #endif
 
 typedef struct {
@@ -85,7 +85,7 @@ typedef struct {
     uint32_t counter;
     uint32_t bytes_per_tick;  /* pcm bytes read each media task tick */
     uint64_t last_frame_us;
-} tA2D_FEEDING_STATE;
+} tA2DP_FEEDING_STATE;
 
 typedef struct {
     uint64_t session_start_us;
@@ -97,50 +97,50 @@ typedef struct {
     size_t media_read_total_limited_frames;
     size_t media_read_max_limited_frames;
     size_t media_read_limited_count;
-} a2d_sbc_encoder_stats_t;
+} a2dp_sbc_encoder_stats_t;
 
 typedef struct {
-    a2d_source_read_callback_t read_callback;
-    a2d_source_enqueue_callback_t enqueue_callback;
+    a2dp_source_read_callback_t read_callback;
+    a2dp_source_enqueue_callback_t enqueue_callback;
     uint16_t TxAaMtuSize;
     uint8_t tx_sbc_frames;
     bool is_peer_edr;           /* True if the peer device supports EDR */
     bool peer_supports_3mbps;   /* True if the peer device supports 3Mbps EDR */
     uint32_t timestamp;         /* Timestamp for the A2DP frames */
     SBC_ENC_PARAMS sbc_encoder_params;
-    tA2D_FEEDING_PARAMS feeding_params;
-    tA2D_FEEDING_STATE feeding_state;
+    tA2DP_FEEDING_PARAMS feeding_params;
+    tA2DP_FEEDING_STATE feeding_state;
 
-    a2d_sbc_encoder_stats_t stats;
-} tA2D_SBC_ENCODER_CB;
+    a2dp_sbc_encoder_stats_t stats;
+} tA2DP_SBC_ENCODER_CB;
 
-static tA2D_SBC_ENCODER_CB a2d_sbc_encoder_cb;
+static tA2DP_SBC_ENCODER_CB a2dp_sbc_encoder_cb;
 
-static bool a2d_sbc_read_feeding(void);
-static void a2d_sbc_encode_frames(uint8_t nb_frame);
-static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
+static bool a2dp_sbc_read_feeding(void);
+static void a2dp_sbc_encode_frames(uint8_t nb_frame);
+static void a2dp_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
                                             uint8_t *num_of_frames,
                                             uint64_t timestamp_us);
 static uint8_t calculate_max_frames_per_packet(void);
-static uint16_t a2d_sbc_source_rate(void);
-static uint32_t a2d_sbc_frame_length(void);
+static uint16_t a2dp_sbc_source_rate(void);
+static uint32_t a2dp_sbc_frame_length(void);
 
-void a2d_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
-                          const tA2D_ENCODER_INIT_PARAMS *p_init_params,
-                          a2d_source_read_callback_t read_callback,
-                          a2d_source_enqueue_callback_t enqueue_callback)
+void a2dp_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
+                          const tA2DP_ENCODER_INIT_PARAMS *p_init_params,
+                          a2dp_source_read_callback_t read_callback,
+                          a2dp_source_enqueue_callback_t enqueue_callback)
 {
-    SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
+    SBC_ENC_PARAMS *p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
 
-    memset(&a2d_sbc_encoder_cb, 0, sizeof(a2d_sbc_encoder_cb));
+    memset(&a2dp_sbc_encoder_cb, 0, sizeof(a2dp_sbc_encoder_cb));
 
-    a2d_sbc_encoder_cb.stats.session_start_us = time_get_os_boottime_us();
+    a2dp_sbc_encoder_cb.stats.session_start_us = time_get_os_boottime_us();
 
-    a2d_sbc_encoder_cb.read_callback = read_callback;
-    a2d_sbc_encoder_cb.enqueue_callback = enqueue_callback;
-    a2d_sbc_encoder_cb.is_peer_edr = is_peer_edr;
-    a2d_sbc_encoder_cb.peer_supports_3mbps = peer_supports_3mbps;
-    a2d_sbc_encoder_cb.timestamp = 0;
+    a2dp_sbc_encoder_cb.read_callback = read_callback;
+    a2dp_sbc_encoder_cb.enqueue_callback = enqueue_callback;
+    a2dp_sbc_encoder_cb.is_peer_edr = is_peer_edr;
+    a2dp_sbc_encoder_cb.peer_supports_3mbps = peer_supports_3mbps;
+    a2dp_sbc_encoder_cb.timestamp = 0;
 
     /* SBC encoder config (enforced even if not used) */
     p_encoder_params->s16ChannelMode = p_init_params->ChannelMode;
@@ -149,17 +149,17 @@ void a2d_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
     p_encoder_params->s16AllocationMethod = p_init_params->AllocationMethod;
     p_encoder_params->s16SamplingFreq = p_init_params->SamplingFreq;
 
-    p_encoder_params->u16BitRate = a2d_sbc_source_rate();
+    p_encoder_params->u16BitRate = a2dp_sbc_source_rate();
 
-    uint16_t mtu_size = A2D_SBC_BUFFER_SIZE - A2D_SBC_OFFSET - sizeof(BT_HDR);
+    uint16_t mtu_size = A2DP_SBC_BUFFER_SIZE - A2DP_SBC_OFFSET - sizeof(BT_HDR);
     if (mtu_size < p_init_params->MtuSize) {
-        a2d_sbc_encoder_cb.TxAaMtuSize = mtu_size;
+        a2dp_sbc_encoder_cb.TxAaMtuSize = mtu_size;
     } else {
-        a2d_sbc_encoder_cb.TxAaMtuSize = p_init_params->MtuSize;
+        a2dp_sbc_encoder_cb.TxAaMtuSize = p_init_params->MtuSize;
     }
 
     LOG_DEBUG(LOG_TAG, "%s: mtu %d, peer mtu %d", __func__,
-                a2d_sbc_encoder_cb.TxAaMtuSize, p_init_params->MtuSize);
+                a2dp_sbc_encoder_cb.TxAaMtuSize, p_init_params->MtuSize);
     LOG_DEBUG(LOG_TAG, "%s: ch mode %d, subnd %d, nb blk %d, alloc %d, rate %d, freq %d",
               __func__,
               p_encoder_params->s16ChannelMode,
@@ -170,16 +170,16 @@ void a2d_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
               p_encoder_params->s16SamplingFreq);
 
     /* Reset entirely the SBC encoder */
-    SBC_Encoder_Init(&a2d_sbc_encoder_cb.sbc_encoder_params);
-    a2d_sbc_encoder_cb.tx_sbc_frames = calculate_max_frames_per_packet();
+    SBC_Encoder_Init(&a2dp_sbc_encoder_cb.sbc_encoder_params);
+    a2dp_sbc_encoder_cb.tx_sbc_frames = calculate_max_frames_per_packet();
 
     LOG_DEBUG(LOG_TAG, "%s: bit pool %d", __func__,
               p_encoder_params->s16BitPool);
 }
 
-void a2d_sbc_encoder_update(const tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
+void a2dp_sbc_encoder_update(const tA2DP_ENCODER_UPDATE_PARAMS *p_update_params)
 {
-    SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
+    SBC_ENC_PARAMS *p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
     uint16_t s16SamplingFreq;
     int16_t s16BitPool = 0;
     int16_t s16BitRate;
@@ -208,15 +208,15 @@ void a2d_sbc_encoder_update(const tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
         p_encoder_params->s16NumOfChannels = SBC_MAX_NUM_OF_CHANNELS;
     }
 
-    uint16_t mtu_size = A2D_SBC_BUFFER_SIZE - A2D_SBC_OFFSET - sizeof(BT_HDR);
+    uint16_t mtu_size = A2DP_SBC_BUFFER_SIZE - A2DP_SBC_OFFSET - sizeof(BT_HDR);
     if (mtu_size < p_update_params->MinMtuSize) {
-        a2d_sbc_encoder_cb.TxAaMtuSize = mtu_size;
+        a2dp_sbc_encoder_cb.TxAaMtuSize = mtu_size;
     } else {
-        a2d_sbc_encoder_cb.TxAaMtuSize = p_update_params->MinMtuSize;
+        a2dp_sbc_encoder_cb.TxAaMtuSize = p_update_params->MinMtuSize;
     }
 
     /* Set the initial target bit rate */
-    p_encoder_params->u16BitRate = a2d_sbc_source_rate();
+    p_encoder_params->u16BitRate = a2dp_sbc_source_rate();
 
     if (p_encoder_params->s16SamplingFreq == SBC_sf16000)
         s16SamplingFreq = 16000;
@@ -290,7 +290,7 @@ void a2d_sbc_encoder_update(const tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
             LOG_DEBUG(LOG_TAG, "%s: computed bitpool too large (%d)",
                       __func__, s16BitPool);
             /* Decrease bitrate */
-            p_encoder_params->u16BitRate -= A2D_SBC_BITRATE_STEP;
+            p_encoder_params->u16BitRate -= A2DP_SBC_BITRATE_STEP;
             /* Record that we have decreased the bitrate */
             protect |= 1;
         } else if (s16BitPool < p_update_params->MinBitPool) {
@@ -299,7 +299,7 @@ void a2d_sbc_encoder_update(const tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
 
             /* Increase bitrate */
             uint16_t previous_u16BitRate = p_encoder_params->u16BitRate;
-            p_encoder_params->u16BitRate += A2D_SBC_BITRATE_STEP;
+            p_encoder_params->u16BitRate += A2DP_SBC_BITRATE_STEP;
             /* Record that we have increased the bitrate */
             protect |= 2;
             /* Check over-flow */
@@ -323,19 +323,19 @@ void a2d_sbc_encoder_update(const tA2D_ENCODER_UPDATE_PARAMS *p_update_params)
               p_encoder_params->u16BitRate, p_encoder_params->s16BitPool);
 
     /* make sure we reinitialize encoder with new settings */
-    SBC_Encoder_Init(&a2d_sbc_encoder_cb.sbc_encoder_params);
+    SBC_Encoder_Init(&a2dp_sbc_encoder_cb.sbc_encoder_params);
 
-    a2d_sbc_encoder_cb.tx_sbc_frames = calculate_max_frames_per_packet();
+    a2dp_sbc_encoder_cb.tx_sbc_frames = calculate_max_frames_per_packet();
 }
 
-void a2d_sbc_encoder_cleanup(void)
+void a2dp_sbc_encoder_cleanup(void)
 {
-    memset(&a2d_sbc_encoder_cb, 0, sizeof(a2d_sbc_encoder_cb));
+    memset(&a2dp_sbc_encoder_cb, 0, sizeof(a2dp_sbc_encoder_cb));
 }
 
-void a2d_sbc_feeding_init(const tA2D_FEEDING_PARAMS *p_feeding_params)
+void a2dp_sbc_feeding_init(const tA2DP_FEEDING_PARAMS *p_feeding_params)
 {
-    SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
+    SBC_ENC_PARAMS *p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
     bool reconfig_needed = false;
 
     LOG_DEBUG(LOG_TAG, "%s: PCM feeding: sampling_freq:%d num_channel:%d bit_per_sample:%d",
@@ -345,8 +345,8 @@ void a2d_sbc_feeding_init(const tA2D_FEEDING_PARAMS *p_feeding_params)
               p_feeding_params->bit_per_sample);
 
     /* Save the feeding information */
-    memcpy(&a2d_sbc_encoder_cb.feeding_params, p_feeding_params,
-           sizeof(tA2D_FEEDING_PARAMS));
+    memcpy(&a2dp_sbc_encoder_cb.feeding_params, p_feeding_params,
+           sizeof(tA2DP_FEEDING_PARAMS));
 
     /* Check the PCM feeding sampling_freq */
     switch (p_feeding_params->sampling_freq) {
@@ -395,7 +395,7 @@ void a2d_sbc_feeding_init(const tA2D_FEEDING_PARAMS *p_feeding_params)
     if (reconfig_needed) {
         LOG_DEBUG(LOG_TAG, "%s: mtu %d ch mode %d, nbsubd %d, nb %d, alloc %d, rate %d, freq %d",
                   __func__,
-                  a2d_sbc_encoder_cb.TxAaMtuSize,
+                  a2dp_sbc_encoder_cb.TxAaMtuSize,
                   p_encoder_params->s16ChannelMode,
                   p_encoder_params->s16NumOfSubBands,
                   p_encoder_params->s16NumOfBlocks,
@@ -408,39 +408,39 @@ void a2d_sbc_feeding_init(const tA2D_FEEDING_PARAMS *p_feeding_params)
     }
 }
 
-void a2d_sbc_feeding_reset(void)
+void a2dp_sbc_feeding_reset(void)
 {
     /* By default, just clear the entire state */
-    memset(&a2d_sbc_encoder_cb.feeding_state, 0,
-           sizeof(a2d_sbc_encoder_cb.feeding_state));
+    memset(&a2dp_sbc_encoder_cb.feeding_state, 0,
+           sizeof(a2dp_sbc_encoder_cb.feeding_state));
 
-    a2d_sbc_encoder_cb.feeding_state.bytes_per_tick =
-        (a2d_sbc_encoder_cb.feeding_params.sampling_freq *
-         a2d_sbc_encoder_cb.feeding_params.bit_per_sample / 8 *
-         a2d_sbc_encoder_cb.feeding_params.num_channel *
-         A2D_SBC_ENCODER_INTERVAL_MS) / 1000;
+    a2dp_sbc_encoder_cb.feeding_state.bytes_per_tick =
+        (a2dp_sbc_encoder_cb.feeding_params.sampling_freq *
+         a2dp_sbc_encoder_cb.feeding_params.bit_per_sample / 8 *
+         a2dp_sbc_encoder_cb.feeding_params.num_channel *
+         A2DP_SBC_ENCODER_INTERVAL_MS) / 1000;
 
     LOG_DEBUG(LOG_TAG, "%s: PCM bytes per tick %u",
-              __func__, a2d_sbc_encoder_cb.feeding_state.bytes_per_tick);
+              __func__, a2dp_sbc_encoder_cb.feeding_state.bytes_per_tick);
 }
 
-void a2d_sbc_feeding_flush(void)
+void a2dp_sbc_feeding_flush(void)
 {
-    a2d_sbc_encoder_cb.feeding_state.counter = 0;
-    a2d_sbc_encoder_cb.feeding_state.aa_feed_residue = 0;
+    a2dp_sbc_encoder_cb.feeding_state.counter = 0;
+    a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue = 0;
 }
 
-period_ms_t a2d_sbc_get_encoder_interval_ms(void)
+period_ms_t a2dp_sbc_get_encoder_interval_ms(void)
 {
-    return A2D_SBC_ENCODER_INTERVAL_MS;
+    return A2DP_SBC_ENCODER_INTERVAL_MS;
 }
 
-void a2d_sbc_send_frames(uint64_t timestamp_us)
+void a2dp_sbc_send_frames(uint64_t timestamp_us)
 {
     uint8_t nb_frame = 0;
     uint8_t nb_iterations = 0;
 
-    a2d_sbc_get_num_frame_iteration(&nb_iterations, &nb_frame, timestamp_us);
+    a2dp_sbc_get_num_frame_iteration(&nb_iterations, &nb_frame, timestamp_us);
     LOG_VERBOSE(LOG_TAG, "%s: Sending %d frames per iteration, %d iterations",
                 __func__, nb_frame, nb_iterations);
     if (nb_frame == 0)
@@ -448,14 +448,14 @@ void a2d_sbc_send_frames(uint64_t timestamp_us)
 
     for (uint8_t counter = 0; counter < nb_iterations; counter++) {
         // Transcode frame and enqueue
-        a2d_sbc_encode_frames(nb_frame);
+        a2dp_sbc_encode_frames(nb_frame);
     }
 }
 
 // Obtains the number of frames to send and number of iterations
 // to be used. |num_of_iterations| and |num_of_frames| parameters
 // are used as output param for returning the respective values.
-static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
+static void a2dp_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
                                             uint8_t *num_of_frames,
                                             uint64_t timestamp_us)
 {
@@ -464,31 +464,31 @@ static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
 
     uint32_t projected_nof = 0;
     uint32_t pcm_bytes_per_frame =
-        a2d_sbc_encoder_cb.sbc_encoder_params.s16NumOfSubBands *
-        a2d_sbc_encoder_cb.sbc_encoder_params.s16NumOfBlocks *
-        a2d_sbc_encoder_cb.feeding_params.num_channel *
-        a2d_sbc_encoder_cb.feeding_params.bit_per_sample / 8;
+        a2dp_sbc_encoder_cb.sbc_encoder_params.s16NumOfSubBands *
+        a2dp_sbc_encoder_cb.sbc_encoder_params.s16NumOfBlocks *
+        a2dp_sbc_encoder_cb.feeding_params.num_channel *
+        a2dp_sbc_encoder_cb.feeding_params.bit_per_sample / 8;
     LOG_VERBOSE(LOG_TAG, "%s: pcm_bytes_per_frame %u", __func__,
                 pcm_bytes_per_frame);
 
-    uint32_t us_this_tick = A2D_SBC_ENCODER_INTERVAL_MS * 1000;
+    uint32_t us_this_tick = A2DP_SBC_ENCODER_INTERVAL_MS * 1000;
     uint64_t now_us = timestamp_us;
-    if (a2d_sbc_encoder_cb.feeding_state.last_frame_us != 0)
-        us_this_tick = (now_us - a2d_sbc_encoder_cb.feeding_state.last_frame_us);
-    a2d_sbc_encoder_cb.feeding_state.last_frame_us = now_us;
+    if (a2dp_sbc_encoder_cb.feeding_state.last_frame_us != 0)
+        us_this_tick = (now_us - a2dp_sbc_encoder_cb.feeding_state.last_frame_us);
+    a2dp_sbc_encoder_cb.feeding_state.last_frame_us = now_us;
 
-    a2d_sbc_encoder_cb.feeding_state.counter +=
-        a2d_sbc_encoder_cb.feeding_state.bytes_per_tick *
-        us_this_tick / (A2D_SBC_ENCODER_INTERVAL_MS * 1000);
+    a2dp_sbc_encoder_cb.feeding_state.counter +=
+        a2dp_sbc_encoder_cb.feeding_state.bytes_per_tick *
+        us_this_tick / (A2DP_SBC_ENCODER_INTERVAL_MS * 1000);
 
     /* Calculate the number of frames pending for this media tick */
     projected_nof =
-        a2d_sbc_encoder_cb.feeding_state.counter / pcm_bytes_per_frame;
+        a2dp_sbc_encoder_cb.feeding_state.counter / pcm_bytes_per_frame;
     // Update the stats
-    STATS_UPDATE_MAX(a2d_sbc_encoder_cb.stats.media_read_max_expected_frames,
+    STATS_UPDATE_MAX(a2dp_sbc_encoder_cb.stats.media_read_max_expected_frames,
                      projected_nof);
-    a2d_sbc_encoder_cb.stats.media_read_total_expected_frames += projected_nof;
-    a2d_sbc_encoder_cb.stats.media_read_expected_count++;
+    a2dp_sbc_encoder_cb.stats.media_read_total_expected_frames += projected_nof;
+    a2dp_sbc_encoder_cb.stats.media_read_expected_count++;
 
     if (projected_nof > MAX_PCM_FRAME_NUM_PER_TICK) {
         LOG_WARN(LOG_TAG, "%s: limiting frames to be sent from %d to %d",
@@ -496,9 +496,9 @@ static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
 
         // Update the stats
         size_t delta = projected_nof - MAX_PCM_FRAME_NUM_PER_TICK;
-        a2d_sbc_encoder_cb.stats.media_read_limited_count++;
-        a2d_sbc_encoder_cb.stats.media_read_total_limited_frames += delta;
-        STATS_UPDATE_MAX(a2d_sbc_encoder_cb.stats.media_read_max_limited_frames,
+        a2dp_sbc_encoder_cb.stats.media_read_limited_count++;
+        a2dp_sbc_encoder_cb.stats.media_read_total_limited_frames += delta;
+        STATS_UPDATE_MAX(a2dp_sbc_encoder_cb.stats.media_read_max_limited_frames,
                          delta);
 
         projected_nof = MAX_PCM_FRAME_NUM_PER_TICK;
@@ -507,14 +507,14 @@ static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
     LOG_VERBOSE(LOG_TAG, "%s: frames for available PCM data %u",
                 __func__, projected_nof);
 
-    if (a2d_sbc_encoder_cb.is_peer_edr) {
-        if (!a2d_sbc_encoder_cb.tx_sbc_frames) {
+    if (a2dp_sbc_encoder_cb.is_peer_edr) {
+        if (!a2dp_sbc_encoder_cb.tx_sbc_frames) {
             LOG_ERROR(LOG_TAG, "%s: tx_sbc_frames not updated, update from here",
                       __func__);
-            a2d_sbc_encoder_cb.tx_sbc_frames = calculate_max_frames_per_packet();
+            a2dp_sbc_encoder_cb.tx_sbc_frames = calculate_max_frames_per_packet();
         }
 
-        nof = a2d_sbc_encoder_cb.tx_sbc_frames;
+        nof = a2dp_sbc_encoder_cb.tx_sbc_frames;
         if (!nof) {
             LOG_ERROR(LOG_TAG, "%s: number of frames not updated, set calculated values",
                       __func__);
@@ -523,11 +523,11 @@ static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
         } else {
             if (nof < projected_nof) {
                 noi = projected_nof / nof; // number of iterations would vary
-                if (noi > A2D_SBC_MAX_PCM_ITER_NUM_PER_TICK) {
+                if (noi > A2DP_SBC_MAX_PCM_ITER_NUM_PER_TICK) {
                     LOG_ERROR(LOG_TAG, "%s: Audio Congestion (iterations:%d > max (%d))",
-                              __func__, noi, A2D_SBC_MAX_PCM_ITER_NUM_PER_TICK);
-                    noi = A2D_SBC_MAX_PCM_ITER_NUM_PER_TICK;
-                    a2d_sbc_encoder_cb.feeding_state.counter
+                              __func__, noi, A2DP_SBC_MAX_PCM_ITER_NUM_PER_TICK);
+                    noi = A2DP_SBC_MAX_PCM_ITER_NUM_PER_TICK;
+                    a2dp_sbc_encoder_cb.feeding_state.counter
                         = noi * nof * pcm_bytes_per_frame;
                 }
                 projected_nof = nof;
@@ -546,12 +546,12 @@ static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
             LOG_ERROR(LOG_TAG, "%s: Audio Congestion (frames: %d > max (%d))",
                       __func__, projected_nof, MAX_PCM_FRAME_NUM_PER_TICK);
             projected_nof = MAX_PCM_FRAME_NUM_PER_TICK;
-            a2d_sbc_encoder_cb.feeding_state.counter =
+            a2dp_sbc_encoder_cb.feeding_state.counter =
                 noi * projected_nof * pcm_bytes_per_frame;
         }
         nof = projected_nof;
     }
-    a2d_sbc_encoder_cb.feeding_state.counter -= noi * nof * pcm_bytes_per_frame;
+    a2dp_sbc_encoder_cb.feeding_state.counter -= noi * nof * pcm_bytes_per_frame;
     LOG_VERBOSE(LOG_TAG, "%s: effective num of frames %u, iterations %u",
                 __func__, nof, noi);
 
@@ -559,18 +559,18 @@ static void a2d_sbc_get_num_frame_iteration(uint8_t *num_of_iterations,
     *num_of_iterations = noi;
 }
 
-static void a2d_sbc_encode_frames(uint8_t nb_frame)
+static void a2dp_sbc_encode_frames(uint8_t nb_frame)
 {
-    SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
+    SBC_ENC_PARAMS *p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
     uint8_t remain_nb_frame = nb_frame;
     uint16_t blocm_x_subband = p_encoder_params->s16NumOfSubBands *
         p_encoder_params->s16NumOfBlocks;
 
     while (nb_frame) {
-        BT_HDR *p_buf = (BT_HDR *)osi_malloc(A2D_SBC_BUFFER_SIZE);
+        BT_HDR *p_buf = (BT_HDR *)osi_malloc(A2DP_SBC_BUFFER_SIZE);
 
         /* Init buffer */
-        p_buf->offset = A2D_SBC_OFFSET;
+        p_buf->offset = A2DP_SBC_OFFSET;
         p_buf->len = 0;
         p_buf->layer_specific = 0;
 
@@ -583,7 +583,7 @@ static void a2d_sbc_encode_frames(uint8_t nb_frame)
                    blocm_x_subband * p_encoder_params->s16NumOfChannels);
 
             /* Read PCM data and upsample them if needed */
-            if (a2d_sbc_read_feeding()) {
+            if (a2dp_sbc_read_feeding()) {
                 SBC_Encoder(p_encoder_params);
 
                 /* Update SBC frame length */
@@ -593,18 +593,18 @@ static void a2d_sbc_encode_frames(uint8_t nb_frame)
             } else {
                 LOG_WARN(LOG_TAG, "%s: underflow %d, %d",
                          __func__, nb_frame,
-                         a2d_sbc_encoder_cb.feeding_state.aa_feed_residue);
-                a2d_sbc_encoder_cb.feeding_state.counter +=
+                         a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue);
+                a2dp_sbc_encoder_cb.feeding_state.counter +=
                     nb_frame *
                     p_encoder_params->s16NumOfSubBands *
                     p_encoder_params->s16NumOfBlocks *
-                    a2d_sbc_encoder_cb.feeding_params.num_channel *
-                    a2d_sbc_encoder_cb.feeding_params.bit_per_sample / 8;
+                    a2dp_sbc_encoder_cb.feeding_params.num_channel *
+                    a2dp_sbc_encoder_cb.feeding_params.bit_per_sample / 8;
                 /* no more pcm to read */
                 nb_frame = 0;
             }
         } while (((p_buf->len + p_encoder_params->u16PacketLength) <
-                  a2d_sbc_encoder_cb.TxAaMtuSize)
+                  a2dp_sbc_encoder_cb.TxAaMtuSize)
                  && (p_buf->layer_specific < 0x0F) && nb_frame);
 
         if (p_buf->len) {
@@ -612,14 +612,14 @@ static void a2d_sbc_encode_frames(uint8_t nb_frame)
              * Timestamp of the media packet header represent the TS of the
              * first SBC frame, i.e the timestamp before including this frame.
              */
-            *((uint32_t *) (p_buf + 1)) = a2d_sbc_encoder_cb.timestamp;
+            *((uint32_t *) (p_buf + 1)) = a2dp_sbc_encoder_cb.timestamp;
 
-            a2d_sbc_encoder_cb.timestamp +=
+            a2dp_sbc_encoder_cb.timestamp +=
                 p_buf->layer_specific * blocm_x_subband;
 
             uint8_t done_nb_frame = remain_nb_frame - nb_frame;
             remain_nb_frame = nb_frame;
-            if (!a2d_sbc_encoder_cb.enqueue_callback(p_buf, done_nb_frame))
+            if (!a2dp_sbc_encoder_cb.enqueue_callback(p_buf, done_nb_frame))
                 return;
         } else {
             osi_free(p_buf);
@@ -627,9 +627,9 @@ static void a2d_sbc_encode_frames(uint8_t nb_frame)
     }
 }
 
-static bool a2d_sbc_read_feeding(void)
+static bool a2dp_sbc_read_feeding(void)
 {
-    SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
+    SBC_ENC_PARAMS *p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
     uint16_t blocm_x_subband = p_encoder_params->s16NumOfSubBands *
         p_encoder_params->s16NumOfBlocks;
     uint32_t read_size;
@@ -637,7 +637,7 @@ static bool a2d_sbc_read_feeding(void)
     uint32_t src_samples;
     uint16_t bytes_needed = blocm_x_subband *
         p_encoder_params->s16NumOfChannels *
-        a2d_sbc_encoder_cb.feeding_params.bit_per_sample / 8;
+        a2dp_sbc_encoder_cb.feeding_params.bit_per_sample / 8;
     static uint16_t up_sampled_buffer[SBC_MAX_NUM_FRAME * SBC_MAX_NUM_OF_BLOCKS
             * SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS * 2];
     static uint16_t read_buffer[SBC_MAX_NUM_FRAME * SBC_MAX_NUM_OF_BLOCKS
@@ -665,18 +665,18 @@ static bool a2d_sbc_read_feeding(void)
         break;
     }
 
-    if (sbc_sampling == a2d_sbc_encoder_cb.feeding_params.sampling_freq) {
+    if (sbc_sampling == a2dp_sbc_encoder_cb.feeding_params.sampling_freq) {
         read_size =
-            bytes_needed - a2d_sbc_encoder_cb.feeding_state.aa_feed_residue;
-        nb_byte_read = a2d_sbc_encoder_cb.read_callback(
+            bytes_needed - a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue;
+        nb_byte_read = a2dp_sbc_encoder_cb.read_callback(
             ((uint8_t *)p_encoder_params->as16PcmBuffer) +
-            a2d_sbc_encoder_cb.feeding_state.aa_feed_residue,
+            a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue,
             read_size);
         if (nb_byte_read != read_size) {
-            a2d_sbc_encoder_cb.feeding_state.aa_feed_residue += nb_byte_read;
+            a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue += nb_byte_read;
             return false;
         }
-        a2d_sbc_encoder_cb.feeding_state.aa_feed_residue = 0;
+        a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue = 0;
         return true;
     }
 
@@ -686,7 +686,7 @@ static bool a2d_sbc_read_feeding(void)
      * E.g 128 / 6 = 21.3333 => read 22 and 21 and 21 => max = 2; threshold = 0
      */
     fract_needed = false;   /* Default */
-    switch (a2d_sbc_encoder_cb.feeding_params.sampling_freq) {
+    switch (a2dp_sbc_encoder_cb.feeding_params.sampling_freq) {
     case 32000:
     case 8000:
         fract_needed = true;
@@ -702,29 +702,29 @@ static bool a2d_sbc_read_feeding(void)
 
     /* Compute number of sample to read from source */
     src_samples = blocm_x_subband;
-    src_samples *= a2d_sbc_encoder_cb.feeding_params.sampling_freq;
+    src_samples *= a2dp_sbc_encoder_cb.feeding_params.sampling_freq;
     src_samples /= sbc_sampling;
 
     /* The previous division may have a remainder not null */
     if (fract_needed) {
-        if (a2d_sbc_encoder_cb.feeding_state.aa_feed_counter <= fract_threshold) {
+        if (a2dp_sbc_encoder_cb.feeding_state.aa_feed_counter <= fract_threshold) {
             src_samples++; /* for every read before threshold add one sample */
         }
 
         /* do nothing if counter >= threshold */
-        a2d_sbc_encoder_cb.feeding_state.aa_feed_counter++; /* one more read */
-        if (a2d_sbc_encoder_cb.feeding_state.aa_feed_counter > fract_max) {
-            a2d_sbc_encoder_cb.feeding_state.aa_feed_counter = 0;
+        a2dp_sbc_encoder_cb.feeding_state.aa_feed_counter++; /* one more read */
+        if (a2dp_sbc_encoder_cb.feeding_state.aa_feed_counter > fract_max) {
+            a2dp_sbc_encoder_cb.feeding_state.aa_feed_counter = 0;
         }
     }
 
     /* Compute number of bytes to read from source */
     read_size = src_samples;
-    read_size *= a2d_sbc_encoder_cb.feeding_params.num_channel;
-    read_size *= (a2d_sbc_encoder_cb.feeding_params.bit_per_sample / 8);
+    read_size *= a2dp_sbc_encoder_cb.feeding_params.num_channel;
+    read_size *= (a2dp_sbc_encoder_cb.feeding_params.bit_per_sample / 8);
 
     /* Read Data from UIPC channel */
-    nb_byte_read = a2d_sbc_encoder_cb.read_callback((uint8_t *)read_buffer,
+    nb_byte_read = a2dp_sbc_encoder_cb.read_callback((uint8_t *)read_buffer,
                                                     read_size);
 
     if (nb_byte_read < read_size) {
@@ -738,53 +738,53 @@ static bool a2d_sbc_read_feeding(void)
     }
 
     /* Initialize PCM up-sampling engine */
-    a2d_sbc_init_up_sample(a2d_sbc_encoder_cb.feeding_params.sampling_freq,
+    a2dp_sbc_init_up_sample(a2dp_sbc_encoder_cb.feeding_params.sampling_freq,
                            sbc_sampling,
-                           a2d_sbc_encoder_cb.feeding_params.bit_per_sample,
-                           a2d_sbc_encoder_cb.feeding_params.num_channel);
+                           a2dp_sbc_encoder_cb.feeding_params.bit_per_sample,
+                           a2dp_sbc_encoder_cb.feeding_params.num_channel);
 
     /*
      * Re-sample the read buffer.
      * The output PCM buffer will be stereo, 16 bit per sample.
      */
-    dst_size_used = a2d_sbc_up_sample((uint8_t *)read_buffer,
-            (uint8_t *)up_sampled_buffer + a2d_sbc_encoder_cb.feeding_state.aa_feed_residue,
+    dst_size_used = a2dp_sbc_up_sample((uint8_t *)read_buffer,
+            (uint8_t *)up_sampled_buffer + a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue,
             nb_byte_read,
-            sizeof(up_sampled_buffer) - a2d_sbc_encoder_cb.feeding_state.aa_feed_residue,
+            sizeof(up_sampled_buffer) - a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue,
             &src_size_used);
 
     /* update the residue */
-    a2d_sbc_encoder_cb.feeding_state.aa_feed_residue += dst_size_used;
+    a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue += dst_size_used;
 
     /* only copy the pcm sample when we have up-sampled enough PCM */
-    if (a2d_sbc_encoder_cb.feeding_state.aa_feed_residue < bytes_needed)
+    if (a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue < bytes_needed)
         return false;
 
     /* Copy the output pcm samples in SBC encoding buffer */
     memcpy((uint8_t *)p_encoder_params->as16PcmBuffer,
            (uint8_t *)up_sampled_buffer, bytes_needed);
     /* update the residue */
-    a2d_sbc_encoder_cb.feeding_state.aa_feed_residue -= bytes_needed;
+    a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue -= bytes_needed;
 
-    if (a2d_sbc_encoder_cb.feeding_state.aa_feed_residue != 0) {
+    if (a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue != 0) {
         memcpy((uint8_t *)up_sampled_buffer,
                (uint8_t *)up_sampled_buffer + bytes_needed,
-               a2d_sbc_encoder_cb.feeding_state.aa_feed_residue);
+               a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue);
     }
     return true;
 }
 
 static uint8_t calculate_max_frames_per_packet(void)
 {
-    uint16_t effective_mtu_size = a2d_sbc_encoder_cb.TxAaMtuSize;
-    SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
+    uint16_t effective_mtu_size = a2dp_sbc_encoder_cb.TxAaMtuSize;
+    SBC_ENC_PARAMS *p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
     uint16_t result = 0;
     uint32_t frame_len;
 
     LOG_VERBOSE(LOG_TAG, "%s: original AVDTP MTU size: %d",
-                __func__, a2d_sbc_encoder_cb.TxAaMtuSize);
-    if (a2d_sbc_encoder_cb.is_peer_edr &&
-        !a2d_sbc_encoder_cb.peer_supports_3mbps) {
+                __func__, a2dp_sbc_encoder_cb.TxAaMtuSize);
+    if (a2dp_sbc_encoder_cb.is_peer_edr &&
+        !a2dp_sbc_encoder_cb.peer_supports_3mbps) {
         // This condition would be satisfied only if the remote device is
         // EDR and supports only 2 Mbps, but the effective AVDTP MTU size
         // exceeds the 2DH5 packet size.
@@ -795,7 +795,7 @@ static uint8_t calculate_max_frames_per_packet(void)
             LOG_WARN(LOG_TAG, "%s: Restricting AVDTP MTU size to %d",
                      __func__, MAX_2MBPS_AVDTP_MTU);
             effective_mtu_size = MAX_2MBPS_AVDTP_MTU;
-            a2d_sbc_encoder_cb.TxAaMtuSize = effective_mtu_size;
+            a2dp_sbc_encoder_cb.TxAaMtuSize = effective_mtu_size;
         }
     }
 
@@ -815,7 +815,7 @@ static uint8_t calculate_max_frames_per_packet(void)
         p_encoder_params->s16NumOfChannels = SBC_MAX_NUM_OF_CHANNELS;
     }
 
-    frame_len = a2d_sbc_frame_length();
+    frame_len = a2dp_sbc_frame_length();
 
     LOG_VERBOSE(LOG_TAG, "%s: Effective Tx MTU to be considered: %d",
                 __func__, effective_mtu_size);
@@ -824,8 +824,8 @@ static uint8_t calculate_max_frames_per_packet(void)
         case SBC_sf44100:
             if (frame_len == 0) {
                 LOG_ERROR(LOG_TAG, "%s: Calculating frame length, resetting it to default %d",
-                          __func__, A2D_SBC_MAX_HQ_FRAME_SIZE_44_1);
-                frame_len = A2D_SBC_MAX_HQ_FRAME_SIZE_44_1;
+                          __func__, A2DP_SBC_MAX_HQ_FRAME_SIZE_44_1);
+                frame_len = A2DP_SBC_MAX_HQ_FRAME_SIZE_44_1;
             }
             result = (effective_mtu_size - A2DP_HDR_SIZE) / frame_len;
             LOG_VERBOSE(LOG_TAG, "%s: Max number of SBC frames: %d",
@@ -835,8 +835,8 @@ static uint8_t calculate_max_frames_per_packet(void)
         case SBC_sf48000:
             if (frame_len == 0) {
               LOG_ERROR(LOG_TAG, "%s: Calculating frame length, resetting it to default %d",
-                        __func__, A2D_SBC_MAX_HQ_FRAME_SIZE_48);
-                frame_len = A2D_SBC_MAX_HQ_FRAME_SIZE_48;
+                        __func__, A2DP_SBC_MAX_HQ_FRAME_SIZE_48);
+                frame_len = A2DP_SBC_MAX_HQ_FRAME_SIZE_48;
             }
             result = (effective_mtu_size - A2DP_HDR_SIZE) / frame_len;
             LOG_VERBOSE(LOG_TAG, "%s: Max number of SBC frames: %d",
@@ -851,13 +851,13 @@ static uint8_t calculate_max_frames_per_packet(void)
     return result;
 }
 
-static uint16_t a2d_sbc_source_rate(void)
+static uint16_t a2dp_sbc_source_rate(void)
 {
-    uint16_t rate = A2D_SBC_DEFAULT_BITRATE;
+    uint16_t rate = A2DP_SBC_DEFAULT_BITRATE;
 
     /* restrict bitrate if a2dp link is non-edr */
-    if (!a2d_sbc_encoder_cb.is_peer_edr) {
-        rate = A2D_SBC_NON_EDR_MAX_RATE;
+    if (!a2dp_sbc_encoder_cb.is_peer_edr) {
+        rate = A2DP_SBC_NON_EDR_MAX_RATE;
         LOG_VERBOSE(LOG_TAG, "%s: non-edr a2dp sink detected, restrict rate to %d",
                     __func__, rate);
     }
@@ -865,9 +865,9 @@ static uint16_t a2d_sbc_source_rate(void)
     return rate;
 }
 
-static uint32_t a2d_sbc_frame_length(void)
+static uint32_t a2dp_sbc_frame_length(void)
 {
-    SBC_ENC_PARAMS *p_encoder_params = &a2d_sbc_encoder_cb.sbc_encoder_params;
+    SBC_ENC_PARAMS *p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
     uint32_t frame_len = 0;
 
     LOG_VERBOSE(LOG_TAG, "%s: channel mode: %d, sub-band: %d, number of block: %d, bitpool: %d, sampling frequency: %d, num channels: %d",
@@ -883,8 +883,8 @@ static uint32_t a2d_sbc_frame_length(void)
         case SBC_MONO:
             /* FALLTHROUGH */
         case SBC_DUAL:
-            frame_len = A2D_SBC_FRAME_HEADER_SIZE_BYTES +
-                ((uint32_t)(A2D_SBC_SCALE_FACTOR_BITS *
+            frame_len = A2DP_SBC_FRAME_HEADER_SIZE_BYTES +
+                ((uint32_t)(A2DP_SBC_SCALE_FACTOR_BITS *
                             p_encoder_params->s16NumOfSubBands *
                             p_encoder_params->s16NumOfChannels) / CHAR_BIT) +
               ((uint32_t)(p_encoder_params->s16NumOfBlocks *
@@ -892,16 +892,16 @@ static uint32_t a2d_sbc_frame_length(void)
                           p_encoder_params->s16BitPool) / CHAR_BIT);
             break;
         case SBC_STEREO:
-            frame_len = A2D_SBC_FRAME_HEADER_SIZE_BYTES +
-                ((uint32_t)(A2D_SBC_SCALE_FACTOR_BITS *
+            frame_len = A2DP_SBC_FRAME_HEADER_SIZE_BYTES +
+                ((uint32_t)(A2DP_SBC_SCALE_FACTOR_BITS *
                             p_encoder_params->s16NumOfSubBands *
                             p_encoder_params->s16NumOfChannels) / CHAR_BIT) +
                 ((uint32_t)(p_encoder_params->s16NumOfBlocks *
                             p_encoder_params->s16BitPool) / CHAR_BIT);
             break;
         case SBC_JOINT_STEREO:
-            frame_len = A2D_SBC_FRAME_HEADER_SIZE_BYTES +
-                ((uint32_t)(A2D_SBC_SCALE_FACTOR_BITS *
+            frame_len = A2DP_SBC_FRAME_HEADER_SIZE_BYTES +
+                ((uint32_t)(A2DP_SBC_SCALE_FACTOR_BITS *
                             p_encoder_params->s16NumOfSubBands *
                             p_encoder_params->s16NumOfChannels) / CHAR_BIT) +
                 ((uint32_t)(p_encoder_params->s16NumOfSubBands +
@@ -918,9 +918,9 @@ static uint32_t a2d_sbc_frame_length(void)
     return frame_len;
 }
 
-void a2d_sbc_debug_codec_dump(int fd)
+void a2dp_sbc_debug_codec_dump(int fd)
 {
-    a2d_sbc_encoder_stats_t *stats = &a2d_sbc_encoder_cb.stats;
+    a2dp_sbc_encoder_stats_t *stats = &a2dp_sbc_encoder_cb.stats;
     size_t ave_size;
 
     dprintf(fd, "\nA2DP SBC State:\n");

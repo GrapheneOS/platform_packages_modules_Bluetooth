@@ -30,7 +30,7 @@
 #include "bta_av_api.h"
 #include "avdt_api.h"
 #include "bta_av_co.h"
-#include "stack/include/a2d_api.h"
+#include "stack/include/a2dp_api.h"
 
 #define BTA_AV_DEBUG TRUE
 /*****************************************************************************
@@ -153,17 +153,17 @@ enum
 *****************************************************************************/
 
 /* function types for call-out functions */
-typedef bool (*tBTA_AV_CO_INIT) (tA2D_CODEC_SEP_INDEX codec_sep_index,
+typedef bool (*tBTA_AV_CO_INIT) (tA2DP_CODEC_SEP_INDEX codec_sep_index,
                                  tAVDT_CFG *p_cfg);
 typedef void (*tBTA_AV_CO_DISC_RES) (tBTA_AV_HNDL hndl, uint8_t num_seps,
                                      uint8_t num_snk, uint8_t num_src,
                                      BD_ADDR addr, uint16_t uuid_local);
-typedef tA2D_STATUS (*tBTA_AV_CO_GETCFG) (tBTA_AV_HNDL hndl,
-                                          uint8_t *p_codec_info,
-                                          uint8_t *p_sep_info_idx,
-                                          uint8_t seid,
-                                          uint8_t *p_num_protect,
-                                          uint8_t *p_protect_info);
+typedef tA2DP_STATUS (*tBTA_AV_CO_GETCFG) (tBTA_AV_HNDL hndl,
+                                           uint8_t *p_codec_info,
+                                           uint8_t *p_sep_info_idx,
+                                           uint8_t seid,
+                                           uint8_t *p_num_protect,
+                                           uint8_t *p_protect_info);
 typedef void (*tBTA_AV_CO_SETCFG) (tBTA_AV_HNDL hndl,
                                    const uint8_t *p_codec_info, uint8_t seid,
                                    BD_ADDR addr, uint8_t num_protect,
@@ -465,9 +465,9 @@ typedef struct
     const tBTA_AV_ACT   *p_act_tbl;     /* the action table for stream state machine */
     const tBTA_AV_CO_FUNCTS *p_cos;     /* the associated callout functions */
     bool                sdp_discovery_started; /* variable to determine whether SDP is started */
-    tBTA_AV_SEP         seps[A2D_CODEC_SEP_INDEX_MAX];
+    tBTA_AV_SEP         seps[A2DP_CODEC_SEP_INDEX_MAX];
     tAVDT_CFG           *p_cap;         /* buffer used for get capabilities */
-    list_t              *a2d_list;      /* used for audio channels only */
+    list_t              *a2dp_list;     /* used for audio channels only */
     tBTA_AV_Q_INFO      q_info;
     tAVDT_SEP_INFO      sep_info[BTA_AV_NUM_SEPS];      /* stream discovery results */
     tAVDT_CFG           cfg;            /* local SEP configuration */
@@ -561,8 +561,8 @@ typedef struct
     tBTA_AV_LCB         lcb[BTA_AV_NUM_LINKS+1];  /* link control block */
     alarm_t             *link_signalling_timer;
     alarm_t             *accept_signalling_timer; /* timer to monitor signalling when accepting */
-    uint32_t            sdp_a2d_handle; /* SDP record handle for audio src */
-    uint32_t            sdp_a2d_snk_handle; /* SDP record handle for audio snk */
+    uint32_t            sdp_a2dp_handle; /* SDP record handle for audio src */
+    uint32_t            sdp_a2dp_snk_handle; /* SDP record handle for audio snk */
     uint32_t            sdp_vdp_handle; /* SDP record handle for video src */
     tBTA_AV_FEAT        features;       /* features mask */
     tBTA_SEC            sec_mask;       /* security mask */
@@ -603,8 +603,8 @@ extern const tBTA_AV_CFG bta_av_cfg;
 extern uint16_t *p_bta_av_rc_id;
 extern uint16_t *p_bta_av_rc_id_ac;
 
-extern const tBTA_AV_SACT bta_av_a2d_action[];
-extern const tBTA_AV_CO_FUNCTS bta_av_a2d_cos;
+extern const tBTA_AV_SACT bta_av_a2dp_action[];
+extern const tBTA_AV_CO_FUNCTS bta_av_a2dp_cos;
 extern tAVDT_CTRL_CBACK * const bta_av_dt_cback[];
 extern void bta_av_sink_data_cback(uint8_t handle, BT_HDR *p_pkt,
                                    uint32_t time_stamp, uint8_t m_pt);
@@ -669,7 +669,7 @@ extern tBTA_AV_RCB * bta_av_get_rcb_by_shdl(uint8_t shdl);
 extern void bta_av_del_rc(tBTA_AV_RCB *p_rcb);
 
 /* ssm action functions */
-extern void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
+extern void bta_av_do_disc_a2dp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_cleanup (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_free_sdb (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);

@@ -16,11 +16,11 @@
 
 static_library("stack") {
   sources = [
-    "a2dp/a2d_api.cc",
-    "a2dp/a2d_sbc.cc",
-    "a2dp/a2d_sbc_encoder.cc",
-    "a2dp/a2d_sbc_up_sample.cc",
-    "a2dp/a2d_vendor.cc",
+    "a2dp/a2dp_api.cc",
+    "a2dp/a2dp_sbc.cc",
+    "a2dp/a2dp_sbc_encoder.cc",
+    "a2dp/a2dp_sbc_up_sample.cc",
+    "a2dp/a2dp_vendor.cc",
     "avrc/avrc_api.c",
     "avrc/avrc_sdp.c",
     "avrc/avrc_opt.c",
@@ -179,7 +179,7 @@ executable("stack_unittests") {
   testonly = true
   sources = [
     "test/ble_advertiser_test.cc",
-    "test/stack_a2d_test.cc",
+    "test/stack_a2dp_test.cc",
   ]
 
   include_dirs = [

@@ -111,7 +111,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define BTTRC_ID_STK_RFCOMM                82
 #define BTTRC_ID_STK_RFCOMM_DATA           83
 #define BTTRC_ID_STK_OBEX                  84
-#define BTTRC_ID_STK_A2D                   85
+#define BTTRC_ID_STK_A2DP                  85
 #define BTTRC_ID_STK_BIP                   86
 
 /* LayerIDs for BT APP */
@@ -172,8 +172,8 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define PAN_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
 #endif
 
-#ifndef A2D_INITIAL_TRACE_LEVEL
-#define A2D_INITIAL_TRACE_LEVEL             BT_TRACE_LEVEL_WARNING
+#ifndef A2DP_INITIAL_TRACE_LEVEL
+#define A2DP_INITIAL_TRACE_LEVEL            BT_TRACE_LEVEL_WARNING
 #endif
 
 #ifndef AVDT_INITIAL_TRACE_LEVEL
@@ -283,11 +283,11 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 
 /* Define tracing for the A2DP profile
 */
-#define A2D_TRACE_ERROR(...)                      {if (a2d_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_A2D, TRACE_TYPE_ERROR,##__VA_ARGS__);}
-#define A2D_TRACE_WARNING(...)                    {if (a2d_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_A2D, TRACE_TYPE_WARNING,##__VA_ARGS__);}
-#define A2D_TRACE_EVENT(...)                      {if (a2d_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_A2D, TRACE_TYPE_EVENT,##__VA_ARGS__);}
-#define A2D_TRACE_DEBUG(...)                      {if (a2d_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_A2D, TRACE_TYPE_DEBUG,##__VA_ARGS__);}
-#define A2D_TRACE_API(...)                        {if (a2d_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_A2D, TRACE_TYPE_API,##__VA_ARGS__);}
+#define A2DP_TRACE_ERROR(...)                     {if (a2dp_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_A2DP, TRACE_TYPE_ERROR,##__VA_ARGS__);}
+#define A2DP_TRACE_WARNING(...)                   {if (a2dp_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_A2DP, TRACE_TYPE_WARNING,##__VA_ARGS__);}
+#define A2DP_TRACE_EVENT(...)                     {if (a2dp_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_A2DP, TRACE_TYPE_EVENT,##__VA_ARGS__);}
+#define A2DP_TRACE_DEBUG(...)                     {if (a2dp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_A2DP, TRACE_TYPE_DEBUG,##__VA_ARGS__);}
+#define A2DP_TRACE_API(...)                       {if (a2dp_cb.trace_level >= BT_TRACE_LEVEL_API) BT_TRACE(TRACE_LAYER_A2DP, TRACE_TYPE_API,##__VA_ARGS__);}
 
 /* AVDTP
 */
