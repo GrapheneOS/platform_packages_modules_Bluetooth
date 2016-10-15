@@ -236,12 +236,7 @@ typedef struct
 } tRFC_CB;
 
 
-#if (RFC_DYNAMIC_MEMORY == FALSE)
-extern tRFC_CB  rfc_cb;
-#else
-extern tRFC_CB *rfc_cb_ptr;
-#define rfc_cb (*rfc_cb_ptr)
-#endif
+extern tRFC_CB rfc_cb;
 
 /* Timer running on the multiplexor channel while no DLCI connection is opened */
 #define RFC_MCB_INIT_INACT_TIMER    60  /* in seconds */

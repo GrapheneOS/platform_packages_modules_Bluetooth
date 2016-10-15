@@ -481,12 +481,7 @@ typedef struct
 #define GATT_SIZE_OF_SRV_CHG_HNDL_RANGE 4
 
 /* Global GATT data */
-#if (GATT_DYNAMIC_MEMORY == FALSE)
-extern tGATT_CB  gatt_cb;
-#else
-extern tGATT_CB *gatt_cb_ptr;
-#define gatt_cb (*gatt_cb_ptr)
-#endif
+extern tGATT_CB gatt_cb;
 
 #if (GATT_CONFORMANCE_TESTING == TRUE)
 extern void gatt_set_err_rsp(bool    enable, uint8_t req_op_code, uint8_t err_status);

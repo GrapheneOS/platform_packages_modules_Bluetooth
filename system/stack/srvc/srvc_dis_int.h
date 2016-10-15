@@ -57,12 +57,7 @@ typedef struct
 }tDIS_CB;
 
 /* Global GATT data */
-#if (GATT_DYNAMIC_MEMORY == FALSE)
 extern tDIS_CB dis_cb;
-#else
-extern tDIS_CB *dis_cb_ptr;
-#define dis_cb (*dis_cb_ptr)
-#endif
 
 extern bool    dis_valid_handle_range(uint16_t handle);
 extern uint8_t dis_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALUE *p_value,

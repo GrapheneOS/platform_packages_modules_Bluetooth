@@ -219,12 +219,7 @@ extern tAVCT_CCB *avct_ccb_by_idx(uint8_t idx);
 *****************************************************************************/
 
 /* Main control block */
-#if (AVCT_DYNAMIC_MEMORY == FALSE)
 extern tAVCT_CB avct_cb;
-#else
-extern tAVCT_CB *avct_cb_ptr;
-#define avct_cb (*avct_cb_ptr)
-#endif
 
 /* L2CAP callback registration structure */
 extern const tL2CAP_APPL_INFO avct_l2c_appl;

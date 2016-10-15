@@ -49,12 +49,7 @@
 extern "C" {
 #endif
 
-#if (BTM_DYNAMIC_MEMORY == FALSE)
-extern tBTM_CB  btm_cb;
-#else
-extern tBTM_CB *btm_cb_ptr;
-#define btm_cb (*btm_cb_ptr)
-#endif
+extern tBTM_CB btm_cb;
 
 /* Internal functions provided by btm_main.c
 ********************************************

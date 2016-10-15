@@ -18,8 +18,7 @@
 
 /******************************************************************************
  *
- *  This file contains the definition of the btm control block when
- *  BTM_DYNAMIC_MEMORY is used.
+ *  This file contains the definition of the btm control block.
  *
  ******************************************************************************/
 
@@ -31,9 +30,7 @@
 
 /* Global BTM control block structure
 */
-#if (BTM_DYNAMIC_MEMORY == FALSE)
 tBTM_CB  btm_cb;
-#endif
 
 /*******************************************************************************
 **

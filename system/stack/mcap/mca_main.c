@@ -33,9 +33,7 @@
 #include "l2c_api.h"
 
 /* Main Control block for MCA */
-#if (MCA_DYNAMIC_MEMORY == FALSE)
 tMCA_CB mca_cb;
-#endif
 
 /*****************************************************************************
 ** constants

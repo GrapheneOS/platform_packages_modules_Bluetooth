@@ -152,12 +152,7 @@ typedef struct {
 /******************************************************************************
 ** Main Control Block
 *******************************************************************************/
-#if (AVRC_DYNAMIC_MEMORY == FALSE)
 extern tAVRC_CB  avrc_cb;
-#else
-extern tAVRC_CB *avrc_cb_ptr;
-#define avrc_cb (*avrc_cb_ptr)
-#endif
 
 extern bool avrc_is_valid_pdu_id(uint8_t pdu_id);
 extern bool avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value);

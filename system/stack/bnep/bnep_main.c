@@ -51,9 +51,7 @@ extern fixed_queue_t *btu_general_alarm_queue;
 /********************************************************************************/
 /*                       G L O B A L    B N E P       D A T A                   */
 /********************************************************************************/
-#if (BNEP_DYNAMIC_MEMORY == FALSE)
-tBNEP_CB   bnep_cb;
-#endif
+tBNEP_CB bnep_cb;
 
 const uint16_t bnep_frame_hdr_sizes[] = {14, 1, 2, 8, 8};
 
