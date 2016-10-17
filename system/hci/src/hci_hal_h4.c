@@ -40,8 +40,6 @@
 
 #define BT_HCI_UNKNOWN_MESSAGE_TYPE_NUM 1010002
 
-#define BT_HCI_UNKNOWN_MESSAGE_TYPE_NUM 1010002
-
 // Our interface and modules we import
 static const hci_hal_t interface;
 static const hci_hal_callbacks_t *callbacks;
