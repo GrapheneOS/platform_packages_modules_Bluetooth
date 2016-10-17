@@ -150,6 +150,248 @@ void avrc_parse_notification_rsp (uint8_t *p_stream, tAVRC_REG_NOTIF_RSP *p_rsp)
     }
 }
 
+static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE *p_msg, tAVRC_RESPONSE *p_rsp)
+{
+    tAVRC_STS status = AVRC_STS_NO_ERROR;
+    uint8_t pdu;
+
+    if (p_msg->browse_len == 0)
+    {
+        AVRC_TRACE_ERROR("%s length ", p_msg->browse_len);
+        return AVRC_STS_BAD_PARAM;
+    }
+
+    uint8_t *p = p_msg->p_browse_data;
+
+    /* read the pdu */
+    BE_STREAM_TO_UINT8(pdu, p);
+    uint8_t pkt_len;
+    /* read the entire packet len */
+    BE_STREAM_TO_UINT16(pkt_len, p);
+
+    AVRC_TRACE_DEBUG("%s pdu %d", __func__, pdu);
+
+    /* used to track how much we have read, if we cannot read anymore but the
+     * packet says so then we have a malformed packet. Also vice versa. */
+    uint16_t pkt_len_read = 0;
+
+
+    switch (pdu)
+    {
+    case AVRC_PDU_GET_FOLDER_ITEMS:
+    {
+        tAVRC_GET_ITEMS_RSP *get_item_rsp = &(p_rsp->get_items);
+        /* Copy back the PDU */
+        get_item_rsp->pdu = pdu;
+        /* read the status */
+        BE_STREAM_TO_UINT8(get_item_rsp->status, p);
+        /* read the UID counter */
+        BE_STREAM_TO_UINT16(get_item_rsp->uid_counter, p);
+        /* read the number of items */
+        BE_STREAM_TO_UINT16(get_item_rsp->item_count, p);
+        pkt_len_read += 5;
+
+        AVRC_TRACE_DEBUG("%s pdu %d status %d pkt_len %d uid counter %d item count %d",
+                            __func__, get_item_rsp->pdu, get_item_rsp->status, pkt_len,
+                            get_item_rsp->uid_counter, get_item_rsp->item_count);
+
+        /* get each of the items */
+        get_item_rsp->p_item_list =
+            (tAVRC_ITEM *) osi_malloc (get_item_rsp->item_count * (sizeof(tAVRC_ITEM)));
+        tAVRC_ITEM *curr_item = get_item_rsp->p_item_list;
+        for (int i = 0; i < get_item_rsp->item_count; i++)
+        {
+            BE_STREAM_TO_UINT8(curr_item->item_type, p);
+            pkt_len_read += 1;
+            AVRC_TRACE_DEBUG("%s item type %d", __func__, curr_item->item_type);
+            switch (curr_item->item_type)
+            {
+                case AVRC_ITEM_PLAYER:
+                {
+                    /* Handle player */
+                    tAVRC_ITEM_PLAYER *player = &(curr_item->u.player);
+                    uint8_t player_len;
+                    BE_STREAM_TO_UINT16(player_len, p);
+                    BE_STREAM_TO_UINT16(player->player_id, p);
+                    BE_STREAM_TO_UINT8(player->major_type, p);
+                    BE_STREAM_TO_UINT32(player->sub_type, p);
+                    BE_STREAM_TO_UINT8(player->play_status, p);
+                    BE_STREAM_TO_ARRAY(p, player->features, AVRC_FEATURE_MASK_SIZE);
+                    pkt_len_read += (10 + AVRC_FEATURE_MASK_SIZE);
+
+                    /* read str */
+                    BE_STREAM_TO_UINT16(player->name.charset_id, p);
+                    BE_STREAM_TO_UINT16(player->name.str_len, p);
+                    player->name.p_str = (uint8_t *) osi_malloc (
+                        (player->name.str_len + 1) * sizeof (uint8_t));
+                    BE_STREAM_TO_ARRAY(p, player->name.p_str, player->name.str_len);
+                    pkt_len_read += (4 + player->name.str_len);
+                    AVRC_TRACE_DEBUG(
+                        "%s type %d id %d mtype %d stype %d ps %d cs %d name len %d",
+                        __func__, curr_item->item_type, player->player_id,
+                        player->major_type, player->sub_type, player->play_status,
+                        player->name.charset_id, player->name.str_len);
+                } break;
+
+                case AVRC_ITEM_FOLDER:
+                {
+                    tAVRC_ITEM_FOLDER *folder = &(curr_item->u.folder);
+                    uint16_t folder_len;
+                    BE_STREAM_TO_UINT16(folder_len, p);
+
+                    BE_STREAM_TO_ARRAY(p, folder->uid, AVRC_UID_SIZE);
+                    BE_STREAM_TO_UINT8(folder->type, p);
+                    BE_STREAM_TO_UINT8(folder->playable, p);
+                    pkt_len_read += (4 + AVRC_UID_SIZE);
+
+                    /* read str, encoding to be handled by upper layers */
+                    BE_STREAM_TO_UINT16(folder->name.charset_id, p);
+                    BE_STREAM_TO_UINT16(folder->name.str_len, p);
+                    folder->name.p_str = (uint8_t *) osi_malloc (
+                        (folder->name.str_len + 1) * sizeof (uint8_t));
+                    BE_STREAM_TO_ARRAY(p, folder->name.p_str, folder->name.str_len);
+                    pkt_len_read += (4 + folder->name.str_len);
+                    AVRC_TRACE_DEBUG(
+                        "%s type %d playable %d cs %d name len %d",
+                        __func__, folder->type, folder->playable, folder->name.charset_id,
+                        folder->name.str_len);
+                } break;
+
+                case AVRC_ITEM_MEDIA:
+                {
+                    tAVRC_ITEM_MEDIA *media = &(curr_item->u.media);
+                    uint8_t media_len;
+                    BE_STREAM_TO_UINT16(media_len, p);
+                    BE_STREAM_TO_ARRAY(p, media->uid, AVRC_UID_SIZE);
+                    BE_STREAM_TO_UINT8(media->type, p);
+                    pkt_len_read += (3 + AVRC_UID_SIZE);
+
+                    /* read str, encoding to be handled by upper layers */
+                    BE_STREAM_TO_UINT16(media->name.charset_id, p);
+                    BE_STREAM_TO_UINT16(media->name.str_len, p);
+                    media->name.p_str = (uint8_t *) osi_malloc (
+                        (media->name.str_len) * sizeof (uint8_t));
+                    BE_STREAM_TO_ARRAY(p, media->name.p_str, media->name.str_len);
+
+                    BE_STREAM_TO_UINT8(media->attr_count, p);
+                    AVRC_TRACE_DEBUG("%s media type %d charset id %d len %d attr ct %d",
+                                        __func__, media->type, media->name.charset_id,
+                                        media->name.str_len, media->attr_count);
+                    pkt_len_read += (5 + media->name.str_len);
+
+                    media->p_attr_list = (tAVRC_ATTR_ENTRY *) osi_malloc (
+                        media->attr_count * sizeof (tAVRC_ATTR_ENTRY));
+                    for (int jk = 0; jk < media->attr_count; jk++)
+                    {
+                        tAVRC_ATTR_ENTRY *attr_entry = &(media->p_attr_list[jk]);
+                        BE_STREAM_TO_UINT32(attr_entry->attr_id, p);
+
+                        /* Parse the name now */
+                        BE_STREAM_TO_UINT16(attr_entry->name.charset_id, p);
+                        BE_STREAM_TO_UINT16(attr_entry->name.str_len, p);
+                        attr_entry->name.p_str = (uint8_t *) osi_malloc (
+                            attr_entry->name.str_len * sizeof (uint8_t));
+                        BE_STREAM_TO_ARRAY(p, attr_entry->name.p_str, attr_entry->name.str_len);
+                        pkt_len_read += (8 + attr_entry->name.str_len);
+                        AVRC_TRACE_DEBUG("%s media attr id %d cs %d name len %d",
+                                         __func__, attr_entry->attr_id,
+                                         attr_entry->name.charset_id, attr_entry->name.str_len);
+                    }
+                } break;
+
+                default:
+                    AVRC_TRACE_ERROR("%s item type not handled %d", __func__, curr_item->item_type);
+                    return AVRC_STS_INTERNAL_ERR;
+            }
+
+            /* we check if we have overrun */
+            if (pkt_len_read > pkt_len)
+            {
+                AVRC_TRACE_ERROR("%s overflow in read pkt_len %d pkt_len_read %d",
+                                    __func__, pkt_len, pkt_len_read);
+                return AVRC_STS_BAD_CMD;
+            }
+            AVRC_TRACE_DEBUG("%s pkt_len %d pkt_len_read %d", __func__, pkt_len, pkt_len_read);
+
+            /* advance to populate the next item */
+            curr_item++;
+        }
+        break;
+    }
+
+    case AVRC_PDU_CHANGE_PATH:
+    {
+        tAVRC_CHG_PATH_RSP *change_path_rsp = &(p_rsp->chg_path);
+        /* Copyback the PDU */
+        change_path_rsp->pdu = pdu;
+        /* Read the status */
+        BE_STREAM_TO_UINT8(change_path_rsp->status, p);
+        /* Read the number of items in folder */
+        BE_STREAM_TO_UINT32(change_path_rsp->num_items, p);
+        pkt_len_read += 5;
+
+        AVRC_TRACE_DEBUG("%s pdu %d status %d item count %d",
+                         __func__, change_path_rsp->pdu, change_path_rsp->status,
+                         change_path_rsp->num_items);
+        break;
+    }
+
+    case AVRC_PDU_SET_BROWSED_PLAYER:
+    {
+        tAVRC_SET_BR_PLAYER_RSP *set_br_pl_rsp = &(p_rsp->br_player);
+        /* Copyback the PDU */
+        set_br_pl_rsp->pdu = pdu;
+
+        /* Read the status */
+        BE_STREAM_TO_UINT8(set_br_pl_rsp->status, p);
+
+        if (set_br_pl_rsp->status != AVRC_STS_NO_ERROR) {
+            AVRC_TRACE_ERROR(
+                "%s Stopping further parsing because player not browsable sts %d",
+                __func__, set_br_pl_rsp->status);
+            break;
+        }
+        BE_STREAM_TO_UINT16(set_br_pl_rsp->uid_counter, p);
+        BE_STREAM_TO_UINT32(set_br_pl_rsp->num_items, p);
+        BE_STREAM_TO_UINT16(set_br_pl_rsp->charset_id, p);
+        BE_STREAM_TO_UINT8(set_br_pl_rsp->folder_depth, p);
+        AVRC_TRACE_DEBUG("%s AVRC_PDU_SET_BROWSED_PLAYER status %d items %d cs %d depth %d",
+                         __func__,
+                         set_br_pl_rsp->status,
+                         set_br_pl_rsp->num_items,
+                         set_br_pl_rsp->charset_id,
+                         set_br_pl_rsp->folder_depth);
+        pkt_len_read += 10;
+
+        set_br_pl_rsp->p_folders = (tAVRC_NAME *) osi_malloc (
+            set_br_pl_rsp->num_items * sizeof (tAVRC_NAME));
+
+        /* Read each of the folder in the depth */
+        for (uint32_t i = 0; i < set_br_pl_rsp->folder_depth; i++) {
+            tAVRC_NAME *folder_name = &(set_br_pl_rsp->p_folders[i]);
+            BE_STREAM_TO_UINT16(folder_name->str_len, p);
+            AVRC_TRACE_DEBUG("%s AVRC_PDU_SET_BROWSED_PLAYER item: %d len: %d",
+                             __func__, i, folder_name->str_len);
+            folder_name->p_str = (uint8_t *) osi_malloc (
+                (folder_name->str_len + 1) * sizeof (uint8_t));
+            BE_STREAM_TO_ARRAY(p, folder_name->p_str, folder_name->str_len);
+            pkt_len_read += (2 + folder_name->str_len);
+        }
+        break;
+    }
+
+    default:
+        AVRC_TRACE_ERROR("%s pdu %d not handled", __func__, pdu);
+    }
+
+    if (pkt_len != pkt_len_read)
+    {
+        AVRC_TRACE_ERROR("%s finished pkt_len %d pkt_len_read %d", __func__, pkt_len, pkt_len_read);
+        return AVRC_STS_BAD_CMD;
+    }
+    return status;
+}
+
 #if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
@@ -396,6 +638,10 @@ tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, ui
         {
         case AVRC_OP_VENDOR:     /*  0x00    Vendor-dependent commands */
             status = avrc_ctrl_pars_vendor_rsp(&p_msg->vendor, p_result, p_buf,buf_len);
+            break;
+
+        case AVRC_OP_BROWSE:  /* 0xff Browse commands */
+            status = avrc_pars_browse_rsp(&p_msg->browse, p_result);
             break;
 
         default:

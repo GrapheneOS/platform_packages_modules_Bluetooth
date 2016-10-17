@@ -66,7 +66,6 @@
  */
 #define AVCT_BR_FCR_OPT_MONITOR_TOUT        12000
 
-
 /* callback function declarations */
 void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
 void avct_l2c_br_connect_cfm_cback(uint16_t lcid, uint16_t result);
@@ -76,7 +75,6 @@ void avct_l2c_br_disconnect_ind_cback(uint16_t lcid, bool ack_needed);
 void avct_l2c_br_disconnect_cfm_cback(uint16_t lcid, uint16_t result);
 void avct_l2c_br_congestion_ind_cback(uint16_t lcid, bool is_congested);
 void avct_l2c_br_data_ind_cback(uint16_t lcid, BT_HDR *p_buf);
-
 
 /* L2CAP callback function structure */
 const tL2CAP_APPL_INFO avct_l2c_br_appl = {
