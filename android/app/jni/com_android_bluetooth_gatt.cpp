@@ -1365,7 +1365,6 @@ static void registerAdvertiserNative(JNIEnv* env, jobject object,
     if (!sGattIf) return;
 
     set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
-    error("advertiser address is: %d", sGattIf->advertiser);
     sGattIf->advertiser->RegisterAdvertiser(base::Bind(&ble_advertiser_register_cb, uuid));
 }
 
