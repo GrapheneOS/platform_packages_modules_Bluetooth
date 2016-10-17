@@ -105,6 +105,16 @@ do { \
     } \
 } while (0)
 
+#define CHECK_BR_CONNECTED(p_dev) \
+do { \
+    BTIF_TRACE_DEBUG("## %s ##", __FUNCTION__);                                            \
+    if (p_dev == NULL || p_dev->br_connected == false) \
+    { \
+        BTIF_TRACE_WARNING("Function %s() called when BR is not connected", __FUNCTION__); \
+        return BT_STATUS_NOT_READY;                                                         \
+    } \
+} while (0)
+
 /*****************************************************************************
 **  Local type definitions
 ******************************************************************************/
