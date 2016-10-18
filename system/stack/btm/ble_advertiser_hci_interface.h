@@ -44,6 +44,7 @@ class BleAdvertiserHciInterface {
                                            uint16_t connection_handle);
   };
 
+  virtual void ReadInstanceCount(base::Callback<void(uint8_t /* inst_cnt*/)> cb) = 0;
   virtual void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
                              uint8_t advertising_type, uint8_t own_address_type,
                              BD_ADDR own_address, uint8_t direct_address_type,
