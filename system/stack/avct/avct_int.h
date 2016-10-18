@@ -149,14 +149,12 @@ typedef struct {
 
 /* LCB function declarations */
 extern void avct_lcb_event(tAVCT_LCB *p_lcb, uint8_t event, tAVCT_LCB_EVT *p_data);
-#if (AVCT_BROWSE_INCLUDED == TRUE)
 extern void avct_bcb_event(tAVCT_BCB *p_bcb, uint8_t event, tAVCT_LCB_EVT *p_data);
 extern void avct_close_bcb(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data);
 extern tAVCT_LCB *avct_lcb_by_bcb(tAVCT_BCB *p_bcb);
 extern tAVCT_BCB *avct_bcb_by_lcb(tAVCT_LCB *p_lcb);
 extern uint8_t avct_bcb_get_last_ccb_index(tAVCT_BCB *p_bcb, tAVCT_CCB *p_ccb_last);
 extern tAVCT_BCB *avct_bcb_by_lcid(uint16_t lcid);
-#endif
 extern tAVCT_LCB *avct_lcb_by_bd(BD_ADDR bd_addr);
 extern tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr);
 extern void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data);
@@ -182,7 +180,6 @@ extern void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data);
 extern void avct_lcb_free_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data);
 
 /* BCB action functions */
-#if (AVCT_BROWSE_INCLUDED == TRUE)
 typedef void (*tAVCT_BCB_ACTION)(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data);
 extern void avct_bcb_chnl_open(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data);
 extern void avct_bcb_unbind_disc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data);
@@ -205,7 +202,6 @@ extern void avct_bcb_dealloc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data);
 extern const tAVCT_BCB_ACTION avct_bcb_action[];
 extern const uint8_t avct_lcb_pkt_type_len[];
 extern const tL2CAP_FCR_OPTS avct_l2c_br_fcr_opts_def;
-#endif
 
 /* CCB function declarations */
 extern tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc);
@@ -223,9 +219,7 @@ extern tAVCT_CB avct_cb;
 
 /* L2CAP callback registration structure */
 extern const tL2CAP_APPL_INFO avct_l2c_appl;
-#if (AVCT_BROWSE_INCLUDED == TRUE)
 extern const tL2CAP_APPL_INFO avct_l2c_br_appl;
-#endif
 
 #ifdef __cplusplus
 }
