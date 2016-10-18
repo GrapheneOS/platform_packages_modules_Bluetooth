@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-set_default_toolchain("//build/toolchain/gcc")
+set_default_toolchain("//build/toolchain/clang")
 
 set_defaults("executable") {
   configs = [
