@@ -40,6 +40,8 @@ static const char kBluetoothLibraryName[] = "libbluetooth.default.so";
 
 static int load_bt_library(const struct hw_module_t **module) {
   const char *id = BT_STACK_MODULE_ID;
+  const char *sym = HAL_MODULE_INFO_SYM_AS_STR;
+  struct hw_module_t *hmi = nullptr;
 
   // Always try to load the default Bluetooth stack on GN builds.
   void *handle = dlopen(kBluetoothLibraryName, RTLD_NOW);
@@ -50,8 +52,7 @@ static int load_bt_library(const struct hw_module_t **module) {
   }
 
   // Get the address of the struct hal_module_info.
-  const char *sym = HAL_MODULE_INFO_SYM_AS_STR;
-  struct hw_module_t *hmi = (struct hw_module_t *)dlsym(handle, sym);
+  hmi = (struct hw_module_t *)dlsym(handle, sym);
   if (!hmi) {
     HULOGERR("%s", sym);
     goto error;
