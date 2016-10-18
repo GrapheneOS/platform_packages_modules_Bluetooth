@@ -20,9 +20,7 @@
 #include <gtest/gtest.h>
 #include "osi/test/AllocationTestHarness.h"
 
-extern "C" {
 #include "btcore/include/device_class.h"
-}  // "C"
 
 // Device Class is 3 bytes.
 static const int DC_MASK = 0xffffff;

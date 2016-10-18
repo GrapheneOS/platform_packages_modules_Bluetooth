@@ -21,9 +21,7 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include "osi/include/allocator.h"
-}
 
 class AllocatorTest : public AllocationTestHarness {};
 

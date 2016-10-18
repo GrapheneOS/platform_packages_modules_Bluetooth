@@ -680,6 +680,11 @@ uint8_t SDP_SetTraceLevel (uint8_t new_level);
 *******************************************************************************/
 bool    SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID *p_uuid);
 
+// Converts UUID-16 to UUID-128 by including the base UUID.
+// |uuid16| is the 2-byte UUID to convert.
+// The result with the expanded 128-bit UUID is stored in |p_uuid128|.
+void sdpu_uuid16_to_uuid128(uint16_t uuid16, uint8_t* p_uuid128);
+
 #ifdef __cplusplus
 }
 #endif

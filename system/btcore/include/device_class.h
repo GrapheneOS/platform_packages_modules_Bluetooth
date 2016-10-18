@@ -24,6 +24,10 @@
 // Provides Class Of Device primitive as specified in the bluetooth spec.
 // [Class Of Device](https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Device class may be defined in other structures.
 // Only use defined methods to manipulate internals.
 typedef struct bt_device_class_t {
@@ -90,3 +94,7 @@ void device_class_set_telephony(bt_device_class_t *dc, bool set);
 
 bool device_class_get_information(const bt_device_class_t *dc);
 void device_class_set_information(bt_device_class_t *dc, bool set);
+
+#ifdef __cplusplus
+}
+#endif

@@ -21,6 +21,10 @@
 #include <hardware/bluetooth.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct uuid_string_t uuid_string_t;
 
 // Creates uuid string structure to hold a well formed UUID
@@ -75,3 +79,7 @@ bool uuid_128_to_16(const bt_uuid_t *uuid, uint16_t *uuid16);
 bool uuid_128_to_32(const bt_uuid_t *uuid, uint32_t *uuid32);
 
 void uuid_128_from_16(bt_uuid_t *uuid, uint16_t uuid16);
+
+#ifdef __cplusplus
+}
+#endif

@@ -235,7 +235,7 @@ typedef struct
 /* Global SDP data */
 extern tSDP_CB  sdp_cb;
 
-/* Functions provided by sdp_main.c */
+/* Functions provided by sdp_main.cc */
 extern void     sdp_init (void);
 extern void     sdp_disconnect (tCONN_CB*p_ccb, uint16_t reason);
 
@@ -243,7 +243,7 @@ extern void     sdp_disconnect (tCONN_CB*p_ccb, uint16_t reason);
 extern uint16_t sdp_set_max_attr_list_size (uint16_t max_size);
 #endif
 
-/* Functions provided by sdp_conn.c
+/* Functions provided by sdp_conn.cc
 */
 extern void sdp_conn_rcv_l2e_conn_ind (BT_HDR *p_msg);
 extern void sdp_conn_rcv_l2e_conn_cfm (BT_HDR *p_msg);
@@ -258,7 +258,7 @@ extern void sdp_conn_timer_timeout(void *data);
 
 extern tCONN_CB *sdp_conn_originate (uint8_t *p_bd_addr);
 
-/* Functions provided by sdp_utils.c
+/* Functions provided by sdp_utils.cc
 */
 extern tCONN_CB *sdpu_find_ccb_by_cid (uint16_t cid);
 extern tCONN_CB *sdpu_find_ccb_by_db (tSDP_DISCOVERY_DB *p_db);
@@ -283,16 +283,15 @@ extern uint16_t sdpu_get_list_len( tSDP_UUID_SEQ   *uid_seq, tSDP_ATTR_SEQ   *at
 extern uint16_t sdpu_get_attrib_seq_len(tSDP_RECORD *p_rec, tSDP_ATTR_SEQ *attr_seq);
 extern uint16_t sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE *p_attr);
 extern uint8_t *sdpu_build_partial_attrib_entry (uint8_t *p_out, tSDP_ATTRIBUTE *p_attr, uint16_t len, uint16_t *offset);
-extern void sdpu_uuid16_to_uuid128(uint16_t uuid16, uint8_t* p_uuid128);
 
-/* Functions provided by sdp_db.c
+/* Functions provided by sdp_db.cc
 */
 extern tSDP_RECORD    *sdp_db_service_search (tSDP_RECORD *p_rec, tSDP_UUID_SEQ *p_seq);
 extern tSDP_RECORD    *sdp_db_find_record (uint32_t handle);
 extern tSDP_ATTRIBUTE *sdp_db_find_attr_in_rec (tSDP_RECORD *p_rec, uint16_t start_attr, uint16_t end_attr);
 
 
-/* Functions provided by sdp_server.c
+/* Functions provided by sdp_server.cc
 */
 #if (SDP_SERVER_ENABLED == TRUE)
 extern void     sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg);
@@ -300,7 +299,7 @@ extern void     sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg);
 #define sdp_server_handle_client_req(p_ccb, p_msg)
 #endif
 
-/* Functions provided by sdp_discovery.c
+/* Functions provided by sdp_discovery.cc
 */
 #if (SDP_CLIENT_ENABLED == TRUE)
 extern void sdp_disc_connected (tCONN_CB *p_ccb);

@@ -20,7 +20,6 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include <stdint.h>
 
 #include "device/include/controller.h"
@@ -29,7 +28,6 @@ extern "C" {
 #include "hci_internals.h"
 #include "packet_fragmenter.h"
 #include "test_stubs.h"
-}
 
 DECLARE_TEST_MODES(
   init,

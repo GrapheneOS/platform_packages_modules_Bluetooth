@@ -72,7 +72,7 @@ extern tBTM_STATUS btm_ble_stop_adv(void);
 extern tBTM_STATUS btm_ble_start_scan(void);
 extern void btm_ble_create_ll_conn_complete (uint8_t status);
 
-/* LE security function from btm_sec.c */
+/* LE security function from btm_sec.cc */
 #if (SMP_INCLUDED == TRUE)
 extern void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE_SEC_REQ_ACT *p_sec_req_act);
 extern void btm_ble_ltk_request_reply(BD_ADDR bda,  bool    use_stk, BT_OCTET16 stk);

@@ -22,55 +22,55 @@ endif
 
 # platform specific
 LOCAL_SRC_FILES := \
-	bte_main.c \
-	bte_init.c \
-	bte_logmsg.c \
-	bte_init_cpp_logging.cc \
-	bte_conf.c \
-	stack_config.c
+    bte_conf.cc \
+    bte_init.cc \
+    bte_init_cpp_logging.cc \
+    bte_logmsg.cc \
+    bte_main.cc \
+    stack_config.cc
 
 # sbc encoder
 LOCAL_SRC_FILES += \
-	../embdrv/sbc/encoder/srce/sbc_analysis.c \
-	../embdrv/sbc/encoder/srce/sbc_dct.c \
-	../embdrv/sbc/encoder/srce/sbc_dct_coeffs.c \
-	../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_mono.c \
-	../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_ste.c \
-	../embdrv/sbc/encoder/srce/sbc_enc_coeffs.c \
-	../embdrv/sbc/encoder/srce/sbc_encoder.c \
-	../embdrv/sbc/encoder/srce/sbc_packing.c \
+    ../embdrv/sbc/encoder/srce/sbc_analysis.c \
+    ../embdrv/sbc/encoder/srce/sbc_dct.c \
+    ../embdrv/sbc/encoder/srce/sbc_dct_coeffs.c \
+    ../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_mono.c \
+    ../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_ste.c \
+    ../embdrv/sbc/encoder/srce/sbc_enc_coeffs.c \
+    ../embdrv/sbc/encoder/srce/sbc_encoder.c \
+    ../embdrv/sbc/encoder/srce/sbc_packing.c \
 
 LOCAL_SRC_FILES += \
-	../udrv/ulinux/uipc.c
+    ../udrv/ulinux/uipc.cc
 
 LOCAL_C_INCLUDES := . \
-	$(LOCAL_PATH)/../ \
-	$(LOCAL_PATH)/../bta/include \
-	$(LOCAL_PATH)/../bta/sys \
-	$(LOCAL_PATH)/../bta/dm \
-	$(LOCAL_PATH)/../btcore/include \
-	$(LOCAL_PATH)/../include \
-	$(LOCAL_PATH)/../stack/include \
-	$(LOCAL_PATH)/../stack/l2cap \
-	$(LOCAL_PATH)/../stack/a2dp \
-	$(LOCAL_PATH)/../stack/btm \
-	$(LOCAL_PATH)/../stack/avdt \
-	$(LOCAL_PATH)/../hcis \
-	$(LOCAL_PATH)/../hcis/include \
-	$(LOCAL_PATH)/../hcis/patchram \
-	$(LOCAL_PATH)/../udrv/include \
-	$(LOCAL_PATH)/../btif/include \
-	$(LOCAL_PATH)/../btif/co \
-	$(LOCAL_PATH)/../hci/include\
-	$(LOCAL_PATH)/../vnd/include \
-	$(LOCAL_PATH)/../brcm/include \
-	$(LOCAL_PATH)/../embdrv/sbc/encoder/include \
-	$(LOCAL_PATH)/../embdrv/sbc/decoder/include \
-	$(LOCAL_PATH)/../audio_a2dp_hw \
-	$(LOCAL_PATH)/../utils/include \
-	$(bluetooth_C_INCLUDES) \
-	external/tinyxml2 \
-	external/zlib
+    $(LOCAL_PATH)/../ \
+    $(LOCAL_PATH)/../bta/include \
+    $(LOCAL_PATH)/../bta/sys \
+    $(LOCAL_PATH)/../bta/dm \
+    $(LOCAL_PATH)/../btcore/include \
+    $(LOCAL_PATH)/../include \
+    $(LOCAL_PATH)/../stack/include \
+    $(LOCAL_PATH)/../stack/l2cap \
+    $(LOCAL_PATH)/../stack/a2dp \
+    $(LOCAL_PATH)/../stack/btm \
+    $(LOCAL_PATH)/../stack/avdt \
+    $(LOCAL_PATH)/../hcis \
+    $(LOCAL_PATH)/../hcis/include \
+    $(LOCAL_PATH)/../hcis/patchram \
+    $(LOCAL_PATH)/../udrv/include \
+    $(LOCAL_PATH)/../btif/include \
+    $(LOCAL_PATH)/../btif/co \
+    $(LOCAL_PATH)/../hci/include\
+    $(LOCAL_PATH)/../vnd/include \
+    $(LOCAL_PATH)/../brcm/include \
+    $(LOCAL_PATH)/../embdrv/sbc/encoder/include \
+    $(LOCAL_PATH)/../embdrv/sbc/decoder/include \
+    $(LOCAL_PATH)/../audio_a2dp_hw \
+    $(LOCAL_PATH)/../utils/include \
+    $(bluetooth_C_INCLUDES) \
+    external/tinyxml2 \
+    external/zlib
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \

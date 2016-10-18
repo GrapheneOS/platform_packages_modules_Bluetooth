@@ -4,6 +4,8 @@ LOCAL_PATH:= $(call my-dir)
 # ========================================================
 include $(CLEAR_VARS)
 
+LOCAL_CPP_EXTENSION := .cc
+
 # sbc decoder
 LOCAL_SRC_FILES := \
         ./srce/alloc.c \

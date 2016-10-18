@@ -6,21 +6,21 @@ include $(CLEAR_VARS)
 LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_SRC_FILES := \
-    src/btsnoop.c \
-    src/btsnoop_mem.c \
-    src/btsnoop_net.c \
-    src/buffer_allocator.c \
-    src/hci_audio.c \
-    src/hci_hal.c \
-    src/hci_hal_h4.c \
-    src/hci_hal_mct.c \
-    src/hci_inject.c \
-    src/hci_layer.c \
-    src/hci_packet_factory.c \
-    src/hci_packet_parser.c \
-    src/low_power_manager.c \
+    src/btsnoop.cc \
+    src/btsnoop_mem.cc \
+    src/btsnoop_net.cc \
+    src/buffer_allocator.cc \
+    src/hci_audio.cc \
+    src/hci_hal.cc \
+    src/hci_hal_h4.cc \
+    src/hci_hal_mct.cc \
+    src/hci_inject.cc \
+    src/hci_layer.cc \
+    src/hci_packet_factory.cc \
+    src/hci_packet_parser.cc \
+    src/low_power_manager.cc \
     src/packet_fragmenter.cc \
-    src/vendor.c \
+    src/vendor.cc \
     ../../EventLogTags.logtags
 
 LOCAL_C_INCLUDES := \

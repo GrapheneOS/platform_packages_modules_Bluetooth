@@ -2,7 +2,6 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include <unistd.h>
 #include <sys/select.h>
 
@@ -10,7 +9,6 @@ extern "C" {
 #include "osi/include/reactor.h"
 #include "osi/include/semaphore.h"
 #include "osi/include/thread.h"
-}
 
 struct SemaphoreTestSequenceHelper {
   semaphore_t *semaphore;

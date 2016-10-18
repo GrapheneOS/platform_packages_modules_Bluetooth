@@ -29,13 +29,15 @@ extern "C" {
 
 typedef future_t *(*module_lifecycle_fn)(void);
 
+#define BTCORE_MAX_MODULE_DEPENDENCIES 10
+
 typedef struct {
   const char *name;
   module_lifecycle_fn init;
   module_lifecycle_fn start_up;
   module_lifecycle_fn shut_down;
   module_lifecycle_fn clean_up;
-  const char *dependencies[];
+  const char *dependencies[BTCORE_MAX_MODULE_DEPENDENCIES];
 } module_t;
 
 // Prepares module management. Must be called before doing anything with modules.

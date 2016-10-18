@@ -561,7 +561,7 @@ typedef void (tL2C_FCR_MGMT_EVT_HDLR) (uint8_t, tL2C_CCB *);
 extern tL2C_CB  l2cb;
 
 
-/* Functions provided by l2c_main.c
+/* Functions provided by l2c_main.cc
 ************************************
 */
 void l2c_init(void);
@@ -575,7 +575,7 @@ extern uint8_t  l2c_data_write (uint16_t cid, BT_HDR *p_data, uint16_t flag);
 extern void     l2c_rcv_acl_data (BT_HDR *p_msg);
 extern void     l2c_process_held_packets (bool    timed_out);
 
-/* Functions provided by l2c_utils.c
+/* Functions provided by l2c_utils.cc
 ************************************
 */
 extern tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, bool    is_bonding, tBT_TRANSPORT transport);
@@ -636,7 +636,7 @@ extern void    l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb);
 extern void    l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb);
 extern bool    l2cu_is_ccb_active (tL2C_CCB *p_ccb);
 
-/* Functions provided by l2c_ucd.c
+/* Functions provided by l2c_ucd.cc
 ************************************
 */
 #if (L2CAP_UCD_INCLUDED == TRUE)
@@ -682,7 +682,7 @@ extern void    l2cu_resubmit_pending_sec_req (BD_ADDR p_bda);
 extern void    l2cu_initialize_amp_ccb (tL2C_LCB *p_lcb);
 extern void    l2cu_adjust_out_mps (tL2C_CCB *p_ccb);
 
-/* Functions provided by l2c_link.c
+/* Functions provided by l2c_link.cc
 ************************************
 */
 extern bool     l2c_link_hci_conn_req (BD_ADDR bd_addr);
@@ -719,7 +719,7 @@ extern bool     l2c_link_check_power_mode ( tL2C_LCB *p_lcb );
 extern void l2cu_set_info_rsp_mask (uint32_t mask);
 #endif
 
-/* Functions provided by l2c_csm.c
+/* Functions provided by l2c_csm.cc
 ************************************
 */
 extern void l2c_csm_execute (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
@@ -727,7 +727,7 @@ extern void l2c_csm_execute (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 extern void l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf);
 
 
-/* Functions provided by l2c_fcr.c
+/* Functions provided by l2c_fcr.cc
 ************************************
 */
 extern void     l2c_fcr_cleanup (tL2C_CCB *p_ccb);
@@ -751,7 +751,7 @@ extern uint8_t  l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p
 extern void     l2c_fcr_adj_monitor_retran_timeout (tL2C_CCB *p_ccb);
 extern void     l2c_fcr_stop_timer (tL2C_CCB *p_ccb);
 
-/* Functions provided by l2c_ble.c
+/* Functions provided by l2c_ble.cc
 ************************************
 */
 #if (BLE_INCLUDED == TRUE)

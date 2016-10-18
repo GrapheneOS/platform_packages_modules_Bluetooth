@@ -26,6 +26,10 @@
 // This module implements the Reactor pattern.
 // See http://en.wikipedia.org/wiki/Reactor_pattern for details.
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct reactor_t reactor_t;
 typedef struct reactor_object_t reactor_object_t;
 
@@ -80,3 +84,7 @@ bool reactor_change_registration(reactor_object_t *object,
 // Unregisters a previously registered file descriptor with its reactor. |obj| may not be NULL.
 // |obj| is invalid after calling this function so the caller must drop all references to it.
 void reactor_unregister(reactor_object_t *obj);
+
+#ifdef __cplusplus
+}
+#endif

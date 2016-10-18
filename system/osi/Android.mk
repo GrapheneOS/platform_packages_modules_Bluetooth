@@ -24,32 +24,32 @@ LOCAL_PATH := $(call my-dir)
 # TODO(mcchou): Remove socket_utils sources after platform specific
 # dependencies are abstracted.
 btosiCommonSrc := \
-    ./src/alarm.c \
+    ./src/alarm.cc \
     ./src/allocation_tracker.cc \
-    ./src/allocator.c \
-    ./src/array.c \
-    ./src/buffer.c \
-    ./src/compat.c \
-    ./src/config.c \
+    ./src/allocator.cc \
+    ./src/array.cc \
+    ./src/buffer.cc \
+    ./src/compat.cc \
+    ./src/config.cc \
     ./src/data_dispatcher.cc \
-    ./src/eager_reader.c \
-    ./src/fixed_queue.c \
-    ./src/future.c \
+    ./src/eager_reader.cc \
+    ./src/fixed_queue.cc \
+    ./src/future.cc \
     ./src/hash_map_utils.cc \
-    ./src/list.c \
+    ./src/list.cc \
     ./src/metrics.cc \
-    ./src/mutex.c \
-    ./src/osi.c \
-    ./src/properties.c \
-    ./src/reactor.c \
-    ./src/ringbuffer.c \
-    ./src/semaphore.c \
-    ./src/socket.c \
-    ./src/socket_utils/socket_local_client.c \
-    ./src/socket_utils/socket_local_server.c \
-    ./src/thread.c \
-    ./src/time.c \
-    ./src/wakelock.c
+    ./src/mutex.cc \
+    ./src/osi.cc \
+    ./src/properties.cc \
+    ./src/reactor.cc \
+    ./src/ringbuffer.cc \
+    ./src/semaphore.cc \
+    ./src/socket.cc \
+    ./src/socket_utils/socket_local_client.cc \
+    ./src/socket_utils/socket_local_server.cc \
+    ./src/thread.cc \
+    ./src/time.cc \
+    ./src/wakelock.cc
 
 btosiCommonTestSrc := \
     ./test/AlarmTestHarness.cc \
