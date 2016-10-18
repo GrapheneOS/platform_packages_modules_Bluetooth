@@ -37,7 +37,7 @@
 
 #else  /* !defined(OS_GENERIC) */
 
-#include <android/log.h>
+#include <log/log.h>
 
 /**
  * These log statements are effectively executing only ALOG(_________, tag, fmt, ## args ).
