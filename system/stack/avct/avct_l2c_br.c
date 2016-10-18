@@ -147,10 +147,10 @@ void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm,
     /* Set the FCR options: Browsing channel mandates ERTM */
     ertm_info.preferred_mode = cfg.fcr.mode;
     ertm_info.allowed_modes = L2CAP_FCR_CHAN_OPT_ERTM;
-    ertm_info.user_rx_buf_size = AVCT_USER_RX_BUF_SIZE;
-    ertm_info.user_tx_buf_size = AVCT_USER_TX_BUF_SIZE;
-    ertm_info.fcr_rx_buf_size = AVCT_FCR_RX_BUF_SIZE;
-    ertm_info.fcr_tx_buf_size = AVCT_FCR_TX_BUF_SIZE;
+    ertm_info.user_rx_buf_size = BT_DEFAULT_BUFFER_SIZE;
+    ertm_info.user_tx_buf_size = BT_DEFAULT_BUFFER_SIZE;
+    ertm_info.fcr_rx_buf_size = BT_DEFAULT_BUFFER_SIZE;
+    ertm_info.fcr_tx_buf_size = BT_DEFAULT_BUFFER_SIZE;
 
     /* Send L2CAP connect rsp */
     L2CA_ErtmConnectRsp(bd_addr, id, lcid, result, 0, &ertm_info);
@@ -425,15 +425,17 @@ void avct_l2c_br_congestion_ind_cback(uint16_t lcid, bool is_congested)
 void avct_l2c_br_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tAVCT_BCB   *p_lcb;
+    tAVCT_LCB_EVT   evt_data;
 
     /* look up lcb for this channel */
     p_lcb = avct_bcb_by_lcid(lcid);
     if (p_lcb == NULL)
     {
         /* prevent buffer leak */
-        osi_free_and_reset((void **)&p_buf);
+        osi_free(p_buf);
         return;
     }
 
-    avct_bcb_event(p_lcb, AVCT_LCB_LL_MSG_EVT, (tAVCT_LCB_EVT *) &p_buf);
+    evt_data.p_buf = p_buf;
+    avct_bcb_event(p_lcb, AVCT_LCB_LL_MSG_EVT, &evt_data);
 }

@@ -33,6 +33,9 @@
                (((_p_player)->play_status <= AVRC_PLAYSTATE_REV_SEEK) || \
                 ((_p_player)->play_status == AVRC_PLAYSTATE_ERROR)) )
 
+
+#define AVRC_MIN_LEN_GET_FOLDER_ITEMS_RSP   17 /* 17 = item_type(1) + item len(2) + min item (14) */
+
 /*******************************************************************************
 **
 ** Function         avrc_bld_get_capability_rsp
@@ -843,8 +846,7 @@ static tAVRC_STS avrc_bld_set_addr_player_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 **
 ** Description      This function builds the Set Browsed Player response.
 **
-**                  This message goes through the Browsing channel and is
-**                  valid only when AVCT_BROWSE_INCLUDED compile option is true
+**                  This message goes through the Browsing channel
 **
 ** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
 **                  Otherwise, the error code.
@@ -920,8 +922,7 @@ static tAVRC_STS avrc_bld_set_browsed_player_rsp (tAVRC_SET_BR_PLAYER_RSP *p_rsp
 **                  AVRC_STS_INTERNAL_ERR means no buffers.
 **                  Try again later or with smaller item_count
 **
-**                  This message goes through the Browsing channel and is
-**                  valid only when AVCT_BROWSE_INCLUDED compile option is true
+**                  This message goes through the Browsing channel
 **
 ** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
 **                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
@@ -983,7 +984,7 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp (tAVRC_GET_ITEMS_RSP *p_rsp, BT_H
     AVRC_TRACE_DEBUG("len:%d, len_left:%d, num:%d", len, len_left, item_count);
 
     /* min len required = item_type(1) + item len(2) + min item (14) = 17 */
-    for (xx = 0; xx < p_rsp->item_count && len_left > 17 && multi_items_add_fail == FALSE; xx++)
+    for (xx = 0; xx < p_rsp->item_count && len_left > AVRC_MIN_LEN_GET_FOLDER_ITEMS_RSP && multi_items_add_fail == FALSE; xx++)
     {
         p_item_start = p_data;
         UINT8_TO_BE_STREAM(p_data, p_item_list[xx].item_type);
@@ -1139,8 +1140,7 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp (tAVRC_GET_ITEMS_RSP *p_rsp, BT_H
 **
 ** Description      This function builds the Change Path response.
 **
-**                  This message goes through the Browsing channel and is
-**                  valid only when AVCT_BROWSE_INCLUDED compile option is true
+**                  This message goes through the Browsing channel
 **
 ** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
 **                  Otherwise, the error code.
@@ -1167,8 +1167,7 @@ static tAVRC_STS avrc_bld_change_path_rsp (tAVRC_CHG_PATH_RSP *p_rsp, BT_HDR *p_
 **
 ** Description      This function builds the Get Item Attributes response.
 **
-**                  This message goes through the Browsing channel and is
-**                  valid only when AVCT_BROWSE_INCLUDED compile option is true
+**                  This message goes through the Browsing channel
 **
 ** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
 **                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
@@ -1271,15 +1270,13 @@ static tAVRC_STS avrc_bld_get_item_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp, BT_HDR
 **
 ** Description      This function builds the Get Total Number of Items response.
 **
-**                  This message goes through the Browsing channel and is
-**                  valid only when AVCT_BROWSE_INCLUDED compile option is true
+**                  This message goes through the Browsing channel
 **
 ** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
 **                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-#if (AVRC_1_6_INCLUDED == TRUE)
 static tAVRC_STS avrc_bld_get_num_of_item_rsp (tAVRC_GET_NUM_OF_ITEMS_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t   *p_data, *p_start, *p_len;
@@ -1308,7 +1305,6 @@ static tAVRC_STS avrc_bld_get_num_of_item_rsp (tAVRC_GET_NUM_OF_ITEMS_RSP *p_rsp
         return p_rsp->status;
     }
 }
-#endif  /* (AVRC_1_6_INCLUDED == TRUE) */
 
 /*******************************************************************************
 **
@@ -1316,8 +1312,7 @@ static tAVRC_STS avrc_bld_get_num_of_item_rsp (tAVRC_GET_NUM_OF_ITEMS_RSP *p_rsp
 **
 ** Description      This function builds the Search response.
 **
-**                  This message goes through the Browsing channel and is
-**                  valid only when AVCT_BROWSE_INCLUDED compile option is true
+**                  This message goes through the Browsing channel
 **
 ** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
 **                  Otherwise, the error code.
@@ -1591,11 +1586,10 @@ tAVRC_STS AVRC_BldResponse( uint8_t handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_p
     case AVRC_PDU_GET_ITEM_ATTRIBUTES:         /* 0x73 */
         status = avrc_bld_get_item_attrs_rsp(&p_rsp->get_attrs, p_pkt);
         break;
-#if (AVRC_1_6_INCLUDED == TRUE)
+
     case AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS:      /* 0x75 */
         status = avrc_bld_get_num_of_item_rsp(&p_rsp->get_num_of_items, p_pkt);
         break;
-#endif
 
     case AVRC_PDU_SEARCH:                      /* 0x80 */
        status = avrc_bld_search_rsp(&p_rsp->search, p_pkt);

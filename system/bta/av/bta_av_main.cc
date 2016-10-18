@@ -512,11 +512,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 uint16_t profile_version = AVRC_REV_1_0;
                 if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
                 {
-#if AVRC_1_6_INCLUDED == TRUE
                     profile_version = AVRC_REV_1_6;
-#else
-                    profile_version = AVRC_REV_1_3;
-#endif
                 }
                 else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
                 {
@@ -527,7 +523,6 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                                NULL, p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
                                (bta_av_cb.features & BTA_AV_FEAT_BROWSE), profile_version);
 #endif
-
             }
 
             /* Set the Capturing service class bit */

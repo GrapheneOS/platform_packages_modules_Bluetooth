@@ -1260,7 +1260,7 @@ uint16_t AVRC_MsgReq (uint8_t handle, uint8_t label, uint8_t ctype, BT_HDR *p_pk
         {
             AVRC_TRACE_ERROR ("%s bigger than peer mtu (p_pkt->len(%d) > peer_mtu(%d-%d))",
                                __func__, p_pkt->len, peer_mtu, AVCT_HDR_LEN_SINGLE );
-            osi_free_and_reset((void **)&p_pkt);
+            osi_free(p_pkt);
             return AVRC_MSG_TOO_BIG;
         }
     }
@@ -1271,7 +1271,7 @@ uint16_t AVRC_MsgReq (uint8_t handle, uint8_t label, uint8_t ctype, BT_HDR *p_pk
     if(p_fcb == NULL)
     {
         AVRC_TRACE_ERROR ("%s p_fcb is NULL", __func__ );
-        osi_free_and_reset((void **)&p_pkt);
+        osi_free(p_pkt);
         return AVRC_NOT_OPEN;
     }
 

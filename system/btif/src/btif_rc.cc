@@ -87,21 +87,13 @@
 #define PLAY_STATUS_PLAYING 1
 #define BTIF_RC_NUM_CONN  BT_RC_NUM_APP
 
-#define CHECK_RC_CONNECTED(p_dev)                                                      \
-    BTIF_TRACE_DEBUG("%s: ", __func__);                                            \
-    if (p_dev == NULL || p_dev->rc_connected == false)                                 \
-    {                                                                                  \
-        BTIF_TRACE_WARNING("%s: called when RC is not connected", __func__); \
-        return BT_STATUS_NOT_READY;                                                    \
-    }
-
-#define CHECK_BR_CONNECTED(p_dev) \
+#define CHECK_RC_CONNECTED(p_dev) \
 do { \
-    BTIF_TRACE_DEBUG("## %s ##", __FUNCTION__);                                            \
-    if (p_dev == NULL || p_dev->br_connected == false) \
+    BTIF_TRACE_DEBUG("%s: ", __func__); \
+    if (p_dev == NULL || p_dev->rc_connected == false) \
     { \
-        BTIF_TRACE_WARNING("Function %s() called when BR is not connected", __FUNCTION__); \
-        return BT_STATUS_NOT_READY;                                                         \
+        BTIF_TRACE_WARNING("%s: called when RC is not connected", __func__); \
+        return BT_STATUS_NOT_READY; \
     } \
 } while (0)
 
@@ -2171,7 +2163,8 @@ static bt_status_t get_play_status_rsp(bt_bdaddr_t *bd_addr, btrc_play_status_t 
     tAVRC_RESPONSE avrc_rsp;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
+
     memset(&(avrc_rsp.get_play_status), 0, sizeof(tAVRC_GET_PLAY_STATUS_RSP));
 
     BTIF_TRACE_DEBUG("%s song len %d song pos %d", __func__, song_len, song_pos);
@@ -2210,7 +2203,8 @@ static bt_status_t get_element_attr_rsp(bt_bdaddr_t *bd_addr, uint8_t num_attr,
     tAVRC_ATTR_ENTRY element_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
+
     memset(element_attrs, 0, sizeof(tAVRC_ATTR_ENTRY) * num_attr);
     BTIF_TRACE_ERROR("%s: calling btif_rc_get_device_by_bda",__func__);
 
@@ -2397,7 +2391,7 @@ static bt_status_t get_folder_items_list_rsp(bt_bdaddr_t *bd_addr, btrc_status_t
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
     btrc_folder_items_t* cur_item = NULL;
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     /* check if rsp to previous cmd was completed */
     if (p_dev->rc_pdu_info[IDX_GET_FOLDER_ITEMS_RSP].is_rsp_pending == false)
@@ -2564,7 +2558,7 @@ static bt_status_t set_addressed_player_rsp(bt_bdaddr_t *bd_addr, btrc_status_t 
     tAVRC_RESPONSE avrc_rsp;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     avrc_rsp.addr_player.pdu = AVRC_PDU_SET_ADDRESSED_PLAYER;
     avrc_rsp.addr_player.opcode = opcode_from_pdu(AVRC_PDU_SET_ADDRESSED_PLAYER);
@@ -2604,7 +2598,7 @@ static bt_status_t set_browsed_player_rsp(bt_bdaddr_t *bd_addr, btrc_status_t rs
     tAVRC_STS status = AVRC_STS_NO_ERROR;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     memset(&avrc_rsp, 0, sizeof(tAVRC_RESPONSE));
     memset(&item, 0, sizeof(tAVRC_NAME));
@@ -2719,7 +2713,7 @@ static bt_status_t change_path_rsp(bt_bdaddr_t *bd_addr, btrc_status_t rsp_statu
     tAVRC_RESPONSE avrc_rsp;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     avrc_rsp.chg_path.pdu = AVRC_PDU_CHANGE_PATH;
     avrc_rsp.chg_path.opcode = opcode_from_pdu(AVRC_PDU_CHANGE_PATH);
@@ -2752,7 +2746,7 @@ static bt_status_t search_rsp(bt_bdaddr_t *bd_addr, btrc_status_t rsp_status,
     tAVRC_RESPONSE avrc_rsp;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     avrc_rsp.search.pdu = AVRC_PDU_SEARCH;
     avrc_rsp.search.opcode = opcode_from_pdu(AVRC_PDU_SEARCH);
@@ -2786,7 +2780,7 @@ static bt_status_t get_item_attr_rsp(bt_bdaddr_t *bd_addr, btrc_status_t rsp_sta
     tAVRC_ATTR_ENTRY item_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     memset(item_attrs, 0, sizeof(tAVRC_ATTR_ENTRY) * num_attr);
 
@@ -2834,7 +2828,7 @@ static bt_status_t add_to_now_playing_rsp(bt_bdaddr_t *bd_addr, btrc_status_t rs
     tAVRC_RESPONSE avrc_rsp;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     avrc_rsp.add_to_play.pdu = AVRC_PDU_ADD_TO_NOW_PLAYING;
     avrc_rsp.add_to_play.opcode = opcode_from_pdu(AVRC_PDU_ADD_TO_NOW_PLAYING);
@@ -2864,7 +2858,7 @@ static bt_status_t play_item_rsp(bt_bdaddr_t *bd_addr, btrc_status_t rsp_status)
     tAVRC_RESPONSE avrc_rsp;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     avrc_rsp.play_item.pdu = AVRC_PDU_PLAY_ITEM;
     avrc_rsp.play_item.opcode = opcode_from_pdu(AVRC_PDU_PLAY_ITEM);
@@ -2896,7 +2890,7 @@ static bt_status_t get_total_num_of_items_rsp(bt_bdaddr_t *bd_addr, btrc_status_
     tAVRC_RESPONSE avrc_rsp;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 
-    CHECK_RC_CONNECTED(p_dev)
+    CHECK_RC_CONNECTED(p_dev);
 
     avrc_rsp.get_num_of_items.pdu = AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS;
     avrc_rsp.get_num_of_items.opcode = opcode_from_pdu(AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS);
@@ -4929,7 +4923,9 @@ static bt_status_t getcapabilities_cmd (uint8_t cap_id, btif_rc_device_cb_t *p_d
     rc_transaction_t *p_transaction = NULL;
 #if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: cap_id: %d", __func__, cap_id);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
+
     bt_status_t tran_status=get_transaction(&p_transaction);
     if (BT_STATUS_SUCCESS != tran_status)
         return BT_STATUS_FAIL;
@@ -4978,7 +4974,9 @@ static bt_status_t list_player_app_setting_attrib_cmd(btif_rc_device_cb_t *p_dev
     rc_transaction_t *p_transaction = NULL;
 #if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: ", __func__);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
+
     bt_status_t tran_status=get_transaction(&p_transaction);
     if (BT_STATUS_SUCCESS != tran_status)
         return BT_STATUS_FAIL;
@@ -5028,7 +5026,9 @@ static bt_status_t list_player_app_setting_value_cmd(uint8_t attrib_id,
     rc_transaction_t *p_transaction=NULL;
 #if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: attrib_id: %d", __func__, attrib_id);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
+
     bt_status_t tran_status=get_transaction(&p_transaction);
     if (BT_STATUS_SUCCESS != tran_status)
         return BT_STATUS_FAIL;
@@ -5078,7 +5078,9 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib, uint8_t* attri
     int count  = 0;
 #if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: num attrib_id: %d", __func__, num_attrib);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
+
     bt_status_t tran_status=get_transaction(&p_transaction);
     if (BT_STATUS_SUCCESS != tran_status)
         return BT_STATUS_FAIL;
@@ -5430,7 +5432,9 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t *bd_addr, uint8_t num_a
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
 #if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: num attrib_id: %d", __func__, num_attrib);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
+
     bt_status_t tran_status=get_transaction(&p_transaction);
     if (BT_STATUS_SUCCESS != tran_status)
         return BT_STATUS_FAIL;
@@ -5547,7 +5551,8 @@ static bt_status_t get_player_app_setting_attr_text_cmd (uint8_t *attrs, uint8_t
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
 
     BTIF_TRACE_DEBUG("%s: num attrs: %d", __func__, num_attrs);
 
@@ -5605,7 +5610,8 @@ static bt_status_t get_player_app_setting_value_text_cmd (uint8_t *vals, uint8_t
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
 
     BTIF_TRACE_DEBUG("%s: num_vals: %d", __func__, num_vals);
 
@@ -5664,8 +5670,8 @@ static bt_status_t register_notification_cmd (uint8_t label, uint8_t event_id, u
 #if (AVRC_CTRL_INCLUDED == TRUE)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
-    CHECK_RC_CONNECTED(p_dev)
 
+    CHECK_RC_CONNECTED(p_dev);
 
     BTIF_TRACE_DEBUG("%s: event_id: %d  event_value", __func__, event_id, event_value);
 
@@ -5718,7 +5724,8 @@ static bt_status_t get_element_attribute_cmd (uint8_t num_attribute, uint32_t *p
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
 
     BTIF_TRACE_DEBUG("%s: num_attribute: %d attribute_id: %d",
                    __func__, num_attribute, p_attr_ids[0]);
@@ -5780,7 +5787,8 @@ static bt_status_t get_play_status_cmd(btif_rc_device_cb_t *p_dev)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
 
     BTIF_TRACE_DEBUG("%s: ", __func__);
     tran_status = get_transaction(&p_transaction);
@@ -5833,7 +5841,8 @@ static bt_status_t set_volume_rsp(bt_bdaddr_t *bd_addr, uint8_t abs_vol, uint8_t
     tAVRC_RESPONSE avrc_rsp;
     BT_HDR *p_msg = NULL;
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
 
     BTIF_TRACE_DEBUG("%s: abs_vol: %d", __func__, abs_vol);
 
@@ -5885,7 +5894,8 @@ static bt_status_t volume_change_notification_rsp(bt_bdaddr_t *bd_addr,
     BTIF_TRACE_DEBUG("%s: rsp_type: %d abs_vol: %d", __func__, rsp_type, abs_vol);
 
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
 
     avrc_rsp.reg_notif.opcode = AVRC_OP_VENDOR;
     avrc_rsp.reg_notif.pdu = AVRC_PDU_REGISTER_NOTIFICATION;
@@ -5933,7 +5943,8 @@ static bt_status_t send_groupnavigation_cmd(bt_bdaddr_t *bd_addr, uint8_t key_co
     BTIF_TRACE_DEBUG("%s: key-code: %d, key-state: %d", __func__,
                                                     key_code, key_state);
     btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_bda(bd_addr);
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
 
     if (p_dev->rc_features & BTA_AV_FEAT_RCTG)
     {
@@ -5986,7 +5997,9 @@ static bt_status_t send_passthrough_cmd(bt_bdaddr_t *bd_addr, uint8_t key_code,
     BTIF_TRACE_ERROR("%s: calling btif_rc_get_device_by_bda", __func__);
     p_dev = btif_rc_get_device_by_bda(bd_addr);
 #if (AVRC_CTRL_INCLUDED == TRUE)
-    CHECK_RC_CONNECTED(p_dev)
+
+    CHECK_RC_CONNECTED(p_dev);
+
     rc_transaction_t *p_transaction=NULL;
     BTIF_TRACE_DEBUG("%s: key-code: %d, key-state: %d", __func__,
                                                     key_code, key_state);

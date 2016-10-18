@@ -33,7 +33,6 @@
 #include "avct_int.h"
 #include "btm_api.h"
 
-#if (AVCT_BROWSE_INCLUDED == TRUE)
 /* action function list */
 const tAVCT_BCB_ACTION avct_bcb_action[] = {
     avct_bcb_chnl_open,     /* AVCT_LCB_CHNL_OPEN */
@@ -108,10 +107,10 @@ void avct_bcb_chnl_open(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
     /* Set the FCR options: Browsing channel mandates ERTM */
     ertm_info.preferred_mode  = avct_l2c_br_fcr_opts_def.mode;
     ertm_info.allowed_modes = L2CAP_FCR_CHAN_OPT_ERTM;
-    ertm_info.user_rx_buf_size = AVCT_USER_RX_BUF_SIZE;
-    ertm_info.user_tx_buf_size = AVCT_USER_TX_BUF_SIZE;
-    ertm_info.fcr_rx_buf_size = AVCT_FCR_RX_BUF_SIZE;
-    ertm_info.fcr_tx_buf_size = AVCT_FCR_TX_BUF_SIZE;
+    ertm_info.user_rx_buf_size = BT_DEFAULT_BUFFER_SIZE;
+    ertm_info.user_tx_buf_size = BT_DEFAULT_BUFFER_SIZE;
+    ertm_info.fcr_rx_buf_size = BT_DEFAULT_BUFFER_SIZE;
+    ertm_info.fcr_tx_buf_size = BT_DEFAULT_BUFFER_SIZE;
 
     /* call l2cap connect req */
     p_bcb->ch_state = AVCT_CH_CONN;
@@ -739,4 +738,3 @@ tAVCT_BCB *avct_bcb_by_lcid(uint16_t lcid)
     AVCT_TRACE_WARNING("No bcb for lcid %x", lcid);
     return NULL;
 }
-#endif /* (AVCT_BROWSE_INCLUDED == true) */

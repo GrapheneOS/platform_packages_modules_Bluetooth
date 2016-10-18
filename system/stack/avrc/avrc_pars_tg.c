@@ -514,7 +514,6 @@ static tAVRC_STS avrc_pars_browsing_cmd(tAVRC_MSG_BROWSE *p_msg, tAVRC_COMMAND *
         }
         break;
 
-#if (AVRC_1_6_INCLUDED == TRUE)
     case AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS:   /* 0x75 */
         BE_STREAM_TO_UINT8 (p_result->get_num_of_items.scope, p);
         if (p_result->get_num_of_items.scope > AVRC_SCOPE_NOW_PLAYING)
@@ -522,7 +521,6 @@ static tAVRC_STS avrc_pars_browsing_cmd(tAVRC_MSG_BROWSE *p_msg, tAVRC_COMMAND *
             status = AVRC_STS_BAD_SCOPE;
         }
         break;
-#endif
 
     case AVRC_PDU_SEARCH:               /* 0x80 */
         BE_STREAM_TO_UINT16 (p_result->search.string.charset_id, p);

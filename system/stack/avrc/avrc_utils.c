@@ -217,9 +217,7 @@ uint8_t avrc_opcode_from_pdu(uint8_t pdu)
     case AVRC_PDU_GET_ITEM_ATTRIBUTES:
     case AVRC_PDU_SEARCH:
     case AVRC_PDU_GENERAL_REJECT:
-#if (AVRC_1_6_INCLUDED == TRUE)
     case AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS:
-#endif
         opcode  = AVRC_OP_BROWSE;
         break;
 
