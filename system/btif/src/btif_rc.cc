@@ -4904,7 +4904,7 @@ static void cleanup_ctrl()
         memset(&btif_rc_cb.rc_multi_cb[idx], 0, sizeof(btif_rc_cb.rc_multi_cb[idx]));
     }
 
-    memset(&btif_rc_cb, 0, sizeof(rc_cb_t));
+    memset(&btif_rc_cb.rc_multi_cb, 0, sizeof(btif_rc_cb.rc_multi_cb));
     BTIF_TRACE_EVENT("%s: completed", __func__);
 }
 
@@ -6131,7 +6131,7 @@ static void initialize_transaction(int lbl)
 *******************************************************************************/
 void lbl_init()
 {
-    memset(&device,0,sizeof(rc_device_t));
+    memset(&device.transaction, 0, sizeof(device.transaction));
     init_all_transactions();
 }
 
