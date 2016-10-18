@@ -21,13 +21,13 @@ LOCAL_PATH := $(call my-dir)
 # Common variables
 # ========================================================
 btcoreCommonSrc := \
-    src/bdaddr.c \
-    src/device_class.c \
-    src/hal_util.c \
+    src/bdaddr.cc \
+    src/device_class.cc \
+    src/hal_util.cc \
     src/module.cc \
-    src/osi_module.c \
-    src/property.c \
-    src/uuid.c
+    src/osi_module.cc \
+    src/property.cc \
+    src/uuid.cc
 
 btcoreCommonTestSrc := \
 	./test/bdaddr_test.cc \

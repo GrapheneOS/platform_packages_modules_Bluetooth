@@ -30,7 +30,7 @@ The current sources include:
  - osi/include/socket_utils/sockets.h
  - osi/include/socket_utils/socket_local.h
 [Source files]
- - osi/src/socket_utils/socket_local_client.c
- - osi/src/socket_utils/socket_local_server.c
+ - osi/src/socket_utils/socket_local_client.cc
+ - osi/src/socket_utils/socket_local_server.cc
 
 Please update the above list if adding more sources.

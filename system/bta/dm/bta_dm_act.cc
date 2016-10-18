@@ -31,6 +31,7 @@
 #include "bt_target.h"
 #include "bt_types.h"
 #include "bta_api.h"
+#include "bta_dm_api.h"
 #include "bta_dm_co.h"
 #include "bta_dm_int.h"
 #include "bta_sys.h"
@@ -135,7 +136,6 @@ static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
 static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS *p_inq, uint8_t *p_eir);
 static void bta_dm_observe_cmpl_cb(void * p_result);
 static void bta_dm_delay_role_switch_cback(void *data);
-extern "C" void sdpu_uuid16_to_uuid128(uint16_t uuid16, uint8_t* p_uuid128);
 static void bta_dm_disable_timer_cback(void *data);
 
 

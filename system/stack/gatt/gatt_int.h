@@ -491,11 +491,7 @@ extern void gatt_set_err_rsp(bool    enable, uint8_t req_op_code, uint8_t err_st
 }
 #endif
 
-/* internal functions */
-extern void gatt_init (void);
-extern void gatt_free(void);
-
-/* from gatt_main.c */
+/* from gatt_main.cc */
 extern bool gatt_disconnect (tGATT_TCB *p_tcb);
 extern bool gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr, tBT_TRANSPORT transport, bool opportunistic);
 extern bool gatt_connect (BD_ADDR rem_bda,  tGATT_TCB *p_tcb, tBT_TRANSPORT transport);
@@ -511,11 +507,11 @@ extern void gatt_send_srv_chg_ind (BD_ADDR peer_bda);
 extern void gatt_chk_srv_chg(tGATTS_SRV_CHG *p_srv_chg_clt);
 extern void gatt_add_a_bonded_dev_for_srv_chg (BD_ADDR bda);
 
-/* from gatt_attr.c */
+/* from gatt_attr.cc */
 extern uint16_t gatt_profile_find_conn_id_by_bd_addr(BD_ADDR bda);
 
 
-/* Functions provided by att_protocol.c */
+/* Functions provided by att_protocol.cc */
 extern tGATT_STATUS attp_send_cl_msg (tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t op_code, tGATT_CL_MSG *p_msg);
 extern BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, uint8_t op_code, tGATT_SR_MSG *p_msg);
 extern tGATT_STATUS attp_send_sr_msg (tGATT_TCB *p_tcb, BT_HDR *p_msg);
@@ -571,7 +567,6 @@ extern uint8_t gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr);
 extern bool    gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if);
 extern tGATT_BG_CONN_DEV * gatt_find_bg_dev(BD_ADDR remote_bda);
 extern void gatt_deregister_bgdev_list(tGATT_IF gatt_if);
-extern void gatt_reset_bgdev_list(void);
 
 /* server function */
 extern uint8_t gatt_sr_find_i_rcb_by_handle(uint16_t handle);
@@ -627,7 +622,7 @@ extern void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, uint8_t op_code,
                                            uint16_t len, uint8_t *p_data);
 extern void gatt_send_queue_write_cancel (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, tGATT_EXEC_FLAG flag);
 
-/* gatt_auth.c */
+/* gatt_auth.cc */
 extern bool    gatt_security_check_start(tGATT_CLCB *p_clcb);
 extern void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf);
 extern tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb );
@@ -635,7 +630,7 @@ extern tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb);
 extern tGATT_SEC_ACTION gatt_get_sec_act(tGATT_TCB *p_tcb);
 extern void gatt_set_sec_act(tGATT_TCB *p_tcb, tGATT_SEC_ACTION sec_act);
 
-/* gatt_db.c */
+/* gatt_db.cc */
 extern bool    gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service, bool    is_pri, uint16_t s_hdl, uint16_t num_handle);
 extern uint16_t gatts_add_included_service (tGATT_SVC_DB *p_db, uint16_t s_handle, uint16_t e_handle, tBT_UUID service);
 extern uint16_t gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm, tGATT_CHAR_PROP property, tBT_UUID *p_char_uuid);
@@ -650,5 +645,4 @@ extern tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db, bool    is_lo
 extern void gatts_update_srv_list_elem(uint8_t i_sreg, uint16_t handle, bool    is_primary);
 extern tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db);
 
-extern void gatt_reset_bgdev_list(void);
 #endif

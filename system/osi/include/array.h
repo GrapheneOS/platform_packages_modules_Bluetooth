@@ -22,6 +22,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct array_t array_t;
 
 // Returns a new array object that stores elements of size |element_size|. The returned
@@ -55,3 +59,7 @@ bool array_append_value(array_t *array, uint32_t value);
 // |array| nor |data| may be NULL. Returns true if the element could be inserted into
 // the array, false on error.
 bool array_append_ptr(array_t *array, void *data);
+
+#ifdef __cplusplus
+}
+#endif

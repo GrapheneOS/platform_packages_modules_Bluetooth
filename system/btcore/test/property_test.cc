@@ -20,9 +20,7 @@
 #include <gtest/gtest.h>
 #include "osi/test/AllocationTestHarness.h"
 
-extern "C" {
 #include "btcore/include/property.h"
-}  // "C"
 
 class PropertyTest : public AllocationTestHarness {};
 

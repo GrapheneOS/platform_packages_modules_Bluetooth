@@ -187,7 +187,7 @@ extern uint8_t appl_trace_level;
 **  events for BTA SYS HW manager
 *****************************************************************************/
 
-/* events sent to SYS HW manager - must be kept synchronized with tables in bta_sys_main.c */
+/* events sent to SYS HW manager - must be kept synchronized with tables in bta_sys_main.cc */
 enum
 {
     /* device manager local device API events */

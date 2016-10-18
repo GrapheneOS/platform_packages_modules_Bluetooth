@@ -19,14 +19,12 @@
 
 #define LOG_TAG "bt_osi_metrics"
 
-extern "C" {
 #include "osi/include/metrics.h"
 
 #include <errno.h>
 
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-}
 
 #include "osi/src/protos/bluetooth.pb.h"
 

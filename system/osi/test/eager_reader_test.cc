@@ -20,7 +20,6 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include <stdint.h>
 #include <unistd.h>
 
@@ -29,7 +28,6 @@ extern "C" {
 #include "osi/include/osi.h"
 #include "osi/include/semaphore.h"
 #include "osi/include/thread.h"
-}
 
 #define BUFFER_SIZE 32
 

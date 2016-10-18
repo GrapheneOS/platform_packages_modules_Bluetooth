@@ -74,6 +74,6 @@ bool string_to_uuid(const char *str, bt_uuid_t *p_uuid);
 
 int ascii_2_hex (const char *p_ascii, int len, uint8_t *p_hex);
 
-extern "C" void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str, size_t str_len);
+void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str, size_t str_len);
 
 #endif /* BTIF_UTIL_H */

@@ -22,8 +22,10 @@ ifeq ($(BOARD_HAVE_BLUETOOTH_LINUX), true)
 # ========================================================
 include $(CLEAR_VARS)
 
+LOCAL_CPP_EXTENSION := .cc
+
 LOCAL_SRC_FILES := \
-        bt_vendor_linux.c
+        bt_vendor_linux.cc
 
 LOCAL_C_INCLUDES := \
         $(LOCAL_PATH)/../../

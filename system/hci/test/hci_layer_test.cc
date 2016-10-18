@@ -20,7 +20,6 @@
 
 #include "AlarmTestHarness.h"
 
-extern "C" {
 #include <stdint.h>
 
 #include "device/include/controller.h"
@@ -40,7 +39,6 @@ extern "C" {
 #include "vendor.h"
 
 extern const module_t hci_module;
-}
 
 DECLARE_TEST_MODES(
   start_up_async,
@@ -54,6 +52,9 @@ DECLARE_TEST_MODES(
   ignoring_packets_ignored_packet,
   ignoring_packets_following_packet
 );
+
+// TODO: Ugly hack to get around another ugly hack in hci_layer.cc
+bt_bdaddr_t btif_local_bd_addr;
 
 static const char *small_sample_data = "\"It is easy to see,\" replied Don Quixote";
 static const char *command_sample_data = "that thou art not used to this business of adventures; those are giants";

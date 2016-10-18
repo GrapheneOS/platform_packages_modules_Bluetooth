@@ -836,9 +836,9 @@
 /* the event mask for 2.0 + EDR and later (includes Lisbon events) */
 #define HCI_LISBON_EVENT_MASK_0             0xFFFFFFFF
 #define HCI_LISBON_EVENT_MASK_1             0x1DBFFFFF
-#define HCI_LISBON_EVENT_MASK               "\x0D\xBF\xFF\xFF\xFF\xFF\xFF\xFF"
-#define HCI_LISBON_EVENT_MASK_EXT           "\x1D\xBF\xFF\xFF\xFF\xFF\xFF\xFF"
-#define HCI_DUMO_EVENT_MASK_EXT             "\x3D\xBF\xFF\xFF\xFF\xFF\xFF\xFF"
+#define HCI_LISBON_EVENT_MASK           {0x0D, 0xBF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+#define HCI_LISBON_EVENT_MASK_EXT       {0x1D, 0xBF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+#define HCI_DUMO_EVENT_MASK_EXT         {0x3D, 0xBF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 /*  0x00001FFF FFFFFFFF Default - no Lisbon events
     0x00000800 00000000 Synchronous Connection Complete Event
     0x00001000 00000000 Synchronous Connection Changed Event

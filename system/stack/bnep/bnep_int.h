@@ -192,7 +192,7 @@ typedef struct
 */
 extern tBNEP_CB bnep_cb;
 
-/* Functions provided by bnep_main.c
+/* Functions provided by bnep_main.cc
 */
 extern tBNEP_RESULT bnep_register_with_l2cap (void);
 extern void        bnep_disconnect (tBNEP_CONN *p_bcb, uint16_t reason);
@@ -201,7 +201,7 @@ extern void        bnep_conn_timer_timeout(void *data);
 extern void        bnep_connected (tBNEP_CONN *p_bcb);
 
 
-/* Functions provided by bnep_utils.c
+/* Functions provided by bnep_utils.cc
 */
 extern tBNEP_CONN *bnepu_find_bcb_by_cid (uint16_t cid);
 extern tBNEP_CONN *bnepu_find_bcb_by_bd_addr (uint8_t *p_bda);

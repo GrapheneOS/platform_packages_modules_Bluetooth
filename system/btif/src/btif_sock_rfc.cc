@@ -109,8 +109,6 @@ static bool is_init_done(void) {
   return pth != -1;
 }
 
-extern "C" int PORT_FlowControl_MaxCredit(uint16_t handle, bool enable);
-
 bt_status_t btsock_rfc_init(int poll_thread_handle, uid_set_t* set) {
   pth = poll_thread_handle;
   uid_set = set;

@@ -52,10 +52,12 @@ btifCommonSrc += \
   src/btif_hf_client.cc \
   src/btif_hh.cc \
   src/btif_hl.cc \
-  src/btif_sdp.cc \
+  src/btif_mce.cc \
   src/btif_pan.cc \
   src/btif_profile_queue.cc \
   src/btif_rc.cc \
+  src/btif_sdp.cc \
+  src/btif_sdp_server.cc \
   src/btif_sm.cc \
   src/btif_sock.cc \
   src/btif_sock_rfc.cc \
@@ -63,7 +65,6 @@ btifCommonSrc += \
   src/btif_sock_sco.cc \
   src/btif_sock_sdp.cc \
   src/btif_sock_thread.cc \
-  src/btif_sdp_server.cc \
   src/btif_sock_util.cc \
   src/btif_storage.cc \
   src/btif_uid.cc \

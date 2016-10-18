@@ -357,7 +357,7 @@ extern tSMP_CB smp_cb;
 }
 #endif
 
-/* Functions provided by att_main.c */
+/* Functions provided by att_main.cc */
 extern void smp_init (void);
 
 /* smp main */
@@ -394,7 +394,7 @@ extern tSMP_BR_STATE    smp_get_br_state(void);
 extern void             smp_set_br_state(tSMP_BR_STATE state);
 
 
-/* smp_act.c */
+/* smp_act.cc */
 extern void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_send_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_send_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
@@ -468,7 +468,7 @@ extern void smp_br_pairing_complete(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_l2cap_if_init (void);
 extern void smp_data_ind (BD_ADDR bd_addr, BT_HDR *p_buf);
 
-/* smp_util.c */
+/* smp_util.cc */
 extern bool    smp_send_cmd(uint8_t cmd_code, tSMP_CB *p_cb);
 extern void smp_cb_cleanup(tSMP_CB *p_cb);
 extern void smp_reset_control_value(tSMP_CB *p_cb);
@@ -496,7 +496,7 @@ extern bool    smp_calculate_f5_mackey_and_long_term_key(tSMP_CB *p_cb);
 extern void smp_remove_fixed_channel(tSMP_CB *p_cb);
 extern bool    smp_request_oob_data(tSMP_CB *p_cb);
 
-/* smp_keys.c */
+/* smp_keys.cc */
 extern void smp_generate_srand_mrand_confirm (tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_generate_compare (tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
 extern void smp_generate_stk (tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
@@ -530,7 +530,7 @@ extern void smp_debug_print_nbyte_little_endian (uint8_t *p, const uint8_t *key_
                                                  uint8_t len);
 #endif
 
-/* smp_cmac.c */
+/* smp_cmac.cc */
 extern bool    aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t length,
                                                  uint16_t tlen, uint8_t *p_signature);
 extern void print128(BT_OCTET16 x, const uint8_t *key_name);

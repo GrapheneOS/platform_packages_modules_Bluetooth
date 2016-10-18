@@ -4,13 +4,11 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
-}
 
 static const size_t TEST_QUEUE_SIZE = 10;
 static const char *DUMMY_DATA_STRING = "Dummy data string";

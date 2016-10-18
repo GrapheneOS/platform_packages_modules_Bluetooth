@@ -19,10 +19,8 @@
 #include "adapter/bluetooth_test.h"
 #include "rfcomm/rfcomm_test.h"
 
-extern "C" {
 #include "btcore/include/bdaddr.h"
 #include "btcore/include/uuid.h"
-}
 
 namespace bttest {
 

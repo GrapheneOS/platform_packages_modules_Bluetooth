@@ -2,9 +2,7 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include "osi/include/config.h"
-}
 
 static const char CONFIG_FILE[] = "/data/local/tmp/config_test.conf";
 static const char CONFIG_FILE_CONTENT[] =

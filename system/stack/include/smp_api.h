@@ -219,8 +219,28 @@ extern void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value);
 **
 **  Returns         Boolean - true: creation of local SC OOB data set started.
 *******************************************************************************/
-extern bool    SMP_CreateLocalSecureConnectionsOobData (
-                                                                  tBLE_BD_ADDR *addr_to_send_to);
+extern bool SMP_CreateLocalSecureConnectionsOobData(tBLE_BD_ADDR *addr_to_send_to);
+
+#if (SMP_INCLUDED == TRUE)
+// Called when LTK request is received from controller.
+extern bool smp_proc_ltk_request(BD_ADDR bda);
+
+// Called when link is encrypted and notified to slave device.
+// Proceed to send LTK, DIV and ER to master if bonding the devices.
+extern void smp_link_encrypted(BD_ADDR bda, uint8_t encr_enable);
+#endif /* SMP_INCLUDED == TRUE */
+
+//
+// The AES-CMAC Generation Function with tlen implemented.
+// |key| - CMAC key in little endian order, expect SRK when used by SMP.
+// |input| - text to be signed in little endian byte order.
+// |length| - length of the input in byte.
+// |tlen| - lenth of mac desired
+// |p_signature| - data pointer to where signed data to be stored, tlen long.
+// Returns false if out of resources, true in other cases.
+//
+bool aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t length,
+                              uint16_t tlen, uint8_t *p_signature);
 
 #ifdef __cplusplus
 }

@@ -29,6 +29,10 @@
 #include <pthread.h>
 #include "bt_target.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* by default on shutdown, baudrate is reset 115kbits. this should NOT be need for platforms
  * that kill BTE driver and remove/reset BT chip
  */
@@ -96,6 +100,8 @@ extern void bte_hcisu_userial_oper( tUSERIAL_MSG_CBACK *p_cback, uint8_t port, u
 /* Pointer to function for sending HCI commands and data to the HCI tranport */
 extern int (*p_bte_hci_send)(uint16_t port, BT_HDR *p_msg);
 
+// Initialize control block memory for each stack component.
+extern void BTE_InitStack(void);
 
 /* Protocol trace mask */
 extern uint32_t bte_proto_trace_mask;
@@ -110,5 +116,9 @@ typedef struct tBAUD_REG_tag {
 } tBAUD_REG;
 
 extern const tBAUD_REG baud_rate_regs[];
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* BTE_H */

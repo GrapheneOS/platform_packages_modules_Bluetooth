@@ -16,8 +16,8 @@
 
 static_library("device") {
   sources = [
-    "src/controller.c",
-    "src/interop.c",
+    "src/controller.cc",
+    "src/interop.cc",
   ]
 
   include_dirs = [

@@ -20,9 +20,7 @@
 
 #include "osi/test/AllocationTestHarness.h"
 
-extern "C" {
 #include "osi/include/allocation_tracker.h"
-}
 
 void AllocationTestHarness::SetUp() {
   allocation_tracker_init();
