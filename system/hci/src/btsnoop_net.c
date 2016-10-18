@@ -23,6 +23,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/prctl.h>
 #include <sys/socket.h>
