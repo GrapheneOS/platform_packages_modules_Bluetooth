@@ -59,7 +59,7 @@ class BleAdvertisingManager {
  public:
   virtual ~BleAdvertisingManager() = default;
 
-  static void Initialize();
+  static void Initialize(BleAdvertiserHciInterface *interface);
   static void CleanUp();
   static BleAdvertisingManager *Get();
 
@@ -87,10 +87,6 @@ class BleAdvertisingManager {
 
   /*  This function disable a Multi-ADV instance */
   virtual void Unregister(uint8_t inst_id);
-
-  /* This is exposed for tests, and for initial configuration. Higher layers
-   * shouldn't have need to ever call it.*/
-  virtual void SetHciInterface(BleAdvertiserHciInterface *interface);
 };
 
 #endif  // BLE_ADVERTISER_H

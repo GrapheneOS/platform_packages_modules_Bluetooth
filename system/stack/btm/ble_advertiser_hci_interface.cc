@@ -17,10 +17,12 @@
  ******************************************************************************/
 
 #include "ble_advertiser_hci_interface.h"
+#include <base/callback.h>
 #include <base/logging.h>
 #include <queue>
 #include <utility>
 #include "btm_api.h"
+#include "btm_ble_api.h"
 
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN 8
 #define BTM_BLE_MULTI_ADV_ENB_LEN 3
@@ -68,6 +70,10 @@ class BleAdvertiserHciInterfaceImpl : public BleAdvertiserHciInterface {
     BTM_VendorSpecificCommand(HCI_BLE_MULTI_ADV_OCF, param_len, param_buf,
                               btm_ble_multi_adv_vsc_cmpl_cback);
     pending_ops->push(std::make_pair(param_buf[0], command_complete));
+  }
+
+  void ReadInstanceCount(base::Callback<void(uint8_t /* inst_cnt*/)> cb) override {
+    cb.Run(BTM_BleMaxMultiAdvInstanceCount());
   }
 
   void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
