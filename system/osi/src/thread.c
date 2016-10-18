@@ -28,6 +28,7 @@
 #include <sys/prctl.h>
 #include <sys/resource.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
