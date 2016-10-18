@@ -803,7 +803,7 @@ tGATT_STATUS GATTC_Read (uint16_t conn_id, tGATT_READ_TYPE type, tGATT_READ_PARA
                     (tGATT_READ_MULTI *)osi_malloc(sizeof(tGATT_READ_MULTI));
                 p_clcb->p_attr_buf = (uint8_t*)p_read_multi;
                 memcpy(p_read_multi, &p_read->read_multiple, sizeof(tGATT_READ_MULTI));
-                /* TODO: Missing "break" statement! */
+                break;
             }
             case GATT_READ_BY_HANDLE:
             case GATT_READ_PARTIAL:

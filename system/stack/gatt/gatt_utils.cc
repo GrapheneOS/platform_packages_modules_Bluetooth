@@ -1121,6 +1121,7 @@ bool    gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, uint16_t uuid_size, uint8
         /* do not allow 32 bits UUID in ATT PDU now */
         case LEN_UUID_32:
             GATT_TRACE_ERROR("DO NOT ALLOW 32 BITS UUID IN ATT PDU");
+            return false;
         case 0:
         default:
             if (uuid_size != 0) ret = false;
