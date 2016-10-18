@@ -17,7 +17,7 @@
 shared_library("bt-vendor-linux") {
   output_name = "libbt-vendor"
   sources = [
-    "bt_vendor_linux.c",
+    "bt_vendor_linux.cc",
   ]
 
   deps = [

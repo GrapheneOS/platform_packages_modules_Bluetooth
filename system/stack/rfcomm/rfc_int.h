@@ -276,7 +276,7 @@ extern  uint8_t rfc_calc_fcs (uint16_t len, uint8_t *p);
 extern void rfc_mx_sm_execute (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 
 /*
-** Functions provided by the rfc_port_fsm.c
+** Functions provided by the rfc_port_fsm.cc
 */
 extern void rfc_port_sm_execute (tPORT *p_port, uint16_t event, void *p_data);
 
@@ -292,7 +292,7 @@ extern void rfc_process_fcoff (tRFC_MCB *p_rfc_mcb, bool    is_command);
 extern void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, bool    is_congested);
 
 /*
-** Functions provided by the rfc_utils.c
+** Functions provided by the rfc_utils.cc
 */
 tRFC_MCB  *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, bool    is_initiator);
 extern void      rfc_release_multiplexer_channel (tRFC_MCB *p_rfc_mcb);
@@ -313,7 +313,7 @@ extern void      rfc_dec_credit (tPORT *p_port);
 extern void      rfc_check_send_cmd(tRFC_MCB *p_mcb, BT_HDR *p_buf);
 
 /*
-** Functions provided by the rfc_ts_frames.c
+** Functions provided by the rfc_ts_frames.cc
 */
 extern void     rfc_send_sabme (tRFC_MCB *p_rfc_mcb, uint8_t dlci);
 extern void     rfc_send_ua (tRFC_MCB *p_rfc_mcb, uint8_t dlci);
@@ -333,12 +333,6 @@ extern void     rfc_send_buf_uih (tRFC_MCB *p_rfc_mcb, uint8_t dlci, BT_HDR *p_b
 extern void     rfc_send_credit(tRFC_MCB *p_mcb, uint8_t dlci, uint8_t credit);
 extern void     rfc_process_mx_message (tRFC_MCB *p_rfc_mcb, BT_HDR *p_buf);
 extern uint8_t  rfc_parse_data (tRFC_MCB *p_rfc_mcb, MX_FRAME *p_frame, BT_HDR *p_buf);
-
-/*
-** Functions provided by the rfc_disp.c
-*/
-
-
 
 /* Call back functions from RFCOMM */
 extern void rfcomm_l2cap_if_init (void);

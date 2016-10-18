@@ -20,7 +20,6 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -31,7 +30,6 @@ extern "C" {
 #include "hci_hal.h"
 #include "test_stubs.h"
 #include "vendor.h"
-}
 
 DECLARE_TEST_MODES(
   init,

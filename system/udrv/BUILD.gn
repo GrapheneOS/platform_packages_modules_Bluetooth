@@ -16,7 +16,7 @@
 
 source_set("udrv") {
   sources = [
-    "ulinux/uipc.c",
+    "ulinux/uipc.cc",
   ]
 
   include_dirs = [

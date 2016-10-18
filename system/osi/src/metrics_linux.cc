@@ -19,9 +19,7 @@
 
 #define LOG_TAG "bt_osi_metrics"
 
-extern "C" {
 #include "osi/include/metrics.h"
-}
 
 void metrics_pair_event(uint32_t disconnect_reason, uint64_t timestamp_ms,
                         uint32_t device_class, device_type_t device_type) {

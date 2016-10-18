@@ -2,9 +2,7 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include "osi/include/osi.h"
-}
 
 class RandTest : public AllocationTestHarness {};
 

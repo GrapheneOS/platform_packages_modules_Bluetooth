@@ -18,4 +18,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char OSI_MODULE[] = "osi_module";
+
+#ifdef __cplusplus
+}
+#endif

@@ -107,7 +107,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define BTTRC_ID_AVDT_SCB                  80         /* avdt scb */
 #define BTTRC_ID_AVDT_CCB                  81         /* avdt ccb */
 
-/* LayerIDs added for BTL-A. Probably should modify bte_logmsg.c in future. */
+/* LayerIDs added for BTL-A. Probably should modify bte_logmsg.cc in future. */
 #define BTTRC_ID_STK_RFCOMM                82
 #define BTTRC_ID_STK_RFCOMM_DATA           83
 #define BTTRC_ID_STK_OBEX                  84

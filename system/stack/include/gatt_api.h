@@ -1101,9 +1101,22 @@ extern bool    GATT_Listen (tGATT_IF gatt_if, bool    start, BD_ADDR_PTR bd_addr
 *******************************************************************************/
 extern void GATT_ConfigServiceChangeCCC (BD_ADDR remote_bda, bool    enable,
                                                     tBT_TRANSPORT transport);
- 
-#ifdef __cplusplus
 
+// Enables the GATT profile on the device.
+// It clears out the control blocks, and registers with L2CAP.
+extern void gatt_init(void);
+
+// Frees resources used by the GATT profile.
+extern void gatt_free(void);
+
+// Link encryption complete notification for all encryption process
+// initiated outside GATT.
+extern void gatt_notify_enc_cmpl(BD_ADDR bd_addr);
+
+// Reset bg device list.
+extern void gatt_reset_bgdev_list(void);
+
+#ifdef __cplusplus
 }
 #endif
 

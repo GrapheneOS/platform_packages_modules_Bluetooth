@@ -23,9 +23,7 @@
 
 #include "osi/include/hash_map_utils.h"
 
-extern "C" {
 #include "osi/include/allocator.h"
-}
 
 class HashMapUtilsTest : public AllocationTestHarness {
  protected:

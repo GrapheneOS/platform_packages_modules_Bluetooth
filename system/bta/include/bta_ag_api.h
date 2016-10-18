@@ -431,13 +431,13 @@ typedef struct
 /* AG configuration structure */
 typedef struct
 {
-    char         *cind_info;
-    char         *bind_info;
+    const char   *cind_info;
+    const char   *bind_info;
     uint8_t        num_local_hf_ind;
     int32_t        conn_tout;
     uint16_t       sco_pkt_types;
-    char         *chld_val_ecc;
-    char         *chld_val;
+    const char   *chld_val_ecc;
+    const char   *chld_val;
 } tBTA_AG_CFG;
 
 /*****************************************************************************

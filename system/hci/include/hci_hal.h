@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 typedef enum {
+  DATA_TYPE_UNKNOWN = 0,
   DATA_TYPE_COMMAND = 1,
   DATA_TYPE_ACL     = 2,
   DATA_TYPE_SCO     = 3,

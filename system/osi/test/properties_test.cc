@@ -20,9 +20,7 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include "osi/include/properties.h"
-}
 
 class PropertiesTest : public AllocationTestHarness {};
 

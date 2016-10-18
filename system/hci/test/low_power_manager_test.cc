@@ -20,7 +20,6 @@
 
 #include "AlarmTestHarness.h"
 
-extern "C" {
 #include <stdint.h>
 
 #include "low_power_manager.h"
@@ -29,7 +28,6 @@ extern "C" {
 #include "osi/include/thread.h"
 #include "test_stubs.h"
 #include "vendor.h"
-}
 
 DECLARE_TEST_MODES(
   init,

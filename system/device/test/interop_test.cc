@@ -18,9 +18,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "device/include/interop.h"
-}
 
 TEST(InteropTest, test_lookup_hit) {
   bt_bdaddr_t test_address;

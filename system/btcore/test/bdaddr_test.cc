@@ -18,9 +18,7 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "btcore/include/bdaddr.h"
-}
 
 static const char* test_addr = "12:34:56:78:9a:bc";
 static const char* test_addr2 = "cb:a9:87:65:43:21";

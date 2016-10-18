@@ -16,13 +16,13 @@
 
 static_library("btcore") {
   sources = [
-    "src/bdaddr.c",
-    "src/device_class.c",
-    "src/hal_util.c",
+    "src/bdaddr.cc",
+    "src/device_class.cc",
+    "src/hal_util.cc",
     "src/module.cc",
-    "src/property.c",
-    "src/uuid.c",
-    "src/osi_module.c",
+    "src/property.cc",
+    "src/uuid.cc",
+    "src/osi_module.cc",
   ]
 
   include_dirs = [

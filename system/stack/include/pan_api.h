@@ -279,9 +279,9 @@ extern void PAN_Deregister (void);
 *******************************************************************************/
 extern tPAN_RESULT PAN_SetRole (uint8_t role,
                                 uint8_t *sec_mask,
-                                char *p_user_name,
-                                char *p_gn_name,
-                                char *p_nap_name);
+                                const char *p_user_name,
+                                const char *p_gn_name,
+                                const char *p_nap_name);
 
 /*******************************************************************************
 **

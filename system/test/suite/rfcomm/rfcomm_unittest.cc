@@ -19,11 +19,10 @@
 #include "adapter/bluetooth_test.h"
 #include "rfcomm/rfcomm_test.h"
 
-extern "C" {
 #include "btcore/include/bdaddr.h"
+
 #include <sys/socket.h>
 #include <unistd.h>
-}
 
 namespace {
 static const char HANDSHAKE_COMMAND[] = "AT+BRSF=29\r";

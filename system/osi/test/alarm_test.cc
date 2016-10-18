@@ -20,13 +20,11 @@
 
 #include "AlarmTestHarness.h"
 
-extern "C" {
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"
 #include "osi/include/semaphore.h"
 #include "osi/include/thread.h"
-}
 
 static semaphore_t *semaphore;
 static int cb_counter;

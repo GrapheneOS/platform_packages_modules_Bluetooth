@@ -133,7 +133,8 @@ void pan_mcast_filt_ind_cb (uint16_t handle,
                             tBNEP_RESULT result,
                             uint16_t num_filters,
                             uint8_t *p_filters);
-extern uint32_t pan_register_with_sdp (uint16_t uuid, uint8_t sec_mask, char *p_name, char *p_desc);
+extern uint32_t pan_register_with_sdp (uint16_t uuid, uint8_t sec_mask,
+                                       const char *p_name, const char *p_desc);
 extern tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, uint16_t handle);
 extern tPAN_CONN *pan_get_pcb_by_handle (uint16_t handle);
 extern tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda);
