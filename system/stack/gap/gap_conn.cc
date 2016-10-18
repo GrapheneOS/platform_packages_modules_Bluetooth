@@ -526,9 +526,6 @@ uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_l
     }
 
     /* Send the buffer through L2CAP */
-#if (GAP_CONN_POST_EVT_INCLUDED == TRUE)
-    gap_send_event (gap_handle);
-#else
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->tx_queue)) != NULL)
     {
         uint8_t status = L2CA_DATA_WRITE (p_ccb->connection_id, p_buf);
@@ -541,7 +538,7 @@ uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_l
         else if (status != L2CAP_DW_SUCCESS)
             return (GAP_ERR_BAD_STATE);
     }
-#endif
+
     return (BT_PASS);
 }
 
@@ -1234,28 +1231,4 @@ static void gap_release_ccb (tGAP_CCB *p_ccb)
         L2CA_DEREGISTER_COC (psm);
 }
 
-#if (GAP_CONN_POST_EVT_INCLUDED == TRUE)
-
-/*******************************************************************************
-**
-** Function     gap_send_event
-**
-** Description  Send BT_EVT_TO_GAP_MSG event to BTU task
-**
-** Returns      None
-**
-*******************************************************************************/
-void gap_send_event (uint16_t gap_handle)
-{
-    BT_HDR *p_msg = (BT_HDR *)osi_malloc(BT_HDR_SIZE);
-
-    p_msg->event  = BT_EVT_TO_GAP_MSG;
-    p_msg->len    = 0;
-    p_msg->offset = 0;
-    p_msg->layer_specific = gap_handle;
-
-    GKI_send_msg(BTU_TASK, BTU_HCI_RCV_MBOX, p_msg);
-}
-
-#endif /* (GAP_CONN_POST_EVT_INCLUDED == TRUE) */
 #endif  /* GAP_CONN_INCLUDED */
