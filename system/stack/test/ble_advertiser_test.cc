@@ -26,6 +26,7 @@
 using ::testing::_;
 using ::testing::Args;
 using ::testing::ElementsAreArray;
+using ::testing::Exactly;
 using ::testing::IsEmpty;
 using ::testing::SaveArg;
 using status_cb = BleAdvertiserHciInterface::status_cb;
@@ -35,7 +36,6 @@ const int num_adv_instances = 16;
 /* Below are methods that must be implemented if we don't want to compile the
  * whole stack. They will be removed, or changed into mocks one by one in the
  * future, as the refactoring progresses */
-uint8_t BTM_BleMaxMultiAdvInstanceCount() { return num_adv_instances; }
 bool BTM_BleLocalPrivacyEnabled() { return true; }
 uint16_t BTM_ReadConnectability(uint16_t *p_window, uint16_t *p_interval) {
   return true;
@@ -74,6 +74,7 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
   AdvertiserHciMock() = default;
   ~AdvertiserHciMock() override = default;
 
+  MOCK_METHOD1(ReadInstanceCount, void(base::Callback<void(uint8_t /* inst_cnt*/)>));
   MOCK_METHOD4(SetAdvertisingData,
                void(uint8_t, uint8_t *, uint8_t, status_cb));
   MOCK_METHOD4(SetScanResponseData,
@@ -114,9 +115,18 @@ class BleAdvertisingManagerTest : public testing::Test {
   std::unique_ptr<AdvertiserHciMock> hci_mock;
 
   virtual void SetUp() {
-    BleAdvertisingManager::Initialize();
     hci_mock.reset(new AdvertiserHciMock());
-    BleAdvertisingManager::Get()->SetHciInterface(hci_mock.get());
+
+    base::Callback<void(uint8_t)> inst_cnt_Cb;
+    EXPECT_CALL(*hci_mock, ReadInstanceCount(_))
+      .Times(Exactly(1))
+      .WillOnce(SaveArg<0>(&inst_cnt_Cb));
+
+    BleAdvertisingManager::Initialize(hci_mock.get());
+
+    // we are a truly gracious fake controller, let the command succeed!
+    inst_cnt_Cb.Run(num_adv_instances);
+    ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
   }
 
   virtual void TearDown() {
@@ -180,7 +190,7 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
       base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
                  base::Unretained(this)));
 
-  // we are a trully gracious fake controller, let the command succeed!
+  // we are a truly gracious fake controller, let the command succeed!
   set_params_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
