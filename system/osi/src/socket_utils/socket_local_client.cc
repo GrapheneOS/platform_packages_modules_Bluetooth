@@ -25,14 +25,14 @@
 #include <unistd.h>
 
 #include "osi/include/osi.h"
-#include "osi/include/socket_utils/sockets.h"
 #include "osi/include/socket_utils/socket_local.h"
+#include "osi/include/socket_utils/sockets.h"
 
 #define LISTEN_BACKLOG 4
 
 /* Documented in header file. */
-int osi_socket_make_sockaddr_un(const char *name, int namespaceId,
-                                struct sockaddr_un *p_addr, socklen_t *alen) {
+int osi_socket_make_sockaddr_un(const char* name, int namespaceId,
+                                struct sockaddr_un* p_addr, socklen_t* alen) {
   memset(p_addr, 0, sizeof(*p_addr));
   size_t namelen;
 
@@ -109,7 +109,7 @@ error:
  *
  * Used by AndroidSocketImpl
  */
-int osi_socket_local_client_connect(int fd, const char *name, int namespaceId,
+int osi_socket_local_client_connect(int fd, const char* name, int namespaceId,
                                     int type UNUSED_ATTR) {
   struct sockaddr_un addr;
   socklen_t alen;
@@ -121,7 +121,7 @@ int osi_socket_local_client_connect(int fd, const char *name, int namespaceId,
     goto error;
   }
 
-  OSI_NO_INTR(err = connect(fd, (struct sockaddr *)&addr, alen));
+  OSI_NO_INTR(err = connect(fd, (struct sockaddr*)&addr, alen));
   if (err < 0) {
     goto error;
   }
@@ -136,7 +136,7 @@ error:
  * connect to peer named "name"
  * returns fd or -1 on error
  */
-int osi_socket_local_client(const char *name, int namespaceId, int type) {
+int osi_socket_local_client(const char* name, int namespaceId, int type) {
   int s;
 
   s = socket(AF_LOCAL, type, 0);

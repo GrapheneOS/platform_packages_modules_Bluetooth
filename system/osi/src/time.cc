@@ -23,7 +23,7 @@
 #include "osi/include/time.h"
 
 uint32_t time_get_os_boottime_ms(void) {
-  return (uint32_t) (time_get_os_boottime_us() / 1000);
+  return (uint32_t)(time_get_os_boottime_us() / 1000);
 }
 
 uint64_t time_get_os_boottime_us(void) {
@@ -31,5 +31,5 @@ uint64_t time_get_os_boottime_us(void) {
   clock_gettime(CLOCK_BOOTTIME, &ts_now);
 
   return ((uint64_t)ts_now.tv_sec * 1000000L) +
-    ((uint64_t)ts_now.tv_nsec / 1000);
+         ((uint64_t)ts_now.tv_nsec / 1000);
 }

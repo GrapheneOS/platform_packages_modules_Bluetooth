@@ -25,24 +25,18 @@
 
 static bool is_wake_lock_acquired = false;
 
-static int acquire_wake_lock_cb(const char *lock_name)
-{
+static int acquire_wake_lock_cb(const char* lock_name) {
   is_wake_lock_acquired = true;
   return BT_STATUS_SUCCESS;
 }
 
-static int release_wake_lock_cb(const char *lock_name)
-{
+static int release_wake_lock_cb(const char* lock_name) {
   is_wake_lock_acquired = false;
   return BT_STATUS_SUCCESS;
 }
 
 static bt_os_callouts_t bt_wakelock_callouts = {
-  sizeof(bt_os_callouts_t),
-  NULL,
-  acquire_wake_lock_cb,
-  release_wake_lock_cb
-};
+    sizeof(bt_os_callouts_t), NULL, acquire_wake_lock_cb, release_wake_lock_cb};
 
 void AlarmTestHarness::SetUp() {
   AllocationTestHarness::SetUp();
@@ -60,6 +54,4 @@ void AlarmTestHarness::TearDown() {
   AllocationTestHarness::TearDown();
 }
 
-bool AlarmTestHarness::WakeLockHeld() {
-  return is_wake_lock_acquired;
-}
+bool AlarmTestHarness::WakeLockHeld() { return is_wake_lock_acquired; }

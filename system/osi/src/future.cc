@@ -29,18 +29,19 @@
 
 struct future_t {
   bool ready_can_be_called;
-  semaphore_t *semaphore; // NULL semaphore means immediate future
-  void *result;
+  semaphore_t* semaphore;  // NULL semaphore means immediate future
+  void* result;
 };
 
-static void future_free(future_t *future);
+static void future_free(future_t* future);
 
-future_t *future_new(void) {
-  future_t *ret = static_cast<future_t *>(osi_calloc(sizeof(future_t)));
+future_t* future_new(void) {
+  future_t* ret = static_cast<future_t*>(osi_calloc(sizeof(future_t)));
 
   ret->semaphore = semaphore_new(0);
   if (!ret->semaphore) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for the semaphore.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for the semaphore.",
+              __func__);
     goto error;
   }
 
@@ -51,15 +52,15 @@ error:;
   return NULL;
 }
 
-future_t *future_new_immediate(void *value) {
-  future_t *ret = static_cast<future_t *>(osi_calloc(sizeof(future_t)));
+future_t* future_new_immediate(void* value) {
+  future_t* ret = static_cast<future_t*>(osi_calloc(sizeof(future_t)));
 
   ret->result = value;
   ret->ready_can_be_called = false;
   return ret;
 }
 
-void future_ready(future_t *future, void *value) {
+void future_ready(future_t* future, void* value) {
   assert(future != NULL);
   assert(future->ready_can_be_called);
 
@@ -68,21 +69,19 @@ void future_ready(future_t *future, void *value) {
   semaphore_post(future->semaphore);
 }
 
-void *future_await(future_t *future) {
+void* future_await(future_t* future) {
   assert(future != NULL);
 
   // If the future is immediate, it will not have a semaphore
-  if (future->semaphore)
-    semaphore_wait(future->semaphore);
+  if (future->semaphore) semaphore_wait(future->semaphore);
 
-  void *result = future->result;
+  void* result = future->result;
   future_free(future);
   return result;
 }
 
-static void future_free(future_t *future) {
-  if (!future)
-    return;
+static void future_free(future_t* future) {
+  if (!future) return;
 
   semaphore_free(future->semaphore);
   osi_free(future);

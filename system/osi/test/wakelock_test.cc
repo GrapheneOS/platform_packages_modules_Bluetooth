@@ -18,10 +18,10 @@
 
 #include <gtest/gtest.h>
 
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "osi/include/wakelock.h"
 
@@ -29,39 +29,33 @@
 
 static bool is_wake_lock_acquired = false;
 
-static int acquire_wake_lock_cb(const char *lock_name)
-{
+static int acquire_wake_lock_cb(const char* lock_name) {
   is_wake_lock_acquired = true;
   return BT_STATUS_SUCCESS;
 }
 
-static int release_wake_lock_cb(const char *lock_name)
-{
+static int release_wake_lock_cb(const char* lock_name) {
   is_wake_lock_acquired = false;
   return BT_STATUS_SUCCESS;
 }
 
 static bt_os_callouts_t bt_wakelock_callouts = {
-  sizeof(bt_os_callouts_t),
-  NULL,
-  acquire_wake_lock_cb,
-  release_wake_lock_cb
-};
+    sizeof(bt_os_callouts_t), NULL, acquire_wake_lock_cb, release_wake_lock_cb};
 
 class WakelockTest : public AllocationTestHarness {
-protected:
+ protected:
   virtual void SetUp() {
     AllocationTestHarness::SetUp();
 
-  // TODO (jamuraa): maybe use base::CreateNewTempDirectory instead?
+// TODO (jamuraa): maybe use base::CreateNewTempDirectory instead?
 #if defined(OS_GENERIC)
     tmp_dir_ = "/tmp/btwlXXXXXX";
 #else
     tmp_dir_ = "/data/local/tmp/btwlXXXXXX";
-#endif // !defined(OS_GENERIC)
+#endif  // !defined(OS_GENERIC)
 
-    char *buffer = const_cast<char *>(tmp_dir_.c_str());
-    char *dtemp = mkdtemp(buffer);
+    char* buffer = const_cast<char*>(tmp_dir_.c_str());
+    char* dtemp = mkdtemp(buffer);
     if (!dtemp) {
       perror("Can't make wake lock test directory: ");
       assert(false);
@@ -105,10 +99,10 @@ protected:
 
     assert(lock_stat.st_size >= unlock_stat.st_size);
 
-    void *lock_file = mmap(nullptr, lock_stat.st_size, PROT_READ,
-                           MAP_PRIVATE, lock_fd, 0);
+    void* lock_file =
+        mmap(nullptr, lock_stat.st_size, PROT_READ, MAP_PRIVATE, lock_fd, 0);
 
-    void *unlock_file = mmap(nullptr, unlock_stat.st_size, PROT_READ,
+    void* unlock_file = mmap(nullptr, unlock_stat.st_size, PROT_READ,
                              MAP_PRIVATE, unlock_fd, 0);
 
     if (memcmp(lock_file, unlock_file, unlock_stat.st_size) == 0) {
@@ -147,7 +141,7 @@ TEST_F(WakelockTest, test_set_os_callouts) {
 }
 
 TEST_F(WakelockTest, test_set_paths) {
-  wakelock_set_os_callouts(NULL);       // Make sure we use native wakelocks
+  wakelock_set_os_callouts(NULL);  // Make sure we use native wakelocks
   wakelock_set_paths(lock_path_.c_str(), unlock_path_.c_str());
 
   // Initially, the wakelock is not acquired

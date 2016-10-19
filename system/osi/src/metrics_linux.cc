@@ -16,43 +16,38 @@
  *
  ******************************************************************************/
 
-
 #define LOG_TAG "bt_osi_metrics"
 
 #include "osi/include/metrics.h"
 
 void metrics_pair_event(uint32_t disconnect_reason, uint64_t timestamp_ms,
                         uint32_t device_class, device_type_t device_type) {
-  //TODO(jpawlowski): implement
+  // TODO(jpawlowski): implement
 }
 
-void metrics_wake_event(wake_event_type_t type, const char *requestor,
-                        const char *name, uint64_t timestamp_ms) {
-  //TODO(jpawlowski): implement
+void metrics_wake_event(wake_event_type_t type, const char* requestor,
+                        const char* name, uint64_t timestamp_ms) {
+  // TODO(jpawlowski): implement
 }
 
-void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
+void metrics_scan_event(bool start, const char* initator, scan_tech_t type,
                         uint32_t results, uint64_t timestamp_ms) {
-  //TODO(jpawlowski): implement
+  // TODO(jpawlowski): implement
 }
 
-void metrics_a2dp_session(int64_t session_duration_sec,
-                          const char *disconnect_reason,
-                          uint32_t device_class,
-                          int32_t media_timer_min_ms,
-                          int32_t media_timer_max_ms,
-                          int32_t media_timer_avg_ms,
-                          int32_t buffer_overruns_max_count,
-                          int32_t buffer_overruns_total,
-                          float buffer_underruns_average,
-                          int32_t buffer_underruns_count) {
-  //TODO(jpawlowski): implement
+void metrics_a2dp_session(
+    int64_t session_duration_sec, const char* disconnect_reason,
+    uint32_t device_class, int32_t media_timer_min_ms,
+    int32_t media_timer_max_ms, int32_t media_timer_avg_ms,
+    int32_t buffer_overruns_max_count, int32_t buffer_overruns_total,
+    float buffer_underruns_average, int32_t buffer_underruns_count) {
+  // TODO(jpawlowski): implement
 }
 
 void metrics_write(int fd, bool clear) {
-  //TODO(jpawlowski): implement
+  // TODO(jpawlowski): implement
 }
 
 void metrics_print(int fd, bool clear) {
-  //TODO(jpawlowski): implement
+  // TODO(jpawlowski): implement
 }

@@ -33,10 +33,10 @@ extern "C" {
 pid_t gettid(void);
 
 /* Copy src to string dst of size siz. */
-size_t strlcpy(char *dst, const char *src, size_t siz);
+size_t strlcpy(char* dst, const char* src, size_t siz);
 
 /* Appends src to string dst of size siz. */
-size_t strlcat(char *dst, const char *src, size_t siz);
+size_t strlcat(char* dst, const char* src, size_t siz);
 
 #endif
 

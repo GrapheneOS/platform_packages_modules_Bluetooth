@@ -19,14 +19,14 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/un.h>
 #include <unistd.h>
 
-#include "osi/include/socket_utils/sockets.h"
 #include "osi/include/socket_utils/socket_local.h"
+#include "osi/include/socket_utils/sockets.h"
 
 #define LISTEN_BACKLOG 4
 
@@ -39,7 +39,7 @@
  *
  * Does not call listen()
  */
-int osi_socket_local_server_bind(int s, const char *name, int namespaceId) {
+int osi_socket_local_server_bind(int s, const char* name, int namespaceId) {
   struct sockaddr_un addr;
   socklen_t alen;
   int n;
@@ -65,7 +65,7 @@ int osi_socket_local_server_bind(int s, const char *name, int namespaceId) {
   n = 1;
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
 
-  if (bind(s, (struct sockaddr *)&addr, alen) < 0) {
+  if (bind(s, (struct sockaddr*)&addr, alen) < 0) {
     return -1;
   }
 
@@ -77,7 +77,7 @@ int osi_socket_local_server_bind(int s, const char *name, int namespaceId) {
  *
  *  Returns fd on success, -1 on fail
  */
-int osi_socket_local_server(const char *name, int namespaceId, int type) {
+int osi_socket_local_server(const char* name, int namespaceId, int type) {
   int err;
   int s;
 

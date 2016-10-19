@@ -23,8 +23,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "osi/include/log.h"
@@ -47,8 +47,7 @@ int osi_rand(void) {
 
   assert(read_bytes == sizeof(rand));
 
-  if (rand < 0)
-    rand = -rand;
+  if (rand < 0) rand = -rand;
 
   return rand;
 }
