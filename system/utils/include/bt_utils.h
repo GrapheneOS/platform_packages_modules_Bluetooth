@@ -31,12 +31,7 @@ static const char BT_UTILS_MODULE[] = "bt_utils_module";
 
 typedef enum {
     TASK_HIGH_MEDIA = 0,
-    TASK_HIGH_GKI_TIMER,
-    TASK_HIGH_BTU,
-    TASK_HIGH_HCI_WORKER,
-    TASK_HIGH_USERIAL_READ,
     TASK_UIPC_READ,
-    TASK_JAVA_ALARM,
     TASK_HIGH_MAX
 } tHIGH_PRIORITY_TASK;
 
