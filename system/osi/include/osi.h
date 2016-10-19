@@ -44,7 +44,8 @@ extern "C" {
 // C++ code that includes base and osi/include/osi.h can thus easily default to
 // the definition from libbase but we should check here to avoid compile errors.
 #ifndef COMPILE_ASSERT
-#define COMPILE_ASSERT(COND) typedef int failed_compile_assert[(COND) ? 1 : -1] __attribute__ ((unused))
+#define COMPILE_ASSERT(COND) \
+  typedef int failed_compile_assert[(COND) ? 1 : -1] __attribute__((unused))
 #endif  // COMPILE_ASSERT
 
 // Macros for safe integer to pointer conversion. In the C language, data is
@@ -52,11 +53,11 @@ extern "C" {
 // passing in callbacks. These macros should be used sparingly in new code
 // (never in C++ code). Whenever integers need to be passed as a pointer, use
 // these macros.
-#define PTR_TO_UINT(p) ((unsigned int) ((uintptr_t) (p)))
-#define UINT_TO_PTR(u) ((void *) ((uintptr_t) (u)))
+#define PTR_TO_UINT(p) ((unsigned int)((uintptr_t)(p)))
+#define UINT_TO_PTR(u) ((void*)((uintptr_t)(u)))
 
-#define PTR_TO_INT(p) ((int) ((intptr_t) (p)))
-#define INT_TO_PTR(i) ((void *) ((intptr_t) (i)))
+#define PTR_TO_INT(p) ((int)((intptr_t)(p)))
+#define INT_TO_PTR(i) ((void*)((intptr_t)(i)))
 
 // Obtain a random number between 0 and INT_MAX inclusive.
 // Taken from a system random source such as /dev/random.
@@ -65,7 +66,9 @@ extern "C" {
 int osi_rand(void);
 
 // Re-run |fn| system call until the system call doesn't cause EINTR.
-#define OSI_NO_INTR(fn)  do {} while ((fn) == -1 && errno == EINTR)
+#define OSI_NO_INTR(fn) \
+  do {                  \
+  } while ((fn) == -1 && errno == EINTR)
 
 #ifdef __cplusplus
 }

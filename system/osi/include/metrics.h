@@ -48,8 +48,8 @@ typedef enum {
 // |type| specifies whether it was acquired or relased,
 // |requestor| if provided is the service requesting the wake lock.
 // |name| is the name of the wake lock held.
-void metrics_wake_event(wake_event_type_t type, const char *requestor,
-                        const char *name, uint64_t timestamp_ms);
+void metrics_wake_event(wake_event_type_t type, const char* requestor,
+                        const char* name, uint64_t timestamp_ms);
 
 typedef enum {
   SCAN_TYPE_UNKNOWN,
@@ -63,7 +63,7 @@ typedef enum {
 // |initiator| is a unique ID identifying the app starting the scan.
 // |type| is whether the scan reports BR/EDR, LE, or both.
 // |results| is the number of results to be reported.
-void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
+void metrics_scan_event(bool start, const char* initator, scan_tech_t type,
                         uint32_t results, uint64_t timestamp_ms);
 
 // Record A2DP session information.
@@ -81,16 +81,12 @@ void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
 // |buffer_underruns_average| - TODO - not clear what this is.
 // |buffer_underruns_count| is the number of times there was no enough
 // audio data to add to the media buffer.
-void metrics_a2dp_session(int64_t session_duration_sec,
-                          const char *disconnect_reason,
-                          uint32_t device_class,
-                          int32_t media_timer_min_ms,
-                          int32_t media_timer_max_ms,
-                          int32_t media_timer_avg_ms,
-                          int32_t buffer_overruns_max_count,
-                          int32_t buffer_overruns_total,
-                          float buffer_underruns_average,
-                          int32_t buffer_underruns_count);
+void metrics_a2dp_session(
+    int64_t session_duration_sec, const char* disconnect_reason,
+    uint32_t device_class, int32_t media_timer_min_ms,
+    int32_t media_timer_max_ms, int32_t media_timer_avg_ms,
+    int32_t buffer_overruns_max_count, int32_t buffer_overruns_total,
+    float buffer_underruns_average, int32_t buffer_underruns_count);
 
 // Writes the metrics, in packed protobuf format, into the descriptor |fd|.
 // If |clear| is true, metrics events are cleared afterwards.

@@ -38,11 +38,11 @@ extern "C" {
  * This is inline and not in libcutils proper because we want to use this in
  * third-party daemons with minimal modification.
  */
-static inline int osi_android_get_control_socket(const char *name) {
+static inline int osi_android_get_control_socket(const char* name) {
   char key[64];
   snprintf(key, sizeof(key), ANDROID_SOCKET_ENV_PREFIX "%s", name);
 
-  const char *val = getenv(key);
+  const char* val = getenv(key);
   if (!val) {
     return -1;
   }
@@ -66,12 +66,12 @@ static inline int osi_android_get_control_socket(const char *name) {
 // Normal filesystem namespace
 #define ANDROID_SOCKET_NAMESPACE_FILESYSTEM 2
 
-extern int osi_socket_local_server(const char *name, int namespaceId, int type);
-extern int osi_socket_local_server_bind(int s, const char *name,
+extern int osi_socket_local_server(const char* name, int namespaceId, int type);
+extern int osi_socket_local_server_bind(int s, const char* name,
                                         int namespaceId);
-extern int osi_socket_local_client_connect(int fd, const char *name,
+extern int osi_socket_local_client_connect(int fd, const char* name,
                                            int namespaceId, int type);
-extern int osi_socket_local_client(const char *name, int namespaceId, int type);
+extern int osi_socket_local_client(const char* name, int namespaceId, int type);
 
 #ifdef __cplusplus
 }
