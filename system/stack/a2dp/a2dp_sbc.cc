@@ -1149,3 +1149,20 @@ const tA2DP_ENCODER_INTERFACE* A2DP_GetEncoderInterfaceSbc(
 
   return &a2dp_encoder_interface_sbc;
 }
+
+bool A2DP_AdjustCodecSbc(uint8_t* p_codec_info) {
+  tA2DP_SBC_CIE cfg_cie;
+
+  if (A2DP_ParsSbcInfo(&cfg_cie, p_codec_info, false) != A2DP_SUCCESS)
+    return false;
+
+  // Updated the max bitpool
+  if (cfg_cie.max_bitpool > A2DP_SBC_MAX_BITPOOL) {
+    LOG_WARN(LOG_TAG, "Updated the SBC codec max bitpool from %d to %d",
+             cfg_cie.max_bitpool, A2DP_SBC_MAX_BITPOOL);
+    cfg_cie.max_bitpool = A2DP_SBC_MAX_BITPOOL;
+  }
+
+  return (A2DP_BldSbcInfo(AVDT_MEDIA_TYPE_AUDIO, &cfg_cie,
+                          p_codec_info) == A2DP_SUCCESS);
+}
