@@ -31,9 +31,9 @@
 #define SOCK_THREAD_FD_RD 1               /* BT socket read signal */
 #define SOCK_THREAD_FD_WR (1 << 1)        /* BT socket write signal */
 #define SOCK_THREAD_FD_EXCEPTION (1 << 2) /* BT socket exception singal */
-#define SOCK_THREAD_ADD_FD_SYNC                  \
-  (1 << 3) /* Add BT socket fd in current socket \
-               poll thread context immediately */
+
+/* Add BT socket fd in current socket poll thread context immediately */
+#define SOCK_THREAD_ADD_FD_SYNC (1 << 3)
 
 /*******************************************************************************
  *  Functions

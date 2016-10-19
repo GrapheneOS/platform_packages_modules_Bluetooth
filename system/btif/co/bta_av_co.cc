@@ -494,8 +494,7 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  ** Function         bta_av_co_audio_setconfig
  **
  ** Description      This callout function is executed by AV to set the codec
- *and
- **                  content protection configuration of the audio stream.
+ **                  and content protection configuration of the audio stream.
  **
  **
  ** Returns          void
@@ -614,8 +613,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
  ** Function         bta_av_co_audio_open
  **
  ** Description      This function is called by AV when the audio stream
- *connection
- **                  is opened.
+ **                  connection is opened.
  **
  **
  ** Returns          void
@@ -643,8 +641,7 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  ** Function         bta_av_co_audio_close
  **
  ** Description      This function is called by AV when the audio stream
- *connection
- **                  is closed.
+ **                  connection is closed.
  **
  **
  ** Returns          void
@@ -711,7 +708,7 @@ void bta_av_co_audio_stop(UNUSED_ATTR tBTA_AV_HNDL hndl) {
  **                  the audio codec to AVDTP.
  **
  ** Returns          Pointer to the GKI buffer to send, NULL if no buffer to
- *send
+ **                  send
  **
  *******************************************************************************/
 void* bta_av_co_audio_src_data_path(const uint8_t* p_codec_info,
@@ -756,9 +753,9 @@ void* bta_av_co_audio_src_data_path(const uint8_t* p_codec_info,
  **
  ** Description      An Audio packet is dropped. .
  **                  It's very likely that the connected headset with this
- *handle
- **                  is moved far away. The implementation may want to reduce
- **                  the encoder bit rate setting to reduce the packet size.
+ **                  handle is moved far away. The implementation may want to
+ **                  reduce the encoder bit rate setting to reduce the packet
+ **                  size.
  **
  ** Returns          void
  **
@@ -772,9 +769,8 @@ void bta_av_co_audio_drop(tBTA_AV_HNDL hndl) {
  ** Function         bta_av_co_audio_delay
  **
  ** Description      This function is called by AV when the audio stream
- *connection
- **                  needs to send the initial delay report to the connected
- *SRC.
+ **                  connection needs to send the initial delay report to the
+ **                  connected SRC.
  **
  **
  ** Returns          void
@@ -915,7 +911,7 @@ static const tBTA_AV_CO_SINK* bta_av_co_find_peer_src_supports_codec(
  **                  configuration and content protection
  **
  ** Returns          true if all opened devices support this codec, false
- *otherwise
+ **                  otherwise
  **
  *******************************************************************************/
 static bool bta_av_co_audio_codec_supported(void) {

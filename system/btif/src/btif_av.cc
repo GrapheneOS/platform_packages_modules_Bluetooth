@@ -244,8 +244,7 @@ static void btif_initiate_av_open_timer_timeout(UNUSED_ATTR void* data) {
  * Function         btif_report_connection_state
  *
  * Description      Updates the components via the callbacks about the
- *connection
- *                  state of a2dp connection.
+ *                  connection state of a2dp connection.
  *
  * Returns          None
  *
@@ -1249,7 +1248,7 @@ static void update_audio_track_gain(float gain) {
  * Function         connect
  *
  * Description      Establishes the AV signalling channel with the remote
- *headset
+ *                  headset
  *
  * Returns          bt_status_t
  *

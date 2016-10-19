@@ -794,15 +794,14 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV* p_data,
 }
 
 /* L2CAP default options for OBEX socket connections */
-const tL2CAP_FCR_OPTS obex_l2c_fcr_opts_def =
-    {
-        L2CAP_FCR_ERTM_MODE,               /* Mandatory for OBEX over l2cap */
-        OBX_FCR_OPT_TX_WINDOW_SIZE_BR_EDR, /* Tx window size */
-        OBX_FCR_OPT_MAX_TX_B4_DISCNT,      /* Maximum transmissions before
-                                              disconnecting */
-        OBX_FCR_OPT_RETX_TOUT,             /* Retransmission timeout (2 secs) */
-        OBX_FCR_OPT_MONITOR_TOUT,          /* Monitor timeout (12 secs) */
-        OBX_FCR_OPT_MAX_PDU_SIZE           /* MPS segment size */
+const tL2CAP_FCR_OPTS obex_l2c_fcr_opts_def = {
+    L2CAP_FCR_ERTM_MODE,               /* Mandatory for OBEX over l2cap */
+    OBX_FCR_OPT_TX_WINDOW_SIZE_BR_EDR, /* Tx window size */
+    OBX_FCR_OPT_MAX_TX_B4_DISCNT,      /* Maximum transmissions before
+                                          disconnecting */
+    OBX_FCR_OPT_RETX_TOUT,             /* Retransmission timeout (2 secs) */
+    OBX_FCR_OPT_MONITOR_TOUT,          /* Monitor timeout (12 secs) */
+    OBX_FCR_OPT_MAX_PDU_SIZE           /* MPS segment size */
 };
 const tL2CAP_ERTM_INFO obex_l2c_etm_opt = {
     L2CAP_FCR_ERTM_MODE,     /* Mandatory for OBEX over l2cap */

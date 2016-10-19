@@ -64,13 +64,13 @@ bool bta_dm_co_get_compress_memory(tBTA_SYS_ID id, uint8_t** memory_p,
  * Function         bta_dm_co_io_req
  *
  * Description      This callout function is executed by DM to get IO
- *capabilities
- *                  of the local device for the Simple Pairing process
+ *                  capabilities of the local device for the Simple Pairing
+ *                  process.
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
  *                  *p_oob_data - true, if OOB data is available for the peer
- *device.
+ *                                device.
  *                  *p_auth_req - true, if MITM protection is required.
  *
  * Returns          void.
@@ -93,13 +93,13 @@ void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
  * Function         bta_dm_co_io_rsp
  *
  * Description      This callout function is executed by DM to report IO
- *capabilities
- *                  of the peer device for the Simple Pairing process
+ *                  capabilities of the peer device for the Simple Pairing
+ *                  process.
  *
  * Parameters       bd_addr  - The peer device
  *                  io_cap - The remote Input/Output capabilities
  *                  oob_data - true, if OOB data is available for the peer
- *device.
+ *                             device.
  *                  auth_req - true, if MITM protection is required.
  *
  * Returns          void.
@@ -198,8 +198,7 @@ static void btui_sco_codec_callback(uint16_t event, uint16_t sco_handle) {
  *
  * Description      This function can be used by the phone to initialize audio
  *                  codec or for other initialization purposes before SCO
- *connection
- *                  is opened.
+ *                  connection is opened.
  *
  *
  * Returns          tBTA_DM_SCO_ROUTE_TYPE: SCO routing configuration type.
@@ -286,7 +285,7 @@ void bta_dm_sco_co_close(void) {
  * Function         bta_dm_sco_co_in_data
  *
  * Description      This function is called to send incoming SCO data to
- *application.
+ *                  application.
  *
  * Returns          void
  *
@@ -317,7 +316,7 @@ void bta_dm_sco_co_out_data(BT_HDR** p_buf) { btui_sco_codec_readbuf(p_buf); }
  * Function         bta_dm_co_le_io_key_req
  *
  * Description      This callout function is executed by DM to get BLE key
- *information
+ *                  information
  *                  before SMP pairing gets going.
  *
  * Parameters       bd_addr  - The peer device
@@ -346,8 +345,7 @@ void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, uint8_t* p_max_key_size,
  * Function         bta_dm_co_ble_local_key_reload
  *
  * Description      This callout function is to load the local BLE keys if
- *available
- *                  on the device.
+ *                  available on the device.
  *
  * Parameters       none
  *
@@ -369,15 +367,14 @@ void bta_dm_co_ble_load_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask,
  * Function         bta_dm_co_ble_io_req
  *
  * Description      This callout function is executed by DM to get BLE IO
- *capabilities
- *                  before SMP pairing gets going.
+ *                  capabilities before SMP pairing gets going.
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
  *                  *p_oob_data - true, if OOB data is available for the peer
- *device.
+ *                                device.
  *                  *p_auth_req -  Auth request setting (Bonding and MITM
- *required or not)
+ *                                 required or not)
  *                  *p_max_key_size - max key size local device supported.
  *                  *p_init_key - initiator keys.
  *                  *p_resp_key - responder keys.

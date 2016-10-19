@@ -115,7 +115,7 @@ static btif_hf_client_cb_t btif_hf_client_cb;
  * Function        btif_in_hf_client_generic_evt
  *
  * Description     Processes generic events to be sent to JNI that are not
- *triggered from the BTA.
+ *                 triggered from the BTA.
  *                 Always runs in BTIF context
  *
  * Returns          void

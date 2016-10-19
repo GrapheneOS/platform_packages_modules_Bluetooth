@@ -20,7 +20,7 @@
  *
  *  Filename:      btif_sdp_server.cc
  *  Description:   SDP server Bluetooth Interface to create and remove SDP
- *records.
+ *                 records.
  *                 To be used in combination with the RFCOMM/L2CAP(LE) sockets.
  *
  *

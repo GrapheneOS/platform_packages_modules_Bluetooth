@@ -300,7 +300,7 @@ bt_status_t btif_dm_passkey_reply(const bt_bdaddr_t* bd_addr, uint8_t accept,
  * Function         btif_dm_ssp_reply
  *
  * Description      BT SSP Reply - Just Works, Numeric Comparison & Passkey
- *Entry
+ *                  Entry
  *
  * Returns          bt_status_t
  *
@@ -360,8 +360,7 @@ bt_status_t btif_dm_get_remote_services_by_transport(bt_bdaddr_t* remote_addr,
  * Function         btif_dut_mode_configure
  *
  * Description      Configure Test Mode - 'enable' to 1 puts the device in test
- *mode and 0 exits
- *                       test mode
+ *                  mode and 0 exits test mode
  *
  * Returns          BT_STATUS_SUCCESS on success
  *
