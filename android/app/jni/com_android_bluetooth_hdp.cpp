@@ -18,12 +18,6 @@
 
 #define LOG_NDEBUG 0
 
-#define CHECK_CALLBACK_ENV                                                      \
-   if (!checkCallbackThread()) {                                                \
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
-       return;                                                                  \
-   }
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hl.h"
 #include "utils/Log.h"
@@ -38,25 +32,13 @@ static jmethodID method_onChannelStateChanged;
 
 static const bthl_interface_t *sBluetoothHdpInterface = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
-
-static bool checkCallbackThread() {
-    sCallbackEnv = getCallbackEnv();
-
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) {
-        ALOGE("Callback env check fail: env: %p, callback: %p", env, sCallbackEnv);
-        return false;
-    }
-    return true;
-}
 
 // Define callback functions
 static void app_registration_state_callback(int app_id, bthl_app_reg_state_t state) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAppRegistrationState, app_id,
                                  (jint) state);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void channel_state_callback(int app_id, bt_bdaddr_t *bd_addr, int mdep_cfg_index,
@@ -64,17 +46,17 @@ static void channel_state_callback(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
     jbyteArray addr;
     jobject fileDescriptor = NULL;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for channel state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     // TODO(BT) check if fd is only valid for BTHH_CONN_STATE_CONNECTED state
     if (state == BTHL_CONN_STATE_CONNECTED) {
-        fileDescriptor = jniCreateFileDescriptor(sCallbackEnv, fd);
+        fileDescriptor = jniCreateFileDescriptor(sCallbackEnv.get(), fd);
         if (!fileDescriptor) {
             ALOGE("Failed to convert file descriptor, fd: %d", fd);
             sCallbackEnv->DeleteLocalRef(addr);
@@ -85,7 +67,6 @@ static void channel_state_callback(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onChannelStateChanged, app_id, addr,
                                  mdep_cfg_index, channel_id, (jint) state, fileDescriptor);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 

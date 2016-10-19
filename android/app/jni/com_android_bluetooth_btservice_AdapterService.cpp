@@ -63,7 +63,6 @@ static jobject sJniAdapterServiceObj;
 static jobject sJniCallbacksObj;
 static jfieldID sJniCallbacksField;
 
-
 const bt_interface_t* getBluetoothInterface() {
     return sBluetoothInterface;
 }
@@ -72,34 +71,12 @@ JNIEnv* getCallbackEnv() {
     return callbackEnv;
 }
 
-void checkAndClearExceptionFromCallback(JNIEnv* env,
-                                               const char* methodName) {
-    if (env->ExceptionCheck()) {
-        ALOGE("An exception was thrown by callback '%s'.", methodName);
-        LOGE_EX(env);
-        env->ExceptionClear();
-    }
-}
-
-static bool checkCallbackThread() {
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (callbackEnv != env || callbackEnv == NULL) {
-        ALOGE("Callback env check fail: env: %p, callback: %p", env, callbackEnv);
-        return false;
-    }
-    return true;
-}
-
 static void adapter_state_change_callback(bt_state_t status) {
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
-    ALOGV("%s: Status is: %d", __FUNCTION__, status);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    ALOGV("%s: Status is: %d", __func__, status);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_stateChangeCallback, (jint)status);
-
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_stateChangeCallback, (jint)status);
 }
 
 static int get_properties(int num_properties, bt_property_t *properties, jintArray *types,
@@ -130,10 +107,8 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
     jbyteArray val;
     jclass mclass;
 
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     ALOGV("%s: Status is: %d, Properties: %d", __FUNCTION__, status, num_properties);
 
@@ -142,55 +117,50 @@ static void adapter_properties_callback(bt_status_t status, int num_properties,
         return;
     }
 
-    val = (jbyteArray) callbackEnv->NewByteArray(num_properties);
+    val = (jbyteArray) sCallbackEnv->NewByteArray(num_properties);
     if (val == NULL) {
         ALOGE("%s: Error allocating byteArray", __FUNCTION__);
         return;
     }
 
-    mclass = callbackEnv->GetObjectClass(val);
+    mclass = sCallbackEnv->GetObjectClass(val);
 
     /* (BT) Initialize the jobjectArray and jintArray here itself and send the
      initialized array pointers alone to get_properties */
 
-    props = callbackEnv->NewObjectArray(num_properties, mclass,
+    props = sCallbackEnv->NewObjectArray(num_properties, mclass,
                                              NULL);
     if (props == NULL) {
         ALOGE("%s: Error allocating object Array for properties", __FUNCTION__);
         return;
     }
 
-    types = (jintArray)callbackEnv->NewIntArray(num_properties);
+    types = (jintArray)sCallbackEnv->NewIntArray(num_properties);
 
     if (types == NULL) {
         ALOGE("%s: Error allocating int Array for values", __FUNCTION__);
         return;
     }
     // Delete the reference to val and mclass
-    callbackEnv->DeleteLocalRef(mclass);
-    callbackEnv->DeleteLocalRef(val);
+    sCallbackEnv->DeleteLocalRef(mclass);
+    sCallbackEnv->DeleteLocalRef(val);
 
     if (get_properties(num_properties, properties, &types, &props) < 0) {
-        if (props) callbackEnv->DeleteLocalRef(props);
-        if (types) callbackEnv->DeleteLocalRef(types);
+        if (props) sCallbackEnv->DeleteLocalRef(props);
+        if (types) sCallbackEnv->DeleteLocalRef(types);
         return;
     }
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_adapterPropertyChangedCallback, types,
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_adapterPropertyChangedCallback, types,
                                 props);
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(props);
-    callbackEnv->DeleteLocalRef(types);
-    return;
-
+    sCallbackEnv->DeleteLocalRef(props);
+    sCallbackEnv->DeleteLocalRef(types);
 }
 
 static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
                                               int num_properties, bt_property_t *properties) {
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     ALOGV("%s: Status is: %d, Properties: %d", __FUNCTION__, status, num_properties);
 
@@ -199,7 +169,7 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
         return;
     }
 
-    callbackEnv->PushLocalFrame(ADDITIONAL_NREFS);
+    sCallbackEnv->PushLocalFrame(ADDITIONAL_NREFS);
 
     jobjectArray props;
     jbyteArray addr;
@@ -207,68 +177,69 @@ static void remote_device_properties_callback(bt_status_t status, bt_bdaddr_t *b
     jbyteArray val;
     jclass mclass;
 
-    val = (jbyteArray) callbackEnv->NewByteArray(num_properties);
+    val = (jbyteArray) sCallbackEnv->NewByteArray(num_properties);
     if (val == NULL) {
         ALOGE("%s: Error allocating byteArray", __FUNCTION__);
         return;
     }
 
-    mclass = callbackEnv->GetObjectClass(val);
+    mclass = sCallbackEnv->GetObjectClass(val);
 
     /* Initialize the jobjectArray and jintArray here itself and send the
      initialized array pointers alone to get_properties */
 
-    props = callbackEnv->NewObjectArray(num_properties, mclass,
+    props = sCallbackEnv->NewObjectArray(num_properties, mclass,
                                              NULL);
     if (props == NULL) {
         ALOGE("%s: Error allocating object Array for properties", __FUNCTION__);
         return;
     }
 
-    types = (jintArray)callbackEnv->NewIntArray(num_properties);
+    types = (jintArray)sCallbackEnv->NewIntArray(num_properties);
 
     if (types == NULL) {
         ALOGE("%s: Error allocating int Array for values", __FUNCTION__);
         return;
     }
     // Delete the reference to val and mclass
-    callbackEnv->DeleteLocalRef(mclass);
-    callbackEnv->DeleteLocalRef(val);
+    sCallbackEnv->DeleteLocalRef(mclass);
+    sCallbackEnv->DeleteLocalRef(val);
 
-    addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-    if (addr == NULL) goto Fail;
-    if (addr) callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (addr == NULL) {
+      ALOGE("Error while allocation byte array in %s", __FUNCTION__);
+      return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
 
     if (get_properties(num_properties, properties, &types, &props) < 0) {
-        if (props) callbackEnv->DeleteLocalRef(props);
-        if (types) callbackEnv->DeleteLocalRef(types);
-        callbackEnv->PopLocalFrame(NULL);
+        if (props) sCallbackEnv->DeleteLocalRef(props);
+        if (types) sCallbackEnv->DeleteLocalRef(types);
+        sCallbackEnv->PopLocalFrame(NULL);
         return;
     }
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_devicePropertyChangedCallback, addr,
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_devicePropertyChangedCallback, addr,
                                 types, props);
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(props);
-    callbackEnv->DeleteLocalRef(types);
-    callbackEnv->DeleteLocalRef(addr);
-    callbackEnv->PopLocalFrame(NULL);
-    return;
-
-Fail:
-    ALOGE("Error while allocation byte array in %s", __FUNCTION__);
+    sCallbackEnv->DeleteLocalRef(props);
+    sCallbackEnv->DeleteLocalRef(types);
+    sCallbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->PopLocalFrame(NULL);
 }
 
 
 static void device_found_callback(int num_properties, bt_property_t *properties) {
     jbyteArray addr = NULL;
     int addr_index;
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     for (int i = 0; i < num_properties; i++) {
         if (properties[i].type == BT_PROPERTY_BDADDR) {
-            addr = callbackEnv->NewByteArray(properties[i].len);
+            addr = sCallbackEnv->NewByteArray(properties[i].len);
             if (addr) {
-                callbackEnv->SetByteArrayRegion(addr, 0, properties[i].len,
+                sCallbackEnv->SetByteArrayRegion(addr, 0, properties[i].len,
                                                 (jbyte*)properties[i].val);
                 addr_index = i;
             } else {
@@ -288,142 +259,129 @@ static void device_found_callback(int num_properties, bt_property_t *properties)
     remote_device_properties_callback(BT_STATUS_SUCCESS, (bt_bdaddr_t *)properties[addr_index].val,
                                       num_properties, properties);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_deviceFoundCallback, addr);
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_deviceFoundCallback, addr);
+    sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void bond_state_changed_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
                                         bt_bond_state_t state) {
     jbyteArray addr;
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
     if (!bd_addr) {
         ALOGE("Address is null in %s", __FUNCTION__);
         return;
     }
-    addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) {
        ALOGE("Address allocation failed in %s", __FUNCTION__);
        return;
     }
-    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_bondStateChangeCallback, (jint) status,
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_bondStateChangeCallback, (jint) status,
                                 addr, (jint)state);
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void acl_state_changed_callback(bt_status_t status, bt_bdaddr_t *bd_addr,
                                        bt_acl_state_t state)
 {
     jbyteArray addr;
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
+
     if (!bd_addr) {
         ALOGE("Address is null in %s", __FUNCTION__);
         return;
     }
-    addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) {
        ALOGE("Address allocation failed in %s", __FUNCTION__);
        return;
     }
-    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_aclStateChangeCallback, (jint) status,
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_aclStateChangeCallback, (jint) status,
                                 addr, (jint)state);
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void discovery_state_changed_callback(bt_discovery_state_t state) {
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     ALOGV("%s: DiscoveryState:%d ", __FUNCTION__, state);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_discoveryStateChangeCallback,
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_discoveryStateChangeCallback,
                                 (jint)state);
-
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
 }
 
 static void pin_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod,
         bool min_16_digits) {
     jbyteArray addr = NULL;
     jbyteArray devname = NULL;
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
     if (!bd_addr) {
         ALOGE("Address is null in %s", __FUNCTION__);
         return;
     }
 
-    addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-    if (addr == NULL) goto Fail;
-    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    devname = callbackEnv->NewByteArray(sizeof(bt_bdname_t));
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (addr == NULL) goto Fail;
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
+
+    devname = sCallbackEnv->NewByteArray(sizeof(bt_bdname_t));
     if (devname == NULL) goto Fail;
 
-    callbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t), (jbyte*)bdname);
+    sCallbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t), (jbyte*)bdname);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback, addr, devname, cod,
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_pinRequestCallback, addr, devname, cod,
             min_16_digits);
-
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(addr);
-    callbackEnv->DeleteLocalRef(devname);
+    sCallbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->DeleteLocalRef(devname);
     return;
 
 Fail:
-    if (addr) callbackEnv->DeleteLocalRef(addr);
-    if (devname) callbackEnv->DeleteLocalRef(devname);
-    ALOGE("Error while allocating in: %s", __FUNCTION__);
+    if (addr) sCallbackEnv->DeleteLocalRef(addr);
+    if (devname) sCallbackEnv->DeleteLocalRef(devname);
+    ALOGE("Error while allocating in: %s", __func__);
 }
 
 static void ssp_request_callback(bt_bdaddr_t *bd_addr, bt_bdname_t *bdname, uint32_t cod,
                                  bt_ssp_variant_t pairing_variant, uint32_t pass_key) {
     jbyteArray addr = NULL;
     jbyteArray devname = NULL;
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
     if (!bd_addr) {
         ALOGE("Address is null in %s", __FUNCTION__);
         return;
     }
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    addr = callbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) goto Fail;
-    callbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
+    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *)bd_addr);
 
-    devname = callbackEnv->NewByteArray(sizeof(bt_bdname_t));
+    devname = sCallbackEnv->NewByteArray(sizeof(bt_bdname_t));
     if (devname == NULL) goto Fail;
-    callbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t), (jbyte*)bdname);
+    sCallbackEnv->SetByteArrayRegion(devname, 0, sizeof(bt_bdname_t), (jbyte*)bdname);
 
-    callbackEnv->CallVoidMethod(sJniCallbacksObj, method_sspRequestCallback, addr, devname, cod,
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_sspRequestCallback, addr, devname, cod,
                                 (jint) pairing_variant, pass_key);
 
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(addr);
-    callbackEnv->DeleteLocalRef(devname);
+    sCallbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->DeleteLocalRef(devname);
     return;
 
 Fail:
-    if (addr) callbackEnv->DeleteLocalRef(addr);
-    if (devname) callbackEnv->DeleteLocalRef(devname);
+    if (addr) sCallbackEnv->DeleteLocalRef(addr);
+    if (devname) sCallbackEnv->DeleteLocalRef(devname);
 
     ALOGE("Error while allocating in: %s", __FUNCTION__);
 }
@@ -439,7 +397,7 @@ static void callback_thread_event(bt_cb_thread_evt event) {
         vm->AttachCurrentThread(&callbackEnv, &args);
         ALOGV("Callback thread attached: %p", callbackEnv);
     } else if (event == DISASSOCIATE_JVM) {
-        if (!checkCallbackThread()) {
+        if (callbackEnv != AndroidRuntime::getJNIEnv()) {
             ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
             return;
         }
@@ -456,35 +414,31 @@ static void le_test_mode_recv_callback (bt_status_t status, uint16_t packet_coun
 }
 
 static void energy_info_recv_callback(bt_activity_energy_info *p_energy_info,
-                                      bt_uid_traffic_t* uid_data)
-{
-    if (!checkCallbackThread()) {
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-       return;
-    }
+                                      bt_uid_traffic_t* uid_data) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     jsize len = 0;
     for (bt_uid_traffic_t* data = uid_data; data->app_uid != -1; data++) {
         len++;
     }
 
-    jobjectArray array = callbackEnv->NewObjectArray(len, android_bluetooth_UidTraffic.clazz, NULL);
+    jobjectArray array = sCallbackEnv->NewObjectArray(len, android_bluetooth_UidTraffic.clazz, NULL);
     jsize i = 0;
     for (bt_uid_traffic_t* data = uid_data; data->app_uid != -1; data++) {
-        jobject uidObj = callbackEnv->NewObject(android_bluetooth_UidTraffic.clazz,
+        jobject uidObj = sCallbackEnv->NewObject(android_bluetooth_UidTraffic.clazz,
                                                 android_bluetooth_UidTraffic.constructor,
                                                 (jint) data->app_uid, (jlong) data->rx_bytes,
                                                 (jlong) data->tx_bytes);
-        callbackEnv->SetObjectArrayElement(array, i++, uidObj);
-        callbackEnv->DeleteLocalRef(uidObj);
+        sCallbackEnv->SetObjectArrayElement(array, i++, uidObj);
+        sCallbackEnv->DeleteLocalRef(uidObj);
     }
 
-    callbackEnv->CallVoidMethod(sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
+    sCallbackEnv->CallVoidMethod(sJniAdapterServiceObj, method_energyInfo, p_energy_info->status,
         p_energy_info->ctrl_state, p_energy_info->tx_time, p_energy_info->rx_time,
         p_energy_info->idle_time, p_energy_info->energy_used, array);
 
-    checkAndClearExceptionFromCallback(callbackEnv, __FUNCTION__);
-    callbackEnv->DeleteLocalRef(array);
+    sCallbackEnv->DeleteLocalRef(array);
 }
 
 static bt_callbacks_t sBluetoothCallbacks = {

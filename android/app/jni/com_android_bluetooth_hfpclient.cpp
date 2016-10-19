@@ -23,17 +23,10 @@
 #include "utils/Log.h"
 #include "android_runtime/AndroidRuntime.h"
 
-#define CHECK_CALLBACK_ENV                                                      \
-   if (!checkCallbackThread()) {                                                \
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
-       return;                                                                  \
-   }
-
 namespace android {
 
 static bthf_client_interface_t *sBluetoothHfpClientInterface = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
 
 static jmethodID method_onConnectionStateChanged;
 static jmethodID method_onAudioStateChanged;
@@ -57,137 +50,124 @@ static jmethodID method_onInBandRing;
 static jmethodID method_onLastVoiceTagNumber;
 static jmethodID method_onRingIndication;
 
-static bool checkCallbackThread() {
-    // Always fetch the latest callbackEnv from AdapterService.
-    // Caching this could cause this sCallbackEnv to go out-of-sync
-    // with the AdapterService's ENV if an ASSOCIATE/DISASSOCIATE event
-    // is received
-    sCallbackEnv = getCallbackEnv();
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
-    return true;
-}
-
 static void connection_state_cb(bthf_client_connection_state_t state, unsigned int peer_feat, unsigned int chld_feat, bt_bdaddr_t *bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for connection state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged, (jint) state, (jint) peer_feat, (jint) chld_feat, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void audio_state_cb(bthf_client_audio_state_t state, bt_bdaddr_t *bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged, (jint) state, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void vr_cmd_cb(bthf_client_vr_state_t state) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVrStateChanged, (jint) state);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void network_state_cb (bthf_client_network_state_t state) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNetworkState, (jint) state);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void network_roaming_cb (bthf_client_service_type_t type) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNetworkRoaming, (jint) type);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void network_signal_cb (int signal) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNetworkSignal, (jint) signal);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void battery_level_cb (int level) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatteryLevel, (jint) level);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void current_operator_cb (const char *name) {
     jstring js_name;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     js_name = sCallbackEnv->NewStringUTF(name);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCurrentOperator, js_name);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_name);
 }
 
 static void call_cb (bthf_client_call_t call) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCall, (jint) call);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void callsetup_cb (bthf_client_callsetup_t callsetup) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCallSetup, (jint) callsetup);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void callheld_cb (bthf_client_callheld_t callheld) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCallHeld, (jint) callheld);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void resp_and_hold_cb (bthf_client_resp_and_hold_t resp_and_hold) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onRespAndHold, (jint) resp_and_hold);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void clip_cb (const char *number) {
     jstring js_number;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     js_number = sCallbackEnv->NewStringUTF(number);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClip, js_number);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_number);
 }
 
 static void call_waiting_cb (const char *number) {
     jstring js_number;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     js_number = sCallbackEnv->NewStringUTF(number);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCallWaiting, js_number);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_number);
 }
 
@@ -197,58 +177,58 @@ static void current_calls_cb (int index, bthf_client_call_direction_t dir,
                                             const char *number) {
     jstring js_number;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     js_number = sCallbackEnv->NewStringUTF(number);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCurrentCalls, index, dir, state, mpty, js_number);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_number);
 }
 
 static void volume_change_cb (bthf_client_volume_type_t type, int volume) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVolumeChange, (jint) type, (jint) volume);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void cmd_complete_cb (bthf_client_cmd_complete_t type, int cme) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCmdResult, (jint) type, (jint) cme);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void subscriber_info_cb (const char *name, bthf_client_subscriber_service_type_t type) {
     jstring js_name;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     js_name = sCallbackEnv->NewStringUTF(name);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSubscriberInfo, js_name, (jint) type);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_name);
 }
 
 static void in_band_ring_cb (bthf_client_in_band_ring_state_t in_band) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onInBandRing, (jint) in_band);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void last_voice_tag_number_cb (const char *number) {
     jstring js_number;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     js_number = sCallbackEnv->NewStringUTF(number);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onLastVoiceTagNumber, js_number);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_number);
 }
 
 static void ring_indication_cb () {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onRingIndication);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static bthf_client_callbacks_t sBluetoothHfpClientCallbacks = {
