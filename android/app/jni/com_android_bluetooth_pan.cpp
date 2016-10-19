@@ -18,12 +18,6 @@
 
 #define LOG_NDEBUG 0
 
-#define CHECK_CALLBACK_ENV                                                      \
-   if (!checkCallbackThread()) {                                                \
-       error("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
-       return;                                                                  \
-   }
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_pan.h"
 #include "utils/Log.h"
@@ -46,15 +40,6 @@ static jmethodID method_onControlStateChanged;
 
 static const btpan_interface_t *sPanIf = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
-
-static bool checkCallbackThread() {
-    sCallbackEnv = getCallbackEnv();
-
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
-    return true;
-}
 
 static void control_state_callback(btpan_control_state_t state, int local_role, bt_status_t error,
                 const char* ifname) {
@@ -63,7 +48,8 @@ static void control_state_callback(btpan_control_state_t state, int local_role, 
         error("Callbacks Obj is NULL: '%s", __FUNCTION__);
         return;
     }
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     jstring js_ifname = sCallbackEnv->NewStringUTF(ifname);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onControlStateChanged, (jint)local_role, (jint)state,
                                 (jint)error, js_ifname);
@@ -78,18 +64,17 @@ static void connection_state_callback(btpan_connection_state_t state, bt_status_
         error("Callbacks Obj is NULL: '%s", __FUNCTION__);
         return;
     }
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         error("Fail to new jbyteArray bd addr for PAN channel state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectStateChanged, addr, (jint) state,
                                     (jint)error, (jint)local_role, (jint)remote_role);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 

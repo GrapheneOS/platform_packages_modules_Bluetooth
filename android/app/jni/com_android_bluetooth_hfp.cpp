@@ -18,12 +18,6 @@
 
 #define LOG_NDEBUG 0
 
-#define CHECK_CALLBACK_ENV                                                      \
-   if (!checkCallbackThread()) {                                                \
-       ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
-       return;                                                                  \
-   }
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hf.h"
 #include "utils/Log.h"
@@ -55,28 +49,16 @@ static jmethodID method_onAtBiev;
 
 static const bthf_interface_t *sBluetoothHfpInterface = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
-
-static bool checkCallbackThread() {
-    // Always fetch the latest callbackEnv from AdapterService.
-    // Caching this could cause this sCallbackEnv to go out-of-sync
-    // with the AdapterService's ENV if an ASSOCIATE/DISASSOCIATE event
-    // is received
-    //if (sCallbackEnv == NULL) {
-    sCallbackEnv = getCallbackEnv();
-    //}
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
-    return true;
-}
 
 static jbyteArray marshall_bda(bt_bdaddr_t* bd_addr)
 {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return NULL;
+
     jbyteArray addr;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return NULL;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
@@ -88,115 +70,109 @@ static void connection_state_callback(bthf_connection_state_t state, bt_bdaddr_t
 
     ALOGI("%s", __FUNCTION__);
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for connection state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged,
                                  (jint) state, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void audio_state_callback(bthf_audio_state_t state, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged, (jint) state, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void voice_recognition_callback(bthf_vr_state_t state, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVrStateChanged, (jint) state, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void answer_call_callback(bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAnswerCall, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void hangup_call_callback(bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onHangupCall, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void volume_control_callback(bthf_volume_type_t type, int volume, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVolumeChanged, (jint) type,
                                                   (jint) volume, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void dial_call_callback(char *number, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
@@ -204,7 +180,6 @@ static void dial_call_callback(char *number, bt_bdaddr_t* bd_addr) {
     jstring js_number = sCallbackEnv->NewStringUTF(number);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onDialCall,
                                  js_number, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_number);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -212,144 +187,137 @@ static void dial_call_callback(char *number, bt_bdaddr_t* bd_addr) {
 static void dtmf_cmd_callback(char dtmf, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     // TBD dtmf has changed from int to char
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSendDtmf, dtmf, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void noice_reduction_callback(bthf_nrec_t nrec, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNoiceReductionEnable,
                                  nrec == BTHF_NREC_START, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void wbs_callback(bthf_wbs_config_t wbs_config, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     if ((addr = marshall_bda(bd_addr)) == NULL)
         return;
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWBS, wbs_config, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void at_chld_callback(bthf_chld_type_t chld, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtChld, chld, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void at_cnum_callback(bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtCnum, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void at_cind_callback(bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtCind, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void at_cops_callback(bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtCops, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void at_clcc_callback(bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtClcc, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void unknown_at_callback(char *at_string, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
@@ -357,7 +325,6 @@ static void unknown_at_callback(char *at_string, bt_bdaddr_t* bd_addr) {
     jstring js_at_string = sCallbackEnv->NewStringUTF(at_string);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onUnknownAt,
                                  js_at_string, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(js_at_string);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -365,22 +332,22 @@ static void unknown_at_callback(char *at_string, bt_bdaddr_t* bd_addr) {
 static void key_pressed_callback(bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for audio state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte *) bd_addr);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onKeyPressed, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void at_bind_callback(char *at_string, bt_bdaddr_t *bd_addr) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     jbyteArray addr = marshall_bda(bd_addr);
     if (addr == NULL)
@@ -389,21 +356,20 @@ static void at_bind_callback(char *at_string, bt_bdaddr_t *bd_addr) {
     jstring js_at_string = sCallbackEnv->NewStringUTF(at_string);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBind, js_at_string, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 
     sCallbackEnv->DeleteLocalRef(js_at_string);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void at_biev_callback(bthf_hf_ind_type_t ind_id, int ind_value, bt_bdaddr_t *bd_addr) {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     jbyteArray addr = marshall_bda(bd_addr);
     if (addr == NULL)
         return;
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBiev, ind_id, (jint)ind_value, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
