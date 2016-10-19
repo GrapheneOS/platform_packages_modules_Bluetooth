@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-
 #define LOG_TAG "bt_osi_metrics"
 
 #include "osi/include/metrics.h"
@@ -44,7 +43,7 @@ using clearcut::connectivity::ScanEvent_ScanEventType;
 using clearcut::connectivity::WakeEvent;
 using clearcut::connectivity::WakeEvent_WakeEventType;
 
-BluetoothLog *pending;
+BluetoothLog* pending;
 std::mutex log_lock;
 
 static void lazy_initialize(void) {
@@ -58,20 +57,17 @@ void metrics_pair_event(uint32_t disconnect_reason, uint64_t timestamp_ms,
   std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
-  PairEvent *event = pending->add_pair_event();
+  PairEvent* event = pending->add_pair_event();
 
-  DeviceInfo *info = event->mutable_device_paired_with();
+  DeviceInfo* info = event->mutable_device_paired_with();
 
   info->set_device_class(device_class);
 
   DeviceInfo_DeviceType type = DeviceInfo::DEVICE_TYPE_UNKNOWN;
 
-  if (device_type == DEVICE_TYPE_BREDR)
-    type = DeviceInfo::DEVICE_TYPE_BREDR;
-  if (device_type == DEVICE_TYPE_LE)
-    type = DeviceInfo::DEVICE_TYPE_LE;
-  if (device_type == DEVICE_TYPE_DUMO)
-    type = DeviceInfo::DEVICE_TYPE_DUMO;
+  if (device_type == DEVICE_TYPE_BREDR) type = DeviceInfo::DEVICE_TYPE_BREDR;
+  if (device_type == DEVICE_TYPE_LE) type = DeviceInfo::DEVICE_TYPE_LE;
+  if (device_type == DEVICE_TYPE_DUMO) type = DeviceInfo::DEVICE_TYPE_DUMO;
 
   info->set_device_type(type);
 
@@ -80,54 +76,46 @@ void metrics_pair_event(uint32_t disconnect_reason, uint64_t timestamp_ms,
   event->set_event_time_millis(timestamp_ms);
 }
 
-void metrics_wake_event(wake_event_type_t type, const char *requestor,
-                        const char *name, uint64_t timestamp_ms) {
+void metrics_wake_event(wake_event_type_t type, const char* requestor,
+                        const char* name, uint64_t timestamp_ms) {
   std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
-  WakeEvent *event = pending->add_wake_event();
+  WakeEvent* event = pending->add_wake_event();
 
   WakeEvent_WakeEventType waketype = WakeEvent::UNKNOWN;
 
-  if (type == WAKE_EVENT_ACQUIRED)
-    waketype = WakeEvent::ACQUIRED;
-  if (type == WAKE_EVENT_RELEASED)
-    waketype = WakeEvent::RELEASED;
+  if (type == WAKE_EVENT_ACQUIRED) waketype = WakeEvent::ACQUIRED;
+  if (type == WAKE_EVENT_RELEASED) waketype = WakeEvent::RELEASED;
 
   event->set_wake_event_type(waketype);
 
-  if (requestor)
-    event->set_requestor(requestor);
+  if (requestor) event->set_requestor(requestor);
 
-  if (name)
-    event->set_name(name);
+  if (name) event->set_name(name);
 
   event->set_event_time_millis(timestamp_ms);
 }
 
-void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
+void metrics_scan_event(bool start, const char* initator, scan_tech_t type,
                         uint32_t results, uint64_t timestamp_ms) {
   std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
-  ScanEvent *event = pending->add_scan_event();
+  ScanEvent* event = pending->add_scan_event();
 
   if (start)
     event->set_scan_event_type(ScanEvent::SCAN_EVENT_START);
   else
     event->set_scan_event_type(ScanEvent::SCAN_EVENT_STOP);
 
-  if (initator)
-    event->set_initiator(initator);
+  if (initator) event->set_initiator(initator);
 
   ScanEvent::ScanTechnologyType scantype = ScanEvent::SCAN_TYPE_UNKNOWN;
 
-  if (type == SCAN_TECH_TYPE_LE)
-    scantype = ScanEvent::SCAN_TECH_TYPE_LE;
-  if (type == SCAN_TECH_TYPE_BREDR)
-    scantype = ScanEvent::SCAN_TECH_TYPE_BREDR;
-  if (type == SCAN_TECH_TYPE_BOTH)
-    scantype = ScanEvent::SCAN_TECH_TYPE_BOTH;
+  if (type == SCAN_TECH_TYPE_LE) scantype = ScanEvent::SCAN_TECH_TYPE_LE;
+  if (type == SCAN_TECH_TYPE_BREDR) scantype = ScanEvent::SCAN_TECH_TYPE_BREDR;
+  if (type == SCAN_TECH_TYPE_BOTH) scantype = ScanEvent::SCAN_TECH_TYPE_BOTH;
 
   event->set_scan_technology_type(scantype);
 
@@ -136,24 +124,20 @@ void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
   event->set_event_time_millis(timestamp_ms);
 }
 
-void metrics_a2dp_session(int64_t session_duration_sec,
-                          const char *disconnect_reason,
-                          uint32_t device_class,
-                          int32_t media_timer_min_ms,
-                          int32_t media_timer_max_ms,
-                          int32_t media_timer_avg_ms,
-                          int32_t buffer_overruns_max_count,
-                          int32_t buffer_overruns_total,
-                          float buffer_underruns_average,
-                          int32_t buffer_underruns_count) {
+void metrics_a2dp_session(
+    int64_t session_duration_sec, const char* disconnect_reason,
+    uint32_t device_class, int32_t media_timer_min_ms,
+    int32_t media_timer_max_ms, int32_t media_timer_avg_ms,
+    int32_t buffer_overruns_max_count, int32_t buffer_overruns_total,
+    float buffer_underruns_average, int32_t buffer_underruns_count) {
   std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
-  BluetoothSession *bt_session = pending->add_session();
+  BluetoothSession* bt_session = pending->add_session();
 
   // Set connection type: for A2DP it is always BR/EDR
   BluetoothSession::ConnectionTechnologyType conn_type =
-    BluetoothSession::CONNECTION_TECHNOLOGY_TYPE_BREDR;
+      BluetoothSession::CONNECTION_TECHNOLOGY_TYPE_BREDR;
   bt_session->set_connection_technology_type(conn_type);
 
   bt_session->set_session_duration_sec(session_duration_sec);
@@ -161,11 +145,11 @@ void metrics_a2dp_session(int64_t session_duration_sec,
     bt_session->set_disconnect_reason(disconnect_reason);
 
   // Set device: class and type are pre-defined
-  DeviceInfo *info = bt_session->mutable_device_connected_to();
+  DeviceInfo* info = bt_session->mutable_device_connected_to();
   info->set_device_class(device_class);
   info->set_device_type(DeviceInfo::DEVICE_TYPE_BREDR);
 
-  A2DPSession *a2dp_session = bt_session->mutable_a2dp_session();
+  A2DPSession* a2dp_session = bt_session->mutable_a2dp_session();
   a2dp_session->set_media_timer_min_millis(media_timer_min_ms);
   a2dp_session->set_media_timer_max_millis(media_timer_max_ms);
   a2dp_session->set_media_timer_avg_millis(media_timer_avg_ms);

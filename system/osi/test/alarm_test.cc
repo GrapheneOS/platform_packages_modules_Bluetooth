@@ -26,63 +26,58 @@
 #include "osi/include/semaphore.h"
 #include "osi/include/thread.h"
 
-static semaphore_t *semaphore;
+static semaphore_t* semaphore;
 static int cb_counter;
 static int cb_misordered_counter;
 
 static const uint64_t EPSILON_MS = 50;
 
-static void msleep(uint64_t ms) {
-  usleep(ms * 1000);
-}
+static void msleep(uint64_t ms) { usleep(ms * 1000); }
 
 class AlarmTest : public AlarmTestHarness {
-  protected:
-    virtual void SetUp() {
-      AlarmTestHarness::SetUp();
-      cb_counter = 0;
-      cb_misordered_counter = 0;
+ protected:
+  virtual void SetUp() {
+    AlarmTestHarness::SetUp();
+    cb_counter = 0;
+    cb_misordered_counter = 0;
 
-      semaphore = semaphore_new(0);
-    }
+    semaphore = semaphore_new(0);
+  }
 
-    virtual void TearDown() {
-      semaphore_free(semaphore);
-      AlarmTestHarness::TearDown();
-    }
+  virtual void TearDown() {
+    semaphore_free(semaphore);
+    AlarmTestHarness::TearDown();
+  }
 };
 
-static void cb(UNUSED_ATTR void *data) {
+static void cb(UNUSED_ATTR void* data) {
   ++cb_counter;
   semaphore_post(semaphore);
 }
 
-static void ordered_cb(void *data) {
+static void ordered_cb(void* data) {
   int i = PTR_TO_INT(data);
-  if (i != cb_counter)
-    cb_misordered_counter++;
+  if (i != cb_counter) cb_misordered_counter++;
   ++cb_counter;
   semaphore_post(semaphore);
 }
 
 TEST_F(AlarmTest, test_new_free_simple) {
-  alarm_t *alarm = alarm_new("alarm_test.test_new_free_simple");
+  alarm_t* alarm = alarm_new("alarm_test.test_new_free_simple");
   ASSERT_TRUE(alarm != NULL);
   alarm_free(alarm);
 }
 
-TEST_F(AlarmTest, test_free_null) {
-  alarm_free(NULL);
-}
+TEST_F(AlarmTest, test_free_null) { alarm_free(NULL); }
 
 TEST_F(AlarmTest, test_simple_cancel) {
-  alarm_t *alarm = alarm_new("alarm_test.test_simple_cancel");
+  alarm_t* alarm = alarm_new("alarm_test.test_simple_cancel");
   alarm_cancel(alarm);
   alarm_free(alarm);
 }
 
 TEST_F(AlarmTest, test_cancel) {
-  alarm_t *alarm = alarm_new("alarm_test.test_cancel");
+  alarm_t* alarm = alarm_new("alarm_test.test_cancel");
   alarm_set(alarm, 10, cb, NULL);
   alarm_cancel(alarm);
 
@@ -94,7 +89,7 @@ TEST_F(AlarmTest, test_cancel) {
 }
 
 TEST_F(AlarmTest, test_cancel_idempotent) {
-  alarm_t *alarm = alarm_new("alarm_test.test_cancel_idempotent");
+  alarm_t* alarm = alarm_new("alarm_test.test_cancel_idempotent");
   alarm_set(alarm, 10, cb, NULL);
   alarm_cancel(alarm);
   alarm_cancel(alarm);
@@ -103,7 +98,7 @@ TEST_F(AlarmTest, test_cancel_idempotent) {
 }
 
 TEST_F(AlarmTest, test_set_short) {
-  alarm_t *alarm = alarm_new("alarm_test.test_set_short");
+  alarm_t* alarm = alarm_new("alarm_test.test_set_short");
 
   alarm_set(alarm, 10, cb, NULL);
 
@@ -119,7 +114,7 @@ TEST_F(AlarmTest, test_set_short) {
 }
 
 TEST_F(AlarmTest, test_set_short_periodic) {
-  alarm_t *alarm = alarm_new_periodic("alarm_test.test_set_short_periodic");
+  alarm_t* alarm = alarm_new_periodic("alarm_test.test_set_short_periodic");
 
   alarm_set(alarm, 10, cb, NULL);
 
@@ -139,7 +134,7 @@ TEST_F(AlarmTest, test_set_short_periodic) {
 }
 
 TEST_F(AlarmTest, test_set_zero_periodic) {
-  alarm_t *alarm = alarm_new_periodic("alarm_test.test_set_zero_periodic");
+  alarm_t* alarm = alarm_new_periodic("alarm_test.test_set_zero_periodic");
 
   alarm_set(alarm, 0, cb, NULL);
 
@@ -158,7 +153,7 @@ TEST_F(AlarmTest, test_set_zero_periodic) {
 }
 
 TEST_F(AlarmTest, test_set_long) {
-  alarm_t *alarm = alarm_new("alarm_test.test_set_long");
+  alarm_t* alarm = alarm_new("alarm_test.test_set_long");
   alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
@@ -173,10 +168,8 @@ TEST_F(AlarmTest, test_set_long) {
 }
 
 TEST_F(AlarmTest, test_set_short_short) {
-  alarm_t *alarm[2] = {
-    alarm_new("alarm_test.test_set_short_short_0"),
-    alarm_new("alarm_test.test_set_short_short_1")
-  };
+  alarm_t* alarm[2] = {alarm_new("alarm_test.test_set_short_short_0"),
+                       alarm_new("alarm_test.test_set_short_short_1")};
 
   alarm_set(alarm[0], 10, cb, NULL);
   alarm_set(alarm[1], 20, cb, NULL);
@@ -199,13 +192,12 @@ TEST_F(AlarmTest, test_set_short_short) {
 }
 
 TEST_F(AlarmTest, test_set_short_long) {
-  alarm_t *alarm[2] = {
-    alarm_new("alarm_test.test_set_short_long_0"),
-    alarm_new("alarm_test.test_set_short_long_1")
-  };
+  alarm_t* alarm[2] = {alarm_new("alarm_test.test_set_short_long_0"),
+                       alarm_new("alarm_test.test_set_short_long_1")};
 
   alarm_set(alarm[0], 10, cb, NULL);
-  alarm_set(alarm[1], 10 + TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
+  alarm_set(alarm[1], 10 + TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb,
+            NULL);
 
   EXPECT_EQ(cb_counter, 0);
   EXPECT_TRUE(WakeLockHeld());
@@ -225,13 +217,12 @@ TEST_F(AlarmTest, test_set_short_long) {
 }
 
 TEST_F(AlarmTest, test_set_long_long) {
-  alarm_t *alarm[2] = {
-    alarm_new("alarm_test.test_set_long_long_0"),
-    alarm_new("alarm_test.test_set_long_long_1")
-  };
+  alarm_t* alarm[2] = {alarm_new("alarm_test.test_set_long_long_0"),
+                       alarm_new("alarm_test.test_set_long_long_1")};
 
   alarm_set(alarm[0], TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
-  alarm_set(alarm[1], 2 * (TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS), cb, NULL);
+  alarm_set(alarm[1], 2 * (TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS), cb,
+            NULL);
 
   EXPECT_EQ(cb_counter, 0);
   EXPECT_FALSE(WakeLockHeld());
@@ -251,9 +242,9 @@ TEST_F(AlarmTest, test_set_long_long) {
 }
 
 TEST_F(AlarmTest, test_is_scheduled) {
-  alarm_t *alarm = alarm_new("alarm_test.test_is_scheduled");
+  alarm_t* alarm = alarm_new("alarm_test.test_is_scheduled");
 
-  EXPECT_FALSE(alarm_is_scheduled((alarm_t *)NULL));
+  EXPECT_FALSE(alarm_is_scheduled((alarm_t*)NULL));
   EXPECT_FALSE(alarm_is_scheduled(alarm));
   alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
   EXPECT_TRUE(alarm_is_scheduled(alarm));
@@ -272,11 +263,11 @@ TEST_F(AlarmTest, test_is_scheduled) {
 
 // Test whether the callbacks are invoked in the expected order
 TEST_F(AlarmTest, test_callback_ordering) {
-  alarm_t *alarms[100];
+  alarm_t* alarms[100];
 
   for (int i = 0; i < 100; i++) {
-    const std::string alarm_name = "alarm_test.test_callback_ordering[" +
-      std::to_string(i) + "]";
+    const std::string alarm_name =
+        "alarm_test.test_callback_ordering[" + std::to_string(i) + "]";
     alarms[i] = alarm_new(alarm_name.c_str());
   }
 
@@ -291,8 +282,7 @@ TEST_F(AlarmTest, test_callback_ordering) {
   EXPECT_EQ(cb_counter, 100);
   EXPECT_EQ(cb_misordered_counter, 0);
 
-  for (int i = 0; i < 100; i++)
-    alarm_free(alarms[i]);
+  for (int i = 0; i < 100; i++) alarm_free(alarms[i]);
 
   EXPECT_FALSE(WakeLockHeld());
 }
@@ -300,16 +290,16 @@ TEST_F(AlarmTest, test_callback_ordering) {
 // Test whether the callbacks are involed in the expected order on a
 // separate queue.
 TEST_F(AlarmTest, test_callback_ordering_on_queue) {
-  alarm_t *alarms[100];
-  fixed_queue_t *queue = fixed_queue_new(SIZE_MAX);
-  thread_t *thread = thread_new("timers.test_callback_ordering_on_queue.thread");
+  alarm_t* alarms[100];
+  fixed_queue_t* queue = fixed_queue_new(SIZE_MAX);
+  thread_t* thread =
+      thread_new("timers.test_callback_ordering_on_queue.thread");
 
   alarm_register_processing_queue(queue, thread);
 
   for (int i = 0; i < 100; i++) {
     const std::string alarm_name =
-      "alarm_test.test_callback_ordering_on_queue[" +
-      std::to_string(i) + "]";
+        "alarm_test.test_callback_ordering_on_queue[" + std::to_string(i) + "]";
     alarms[i] = alarm_new(alarm_name.c_str());
   }
 
@@ -324,8 +314,7 @@ TEST_F(AlarmTest, test_callback_ordering_on_queue) {
   EXPECT_EQ(cb_counter, 100);
   EXPECT_EQ(cb_misordered_counter, 0);
 
-  for (int i = 0; i < 100; i++)
-    alarm_free(alarms[i]);
+  for (int i = 0; i < 100; i++) alarm_free(alarms[i]);
 
   EXPECT_FALSE(WakeLockHeld());
 
@@ -337,17 +326,17 @@ TEST_F(AlarmTest, test_callback_ordering_on_queue) {
 // Test whether unregistering a processing queue cancels all timers using
 // that queue.
 TEST_F(AlarmTest, test_unregister_processing_queue) {
-  alarm_t *alarms[100];
-  fixed_queue_t *queue = fixed_queue_new(SIZE_MAX);
-  thread_t *thread =
-    thread_new("timers.test_unregister_processing_queue.thread");
+  alarm_t* alarms[100];
+  fixed_queue_t* queue = fixed_queue_new(SIZE_MAX);
+  thread_t* thread =
+      thread_new("timers.test_unregister_processing_queue.thread");
 
   alarm_register_processing_queue(queue, thread);
 
   for (int i = 0; i < 100; i++) {
     const std::string alarm_name =
-      "alarm_test.test_unregister_processing_queue[" +
-      std::to_string(i) + "]";
+        "alarm_test.test_unregister_processing_queue[" + std::to_string(i) +
+        "]";
     alarms[i] = alarm_new(alarm_name.c_str());
   }
 
@@ -356,7 +345,8 @@ TEST_F(AlarmTest, test_unregister_processing_queue) {
     alarm_set_on_queue(alarms[i], 100, ordered_cb, INT_TO_PTR(i), queue);
   }
   for (int i = 50; i < 100; i++) {
-    alarm_set_on_queue(alarms[i], 1000 * 1000, ordered_cb, INT_TO_PTR(i), queue);
+    alarm_set_on_queue(alarms[i], 1000 * 1000, ordered_cb, INT_TO_PTR(i),
+                       queue);
   }
 
   // Wait until half of the timers have expired
@@ -395,17 +385,17 @@ TEST_F(AlarmTest, test_unregister_processing_queue) {
 // Test whether unregistering a processing queue cancels all periodic timers
 // using that queue.
 TEST_F(AlarmTest, test_periodic_unregister_processing_queue) {
-  alarm_t *alarms[5];
-  fixed_queue_t *queue = fixed_queue_new(SIZE_MAX);
-  thread_t *thread =
-    thread_new("timers.test_periodic_unregister_processing_queue.thread");
+  alarm_t* alarms[5];
+  fixed_queue_t* queue = fixed_queue_new(SIZE_MAX);
+  thread_t* thread =
+      thread_new("timers.test_periodic_unregister_processing_queue.thread");
 
   alarm_register_processing_queue(queue, thread);
 
   for (int i = 0; i < 5; i++) {
     const std::string alarm_name =
-      "alarm_test.test_periodic_unregister_processing_queue[" +
-      std::to_string(i) + "]";
+        "alarm_test.test_periodic_unregister_processing_queue[" +
+        std::to_string(i) + "]";
     alarms[i] = alarm_new_periodic(alarm_name.c_str());
   }
 
@@ -453,9 +443,9 @@ TEST_F(AlarmTest, test_periodic_unregister_processing_queue) {
 // Try to catch any race conditions between the timer callback and |alarm_free|.
 TEST_F(AlarmTest, test_callback_free_race) {
   for (int i = 0; i < 1000; ++i) {
-    const std::string alarm_name = "alarm_test.test_callback_free_race[" +
-      std::to_string(i) + "]";
-    alarm_t *alarm = alarm_new(alarm_name.c_str());
+    const std::string alarm_name =
+        "alarm_test.test_callback_free_race[" + std::to_string(i) + "]";
+    alarm_t* alarm = alarm_new(alarm_name.c_str());
     alarm_set(alarm, 0, cb, NULL);
     alarm_free(alarm);
   }

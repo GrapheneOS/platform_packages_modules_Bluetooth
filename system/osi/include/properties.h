@@ -34,11 +34,11 @@ extern "C" {
 // (the length does not include the terminating zero).
 // If the property read fails or returns an empty value, the |default_value|
 // is used (if nonnull).
-int osi_property_get(const char *key, char *value, const char *default_value);
+int osi_property_get(const char* key, char* value, const char* default_value);
 
 // Write value of property associated with key |key| to |value|.
 // Returns 0 on success, < 0 on failure
-int osi_property_set(const char *key, const char *value);
+int osi_property_set(const char* key, const char* value);
 
 #ifdef __cplusplus
 }

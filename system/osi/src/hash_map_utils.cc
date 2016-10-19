@@ -27,27 +27,27 @@
 #include "osi/include/osi.h"
 
 std::unordered_map<std::string, std::string>
-hash_map_utils_new_from_string_params(const char *params) {
+hash_map_utils_new_from_string_params(const char* params) {
   assert(params != NULL);
 
   std::unordered_map<std::string, std::string> map;
 
-  char *str = osi_strdup(params);
+  char* str = osi_strdup(params);
   if (!str) return map;
 
   LOG_VERBOSE(LOG_TAG, "%s: source string: '%s'", __func__, str);
 
   // Parse |str| and add extracted key-and-value pair(s) in |map|.
   int items = 0;
-  char *tmpstr;
-  char *kvpair = strtok_r(str, ";", &tmpstr);
+  char* tmpstr;
+  char* kvpair = strtok_r(str, ";", &tmpstr);
   while (kvpair && *kvpair) {
-    char *eq = strchr(kvpair, '=');
+    char* eq = strchr(kvpair, '=');
 
     if (eq == kvpair) goto next_pair;
 
-    char *key;
-    char *value;
+    char* key;
+    char* value;
     if (eq) {
       key = osi_strndup(kvpair, eq - kvpair);
 
@@ -76,8 +76,8 @@ hash_map_utils_new_from_string_params(const char *params) {
 }
 
 void hash_map_utils_dump_string_keys_string_values(
-    std::unordered_map<std::string, std::string> &map) {
-  for (const auto &ptr : map) {
+    std::unordered_map<std::string, std::string>& map) {
+  for (const auto& ptr : map) {
     LOG_INFO(LOG_TAG, "key: '%s' value: '%s'\n", ptr.first.c_str(),
              ptr.second.c_str());
   }

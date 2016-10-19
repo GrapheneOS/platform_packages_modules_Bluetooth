@@ -20,29 +20,27 @@
 
 #include "osi/include/properties.h"
 
-int osi_property_get(const char *key, char *value, const char *default_value) {
+int osi_property_get(const char* key, char* value, const char* default_value) {
 #if defined(OS_GENERIC)
-    /* For linux right now just return default value, if present */
-    int len = -1;
-    if (!default_value)
-      return len;
+  /* For linux right now just return default value, if present */
+  int len = -1;
+  if (!default_value) return len;
 
-    len = strlen(default_value);
-    if (len >= PROPERTY_VALUE_MAX)
-      len = PROPERTY_VALUE_MAX - 1;
+  len = strlen(default_value);
+  if (len >= PROPERTY_VALUE_MAX) len = PROPERTY_VALUE_MAX - 1;
 
-    memcpy(value, default_value, len);
-    value[len] = '\0';
-    return len;
+  memcpy(value, default_value, len);
+  value[len] = '\0';
+  return len;
 #else
-    return property_get(key, value, default_value);
+  return property_get(key, value, default_value);
 #endif  // defined(OS_GENERIC)
 }
 
-int osi_property_set(const char *key, const char *value) {
+int osi_property_set(const char* key, const char* value) {
 #if defined(OS_GENERIC)
-    return -1;
+  return -1;
 #else
-    return property_set(key, value);
+  return property_set(key, value);
 #endif  // defined(OS_GENERIC)
 }
