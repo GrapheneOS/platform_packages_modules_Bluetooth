@@ -81,7 +81,6 @@ Fluoride currently has dependency on some internal Android projects, which also 
 cd ~/fluoride
 git clone https://android.googlesource.com/platform/system/core
 git clone https://android.googlesource.com/platform/hardware/libhardware
-git clone https://android.googlesource.com/platform/system/media
 ```
 
 ### Configure your build
@@ -102,7 +101,6 @@ This will prompt you to fill the contents of your "out/Default/args.gn" file. Ma
 
 libhw_include_path = "/home/job/fluoride/libhardware/include"
 core_include_path = "/home/job/fluoride/core/include"
-audio_include_path = "/home/job/fluoride/media/audio/include"
 ```
 
 Then generate your build files by calling
