@@ -36,8 +36,13 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#ifdef OS_GENERIC
+#define ANDROID_PRIORITY_AUDIO -16
+#define ANDROID_PRIORITY_URGENT_AUDIO -19
+#else
 #include <utils/ThreadDefs.h>
 #include <cutils/sched_policy.h>
+#endif
 
 #include "bt_types.h"
 #include "btcore/include/module.h"
