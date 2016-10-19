@@ -1591,6 +1591,10 @@ void read_pref_conn_params_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t ha
     if (max < BTM_BLE_CONN_INT_MIN_LIMIT)
         max = BTM_BLE_CONN_INT_MIN_LIMIT;
 
+    // If the device has no preferred connection timeout, use the default.
+    if (tout == BTM_BLE_CONN_PARAM_UNDEF)
+        tout = BTM_BLE_CONN_TIMEOUT_DEF;
+
     tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
     BTM_BleSetPrefConnParams(p_dev_cb->addr, min, max, latency, tout);
     L2CA_UpdateBleConnParams(p_dev_cb->addr, min, max, latency, tout);
