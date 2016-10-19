@@ -51,35 +51,17 @@ static jclass class_AvrcpPlayer;
 
 static const btrc_ctrl_interface_t *sBluetoothAvrcpInterface = NULL;
 static jobject sCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
-static JNIEnv *sEnv = NULL;
-
-static bool checkCallbackThread() {
-    // Always fetch the latest callbackEnv from AdapterService.
-    // Caching this could cause this sCallbackEnv to go out-of-sync
-    // with the AdapterService's ENV if an ASSOCIATE/DISASSOCIATE event
-    // is received
-    sCallbackEnv = getCallbackEnv();
-
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
-    return true;
-}
 
 static void btavrcp_passthrough_response_callback(bt_bdaddr_t* bd_addr, int id, int pressed)  {
     jbyteArray addr;
 
-    ALOGI("%s", __func__);
-    ALOGI("id: %d, pressed: %d", id, pressed);
+    ALOGI("%s: id: %d, pressed: %d", __func__, id, pressed);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    if (!checkCallbackThread()) {
-        ALOGE("Callback: '%s' is not called on the correct thread", __func__);
-        return;
-    }
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for passthrough response");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
@@ -88,70 +70,53 @@ static void btavrcp_passthrough_response_callback(bt_bdaddr_t* bd_addr, int id, 
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handlePassthroughRsp, (jint)id,
                                                                              (jint)pressed,
                                                                              addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
-
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void btavrcp_groupnavigation_response_callback(int id, int pressed) {
-    ALOGV("%s", __FUNCTION__);
-
-    if (!checkCallbackThread()) {
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-        return;
-    }
+    ALOGV("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleGroupNavigationRsp, (jint)id,
                                                                              (jint)pressed);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static void btavrcp_connection_state_callback(
         bool rc_connect, bool br_connect, bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    ALOGV("%s", __FUNCTION__);
-    ALOGI("%s conn state rc: %d br: %d", __FUNCTION__, rc_connect, br_connect);
-
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGI("%s: conn state: rc: %d br: %d", __func__, rc_connect, br_connect);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for connection state");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_onConnectionStateChanged,
                                  (jboolean) rc_connect, (jboolean) br_connect, addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void btavrcp_get_rcfeatures_callback(bt_bdaddr_t *bd_addr, int features) {
     jbyteArray addr;
 
-    ALOGV("%s", __FUNCTION__);
-
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGV("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_getRcFeatures, addr, (jint)features);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -159,44 +124,36 @@ static void btavrcp_setplayerapplicationsetting_rsp_callback(bt_bdaddr_t *bd_add
                                                                     uint8_t accepted) {
     jbyteArray addr;
 
-    ALOGV("%s", __FUNCTION__);
-
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGV("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_setplayerappsettingrsp, addr, (jint)accepted);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void btavrcp_playerapplicationsetting_callback(bt_bdaddr_t *bd_addr, uint8_t num_attr,
         btrc_player_app_attr_t *app_attrs, uint8_t num_ext_attr,
         btrc_player_app_ext_attr_t *ext_attrs) {
-    ALOGV("%s", __FUNCTION__);
     jbyteArray addr;
     jbyteArray playerattribs;
     jint arraylen;
     int i,k;
 
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
@@ -214,7 +171,6 @@ static void btavrcp_playerapplicationsetting_callback(bt_bdaddr_t *bd_addr, uint
     if(!playerattribs)
     {
         ALOGE("Fail to new jbyteArray playerattribs ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         sCallbackEnv->DeleteLocalRef(addr);
         return;
     }
@@ -231,7 +187,6 @@ static void btavrcp_playerapplicationsetting_callback(bt_bdaddr_t *bd_addr, uint
     }
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleplayerappsetting, addr,
             playerattribs, (jint)arraylen);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
     sCallbackEnv->DeleteLocalRef(playerattribs);
 }
@@ -242,17 +197,14 @@ static void btavrcp_playerapplicationsetting_changed_callback(bt_bdaddr_t *bd_ad
     jbyteArray addr;
     jbyteArray playerattribs;
     int i, k, arraylen;
-    ALOGI("%s", __FUNCTION__);
 
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if ((!addr)) {
         ALOGE("Fail to get new array ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
@@ -261,7 +213,6 @@ static void btavrcp_playerapplicationsetting_changed_callback(bt_bdaddr_t *bd_ad
     if(!playerattribs)
     {
         ALOGE("Fail to new jbyteArray playerattribs ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         sCallbackEnv->DeleteLocalRef(addr);
         return;
     }
@@ -278,57 +229,46 @@ static void btavrcp_playerapplicationsetting_changed_callback(bt_bdaddr_t *bd_ad
     }
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleplayerappsettingchanged, addr,
             playerattribs, (jint)arraylen);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
     sCallbackEnv->DeleteLocalRef(playerattribs);
 }
 
 static void btavrcp_set_abs_vol_cmd_callback(bt_bdaddr_t *bd_addr, uint8_t abs_vol,
         uint8_t label) {
-
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
 
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if ((!addr)) {
         ALOGE("Fail to get new array ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleSetAbsVolume, addr, (jbyte)abs_vol,
                                  (jbyte)label);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void btavrcp_register_notification_absvol_callback(bt_bdaddr_t *bd_addr, uint8_t label) {
     jbyteArray addr;
 
-    ALOGI("%s", __FUNCTION__);
-
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if ((!addr)) {
         ALOGE("Fail to get new array ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleRegisterNotificationAbsVol, addr,
                                  (jbyte)label);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -344,22 +284,18 @@ static void btavrcp_track_changed_callback(bt_bdaddr_t *bd_addr, uint8_t num_att
     jstring str;
     jclass strclazz;
     jint i;
-    ALOGI("%s", __FUNCTION__);
-    if (!checkCallbackThread()) {                                       \
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-        return;                                                         \
-    }
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if ((!addr)) {
         ALOGE("Fail to get new array ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     attribIds = sCallbackEnv->NewIntArray(num_attr);
     if(!attribIds) {
         ALOGE(" failed to set new array for attribIds");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         sCallbackEnv->DeleteLocalRef(addr);
         return;
     }
@@ -369,7 +305,6 @@ static void btavrcp_track_changed_callback(bt_bdaddr_t *bd_addr, uint8_t num_att
     stringArray = sCallbackEnv->NewObjectArray((jint)num_attr, strclazz, 0);
     if(!stringArray) {
         ALOGE(" failed to get String array");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         sCallbackEnv->DeleteLocalRef(addr);
         sCallbackEnv->DeleteLocalRef(attribIds);
         return;
@@ -379,7 +314,6 @@ static void btavrcp_track_changed_callback(bt_bdaddr_t *bd_addr, uint8_t num_att
         str = sCallbackEnv->NewStringUTF((char*)(p_attrs[i].text));
         if(!str) {
             ALOGE(" Unable to get str ");
-            checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
             sCallbackEnv->DeleteLocalRef(addr);
             sCallbackEnv->DeleteLocalRef(attribIds);
             sCallbackEnv->DeleteLocalRef(stringArray);
@@ -392,7 +326,6 @@ static void btavrcp_track_changed_callback(bt_bdaddr_t *bd_addr, uint8_t num_att
 
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handletrackchanged, addr,
          (jbyte)(num_attr), attribIds, stringArray);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
     sCallbackEnv->DeleteLocalRef(addr);
     sCallbackEnv->DeleteLocalRef(attribIds);
     /* TODO check do we need to delete str seperately or not */
@@ -404,12 +337,13 @@ static void btavrcp_play_position_changed_callback(bt_bdaddr_t *bd_addr, uint32_
         uint32_t song_pos) {
 
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-    if ((!addr)) {
+    if (!addr) {
         ALOGE("Fail to get new array ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
@@ -421,12 +355,13 @@ static void btavrcp_play_position_changed_callback(bt_bdaddr_t *bd_addr, uint32_
 static void btavrcp_play_status_changed_callback(bt_bdaddr_t *bd_addr,
         btrc_play_status_t play_status) {
     jbyteArray addr;
-    ALOGI("%s", __FUNCTION__);
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-    if ((!addr)) {
+    if (!addr) {
         ALOGE("Fail to get new array ");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
@@ -441,12 +376,9 @@ static void btavrcp_get_folder_items_callback(bt_bdaddr_t *bd_addr,
      * BTRC_ITEM_MEDIA, BTRC_ITEM_FOLDER. Here we translate them to their java
      * counterparts by calling the java constructor for each of the items.
      */
-    ALOGV("%s count %d", __FUNCTION__, count);
-
-    if (!checkCallbackThread()) {
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-        return;
-    }
+    ALOGV("%s count %d", __func__, count);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     // Inspect if the first element is a folder/item or player listing. They are
     // always exclusive.
@@ -459,7 +391,6 @@ static void btavrcp_get_folder_items_callback(bt_bdaddr_t *bd_addr,
         playerItemArray = sCallbackEnv->NewObjectArray((jint) count, class_AvrcpPlayer, 0);
         if (!playerItemArray) {
             ALOGE("%s playerItemArray allocation failed.", __FUNCTION__);
-            checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
             return;
         }
     } else {
@@ -467,7 +398,6 @@ static void btavrcp_get_folder_items_callback(bt_bdaddr_t *bd_addr,
             (jint) count, class_MediaBrowser_MediaItem, 0);
         if (!folderItemArray) {
             ALOGE("%s folderItemArray is empty.", __FUNCTION__);
-            checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
             return;
         }
     }
@@ -558,7 +488,6 @@ static void btavrcp_get_folder_items_callback(bt_bdaddr_t *bd_addr,
                     ALOGE("%s failed to allocate featureBitArray", __FUNCTION__);
                     sCallbackEnv->DeleteLocalRef(playerItemArray);
                     sCallbackEnv->DeleteLocalRef(folderItemArray);
-                    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
                     return;
                 }
                 sCallbackEnv->SetByteArrayRegion(
@@ -597,24 +526,18 @@ static void btavrcp_get_folder_items_callback(bt_bdaddr_t *bd_addr,
 }
 
 static void btavrcp_change_path_callback(bt_bdaddr_t *bd_addr, uint8_t count) {
-    ALOGI("%s count %d", __FUNCTION__, count);
-
-    if (!checkCallbackThread()) {
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-        return;
-    }
+    ALOGI("%s count %d", __func__, count);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleChangeFolderRsp, (jint) count);
 }
 
 static void btavrcp_set_browsed_player_callback(
         bt_bdaddr_t *bd_addr, uint8_t num_items, uint8_t depth) {
-    ALOGI("%s items %d depth %d", __FUNCTION__, num_items, depth);
-
-    if (!checkCallbackThread()) {
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-        return;
-    }
+    ALOGI("%s items %d depth %d", __func__, num_items, depth);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     sCallbackEnv->CallVoidMethod(
         sCallbacksObj, method_handleSetBrowsedPlayerRsp, (jint) num_items, (jint) depth);
@@ -701,7 +624,6 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 static void initNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
     bt_status_t status;
-    sEnv = env;
 
     jclass tmpMediaItem = env->FindClass("android/media/browse/MediaBrowser$MediaItem");
     class_MediaBrowser_MediaItem = (jclass) env->NewGlobalRef(tmpMediaItem);

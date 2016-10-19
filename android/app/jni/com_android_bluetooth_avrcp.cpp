@@ -25,15 +25,6 @@
 
 #include <string.h>
 
-#define CHECK_CALLBACK_ENV()\
-do { \
-   if (!checkCallbackThread()) { \
-       ALOGE("Callback: '%s' is not called on the correct thread", __func__); \
-       return; \
-   } \
-} while (0)
-
-
 namespace android {
 static jmethodID method_getRcFeatures;
 static jmethodID method_getPlayStatus;
@@ -54,7 +45,6 @@ static jmethodID method_getTotalNumOfItemsCallback;
 
 static const btrc_interface_t *sBluetoothAvrcpInterface = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
 
 /* Function declarations */
 static bool copy_item_attributes(JNIEnv *env, jobject object, btrc_folder_items_t *pitem,
@@ -64,28 +54,17 @@ static bool copy_jstring(uint8_t* str, int maxBytes, jstring jstr,JNIEnv* env);
 
 static void cleanup_items(btrc_folder_items_t* p_items, int numItems);
 
-static bool checkCallbackThread() {
-    // Always fetch the latest callbackEnv from AdapterService.
-    // Caching this could cause this sCallbackEnv to go out-of-sync
-    // with the AdapterService's ENV if an ASSOCIATE/DISASSOCIATE event
-    // is received
-    sCallbackEnv = getCallbackEnv();
-
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
-    return true;
-}
-
 static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr,
         btrc_remote_features_t features) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Unable to allocate byte array for bd_addr");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
@@ -96,23 +75,21 @@ static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr,
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 
 /** Callback for play status request */
 static void btavrcp_get_play_status_callback(bt_bdaddr_t* bd_addr) {
-    ALOGI("%s", __func__);
 
     jbyteArray addr;
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for get_play_status command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
@@ -122,7 +99,6 @@ static void btavrcp_get_play_status_callback(bt_bdaddr_t* bd_addr) {
     } else {
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -131,19 +107,19 @@ static void btavrcp_get_element_attr_callback(uint8_t num_attr, btrc_media_attr_
     jbyteArray addr;
     jintArray attrs;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for get_element_attr command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
     attrs = (jintArray)sCallbackEnv->NewIntArray(num_attr);
     if (!attrs) {
         ALOGE("Fail to new jintArray for attrs");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         sCallbackEnv->DeleteLocalRef(addr);
         return;
     }
@@ -158,7 +134,6 @@ static void btavrcp_get_element_attr_callback(uint8_t num_attr, btrc_media_attr_
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(attrs);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -167,12 +142,13 @@ static void btavrcp_register_notification_callback(btrc_event_id_t event_id, uin
     bt_bdaddr_t *bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for register_notification command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
@@ -184,7 +160,6 @@ static void btavrcp_register_notification_callback(btrc_event_id_t event_id, uin
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -193,12 +168,13 @@ static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype,
     bt_bdaddr_t *bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for volume_change command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
@@ -211,19 +187,19 @@ static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype,
     }
 
     sCallbackEnv->DeleteLocalRef(addr);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
 }
 
 static void btavrcp_passthrough_command_callback(int id, int pressed,
     bt_bdaddr_t* bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for passthrough_command command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
@@ -235,7 +211,6 @@ static void btavrcp_passthrough_command_callback(int id, int pressed,
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -243,12 +218,14 @@ static void btavrcp_set_addressed_player_callback(uint16_t player_id,
     bt_bdaddr_t *bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for set_addressed_player command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
@@ -260,19 +237,20 @@ static void btavrcp_set_addressed_player_callback(uint16_t player_id,
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static void btavrcp_set_browsed_player_callback(uint16_t player_id, bt_bdaddr_t *bd_addr) {
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for set_browsed_player command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*) bd_addr);
@@ -284,7 +262,6 @@ static void btavrcp_set_browsed_player_callback(uint16_t player_id, bt_bdaddr_t 
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -294,12 +271,14 @@ static void btavrcp_get_folder_items_callback(uint8_t scope, uint32_t start_item
     jintArray attr_ids = NULL;
     uint32_t *puiAttr = (uint32_t *)p_attr_ids;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for get_folder_items command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
@@ -313,7 +292,6 @@ static void btavrcp_get_folder_items_callback(uint8_t scope, uint32_t start_item
             attr_ids = (jintArray)sCallbackEnv->NewIntArray(num_attr);
             if (!attr_ids) {
                 ALOGE("Fail to allocate new jintArray for attrs");
-                checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
                 sCallbackEnv->DeleteLocalRef(addr);
                 return;
             }
@@ -327,7 +305,6 @@ static void btavrcp_get_folder_items_callback(uint8_t scope, uint32_t start_item
     }
 
     if (attr_ids != NULL) sCallbackEnv->DeleteLocalRef(attr_ids);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -337,19 +314,20 @@ static void btavrcp_change_path_callback(uint8_t direction, uint8_t* folder_uid,
     jbyteArray addr;
     jbyteArray attrs;;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     attrs = sCallbackEnv->NewByteArray(BTRC_UID_SIZE);
     if (!attrs) {
         ALOGE("Fail to new jintArray for attrs");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for change_path command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         sCallbackEnv->DeleteLocalRef(attrs);
         return;
     }
@@ -364,7 +342,6 @@ static void btavrcp_change_path_callback(uint8_t direction, uint8_t* folder_uid,
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(attrs);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -376,19 +353,20 @@ static void btavrcp_get_item_attr_callback( uint8_t scope, uint8_t* uid, uint16_
     jintArray attrs;
     jbyteArray attr_uid;
 
-    CHECK_CALLBACK_ENV();
+    ALOGI("%s", __func__);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     attr_uid = sCallbackEnv->NewByteArray(BTRC_UID_SIZE);
     if (!attr_uid) {
         ALOGE("Fail to new jintArray for attr_uid");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for get_item_attr command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         sCallbackEnv->DeleteLocalRef(attr_uid);
         return;
     }
@@ -396,7 +374,6 @@ static void btavrcp_get_item_attr_callback( uint8_t scope, uint8_t* uid, uint16_
     attrs = (jintArray)sCallbackEnv->NewIntArray(num_attr);
     if (!attrs) {
         ALOGE("Fail to new jintArray for attrs");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         sCallbackEnv->DeleteLocalRef(attr_uid);
         sCallbackEnv->DeleteLocalRef(addr);
         return;
@@ -413,7 +390,6 @@ static void btavrcp_get_item_attr_callback( uint8_t scope, uint8_t* uid, uint16_
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(attr_uid);
     sCallbackEnv->DeleteLocalRef(attrs);
     sCallbackEnv->DeleteLocalRef(addr);
@@ -425,19 +401,19 @@ static void btavrcp_play_item_callback(uint8_t scope, uint16_t uid_counter, uint
     jbyteArray addr;
     jbyteArray attrs;
 
-    CHECK_CALLBACK_ENV();
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     attrs = sCallbackEnv->NewByteArray(BTRC_UID_SIZE);
     if (!attrs) {
         ALOGE("%s:Fail to new jByteArray attrs for play_item command", __func__);
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for play_item command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         sCallbackEnv->DeleteLocalRef(attrs);
         return;
     }
@@ -451,7 +427,6 @@ static void btavrcp_play_item_callback(uint8_t scope, uint16_t uid_counter, uint
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(attrs);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -460,12 +435,13 @@ static void btavrcp_get_total_num_items_callback(uint8_t scope, bt_bdaddr_t *bd_
 
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for get_total_num_items command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
@@ -477,7 +453,6 @@ static void btavrcp_get_total_num_items_callback(uint8_t scope, bt_bdaddr_t *bd_
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(addr);
 }
 
@@ -487,19 +462,19 @@ static void btavrcp_search_callback(uint16_t charset_id, uint16_t str_len, uint8
     jbyteArray addr;
     jbyteArray attrs;
 
-    CHECK_CALLBACK_ENV();
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     attrs = sCallbackEnv->NewByteArray(str_len);
     if (!attrs) {
         ALOGE("Fail to new jintArray for attrs");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for search command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         sCallbackEnv->DeleteLocalRef(attrs);
         return;
     }
@@ -514,7 +489,6 @@ static void btavrcp_search_callback(uint16_t charset_id, uint16_t str_len, uint8
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(attrs);
     sCallbackEnv->DeleteLocalRef(addr);
 }
@@ -524,19 +498,19 @@ static void btavrcp_add_to_play_list_callback(uint8_t scope,
     jbyteArray attrs;
     jbyteArray addr;
 
-    CHECK_CALLBACK_ENV();
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (!addr) {
         ALOGE("Fail to new jbyteArray bd addr for add_to_play_list command");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         return;
     }
 
     attrs = sCallbackEnv->NewByteArray(BTRC_UID_SIZE);
     if (!attrs) {
         ALOGE("Fail to new jByteArray for attrs");
-        checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
         sCallbackEnv->DeleteLocalRef(addr);
         return;
     }
@@ -550,7 +524,6 @@ static void btavrcp_add_to_play_list_callback(uint8_t scope,
         ALOGE("%s: mCallbacksObj is null", __func__);
     }
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
     sCallbackEnv->DeleteLocalRef(attrs);
     sCallbackEnv->DeleteLocalRef(addr);
 }
