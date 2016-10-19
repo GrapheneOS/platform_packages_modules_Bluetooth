@@ -33,7 +33,7 @@ const uint8_t codec_info_sbc[AVDT_CODEC_SIZE] = {
                         // Subbands: A2DP_SBC_IE_SUBBAND_8 |
                         // Allocation Method: A2DP_SBC_IE_ALLOC_MD_L
   2,                    // MinimumBitpool Value: A2DP_SBC_IE_MIN_BITPOOL
-  53,                   // Maxium Bitpool Value: A2DP_SBC_MAX_BITPOOL
+  53,                   // Maximum Bitpool Value: A2DP_SBC_MAX_BITPOOL
   7,                    // Dummy
   8,                    // Dummy
   9                     // Dummy
@@ -58,7 +58,7 @@ const uint8_t codec_info_sbc_sink[AVDT_CODEC_SIZE] = {
   0x02 | 0x01,          // Allocation Method: A2DP_SBC_IE_ALLOC_MD_S |
                         // A2DP_SBC_IE_ALLOC_MD_L
   2,                    // MinimumBitpool Value: A2DP_SBC_IE_MIN_BITPOOL
-  250,                  // Maxium Bitpool Value: A2DP_SBC_IE_MAX_BITPOOL
+  250,                  // Maximum Bitpool Value: A2DP_SBC_IE_MAX_BITPOOL
   7,                    // Dummy
   8,                    // Dummy
   9                     // Dummy
@@ -545,4 +545,36 @@ TEST(StackA2dpTest, test_a2dp_build_codec_header) {
   p_buf->offset = BT_HDR_OFFSET;
   EXPECT_FALSE(A2DP_BuildCodecHeader(codec_info_non_a2dp, p_buf,
                                     FRAMES_PER_PACKET));
+}
+
+TEST(StackA2dpTest, test_a2dp_adjust_codec) {
+  uint8_t codec_info_sbc_test[AVDT_CODEC_SIZE];
+  uint8_t codec_info_non_a2dp_test[AVDT_CODEC_SIZE];
+
+  // Test updating a valid SBC codec that doesn't need adjustment
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  EXPECT_TRUE(A2DP_AdjustCodec(codec_info_sbc_test));
+  EXPECT_TRUE(memcmp(codec_info_sbc_test, codec_info_sbc,
+                     sizeof(codec_info_sbc)) == 0);
+
+  // Test updating a valid SBC codec that needs adjustment
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_test[6] = 54;  // A2DP_SBC_MAX_BITPOOL + 1
+  EXPECT_TRUE(A2DP_AdjustCodec(codec_info_sbc_test));
+  EXPECT_TRUE(memcmp(codec_info_sbc_test, codec_info_sbc,
+                     sizeof(codec_info_sbc)) == 0);
+
+  // Test updating an invalid SBC codec
+  memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
+  memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
+  codec_info_sbc_test[6] = 255; // Invalid MAX_BITPOOL
+  EXPECT_FALSE(A2DP_AdjustCodec(codec_info_sbc_test));
+
+  // Test updating a non-A2DP codec that is not recognized
+  memset(codec_info_non_a2dp_test, 0xAB, sizeof(codec_info_non_a2dp_test));
+  memcpy(codec_info_non_a2dp_test, codec_info_non_a2dp,
+         sizeof(codec_info_non_a2dp));
+  EXPECT_FALSE(A2DP_AdjustCodec(codec_info_non_a2dp_test));
 }
