@@ -18,7 +18,6 @@ declare_args() {
   # Include path for hardware/bluetooth.h
   libhw_include_path = ""
   core_include_path = ""
-  audio_include_path = ""
 }
 
 config("default_include_dirs") {
@@ -28,12 +27,9 @@ config("default_include_dirs") {
          "libhardware_include_path build argument wasn't provided.")
   assert(core_include_path != "",
          "core_include_path build argument wasn't provided.")
-  assert(audio_include_path != "",
-         "audio_include_path build argument wasn't provided.")
   include_dirs = [
     libhw_include_path,
     core_include_path,
-    audio_include_path,
   ]
 }
 

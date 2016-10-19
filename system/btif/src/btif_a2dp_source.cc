@@ -21,7 +21,7 @@
 
 #include <assert.h>
 #include <limits.h>
-#include <system/audio.h>
+#include <string.h>
 
 #include "audio_a2dp_hw.h"
 #include "bt_common.h"
