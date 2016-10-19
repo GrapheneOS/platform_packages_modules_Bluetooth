@@ -364,3 +364,12 @@ const tA2DP_ENCODER_INTERFACE* A2DP_VendorGetEncoderInterface(
 
   return NULL;
 }
+
+bool A2DP_VendorAdjustCodec(uint8_t* p_codec_info) {
+  // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
+  // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
+
+  // Add checks based on <vendor_id, codec_id>
+
+  return false;
+}
