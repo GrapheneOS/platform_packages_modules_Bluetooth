@@ -66,9 +66,6 @@
 
 static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 
-static const size_t SBC_MAX_BITPOOL_OFFSET = 6;
-static const size_t SBC_MAX_BITPOOL = 53;
-
 /* state machine states */
 enum
 {
@@ -1930,13 +1927,8 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                         &av_sink_codec_info);
         }
 
-        if ((uuid_int == UUID_SERVCLASS_AUDIO_SOURCE) &&
-            (cfg.codec_info[SBC_MAX_BITPOOL_OFFSET] > SBC_MAX_BITPOOL))
-        {
-            APPL_TRACE_WARNING("%s: max bitpool length received for SBC is out of range."
-                    "Clamping the codec bitpool configuration from %d to %d.", __func__,
-                    cfg.codec_info[SBC_MAX_BITPOOL_OFFSET], SBC_MAX_BITPOOL);
-            cfg.codec_info[SBC_MAX_BITPOOL_OFFSET] = SBC_MAX_BITPOOL;
+        if (uuid_int == UUID_SERVCLASS_AUDIO_SOURCE) {
+            A2DP_AdjustCodec(cfg.codec_info);
         }
 
         /* open the stream */

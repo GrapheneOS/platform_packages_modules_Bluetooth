@@ -255,6 +255,12 @@ bool A2DP_VendorBuildCodecHeader(const uint8_t* p_codec_info, BT_HDR* p_buf,
 const tA2DP_ENCODER_INTERFACE* A2DP_VendorGetEncoderInterface(
     const uint8_t* p_codec_info);
 
+// Adjusts the A2DP vendor-specific codec, based on local support and Bluetooth
+// specification.
+// |p_codec_info| contains the codec information to adjust.
+// Returns true if |p_codec_info| is valid and supported, otherwise false.
+bool A2DP_VendorAdjustCodec(uint8_t* p_codec_info);
+
 #ifdef __cplusplus
 }
 #endif
