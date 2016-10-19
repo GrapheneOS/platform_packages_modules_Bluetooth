@@ -31,14 +31,8 @@ void mutex_init(void) {
   pthread_mutex_init(&global_lock, &attr);
 }
 
-void mutex_cleanup(void) {
-  pthread_mutex_destroy(&global_lock);
-}
+void mutex_cleanup(void) { pthread_mutex_destroy(&global_lock); }
 
-void mutex_global_lock(void) {
-  pthread_mutex_lock(&global_lock);
-}
+void mutex_global_lock(void) { pthread_mutex_lock(&global_lock); }
 
-void mutex_global_unlock(void) {
-  pthread_mutex_unlock(&global_lock);
-}
+void mutex_global_unlock(void) { pthread_mutex_unlock(&global_lock); }

@@ -28,7 +28,7 @@ class AllocatorTest : public AllocationTestHarness {};
 TEST_F(AllocatorTest, test_osi_strndup) {
   char str[] = "IloveBluetooth";
   size_t len = strlen(str);
-  char *copy_str = NULL;
+  char* copy_str = NULL;
 
   // len == 0
   copy_str = osi_strndup(str, 0);

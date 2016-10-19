@@ -58,7 +58,7 @@ typedef struct {
 
 // Alarm-related information and statistics
 typedef struct {
-  const char *name;
+  const char* name;
   size_t scheduled_count;
   size_t canceled_count;
   size_t rescheduled_count;
@@ -79,15 +79,14 @@ struct alarm_t {
   period_ms_t creation_time;
   period_ms_t period;
   period_ms_t deadline;
-  period_ms_t prev_deadline;    // Previous deadline - used for accounting of
-                                // periodic timers
+  period_ms_t prev_deadline;  // Previous deadline - used for accounting of
+                              // periodic timers
   bool is_periodic;
-  fixed_queue_t *queue;         // The processing queue to add this alarm to
+  fixed_queue_t* queue;  // The processing queue to add this alarm to
   alarm_callback_t callback;
-  void *data;
+  void* data;
   alarm_stats_t stats;
 };
-
 
 // If the next wakeup time is less than this threshold, we should acquire
 // a wakelock instead of setting a wake alarm so we're not bouncing in
@@ -106,80 +105,75 @@ static const clockid_t CLOCK_ID_ALARM = CLOCK_BOOTTIME_ALARM;
 // functions execute serially and not concurrently. As a result, this mutex
 // also protects the |alarms| list.
 static pthread_mutex_t monitor;
-static list_t *alarms;
+static list_t* alarms;
 static timer_t timer;
 static timer_t wakeup_timer;
 static bool timer_set;
 
 // All alarm callbacks are dispatched from |dispatcher_thread|
-static thread_t *dispatcher_thread;
+static thread_t* dispatcher_thread;
 static bool dispatcher_thread_active;
-static semaphore_t *alarm_expired;
+static semaphore_t* alarm_expired;
 
 // Default alarm callback thread and queue
-static thread_t *default_callback_thread;
-static fixed_queue_t *default_callback_queue;
+static thread_t* default_callback_thread;
+static fixed_queue_t* default_callback_queue;
 
-static alarm_t *alarm_new_internal(const char *name, bool is_periodic);
+static alarm_t* alarm_new_internal(const char* name, bool is_periodic);
 static bool lazy_initialize(void);
 static period_ms_t now(void);
-static void alarm_set_internal(alarm_t *alarm, period_ms_t period,
-                               alarm_callback_t cb, void *data,
-                               fixed_queue_t *queue);
-static void alarm_cancel_internal(alarm_t *alarm);
-static void remove_pending_alarm(alarm_t *alarm);
-static void schedule_next_instance(alarm_t *alarm);
+static void alarm_set_internal(alarm_t* alarm, period_ms_t period,
+                               alarm_callback_t cb, void* data,
+                               fixed_queue_t* queue);
+static void alarm_cancel_internal(alarm_t* alarm);
+static void remove_pending_alarm(alarm_t* alarm);
+static void schedule_next_instance(alarm_t* alarm);
 static void reschedule_root_alarm(void);
-static void alarm_queue_ready(fixed_queue_t *queue, void *context);
-static void timer_callback(void *data);
-static void callback_dispatch(void *context);
-static bool timer_create_internal(const clockid_t clock_id, timer_t *timer);
-static void update_scheduling_stats(alarm_stats_t *stats,
-                                    period_ms_t now_ms,
+static void alarm_queue_ready(fixed_queue_t* queue, void* context);
+static void timer_callback(void* data);
+static void callback_dispatch(void* context);
+static bool timer_create_internal(const clockid_t clock_id, timer_t* timer);
+static void update_scheduling_stats(alarm_stats_t* stats, period_ms_t now_ms,
                                     period_ms_t deadline_ms,
                                     period_ms_t execution_delta_ms);
 
-static void update_stat(stat_t *stat, period_ms_t delta)
-{
-  if (stat->max_ms < delta)
-    stat->max_ms = delta;
+static void update_stat(stat_t* stat, period_ms_t delta) {
+  if (stat->max_ms < delta) stat->max_ms = delta;
   stat->total_ms += delta;
   stat->count++;
 }
 
-alarm_t *alarm_new(const char *name) {
-  return alarm_new_internal(name, false);
-}
+alarm_t* alarm_new(const char* name) { return alarm_new_internal(name, false); }
 
-alarm_t *alarm_new_periodic(const char *name) {
+alarm_t* alarm_new_periodic(const char* name) {
   return alarm_new_internal(name, true);
 }
 
-static alarm_t *alarm_new_internal(const char *name, bool is_periodic) {
+static alarm_t* alarm_new_internal(const char* name, bool is_periodic) {
   // Make sure we have a list we can insert alarms into.
   if (!alarms && !lazy_initialize()) {
-    assert(false); // if initialization failed, we should not continue
+    assert(false);  // if initialization failed, we should not continue
     return NULL;
   }
 
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
 
-  alarm_t *ret = static_cast<alarm_t *>(osi_calloc(sizeof(alarm_t)));
+  alarm_t* ret = static_cast<alarm_t*>(osi_calloc(sizeof(alarm_t)));
 
   // Make this a recursive mutex to make it safe to call |alarm_cancel| from
   // within the callback function of the alarm.
   int error = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
   if (error) {
-    LOG_ERROR(LOG_TAG, "%s unable to create a recursive mutex: %s",
-              __func__, strerror(error));
+    LOG_ERROR(LOG_TAG, "%s unable to create a recursive mutex: %s", __func__,
+              strerror(error));
     goto error;
   }
 
   error = pthread_mutex_init(&ret->callback_lock, &attr);
   if (error) {
-    LOG_ERROR(LOG_TAG, "%s unable to initialize mutex: %s",
-              __func__, strerror(error));
+    LOG_ERROR(LOG_TAG, "%s unable to initialize mutex: %s", __func__,
+              strerror(error));
     goto error;
   }
 
@@ -196,45 +190,42 @@ error:
   return NULL;
 }
 
-void alarm_free(alarm_t *alarm) {
-  if (!alarm)
-    return;
+void alarm_free(alarm_t* alarm) {
+  if (!alarm) return;
 
   alarm_cancel(alarm);
   pthread_mutex_destroy(&alarm->callback_lock);
-  osi_free((void *)alarm->stats.name);
+  osi_free((void*)alarm->stats.name);
   osi_free(alarm);
 }
 
-period_ms_t alarm_get_remaining_ms(const alarm_t *alarm) {
+period_ms_t alarm_get_remaining_ms(const alarm_t* alarm) {
   assert(alarm != NULL);
   period_ms_t remaining_ms = 0;
   period_ms_t just_now = now();
 
   pthread_mutex_lock(&monitor);
-  if (alarm->deadline > just_now)
-    remaining_ms = alarm->deadline - just_now;
+  if (alarm->deadline > just_now) remaining_ms = alarm->deadline - just_now;
   pthread_mutex_unlock(&monitor);
 
   return remaining_ms;
 }
 
-void alarm_set(alarm_t *alarm, period_ms_t interval_ms,
-               alarm_callback_t cb, void *data) {
+void alarm_set(alarm_t* alarm, period_ms_t interval_ms, alarm_callback_t cb,
+               void* data) {
   alarm_set_on_queue(alarm, interval_ms, cb, data, default_callback_queue);
 }
 
-void alarm_set_on_queue(alarm_t *alarm, period_ms_t interval_ms,
-                        alarm_callback_t cb, void *data,
-                        fixed_queue_t *queue) {
+void alarm_set_on_queue(alarm_t* alarm, period_ms_t interval_ms,
+                        alarm_callback_t cb, void* data, fixed_queue_t* queue) {
   assert(queue != NULL);
   alarm_set_internal(alarm, interval_ms, cb, data, queue);
 }
 
 // Runs in exclusion with alarm_cancel and timer_callback.
-static void alarm_set_internal(alarm_t *alarm, period_ms_t period,
-                               alarm_callback_t cb, void *data,
-                               fixed_queue_t *queue) {
+static void alarm_set_internal(alarm_t* alarm, period_ms_t period,
+                               alarm_callback_t cb, void* data,
+                               fixed_queue_t* queue) {
   assert(alarms != NULL);
   assert(alarm != NULL);
   assert(cb != NULL);
@@ -253,10 +244,9 @@ static void alarm_set_internal(alarm_t *alarm, period_ms_t period,
   pthread_mutex_unlock(&monitor);
 }
 
-void alarm_cancel(alarm_t *alarm) {
+void alarm_cancel(alarm_t* alarm) {
   assert(alarms != NULL);
-  if (!alarm)
-    return;
+  if (!alarm) return;
 
   pthread_mutex_lock(&monitor);
   alarm_cancel_internal(alarm);
@@ -269,8 +259,9 @@ void alarm_cancel(alarm_t *alarm) {
 
 // Internal implementation of canceling an alarm.
 // The caller must hold the |monitor| lock.
-static void alarm_cancel_internal(alarm_t *alarm) {
-  bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
+static void alarm_cancel_internal(alarm_t* alarm) {
+  bool needs_reschedule =
+      (!list_is_empty(alarms) && list_front(alarms) == alarm);
 
   remove_pending_alarm(alarm);
 
@@ -281,20 +272,17 @@ static void alarm_cancel_internal(alarm_t *alarm) {
   alarm->stats.canceled_count++;
   alarm->queue = NULL;
 
-  if (needs_reschedule)
-    reschedule_root_alarm();
+  if (needs_reschedule) reschedule_root_alarm();
 }
 
-bool alarm_is_scheduled(const alarm_t *alarm) {
-  if ((alarms == NULL) || (alarm == NULL))
-    return false;
+bool alarm_is_scheduled(const alarm_t* alarm) {
+  if ((alarms == NULL) || (alarm == NULL)) return false;
   return (alarm->callback != NULL);
 }
 
 void alarm_cleanup(void) {
   // If lazy_initialize never ran there is nothing else to do
-  if (!alarms)
-    return;
+  if (!alarms) return;
 
   dispatcher_thread_active = false;
   semaphore_post(alarm_expired);
@@ -336,12 +324,10 @@ static bool lazy_initialize(void) {
     goto error;
   }
 
-  if (!timer_create_internal(CLOCK_ID, &timer))
-    goto error;
+  if (!timer_create_internal(CLOCK_ID, &timer)) goto error;
   timer_initialized = true;
 
-  if (!timer_create_internal(CLOCK_ID_ALARM, &wakeup_timer))
-    goto error;
+  if (!timer_create_internal(CLOCK_ID_ALARM, &wakeup_timer)) goto error;
   wakeup_timer_initialized = true;
 
   alarm_expired = semaphore_new(0);
@@ -350,8 +336,8 @@ static bool lazy_initialize(void) {
     goto error;
   }
 
-  default_callback_thread = thread_new_sized("alarm_default_callbacks",
-                                             SIZE_MAX);
+  default_callback_thread =
+      thread_new_sized("alarm_default_callbacks", SIZE_MAX);
   if (default_callback_thread == NULL) {
     LOG_ERROR(LOG_TAG, "%s unable to create default alarm callbacks thread.",
               __func__);
@@ -392,11 +378,9 @@ error:
   semaphore_free(alarm_expired);
   alarm_expired = NULL;
 
-  if (wakeup_timer_initialized)
-    timer_delete(wakeup_timer);
+  if (wakeup_timer_initialized) timer_delete(wakeup_timer);
 
-  if (timer_initialized)
-    timer_delete(timer);
+  if (timer_initialized) timer_delete(timer);
 
   list_free(alarms);
   alarms = NULL;
@@ -411,8 +395,8 @@ static period_ms_t now(void) {
 
   struct timespec ts;
   if (clock_gettime(CLOCK_ID, &ts) == -1) {
-    LOG_ERROR(LOG_TAG, "%s unable to get current time: %s",
-              __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to get current time: %s", __func__,
+              strerror(errno));
     return 0;
   }
 
@@ -421,7 +405,7 @@ static period_ms_t now(void) {
 
 // Remove alarm from internal alarm list and the processing queue
 // The caller must hold the |monitor| lock.
-static void remove_pending_alarm(alarm_t *alarm) {
+static void remove_pending_alarm(alarm_t* alarm) {
   list_remove(alarms, alarm);
   while (fixed_queue_try_remove_from_queue(alarm->queue, alarm) != NULL) {
     // Remove all repeated alarm instances from the queue.
@@ -430,12 +414,12 @@ static void remove_pending_alarm(alarm_t *alarm) {
 }
 
 // Must be called with monitor held
-static void schedule_next_instance(alarm_t *alarm) {
+static void schedule_next_instance(alarm_t* alarm) {
   // If the alarm is currently set and it's at the start of the list,
   // we'll need to re-schedule since we've adjusted the earliest deadline.
-  bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
-  if (alarm->callback)
-    remove_pending_alarm(alarm);
+  bool needs_reschedule =
+      (!list_is_empty(alarms) && list_front(alarms) == alarm);
+  if (alarm->callback) remove_pending_alarm(alarm);
 
   // Calculate the next deadline for this alarm
   period_ms_t just_now = now();
@@ -446,19 +430,22 @@ static void schedule_next_instance(alarm_t *alarm) {
 
   // Add it into the timer list sorted by deadline (earliest deadline first).
   if (list_is_empty(alarms) ||
-      ((alarm_t *)list_front(alarms))->deadline > alarm->deadline) {
+      ((alarm_t*)list_front(alarms))->deadline > alarm->deadline) {
     list_prepend(alarms, alarm);
   } else {
-    for (list_node_t *node = list_begin(alarms); node != list_end(alarms); node = list_next(node)) {
-      list_node_t *next = list_next(node);
-      if (next == list_end(alarms) || ((alarm_t *)list_node(next))->deadline > alarm->deadline) {
+    for (list_node_t* node = list_begin(alarms); node != list_end(alarms);
+         node = list_next(node)) {
+      list_node_t* next = list_next(node);
+      if (next == list_end(alarms) ||
+          ((alarm_t*)list_node(next))->deadline > alarm->deadline) {
         list_insert_after(alarms, node, alarm);
         break;
       }
     }
   }
 
-  // If the new alarm has the earliest deadline, we need to re-evaluate our schedule.
+  // If the new alarm has the earliest deadline, we need to re-evaluate our
+  // schedule.
   if (needs_reschedule ||
       (!list_is_empty(alarms) && list_front(alarms) == alarm)) {
     reschedule_root_alarm();
@@ -470,17 +457,16 @@ static void reschedule_root_alarm(void) {
   assert(alarms != NULL);
 
   const bool timer_was_set = timer_set;
-  alarm_t *next;
+  alarm_t* next;
   int64_t next_expiration;
 
   // If used in a zeroed state, disarms the timer.
   struct itimerspec timer_time;
   memset(&timer_time, 0, sizeof(timer_time));
 
-  if (list_is_empty(alarms))
-    goto done;
+  if (list_is_empty(alarms)) goto done;
 
-  next = static_cast<alarm_t *>(list_front(alarms));
+  next = static_cast<alarm_t*>(list_front(alarms));
   next_expiration = next->deadline - now();
   if (next_expiration < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
     if (!timer_set) {
@@ -516,16 +502,16 @@ static void reschedule_root_alarm(void) {
     struct itimerspec wakeup_time;
     memset(&wakeup_time, 0, sizeof(wakeup_time));
 
-
     wakeup_time.it_value.tv_sec = (next->deadline / 1000);
     wakeup_time.it_value.tv_nsec = (next->deadline % 1000) * 1000000LL;
     if (timer_settime(wakeup_timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
-      LOG_ERROR(LOG_TAG, "%s unable to set wakeup timer: %s",
-                __func__, strerror(errno));
+      LOG_ERROR(LOG_TAG, "%s unable to set wakeup timer: %s", __func__,
+                strerror(errno));
   }
 
 done:
-  timer_set = timer_time.it_value.tv_sec != 0 || timer_time.it_value.tv_nsec != 0;
+  timer_set =
+      timer_time.it_value.tv_sec != 0 || timer_time.it_value.tv_nsec != 0;
   if (timer_was_set && !timer_set) {
     wakelock_release();
   }
@@ -548,13 +534,16 @@ done:
     timer_gettime(timer, &time_to_expire);
     if (time_to_expire.it_value.tv_sec == 0 &&
         time_to_expire.it_value.tv_nsec == 0) {
-      LOG_DEBUG(LOG_TAG, "%s alarm expiration too close for posix timers, switching to guns", __func__);
+      LOG_DEBUG(
+          LOG_TAG,
+          "%s alarm expiration too close for posix timers, switching to guns",
+          __func__);
       semaphore_post(alarm_expired);
     }
   }
 }
 
-void alarm_register_processing_queue(fixed_queue_t *queue, thread_t *thread) {
+void alarm_register_processing_queue(fixed_queue_t* queue, thread_t* thread) {
   assert(queue != NULL);
   assert(thread != NULL);
 
@@ -562,7 +551,7 @@ void alarm_register_processing_queue(fixed_queue_t *queue, thread_t *thread) {
                                alarm_queue_ready, NULL);
 }
 
-void alarm_unregister_processing_queue(fixed_queue_t *queue) {
+void alarm_unregister_processing_queue(fixed_queue_t* queue) {
   assert(alarms != NULL);
   assert(queue != NULL);
 
@@ -570,27 +559,25 @@ void alarm_unregister_processing_queue(fixed_queue_t *queue) {
 
   // Cancel all alarms that are using this queue
   pthread_mutex_lock(&monitor);
-  for (list_node_t *node = list_begin(alarms); node != list_end(alarms); ) {
-    alarm_t *alarm = (alarm_t *)list_node(node);
+  for (list_node_t* node = list_begin(alarms); node != list_end(alarms);) {
+    alarm_t* alarm = (alarm_t*)list_node(node);
     node = list_next(node);
     // TODO: Each module is responsible for tearing down its alarms; currently,
     // this is not the case. In the future, this check should be replaced by
     // an assert.
-    if (alarm->queue == queue)
-      alarm_cancel_internal(alarm);
+    if (alarm->queue == queue) alarm_cancel_internal(alarm);
   }
   pthread_mutex_unlock(&monitor);
 }
 
-static void alarm_queue_ready(fixed_queue_t *queue,
-                              UNUSED_ATTR void *context) {
+static void alarm_queue_ready(fixed_queue_t* queue, UNUSED_ATTR void* context) {
   assert(queue != NULL);
 
   pthread_mutex_lock(&monitor);
-  alarm_t *alarm = (alarm_t *)fixed_queue_try_dequeue(queue);
+  alarm_t* alarm = (alarm_t*)fixed_queue_try_dequeue(queue);
   if (alarm == NULL) {
     pthread_mutex_unlock(&monitor);
-    return;             // The alarm was probably canceled
+    return;  // The alarm was probably canceled
   }
 
   //
@@ -599,7 +586,7 @@ static void alarm_queue_ready(fixed_queue_t *queue,
   // alarms and active ones.
   //
   alarm_callback_t callback = alarm->callback;
-  void *data = alarm->data;
+  void* data = alarm->data;
   period_ms_t deadline = alarm->deadline;
   if (alarm->is_periodic) {
     // The periodic alarm has been rescheduled and alarm->deadline has been
@@ -627,7 +614,7 @@ static void alarm_queue_ready(fixed_queue_t *queue,
 }
 
 // Callback function for wake alarms and our posix timer
-static void timer_callback(UNUSED_ATTR void *ptr) {
+static void timer_callback(UNUSED_ATTR void* ptr) {
   semaphore_post(alarm_expired);
 }
 
@@ -635,21 +622,20 @@ static void timer_callback(UNUSED_ATTR void *ptr) {
 //   (1) Receives a signal using |alarm_exired| that the alarm has expired
 //   (2) Dispatches the alarm callback for processing by the corresponding
 // thread for that alarm.
-static void callback_dispatch(UNUSED_ATTR void *context) {
+static void callback_dispatch(UNUSED_ATTR void* context) {
   while (true) {
     semaphore_wait(alarm_expired);
-    if (!dispatcher_thread_active)
-      break;
+    if (!dispatcher_thread_active) break;
 
     pthread_mutex_lock(&monitor);
-    alarm_t *alarm;
+    alarm_t* alarm;
 
     // Take into account that the alarm may get cancelled before we get to it.
     // We're done here if there are no alarms or the alarm at the front is in
     // the future. Release the monitor lock and exit right away since there's
     // nothing left to do.
     if (list_is_empty(alarms) ||
-        (alarm = static_cast<alarm_t *>(list_front(alarms)))->deadline > now()) {
+        (alarm = static_cast<alarm_t*>(list_front(alarms)))->deadline > now()) {
       reschedule_root_alarm();
       pthread_mutex_unlock(&monitor);
       continue;
@@ -673,7 +659,7 @@ static void callback_dispatch(UNUSED_ATTR void *context) {
   LOG_DEBUG(LOG_TAG, "%s Callback thread exited", __func__);
 }
 
-static bool timer_create_internal(const clockid_t clock_id, timer_t *timer) {
+static bool timer_create_internal(const clockid_t clock_id, timer_t* timer) {
   assert(timer != NULL);
 
   struct sigevent sigevent;
@@ -681,11 +667,17 @@ static bool timer_create_internal(const clockid_t clock_id, timer_t *timer) {
   sigevent.sigev_notify = SIGEV_THREAD;
   sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
   if (timer_create(clock_id, &sigevent, timer) == -1) {
-    LOG_ERROR(LOG_TAG, "%s unable to create timer with clock %d: %s",
-              __func__, clock_id, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to create timer with clock %d: %s", __func__,
+              clock_id, strerror(errno));
     if (clock_id == CLOCK_BOOTTIME_ALARM) {
-      LOG_ERROR(LOG_TAG, "The kernel might not have support for timer_create(CLOCK_BOOTTIME_ALARM): https://lwn.net/Articles/429925/");
-      LOG_ERROR(LOG_TAG, "See following patches: https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/log/?qt=grep&q=CLOCK_BOOTTIME_ALARM");
+      LOG_ERROR(LOG_TAG,
+                "The kernel might not have support for "
+                "timer_create(CLOCK_BOOTTIME_ALARM): "
+                "https://lwn.net/Articles/429925/");
+      LOG_ERROR(LOG_TAG,
+                "See following patches: "
+                "https://git.kernel.org/cgit/linux/kernel/git/torvalds/"
+                "linux.git/log/?qt=grep&q=CLOCK_BOOTTIME_ALARM");
     }
     return false;
   }
@@ -693,11 +685,9 @@ static bool timer_create_internal(const clockid_t clock_id, timer_t *timer) {
   return true;
 }
 
-static void update_scheduling_stats(alarm_stats_t *stats,
-                                    period_ms_t now_ms,
+static void update_scheduling_stats(alarm_stats_t* stats, period_ms_t now_ms,
                                     period_ms_t deadline_ms,
-                                    period_ms_t execution_delta_ms)
-{
+                                    period_ms_t execution_delta_ms) {
   stats->total_updates++;
   stats->last_update_ms = now_ms;
 
@@ -714,21 +704,16 @@ static void update_scheduling_stats(alarm_stats_t *stats,
   }
 }
 
-static void dump_stat(int fd, stat_t *stat, const char *description)
-{
-    period_ms_t average_time_ms = 0;
-    if (stat->count != 0)
-      average_time_ms = stat->total_ms / stat->count;
+static void dump_stat(int fd, stat_t* stat, const char* description) {
+  period_ms_t average_time_ms = 0;
+  if (stat->count != 0) average_time_ms = stat->total_ms / stat->count;
 
-    dprintf(fd, "%-51s: %llu / %llu / %llu\n",
-            description,
-            (unsigned long long)stat->total_ms,
-            (unsigned long long)stat->max_ms,
-            (unsigned long long)average_time_ms);
+  dprintf(fd, "%-51s: %llu / %llu / %llu\n", description,
+          (unsigned long long)stat->total_ms, (unsigned long long)stat->max_ms,
+          (unsigned long long)average_time_ms);
 }
 
-void alarm_debug_dump(int fd)
-{
+void alarm_debug_dump(int fd) {
   dprintf(fd, "\nBluetooth Alarms Statistics:\n");
 
   pthread_mutex_lock(&monitor);
@@ -744,10 +729,10 @@ void alarm_debug_dump(int fd)
   dprintf(fd, "  Total Alarms: %zu\n\n", list_length(alarms));
 
   // Dump info for each alarm
-  for (list_node_t *node = list_begin(alarms); node != list_end(alarms);
+  for (list_node_t* node = list_begin(alarms); node != list_end(alarms);
        node = list_next(node)) {
-    alarm_t *alarm = (alarm_t *)list_node(node);
-    alarm_stats_t *stats = &alarm->stats;
+    alarm_t* alarm = (alarm_t*)list_node(node);
+    alarm_stats_t* stats = &alarm->stats;
 
     dprintf(fd, "  Alarm : %s (%s)\n", stats->name,
             (alarm->is_periodic) ? "PERIODIC" : "SINGLE");
@@ -759,13 +744,12 @@ void alarm_debug_dump(int fd)
 
     dprintf(fd, "%-51s: %zu / %zu\n",
             "    Deviation counts (overdue/premature)",
-            stats->overdue_scheduling.count,
-            stats->premature_scheduling.count);
+            stats->overdue_scheduling.count, stats->premature_scheduling.count);
 
     dprintf(fd, "%-51s: %llu / %llu / %lld\n",
             "    Time in ms (since creation/interval/remaining)",
             (unsigned long long)(just_now - alarm->creation_time),
-            (unsigned long long) alarm->period,
+            (unsigned long long)alarm->period,
             (long long)(alarm->deadline - just_now));
 
     dump_stat(fd, &stats->callback_execution,

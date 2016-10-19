@@ -28,5 +28,6 @@ void AllocationTestHarness::SetUp() {
 }
 
 void AllocationTestHarness::TearDown() {
-  EXPECT_EQ(0U, allocation_tracker_expect_no_allocations()) << "not all memory freed";
+  EXPECT_EQ(0U, allocation_tracker_expect_no_allocations())
+      << "not all memory freed";
 }
