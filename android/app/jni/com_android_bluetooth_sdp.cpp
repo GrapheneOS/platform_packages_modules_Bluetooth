@@ -44,7 +44,6 @@ static const uint8_t  UUID_SAP[] = {0x00, 0x00, 0x11, 0x2D, 0x00, 0x00, 0x10, 0x
 #define UUID_MAX_LENGTH 16
 #define IS_UUID(u1,u2)  !memcmp(u1,u2,UUID_MAX_LENGTH)
 
-
 namespace android {
 static jmethodID method_sdpRecordFoundCallback;
 static jmethodID method_sdpMasRecordFoundCallback;
@@ -64,18 +63,6 @@ btsdp_callbacks_t sBluetoothSdpCallbacks = {
 };
 
 static jobject sCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
-
-static bool checkCallbackThread() {
-    sCallbackEnv = getCallbackEnv();
-
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) {
-        ALOGE("Callback env check fail: env: %p, callback: %p", env, sCallbackEnv);
-        return false;
-    }
-    return true;
-}
 
 static void initializeNative(JNIEnv *env, jobject object) {
     const bt_interface_t* btInf;
@@ -175,10 +162,8 @@ static void sdp_search_callback(bt_status_t status, bt_bdaddr_t *bd_addr, uint8_
     int i = 0;
     bluetooth_sdp_record* record;
 
-    if (!checkCallbackThread()) {
-        ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__);
-        goto clean;
-    }
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
     if (addr == NULL) goto clean;
@@ -301,7 +286,6 @@ static void sdp_search_callback(bt_status_t status, bt_bdaddr_t *bd_addr, uint8_
         sCallbackEnv->DeleteLocalRef(service_name);
     if (addr != NULL) sCallbackEnv->DeleteLocalRef(addr);
     if (uuid != NULL) sCallbackEnv->DeleteLocalRef(uuid);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static jint sdpCreateMapMasRecordNative(JNIEnv *env, jobject obj, jstring name_str, jint mas_id,

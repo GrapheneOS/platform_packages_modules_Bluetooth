@@ -19,12 +19,6 @@
 
 #define LOG_NDEBUG 0
 
-#define CHECK_CALLBACK_ENV                                                      \
-   if (!checkCallbackThread()) {                                                \
-       error("Callback: '%s' is not called on the correct thread", __FUNCTION__);\
-       return;                                                                  \
-   }
-
 #include "com_android_bluetooth.h"
 #include "hardware/bt_gatt.h"
 #include "utils/Log.h"
@@ -198,15 +192,6 @@ static jmethodID method_onServerMtuChanged;
 
 static const btgatt_interface_t *sGattIf = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv *sCallbackEnv = NULL;
-
-static bool checkCallbackThread() {
-    sCallbackEnv = getCallbackEnv();
-
-    JNIEnv* env = AndroidRuntime::getJNIEnv();
-    if (sCallbackEnv != env || sCallbackEnv == NULL) return false;
-    return true;
-}
 
 /**
  * BTA client callbacks
@@ -214,17 +199,18 @@ static bool checkCallbackThread() {
 
 void btgattc_register_app_cb(int status, int clientIf, bt_uuid_t *app_uuid)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientRegistered, status,
         clientIf, UUID_PARAMS(app_uuid));
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     jbyteArray jb = sCallbackEnv->NewByteArray(62);
     sCallbackEnv->SetByteArrayRegion(jb, 0, 62, (jbyte *) adv_data.data());
 
@@ -233,52 +219,54 @@ void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data
 
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(jb);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_open_cb(int conn_id, int status, int clientIf, bt_bdaddr_t* bda)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnected,
         clientIf, conn_id, status, address);
     sCallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_close_cb(int conn_id, int status, int clientIf, bt_bdaddr_t* bda)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onDisconnected,
         clientIf, conn_id, status, address);
     sCallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_search_complete_cb(int conn_id, int status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSearchCompleted,
                                  conn_id, status);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_register_for_notification_cb(int conn_id, int registered, int status, uint16_t handle)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onRegisterForNotifications,
         conn_id, status, registered, handle);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_notify_cb(int conn_id, btgatt_notify_params_t *p_data)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, &p_data->bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), &p_data->bda);
     jbyteArray jb = sCallbackEnv->NewByteArray(p_data->len);
     sCallbackEnv->SetByteArrayRegion(jb, 0, p_data->len, (jbyte *) p_data->value);
 
@@ -287,12 +275,12 @@ void btgattc_notify_cb(int conn_id, btgatt_notify_params_t *p_data)
 
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(jb);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_read_characteristic_cb(int conn_id, int status, btgatt_read_params_t *p_data)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     jbyteArray jb;
     if ( status == 0 )      //successful
@@ -309,28 +297,30 @@ void btgattc_read_characteristic_cb(int conn_id, int status, btgatt_read_params_
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onReadCharacteristic,
         conn_id, status, p_data->handle, jb);
     sCallbackEnv->DeleteLocalRef(jb);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_write_characteristic_cb(int conn_id, int status, uint16_t handle)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteCharacteristic
         , conn_id, status, handle);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_execute_write_cb(int conn_id, int status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onExecuteCompleted
         , conn_id, status);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_read_descriptor_cb(int conn_id, int status, btgatt_read_params_t *p_data)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     jbyteArray jb;
     if ( p_data->value.len != 0 )
@@ -346,117 +336,118 @@ void btgattc_read_descriptor_cb(int conn_id, int status, btgatt_read_params_t *p
         conn_id, status, p_data->handle, jb);
 
     sCallbackEnv->DeleteLocalRef(jb);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_write_descriptor_cb(int conn_id, int status, uint16_t handle)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteDescriptor
         , conn_id, status, handle);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_remote_rssi_cb(int client_if,bt_bdaddr_t* bda, int rssi, int status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onReadRemoteRssi,
        client_if, address, rssi, status);
     sCallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_advertise_cb(int status, int client_if)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiseCallback, status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_configure_mtu_cb(int conn_id, int status, int mtu)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConfigureMTU,
                                  conn_id, status, mtu);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_scan_filter_cfg_cb(int action, int client_if, int status, int filt_type,
                                 int avbl_space)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanFilterConfig,
                                  action, status, client_if, filt_type, avbl_space);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_scan_filter_param_cb(int action, int client_if, int status, int avbl_space)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanFilterParamsConfigured,
             action, status, client_if, avbl_space);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_scan_filter_status_cb(int action, int client_if, int status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanFilterEnableDisabled,
             action, status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_congestion_cb(int conn_id, bool congested)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientCongestion, conn_id, congested);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_batchscan_cfg_storage_cb(int client_if, int status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatchScanStorageConfigured, status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_batchscan_startstop_cb(int startstop_action, int client_if, int status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatchScanStartStopped, startstop_action,
                                  status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_batchscan_reports_cb(int client_if, int status, int report_format,
                         int num_records, std::vector<uint8_t> data)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     jbyteArray jb = sCallbackEnv->NewByteArray(data.size());
     sCallbackEnv->SetByteArrayRegion(jb, 0, data.size(), (jbyte *) data.data());
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatchScanReports, status, client_if,
                                 report_format, num_records, jb);
     sCallbackEnv->DeleteLocalRef(jb);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_batchscan_threshold_cb(int client_if)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatchScanThresholdCrossed, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_track_adv_event_cb(btgatt_track_adv_info_t *p_adv_track_info)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     jobject trackadv_obj = NULL;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, &p_adv_track_info->bd_addr);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), &p_adv_track_info->bd_addr);
 
     jbyteArray jb_adv_pkt = sCallbackEnv->NewByteArray(p_adv_track_info->adv_pkt_len);
     jbyteArray jb_scan_rsp = sCallbackEnv->NewByteArray(p_adv_track_info->scan_rsp_len);
@@ -482,14 +473,13 @@ void btgattc_track_adv_event_cb(btgatt_track_adv_info_t *p_adv_track_info)
     sCallbackEnv->DeleteLocalRef(jb_adv_pkt);
     sCallbackEnv->DeleteLocalRef(jb_scan_rsp);
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgattc_scan_parameter_setup_completed_cb(int client_if, btgattc_error_t status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanParamSetupCompleted, status, client_if);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __func__);
 }
 
 void fillGattDbElementArray(JNIEnv *env, jobject *array, const btgatt_db_element_t *db, int count) {
@@ -550,17 +540,17 @@ void fillGattDbElementArray(JNIEnv *env, jobject *array, const btgatt_db_element
 
 void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     jclass arrayListclazz = sCallbackEnv->FindClass("java/util/ArrayList");
     jobject array = sCallbackEnv->NewObject(arrayListclazz, sCallbackEnv->GetMethodID(arrayListclazz, "<init>", "()V"));
 
-    fillGattDbElementArray(sCallbackEnv, &array, db, count);
+    fillGattDbElementArray(sCallbackEnv.get(), &array, db, count);
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetGattDb, conn_id, array);
     sCallbackEnv->DeleteLocalRef(array);
 
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
@@ -599,31 +589,31 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
  */
 void ble_advertiser_register_cb(bt_uuid_t uuid, uint8_t advertiser_id, uint8_t status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiserRegistered,
                                  status, advertiser_id, UUID_PARAMS(&uuid));
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void ble_advertiser_set_params_cb(uint8_t advertiser_id, uint8_t status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvSetParams, status, advertiser_id);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void ble_advertiser_setadv_data_cb(uint8_t advertiser_id, uint8_t status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvSetAdvData, status, advertiser_id);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void ble_advertiser_enable_cb(bool enable, uint8_t advertiser_id, uint8_t status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvEnable, status, advertiser_id, enable);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 /**
@@ -632,79 +622,79 @@ void ble_advertiser_enable_cb(bool enable, uint8_t advertiser_id, uint8_t status
 
 void btgatts_register_app_cb(int status, int server_if, bt_uuid_t *uuid)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerRegistered
         , status, server_if, UUID_PARAMS(uuid));
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_connection_cb(int conn_id, int server_if, int connected, bt_bdaddr_t *bda)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientConnected,
                                  address, connected, conn_id, server_if);
     sCallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_service_added_cb(int status, int server_if,
                               vector<btgatt_db_element_t> service)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
     jclass arrayListclazz = sCallbackEnv->FindClass("java/util/ArrayList");
     jobject array = sCallbackEnv->NewObject(arrayListclazz,
         sCallbackEnv->GetMethodID(arrayListclazz, "<init>", "()V"));
-    fillGattDbElementArray(sCallbackEnv, &array, service.data(), service.size());
+    fillGattDbElementArray(sCallbackEnv.get(), &array, service.data(), service.size());
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServiceAdded, status,
                                  server_if, array);
     sCallbackEnv->DeleteLocalRef(array);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_service_stopped_cb(int status, int server_if, int srvc_handle)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServiceStopped, status,
                                  server_if, srvc_handle);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_service_deleted_cb(int status, int server_if, int srvc_handle)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServiceDeleted, status,
                                  server_if, srvc_handle);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_request_read_characteristic_cb(int conn_id, int trans_id, bt_bdaddr_t *bda,
                              int attr_handle, int offset, bool is_long)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerReadCharacteristic,
                                  address, conn_id, trans_id, attr_handle,
                                  offset, is_long);
     sCallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_request_read_descriptor_cb(int conn_id, int trans_id, bt_bdaddr_t *bda,
                              int attr_handle, int offset, bool is_long)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerReadDescriptor,
                                  address, conn_id, trans_id, attr_handle,
                                  offset, is_long);
     sCallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_request_write_characteristic_cb(int conn_id, int trans_id,
@@ -712,9 +702,10 @@ void btgatts_request_write_characteristic_cb(int conn_id, int trans_id,
                               int offset, bool need_rsp, bool is_prep,
                               vector<uint8_t> value)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     jbyteArray val = sCallbackEnv->NewByteArray(value.size());
     if (val) sCallbackEnv->SetByteArrayRegion(val, 0, value.size(), (jbyte*)value.data());
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerWriteCharacteristic,
@@ -722,7 +713,6 @@ void btgatts_request_write_characteristic_cb(int conn_id, int trans_id,
                                  offset, value.size(), need_rsp, is_prep, val);
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(val);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_request_write_descriptor_cb(int conn_id, int trans_id,
@@ -730,9 +720,10 @@ void btgatts_request_write_descriptor_cb(int conn_id, int trans_id,
                               int offset, bool need_rsp, bool is_prep,
                               vector<uint8_t> value)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     jbyteArray val = sCallbackEnv->NewByteArray(value.size());
     if (val) sCallbackEnv->SetByteArrayRegion(val, 0, value.size(), (jbyte*)value.data());
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerWriteDescriptor,
@@ -740,50 +731,49 @@ void btgatts_request_write_descriptor_cb(int conn_id, int trans_id,
                                  offset, value.size(), need_rsp, is_prep, val);
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(val);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 
 void btgatts_request_exec_write_cb(int conn_id, int trans_id,
                                    bt_bdaddr_t *bda, int exec_write)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
 
-    jstring address = bdaddr2newjstr(sCallbackEnv, bda);
+    jstring address = bdaddr2newjstr(sCallbackEnv.get(), bda);
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onExecuteWrite,
                                  address, conn_id, trans_id, exec_write);
     sCallbackEnv->DeleteLocalRef(address);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_response_confirmation_cb(int status, int handle)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onResponseSendCompleted,
                                  status, handle);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_indication_sent_cb(int conn_id, int status)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNotificationSent,
                                  conn_id, status);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_congestion_cb(int conn_id, bool congested)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerCongestion, conn_id, congested);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 void btgatts_mtu_changed_cb(int conn_id, int mtu)
 {
-    CHECK_CALLBACK_ENV
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerMtuChanged, conn_id, mtu);
-    checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
 static const btgatt_server_callbacks_t sGattServerCallbacks = {
