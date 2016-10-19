@@ -16,14 +16,13 @@
  *
  ******************************************************************************/
 
-
 /*****************************************************************************
-**
-**  Name:          btif_gatt.h
-**
-**  Description:
-**
-******************************************************************************/
+ *
+ *  Name:          btif_gatt.h
+ *
+ *  Description:
+ *
+ *****************************************************************************/
 
 #ifndef BTIF_GATT_H
 #define BTIF_GATT_H
@@ -33,4 +32,3 @@ extern const btgatt_server_interface_t btgattServerInterface;
 
 BleAdvertiserInterface* get_ble_advertiser_instance();
 #endif
-

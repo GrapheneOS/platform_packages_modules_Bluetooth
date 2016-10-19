@@ -28,159 +28,154 @@
 
 #include "btif_sm.h"
 
-#include "btif_common.h"
 #include "bt_common.h"
+#include "btif_common.h"
 #include "osi/include/allocator.h"
 
 /*****************************************************************************
-**  Local type definitions
-******************************************************************************/
+ *  Local type definitions
+ *****************************************************************************/
 typedef struct {
-    btif_sm_state_t         state;
-    btif_sm_handler_t       *p_handlers;
+  btif_sm_state_t state;
+  btif_sm_handler_t* p_handlers;
 } btif_sm_cb_t;
 
 /*****************************************************************************
-**  Functions
-******************************************************************************/
+ *  Functions
+ *****************************************************************************/
 
 /*****************************************************************************
-**
-** Function     btif_sm_init
-**
-** Description  Initializes the state machine with the state handlers
-**              The caller should ensure that the table and the corresponding
-**              states match. The location that 'p_handlers' points to shall
-**              be available until the btif_sm_shutdown API is invoked.
-**
-** Returns      Returns a pointer to the initialized state machine handle.
-**
-******************************************************************************/
+ *
+ * Function     btif_sm_init
+ *
+ * Description  Initializes the state machine with the state handlers
+ *              The caller should ensure that the table and the corresponding
+ *              states match. The location that 'p_handlers' points to shall
+ *              be available until the btif_sm_shutdown API is invoked.
+ *
+ * Returns      Returns a pointer to the initialized state machine handle.
+ *
+ *****************************************************************************/
 
-btif_sm_handle_t btif_sm_init(const btif_sm_handler_t *p_handlers, btif_sm_state_t initial_state)
-{
-    if (p_handlers == NULL) {
-        BTIF_TRACE_ERROR("%s : p_handlers is NULL", __func__);
-        return NULL;
-    }
+btif_sm_handle_t btif_sm_init(const btif_sm_handler_t* p_handlers,
+                              btif_sm_state_t initial_state) {
+  if (p_handlers == NULL) {
+    BTIF_TRACE_ERROR("%s : p_handlers is NULL", __func__);
+    return NULL;
+  }
 
-    btif_sm_cb_t *p_cb = (btif_sm_cb_t *)osi_malloc(sizeof(btif_sm_cb_t));
-    p_cb->state = initial_state;
-    p_cb->p_handlers = (btif_sm_handler_t*)p_handlers;
+  btif_sm_cb_t* p_cb = (btif_sm_cb_t*)osi_malloc(sizeof(btif_sm_cb_t));
+  p_cb->state = initial_state;
+  p_cb->p_handlers = (btif_sm_handler_t*)p_handlers;
 
-    /* Send BTIF_SM_ENTER_EVT to the initial state */
-    p_cb->p_handlers[initial_state](BTIF_SM_ENTER_EVT, NULL);
+  /* Send BTIF_SM_ENTER_EVT to the initial state */
+  p_cb->p_handlers[initial_state](BTIF_SM_ENTER_EVT, NULL);
 
-    return (btif_sm_handle_t)p_cb;
+  return (btif_sm_handle_t)p_cb;
 }
 
 /*****************************************************************************
-**
-** Function     btif_sm_shutdown
-**
-** Description  Tears down the state machine
-**
-** Returns      None
-**
-******************************************************************************/
-void btif_sm_shutdown(btif_sm_handle_t handle)
-{
-    btif_sm_cb_t *p_cb = (btif_sm_cb_t*)handle;
+ *
+ * Function     btif_sm_shutdown
+ *
+ * Description  Tears down the state machine
+ *
+ * Returns      None
+ *
+ *****************************************************************************/
+void btif_sm_shutdown(btif_sm_handle_t handle) {
+  btif_sm_cb_t* p_cb = (btif_sm_cb_t*)handle;
 
-    if (p_cb == NULL)
-    {
-        BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
-        return;
-    }
-    osi_free(p_cb);
+  if (p_cb == NULL) {
+    BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
+    return;
+  }
+  osi_free(p_cb);
 }
 
 /*****************************************************************************
-**
-** Function     btif_sm_get_state
-**
-** Description  Fetches the current state of the state machine
-**
-** Returns      Current state
-**
-******************************************************************************/
-btif_sm_state_t btif_sm_get_state(btif_sm_handle_t handle)
-{
-    btif_sm_cb_t *p_cb = (btif_sm_cb_t*)handle;
+ *
+ * Function     btif_sm_get_state
+ *
+ * Description  Fetches the current state of the state machine
+ *
+ * Returns      Current state
+ *
+ *****************************************************************************/
+btif_sm_state_t btif_sm_get_state(btif_sm_handle_t handle) {
+  btif_sm_cb_t* p_cb = (btif_sm_cb_t*)handle;
 
-    if (p_cb == NULL)
-    {
-        BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
-        return 0;
-    }
+  if (p_cb == NULL) {
+    BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
+    return 0;
+  }
 
-    return p_cb->state;
+  return p_cb->state;
 }
 
 /*****************************************************************************
-**
-** Function     btif_sm_dispatch
-**
-** Description  Dispatches the 'event' along with 'data' to the current state handler
-**
-** Returns      BT_STATUS_SUCCESS on success
-**              BT_STATUS_UNHANDLED if event was not processed
-**              BT_STATUS_FAIL otherwise
-**
-******************************************************************************/
+ *
+ * Function     btif_sm_dispatch
+ *
+ * Description  Dispatches the 'event' along with 'data' to the current state
+ *handler
+ *
+ * Returns      BT_STATUS_SUCCESS on success
+ *              BT_STATUS_UNHANDLED if event was not processed
+ *              BT_STATUS_FAIL otherwise
+ *
+ *****************************************************************************/
 bt_status_t btif_sm_dispatch(btif_sm_handle_t handle, btif_sm_event_t event,
-                                void *data)
-{
-    bt_status_t status = BT_STATUS_SUCCESS;
+                             void* data) {
+  bt_status_t status = BT_STATUS_SUCCESS;
 
-    btif_sm_cb_t *p_cb = (btif_sm_cb_t*)handle;
+  btif_sm_cb_t* p_cb = (btif_sm_cb_t*)handle;
 
-    if (p_cb == NULL)
-    {
-        BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
-        return BT_STATUS_FAIL;
-    }
+  if (p_cb == NULL) {
+    BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
+    return BT_STATUS_FAIL;
+  }
 
-    if (p_cb->p_handlers[p_cb->state](event, data) == false)
-        return BT_STATUS_UNHANDLED;
+  if (p_cb->p_handlers[p_cb->state](event, data) == false)
+    return BT_STATUS_UNHANDLED;
 
-    return status;
+  return status;
 }
 
 /*****************************************************************************
-**
-** Function     btif_sm_change_state
-**
-** Description  Make a transition to the new 'state'. The 'BTIF_SM_EXIT_EVT'
-**              shall be invoked before exiting the current state. The
-**              'BTIF_SM_ENTER_EVT' shall be invoked before entering the new state
-**
-** Returns      BT_STATUS_SUCCESS on success
-**              BT_STATUS_UNHANDLED if event was not processed
-**              BT_STATUS_FAIL otherwise
-**
-******************************************************************************/
-bt_status_t btif_sm_change_state(btif_sm_handle_t handle, btif_sm_state_t state)
-{
-    bt_status_t status = BT_STATUS_SUCCESS;
-    btif_sm_cb_t *p_cb = (btif_sm_cb_t*)handle;
+ *
+ * Function     btif_sm_change_state
+ *
+ * Description  Make a transition to the new 'state'. The 'BTIF_SM_EXIT_EVT'
+ *              shall be invoked before exiting the current state. The
+ *              'BTIF_SM_ENTER_EVT' shall be invoked before entering the new
+ *state
+ *
+ * Returns      BT_STATUS_SUCCESS on success
+ *              BT_STATUS_UNHANDLED if event was not processed
+ *              BT_STATUS_FAIL otherwise
+ *
+ *****************************************************************************/
+bt_status_t btif_sm_change_state(btif_sm_handle_t handle,
+                                 btif_sm_state_t state) {
+  bt_status_t status = BT_STATUS_SUCCESS;
+  btif_sm_cb_t* p_cb = (btif_sm_cb_t*)handle;
 
-    if (p_cb == NULL)
-    {
-        BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
-        return BT_STATUS_FAIL;
-    }
+  if (p_cb == NULL) {
+    BTIF_TRACE_ERROR("%s : Invalid handle", __func__);
+    return BT_STATUS_FAIL;
+  }
 
-    /* Send exit event to the current state */
-    if (p_cb->p_handlers[p_cb->state](BTIF_SM_EXIT_EVT, NULL) == false)
-        status = BT_STATUS_UNHANDLED;
+  /* Send exit event to the current state */
+  if (p_cb->p_handlers[p_cb->state](BTIF_SM_EXIT_EVT, NULL) == false)
+    status = BT_STATUS_UNHANDLED;
 
-    /* Change to the new state */
-    p_cb->state = state;
+  /* Change to the new state */
+  p_cb->state = state;
 
-    /* Send enter event to the new state */
-    if (p_cb->p_handlers[p_cb->state](BTIF_SM_ENTER_EVT, NULL) == false)
-        status = BT_STATUS_UNHANDLED;
+  /* Send enter event to the new state */
+  if (p_cb->p_handlers[p_cb->state](BTIF_SM_ENTER_EVT, NULL) == false)
+    status = BT_STATUS_UNHANDLED;
 
-    return status;
+  return status;
 }

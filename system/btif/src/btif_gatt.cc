@@ -44,39 +44,36 @@
 #include "btif_gatt_util.h"
 #include "btif_storage.h"
 
-const btgatt_callbacks_t *bt_gatt_callbacks = NULL;
+const btgatt_callbacks_t* bt_gatt_callbacks = NULL;
 
 /*******************************************************************************
-**
-** Function         btif_gatt_init
-**
-** Description      Initializes the GATT interface
-**
-** Returns          bt_status_t
-**
-*******************************************************************************/
-static bt_status_t btif_gatt_init( const btgatt_callbacks_t* callbacks )
-{
-    bt_gatt_callbacks = callbacks;
-    return BT_STATUS_SUCCESS;
+ *
+ * Function         btif_gatt_init
+ *
+ * Description      Initializes the GATT interface
+ *
+ * Returns          bt_status_t
+ *
+ ******************************************************************************/
+static bt_status_t btif_gatt_init(const btgatt_callbacks_t* callbacks) {
+  bt_gatt_callbacks = callbacks;
+  return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************
-**
-** Function         btif_gatt_cleanup
-**
-** Description      Closes the GATT interface
-**
-** Returns          void
-**
-*******************************************************************************/
-static void  btif_gatt_cleanup( void )
-{
-    if (bt_gatt_callbacks)
-        bt_gatt_callbacks = NULL;
+ *
+ * Function         btif_gatt_cleanup
+ *
+ * Description      Closes the GATT interface
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static void btif_gatt_cleanup(void) {
+  if (bt_gatt_callbacks) bt_gatt_callbacks = NULL;
 
-    BTA_GATTC_Disable();
-    BTA_GATTS_Disable();
+  BTA_GATTC_Disable();
+  BTA_GATTS_Disable();
 }
 
 static btgatt_interface_t btgattInterface = {
@@ -87,20 +84,19 @@ static btgatt_interface_t btgattInterface = {
 
     &btgattClientInterface,
     &btgattServerInterface,
-    nullptr //filled in btif_gatt_get_interface
+    nullptr  // filled in btif_gatt_get_interface
 };
 
 /*******************************************************************************
-**
-** Function         btif_gatt_get_interface
-**
-** Description      Get the gatt callback interface
-**
-** Returns          btgatt_interface_t
-**
-*******************************************************************************/
-const btgatt_interface_t *btif_gatt_get_interface()
-{
+ *
+ * Function         btif_gatt_get_interface
+ *
+ * Description      Get the gatt callback interface
+ *
+ * Returns          btgatt_interface_t
+ *
+ ******************************************************************************/
+const btgatt_interface_t* btif_gatt_get_interface() {
   // TODO(jpawlowski) right now initializing advertiser field in static
   // structure cause explosion of dependencies. It must be initialized here
   // until those dependencies are properly abstracted for tests.

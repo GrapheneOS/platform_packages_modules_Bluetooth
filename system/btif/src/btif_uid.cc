@@ -28,95 +28,96 @@
 #include "btif_uid.h"
 
 typedef struct uid_set_node_t {
-    struct uid_set_node_t* next;
-    bt_uid_traffic_t data;
+  struct uid_set_node_t* next;
+  bt_uid_traffic_t data;
 } uid_set_node_t;
 
 typedef struct uid_set_t {
-    std::mutex lock;
-    uid_set_node_t* head;
+  std::mutex lock;
+  uid_set_node_t* head;
 } uid_set_t;
 
 uid_set_t* uid_set_create(void) {
-    uid_set_t* set = (uid_set_t*)osi_calloc(sizeof(uid_set_t));
-    return set;
+  uid_set_t* set = (uid_set_t*)osi_calloc(sizeof(uid_set_t));
+  return set;
 }
 
 void uid_set_destroy(uid_set_t* set) {
-    std::unique_lock<std::mutex> lock(set->lock);
-    uid_set_node_t* node = set->head;
-    while (node) {
-        uid_set_node_t* temp = node;
-        node = node->next;
-        osi_free(temp);
-    }
-    set->head = NULL;
-    osi_free(set);
+  std::unique_lock<std::mutex> lock(set->lock);
+  uid_set_node_t* node = set->head;
+  while (node) {
+    uid_set_node_t* temp = node;
+    node = node->next;
+    osi_free(temp);
+  }
+  set->head = NULL;
+  osi_free(set);
 }
 
 // Lock in uid_set_t must be held.
-static uid_set_node_t* uid_set_find_or_create_node(uid_set_t* set, int32_t app_uid) {
-    uid_set_node_t* node = set->head;
-    while (node && node->data.app_uid != app_uid) {
-        node = node->next;
-    }
+static uid_set_node_t* uid_set_find_or_create_node(uid_set_t* set,
+                                                   int32_t app_uid) {
+  uid_set_node_t* node = set->head;
+  while (node && node->data.app_uid != app_uid) {
+    node = node->next;
+  }
 
-    if (!node) {
-        node = (uid_set_node_t*)osi_calloc(sizeof(uid_set_node_t));
-        node->data.app_uid = app_uid;
-        node->next = set->head;
-        set->head = node;
-    }
-    return node;
+  if (!node) {
+    node = (uid_set_node_t*)osi_calloc(sizeof(uid_set_node_t));
+    node->data.app_uid = app_uid;
+    node->next = set->head;
+    set->head = node;
+  }
+  return node;
 }
 
 void uid_set_add_tx(uid_set_t* set, int32_t app_uid, uint64_t bytes) {
-    if (app_uid == -1 || bytes == 0)
-        return;
+  if (app_uid == -1 || bytes == 0) return;
 
-    std::unique_lock<std::mutex> lock(set->lock);
-    uid_set_node_t* node = uid_set_find_or_create_node(set, app_uid);
-    node->data.tx_bytes += bytes;
+  std::unique_lock<std::mutex> lock(set->lock);
+  uid_set_node_t* node = uid_set_find_or_create_node(set, app_uid);
+  node->data.tx_bytes += bytes;
 }
 
 void uid_set_add_rx(uid_set_t* set, int32_t app_uid, uint64_t bytes) {
-    if (app_uid == -1 || bytes == 0)
-        return;
+  if (app_uid == -1 || bytes == 0) return;
 
-    std::unique_lock<std::mutex> lock(set->lock);
-    uid_set_node_t* node = uid_set_find_or_create_node(set, app_uid);
-    node->data.rx_bytes += bytes;
+  std::unique_lock<std::mutex> lock(set->lock);
+  uid_set_node_t* node = uid_set_find_or_create_node(set, app_uid);
+  node->data.rx_bytes += bytes;
 }
 
 bt_uid_traffic_t* uid_set_read_and_clear(uid_set_t* set) {
-    std::unique_lock<std::mutex> lock(set->lock);
+  std::unique_lock<std::mutex> lock(set->lock);
 
-    // Find the length
-    size_t len = 0;
-    uid_set_node_t* node = set->head;
-    while (node) {
-        len++;
-        node = node->next;
-    }
+  // Find the length
+  size_t len = 0;
+  uid_set_node_t* node = set->head;
+  while (node) {
+    len++;
+    node = node->next;
+  }
 
-    // Allocate an array of elements + 1, to signify the end with app_uid set to -1.
-    bt_uid_traffic_t* result = (bt_uid_traffic_t*)osi_calloc(sizeof(bt_uid_traffic_t) * (len + 1));
+  // Allocate an array of elements + 1, to signify the end with app_uid set to
+  // -1.
+  bt_uid_traffic_t* result =
+      (bt_uid_traffic_t*)osi_calloc(sizeof(bt_uid_traffic_t) * (len + 1));
 
-    bt_uid_traffic_t* data = result;
-    node = set->head;
-    while (node) {
-        // Copy the data.
-        *data = node->data;
-        data++;
+  bt_uid_traffic_t* data = result;
+  node = set->head;
+  while (node) {
+    // Copy the data.
+    *data = node->data;
+    data++;
 
-        // Clear the counters.
-        node->data.rx_bytes = 0;
-        node->data.tx_bytes = 0;
-        node = node->next;
-    }
+    // Clear the counters.
+    node->data.rx_bytes = 0;
+    node->data.tx_bytes = 0;
+    node = node->next;
+  }
 
-    // Mark the last entry
-    data->app_uid = -1;
+  // Mark the last entry
+  data->app_uid = -1;
 
-    return result;
+  return result;
 }
