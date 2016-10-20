@@ -41,7 +41,7 @@ class BleAdvertiserHciInterface {
     virtual ~AdvertisingEventObserver() = default;
     virtual void OnAdvertisingStateChanged(uint8_t inst_id,
                                            uint8_t state_change_reason,
-                                           uint16_t connection_handle);
+                                           uint16_t connection_handle) = 0;
   };
 
   virtual void ReadInstanceCount(base::Callback<void(uint8_t /* inst_cnt*/)> cb) = 0;
