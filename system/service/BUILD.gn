@@ -51,7 +51,7 @@ source_set("service") {
     "//",
     "//service/common",
     "//third_party/modp_b64/modp64",
-    libhw_include_path,
+    "//third_party/libhardware/include",
   ]
 
   deps = [
