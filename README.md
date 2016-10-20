@@ -63,6 +63,7 @@ git clone https://github.com/google/googletest.git
 git clone https://android.googlesource.com/platform/external/libchrome
 git clone https://android.googlesource.com/platform/external/modp_b64
 git clone https://android.googlesource.com/platform/external/tinyxml2
+git clone https://android.googlesource.com/platform/hardware/libhardware
 ```
 
 And third party dependencies of third party dependencies:
@@ -75,33 +76,7 @@ curl https://chromium.googlesource.com/chromium/src/base/+/master/third_party/va
 curl https://chromium.googlesource.com/chromium/src/base/+/master/third_party/valgrind/memcheck.h?format=TEXT | base64 -d > memcheck.h
 ```
 
-Fluoride currently has dependency on some internal Android projects, which also need to be downloaded. This will be removed in future:
-
-```sh
-cd ~/fluoride
-git clone https://android.googlesource.com/platform/hardware/libhardware
-```
-
-### Configure your build
-We need to configure some paths to make the build successful. Run:
-
-```sh
-cd ~/fluoride/bt
-gn args out/Default
-```
-
-This will prompt you to fill the contents of your "out/Default/args.gn" file. Make it look like below. Replace "/home/job" with path to your home directory, and don't use "~" in build arguments:
-
-```sh
-# Build arguments go here. Examples:
-#   is_component_build = true
-#   is_debug = false
-# See "gn args <out_dir> --list" for available build arguments.
-
-libhw_include_path = "/home/job/fluoride/libhardware/include"
-```
-
-Then generate your build files by calling
+### Generate your build files
 
 ```sh
 cd ~/fluoride/bt
