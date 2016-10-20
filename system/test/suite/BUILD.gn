@@ -40,5 +40,6 @@ executable("net_test_bluetooth") {
     "-lpthread",
     "-lrt",
     "-ldl",
+    "-latomic",
   ]
 }

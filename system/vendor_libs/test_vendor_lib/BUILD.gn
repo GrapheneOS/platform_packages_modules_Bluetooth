@@ -1,6 +1,7 @@
 shared_library("test_vendor_lib") {
   sources = [
     "src/async_manager.cc",
+    "src/bt_address.cc",
     "src/bt_vendor.cc",
     "src/command_packet.cc",
     "src/dual_mode_controller.cc",
@@ -57,5 +58,6 @@ executable("test_vendor_lib_test") {
     "-lpthread",
     "-lrt",
     "-ldl",
+    "-latomic",
   ]
 }

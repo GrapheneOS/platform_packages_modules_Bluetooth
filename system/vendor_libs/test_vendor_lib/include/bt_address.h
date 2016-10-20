@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 
 namespace test_vendor_lib {
 
