@@ -68,25 +68,25 @@ class BleAdvertisingManager {
   * advertising is disabled by calling |BTM_BleDisableAdvInstance|, or when any
   * of the operations fails. */
   virtual void RegisterAdvertiser(
-      base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)>);
+      base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)>) = 0;
 
   /* This function enables/disables an advertising instance. Operation status is
    * returned in |cb| */
   virtual void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb, int timeout_s,
-                    MultiAdvCb timeout_cb);
+                    MultiAdvCb timeout_cb) = 0;
 
   /* This function update a Multi-ADV instance with the specififed adv
    * parameters. */
   virtual void SetParameters(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params,
-                             MultiAdvCb cb);
+                             MultiAdvCb cb) = 0;
 
   /* This function configure a Multi-ADV instance with the specified adv data or
    * scan response data.*/
   virtual void SetData(uint8_t inst_id, bool is_scan_rsp,
-                       std::vector<uint8_t> data, MultiAdvCb cb);
+                       std::vector<uint8_t> data, MultiAdvCb cb) = 0;
 
   /*  This function disable a Multi-ADV instance */
-  virtual void Unregister(uint8_t inst_id);
+  virtual void Unregister(uint8_t inst_id) = 0;
 };
 
 #endif  // BLE_ADVERTISER_H
