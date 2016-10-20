@@ -198,6 +198,15 @@ executable("stack_unittests") {
     "//vnd/include"
   ]
 
+  libs = [
+    "-ldl",
+    "-lpthread",
+    "-lresolv",
+    "-lrt",
+    "-lz",
+    "-latomic",
+  ]
+
   deps = [
     ":stack",
     "//osi",
