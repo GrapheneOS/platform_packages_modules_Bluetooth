@@ -122,7 +122,7 @@ class BleAdvertiserHciInterfaceImpl : public BleAdvertiserHciInterface {
 
   void SetScanResponseData(uint8_t scan_response_data_length,
                            uint8_t *scan_response_data, uint8_t inst_id,
-                           status_cb command_complete) {
+                           status_cb command_complete) override {
     VLOG(1) << __func__;
     uint8_t param[BTM_BLE_MULTI_ADV_WRITE_DATA_LEN];
     memset(param, 0, BTM_BLE_MULTI_ADV_WRITE_DATA_LEN);
@@ -138,7 +138,7 @@ class BleAdvertiserHciInterfaceImpl : public BleAdvertiserHciInterface {
   }
 
   void SetRandomAddress(uint8_t random_address[6], uint8_t inst_id,
-                        status_cb command_complete) {
+                        status_cb command_complete) override {
     VLOG(1) << __func__;
     uint8_t param[BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN];
     memset(param, 0, BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN);
@@ -153,7 +153,7 @@ class BleAdvertiserHciInterfaceImpl : public BleAdvertiserHciInterface {
   }
 
   void Enable(uint8_t advertising_enable, uint8_t inst_id,
-              status_cb command_complete) {
+              status_cb command_complete) override {
     VLOG(1) << __func__;
     uint8_t param[BTM_BLE_MULTI_ADV_ENB_LEN];
     memset(param, 0, BTM_BLE_MULTI_ADV_ENB_LEN);

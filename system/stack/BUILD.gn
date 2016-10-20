@@ -175,7 +175,6 @@ static_library("stack") {
 executable("stack_unittests") {
   testonly = true
   sources = [
-    "test/ble_advertiser_test.cc",
     "test/stack_a2dp_test.cc",
   ]
 
@@ -214,6 +213,37 @@ executable("stack_unittests") {
     "//device",
     "//hci",
     "//main:bluetooth.default",
+    "//third_party/googletest:gmock_main",
+    "//third_party/libchrome:base",
+  ]
+}
+
+executable("net_test_stack_multi_adv") {
+  testonly = true
+  sources = [
+    "btm/btm_ble_multi_adv.cc",
+    "test/ble_advertiser_test.cc",
+  ]
+
+  include_dirs = [
+    "include",
+    "//",
+    "//btcore/include",
+    "//hci/include",
+    "//include",
+    "//stack/btm",
+  ]
+
+libs = [
+    "-ldl",
+    "-lpthread",
+    "-lresolv",
+    "-lrt",
+    "-lz",
+    "-latomic",
+  ]
+
+  deps = [
     "//third_party/googletest:gmock_main",
     "//third_party/libchrome:base",
   ]

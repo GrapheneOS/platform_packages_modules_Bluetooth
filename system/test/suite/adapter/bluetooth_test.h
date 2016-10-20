@@ -81,20 +81,20 @@ class BluetoothTest : public ::testing::Test,
   void AdapterPropertiesCallback(
       bt_status_t status,
       int num_properties,
-      bt_property_t *properties);
+      bt_property_t *properties) override;
 
   // A callback that is called when the remote device's property changes
   void RemoteDevicePropertiesCallback(
       bt_status_t status,
       bt_bdaddr_t *remote_bd_addr,
       int num_properties,
-      bt_property_t *properties);
+      bt_property_t *properties) override;
 
   // A callback that is called when the adapter state changes
-  void AdapterStateChangedCallback(bt_state_t state);
+  void AdapterStateChangedCallback(bt_state_t state) override;
 
   // A callback that is called when the Discovery state changes
-  void DiscoveryStateChangedCallback(bt_discovery_state_t state);
+  void DiscoveryStateChangedCallback(bt_discovery_state_t state) override;
 
   // Semaphores used to wait for specific callback execution. Each callback
   // has its own semaphore associated with it.
