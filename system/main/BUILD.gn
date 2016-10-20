@@ -81,5 +81,6 @@ shared_library("bluetooth.default") {
     "-lresolv",
     "-lrt",
     "-lz",
+    "-latomic",
   ]
 }

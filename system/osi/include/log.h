@@ -36,6 +36,8 @@
 #define LOG_WARN(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_ERROR(...) LOGWRAPPER(__VA_ARGS__)
 
+#define LOG_EVENT_INT(...)
+
 #else /* !defined(OS_GENERIC) */
 
 #include <log/log.h>
