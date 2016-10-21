@@ -40,6 +40,7 @@
 
 #if (BLE_INCLUDED == TRUE)
 
+#include "bt_common.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "btif_config.h"
@@ -47,7 +48,6 @@
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
 #include "btif_storage.h"
-#include "bt_common.h"
 #include "osi/include/log.h"
 
 using base::Bind;
@@ -57,242 +57,220 @@ using std::vector;
 extern bt_status_t do_in_jni_thread(const base::Closure& task);
 
 /************************************************************************************
-**  Constants & Macros
-************************************************************************************/
+ *  Constants & Macros
+ ***********************************************************************************/
 
-#define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
-    {\
-        LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__);\
-        return BT_STATUS_NOT_READY;\
-    } else {\
-        LOG_VERBOSE(LOG_TAG, "%s", __func__);\
-    }
-
-/************************************************************************************
-**  Static variables
-************************************************************************************/
-
-extern const btgatt_callbacks_t *bt_gatt_callbacks;
+#define CHECK_BTGATT_INIT()                                    \
+  if (bt_gatt_callbacks == NULL) {                             \
+    LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__); \
+    return BT_STATUS_NOT_READY;                                \
+  } else {                                                     \
+    LOG_VERBOSE(LOG_TAG, "%s", __func__);                      \
+  }
 
 /************************************************************************************
-**  Static functions
-************************************************************************************/
+ *  Static variables
+ ***********************************************************************************/
 
-static void btapp_gatts_copy_req_data(uint16_t event, char *p_dest, char *p_src)
-{
-    tBTA_GATTS *p_dest_data = (tBTA_GATTS*) p_dest;
-    tBTA_GATTS *p_src_data = (tBTA_GATTS*) p_src;
+extern const btgatt_callbacks_t* bt_gatt_callbacks;
 
-    if (!p_src_data || !p_dest_data)
-        return;
+/************************************************************************************
+ *  Static functions
+ ***********************************************************************************/
 
-    // Copy basic structure first
-    maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
+static void btapp_gatts_copy_req_data(uint16_t event, char* p_dest,
+                                      char* p_src) {
+  tBTA_GATTS* p_dest_data = (tBTA_GATTS*)p_dest;
+  tBTA_GATTS* p_src_data = (tBTA_GATTS*)p_src;
 
-    // Allocate buffer for request data if necessary
-    switch (event)
-    {
-        case BTA_GATTS_READ_CHARACTERISTIC_EVT:
-        case BTA_GATTS_READ_DESCRIPTOR_EVT:
-        case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
-        case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
-        case BTA_GATTS_EXEC_WRITE_EVT:
-        case BTA_GATTS_MTU_EVT:
-            p_dest_data->req_data.p_data = (tBTA_GATTS_REQ_DATA *)osi_malloc(sizeof(tBTA_GATTS_REQ_DATA));
-            memcpy(p_dest_data->req_data.p_data, p_src_data->req_data.p_data,
-                   sizeof(tBTA_GATTS_REQ_DATA));
-            break;
+  if (!p_src_data || !p_dest_data) return;
 
-        default:
-            break;
-    }
+  // Copy basic structure first
+  maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
+
+  // Allocate buffer for request data if necessary
+  switch (event) {
+    case BTA_GATTS_READ_CHARACTERISTIC_EVT:
+    case BTA_GATTS_READ_DESCRIPTOR_EVT:
+    case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
+    case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
+    case BTA_GATTS_EXEC_WRITE_EVT:
+    case BTA_GATTS_MTU_EVT:
+      p_dest_data->req_data.p_data =
+          (tBTA_GATTS_REQ_DATA*)osi_malloc(sizeof(tBTA_GATTS_REQ_DATA));
+      memcpy(p_dest_data->req_data.p_data, p_src_data->req_data.p_data,
+             sizeof(tBTA_GATTS_REQ_DATA));
+      break;
+
+    default:
+      break;
+  }
 }
 
-static void btapp_gatts_free_req_data(uint16_t event, tBTA_GATTS *p_data)
-{
-    switch (event)
-    {
-        case BTA_GATTS_READ_CHARACTERISTIC_EVT:
-        case BTA_GATTS_READ_DESCRIPTOR_EVT:
-        case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
-        case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
-        case BTA_GATTS_EXEC_WRITE_EVT:
-        case BTA_GATTS_MTU_EVT:
-            if (p_data != NULL)
-                osi_free_and_reset((void **)&p_data->req_data.p_data);
-            break;
+static void btapp_gatts_free_req_data(uint16_t event, tBTA_GATTS* p_data) {
+  switch (event) {
+    case BTA_GATTS_READ_CHARACTERISTIC_EVT:
+    case BTA_GATTS_READ_DESCRIPTOR_EVT:
+    case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
+    case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
+    case BTA_GATTS_EXEC_WRITE_EVT:
+    case BTA_GATTS_MTU_EVT:
+      if (p_data != NULL) osi_free_and_reset((void**)&p_data->req_data.p_data);
+      break;
 
-        default:
-            break;
-    }
+    default:
+      break;
+  }
 }
 
-static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
-{
-    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __func__, event);
+static void btapp_gatts_handle_cback(uint16_t event, char* p_param) {
+  LOG_VERBOSE(LOG_TAG, "%s: Event %d", __func__, event);
 
-    tBTA_GATTS *p_data = (tBTA_GATTS*)p_param;
-    switch (event)
-    {
-        case BTA_GATTS_REG_EVT:
-        {
-            bt_uuid_t app_uuid;
-            bta_to_btif_uuid(&app_uuid, &p_data->reg_oper.uuid);
-            HAL_CBACK(bt_gatt_callbacks, server->register_server_cb
-                , p_data->reg_oper.status
-                , p_data->reg_oper.server_if
-                , &app_uuid
-            );
-            break;
-        }
-
-        case BTA_GATTS_DEREG_EVT:
-            break;
-
-        case BTA_GATTS_CONNECT_EVT:
-        {
-            bt_bdaddr_t bda;
-            bdcpy(bda.address, p_data->conn.remote_bda);
-
-            btif_gatt_check_encrypted_link(p_data->conn.remote_bda, p_data->conn.transport);
-
-            HAL_CBACK(bt_gatt_callbacks, server->connection_cb,
-                      p_data->conn.conn_id, p_data->conn.server_if, true, &bda);
-            break;
-        }
-
-        case BTA_GATTS_DISCONNECT_EVT:
-        {
-            bt_bdaddr_t bda;
-            bdcpy(bda.address, p_data->conn.remote_bda);
-
-            HAL_CBACK(bt_gatt_callbacks, server->connection_cb,
-                      p_data->conn.conn_id, p_data->conn.server_if, false, &bda);
-            break;
-        }
-
-        case BTA_GATTS_STOP_EVT:
-            HAL_CBACK(bt_gatt_callbacks, server->service_stopped_cb,
-                      p_data->srvc_oper.status,
-                      p_data->srvc_oper.server_if,
-                      p_data->srvc_oper.service_id);
-            break;
-
-        case BTA_GATTS_DELELTE_EVT:
-            HAL_CBACK(bt_gatt_callbacks, server->service_deleted_cb,
-                      p_data->srvc_oper.status,
-                      p_data->srvc_oper.server_if,
-                      p_data->srvc_oper.service_id);
-            break;
-
-        case BTA_GATTS_READ_CHARACTERISTIC_EVT:
-        {
-            bt_bdaddr_t bda;
-            bdcpy(bda.address, p_data->req_data.remote_bda);
-
-            HAL_CBACK(bt_gatt_callbacks, server->request_read_characteristic_cb,
-                      p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
-                      p_data->req_data.p_data->read_req.handle,
-                      p_data->req_data.p_data->read_req.offset,
-                      p_data->req_data.p_data->read_req.is_long);
-            break;
-        }
-
-        case BTA_GATTS_READ_DESCRIPTOR_EVT:
-        {
-            bt_bdaddr_t bda;
-            bdcpy(bda.address, p_data->req_data.remote_bda);
-
-            HAL_CBACK(bt_gatt_callbacks, server->request_read_descriptor_cb,
-                      p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
-                      p_data->req_data.p_data->read_req.handle,
-                      p_data->req_data.p_data->read_req.offset,
-                      p_data->req_data.p_data->read_req.is_long);
-            break;
-        }
-
-        case BTA_GATTS_WRITE_CHARACTERISTIC_EVT:
-        {
-            bt_bdaddr_t bda;
-            bdcpy(bda.address, p_data->req_data.remote_bda);
-            const auto &req = p_data->req_data.p_data->write_req;
-            vector<uint8_t> value(req.value, req.value + req.len);
-            HAL_CBACK(bt_gatt_callbacks, server->request_write_characteristic_cb,
-                      p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
-                      req.handle, req.offset, req.need_rsp, req.is_prep, value);
-            break;
-        }
-
-        case BTA_GATTS_WRITE_DESCRIPTOR_EVT:
-        {
-            bt_bdaddr_t bda;
-            bdcpy(bda.address, p_data->req_data.remote_bda);
-            const auto &req = p_data->req_data.p_data->write_req;
-            vector<uint8_t> value(req.value, req.value + req.len);
-            HAL_CBACK(bt_gatt_callbacks, server->request_write_descriptor_cb,
-                      p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
-                      req.handle, req.offset, req.need_rsp, req.is_prep, value);
-            break;
-        }
-
-        case BTA_GATTS_EXEC_WRITE_EVT:
-        {
-            bt_bdaddr_t bda;
-            bdcpy(bda.address, p_data->req_data.remote_bda);
-
-            HAL_CBACK(bt_gatt_callbacks, server->request_exec_write_cb,
-                      p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
-                      p_data->req_data.p_data->exec_write);
-            break;
-        }
-
-        case BTA_GATTS_CONF_EVT:
-            HAL_CBACK(bt_gatt_callbacks, server->indication_sent_cb,
-                      p_data->req_data.conn_id, p_data->req_data.status);
-            break;
-
-        case BTA_GATTS_CONGEST_EVT:
-            HAL_CBACK(bt_gatt_callbacks, server->congestion_cb
-                , p_data->congest.conn_id
-                , p_data->congest.congested
-            );
-            break;
-
-        case BTA_GATTS_MTU_EVT:
-            HAL_CBACK(bt_gatt_callbacks, server->mtu_changed_cb
-                , p_data->req_data.conn_id
-                , p_data->req_data.p_data->mtu
-            );
-            break;
-
-        case BTA_GATTS_OPEN_EVT:
-        case BTA_GATTS_CANCEL_OPEN_EVT:
-        case BTA_GATTS_CLOSE_EVT:
-            LOG_DEBUG(LOG_TAG, "%s: Empty event (%d)!", __func__, event);
-            break;
-
-        default:
-            LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
-            break;
+  tBTA_GATTS* p_data = (tBTA_GATTS*)p_param;
+  switch (event) {
+    case BTA_GATTS_REG_EVT: {
+      bt_uuid_t app_uuid;
+      bta_to_btif_uuid(&app_uuid, &p_data->reg_oper.uuid);
+      HAL_CBACK(bt_gatt_callbacks, server->register_server_cb,
+                p_data->reg_oper.status, p_data->reg_oper.server_if, &app_uuid);
+      break;
     }
 
-    btapp_gatts_free_req_data(event, p_data);
+    case BTA_GATTS_DEREG_EVT:
+      break;
+
+    case BTA_GATTS_CONNECT_EVT: {
+      bt_bdaddr_t bda;
+      bdcpy(bda.address, p_data->conn.remote_bda);
+
+      btif_gatt_check_encrypted_link(p_data->conn.remote_bda,
+                                     p_data->conn.transport);
+
+      HAL_CBACK(bt_gatt_callbacks, server->connection_cb, p_data->conn.conn_id,
+                p_data->conn.server_if, true, &bda);
+      break;
+    }
+
+    case BTA_GATTS_DISCONNECT_EVT: {
+      bt_bdaddr_t bda;
+      bdcpy(bda.address, p_data->conn.remote_bda);
+
+      HAL_CBACK(bt_gatt_callbacks, server->connection_cb, p_data->conn.conn_id,
+                p_data->conn.server_if, false, &bda);
+      break;
+    }
+
+    case BTA_GATTS_STOP_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->service_stopped_cb,
+                p_data->srvc_oper.status, p_data->srvc_oper.server_if,
+                p_data->srvc_oper.service_id);
+      break;
+
+    case BTA_GATTS_DELELTE_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->service_deleted_cb,
+                p_data->srvc_oper.status, p_data->srvc_oper.server_if,
+                p_data->srvc_oper.service_id);
+      break;
+
+    case BTA_GATTS_READ_CHARACTERISTIC_EVT: {
+      bt_bdaddr_t bda;
+      bdcpy(bda.address, p_data->req_data.remote_bda);
+
+      HAL_CBACK(bt_gatt_callbacks, server->request_read_characteristic_cb,
+                p_data->req_data.conn_id, p_data->req_data.trans_id, &bda,
+                p_data->req_data.p_data->read_req.handle,
+                p_data->req_data.p_data->read_req.offset,
+                p_data->req_data.p_data->read_req.is_long);
+      break;
+    }
+
+    case BTA_GATTS_READ_DESCRIPTOR_EVT: {
+      bt_bdaddr_t bda;
+      bdcpy(bda.address, p_data->req_data.remote_bda);
+
+      HAL_CBACK(bt_gatt_callbacks, server->request_read_descriptor_cb,
+                p_data->req_data.conn_id, p_data->req_data.trans_id, &bda,
+                p_data->req_data.p_data->read_req.handle,
+                p_data->req_data.p_data->read_req.offset,
+                p_data->req_data.p_data->read_req.is_long);
+      break;
+    }
+
+    case BTA_GATTS_WRITE_CHARACTERISTIC_EVT: {
+      bt_bdaddr_t bda;
+      bdcpy(bda.address, p_data->req_data.remote_bda);
+      const auto& req = p_data->req_data.p_data->write_req;
+      vector<uint8_t> value(req.value, req.value + req.len);
+      HAL_CBACK(bt_gatt_callbacks, server->request_write_characteristic_cb,
+                p_data->req_data.conn_id, p_data->req_data.trans_id, &bda,
+                req.handle, req.offset, req.need_rsp, req.is_prep, value);
+      break;
+    }
+
+    case BTA_GATTS_WRITE_DESCRIPTOR_EVT: {
+      bt_bdaddr_t bda;
+      bdcpy(bda.address, p_data->req_data.remote_bda);
+      const auto& req = p_data->req_data.p_data->write_req;
+      vector<uint8_t> value(req.value, req.value + req.len);
+      HAL_CBACK(bt_gatt_callbacks, server->request_write_descriptor_cb,
+                p_data->req_data.conn_id, p_data->req_data.trans_id, &bda,
+                req.handle, req.offset, req.need_rsp, req.is_prep, value);
+      break;
+    }
+
+    case BTA_GATTS_EXEC_WRITE_EVT: {
+      bt_bdaddr_t bda;
+      bdcpy(bda.address, p_data->req_data.remote_bda);
+
+      HAL_CBACK(bt_gatt_callbacks, server->request_exec_write_cb,
+                p_data->req_data.conn_id, p_data->req_data.trans_id, &bda,
+                p_data->req_data.p_data->exec_write);
+      break;
+    }
+
+    case BTA_GATTS_CONF_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->indication_sent_cb,
+                p_data->req_data.conn_id, p_data->req_data.status);
+      break;
+
+    case BTA_GATTS_CONGEST_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->congestion_cb,
+                p_data->congest.conn_id, p_data->congest.congested);
+      break;
+
+    case BTA_GATTS_MTU_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->mtu_changed_cb,
+                p_data->req_data.conn_id, p_data->req_data.p_data->mtu);
+      break;
+
+    case BTA_GATTS_OPEN_EVT:
+    case BTA_GATTS_CANCEL_OPEN_EVT:
+    case BTA_GATTS_CLOSE_EVT:
+      LOG_DEBUG(LOG_TAG, "%s: Empty event (%d)!", __func__, event);
+      break;
+
+    default:
+      LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
+      break;
+  }
+
+  btapp_gatts_free_req_data(event, p_data);
 }
 
-static void btapp_gatts_cback(tBTA_GATTS_EVT event, tBTA_GATTS *p_data)
-{
-    bt_status_t status;
-    status = btif_transfer_context(btapp_gatts_handle_cback, (uint16_t) event,
-        (char*)p_data, sizeof(tBTA_GATTS), btapp_gatts_copy_req_data);
-    ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
+static void btapp_gatts_cback(tBTA_GATTS_EVT event, tBTA_GATTS* p_data) {
+  bt_status_t status;
+  status = btif_transfer_context(btapp_gatts_handle_cback, (uint16_t)event,
+                                 (char*)p_data, sizeof(tBTA_GATTS),
+                                 btapp_gatts_copy_req_data);
+  ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
 /************************************************************************************
-**  Server API Functions
-************************************************************************************/
-static bt_status_t btif_gatts_register_app(bt_uuid_t *bt_uuid) {
+ *  Server API Functions
+ ***********************************************************************************/
+static bt_status_t btif_gatts_register_app(bt_uuid_t* bt_uuid) {
   CHECK_BTGATT_INIT();
-  tBT_UUID *uuid = new tBT_UUID;
+  tBT_UUID* uuid = new tBT_UUID;
   btif_to_bta_uuid(uuid, bt_uuid);
 
   return do_in_jni_thread(
@@ -350,18 +328,17 @@ static void btif_gatts_open_impl(int server_if, BD_ADDR address, bool is_direct,
   BTA_GATTS_Open(server_if, address, is_direct, transport);
 }
 
-static bt_status_t btif_gatts_open(int server_if, const bt_bdaddr_t *bd_addr,
+static bt_status_t btif_gatts_open(int server_if, const bt_bdaddr_t* bd_addr,
                                    bool is_direct, int transport) {
   CHECK_BTGATT_INIT();
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
 
   return do_in_jni_thread(Bind(&btif_gatts_open_impl, server_if,
                                base::Owned(address), is_direct, transport));
 }
 
-static void btif_gatts_close_impl(int server_if, BD_ADDR address,
-                                  int conn_id) {
+static void btif_gatts_close_impl(int server_if, BD_ADDR address, int conn_id) {
   // Cancel pending foreground/background connections
   BTA_GATTS_CancelOpen(server_if, address, true);
   BTA_GATTS_CancelOpen(server_if, address, false);
@@ -370,37 +347,39 @@ static void btif_gatts_close_impl(int server_if, BD_ADDR address,
   if (conn_id != 0) BTA_GATTS_Close(conn_id);
 }
 
-static bt_status_t btif_gatts_close(int server_if, const bt_bdaddr_t *bd_addr,
+static bt_status_t btif_gatts_close(int server_if, const bt_bdaddr_t* bd_addr,
                                     int conn_id) {
   CHECK_BTGATT_INIT();
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
 
   return do_in_jni_thread(
       Bind(&btif_gatts_close_impl, server_if, base::Owned(address), conn_id));
 }
 
-static void add_service_impl(int server_if, vector<btgatt_db_element_t> service) {
+static void add_service_impl(int server_if,
+                             vector<btgatt_db_element_t> service) {
   int status = BTA_GATTS_AddService(server_if, service);
-  HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, status, server_if, std::move(service));
+  HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, status, server_if,
+            std::move(service));
 }
 
 static bt_status_t btif_gatts_add_service(int server_if,
                                           vector<btgatt_db_element_t> service) {
   CHECK_BTGATT_INIT();
-  return do_in_jni_thread(Bind(&add_service_impl, server_if, std::move(service)));
+  return do_in_jni_thread(
+      Bind(&add_service_impl, server_if, std::move(service)));
 }
 
-static bt_status_t btif_gatts_stop_service(int server_if, int service_handle)
-{
-    CHECK_BTGATT_INIT();
-    return do_in_jni_thread(Bind(&BTA_GATTS_StopService, service_handle));
+static bt_status_t btif_gatts_stop_service(int server_if, int service_handle) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&BTA_GATTS_StopService, service_handle));
 }
 
-static bt_status_t btif_gatts_delete_service(int server_if, int service_handle)
-{
-    CHECK_BTGATT_INIT();
-    return do_in_jni_thread(Bind(&BTA_GATTS_DeleteService, service_handle));
+static bt_status_t btif_gatts_delete_service(int server_if,
+                                             int service_handle) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&BTA_GATTS_DeleteService, service_handle));
 }
 
 static bt_status_t btif_gatts_send_indication(int server_if,
@@ -409,8 +388,7 @@ static bt_status_t btif_gatts_send_indication(int server_if,
                                               vector<uint8_t> value) {
   CHECK_BTGATT_INIT();
 
-  if (value.size() > BTGATT_MAX_ATTR_LEN)
-    value.resize(BTGATT_MAX_ATTR_LEN);
+  if (value.size() > BTGATT_MAX_ATTR_LEN) value.resize(BTGATT_MAX_ATTR_LEN);
 
   return do_in_jni_thread(Bind(&BTA_GATTS_HandleValueIndication, conn_id,
                                attribute_handle, std::move(value), confirm));
@@ -431,22 +409,17 @@ static void btif_gatts_send_response_impl(int conn_id, int trans_id, int status,
 
 static bt_status_t btif_gatts_send_response(int conn_id, int trans_id,
                                             int status,
-                                            btgatt_response_t *response) {
+                                            btgatt_response_t* response) {
   CHECK_BTGATT_INIT();
   return do_in_jni_thread(Bind(&btif_gatts_send_response_impl, conn_id,
                                trans_id, status, *response));
 }
 
 const btgatt_server_interface_t btgattServerInterface = {
-    btif_gatts_register_app,
-    btif_gatts_unregister_app,
-    btif_gatts_open,
-    btif_gatts_close,
-    btif_gatts_add_service,
-    btif_gatts_stop_service,
-    btif_gatts_delete_service,
-    btif_gatts_send_indication,
-    btif_gatts_send_response
-};
+    btif_gatts_register_app,   btif_gatts_unregister_app,
+    btif_gatts_open,           btif_gatts_close,
+    btif_gatts_add_service,    btif_gatts_stop_service,
+    btif_gatts_delete_service, btif_gatts_send_indication,
+    btif_gatts_send_response};
 
 #endif

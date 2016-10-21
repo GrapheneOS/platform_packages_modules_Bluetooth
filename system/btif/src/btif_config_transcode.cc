@@ -25,32 +25,38 @@
 
 using namespace tinyxml2;
 
-config_t *btif_config_transcode(const char *xml_filename) {
+config_t* btif_config_transcode(const char* xml_filename) {
   XMLDocument document;
   int error = document.LoadFile(xml_filename);
   if (error != XML_SUCCESS) {
-    LOG_ERROR(LOG_TAG, "%s unable to load XML file '%s': %d", __func__, xml_filename, error);
+    LOG_ERROR(LOG_TAG, "%s unable to load XML file '%s': %d", __func__,
+              xml_filename, error);
     return NULL;
   }
 
-  XMLElement *rootElement = document.RootElement();
+  XMLElement* rootElement = document.RootElement();
   if (!rootElement) {
-    LOG_ERROR(LOG_TAG, "%s unable to find root element; assuming corrupted config file.", __func__);
+    LOG_ERROR(LOG_TAG,
+              "%s unable to find root element; assuming corrupted config file.",
+              __func__);
     return NULL;
   }
 
-  config_t *config = config_new_empty();
+  config_t* config = config_new_empty();
   if (!config) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate config object.", __func__);
     return NULL;
   }
 
-  for (XMLElement *i = rootElement->FirstChildElement(); i != NULL; i = i->NextSiblingElement())
-    for (XMLElement *j = i->FirstChildElement(); j != NULL; j = j->NextSiblingElement()) {
-      const char *section = j->Attribute("Tag");
-      for (XMLElement *k = j->FirstChildElement(); k != NULL; k = k->NextSiblingElement()) {
-        const char *key = k->Attribute("Tag");
-        const char *value = k->GetText();
+  for (XMLElement* i = rootElement->FirstChildElement(); i != NULL;
+       i = i->NextSiblingElement())
+    for (XMLElement* j = i->FirstChildElement(); j != NULL;
+         j = j->NextSiblingElement()) {
+      const char* section = j->Attribute("Tag");
+      for (XMLElement* k = j->FirstChildElement(); k != NULL;
+           k = k->NextSiblingElement()) {
+        const char* key = k->Attribute("Tag");
+        const char* value = k->GetText();
         if (section && key && value)
           config_set_string(config, section, key, value);
       }

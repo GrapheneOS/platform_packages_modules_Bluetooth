@@ -16,8 +16,8 @@
  *
  ******************************************************************************/
 
-#include <unistd.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "btif/include/btif_debug.h"
 #include "btif/include/btif_debug_btsnoop.h"

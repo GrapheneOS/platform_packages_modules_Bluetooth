@@ -29,19 +29,20 @@
 #include "bt_utils.h"
 
 /*******************************************************************************
-**  Constants & Macros
-********************************************************************************/
+ *  Constants & Macros
+ *******************************************************************************/
 
-#define CASE_RETURN_STR(const) case const: return #const;
-
-
-/*******************************************************************************
-**  Type definitions for callback functions
-********************************************************************************/
+#define CASE_RETURN_STR(const) \
+  case const:                  \
+    return #const;
 
 /*******************************************************************************
-**  Functions
-********************************************************************************/
+ *  Type definitions for callback functions
+ *******************************************************************************/
+
+/*******************************************************************************
+ *  Functions
+ *******************************************************************************/
 
 const char* dump_bt_status(bt_status_t status);
 const char* dump_dm_search_event(uint16_t event);
@@ -70,10 +71,10 @@ void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128);
 //   "12345678-1234-1234-1234-123456789012"
 // |p_uuid| cannot be null. Returns true if parsing was successful, false
 // otherwise. Returns false if |str| is null.
-bool string_to_uuid(const char *str, bt_uuid_t *p_uuid);
+bool string_to_uuid(const char* str, bt_uuid_t* p_uuid);
 
-int ascii_2_hex (const char *p_ascii, int len, uint8_t *p_hex);
+int ascii_2_hex(const char* p_ascii, int len, uint8_t* p_hex);
 
-void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str, size_t str_len);
+void uuid_to_string_legacy(bt_uuid_t* p_uuid, char* str, size_t str_len);
 
 #endif /* BTIF_UTIL_H */

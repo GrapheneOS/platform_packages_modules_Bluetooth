@@ -52,7 +52,6 @@
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
 #include "btif_storage.h"
-#include "btif_storage.h"
 #include "osi/include/log.h"
 #include "vendor_api.h"
 
@@ -60,14 +59,14 @@ using base::Bind;
 using base::Owned;
 using std::vector;
 
-extern bt_status_t do_in_jni_thread(const base::Closure &task);
+extern bt_status_t do_in_jni_thread(const base::Closure& task);
 extern bt_status_t btif_gattc_test_command_impl(int command,
-                                                btgatt_test_params_t *params);
-extern const btgatt_callbacks_t *bt_gatt_callbacks;
+                                                btgatt_test_params_t* params);
+extern const btgatt_callbacks_t* bt_gatt_callbacks;
 
 /*******************************************************************************
-**  Constants & Macros
-********************************************************************************/
+ *  Constants & Macros
+ *******************************************************************************/
 
 #define CLI_CBACK_IN_JNI(P_CBACK, ...)                                       \
   if (bt_gatt_callbacks && bt_gatt_callbacks->client->P_CBACK) {             \
@@ -77,15 +76,16 @@ extern const btgatt_callbacks_t *bt_gatt_callbacks;
     ASSERTC(0, "Callback is NULL", 0);                                       \
   }
 
-#define CHECK_BTGATT_INIT()                                        \
-  if (bt_gatt_callbacks == NULL) {                                 \
+#define CHECK_BTGATT_INIT()                                    \
+  if (bt_gatt_callbacks == NULL) {                             \
     LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__); \
-    return BT_STATUS_NOT_READY;                                    \
-  } else {                                                         \
+    return BT_STATUS_NOT_READY;                                \
+  } else {                                                     \
     LOG_VERBOSE(LOG_TAG, "%s", __func__);                      \
   }
 
-#define BLE_RESOLVE_ADDR_MSB 0x40  /* bit7, bit6 is 01 to be resolvable random \
+#define BLE_RESOLVE_ADDR_MSB                                                   \
+  0x40                             /* bit7, bit6 is 01 to be resolvable random \
                                       */
 #define BLE_RESOLVE_ADDR_MASK 0xc0 /* bit 6, and bit7 */
 #define BTM_BLE_IS_RESOLVE_BDA(x) \
@@ -94,7 +94,7 @@ extern const btgatt_callbacks_t *bt_gatt_callbacks;
 namespace std {
 template <>
 struct hash<bt_bdaddr_t> {
-  size_t operator()(const bt_bdaddr_t &f) const {
+  size_t operator()(const bt_bdaddr_t& f) const {
     return f.address[0] + f.address[1] + f.address[2] + f.address[3] +
            f.address[4] + f.address[5];
   }
@@ -102,7 +102,7 @@ struct hash<bt_bdaddr_t> {
 
 template <>
 struct equal_to<bt_bdaddr_t> {
-  size_t operator()(const bt_bdaddr_t &x, const bt_bdaddr_t &y) const {
+  size_t operator()(const bt_bdaddr_t& x, const bt_bdaddr_t& y) const {
     return memcmp(x.address, y.address, BD_ADDR_LEN);
   }
 };
@@ -181,10 +181,10 @@ bool btif_gattc_find_bdaddr(BD_ADDR p_bda) {
   return (p_dev_cb.count(bd_addr) != 0);
 }
 
-void btif_gattc_upstreams_evt(uint16_t event, char *p_param) {
+void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
   LOG_VERBOSE(LOG_TAG, "%s: Event %d", __func__, event);
 
-  tBTA_GATTC *p_data = (tBTA_GATTC *)p_param;
+  tBTA_GATTC* p_data = (tBTA_GATTC*)p_param;
   switch (event) {
     case BTA_GATTC_REG_EVT: {
       bt_uuid_t app_uuid;
@@ -286,10 +286,10 @@ void btif_gattc_upstreams_evt(uint16_t event, char *p_param) {
   }
 }
 
-void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data) {
+void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
   bt_status_t status =
       btif_transfer_context(btif_gattc_upstreams_evt, (uint16_t)event,
-                            (char *)p_data, sizeof(tBTA_GATTC), NULL);
+                            (char*)p_data, sizeof(tBTA_GATTC), NULL);
   ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
@@ -316,7 +316,8 @@ void bta_batch_scan_setup_cb(tBTA_BLE_BATCH_SCAN_EVT evt,
     }
 
     case BTA_BLE_BATCH_SCAN_DATA_EVT: {
-      CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, 0, 0, vector<uint8_t>());
+      CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, 0, 0,
+                       vector<uint8_t>());
       return;
     }
 
@@ -336,13 +337,12 @@ void bta_batch_scan_threshold_cb(tBTA_DM_BLE_REF_VALUE ref_value) {
 
 void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value,
                                uint8_t report_format, uint8_t num_records,
-                               uint16_t data_len, uint8_t *p_rep_data,
+                               uint16_t data_len, uint8_t* p_rep_data,
                                tBTA_STATUS status) {
-  BTIF_TRACE_DEBUG("%s - client_if:%d, %d, %d, %d", __func__, ref_value,
-                   status, num_records, data_len);
+  BTIF_TRACE_DEBUG("%s - client_if:%d, %d, %d, %d", __func__, ref_value, status,
+                   num_records, data_len);
 
   if (data_len > 0) {
-
     vector<uint8_t> data(p_rep_data, p_rep_data + data_len);
     osi_free(p_rep_data);
 
@@ -358,18 +358,16 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
                               int8_t rssi, uint8_t addr_type,
                               vector<uint8_t> value) {
   uint8_t remote_name_len;
-  const uint8_t *p_eir_remote_name = NULL;
+  const uint8_t* p_eir_remote_name = NULL;
   bt_device_type_t dev_type;
   bt_property_t properties;
 
-  p_eir_remote_name = BTM_CheckEirData(value.data(),
-                                       BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
-                                       &remote_name_len);
+  p_eir_remote_name = BTM_CheckEirData(
+      value.data(), BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
   if (p_eir_remote_name == NULL) {
-    p_eir_remote_name = BTM_CheckEirData(value.data(),
-                                         BT_EIR_SHORTENED_LOCAL_NAME_TYPE,
-                                         &remote_name_len);
+    p_eir_remote_name = BTM_CheckEirData(
+        value.data(), BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
   }
 
   if ((addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name)) {
@@ -381,8 +379,8 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
         bdname.name[remote_name_len] = '\0';
 
-        LOG_VERBOSE(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __func__,
-                  bdname.name, remote_name_len, device_type);
+        LOG_VERBOSE(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d",
+                    __func__, bdname.name, remote_name_len, device_type);
         btif_dm_update_ble_remote_properties(bd_addr.address, bdname.name,
                                              device_type);
       }
@@ -396,10 +394,11 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
 
   btif_storage_set_remote_addr_type(&bd_addr, addr_type);
 
-  HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb, &bd_addr, rssi, std::move(value));
+  HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb, &bd_addr, rssi,
+            std::move(value));
 }
 
-void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data) {
+void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
   uint8_t len;
 
   if (event == BTA_DM_INQ_CMPL_EVT) {
@@ -415,7 +414,8 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data) {
 
   vector<uint8_t> value(BTGATT_MAX_ATTR_LEN);
   if (p_data->inq_res.p_eir) {
-    value.insert(value.begin(), p_data->inq_res.p_eir, p_data->inq_res.p_eir + 62);
+    value.insert(value.begin(), p_data->inq_res.p_eir,
+                 p_data->inq_res.p_eir + 62);
 
     if (BTM_CheckEirData(p_data->inq_res.p_eir,
                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &len)) {
@@ -430,21 +430,20 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data) {
                         p_data->inq_res.ble_addr_type, std::move(value)));
 }
 
-void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA *p_track_adv_data) {
-  btgatt_track_adv_info_t *btif_scan_track_cb = new btgatt_track_adv_info_t;
+void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
+  btgatt_track_adv_info_t* btif_scan_track_cb = new btgatt_track_adv_info_t;
 
   BTIF_TRACE_DEBUG("%s", __func__);
   btif_gatt_move_track_adv_data(btif_scan_track_cb,
-                                (btgatt_track_adv_info_t *)p_track_adv_data);
+                                (btgatt_track_adv_info_t*)p_track_adv_data);
 
   CLI_CBACK_IN_JNI(track_adv_event_cb, Owned(btif_scan_track_cb));
 }
 
-void btm_read_rssi_cb(tBTM_RSSI_RESULTS *p_result) {
-  if (!p_result)
-    return;
+void btm_read_rssi_cb(tBTM_RSSI_RESULTS* p_result) {
+  if (!p_result) return;
 
-  bt_bdaddr_t *addr = new bt_bdaddr_t;
+  bt_bdaddr_t* addr = new bt_bdaddr_t;
   bdcpy(addr->address, p_result->rem_bda);
   CLI_CBACK_IN_JNI(read_remote_rssi_cb, rssi_request_client_if,
                    base::Owned(addr), p_result->rssi, p_result->status);
@@ -477,14 +476,14 @@ void bta_scan_filt_status_cb(uint8_t action, tBTA_STATUS status,
 }
 
 /*******************************************************************************
-**  Client API Functions
-********************************************************************************/
+ *  Client API Functions
+ *******************************************************************************/
 
 void btif_gattc_register_app_impl(tBT_UUID uuid) {
   BTA_GATTC_AppRegister(&uuid, bta_gattc_cback);
 }
 
-bt_status_t btif_gattc_register_app(bt_uuid_t *uuid) {
+bt_status_t btif_gattc_register_app(bt_uuid_t* uuid) {
   CHECK_BTGATT_INIT();
 
   tBT_UUID bt_uuid;
@@ -506,7 +505,7 @@ bt_status_t btif_gattc_scan(bool start) {
   if (start) {
     btif_gattc_init_dev_cb();
     return do_in_jni_thread(Bind(&BTA_DmBleObserve, true, 0,
-                                 (tBTA_DM_SEARCH_CBACK *)bta_scan_results_cb));
+                                 (tBTA_DM_SEARCH_CBACK*)bta_scan_results_cb));
   } else {
     return do_in_jni_thread(Bind(&BTA_DmBleObserve, false, 0, nullptr));
   }
@@ -536,7 +535,7 @@ void btif_gattc_open_impl(int client_if, BD_ADDR address, bool is_direct,
       BTM_BleGetVendorCapabilities(&vnd_capabilities);
       if (!vnd_capabilities.rpa_offloading) {
         HAL_CBACK(bt_gatt_callbacks, client->open_cb, 0, BT_STATUS_UNSUPPORTED,
-                  client_if, (bt_bdaddr_t *)&address);
+                  client_if, (bt_bdaddr_t*)&address);
         return;
       }
     }
@@ -571,11 +570,11 @@ void btif_gattc_open_impl(int client_if, BD_ADDR address, bool is_direct,
   BTA_GATTC_Open(client_if, address, is_direct, transport);
 }
 
-bt_status_t btif_gattc_open(int client_if, const bt_bdaddr_t *bd_addr,
+bt_status_t btif_gattc_open(int client_if, const bt_bdaddr_t* bd_addr,
                             bool is_direct, int transport) {
   CHECK_BTGATT_INIT();
   // Closure will own this value and free it.
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
   return do_in_jni_thread(Bind(&btif_gattc_open_impl, client_if,
                                base::Owned(address), is_direct, transport));
@@ -592,11 +591,11 @@ void btif_gattc_close_impl(int client_if, BD_ADDR address, int conn_id) {
   BTA_GATTC_CancelOpen(client_if, address, false);
 }
 
-bt_status_t btif_gattc_close(int client_if, const bt_bdaddr_t *bd_addr,
+bt_status_t btif_gattc_close(int client_if, const bt_bdaddr_t* bd_addr,
                              int conn_id) {
   CHECK_BTGATT_INIT();
   // Closure will own this value and free it.
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
   return do_in_jni_thread(
       Bind(&btif_gattc_close_impl, client_if, base::Owned(address), conn_id));
@@ -612,19 +611,19 @@ bt_status_t btif_gattc_listen(int client_if, bool start) {
 #endif
 }
 
-bt_status_t btif_gattc_refresh(int client_if, const bt_bdaddr_t *bd_addr) {
+bt_status_t btif_gattc_refresh(int client_if, const bt_bdaddr_t* bd_addr) {
   CHECK_BTGATT_INIT();
   // Closure will own this value and free it.
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
   return do_in_jni_thread(Bind(&BTA_GATTC_Refresh, base::Owned(address)));
 }
 
-bt_status_t btif_gattc_search_service(int conn_id, bt_uuid_t *filter_uuid) {
+bt_status_t btif_gattc_search_service(int conn_id, bt_uuid_t* filter_uuid) {
   CHECK_BTGATT_INIT();
 
   if (filter_uuid) {
-    tBT_UUID *uuid = new tBT_UUID;
+    tBT_UUID* uuid = new tBT_UUID;
     btif_to_bta_uuid(uuid, filter_uuid);
     return do_in_jni_thread(
         Bind(&BTA_GATTC_ServiceSearchRequest, conn_id, base::Owned(uuid)));
@@ -635,7 +634,7 @@ bt_status_t btif_gattc_search_service(int conn_id, bt_uuid_t *filter_uuid) {
 }
 
 void btif_gattc_get_gatt_db_impl(int conn_id) {
-  btgatt_db_element_t *db = NULL;
+  btgatt_db_element_t* db = NULL;
   int count = 0;
   BTA_GATTC_GetGattDb(conn_id, 0x0000, 0xFFFF, &db, &count);
 
@@ -649,8 +648,8 @@ bt_status_t btif_gattc_get_gatt_db(int conn_id) {
 }
 
 void read_char_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                  uint16_t len, uint8_t *value, void *data) {
-  btgatt_read_params_t *params = new btgatt_read_params_t;
+                  uint16_t len, uint8_t* value, void* data) {
+  btgatt_read_params_t* params = new btgatt_read_params_t;
   params->value_type = 0x00 /* GATTC_READ_VALUE_TYPE_VALUE */;
   params->status = status;
   params->handle = handle;
@@ -669,8 +668,8 @@ bt_status_t btif_gattc_read_char(int conn_id, uint16_t handle, int auth_req) {
 }
 
 void read_desc_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                  uint16_t len, uint8_t *value, void *data) {
-  btgatt_read_params_t *params = new btgatt_read_params_t;
+                  uint16_t len, uint8_t* value, void* data) {
+  btgatt_read_params_t* params = new btgatt_read_params_t;
   params->value_type = 0x00 /* GATTC_READ_VALUE_TYPE_VALUE */;
   params->status = status;
   params->handle = handle;
@@ -689,7 +688,7 @@ bt_status_t btif_gattc_read_char_descr(int conn_id, uint16_t handle,
 }
 
 void write_char_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                   void *data) {
+                   void* data) {
   CLI_CBACK_IN_JNI(write_characteristic_cb, conn_id, status, handle);
 }
 
@@ -697,8 +696,7 @@ bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
                                   int auth_req, vector<uint8_t> value) {
   CHECK_BTGATT_INIT();
 
-  if (value.size() > BTGATT_MAX_ATTR_LEN)
-    value.resize(BTGATT_MAX_ATTR_LEN);
+  if (value.size() > BTGATT_MAX_ATTR_LEN) value.resize(BTGATT_MAX_ATTR_LEN);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharValue, conn_id, handle,
                                write_type, std::move(value), auth_req,
@@ -706,7 +704,7 @@ bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
 }
 
 void write_descr_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
-                    void *data) {
+                    void* data) {
   CLI_CBACK_IN_JNI(write_descriptor_cb, conn_id, status, handle);
 }
 
@@ -714,12 +712,11 @@ bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
                                         int auth_req, vector<uint8_t> value) {
   CHECK_BTGATT_INIT();
 
-  if (value.size() > BTGATT_MAX_ATTR_LEN)
-    value.resize(BTGATT_MAX_ATTR_LEN);
+  if (value.size() > BTGATT_MAX_ATTR_LEN) value.resize(BTGATT_MAX_ATTR_LEN);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharDescr, conn_id, handle,
-                               std::move(value), auth_req,
-                               write_descr_cb, nullptr));
+                               std::move(value), auth_req, write_descr_cb,
+                               nullptr));
 }
 
 bt_status_t btif_gattc_execute_write(int conn_id, int execute) {
@@ -731,7 +728,7 @@ bt_status_t btif_gattc_execute_write(int conn_id, int execute) {
 void btif_gattc_reg_for_notification_impl(tBTA_GATTC_IF client_if,
                                           const BD_ADDR bda, uint16_t handle) {
   tBTA_GATT_STATUS status = BTA_GATTC_RegisterForNotifications(
-      client_if, const_cast<uint8_t *>(bda), handle);
+      client_if, const_cast<uint8_t*>(bda), handle);
 
   // TODO(jpawlowski): conn_id is currently unused
   HAL_CBACK(bt_gatt_callbacks, client->register_for_notification_cb,
@@ -739,11 +736,11 @@ void btif_gattc_reg_for_notification_impl(tBTA_GATTC_IF client_if,
 }
 
 bt_status_t btif_gattc_reg_for_notification(int client_if,
-                                            const bt_bdaddr_t *bd_addr,
+                                            const bt_bdaddr_t* bd_addr,
                                             uint16_t handle) {
   CHECK_BTGATT_INIT();
 
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
   return do_in_jni_thread(
       Bind(base::IgnoreResult(&btif_gattc_reg_for_notification_impl), client_if,
@@ -751,9 +748,10 @@ bt_status_t btif_gattc_reg_for_notification(int client_if,
 }
 
 void btif_gattc_dereg_for_notification_impl(tBTA_GATTC_IF client_if,
-                                            const BD_ADDR bda, uint16_t handle) {
+                                            const BD_ADDR bda,
+                                            uint16_t handle) {
   tBTA_GATT_STATUS status = BTA_GATTC_DeregisterForNotifications(
-      client_if, const_cast<uint8_t *>(bda), handle);
+      client_if, const_cast<uint8_t*>(bda), handle);
 
   // TODO(jpawlowski): conn_id is currently unused
   HAL_CBACK(bt_gatt_callbacks, client->register_for_notification_cb,
@@ -761,11 +759,11 @@ void btif_gattc_dereg_for_notification_impl(tBTA_GATTC_IF client_if,
 }
 
 bt_status_t btif_gattc_dereg_for_notification(int client_if,
-                                              const bt_bdaddr_t *bd_addr,
+                                              const bt_bdaddr_t* bd_addr,
                                               uint16_t handle) {
   CHECK_BTGATT_INIT();
 
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
   return do_in_jni_thread(
       Bind(base::IgnoreResult(&btif_gattc_dereg_for_notification_impl),
@@ -773,15 +771,15 @@ bt_status_t btif_gattc_dereg_for_notification(int client_if,
 }
 
 bt_status_t btif_gattc_read_remote_rssi(int client_if,
-                                        const bt_bdaddr_t *bd_addr) {
+                                        const bt_bdaddr_t* bd_addr) {
   CHECK_BTGATT_INIT();
   rssi_request_client_if = client_if;
   // Closure will own this value and free it.
-  uint8_t *address = new BD_ADDR;
+  uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
   return do_in_jni_thread(Bind(base::IgnoreResult(&BTM_ReadRSSI),
                                base::Owned(address),
-                               (tBTM_CMPL_CB *)btm_read_rssi_cb));
+                               (tBTM_CMPL_CB*)btm_read_rssi_cb));
 }
 
 bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu) {
@@ -794,25 +792,25 @@ void btif_gattc_conn_parameter_update_impl(bt_bdaddr_t addr, int min_interval,
                                            int max_interval, int latency,
                                            int timeout) {
   if (BTA_DmGetConnectionState(addr.address))
-    BTA_DmBleUpdateConnectionParams(addr.address, min_interval,
-                                    max_interval, latency, timeout);
+    BTA_DmBleUpdateConnectionParams(addr.address, min_interval, max_interval,
+                                    latency, timeout);
   else
-    BTA_DmSetBlePrefConnParams(addr.address, min_interval,
-                               max_interval, latency, timeout);
+    BTA_DmSetBlePrefConnParams(addr.address, min_interval, max_interval,
+                               latency, timeout);
 }
 
-bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr,
+bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t* bd_addr,
                                              int min_interval, int max_interval,
                                              int latency, int timeout) {
   CHECK_BTGATT_INIT();
   return do_in_jni_thread(
-      Bind(base::IgnoreResult(&btif_gattc_conn_parameter_update_impl),
-           *bd_addr, min_interval, max_interval, latency, timeout));
+      Bind(base::IgnoreResult(&btif_gattc_conn_parameter_update_impl), *bd_addr,
+           min_interval, max_interval, latency, timeout));
 }
 
 void btif_gattc_scan_filter_param_setup_impl(
     int client_if, uint8_t action, int filt_index,
-    tBTA_DM_BLE_PF_FILT_PARAMS *adv_filt_param) {
+    tBTA_DM_BLE_PF_FILT_PARAMS* adv_filt_param) {
   if (1 == adv_filt_param->dely_mode)
     BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
   BTA_DmBleScanFilterSetup(action, filt_index, adv_filt_param, NULL,
@@ -824,7 +822,7 @@ bt_status_t btif_gattc_scan_filter_param_setup(
   CHECK_BTGATT_INIT();
   BTIF_TRACE_DEBUG("%s", __func__);
 
-  tBTA_DM_BLE_PF_FILT_PARAMS *adv_filt_param = new tBTA_DM_BLE_PF_FILT_PARAMS;
+  tBTA_DM_BLE_PF_FILT_PARAMS* adv_filt_param = new tBTA_DM_BLE_PF_FILT_PARAMS;
   adv_filt_param->feat_seln = filt_param.feat_seln;
   adv_filt_param->list_logic_type = filt_param.list_logic_type;
   adv_filt_param->filt_logic_type = filt_param.filt_logic_type;
@@ -843,7 +841,7 @@ bt_status_t btif_gattc_scan_filter_param_setup(
 }
 
 void btif_gattc_scan_filter_add_srvc_uuid(tBT_UUID uuid,
-                                          tBTA_DM_BLE_PF_COND_MASK *p_uuid_mask,
+                                          tBTA_DM_BLE_PF_COND_MASK* p_uuid_mask,
                                           int action, int filt_type,
                                           int filt_index, int client_if) {
   tBTA_DM_BLE_PF_COND_PARAM cond;
@@ -858,9 +856,9 @@ void btif_gattc_scan_filter_add_srvc_uuid(tBT_UUID uuid,
                               &bta_scan_filt_cfg_cb, client_if);
 }
 
-void btif_gattc_scan_filter_add_local_name(vector<uint8_t> data,
-                                           int action, int filt_type,
-                                           int filt_index, int client_if) {
+void btif_gattc_scan_filter_add_local_name(vector<uint8_t> data, int action,
+                                           int filt_type, int filt_index,
+                                           int client_if) {
   tBTA_DM_BLE_PF_COND_PARAM cond;
   memset(&cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
@@ -903,8 +901,8 @@ void btif_gattc_scan_filter_add_data_pattern(vector<uint8_t> pattern,
 
 bt_status_t btif_gattc_scan_filter_add_remove(
     int client_if, int action, int filt_type, int filt_index, int company_id,
-    int company_id_mask, const bt_uuid_t *p_uuid, const bt_uuid_t *p_uuid_mask,
-    const bt_bdaddr_t *bd_addr, char addr_type, vector<uint8_t> data,
+    int company_id_mask, const bt_uuid_t* p_uuid, const bt_uuid_t* p_uuid_mask,
+    const bt_bdaddr_t* bd_addr, char addr_type, vector<uint8_t> data,
     vector<uint8_t> mask) {
   CHECK_BTGATT_INIT();
   BTIF_TRACE_DEBUG("%s, %d, %d", __func__, action, filt_type);
@@ -916,7 +914,7 @@ bt_status_t btif_gattc_scan_filter_add_remove(
   switch (filt_type) {
     case BTA_DM_BLE_PF_ADDR_FILTER:  // 0
     {
-      tBTA_DM_BLE_PF_COND_PARAM *cond = new tBTA_DM_BLE_PF_COND_PARAM;
+      tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
       memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
       bdcpy(cond->target_addr.bda, bd_addr->address);
@@ -937,7 +935,7 @@ bt_status_t btif_gattc_scan_filter_add_remove(
       btif_to_bta_uuid(&bt_uuid, p_uuid);
 
       if (p_uuid_mask != NULL) {
-        tBTA_DM_BLE_PF_COND_MASK *uuid_mask = new tBTA_DM_BLE_PF_COND_MASK;
+        tBTA_DM_BLE_PF_COND_MASK* uuid_mask = new tBTA_DM_BLE_PF_COND_MASK;
         btif_to_bta_uuid_mask(uuid_mask, p_uuid_mask, p_uuid);
         return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_srvc_uuid,
                                      bt_uuid, base::Owned(uuid_mask), action,
@@ -951,7 +949,7 @@ bt_status_t btif_gattc_scan_filter_add_remove(
 
     case BTA_DM_BLE_PF_SRVC_SOL_UUID:  // 3
     {
-      tBTA_DM_BLE_PF_COND_PARAM *cond = new tBTA_DM_BLE_PF_COND_PARAM;
+      tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
       memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
       cond->solicitate_uuid.p_target_addr = NULL;
@@ -972,17 +970,17 @@ bt_status_t btif_gattc_scan_filter_add_remove(
 
     case BTA_DM_BLE_PF_MANU_DATA:  // 5
     {
-      return do_in_jni_thread(
-          Bind(&btif_gattc_scan_filter_add_manu_data, company_id,
-               company_id_mask, std::move(data), std::move(mask), action,
-               filt_type, filt_index, client_if));
+      return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_manu_data,
+                                   company_id, company_id_mask, std::move(data),
+                                   std::move(mask), action, filt_type,
+                                   filt_index, client_if));
     }
 
     case BTA_DM_BLE_PF_SRVC_DATA_PATTERN:  // 6
     {
-      return do_in_jni_thread(Bind(
-          &btif_gattc_scan_filter_add_data_pattern, std::move(data),
-          std::move(mask), action, filt_type, filt_index, client_if));
+      return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_data_pattern,
+                                   std::move(data), std::move(mask), action,
+                                   filt_type, filt_index, client_if));
     }
 
     default:
@@ -1005,7 +1003,7 @@ bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable) {
   CHECK_BTGATT_INIT();
   BTIF_TRACE_DEBUG("%s: enable: %d", __func__, enable);
 
-  uint8_t action = enable ? 1: 0;
+  uint8_t action = enable ? 1 : 0;
 
   return do_in_jni_thread(Bind(&BTA_DmEnableScanFilter, action,
                                &bta_scan_filt_status_cb, client_if));
@@ -1020,7 +1018,7 @@ bt_status_t btif_gattc_set_scan_parameters(int client_if, int scan_interval,
            (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb));
 }
 
-int btif_gattc_get_device_type(const bt_bdaddr_t *bd_addr) {
+int btif_gattc_get_device_type(const bt_bdaddr_t* bd_addr) {
   int device_type = 0;
   char bd_addr_str[18] = {0};
 
@@ -1037,9 +1035,9 @@ bt_status_t btif_gattc_cfg_storage(int client_if, int batch_scan_full_max,
   return do_in_jni_thread(
       Bind(BTA_DmBleSetStorageParams, batch_scan_full_max, batch_scan_trunc_max,
            batch_scan_notify_threshold,
-           (tBTA_BLE_SCAN_SETUP_CBACK *)bta_batch_scan_setup_cb,
-           (tBTA_BLE_SCAN_THRESHOLD_CBACK *)bta_batch_scan_threshold_cb,
-           (tBTA_BLE_SCAN_REP_CBACK *)bta_batch_scan_reports_cb,
+           (tBTA_BLE_SCAN_SETUP_CBACK*)bta_batch_scan_setup_cb,
+           (tBTA_BLE_SCAN_THRESHOLD_CBACK*)bta_batch_scan_threshold_cb,
+           (tBTA_BLE_SCAN_REP_CBACK*)bta_batch_scan_reports_cb,
            (tBTA_DM_BLE_REF_VALUE)client_if));
 }
 
@@ -1062,7 +1060,7 @@ bt_status_t btif_gattc_read_batch_scan_reports(int client_if, int scan_mode) {
   return do_in_jni_thread(Bind(BTA_DmBleReadScanReports, scan_mode, client_if));
 }
 
-bt_status_t btif_gattc_test_command(int command, btgatt_test_params_t *params) {
+bt_status_t btif_gattc_test_command(int command, btgatt_test_params_t* params) {
   return btif_gattc_test_command_impl(command, params);
 }
 

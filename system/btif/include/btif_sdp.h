@@ -29,6 +29,6 @@
 
 #include <hardware/bt_sdp.h>
 
-btsdp_interface_t *btif_sdp_get_interface();
+btsdp_interface_t* btif_sdp_get_interface();
 
 #endif
