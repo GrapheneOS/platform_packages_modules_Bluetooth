@@ -4413,8 +4413,6 @@ static uint8_t bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT
             else
             {
                 sec_event.auth_cmpl.success = true;
-                if (!p_data->complt.smp_over_br)
-                    GATT_ConfigServiceChangeCCC(bda, true, BT_TRANSPORT_LE);
             }
 
             if (bta_dm_cb.p_sec_cback)
