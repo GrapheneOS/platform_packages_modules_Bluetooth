@@ -256,11 +256,6 @@
 #define AVDT_CMD_BUF_SIZE               BT_SMALL_BUFFER_SIZE
 #endif
 
-/* AVDTP buffer size for media packets in case of fragmentation */
-#ifndef AVDT_DATA_BUF_SIZE
-#define AVDT_DATA_BUF_SIZE              BT_DEFAULT_BUFFER_SIZE
-#endif
-
 #ifndef PAN_BUF_SIZE
 #define PAN_BUF_SIZE                    BT_DEFAULT_BUFFER_SIZE
 #endif
@@ -1135,11 +1130,6 @@
 #define AVDT_REPORTING              TRUE
 #endif
 
-/* Include multiplexing capability in AVDTP */
-#ifndef AVDT_MULTIPLEXING
-#define AVDT_MULTIPLEXING           TRUE
-#endif
-
 /* Number of simultaneous links to different peer devices. */
 #ifndef AVDT_NUM_LINKS
 #define AVDT_NUM_LINKS              2
@@ -1163,11 +1153,6 @@
 /* Maximum size in bytes of the content protection information element. */
 #ifndef AVDT_PROTECT_SIZE
 #define AVDT_PROTECT_SIZE           90
-#endif
-
-/* Maximum number of buffers in the fragment queue (for video frames). */
-#ifndef AVDT_MAX_FRAG_COUNT
-#define AVDT_MAX_FRAG_COUNT         15
 #endif
 
 /******************************************************************************

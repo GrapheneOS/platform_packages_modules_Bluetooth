@@ -265,15 +265,6 @@ typedef struct {
     uint8_t recov_mrws;                         /* Maximum recovery window size */
     uint8_t recov_mnmp;                         /* Recovery maximum number of media packets */
     uint8_t hdrcmp_mask;                        /* Header compression capabilities */
-#if (AVDT_MULTIPLEXING == TRUE)
-    uint8_t mux_mask;                           /* Multiplexing capabilities. AVDT_MUX_XXX bits can be combined with a bitwise OR */
-    uint8_t mux_tsid_media;                     /* TSID for media transport session */
-    uint8_t mux_tcid_media;                     /* TCID for media transport session */
-    uint8_t mux_tsid_report;                    /* TSID for reporting transport session */
-    uint8_t mux_tcid_report;                    /* TCID for reporting transport session */
-    uint8_t mux_tsid_recov;                     /* TSID for recovery transport session */
-    uint8_t mux_tcid_recov;                     /* TCID for recovery transport session */
-#endif
 } tAVDT_CFG;
 
 /* Header structure for callback event parameters. */
@@ -366,19 +357,6 @@ typedef void (tAVDT_CTRL_CBACK)(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 typedef void (tAVDT_SINK_DATA_CBACK)(uint8_t handle, BT_HDR *p_pkt,
                                      uint32_t time_stamp, uint8_t m_pt);
 
-#if (AVDT_MULTIPLEXING == TRUE)
-/* This is the second version of the data callback function. This version uses
-** application buffer assigned by AVDT_SetMediaBuf. Caller can assign different
-** buffer during callback or can leave the current buffer for further using.
-** This callback is called when AVDTP has a media packet ready for the application.
-** This function is required for SNK endpoints and not applicable for SRC endpoints.
-*/
-typedef void (tAVDT_SINK_MEDIA_CBACK)(uint8_t handle, uint8_t *p_payload,
-                                      uint32_t payload_len,
-                                      uint32_t time_stamp, uint16_t seq_num,
-                                      uint8_t m_pt, uint8_t marker);
-#endif
-
 #if (AVDT_REPORTING == TRUE)
 /* This is the report callback function.  It is executed when AVDTP has a reporting
 ** packet ready for the application.  This function is required for streams
@@ -397,9 +375,6 @@ typedef struct {
     tAVDT_CFG           cfg;            /* SEP configuration */
     tAVDT_CTRL_CBACK    *p_ctrl_cback;  /* Control callback function */
     tAVDT_SINK_DATA_CBACK *p_sink_data_cback; /* Sink data callback function */
-#if (AVDT_MULTIPLEXING == TRUE)
-    tAVDT_SINK_MEDIA_CBACK *p_sink_media_cback; /* Sink media callback function. It will be called only if p_sink_data_cback is NULL */
-#endif
 #if (AVDT_REPORTING == TRUE)
     tAVDT_REPORT_CBACK  *p_report_cback;/* Report callback function. */
 #endif
@@ -868,26 +843,6 @@ extern uint16_t AVDT_GetL2CapChannel(uint8_t handle);
 **
 *******************************************************************************/
 extern uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
-** Function         AVDT_SetMediaBuf
-**
-** Description      Assigns buffer for media packets or forbids using of assigned
-**                  buffer if argument p_buf is NULL. This function can only
-**                  be called if the stream is a SNK.
-**
-**                  AVDTP uses this buffer to reassemble fragmented media packets.
-**                  When AVDTP receives a complete media packet, it calls the
-**                  p_sink_media_cback assigned by AVDT_CreateStream().
-**                  This function can be called during callback to assign a
-**                  different buffer for next media packet or can leave the current
-**                  buffer for next packet.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
-extern uint16_t AVDT_SetMediaBuf(uint8_t handle, uint8_t *p_buf, uint32_t buf_len);
 
 /*******************************************************************************
 **

@@ -599,24 +599,10 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
             p_scb->p_ccb = NULL;
 
             memcpy(&p_scb->cs, p_cs, sizeof(tAVDT_CS));
-#if (AVDT_MULTIPLEXING == TRUE)
-            /* initialize fragments gueue */
-            p_scb->frag_q = fixed_queue_new(SIZE_MAX);
-
-            if(p_cs->cfg.psc_mask & AVDT_PSC_MUX)
-            {
-                p_scb->cs.cfg.mux_tcid_media = avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb);
-#if (AVDT_REPORTING == TRUE)
-                if(p_cs->cfg.psc_mask & AVDT_PSC_REPORT)
-                {
-                    p_scb->cs.cfg.mux_tcid_report = avdt_ad_type_to_tcid(AVDT_CHAN_REPORT, p_scb);
-                }
-#endif
-            }
-#endif
             p_scb->transport_channel_timer =
                 alarm_new("avdt_scb.transport_channel_timer");
-            AVDT_TRACE_DEBUG("avdt_scb_alloc hdl=%d, psc_mask:0x%x", i+1, p_cs->cfg.psc_mask);
+            AVDT_TRACE_DEBUG("%s: hdl=%d, psc_mask:0x%x",
+                             __func__, i + 1, p_cs->cfg.psc_mask);
             break;
         }
     }
@@ -645,14 +631,8 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-    AVDT_TRACE_DEBUG("avdt_scb_dealloc hdl=%d", avdt_scb_to_hdl(p_scb));
+    AVDT_TRACE_DEBUG("%s: hdl=%d", __func__, avdt_scb_to_hdl(p_scb));
     alarm_free(p_scb->transport_channel_timer);
-
-#if (AVDT_MULTIPLEXING == TRUE)
-    /* free fragments we're holding, if any; it shouldn't happen */
-    fixed_queue_free(p_scb->frag_q, osi_free);
-#endif
-
     memset(p_scb, 0, sizeof(tAVDT_SCB));
 }
 
