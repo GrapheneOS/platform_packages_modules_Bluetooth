@@ -61,6 +61,10 @@ extern fixed_queue_t *btu_bta_alarm_queue;
 
 static void bta_av_accept_signalling_timer_cback(void *data);
 
+#ifndef AVRC_MIN_META_CMD_LEN
+#define AVRC_MIN_META_CMD_LEN 20
+#endif
+
 /*******************************************************************************
 **
 ** Function         bta_av_get_rcb_by_shdl
@@ -810,10 +814,19 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
     tAVRC_MSG_VENDOR    *p_vendor = &p_msg->msg.vendor;
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
-
     pdu = *(p_vendor->p_vendor_data);
     p_rc_rsp->pdu = pdu;
     *p_ctype = AVRC_RSP_REJ;
+
+    /* Check to ansure a  valid minimum meta data length */
+    if ((AVRC_MIN_META_CMD_LEN + p_vendor->vendor_len) > AVRC_META_CMD_BUF_SIZE)
+    {
+        /* reject it */
+        p_rc_rsp->rsp.status = AVRC_STS_BAD_PARAM;
+        APPL_TRACE_ERROR("%s Invalid meta-command length: %d", __func__, p_vendor->vendor_len);
+        return 0;
+    }
+
     /* Metadata messages only use PANEL sub-unit type */
     if (p_vendor->hdr.subunit_type != AVRC_SUB_PANEL)
     {
