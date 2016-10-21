@@ -582,14 +582,22 @@ extern tBTA_HL_CB  bta_hl_cb;
 
 #define BTA_HL_GET_CB_PTR() &(bta_hl_cb)
 #define BTA_HL_GET_APP_CB_PTR(app_idx) &(bta_hl_cb.acb[(app_idx)])
-#define BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx) &(bta_hl_cb.acb[(app_idx)].mcb[(mcl_idx)])
-#define BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx) &(bta_hl_cb.acb[(app_idx)].mcb[(mcl_idx)].mdl[mdl_idx])
-#define BTA_HL_GET_MDL_CFG_PTR(app_idx, item_idx) &(bta_hl_cb.acb[(app_idx)].mdl_cfg[(item_idx)])
-#define BTA_HL_GET_ECHO_CFG_PTR(app_idx)  &(bta_hl_cb.acb[(app_idx)].sup_feature.echo_cfg)
-#define BTA_HL_GET_MDEP_CFG_PTR(app_idx, mdep_cfg_idx)  &(bta_hl_cb.acb[(app_idx)].sup_feature.mdep[mdep_cfg_idx].mdep_cfg)
-#define BTA_HL_GET_DATA_CFG_PTR(app_idx, mdep_cfg_idx, data_cfg_idx)  \
-           &(bta_hl_cb.acb[(app_idx)].sup_feature.mdep[mdep_cfg_idx].mdep_cfg.data_cfg[data_cfg_idx])
-#define BTA_HL_GET_BUF_PTR(p_pkt) ((uint8_t *)((uint8_t *) ((p_pkt)+1) + (p_pkt)->offset))
+#define BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx) \
+  &(bta_hl_cb.acb[(app_idx)].mcb[(mcl_idx)])
+#define BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx) \
+  &(bta_hl_cb.acb[(app_idx)].mcb[(mcl_idx)].mdl[(mdl_idx)])
+#define BTA_HL_GET_MDL_CFG_PTR(app_idx, item_idx) \
+  &(bta_hl_cb.acb[(app_idx)].mdl_cfg[(item_idx)])
+#define BTA_HL_GET_ECHO_CFG_PTR(app_idx) \
+  &(bta_hl_cb.acb[(app_idx)].sup_feature.echo_cfg)
+#define BTA_HL_GET_MDEP_CFG_PTR(app_idx, mdep_cfg_idx) \
+  &(bta_hl_cb.acb[(app_idx)].sup_feature.mdep[(mdep_cfg_idx)].mdep_cfg)
+#define BTA_HL_GET_DATA_CFG_PTR(app_idx, mdep_cfg_idx, data_cfg_idx) \
+  &(bta_hl_cb.acb[(app_idx)]                                         \
+        .sup_feature.mdep[(mdep_cfg_idx)]                            \
+        .mdep_cfg.data_cfg[(data_cfg_idx)])
+#define BTA_HL_GET_BUF_PTR(p_pkt) \
+  ((uint8_t*)((uint8_t*)((p_pkt) + 1) + (p_pkt)->offset))
 
 /*****************************************************************************
 **  Function prototypes
