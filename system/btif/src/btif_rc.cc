@@ -1343,7 +1343,7 @@ uint8_t btif_rc_get_connected_peer_handle(BD_ADDR peer_addr) {
  ** Function       btif_rc_check_handle_pending_play
  **
  ** Description    Clears the queued PLAY command. if |bSendToApp| is true,
- *forwards to app
+ **                forwards to app
  **
  ***************************************************************************/
 
@@ -1420,7 +1420,7 @@ static void send_reject_response(uint8_t rc_handle, uint8_t label, uint8_t pdu,
  *
  *  - Argument:   status
  *  - Description: Returns response type codes for particular command code and
- *status.
+ *                 status.
  *
  ***************************************************************************/
 static tBTA_AV_CODE get_rsp_type_code(tAVRC_STS status, tBTA_AV_CODE code) {
@@ -2094,9 +2094,8 @@ static bt_status_t get_element_attr_rsp(bt_bdaddr_t* bd_addr, uint8_t num_attr,
  * Function         reject_pending_notification
  *
  * Description      Utility function to reject a pending notification. When
- *AddressedPlayer
- *                  change is received, all pending notifications should be
- *completed.
+ *                  AddressedPlayer change is received, all pending
+ *                  notifications should be completed.
  *
  * Returns          void
  *
@@ -2225,15 +2224,14 @@ static bt_status_t register_notification_rsp(
  * Function         get_folder_items_list_rsp
  *
  * Description      Returns the list of media items in current folder along with
- *requested
- *                  attributes. This is called in response to GetFolderItems
- *request.
+ *                  requested attributes. This is called in response to
+ *                  GetFolderItems request.
  *
  * Returns          bt_status_t
  *                      BT_STATUS_NOT_READY - when RC is not connected.
  *                      BT_STATUS_SUCCESS   - always if RC is connected
  *                      BT_STATUS_UNHANDLED - when rsp is not pending for
- *get_folder_items_list PDU
+ *                                            get_folder_items_list PDU
  *
  **************************************************************************/
 static bt_status_t get_folder_items_list_rsp(bt_bdaddr_t* bd_addr,
@@ -2391,8 +2389,7 @@ static bt_status_t get_folder_items_list_rsp(bt_bdaddr_t* bd_addr,
  * Function         set_addressed_player_rsp
  *
  * Description      Response to set the addressed player for specified media
- *player based on
- *                  id in the media player list.
+ *                  player based on id in the media player list.
  *
  * Returns          bt_status_t
  *                      BT_STATUS_NOT_READY - when RC is not connected.
@@ -2424,17 +2421,16 @@ static bt_status_t set_addressed_player_rsp(bt_bdaddr_t* bd_addr,
  * Function         set_browsed_player_rsp
  *
  * Description      Response to set the browsed player command which contains
- *current browsed path
- *                  of the media player. By default, current_path = root and
- *folder_depth = 0 for
+ *                  current browsed path of the media player. By default,
+ *                  current_path = root and folder_depth = 0 for
  *                  every set_browsed_player request.
  *
  * Returns          bt_status_t
  *                      BT_STATUS_NOT_READY - when RC is not connected.
  *                      BT_STATUS_SUCCESS   - if RC is connected and reponse
- *sent successfully
+ *                                            sent successfully
  *                      BT_STATUS_UNHANDLED - when rsp is not pending for
- *set_browsed_player PDU
+ *                                            set_browsed_player PDU
  *
  **************************************************************************/
 static bt_status_t set_browsed_player_rsp(bt_bdaddr_t* bd_addr,
@@ -3765,7 +3761,7 @@ static void handle_app_cur_val_response(tBTA_AV_META_MSG* pmeta_msg,
  * Description      handles the the get attributes text response, if fails
  *                  calls HAL callback with just normal settings and initiates
  *                  query for current settings else initiates query for value
- *text
+ *                  text
  * Returns          None
  *
  **************************************************************************/

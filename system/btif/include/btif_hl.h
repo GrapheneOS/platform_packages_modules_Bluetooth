@@ -226,9 +226,8 @@ typedef struct {
   uint16_t sec_mask; /* Security mask for BTM_SetSecurityLevel() */
   char srv_name[BTA_SERVICE_NAME_LEN +
                 1]; /* service name to be used in the SDP; null terminated*/
-  char
-      srv_desp[BTA_SERVICE_DESP_LEN + 1]; /* service description to be used in
-                                             the SDP; null terminated */
+  char srv_desp[BTA_SERVICE_DESP_LEN + 1]; /* service description to be used in
+                                              the SDP; null terminated */
   char provider_name[BTA_PROVIDER_NAME_LEN + 1]; /* provide name to be used in
                                                     the SDP; null terminated */
   char

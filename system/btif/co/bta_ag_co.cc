@@ -43,17 +43,16 @@ void bta_ag_co_init(void) { BTM_WriteVoiceSettings(AG_VOICE_SETTINGS); }
  * Function         bta_ag_co_audio_state
  *
  * Description      This function is called by the AG before the audio
- *connection
- *                  is brought up, after it comes up, and after it goes down.
+ *                  connection is brought up, after it comes up, and
+ *                  after it goes down.
  *
  * Parameters       handle - handle of the AG instance
  *                  state - Audio state
  *                  codec - if WBS support is compiled in, codec to going to be
- *used is provided
- *                      and when in SCO_STATE_SETUP, BTM_I2SPCMConfig() must be
- *called with
- *                      the correct platform parameters.
- *                      in the other states codec type should not be ignored
+ *                      used is provided and when in SCO_STATE_SETUP,
+ *                      BTM_I2SPCMConfig() must be called with the correct
+ *                      platform parameters.
+ *                      In the other states, codec type should not be ignored.
  *
  * Returns          void
  *
@@ -108,11 +107,9 @@ void bta_ag_co_audio_state(uint16_t handle, uint8_t app_id, uint8_t state)
  * Function         bta_ag_co_data_open
  *
  * Description      This function is executed by AG when a service level
- *connection
- *                  is opened.  The phone can use this function to set
- *                  up data paths or perform any required initialization or
+ *                  connection is opened.  The phone can use this function to
+ *                  set up data paths or perform any required initialization or
  *                  set up particular to the connected service.
- *
  *
  * Returns          void
  *
@@ -142,9 +139,8 @@ void bta_ag_co_data_close(uint16_t handle) {
  **
  ** Description      This function is called by the AG to send data to the
  **                  phone when the AG is configured for AT command
- *pass-through.
- **                  The implementation of this function must copy the data to
- **                  the phones memory.
+ **                  pass-through. The implementation of this function must copy
+ **                  the data to the phones memory.
  **
  ** Returns          void
  **

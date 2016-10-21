@@ -429,7 +429,7 @@ static void btif_hl_clean_mcl_cb(uint8_t app_idx, uint8_t mcl_idx) {
  * Function      btif_hl_find_sdp_idx_using_mdep_filter
  *
  * Description  This function finds the SDP record index using MDEP filter
- *parameters
+ *              parameters
  *
  * Returns      bool
  *
@@ -444,7 +444,7 @@ static void btif_hl_reset_mdep_filter(uint8_t app_idx) {
  * Function      btif_hl_find_sdp_idx_using_mdep_filter
  *
  * Description  This function finds the SDP record index using MDEP filter
- *parameters
+ *              parameters
  *
  * Returns      bool
  *
@@ -3498,7 +3498,7 @@ static void btif_hl_cback(tBTA_HL_EVT event, tBTA_HL* p_data) {
  * Function         btif_hl_upstreams_ctrl_evt
  *
  * Description      Callback function for HL control events in the BTIF task
- *context
+ *                  context
  *
  * Returns          void
  *
@@ -4104,7 +4104,7 @@ const bthl_interface_t* btif_hl_get_interface() {
  * Function btif_hl_update_maxfd
  *
  * Description Update the max fd if the input fd is greater than the current max
- *fd
+ * fd
  *
  * Returns int
  *

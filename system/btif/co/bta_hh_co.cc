@@ -390,8 +390,7 @@ void bta_hh_co_close(uint8_t dev_handle, uint8_t app_id) {
  * Function         bta_hh_co_data
  *
  * Description      This function is executed by BTA when HID host receive a
- *data
- *                  report.
+ *                  data report.
  *
  * Parameters       dev_handle  - device handle
  *                  *p_rpt      - pointer to the report data
@@ -444,7 +443,7 @@ void bta_hh_co_data(uint8_t dev_handle, uint8_t* p_rpt, uint16_t len,
  * Function         bta_hh_co_send_hid_info
  *
  * Description      This function is called in btif_hh.c to process DSCP
- *received.
+ *                  received.
  *
  * Parameters       dev_handle  - device handle
  *                  dscp_len    - report descriptor length
@@ -552,10 +551,9 @@ void bta_hh_le_co_rpt_info(BD_ADDR remote_bda, tBTA_HH_RPT_CACHE_ENTRY* p_entry,
  * Function         bta_hh_le_co_cache_load
  *
  * Description      This callout function is to request the application to load
- *the
- *                  cached HOGP report if there is any. When cache reading is
- *completed,
- *                  bta_hh_le_ci_cache_load() is called by the application.
+ *                  the cached HOGP report if there is any. When cache reading
+ *                  is completed, bta_hh_le_ci_cache_load() is called by the
+ *                  application.
  *
  * Parameters       remote_bda  - remote device address
  *                  p_num_rpt: number of cached report
