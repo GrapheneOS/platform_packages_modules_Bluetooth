@@ -22,7 +22,6 @@ import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
-import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.MediaSession.QueueItem;
 import android.util.Log;
@@ -223,7 +222,8 @@ class BrowsedMediaPlayer {
             }
 
             if (isError == false) {
-                mMediaController = new MediaController(mContext, token);
+                mMediaController = MediaController.wrap(
+                    new android.media.session.MediaController(mContext, token));
                 /* get root folder items */
                 mMediaBrowser.subscribe(mRootFolderUid, folderItemsCb);
             }
