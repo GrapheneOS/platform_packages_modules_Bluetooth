@@ -1884,10 +1884,6 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     APPL_TRACE_DEBUG("%s: num_codec %d", __func__, p_scb->p_cap->num_codec);
     APPL_TRACE_DEBUG("%s: media type x%x, x%x", __func__, media_type,
                      p_scb->media_type);
-#if AVDT_MULTIPLEXING == TRUE
-    APPL_TRACE_DEBUG("%s: mux x%x, x%x", __func__, cfg.mux_mask,
-                     p_scb->p_cap->mux_mask);
-#endif
 
     /* if codec present and we get a codec configuration */
     if ((p_scb->p_cap->num_codec != 0) &&
@@ -1896,10 +1892,6 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                               &p_scb->sep_info_idx, p_info->seid,
                               &cfg.num_protect, cfg.protect_info) ==
          A2DP_SUCCESS)) {
-#if AVDT_MULTIPLEXING == TRUE
-        cfg.mux_mask &= p_scb->p_cap->mux_mask;
-        APPL_TRACE_DEBUG("%s: mux_mask used x%x", __func__, cfg.mux_mask);
-#endif
         /* save copy of codec configuration */
         memcpy(&p_scb->cfg, &cfg, sizeof(tAVDT_CFG));
 

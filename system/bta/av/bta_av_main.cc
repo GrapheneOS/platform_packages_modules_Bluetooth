@@ -570,9 +570,6 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             {
                 cs.cfg.psc_mask |= AVDT_PSC_REPORT;
                 cs.p_report_cback = bta_av_a2dp_report_cback;
-#if (AVDT_MULTIPLEXING == TRUE)
-                cs.cfg.mux_tsid_report = 2;
-#endif
             }
 #endif
             if(bta_av_cb.features & BTA_AV_FEAT_DELAY_RPT)
