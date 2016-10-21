@@ -39,22 +39,25 @@ static const size_t BLOCK_SIZE = 16384;
 // Maximum line length in bugreport (should be multiple of 4 for base64 output)
 static const uint8_t MAX_LINE_LENGTH = 128;
 
-static ringbuffer_t *buffer = NULL;
+static ringbuffer_t* buffer = NULL;
 static uint64_t last_timestamp_ms = 0;
 
-static size_t btsnoop_calculate_packet_length(uint16_t type, const uint8_t *data, size_t length);
+static size_t btsnoop_calculate_packet_length(uint16_t type,
+                                              const uint8_t* data,
+                                              size_t length);
 
-static void btsnoop_cb(const uint16_t type, const uint8_t *data, const size_t length) {
+static void btsnoop_cb(const uint16_t type, const uint8_t* data,
+                       const size_t length) {
   btsnooz_header_t header;
 
   size_t included_length = btsnoop_calculate_packet_length(type, data, length);
-  if (included_length == 0)
-    return;
+  if (included_length == 0) return;
 
   // Make room in the ring buffer
 
-  while (ringbuffer_available(buffer) < (included_length + sizeof(btsnooz_header_t))) {
-    ringbuffer_pop(buffer, (uint8_t *)&header, sizeof(btsnooz_header_t));
+  while (ringbuffer_available(buffer) <
+         (included_length + sizeof(btsnooz_header_t))) {
+    ringbuffer_pop(buffer, (uint8_t*)&header, sizeof(btsnooz_header_t));
     ringbuffer_delete(buffer, header.length - 1);
   }
 
@@ -64,15 +67,17 @@ static void btsnoop_cb(const uint16_t type, const uint8_t *data, const size_t le
 
   header.type = REDUCE_HCI_TYPE_TO_SIGNIFICANT_BITS(type);
   header.length = included_length + 1;  // +1 for type byte
-  header.packet_length = length + 1;  // +1 for type byte.
+  header.packet_length = length + 1;    // +1 for type byte.
   header.delta_time_ms = last_timestamp_ms ? now - last_timestamp_ms : 0;
   last_timestamp_ms = now;
 
-  ringbuffer_insert(buffer, (uint8_t *)&header, sizeof(btsnooz_header_t));
+  ringbuffer_insert(buffer, (uint8_t*)&header, sizeof(btsnooz_header_t));
   ringbuffer_insert(buffer, data, included_length);
 }
 
-static size_t btsnoop_calculate_packet_length(uint16_t type, const uint8_t *data, size_t length) {
+static size_t btsnoop_calculate_packet_length(uint16_t type,
+                                              const uint8_t* data,
+                                              size_t length) {
   static const size_t HCI_ACL_HEADER_SIZE = 4;
   static const size_t L2CAP_HEADER_SIZE = 4;
   static const size_t L2CAP_CID_OFFSET = (HCI_ACL_HEADER_SIZE + 2);
@@ -93,15 +98,16 @@ static size_t btsnoop_calculate_packet_length(uint16_t type, const uint8_t *data
       return length;
 
     case BT_EVT_TO_LM_HCI_ACL:
-    case BT_EVT_TO_BTU_HCI_ACL:
-    {
+    case BT_EVT_TO_BTU_HCI_ACL: {
       size_t len_hci_acl = HCI_ACL_HEADER_SIZE + L2CAP_HEADER_SIZE;
       // Check if we have enough data for an L2CAP header
       if (length > len_hci_acl) {
-        uint16_t l2cap_cid = data[L2CAP_CID_OFFSET] | (data[L2CAP_CID_OFFSET + 1] << 8);
+        uint16_t l2cap_cid =
+            data[L2CAP_CID_OFFSET] | (data[L2CAP_CID_OFFSET + 1] << 8);
         if (l2cap_cid == L2CAP_SIGNALING_CID) {
           // For the signaling CID, take the full packet.
-          // That way, the PSM setup is captured, allowing decoding of PSMs down the road.
+          // That way, the PSM setup is captured, allowing decoding of PSMs down
+          // the road.
           return length;
         } else {
           // Otherwise, return as much as we reasonably can
@@ -113,14 +119,15 @@ static size_t btsnoop_calculate_packet_length(uint16_t type, const uint8_t *data
 
     case BT_EVT_TO_LM_HCI_SCO:
     case BT_EVT_TO_BTU_HCI_SCO:
-      // We're not logging SCO packets at this time since they are not currently used.
-      // FALLTHROUGH
+    // We're not logging SCO packets at this time since they are not currently
+    // used.
+    // FALLTHROUGH
     default:
       return 0;
   }
 }
 
-static bool btsnoop_compress(ringbuffer_t *rb_dst, ringbuffer_t *rb_src) {
+static bool btsnoop_compress(ringbuffer_t* rb_dst, ringbuffer_t* rb_src) {
   assert(rb_dst != NULL);
   assert(rb_src != NULL);
 
@@ -129,16 +136,17 @@ static bool btsnoop_compress(ringbuffer_t *rb_dst, ringbuffer_t *rb_src) {
   zs.zfree = Z_NULL;
   zs.opaque = Z_NULL;
 
-  if (deflateInit(&zs, Z_DEFAULT_COMPRESSION) != Z_OK)
-    return false;
+  if (deflateInit(&zs, Z_DEFAULT_COMPRESSION) != Z_OK) return false;
 
   bool rc = true;
   uint8_t block_src[BLOCK_SIZE];
   uint8_t block_dst[BLOCK_SIZE];
 
-  const size_t num_blocks = (ringbuffer_size(rb_src) + BLOCK_SIZE - 1) / BLOCK_SIZE;
+  const size_t num_blocks =
+      (ringbuffer_size(rb_src) + BLOCK_SIZE - 1) / BLOCK_SIZE;
   for (size_t i = 0; i < num_blocks; ++i) {
-    zs.avail_in = ringbuffer_peek(rb_src, i * BLOCK_SIZE, block_src, BLOCK_SIZE);
+    zs.avail_in =
+        ringbuffer_peek(rb_src, i * BLOCK_SIZE, block_src, BLOCK_SIZE);
     zs.next_in = block_src;
 
     do {
@@ -161,15 +169,15 @@ static bool btsnoop_compress(ringbuffer_t *rb_dst, ringbuffer_t *rb_src) {
 }
 
 void btif_debug_btsnoop_init(void) {
-  if (buffer == NULL)
-    buffer = ringbuffer_init(BTSNOOP_MEM_BUFFER_SIZE);
+  if (buffer == NULL) buffer = ringbuffer_init(BTSNOOP_MEM_BUFFER_SIZE);
   btsnoop_mem_set_callback(btsnoop_cb);
 }
 
 void btif_debug_btsnoop_dump(int fd) {
-  dprintf(fd, "--- BEGIN:BTSNOOP_LOG_SUMMARY (%zu bytes in) ---\n", ringbuffer_size(buffer));
+  dprintf(fd, "--- BEGIN:BTSNOOP_LOG_SUMMARY (%zu bytes in) ---\n",
+          ringbuffer_size(buffer));
 
-  ringbuffer_t *ringbuffer = ringbuffer_init(BTSNOOP_MEM_BUFFER_SIZE);
+  ringbuffer_t* ringbuffer = ringbuffer_init(BTSNOOP_MEM_BUFFER_SIZE);
   if (ringbuffer == NULL) {
     dprintf(fd, "%s Unable to allocate memory for compression", __func__);
     return;
@@ -180,7 +188,8 @@ void btif_debug_btsnoop_dump(int fd) {
   btsnooz_preamble_t preamble;
   preamble.version = BTSNOOZ_CURRENT_VERSION;
   preamble.last_timestamp_ms = last_timestamp_ms;
-  ringbuffer_insert(ringbuffer, (uint8_t *)&preamble, sizeof(btsnooz_preamble_t));
+  ringbuffer_insert(ringbuffer, (uint8_t*)&preamble,
+                    sizeof(btsnooz_preamble_t));
 
   // Compress data
 

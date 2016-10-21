@@ -27,141 +27,135 @@
 #include "btif_util.h"
 
 /*****************************************************************************
-**  Local type definitions
-*****************************************************************************/
+ *  Local type definitions
+ ****************************************************************************/
 
 #define BTIF_GATTS_MAX_SRV_CHG_CLT_SIZE 50
 
-typedef struct
-{
-    bool             enable;
-    uint8_t               num_clients;
-    tBTA_GATTS_SRV_CHG  srv_chg[BTIF_GATTS_MAX_SRV_CHG_CLT_SIZE];
+typedef struct {
+  bool enable;
+  uint8_t num_clients;
+  tBTA_GATTS_SRV_CHG srv_chg[BTIF_GATTS_MAX_SRV_CHG_CLT_SIZE];
 } __attribute__((packed)) btif_gatts_srv_chg_cb_t;
 
 /*****************************************************************************
-**  Static variables
-*****************************************************************************/
+ *  Static variables
+ ****************************************************************************/
 
 static btif_gatts_srv_chg_cb_t btif_gatts_srv_chg_cb;
 
 /*****************************************************************************
-**  Static functions
-*****************************************************************************/
+ *  Static functions
+ ****************************************************************************/
 
-static void btif_gatts_check_init(void)
-{
-    btif_gatts_srv_chg_cb_t *p_cb= &btif_gatts_srv_chg_cb;
+static void btif_gatts_check_init(void) {
+  btif_gatts_srv_chg_cb_t* p_cb = &btif_gatts_srv_chg_cb;
 
-    if (!p_cb->enable)
-    {
-       memset(p_cb, 0, sizeof(btif_gatts_srv_chg_cb_t));
-       p_cb->enable = true;
-    }
+  if (!p_cb->enable) {
+    memset(p_cb, 0, sizeof(btif_gatts_srv_chg_cb_t));
+    p_cb->enable = true;
+  }
 }
 
 /*****************************************************************************
-**  Externally called functions
-*****************************************************************************/
+ *  Externally called functions
+ ****************************************************************************/
 
-void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda)
-{
-    btif_gatts_srv_chg_cb_t *p_cb= &btif_gatts_srv_chg_cb;
-    bool                 found = false;
-    uint8_t                   i;
+void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda) {
+  btif_gatts_srv_chg_cb_t* p_cb = &btif_gatts_srv_chg_cb;
+  bool found = false;
+  uint8_t i;
 
-    btif_gatts_check_init();
+  btif_gatts_check_init();
 
-    for (i=0; i != p_cb->num_clients; ++i)
-    {
-        if (!memcmp(p_cb->srv_chg[i].bda,  bda, sizeof(BD_ADDR)))
-        {
-            found = true;
-            break;
-        }
+  for (i = 0; i != p_cb->num_clients; ++i) {
+    if (!memcmp(p_cb->srv_chg[i].bda, bda, sizeof(BD_ADDR))) {
+      found = true;
+      break;
     }
+  }
 
-    if (!found)
-    {
-        if (p_cb->num_clients < BTIF_GATTS_MAX_SRV_CHG_CLT_SIZE)
-        {
-            bdcpy(p_cb->srv_chg[p_cb->num_clients].bda, bda);
-            p_cb->srv_chg[p_cb->num_clients].srv_changed = false;
-            p_cb->num_clients++;
-        }
+  if (!found) {
+    if (p_cb->num_clients < BTIF_GATTS_MAX_SRV_CHG_CLT_SIZE) {
+      bdcpy(p_cb->srv_chg[p_cb->num_clients].bda, bda);
+      p_cb->srv_chg[p_cb->num_clients].srv_changed = false;
+      p_cb->num_clients++;
     }
+  }
 }
 
 /*****************************************************************************
-**  Call-out functions
-*****************************************************************************/
+ *  Call-out functions
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         bta_gatts_co_update_handle_range
-**
-** Description      This callout function is executed by GATTS when a GATT server
-**                  handle range ios to be added or removed.
-**
-** Parameter        is_add: true is to add a handle range; otherwise is to delete.
-**                  p_hndl_range: handle range.
-**
-** Returns          void.
-**
-*******************************************************************************/
-void bta_gatts_co_update_handle_range(bool is_add, tBTA_GATTS_HNDL_RANGE *p_hndl_range)
-{
-    UNUSED(is_add);
-    UNUSED(p_hndl_range);
+ *
+ * Function         bta_gatts_co_update_handle_range
+ *
+ * Description      This callout function is executed by GATTS when a GATT
+ *server
+ *                  handle range ios to be added or removed.
+ *
+ * Parameter        is_add: true is to add a handle range; otherwise is to
+ *delete.
+ *                  p_hndl_range: handle range.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
+void bta_gatts_co_update_handle_range(bool is_add,
+                                      tBTA_GATTS_HNDL_RANGE* p_hndl_range) {
+  UNUSED(is_add);
+  UNUSED(p_hndl_range);
 }
 
 /*******************************************************************************
-**
-** Function         bta_gatts_co_srv_chg
-**
-** Description      This call-out is to read/write/remove service change related
-**                  informaiton. The request consists of the cmd and p_req and the
-**                  response is returned in p_rsp
-**
-** Parameter        cmd - request command
-**                  p_req - request paramters
-**                  p_rsp - response data for the request
-**
-** Returns          true - if the request is processed successfully and
-**                         the response is returned in p_rsp.
-**                  false - if the request can not be processed
-**
-*******************************************************************************/
+ *
+ * Function         bta_gatts_co_srv_chg
+ *
+ * Description      This call-out is to read/write/remove service change related
+ *                  informaiton. The request consists of the cmd and p_req and
+ *the
+ *                  response is returned in p_rsp
+ *
+ * Parameter        cmd - request command
+ *                  p_req - request paramters
+ *                  p_rsp - response data for the request
+ *
+ * Returns          true - if the request is processed successfully and
+ *                         the response is returned in p_rsp.
+ *                  false - if the request can not be processed
+ *
+ ******************************************************************************/
 bool bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
-                             tBTA_GATTS_SRV_CHG_REQ *p_req,
-                             tBTA_GATTS_SRV_CHG_RSP *p_rsp)
-{
-    UNUSED(cmd);
-    UNUSED(p_req);
-    UNUSED(p_rsp);
+                          tBTA_GATTS_SRV_CHG_REQ* p_req,
+                          tBTA_GATTS_SRV_CHG_RSP* p_rsp) {
+  UNUSED(cmd);
+  UNUSED(p_req);
+  UNUSED(p_rsp);
 
-    return false;
+  return false;
 }
 
 /*******************************************************************************
-**
-** Function         bta_gatts_co_load_handle_range
-**
-** Description      This callout function is executed by GATTS when a GATT server
-**                  handle range is requested to be loaded from NV.
-**
-** Parameter
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gatts_co_load_handle_range
+ *
+ * Description      This callout function is executed by GATTS when a GATT
+ *server
+ *                  handle range is requested to be loaded from NV.
+ *
+ * Parameter
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 bool bta_gatts_co_load_handle_range(uint8_t index,
-                                       tBTA_GATTS_HNDL_RANGE *p_handle_range)
-{
-    UNUSED(index);
-    UNUSED(p_handle_range);
+                                    tBTA_GATTS_HNDL_RANGE* p_handle_range) {
+  UNUSED(index);
+  UNUSED(p_handle_range);
 
-    return false;
+  return false;
 }
 
-#endif // BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#endif  // BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE

@@ -59,44 +59,45 @@
 
 typedef struct {
   uint16_t sco_handle;
-  socket_t *socket;
+  socket_t* socket;
   bool connect_completed;
 } sco_socket_t;
 
 // TODO: verify packet types that are being sent OTA.
 static tBTM_ESCO_PARAMS sco_parameters = {
-    BTM_64KBITS_RATE,                   /* TX Bandwidth (64 kbits/sec)              */
-    BTM_64KBITS_RATE,                   /* RX Bandwidth (64 kbits/sec)              */
-    0x000a,                             /* 10 ms (HS/HF can use EV3, 2-EV3, 3-EV3)  */
-    0x0060,                             /* Inp Linear, Air CVSD, 2s Comp, 16bit     */
-    (BTM_SCO_LINK_ALL_PKT_MASK       |
-     BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 |
+    BTM_64KBITS_RATE, /* TX Bandwidth (64 kbits/sec)              */
+    BTM_64KBITS_RATE, /* RX Bandwidth (64 kbits/sec)              */
+    0x000a,           /* 10 ms (HS/HF can use EV3, 2-EV3, 3-EV3)  */
+    0x0060,           /* Inp Linear, Air CVSD, 2s Comp, 16bit     */
+    (BTM_SCO_LINK_ALL_PKT_MASK | BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 |
      BTM_SCO_PKT_TYPES_MASK_NO_3_EV5),
-     BTM_ESCO_RETRANS_POWER       /* Retransmission effort                      */
+    BTM_ESCO_RETRANS_POWER /* Retransmission effort                      */
 };
 
-static sco_socket_t *sco_socket_establish_locked(bool is_listening, const bt_bdaddr_t *bd_addr, int *sock_fd);
-static sco_socket_t *sco_socket_new(void);
-static void sco_socket_free_locked(sco_socket_t *socket);
-static sco_socket_t *sco_socket_find_locked(uint16_t sco_handle);
-static void connection_request_cb(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *data);
+static sco_socket_t* sco_socket_establish_locked(bool is_listening,
+                                                 const bt_bdaddr_t* bd_addr,
+                                                 int* sock_fd);
+static sco_socket_t* sco_socket_new(void);
+static void sco_socket_free_locked(sco_socket_t* socket);
+static sco_socket_t* sco_socket_find_locked(uint16_t sco_handle);
+static void connection_request_cb(tBTM_ESCO_EVT event,
+                                  tBTM_ESCO_EVT_DATA* data);
 static void connect_completed_cb(uint16_t sco_handle);
 static void disconnect_completed_cb(uint16_t sco_handle);
-static void socket_read_ready_cb(socket_t *socket, void *context);
+static void socket_read_ready_cb(socket_t* socket, void* context);
 
 // |sco_lock| protects all of the static variables below and
 // calls into the BTM layer.
 static std::mutex sco_lock;
-static list_t *sco_sockets;              // Owns a collection of sco_socket_t objects.
-static sco_socket_t *listen_sco_socket;  // Not owned, do not free.
-static thread_t *thread;                 // Not owned, do not free.
+static list_t* sco_sockets;  // Owns a collection of sco_socket_t objects.
+static sco_socket_t* listen_sco_socket;  // Not owned, do not free.
+static thread_t* thread;                 // Not owned, do not free.
 
-bt_status_t btsock_sco_init(thread_t *thread_) {
+bt_status_t btsock_sco_init(thread_t* thread_) {
   assert(thread_ != NULL);
 
   sco_sockets = list_new((list_free_cb)sco_socket_free_locked);
-  if (!sco_sockets)
-    return BT_STATUS_FAIL;
+  if (!sco_sockets) return BT_STATUS_FAIL;
 
   thread = thread_;
   BTM_SetEScoMode(BTM_LINK_TYPE_ESCO, &sco_parameters);
@@ -110,14 +111,13 @@ bt_status_t btsock_sco_cleanup(void) {
   return BT_STATUS_SUCCESS;
 }
 
-bt_status_t btsock_sco_listen(int *sock_fd, UNUSED_ATTR int flags) {
+bt_status_t btsock_sco_listen(int* sock_fd, UNUSED_ATTR int flags) {
   assert(sock_fd != NULL);
 
   std::unique_lock<std::mutex> lock(sco_lock);
 
-  sco_socket_t *sco_socket = sco_socket_establish_locked(true, NULL, sock_fd);
-  if (!sco_socket)
-    return BT_STATUS_FAIL;
+  sco_socket_t* sco_socket = sco_socket_establish_locked(true, NULL, sock_fd);
+  if (!sco_socket) return BT_STATUS_FAIL;
 
   BTM_RegForEScoEvts(sco_socket->sco_handle, connection_request_cb);
   listen_sco_socket = sco_socket;
@@ -125,25 +125,30 @@ bt_status_t btsock_sco_listen(int *sock_fd, UNUSED_ATTR int flags) {
   return BT_STATUS_SUCCESS;
 }
 
-bt_status_t btsock_sco_connect(const bt_bdaddr_t *bd_addr, int *sock_fd, UNUSED_ATTR int flags) {
+bt_status_t btsock_sco_connect(const bt_bdaddr_t* bd_addr, int* sock_fd,
+                               UNUSED_ATTR int flags) {
   assert(bd_addr != NULL);
   assert(sock_fd != NULL);
 
   std::unique_lock<std::mutex> lock(sco_lock);
-  sco_socket_t *sco_socket = sco_socket_establish_locked(false, bd_addr, sock_fd);
+  sco_socket_t* sco_socket =
+      sco_socket_establish_locked(false, bd_addr, sock_fd);
 
   return (sco_socket != NULL) ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
 // Must be called with |lock| held.
-static sco_socket_t *sco_socket_establish_locked(bool is_listening, const bt_bdaddr_t *bd_addr, int *sock_fd) {
-  int pair[2] = { INVALID_FD, INVALID_FD };
-  sco_socket_t *sco_socket = NULL;
-  socket_t *socket = NULL;
+static sco_socket_t* sco_socket_establish_locked(bool is_listening,
+                                                 const bt_bdaddr_t* bd_addr,
+                                                 int* sock_fd) {
+  int pair[2] = {INVALID_FD, INVALID_FD};
+  sco_socket_t* sco_socket = NULL;
+  socket_t* socket = NULL;
   tBTM_STATUS status;
 
   if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pair) == -1) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate socket pair: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to allocate socket pair: %s", __func__,
+              strerror(errno));
     goto error;
   }
 
@@ -153,7 +158,9 @@ static sco_socket_t *sco_socket_establish_locked(bool is_listening, const bt_bda
     goto error;
   }
 
-  status = BTM_CreateSco((uint8_t *)bd_addr, !is_listening, sco_parameters.packet_types, &sco_socket->sco_handle, connect_completed_cb, disconnect_completed_cb);
+  status = BTM_CreateSco((uint8_t*)bd_addr, !is_listening,
+                         sco_parameters.packet_types, &sco_socket->sco_handle,
+                         connect_completed_cb, disconnect_completed_cb);
   if (status != BTM_CMD_STARTED) {
     LOG_ERROR(LOG_TAG, "%s unable to create SCO socket: %d", __func__, status);
     goto error;
@@ -161,7 +168,8 @@ static sco_socket_t *sco_socket_establish_locked(bool is_listening, const bt_bda
 
   socket = socket_new_from_fd(pair[1]);
   if (!socket) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate socket from file descriptor %d.", __func__, pair[1]);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate socket from file descriptor %d.",
+              __func__, pair[1]);
     goto error;
   }
 
@@ -169,30 +177,29 @@ static sco_socket_t *sco_socket_establish_locked(bool is_listening, const bt_bda
   sco_socket->socket = socket;  // Hang on to the other end.
   list_append(sco_sockets, sco_socket);
 
-  socket_register(socket, thread_get_reactor(thread), sco_socket, socket_read_ready_cb, NULL);
+  socket_register(socket, thread_get_reactor(thread), sco_socket,
+                  socket_read_ready_cb, NULL);
   return sco_socket;
 
 error:;
-  if (pair[0] != INVALID_FD)
-    close(pair[0]);
-  if (pair[1] != INVALID_FD)
-    close(pair[1]);
+  if (pair[0] != INVALID_FD) close(pair[0]);
+  if (pair[1] != INVALID_FD) close(pair[1]);
 
   sco_socket_free_locked(sco_socket);
   return NULL;
 }
 
-static sco_socket_t *sco_socket_new(void) {
-  sco_socket_t *sco_socket = (sco_socket_t *)osi_calloc(sizeof(sco_socket_t));
+static sco_socket_t* sco_socket_new(void) {
+  sco_socket_t* sco_socket = (sco_socket_t*)osi_calloc(sizeof(sco_socket_t));
   sco_socket->sco_handle = BTM_INVALID_SCO_INDEX;
   return sco_socket;
 }
 
-// Must be called with |lock| held except during teardown when we know the socket thread
+// Must be called with |lock| held except during teardown when we know the
+// socket thread
 // is no longer alive.
-static void sco_socket_free_locked(sco_socket_t *sco_socket) {
-  if (!sco_socket)
-    return;
+static void sco_socket_free_locked(sco_socket_t* sco_socket) {
+  if (!sco_socket) return;
 
   if (sco_socket->sco_handle != BTM_INVALID_SCO_INDEX)
     BTM_RemoveSco(sco_socket->sco_handle);
@@ -201,38 +208,42 @@ static void sco_socket_free_locked(sco_socket_t *sco_socket) {
 }
 
 // Must be called with |lock| held.
-static sco_socket_t *sco_socket_find_locked(uint16_t sco_handle) {
-  for (const list_node_t *node = list_begin(sco_sockets); node != list_end(sco_sockets); node = list_next(node)) {
-    sco_socket_t *sco_socket = (sco_socket_t *)list_node(node);
-    if (sco_socket->sco_handle == sco_handle)
-      return sco_socket;
+static sco_socket_t* sco_socket_find_locked(uint16_t sco_handle) {
+  for (const list_node_t* node = list_begin(sco_sockets);
+       node != list_end(sco_sockets); node = list_next(node)) {
+    sco_socket_t* sco_socket = (sco_socket_t*)list_node(node);
+    if (sco_socket->sco_handle == sco_handle) return sco_socket;
   }
   return NULL;
 }
 
-static void connection_request_cb(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *data) {
+static void connection_request_cb(tBTM_ESCO_EVT event,
+                                  tBTM_ESCO_EVT_DATA* data) {
   assert(data != NULL);
 
   // Don't care about change of link parameters, only connection requests.
-  if (event != BTM_ESCO_CONN_REQ_EVT)
-    return;
+  if (event != BTM_ESCO_CONN_REQ_EVT) return;
 
   std::unique_lock<std::mutex> lock(sco_lock);
 
-  const tBTM_ESCO_CONN_REQ_EVT_DATA *conn_data = &data->conn_evt;
-  sco_socket_t *sco_socket = sco_socket_find_locked(conn_data->sco_inx);
+  const tBTM_ESCO_CONN_REQ_EVT_DATA* conn_data = &data->conn_evt;
+  sco_socket_t* sco_socket = sco_socket_find_locked(conn_data->sco_inx);
   int client_fd = INVALID_FD;
 
   uint16_t temp;
-  sco_socket_t *new_sco_socket;
+  sco_socket_t* new_sco_socket;
 
   if (!sco_socket) {
-    LOG_ERROR(LOG_TAG, "%s unable to find sco_socket for handle: %hu", __func__, conn_data->sco_inx);
+    LOG_ERROR(LOG_TAG, "%s unable to find sco_socket for handle: %hu", __func__,
+              conn_data->sco_inx);
     goto error;
   }
 
   if (sco_socket != listen_sco_socket) {
-    LOG_ERROR(LOG_TAG, "%s received connection request on non-listening socket handle: %hu", __func__, conn_data->sco_inx);
+    LOG_ERROR(
+        LOG_TAG,
+        "%s received connection request on non-listening socket handle: %hu",
+        __func__, conn_data->sco_inx);
     goto error;
   }
 
@@ -253,8 +264,12 @@ static void connection_request_cb(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *data)
   connect_signal.channel = 0;
   connect_signal.status = 0;
 
-  if (socket_write_and_transfer_fd(sco_socket->socket, &connect_signal, sizeof(connect_signal), client_fd) != sizeof(connect_signal)) {
-    LOG_ERROR(LOG_TAG, "%s unable to send new file descriptor to listening socket.", __func__);
+  if (socket_write_and_transfer_fd(sco_socket->socket, &connect_signal,
+                                   sizeof(connect_signal),
+                                   client_fd) != sizeof(connect_signal)) {
+    LOG_ERROR(LOG_TAG,
+              "%s unable to send new file descriptor to listening socket.",
+              __func__);
     goto error;
   }
 
@@ -264,21 +279,22 @@ static void connection_request_cb(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *data)
   return;
 
 error:;
-  if (client_fd != INVALID_FD)
-    close(client_fd);
+  if (client_fd != INVALID_FD) close(client_fd);
   BTM_EScoConnRsp(conn_data->sco_inx, HCI_ERR_HOST_REJECT_RESOURCES, NULL);
 }
 
 static void connect_completed_cb(uint16_t sco_handle) {
   std::unique_lock<std::mutex> lock(sco_lock);
 
-  sco_socket_t *sco_socket = sco_socket_find_locked(sco_handle);
+  sco_socket_t* sco_socket = sco_socket_find_locked(sco_handle);
   if (!sco_socket) {
-    LOG_ERROR(LOG_TAG, "%s SCO socket not found on connect for handle: %hu", __func__, sco_handle);
+    LOG_ERROR(LOG_TAG, "%s SCO socket not found on connect for handle: %hu",
+              __func__, sco_handle);
     return;
   }
 
-  // If sco_socket->socket was closed, we should tear down because there is no app-level
+  // If sco_socket->socket was closed, we should tear down because there is no
+  // app-level
   // interest in the SCO socket.
   if (!sco_socket->socket) {
     BTM_RemoveSco(sco_socket->sco_handle);
@@ -292,19 +308,20 @@ static void connect_completed_cb(uint16_t sco_handle) {
 static void disconnect_completed_cb(uint16_t sco_handle) {
   std::unique_lock<std::mutex> lock(sco_lock);
 
-  sco_socket_t *sco_socket = sco_socket_find_locked(sco_handle);
+  sco_socket_t* sco_socket = sco_socket_find_locked(sco_handle);
   if (!sco_socket) {
-    LOG_ERROR(LOG_TAG, "%s SCO socket not found on disconnect for handle: %hu", __func__, sco_handle);
+    LOG_ERROR(LOG_TAG, "%s SCO socket not found on disconnect for handle: %hu",
+              __func__, sco_handle);
     return;
   }
 
   list_remove(sco_sockets, sco_socket);
 }
 
-static void socket_read_ready_cb(UNUSED_ATTR socket_t *socket, void *context) {
+static void socket_read_ready_cb(UNUSED_ATTR socket_t* socket, void* context) {
   std::unique_lock<std::mutex> lock(sco_lock);
 
-  sco_socket_t *sco_socket = (sco_socket_t *)context;
+  sco_socket_t* sco_socket = (sco_socket_t*)context;
   socket_free(sco_socket->socket);
   sco_socket->socket = NULL;
 
@@ -317,7 +334,6 @@ static void socket_read_ready_cb(UNUSED_ATTR socket_t *socket, void *context) {
   if (sco_socket->connect_completed || sco_socket == listen_sco_socket) {
     if (BTM_RemoveSco(sco_socket->sco_handle) == BTM_SUCCESS)
       list_remove(sco_sockets, sco_socket);
-    if (sco_socket == listen_sco_socket)
-      listen_sco_socket = NULL;
+    if (sco_socket == listen_sco_socket) listen_sco_socket = NULL;
   }
 }
