@@ -1065,49 +1065,6 @@ uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr)
     return (lcid);
 }
 
-#if (AVDT_MULTIPLEXING == TRUE)
-/*******************************************************************************
-**
-** Function         AVDT_SetMediaBuf
-**
-** Description      Assigns buffer for media packets or forbids using of assigned
-**                  buffer if argument p_buf is NULL. This function can only
-**                  be called if the stream is a SNK.
-**
-**                  AVDTP uses this buffer to reassemble fragmented media packets.
-**                  When AVDTP receives a complete media packet, it calls the
-**                  p_sink_media_cback assigned by AVDT_CreateStream().
-**                  This function can be called during callback to assign a
-**                  different buffer for next media packet or can leave the current
-**                  buffer for next packet.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
-extern uint16_t AVDT_SetMediaBuf(uint8_t handle, uint8_t *p_buf, uint32_t buf_len)
-{
-    tAVDT_SCB       *p_scb;
-    uint16_t        result = AVDT_SUCCESS;
-
-    /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    else
-    {
-        if (p_buf && p_scb->cs.p_sink_media_cback == NULL) {
-            result = AVDT_NO_RESOURCES;
-        } else {
-            p_scb->p_media_buf = p_buf;
-            p_scb->media_buf_len = buf_len;
-        }
-    }
-
-    return result;
-}
-#endif
-
 #if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
 **
@@ -1127,9 +1084,6 @@ uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
     uint16_t        result = AVDT_BAD_PARAMS;
     tAVDT_TC_TBL    *p_tbl;
     uint8_t         *p, *plen, *pm1, *p_end;
-#if (AVDT_MULTIPLEXING == TRUE)
-    uint8_t         *p_al=NULL, u;
-#endif
     uint32_t ssrc;
     uint16_t len;
 
@@ -1149,14 +1103,6 @@ uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
 
             p_pkt->offset = L2CAP_MIN_OFFSET;
             p = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
-#if (AVDT_MULTIPLEXING == TRUE)
-            if(p_scb->curr_cfg.psc_mask & AVDT_PSC_MUX)
-            {
-                /* Adaptation Layer header later */
-                p_al = p;
-                p += 2;
-            }
-#endif
             pm1 = p;
             *p++ = AVDT_MEDIA_OCTET1 | 1;
             *p++ = type;
@@ -1202,21 +1148,6 @@ uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
             p_end = p;
             len = p - pm1 - 1;
             UINT16_TO_BE_STREAM(plen, len);
-
-#if (AVDT_MULTIPLEXING == TRUE)
-            if(p_scb->curr_cfg.psc_mask & AVDT_PSC_MUX)
-            {
-                /* Adaptation Layer header */
-                p = p_al;
-                len++;
-                UINT16_TO_BE_STREAM(p_al, len );
-                /* TSID, no-fragment bit and coding of length(9-bit length field) */
-                u = *p;
-                *p = (p_scb->curr_cfg.mux_tsid_report<<3) | AVDT_ALH_LCODE_9BITM0;
-                if(u)
-                    *p |= AVDT_ALH_LCODE_9BITM1;
-            }
-#endif
 
             /* set the actual payload length */
             p_pkt->len = p_end - p;
