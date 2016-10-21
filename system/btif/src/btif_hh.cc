@@ -256,7 +256,7 @@ static BT_HDR* create_pbuf(uint16_t len, uint8_t* data) {
  * Function         update_keyboard_lockstates
  *
  * Description      Sends a report to the keyboard to set the lock states of
- *keys
+ *                  keys.
  *
  ******************************************************************************/
 static void update_keyboard_lockstates(btif_hh_device_t* p_dev) {
@@ -284,9 +284,9 @@ static void update_keyboard_lockstates(btif_hh_device_t* p_dev) {
  * Function         sync_lockstate_on_connect
  *
  * Description      Function to update the keyboard lock states managed by the
- *OS
- *                  when a HID keyboard is connected or disconnected and
- *reconnected
+ *                  OS when a HID keyboard is connected or disconnected and
+ *                  reconnected
+ *
  * Returns          void
  ******************************************************************************/
 static void sync_lockstate_on_connect(btif_hh_device_t* p_dev) {
@@ -323,7 +323,7 @@ static void sync_lockstate_on_connect(btif_hh_device_t* p_dev) {
  * Function         btif_hh_find_connected_dev_by_handle
  *
  * Description      Return the connected device pointer of the specified device
- *handle
+ *                  handle
  *
  * Returns          Device entry pointer in the device table
  ******************************************************************************/
@@ -362,7 +362,7 @@ static btif_hh_device_t* btif_hh_find_dev_by_bda(bt_bdaddr_t* bd_addr) {
  * Function         btif_hh_find_connected_dev_by_bda
  *
  * Description      Return the connected device pointer of the specified
- *bt_bdaddr_t.
+ *                  bt_bdaddr_t.
  *
  * Returns          Device entry pointer in the device table
  ******************************************************************************/

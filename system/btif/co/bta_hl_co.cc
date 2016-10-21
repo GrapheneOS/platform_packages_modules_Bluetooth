@@ -60,8 +60,7 @@
  *
  * Parameters      app_id - application ID
  *                 p_num_of_mdep (output) - number of MDEP configurations
- *supported
- *                                          by the application
+ *                                          supported by the application
  *
  * Returns         true on success
  *
@@ -85,8 +84,8 @@ bool bta_hl_co_get_num_of_mdep(uint8_t app_id, uint8_t* p_num_of_mdep) {
  * Function        bta_hl_co_advrtise_source_sdp
  *
  * Description     This function is called to find out whether the SOURCE MDEP
- *                 configuration information should be advertize in the SDP or
- *nopt
+ *                 configuration information should be advertise in the SDP or
+ *                 not.
  *
  * Parameters      app_id - application ID
  *
@@ -113,8 +112,7 @@ bool bta_hl_co_advrtise_source_sdp(uint8_t app_id) {
  *
  * Description     This function is called to get the supported feature
  *                 configuration for the specified mdep index and it also
- *assigns
- *                 the MDEP ID for the specified mdep index
+ *                 assigns the MDEP ID for the specified mdep index
  *
  * Parameters      app_id - HDP application ID
  *                 mdep_idx - the mdep index
@@ -160,8 +158,7 @@ bool bta_hl_co_get_mdep_config(uint8_t app_id, uint8_t mdep_idx,
  *
  * Parameters      app_id - HDP application ID
  *                 p_echo_cfg (output) - pointer to the Echo test maximum APDU
- *size
- *                                       configuration
+ *                                       size configuration
  *
  * Returns         Bloolean - true success
  ******************************************************************************/
@@ -192,8 +189,7 @@ bool bta_hl_co_get_echo_config(uint8_t app_id, tBTA_HL_ECHO_CFG* p_echo_cfg) {
  * Function        bta_hl_co_save_mdl
  *
  * Description     This function is called to save a MDL configuration item in
- *persistent
- *                 storage
+ *                 persistent storage
  *
  * Parameters      app_id - HDP application ID
  *                 item_idx - the MDL configuration storage index
@@ -216,8 +212,7 @@ void bta_hl_co_save_mdl(uint8_t mdep_id, uint8_t item_idx,
  * Function        bta_hl_co_delete_mdl
  *
  * Description     This function is called to delete a MDL configuration item in
- *persistent
- *                 storage
+ *                 persistent storage
  *
  * Parameters      app_id - HDP application ID
  *                 item_idx - the MDL configuration storage index
@@ -237,12 +232,11 @@ void bta_hl_co_delete_mdl(uint8_t mdep_id, uint8_t item_idx) {
  *
  * Description     This function is called to get the MDL configuration
  *                 from the persistent memory. This function shall only be
-*called
-*8                 once after the device is powered up
+ *                 called once after the device is powered up
  *
  * Parameters      app_id - HDP application ID
  *                 buffer_size - the unit of the buffer size is
-*sizeof(tBTA_HL_MDL_CFG)
+ *                               sizeof(tBTA_HL_MDL_CFG)
  *                 p_mdl_buf - Point to the starting location of the buffer
  *
  * Returns         bool

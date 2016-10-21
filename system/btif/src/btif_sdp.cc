@@ -21,7 +21,7 @@
  *  Filename:      btif_sdp.c
  *  Description:   SDP Bluetooth Interface.
  *                 Implements the generic message handling and search
- *functionality.
+ *                 functionality.
  *                 References btif_sdp_server.c for SDP record creation.
  *
  ***********************************************************************************/

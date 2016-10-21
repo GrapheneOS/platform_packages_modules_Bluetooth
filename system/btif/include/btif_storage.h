@@ -154,7 +154,7 @@ bt_status_t btif_storage_load_bonded_devices(void);
  * Function         btif_storage_add_hid_device_info
  *
  * Description      BTIF storage API - Adds the hid information of bonded hid
- *devices-to NVRAM
+ *                  devices-to NVRAM
  *
  * Returns          BT_STATUS_SUCCESS if the store was successful,
  *                  BT_STATUS_FAIL otherwise
@@ -172,8 +172,7 @@ bt_status_t btif_storage_add_hid_device_info(
  * Function         btif_storage_load_bonded_hid_info
  *
  * Description      BTIF storage API - Loads hid info for all the bonded devices
- *from NVRAM
- *                  and adds those devices  to the BTA_HH.
+ *                  from NVRAM and adds those devices  to the BTA_HH.
  *
  * Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
  *
@@ -185,7 +184,7 @@ bt_status_t btif_storage_load_bonded_hid_info(void);
  * Function         btif_storage_remove_hid_info
  *
  * Description      BTIF storage API - Deletes the bonded hid device info from
- *NVRAM
+ *                  NVRAM
  *
  * Returns          BT_STATUS_SUCCESS if the deletion was successful,
  *                  BT_STATUS_FAIL otherwise
@@ -198,7 +197,7 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t* remote_bd_addr);
  * Function         btif_storage_is_retricted_device
  *
  * Description      BTIF storage API - checks if this device is a restricted
- *device
+ *                  device
  *
  * Returns          true  if the device is labled as restricted
  *                  false otherwise

@@ -96,7 +96,7 @@ btif_sm_state_t btif_sm_get_state(btif_sm_handle_t handle);
  * Function     btif_sm_dispatch
  *
  * Description  Dispatches the 'event' along with 'data' to the current state
- *handler
+ *              handler
  *
  * Returns      Returns BT_STATUS_OK on success, BT_STATUS_FAIL otherwise
  *
@@ -111,8 +111,7 @@ bt_status_t btif_sm_dispatch(btif_sm_handle_t handle, btif_sm_event_t event,
  * Description  Make a transition to the new 'state'. The 'BTIF_SM_EXIT_EVT'
  *              shall be invoked before exiting the current state. The
  *              'BTIF_SM_ENTER_EVT' shall be invoked before entering the new
- *state
- *
+ *              state
  *
  * Returns      Returns BT_STATUS_OK on success, BT_STATUS_FAIL otherwise
  *

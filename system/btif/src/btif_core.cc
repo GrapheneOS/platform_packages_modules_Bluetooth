@@ -183,7 +183,7 @@ static void btif_context_switched(void* p_msg) {
  *                  p_params  : parameter area passed to callback (copied)
  *                  param_len : length of parameter area
  *                  p_copy_cback : If set this function will be invoked for deep
- *copy
+ *                                 copy
  *
  * Returns          void
  *
@@ -656,7 +656,7 @@ bt_status_t btif_cleanup_bluetooth(void) {
  * Function         btif_dut_mode_cback
  *
  * Description     Callback invoked on completion of vendor specific test mode
- *command
+ *                 command
  *
  * Returns          None
  *
@@ -671,8 +671,7 @@ static void btif_dut_mode_cback(tBTM_VSC_CMPL* p) {
  * Function         btif_dut_mode_configure
  *
  * Description      Configure Test Mode - 'enable' to 1 puts the device in test
- *mode and 0 exits
- *                       test mode
+ *                       mode and 0 exits test mode
  *
  * Returns          BT_STATUS_SUCCESS on success
  *
