@@ -315,47 +315,6 @@ static void avdt_msg_bld_cfg(uint8_t **p, tAVDT_CFG *p_cfg)
         *p += len;
     }
 
-#if (AVDT_MULTIPLEXING == TRUE)
-    /* multiplexing */
-    if (p_cfg->psc_mask & AVDT_PSC_MUX)
-    {
-        *(*p)++ = AVDT_CAT_MUX;
-        /* length */
-        if (p_cfg->psc_mask & AVDT_PSC_RECOV)
-            *(*p)++ = 7; /* frag (1) + media + report + recovery */
-        else if (p_cfg->psc_mask & AVDT_PSC_REPORT)
-            *(*p)++ = 5; /* frag (1) + media + report */
-        else
-            *(*p)++ = 3; /* frag (1) + media */
-
-        /* allow fragmentation */
-        if(p_cfg->mux_mask & AVDT_MUX_FRAG)
-            *(*p)++ = 0x80;
-        else
-            *(*p)++ = 0;
-
-        /* media transport session */
-        *(*p)++ = p_cfg->mux_tsid_media<<3; /* TSID */
-        *(*p)++ = p_cfg->mux_tcid_media<<3; /* TCID */
-
-        if (p_cfg->psc_mask & AVDT_PSC_RECOV)
-        {
-            /* reporting transport session */
-            *(*p)++ = p_cfg->mux_tsid_report<<3; /* TSID */
-            *(*p)++ = p_cfg->mux_tcid_report<<3; /* TCID */
-            /* recovery transport session */
-            *(*p)++ = p_cfg->mux_tsid_recov<<3; /* TSID */
-            *(*p)++ = p_cfg->mux_tcid_recov<<3; /* TCID */
-        }
-        else if (p_cfg->psc_mask & AVDT_PSC_REPORT)
-        {
-            /* reporting transport session */
-            *(*p)++ = p_cfg->mux_tsid_report<<3; /* TSID */
-            *(*p)++ = p_cfg->mux_tcid_report<<3; /* TCID */
-        }
-    }
-#endif
-
     /* delay report */
     if (p_cfg->psc_mask & AVDT_PSC_DELAY_RPT)
     {
@@ -598,9 +557,6 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, uint8_t *p, uint16_t len, uint
     p_cfg->psc_mask = 0;
     p_cfg->num_codec = 0;
     p_cfg->num_protect = 0;
-#if (AVDT_MULTIPLEXING == TRUE)
-    p_cfg->mux_mask = 0;
-#endif
 
     /* while there is still data to parse */
     p_end = p + len;
@@ -687,58 +643,6 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, uint8_t *p, uint16_t len, uint
             case AVDT_CAT_HDRCMP:
                 p_cfg->hdrcmp_mask = *p++;
                 break;
-
-#if (AVDT_MULTIPLEXING == TRUE)
-            case AVDT_CAT_MUX:
-                /* verify length */
-                AVDT_TRACE_WARNING("psc_mask=0x%x elem_len=%d", p_cfg->psc_mask, elem_len);
-                if( ((0 == (p_cfg->psc_mask & (AVDT_PSC_RECOV|AVDT_PSC_REPORT))) && (elem_len != 3))
-                    || (((p_cfg->psc_mask & AVDT_PSC_REPORT) && !(p_cfg->psc_mask & AVDT_PSC_RECOV))
-                    && (elem_len != 5))
-                    || ((!(p_cfg->psc_mask & AVDT_PSC_REPORT) && (p_cfg->psc_mask & AVDT_PSC_RECOV))
-                    && (elem_len != 5))
-                    || (((p_cfg->psc_mask & AVDT_PSC_REPORT) && (p_cfg->psc_mask & AVDT_PSC_RECOV))
-                    && (elem_len != 7)) )
-                {
-                    err = AVDT_ERR_MUX_FMT;
-                    break;
-                }
-
-                /* parse fragmentation */
-                p_cfg->mux_mask = *p++ & (uint8_t)AVDT_MUX_FRAG;
-
-                /* parse TSIDs and TCIDs */
-                if(--elem_len)
-                    p_cfg->mux_tsid_media = (*p++)>>3;
-                else
-                    break;
-
-                if(--elem_len)
-                    p_cfg->mux_tcid_media = (*p++)>>3;
-                else
-                    break;
-
-                if(--elem_len)
-                    p_cfg->mux_tsid_report = (*p++)>>3;
-                else
-                    break;
-
-                if(--elem_len)
-                    p_cfg->mux_tcid_report = (*p++)>>3;
-                else
-                    break;
-
-                if(--elem_len)
-                    p_cfg->mux_tsid_recov = (*p++)>>3;
-                else
-                    break;
-
-                if(--elem_len)
-                    p_cfg->mux_tcid_recov = (*p++)>>3;
-                else
-                    break;
-                break;
-#endif
 
             case AVDT_CAT_CODEC:
                 p_cfg->psc_mask &= ~AVDT_PSC_CODEC;

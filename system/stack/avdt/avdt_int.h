@@ -56,17 +56,6 @@ enum {
 };
 
 /* protocol service capabilities of this AVDTP implementation */
-/* for now multiplexing will be used only for fragmentation */
-#if (AVDT_MULTIPLEXING == TRUE && AVDT_REPORTING == TRUE)
-#define AVDT_PSC                (AVDT_PSC_TRANS | AVDT_PSC_MUX | AVDT_PSC_REPORT | AVDT_PSC_DELAY_RPT)
-#define AVDT_LEG_PSC            (AVDT_PSC_TRANS | AVDT_PSC_MUX | AVDT_PSC_REPORT)
-#else /* AVDT_MULTIPLEXING && AVDT_REPORTING  */
-
-#if (AVDT_MULTIPLEXING == TRUE)
-#define AVDT_PSC                (AVDT_PSC_TRANS | AVDT_PSC_MUX | AVDT_PSC_DELAY_RPT)
-#define AVDT_LEG_PSC            (AVDT_PSC_TRANS | AVDT_PSC_MUX)
-#else /* AVDT_MULTIPLEXING */
-
 #if (AVDT_REPORTING == TRUE)
 #define AVDT_PSC                (AVDT_PSC_TRANS | AVDT_PSC_REPORT | AVDT_PSC_DELAY_RPT)
 #define AVDT_LEG_PSC            (AVDT_PSC_TRANS | AVDT_PSC_REPORT)
@@ -74,10 +63,6 @@ enum {
 #define AVDT_PSC                (AVDT_PSC_TRANS | AVDT_PSC_DELAY_RPT)
 #define AVDT_LEG_PSC            (AVDT_PSC_TRANS)
 #endif /* AVDT_REPORTING  */
-
-#endif /* AVDT_MULTIPLEXING */
-
-#endif /* AVDT_MULTIPLEXING && AVDT_REPORTING  */
 
 /* initiator/acceptor signaling roles */
 #define AVDT_CLOSE_ACP          0
@@ -93,9 +78,6 @@ enum {
 
 /* to distinguish CCB events from SCB events */
 #define AVDT_CCB_MKR            0x80
-
-/* offset where AVDTP signaling message header starts in message  */
-#define AVDT_HDR_OFFSET         (L2CAP_MIN_OFFSET + AVDT_NUM_SEPS)
 
 /* offset where AVDTP signaling message content starts;
 ** use the size of a start header since it's the largest possible
@@ -461,10 +443,6 @@ typedef void (*tAVDT_CCB_ACTION)(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data);
 typedef struct {
     BT_HDR      *p_buf;
     uint32_t    time_stamp;
-#if (AVDT_MULTIPLEXING == TRUE)
-    uint8_t     *p_data;
-    uint32_t    data_len;
-#endif
     uint8_t     m_pt;
     tAVDT_DATA_OPT_MASK     opt;
 } tAVDT_SCB_APIWRITE;
@@ -505,14 +483,6 @@ typedef struct {
     uint8_t         curr_evt;       /* current event; set only by state machine */
     bool            cong;           /* Whether media transport channel is congested */
     uint8_t         close_code;     /* Error code received in close response */
-#if (AVDT_MULTIPLEXING == TRUE)
-    fixed_queue_t   *frag_q;        /* Queue for outgoing media fragments */
-    uint32_t        frag_off;       /* length of already received media fragments */
-    uint32_t        frag_org_len;   /* original length before fragmentation of receiving media packet */
-    uint8_t         *p_next_frag;   /* next fragment to send */
-    uint8_t         *p_media_buf;   /* buffer for media packet assigned by AVDT_SetMediaBuf */
-    uint32_t        media_buf_len;  /* length of buffer for media packet assigned by AVDT_SetMediaBuf */
-#endif
 } tAVDT_SCB;
 
 /* type for action functions */
@@ -680,7 +650,6 @@ extern void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_transport_channel_timer(tAVDT_SCB *p_scb,
                                              tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
-extern void avdt_scb_queue_frags(tAVDT_SCB *p_scb, uint8_t **pp_data, uint32_t *p_data_len);
 
 /* msg function declarations */
 extern bool    avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg);
