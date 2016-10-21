@@ -73,26 +73,31 @@ static uint32_t btif_hf_client_features = 0;
 
 char btif_hf_client_version[PROPERTY_VALUE_MAX];
 
-#define CHECK_BTHF_CLIENT_INIT()                                      \
-  if (bt_hf_client_callbacks == NULL) {                               \
-    BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __func__); \
-    return BT_STATUS_NOT_READY;                                       \
-  } else {                                                            \
-    BTIF_TRACE_EVENT("BTHF CLIENT: %s", __func__);                    \
-  }
+#define CHECK_BTHF_CLIENT_INIT()                                        \
+  do {                                                                  \
+    if (bt_hf_client_callbacks == NULL) {                               \
+      BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __func__); \
+      return BT_STATUS_NOT_READY;                                       \
+    } else {                                                            \
+      BTIF_TRACE_EVENT("BTHF CLIENT: %s", __func__);                    \
+    }                                                                   \
+  } while (0)
 
-#define CHECK_BTHF_CLIENT_SLC_CONNECTED()                                      \
-  if (bt_hf_client_callbacks == NULL) {                                        \
-    BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __func__);          \
-    return BT_STATUS_NOT_READY;                                                \
-  } else if (btif_hf_client_cb.state !=                                        \
-             BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED) {                     \
-    BTIF_TRACE_WARNING("BTHF CLIENT: %s: SLC connection not up. state=%s",     \
-                       __func__, dump_hf_conn_state(btif_hf_client_cb.state)); \
-    return BT_STATUS_NOT_READY;                                                \
-  } else {                                                                     \
-    BTIF_TRACE_EVENT("BTHF CLIENT: %s", __func__);                             \
-  }
+#define CHECK_BTHF_CLIENT_SLC_CONNECTED()                                    \
+  do {                                                                       \
+    if (bt_hf_client_callbacks == NULL) {                                    \
+      BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __func__);      \
+      return BT_STATUS_NOT_READY;                                            \
+    } else if (btif_hf_client_cb.state !=                                    \
+               BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED) {                 \
+      BTIF_TRACE_WARNING("BTHF CLIENT: %s: SLC connection not up. state=%s", \
+                         __func__,                                           \
+                         dump_hf_conn_state(btif_hf_client_cb.state));       \
+      return BT_STATUS_NOT_READY;                                            \
+    } else {                                                                 \
+      BTIF_TRACE_EVENT("BTHF CLIENT: %s", __func__);                         \
+    }                                                                        \
+  } while (0)
 
 /* BTIF-HF control block to map bdaddr to BTA handle */
 typedef struct {

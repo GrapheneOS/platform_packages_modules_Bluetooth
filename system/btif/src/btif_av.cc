@@ -99,14 +99,16 @@ static btif_av_cb_t btif_av_cb = {0, {{0}}, 0, 0, 0, 0};
 static alarm_t* av_open_on_rc_timer = NULL;
 
 /* both interface and media task needs to be ready to alloc incoming request */
-#define CHECK_BTAV_INIT()                                                  \
-  if (((bt_av_src_callbacks == NULL) && (bt_av_sink_callbacks == NULL)) || \
-      (btif_av_cb.sm_handle == NULL)) {                                    \
-    BTIF_TRACE_WARNING("%s: BTAV not initialized", __func__);              \
-    return BT_STATUS_NOT_READY;                                            \
-  } else {                                                                 \
-    BTIF_TRACE_EVENT("%s", __func__);                                      \
-  }
+#define CHECK_BTAV_INIT()                                                    \
+  do {                                                                       \
+    if (((bt_av_src_callbacks == NULL) && (bt_av_sink_callbacks == NULL)) || \
+        (btif_av_cb.sm_handle == NULL)) {                                    \
+      BTIF_TRACE_WARNING("%s: BTAV not initialized", __func__);              \
+      return BT_STATUS_NOT_READY;                                            \
+    } else {                                                                 \
+      BTIF_TRACE_EVENT("%s", __func__);                                      \
+    }                                                                        \
+  } while (0)
 
 /* Helper macro to avoid code duplication in the state machine handlers */
 #define CHECK_RC_EVENT(e, d)       \

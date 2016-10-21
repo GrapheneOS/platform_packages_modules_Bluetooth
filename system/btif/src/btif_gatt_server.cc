@@ -60,13 +60,15 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
  *  Constants & Macros
  ***********************************************************************************/
 
-#define CHECK_BTGATT_INIT()                                    \
-  if (bt_gatt_callbacks == NULL) {                             \
-    LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__); \
-    return BT_STATUS_NOT_READY;                                \
-  } else {                                                     \
-    LOG_VERBOSE(LOG_TAG, "%s", __func__);                      \
-  }
+#define CHECK_BTGATT_INIT()                                      \
+  do {                                                           \
+    if (bt_gatt_callbacks == NULL) {                             \
+      LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__); \
+      return BT_STATUS_NOT_READY;                                \
+    } else {                                                     \
+      LOG_VERBOSE(LOG_TAG, "%s", __func__);                      \
+    }                                                            \
+  } while (0)
 
 /************************************************************************************
  *  Static variables
