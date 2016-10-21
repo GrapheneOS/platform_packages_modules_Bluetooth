@@ -22,7 +22,7 @@
 #include "btif/include/btif_util.h"
 
 TEST(BtifStorageTest, test_string_to_uuid) {
-  const char *s1 = "e39c6285-867f-4b1d-9db0-35fbd9aebf22";
+  const char* s1 = "e39c6285-867f-4b1d-9db0-35fbd9aebf22";
   const uint8_t u1[] = {0xe3, 0x9c, 0x62, 0x85, 0x86, 0x7f, 0x4b, 0x1d,
                         0x9d, 0xb0, 0x35, 0xfb, 0xd9, 0xae, 0xbf, 0x22};
 
@@ -42,7 +42,9 @@ TEST(BtifStorageTest, test_string_to_uuid_invalid) {
 }
 
 TEST(BtifStorageTest, test_uuid_split_multiple) {
-  const char *s1 = "e39c6285-867f-4b1d-9db0-35fbd9aebf22 e39c6285-867f-4b1d-9db0-35fbd9aebf23";
+  const char* s1 =
+      "e39c6285-867f-4b1d-9db0-35fbd9aebf22 "
+      "e39c6285-867f-4b1d-9db0-35fbd9aebf23";
   const uint8_t u1[] = {0xe3, 0x9c, 0x62, 0x85, 0x86, 0x7f, 0x4b, 0x1d,
                         0x9d, 0xb0, 0x35, 0xfb, 0xd9, 0xae, 0xbf, 0x22};
   const uint8_t u2[] = {0xe3, 0x9c, 0x62, 0x85, 0x86, 0x7f, 0x4b, 0x1d,
@@ -56,7 +58,9 @@ TEST(BtifStorageTest, test_uuid_split_multiple) {
 }
 
 TEST(BtifStorageTest, test_uuid_split_partial) {
-  const char *s1 = "e39c6285-867f-4b1d-9db0-35fbd9aebf22 e39c6285-867f-4b1d-9db0-35fbd9aebf23";
+  const char* s1 =
+      "e39c6285-867f-4b1d-9db0-35fbd9aebf22 "
+      "e39c6285-867f-4b1d-9db0-35fbd9aebf23";
 
   bt_uuid_t uuids[2];
   size_t num_uuids = btif_split_uuids_string(s1, uuids, 1);

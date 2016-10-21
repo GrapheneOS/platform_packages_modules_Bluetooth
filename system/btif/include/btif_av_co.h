@@ -23,16 +23,16 @@
 #include "stack/include/a2dp_api.h"
 
 /*******************************************************************************
-**  Constants & Macros
-********************************************************************************/
+ *  Constants & Macros
+ *******************************************************************************/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*******************************************************************************
-**  Functions
-********************************************************************************/
+ *  Functions
+ *******************************************************************************/
 
 /*******************************************************************************
  **
@@ -46,23 +46,24 @@ extern "C" {
  ** Returns          true if successful, false otherwise
  **
  *******************************************************************************/
-bool bta_av_co_audio_set_codec(const tA2DP_FEEDING_PARAMS *p_feeding_params);
+bool bta_av_co_audio_set_codec(const tA2DP_FEEDING_PARAMS* p_feeding_params);
 
 // Prepares a message to initialize the encoder. The prepared message is
 // stored in |p_init_params|.
 // |p_init_params| cannot be null.
-void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS *p_init_params);
+void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS* p_init_params);
 
 // Prepares a message to update the encoder. The prepared message is
 // stored in |p_update_params|.
 // |p_update_params| cannot be null.
-void bta_av_co_audio_encoder_update(tA2DP_ENCODER_UPDATE_PARAMS *p_update_params);
+void bta_av_co_audio_encoder_update(
+    tA2DP_ENCODER_UPDATE_PARAMS* p_update_params);
 
 // Gets the current A2DP encoder interface that can be used to encode and
 // prepare A2DP packets for transmission - see |tA2DP_ENCODER_INTERFACE|.
 // Returns the A2DP encoder interface if the current codec is setup,
 // otherwise NULL.
-const tA2DP_ENCODER_INTERFACE *bta_av_co_get_encoder_interface(void);
+const tA2DP_ENCODER_INTERFACE* bta_av_co_get_encoder_interface(void);
 
 /*******************************************************************************
  **

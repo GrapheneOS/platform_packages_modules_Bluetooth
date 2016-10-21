@@ -27,10 +27,12 @@
  */
 
 /**
- * Creates an audio track object and returns a void handle. Use this handle to the
+ * Creates an audio track object and returns a void handle. Use this handle to
+ * the
  * following functions.
  *
- * The ownership of the handle is maintained by the caller of this API and it should eventually be
+ * The ownership of the handle is maintained by the caller of this API and it
+ * should eventually be
  * deleted using BtifAvrcpAudioTrackDelete (see below).
  */
 void* BtifAvrcpAudioTrackCreate(int trackFreq, int channelType);
@@ -38,28 +40,29 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int channelType);
 /**
  * Starts the audio track.
  */
-void BtifAvrcpAudioTrackStart(void *handle);
+void BtifAvrcpAudioTrackStart(void* handle);
 
 /**
  * Pauses the audio track.
  */
-void BtifAvrcpAudioTrackPause(void *handle);
+void BtifAvrcpAudioTrackPause(void* handle);
 
 /**
  * Sets audio track gain.
  */
-void BtifAvrcpSetAudioTrackGain(void *handle, float gain);
+void BtifAvrcpSetAudioTrackGain(void* handle, float gain);
 
 /**
  * Stop / Delete the audio track.
  * Delete should usually be called stop.
  */
-void BtifAvrcpAudioTrackStop(void *handle);
-void BtifAvrcpAudioTrackDelete(void *handle);
+void BtifAvrcpAudioTrackStop(void* handle);
+void BtifAvrcpAudioTrackDelete(void* handle);
 
 /**
  * Writes the audio track data to file.
  *
  * Used only for debugging.
  */
-int BtifAvrcpAudioTrackWriteData(void *handle, void *audioBuffer, int bufferlen);
+int BtifAvrcpAudioTrackWriteData(void* handle, void* audioBuffer,
+                                 int bufferlen);
