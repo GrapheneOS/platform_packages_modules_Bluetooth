@@ -653,7 +653,7 @@ static void bte_hf_evt(tBTA_AG_EVT event, tBTA_AG* p_data) {
  * Function         btif_in_hf_generic_evt
  *
  * Description     Processes generic events to be sent to JNI that are not
- *triggered from the BTA.
+ *                      triggered from the BTA.
  *                      Always runs in BTIF context
  *
  * Returns          void
@@ -1086,7 +1086,7 @@ static bt_status_t bind_response(bthf_hf_ind_type_t ind_id,
  * Function         formatted_at_response
  *
  * Description      Pre-formatted AT response, typically in response to unknown
- *AT cmd
+ *                  AT cmd
  *
  * Returns          bt_status_t
  *
@@ -1151,7 +1151,7 @@ static bt_status_t at_response(bthf_at_response_t response_code, int error_code,
  * Description      response for CLCC command
  *                  Can be iteratively called for each call index. Call index
  *                  of 0 will be treated as NULL termination (Completes
- *response)
+ *                  response)
  *
  * Returns          bt_status_t
  *
