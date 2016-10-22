@@ -1034,35 +1034,23 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
           (ioctl(sock->our_fd, FIONREAD, &size) == 0 && size)) {
         uint8_t* buffer = (uint8_t*)osi_malloc(L2CAP_MAX_SDU_LENGTH);
         /* Apparently we hijack the req_id (uint32_t) to pass the pointer to the
-         * buffer to
-         * the write complete callback, which call a free... wonder if this
-         * works on a
-         * 64 bit platform? */
+         * buffer to the write complete callback, which call a free... wonder if
+         * this works on a 64 bit platform? */
         /* The socket is created with SOCK_SEQPACKET, hence we read one message
-         * at
-         * the time. The maximum size of a message is allocated to ensure data
-         * is
-         * not lost. This is okay to do as Android uses virtual memory, hence
-         * even
-         * if we only use a fraction of the memory it should not block for
-         * others
-         * to use the memory. As the definition of ioctl(FIONREAD) do not
-         * clearly
-         * define what value will be returned if multiple messages are written
-         * to
-         * the socket before any message is read from the socket, we could
-         * potentially risk to allocate way more memory than needed. One of the
-         * use
-         * cases for this socket is obex where multiple 64kbyte messages are
-         * typically written to the socket in a tight loop, hence we risk the
-         * ioctl
-         * will return the total amount of data in the buffer, which could be
-         * multiple 64kbyte chunks.
+         * at the time. The maximum size of a message is allocated to ensure
+         * data is not lost. This is okay to do as Android uses virtual memory,
+         * hence even if we only use a fraction of the memory it should not
+         * block for others to use the memory. As the definition of
+         * ioctl(FIONREAD) do not clearly define what value will be returned if
+         * multiple messages are written to the socket before any message is
+         * read from the socket, we could potentially risk to allocate way more
+         * memory than needed. One of the use cases for this socket is obex
+         * where multiple 64kbyte messages are typically written to the socket
+         * in a tight loop, hence we risk the ioctl will return the total amount
+         * of data in the buffer, which could be multiple 64kbyte chunks.
          * UPDATE: As the stack cannot handle 64kbyte buffers, the size is
-         * reduced
-         * to around 8kbyte - and using malloc for buffer allocation here seems
-         * to
-         * be wrong
+         * reduced to around 8kbyte - and using malloc for buffer allocation
+         * here seems to be wrong
          * UPDATE: Since we are responsible for freeing the buffer in the
          * write_complete_ind, it is OK to use malloc. */
         ssize_t count;
