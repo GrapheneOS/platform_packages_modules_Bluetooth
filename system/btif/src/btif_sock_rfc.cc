@@ -59,10 +59,11 @@
  * L2CAP functions from this file. */
 #include "btif_sock_l2cap.h"
 
-#define MAX_RFC_CHANNEL \
-  30  // Maximum number of RFCOMM channels (1-30 inclusive).
-#define MAX_RFC_SESSION \
-  7  // Maximum number of devices we can have an RFCOMM connection with.
+// Maximum number of RFCOMM channels (1-30 inclusive).
+#define MAX_RFC_CHANNEL 30
+
+// Maximum number of devices we can have an RFCOMM connection with.
+#define MAX_RFC_SESSION 7
 
 typedef struct {
   int outgoing_congest : 1;
