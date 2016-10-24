@@ -74,157 +74,149 @@ tBTA_DM_PCM_RESAMPLE_CB bta_dm_pcm_cb;
 **  Macro Definition
 *****************************************************************************/
 
-
-#define CHECK_SATURATION16(x)                                           \
-            if (x > 32767)                                              \
-                x = 32767;                                              \
-            else if (x < -32768)                                        \
-                x = -32768;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-#define CONVERT_44100_TO_BLUETOOTH(pStart, pEnd)                            \
-    {                                                                       \
-        int32_t         out1, out2, out3, out4, out5;                         \
-        SRC_TYPE    *pS = (SRC_TYPE *)pStart;                               \
-        SRC_TYPE    *pSEnd = (SRC_TYPE *)pEnd;                              \
-                                                                            \
-        while (pS < pSEnd)                                                  \
-        {                                                                   \
-            CurrentPos -= 8000;                                             \
-                                                                            \
-            if (CurrentPos >= 0)                                            \
-            {                                                               \
-                pS += SRC_CHANNELS;                                         \
-                continue;                                                   \
-            }                                                               \
-            CurrentPos += dwSrcSps;                                         \
-                                                                            \
-            out1 = (SRC_SAMPLE(0) * 1587)                                   \
-                 + ((SRC_SAMPLE(1) + SRC_SAMPLE(-1)) * 1522)                \
-                 + ((SRC_SAMPLE(2) + SRC_SAMPLE(-2)) * 1337)                \
-                 + ((SRC_SAMPLE(3) + SRC_SAMPLE(-3)) * 1058);               \
-                                                                            \
-            out1 = out1 / 30000;                                            \
-                                                                            \
-            out2 = ((SRC_SAMPLE(4) + SRC_SAMPLE(-4)) * 725)                 \
-                 + ((SRC_SAMPLE(5) + SRC_SAMPLE(-5)) * 384)                 \
-                 + ((SRC_SAMPLE(6) + SRC_SAMPLE(-6)) * 79);                 \
-                                                                            \
-            out2 = out2 / 30000;                                            \
-                                                                            \
-            out3 = ((SRC_SAMPLE(7) + SRC_SAMPLE(-7)) * 156)                 \
-                 + ((SRC_SAMPLE(8) + SRC_SAMPLE(-8)) * 298)                 \
-                 + ((SRC_SAMPLE(9) + SRC_SAMPLE(-9)) * 345);                \
-                                                                            \
-            out3 = out3 / 30000;                                            \
-                                                                            \
-            out4 = ((SRC_SAMPLE(10) + SRC_SAMPLE(-10)) * 306)               \
-                 + ((SRC_SAMPLE(11) + SRC_SAMPLE(-11)) * 207)               \
-                 + ((SRC_SAMPLE(12) + SRC_SAMPLE(-12)) * 78);               \
-                                                                            \
-            out4 = out4 / 30000;                                            \
-                                                                            \
-            out5 = out1 + out2 - out3 - out4;                               \
-                                                                            \
-            CHECK_SATURATION16(out5);                                       \
-            *psBtOut++ = (int16_t)out5;                                       \
-                                                                            \
-            pS += SRC_CHANNELS;                                             \
-        }                                                                   \
-    }
-
+#define CHECK_SATURATION16(x) \
+  do {                        \
+    if ((x) > 32767)          \
+      (x) = 32767;            \
+    else if ((x) < -32768)    \
+      (x) = -32768;           \
+  } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-#define CONVERT_22050_TO_BLUETOOTH(pStart, pEnd)                            \
-    {                                                                       \
-        int32_t         out1, out2, out3, out4, out5;                         \
-        SRC_TYPE    *pS = (SRC_TYPE *)pStart;                               \
-        SRC_TYPE    *pSEnd = (SRC_TYPE *)pEnd;                              \
-                                                                            \
-        while (pS < pSEnd)                                                  \
-        {                                                                   \
-            CurrentPos -= 8000;                                             \
-                                                                            \
-            if (CurrentPos >= 0)                                            \
-            {                                                               \
-                pS += SRC_CHANNELS;                                         \
-                continue;                                                   \
-            }                                                               \
-            CurrentPos += dwSrcSps;                                         \
-                                                                            \
-            out1 = (SRC_SAMPLE(0) * 2993)                                   \
-                 + ((SRC_SAMPLE(1) + SRC_SAMPLE(-1)) * 2568)                \
-                 + ((SRC_SAMPLE(2) + SRC_SAMPLE(-2)) * 1509)                \
-                 + ((SRC_SAMPLE(3) + SRC_SAMPLE(-3)) * 331);                \
-                                                                            \
-            out1 = out1 / 30000;                                            \
-                                                                            \
-            out2 = ((SRC_SAMPLE(4) + SRC_SAMPLE(-4)) * 454)                 \
-                 + ((SRC_SAMPLE(5) + SRC_SAMPLE(-5)) * 620)                 \
-                 + ((SRC_SAMPLE(6) + SRC_SAMPLE(-6)) * 305);                \
-                                                                            \
-            out2 = out2 / 30000;                                            \
-                                                                            \
-            out3 = ((SRC_SAMPLE(7) + SRC_SAMPLE(-7)) * 127)                 \
-                 + ((SRC_SAMPLE(8) + SRC_SAMPLE(-8)) * 350)                 \
-                 + ((SRC_SAMPLE(9) + SRC_SAMPLE(-9)) * 265)                 \
-                 + ((SRC_SAMPLE(10) + SRC_SAMPLE(-10)) * 6);                \
-                                                                            \
-            out3 = out3 / 30000;                                            \
-                                                                            \
-            out4 = ((SRC_SAMPLE(11) + SRC_SAMPLE(-11)) * 201);              \
-                                                                            \
-            out4 = out4 / 30000;                                            \
-                                                                            \
-            out5 = out1 - out2 + out3 - out4;                               \
-                                                                            \
-            CHECK_SATURATION16(out5);                                       \
-            *psBtOut++ = (int16_t)out5;                                       \
-                                                                            \
-            pS += SRC_CHANNELS;                                             \
-        }                                                                   \
-    }
-
+#define CONVERT_44100_TO_BLUETOOTH(pStart, pEnd)          \
+  do {                                                    \
+    int32_t out1, out2, out3, out4, out5;                 \
+    SRC_TYPE* pS = (SRC_TYPE*)(pStart);                   \
+    SRC_TYPE* pSEnd = (SRC_TYPE*)(pEnd);                  \
+                                                          \
+    while (pS < pSEnd) {                                  \
+      CurrentPos -= 8000;                                 \
+                                                          \
+      if (CurrentPos >= 0) {                              \
+        pS += SRC_CHANNELS;                               \
+        continue;                                         \
+      }                                                   \
+      CurrentPos += dwSrcSps;                             \
+                                                          \
+      out1 = (SRC_SAMPLE(0) * 1587) +                     \
+             ((SRC_SAMPLE(1) + SRC_SAMPLE(-1)) * 1522) +  \
+             ((SRC_SAMPLE(2) + SRC_SAMPLE(-2)) * 1337) +  \
+             ((SRC_SAMPLE(3) + SRC_SAMPLE(-3)) * 1058);   \
+                                                          \
+      out1 = out1 / 30000;                                \
+                                                          \
+      out2 = ((SRC_SAMPLE(4) + SRC_SAMPLE(-4)) * 725) +   \
+             ((SRC_SAMPLE(5) + SRC_SAMPLE(-5)) * 384) +   \
+             ((SRC_SAMPLE(6) + SRC_SAMPLE(-6)) * 79);     \
+                                                          \
+      out2 = out2 / 30000;                                \
+                                                          \
+      out3 = ((SRC_SAMPLE(7) + SRC_SAMPLE(-7)) * 156) +   \
+             ((SRC_SAMPLE(8) + SRC_SAMPLE(-8)) * 298) +   \
+             ((SRC_SAMPLE(9) + SRC_SAMPLE(-9)) * 345);    \
+                                                          \
+      out3 = out3 / 30000;                                \
+                                                          \
+      out4 = ((SRC_SAMPLE(10) + SRC_SAMPLE(-10)) * 306) + \
+             ((SRC_SAMPLE(11) + SRC_SAMPLE(-11)) * 207) + \
+             ((SRC_SAMPLE(12) + SRC_SAMPLE(-12)) * 78);   \
+                                                          \
+      out4 = out4 / 30000;                                \
+                                                          \
+      out5 = out1 + out2 - out3 - out4;                   \
+                                                          \
+      CHECK_SATURATION16(out5);                           \
+      *psBtOut++ = (int16_t)out5;                         \
+                                                          \
+      pS += SRC_CHANNELS;                                 \
+    }                                                     \
+  } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-#define CONVERT_11025_TO_BLUETOOTH(pStart, pEnd)                            \
-    {                                                                       \
-        int32_t         out1;                                                   \
-        SRC_TYPE    *pS = (SRC_TYPE *)pStart;                               \
-        SRC_TYPE    *pSEnd = (SRC_TYPE *)pEnd;                              \
-                                                                            \
-        while (pS < pSEnd)                                                  \
-        {                                                                   \
-            CurrentPos -= 8000;                                             \
-                                                                            \
-            if (CurrentPos >= 0)                                            \
-            {                                                               \
-                pS += SRC_CHANNELS;                                         \
-                continue;                                                   \
-            }                                                               \
-            CurrentPos += dwSrcSps;                                         \
-                                                                            \
-            out1 = (SRC_SAMPLE(0) * 6349)                                   \
-                 + ((SRC_SAMPLE(1) + SRC_SAMPLE(-1)) * 2874)                \
-                 - ((SRC_SAMPLE(2) + SRC_SAMPLE(-2)) * 1148)                \
-                 - ((SRC_SAMPLE(3) + SRC_SAMPLE(-3)) * 287)                 \
-                 + ((SRC_SAMPLE(4) + SRC_SAMPLE(-4)) * 675)                 \
-                 - ((SRC_SAMPLE(5) + SRC_SAMPLE(-5)) * 258)                 \
-                 - ((SRC_SAMPLE(6) + SRC_SAMPLE(-6)) * 206)                 \
-                 + ((SRC_SAMPLE(7) + SRC_SAMPLE(-7)) * 266);                \
-                                                                            \
-            out1 = out1 / 30000;                                            \
-                                                                            \
-            CHECK_SATURATION16(out1);                                       \
-            *psBtOut++ = (int16_t)out1;                                       \
-                                                                            \
-            pS += SRC_CHANNELS;                                             \
-        }                                                                   \
-    }
+#define CONVERT_22050_TO_BLUETOOTH(pStart, pEnd)         \
+  do {                                                   \
+    int32_t out1, out2, out3, out4, out5;                \
+    SRC_TYPE* pS = (SRC_TYPE*)(pStart);                  \
+    SRC_TYPE* pSEnd = (SRC_TYPE*)(pEnd);                 \
+                                                         \
+    while (pS < pSEnd) {                                 \
+      CurrentPos -= 8000;                                \
+                                                         \
+      if (CurrentPos >= 0) {                             \
+        pS += SRC_CHANNELS;                              \
+        continue;                                        \
+      }                                                  \
+      CurrentPos += dwSrcSps;                            \
+                                                         \
+      out1 = (SRC_SAMPLE(0) * 2993) +                    \
+             ((SRC_SAMPLE(1) + SRC_SAMPLE(-1)) * 2568) + \
+             ((SRC_SAMPLE(2) + SRC_SAMPLE(-2)) * 1509) + \
+             ((SRC_SAMPLE(3) + SRC_SAMPLE(-3)) * 331);   \
+                                                         \
+      out1 = out1 / 30000;                               \
+                                                         \
+      out2 = ((SRC_SAMPLE(4) + SRC_SAMPLE(-4)) * 454) +  \
+             ((SRC_SAMPLE(5) + SRC_SAMPLE(-5)) * 620) +  \
+             ((SRC_SAMPLE(6) + SRC_SAMPLE(-6)) * 305);   \
+                                                         \
+      out2 = out2 / 30000;                               \
+                                                         \
+      out3 = ((SRC_SAMPLE(7) + SRC_SAMPLE(-7)) * 127) +  \
+             ((SRC_SAMPLE(8) + SRC_SAMPLE(-8)) * 350) +  \
+             ((SRC_SAMPLE(9) + SRC_SAMPLE(-9)) * 265) +  \
+             ((SRC_SAMPLE(10) + SRC_SAMPLE(-10)) * 6);   \
+                                                         \
+      out3 = out3 / 30000;                               \
+                                                         \
+      out4 = ((SRC_SAMPLE(11) + SRC_SAMPLE(-11)) * 201); \
+                                                         \
+      out4 = out4 / 30000;                               \
+                                                         \
+      out5 = out1 - out2 + out3 - out4;                  \
+                                                         \
+      CHECK_SATURATION16(out5);                          \
+      *psBtOut++ = (int16_t)out5;                        \
+                                                         \
+      pS += SRC_CHANNELS;                                \
+    }                                                    \
+  } while (0)
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+#define CONVERT_11025_TO_BLUETOOTH(pStart, pEnd)         \
+  do {                                                   \
+    int32_t out1;                                        \
+    SRC_TYPE* pS = (SRC_TYPE*)(pStart);                  \
+    SRC_TYPE* pSEnd = (SRC_TYPE*)(pEnd);                 \
+                                                         \
+    while (pS < pSEnd) {                                 \
+      CurrentPos -= 8000;                                \
+                                                         \
+      if (CurrentPos >= 0) {                             \
+        pS += SRC_CHANNELS;                              \
+        continue;                                        \
+      }                                                  \
+      CurrentPos += dwSrcSps;                            \
+                                                         \
+      out1 = (SRC_SAMPLE(0) * 6349) +                    \
+             ((SRC_SAMPLE(1) + SRC_SAMPLE(-1)) * 2874) - \
+             ((SRC_SAMPLE(2) + SRC_SAMPLE(-2)) * 1148) - \
+             ((SRC_SAMPLE(3) + SRC_SAMPLE(-3)) * 287) +  \
+             ((SRC_SAMPLE(4) + SRC_SAMPLE(-4)) * 675) -  \
+             ((SRC_SAMPLE(5) + SRC_SAMPLE(-5)) * 258) -  \
+             ((SRC_SAMPLE(6) + SRC_SAMPLE(-6)) * 206) +  \
+             ((SRC_SAMPLE(7) + SRC_SAMPLE(-7)) * 266);   \
+                                                         \
+      out1 = out1 / 30000;                               \
+                                                         \
+      CHECK_SATURATION16(out1);                          \
+      *psBtOut++ = (int16_t)out1;                        \
+                                                         \
+      pS += SRC_CHANNELS;                                \
+    }                                                    \
+  } while (0)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
