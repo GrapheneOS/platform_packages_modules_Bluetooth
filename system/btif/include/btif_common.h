@@ -33,11 +33,13 @@
  *  Constants & Macros
  *******************************************************************************/
 
-#define ASSERTC(cond, msg, val)                                            \
-  if (!(cond)) {                                                           \
-    LOG_ERROR(LOG_TAG, "### ASSERT : %s %s line %d %s (%d) ###", __FILE__, \
-              __func__, __LINE__, msg, val);                               \
-  }
+#define ASSERTC(cond, msg, val)                                              \
+  do {                                                                       \
+    if (!(cond)) {                                                           \
+      LOG_ERROR(LOG_TAG, "### ASSERT : %s %s line %d %s (%d) ###", __FILE__, \
+                __func__, __LINE__, (msg), (val));                           \
+    }                                                                        \
+  } while (0)
 
 /* Calculate start of event enumeration; id is top 8 bits of event */
 #define BTIF_SIG_START(id) ((id) << 8)
@@ -72,13 +74,15 @@
 
 extern bt_callbacks_t* bt_hal_cbacks;
 
-#define HAL_CBACK(P_CB, P_CBACK, ...)              \
-  if ((P_CB) && (P_CB)->P_CBACK) {                 \
-    BTIF_TRACE_API("HAL %s->%s", #P_CB, #P_CBACK); \
-    (P_CB)->P_CBACK(__VA_ARGS__);                  \
-  } else {                                         \
-    ASSERTC(0, "Callback is NULL", 0);             \
-  }
+#define HAL_CBACK(P_CB, P_CBACK, ...)                \
+  do {                                               \
+    if ((P_CB) && (P_CB)->P_CBACK) {                 \
+      BTIF_TRACE_API("HAL %s->%s", #P_CB, #P_CBACK); \
+      (P_CB)->P_CBACK(__VA_ARGS__);                  \
+    } else {                                         \
+      ASSERTC(0, "Callback is NULL", 0);             \
+    }                                                \
+  } while (0)
 
 /**
  * BTIF events for requests that require context switch to btif task

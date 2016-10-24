@@ -55,13 +55,16 @@
 #include "btif_util.h"
 #include "osi/include/socket_utils/sockets.h"
 
-#define asrt(s)                                                          \
-  if (!(s))                                                              \
-  APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##", __func__, #s, \
-                   __LINE__)
+#define asrt(s)                                                              \
+  do {                                                                       \
+    if (!(s))                                                                \
+      APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##", __func__, #s, \
+                       __LINE__)                                             \
+  } while (0)
+
 #define print_events(events)                                  \
   do {                                                        \
-    APPL_TRACE_DEBUG("print poll event:%x", events);          \
+    APPL_TRACE_DEBUG("print poll event:%x", (events));        \
     if ((events)&POLLIN) APPL_TRACE_DEBUG("   POLLIN ");      \
     if ((events)&POLLPRI) APPL_TRACE_DEBUG("   POLLPRI ");    \
     if ((events)&POLLOUT) APPL_TRACE_DEBUG("   POLLOUT ");    \

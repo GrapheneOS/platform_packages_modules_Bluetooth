@@ -28,9 +28,11 @@
  *  Constants & Macros
  *******************************************************************************/
 #define BTIF_STORAGE_FILL_PROPERTY(p_prop, t, l, p_v) \
-  (p_prop)->type = t;                                 \
-  (p_prop)->len = l;                                  \
-  (p_prop)->val = (p_v);
+  do {                                                \
+    (p_prop)->type = (t);                             \
+    (p_prop)->len = (l);                              \
+    (p_prop)->val = (p_v);                            \
+  } while (0)
 
 /*******************************************************************************
  *  Functions
