@@ -114,29 +114,35 @@ static void btif_hl_cback(tBTA_HL_EVT event, tBTA_HL* p_data);
 static void btif_hl_proc_cb_evt(uint16_t event, char* p_param);
 
 #define CHECK_CALL_CBACK(P_CB, P_CBACK, ...) \
-  if ((P_CB) && (P_CB)->P_CBACK) {           \
-    (P_CB)->P_CBACK(__VA_ARGS__);            \
-  } else {                                   \
-    ASSERTC(0, "Callback is NULL", 0);       \
-  }
+  do {                                       \
+    if ((P_CB) && (P_CB)->P_CBACK) {         \
+      (P_CB)->P_CBACK(__VA_ARGS__);          \
+    } else {                                 \
+      ASSERTC(0, "Callback is NULL", 0);     \
+    }                                        \
+  } while (0)
 
-#define BTIF_HL_CALL_CBACK(P_CB, P_CBACK, ...)            \
-  if ((p_btif_hl_cb->state != BTIF_HL_STATE_DISABLING) && \
-      (p_btif_hl_cb->state != BTIF_HL_STATE_DISABLED)) {  \
-    if ((P_CB) && (P_CB)->P_CBACK) {                      \
-      (P_CB)->P_CBACK(__VA_ARGS__);                       \
-    } else {                                              \
-      ASSERTC(0, "Callback is NULL", 0);                  \
-    }                                                     \
-  }
+#define BTIF_HL_CALL_CBACK(P_CB, P_CBACK, ...)              \
+  do {                                                      \
+    if ((p_btif_hl_cb->state != BTIF_HL_STATE_DISABLING) && \
+        (p_btif_hl_cb->state != BTIF_HL_STATE_DISABLED)) {  \
+      if ((P_CB) && (P_CB)->P_CBACK) {                      \
+        (P_CB)->P_CBACK(__VA_ARGS__);                       \
+      } else {                                              \
+        ASSERTC(0, "Callback is NULL", 0);                  \
+      }                                                     \
+    }                                                       \
+  } while (0)
 
-#define CHECK_BTHL_INIT()                                           \
-  if (bt_hl_callbacks == NULL) {                                    \
-    BTIF_TRACE_WARNING("BTHL: %s: BTHL not initialized", __func__); \
-    return BT_STATUS_NOT_READY;                                     \
-  } else {                                                          \
-    BTIF_TRACE_EVENT("BTHL: %s", __func__);                         \
-  }
+#define CHECK_BTHL_INIT()                                             \
+  do {                                                                \
+    if (bt_hl_callbacks == NULL) {                                    \
+      BTIF_TRACE_WARNING("BTHL: %s: BTHL not initialized", __func__); \
+      return BT_STATUS_NOT_READY;                                     \
+    } else {                                                          \
+      BTIF_TRACE_EVENT("BTHL: %s", __func__);                         \
+    }                                                                 \
+  } while (0)
 
 static const btif_hl_data_type_cfg_t data_type_table[] = {
     /* Data Specilization                   Ntx     Nrx (from Bluetooth SIG's

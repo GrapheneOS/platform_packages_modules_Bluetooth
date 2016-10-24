@@ -68,21 +68,25 @@ extern const btgatt_callbacks_t* bt_gatt_callbacks;
  *  Constants & Macros
  *******************************************************************************/
 
-#define CLI_CBACK_IN_JNI(P_CBACK, ...)                                       \
-  if (bt_gatt_callbacks && bt_gatt_callbacks->client->P_CBACK) {             \
-    BTIF_TRACE_API("HAL bt_gatt_callbacks->client->%s", #P_CBACK);           \
-    do_in_jni_thread(Bind(bt_gatt_callbacks->client->P_CBACK, __VA_ARGS__)); \
-  } else {                                                                   \
-    ASSERTC(0, "Callback is NULL", 0);                                       \
-  }
+#define CLI_CBACK_IN_JNI(P_CBACK, ...)                                         \
+  do {                                                                         \
+    if (bt_gatt_callbacks && bt_gatt_callbacks->client->P_CBACK) {             \
+      BTIF_TRACE_API("HAL bt_gatt_callbacks->client->%s", #P_CBACK);           \
+      do_in_jni_thread(Bind(bt_gatt_callbacks->client->P_CBACK, __VA_ARGS__)); \
+    } else {                                                                   \
+      ASSERTC(0, "Callback is NULL", 0);                                       \
+    }                                                                          \
+  } while (0)
 
-#define CHECK_BTGATT_INIT()                                    \
-  if (bt_gatt_callbacks == NULL) {                             \
-    LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__); \
-    return BT_STATUS_NOT_READY;                                \
-  } else {                                                     \
-    LOG_VERBOSE(LOG_TAG, "%s", __func__);                      \
-  }
+#define CHECK_BTGATT_INIT()                                      \
+  do {                                                           \
+    if (bt_gatt_callbacks == NULL) {                             \
+      LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__); \
+      return BT_STATUS_NOT_READY;                                \
+    } else {                                                     \
+      LOG_VERBOSE(LOG_TAG, "%s", __func__);                      \
+    }                                                            \
+  } while (0)
 
 #define BLE_RESOLVE_ADDR_MSB                                                   \
   0x40                             /* bit7, bit6 is 01 to be resolvable random \

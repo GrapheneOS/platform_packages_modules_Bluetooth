@@ -81,20 +81,20 @@
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
 
 #define BTIF_STORAGE_GET_ADAPTER_PROP(t, v, l, p) \
-  {                                               \
-    (p).type = t;                                 \
-    (p).val = v;                                  \
-    (p).len = l;                                  \
+  do {                                            \
+    (p).type = (t);                               \
+    (p).val = (v);                                \
+    (p).len = (l);                                \
     btif_storage_get_adapter_property(&(p));      \
-  }
+  } while (0)
 
-#define BTIF_STORAGE_GET_REMOTE_PROP(b, t, v, l, p)   \
-  {                                                   \
-    (p).type = t;                                     \
-    (p).val = v;                                      \
-    (p).len = l;                                      \
-    btif_storage_get_remote_device_property(b, &(p)); \
-  }
+#define BTIF_STORAGE_GET_REMOTE_PROP(b, t, v, l, p)     \
+  do {                                                  \
+    (p).type = (t);                                     \
+    (p).val = (v);                                      \
+    (p).len = (l);                                      \
+    btif_storage_get_remote_device_property((b), &(p)); \
+  } while (0)
 
 #define STORAGE_BDADDR_STRING_SZ (18) /* 00:11:22:33:44:55 */
 #define STORAGE_UUID_STRING_SIZE \

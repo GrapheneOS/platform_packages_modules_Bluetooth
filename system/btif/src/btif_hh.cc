@@ -119,13 +119,15 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] = {{LOGITECH_KB_MX5500_PRODUCT_ID,
                                                  LOGITECH_KB_MX5500_VENDOR_ID,
                                                  "Logitech MX5500 Keyboard"}};
 
-#define CHECK_BTHH_INIT()                                           \
-  if (bt_hh_callbacks == NULL) {                                    \
-    BTIF_TRACE_WARNING("BTHH: %s: BTHH not initialized", __func__); \
-    return BT_STATUS_NOT_READY;                                     \
-  } else {                                                          \
-    BTIF_TRACE_EVENT("BTHH: %s", __func__);                         \
-  }
+#define CHECK_BTHH_INIT()                                             \
+  do {                                                                \
+    if (bt_hh_callbacks == NULL) {                                    \
+      BTIF_TRACE_WARNING("BTHH: %s: BTHH not initialized", __func__); \
+      return BT_STATUS_NOT_READY;                                     \
+    } else {                                                          \
+      BTIF_TRACE_EVENT("BTHH: %s", __func__);                         \
+    }                                                                 \
+  } while (0)
 
 /************************************************************************************
  *  Static functions
