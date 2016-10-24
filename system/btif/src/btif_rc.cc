@@ -90,7 +90,7 @@
 #define CHECK_RC_CONNECTED(p_dev)                                          \
   do {                                                                     \
     BTIF_TRACE_DEBUG("%s: ", __func__);                                    \
-    if (p_dev == NULL || p_dev->rc_connected == false) {                   \
+    if ((p_dev) == NULL || (p_dev)->rc_connected == false) {               \
       BTIF_TRACE_WARNING("%s: called when RC is not connected", __func__); \
       return BT_STATUS_NOT_READY;                                          \
     }                                                                      \
@@ -99,7 +99,7 @@
 #define CHECK_BR_CONNECTED(p_dev)                                         \
   do {                                                                    \
     BTIF_TRACE_DEBUG("## %s ##", __FUNCTION__);                           \
-    if (p_dev == NULL || p_dev->br_connected == false) {                  \
+    if ((p_dev) == NULL || (p_dev)->br_connected == false) {              \
       BTIF_TRACE_WARNING("Function %s() called when BR is not connected", \
                          __FUNCTION__);                                   \
       return BT_STATUS_NOT_READY;                                         \
@@ -641,7 +641,7 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
   }
 
   BTIF_TRACE_DEBUG("%s: rc_features: 0x%x", __func__, rc_features);
-  HAL_CBACK(bt_rc_callbacks, remote_features_cb, &rc_addr, rc_features)
+  HAL_CBACK(bt_rc_callbacks, remote_features_cb, &rc_addr, rc_features);
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG(
@@ -1899,7 +1899,7 @@ static void btif_rc_upstreams_rsp_evt(uint16_t event,
       if (AVRC_RSP_CHANGED == ctype)
         p_dev->rc_volume = pavrc_resp->reg_notif.param.volume;
       HAL_CBACK(bt_rc_callbacks, volume_change_cb,
-                pavrc_resp->reg_notif.param.volume, ctype, &rc_addr)
+                pavrc_resp->reg_notif.param.volume, ctype, &rc_addr);
     } break;
 
     case AVRC_PDU_SET_ABSOLUTE_VOLUME: {

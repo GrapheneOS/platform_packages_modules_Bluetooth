@@ -80,10 +80,12 @@
 #define BTPAN_LOCAL_ROLE (BTPAN_ROLE_PANU | BTPAN_ROLE_PANNAP)
 #endif
 
-#define asrt(s)                                                                \
-  if (!(s))                                                                    \
-  BTIF_TRACE_ERROR("btif_pan: ## %s assert %s failed at line:%d ##", __func__, \
-                   #s, __LINE__)
+#define asrt(s)                                                          \
+  do {                                                                   \
+    if (!(s))                                                            \
+      BTIF_TRACE_ERROR("btif_pan: ## %s assert %s failed at line:%d ##", \
+                       __func__, #s, __LINE__)                           \
+  } while (0)
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
