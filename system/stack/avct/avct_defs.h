@@ -49,16 +49,15 @@
 *****************************************************************************/
 
 #define AVCT_BUILD_HDR(p, label, type, cr_ipid) \
-    *(p)++ = ((label) << 4) | ((type) << 2) | (cr_ipid);
+  *(p)++ = ((label) << 4) | ((type) << 2) | (cr_ipid);
 
 #define AVCT_PARSE_HDR(p, label, type, cr_ipid) \
-do { \
-    label = *(p) >> 4; \
-    (type) = (*(p) >> 2) & 3; \
-    (cr_ipid) = *(p)++ & 3; \
-} while (0)
+  do {                                          \
+    (label) = *(p) >> 4;                        \
+    (type) = (*(p) >> 2) & 3;                   \
+    (cr_ipid) = *(p)++ & 3;                     \
+  } while (0)
 
-#define AVCT_PKT_TYPE(p) \
-    ((*(p) >> 2) & 3)
+#define AVCT_PKT_TYPE(p) ((*(p) >> 2) & 3)
 
 #endif /* AVCT_DEFS_H */
