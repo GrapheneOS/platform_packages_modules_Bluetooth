@@ -457,6 +457,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         p_bta_av_cfg  = (tBTA_AV_CFG *) &bta_av_cfg;
     }
 
+    APPL_TRACE_DEBUG("%s: profile: 0x%x", __func__, profile_initialized);
     if (p_bta_av_cfg == NULL)
     {
         APPL_TRACE_ERROR("AV configuration is null!");
@@ -563,7 +564,10 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             cs.media_type    = AVDT_MEDIA_TYPE_AUDIO;
             cs.mtu           = p_bta_av_cfg->audio_mtu;
             cs.flush_to      = L2CAP_DEFAULT_FLUSH_TO;
-            tA2DP_CODEC_SEP_INDEX codec_sep_index = A2DP_CODEC_SEP_INDEX_SBC;
+            tA2DP_CODEC_SEP_INDEX codec_sep_index_min =
+                A2DP_CODEC_SEP_INDEX_SOURCE_MIN;
+            tA2DP_CODEC_SEP_INDEX codec_sep_index_max =
+                A2DP_CODEC_SEP_INDEX_SOURCE_MAX;
 
 #if (AVDT_REPORTING == TRUE)
             if(bta_av_cb.features & BTA_AV_FEAT_REPORT)
@@ -578,13 +582,15 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
             {
                 cs.tsep = AVDT_TSEP_SRC;
-                codec_sep_index = A2DP_CODEC_SEP_INDEX_SBC;
+                codec_sep_index_min = A2DP_CODEC_SEP_INDEX_SOURCE_MIN;
+                codec_sep_index_max = A2DP_CODEC_SEP_INDEX_SOURCE_MAX;
             }
             else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
             {
                 cs.tsep = AVDT_TSEP_SNK;
                 cs.p_sink_data_cback = bta_av_sink_data_cback;
-                codec_sep_index = A2DP_CODEC_SEP_INDEX_SBC_SINK;
+                codec_sep_index_min = A2DP_CODEC_SEP_INDEX_SINK_MIN;
+                codec_sep_index_max = A2DP_CODEC_SEP_INDEX_SINK_MAX;
             }
 
             /* Initialize handles to zero */
@@ -595,22 +601,28 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
 
             /* keep the configuration in the stream control block */
             memcpy(&p_scb->cfg, &cs.cfg, sizeof(tAVDT_CFG));
-            if ((*bta_av_a2dp_cos.init)(codec_sep_index, &cs.cfg)) {
-                if (AVDT_CreateStream(&p_scb->seps[codec_sep_index].av_handle, &cs)
-                    == AVDT_SUCCESS) {
-                    /* Save a copy of the codec */
-                    memcpy(p_scb->seps[codec_sep_index].codec_info,
-                           cs.cfg.codec_info, AVDT_CODEC_SIZE);
-                    p_scb->seps[codec_sep_index].tsep = cs.tsep;
-                    if (cs.tsep == AVDT_TSEP_SNK) {
-                        p_scb->seps[codec_sep_index].p_app_sink_data_cback =
-                            p_data->api_reg.p_app_sink_data_cback;
-                    } else {
-                        /* In case of A2DP SOURCE we don't need a callback to
-                         * handle media packets.
-                         */
-                        p_scb->seps[codec_sep_index].p_app_sink_data_cback = NULL;
-                    }
+            for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
+                tA2DP_CODEC_SEP_INDEX codec_sep_index =
+                    static_cast<tA2DP_CODEC_SEP_INDEX>(i);
+                if (!(*bta_av_a2dp_cos.init)(codec_sep_index, &cs.cfg)) {
+                    continue;
+                }
+                if (AVDT_CreateStream(&p_scb->seps[codec_sep_index].av_handle,
+                                      &cs) != AVDT_SUCCESS) {
+                    continue;
+                }
+                /* Save a copy of the codec */
+                memcpy(p_scb->seps[codec_sep_index].codec_info,
+                       cs.cfg.codec_info, AVDT_CODEC_SIZE);
+                p_scb->seps[codec_sep_index].tsep = cs.tsep;
+                if (cs.tsep == AVDT_TSEP_SNK) {
+                    p_scb->seps[codec_sep_index].p_app_sink_data_cback =
+                        p_data->api_reg.p_app_sink_data_cback;
+                } else {
+                    /* In case of A2DP SOURCE we don't need a callback to
+                     * handle media packets.
+                     */
+                    p_scb->seps[codec_sep_index].p_app_sink_data_cback = NULL;
                 }
             }
 

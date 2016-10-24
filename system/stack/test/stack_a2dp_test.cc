@@ -168,27 +168,37 @@ TEST(StackA2dpTest, test_set_codec) {
   };
   tA2DP_FEEDING_PARAMS bad_feeding_params;
 
-  EXPECT_TRUE(A2DP_SetCodec(&feeding_params, codec_info_result));
+  EXPECT_TRUE(A2DP_SetSourceCodec(A2DP_CODEC_SEP_INDEX_SOURCE_SBC,
+                                  &feeding_params, codec_info_result));
 
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
     EXPECT_EQ(codec_info_result[i], codec_info_sbc[i]);
   }
 
+  // Test for invalid values of source codec SEP index
+  EXPECT_FALSE(A2DP_SetSourceCodec(A2DP_CODEC_SEP_INDEX_SINK_SBC,
+                                   &feeding_params, codec_info_result));
+  EXPECT_FALSE(A2DP_SetSourceCodec(A2DP_CODEC_SEP_INDEX_SINK_MAX,
+                                   &feeding_params, codec_info_result));
+
   // Test invalid feeding - invalid num_channel
   bad_feeding_params = feeding_params;
   bad_feeding_params.num_channel = 3;
-  EXPECT_FALSE(A2DP_SetCodec(&bad_feeding_params, codec_info_result));
+  EXPECT_FALSE(A2DP_SetSourceCodec(A2DP_CODEC_SEP_INDEX_SOURCE_SBC,
+                                   &bad_feeding_params, codec_info_result));
 
   // Test invalid feeding - invalid bit_per_sample
   bad_feeding_params = feeding_params;
   bad_feeding_params.bit_per_sample = 7;
-  EXPECT_FALSE(A2DP_SetCodec(&bad_feeding_params, codec_info_result));
+  EXPECT_FALSE(A2DP_SetSourceCodec(A2DP_CODEC_SEP_INDEX_SOURCE_SBC,
+                                   &bad_feeding_params, codec_info_result));
 
   // Test invalid feeding - invalid sampling_freq
   bad_feeding_params = feeding_params;
   bad_feeding_params.sampling_freq = 7999;
-  EXPECT_FALSE(A2DP_SetCodec(&bad_feeding_params, codec_info_result));
+  EXPECT_FALSE(A2DP_SetSourceCodec(A2DP_CODEC_SEP_INDEX_SOURCE_SBC,
+                                   &bad_feeding_params, codec_info_result));
 }
 
 TEST(StackA2dpTest, test_build_src2sink_config) {
@@ -277,8 +287,8 @@ TEST(StackA2dpTest, test_a2dp_uses_rtp_header) {
 
 TEST(StackA2dpTest, test_a2dp_codec_sep_index_str) {
   // Explicit tests for known codecs
-  EXPECT_STREQ(A2DP_CodecSepIndexStr(A2DP_CODEC_SEP_INDEX_SBC), "SBC");
-  EXPECT_STREQ(A2DP_CodecSepIndexStr(A2DP_CODEC_SEP_INDEX_SBC_SINK), "SBC SINK");
+  EXPECT_STREQ(A2DP_CodecSepIndexStr(A2DP_CODEC_SEP_INDEX_SOURCE_SBC), "SBC");
+  EXPECT_STREQ(A2DP_CodecSepIndexStr(A2DP_CODEC_SEP_INDEX_SINK_SBC), "SBC SINK");
 
   // Test that the unknown codec string has not changed
   EXPECT_STREQ(A2DP_CodecSepIndexStr(A2DP_CODEC_SEP_INDEX_MAX),
@@ -286,7 +296,8 @@ TEST(StackA2dpTest, test_a2dp_codec_sep_index_str) {
 
   // Test that each codec has a known string
   for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
-    tA2DP_CODEC_SEP_INDEX codec_sep_index = static_cast<tA2DP_CODEC_SEP_INDEX>(i);
+    tA2DP_CODEC_SEP_INDEX codec_sep_index =
+      static_cast<tA2DP_CODEC_SEP_INDEX>(i);
     EXPECT_STRNE(A2DP_CodecSepIndexStr(codec_sep_index),
                  "UNKNOWN CODEC SEP INDEX");
   }
@@ -299,7 +310,7 @@ TEST(StackA2dpTest, test_a2dp_init_codec_config) {
   // Test for SBC Source
   //
   memset(&avdt_cfg, 0, sizeof(avdt_cfg));
-  EXPECT_TRUE(A2DP_InitCodecConfig(A2DP_CODEC_SEP_INDEX_SBC, &avdt_cfg));
+  EXPECT_TRUE(A2DP_InitCodecConfig(A2DP_CODEC_SEP_INDEX_SOURCE_SBC, &avdt_cfg));
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
     EXPECT_EQ(avdt_cfg.codec_info[i], codec_info_sbc[i]);
@@ -316,7 +327,7 @@ TEST(StackA2dpTest, test_a2dp_init_codec_config) {
   // Test for SBC Sink
   //
   memset(&avdt_cfg, 0, sizeof(avdt_cfg));
-  EXPECT_TRUE(A2DP_InitCodecConfig(A2DP_CODEC_SEP_INDEX_SBC_SINK, &avdt_cfg));
+  EXPECT_TRUE(A2DP_InitCodecConfig(A2DP_CODEC_SEP_INDEX_SINK_SBC, &avdt_cfg));
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc_sink[0] + 1; i++) {
     EXPECT_EQ(avdt_cfg.codec_info[i], codec_info_sbc_sink[i]);
