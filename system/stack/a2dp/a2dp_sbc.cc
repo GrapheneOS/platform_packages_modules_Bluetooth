@@ -355,8 +355,8 @@ void A2DP_InitDefaultCodecSbc(uint8_t* p_codec_info) {
   }
 }
 
-bool A2DP_SetCodecSbc(const tA2DP_FEEDING_PARAMS* p_feeding_params,
-                      uint8_t* p_codec_info) {
+bool A2DP_SetSourceCodecSbc(const tA2DP_FEEDING_PARAMS* p_feeding_params,
+                            uint8_t* p_codec_info) {
   tA2DP_SBC_CIE sbc_config = a2dp_sbc_default_config;
 
   LOG_VERBOSE(LOG_TAG, "%s", __func__);
