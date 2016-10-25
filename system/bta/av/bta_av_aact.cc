@@ -751,7 +751,7 @@ static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
     APPL_TRACE_DEBUG("%s: codec: %s", __func__,
                      A2DP_CodecName(p_scb->cfg.codec_info));
     for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
-        APPL_TRACE_DEBUG("%s: av_handle: %d codec: %d", __func__,
+        APPL_TRACE_DEBUG("%s: av_handle: %d codec: %s", __func__,
                          p_scb->seps[i].av_handle,
                          A2DP_CodecName(p_scb->seps[i].codec_info));
         if (p_scb->seps[i].av_handle &&
@@ -2884,6 +2884,7 @@ void bta_av_rcfg_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     uint8_t   err_code = p_data->str_msg.msg.hdr.err_code;
 
+    APPL_TRACE_DEBUG("%s: err_code = %d", __func__, err_code);
     if (err_code)
     {
         APPL_TRACE_ERROR("%s: reconfig rejected, try close", __func__);
@@ -2900,6 +2901,9 @@ void bta_av_rcfg_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     else
     {
         /* update the codec info after rcfg cfm */
+        APPL_TRACE_DEBUG("%s: updating from codec %s to codec %s",
+                         __func__, A2DP_CodecName(p_scb->cfg.codec_info),
+                         A2DP_CodecName(p_data->str_msg.msg.reconfig_cfm.p_cfg->codec_info));
         memcpy(p_scb->cfg.codec_info,p_data->str_msg.msg.reconfig_cfm.p_cfg->codec_info,AVDT_CODEC_SIZE);
         /* take the SSM back to OPEN state */
         bta_av_ssm_execute(p_scb, BTA_AV_STR_OPEN_OK_EVT, NULL);

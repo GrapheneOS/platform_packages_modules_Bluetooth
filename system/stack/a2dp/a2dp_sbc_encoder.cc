@@ -19,7 +19,6 @@
 
 #define LOG_TAG "a2dp_sbc_encoder"
 
-#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,12 +27,10 @@
 #include "a2dp_sbc.h"
 #include "a2dp_sbc_encoder.h"
 #include "a2dp_sbc_up_sample.h"
-#include "avdt_api.h"
 #include "bt_common.h"
-#include "bt_target.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
-#include "osi/include/time.h"
+#include "osi/include/osi.h"
 
 #define STATS_UPDATE_MAX(current_value_storage, new_value) \
   do {                                                     \
@@ -86,7 +83,7 @@ typedef struct {
   uint32_t counter;
   uint32_t bytes_per_tick; /* pcm bytes read each media task tick */
   uint64_t last_frame_us;
-} tA2DP_FEEDING_STATE;
+} tA2DP_SBC_FEEDING_STATE;
 
 typedef struct {
   uint64_t session_start_us;
@@ -110,7 +107,7 @@ typedef struct {
   uint32_t timestamp;       /* Timestamp for the A2DP frames */
   SBC_ENC_PARAMS sbc_encoder_params;
   tA2DP_FEEDING_PARAMS feeding_params;
-  tA2DP_FEEDING_STATE feeding_state;
+  tA2DP_SBC_FEEDING_STATE feeding_state;
   int16_t pcmBuffer[SBC_MAX_PCM_BUFFER_SIZE];
 
   a2dp_sbc_encoder_stats_t stats;
