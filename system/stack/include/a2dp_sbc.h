@@ -167,12 +167,12 @@ bool A2DP_IsPeerSourceCodecSupportedSbc(const uint8_t* p_codec_info);
 // |p_codec_info|.
 void A2DP_InitDefaultCodecSbc(uint8_t* p_codec_info);
 
-// Sets A2DB SBC codec state based on the feeding information from
+// Sets A2DB SBC source codec state based on the feeding information from
 // |p_feeding_params|.
 // The state with the codec capabilities is stored in |p_codec_info|.
 // Returns true on success, otherwise false.
-bool A2DP_SetCodecSbc(const tA2DP_FEEDING_PARAMS* p_feeding_params,
-                      uint8_t* p_codec_info);
+bool A2DP_SetSourceCodecSbc(const tA2DP_FEEDING_PARAMS* p_feeding_params,
+                            uint8_t* p_codec_info);
 
 // Builds A2DP preferred SBC Sink capability from SBC Source capability.
 // |p_src_cap| is the Source capability to use.

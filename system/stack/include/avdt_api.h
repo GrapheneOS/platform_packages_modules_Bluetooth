@@ -40,6 +40,9 @@ extern "C" {
 #endif
 #define AVDT_VERSION_SYNC           0x0103
 
+/* Maximum size in bytes of the codec capabilities information element. */
+#define AVDT_CODEC_SIZE             20
+
 /* API function return value result codes. */
 #define AVDT_SUCCESS                0       /* Function successful */
 #define AVDT_BAD_PARAMS             1       /* Invalid parameters */

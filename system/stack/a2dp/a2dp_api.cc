@@ -517,10 +517,19 @@ void A2DP_InitDefaultCodec(uint8_t* p_codec_info) {
   A2DP_InitDefaultCodecSbc(p_codec_info);
 }
 
-bool A2DP_SetCodec(const tA2DP_FEEDING_PARAMS* p_feeding_params,
-                   uint8_t* p_codec_info) {
-  // TODO: Needs to support vendor-specific codecs as well.
-  return A2DP_SetCodecSbc(p_feeding_params, p_codec_info);
+bool A2DP_SetSourceCodec(tA2DP_CODEC_SEP_INDEX source_codec_sep_index,
+                         const tA2DP_FEEDING_PARAMS* p_feeding_params,
+                         uint8_t* p_codec_info) {
+  switch (source_codec_sep_index) {
+    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
+      return A2DP_SetSourceCodecSbc(p_feeding_params, p_codec_info);
+    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
+      return false;
+    case A2DP_CODEC_SEP_INDEX_MAX:
+      break;
+  }
+
+  return false;
 }
 
 tA2DP_STATUS A2DP_BuildSrc2SinkConfig(const uint8_t* p_src_cap,
@@ -577,9 +586,9 @@ bool A2DP_UsesRtpHeader(bool content_protection_enabled,
 
 const char* A2DP_CodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index) {
   switch (codec_sep_index) {
-    case A2DP_CODEC_SEP_INDEX_SBC:
+    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
       return "SBC";
-    case A2DP_CODEC_SEP_INDEX_SBC_SINK:
+    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
       return "SBC SINK";
     case A2DP_CODEC_SEP_INDEX_MAX:
       break;
@@ -598,9 +607,9 @@ bool A2DP_InitCodecConfig(tA2DP_CODEC_SEP_INDEX codec_sep_index,
   p_cfg->protect_info[0] = 0;
 
   switch (codec_sep_index) {
-    case A2DP_CODEC_SEP_INDEX_SBC:
+    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
       return A2DP_InitCodecConfigSbc(p_cfg);
-    case A2DP_CODEC_SEP_INDEX_SBC_SINK:
+    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
       return A2DP_InitCodecConfigSbcSink(p_cfg);
     case A2DP_CODEC_SEP_INDEX_MAX:
       break;

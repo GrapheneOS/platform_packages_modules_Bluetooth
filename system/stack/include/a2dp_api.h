@@ -162,10 +162,18 @@ typedef void(tA2DP_FIND_CBACK)(bool found, tA2DP_Service* p_service);
  * for encoding (SRC), and for decoding purpose (SINK).
  */
 typedef enum {
-  A2DP_CODEC_SEP_INDEX_SBC = 0,
-  A2DP_CODEC_SEP_INDEX_SBC_SINK,
-  /* Add an entry for each new codec here */
-  A2DP_CODEC_SEP_INDEX_MAX
+  A2DP_CODEC_SEP_INDEX_SOURCE_MIN = 0,
+  A2DP_CODEC_SEP_INDEX_SOURCE_SBC = 0,
+  /* Add an entry for each new source codec here */
+  A2DP_CODEC_SEP_INDEX_SOURCE_MAX,
+
+  A2DP_CODEC_SEP_INDEX_SINK_MIN = A2DP_CODEC_SEP_INDEX_SOURCE_MAX,
+  A2DP_CODEC_SEP_INDEX_SINK_SBC = A2DP_CODEC_SEP_INDEX_SINK_MIN,
+  /* Add an entry for each new sink codec here */
+  A2DP_CODEC_SEP_INDEX_SINK_MAX,
+
+  A2DP_CODEC_SEP_INDEX_MIN = A2DP_CODEC_SEP_INDEX_SOURCE_MIN,
+  A2DP_CODEC_SEP_INDEX_MAX = A2DP_CODEC_SEP_INDEX_SINK_MAX
 } tA2DP_CODEC_SEP_INDEX;
 
 /**
@@ -431,12 +439,17 @@ bool A2DP_IsPeerSourceCodecSupported(const uint8_t* p_codec_info);
 // |p_codec_info|.
 void A2DP_InitDefaultCodec(uint8_t* p_codec_info);
 
-// Sets A2DB codec state based on the feeding information from
+// Sets A2DB source codec state based on the source codec index
+// |source_codec_sep_index| and the feeding information from
 // |p_feeding_params|.
 // The state with the codec capabilities is stored in |p_codec_info|.
 // Returns true on success, otherwise false.
-bool A2DP_SetCodec(const tA2DP_FEEDING_PARAMS* p_feeding_params,
-                   uint8_t* p_codec_info);
+// |source_codec_sep_index| should be in the range
+// [A2DP_CODEC_SEP_INDEX_SOURCE_MIN, A2DP_CODEC_SEP_INDEX_SOURCE_MAX),
+// otherwise the return value is false.
+bool A2DP_SetSourceCodec(tA2DP_CODEC_SEP_INDEX source_codec_sep_index,
+                         const tA2DP_FEEDING_PARAMS* p_feeding_params,
+                         uint8_t* p_codec_info);
 
 // Builds A2DP preferred Sink capability from Source capability.
 // |p_src_cap| is the Source capability to use.
