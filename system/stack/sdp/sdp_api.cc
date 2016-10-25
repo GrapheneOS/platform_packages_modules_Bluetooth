@@ -511,7 +511,7 @@ tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db, uint16_t service_uu
 
                     if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
                      && (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 2) ) {
-                        SDP_TRACE_DEBUG("SDP_FindServiceInDb - p_sattr value = 0x%x serviceuuid = 0x%x\r\n",
+                        SDP_TRACE_DEBUG("SDP_FindServiceInDb - p_sattr value = 0x%x serviceuuid = 0x%x",
                                         p_sattr->attr_value.v.u16, service_uuid);
                         if(service_uuid == UUID_SERVCLASS_HDP_PROFILE)
                         {
