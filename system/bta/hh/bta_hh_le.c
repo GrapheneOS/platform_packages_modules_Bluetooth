@@ -164,34 +164,27 @@ static void gatt_execute_next_op(UINT16 conn_id) {
     }
 
     if (op->type == GATT_READ_CHAR) {
-        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(op->conn_id, op->handle);
-
         mark_as_executing(conn_id);
-        BTA_GATTC_ReadCharacteristic(op->conn_id, p_char->handle, BTA_GATT_AUTH_REQ_NONE);
+        BTA_GATTC_ReadCharacteristic(op->conn_id, op->handle, BTA_GATT_AUTH_REQ_NONE);
         list_remove(gatt_op_queue, op);
 
     } else if (op->type == GATT_READ_DESC) {
-        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(op->conn_id, op->handle);
-
         mark_as_executing(conn_id);
-        BTA_GATTC_ReadCharDescr(op->conn_id, p_desc->handle, BTA_GATT_AUTH_REQ_NONE);
+        BTA_GATTC_ReadCharDescr(op->conn_id, op->handle, BTA_GATT_AUTH_REQ_NONE);
         list_remove(gatt_op_queue, op);
     } else if (op->type == GATT_WRITE_CHAR) {
-        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(op->conn_id, op->handle);
         mark_as_executing(conn_id);
-        BTA_GATTC_WriteCharValue(op->conn_id, p_char->handle, op->write_type, op->len,
+        BTA_GATTC_WriteCharValue(op->conn_id, op->handle, op->write_type, op->len,
                                  op->p_value, BTA_GATT_AUTH_REQ_NONE);
 
         list_remove(gatt_op_queue, op);
     } else if (op->type == GATT_WRITE_DESC) {
-        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(op->conn_id, op->handle);
-
         tBTA_GATT_UNFMT value;
         value.len = op->len;
         value.p_value = op->p_value;
 
         mark_as_executing(conn_id);
-        BTA_GATTC_WriteCharDescr(op->conn_id, p_desc->handle, BTA_GATTC_TYPE_WRITE,
+        BTA_GATTC_WriteCharDescr(op->conn_id, op->handle, BTA_GATTC_TYPE_WRITE,
                                  &value, BTA_GATT_AUTH_REQ_NONE);
         list_remove(gatt_op_queue, op);
     }
