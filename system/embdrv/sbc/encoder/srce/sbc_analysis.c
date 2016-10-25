@@ -904,7 +904,7 @@ extern int16_t EncMaxShiftCounter;
 *
 * RETURNS : N/A
 */
-void SbcAnalysisFilter4(SBC_ENC_PARAMS *pstrEncParams)
+void SbcAnalysisFilter4(SBC_ENC_PARAMS *pstrEncParams, int16_t *input)
 {
     int16_t *ps16PcmBuf;
     int32_t *ps32SbBuf;
@@ -933,7 +933,7 @@ void SbcAnalysisFilter4(SBC_ENC_PARAMS *pstrEncParams)
     s32NumOfChannels = pstrEncParams->s16NumOfChannels;
     s32NumOfBlocks   = pstrEncParams->s16NumOfBlocks;
 
-    ps16PcmBuf = pstrEncParams->ps16NextPcmBuffer;
+    ps16PcmBuf = input;
 
     ps32SbBuf  = pstrEncParams->s32SbBuffer;
     Offset2=(int32_t)(EncMaxShiftCounter+40);
@@ -997,7 +997,7 @@ void SbcAnalysisFilter4(SBC_ENC_PARAMS *pstrEncParams)
 }
 
 /* //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
-void SbcAnalysisFilter8 (SBC_ENC_PARAMS *pstrEncParams)
+void SbcAnalysisFilter8 (SBC_ENC_PARAMS *pstrEncParams, int16_t *input)
 {
     int16_t *ps16PcmBuf;
     int32_t *ps32SbBuf;
@@ -1025,7 +1025,7 @@ void SbcAnalysisFilter8 (SBC_ENC_PARAMS *pstrEncParams)
     s32NumOfChannels = pstrEncParams->s16NumOfChannels;
     s32NumOfBlocks   = pstrEncParams->s16NumOfBlocks;
 
-    ps16PcmBuf = pstrEncParams->ps16NextPcmBuffer;
+    ps16PcmBuf = input;
 
     ps32SbBuf  = pstrEncParams->s32SbBuffer;
     Offset2=(int32_t)(EncMaxShiftCounter+80);
