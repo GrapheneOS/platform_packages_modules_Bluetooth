@@ -166,31 +166,27 @@ static void gatt_execute_next_op(uint16_t conn_id) {
     gatt_operation &op = gatt_ops.front();
 
     if (op.type == GATT_READ_CHAR) {
-        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, op.handle);
         act_read_cb = op.read_cb;
         act_read_cb_data = op.read_cb_data;
-        BTA_GATTC_ReadCharacteristic(conn_id, p_char->handle, BTA_GATT_AUTH_REQ_NONE,
+        BTA_GATTC_ReadCharacteristic(conn_id, op.handle, BTA_GATT_AUTH_REQ_NONE,
                                      gatt_read_op_finished, NULL);
 
     } else if (op.type == GATT_READ_DESC) {
-        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, op.handle);
         act_read_cb = op.read_cb;
         act_read_cb_data = op.read_cb_data;
-        BTA_GATTC_ReadCharDescr(conn_id, p_desc->handle, BTA_GATT_AUTH_REQ_NONE,
+        BTA_GATTC_ReadCharDescr(conn_id, op.handle, BTA_GATT_AUTH_REQ_NONE,
                                 gatt_read_op_finished, NULL);
 
     } else if (op.type == GATT_WRITE_CHAR) {
-        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, op.handle);
         act_write_cb = op.write_cb;
         act_write_cb_data = op.write_cb_data;
-        BTA_GATTC_WriteCharValue(conn_id, p_char->handle, op.write_type, std::move(op.value),
+        BTA_GATTC_WriteCharValue(conn_id, op.handle, op.write_type, std::move(op.value),
                                  BTA_GATT_AUTH_REQ_NONE, gatt_write_op_finished, NULL);
 
     } else if (op.type == GATT_WRITE_DESC) {
-        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, op.handle);
         act_write_cb = op.write_cb;
         act_write_cb_data = op.write_cb_data;
-        BTA_GATTC_WriteCharDescr(conn_id, p_desc->handle, std::move(op.value),
+        BTA_GATTC_WriteCharDescr(conn_id, op.handle, std::move(op.value),
                                  BTA_GATT_AUTH_REQ_NONE, gatt_write_op_finished, NULL);
     }
 
