@@ -33,7 +33,6 @@ import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
-import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.MediaSession.QueueItem;
 import android.media.session.MediaSessionManager;
@@ -1592,17 +1591,22 @@ public final class Avrcp {
             new MediaSessionManager.OnActiveSessionsChangedListener() {
 
         @Override
-        public void onActiveSessionsChanged(List<MediaController> mediaControllerList) {
+        public void onActiveSessionsChanged(List<android.media.session.MediaController> mediaControllerList) {
             if (DEBUG) Log.v(TAG, "received onActiveSessionsChanged");
 
-            if (isAvailablePlayersChanged(mediaControllerList)) {
+            List<MediaController> mediaControllerListTemp = new ArrayList<MediaController>();
+            for (android.media.session.MediaController temp : mediaControllerList) {
+                mediaControllerListTemp.add(MediaController.wrap(temp));
+            }
+
+            if (isAvailablePlayersChanged(mediaControllerListTemp)) {
                 // rebuild the list cached locally in this file
                 buildMediaPlayersList();
 
                 // inform the remote device that the player list has changed
                 sendAvailablePlayersChanged();
-            } else if (isAddressedPlayerChanged(mediaControllerList)) {
-                int newAddrPlayerID = getNewAddrPlayerID(mediaControllerList.get(0)
+            } else if (isAddressedPlayerChanged(mediaControllerListTemp)) {
+                int newAddrPlayerID = getNewAddrPlayerID(mediaControllerListTemp.get(0)
                         .getPackageName());
                 // inform the remote device that the addressed player has changed
                 sendAddressedPlayerChanged(newAddrPlayerID);
@@ -1819,14 +1823,15 @@ public final class Avrcp {
         mMediaPlayerInfoList.clear();
 
         /* Initializing all media players */
-        for (MediaController mediaController : getActiveControllersList()) {
-            initMediaPlayer(mediaController);
+        for (android.media.session.MediaController mediaController : getActiveControllersList()) {
+            initMediaPlayer(MediaController.wrap(mediaController));
         }
     }
 
     /* Using session manager apis, getting the list of active media controllers */
-    private List<MediaController> getActiveControllersList() {
-        List<MediaController> controllersList = new ArrayList<MediaController>();
+    private List<android.media.session.MediaController> getActiveControllersList() {
+        List<android.media.session.MediaController> controllersList =
+            new ArrayList<android.media.session.MediaController>();
         controllersList = mMediaSessionManager.getActiveSessions(null);
         Log.i(TAG, "getActiveControllersList: " + controllersList.size() + " controllers");
         return controllersList;
