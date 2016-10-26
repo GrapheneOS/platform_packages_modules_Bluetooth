@@ -92,10 +92,6 @@ void metrics_a2dp_session(
 // If |clear| is true, metrics events are cleared afterwards.
 void metrics_write(int fd, bool clear);
 
-// Writes the metrics, in human-readable protobuf format, into the descriptor
-// |fd|. If |clear| is true, metrics events are cleared afterwards.
-void metrics_print(int fd, bool clear);
-
 #ifdef __cplusplus
 }
 #endif

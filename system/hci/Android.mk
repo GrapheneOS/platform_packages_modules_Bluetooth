@@ -71,7 +71,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := net_test_hci
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libdl libprotobuf-cpp-full
+LOCAL_SHARED_LIBRARIES := liblog libdl libprotobuf-cpp-lite
 LOCAL_STATIC_LIBRARIES := libbt-hci libosi libcutils libbtcore libbt-protos
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
