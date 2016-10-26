@@ -131,11 +131,6 @@
 #define SBC_JOINT_STE_INCLUDED TRUE
 #endif
 
-/* TRUE -> application should provide PCM buffer, FALSE PCM buffer reside in SBC_ENC_PARAMS */
-#ifndef SBC_NO_PCM_CPY_OPTION
-#define SBC_NO_PCM_CPY_OPTION FALSE
-#endif
-
 #define MINIMUM_ENC_VX_BUFFER_SIZE (8*10*2)
 #ifndef ENC_VX_BUFFER_SIZE
 #define ENC_VX_BUFFER_SIZE (MINIMUM_ENC_VX_BUFFER_SIZE + 64)
@@ -148,6 +143,8 @@
 
 /*constants used for index calculation*/
 #define SBC_BLK (SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS)
+
+#define SBC_MAX_PCM_BUFFER_SIZE (SBC_MAX_NUM_FRAME*SBC_MAX_NUM_OF_BLOCKS * SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS)
 
 #include "sbc_types.h"
 
@@ -162,7 +159,6 @@ typedef struct SBC_ENC_PARAMS_TAG
     int16_t s16BitPool;                              /* 16*numOfSb for mono & dual;
                                                        32*numOfSb for stereo & joint stereo */
     uint16_t u16BitRate;
-    uint8_t u8NumPacketToEncode;                    /* number of sbc frame to encode. Default is 1 */
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
     int16_t as16Join[SBC_MAX_NUM_OF_SUBBANDS];       /*1 if JS, 0 otherwise*/
 #endif
@@ -170,23 +166,13 @@ typedef struct SBC_ENC_PARAMS_TAG
     int16_t s16MaxBitNeed;
     int16_t as16ScaleFactor[SBC_MAX_NUM_OF_CHANNELS*SBC_MAX_NUM_OF_SUBBANDS];
 
-    int16_t *ps16NextPcmBuffer;
-#if (SBC_NO_PCM_CPY_OPTION == TRUE)
-    int16_t *ps16PcmBuffer;
-#else
-    int16_t as16PcmBuffer[SBC_MAX_NUM_FRAME*SBC_MAX_NUM_OF_BLOCKS * SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS];
-#endif
-
     int16_t  s16ScartchMemForBitAlloc[16];
 
     int32_t  s32SbBuffer[SBC_MAX_NUM_OF_CHANNELS * SBC_MAX_NUM_OF_SUBBANDS * SBC_MAX_NUM_OF_BLOCKS];
 
     int16_t as16Bits[SBC_MAX_NUM_OF_CHANNELS*SBC_MAX_NUM_OF_SUBBANDS];
 
-    uint8_t  *pu8Packet;
-    uint8_t  *pu8NextPacket;
     uint16_t FrameHeader;
-    uint16_t u16PacketLength;
 
 }SBC_ENC_PARAMS;
 
@@ -194,7 +180,9 @@ typedef struct SBC_ENC_PARAMS_TAG
 extern "C" {
 #endif
 
-extern void SBC_Encoder(SBC_ENC_PARAMS *strEncParams);
+/* Encode the frame using SBC. The output is written into |output|. Return number of
+ * bytes written. */
+extern uint32_t SBC_Encode(SBC_ENC_PARAMS *strEncParams, int16_t *input, uint8_t *output);
 extern void SBC_Encoder_Init(SBC_ENC_PARAMS *strEncParams);
 
 #ifdef __cplusplus
