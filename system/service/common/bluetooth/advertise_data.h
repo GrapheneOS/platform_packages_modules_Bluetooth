@@ -30,14 +30,12 @@ namespace bluetooth {
 class AdvertiseData {
  public:
   // Constructs an AdvertiseData with the given parameters. |data| can only
-  // contain the "Service UUIDs", "Service Data", and "Manufacturer Data" fields
-  // as specified in the Core Specification Supplement. |data| must be properly
-  // formatted according to the supplement and contains the data as it will be
-  // sent over the wire.
+  // contain the "Service UUIDs", "Service Data", "Manufacturer Data",
+  // "Tx Power" and "Device name" fields as specified in the Core Specification
+  //  Supplement. |data| must be properly formatted according to the supplement
+  // and contains the data as it will be sent over the wire.
   //
-  // The values for include_device_name() and include_tx_power_level() are
-  // initialized to false by default. These can be modified using the setters
-  // declared below.
+  // Tx Power field value will be filled with proper value.
   explicit AdvertiseData(const std::vector<uint8_t>& data);
 
   // Default constructor initializes all fields to be empty/false.
@@ -53,17 +51,6 @@ class AdvertiseData {
   // data is in the TLV format as specified in the Bluetooth Core Specification.
   const std::vector<uint8_t>& data() const { return data_; }
 
-  // Whether the device name should be included in the advertisement packet.
-  bool include_device_name() const { return include_device_name_; }
-  void set_include_device_name(bool value) { include_device_name_ = value; }
-
-  // Whether the transmission power level should be included in the
-  // advertisement packet.
-  bool include_tx_power_level() const { return include_tx_power_level_; }
-  void set_include_tx_power_level(bool value) {
-    include_tx_power_level_ = value;
-  }
-
   // Comparison operator.
   bool operator==(const AdvertiseData& rhs) const;
 
@@ -72,8 +59,6 @@ class AdvertiseData {
 
  protected:
   std::vector<uint8_t> data_;
-  bool include_device_name_;
-  bool include_tx_power_level_;
 };
 
 }  // namespace bluetooth

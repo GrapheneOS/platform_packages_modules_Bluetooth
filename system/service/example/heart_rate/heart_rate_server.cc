@@ -51,8 +51,18 @@ class CLIBluetoothLeAdvertiserCallback
 
     LOG(INFO) << "Registered BLE advertiser with ID: " << advertiser_id;
 
-    /* Advertising data: 16-bit Service UUID: Heart Rate Service */
-    std::vector<uint8_t> data{0x03, 0x03, 0x0D, 0x18};
+    String16 name_param;
+    bt_->GetName(&name_param);
+    std::string name(String8(name_param).string());
+
+    /* Advertising data: 16-bit Service UUID: Heart Rate Service, Tx power*/
+    std::vector<uint8_t> data{
+      0x03, bluetooth::kEIRTypeComplete16BitUUIDs, 0x0D, 0x18,
+      0x02, bluetooth::kEIRTypeTxPower, 0x00};
+    data.push_back(name.length() + 1);
+    data.push_back(bluetooth::kEIRTypeCompleteLocalName);
+    data.insert(data.begin(), name.c_str(), name.c_str() + name.length());
+
     base::TimeDelta timeout;
 
     bluetooth::AdvertiseSettings settings(
@@ -60,9 +70,6 @@ class CLIBluetoothLeAdvertiserCallback
         bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM, true);
 
     bluetooth::AdvertiseData adv_data(data);
-    adv_data.set_include_device_name(true);
-    adv_data.set_include_tx_power_level(true);
-
     bluetooth::AdvertiseData scan_rsp;
 
     android::sp<IBluetoothLeAdvertiser> ble;

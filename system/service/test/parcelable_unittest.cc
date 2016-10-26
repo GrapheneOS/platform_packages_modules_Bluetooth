@@ -58,19 +58,7 @@ bool TestData(IN& in) {
 TEST(ParcelableTest, NonEmptyAdvertiseData) {
   std::vector<uint8_t> data{0x02, 0x02, 0x00};
   AdvertiseData adv0(data);
-  adv0.set_include_tx_power_level(true);
   bool result = TestData<AdvertiseData, android::bluetooth::AdvertiseData>(adv0);
-  EXPECT_TRUE(result);
-
-  AdvertiseData adv1(data);
-  adv1.set_include_device_name(true);
-  result = TestData<AdvertiseData, android::bluetooth::AdvertiseData>(adv1);
-  EXPECT_TRUE(result);
-
-  AdvertiseData adv2(data);
-  adv2.set_include_tx_power_level(true);
-  adv2.set_include_device_name(true);
-  result = TestData<AdvertiseData, android::bluetooth::AdvertiseData>(adv2);
   EXPECT_TRUE(result);
 }
 
