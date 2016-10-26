@@ -1507,7 +1507,7 @@ public class AdapterService extends Service {
         return mAdapterProperties.getUuids();
     }
 
-     String getName() {
+    public String getName() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM,
                                        "Need BLUETOOTH permission");
 
