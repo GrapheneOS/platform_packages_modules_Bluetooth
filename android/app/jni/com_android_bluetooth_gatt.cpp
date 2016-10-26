@@ -1097,30 +1097,16 @@ static void gattAdvertiseNative(JNIEnv *env, jobject object,
     sGattIf->client->listen(client_if, start);
 }
 
-static void gattSetAdvDataNative(JNIEnv *env, jobject object, jint client_if,
-        jboolean setScanRsp, jboolean inclName, jboolean inclTxPower, jint minInterval,
-        jint maxInterval, jint appearance, jbyteArray manufacturerData, jbyteArray serviceData,
-        jbyteArray serviceUuid)
+static void gattSetAdvDataNative(JNIEnv *env, jobject object,
+                                 jboolean setScanRsp, jbyteArray data)
 {
     if (!sGattIf) return;
-    jbyte* arr_data = env->GetByteArrayElements(manufacturerData, NULL);
-    uint16_t arr_len = (uint16_t) env->GetArrayLength(manufacturerData);
-    vector<uint8_t> data(arr_data, arr_data + arr_len);
-    env->ReleaseByteArrayElements(manufacturerData, arr_data, JNI_ABORT);
+    jbyte* data_data = env->GetByteArrayElements(data, NULL);
+    uint16_t data_len = (uint16_t) env->GetArrayLength(data);
+    vector<uint8_t> data_vec(data_data, data_data + data_len);
+    env->ReleaseByteArrayElements(data, data_data, JNI_ABORT);
 
-    jbyte* arr_service_data = env->GetByteArrayElements(serviceData, NULL);
-    uint16_t arr_service_data_len = (uint16_t) env->GetArrayLength(serviceData);
-    vector<uint8_t> service_data(arr_service_data, arr_service_data + arr_service_data_len);
-    env->ReleaseByteArrayElements(serviceData, arr_service_data, JNI_ABORT);
-
-    jbyte* arr_service_uuid = env->GetByteArrayElements(serviceUuid, NULL);
-    uint16_t arr_service_uuid_len = (uint16_t) env->GetArrayLength(serviceUuid);
-    vector<uint8_t> service_uuid(arr_service_uuid, arr_service_uuid + arr_service_uuid_len);
-    env->ReleaseByteArrayElements(serviceUuid, arr_service_uuid, JNI_ABORT);
-
-    sGattIf->advertiser->SetData(client_if, setScanRsp, inclName, inclTxPower,
-        minInterval, maxInterval, appearance, std::move(data),
-        std::move(service_data), std::move(service_uuid));
+    sGattIf->advertiser->SetData(setScanRsp, std::move(data_vec));
 }
 
 static void gattSetScanParametersNative(JNIEnv* env, jobject object,
@@ -1387,28 +1373,16 @@ static void gattClientSetAdvParamsNative(JNIEnv* env, jobject object, jint adver
 }
 
 static void gattClientSetAdvDataNative(JNIEnv* env, jobject object, jint advertiser_id,
-        jboolean set_scan_rsp, jboolean incl_name, jboolean incl_txpower, jint appearance,
-        jbyteArray manufacturer_data,jbyteArray service_data, jbyteArray service_uuid)
+        jboolean set_scan_rsp, jbyteArray data)
 {
     if (!sGattIf) return;
-    jbyte* manu_data = env->GetByteArrayElements(manufacturer_data, NULL);
-    uint16_t manu_len = (uint16_t) env->GetArrayLength(manufacturer_data);
-    vector<uint8_t> manu_vec(manu_data, manu_data + manu_len);
-    env->ReleaseByteArrayElements(manufacturer_data, manu_data, JNI_ABORT);
-
-    jbyte* serv_data = env->GetByteArrayElements(service_data, NULL);
-    uint16_t serv_data_len = (uint16_t) env->GetArrayLength(service_data);
-    vector<uint8_t> serv_data_vec(serv_data, serv_data + serv_data_len);
-    env->ReleaseByteArrayElements(service_data, serv_data, JNI_ABORT);
-
-    jbyte* serv_uuid = env->GetByteArrayElements(service_uuid, NULL);
-    uint16_t serv_uuid_len = (uint16_t) env->GetArrayLength(service_uuid);
-    vector<uint8_t> serv_uuid_vec(serv_uuid, serv_uuid + serv_uuid_len);
-    env->ReleaseByteArrayElements(service_uuid, serv_uuid, JNI_ABORT);
+    jbyte* data_data = env->GetByteArrayElements(data, NULL);
+    uint16_t data_len = (uint16_t) env->GetArrayLength(data);
+    vector<uint8_t> data_vec(data_data, data_data + data_len);
+    env->ReleaseByteArrayElements(data, data_data, JNI_ABORT);
 
     sGattIf->advertiser->MultiAdvSetInstData(
-        advertiser_id, set_scan_rsp, incl_name, incl_txpower, appearance,
-        std::move(manu_vec), std::move(serv_data_vec), std::move(serv_uuid_vec),
+        advertiser_id, set_scan_rsp, std::move(data_vec),
         base::Bind(&ble_advertiser_setadv_data_cb, advertiser_id));
 }
 
@@ -1648,9 +1622,9 @@ static JNINativeMethod sAdvertiseMethods[] = {
     {"registerAdvertiserNative", "(JJ)V", (void *) registerAdvertiserNative},
     {"unregisterAdvertiserNative", "(I)V", (void *) unregisterAdvertiserNative},
     {"gattClientSetParamsNative", "(IIIIII)V", (void *) gattClientSetAdvParamsNative},
-    {"gattClientSetAdvDataNative", "(IZZZI[B[B[B)V", (void *) gattClientSetAdvDataNative},
+    {"gattClientSetAdvDataNative", "(IZ[B)V", (void *) gattClientSetAdvDataNative},
     {"gattClientEnableAdvNative", "(IZI)V", (void *) gattClientEnableAdvNative},
-    {"gattSetAdvDataNative", "(IZZZIII[B[B[B)V", (void *) gattSetAdvDataNative},
+    {"gattSetAdvDataNative", "(Z[B)V", (void *) gattSetAdvDataNative},
     {"gattAdvertiseNative", "(IZ)V", (void *) gattAdvertiseNative},
 };
 
