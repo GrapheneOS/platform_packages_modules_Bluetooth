@@ -19,7 +19,6 @@ package com.android.bluetooth.avrcp;
 import android.bluetooth.BluetoothAvrcp;
 import android.media.session.MediaSession;
 import android.media.session.MediaSession.QueueItem;
-import android.media.session.MediaController;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.os.Bundle;
