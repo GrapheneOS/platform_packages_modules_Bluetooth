@@ -31,8 +31,7 @@ import java.util.UUID;
  * @hide
  */
 /* package */class ScanClient {
-    int clientIf;
-    boolean isServer;
+    int scannerId;
     UUID[] uuids;
     ScanSettings settings;
     List<ScanFilter> filters;
@@ -52,35 +51,34 @@ import java.util.UUID;
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
-    ScanClient(int appIf, boolean isServer) {
-        this(appIf, isServer, new UUID[0], DEFAULT_SCAN_SETTINGS, null, null, null);
+    ScanClient(int scannerId) {
+        this(scannerId, new UUID[0], DEFAULT_SCAN_SETTINGS, null, null, null);
     }
 
-    ScanClient(int appIf, boolean isServer, UUID[] uuids) {
-        this(appIf, isServer, uuids, DEFAULT_SCAN_SETTINGS, null, null, null);
+    ScanClient(int scannerId, UUID[] uuids) {
+        this(scannerId, uuids, DEFAULT_SCAN_SETTINGS, null, null, null);
     }
 
-    ScanClient(int appIf, boolean isServer, ScanSettings settings,
+    ScanClient(int scannerId, ScanSettings settings,
             List<ScanFilter> filters) {
-        this(appIf, isServer, new UUID[0], settings, filters, null, null);
+        this(scannerId, new UUID[0], settings, filters, null, null);
     }
 
-    ScanClient(int appIf, boolean isServer, ScanSettings settings,
+    ScanClient(int scannerId, ScanSettings settings,
             List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages) {
-        this(appIf, isServer, new UUID[0], settings, filters, null, storages);
+        this(scannerId, new UUID[0], settings, filters, null, storages);
     }
 
-    ScanClient(int appIf, boolean isServer, ScanSettings settings,
+    ScanClient(int scannerId, ScanSettings settings,
                List<ScanFilter> filters, WorkSource workSource,
                List<List<ResultStorageDescriptor>> storages) {
-        this(appIf, isServer, new UUID[0], settings, filters, workSource, storages);
+        this(scannerId, new UUID[0], settings, filters, workSource, storages);
     }
 
-    private ScanClient(int appIf, boolean isServer, UUID[] uuids, ScanSettings settings,
+    private ScanClient(int scannerId, UUID[] uuids, ScanSettings settings,
             List<ScanFilter> filters, WorkSource workSource,
             List<List<ResultStorageDescriptor>> storages) {
-        this.clientIf = appIf;
-        this.isServer = isServer;
+        this.scannerId = scannerId;
         this.uuids = uuids;
         this.settings = settings;
         this.filters = filters;
@@ -97,11 +95,11 @@ import java.util.UUID;
             return false;
         }
         ScanClient other = (ScanClient) obj;
-        return clientIf == other.clientIf;
+        return scannerId == other.scannerId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clientIf);
+        return Objects.hash(scannerId);
     }
 }
