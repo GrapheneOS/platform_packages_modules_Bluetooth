@@ -111,6 +111,7 @@ typedef struct {
   SBC_ENC_PARAMS sbc_encoder_params;
   tA2DP_FEEDING_PARAMS feeding_params;
   tA2DP_FEEDING_STATE feeding_state;
+  int16_t pcmBuffer[SBC_MAX_PCM_BUFFER_SIZE];
 
   a2dp_sbc_encoder_stats_t stats;
 } tA2DP_SBC_ENCODER_CB;
@@ -551,6 +552,7 @@ static void a2dp_sbc_encode_frames(uint8_t nb_frame) {
   uint16_t blocm_x_subband =
       p_encoder_params->s16NumOfSubBands * p_encoder_params->s16NumOfBlocks;
 
+  uint8_t last_frame_len = 0;
   while (nb_frame) {
     BT_HDR* p_buf = (BT_HDR*)osi_malloc(A2DP_SBC_BUFFER_SIZE);
 
@@ -560,19 +562,20 @@ static void a2dp_sbc_encode_frames(uint8_t nb_frame) {
     p_buf->layer_specific = 0;
 
     do {
-      /* Write @ of allocated buffer in sbc_encoder_params.pu8Packet */
-      p_encoder_params->pu8Packet =
-          (uint8_t*)(p_buf + 1) + p_buf->offset + p_buf->len;
       /* Fill allocated buffer with 0 */
-      memset(p_encoder_params->as16PcmBuffer, 0,
+      memset(a2dp_sbc_encoder_cb.pcmBuffer, 0,
              blocm_x_subband * p_encoder_params->s16NumOfChannels);
 
       /* Read PCM data and upsample them if needed */
       if (a2dp_sbc_read_feeding()) {
-        SBC_Encoder(p_encoder_params);
+
+        uint8_t *output = (uint8_t*)(p_buf + 1) + p_buf->offset + p_buf->len;
+        int16_t *input = a2dp_sbc_encoder_cb.pcmBuffer;
+        uint16_t output_len = SBC_Encode(p_encoder_params, input, output);
+        last_frame_len = output_len;
 
         /* Update SBC frame length */
-        p_buf->len += p_encoder_params->u16PacketLength;
+        p_buf->len += output_len;
         nb_frame--;
         p_buf->layer_specific++;
       } else {
@@ -586,7 +589,7 @@ static void a2dp_sbc_encode_frames(uint8_t nb_frame) {
         /* no more pcm to read */
         nb_frame = 0;
       }
-    } while (((p_buf->len + p_encoder_params->u16PacketLength) <
+    } while (((p_buf->len + last_frame_len) <
               a2dp_sbc_encoder_cb.TxAaMtuSize) &&
              (p_buf->layer_specific < 0x0F) && nb_frame);
 
@@ -650,7 +653,7 @@ static bool a2dp_sbc_read_feeding(void) {
     read_size =
         bytes_needed - a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue;
     nb_byte_read = a2dp_sbc_encoder_cb.read_callback(
-        ((uint8_t*)p_encoder_params->as16PcmBuffer) +
+        ((uint8_t*)a2dp_sbc_encoder_cb.pcmBuffer) +
             a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue,
         read_size);
     if (nb_byte_read != read_size) {
@@ -742,7 +745,7 @@ static bool a2dp_sbc_read_feeding(void) {
     return false;
 
   /* Copy the output pcm samples in SBC encoding buffer */
-  memcpy((uint8_t*)p_encoder_params->as16PcmBuffer, (uint8_t*)up_sampled_buffer,
+  memcpy((uint8_t*)a2dp_sbc_encoder_cb.pcmBuffer, (uint8_t*)up_sampled_buffer,
          bytes_needed);
   /* update the residue */
   a2dp_sbc_encoder_cb.feeding_state.aa_feed_residue -= bytes_needed;

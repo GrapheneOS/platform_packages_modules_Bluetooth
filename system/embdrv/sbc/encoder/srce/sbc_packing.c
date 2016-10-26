@@ -53,7 +53,8 @@
 }
 #endif
 
-void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
+/* return number of bytes written to output */
+uint32_t EncPacking(SBC_ENC_PARAMS *pstrEncParams, uint8_t *output)
 {
     uint8_t     *pu8PacketPtr;                      /* packet ptr*/
     uint8_t Temp;
@@ -81,7 +82,7 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
 	int32_t s32Hi1,s32Low1,s32Carry,s32TempVal2,s32Hi, s32Temp2;
 #endif
 
-    pu8PacketPtr    = pstrEncParams->pu8NextPacket;    /*Initialize the ptr*/
+    pu8PacketPtr    = output;    /*Initialize the ptr*/
     *pu8PacketPtr++ = (uint8_t)0x9C;  /*Sync word*/
     *pu8PacketPtr++=(uint8_t)(pstrEncParams->FrameHeader);
 
@@ -224,9 +225,9 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
 
     Temp <<= s32PresentBit;
     *pu8PacketPtr=Temp;
-    pstrEncParams->u16PacketLength=pu8PacketPtr-pstrEncParams->pu8NextPacket+1;
+    uint32_t u16PacketLength=pu8PacketPtr-output+1;
     /*find CRC*/
-    pu8PacketPtr = pstrEncParams->pu8NextPacket+1;    /*Initialize the ptr*/
+    pu8PacketPtr = output+1;    /*Initialize the ptr*/
     u8CRC = 0x0F;
     s32LoopCount = s32Sb >> 1;
 
@@ -266,9 +267,7 @@ void EncPacking(SBC_ENC_PARAMS *pstrEncParams)
     /* CRC calculation ends here */
 
     /* store CRC in packet */
-    pu8PacketPtr = pstrEncParams->pu8NextPacket;    /*Initialize the ptr*/
-    pu8PacketPtr += 3;
-    *pu8PacketPtr = u8CRC;
-    pstrEncParams->pu8NextPacket+=pstrEncParams->u16PacketLength;  /* move the pointer to the end in case there is more than one frame to encode */
+    output[3] = u8CRC;
+    return u16PacketLength;
 }
 
