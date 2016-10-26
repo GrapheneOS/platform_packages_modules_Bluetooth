@@ -3,6 +3,7 @@
 // Protos for uploading bluetooth metrics.
 
 syntax = "proto2";
+option optimize_for = LITE_RUNTIME;
 
 package clearcut.connectivity;
 
