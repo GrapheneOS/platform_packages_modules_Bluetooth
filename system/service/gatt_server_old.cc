@@ -341,15 +341,7 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   g_internal->client_if = client_if;
 
   // Setup our advertisement. This has no callback.
-  g_internal->gatt->advertiser->SetData(
-      client_if, false, /* beacon, not scan response */
-      false,            /* name */
-      false,            /* no txpower */
-      2, 2,             /* interval */
-      0,                /* appearance */
-      {},       /* no mfg data */
-      {},       /* no service data */
-      {} /* no service id yet */);
+  g_internal->gatt->advertiser->SetData(false, {/*TODO: put inverval 2,2 here*/});
 
   // TODO(icoolidge): Deprecated, use multi-adv interface.
   // This calls back to ListenCallback.
@@ -570,27 +562,26 @@ bool Server::SetAdvertisement(const std::vector<UUID>& ids,
                               const std::vector<uint8_t>& service_data,
                               const std::vector<uint8_t>& manufacturer_data,
                               bool transmit_name) {
-  std::vector<uint8_t> id_data;
-  const auto& mutable_manufacturer_data = manufacturer_data;
-  const auto& mutable_service_data = service_data;
+  // std::vector<uint8_t> id_data;
+  // const auto& mutable_manufacturer_data = manufacturer_data;
+  // const auto& mutable_service_data = service_data;
 
-  for (const UUID &id : ids) {
-    const auto le_id = id.GetFullLittleEndian();
-    id_data.insert(id_data.end(), le_id.begin(), le_id.end());
-  }
+  // for (const UUID &id : ids) {
+  //   const auto le_id = id.GetFullLittleEndian();
+  //   id_data.insert(id_data.end(), le_id.begin(), le_id.end());
+  // }
 
   std::lock_guard<std::mutex> lock(internal_->lock);
 
   // Setup our advertisement. This has no callback.
   internal_->gatt->advertiser->SetData(
-      internal_->client_if, false, /* beacon, not scan response */
-      transmit_name,               /* name */
-      false,                       /* no txpower */
-      2, 2,                        /* interval */
-      0,                           /* appearance */
-      mutable_manufacturer_data,
-      mutable_service_data,
-      id_data);
+      false, /* beacon, not scan response */
+      {});
+      // transmit_name,               /* name */
+      // 2, 2,                         interval 
+      // mutable_manufacturer_data,
+      // mutable_service_data,
+      // id_data);
   return true;
 }
 
@@ -598,27 +589,28 @@ bool Server::SetScanResponse(const std::vector<UUID>& ids,
                              const std::vector<uint8_t>& service_data,
                              const std::vector<uint8_t>& manufacturer_data,
                              bool transmit_name) {
-  std::vector<uint8_t> id_data;
-  const auto& mutable_manufacturer_data = manufacturer_data;
-  const auto& mutable_service_data = service_data;
+  // std::vector<uint8_t> id_data;
+  // const auto& mutable_manufacturer_data = manufacturer_data;
+  // const auto& mutable_service_data = service_data;
 
-  for (const UUID &id : ids) {
-    const auto le_id = id.GetFullLittleEndian();
-    id_data.insert(id_data.end(), le_id.begin(), le_id.end());
-  }
+  // for (const UUID &id : ids) {
+  //   const auto le_id = id.GetFullLittleEndian();
+  //   id_data.insert(id_data.end(), le_id.begin(), le_id.end());
+  // }
 
   std::lock_guard<std::mutex> lock(internal_->lock);
 
   // Setup our advertisement. This has no callback.
   internal_->gatt->advertiser->SetData(
-      internal_->client_if, true, /* scan response */
-      transmit_name,              /* name */
-      false,                      /* no txpower */
-      2, 2,                       /* interval */
-      0,                          /* appearance */
-      mutable_manufacturer_data,
-      mutable_service_data,
-      id_data);
+      true, /* scan response */
+      {});
+      // transmit_name,              /* name */
+      // false,                      /* no txpower */
+      // 2, 2,                        interval 
+      // 0,                          /* appearance */
+      // mutable_manufacturer_data,
+      // mutable_service_data,
+      // id_data);
   return true;
 }
 

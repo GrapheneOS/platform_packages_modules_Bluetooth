@@ -38,7 +38,6 @@ source_set("service") {
     "hal/fake_bluetooth_gatt_interface.cc",
     "hal/fake_bluetooth_interface.cc",
     "ipc/ipc_handler.cc",
-    "ipc/ipc_handler_linux.cc",
     "ipc/ipc_manager.cc",
     "ipc/linux_ipc_host.cc",
     "logging_helpers.cc",
@@ -84,7 +83,6 @@ executable("service_unittests") {
   testonly = true
   sources = [
     "test/fake_hal_util.cc",
-    "test/ipc_linux_unittest.cc",
     "test/settings_unittest.cc",
     "test/uuid_unittest.cc",
   ]
