@@ -47,7 +47,3 @@ void metrics_a2dp_session(
 void metrics_write(int fd, bool clear) {
   // TODO(jpawlowski): implement
 }
-
-void metrics_print(int fd, bool clear) {
-  // TODO(jpawlowski): implement
-}
