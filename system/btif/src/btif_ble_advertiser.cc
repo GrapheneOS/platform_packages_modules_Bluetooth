@@ -62,84 +62,11 @@ static inline OwnedArrayWrapper<T> OwnedArray(T* o) {
 }
 
 /* return the actual power in dBm based on the mapping in config file */
-int ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1] = BTM_BLE_ADV_TX_POWER;
-char ble_map_adv_tx_power(int tx_power_index) {
+int8_t ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1] = BTM_BLE_ADV_TX_POWER;
+int8_t ble_map_adv_tx_power(int tx_power_index) {
   if (0 <= tx_power_index && tx_power_index < BTM_BLE_ADV_TX_POWER_MAX)
-    return (char)ble_tx_power[tx_power_index];
+    return (int8_t)ble_tx_power[tx_power_index];
   return 0;
-}
-
-#define MIN_ADV_LENGTH 2
-#define BLE_AD_DATA_LEN 31
-vector<uint8_t> build_adv_data(bool set_scan_rsp, bool include_name,
-                               bool incl_txpower, uint16_t appearance,
-                               vector<uint8_t> manufacturer_data,
-                               vector<uint8_t> service_data,
-                               vector<uint8_t> service_uuid) {
-  vector<uint8_t> data;
-
-  // Flags are added by lower layers of the stack, only if needed; no need to
-  // add them here.
-
-  // TODO(jpawlowski): appearance is a dead argument, never set by upper layers.
-  // Remove.
-
-  if (include_name) {
-    char* bd_name;
-    BTM_ReadLocalDeviceName(&bd_name);
-    size_t bd_name_len = strlen(bd_name);
-    uint8_t type;
-
-    // TODO(jpawlowski) put a better limit on device name!
-    if (data.size() + MIN_ADV_LENGTH + bd_name_len > BLE_AD_DATA_LEN) {
-      bd_name_len = BLE_AD_DATA_LEN - data.size() - 1;
-      type = BTM_BLE_AD_TYPE_NAME_SHORT;
-    } else {
-      type = BTM_BLE_AD_TYPE_NAME_CMPL;
-    }
-
-    data.push_back(bd_name_len + 1);
-    data.push_back(type);
-    data.insert(data.end(), bd_name, bd_name + bd_name_len);
-  }
-
-  if (manufacturer_data.size()) {
-    data.push_back(manufacturer_data.size() + 1);
-    data.push_back(HCI_EIR_MANUFACTURER_SPECIFIC_TYPE);
-    data.insert(data.end(), manufacturer_data.begin(), manufacturer_data.end());
-  }
-
-  /* TX power */
-  if (incl_txpower) {
-    data.push_back(MIN_ADV_LENGTH);
-    data.push_back(HCI_EIR_TX_POWER_LEVEL_TYPE);
-    data.push_back(0);  // lower layers will fill this value.
-  }
-
-  // TODO(jpawlowski): right now we can pass only one service, and it's size
-  // determine type (16/32/128bit), this must be fixed in future!
-  if (service_uuid.size()) {
-    data.push_back(service_uuid.size() + 1);
-    if (service_uuid.size() == LEN_UUID_16)
-      data.push_back(BT_EIR_COMPLETE_16BITS_UUID_TYPE);
-    else if (service_uuid.size() == LEN_UUID_32)
-      data.push_back(BT_EIR_COMPLETE_32BITS_UUID_TYPE);
-    else if (service_uuid.size() == LEN_UUID_128)
-      data.push_back(BT_EIR_COMPLETE_128BITS_UUID_TYPE);
-
-    data.insert(data.end(), service_uuid.begin(), service_uuid.end());
-  }
-
-  if (service_data.size()) {
-    data.push_back(service_data.size() + 1);
-    // TODO(jpawlowski): we can accept only 16bit uuid. Remove this restriction
-    // as we move this code up the stack
-    data.push_back(BT_EIR_SERVICE_DATA_16BITS_UUID_TYPE);
-
-    data.insert(data.end(), service_data.begin(), service_data.end());
-  }
-
-  return data;
 }
 
 void bta_adv_set_data_cback(tBTA_STATUS call_status) {}
@@ -150,6 +77,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   void RegisterAdvertiserCb(
       base::Callback<void(uint8_t /* adv_id */, uint8_t /* status */)> cb,
       uint8_t advertiser_id, uint8_t status) {
+    LOG(INFO) << __func__ << " status: " << +status << " , adveriser_id: " << +advertiser_id;
     do_in_jni_thread(Bind(cb, advertiser_id, status));
   }
 
@@ -170,15 +98,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              base::Unretained(BleAdvertisingManager::Get()), advertiser_id));
   }
 
-  void SetData(int advertiser_id, bool set_scan_rsp, bool include_name,
-               bool include_txpower, int min_interval, int max_interval,
-               int appearance, vector<uint8_t> manufacturer_data,
-               vector<uint8_t> service_data,
-               vector<uint8_t> service_uuid) override {
-    vector<uint8_t> data =
-        build_adv_data(set_scan_rsp, include_name, include_txpower, appearance,
-                       manufacturer_data, service_data, service_uuid);
-
+  void SetData(bool set_scan_rsp, vector<uint8_t> data) override {
     uint8_t* data_ptr = nullptr;
     if (data.size()) {
       // base::Owned will free this ptr
@@ -208,6 +128,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   }
 
   void MultiAdvSetParametersCb(BleAdvertiserCb cb, uint8_t status) {
+    LOG(INFO) << __func__ << " status: " << +status ;
     do_in_jni_thread(Bind(cb, status));
   }
 
@@ -238,15 +159,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   }
 
   void MultiAdvSetInstData(int advertiser_id, bool set_scan_rsp,
-                           bool include_name, bool incl_txpower, int appearance,
-                           vector<uint8_t> manufacturer_data,
-                           vector<uint8_t> service_data,
-                           vector<uint8_t> service_uuid,
-                           BleAdvertiserCb cb) override {
-    vector<uint8_t> data =
-        build_adv_data(set_scan_rsp, include_name, incl_txpower, appearance,
-                       manufacturer_data, service_data, service_uuid);
-
+                           vector<uint8_t> data, BleAdvertiserCb cb) override {
     do_in_bta_thread(
         FROM_HERE, Bind(&BleAdvertisingManager::SetData,
                         base::Unretained(BleAdvertisingManager::Get()),

@@ -23,23 +23,11 @@ namespace bluetooth {
 
 status_t AdvertiseData::writeToParcel(Parcel* parcel) const {
   status_t status = parcel->writeByteVector(data_);
-  if (status != OK) return status;
-
-  status = parcel->writeBool(include_device_name_);
-  if (status != OK) return status;
-
-  status = parcel->writeBool(include_tx_power_level_);
   return status;
 }
 
 status_t AdvertiseData::readFromParcel(const Parcel* parcel) {
   status_t status = parcel->readByteVector(&data_);
-  if (status != OK) return status;
-
-  status = parcel->readBool(&include_device_name_);
-  if (status != OK) return status;
-
-  status = parcel->readBool(&include_tx_power_level_);
   return status;
 }
 

@@ -120,6 +120,9 @@ const uint8_t kEIRTypeIncomplete32BitUUIDs = 0x04;
 const uint8_t kEIRTypeComplete32BitUUIDs = 0x05;
 const uint8_t kEIRTypeIncomplete128BitUUIDs = 0x06;
 const uint8_t kEIRTypeComplete128BitUUIDs = 0x07;
+const uint8_t kEIRTypeShortenedLocalName = 0x08;
+const uint8_t kEIRTypeCompleteLocalName = 0x09;
+const uint8_t kEIRTypeTxPower = 0x0A;
 const uint8_t kEIRTypeManufacturerSpecificData = 0xFF;
 
 }  // namespace bluetooth
