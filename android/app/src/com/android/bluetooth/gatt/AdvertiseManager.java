@@ -33,6 +33,7 @@ import com.android.bluetooth.btservice.AdapterService;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.io.ByteArrayOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -390,82 +391,158 @@ class AdvertiseManager {
             }
         }
 
+        private static final int DEVICE_NAME_MAX = 18;
+
+        private static final int COMPLETE_LIST_16_BIT_SERVICE_UUIDS = 0X03;
+        private static final int COMPLETE_LIST_32_BIT_SERVICE_UUIDS = 0X05;
+        private static final int COMPLETE_LIST_128_BIT_SERVICE_UUIDS = 0X07;
+        private static final int SHORTENED_LOCAL_NAME = 0X08;
+        private static final int COMPLETE_LOCAL_NAME = 0X09;
+        private static final int TX_POWER_LEVEL = 0x0A;
+        private static final int SERVICE_DATA_16_BIT_UUID = 0X16;
+        private static final int SERVICE_DATA_32_BIT_UUID = 0X20;
+        private static final int SERVICE_DATA_128_BIT_UUID = 0X21;
+        private static final int MANUFACTURER_SPECIFIC_DATA = 0XFF;
+
+        private byte[] advertiseDataToBytes(AdvertiseData data) {
+            // Flags are added by lower layers of the stack, only if needed;
+            // no need to add them here.
+
+            ByteArrayOutputStream ret = new ByteArrayOutputStream();
+
+            if (data.getIncludeDeviceName()) {
+                String name = mAdapterService.getName();
+                try {
+                    byte[] nameBytes = name.getBytes("UTF-8");
+
+                    int nameLength = nameBytes.length;
+                    byte type;
+
+                    // TODO(jpawlowski) put a better limit on device name!
+                    if (nameLength > DEVICE_NAME_MAX) {
+                      nameLength = DEVICE_NAME_MAX;
+                      type = SHORTENED_LOCAL_NAME;
+                    } else {
+                      type = COMPLETE_LOCAL_NAME;
+                    }
+
+                    ret.write(nameLength + 1);
+                    ret.write(type);
+                    ret.write(nameBytes, 0, nameLength);
+                } catch (java.io.UnsupportedEncodingException e) {
+                    loge("Can't include name - encoding error!", e);
+                }
+            }
+
+            for (int i = 0; i< data.getManufacturerSpecificData().size(); i++) {
+                int manufacturerId = data.getManufacturerSpecificData().keyAt(i);
+
+                byte[] manufacturerData = data.getManufacturerSpecificData().get(
+                        manufacturerId);
+                int dataLen = 2 + (manufacturerData == null ? 0 : manufacturerData.length);
+                byte[] concated = new byte[dataLen];
+                // First two bytes are manufacturer id in little-endian.
+                concated[0] = (byte) (manufacturerId & 0xFF);
+                concated[1] = (byte) ((manufacturerId >> 8) & 0xFF);
+                if (manufacturerData != null) {
+                    System.arraycopy(manufacturerData, 0, concated, 2, manufacturerData.length);
+                }
+
+                ret.write(concated.length + 1);
+                ret.write(MANUFACTURER_SPECIFIC_DATA);
+                ret.write(concated, 0, concated.length);
+            }
+
+            if (data.getIncludeTxPowerLevel()) {
+                ret.write(2 /* Length */);
+                ret.write(TX_POWER_LEVEL);
+                ret.write(0);  // lower layers will fill this value.
+            }
+
+            if (data.getServiceUuids() != null) {
+                ByteArrayOutputStream serviceUuids16 = new ByteArrayOutputStream();
+                ByteArrayOutputStream serviceUuids32 = new ByteArrayOutputStream();
+                ByteArrayOutputStream serviceUuids128 = new ByteArrayOutputStream();
+
+                for (ParcelUuid parcelUuid : data.getServiceUuids()) {
+                    byte[] uuid = BluetoothUuid.uuidToBytes(parcelUuid);
+
+                    if (uuid.length == BluetoothUuid.UUID_BYTES_16_BIT) {
+                        serviceUuids16.write(uuid, 0, uuid.length);
+                    } else if (uuid.length == BluetoothUuid.UUID_BYTES_32_BIT) {
+                        serviceUuids32.write(uuid, 0, uuid.length);
+                    } else /*if (uuid.length == BluetoothUuid.UUID_BYTES_128_BIT)*/ {
+                        serviceUuids128.write(uuid, 0, uuid.length);
+                    }
+                }
+
+                if (serviceUuids16.size() != 0) {
+                    ret.write(serviceUuids16.size() + 1);
+                    ret.write(COMPLETE_LIST_16_BIT_SERVICE_UUIDS);
+                    ret.write(serviceUuids16.toByteArray(), 0, serviceUuids16.size());
+                }
+
+                if (serviceUuids32.size() != 0) {
+                    ret.write(serviceUuids32.size() + 1);
+                    ret.write(COMPLETE_LIST_32_BIT_SERVICE_UUIDS);
+                    ret.write(serviceUuids32.toByteArray(), 0, serviceUuids32.size());
+                }
+
+                if (serviceUuids128.size() != 0) {
+                    ret.write(serviceUuids128.size() + 1);
+                    ret.write(COMPLETE_LIST_128_BIT_SERVICE_UUIDS);
+                    ret.write(serviceUuids128.toByteArray(), 0, serviceUuids128.size());
+                }
+            }
+
+            if (!data.getServiceData().isEmpty()) {
+                for (ParcelUuid parcelUuid: data.getServiceData().keySet()) {
+                    byte[] serviceData = data.getServiceData().get(parcelUuid);
+
+                    byte[] uuid = BluetoothUuid.uuidToBytes(parcelUuid);
+                    int uuidLen = uuid.length;
+
+                    int dataLen = uuidLen + (serviceData == null ? 0 : serviceData.length);
+                    byte[] concated = new byte[dataLen];
+
+                    System.arraycopy(uuid, 0, concated, 0, uuidLen);
+
+                    if (serviceData != null) {
+                        System.arraycopy(serviceData, 0, concated, uuidLen, serviceData.length);
+                    }
+
+                    if (uuid.length == BluetoothUuid.UUID_BYTES_16_BIT) {
+                        ret.write(concated.length + 1);
+                        ret.write(SERVICE_DATA_16_BIT_UUID);
+                        ret.write(concated, 0, concated.length);
+                    } else if (uuid.length == BluetoothUuid.UUID_BYTES_32_BIT) {
+                        ret.write(concated.length + 1);
+                        ret.write(SERVICE_DATA_32_BIT_UUID);
+                        ret.write(concated, 0, concated.length);
+                    } else /*if (uuid.length == BluetoothUuid.UUID_BYTES_128_BIT)*/ {
+                        ret.write(concated.length + 1);
+                        ret.write(SERVICE_DATA_128_BIT_UUID);
+                        ret.write(concated, 0, concated.length);
+                    }
+                }
+            }
+
+            return ret.toByteArray();
+        }
+
         private void setAdvertisingData(AdvertiseClient client, AdvertiseData data,
                 boolean isScanResponse) {
             if (data == null) {
                 return;
             }
-            boolean includeName = data.getIncludeDeviceName();
-            boolean includeTxPower = data.getIncludeTxPowerLevel();
-            int appearance = 0;
-            byte[] manufacturerData = getManufacturerData(data);
 
-            byte[] serviceData = getServiceData(data);
-            byte[] serviceUuids;
-            if (data.getServiceUuids() == null) {
-                serviceUuids = new byte[0];
-            } else {
-                ByteBuffer advertisingUuidBytes = ByteBuffer.allocate(
-                        data.getServiceUuids().size() * 16)
-                        .order(ByteOrder.LITTLE_ENDIAN);
-                for (ParcelUuid parcelUuid : data.getServiceUuids()) {
-                    UUID uuid = parcelUuid.getUuid();
-                    // Least significant bits first as the advertising UUID should be in
-                    // little-endian.
-                    advertisingUuidBytes.putLong(uuid.getLeastSignificantBits())
-                            .putLong(uuid.getMostSignificantBits());
-                }
-                serviceUuids = advertisingUuidBytes.array();
-            }
+            byte [] data_out = advertiseDataToBytes(data);
+
             if (mAdapterService.isMultiAdvertisementSupported()) {
-                gattClientSetAdvDataNative(client.advertiserId, isScanResponse, includeName,
-                        includeTxPower, appearance,
-                        manufacturerData, serviceData, serviceUuids);
+                gattClientSetAdvDataNative(client.advertiserId, isScanResponse, data_out);
             } else {
-                gattSetAdvDataNative(client.advertiserId, isScanResponse, includeName,
-                        includeTxPower, 0, 0, appearance,
-                        manufacturerData, serviceData, serviceUuids);
+                gattSetAdvDataNative(isScanResponse, data_out);
             }
-        }
-
-        // Combine manufacturer id and manufacturer data.
-        private byte[] getManufacturerData(AdvertiseData advertiseData) {
-            if (advertiseData.getManufacturerSpecificData().size() == 0) {
-                return new byte[0];
-            }
-            int manufacturerId = advertiseData.getManufacturerSpecificData().keyAt(0);
-            byte[] manufacturerData = advertiseData.getManufacturerSpecificData().get(
-                    manufacturerId);
-            int dataLen = 2 + (manufacturerData == null ? 0 : manufacturerData.length);
-            byte[] concated = new byte[dataLen];
-            // / First two bytes are manufacturer id in little-endian.
-            concated[0] = (byte) (manufacturerId & 0xFF);
-            concated[1] = (byte) ((manufacturerId >> 8) & 0xFF);
-            if (manufacturerData != null) {
-                System.arraycopy(manufacturerData, 0, concated, 2, manufacturerData.length);
-            }
-            return concated;
-        }
-
-        // Combine service UUID and service data.
-        private byte[] getServiceData(AdvertiseData advertiseData) {
-            if (advertiseData.getServiceData().isEmpty()) {
-                return new byte[0];
-            }
-            ParcelUuid uuid = advertiseData.getServiceData().keySet().iterator().next();
-            byte[] serviceData = advertiseData.getServiceData().get(uuid);
-            int dataLen = 2 + (serviceData == null ? 0 : serviceData.length);
-            byte[] concated = new byte[dataLen];
-            // Extract 16 bit UUID value.
-            int uuidValue = BluetoothUuid.getServiceIdentifierFromParcelUuid(
-                    uuid);
-            // First two bytes are service data UUID in little-endian.
-            concated[0] = (byte) (uuidValue & 0xFF);
-            concated[1] = (byte) ((uuidValue >> 8) & 0xFF);
-            if (serviceData != null) {
-                System.arraycopy(serviceData, 0, concated, 2, serviceData.length);
-            }
-            return concated;
         }
 
         // Convert settings tx power level to stack tx power level.
@@ -521,14 +598,12 @@ class AdvertiseManager {
                 int min_interval, int max_interval, int adv_type, int chnl_map, int tx_power);
 
         private native void gattClientSetAdvDataNative(int advertiserId,
-                boolean set_scan_rsp, boolean incl_name, boolean incl_txpower, int appearance,
-                byte[] manufacturer_data, byte[] service_data, byte[] service_uuid);
+                boolean set_scan_rsp, byte[] data);
 
-        private native void gattClientEnableAdvNative(int advertiserId, boolean enable, int timeout_s);
+        private native void gattClientEnableAdvNative(int advertiserId,
+                boolean enable, int timeout_s);
 
-        private native void gattSetAdvDataNative(int advertiserId, boolean setScanRsp, boolean inclName,
-                boolean inclTxPower, int minSlaveConnectionInterval, int maxSlaveConnectionInterval,
-                int appearance, byte[] manufacturerData, byte[] serviceData, byte[] serviceUuid);
+        private native void gattSetAdvDataNative(boolean setScanRsp, byte[] data);
 
         private native void gattAdvertiseNative(int advertiserId, boolean start);
     }
