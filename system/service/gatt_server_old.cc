@@ -351,6 +351,11 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   }
 }
 
+void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t *app_uuid) {
+  LOG_INFO(LOG_TAG, "%s: status:%d scanner_id:%d uuid[0]:%u", __func__, status,
+      scanner_id, app_uuid->uu[0]);
+}
+
 void ListenCallback(int status, int client_if) {
   LOG_INFO(LOG_TAG, "%s: status:%d client_if:%d", __func__, status, client_if);
   // This terminates a Start call.
@@ -419,6 +424,7 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
 // to refer to the client interface.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
     RegisterClientCallback,
+    RegisterScannerCallback,
     ScanResultCallback,
     ClientConnectCallback,
     ClientDisconnectCallback,
