@@ -92,9 +92,6 @@ TEST(AdvertiseDataTest, DisallowedFields) {
   // Check all blacklisted fields
   uint8_t blacklist[] = {
       HCI_EIR_FLAGS_TYPE,
-      HCI_EIR_TX_POWER_LEVEL_TYPE,
-      HCI_EIR_SHORTENED_LOCAL_NAME_TYPE,
-      HCI_EIR_COMPLETE_LOCAL_NAME_TYPE,
       HCI_EIR_OOB_BD_ADDR_TYPE,
       HCI_EIR_OOB_COD_TYPE,
       HCI_EIR_OOB_SSP_HASH_C_TYPE,
@@ -118,36 +115,6 @@ TEST(AdvertiseDataTest, EqualsData) {
 
   AdvertiseData adv2(data1);
   EXPECT_TRUE(adv1 == adv2);
-}
-
-TEST(AdvertiseDataTest, EqualsIncludes) {
-  const std::vector<uint8_t> data;
-
-  AdvertiseData adv0;
-  AdvertiseData adv1;
-  AdvertiseData adv2;
-  AdvertiseData adv3;
-  AdvertiseData adv4;
-
-  adv0.set_include_device_name(true);
-  adv0.set_include_tx_power_level(false);
-
-  adv1.set_include_device_name(false);
-  adv1.set_include_tx_power_level(false);
-
-  adv2.set_include_device_name(false);
-  adv2.set_include_tx_power_level(true);
-
-  adv3.set_include_device_name(true);
-  adv3.set_include_tx_power_level(true);
-
-  adv4.set_include_device_name(true);
-  adv4.set_include_tx_power_level(false);
-
-  EXPECT_FALSE(adv0 == adv1);
-  EXPECT_FALSE(adv0 == adv2);
-  EXPECT_FALSE(adv3 == adv1);
-  EXPECT_TRUE(adv4 == adv0);
 }
 
 }  // namespace bluetooth

@@ -651,9 +651,22 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
       bluetooth::AdvertiseSettings::MODE_LOW_POWER, timeout,
       bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM, connectable);
 
+  if (include_tx_power) {
+    data.push_back(0x02);
+    data.push_back(bluetooth::kEIRTypeTxPower);
+    data.push_back(0x00);
+  }
+
   bluetooth::AdvertiseData adv_data(data);
-  adv_data.set_include_device_name(include_name);
-  adv_data.set_include_tx_power_level(include_tx_power);
+
+  if (include_name) {
+    String16 name_param;
+    bt_iface->GetName(&name_param);
+    std::string name(String8(name_param).string());
+    data.push_back(name.length() + 1);
+    data.push_back(bluetooth::kEIRTypeCompleteLocalName);
+    data.insert(data.begin(), name.c_str(), name.c_str() + name.length());
+  }
 
   bluetooth::AdvertiseData scan_rsp;
 
