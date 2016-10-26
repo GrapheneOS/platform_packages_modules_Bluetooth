@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.avrcp;
 
-import android.media.session.MediaController;
 import android.media.session.MediaSession;
 
 import java.util.List;
