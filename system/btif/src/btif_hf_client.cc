@@ -126,9 +126,8 @@ static btif_hf_client_cb_t btif_hf_client_cb;
  * Returns          void
  *
  ******************************************************************************/
-static void btif_in_hf_client_generic_evt(uint16_t event, char* p_param) {
-  UNUSED(p_param);
-
+static void btif_in_hf_client_generic_evt(uint16_t event,
+                                          UNUSED_ATTR char *p_param) {
   BTIF_TRACE_EVENT("%s: event=%d", __func__, event);
   switch (event) {
     case BTIF_HF_CLIENT_CB_AUDIO_CONNECTING: {

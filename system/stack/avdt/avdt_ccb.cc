@@ -413,10 +413,9 @@ tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
 ** Returns          void.
 **
 *******************************************************************************/
-void avdt_ccb_dealloc(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
+void avdt_ccb_dealloc(tAVDT_CCB *p_ccb,
+                      UNUSED_ATTR tAVDT_CCB_EVT *p_data)
 {
-    UNUSED(p_data);
-
     AVDT_TRACE_DEBUG("avdt_ccb_dealloc %d", avdt_ccb_to_idx(p_ccb));
     alarm_free(p_ccb->idle_ccb_timer);
     alarm_free(p_ccb->ret_ccb_timer);

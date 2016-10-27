@@ -257,10 +257,8 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gatts_start_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
+void bta_gatts_start_if(UNUSED_ATTR tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 {
-    UNUSED(p_cb);
-
     if (bta_gatts_find_app_rcb_by_app_if(p_msg->int_start_if.server_if))
     {
         GATT_StartIf(p_msg->int_start_if.server_if);
@@ -360,11 +358,11 @@ void bta_gatts_delete_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
+void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb,
+                            UNUSED_ATTR tBTA_GATTS_DATA *p_msg)
 {
     tBTA_GATTS_RCB *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
     tBTA_GATTS      cb_data;
-    UNUSED(p_msg);
 
     GATTS_StopService(p_srvc_cb->service_id);
     cb_data.srvc_oper.server_if = p_rcb->gatt_if;
@@ -385,10 +383,8 @@ void bta_gatts_stop_service(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_m
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gatts_send_rsp (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
+void bta_gatts_send_rsp (UNUSED_ATTR tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
-    UNUSED(p_cb);
-
     if (GATTS_SendRsp (p_msg->api_rsp.hdr.layer_specific,
                         p_msg->api_rsp.trans_id,
                         p_msg->api_rsp.status,
@@ -477,12 +473,11 @@ void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gatts_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
+void bta_gatts_open (UNUSED_ATTR tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB      *p_rcb=NULL;
     tBTA_GATT_STATUS    status= BTA_GATT_ERROR;
     uint16_t              conn_id;
-    UNUSED(p_cb);
 
     if ((p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_open.server_if)) != NULL)
     {
@@ -517,11 +512,10 @@ void bta_gatts_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
+void bta_gatts_cancel_open (UNUSED_ATTR tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB      *p_rcb;
     tBTA_GATT_STATUS    status= BTA_GATT_ERROR;
-    UNUSED(p_cb);
 
     if ((p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_cancel_open.server_if)) != NULL)
     {
@@ -552,15 +546,13 @@ void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
+void bta_gatts_close (UNUSED_ATTR tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB     *p_rcb;
     tBTA_GATT_STATUS    status= BTA_GATT_ERROR;
     tGATT_IF            gatt_if;
     BD_ADDR             remote_bda;
     tBTA_GATT_TRANSPORT transport;
-
-    UNUSED(p_cb);
 
     if (GATT_GetConnectionInfor(p_msg->hdr.layer_specific, &gatt_if, remote_bda, &transport))
     {
@@ -598,11 +590,10 @@ void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gatts_listen(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
+void bta_gatts_listen(UNUSED_ATTR tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB     *p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_listen.server_if);
     tBTA_GATTS          cb_data;
-    UNUSED(p_cb);
 
     cb_data.reg_oper.status = BTA_GATT_OK;
     cb_data.reg_oper.server_if = p_msg->api_listen.server_if;

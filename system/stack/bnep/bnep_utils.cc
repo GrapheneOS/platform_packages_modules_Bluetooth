@@ -1162,14 +1162,12 @@ void bnepu_send_peer_multicast_filter_rsp (tBNEP_CONN *p_bcb, uint16_t response_
 ** Returns          void
 **
 *******************************************************************************/
-void bnep_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
+void bnep_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT trasnport,
                                     void *p_ref_data, uint8_t result)
 {
     tBNEP_CONN      *p_bcb = (tBNEP_CONN *)p_ref_data;
     uint16_t        resp_code = BNEP_SETUP_CONN_OK;
     bool            is_role_change;
-    UNUSED(bd_addr);
-    UNUSED(trasnport);
 
     BNEP_TRACE_EVENT ("BNEP security callback returned result %d", result);
     if (p_bcb->con_flags & BNEP_FLAGS_CONN_COMPLETED)

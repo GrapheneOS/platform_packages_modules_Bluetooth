@@ -235,11 +235,9 @@ const uint8_t btm_le_state_combo_tbl[BTM_BLE_STATE_MAX][BTM_BLE_STATE_MAX][2] =
 ** Returns          void
 **
 *******************************************************************************/
-bool    BTM_BleUpdateAdvWhitelist(bool    add_remove, BD_ADDR remote_bda)
+bool    BTM_BleUpdateAdvWhitelist(UNUSED_ATTR bool add_remove,
+                                  UNUSED_ATTR BD_ADDR remote_bda)
 {
-    UNUSED(add_remove);
-    UNUSED(remote_bda);
-
     return false;
 }
 
@@ -1844,12 +1842,12 @@ static void btm_ble_update_adv_flag(uint8_t flag)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_cache_adv_data(tBTM_INQ_RESULTS *p_cur, uint8_t data_len, uint8_t *p, uint8_t evt_type)
+void btm_ble_cache_adv_data(UNUSED_ATTR tBTM_INQ_RESULTS *p_cur, uint8_t data_len,
+                            uint8_t *p, uint8_t evt_type)
 {
     tBTM_BLE_INQ_CB     *p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
     uint8_t *p_cache;
     uint8_t length;
-    UNUSED(p_cur);
 
     /* cache adv report/scan response data */
     if (evt_type != BTM_BLE_SCAN_RSP_EVT)
@@ -1892,14 +1890,13 @@ void btm_ble_cache_adv_data(tBTM_INQ_RESULTS *p_cur, uint8_t data_len, uint8_t *
 ** Returns          void
 **
 *******************************************************************************/
-uint8_t btm_ble_is_discoverable(BD_ADDR bda, uint8_t evt_type, uint8_t *p)
+uint8_t btm_ble_is_discoverable(BD_ADDR bda, uint8_t evt_type,
+                                UNUSED_ATTR uint8_t *p)
 {
     uint8_t             *p_flag, flag = 0, rt = 0;
     uint8_t              data_len;
     tBTM_INQ_PARMS      *p_cond = &btm_cb.btm_inq_vars.inqparms;
     tBTM_BLE_INQ_CB     *p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
-
-    UNUSED(p);
 
     /* for observer, always "discoverable */
     if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
@@ -2226,11 +2223,11 @@ void btm_clear_all_pending_le_entry(void)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_send_sel_conn_callback(BD_ADDR remote_bda, uint8_t evt_type, uint8_t *p_data, uint8_t addr_type)
+void btm_send_sel_conn_callback(BD_ADDR remote_bda, uint8_t evt_type, uint8_t *p_data,
+                                UNUSED_ATTR uint8_t addr_type)
 {
     uint8_t data_len, len;
     uint8_t *p_dev_name, remname[31] = {0};
-    UNUSED(addr_type);
 
     if (btm_cb.ble_ctr_cb.p_select_cback == NULL ||
         /* non-connectable device */

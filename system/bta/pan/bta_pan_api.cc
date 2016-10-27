@@ -183,34 +183,26 @@ void BTA_PanClose(uint16_t handle)
 }
 #else
 
-void BTA_PanEnable(tBTA_PAN_CBACK p_cback)
+void BTA_PanEnable(UNUSED_ATTR tBTA_PAN_CBACK p_cback)
 {
-    UNUSED(p_cback);
 }
 
 void BTA_PanDisable(void)
 {
 }
 
-void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PAN_ROLE_INFO *p_gn_info,
-                    tBTA_PAN_ROLE_INFO *p_nap_info)
+void BTA_PanSetRole(UNUSED_ATTR tBTA_PAN_ROLE role, UNUSED_ATTR tBTA_PAN_ROLE_INFO *p_user_info, UNUSED_ATTR tBTA_PAN_ROLE_INFO *p_gn_info,
+                    UNUSED_ATTR tBTA_PAN_ROLE_INFO *p_nap_info)
 {
-    UNUSED(role);
-    UNUSED(p_user_info);
-    UNUSED(p_gn_info);
-    UNUSED(p_nap_info);
 }
 
-void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE local_role, tBTA_PAN_ROLE peer_role)
+void BTA_PanOpen(UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBTA_PAN_ROLE local_role,
+                 UNUSED_ATTR tBTA_PAN_ROLE peer_role)
 {
-    UNUSED(bd_addr);
-    UNUSED(local_role);
-    UNUSED(peer_role);
 }
 
-void BTA_PanClose(uint16_t handle)
+void BTA_PanClose(UNUSED_ATTR uint16_t handle)
 {
-    UNUSED(handle);
 }
 
 #endif /* BTA_PAN_INCLUDED */

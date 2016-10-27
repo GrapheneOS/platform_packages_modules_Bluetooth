@@ -117,7 +117,7 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 **
 *******************************************************************************/
 static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
-                                                 uint16_t offset,
+                                                 UNUSED_ATTR uint16_t offset,
                                                  bool    read_long,
                                                  tGATT_SEC_FLAG sec_flag,
                                                  uint8_t key_size)
@@ -125,7 +125,6 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
     uint16_t        min_key_size;
     tGATT_PERM      perm = p_attr->permission;
 
-    UNUSED(offset);
     min_key_size = (((perm & GATT_ENCRYPT_KEY_SIZE_MASK) >> 12));
     if (min_key_size != 0 )
     {

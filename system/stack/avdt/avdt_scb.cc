@@ -627,10 +627,9 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
 ** Returns          void.
 **
 *******************************************************************************/
-void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
+void avdt_scb_dealloc(tAVDT_SCB *p_scb,
+                      UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
-    UNUSED(p_data);
-
     AVDT_TRACE_DEBUG("%s: hdl=%d", __func__, avdt_scb_to_hdl(p_scb));
     alarm_free(p_scb->transport_channel_timer);
     memset(p_scb, 0, sizeof(tAVDT_SCB));

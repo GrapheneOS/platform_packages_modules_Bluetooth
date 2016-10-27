@@ -53,7 +53,7 @@ tSDP_CB  sdp_cb;
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm,
+static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, UNUSED_ATTR uint16_t psm,
                              uint8_t l2cap_id);
 static void sdp_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
 static void sdp_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
@@ -169,9 +169,9 @@ uint16_t sdp_set_max_attr_list_size (uint16_t max_size)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id)
+static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
+                             UNUSED_ATTR uint16_t psm, uint8_t l2cap_id)
 {
-    UNUSED(psm);
 #if (SDP_SERVER_ENABLED == TRUE)
     tCONN_CB    *p_ccb;
 
@@ -668,10 +668,10 @@ void sdp_disconnect (tCONN_CB*p_ccb, uint16_t reason)
 ** Returns          void
 **
 *******************************************************************************/
-static void sdp_disconnect_cfm (uint16_t l2cap_cid, uint16_t result)
+static void sdp_disconnect_cfm (uint16_t l2cap_cid,
+                                UNUSED_ATTR uint16_t result)
 {
     tCONN_CB    *p_ccb;
-    UNUSED(result);
 
     /* Find CCB based on CID */
     if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) == NULL)

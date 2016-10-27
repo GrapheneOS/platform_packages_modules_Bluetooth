@@ -1855,11 +1855,11 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
 **
 *******************************************************************************/
 void btm_ble_connected (uint8_t *bda, uint16_t handle, uint8_t enc_mode, uint8_t role,
-                        tBLE_ADDR_TYPE addr_type, bool    addr_matched)
+                        tBLE_ADDR_TYPE addr_type,
+                        UNUSED_ATTR bool addr_matched)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bda);
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UNUSED(addr_matched);
 
     BTM_TRACE_EVENT ("btm_ble_connected");
 
@@ -1922,7 +1922,8 @@ void btm_ble_connected (uint8_t *bda, uint16_t handle, uint8_t enc_mode, uint8_t
 **  Description     LE connection complete.
 **
 ******************************************************************************/
-void btm_ble_conn_complete(uint8_t *p, uint16_t evt_len, bool    enhanced)
+void btm_ble_conn_complete(uint8_t *p,
+                           UNUSED_ATTR uint16_t evt_len, bool    enhanced)
 {
 #if (BLE_PRIVACY_SPT == TRUE)
     uint8_t     *p_data = p, peer_addr_type;
@@ -1933,7 +1934,6 @@ void btm_ble_conn_complete(uint8_t *p, uint16_t evt_len, bool    enhanced)
     BD_ADDR     bda;
     uint16_t    conn_interval, conn_latency, conn_timeout;
     bool        match = false;
-    UNUSED(evt_len);
 
     STREAM_TO_UINT8   (status, p);
     STREAM_TO_UINT16   (handle, p);

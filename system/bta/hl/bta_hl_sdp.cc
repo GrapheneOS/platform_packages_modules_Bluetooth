@@ -168,7 +168,7 @@ bool bta_hl_add_sup_feature_list (uint32_t handle, uint16_t num_elem,
 **  Returns:     void
 **
 *****************************************************************************/
-tBTA_HL_STATUS bta_hl_sdp_update (uint8_t app_id)
+tBTA_HL_STATUS bta_hl_sdp_update (UNUSED_ATTR uint8_t app_id)
 {
     uint16_t                          svc_class_id_list[BTA_HL_NUM_SVC_ELEMS];
     tSDP_PROTOCOL_ELEM              proto_elem_list[BTA_HL_NUM_PROTO_ELEMS];
@@ -184,7 +184,6 @@ tBTA_HL_STATUS bta_hl_sdp_update (uint8_t app_id)
     tBTA_HL_APP_CB                  *p_cb = BTA_HL_GET_APP_CB_PTR(0);
     bool                         result = true;
     tBTA_HL_STATUS                  status = BTA_HL_STATUS_OK;
-    UNUSED(app_id);
 
     if ((p_cb->sup_feature.app_role_mask == BTA_HL_MDEP_ROLE_MASK_SOURCE) &&
         (!p_cb->sup_feature.advertize_source_sdp))

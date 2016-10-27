@@ -344,11 +344,10 @@ void rfcomm_mcb_timer_timeout(void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
+void rfc_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
+                             uint8_t res)
 {
     tPORT *p_port = (tPORT *)p_ref_data;
-    UNUSED(bd_addr);
-    UNUSED(transport);
 
     /* Verify that PORT is still waiting for Security to complete */
     if (!p_port->in_use

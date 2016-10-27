@@ -254,11 +254,10 @@ static bool    process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
 **
 *******************************************************************************/
 tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
-                                      uint32_t trans_id, uint8_t op_code,
+                                      UNUSED_ATTR uint32_t trans_id, uint8_t op_code,
                                       tGATT_STATUS status, tGATTS_RSP *p_msg)
 {
     tGATT_STATUS    ret_code = GATT_SUCCESS;
-    UNUSED(trans_id);
 
     GATT_TRACE_DEBUG("gatt_sr_process_app_rsp gatt_if=%d", gatt_if);
 
@@ -323,14 +322,13 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_exec_write_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
+void gatt_process_exec_write_req (tGATT_TCB *p_tcb, uint8_t op_code,
+                                  UNUSED_ATTR uint16_t len, uint8_t *p_data)
 {
     uint8_t *p = p_data, flag, i = 0;
     uint32_t trans_id = 0;
     tGATT_IF gatt_if;
     uint16_t conn_id;
-
-    UNUSED(len);
 
 #if (GATT_CONFORMANCE_TESTING == TRUE)
     if (gatt_cb.enable_err_rsp && gatt_cb.req_op_code == op_code)
@@ -505,7 +503,8 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t le
 *******************************************************************************/
 static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_tcb,
                                                     uint8_t op_code, uint16_t s_hdl,
-                                                    uint16_t e_hdl, uint8_t *p_data, tBT_UUID value)
+                                                    uint16_t e_hdl,
+                                                    UNUSED_ATTR uint8_t *p_data, tBT_UUID value)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
     uint8_t         handle_len =4, *p ;
@@ -513,8 +512,6 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
     tGATT_SRV_LIST_INFO *p_list= &gatt_cb.srv_list_info;
     tGATT_SRV_LIST_ELEM  *p_srv=NULL;
     tBT_UUID       *p_uuid;
-
-    UNUSED(p_data);
 
     p = (uint8_t *)(p_msg + 1) + L2CAP_MIN_OFFSET;
 
@@ -1146,15 +1143,14 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, uint8_t i_rcb, uint16_t handle,
 **
 *******************************************************************************/
 static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, uint8_t op_code,
-                                   uint16_t handle, uint16_t len, uint8_t *p_data)
+                                   uint16_t handle,
+                                   UNUSED_ATTR uint16_t len, uint8_t *p_data)
 {
     size_t          buf_len = sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET;
     tGATT_STATUS    reason;
     uint8_t         sec_flag, key_size, *p;
     uint16_t        offset = 0, value_len = 0;
     BT_HDR          *p_msg = (BT_HDR *)osi_calloc(buf_len);
-
-    UNUSED(len);
 
     if (op_code == GATT_REQ_READ_BLOB)
         STREAM_TO_UINT16(offset, p_data);

@@ -439,10 +439,9 @@ void gatt_update_last_pri_srv_info(tGATT_SRV_LIST_INFO *p_list)
 ** Returns          None.
 **
 *******************************************************************************/
-void gatts_update_srv_list_elem(uint8_t i_sreg, uint16_t handle, bool    is_primary)
+void gatts_update_srv_list_elem(uint8_t i_sreg,
+                                UNUSED_ATTR uint16_t handle, bool    is_primary)
 {
-    UNUSED(handle);
-
     gatt_cb.srv_list[i_sreg].in_use         = true;
     gatt_cb.srv_list[i_sreg].i_sreg    = i_sreg;
     gatt_cb.srv_list[i_sreg].s_hdl          = gatt_cb.sr_reg[i_sreg].s_hdl;
