@@ -253,8 +253,6 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     BE_STREAM_TO_UINT32(time_stamp, p);
     p += 4;
 
-    UNUSED(o_v);
-
     /* skip over any csrc's in packet */
     p += o_cc * 4;
 
@@ -330,9 +328,6 @@ uint8_t * avdt_scb_hdl_report(tAVDT_SCB *p_scb, uint8_t *p, uint16_t len)
         pt = *p++;
         p += 2;
         BE_STREAM_TO_UINT32(ssrc, p);
-
-        UNUSED(o_p);
-        UNUSED(o_v);
 
         switch(pt)
         {
