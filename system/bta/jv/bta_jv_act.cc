@@ -676,10 +676,8 @@ void bta_jv_enable(tBTA_JV_MSG *p_data)
 ** Returns      void
 **
 *******************************************************************************/
-void bta_jv_disable (tBTA_JV_MSG *p_data)
+void bta_jv_disable (UNUSED_ATTR tBTA_JV_MSG *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_ERROR("%s",__func__);
 }
 

@@ -322,13 +322,10 @@ static void bta_hf_client_collision_timer_cback(UNUSED_ATTR void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, uint8_t id,
-                                    uint8_t app_id, BD_ADDR peer_addr)
+void bta_hf_client_collision_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status, uint8_t id,
+                                    UNUSED_ATTR uint8_t app_id,
+                                    UNUSED_ATTR BD_ADDR peer_addr)
 {
-    UNUSED(status);
-    UNUSED(app_id);
-    UNUSED(peer_addr);
-
     if (bta_hf_client_cb.scb.state == BTA_HF_CLIENT_OPENING_ST)
     {
         if (id == BTA_ID_SYS)   /* ACL collision */

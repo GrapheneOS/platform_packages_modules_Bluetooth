@@ -64,7 +64,7 @@
 /* ACL quota we are letting FW use for A2DP Offload Tx. */
 #define BTA_AV_A2DP_OFFLOAD_XMIT_QUOTA      4
 
-static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
+static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, UNUSED_ATTR tBTA_AV_DATA *p_data);
 
 /* state machine states */
 enum
@@ -337,10 +337,9 @@ static void notify_start_failed(tBTA_AV_SCB *p_scb)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb,
+                               UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("%s: rc_handle:%d, use_rc: %d", __func__,
         p_scb->rc_handle, p_scb->use_rc);
     /* for outgoing RC connection as INT/CT */
@@ -775,11 +774,11 @@ static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_switch_role (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_switch_role (tBTA_AV_SCB *p_scb,
+                         UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RS_RES      switch_res = BTA_AV_RS_NONE;
     tBTA_AV_API_OPEN  *p_buf = &p_scb->q_info.open;
-    UNUSED(p_data);
 
     APPL_TRACE_DEBUG("%s: wait:x%x", __func__, p_scb->wait);
     if (p_scb->wait & BTA_AV_WAIT_ROLE_SW_RES_START)
@@ -1061,11 +1060,11 @@ void bta_av_do_disc_a2dp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_cleanup(tBTA_AV_SCB *p_scb,
+                    UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CONN_CHG msg;
     uint8_t role = BTA_AV_ROLE_AD_INT;
-    UNUSED(p_data);
 
     APPL_TRACE_DEBUG("%s", __func__);
 
@@ -1125,9 +1124,9 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_free_sdb(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_free_sdb(tBTA_AV_SCB *p_scb,
+                     UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
     p_scb->sdp_discovery_started = false;
 }
 
@@ -1140,7 +1139,8 @@ void bta_av_free_sdb(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_config_ind (tBTA_AV_SCB *p_scb,
+                        UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CI_SETCONFIG setconfig;
     tAVDT_SEP_INFO       *p_info;
@@ -1148,7 +1148,6 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     uint8_t   psc_mask = (p_evt_cfg->psc_mask | p_scb->cfg.psc_mask);
     uint8_t local_sep;    /* sep type of local handle on which connection was received */
     tBTA_AV_STR_MSG  *p_msg = (tBTA_AV_STR_MSG *)p_data;
-    UNUSED(p_data);
 
     local_sep = bta_av_get_scb_sep_type(p_scb, p_msg->handle);
     p_scb->avdt_label = p_data->str_msg.msg.hdr.label;
@@ -1228,10 +1227,10 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_disconnect_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_disconnect_req (tBTA_AV_SCB *p_scb,
+                            UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RCB *p_rcb;
-    UNUSED(p_data);
 
     APPL_TRACE_DEBUG("%s: conn_lcb: 0x%x", __func__, bta_av_cb.conn_lcb);
 
@@ -1539,10 +1538,9 @@ void bta_av_security_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_do_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_do_close (tBTA_AV_SCB *p_scb,
+		      UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     /* stop stream if started */
     if (p_scb->co_started)
     {
@@ -1574,10 +1572,9 @@ void bta_av_do_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_connect_req(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_connect_req(tBTA_AV_SCB *p_scb,
+                        UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     p_scb->sdp_discovery_started = false;
     if (p_scb->coll_mask & BTA_AV_COLL_INC_TMR)
     {
@@ -1778,10 +1775,9 @@ void bta_av_save_caps(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_set_use_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_set_use_rc (tBTA_AV_SCB *p_scb,
+                        UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     p_scb->use_rc = true;
 }
 
@@ -1794,10 +1790,10 @@ void bta_av_set_use_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_cco_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_cco_close (tBTA_AV_SCB *p_scb,
+                       UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     uint16_t mtu;
-    UNUSED(p_data);
 
     mtu = bta_av_chk_mtu(p_scb, BTA_AV_MAX_A2DP_MTU);
 
@@ -1980,10 +1976,9 @@ void bta_av_setconfig_rej (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_discover_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_discover_req (tBTA_AV_SCB *p_scb,
+                          UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     /* send avdtp discover request */
 
     AVDT_DiscoverReq(p_scb->peer_addr, p_scb->sep_info, BTA_AV_NUM_SEPS, bta_av_dt_cback[p_scb->hdi]);
@@ -2232,7 +2227,8 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_data_path (tBTA_AV_SCB *p_scb,
+                       UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     BT_HDR  *p_buf = NULL;
     uint32_t  timestamp;
@@ -2240,7 +2236,6 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_scb->cfg.codec_info);
     uint8_t   m_pt = 0x60 | codec_type;
     tAVDT_DATA_OPT_MASK     opt;
-    UNUSED(p_data);
 
     if (p_scb->cong)
         return;
@@ -2507,10 +2502,9 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_start_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_start_failed (tBTA_AV_SCB *p_scb,
+                          UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     if(p_scb->started == false && p_scb->co_started == false)
     {
         bta_sys_idle(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
@@ -2599,10 +2593,9 @@ void bta_av_str_closed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_clr_cong (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_clr_cong (tBTA_AV_SCB *p_scb,
+		      UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     if(p_scb->co_started)
         p_scb->cong = false;
 }
@@ -2705,10 +2698,10 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rcfg_str_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_rcfg_str_ok (tBTA_AV_SCB *p_scb,
+                         UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RECONFIG    evt;
-    UNUSED(p_data);
 
     p_scb->l2c_cid      = AVDT_GetL2CapChannel(p_scb->avdt_handle);
     APPL_TRACE_DEBUG("%s: l2c_cid: %d", __func__, p_scb->l2c_cid);
@@ -2781,10 +2774,9 @@ void bta_av_rcfg_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rcfg_connect (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_rcfg_connect (tBTA_AV_SCB *p_scb,
+                          UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     p_scb->cong    = false;
     p_scb->num_recfg++;
     APPL_TRACE_DEBUG("%s: num_recfg: %d", __func__, p_scb->num_recfg);
@@ -2806,10 +2798,10 @@ void bta_av_rcfg_connect (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rcfg_discntd (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_rcfg_discntd (tBTA_AV_SCB *p_scb,
+                          UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RECONFIG    evt;
-    UNUSED(p_data);
 
     APPL_TRACE_DEBUG("%s: num_recfg: %d", __func__, p_scb->num_recfg);
     p_scb->num_recfg++;
@@ -2922,10 +2914,9 @@ void bta_av_rcfg_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rcfg_open (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_rcfg_open (tBTA_AV_SCB *p_scb,
+                       UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("%s: num_disc_snks = %d", __func__, p_scb->num_disc_snks);
 
     if (p_scb->num_disc_snks == 0)
@@ -2960,10 +2951,9 @@ void bta_av_rcfg_open (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_security_rej (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_security_rej (tBTA_AV_SCB *p_scb,
+			  UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
-
     AVDT_SecurityRsp(p_scb->avdt_handle, p_scb->avdt_label, AVDT_ERR_BAD_STATE,
                      NULL, 0);
 }
@@ -2978,12 +2968,12 @@ void bta_av_security_rej (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_chk_2nd_start (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_chk_2nd_start (tBTA_AV_SCB *p_scb,
+                           UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_SCB *p_scbi;
     int i;
     bool new_started = false;
-    UNUSED(p_data);
 
     if ((p_scb->chnl == BTA_AV_CHNL_AUDIO) && (bta_av_cb.audio_open_cnt >= 2))
     {

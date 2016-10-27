@@ -610,12 +610,12 @@ static void bta_gattc_char_dscpt_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_
 
 }
 static bool bta_gattc_srvc_in_list(tBTA_GATTC_SERV *p_srvc_cb, uint16_t s_handle,
-                                      uint16_t e_handle, tBT_UUID uuid)
+                                      uint16_t e_handle,
+                                   UNUSED_ATTR tBT_UUID uuid)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
     uint8_t   i;
     bool exist_srvc = false;
-    UNUSED(uuid);
 
     if (!GATT_HANDLE_IS_VALID(s_handle) || !GATT_HANDLE_IS_VALID(e_handle))
     {

@@ -115,12 +115,11 @@ void bta_hl_dch_mca_cong_change(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_id
 **
 *******************************************************************************/
 void bta_hl_dch_echo_test(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
-                          tBTA_HL_DATA *p_data)
+                          UNUSED_ATTR tBTA_HL_DATA *p_data)
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     tBTA_HL_MDL_CB      *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-    UNUSED(p_data);
 
 #if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_dch_echo_test");

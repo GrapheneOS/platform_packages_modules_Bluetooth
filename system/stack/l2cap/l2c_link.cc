@@ -297,15 +297,15 @@ bool    l2c_link_hci_conn_comp (uint8_t status, uint16_t handle, BD_ADDR p_bda)
 ** Returns          void
 **
 *******************************************************************************/
-void l2c_link_sec_comp (BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data, uint8_t status)
+void l2c_link_sec_comp (BD_ADDR p_bda,
+                        UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
+                        uint8_t status)
 {
     tL2C_CONN_INFO  ci;
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
     tL2C_CCB        *p_next_ccb;
     uint8_t         event;
-
-    UNUSED(transport);
 
     L2CAP_TRACE_DEBUG ("l2c_link_sec_comp: %d, 0x%x", status, p_ref_data);
 
@@ -922,12 +922,10 @@ void l2c_link_processs_num_bufs (uint16_t num_lm_acl_bufs)
 ** Returns          count of number of entries filled in
 **
 *******************************************************************************/
-uint8_t l2c_link_pkts_rcvd (uint16_t *num_pkts, uint16_t *handles)
+uint8_t l2c_link_pkts_rcvd (UNUSED_ATTR uint16_t *num_pkts,
+                            UNUSED_ATTR uint16_t *handles)
 {
     uint8_t     num_found = 0;
-
-    UNUSED(num_pkts);
-    UNUSED(handles);
 
     return (num_found);
 }

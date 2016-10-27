@@ -44,8 +44,8 @@
 static void gap_ble_s_attr_request_cback (uint16_t conn_id, uint32_t trans_id, tGATTS_REQ_TYPE op_code, tGATTS_DATA *p_data);
 
 /* client connection callback */
-static void  gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id, bool    connected,
-                                            tGATT_DISCONN_REASON reason, tGATT_TRANSPORT transport);
+static void  gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id, bool connected,
+                                      tGATT_DISCONN_REASON reason, tGATT_TRANSPORT transport);
 static void  gap_ble_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
 
 static tGATT_CBACK gap_cback =
@@ -276,10 +276,10 @@ tGATT_STATUS gap_read_attr_value (uint16_t handle, tGATT_VALUE *p_value, bool   
 /*******************************************************************************
 **   GAP Attributes Database Read/Read Blob Request process
 *******************************************************************************/
-tGATT_STATUS gap_proc_read (tGATTS_REQ_TYPE type, tGATT_READ_REQ *p_data, tGATTS_RSP *p_rsp)
+tGATT_STATUS gap_proc_read (UNUSED_ATTR tGATTS_REQ_TYPE type, tGATT_READ_REQ *p_data,
+                            tGATTS_RSP *p_rsp)
 {
     tGATT_STATUS    status = GATT_NO_RESOURCES;
-    UNUSED(type);
 
     if (p_data->is_long)
         p_rsp->attr_value.offset = p_data->offset;
@@ -300,11 +300,10 @@ tGATT_STATUS gap_proc_read (tGATTS_REQ_TYPE type, tGATT_READ_REQ *p_data, tGATTS
 ** Returns          void.
 **
 *******************************************************************************/
-uint8_t gap_proc_write_req( tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_data)
+uint8_t gap_proc_write_req(UNUSED_ATTR tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_data)
 {
     tGAP_ATTR   *p_db_attr = gap_cb.gatt_attr;
     uint8_t i;
-    UNUSED(type);
 
     for (i = 0; i < GAP_MAX_CHAR_NUM; i ++, p_db_attr ++)
     {
@@ -566,14 +565,12 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, bool    status, uint16_t len, uint8_t
 ** Returns          void
 **
 *******************************************************************************/
-static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+static void gap_ble_c_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
+                                     uint16_t conn_id,
                                      bool    connected, tGATT_DISCONN_REASON reason,
-                                     tGATT_TRANSPORT transport)
+                                     UNUSED_ATTR tGATT_TRANSPORT transport)
 {
     tGAP_CLCB   *p_clcb = gap_find_clcb_by_bd_addr (bda);
-
-    UNUSED(gatt_if);
-    UNUSED(transport);
 
     if (p_clcb != NULL)
     {

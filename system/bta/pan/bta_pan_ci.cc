@@ -245,59 +245,39 @@ void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters, uint16_t *p_
 }
 #else
 
-void bta_pan_ci_tx_ready(uint16_t handle)
+void bta_pan_ci_tx_ready(UNUSED_ATTR uint16_t handle)
 {
-    UNUSED(handle);
 }
 
-void bta_pan_ci_rx_ready(uint16_t handle)
+void bta_pan_ci_rx_ready(UNUSED_ATTR uint16_t handle)
 {
-    UNUSED(handle);
 }
 
-void bta_pan_ci_tx_flow(uint16_t handle, bool enable)
+void bta_pan_ci_tx_flow(UNUSED_ATTR uint16_t handle,
+                        UNUSED_ATTR bool enable)
 {
-    UNUSED(handle);
-    UNUSED(enable);
 }
 
-void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t protocol, BT_HDR *p_buf, bool ext)
+void bta_pan_ci_rx_writebuf(UNUSED_ATTR uint16_t handle, UNUSED_ATTR BD_ADDR src, UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t protocol, UNUSED_ATTR BT_HDR *p_buf,
+                            UNUSED_ATTR bool ext)
 {
-    UNUSED(handle);
-    UNUSED(src);
-    UNUSED(dst);
-    UNUSED(protocol);
-    UNUSED(p_buf);
-    UNUSED(ext);
 }
 
-BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t *p_protocol,
-                            bool* p_ext, bool* p_forward)
+BT_HDR * bta_pan_ci_readbuf(UNUSED_ATTR uint16_t handle, UNUSED_ATTR BD_ADDR src, UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t *p_protocol,
+                            UNUSED_ATTR bool *p_ext,
+                            UNUSED_ATTR bool *p_forward)
 {
-    UNUSED(handle);
-    UNUSED(src);
-    UNUSED(dst);
-    UNUSED(p_protocol);
-    UNUSED(p_ext);
-    UNUSED(p_forward);
     return NULL;
 }
 
-void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters, uint16_t *p_start_array, uint16_t *p_end_array)
+void bta_pan_ci_set_pfilters(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint16_t num_filters, UNUSED_ATTR uint16_t *p_start_array,
+                             UNUSED_ATTR uint16_t *p_end_array)
 {
-    UNUSED(handle);
-    UNUSED(num_filters);
-    UNUSED(p_start_array);
-    UNUSED(p_end_array);
 }
 
-void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_t *p_start_array,
-                             uint8_t *p_end_array)
+void bta_pan_ci_set_mfilters(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint16_t num_mcast_filters, UNUSED_ATTR uint8_t *p_start_array,
+                             UNUSED_ATTR uint8_t *p_end_array)
 {
-    UNUSED(handle);
-    UNUSED(num_mcast_filters);
-    UNUSED(p_start_array);
-    UNUSED(p_end_array);
 }
 
 #endif /* BTA_PAN_API */

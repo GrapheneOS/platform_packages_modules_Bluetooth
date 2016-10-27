@@ -389,15 +389,12 @@ void l2cble_scanner_conn_comp (uint16_t handle, BD_ADDR bda, tBLE_ADDR_TYPE type
 ** Returns          void
 **
 *******************************************************************************/
-void l2cble_advertiser_conn_comp (uint16_t handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
-                                  uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout)
+void l2cble_advertiser_conn_comp (uint16_t handle, BD_ADDR bda, UNUSED_ATTR tBLE_ADDR_TYPE type,
+                                  UNUSED_ATTR uint16_t conn_interval, UNUSED_ATTR uint16_t conn_latency,
+                                  UNUSED_ATTR uint16_t conn_timeout)
 {
     tL2C_LCB            *p_lcb;
     tBTM_SEC_DEV_REC    *p_dev_rec;
-    UNUSED(type);
-    UNUSED(conn_interval);
-    UNUSED(conn_latency);
-    UNUSED(conn_timeout);
 
     /* See if we have a link control block for the remote device */
     p_lcb = l2cu_find_lcb_by_bd_addr (bda, BT_TRANSPORT_LE);

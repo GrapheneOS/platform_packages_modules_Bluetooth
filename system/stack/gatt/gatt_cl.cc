@@ -411,12 +411,11 @@ void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_find_type_value_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint16_t len, uint8_t *p_data)
+void gatt_process_find_type_value_rsp (UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,
+				       uint16_t len, uint8_t *p_data)
 {
     tGATT_DISC_RES      result;
     uint8_t             *p = p_data;
-
-    UNUSED(p_tcb);
 
     GATT_TRACE_DEBUG("gatt_process_find_type_value_rsp ");
     /* unexpected response */
@@ -456,14 +455,11 @@ void gatt_process_find_type_value_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uin
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_read_info_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t op_code,
+void gatt_process_read_info_rsp(UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UNUSED_ATTR uint8_t op_code,
                                 uint16_t len, uint8_t *p_data)
 {
     tGATT_DISC_RES  result;
     uint8_t *p = p_data, uuid_len = 0, type;
-
-    UNUSED(p_tcb);
-    UNUSED(op_code);
 
     if (len < GATT_INFO_RSP_MIN_LEN)
     {
@@ -515,13 +511,11 @@ void gatt_process_read_info_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t op
 ** Returns          void.
 **
 *******************************************************************************/
-void gatt_proc_disc_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t opcode,
-                              uint16_t handle, uint8_t reason)
+void gatt_proc_disc_error_rsp(UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,
+                              uint8_t opcode,
+                              UNUSED_ATTR uint16_t handle, uint8_t reason)
 {
     tGATT_STATUS    status = (tGATT_STATUS) reason;
-
-    UNUSED(p_tcb);
-    UNUSED(handle);
 
     GATT_TRACE_DEBUG("gatt_proc_disc_error_rsp reason: %02x cmd_code %04x", reason, opcode);
 
@@ -555,15 +549,12 @@ void gatt_proc_disc_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t opco
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t op_code,
-                            uint16_t len, uint8_t *p_data)
+void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UNUSED_ATTR uint8_t op_code,
+                            UNUSED_ATTR uint16_t len, uint8_t *p_data)
 {
     uint8_t opcode, reason, * p= p_data;
     uint16_t handle;
     tGATT_VALUE  *p_attr = (tGATT_VALUE *)p_clcb->p_attr_buf;
-
-    UNUSED(op_code);
-    UNUSED(len);
 
     GATT_TRACE_DEBUG("gatt_process_error_rsp ");
     STREAM_TO_UINT8(opcode, p);
@@ -948,13 +939,11 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  uint8_t op_code,
+void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  UNUSED_ATTR uint8_t op_code,
                            uint16_t len, uint8_t *p_data)
 {
     uint16_t    offset = p_clcb->counter;
     uint8_t     * p= p_data;
-
-    UNUSED(op_code);
 
     if (p_clcb->operation == GATTC_OPTYPE_READ)
     {

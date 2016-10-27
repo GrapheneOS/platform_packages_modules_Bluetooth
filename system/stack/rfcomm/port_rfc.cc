@@ -580,10 +580,10 @@ void PORT_PortNegInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
 **                  state for the port.  Propagate change to the user.
 **
 *******************************************************************************/
-void PORT_PortNegCnf (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars, uint16_t result)
+void PORT_PortNegCnf (tRFC_MCB *p_mcb, uint8_t dlci,
+                      UNUSED_ATTR tPORT_STATE *p_pars, uint16_t result)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-    UNUSED(p_pars);
 
     RFCOMM_TRACE_EVENT ("PORT_PortNegCnf");
 
@@ -681,11 +681,11 @@ void PORT_ControlInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
 **                  peer acknowleges change of the modem signals.
 **
 *******************************************************************************/
-void PORT_ControlCnf (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
+void PORT_ControlCnf (tRFC_MCB *p_mcb, uint8_t dlci,
+                      UNUSED_ATTR tPORT_CTRL *p_pars)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     uint32_t event = 0;
-    UNUSED(p_pars);
 
     RFCOMM_TRACE_EVENT ("PORT_ControlCnf");
 

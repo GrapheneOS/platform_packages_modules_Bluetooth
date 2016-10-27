@@ -286,11 +286,11 @@ void btm_ble_clear_white_list (void)
 ** Description      Indicates white list cleared.
 **
 *******************************************************************************/
-void btm_ble_clear_white_list_complete(uint8_t *p_data, uint16_t evt_len)
+void btm_ble_clear_white_list_complete(uint8_t *p_data,
+                                       UNUSED_ATTR uint16_t evt_len)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
     uint8_t     status;
-    UNUSED(evt_len);
 
     BTM_TRACE_EVENT ("btm_ble_clear_white_list_complete");
     STREAM_TO_UINT8  (status, p_data);
@@ -333,9 +333,9 @@ void btm_ble_add_2_white_list_complete(uint8_t status)
 ** Description      White list element removal complete
 **
 *******************************************************************************/
-void btm_ble_remove_from_white_list_complete(uint8_t *p, uint16_t evt_len)
+void btm_ble_remove_from_white_list_complete(uint8_t *p,
+                                             UNUSED_ATTR uint16_t evt_len)
 {
-    UNUSED(evt_len);
     BTM_TRACE_EVENT ("%s status=%d", __func__, *p);
     if (*p == HCI_SUCCESS)
         ++btm_cb.ble_ctr_cb.white_list_avail_size;

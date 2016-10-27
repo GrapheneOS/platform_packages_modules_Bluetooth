@@ -239,10 +239,8 @@ static void bta_hf_client_cback_open(tBTA_HF_CLIENT_DATA *p_data, tBTA_HF_CLIENT
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_rfc_open(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_rfc_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     bta_sys_conn_open(BTA_ID_HS, 1, bta_hf_client_cb.scb.peer_addr);
 
     bta_hf_client_cback_open(NULL, BTA_HF_CLIENT_SUCCESS);
@@ -315,10 +313,8 @@ void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_rfc_fail(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_rfc_fail(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     /* reinitialize stuff */
     bta_hf_client_cb.scb.conn_handle = 0;
     bta_hf_client_cb.scb.peer_features = 0;
@@ -347,10 +343,8 @@ void bta_hf_client_rfc_fail(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_disc_fail(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_disc_fail(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     /* reopen server */
     bta_hf_client_start_server();
 
@@ -386,10 +380,8 @@ void bta_hf_client_open_fail(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_rfc_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     /* reinitialize stuff */
     bta_hf_client_cb.scb.peer_features = 0;
     bta_hf_client_cb.scb.chld_features = 0;
@@ -497,11 +489,10 @@ void bta_hf_client_disc_acp_res(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_rfc_data(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_rfc_data(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     uint16_t  len;
     char    buf[BTA_HF_CLIENT_RFC_READ_MAX];
-    UNUSED(p_data);
 
     memset(buf, 0, sizeof(buf));
 
@@ -534,10 +525,9 @@ void bta_hf_client_rfc_data(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_svc_conn_open(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_svc_conn_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     tBTA_HF_CLIENT evt;
-    UNUSED(p_data);
 
     memset(&evt, 0, sizeof(evt));
 

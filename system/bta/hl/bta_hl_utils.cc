@@ -47,11 +47,10 @@
 ** Returns     bool - true - control PSM setting is successful
 *******************************************************************************/
 bool bta_hl_set_ctrl_psm_for_dch(uint8_t app_idx, uint8_t mcl_idx,
-                                    uint8_t mdl_idx, uint16_t ctrl_psm)
+                                    UNUSED_ATTR uint8_t mdl_idx, uint16_t ctrl_psm)
 {
     tBTA_HL_MCL_CB *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     bool success = true, update_ctrl_psm = false;
-    UNUSED(mdl_idx);
 
     if (p_mcb->sdp.num_recs)
     {
@@ -1319,7 +1318,7 @@ bool  bta_hl_find_non_active_mdl_cfg(uint8_t app_idx, uint8_t start_mdl_cfg_idx,
 **                        false not found
 **
 *******************************************************************************/
-bool  bta_hl_find_avail_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
+bool  bta_hl_find_avail_mdl_cfg_idx(uint8_t app_idx, UNUSED_ATTR uint8_t mcl_idx,
                                        uint8_t *p_mdl_cfg_idx)
 {
     tBTA_HL_MDL_CFG     *p_mdl, *p_mdl1, *p_mdl2;
@@ -1327,7 +1326,6 @@ bool  bta_hl_find_avail_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
     bool             found=false;
     uint8_t               first_mdl_cfg_idx, second_mdl_cfg_idx, older_mdl_cfg_idx;
     bool             done;
-    UNUSED(mcl_idx);
 
     for (i=0; i< BTA_HL_NUM_MDL_CFGS; i++)
     {

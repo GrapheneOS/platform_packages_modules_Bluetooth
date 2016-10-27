@@ -181,10 +181,9 @@ bool    smp_encrypt_data (uint8_t *key, uint8_t key_len,
 ** Returns          void
 **
 *******************************************************************************/
-void smp_generate_passkey(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_generate_passkey(tSMP_CB *p_cb,
+                          UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     SMP_TRACE_DEBUG ("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_TK;
 
@@ -249,9 +248,9 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_generate_stk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_generate_stk(tSMP_CB *p_cb,
+                      UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
 
     tSMP_ENC output;
     tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
@@ -287,10 +286,9 @@ void smp_generate_stk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb,
+                                      UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     SMP_TRACE_DEBUG ("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND;
     /* generate MRand or SRand */
@@ -307,10 +305,9 @@ void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_generate_rand_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_generate_rand_cont(tSMP_CB *p_cb,
+                            UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     SMP_TRACE_DEBUG ("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND_CONT;
     /* generate 64 MSB of MRand or SRand */
@@ -332,9 +329,9 @@ void smp_generate_rand_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_generate_ltk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_generate_ltk(tSMP_CB *p_cb,
+                      UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
 
     bool    div_status;
     SMP_TRACE_DEBUG ("%s", __func__);
@@ -374,9 +371,9 @@ void smp_generate_ltk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_compute_csrk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_compute_csrk(tSMP_CB *p_cb,
+                      UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
 
     BT_OCTET16  er;
     uint8_t     buffer[4]; /* for (r || DIV)  r=1*/
@@ -421,9 +418,9 @@ void smp_compute_csrk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_generate_csrk(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_generate_csrk(tSMP_CB *p_cb,
+                       UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
 
     bool        div_status;
 
@@ -591,9 +588,9 @@ void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand, BD_ADDR bda)
+void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand,
+                            UNUSED_ATTR BD_ADDR bda)
 {
-    UNUSED(bda);
 
     BT_OCTET16      p1;
     tSMP_ENC       output;
@@ -679,10 +676,9 @@ static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void smp_generate_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+static void smp_generate_confirm(tSMP_CB *p_cb,
+                                 UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     SMP_TRACE_DEBUG ("%s", __func__);
     p_cb->rand_enc_proc_state = SMP_GEN_CONFIRM;
     smp_debug_print_nbyte_little_endian ((uint8_t *)p_cb->rand,  (const uint8_t *)"local rand", 16);
@@ -700,10 +696,9 @@ static void smp_generate_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_generate_compare (tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+void smp_generate_compare (tSMP_CB *p_cb,
+                           UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     SMP_TRACE_DEBUG ("smp_generate_compare ");
     p_cb->rand_enc_proc_state = SMP_GEN_COMPARE;
     smp_debug_print_nbyte_little_endian ((uint8_t *)p_cb->rrand,  (const uint8_t *)"peer rand", 16);
@@ -797,9 +792,9 @@ static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void smp_generate_ltk_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
+static void smp_generate_ltk_cont(tSMP_CB *p_cb,
+                                  UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
-    UNUSED(p_data);
 
     BT_OCTET16  er;
     tSMP_ENC    output;
@@ -833,9 +828,9 @@ static void smp_generate_ltk_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void smp_generate_y(tSMP_CB *p_cb, tSMP_INT_DATA *p)
+static void smp_generate_y(tSMP_CB *p_cb,
+                           UNUSED_ATTR tSMP_INT_DATA *p)
 {
-    UNUSED(p);
 
     BT_OCTET16  dhk;
     tSMP_ENC   output;
@@ -867,10 +862,9 @@ static void smp_generate_y(tSMP_CB *p_cb, tSMP_INT_DATA *p)
 ** Returns          void
 **
 *******************************************************************************/
-static void smp_generate_rand_vector (tSMP_CB *p_cb, tSMP_INT_DATA *p)
+static void smp_generate_rand_vector (tSMP_CB *p_cb,
+                                      UNUSED_ATTR tSMP_INT_DATA *p)
 {
-    UNUSED(p);
-
     /* generate EDIV and rand now */
     /* generate random vector */
     SMP_TRACE_DEBUG ("smp_generate_rand_vector ");

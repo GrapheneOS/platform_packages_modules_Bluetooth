@@ -36,7 +36,8 @@
 #include "device/include/interop.h"
 
 /* callback function declarations */
-void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
+void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
+                                uint16_t psm, uint8_t id);
 void avdt_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result);
 void avdt_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
 void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
@@ -71,12 +72,11 @@ const tL2CAP_APPL_INFO avdt_l2c_appl = {
 **
 *******************************************************************************/
 static void avdt_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport,
-                                                 void *p_ref_data, uint8_t res)
+                                                 UNUSED_ATTR void *p_ref_data, uint8_t res)
 {
     tAVDT_CCB       *p_ccb = NULL;
     tL2CAP_CFG_INFO cfg;
     tAVDT_TC_TBL    *p_tbl;
-    UNUSED(p_ref_data);
 
     AVDT_TRACE_DEBUG("avdt_sec_check_complete_term res: %d", res);
     if (!bd_addr)
@@ -129,12 +129,11 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transpo
 **
 *******************************************************************************/
 static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
-                                                void *p_ref_data, uint8_t res)
+                                                UNUSED_ATTR void *p_ref_data, uint8_t res)
 {
     tAVDT_CCB       *p_ccb = NULL;
     tL2CAP_CFG_INFO cfg;
     tAVDT_TC_TBL    *p_tbl;
-    UNUSED(p_ref_data);
 
     AVDT_TRACE_DEBUG("avdt_sec_check_complete_orig res: %d", res);
     if (bd_addr)
@@ -172,14 +171,14 @@ static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT trasnpo
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
+void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
+                                UNUSED_ATTR uint16_t psm, uint8_t id)
 {
     tAVDT_CCB       *p_ccb;
     tAVDT_TC_TBL    *p_tbl = NULL;
     uint16_t        result;
     tL2CAP_CFG_INFO cfg;
     tBTM_STATUS rc;
-    UNUSED(psm);
 
     /* do we already have a control channel for this peer? */
     if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)

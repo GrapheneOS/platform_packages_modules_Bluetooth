@@ -953,9 +953,9 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hh_get_dscp_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
+void bta_hh_get_dscp_act(tBTA_HH_DEV_CB *p_cb,
+                         UNUSED_ATTR tBTA_HH_DATA *p_data)
 {
-    UNUSED(p_data);
 
 #if (BTA_HH_LE_INCLUDED == TRUE)
     if (p_cb->is_le_device)

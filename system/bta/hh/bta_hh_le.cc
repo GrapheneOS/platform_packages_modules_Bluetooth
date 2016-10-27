@@ -1188,13 +1188,11 @@ void bta_hh_le_pri_service_discovery(tBTA_HH_DEV_CB *p_cb)
 ** Returns          None
 **
 *******************************************************************************/
-void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport,
-                                    void *p_ref_data, tBTM_STATUS result)
+void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, UNUSED_ATTR tBTA_GATT_TRANSPORT transport,
+                                    UNUSED_ATTR void *p_ref_data, tBTM_STATUS result)
 {
     uint8_t   idx = bta_hh_find_cb(bd_addr);
     tBTA_HH_DEV_CB *p_dev_cb;
-    UNUSED(p_ref_data);
-    UNUSED (transport);
 
     if (idx != BTA_HH_IDX_INVALID)
         p_dev_cb = &bta_hh_cb.kdev[idx];
@@ -1219,10 +1217,9 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport,
 ** Parameters:
 **
 *******************************************************************************/
-void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
+void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb,
+                          UNUSED_ATTR tBTA_HH_DATA *p_buf)
 {
-    UNUSED(p_buf);
-
     APPL_TRACE_DEBUG("%s", __func__);
     if (p_cb->status == BTA_HH_OK)
     {
@@ -1315,11 +1312,11 @@ void bta_hh_clear_service_cache(tBTA_HH_DEV_CB *p_cb)
 ** Parameters:
 **
 *******************************************************************************/
-void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
+void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb,
+                           UNUSED_ATTR tBTA_HH_DATA *p_buf)
 {
     uint8_t           sec_flag=0;
     tBTM_SEC_DEV_REC  *p_dev_rec;
-    UNUSED(p_buf);
 
     p_dev_rec = btm_find_dev(p_cb->addr);
     if (p_dev_rec)
