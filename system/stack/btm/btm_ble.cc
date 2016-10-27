@@ -42,6 +42,7 @@
 #include "hcimsgs.h"
 #include "l2c_int.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "smp_api.h"
 
 #if (SMP_INCLUDED == TRUE)

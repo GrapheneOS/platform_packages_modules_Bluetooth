@@ -34,6 +34,7 @@
 #include "sdpdefs.h"
 #include "l2c_api.h"
 #include "hcidefs.h"
+#include "osi/include/osi.h"
 
 
 tPAN_CB pan_cb;

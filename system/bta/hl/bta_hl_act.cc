@@ -38,6 +38,7 @@
 #include "utl.h"
 #include "mca_defs.h"
 #include "mca_api.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************
 **  Local Function prototypes

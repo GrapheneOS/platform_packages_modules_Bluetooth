@@ -55,6 +55,7 @@
 #include "btu.h"
 #include "mca_api.h"
 #include "osi/include/list.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 #define MAX_DATATYPE_SUPPORTED 8

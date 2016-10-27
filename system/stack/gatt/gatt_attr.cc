@@ -29,6 +29,7 @@
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "btcore/include/uuid.h"
+#include "osi/include/osi.h"
 
 #if (BLE_INCLUDED == TRUE)
 

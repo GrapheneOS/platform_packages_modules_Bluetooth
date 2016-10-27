@@ -34,6 +34,7 @@
 #include "rfc_int.h"
 #include "btu.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 #include <string.h>
 

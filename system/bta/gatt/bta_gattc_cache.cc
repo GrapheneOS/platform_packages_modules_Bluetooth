@@ -41,6 +41,7 @@
 #include "btm_int.h"
 #include "bt_common.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "sdp_api.h"
 #include "sdpdefs.h"
 #include "utl.h"

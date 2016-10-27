@@ -25,6 +25,7 @@
 #include "bt_common.h"
 #include "bta_gatts_co.h"
 #include "btif_util.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************
  *  Local type definitions

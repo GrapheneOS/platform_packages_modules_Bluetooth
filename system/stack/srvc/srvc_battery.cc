@@ -23,6 +23,7 @@
 #include "srvc_eng_int.h"
 #include "srvc_battery_int.h"
 #include "btcore/include/uuid.h"
+#include "osi/include/osi.h"
 
 #if (BLE_INCLUDED == TRUE)
 

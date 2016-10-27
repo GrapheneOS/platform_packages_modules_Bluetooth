@@ -30,6 +30,7 @@
 #include "bt_utils.h"
 #include "bta_hf_client_api.h"
 #include "bta_hf_client_int.h"
+#include "osi/include/osi.h"
 
 /* Number of protocol elements in protocol element list. */
 #define BTA_HF_CLIENT_NUM_PROTO_ELEMS      2

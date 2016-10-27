@@ -30,6 +30,7 @@
 #include "avct_int.h"
 #include "bt_common.h"
 #include "btm_api.h"
+#include "osi/include/osi.h"
 
 /* packet header length lookup table */
 const uint8_t avct_lcb_pkt_type_len[] = {

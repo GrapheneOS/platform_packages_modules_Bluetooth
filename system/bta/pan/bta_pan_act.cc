@@ -33,6 +33,7 @@
 #include "bta_pan_api.h"
 #include "bta_pan_int.h"
 #include "bta_pan_co.h"
+#include "osi/include/osi.h"
 #include <string.h>
 #include "utl.h"
 

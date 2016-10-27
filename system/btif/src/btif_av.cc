@@ -39,6 +39,7 @@
 #include "btif_util.h"
 #include "btu.h"
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************
  *  Constants & Macros
