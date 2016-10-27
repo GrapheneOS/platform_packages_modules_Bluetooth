@@ -628,6 +628,9 @@ class BrowsedMediaPlayer {
                 case AvrcpConstants.ATTRID_PLAY_TIME:
                     attrValue = resultItems.get(itemIndex).getDescription().getExtras()
                             .getString(MediaMetadata.METADATA_KEY_DURATION);
+
+                case AvrcpConstants.ATTRID_COVER_ART:
+                    Log.e(TAG, "Cover art attribute not supported");
                     break;
 
                 default:
