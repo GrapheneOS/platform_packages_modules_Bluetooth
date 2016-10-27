@@ -27,6 +27,19 @@ namespace hal {
 class FakeBluetoothGattInterface : public BluetoothGattInterface {
  public:
 
+  // Handles HAL LE scanner API calls for testing. Test code can
+  // provide a fake or mock implementation of this and all calls will be routed
+  // to it.
+  class TestScannerHandler {
+   public:
+    virtual ~TestScannerHandler() = default;
+
+    virtual bt_status_t RegisterScanner(bt_uuid_t* app_uuid) = 0;
+    virtual bt_status_t UnregisterScanner(int client_if) = 0;
+
+    virtual bt_status_t Scan(bool start) = 0;
+  };
+
   // Handles HAL Bluetooth GATT client API calls for testing. Test code can
   // provide a fake or mock implementation of this and all calls will be routed
   // to it.
@@ -37,7 +50,6 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
     virtual bt_status_t RegisterClient(bt_uuid_t* app_uuid) = 0;
     virtual bt_status_t UnregisterClient(int client_if) = 0;
 
-    virtual bt_status_t Scan(bool start) = 0;
     virtual bt_status_t Connect(int client_if, const bt_bdaddr_t *bd_addr,
                                 bool is_direct, int transport) = 0;
     virtual bt_status_t Disconnect(int client_if, const bt_bdaddr_t *bd_addr,
@@ -67,12 +79,18 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // provide their own handlers or simply pass "nullptr" for the default
   // behavior in which BT_STATUS_FAIL will be returned from all calls.
   FakeBluetoothGattInterface(std::shared_ptr<BleAdvertiserInterface> advertiser_handler,
+                             std::shared_ptr<TestScannerHandler> scanner_handler,
                              std::shared_ptr<TestClientHandler> client_handler,
                              std::shared_ptr<TestServerHandler> server_handler);
   ~FakeBluetoothGattInterface();
 
   // The methods below can be used to notify observers with certain events and
   // given parameters.
+
+  void NotifyRegisterScannerCallback(int status, int client_if,
+                                    const bt_uuid_t& app_uuid);
+  void NotifyScanResultCallback(const bt_bdaddr_t& bda, int rssi,
+                                vector<uint8_t> adv_data);
 
   // Client callbacks:
   void NotifyRegisterClientCallback(int status, int client_if,
@@ -81,8 +99,6 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
                              const bt_bdaddr_t& bda);
   void NotifyDisconnectCallback(int conn_id, int status, int client_if,
                                 const bt_bdaddr_t& bda);
-  void NotifyScanResultCallback(const bt_bdaddr_t& bda, int rssi,
-                                vector<uint8_t> adv_data);
 
   // Server callbacks:
   void NotifyRegisterServerCallback(int status, int server_if,
@@ -118,17 +134,22 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyIndicationSentCallback(int conn_id, int status);
 
   // BluetoothGattInterface overrides:
+  void AddScannerObserver(ScannerObserver* observer) override;
+  void RemoveScannerObserver(ScannerObserver* observer) override;
   void AddClientObserver(ClientObserver* observer) override;
   void RemoveClientObserver(ClientObserver* observer) override;
   void AddServerObserver(ServerObserver* observer) override;
   void RemoveServerObserver(ServerObserver* observer) override;
   BleAdvertiserInterface* GetAdvertiserHALInterface() const override;
+  const btgatt_scanner_interface_t* GetScannerHALInterface() const override;
   const btgatt_client_interface_t* GetClientHALInterface() const override;
   const btgatt_server_interface_t* GetServerHALInterface() const override;
 
  private:
+  base::ObserverList<ScannerObserver> scanner_observers_;
   base::ObserverList<ClientObserver> client_observers_;
   base::ObserverList<ServerObserver> server_observers_;
+  std::shared_ptr<TestScannerHandler> scanner_handler_;
   std::shared_ptr<TestClientHandler> client_handler_;
   std::shared_ptr<TestServerHandler> server_handler_;
 

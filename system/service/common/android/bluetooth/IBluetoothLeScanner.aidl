@@ -16,18 +16,17 @@
 
 package android.bluetooth;
 
-import android.bluetooth.IBluetoothLowEnergyCallback;
+import android.bluetooth.IBluetoothLeScannerCallback;
+import android.bluetooth.ScanFilter;
+import android.bluetooth.ScanSettings;
 
-import android.bluetooth.AdvertiseData;
-import android.bluetooth.AdvertiseSettings;
-
-interface IBluetoothLowEnergy {
-  boolean RegisterClient(in IBluetoothLowEnergyCallback callback);
-  void UnregisterClient(int client_if);
+interface IBluetoothLeScanner {
+  boolean RegisterScanner(in IBluetoothLeScannerCallback callback);
+  void UnregisterScanner(int scanner_id);
   void UnregisterAll();
 
-  boolean Connect(int client_id, String address, boolean is_direct);
-  boolean Disconnect(int client_id, String address);
-
-  boolean SetMtu(int client_id, String address, int mtu);
+  boolean StartScan(int client_id,
+      in ScanSettings settings,
+      in ScanFilter[] filters);
+  boolean StopScan(int client_id);
 }

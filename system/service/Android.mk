@@ -61,6 +61,8 @@ btserviceCommonBinderSrc := \
 	common/android/bluetooth/IBluetoothGattServerCallback.aidl \
 	common/android/bluetooth/IBluetoothLeAdvertiser.aidl \
 	common/android/bluetooth/IBluetoothLeAdvertiserCallback.aidl \
+	common/android/bluetooth/IBluetoothLeScanner.aidl \
+	common/android/bluetooth/IBluetoothLeScannerCallback.aidl \
 	common/android/bluetooth/IBluetoothLowEnergy.aidl \
 	common/android/bluetooth/IBluetoothLowEnergyCallback.aidl \
 	common/android/bluetooth/advertise_data.cc \
@@ -90,6 +92,7 @@ btserviceDaemonSrc := \
 	ipc/ipc_manager.cc \
 	logging_helpers.cc \
 	low_energy_advertiser.cc \
+	low_energy_scanner.cc \
 	low_energy_client.cc \
 	settings.cc
 
@@ -102,6 +105,7 @@ btserviceBinderDaemonImplSrc := \
 	ipc/binder/bluetooth_gatt_client_binder_server.cc \
 	ipc/binder/bluetooth_gatt_server_binder_server.cc \
 	ipc/binder/bluetooth_le_advertiser_binder_server.cc \
+	ipc/binder/bluetooth_le_scanner_binder_server.cc \
 	ipc/binder/bluetooth_low_energy_binder_server.cc \
 	ipc/binder/interface_with_instances_base.cc \
 	ipc/binder/ipc_handler_binder.cc \
@@ -126,6 +130,7 @@ btserviceBaseTestSrc := \
 	test/gatt_server_unittest.cc \
 	test/low_energy_advertiser_unittest.cc \
 	test/low_energy_client_unittest.cc \
+	test/low_energy_scanner_unittest.cc \
 	test/settings_unittest.cc \
 	test/util_unittest.cc \
 	test/uuid_unittest.cc

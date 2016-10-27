@@ -25,10 +25,14 @@ namespace bttest {
 // helpers and callbacks for GUnit to use for testing gatt.
 class GattTest : public BluetoothTest,
                  public bluetooth::hal::BluetoothGattInterface::ClientObserver,
+                 public bluetooth::hal::BluetoothGattInterface::ScannerObserver,
                  public bluetooth::hal::BluetoothGattInterface::ServerObserver {
  protected:
   GattTest() = default;
   virtual ~GattTest() = default;
+
+  // Gets the gatt_scanner_interface
+  const btgatt_scanner_interface_t* gatt_scanner_interface();
 
   // Gets the gatt_client_interface
   const btgatt_client_interface_t* gatt_client_interface();
@@ -92,6 +96,9 @@ class GattTest : public BluetoothTest,
   semaphore_t* service_deleted_callback_sem_;
 
  private:
+  // The btgatt_scanner_interface_t that all the tests use to interact with the HAL
+  const btgatt_scanner_interface_t* gatt_scanner_interface_;
+
   // The gatt_client_interface that all the tests use to interact with the HAL
   const btgatt_client_interface_t* gatt_client_interface_;
 

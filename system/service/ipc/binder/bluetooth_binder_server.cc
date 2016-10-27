@@ -22,6 +22,7 @@
 #include "service/ipc/binder/bluetooth_gatt_server_binder_server.h"
 #include "service/ipc/binder/bluetooth_low_energy_binder_server.h"
 #include "service/ipc/binder/bluetooth_le_advertiser_binder_server.h"
+#include "service/ipc/binder/bluetooth_le_scanner_binder_server.h"
 
 #include "service/hal/bluetooth_interface.h"
 
@@ -165,6 +166,23 @@ Status BluetoothBinderServer::GetLeAdvertiserInterface(
     le_advertiser_interface_ = new BluetoothLeAdvertiserBinderServer(adapter_);
 
   *_aidl_return = le_advertiser_interface_;
+  return Status::ok();
+}
+
+Status BluetoothBinderServer::GetLeScannerInterface(
+    ::android::sp<IBluetoothLeScanner>* _aidl_return) {
+  VLOG(2) << __func__;
+
+  if (!adapter_->IsEnabled()) {
+    LOG(ERROR) << "Cannot obtain IBluetoothLeScanner interface while disabled";
+    *_aidl_return = NULL;
+    return Status::ok();
+  }
+
+  if (!le_scanner_interface_.get())
+    le_scanner_interface_ = new BluetoothLeScannerBinderServer(adapter_);
+
+  *_aidl_return = le_scanner_interface_;
   return Status::ok();
 }
 

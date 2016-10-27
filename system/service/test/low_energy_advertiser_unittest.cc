@@ -77,7 +77,7 @@ class LowEnergyAdvertiserTest : public ::testing::Test {
     hal::BluetoothGattInterface::InitializeForTesting(
         new hal::FakeBluetoothGattInterface(
             std::static_pointer_cast<BleAdvertiserInterface>(mock_handler_),
-            nullptr, nullptr));
+            nullptr, nullptr, nullptr));
     ble_advertiser_factory_.reset(new LowEnergyAdvertiserFactory());
   }
 

@@ -16,18 +16,9 @@
 
 package android.bluetooth;
 
-import android.bluetooth.IBluetoothLowEnergyCallback;
+import android.bluetooth.ScanResult;
 
-import android.bluetooth.AdvertiseData;
-import android.bluetooth.AdvertiseSettings;
-
-interface IBluetoothLowEnergy {
-  boolean RegisterClient(in IBluetoothLowEnergyCallback callback);
-  void UnregisterClient(int client_if);
-  void UnregisterAll();
-
-  boolean Connect(int client_id, String address, boolean is_direct);
-  boolean Disconnect(int client_id, String address);
-
-  boolean SetMtu(int client_id, String address, int mtu);
+oneway interface IBluetoothLeScannerCallback {
+  void OnScannerRegistered(int status, int client_id);
+  void OnScanResult(in ScanResult scan_result);
 }
