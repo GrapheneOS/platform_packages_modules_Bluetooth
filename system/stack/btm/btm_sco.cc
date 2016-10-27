@@ -81,10 +81,9 @@ static const tBTM_ESCO_PARAMS btm_esco_defaults =
 ** Returns          void
 **
 *******************************************************************************/
+#if (BTM_SCO_HCI_INCLUDED == TRUE && BTM_MAX_SCO_LINKS>0)
 void btm_sco_flush_sco_data(uint16_t sco_inx)
 {
-#if (BTM_SCO_HCI_INCLUDED == TRUE)
-#if (BTM_MAX_SCO_LINKS>0)
     tSCO_CONN   *p ;
     BT_HDR      *p_buf;
 
@@ -95,13 +94,12 @@ void btm_sco_flush_sco_data(uint16_t sco_inx)
             osi_free(p_buf);
         }
     }
-#else
-    UNUSED(sco_inx);
-#endif
-#else
-    UNUSED(sco_inx);
-#endif
 }
+#else
+void btm_sco_flush_sco_data(UNUSED_ATTR uint16_t sco_inx)
+{
+}
+#endif
 /*******************************************************************************
 **
 ** Function         btm_sco_init
@@ -312,9 +310,9 @@ void  btm_route_sco_data(BT_HDR *p_msg)
 **
 **
 *******************************************************************************/
+#if (BTM_SCO_HCI_INCLUDED == TRUE && BTM_MAX_SCO_LINKS > 0)
 tBTM_STATUS BTM_WriteScoData (uint16_t sco_inx, BT_HDR *p_buf)
 {
-#if (BTM_SCO_HCI_INCLUDED == TRUE && BTM_MAX_SCO_LINKS > 0)
     tSCO_CONN   *p_ccb = &btm_cb.sco_cb.sco_db[sco_inx];
     uint8_t *p;
     tBTM_STATUS     status = BTM_SUCCESS;
@@ -364,12 +362,14 @@ tBTM_STATUS BTM_WriteScoData (uint16_t sco_inx, BT_HDR *p_buf)
 
     return (status);
 
-#else
-    UNUSED(sco_inx);
-    UNUSED(p_buf);
-    return (BTM_NO_RESOURCES);
-#endif
 }
+#else
+tBTM_STATUS BTM_WriteScoData(UNUSED_ATTR uint16_t sco_inx,
+                             UNUSED_ATTR BT_HDR *p_buf)
+{
+    return (BTM_NO_RESOURCES);
+}
+#endif
 
 #if (BTM_MAX_SCO_LINKS>0)
 /*******************************************************************************

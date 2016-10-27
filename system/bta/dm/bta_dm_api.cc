@@ -1222,9 +1222,9 @@ void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
 ** Returns          void
 **
 *******************************************************************************/
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
 void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, tBTA_DM_SEARCH_CBACK *p_cback)
 {
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     const size_t len = p_services ?
         (sizeof(tBTA_DM_API_SEARCH) + sizeof(tBT_UUID) * p_services->num_uuid)
         : sizeof(tBTA_DM_API_SEARCH);
@@ -1249,12 +1249,14 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
     }
 
     bta_sys_sendmsg(p_msg);
-#else
-    UNUSED(p_dm_inq);
-    UNUSED(p_services);
-    UNUSED(p_cback);
-#endif
 }
+#else
+void BTA_DmSearchExt(UNUSED_ATTR tBTA_DM_INQ *p_dm_inq,
+                     UNUSED_ATTR tBTA_SERVICE_MASK_EXT *p_services,
+                     UNUSED_ATTR tBTA_DM_SEARCH_CBACK *p_cback)
+{
+}
+#endif
 /*******************************************************************************
 **
 ** Function         BTA_DmBleUpdateConnectionParam
@@ -1333,6 +1335,7 @@ void BTA_DmBleConfigLocalPrivacy(bool privacy_enable)
 ** Returns          void
 **
 *******************************************************************************/
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                  tBTA_DM_BLE_PF_COND_TYPE cond_type,
                                  tBTA_DM_BLE_PF_FILT_INDEX filt_index,
@@ -1340,7 +1343,6 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                  tBTA_DM_BLE_PF_CFG_CBACK *p_cmpl_cback,
                                  tBTA_DM_BLE_REF_VALUE ref_value)
 {
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     tBTA_DM_API_CFG_FILTER_COND *p_msg;
     APPL_TRACE_API ("BTA_DmBleCfgFilterCondition: %d, %d", action, cond_type);
 
@@ -1432,15 +1434,17 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
 
     bta_sys_sendmsg(p_msg);
 
-#else
-    UNUSED(action);
-    UNUSED(cond_type);
-    UNUSED(filt_index);
-    UNUSED(p_cond);
-    UNUSED(p_cmpl_cback);
-    UNUSED(ref_value);
-#endif
 }
+#else
+void BTA_DmBleCfgFilterCondition(UNUSED_ATTR tBTA_DM_BLE_SCAN_COND_OP action,
+                                 UNUSED_ATTR tBTA_DM_BLE_PF_COND_TYPE cond_type,
+                                 UNUSED_ATTR tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+                                 UNUSED_ATTR tBTA_DM_BLE_PF_COND_PARAM *p_cond,
+                                 UNUSED_ATTR tBTA_DM_BLE_PF_CFG_CBACK *p_cmpl_cback,
+                                 UNUSED_ATTR tBTA_DM_BLE_REF_VALUE ref_value)
+{
+}
+#endif
 
 /*******************************************************************************
 **
@@ -1458,6 +1462,7 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
 ** Returns          void
 **
 *******************************************************************************/
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 void BTA_DmBleScanFilterSetup(uint8_t action,
                               tBTA_DM_BLE_PF_FILT_INDEX filt_index,
                               tBTA_DM_BLE_PF_FILT_PARAMS *p_filt_params,
@@ -1465,7 +1470,6 @@ void BTA_DmBleScanFilterSetup(uint8_t action,
                               tBTA_DM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
                               tBTA_DM_BLE_REF_VALUE ref_value)
 {
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     const size_t len = sizeof(tBTA_DM_API_SCAN_FILTER_PARAM_SETUP) +
         sizeof(tBLE_BD_ADDR);
     tBTA_DM_API_SCAN_FILTER_PARAM_SETUP *p_msg =
@@ -1489,16 +1493,16 @@ void BTA_DmBleScanFilterSetup(uint8_t action,
     }
 
     bta_sys_sendmsg(p_msg);
-
-#else
-    UNUSED(action);
-    UNUSED(filt_index);
-    UNUSED(p_filt_params);
-    UNUSED(p_target);
-    UNUSED(p_cmpl_cback);
-    UNUSED(ref_value);
-#endif
 }
+#else
+void BTA_DmBleScanFilterSetup(UNUSED_ATTR uint8_t action,
+                              UNUSED_ATTR tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+                              UNUSED_ATTR tBTA_DM_BLE_PF_FILT_PARAMS *p_filt_params,
+                              UNUSED_ATTR tBLE_BD_ADDR *p_target,
+                              UNUSED_ATTR tBTA_DM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
+                              UNUSED_ATTR tBTA_DM_BLE_REF_VALUE ref_value)
+}
+#endif
 
 /*******************************************************************************
 **
@@ -1537,10 +1541,10 @@ void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback)
 ** Returns          void
 **
 *******************************************************************************/
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 void BTA_DmEnableScanFilter(uint8_t action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cback,
                                     tBTA_DM_BLE_REF_VALUE ref_value)
 {
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     const size_t len = sizeof(tBTA_DM_API_ENABLE_SCAN_FILTER) +
         sizeof(tBLE_BD_ADDR);
     tBTA_DM_API_ENABLE_SCAN_FILTER *p_msg =
@@ -1555,12 +1559,14 @@ void BTA_DmEnableScanFilter(uint8_t action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_
 
     bta_sys_sendmsg(p_msg);
 
-#else
-    UNUSED(action);
-    UNUSED(p_cmpl_cback);
-    UNUSED(ref_value);
-#endif
 }
+#else
+void BTA_DmEnableScanFilter(UNUSED_ATTR uint8_t action,
+                            UNUSED_ATTR tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cback,
+                            UNUSED_ATTR tBTA_DM_BLE_REF_VALUE ref_value)
+{
+}
+#endif
 
 /*******************************************************************************
 **

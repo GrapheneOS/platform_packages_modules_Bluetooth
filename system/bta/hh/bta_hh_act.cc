@@ -162,16 +162,16 @@ void bta_hh_api_disable(void)
 *******************************************************************************/
 void bta_hh_disc_cmpl(void)
 {
+#if (BTA_HH_LE_INCLUDED == TRUE)
+    HID_HostDeregister();
+    bta_hh_le_deregister();
+#else
     tBTA_HH_STATUS  status = BTA_HH_OK;
 
     /* Deregister with lower layer */
     if (HID_HostDeregister() != HID_SUCCESS)
         status = BTA_HH_ERR;
 
-#if (BTA_HH_LE_INCLUDED == TRUE)
-    bta_hh_le_deregister();
-    UNUSED(status);
-#else
     bta_hh_cleanup_disable(status);
 #endif
 }

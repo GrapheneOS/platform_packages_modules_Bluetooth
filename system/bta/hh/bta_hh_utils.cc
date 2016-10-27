@@ -154,7 +154,12 @@ void bta_hh_clean_up_kdev(tBTA_HH_DEV_CB *p_cb)
 **
 *******************************************************************************/
 void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, uint16_t vendor_id, uint16_t product_id,
-                           uint16_t version, uint8_t flag)
+                           uint16_t version,
+#if (BTA_HH_LE_INCLUDED == TRUE)
+                           uint8_t flag)
+#else
+                           UNUSED_ATTR uint8_t flag)
+#endif
 {
 #if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("vendor_id = 0x%2x product_id = 0x%2x version = 0x%2x",
@@ -165,8 +170,6 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, uint16_t vendor_id, uint16_t pr
     p_cb->dscp_info.version       =   version;
 #if (BTA_HH_LE_INCLUDED == TRUE)
     p_cb->dscp_info.flag          =   flag;
-#else
-    UNUSED(flag);
 #endif
 }
 /*******************************************************************************
