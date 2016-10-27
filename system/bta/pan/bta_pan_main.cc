@@ -253,10 +253,8 @@ static void bta_pan_api_enable(tBTA_PAN_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_pan_api_disable(tBTA_PAN_DATA *p_data)
+static void bta_pan_api_disable(UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
-    UNUSED(p_data);
-
     bta_pan_disable();
 }
 

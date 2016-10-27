@@ -110,13 +110,14 @@ uint8_t battery_s_write_attr_value(uint8_t clcb_idx, tGATT_WRITE_REQ * p_value,
 /*******************************************************************************
 **   BA Attributes Database Server Request callback
 *******************************************************************************/
-uint8_t battery_s_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALUE *p_value, bool    is_long, tGATT_STATUS* p_status)
+uint8_t battery_s_read_attr_value (uint8_t clcb_idx, uint16_t handle,
+                                   UNUSED_ATTR tGATT_VALUE *p_value, bool    is_long,
+                                   tGATT_STATUS* p_status)
 {
     uint8_t     i;
     tBA_INST    *p_inst = &battery_cb.battery_inst[0];
     tGATT_STATUS    st = GATT_NOT_FOUND;
     uint8_t     act = SRVC_ACT_RSP;
-    UNUSED(p_value);
 
     for (i = 0; i < BA_MAX_INT_NUM; i ++, p_inst ++)
     {
@@ -164,9 +165,8 @@ uint8_t battery_s_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALU
 ** Returns          void
 **
 *******************************************************************************/
-bool    battery_gatt_c_read_ba_req(uint16_t conn_id)
+bool    battery_gatt_c_read_ba_req(UNUSED_ATTR uint16_t conn_id)
 {
-    UNUSED(conn_id);
     return true;
 }
 
@@ -179,13 +179,10 @@ bool    battery_gatt_c_read_ba_req(uint16_t conn_id)
 ** Returns          void
 **
 *******************************************************************************/
-void battery_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
-                              tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
+void battery_c_cmpl_cback (UNUSED_ATTR tSRVC_CLCB *p_clcb, UNUSED_ATTR tGATTC_OPTYPE op,
+                              UNUSED_ATTR tGATT_STATUS status,
+                           UNUSED_ATTR tGATT_CL_COMPLETE *p_data)
 {
-    UNUSED(p_clcb);
-    UNUSED(op);
-    UNUSED(status);
-    UNUSED(p_data);
 }
 
 
@@ -393,9 +390,8 @@ void Battery_Notify (uint8_t app_id, BD_ADDR remote_bda, uint8_t battery_level)
 ** Returns          void
 **
 *******************************************************************************/
-bool    Battery_ReadBatteryLevel(BD_ADDR peer_bda)
+bool    Battery_ReadBatteryLevel(UNUSED_ATTR BD_ADDR peer_bda)
 {
-    UNUSED(peer_bda);
     /* to be implemented */
     return true;
 }

@@ -45,7 +45,7 @@ static void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t err);
 static void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
 static void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
 static void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_clear);
-static void RFCOMM_QoSViolationInd (BD_ADDR bd_addr);
+static void RFCOMM_QoSViolationInd (UNUSED_ATTR BD_ADDR bd_addr);
 static void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf);
 static void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested);
 
@@ -88,10 +88,10 @@ void rfcomm_l2cap_if_init (void)
 **                  and dispatch the event to it.
 **
 *******************************************************************************/
-void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
+void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid,
+                        UNUSED_ATTR uint16_t psm, uint8_t id)
 {
     tRFC_MCB *p_mcb = rfc_alloc_multiplexer_channel(bd_addr, false);
-    UNUSED(psm);
 
     if ((p_mcb)&&(p_mcb->state != RFC_MX_STATE_IDLE))
     {
@@ -260,9 +260,8 @@ void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 **                  L2CA_QoSViolationIndInd received.  Dispatch event to the FSM.
 **
 *******************************************************************************/
-void RFCOMM_QoSViolationInd (BD_ADDR bd_addr)
+void RFCOMM_QoSViolationInd (UNUSED_ATTR BD_ADDR bd_addr)
 {
-    UNUSED(bd_addr);
 }
 
 

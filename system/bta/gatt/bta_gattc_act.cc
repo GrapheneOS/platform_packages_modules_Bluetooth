@@ -442,10 +442,10 @@ void bta_gattc_process_enc_cmpl(tBTA_GATTC_DATA *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_cancel_open_error(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_cancel_open_error(tBTA_GATTC_CLCB *p_clcb,
+                                 UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC cb_data;
-    UNUSED(p_data);
 
     cb_data.status=BTA_GATT_ERROR;
 
@@ -462,10 +462,9 @@ void bta_gattc_cancel_open_error(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_dat
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_open_error(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_open_error(tBTA_GATTC_CLCB *p_clcb,
+                          UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_ERROR("Connection already opened. wrong state");
 
     bta_gattc_send_open_cback(p_clcb->p_rcb,
@@ -484,10 +483,9 @@ void bta_gattc_open_error(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_open_fail(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_open_fail(tBTA_GATTC_CLCB *p_clcb,
+                         UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
-    UNUSED(p_data);
-
     bta_gattc_send_open_cback(p_clcb->p_rcb,
                               BTA_GATT_ERROR,
                               p_clcb->bda,
@@ -635,10 +633,10 @@ void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_cancel_open_ok(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_cancel_open_ok(tBTA_GATTC_CLCB *p_clcb,
+                              UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC          cb_data;
-    UNUSED(p_data);
 
     if ( p_clcb->p_rcb->p_cback )
     {
@@ -906,10 +904,9 @@ void bta_gattc_set_discover_st(tBTA_GATTC_SERV *p_srcb)
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_restart_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_restart_discover(tBTA_GATTC_CLCB *p_clcb,
+                                UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
-    UNUSED(p_data);
-
     p_clcb->status      = BTA_GATT_CANCEL;
     p_clcb->auto_update = BTA_GATTC_DISC_WAITING;
 }
@@ -951,10 +948,9 @@ void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_start_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_start_discover(tBTA_GATTC_CLCB *p_clcb,
+                              UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("bta_gattc_start_discover conn_id=%d p_clcb->p_srcb->state = %d ",
         p_clcb->bta_conn_id, p_clcb->p_srcb->state);
 
@@ -1015,10 +1011,10 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb,
+                         UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC_DATA *p_q_cmd = p_clcb->p_q_cmd;
-    UNUSED(p_data);
 
     APPL_TRACE_DEBUG("bta_gattc_disc_cmpl conn_id=%d",p_clcb->bta_conn_id);
 
@@ -1396,10 +1392,8 @@ void  bta_gattc_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 ** Returns          None.
 **
 *******************************************************************************/
-void  bta_gattc_ignore_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void  bta_gattc_ignore_op_cmpl(UNUSED_ATTR tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
-    UNUSED(p_clcb);
-
     /* receive op complete when discovery is started, ignore the response,
         and wait for discovery finish and resent */
     APPL_TRACE_DEBUG("bta_gattc_ignore_op_cmpl op = %d", p_data->hdr.layer_specific);
@@ -1455,10 +1449,9 @@ void bta_gattc_q_cmd(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_fail(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_fail(tBTA_GATTC_CLCB *p_clcb,
+                    UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
-    UNUSED(p_data);
-
     if (p_clcb->status == BTA_GATT_OK)
     {
         APPL_TRACE_ERROR("operation not supported at current state [%d]", p_clcb->state);

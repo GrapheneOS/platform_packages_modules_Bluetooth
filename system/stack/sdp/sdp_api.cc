@@ -238,10 +238,9 @@ bool    SDP_ServiceSearchAttributeRequest2 (uint8_t *p_bd_addr, tSDP_DISCOVERY_D
 }
 
 #if (SDP_CLIENT_ENABLED == TRUE)
-void SDP_SetIdleTimeout (BD_ADDR addr, uint16_t timeout)
+void SDP_SetIdleTimeout (UNUSED_ATTR BD_ADDR addr,
+                         UNUSED_ATTR uint16_t timeout)
 {
-    UNUSED(addr);
-    UNUSED(timeout);
 }
 #endif
 

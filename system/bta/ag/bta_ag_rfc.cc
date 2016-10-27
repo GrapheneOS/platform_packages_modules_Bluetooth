@@ -85,10 +85,10 @@ const tBTA_AG_DATA_CBACK bta_ag_data_cback_tbl[] =
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_port_cback(uint32_t code, uint16_t port_handle, uint16_t handle)
+static void bta_ag_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle,
+                              uint16_t handle)
 {
     tBTA_AG_SCB *p_scb;
-    UNUSED(code);
 
     if ((p_scb = bta_ag_scb_by_idx(handle)) != NULL)
     {
@@ -188,10 +188,9 @@ static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle, uint16_t hand
 ** Returns          void
 **
 *******************************************************************************/
-static int bta_ag_data_cback(uint16_t port_handle, void *p_data, uint16_t len, uint16_t handle)
+static int bta_ag_data_cback(UNUSED_ATTR uint16_t port_handle, void *p_data,
+                             uint16_t len, uint16_t handle)
 {
-    UNUSED(port_handle);
-
     /* call data call-out directly */
     bta_ag_co_tx_write(handle, (uint8_t *) p_data, len);
     return 0;
@@ -394,10 +393,9 @@ void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_rfc_do_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_ag_rfc_do_close(tBTA_AG_SCB *p_scb,
+                         UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
-    UNUSED(p_data);
-
     if (p_scb->conn_handle) {
         RFCOMM_RemoveConnection(p_scb->conn_handle);
     } else {

@@ -102,10 +102,8 @@ void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda) {
  * Returns          void.
  *
  ******************************************************************************/
-void bta_gatts_co_update_handle_range(bool is_add,
-                                      tBTA_GATTS_HNDL_RANGE* p_hndl_range) {
-  UNUSED(is_add);
-  UNUSED(p_hndl_range);
+void bta_gatts_co_update_handle_range(UNUSED_ATTR bool is_add,
+                                      UNUSED_ATTR tBTA_GATTS_HNDL_RANGE *p_hndl_range) {
 }
 
 /*******************************************************************************
@@ -125,13 +123,9 @@ void bta_gatts_co_update_handle_range(bool is_add,
  *                  false - if the request can not be processed
  *
  ******************************************************************************/
-bool bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
-                          tBTA_GATTS_SRV_CHG_REQ* p_req,
-                          tBTA_GATTS_SRV_CHG_RSP* p_rsp) {
-  UNUSED(cmd);
-  UNUSED(p_req);
-  UNUSED(p_rsp);
-
+bool bta_gatts_co_srv_chg(UNUSED_ATTR tBTA_GATTS_SRV_CHG_CMD cmd,
+                          UNUSED_ATTR tBTA_GATTS_SRV_CHG_REQ *p_req,
+                          UNUSED_ATTR tBTA_GATTS_SRV_CHG_RSP *p_rsp) {
   return false;
 }
 
@@ -147,11 +141,8 @@ bool bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
  * Returns          void.
  *
  ******************************************************************************/
-bool bta_gatts_co_load_handle_range(uint8_t index,
-                                    tBTA_GATTS_HNDL_RANGE* p_handle_range) {
-  UNUSED(index);
-  UNUSED(p_handle_range);
-
+bool bta_gatts_co_load_handle_range(UNUSED_ATTR uint8_t index,
+                                    UNUSED_ATTR tBTA_GATTS_HNDL_RANGE *p_handle_range) {
   return false;
 }
 

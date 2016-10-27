@@ -320,12 +320,12 @@ uint8_t avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl, uint16_t reason)
+void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl,
+                          UNUSED_ATTR uint16_t reason)
 {
     tAVDT_CCB   *p_ccb;
     tAVDT_SCB   *p_scb;
     tAVDT_SCB_TC_CLOSE  close;
-    UNUSED(reason);
 
     close.old_tc_state = p_tbl->state;
     /* clear avdt_ad_tc_tbl entry */

@@ -378,12 +378,9 @@ void bta_hl_co_put_rx_data(uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle,
  * Returns        Void
  *
  ******************************************************************************/
-void bta_hl_co_get_echo_data(uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_handle,
-                             uint16_t buf_size, uint8_t* p_buf, uint16_t evt) {
+void bta_hl_co_get_echo_data(UNUSED_ATTR uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_handle,
+                             UNUSED_ATTR uint16_t buf_size, UNUSED_ATTR uint8_t *p_buf, uint16_t evt) {
   tBTA_HL_STATUS status = BTA_HL_STATUS_FAIL;
-  UNUSED(app_id);
-  UNUSED(buf_size);
-  UNUSED(p_buf);
 
   BTIF_TRACE_ERROR("%s not supported", __func__);
   bta_hl_ci_get_echo_data(mcl_handle, status, evt);
@@ -405,13 +402,10 @@ void bta_hl_co_get_echo_data(uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_handle,
  * Returns        Void
  *
  ******************************************************************************/
-void bta_hl_co_put_echo_data(uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_handle,
-                             uint16_t data_size, uint8_t* p_data,
+void bta_hl_co_put_echo_data(UNUSED_ATTR uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_handle,
+                             UNUSED_ATTR uint16_t data_size, UNUSED_ATTR uint8_t *p_data,
                              uint16_t evt) {
   tBTA_HL_STATUS status = BTA_HL_STATUS_FAIL;
-  UNUSED(app_id);
-  UNUSED(data_size);
-  UNUSED(p_data);
 
   BTIF_TRACE_ERROR("%s not supported", __func__);
   bta_hl_ci_put_echo_data(mcl_handle, status, evt);

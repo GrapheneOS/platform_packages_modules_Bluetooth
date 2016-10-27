@@ -168,11 +168,10 @@ tHID_STATUS hidh_conn_disconnect (uint8_t dhandle)
 **                  send security block L2C connection response.
 **
 *******************************************************************************/
-void hidh_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
+void hidh_sec_check_complete_term (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
+                                   uint8_t res)
 {
     tHID_HOST_DEV_CTB *p_dev= (tHID_HOST_DEV_CTB *) p_ref_data;
-    UNUSED(bd_addr);
-    UNUSED (transport);
 
     if( res == BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
     {
@@ -333,12 +332,11 @@ void hidh_try_repage(uint8_t dhandle)
 ** Returns          void
 **
 *******************************************************************************/
-void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, uint8_t res)
+void hidh_sec_check_complete_orig (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
+                                   uint8_t res)
 {
     tHID_HOST_DEV_CTB *p_dev = (tHID_HOST_DEV_CTB *) p_ref_data;
     uint8_t dhandle;
-    UNUSED(bd_addr);
-    UNUSED (transport);
 
     // TODO(armansito): This kind of math to determine a device handle is way
     // too dirty and unnecessary. Why can't |p_dev| store it's handle?
@@ -710,11 +708,11 @@ static void hidh_l2cif_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-static void hidh_l2cif_disconnect_cfm (uint16_t l2cap_cid, uint16_t result)
+static void hidh_l2cif_disconnect_cfm (uint16_t l2cap_cid,
+                                       UNUSED_ATTR uint16_t result)
 {
     uint8_t dhandle;
     tHID_CONN    *p_hcon = NULL;
-    UNUSED(result);
 
     /* Find CCB based on CID */
     if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )

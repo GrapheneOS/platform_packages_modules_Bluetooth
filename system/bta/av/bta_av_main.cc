@@ -160,9 +160,10 @@ static void bta_av_rpc_conn(tBTA_AV_DATA *p_data);
 #endif
 static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data);
 
-static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t
-                                 app_id, BD_ADDR peer_addr);
-static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
+                                 uint8_t app_id, BD_ADDR peer_addr);
+static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,uint8_t id,
+                                 uint8_t app_id, BD_ADDR peer_addr);
 
 /* action functions */
 const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
@@ -358,11 +359,11 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
 
 /*******************************************************************************
 *******************************************************************************/
-void bta_av_conn_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
+void bta_av_conn_cback(UNUSED_ATTR uint8_t handle, BD_ADDR bd_addr,
+                       uint8_t event, tAVDT_CTRL *p_data)
 {
     uint16_t  evt = 0;
     tBTA_AV_SCB *p_scb = NULL;
-    UNUSED(handle);
 
 #if (BTA_AR_INCLUDED == TRUE)
     if (event == BTA_AR_AVDT_CONN_EVT ||
@@ -410,12 +411,9 @@ void bta_av_conn_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTR
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_a2dp_report_cback(uint8_t handle, AVDT_REPORT_TYPE type,
-                                    tAVDT_REPORT_DATA *p_data)
+static void bta_av_a2dp_report_cback(UNUSED_ATTR uint8_t handle, UNUSED_ATTR AVDT_REPORT_TYPE type,
+                                    UNUSED_ATTR tAVDT_REPORT_DATA *p_data)
 {
-    UNUSED(handle);
-    UNUSED(type);
-    UNUSED(p_data);
     /* Do not need to handle report data for now.
      * This empty function is here for conformance reasons. */
 }
@@ -771,9 +769,8 @@ static void bta_av_ci_data(tBTA_AV_DATA *p_data)
 **
 *******************************************************************************/
 #if (AVDT_REPORTING == TRUE)
-static void bta_av_rpc_conn(tBTA_AV_DATA *p_data)
+static void bta_av_rpc_conn(UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_data);
 }
 #endif
 
@@ -881,13 +878,13 @@ void bta_av_restore_switch (void)
 ** Returns          (BTA_SYS_ROLE_CHANGE, new_role, hci_status, p_bda)
 **
 *******************************************************************************/
-static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
+static void bta_av_sys_rs_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status,uint8_t id,
+                                 uint8_t app_id, BD_ADDR peer_addr)
 {
     int         i;
     tBTA_AV_SCB *p_scb = NULL;
     uint8_t       cur_role;
     uint8_t       peer_idx = 0;
-    UNUSED(status);
 
     APPL_TRACE_DEBUG("bta_av_sys_rs_cback: %d", bta_av_cb.rs_idx);
     for(i=0; i<BTA_AV_NUM_STRS; i++)
@@ -960,14 +957,13 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,uint8_t id, uint8_t
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t
-                                 app_id, BD_ADDR peer_addr)
+static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status,
+                                 uint8_t id,UNUSED_ATTR uint8_t app_id,
+                                 UNUSED_ATTR BD_ADDR peer_addr)
 {
     tBTA_AV_SCB *p_scb;
     int     i;
     tBTA_AV_API_STOP stop;
-    UNUSED(app_id);
-    UNUSED(peer_addr);
 
     APPL_TRACE_DEBUG("bta_av_sco_chg_cback:%d status:%d", id, status);
     if(id)
@@ -1107,13 +1103,13 @@ bool bta_av_link_role_ok(tBTA_AV_SCB *p_scb, uint8_t bits)
 ** Returns          The smallest mtu of the connected audio channels
 **
 *******************************************************************************/
-uint16_t bta_av_chk_mtu(tBTA_AV_SCB *p_scb, uint16_t mtu)
+uint16_t bta_av_chk_mtu(tBTA_AV_SCB *p_scb,
+                        UNUSED_ATTR uint16_t mtu)
 {
     uint16_t ret_mtu = BTA_AV_MAX_A2DP_MTU;
     tBTA_AV_SCB *p_scbi;
     int i;
     uint8_t   mask;
-    UNUSED(mtu);
 
     /* TODO_MV mess with the mtu according to the number of EDR/non-EDR headsets */
     if(p_scb->chnl == BTA_AV_CHNL_AUDIO)

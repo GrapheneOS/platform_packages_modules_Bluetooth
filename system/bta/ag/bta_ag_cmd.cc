@@ -644,11 +644,10 @@ static bool bta_ag_parse_cmer(char *p_s, bool *p_enabled)
                     if idx doesn't exist/1st character of argument is not a digit
 **
 *******************************************************************************/
-static uint8_t bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
+static uint8_t bta_ag_parse_chld(UNUSED_ATTR tBTA_AG_SCB *p_scb, char *p_s)
 {
     uint8_t retval = 0;
     int16_t idx = -1;
-    UNUSED(p_scb);
 
     if (!isdigit(p_s[0]))
     {
@@ -2092,10 +2091,8 @@ void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_send_ring(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_ag_send_ring(tBTA_AG_SCB *p_scb, UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
-    UNUSED(p_data);
-
 #if (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
     tBTA_AG_MULTI_RESULT_CB m_res_cb;
 

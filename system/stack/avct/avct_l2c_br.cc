@@ -111,14 +111,14 @@ const tL2CAP_FCR_OPTS avct_l2c_br_fcr_opts_def = {
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
+void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
+                                   UNUSED_ATTR uint16_t psm, uint8_t id)
 {
     tAVCT_LCB           *p_lcb;
     uint16_t              result = L2CAP_CONN_NO_RESOURCES;
     tL2CAP_CFG_INFO     cfg;
     tAVCT_BCB           *p_bcb;
     tL2CAP_ERTM_INFO    ertm_info;
-    UNUSED(psm);
 
     memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
     cfg.mtu_present = true;

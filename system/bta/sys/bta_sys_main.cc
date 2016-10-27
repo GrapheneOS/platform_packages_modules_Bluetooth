@@ -290,10 +290,9 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
 ** Returns          success or failure
 **
 *******************************************************************************/
-void bta_sys_hw_error(tBTA_SYS_HW_MSG *p_sys_hw_msg)
+void bta_sys_hw_error(UNUSED_ATTR tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     uint8_t module_index;
-    UNUSED(p_sys_hw_msg);
 
     APPL_TRACE_DEBUG("%s", __func__);
 
@@ -451,10 +450,9 @@ void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 ** Returns          success or failure
 **
 *******************************************************************************/
-void bta_sys_hw_evt_stack_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
+void bta_sys_hw_evt_stack_enabled(UNUSED_ATTR tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     uint8_t hw_module_index;
-    UNUSED(p_sys_hw_msg);
 
     APPL_TRACE_DEBUG(" bta_sys_hw_evt_stack_enabled!notify the callers");
 

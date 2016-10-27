@@ -65,11 +65,10 @@ const tAVCT_BCB_ACTION avct_bcb_action[] = {
 **                  available.
 **
 *******************************************************************************/
-static BT_HDR *avct_bcb_msg_asmbl(tAVCT_BCB *p_bcb, BT_HDR *p_buf)
+static BT_HDR *avct_bcb_msg_asmbl(UNUSED_ATTR tAVCT_BCB *p_bcb, BT_HDR *p_buf)
 {
     uint8_t   *p;
     uint8_t   pkt_type;
-    UNUSED(p_bcb);
 
     /* parse the message header */
     p = (uint8_t *)(p_buf + 1) + p_buf->offset;
@@ -95,12 +94,12 @@ static BT_HDR *avct_bcb_msg_asmbl(tAVCT_BCB *p_bcb, BT_HDR *p_buf)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_bcb_chnl_open(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_chnl_open(tAVCT_BCB *p_bcb,
+                        UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
     uint16_t              result = AVCT_RESULT_FAIL;
     tAVCT_LCB           *p_lcb = avct_lcb_by_bcb(p_bcb);
     tL2CAP_ERTM_INFO    ertm_info;
-    UNUSED(p_data);
 
     BTM_SetOutService(p_lcb->peer_addr, BTM_SEC_SERVICE_AVCTP_BROWSE, 0);
 
@@ -132,9 +131,8 @@ void avct_bcb_chnl_open(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_bcb_unbind_disc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_unbind_disc(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
-    UNUSED(p_bcb);
     p_data->p_ccb->p_bcb = NULL;
     (*p_data->p_ccb->cc.p_ctrl_cback)(avct_ccb_to_idx(p_data->p_ccb),
             AVCT_BROWSE_DISCONN_CFM_EVT, 0, NULL);
@@ -222,10 +220,10 @@ void avct_bcb_open_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_bcb_open_fail(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_open_fail(tAVCT_BCB *p_bcb,
+                        UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
-    UNUSED(p_data);
 
     for (int idx = 0; idx < AVCT_NUM_CONN; idx++, p_ccb++)
     {
@@ -247,11 +245,11 @@ void avct_bcb_open_fail(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_bcb_close_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_close_ind(tAVCT_BCB *p_bcb,
+                        UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
     tAVCT_LCB   *p_lcb = avct_lcb_by_bcb(p_bcb);
-    UNUSED(p_data);
 
     for (int idx = 0; idx < AVCT_NUM_CONN; idx++, p_ccb++)
     {
@@ -368,9 +366,9 @@ void avct_bcb_chk_disc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_bcb_chnl_disc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_chnl_disc(tAVCT_BCB *p_bcb,
+                        UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
-    UNUSED(p_data);
     L2CA_DisconnectReq(p_bcb->ch_lcid);
 }
 
@@ -385,9 +383,8 @@ void avct_bcb_chnl_disc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_bcb_bind_fail(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_bind_fail(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
-    UNUSED(p_bcb);
     p_data->p_ccb->p_bcb = NULL;
     (*p_data->p_ccb->cc.p_ctrl_cback)(avct_ccb_to_idx(p_data->p_ccb),
             AVCT_BROWSE_CONN_CFM_EVT, AVCT_RESULT_FAIL, NULL);
@@ -516,9 +513,8 @@ void avct_bcb_send_msg(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avct_bcb_free_msg_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_free_msg_ind(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
-    UNUSED(p_bcb);
     if (p_data)
         osi_free_and_reset((void **)&p_data->p_buf);
 }
@@ -613,10 +609,10 @@ void avct_bcb_msg_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void avct_bcb_dealloc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
+void avct_bcb_dealloc(tAVCT_BCB *p_bcb,
+                      UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
-    UNUSED(p_data);
 
     AVCT_TRACE_DEBUG("%s %d", __func__, p_bcb->allocated);
 
