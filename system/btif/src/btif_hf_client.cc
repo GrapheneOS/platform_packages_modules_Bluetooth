@@ -40,6 +40,7 @@
 #include "btif_common.h"
 #include "btif_profile_queue.h"
 #include "btif_util.h"
+#include "osi/include/osi.h"
 #include "osi/include/properties.h"
 
 /************************************************************************************

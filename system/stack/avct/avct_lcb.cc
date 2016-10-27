@@ -30,6 +30,7 @@
 #include "avct_api.h"
 #include "avct_int.h"
 #include "bt_common.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************
 ** state machine constants and types

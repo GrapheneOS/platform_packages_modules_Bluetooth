@@ -22,6 +22,7 @@
 
 
 #include "bta_hh_int.h"
+#include "osi/include/osi.h"
 
 /* if SSR max latency is not defined by remote device, set the default value
    as half of the link supervision timeout */

@@ -36,6 +36,7 @@
 #include "device/include/controller.h"
 #include "gap_api.h"
 #include "hcimsgs.h"
+#include "osi/include/osi.h"
 
 #if (BLE_INCLUDED == TRUE)
 

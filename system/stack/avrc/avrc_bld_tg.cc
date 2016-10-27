@@ -22,6 +22,7 @@
 #include "avrc_defs.h"
 #include "avrc_int.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************
 **  Global data

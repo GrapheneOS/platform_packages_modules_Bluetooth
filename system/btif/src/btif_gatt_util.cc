@@ -39,6 +39,7 @@
 #include "btif_gatt.h"
 #include "btif_storage.h"
 #include "btif_util.h"
+#include "osi/include/osi.h"
 
 #if (BTA_GATT_INCLUDED == TRUE)
 

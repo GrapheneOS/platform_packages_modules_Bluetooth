@@ -36,6 +36,7 @@
 #include "bta_hl_co.h"
 #include "mca_defs.h"
 #include "mca_api.h"
+#include "osi/include/osi.h"
 
 
 /*******************************************************************************

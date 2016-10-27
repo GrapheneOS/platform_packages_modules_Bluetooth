@@ -33,6 +33,7 @@
 #include "avdt_int.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
+#include "osi/include/osi.h"
 
 
 /*******************************************************************************

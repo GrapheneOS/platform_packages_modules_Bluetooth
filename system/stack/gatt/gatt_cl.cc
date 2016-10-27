@@ -31,6 +31,7 @@
 #include "bt_common.h"
 #include "gatt_int.h"
 #include "l2c_int.h"
+#include "osi/include/osi.h"
 
 #define GATT_WRITE_LONG_HDR_SIZE    5 /* 1 opcode + 2 handle + 2 offset */
 #define GATT_READ_CHAR_VALUE_HDL    (GATT_READ_CHAR_VALUE | 0x80)
