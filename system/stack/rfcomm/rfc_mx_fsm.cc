@@ -32,6 +32,7 @@
 #include "l2c_api.h"
 #include "rfc_int.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 #define L2CAP_SUCCESS   0
 #define L2CAP_ERROR     1

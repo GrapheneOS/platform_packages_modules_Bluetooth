@@ -32,6 +32,7 @@
 #include "bta_ag_int.h"
 #include "btm_api.h"
 #include "bt_common.h"
+#include "osi/include/osi.h"
 #include "utl.h"
 
 #ifndef BTA_AG_SCO_DEBUG

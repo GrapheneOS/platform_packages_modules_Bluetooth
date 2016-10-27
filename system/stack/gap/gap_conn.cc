@@ -25,6 +25,7 @@
 #include "l2c_int.h"
 #include <string.h>
 #include "osi/include/mutex.h"
+#include "osi/include/osi.h"
 #if (GAP_CONN_INCLUDED == TRUE)
 #include "btm_int.h"
 

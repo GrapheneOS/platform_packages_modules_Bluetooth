@@ -32,6 +32,7 @@
 #include "btm_int.h"
 #include "btm_ble_int.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 /* Configuration flags. */
 #define GATT_L2C_CFG_IND_DONE   (1<<0)

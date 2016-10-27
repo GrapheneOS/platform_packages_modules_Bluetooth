@@ -34,6 +34,7 @@
 #include "bt_utils.h"
 #include "l2cdefs.h"
 #include "l2c_api.h"
+#include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "utl.h"
 #include "vendor.h"

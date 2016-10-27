@@ -30,6 +30,7 @@
 #include "mca_api.h"
 #include "mca_defs.h"
 #include "mca_int.h"
+#include "osi/include/osi.h"
 
 
 /* L2CAP callback function structure */

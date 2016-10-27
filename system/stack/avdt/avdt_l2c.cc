@@ -34,6 +34,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "device/include/interop.h"
+#include "osi/include/osi.h"
 
 /* callback function declarations */
 void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,

@@ -35,6 +35,7 @@
 
 #include "l2c_api.h"
 #include "l2cdefs.h"
+#include "osi/include/osi.h"
 
 #include "btu.h"
 #include "btm_api.h"

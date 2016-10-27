@@ -32,6 +32,7 @@
 #include "btm_api.h"
 #include "avct_api.h"
 #include "avct_int.h"
+#include "osi/include/osi.h"
 
 /* Control block for AVCT */
 tAVCT_CB avct_cb;

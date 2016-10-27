@@ -34,6 +34,7 @@
 #include "bt_common.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "stack/l2cap/l2c_int.h"
 #include "utl.h"
 

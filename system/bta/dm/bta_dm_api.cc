@@ -30,6 +30,7 @@
 #include "bta_sys_int.h"
 #include "btm_api.h"
 #include "btm_int.h"
+#include "osi/include/osi.h"
 #include <string.h>
 #include "utl.h"
 

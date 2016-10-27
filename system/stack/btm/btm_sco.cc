@@ -35,6 +35,7 @@
 #include "hcidefs.h"
 #include "bt_utils.h"
 #include "device/include/controller.h"
+#include "osi/include/osi.h"
 
 
 #if (BTM_SCO_INCLUDED == TRUE)

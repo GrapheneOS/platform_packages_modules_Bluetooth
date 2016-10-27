@@ -37,6 +37,7 @@
 #include "bta_hh_int.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "utl.h"
 
 /*****************************************************************************

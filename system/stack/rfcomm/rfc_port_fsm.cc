@@ -32,6 +32,7 @@
 #include "port_int.h"
 #include "rfc_int.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */

@@ -27,6 +27,7 @@
 #include "bta_sys.h"
 #include "bta_ag_co.h"
 #include "bta_ag_int.h"
+#include "osi/include/osi.h"
 #include "utl.h"
 
 /*****************************************************************************

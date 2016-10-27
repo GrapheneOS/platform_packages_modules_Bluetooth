@@ -29,6 +29,7 @@
 
 #include "bt_target.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 #include "bta_av_co.h"
 #include "bta_av_int.h"

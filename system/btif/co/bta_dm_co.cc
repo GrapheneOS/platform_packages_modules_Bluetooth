@@ -24,6 +24,7 @@
 #include "bta_dm_co.h"
 #include "bta_sys.h"
 #include "btif_dm.h"
+#include "osi/include/osi.h"
 #if (BLE_INCLUDED == TRUE)
 #include "bte_appl.h"
 
