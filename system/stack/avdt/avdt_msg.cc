@@ -1612,8 +1612,6 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     /* parse the message header */
     AVDT_MSG_PRS_HDR(p, label, pkt_type, msg_type);
 
-    UNUSED(pkt_type);
-
     AVDT_TRACE_DEBUG("msg_type=%d, sig=%d", msg_type, sig);
     /* set up label and ccb_idx in message hdr */
     msg.hdr.label = label;
