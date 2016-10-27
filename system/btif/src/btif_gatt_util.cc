@@ -228,9 +228,9 @@ static void btif_gatt_set_encryption_cb(UNUSED_ATTR BD_ADDR bd_addr,
 }
 #endif
 
+#if (BLE_DELAY_REQUEST_ENC == FALSE)
 void btif_gatt_check_encrypted_link(BD_ADDR bd_addr,
                                     tBTA_GATT_TRANSPORT transport_link) {
-#if (BLE_DELAY_REQUEST_ENC == FALSE)
   char buf[100];
 
   bt_bdaddr_t bda;
@@ -244,11 +244,12 @@ void btif_gatt_check_encrypted_link(BD_ADDR bd_addr,
     BTA_DmSetEncryption(bd_addr, transport_link, &btif_gatt_set_encryption_cb,
                         BTM_BLE_SEC_ENCRYPT);
   }
-#else
-  UNUSED(bd_addr);
-  UNUSED(transport_link);
-#endif
 }
+#else
+void btif_gatt_check_encrypted_link(UNUSED_ATTR BD_ADDR bd_addr,
+                                    UNUSED_ATTR tBTA_GATT_TRANSPORT transport_link) {
+}
+#endif
 
 #endif  // BTA_GATT_INCLUDED
 

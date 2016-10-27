@@ -149,10 +149,10 @@ uint8_t btm_handle_to_acl_index (uint16_t hci_handle)
 ** Returns          success return true, otherwise false.
 **
 *******************************************************************************/
+#if (BLE_INCLUDED == TRUE)
 bool    btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_addr,
                                     tBLE_ADDR_TYPE *p_addr_type)
 {
-#if (BLE_INCLUDED == TRUE)
     bool            st = true;
 
     if (p_dev_rec == NULL)
@@ -185,13 +185,15 @@ bool    btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_ad
     }
 
     return st;
-#else
-    UNUSED(p_dev_rec);
-    UNUSED(conn_addr);
-    UNUSED(p_addr_type);
-    return false;
-#endif
 }
+#else
+bool    btm_ble_get_acl_remote_addr(UNUSED_ATTR tBTM_SEC_DEV_REC *p_dev_rec,
+                                    UNUSED_ATTR BD_ADDR conn_addr,
+                                    UNUSED_ATTR tBLE_ADDR_TYPE *p_addr_type)
+{
+    return false;
+}
+#endif
 #endif
 /*******************************************************************************
 **
