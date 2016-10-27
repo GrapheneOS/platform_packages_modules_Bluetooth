@@ -100,9 +100,8 @@ void mca_dcb_cong (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_dcb_free_data(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
+void mca_dcb_free_data(UNUSED_ATTR tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
-    UNUSED(p_dcb);
     osi_free(p_data);
 }
 
@@ -115,10 +114,10 @@ void mca_dcb_free_data(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_dcb_do_disconn (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
+void mca_dcb_do_disconn (tMCA_DCB *p_dcb,
+                         UNUSED_ATTR tMCA_DCB_EVT *p_data)
 {
     tMCA_CLOSE  close;
-    UNUSED(p_data);
 
     if ((p_dcb->lcid == 0) || (L2CA_DisconnectReq(p_dcb->lcid) == false))
     {

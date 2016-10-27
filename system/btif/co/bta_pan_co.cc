@@ -210,10 +210,8 @@ void bta_pan_co_tx_path(uint16_t handle, uint8_t app_id) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_rx_path(uint16_t handle, uint8_t app_id) {
-  UNUSED(handle);
-  UNUSED(app_id);
-
+void bta_pan_co_rx_path(UNUSED_ATTR uint16_t handle,
+                        UNUSED_ATTR uint8_t app_id) {
   BTIF_TRACE_API("bta_pan_co_rx_path not used");
 }
 
@@ -230,19 +228,10 @@ void bta_pan_co_rx_path(uint16_t handle, uint8_t app_id) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_tx_write(uint16_t handle, uint8_t app_id, BD_ADDR src,
-                         BD_ADDR dst, uint16_t protocol, uint8_t* p_data,
-                         uint16_t len, bool ext, bool forward) {
-  UNUSED(handle);
-  UNUSED(app_id);
-  UNUSED(src);
-  UNUSED(dst);
-  UNUSED(protocol);
-  UNUSED(p_data);
-  UNUSED(len);
-  UNUSED(ext);
-  UNUSED(forward);
-
+void bta_pan_co_tx_write(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint8_t app_id, UNUSED_ATTR BD_ADDR src,
+                         UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t protocol, UNUSED_ATTR uint8_t *p_data,
+                         UNUSED_ATTR uint16_t len, UNUSED_ATTR bool ext,
+                         UNUSED_ATTR bool forward) {
   BTIF_TRACE_API("bta_pan_co_tx_write not used");
 }
 
@@ -259,18 +248,10 @@ void bta_pan_co_tx_write(uint16_t handle, uint8_t app_id, BD_ADDR src,
  * Returns          true if flow enabled
  *
  ******************************************************************************/
-void bta_pan_co_tx_writebuf(uint16_t handle, uint8_t app_id, BD_ADDR src,
-                            BD_ADDR dst, uint16_t protocol, BT_HDR* p_buf,
-                            bool ext, bool forward) {
-  UNUSED(handle);
-  UNUSED(app_id);
-  UNUSED(src);
-  UNUSED(dst);
-  UNUSED(protocol);
-  UNUSED(p_buf);
-  UNUSED(ext);
-  UNUSED(forward);
-
+void bta_pan_co_tx_writebuf(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint8_t app_id, UNUSED_ATTR BD_ADDR src,
+                            UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t protocol, UNUSED_ATTR BT_HDR *p_buf,
+                            UNUSED_ATTR bool ext,
+                            UNUSED_ATTR bool forward) {
   BTIF_TRACE_API("bta_pan_co_tx_writebuf not used");
 }
 
@@ -288,11 +269,8 @@ void bta_pan_co_tx_writebuf(uint16_t handle, uint8_t app_id, BD_ADDR src,
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_rx_flow(uint16_t handle, uint8_t app_id, bool enable) {
-  UNUSED(handle);
-  UNUSED(app_id);
-  UNUSED(enable);
-
+void bta_pan_co_rx_flow(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint8_t app_id,
+                        UNUSED_ATTR bool enable) {
   BTIF_TRACE_API("bta_pan_co_rx_flow, enabled:%d, not used", enable);
   btpan_conn_t* conn = btpan_find_conn_handle(handle);
   if (!conn || conn->state != PAN_STATE_OPEN) return;
@@ -308,15 +286,9 @@ void bta_pan_co_rx_flow(uint16_t handle, uint8_t app_id, bool enable) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_pfilt_ind(uint16_t handle, bool indication,
-                          tBTA_PAN_STATUS result, uint16_t len,
-                          uint8_t* p_filters) {
-  UNUSED(handle);
-  UNUSED(indication);
-  UNUSED(result);
-  UNUSED(len);
-  UNUSED(p_filters);
-
+void bta_pan_co_pfilt_ind(UNUSED_ATTR uint16_t handle, UNUSED_ATTR bool indication,
+                          UNUSED_ATTR tBTA_PAN_STATUS result, UNUSED_ATTR uint16_t len,
+                          UNUSED_ATTR uint8_t *p_filters) {
   BTIF_TRACE_API("bta_pan_co_pfilt_ind");
 }
 
@@ -329,14 +301,8 @@ void bta_pan_co_pfilt_ind(uint16_t handle, bool indication,
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_mfilt_ind(uint16_t handle, bool indication,
-                          tBTA_PAN_STATUS result, uint16_t len,
-                          uint8_t* p_filters) {
-  UNUSED(handle);
-  UNUSED(indication);
-  UNUSED(result);
-  UNUSED(len);
-  UNUSED(p_filters);
-
+void bta_pan_co_mfilt_ind(UNUSED_ATTR uint16_t handle, UNUSED_ATTR bool indication,
+                          UNUSED_ATTR tBTA_PAN_STATUS result, UNUSED_ATTR uint16_t len,
+                          UNUSED_ATTR uint8_t *p_filters) {
   BTIF_TRACE_API("bta_pan_co_mfilt_ind");
 }

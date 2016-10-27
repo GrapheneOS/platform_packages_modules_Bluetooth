@@ -51,11 +51,8 @@ tBTE_APPL_CFG bte_appl_cfg = {
  * Returns          true for success, false for fail.
  *
  ******************************************************************************/
-bool bta_dm_co_get_compress_memory(tBTA_SYS_ID id, uint8_t** memory_p,
-                                   uint32_t* memory_size) {
-  UNUSED(id);
-  UNUSED(memory_p);
-  UNUSED(memory_size);
+bool bta_dm_co_get_compress_memory(UNUSED_ATTR tBTA_SYS_ID id, UNUSED_ATTR uint8_t **memory_p,
+                                   UNUSED_ATTR uint32_t *memory_size) {
   return true;
 }
 
@@ -76,10 +73,9 @@ bool bta_dm_co_get_compress_memory(tBTA_SYS_ID id, uint8_t** memory_p,
  * Returns          void.
  *
  ******************************************************************************/
-void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
+void bta_dm_co_io_req(UNUSED_ATTR BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
                       tBTA_OOB_DATA* p_oob_data, tBTA_AUTH_REQ* p_auth_req,
                       bool is_orig) {
-  UNUSED(bd_addr);
   btif_dm_set_oob_for_io_req(p_oob_data);
   btif_dm_proc_io_req(bd_addr, p_io_cap, p_oob_data, p_auth_req, is_orig);
   BTIF_TRACE_DEBUG("bta_dm_co_io_req *p_oob_data = %d", *p_oob_data);
@@ -123,9 +119,8 @@ void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
  * Returns          void.
  *
  ******************************************************************************/
-void bta_dm_co_lk_upgrade(BD_ADDR bd_addr, bool* p_upgrade) {
-  UNUSED(bd_addr);
-  UNUSED(p_upgrade);
+void bta_dm_co_lk_upgrade(UNUSED_ATTR BD_ADDR bd_addr,
+                          UNUSED_ATTR bool *p_upgrade) {
 }
 
 /*******************************************************************************
@@ -327,10 +322,9 @@ void bta_dm_sco_co_out_data(BT_HDR** p_buf) { btui_sco_codec_readbuf(p_buf); }
  * Returns          void.
  *
  ******************************************************************************/
-void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, uint8_t* p_max_key_size,
+void bta_dm_co_le_io_key_req(UNUSED_ATTR BD_ADDR bd_addr, uint8_t* p_max_key_size,
                              tBTA_LE_KEY_TYPE* p_init_key,
                              tBTA_LE_KEY_TYPE* p_resp_key) {
-  UNUSED(bd_addr);
   BTIF_TRACE_ERROR("##################################");
   BTIF_TRACE_ERROR("bta_dm_co_le_io_key_req: only setting max size to 16");
   BTIF_TRACE_ERROR("##################################");
@@ -382,12 +376,11 @@ void bta_dm_co_ble_load_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask,
  * Returns          void.
  *
  ******************************************************************************/
-void bta_dm_co_ble_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
+void bta_dm_co_ble_io_req(UNUSED_ATTR BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
                           tBTA_OOB_DATA* p_oob_data,
                           tBTA_LE_AUTH_REQ* p_auth_req, uint8_t* p_max_key_size,
                           tBTA_LE_KEY_TYPE* p_init_key,
                           tBTA_LE_KEY_TYPE* p_resp_key) {
-  UNUSED(bd_addr);
   /* Retrieve the properties from file system if possible */
   tBTE_APPL_CFG nv_config;
   if (btif_dm_get_smp_config(&nv_config)) bte_appl_cfg = nv_config;

@@ -118,10 +118,10 @@ tBNEP_RESULT bnep_register_with_l2cap (void)
 ** Returns          void
 **
 *******************************************************************************/
-static void bnep_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id)
+static void bnep_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
+                              UNUSED_ATTR uint16_t psm, uint8_t l2cap_id)
 {
     tBNEP_CONN    *p_bcb = bnepu_find_bcb_by_bd_addr (bd_addr);
-    UNUSED(psm);
 
     /* If we are not acting as server, or already have a connection, or have */
     /* no more resources to handle the connection, reject the connection.    */

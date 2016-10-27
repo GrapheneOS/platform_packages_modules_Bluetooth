@@ -157,12 +157,12 @@ void gatt_sec_check_complete(bool    sec_check_ok, tGATT_CLCB   *p_clcb, uint8_t
 ** Returns
 **
 *******************************************************************************/
-void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, tBTM_STATUS result)
+void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
+                         UNUSED_ATTR void *p_ref_data, tBTM_STATUS result)
 {
     tGATT_TCB   *p_tcb;
     uint8_t     sec_flag;
     bool        status = false;
-    UNUSED(p_ref_data);
 
     GATT_TRACE_DEBUG("gatt_enc_cmpl_cback");
     if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, transport)) != NULL)

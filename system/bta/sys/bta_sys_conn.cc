@@ -348,10 +348,9 @@ void bta_sys_sco_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_sco_use(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
+void bta_sys_sco_use(UNUSED_ATTR uint8_t id, uint8_t app_id,
+                     BD_ADDR peer_addr)
 {
-    UNUSED(id);
-
     /* AV streaming need to be suspended before SCO is connected. */
     if(bta_sys_cb.p_sco_cb)
     {
@@ -370,10 +369,10 @@ void bta_sys_sco_use(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_sco_unuse(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
+void bta_sys_sco_unuse(UNUSED_ATTR uint8_t id, uint8_t app_id,
+                       BD_ADDR peer_addr)
 {
     uint8_t num_sco_links;
-    UNUSED(id);
 
     if((bta_sys_cb.p_sco_cb))
     {

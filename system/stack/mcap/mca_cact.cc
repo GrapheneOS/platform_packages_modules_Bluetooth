@@ -48,10 +48,10 @@ extern fixed_queue_t *btu_general_alarm_queue;
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_ccb_rsp_tout(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
+void mca_ccb_rsp_tout(tMCA_CCB *p_ccb,
+                      UNUSED_ATTR tMCA_CCB_EVT *p_data)
 {
    tMCA_CTRL   evt_data;
-   UNUSED(p_data);
 
    mca_ccb_report_event(p_ccb, MCA_RSP_TOUT_IND_EVT, &evt_data);
 }
@@ -80,9 +80,8 @@ void mca_ccb_report_event(tMCA_CCB *p_ccb, uint8_t event, tMCA_CTRL *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_ccb_free_msg(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
+void mca_ccb_free_msg(UNUSED_ATTR tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
-    UNUSED(p_ccb);
     osi_free(p_data);
 }
 
@@ -209,10 +208,9 @@ void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_ccb_do_disconn (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
+void mca_ccb_do_disconn (tMCA_CCB *p_ccb,
+                         UNUSED_ATTR tMCA_CCB_EVT *p_data)
 {
-    UNUSED(p_data);
-
     mca_dcb_close_by_mdl_id (p_ccb, MCA_ALL_MDL_ID);
     L2CA_DisconnectReq(p_ccb->lcid);
 }
@@ -569,10 +567,9 @@ void mca_ccb_ll_open (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_ccb_dl_open (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
+void mca_ccb_dl_open (tMCA_CCB *p_ccb,
+                      UNUSED_ATTR tMCA_CCB_EVT *p_data)
 {
-    UNUSED(p_data);
-
     osi_free_and_reset((void **)&p_ccb->p_tx_req);
     osi_free_and_reset((void **)&p_ccb->p_rx_msg);
     p_ccb->status = MCA_CCB_STAT_NORM;

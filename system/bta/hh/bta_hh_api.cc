@@ -282,9 +282,9 @@ void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhSendData(uint8_t dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
+void BTA_HhSendData(uint8_t dev_handle,
+                    UNUSED_ATTR BD_ADDR dev_bda, BT_HDR  *p_data)
 {
-    UNUSED(dev_bda);
 #if (BTA_HH_LE_INCLUDED == TRUE)
     if (p_data->layer_specific != BTA_HH_RPTT_OUTPUT)
     {

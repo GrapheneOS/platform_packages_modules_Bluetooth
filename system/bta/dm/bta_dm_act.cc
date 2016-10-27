@@ -52,15 +52,18 @@
 
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, uint8_t *p_eir);
 static void bta_dm_inq_cmpl_cb (void * p_result);
-static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name);
+static void bta_dm_service_search_remname_cback(BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name);
 static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name);
 static void bta_dm_find_services ( BD_ADDR bd_addr);
 static void bta_dm_discover_next_device(void);
 static void bta_dm_sdp_callback (uint16_t sdp_status);
-static uint8_t bta_dm_authorize_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name, uint8_t *service_name, uint8_t service_id, bool is_originator);
+static uint8_t bta_dm_authorize_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
+                                       uint8_t *service_name, uint8_t service_id, bool is_originator);
 static uint8_t bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name, bool min_16_digit);
-static uint8_t bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name, LINK_KEY key, uint8_t key_type);
-static uint8_t bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,BD_NAME bd_name, int result);
+static uint8_t bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
+                                         LINK_KEY key, uint8_t key_type);
+static uint8_t bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,
+                                                    BD_NAME bd_name, int result);
 static void bta_dm_local_name_cback(BD_ADDR bd_addr);
 static bool bta_dm_check_av(uint16_t event);
 static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data);
@@ -463,10 +466,8 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_disable (tBTA_DM_MSG *p_data)
+void bta_dm_disable (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
-
     /* Set l2cap idle timeout to 0 (so BTE immediately disconnects ACL link after last channel is closed) */
     L2CA_SetIdleTimeoutByBdAddr((uint8_t *)BT_BD_ANY, 0, BT_TRANSPORT_BR_EDR);
     L2CA_SetIdleTimeoutByBdAddr((uint8_t *)BT_BD_ANY, 0, BT_TRANSPORT_LE);
@@ -1134,9 +1135,8 @@ void bta_dm_confirm(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_loc_oob(tBTA_DM_MSG *p_data)
+void bta_dm_loc_oob(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
     BTM_ReadLocalOobData();
 }
 
@@ -1242,9 +1242,9 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
+void bta_dm_search_cancel (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
+    
     tBTA_DM_MSG *p_msg;
 
     if (BTM_IsInquiryActive())
@@ -1941,9 +1941,8 @@ static void bta_dm_search_timer_cback(UNUSED_ATTR void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_free_sdp_db (tBTA_DM_MSG *p_data)
+void bta_dm_free_sdp_db (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
     osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
 }
 
@@ -1992,9 +1991,8 @@ void bta_dm_queue_disc(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_search_clear_queue(tBTA_DM_MSG *p_data)
+void bta_dm_search_clear_queue(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
     osi_free_and_reset((void **)&bta_dm_search_cb.p_search_queue);
 }
 
@@ -2007,9 +2005,8 @@ void bta_dm_search_clear_queue(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_search_cancel_cmpl (tBTA_DM_MSG *p_data)
+void bta_dm_search_cancel_cmpl (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
     if(bta_dm_search_cb.p_search_queue)
     {
         bta_sys_sendmsg(bta_dm_search_cb.p_search_queue);
@@ -2028,10 +2025,8 @@ void bta_dm_search_cancel_cmpl (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data)
+void bta_dm_search_cancel_transac_cmpl(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
-
     osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
     bta_dm_search_cancel_notify(NULL);
 }
@@ -2046,9 +2041,8 @@ void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_search_cancel_notify (tBTA_DM_MSG *p_data)
+void bta_dm_search_cancel_notify (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
     if (bta_dm_search_cb.p_search_cback)
     {
         bta_dm_search_cb.p_search_cback(BTA_DM_SEARCH_CANCEL_CMPL_EVT, NULL);
@@ -2479,11 +2473,11 @@ static void bta_dm_inq_cmpl_cb (void * p_result)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr, DEV_CLASS dc, BD_NAME bd_name)
+static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr,
+                                                 UNUSED_ATTR DEV_CLASS dc, BD_NAME bd_name)
 {
     tBTM_REMOTE_DEV_NAME    rem_name;
     tBTM_STATUS             btm_status;
-    UNUSED(dc);
 
     APPL_TRACE_DEBUG("bta_dm_service_search_remname_cback name=<%s>", bd_name);
 
@@ -2574,12 +2568,11 @@ static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
 **
 *******************************************************************************/
 static uint8_t bta_dm_authorize_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
-                                     uint8_t *service_name, uint8_t service_id, bool is_originator)
+                                     UNUSED_ATTR uint8_t *service_name, uint8_t service_id,
+                                       UNUSED_ATTR bool is_originator)
 {
     tBTA_DM_SEC sec_event;
     uint8_t       index = 1;
-    UNUSED(service_name);
-    UNUSED(is_originator);
 
     bdcpy(sec_event.authorize.bd_addr, bd_addr);
     memcpy(sec_event.authorize.dev_class, dev_class, DEV_CLASS_LEN);
@@ -2730,13 +2723,12 @@ static uint8_t bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME b
 ** Returns          void
 **
 *******************************************************************************/
-static uint8_t  bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,
+static uint8_t  bta_dm_new_link_key_cback(BD_ADDR bd_addr, UNUSED_ATTR DEV_CLASS dev_class,
                                         BD_NAME bd_name, LINK_KEY key, uint8_t key_type)
 {
     tBTA_DM_SEC sec_event;
     tBTA_DM_AUTH_CMPL *p_auth_cmpl;
     uint8_t             event;
-    UNUSED(dev_class);
 
     memset (&sec_event, 0, sizeof(tBTA_DM_SEC));
 
@@ -2789,10 +2781,11 @@ static uint8_t  bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,
 ** Returns          void
 **
 *******************************************************************************/
-static uint8_t bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,BD_NAME bd_name, int result)
+static uint8_t bta_dm_authentication_complete_cback(BD_ADDR bd_addr,
+                                                    UNUSED_ATTR DEV_CLASS dev_class,BD_NAME bd_name,
+                                                    int result)
 {
     tBTA_DM_SEC sec_event;
-    UNUSED(dev_class);
 
     if(result != BTM_SUCCESS)
     {
@@ -2981,10 +2974,9 @@ static uint8_t bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_local_name_cback(uint8_t *p_name)
+static void bta_dm_local_name_cback(UNUSED_ATTR uint8_t *p_name)
 {
     tBTA_DM_SEC sec_event;
-    UNUSED(p_name);
 
     sec_event.enable.status = BTA_SUCCESS;
 
@@ -3054,9 +3046,8 @@ static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
 ** Returns
 **
 *******************************************************************************/
-static void bta_dm_rs_cback (tBTM_ROLE_SWITCH_CMPL *p1)
+static void bta_dm_rs_cback (UNUSED_ATTR tBTM_ROLE_SWITCH_CMPL *p1)
 {
-    UNUSED(p1);
     APPL_TRACE_WARNING("bta_dm_rs_cback:%d", bta_dm_cb.rs_event);
     if(bta_dm_cb.rs_event == BTA_DM_API_SEARCH_EVT)
     {
@@ -4093,9 +4084,8 @@ void bta_dm_eir_update_uuid(uint16_t uuid16, bool adding)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_enable_test_mode(tBTA_DM_MSG *p_data)
+void bta_dm_enable_test_mode(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
     BTM_EnableTestMode();
 }
 
@@ -4109,9 +4099,8 @@ void bta_dm_enable_test_mode(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_disable_test_mode(tBTA_DM_MSG *p_data)
+void bta_dm_disable_test_mode(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
     BTM_DeviceReset(NULL);
 }
 
@@ -4145,12 +4134,12 @@ void bta_dm_execute_callback(tBTA_DM_MSG *p_data)
 ** Returns         None
 **
 *******************************************************************************/
-void bta_dm_encrypt_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_data, tBTM_STATUS result)
+void bta_dm_encrypt_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
+                          UNUSED_ATTR void *p_ref_data, tBTM_STATUS result)
 {
     tBTA_STATUS   bta_status = BTA_SUCCESS;
     tBTA_DM_ENCRYPT_CBACK *p_callback = NULL;
     uint8_t   i ;
-    UNUSED(p_ref_data);
 
     for (i=0; i<bta_dm_cb.device_list.count; i++)
     {
@@ -4831,9 +4820,9 @@ void bta_dm_ble_enable_batch_scan (tBTA_DM_MSG *p_data)
 ** Parameters:
 **
 *******************************************************************************/
-void bta_dm_ble_disable_batch_scan (tBTA_DM_MSG *p_data)
+void bta_dm_ble_disable_batch_scan (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
+    
     tBTM_STATUS btm_status = 0;
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
@@ -5309,10 +5298,8 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id, tBTA_GATT_STATUS status)
 ** Parameters:
 **
 *******************************************************************************/
-void bta_dm_close_gatt_conn(tBTA_DM_MSG *p_data)
+void bta_dm_close_gatt_conn(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    UNUSED(p_data);
-
     if (bta_dm_search_cb.conn_id != BTA_GATT_INVALID_CONN_ID)
         BTA_GATTC_Close(bta_dm_search_cb.conn_id);
 

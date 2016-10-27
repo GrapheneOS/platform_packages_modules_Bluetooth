@@ -1338,11 +1338,10 @@ static bt_status_t set_info(bt_bdaddr_t* bd_addr, bthh_hid_info_t hid_info) {
  *
  ******************************************************************************/
 static bt_status_t get_protocol(bt_bdaddr_t* bd_addr,
-                                bthh_protocol_mode_t protocolMode) {
+                                UNUSED_ATTR bthh_protocol_mode_t protocolMode) {
   CHECK_BTHH_INIT();
   btif_hh_device_t* p_dev;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
-  UNUSED(protocolMode);
 
   BTIF_TRACE_DEBUG(" addr = %02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0],
                    (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);

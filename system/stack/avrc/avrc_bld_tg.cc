@@ -285,11 +285,9 @@ static tAVRC_STS avrc_bld_get_cur_app_setting_value_rsp (tAVRC_GET_CUR_APP_VALUE
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-static tAVRC_STS avrc_bld_set_app_setting_value_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
+static tAVRC_STS avrc_bld_set_app_setting_value_rsp (UNUSED_ATTR tAVRC_RSP *p_rsp,
+                                                     UNUSED_ATTR BT_HDR *p_pkt)
 {
-    UNUSED(p_rsp);
-    UNUSED(p_pkt);
-
     /* nothing to be added. */
     AVRC_TRACE_API("%s", __func__);
     return AVRC_STS_NO_ERROR;
@@ -419,11 +417,9 @@ static tAVRC_STS avrc_bld_get_app_setting_value_text_rsp (tAVRC_GET_APP_ATTR_TXT
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-static tAVRC_STS avrc_bld_inform_charset_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
+static tAVRC_STS avrc_bld_inform_charset_rsp (UNUSED_ATTR tAVRC_RSP *p_rsp,
+                                              UNUSED_ATTR BT_HDR *p_pkt)
 {
-    UNUSED(p_rsp);
-    UNUSED(p_pkt);
-
     /* nothing to be added. */
     AVRC_TRACE_API("%s", __func__);
     return AVRC_STS_NO_ERROR;
@@ -440,11 +436,9 @@ static tAVRC_STS avrc_bld_inform_charset_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-static tAVRC_STS avrc_bld_inform_battery_status_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
+static tAVRC_STS avrc_bld_inform_battery_status_rsp (UNUSED_ATTR tAVRC_RSP *p_rsp,
+                                                     UNUSED_ATTR BT_HDR *p_pkt)
 {
-    UNUSED(p_rsp);
-    UNUSED(p_pkt);
-
     /* nothing to be added. */
     AVRC_TRACE_API("%s", __func__);
     return AVRC_STS_NO_ERROR;

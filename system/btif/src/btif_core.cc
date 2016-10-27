@@ -661,8 +661,7 @@ bt_status_t btif_cleanup_bluetooth(void) {
  * Returns          None
  *
  ******************************************************************************/
-static void btif_dut_mode_cback(tBTM_VSC_CMPL* p) {
-  UNUSED(p);
+static void btif_dut_mode_cback(UNUSED_ATTR tBTM_VSC_CMPL *p) {
   /* For now nothing to be done. */
 }
 

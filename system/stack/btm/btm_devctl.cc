@@ -512,11 +512,11 @@ tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cbac
 ** Returns          void
 **
 *******************************************************************************/
-void btm_read_local_name_complete (uint8_t *p, uint16_t evt_len)
+void btm_read_local_name_complete (uint8_t *p,
+                                   UNUSED_ATTR uint16_t evt_len)
 {
     tBTM_CMPL_CB   *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
     uint8_t         status;
-    UNUSED(evt_len);
 
     alarm_cancel(btm_cb.devcb.read_local_name_timer);
 

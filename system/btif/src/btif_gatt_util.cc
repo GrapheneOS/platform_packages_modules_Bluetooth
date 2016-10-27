@@ -219,12 +219,9 @@ static bool btif_gatt_is_link_encrypted(BD_ADDR bd_addr) {
   return BTA_JvIsEncrypted(bd_addr);
 }
 
-static void btif_gatt_set_encryption_cb(BD_ADDR bd_addr,
-                                        tBTA_TRANSPORT transport,
+static void btif_gatt_set_encryption_cb(UNUSED_ATTR BD_ADDR bd_addr,
+                                        UNUSED_ATTR tBTA_TRANSPORT transport,
                                         tBTA_STATUS result) {
-  UNUSED(bd_addr);
-  UNUSED(transport);
-
   if (result != BTA_SUCCESS && result != BTA_BUSY) {
     BTIF_TRACE_WARNING("%s() - Encryption failed (%d)", __func__, result);
   }

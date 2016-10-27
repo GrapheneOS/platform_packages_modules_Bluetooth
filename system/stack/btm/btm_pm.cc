@@ -890,7 +890,8 @@ void btm_pm_proc_mode_change (uint8_t hci_status, uint16_t hci_handle, uint8_t m
 **
 *******************************************************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
-void btm_pm_proc_ssr_evt (uint8_t *p, uint16_t evt_len)
+void btm_pm_proc_ssr_evt (uint8_t *p,
+                          UNUSED_ATTR uint16_t evt_len)
 {
     uint8_t     status;
     uint16_t    handle;
@@ -899,7 +900,6 @@ void btm_pm_proc_ssr_evt (uint8_t *p, uint16_t evt_len)
     tBTM_PM_MCB *p_cb;
     tACL_CONN   *p_acl=NULL;
     uint16_t    use_ssr = true;
-    UNUSED(evt_len);
 
     STREAM_TO_UINT8 (status, p);
 
