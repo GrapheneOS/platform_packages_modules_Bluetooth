@@ -593,22 +593,23 @@ extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 ** Returns          void
 **
 *******************************************************************************/
+#if (BLE_VND_INCLUDED == TRUE)
 extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
 {
     if (true == btm_cb.cmn_ble_vsc_cb.values_read)
         return;
 
-#if (BLE_VND_INCLUDED == TRUE)
     BTM_TRACE_DEBUG("BTM_BleReadControllerFeatures");
 
     p_ctrl_le_feature_rd_cmpl_cback = p_vsc_cback;
     BTM_VendorSpecificCommand(HCI_BLE_VENDOR_CAP_OCF, 0, NULL,
                               btm_ble_vendor_capability_vsc_cmpl_cback);
-#else
-    UNUSED(p_vsc_cback);
-#endif
-    return ;
 }
+#else
+extern void BTM_BleReadControllerFeatures(UNUSED_ATTR tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
+{
+}
+#endif
 
 /*******************************************************************************
 **
