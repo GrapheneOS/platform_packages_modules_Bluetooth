@@ -90,6 +90,7 @@ final class AvrcpConstants {
     static final int ATTRID_NUM_TRACKS = 0x05;
     static final int ATTRID_GENRE      = 0x06;
     static final int ATTRID_PLAY_TIME  = 0x07;
+    static final int ATTRID_COVER_ART  = 0x08;
 
     /* constants to send in Track change response */
     static final byte NO_TRACK_SELECTED = (byte)0xFF;

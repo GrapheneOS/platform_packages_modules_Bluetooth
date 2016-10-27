@@ -469,6 +469,10 @@ public class AddressedMediaPlayer {
                             .getString(MediaMetadata.METADATA_KEY_DURATION);
                     break;
 
+                case AvrcpConstants.ATTRID_COVER_ART:
+                    Log.e(TAG, "Cover art attribute not supported");
+                    break;
+
                 default:
                     Log.e(TAG, "Unknown attribute ID");
             }
