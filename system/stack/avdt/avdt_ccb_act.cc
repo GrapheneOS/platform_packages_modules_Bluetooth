@@ -33,6 +33,7 @@
 #include "bt_common.h"
 #include "btu.h"
 #include "btm_api.h"
+#include "osi/include/osi.h"
 
 extern fixed_queue_t *btu_general_alarm_queue;
 

@@ -33,6 +33,7 @@
 #include "utl.h"
 #include "bt_utils.h"
 #include "osi/include/compat.h"
+#include "osi/include/osi.h"
 #include <string.h>
 
 /*****************************************************************************

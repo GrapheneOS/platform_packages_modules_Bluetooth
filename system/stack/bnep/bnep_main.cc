@@ -44,6 +44,7 @@
 #include "bt_utils.h"
 
 #include "device/include/controller.h"
+#include "osi/include/osi.h"
 
 
 extern fixed_queue_t *btu_general_alarm_queue;

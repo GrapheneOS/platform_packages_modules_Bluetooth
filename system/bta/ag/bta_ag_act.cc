@@ -28,6 +28,7 @@
 #include "bta_ag_co.h"
 #include "bta_ag_int.h"
 #include "bta_dm_api.h"
+#include "osi/include/osi.h"
 #include "port_api.h"
 #include "utl.h"
 #include <string.h>

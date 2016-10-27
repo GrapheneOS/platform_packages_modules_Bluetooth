@@ -23,6 +23,7 @@
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "srvc_dis_int.h"
 #include "srvc_eng_int.h"
 #include "btcore/include/uuid.h"

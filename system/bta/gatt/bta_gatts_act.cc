@@ -35,6 +35,7 @@
 #include "bta_gatts_co.h"
 #include "btm_ble_api.h"
 #include "btif/include/btif_debug_conn.h"
+#include "osi/include/osi.h"
 #include <string.h>
 
 static void bta_gatts_nv_save_cback(bool is_saved, tGATTS_HNDL_RANGE *p_hndl_range);

@@ -47,6 +47,7 @@
 #include "btu.h"
 #include "device/include/interop.h"
 #include "osi/include/list.h"
+#include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "uinput.h"
 #define RC_INVALID_TRACK_ID (0xFFFFFFFFFFFFFFFFULL)

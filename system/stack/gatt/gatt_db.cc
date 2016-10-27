@@ -34,6 +34,7 @@
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "btm_int.h"
+#include "osi/include/osi.h"
 
 /********************************************************************************
 **              L O C A L    F U N C T I O N     P R O T O T Y P E S            *

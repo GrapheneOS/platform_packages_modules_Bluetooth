@@ -23,6 +23,7 @@
 
 #include "sdp_api.h"
 #include "bta_hl_int.h"
+#include "osi/include/osi.h"
 #include "utl.h"
 
 /*******************************************************************************

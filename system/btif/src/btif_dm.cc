@@ -57,6 +57,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/metrics.h"
+#include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_int.h"
 #include "stack_config.h"

@@ -47,6 +47,7 @@
 #include "l2c_int.h"
 #include "hcidefs.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 
 extern fixed_queue_t *btu_general_alarm_queue;

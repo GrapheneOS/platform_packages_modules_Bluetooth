@@ -38,6 +38,7 @@
 #include "hcimsgs.h"
 #include "l2c_int.h"
 #include "btcore/include/module.h"
+#include "osi/include/osi.h"
 #include "osi/include/thread.h"
 
 #if (BLE_INCLUDED == TRUE)

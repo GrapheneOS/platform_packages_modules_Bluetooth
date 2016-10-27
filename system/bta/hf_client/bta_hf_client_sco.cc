@@ -21,6 +21,7 @@
 #include <bt_trace.h>
 #include <string.h>
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 #define BTA_HF_CLIENT_NO_EDR_ESCO  (BTM_SCO_PKT_TYPES_MASK_NO_2_EV3 | \
                                     BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 | \
