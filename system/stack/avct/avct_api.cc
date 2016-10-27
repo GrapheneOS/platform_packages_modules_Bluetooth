@@ -50,10 +50,9 @@ tAVCT_CB avct_cb;
 ** Returns          void
 **
 *******************************************************************************/
-void AVCT_Register(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask)
+void AVCT_Register(uint16_t mtu,
+                   UNUSED_ATTR uint16_t mtu_br, uint8_t sec_mask)
 {
-    UNUSED(mtu_br);
-
     AVCT_TRACE_API("AVCT_Register");
 
     /* register PSM with L2CAP */

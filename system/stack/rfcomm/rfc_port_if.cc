@@ -77,9 +77,9 @@ void RFCOMM_StartRsp (tRFC_MCB *p_mcb, uint16_t result)
 **                  machine.
 **
 *******************************************************************************/
-void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
+void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci,
+                             UNUSED_ATTR uint16_t mtu)
 {
-    UNUSED(mtu);
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
     {
         PORT_DlcEstablishCnf (p_mcb, dlci, 0, RFCOMM_ERROR);
@@ -105,9 +105,9 @@ void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
 **                  acks Establish Indication.
 **
 *******************************************************************************/
-void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint16_t result)
+void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, uint8_t dlci,
+                             UNUSED_ATTR uint16_t mtu, uint16_t result)
 {
-    UNUSED(mtu);
     if ((p_mcb->state != RFC_MX_STATE_CONNECTED) && (result == RFCOMM_SUCCESS))
     {
         PORT_DlcReleaseInd (p_mcb, dlci);

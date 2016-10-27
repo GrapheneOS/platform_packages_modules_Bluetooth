@@ -42,12 +42,13 @@
 #endif
 
 static void gatt_request_cback(uint16_t conn_id, uint32_t trans_id, uint8_t op_code, tGATTS_DATA *p_data);
-static void gatt_connect_cback(tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id, bool    connected,
+static void gatt_connect_cback(UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
+			       uint16_t conn_id, bool    connected,
               tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport);
 static void gatt_disc_res_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_DISC_RES *p_data);
 static void gatt_disc_cmpl_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_STATUS status);
-static void gatt_cl_op_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
-              tGATT_CL_COMPLETE *p_data);
+static void gatt_cl_op_cmpl_cback(UNUSED_ATTR uint16_t conn_id, UNUSED_ATTR tGATTC_OPTYPE op, UNUSED_ATTR tGATT_STATUS status,
+              UNUSED_ATTR tGATT_CL_COMPLETE *p_data);
 
 static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB *p_clcb);
 
@@ -232,12 +233,11 @@ static void gatt_request_cback (uint16_t conn_id, uint32_t trans_id, tGATTS_REQ_
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+static void gatt_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
+                                uint16_t conn_id,
                                         bool    connected, tGATT_DISCONN_REASON reason,
                                         tBT_TRANSPORT transport)
 {
-    UNUSED(gatt_if);
-
     GATT_TRACE_EVENT ("%s: from %08x%04x connected:%d conn_id=%d reason = 0x%04x", __FUNCTION__,
                        (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
                        (bda[4]<<8)+bda[5], connected, conn_id, reason);
@@ -373,13 +373,10 @@ static void gatt_disc_cmpl_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, t
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_cl_op_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op,
-                                   tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
+static void gatt_cl_op_cmpl_cback (UNUSED_ATTR uint16_t conn_id, UNUSED_ATTR tGATTC_OPTYPE op,
+                                   UNUSED_ATTR tGATT_STATUS status,
+                                   UNUSED_ATTR tGATT_CL_COMPLETE *p_data)
 {
-    UNUSED(conn_id);
-    UNUSED(op);
-    UNUSED(status);
-    UNUSED(p_data);
 }
 
 /*******************************************************************************

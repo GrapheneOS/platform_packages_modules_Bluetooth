@@ -249,13 +249,13 @@ void bta_ag_create_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_del_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_ag_del_records(tBTA_AG_SCB *p_scb,
+                        UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
     tBTA_AG_SCB         *p = &bta_ag_cb.scb[0];
     tBTA_SERVICE_MASK   services;
     tBTA_SERVICE_MASK   others = 0;
     int                 i;
-    UNUSED(p_data);
 
     /* get services of all other registered servers */
     for (i = 0; i < BTA_AG_NUM_IDX; i++, p++)
@@ -486,8 +486,8 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_free_db(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
+void bta_ag_free_db(tBTA_AG_SCB *p_scb,
+                    UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
-    UNUSED(p_data);
     osi_free_and_reset((void **)&p_scb->p_disc_db);
 }

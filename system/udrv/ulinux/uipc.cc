@@ -504,11 +504,10 @@ void uipc_close_locked(tUIPC_CH_ID ch_id)
 }
 
 
-static void *uipc_read_task(void *arg)
+static void *uipc_read_task(UNUSED_ATTR void *arg)
 {
     int ch_id;
     int result;
-    UNUSED(arg);
 
     prctl(PR_SET_NAME, (unsigned long)"uipc-main", 0, 0, 0);
 
@@ -604,10 +603,8 @@ void uipc_stop_main_server_thread(void)
  **
  *******************************************************************************/
 
-void UIPC_Init(void *p_data)
+void UIPC_Init(UNUSED_ATTR void *p_data)
 {
-    UNUSED(p_data);
-
     BTIF_TRACE_DEBUG("UIPC_Init");
 
     memset(&uipc_main, 0, sizeof(tUIPC_MAIN));
@@ -699,11 +696,10 @@ void UIPC_Close(tUIPC_CH_ID ch_id)
  ** Returns          true in case of success, false in case of failure.
  **
  *******************************************************************************/
-bool    UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t *p_buf,
+bool    UIPC_Send(tUIPC_CH_ID ch_id,
+                  UNUSED_ATTR uint16_t msg_evt, uint8_t *p_buf,
         uint16_t msglen)
 {
-    UNUSED(msg_evt);
-
     BTIF_TRACE_DEBUG("UIPC_Send : ch_id:%d %d bytes", ch_id, msglen);
 
     UIPC_LOCK();
@@ -729,12 +725,13 @@ bool    UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t *p_buf,
  **
  *******************************************************************************/
 
-uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t *p_msg_evt, uint8_t *p_buf, uint32_t len)
+uint32_t UIPC_Read(tUIPC_CH_ID ch_id,
+                   UNUSED_ATTR uint16_t *p_msg_evt, uint8_t *p_buf,
+                   uint32_t len)
 {
     int n_read = 0;
     int fd = uipc_main.ch[ch_id].fd;
     struct pollfd pfd;
-    UNUSED(p_msg_evt);
 
     if (ch_id >= UIPC_CH_NUM)
     {

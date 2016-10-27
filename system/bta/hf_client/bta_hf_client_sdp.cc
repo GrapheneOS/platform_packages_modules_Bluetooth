@@ -188,10 +188,8 @@ void bta_hf_client_create_record(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_del_record(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_del_record(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("bta_hf_client_del_record");
 
     if (bta_hf_client_cb.sdp_handle != 0)
@@ -363,8 +361,7 @@ void bta_hf_client_do_disc(void)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_free_db(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
     osi_free_and_reset((void **)&bta_hf_client_cb.scb.p_disc_db);
 }

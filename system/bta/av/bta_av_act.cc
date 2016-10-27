@@ -194,11 +194,9 @@ static void bta_av_del_sdp_rec(uint32_t *p_sdp_handle)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_avrc_sdp_cback(uint16_t status)
+static void bta_av_avrc_sdp_cback(UNUSED_ATTR uint16_t status)
 {
     BT_HDR *p_msg = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
-
-    UNUSED(status);
 
     p_msg->event = BTA_AV_SDP_AVRC_DISC_EVT;
 
@@ -214,10 +212,10 @@ static void bta_av_avrc_sdp_cback(uint16_t status)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_rc_ctrl_cback(uint8_t handle, uint8_t event, uint16_t result, BD_ADDR peer_addr)
+static void bta_av_rc_ctrl_cback(uint8_t handle, uint8_t event,
+                                 UNUSED_ATTR uint16_t result, BD_ADDR peer_addr)
 {
     uint16_t msg_event = 0;
-    UNUSED(result);
 
     APPL_TRACE_EVENT("%s handle: %d event=0x%x", __func__, handle, event);
     if (event == AVRC_OPEN_IND_EVT)
@@ -732,9 +730,8 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
+void bta_av_rc_free_rsp (UNUSED_ATTR tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_cb);
     osi_free_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
 }
 
@@ -747,9 +744,8 @@ void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rc_free_browse_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
+void bta_av_rc_free_browse_msg (UNUSED_ATTR tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
-    UNUSED(p_cb);
     if (p_data->rc_msg.opcode == AVRC_OP_BROWSE)
     {
         osi_free_and_reset((void **)&p_data->rc_msg.msg.browse.p_browse_pkt);
@@ -1484,11 +1480,11 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_disable(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
+void bta_av_disable(tBTA_AV_CB *p_cb,
+                    UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     BT_HDR  hdr;
     uint16_t  xx;
-    UNUSED(p_data);
 
     p_cb->disabling = true;
 
@@ -1663,14 +1659,13 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_signalling_timer(tBTA_AV_DATA *p_data)
+void bta_av_signalling_timer(UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
     int     xx;
     uint8_t   mask;
     tBTA_AV_LCB *p_lcb = NULL;
     tBTA_AV_PEND pend;
-    UNUSED(p_data);
 
     APPL_TRACE_DEBUG("%s", __func__);
     for(xx=0; xx<BTA_AV_NUM_LINKS; xx++)
@@ -1916,7 +1911,7 @@ tBTA_AV_FEAT bta_avk_check_peer_features (uint16_t service_uuid)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
+void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
     tBTA_AV_SCB  *p_scb = NULL;
@@ -1925,7 +1920,6 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     tBTA_AV_RC_FEAT rc_feat;
     uint8_t               rc_handle;
     tBTA_AV_FEAT        peer_features = 0;  /* peer features mask */
-    UNUSED(p_data);
 
     APPL_TRACE_DEBUG("%s bta_av_rc_disc_done disc:x%x", __func__, p_cb->disc);
     if (!p_cb->disc)

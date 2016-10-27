@@ -54,7 +54,7 @@ extern fixed_queue_t *btu_general_alarm_queue;
 /********************************************************************************/
 static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
                                     uint16_t param_len, uint8_t *p_req,
-                                    uint8_t *p_req_end);
+                                    UNUSED_ATTR uint8_t *p_req_end);
 
 static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
                                       uint16_t param_len, uint8_t *p_req,
@@ -62,7 +62,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
 
 static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
                                              uint16_t param_len, uint8_t *p_req,
-                                             uint8_t *p_req_end);
+                                             UNUSED_ATTR uint8_t *p_req_end);
 
 
 /********************************************************************************/
@@ -175,7 +175,7 @@ void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
 *******************************************************************************/
 static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
                                     uint16_t param_len, uint8_t *p_req,
-                                    uint8_t *p_req_end)
+                                    UNUSED_ATTR uint8_t *p_req_end)
 {
     uint16_t        max_replies, cur_handles, rem_handles, cont_offset;
     tSDP_UUID_SEQ   uid_seq;
@@ -184,7 +184,6 @@ static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
     uint32_t        rsp_handles[SDP_MAX_RECORDS] = {0};
     tSDP_RECORD    *p_rec = NULL;
     bool            is_cont = false;
-    UNUSED(p_req_end);
 
     p_req = sdpu_extract_uid_seq (p_req, param_len, &uid_seq);
 
@@ -543,7 +542,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
 *******************************************************************************/
 static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
                                              uint16_t param_len, uint8_t *p_req,
-                                             uint8_t *p_req_end)
+                                             UNUSED_ATTR uint8_t *p_req_end)
 {
     uint16_t       max_list_len;
     int16_t        rem_len;
@@ -557,7 +556,6 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num
     bool            maxxed_out = false, is_cont = false;
     uint8_t         *p_seq_start;
     uint16_t        seq_len, attr_len;
-    UNUSED(p_req_end);
 
     /* Extract the UUID sequence to search for */
     p_req = sdpu_extract_uid_seq (p_req, param_len, &uid_seq);

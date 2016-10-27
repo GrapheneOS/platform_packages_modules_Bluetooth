@@ -580,10 +580,8 @@ static void bta_hf_client_sco_event(uint8_t event)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_sco_listen(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_sco_listen(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("%s", __func__);
 
     bta_hf_client_sco_event(BTA_HF_CLIENT_SCO_LISTEN_E);
@@ -599,10 +597,8 @@ void bta_hf_client_sco_listen(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_sco_shutdown(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_sco_shutdown(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("%s", __func__);
 
     bta_hf_client_sco_event(BTA_HF_CLIENT_SCO_SHUTDOWN_E);
@@ -618,10 +614,8 @@ void bta_hf_client_sco_shutdown(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_sco_conn_open(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_sco_conn_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("%s", __func__);
 
     bta_hf_client_sco_event(BTA_HF_CLIENT_SCO_CONN_OPEN_E);
@@ -693,10 +687,8 @@ void bta_hf_client_sco_conn_close(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_sco_open(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_sco_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("%s", __func__);
 
     bta_hf_client_sco_event(BTA_HF_CLIENT_SCO_OPEN_E);
@@ -712,10 +704,8 @@ void bta_hf_client_sco_open(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_sco_close(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_sco_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     APPL_TRACE_DEBUG("%s  0x%x", __func__, bta_hf_client_cb.scb.sco_idx);
 
     if (bta_hf_client_cb.scb.sco_idx != BTM_INVALID_SCO_INDEX)

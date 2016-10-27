@@ -40,10 +40,8 @@
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hf_client_port_cback(uint32_t code, uint16_t port_handle)
+static void bta_hf_client_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle)
 {
-    UNUSED(code);
-
     /* ignore port events for port handles other than connected handle */
     if (port_handle != bta_hf_client_cb.scb.conn_handle)
     {
@@ -233,10 +231,8 @@ void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_rfc_do_close(tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_rfc_do_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
-    UNUSED(p_data);
-
     if (bta_hf_client_cb.scb.conn_handle) {
         RFCOMM_RemoveConnection(bta_hf_client_cb.scb.conn_handle);
     } else {

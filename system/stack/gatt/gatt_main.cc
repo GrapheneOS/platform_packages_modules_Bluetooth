@@ -591,13 +591,13 @@ static void gatt_le_data_ind (uint16_t chan, BD_ADDR bd_addr, BT_HDR *p_buf)
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
+static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, uint16_t lcid,
+                                          UNUSED_ATTR uint16_t psm, uint8_t id)
 {
     /* do we already have a control channel for this peer? */
     uint8_t     result = L2CAP_CONN_OK;
     tL2CAP_CFG_INFO cfg;
     tGATT_TCB       *p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_BR_EDR);
-    UNUSED(psm);
 
     GATT_TRACE_ERROR("Connection indication cid = %d", lcid);
     /* new connection ? */
@@ -847,11 +847,11 @@ void gatt_l2cif_disconnect_ind_cback(uint16_t lcid, bool    ack_needed)
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_l2cif_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
+static void gatt_l2cif_disconnect_cfm_cback(uint16_t lcid,
+                                            UNUSED_ATTR uint16_t result)
 {
     tGATT_TCB       *p_tcb;
     uint16_t        reason;
-    UNUSED(result);
 
     /* look up clcb for this channel */
     if ((p_tcb = gatt_find_tcb_by_cid(lcid)) != NULL)

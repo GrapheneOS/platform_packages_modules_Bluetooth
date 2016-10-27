@@ -326,11 +326,12 @@ void pan_conn_ind_cb (uint16_t handle,
 ** Returns          none
 **
 *******************************************************************************/
-void pan_connect_state_cb (uint16_t handle, BD_ADDR rem_bda, tBNEP_RESULT result, bool    is_role_change)
+void pan_connect_state_cb (uint16_t handle,
+                           UNUSED_ATTR BD_ADDR rem_bda, tBNEP_RESULT result,
+                           bool    is_role_change)
 {
     tPAN_CONN       *pcb;
     uint8_t          peer_role;
-    UNUSED(rem_bda);
 
     PAN_TRACE_EVENT ("pan_connect_state_cb - for handle %d, result %d", handle, result);
     pcb = pan_get_pcb_by_handle (handle);

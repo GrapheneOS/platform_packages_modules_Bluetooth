@@ -794,10 +794,9 @@ void rfc_process_rls (tRFC_MCB *p_mcb, bool    is_command, MX_FRAME *p_frame)
 ** Description      This function handles None Supported Command frame.
 **
 *******************************************************************************/
-void rfc_process_nsc (tRFC_MCB *p_mcb, MX_FRAME *p_frame)
+void rfc_process_nsc (UNUSED_ATTR tRFC_MCB *p_mcb,
+                      UNUSED_ATTR MX_FRAME *p_frame)
 {
-    UNUSED(p_mcb);
-    UNUSED(p_frame);
 }
 
 
@@ -809,9 +808,8 @@ void rfc_process_nsc (tRFC_MCB *p_mcb, MX_FRAME *p_frame)
 **                  reply to it.  Otherwise pass response to the user.
 **
 *******************************************************************************/
-void rfc_process_test_rsp(tRFC_MCB *p_mcb, BT_HDR *p_buf)
+void rfc_process_test_rsp(UNUSED_ATTR tRFC_MCB *p_mcb, BT_HDR *p_buf)
 {
-    UNUSED(p_mcb);
     osi_free(p_buf);
 }
 

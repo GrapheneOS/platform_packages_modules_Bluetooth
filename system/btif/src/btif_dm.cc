@@ -2450,9 +2450,7 @@ bt_status_t btif_dm_pin_reply(const bt_bdaddr_t* bd_addr, uint8_t accept,
  ******************************************************************************/
 bt_status_t btif_dm_ssp_reply(const bt_bdaddr_t* bd_addr,
                               bt_ssp_variant_t variant, uint8_t accept,
-                              uint32_t passkey) {
-  UNUSED(passkey);
-
+                              UNUSED_ATTR uint32_t passkey) {
   if (variant == BT_SSP_VARIANT_PASSKEY_ENTRY) {
     /* This is not implemented in the stack.
      * For devices with display, this is not needed
@@ -2617,8 +2615,8 @@ void btif_dm_execute_service_request(uint16_t event, char* p_param) {
   return;
 }
 
-void btif_dm_proc_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
-                         tBTA_OOB_DATA* p_oob_data, tBTA_AUTH_REQ* p_auth_req,
+void btif_dm_proc_io_req(UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBTA_IO_CAP *p_io_cap,
+                         UNUSED_ATTR tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ* p_auth_req,
                          bool is_orig) {
   uint8_t yes_no_bit = BTA_AUTH_SP_YES & *p_auth_req;
   /* if local initiated:
@@ -2629,9 +2627,6 @@ void btif_dm_proc_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
   *(iPhone)
   ** as a fallback set MITM+GB if peer had MITM set
   */
-  UNUSED(bd_addr);
-  UNUSED(p_io_cap);
-  UNUSED(p_oob_data);
 
   BTIF_TRACE_DEBUG("+%s: p_auth_req=%d", __func__, *p_auth_req);
   if (pairing_cb.is_local_initiated) {
@@ -2656,11 +2651,8 @@ void btif_dm_proc_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
   BTIF_TRACE_DEBUG("-%s: p_auth_req=%d", __func__, *p_auth_req);
 }
 
-void btif_dm_proc_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
-                         tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req) {
-  UNUSED(bd_addr);
-  UNUSED(oob_data);
-
+void btif_dm_proc_io_rsp(UNUSED_ATTR BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
+                         UNUSED_ATTR tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req) {
   if (auth_req & BTA_AUTH_BONDS) {
     BTIF_TRACE_DEBUG("%s auth_req:%d", __func__, auth_req);
     pairing_cb.auth_req = auth_req;

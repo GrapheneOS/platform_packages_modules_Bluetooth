@@ -102,17 +102,16 @@ bool    dis_valid_handle_range(uint16_t handle)
 **
 **   Process write DIS attribute request.
 *******************************************************************************/
-uint8_t dis_write_attr_value(tGATT_WRITE_REQ * p_data, tGATT_STATUS *p_status)
+uint8_t dis_write_attr_value(UNUSED_ATTR tGATT_WRITE_REQ *p_data, tGATT_STATUS *p_status)
 {
-    UNUSED(p_data);
-
     *p_status = GATT_WRITE_NOT_PERMIT;
     return SRVC_ACT_RSP;
 }
 /*******************************************************************************
 **   DIS Attributes Database Server Request callback
 *******************************************************************************/
-uint8_t dis_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALUE *p_value,
+uint8_t dis_read_attr_value (UNUSED_ATTR uint8_t clcb_idx, uint16_t handle,
+                             tGATT_VALUE *p_value,
                            bool    is_long, tGATT_STATUS *p_status)
 {
     tDIS_DB_ENTRY   *p_db_attr = dis_cb.dis_attr;
@@ -120,7 +119,6 @@ uint8_t dis_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALUE *p_v
     uint16_t        offset = p_value->offset;
     uint8_t         act = SRVC_ACT_RSP;
     tGATT_STATUS    st = GATT_NOT_FOUND;
-    UNUSED(clcb_idx);
 
     for (i = 0; i < DIS_MAX_CHAR_NUM; i ++, p_db_attr ++)
     {

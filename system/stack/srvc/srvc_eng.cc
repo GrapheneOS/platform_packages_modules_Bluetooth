@@ -29,7 +29,8 @@
 #include "srvc_battery_int.h"
 
 static void srvc_eng_s_request_cback (uint16_t conn_id, uint32_t trans_id, uint8_t op_code, tGATTS_DATA *p_data);
-static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id, bool    connected,
+static void srvc_eng_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
+				    uint16_t conn_id, bool    connected,
                                           tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport);
 static void srvc_eng_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data);
 
@@ -232,10 +233,10 @@ uint8_t srvc_eng_process_read_req (uint8_t clcb_idx, tGATT_READ_REQ *p_data, tGA
 /*******************************************************************************
 **   Service Engine Server Attributes Database write Request process
 *******************************************************************************/
-uint8_t srvc_eng_process_write_req (uint8_t clcb_idx, tGATT_WRITE_REQ *p_data, tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
+uint8_t srvc_eng_process_write_req (uint8_t clcb_idx, tGATT_WRITE_REQ *p_data,
+                                    UNUSED_ATTR tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
 {
     uint8_t     act = SRVC_ACT_RSP;
-    UNUSED(p_rsp);
 
     if (dis_valid_handle_range(p_data->handle))
     {
@@ -347,10 +348,10 @@ static void srvc_eng_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STA
 ** Returns          void
 **
 *******************************************************************************/
-static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+static void srvc_eng_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
+                                    uint16_t conn_id,
                                         bool    connected, tGATT_DISCONN_REASON reason,  tBT_TRANSPORT transport)
 {
-    UNUSED(gatt_if);
     UNUSED (transport);
 
     GATT_TRACE_EVENT ("srvc_eng_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",

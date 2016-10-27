@@ -45,7 +45,8 @@ static void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, uint16_t event, void
 static void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 static void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 static void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
-static void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
+static void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, uint16_t event,
+				       UNUSED_ATTR void *p_data);
 static void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 
 static void rfc_mx_send_config_req (tRFC_MCB *p_mcb);
@@ -311,10 +312,9 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
+void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, uint16_t event,
+			      UNUSED_ATTR void *p_data)
 {
-    UNUSED(p_data);
-
     RFCOMM_TRACE_EVENT ("rfc_mx_sm_sabme_wait_ua - evt:%d", event);
     switch (event)
     {
@@ -442,10 +442,9 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
+void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, uint16_t event,
+                                UNUSED_ATTR void *p_data)
 {
-    UNUSED(p_data);
-
     RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_connected - evt:%d", event);
 
     switch (event)

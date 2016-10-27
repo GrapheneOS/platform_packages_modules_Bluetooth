@@ -508,11 +508,10 @@ void bta_pan_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_api_close (tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
+void bta_pan_api_close (tBTA_PAN_SCB *p_scb,
+                        UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
     tBTA_PAN_CONN *p_buf = (tBTA_PAN_CONN *)osi_malloc(sizeof(tBTA_PAN_CONN));
-
-    UNUSED(p_data);
 
     PAN_Disconnect(p_scb->handle);
 
@@ -622,10 +621,9 @@ void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_rx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
+void bta_pan_rx_path(tBTA_PAN_SCB *p_scb,
+                     UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
-    UNUSED(p_data);
-
     /* if data path configured for rx pull */
     if ((bta_pan_cb.flow_mask & BTA_PAN_RX_MASK) == BTA_PAN_RX_PULL)
     {
@@ -653,10 +651,9 @@ void bta_pan_rx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
+void bta_pan_tx_path(tBTA_PAN_SCB *p_scb,
+                     UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
-    UNUSED(p_data);
-
     /* if data path configured for tx pull */
     if ((bta_pan_cb.flow_mask & BTA_PAN_TX_MASK) == BTA_PAN_TX_PULL)
     {
@@ -760,9 +757,8 @@ void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_free_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
+void bta_pan_free_buf(UNUSED_ATTR tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
-    UNUSED(p_scb);
     osi_free(p_data);
 }
 

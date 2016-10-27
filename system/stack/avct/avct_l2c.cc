@@ -101,12 +101,12 @@ static bool avct_l2c_is_passive (tAVCT_LCB *p_lcb)
 ** Returns          void
 **
 *******************************************************************************/
-void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
+void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
+                                UNUSED_ATTR uint16_t psm, uint8_t id)
 {
     tAVCT_LCB       *p_lcb;
     uint16_t        result = L2CAP_CONN_OK;
     tL2CAP_CFG_INFO cfg;
-    UNUSED(psm);
 
     /* do we already have a channel for this peer? */
     if ((p_lcb = avct_lcb_by_bd(bd_addr)) == NULL)
