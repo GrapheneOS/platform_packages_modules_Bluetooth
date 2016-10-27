@@ -350,10 +350,9 @@ static void srvc_eng_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STA
 *******************************************************************************/
 static void srvc_eng_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
                                     uint16_t conn_id,
-                                        bool    connected, tGATT_DISCONN_REASON reason,  tBT_TRANSPORT transport)
+                                    bool connected, tGATT_DISCONN_REASON reason,
+                                    UNUSED_ATTR tBT_TRANSPORT transport)
 {
-    UNUSED (transport);
-
     GATT_TRACE_EVENT ("srvc_eng_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
                        (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
                        (bda[4]<<8)+bda[5], connected, conn_id, reason);
