@@ -29,6 +29,7 @@
 #include "bt_common.h"
 #include "mca_api.h"
 #include "mca_int.h"
+#include "osi/include/osi.h"
 
 /*******************************************************************************
 **

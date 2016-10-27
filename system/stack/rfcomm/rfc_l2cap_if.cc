@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include "bt_target.h"
 
+#include "osi/include/osi.h"
 #include "osi/include/time.h"
 #include "bt_common.h"
 

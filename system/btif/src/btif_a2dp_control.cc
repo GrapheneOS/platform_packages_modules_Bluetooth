@@ -31,6 +31,7 @@
 #include "btif_a2dp_source.h"
 #include "btif_av.h"
 #include "btif_hf.h"
+#include "osi/include/osi.h"
 #include "uipc.h"
 
 #define A2DP_DATA_READ_POLL_MS 10

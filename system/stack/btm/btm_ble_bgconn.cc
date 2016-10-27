@@ -28,6 +28,7 @@
 
 #include "device/include/controller.h"
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"
 #include "bt_types.h"
 #include "btu.h"
 #include "btm_int.h"

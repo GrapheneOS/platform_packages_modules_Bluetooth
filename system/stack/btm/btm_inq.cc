@@ -31,6 +31,7 @@
 #include <stddef.h>
 
 #include "device/include/controller.h"
+#include "osi/include/osi.h"
 #include "osi/include/time.h"
 
 #include "bt_types.h"

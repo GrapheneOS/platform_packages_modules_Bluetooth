@@ -41,6 +41,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btcore/include/bdaddr.h"
+#include "osi/include/osi.h"
 
 
 extern fixed_queue_t *btu_general_alarm_queue;

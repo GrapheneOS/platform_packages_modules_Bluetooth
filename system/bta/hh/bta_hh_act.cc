@@ -33,6 +33,7 @@
 #include "l2c_api.h"
 #include "bta_hh_int.h"
 #include "bta_hh_co.h"
+#include "osi/include/osi.h"
 #include "utl.h"
 
 /*****************************************************************************

@@ -31,6 +31,7 @@
 #include "gatt_int.h"
 #include "gatt_api.h"
 #include "btm_int.h"
+#include "osi/include/osi.h"
 
 /*******************************************************************************
 **

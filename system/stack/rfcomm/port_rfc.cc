@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "osi/include/mutex.h"
+#include "osi/include/osi.h"
 
 #include "bt_common.h"
 #include "bt_target.h"

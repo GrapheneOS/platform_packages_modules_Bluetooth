@@ -35,6 +35,7 @@
 #include "utl.h"
 #include "l2c_api.h"
 #include "mca_defs.h"
+#include "osi/include/osi.h"
 
 
 #if (BTA_HL_DEBUG == TRUE)

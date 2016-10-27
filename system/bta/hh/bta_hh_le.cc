@@ -20,6 +20,7 @@
 
 #include "bta_api.h"
 #include "bta_hh_int.h"
+#include "osi/include/osi.h"
 
 #if (BTA_HH_LE_INCLUDED == TRUE)
 

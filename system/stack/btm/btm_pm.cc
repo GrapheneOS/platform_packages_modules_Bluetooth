@@ -45,6 +45,7 @@
 #include "hcimsgs.h"
 #include "l2c_int.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************/
 /*      to handle different modes                                            */

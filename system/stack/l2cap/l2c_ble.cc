@@ -32,6 +32,7 @@
 #include "hcimsgs.h"
 #include "device/include/controller.h"
 #include "stack_config.h"
+#include "osi/include/osi.h"
 
 #if (BLE_INCLUDED == TRUE)
 

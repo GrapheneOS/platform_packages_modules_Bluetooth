@@ -33,6 +33,7 @@
 #include "bta_pan_ci.h"
 #include "bta_pan_int.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
 
 #if (BTA_PAN_INCLUDED == TRUE)
 

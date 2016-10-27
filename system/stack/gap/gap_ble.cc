@@ -29,6 +29,7 @@
 #include "btm_int.h"
 #include "hcimsgs.h"
 #include "btcore/include/uuid.h"
+#include "osi/include/osi.h"
 
 #define GAP_CHAR_ICON_SIZE          2
 #define GAP_CHAR_DEV_NAME_SIZE      248

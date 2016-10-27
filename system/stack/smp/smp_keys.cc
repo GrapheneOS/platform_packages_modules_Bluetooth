@@ -37,6 +37,7 @@
 #include "aes.h"
 #include "p_256_ecc_pp.h"
 #include "device/include/controller.h"
+#include "osi/include/osi.h"
 
 #ifndef SMP_MAX_ENC_REPEAT
   #define SMP_MAX_ENC_REPEAT  3

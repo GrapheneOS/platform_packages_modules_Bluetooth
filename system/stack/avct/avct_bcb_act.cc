@@ -32,6 +32,7 @@
 #include "avct_api.h"
 #include "avct_int.h"
 #include "btm_api.h"
+#include "osi/include/osi.h"
 
 /* action function list */
 const tAVCT_BCB_ACTION avct_bcb_action[] = {

@@ -30,6 +30,7 @@
 #include "avct_int.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
+#include "osi/include/osi.h"
 
 /* Configuration flags. */
 #define AVCT_L2C_CFG_IND_DONE   (1<<0)

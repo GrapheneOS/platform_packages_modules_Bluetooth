@@ -31,6 +31,7 @@
 #include "sdp_api.h"
 #include "btm_api.h"
 #include "bt_common.h"
+#include "osi/include/osi.h"
 #include "utl.h"
 
 /* Number of protocol elements in protocol element list. */

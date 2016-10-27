@@ -30,6 +30,7 @@
 #include "bta_ag_int.h"
 #include "bta_ag_co.h"
 #include "btm_api.h"
+#include "osi/include/osi.h"
 #include "port_api.h"
 #include "rfcdefs.h"
 #include "bt_common.h"

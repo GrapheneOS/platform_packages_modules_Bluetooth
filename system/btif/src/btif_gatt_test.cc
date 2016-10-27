@@ -39,6 +39,7 @@
 #include "btif_storage.h"
 #include "gatt_api.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 /*******************************************************************************
  * Typedefs & Macros

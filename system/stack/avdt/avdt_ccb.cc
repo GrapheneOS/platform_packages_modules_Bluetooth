@@ -32,6 +32,7 @@
 #include "avdt_int.h"
 #include "bt_common.h"
 #include "btu.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************
 ** state machine constants and types
