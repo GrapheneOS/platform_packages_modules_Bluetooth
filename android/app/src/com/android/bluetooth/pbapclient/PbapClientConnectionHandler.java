@@ -69,18 +69,22 @@ class PbapClientConnectionHandler extends Handler {
     private final BluetoothAdapter mAdapter;
     private final BluetoothDevice mDevice;
     private ClientSession mObexSession;
+    private Context mContext;
     private BluetoothPbapObexAuthenticator mAuth = null;
     private final PbapClientStateMachine mPbapClientStateMachine;
     private boolean mAccountCreated;
 
-    PbapClientConnectionHandler(Looper looper, PbapClientStateMachine stateMachine,
+    PbapClientConnectionHandler(Looper looper, Context context, PbapClientStateMachine stateMachine,
             BluetoothDevice device) {
         super(looper);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mDevice = device;
+        mContext = context;
         mPbapClientStateMachine = stateMachine;
         mAuth = new BluetoothPbapObexAuthenticator(this);
         mAccountManager = AccountManager.get(mPbapClientStateMachine.getContext());
+        mAccount = new Account(mDevice.getAddress(), mContext.getString(
+                R.string.pbap_account_type));
     }
 
     @Override
@@ -94,10 +98,6 @@ class PbapClientConnectionHandler extends Handler {
                     /* To establish a connection first open a socket, establish a OBEX Transport
                      * abstraction, establish a Bluetooth Authenticator, and finally attempt to
                      * connect via an OBEX session */
-                    mAccount = new Account(mDevice.getAddress(),
-                            mPbapClientStateMachine.getContext()
-                            .getString(R.string.pbap_account_type));
-
                     mSocket = mDevice.createRfcommSocketToServiceRecord(
                             BluetoothUuid.PBAP_PSE.getUuid());
                     mSocket.connect();
@@ -139,21 +139,17 @@ class PbapClientConnectionHandler extends Handler {
                     Log.w(TAG,"DISCONNECT Failure " + e.toString());
                 }
                 removeAccount(mAccount);
-                mPbapClientStateMachine.getContext().getContentResolver()
+                mContext.getContentResolver()
                         .delete(CallLog.Calls.CONTENT_URI, null, null);
                 mPbapClientStateMachine.obtainMessage(
                         PbapClientStateMachine.MSG_CONNECTION_CLOSED).sendToTarget();
                 break;
 
             case MSG_DOWNLOAD:
-                if (mAccountCreated == true) {
-                    // If the account exists download has already completed, don't try again.
-                    return;
-                }
                 try {
                     mAccountCreated = addAccount(mAccount);
                     if (mAccountCreated == false) {
-                        Log.d(TAG,"Account creation failed, normal durring startup");
+                        Log.e(TAG,"Account creation failed.");
                         return;
                     }
                     BluetoothPbapRequestPullPhoneBook request =
