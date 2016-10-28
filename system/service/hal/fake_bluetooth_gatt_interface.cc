@@ -41,6 +41,20 @@ bt_status_t FakeUnregisterClient(int client_if) {
   return BT_STATUS_FAIL;
 }
 
+bt_status_t FakeRegisterScanner(bt_uuid_t* app_uuid) {
+  if (g_client_handler)
+    return g_client_handler->RegisterClient(app_uuid);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeUnregisterScanner(int client_if) {
+  if (g_client_handler)
+    return g_client_handler->UnregisterClient(client_if);
+
+  return BT_STATUS_FAIL;
+}
+
 bt_status_t FakeScan(bool start) {
   if (g_client_handler)
     return g_client_handler->Scan(start);
@@ -114,6 +128,8 @@ bt_status_t FakeSendResponse(int conn_id, int trans_id, int status,
 btgatt_client_interface_t fake_btgattc_iface = {
   FakeRegisterClient,
   FakeUnregisterClient,
+  FakeRegisterScanner,
+  FakeUnregisterScanner,
   FakeScan,
   FakeConnect,
   FakeDisconnect,

@@ -57,6 +57,11 @@ class BluetoothGattInterface {
         int status, int client_if,
         const bt_uuid_t& app_uuid);
 
+    virtual void RegisterScannerCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int scanner_id,
+        const bt_uuid_t& app_uuid);
+
     virtual void ScanResultCallback(
         BluetoothGattInterface* gatt_iface,
         const bt_bdaddr_t& bda, int rssi,

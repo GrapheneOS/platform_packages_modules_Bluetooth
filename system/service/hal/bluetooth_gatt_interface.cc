@@ -80,6 +80,16 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
       RegisterClientCallback(g_interface, status, client_if, *app_uuid));
 }
 
+void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t* app_uuid) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " scanner_id: " << scanner_id;
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(app_uuid);
+
+  FOR_EACH_CLIENT_OBSERVER(
+      RegisterScannerCallback(g_interface, status, scanner_id, *app_uuid));
+}
+
 void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) {  // NOLINT(pass-by-value)
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
@@ -387,6 +397,7 @@ void MtuChangedCallback(int conn_id, int mtu) {
 // GATT client-role and GAP events.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
     RegisterClientCallback,
+    RegisterScannerCallback,
     ScanResultCallback,
     ConnectCallback,
     DisconnectCallback,
@@ -555,6 +566,15 @@ void BluetoothGattInterface::ClientObserver::RegisterClientCallback(
     const bt_uuid_t& /* app_uuid */) {
   // Do nothing.
 }
+
+void BluetoothGattInterface::ClientObserver::RegisterScannerCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* scanner_id */,
+    const bt_uuid_t& /* app_uuid */) {
+  // Do nothing.
+}
+
 void BluetoothGattInterface::ClientObserver::ScanResultCallback(
     BluetoothGattInterface* /* gatt_iface */,
     const bt_bdaddr_t& /* bda */,
