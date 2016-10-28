@@ -135,6 +135,7 @@ namespace android {
  */
 
 static jmethodID method_onClientRegistered;
+static jmethodID method_onScannerRegistered;
 static jmethodID method_onScanResult;
 static jmethodID method_onConnected;
 static jmethodID method_onDisconnected;
@@ -203,6 +204,14 @@ void btgattc_register_app_cb(int status, int clientIf, bt_uuid_t *app_uuid)
     if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientRegistered, status,
         clientIf, UUID_PARAMS(app_uuid));
+}
+
+void btgattc_register_scanner_cb(int status, int scannerId, bt_uuid_t *app_uuid)
+{
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScannerRegistered, status,
+        scannerId, UUID_PARAMS(app_uuid));
 }
 
 void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data)
@@ -555,6 +564,7 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
 
 static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_register_app_cb,
+    btgattc_register_scanner_cb,
     btgattc_scan_result_cb,
     btgattc_open_cb,
     btgattc_close_cb,
@@ -811,6 +821,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     // Client callbacks
 
     method_onClientRegistered = env->GetMethodID(clazz, "onClientRegistered", "(IIJJ)V");
+    method_onScannerRegistered = env->GetMethodID(clazz, "onScannerRegistered", "(IIJJ)V");
     method_onScanResult = env->GetMethodID(clazz, "onScanResult", "(Ljava/lang/String;I[B)V");
     method_onConnected   = env->GetMethodID(clazz, "onConnected", "(IIILjava/lang/String;)V");
     method_onDisconnected = env->GetMethodID(clazz, "onDisconnected", "(IIILjava/lang/String;)V");
@@ -944,6 +955,24 @@ static void gattClientUnregisterAppNative(JNIEnv* env, jobject object, jint clie
 {
     if (!sGattIf) return;
     sGattIf->client->unregister_client(clientIf);
+}
+
+static void registerScannerNative(JNIEnv* env, jobject object,
+                                     jlong app_uuid_lsb, jlong app_uuid_msb)
+{
+    bt_uuid_t uuid;
+
+    if (!sGattIf) return;
+
+    set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
+    sGattIf->client->register_scanner(&uuid);
+}
+
+static void unregisterScannerNative(JNIEnv* env, jobject object, jint scanner_id)
+{
+    if (!sGattIf) return;
+
+    sGattIf->client->unregister_scanner(scanner_id);
 }
 
 static void gattClientScanNative(JNIEnv* env, jobject object, jboolean start)
@@ -1630,6 +1659,8 @@ static JNINativeMethod sAdvertiseMethods[] = {
 
 // JNI functions defined in ScanManager class.
 static JNINativeMethod sScanMethods[] = {
+    {"registerScannerNative", "(JJ)V", (void *) registerScannerNative},
+    {"unregisterScannerNative", "(I)V", (void *) unregisterScannerNative},
     {"gattClientScanNative", "(Z)V", (void *) gattClientScanNative},
     // Batch scan JNI functions.
     {"gattClientConfigBatchScanStorageNative", "(IIII)V",(void *) gattClientConfigBatchScanStorageNative},
