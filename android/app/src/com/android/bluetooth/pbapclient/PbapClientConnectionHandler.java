@@ -157,9 +157,10 @@ class PbapClientConnectionHandler extends Handler {
                         Log.e(TAG,"Account creation failed.");
                         return;
                     }
+                    // Start at contact 1 to exclued Owner Card PBAP 1.1 sec 3.1.5.2
                     BluetoothPbapRequestPullPhoneBook request =
                             new BluetoothPbapRequestPullPhoneBook(PB_PATH, mAccount, 0,
-                            VCARD_TYPE_21, 0, 0);
+                            VCARD_TYPE_21, 0, 1);
                     request.execute(mObexSession);
                     PhonebookPullRequest processor =
                         new PhonebookPullRequest(mPbapClientStateMachine.getContext(), mAccount);
