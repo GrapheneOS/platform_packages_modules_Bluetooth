@@ -73,36 +73,41 @@ import com.android.bluetooth.R;
 
 final class HeadsetClientStateMachine extends StateMachine {
     private static final String TAG = "HeadsetClientStateMachine";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     static final int NO_ACTION = 0;
 
     // external actions
-    static final int CONNECT = 1;
-    static final int DISCONNECT = 2;
-    static final int CONNECT_AUDIO = 3;
-    static final int DISCONNECT_AUDIO = 4;
-    static final int VOICE_RECOGNITION_START = 5;
-    static final int VOICE_RECOGNITION_STOP = 6;
-    static final int SET_MIC_VOLUME = 7;
-    static final int SET_SPEAKER_VOLUME = 8;
-    static final int DIAL_NUMBER = 10;
-    static final int ACCEPT_CALL = 12;
-    static final int REJECT_CALL = 13;
-    static final int HOLD_CALL = 14;
-    static final int TERMINATE_CALL = 15;
-    static final int ENTER_PRIVATE_MODE = 16;
-    static final int SEND_DTMF = 17;
-    static final int EXPLICIT_CALL_TRANSFER = 18;
-    static final int LAST_VTAG_NUMBER = 19;
-    static final int DISABLE_NREC = 20;
+    public static final int CONNECT = 1;
+    public static final int DISCONNECT = 2;
+    public static final int CONNECT_AUDIO = 3;
+    public static final int DISCONNECT_AUDIO = 4;
+    public static final int VOICE_RECOGNITION_START = 5;
+    public static final int VOICE_RECOGNITION_STOP = 6;
+    public static final int SET_MIC_VOLUME = 7;
+    public static final int SET_SPEAKER_VOLUME = 8;
+    public static final int DIAL_NUMBER = 10;
+    public static final int ACCEPT_CALL = 12;
+    public static final int REJECT_CALL = 13;
+    public static final int HOLD_CALL = 14;
+    public static final int TERMINATE_CALL = 15;
+    public static final int ENTER_PRIVATE_MODE = 16;
+    public static final int SEND_DTMF = 17;
+    public static final int EXPLICIT_CALL_TRANSFER = 18;
+    public static final int LAST_VTAG_NUMBER = 19;
+    public static final int DISABLE_NREC = 20;
 
     // internal actions
-    static final int QUERY_CURRENT_CALLS = 50;
-    static final int QUERY_OPERATOR_NAME = 51;
-    static final int SUBSCRIBER_INFO = 52;
+    private static final int QUERY_CURRENT_CALLS = 50;
+    private static final int QUERY_OPERATOR_NAME = 51;
+    private static final int SUBSCRIBER_INFO = 52;
+    private static final int CONNECTING_TIMEOUT = 53;
+
     // special action to handle terminating specific call from multiparty call
     static final int TERMINATE_SPECIFIC_CALL = 53;
+
+    // Timeouts.
+    static final int CONNECTING_TIMEOUT_MS = 5000;
 
     static final int MAX_HFP_SCO_VOICE_CALL_VOLUME = 15; // HFP 1.5 spec.
     static final int MIN_HFP_SCO_VOICE_CALL_VOLUME = 1; // HFP 1.5 spec.
@@ -111,11 +116,13 @@ final class HeadsetClientStateMachine extends StateMachine {
 
     public static final Integer HF_ORIGINATED_CALL_ID = new Integer(-1);
     private long OUTGOING_TIMEOUT_MILLI = 10 * 1000; // 10 seconds
+    private long QUERY_CURRENT_CALLS_WAIT_MILLIS = 2 * 1000; // 2 seconds
 
     private final Disconnected mDisconnected;
     private final Connecting mConnecting;
     private final Connected mConnected;
     private final AudioOn mAudioOn;
+    private long mClccTimer = 0;
 
     private final HeadsetClientService mService;
 
@@ -464,7 +471,7 @@ final class HeadsetClientStateMachine extends StateMachine {
         }
 
         if (loopQueryCalls()) {
-            sendMessageDelayed(QUERY_CURRENT_CALLS, 1523);
+            sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
         }
 
         mCallsUpdate.clear();
@@ -499,7 +506,7 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     private void acceptCall(int flag, boolean retry) {
-        int action;
+        int action = -1;
 
         if (DBG) {
             Log.d(TAG, "acceptCall: (" + flag + ")");
@@ -516,6 +523,9 @@ final class HeadsetClientStateMachine extends StateMachine {
             }
         }
 
+        if (DBG) {
+            Log.d(TAG, "Call to accept: " + c);
+        }
         switch (c.getState()) {
             case BluetoothHeadsetClientCall.CALL_STATE_INCOMING:
                 if (flag != BluetoothHeadsetClient.CALL_ACCEPT_NONE) {
@@ -554,12 +564,21 @@ final class HeadsetClientStateMachine extends StateMachine {
                     break;
                 }
 
-                // if active calls are present action must be selected
-                if (flag == BluetoothHeadsetClient.CALL_ACCEPT_HOLD) {
+                // if active calls are present then we have the option to either terminate the
+                // existing call or hold the existing call. We hold the other call by default.
+                if (flag == BluetoothHeadsetClient.CALL_ACCEPT_HOLD ||
+                    flag == BluetoothHeadsetClient.CALL_ACCEPT_NONE) {
+                    if (DBG) {
+                        Log.d(TAG, "Accepting call with accept and hold");
+                    }
                     action = HeadsetClientHalConstants.CALL_ACTION_CHLD_2;
                 } else if (flag == BluetoothHeadsetClient.CALL_ACCEPT_TERMINATE) {
+                    if (DBG) {
+                        Log.d(TAG, "Accepting call with accept and reject");
+                    }
                     action = HeadsetClientHalConstants.CALL_ACTION_CHLD_1;
                 } else {
+                    Log.e(TAG, "Aceept call with invalid flag: " + flag);
                     return;
                 }
                 break;
@@ -604,6 +623,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                 BluetoothHeadsetClientCall.CALL_STATE_HELD_BY_RESPONSE_AND_HOLD,
                 BluetoothHeadsetClientCall.CALL_STATE_HELD);
         if (c == null) {
+            if (DBG) {
+                Log.d(TAG, "No call to reject, returning.");
+            }
             return;
         }
 
@@ -625,6 +647,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                 return;
         }
 
+        if (DBG) {
+            Log.d(TAG, "Reject call action " + action);
+        }
         if (handleCallActionNative(action, 0)) {
             addQueuedAction(REJECT_CALL, action);
         } else {
@@ -835,6 +860,7 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     public void doQuit() {
+        Log.d(TAG, "doQuit");
         quitNow();
     }
 
@@ -923,6 +949,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
 
                     mCurrentDevice = device;
+
                     transitionTo(mConnecting);
                     break;
                 case DISCONNECT:
@@ -1002,6 +1029,10 @@ final class HeadsetClientStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Enter Connecting: " + getCurrentMessage().what);
             }
+            // This message is either consumed in processMessage or
+            // removed in exit. It is safe to send a CONNECTING_TIMEOUT here since
+            // the only transition is when connection attempt is initiated.
+            sendMessageDelayed(CONNECTING_TIMEOUT, CONNECTING_TIMEOUT_MS);
         }
 
         @Override
@@ -1010,7 +1041,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                 Log.d(TAG, "Connecting process message: " + message.what);
             }
 
-            boolean retValue = HANDLED;
             switch (message.what) {
                 case CONNECT:
                 case CONNECT_AUDIO:
@@ -1056,10 +1086,21 @@ final class HeadsetClientStateMachine extends StateMachine {
                             break;
                     }
                     break;
+                case CONNECTING_TIMEOUT:
+                      // We timed out trying to connect, transition to disconnected.
+                      Log.w(TAG, "Connection timeout for " + mCurrentDevice);
+                      transitionTo(mDisconnected);
+                      broadcastConnectionState(
+                          mCurrentDevice,
+                          BluetoothProfile.STATE_CONNECTING,
+                          BluetoothProfile.STATE_DISCONNECTED);
+                      break;
+
                 default:
+                    Log.w(TAG, "Message not handled " + message);
                     return NOT_HANDLED;
             }
-            return retValue;
+            return HANDLED;
         }
 
         // in Connecting state
@@ -1074,7 +1115,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     break;
 
                 case HeadsetClientHalConstants.CONNECTION_STATE_SLC_CONNECTED:
-                    Log.w(TAG, "HFPClient Connected from Connecting state");
+                    Log.d(TAG, "HFPClient Connected from Connecting state");
 
                     mPeerFeatures = peer_feat;
                     mChldFeatures = chld_feat;
@@ -1144,6 +1185,7 @@ final class HeadsetClientStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Exit Connecting: " + getCurrentMessage().what);
             }
+            removeMessages(CONNECTING_TIMEOUT);
         }
     }
 
@@ -1153,7 +1195,6 @@ final class HeadsetClientStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Enter Connected: " + getCurrentMessage().what);
             }
-
             mAudioWbs = false;
         }
 
@@ -1315,7 +1356,19 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     break;
                 case QUERY_CURRENT_CALLS:
-                    queryCallsStart();
+                    // Whenever the timer expires we query calls if there are outstanding requests
+                    // for query calls.
+                    long currentElapsed = SystemClock.elapsedRealtime();
+                    if (mClccTimer < currentElapsed) {
+                        queryCallsStart();
+                        mClccTimer = currentElapsed + QUERY_CURRENT_CALLS_WAIT_MILLIS;
+                        // Request satisfied, ignore all other call query messages.
+                        removeMessages(QUERY_CURRENT_CALLS);
+                    } else {
+                        // Replace all messages with one concrete message.
+                        removeMessages(QUERY_CURRENT_CALLS);
+                        sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                    }
                     break;
                 case STACK_EVENT:
                     Intent intent = null;
@@ -1531,13 +1584,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                                 case TERMINATE_SPECIFIC_CALL:
                                     // if terminating specific succeed no other
                                     // event is send
-                                    if (event.valueInt == BluetoothHeadsetClient.ACTION_RESULT_OK) {
-                                        BluetoothHeadsetClientCall sc =
-                                                (BluetoothHeadsetClientCall) queuedAction.second;
-                                        setCallState(sc,
-                                                BluetoothHeadsetClientCall.CALL_STATE_TERMINATED);
-                                        mCalls.remove(sc.getId());
-                                    } else {
+                                    if (event.valueInt != BluetoothHeadsetClient.ACTION_RESULT_OK) {
                                         sendActionResultIntent(event);
                                     }
                                     break;

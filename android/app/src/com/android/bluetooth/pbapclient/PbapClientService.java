@@ -16,37 +16,22 @@
 
 package com.android.bluetooth.pbapclient;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothPbapClient;
-import android.bluetooth.IBluetoothHeadsetClient;
 import android.content.BroadcastReceiver;
-import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.OperationApplicationException;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Message;
-import android.os.RemoteException;
 import android.provider.Settings;
 import android.util.Log;
-import android.provider.ContactsContract;
 
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
-import com.android.vcard.VCardEntry;
 
 import java.lang.IllegalArgumentException;
-import java.lang.ref.WeakReference;
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
 
 /**
  * Provides Bluetooth Phone Book Access Profile Client profile.
@@ -72,6 +57,7 @@ public class PbapClientService extends ProfileService {
 
     @Override
     protected boolean start() {
+        if (DBG) Log.d(TAG, "onStart");
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         // delay initial download until after the user is unlocked to add an account.
@@ -109,11 +95,11 @@ public class PbapClientService extends ProfileService {
     private class PbapBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.v(TAG, "onReceive");
             String action = intent.getAction();
+            Log.v(TAG, "onReceive" + action);
             if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (getConnectionState(device) != BluetoothProfile.STATE_DISCONNECTED) {
+                if (getConnectionState(device) == BluetoothProfile.STATE_CONNECTED) {
                     disconnect(device);
                 }
             } else if(action.equals(Intent.ACTION_USER_UNLOCKED)) {
@@ -154,7 +140,9 @@ public class PbapClientService extends ProfileService {
         @Override
         public boolean connect(BluetoothDevice device) {
             PbapClientService service = getService();
+            if (DBG) Log.d(TAG, "PbapClient Binder connect " );
             if (service == null) {
+                Log.e(TAG, "PbapClient Binder connect no service");
                 return false;
             }
             return service.connect(device);
