@@ -40,22 +40,19 @@ namespace hal {
 class BluetoothGattInterface {
  public:
 
-  // The standard BT-GATT client callback interface. The HAL interface doesn't
-  // allow registering "user data" that carries context beyond the callback
-  // parameters, forcing implementations to deal with global variables. The
-  // Observer interface is to redirect these events to interested parties in an
-  // object-oriented manner.
-  class ClientObserver {
+  // The HAL interface doesn't allow registering "user data" that carries
+  // context beyond the callback parameters, forcing implementations to deal
+  // with global variables. The *Observer interface is to redirect these events
+  // to interested parties in an object-oriented manner.
+
+  // The standard LE scanner callback interface.
+  class ScannerObserver {
    public:
-    virtual ~ClientObserver() = default;
+
+    virtual ~ScannerObserver() = default;
 
     // All of the events below correspond to callbacks defined in
-    // "bt_gatt_client_callbacks_t" in the HAL API definitions.
-
-    virtual void RegisterClientCallback(
-        BluetoothGattInterface* gatt_iface,
-        int status, int client_if,
-        const bt_uuid_t& app_uuid);
+    // "btgatt_scanner_callbacks_t" in the HAL API definitions.
 
     virtual void RegisterScannerCallback(
         BluetoothGattInterface* gatt_iface,
@@ -66,6 +63,21 @@ class BluetoothGattInterface {
         BluetoothGattInterface* gatt_iface,
         const bt_bdaddr_t& bda, int rssi,
         vector<uint8_t> adv_data);  // NOLINT(pass-by-value)
+  };
+
+  // The standard BT-GATT client callback interface.
+  class ClientObserver {
+   public:
+
+    virtual ~ClientObserver() = default;
+
+    // All of the events below correspond to callbacks defined in
+    // "bt_gatt_client_callbacks_t" in the HAL API definitions.
+
+    virtual void RegisterClientCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int client_if,
+        const bt_uuid_t& app_uuid);
 
     virtual void ConnectCallback(
         BluetoothGattInterface* gatt_iface,
@@ -229,6 +241,11 @@ class BluetoothGattInterface {
   // call this re-entrantly from an observer event as this may cause a deadlock.
   static BluetoothGattInterface* Get();
 
+  // Add or remove an observer that is interested in LE scanner interface
+  // notifications from us. Thread-safety is guaranteed by ObserverList.
+  virtual void AddScannerObserver(ScannerObserver* observer) = 0;
+  virtual void RemoveScannerObserver(ScannerObserver* observer) = 0;
+
   // Add or remove an observer that is interested in GATT client interface
   // notifications from us. Thread-safety is guaranteed by ObserverList.
   virtual void AddClientObserver(ClientObserver* observer) = 0;
@@ -246,6 +263,14 @@ class BluetoothGattInterface {
   // Upper layers can make ble_advertiser_interface_t API calls through this
   // structure.
   virtual BleAdvertiserInterface* GetAdvertiserHALInterface() const = 0;
+
+  // The HAL module pointer that represents the standard BT LE scanner
+  // interface. This is implemented in and provided by the shared Bluetooth
+  // library, so this isn't owned by us.
+  //
+  // Upper layers can make ble_scanner_interface_t API calls through this
+  // structure.
+  virtual const btgatt_scanner_interface_t* GetScannerHALInterface() const = 0;
 
   // The HAL module pointer that represents the standard BT-GATT client
   // interface. This is implemented in and provided by the shared Bluetooth

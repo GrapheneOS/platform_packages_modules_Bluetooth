@@ -175,6 +175,7 @@ class GattServerTest : public ::testing::Test {
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
         nullptr,
         nullptr,
+        nullptr,
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestServerHandler>(mock_handler_));
 

@@ -49,10 +49,16 @@ shared_timed_mutex g_instance_lock;
 
 // Helper for obtaining the observer lists. This is forward declared here
 // and defined below since it depends on BluetoothInterfaceImpl.
+base::ObserverList<BluetoothGattInterface::ScannerObserver>*
+    GetScannerObservers();
 base::ObserverList<BluetoothGattInterface::ClientObserver>*
     GetClientObservers();
 base::ObserverList<BluetoothGattInterface::ServerObserver>*
     GetServerObservers();
+
+#define FOR_EACH_SCANNER_OBSERVER(func) \
+  FOR_EACH_OBSERVER(BluetoothGattInterface::ScannerObserver, \
+                    *GetScannerObservers(), func)
 
 #define FOR_EACH_CLIENT_OBSERVER(func) \
   FOR_EACH_OBSERVER(BluetoothGattInterface::ClientObserver, \
@@ -86,7 +92,7 @@ void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t* app_uuid) {
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(app_uuid);
 
-  FOR_EACH_CLIENT_OBSERVER(
+  FOR_EACH_SCANNER_OBSERVER(
       RegisterScannerCallback(g_interface, status, scanner_id, *app_uuid));
 }
 
@@ -97,7 +103,7 @@ void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) { 
 
   VLOG(2) << __func__ << " - BD_ADDR: " << BtAddrString(bda)
           << " RSSI: " << rssi;
-  FOR_EACH_CLIENT_OBSERVER(
+  FOR_EACH_SCANNER_OBSERVER(
     ScanResultCallback(g_interface, *bda, rssi, adv_data));
 }
 
@@ -395,10 +401,23 @@ void MtuChangedCallback(int conn_id, int mtu) {
 
 // The HAL Bluetooth GATT client interface callbacks. These signal a mixture of
 // GATT client-role and GAP events.
-const btgatt_client_callbacks_t gatt_client_callbacks = {
-    RegisterClientCallback,
+
+const btgatt_scanner_callbacks_t gatt_scanner_callbacks = {
     RegisterScannerCallback,
     ScanResultCallback,
+    nullptr,  // batchscan_cfg_storage_cb
+    nullptr,  // batchscan_enb_disable_cb
+    nullptr,  // batchscan_reports_cb
+    nullptr,  // batchscan_threshold_cb
+    nullptr,  // track_adv_event_cb
+    nullptr,  // scan_parameter_setup_completed_cb
+    nullptr,  // scan_filter_cfg_cb
+    nullptr,  // scan_filter_param_cb
+    nullptr,  // scan_filter_status_cb
+};
+
+const btgatt_client_callbacks_t gatt_client_callbacks = {
+    RegisterClientCallback,
     ConnectCallback,
     DisconnectCallback,
     SearchCompleteCallback,
@@ -412,16 +431,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // read_remote_rssi_cb
     ListenCallback,
     MtuChangedCallback,
-    nullptr,  // scan_filter_cfg_cb
-    nullptr,  // scan_filter_param_cb
-    nullptr,  // scan_filter_status_cb
     nullptr,  // congestion_cb
-    nullptr,  // batchscan_cfg_storage_cb
-    nullptr,  // batchscan_enb_disable_cb
-    nullptr,  // batchscan_reports_cb
-    nullptr,  // batchscan_threshold_cb
-    nullptr,  // track_adv_event_cb
-    nullptr,  // scan_parameter_setup_completed_cb
     GetGattDbCallback,
     ServicesRemovedCallback,
     ServicesAddedCallback,
@@ -448,6 +458,7 @@ const btgatt_callbacks_t gatt_callbacks = {
   sizeof(btgatt_callbacks_t),
   &gatt_client_callbacks,
   &gatt_server_callbacks,
+  &gatt_scanner_callbacks,
 };
 
 }  // namespace
@@ -461,6 +472,14 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   ~BluetoothGattInterfaceImpl() override {
     if (hal_iface_)
         hal_iface_->cleanup();
+  }
+
+  void AddScannerObserver(ScannerObserver* observer) override {
+    scanner_observers_.AddObserver(observer);
+  }
+
+  void RemoveScannerObserver(ScannerObserver* observer) override {
+    scanner_observers_.RemoveObserver(observer);
   }
 
   void AddClientObserver(ClientObserver* observer) override {
@@ -481,6 +500,10 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
 
   BleAdvertiserInterface* GetAdvertiserHALInterface() const override {
     return hal_iface_->advertiser;
+  }
+
+  const btgatt_scanner_interface_t* GetScannerHALInterface() const override {
+    return hal_iface_->scanner;
   }
 
   const btgatt_client_interface_t* GetClientHALInterface() const override {
@@ -516,6 +539,10 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
     return true;
   }
 
+  base::ObserverList<ScannerObserver>* scanner_observers() {
+    return &scanner_observers_;
+  }
+
   base::ObserverList<ClientObserver>* client_observers() {
     return &client_observers_;
   }
@@ -529,6 +556,7 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   // We're not using a base::ObserverListThreadSafe, which it posts observer
   // events automatically on the origin threads, as we want to avoid that
   // overhead and simply forward the events to the upper layer.
+  base::ObserverList<ScannerObserver> scanner_observers_;
   base::ObserverList<ClientObserver> client_observers_;
   base::ObserverList<ServerObserver> server_observers_;
 
@@ -540,6 +568,13 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
 };
 
 namespace {
+
+base::ObserverList<BluetoothGattInterface::ScannerObserver>*
+GetScannerObservers() {
+  CHECK(g_interface);
+  return static_cast<BluetoothGattInterfaceImpl*>(
+      g_interface)->scanner_observers();
+}
 
 base::ObserverList<BluetoothGattInterface::ClientObserver>*
 GetClientObservers() {
@@ -559,15 +594,8 @@ GetServerObservers() {
 
 // Default observer implementations. These are provided so that the methods
 // themselves are optional.
-void BluetoothGattInterface::ClientObserver::RegisterClientCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* client_if */,
-    const bt_uuid_t& /* app_uuid */) {
-  // Do nothing.
-}
 
-void BluetoothGattInterface::ClientObserver::RegisterScannerCallback(
+void BluetoothGattInterface::ScannerObserver::RegisterScannerCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* scanner_id */,
@@ -575,12 +603,20 @@ void BluetoothGattInterface::ClientObserver::RegisterScannerCallback(
   // Do nothing.
 }
 
-void BluetoothGattInterface::ClientObserver::ScanResultCallback(
+void BluetoothGattInterface::ScannerObserver::ScanResultCallback(
     BluetoothGattInterface* /* gatt_iface */,
     const bt_bdaddr_t& /* bda */,
     int /* rssi */,
     vector<uint8_t>  /* adv_data */) {  // NOLINT(pass-by-value)
   // Do Nothing.
+}
+
+void BluetoothGattInterface::ClientObserver::RegisterClientCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* client_if */,
+    const bt_uuid_t& /* app_uuid */) {
+  // Do nothing.
 }
 
 void BluetoothGattInterface::ClientObserver::ConnectCallback(
@@ -861,7 +897,7 @@ bt_status_t BluetoothGattInterface::StartScan(int client_id) {
   // If this is the first scan client, then make a call into the stack. We
   // only do this when the reference count changes to or from 0.
   if (scan_client_set_.empty()) {
-    bt_status_t status = GetClientHALInterface()->scan(true);
+    bt_status_t status = GetScannerHALInterface()->scan(true);
     if (status != BT_STATUS_SUCCESS) {
       LOG(ERROR) << "HAL call to scan failed";
       return status;
@@ -885,7 +921,7 @@ bt_status_t BluetoothGattInterface::StopScan(int client_id) {
   }
 
   if (scan_client_set_.size() == 1) {
-    bt_status_t status = GetClientHALInterface()->scan(false);
+    bt_status_t status = GetScannerHALInterface()->scan(false);
     if (status != BT_STATUS_SUCCESS) {
       LOG(ERROR) << "HAL call to stop scan failed";
       return status;
