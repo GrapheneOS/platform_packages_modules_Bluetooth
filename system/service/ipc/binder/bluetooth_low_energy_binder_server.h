@@ -61,19 +61,12 @@ class BluetoothLowEnergyBinderServer
                     bool* _aidl_return) override;
   Status SetMtu(int client_id, const String16& address, int mtu,
                 bool* _aidl_return) override;
-  Status StartScan(int client_id,
-                   const android::bluetooth::ScanSettings& settings,
-                   const std::vector<android::bluetooth::ScanFilter>& filters,
-                   bool* _aidl_return) override;
-  Status StopScan(int client_id, bool* _aidl_return) override;
 
   // bluetooth::LowEnergyClient::Delegate overrides:
   void OnConnectionState(bluetooth::LowEnergyClient* client, int status,
                          const char* address, bool connected) override;
   void OnMtuChanged(bluetooth::LowEnergyClient* client, int status,
                     const char* address, int mtu) override;
-  void OnScanResult(bluetooth::LowEnergyClient* client,
-                    const bluetooth::ScanResult& result) override;
 
  private:
   // Returns a pointer to the IBluetoothLowEnergyCallback instance associated

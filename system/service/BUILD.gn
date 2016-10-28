@@ -42,6 +42,7 @@ source_set("service") {
     "ipc/linux_ipc_host.cc",
     "logging_helpers.cc",
     "low_energy_advertiser.cc",
+    "low_energy_scanner.cc",
     "low_energy_client.cc",
     "settings.cc",
   ]
