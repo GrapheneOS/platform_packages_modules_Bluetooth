@@ -84,6 +84,7 @@ static btgatt_interface_t btgattInterface = {
 
     &btgattClientInterface,
     &btgattServerInterface,
+    &btgattScannerInterface,
     nullptr  // filled in btif_gatt_get_interface
 };
 

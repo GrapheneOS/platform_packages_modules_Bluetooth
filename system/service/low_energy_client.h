@@ -54,11 +54,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
     Delegate() = default;
     virtual ~Delegate() = default;
 
-    // Called asynchronously to notify the delegate of nearby BLE advertisers
-    // found during a device scan.
-    virtual void OnScanResult(LowEnergyClient* client,
-                              const ScanResult& scan_result) = 0;
-
     // Called asynchronously to notify the delegate of connection state change
     virtual void OnConnectionState(LowEnergyClient* client, int status,
                                    const char* address, bool connected) = 0;
@@ -95,19 +90,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // Return true on success, false otherwise.
   bool SetMtu(const std::string& address, int mtu);
 
-  // Initiates a BLE device scan for this client using the given |settings| and
-  // |filters|. See the documentation for ScanSettings and ScanFilter for how
-  // these parameters can be configured. Return true on success, false
-  // otherwise. Please see logs for details in case of error.
-  bool StartScan(const ScanSettings& settings,
-                 const std::vector<ScanFilter>& filters);
-
-  // Stops an ongoing BLE device scan for this client.
-  bool StopScan();
-
-  // Returns the current scan settings.
-  const ScanSettings& scan_settings() const { return scan_settings_; }
-
   // BluetoothClientInstace overrides:
   const UUID& GetAppIdentifier() const override;
   int GetInstanceId() const override;
@@ -120,11 +102,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   LowEnergyClient(Adapter& adapter, const UUID& uuid, int client_id);
 
   // BluetoothGattInterface::ClientObserver overrides:
-  void ScanResultCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      const bt_bdaddr_t& bda, int rssi,
-      vector<uint8_t> adv_data) override;
-
   void ConnectCallback(
       hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
       int client_id, const bt_bdaddr_t& bda) override;
@@ -145,15 +122,6 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // See getters above for documentation.
   UUID app_identifier_;
   int client_id_;
-
-  // Protects device scan related members below.
-  std::mutex scan_fields_lock_;
-
-  // Current scan settings.
-  ScanSettings scan_settings_;
-
-  // If true, then this client have a BLE device scan in progress.
-  std::atomic_bool scan_started_;
 
   // Raw handle to the Delegate, which must outlive this LowEnergyClient
   // instance.

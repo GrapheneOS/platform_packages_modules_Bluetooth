@@ -23,5 +23,4 @@ oneway interface IBluetoothLowEnergyCallback {
   void OnClientRegistered(int status, int client_id);
   void OnConnectionState(int status, int client_id, String address, boolean connected);
   void OnMtuChanged(int status, String address, int mtu);
-  void OnScanResult(in ScanResult scan_result);
 }

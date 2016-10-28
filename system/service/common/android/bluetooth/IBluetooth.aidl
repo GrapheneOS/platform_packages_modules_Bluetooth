@@ -19,6 +19,7 @@ package android.bluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothLowEnergy;
 import android.bluetooth.IBluetoothLeAdvertiser;
+import android.bluetooth.IBluetoothLeScanner;
 import android.bluetooth.IBluetoothGattClient;
 import android.bluetooth.IBluetoothGattServer;
 
@@ -43,6 +44,7 @@ interface IBluetooth {
 
   IBluetoothLowEnergy GetLowEnergyInterface();
   IBluetoothLeAdvertiser GetLeAdvertiserInterface();
+  IBluetoothLeScanner GetLeScannerInterface();
   IBluetoothGattClient GetGattClientInterface();
   IBluetoothGattServer GetGattServerInterface();
 }
