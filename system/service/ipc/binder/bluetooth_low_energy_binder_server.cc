@@ -117,45 +117,6 @@ Status BluetoothLowEnergyBinderServer::SetMtu(int client_id,
   return Status::ok();
 }
 
-Status BluetoothLowEnergyBinderServer::StartScan(
-    int client_id, const android::bluetooth::ScanSettings& settings,
-    const std::vector<android::bluetooth::ScanFilter>& filters,
-    bool* _aidl_return) {
-  VLOG(2) << __func__ << " client_id: " << client_id;
-  std::lock_guard<std::mutex> lock(*maps_lock());
-
-  auto client = GetLEClient(client_id);
-  if (!client) {
-    LOG(ERROR) << "Unknown client_id: " << client_id;
-    *_aidl_return = false;
-    return Status::ok();
-  }
-
-  std::vector<bluetooth::ScanFilter> flt;
-  for (const auto& filter : filters) {
-    flt.push_back(filter);
-  }
-
-  *_aidl_return = client->StartScan(settings, flt);
-  return Status::ok();
-}
-
-Status BluetoothLowEnergyBinderServer::StopScan(int client_id,
-                                                bool* _aidl_return) {
-  VLOG(2) << __func__ << " client_id: " << client_id;
-  std::lock_guard<std::mutex> lock(*maps_lock());
-
-  auto client = GetLEClient(client_id);
-  if (!client) {
-    LOG(ERROR) << "Unknown client_id: " << client_id;
-    *_aidl_return = false;
-    return Status::ok();
-  }
-
-  *_aidl_return = client->StopScan();
-  return Status::ok();
-}
-
 void BluetoothLowEnergyBinderServer::OnConnectionState(
     bluetooth::LowEnergyClient* client, int status, const char* address,
     bool connected) {
@@ -186,21 +147,6 @@ void BluetoothLowEnergyBinderServer::OnMtuChanged(
   }
 
   cb->OnMtuChanged(status, String16(address, std::strlen(address)), mtu);
-}
-
-void BluetoothLowEnergyBinderServer::OnScanResult(
-    bluetooth::LowEnergyClient* client, const bluetooth::ScanResult& result) {
-  VLOG(2) << __func__;
-  std::lock_guard<std::mutex> lock(*maps_lock());
-
-  int client_id = client->GetInstanceId();
-  auto cb = GetLECallback(client->GetInstanceId());
-  if (!cb.get()) {
-    VLOG(2) << "Client was unregistered - client_id: " << client_id;
-    return;
-  }
-
-  cb->OnScanResult(result);
 }
 
 android::sp<IBluetoothLowEnergyCallback>

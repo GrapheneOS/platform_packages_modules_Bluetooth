@@ -37,15 +37,11 @@ namespace {
 class MockGattHandler
     : public hal::FakeBluetoothGattInterface::TestClientHandler {
  public:
-  MockGattHandler() {
-    ON_CALL(*this, Scan(false))
-        .WillByDefault(Return(BT_STATUS_SUCCESS));
-  }
+  MockGattHandler() {};
   ~MockGattHandler() override = default;
 
   MOCK_METHOD1(RegisterClient, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterClient, bt_status_t(int));
-  MOCK_METHOD1(Scan, bt_status_t(bool));
   MOCK_METHOD4(Connect, bt_status_t(int , const bt_bdaddr_t *, bool, int));
   MOCK_METHOD3(Disconnect, bt_status_t(int , const bt_bdaddr_t *, int));
 
@@ -55,14 +51,10 @@ class MockGattHandler
 
 class TestDelegate : public LowEnergyClient::Delegate {
  public:
-  TestDelegate() : scan_result_count_(0), connection_state_count_(0),
-                   last_mtu_(0) {
+  TestDelegate() : connection_state_count_(0), last_mtu_(0) {
   }
 
   ~TestDelegate() override = default;
-
-  int scan_result_count() const { return scan_result_count_; }
-  const ScanResult& last_scan_result() const { return last_scan_result_; }
 
   int connection_state_count() const { return connection_state_count_; }
 
@@ -78,16 +70,7 @@ class TestDelegate : public LowEnergyClient::Delegate {
     last_mtu_ = mtu;
   }
 
-  void OnScanResult(LowEnergyClient* client, const ScanResult& scan_result) {
-    ASSERT_TRUE(client);
-    scan_result_count_++;
-    last_scan_result_ = scan_result;
-  }
-
  private:
-  int scan_result_count_;
-  ScanResult last_scan_result_;
-
   int connection_state_count_;
 
   int last_mtu_;
@@ -105,6 +88,7 @@ class LowEnergyClientTest : public ::testing::Test {
     if (!mock_handler_)
         mock_handler_.reset(new MockGattHandler());
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
+        nullptr,
         nullptr,
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestClientHandler>(mock_handler_),
@@ -267,98 +251,6 @@ TEST_F(LowEnergyClientTest, RegisterInstance) {
   ASSERT_TRUE(client.get() == nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_FAILURE, status);
   EXPECT_EQ(uuid1, cb_uuid);
-}
-
-TEST_F(LowEnergyClientPostRegisterTest, ScanSettings) {
-  EXPECT_CALL(mock_adapter_, IsEnabled())
-      .WillOnce(Return(false))
-      .WillRepeatedly(Return(true));
-
-  ScanSettings settings;
-  std::vector<ScanFilter> filters;
-
-  // Adapter is not enabled.
-  EXPECT_FALSE(le_client_->StartScan(settings, filters));
-
-  // TODO(jpawlowski): add tests checking settings and filter parsing when
-  // implemented
-
-  // These should succeed and result in a HAL call
-  EXPECT_CALL(*mock_handler_, Scan(true))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(le_client_->StartScan(settings, filters));
-
-  // These should succeed and result in a HAL call
-  EXPECT_CALL(*mock_handler_, Scan(false))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(le_client_->StopScan());
-
-  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
-}
-
-TEST_F(LowEnergyClientPostRegisterTest, ScanRecord) {
-  TestDelegate delegate;
-  le_client_->SetDelegate(&delegate);
-
-  EXPECT_EQ(0, delegate.scan_result_count());
-
-  vector<uint8_t> kTestRecord0({ 0x02, 0x01, 0x00, 0x00 });
-  vector<uint8_t> kTestRecord1({ 0x00 });
-  vector<uint8_t> kTestRecord2({
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00
-  });
-  const bt_bdaddr_t kTestAddress = {
-    { 0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C }
-  };
-  const char kTestAddressStr[] = "01:02:03:0A:0B:0C";
-  const int kTestRssi = 64;
-
-  // Scan wasn't started. Result should be ignored.
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord0);
-  EXPECT_EQ(0, delegate.scan_result_count());
-
-  // Start a scan session for |le_client_|.
-  EXPECT_CALL(mock_adapter_, IsEnabled())
-      .Times(1)
-      .WillOnce(Return(true));
-  EXPECT_CALL(*mock_handler_, Scan(_))
-      .Times(2)
-      .WillOnce(Return(BT_STATUS_SUCCESS))
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-  ScanSettings settings;
-  std::vector<ScanFilter> filters;
-  ASSERT_TRUE(le_client_->StartScan(settings, filters));
-
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord0);
-  EXPECT_EQ(1, delegate.scan_result_count());
-  EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
-  EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
-  EXPECT_EQ(3U, delegate.last_scan_result().scan_record().size());
-
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord1);
-  EXPECT_EQ(2, delegate.scan_result_count());
-  EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
-  EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
-  EXPECT_TRUE(delegate.last_scan_result().scan_record().empty());
-
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord2);
-  EXPECT_EQ(3, delegate.scan_result_count());
-  EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
-  EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
-  EXPECT_EQ(62U, delegate.last_scan_result().scan_record().size());
-
-  le_client_->SetDelegate(nullptr);
 }
 
 MATCHER_P(BitEq, x, std::string(negation ? "isn't" : "is") +

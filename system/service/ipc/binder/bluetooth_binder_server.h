@@ -29,6 +29,7 @@
 #include <android/bluetooth/IBluetoothGattServer.h>
 #include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <android/bluetooth/IBluetoothLeAdvertiser.h>
+#include <android/bluetooth/IBluetoothLeScanner.h>
 
 #include "service/adapter.h"
 #include "service/common/bluetooth/uuid.h"
@@ -43,6 +44,7 @@ using android::bluetooth::IBluetoothGattClient;
 using android::bluetooth::IBluetoothGattServer;
 using android::bluetooth::IBluetoothLowEnergy;
 using android::bluetooth::IBluetoothLeAdvertiser;
+using android::bluetooth::IBluetoothLeScanner;
 
 namespace ipc {
 namespace binder {
@@ -76,6 +78,8 @@ class BluetoothBinderServer : public BnBluetooth,
       ::android::sp<IBluetoothLowEnergy>* _aidl_return) override;
   Status GetLeAdvertiserInterface(
       ::android::sp<IBluetoothLeAdvertiser>* _aidl_return) override;
+  Status GetLeScannerInterface(
+      ::android::sp<IBluetoothLeScanner>* _aidl_return) override;
   Status GetGattClientInterface(
       ::android::sp<IBluetoothGattClient>* _aidl_return) override;
   Status GetGattServerInterface(
@@ -100,6 +104,10 @@ class BluetoothBinderServer : public BnBluetooth,
   // The IBluetoothLeAdvertiser interface handle. This is lazily initialized on the
   // first call to GetLeAdvertiserInterface().
   android::sp<IBluetoothLeAdvertiser> le_advertiser_interface_;
+
+  // The IBluetoothLeScanner interface handle. This is lazily initialized on the
+  // first call to GetLeScannerInterface().
+  android::sp<IBluetoothLeScanner> le_scanner_interface_;
 
   // The IBluetoothGattClient interface handle. This is lazily initialized on
   // the first call to GetGattClientInterface().

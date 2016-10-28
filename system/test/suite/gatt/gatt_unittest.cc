@@ -50,15 +50,6 @@ TEST_F(GattTest, GattClientRegister) {
   gatt_client_interface()->unregister_client(client_interface_id());
 }
 
-TEST_F(GattTest, GattClientScanRemoteDevice) {
-  // Starts BLE scan. NB: This test assumes there is a BLE beacon advertising nearby.
-  gatt_client_interface()->scan(true);
-  semaphore_wait(scan_result_callback_sem_);
-
-  // Ends BLE scan. No callback is expected.
-  gatt_client_interface()->scan(false);
-}
-
 TEST_F(GattTest, GattClientAdvertise) {
   // Registers a new client app.
   bt_uuid_t gatt_client_uuid;
