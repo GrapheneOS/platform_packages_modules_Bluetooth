@@ -47,6 +47,7 @@ import java.util.Map;
 
 public class HfpClientConnectionService extends ConnectionService {
     private static final String TAG = "HfpClientConnService";
+    private static final boolean DBG = true;
 
     public static final String HFP_SCHEME = "hfpc";
 
@@ -59,7 +60,8 @@ public class HfpClientConnectionService extends ConnectionService {
     private BluetoothHeadsetClient mHeadsetProfile;
     private TelecomManager mTelecomManager;
 
-    private Map<Uri, HfpClientConnection> mConnections = new HashMap<>();
+    private Map<ConnectionKey, HfpClientConnection> mConnections =
+        new HashMap<ConnectionKey, HfpClientConnection>();
     private HfpClientConference mConference;
 
     private boolean mPendingAcceptCall;
@@ -195,11 +197,27 @@ public class HfpClientConnectionService extends ConnectionService {
         }
     }
 
-    private void handleCall(BluetoothHeadsetClientCall call) {
-        Log.d(TAG, "Got call " + call);
+    // Find the connection specified by the key, also update the key with ID if present.
+    private synchronized HfpClientConnection findConnectionAndUpdateKey(ConnectionKey key) {
+        if (DBG) {
+            Log.d(TAG, "findConnectionAndUpdateKey local key set " + mConnections.toString());
+        }
 
+        HfpClientConnection conn = mConnections.get(key);
+        if (conn != null && key.getId() != ConnectionKey.INVALID_ID) {
+            Log.d(TAG, "Updating key for " + key.getPhoneNumber() + " to " + key.getId());
+            mConnections.remove(key);
+            mConnections.put(key, conn);
+        }
+        return conn;
+    }
+
+    private void handleCall(BluetoothHeadsetClientCall call) {
         Uri number = Uri.fromParts(PhoneAccount.SCHEME_TEL, call.getNumber(), null);
-        HfpClientConnection connection = mConnections.get(number);
+        Log.d(TAG, "Got call " + call.toString(true) + "/" + number);
+        ConnectionKey incomingKey = ConnectionKey.getKey(call);
+        HfpClientConnection connection = findConnectionAndUpdateKey(incomingKey);
+
         if (connection != null) {
             connection.handleCallChanged(call);
         }
@@ -230,7 +248,9 @@ public class HfpClientConnectionService extends ConnectionService {
             }
         } else if (call.getState() == BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
             Log.d(TAG, "Removing number " + number);
-            mConnections.remove(number);
+            synchronized (this) {
+                mConnections.remove(ConnectionKey.getKey(call));
+            }
         }
         updateConferenceableConnections();
     }
@@ -251,8 +271,11 @@ public class HfpClientConnectionService extends ConnectionService {
         BluetoothHeadsetClientCall call =
             request.getExtras().getParcelable(
                 TelecomManager.EXTRA_INCOMING_CALL_EXTRAS);
-        Uri number = Uri.fromParts(PhoneAccount.SCHEME_TEL, call.getNumber(), null);
-        HfpClientConnection connection = mConnections.get(number);
+        HfpClientConnection connection = null;
+
+        synchronized (this) {
+            connection = mConnections.get(ConnectionKey.getKey(call));
+        }
 
         if (connection != null) {
             connection.onAdded();
@@ -302,7 +325,11 @@ public class HfpClientConnectionService extends ConnectionService {
             request.getExtras().getParcelable(
                 TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS);
         Uri number = Uri.fromParts(PhoneAccount.SCHEME_TEL, call.getNumber(), null);
-        HfpClientConnection connection = mConnections.get(number);
+
+        HfpClientConnection connection = null;
+        synchronized (this) {
+            connection = mConnections.get(ConnectionKey.getKey(call));
+        }
 
         if (connection != null) {
             connection.onAdded();
@@ -419,12 +446,12 @@ public class HfpClientConnectionService extends ConnectionService {
         return mAdapter.getRemoteDevice(btAddr);
     }
 
-    private HfpClientConnection buildConnection(
+    private synchronized HfpClientConnection buildConnection(
             BluetoothDevice device, BluetoothHeadsetClientCall call, Uri number) {
         Log.d(TAG, "Creating connection on " + device + " for " + call + "/" + number);
         HfpClientConnection connection =
                 new HfpClientConnection(this, device, mHeadsetProfile, call, number);
-        mConnections.put(number, connection);
+        mConnections.put(new ConnectionKey(ConnectionKey.INVALID_ID, number), connection);
         return connection;
     }
 
