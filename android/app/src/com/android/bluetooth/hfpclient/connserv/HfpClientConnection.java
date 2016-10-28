@@ -26,6 +26,8 @@ import android.telecom.DisconnectCause;
 import android.telecom.TelecomManager;
 import android.util.Log;
 
+import java.util.UUID;
+
 public class HfpClientConnection extends Connection {
     private static final String TAG = "HfpClientConnection";
 
@@ -34,34 +36,46 @@ public class HfpClientConnection extends Connection {
 
     private BluetoothHeadsetClient mHeadsetProfile;
     private BluetoothHeadsetClientCall mCurrentCall;
-    private boolean mClosing;
     private boolean mClosed;
     private boolean mLocalDisconnect;
     private boolean mClientHasEcc;
     private boolean mAdded;
 
-    public HfpClientConnection(Context context, BluetoothDevice device, BluetoothHeadsetClient client,
-            BluetoothHeadsetClientCall call, Uri number) {
+    public HfpClientConnection(Context context, BluetoothDevice device,
+            BluetoothHeadsetClient client, BluetoothHeadsetClientCall call, Uri number) {
         mDevice = device;
         mContext = context;
         mHeadsetProfile = client;
-        mCurrentCall = call;
+
+        setInitializing();
+
+        if (call != null) {
+            mCurrentCall = call;
+            handleCallChanged();
+        } else if (mHeadsetProfile != null) {
+            mCurrentCall = mHeadsetProfile.dial(
+                mDevice, number.getSchemeSpecificPart());
+            setDialing();
+        }
+
         if (mHeadsetProfile != null) {
             mClientHasEcc = HfpClientConnectionService.hasHfpClientEcc(mHeadsetProfile, mDevice);
         }
         setAudioModeIsVoip(false);
         setAddress(number, TelecomManager.PRESENTATION_ALLOWED);
-        setInitialized();
+        setConnectionCapabilities(CAPABILITY_SUPPORT_HOLD | CAPABILITY_MUTE |
+                CAPABILITY_SEPARATE_FROM_CONFERENCE | CAPABILITY_DISCONNECT_FROM_CONFERENCE |
+                (getState() == STATE_ACTIVE || getState() == STATE_HOLDING ? CAPABILITY_HOLD : 0));
+    }
 
-        if (mHeadsetProfile != null) {
-            finishInitializing();
-        }
+    public UUID getUUID() {
+        return mCurrentCall.getUUID();
     }
 
     public void onHfpConnected(BluetoothHeadsetClient client) {
         mHeadsetProfile = client;
         mClientHasEcc = HfpClientConnectionService.hasHfpClientEcc(mHeadsetProfile, mDevice);
-        finishInitializing();
+        handleCallChanged();
     }
 
     public void onHfpDisconnected() {
@@ -87,26 +101,13 @@ public class HfpClientConnection extends Connection {
         setActive();
     }
 
-    public void handleCallChanged(BluetoothHeadsetClientCall call) {
-        HfpClientConference conference = (HfpClientConference) getConference();
+    public void updateCall(BluetoothHeadsetClientCall call) {
         mCurrentCall = call;
-        int state = call.getState();
+    }
 
-        // If this call is already terminated (locally) but we are only hearing about the handle of
-        // the call right now -- then close the call.
-        boolean closing = false;
-        synchronized (this) {
-            closing = mClosing;
-        }
-        if (closing && state != BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
-            if (mHeadsetProfile != null) {
-                mHeadsetProfile.terminateCall(mDevice, mClientHasEcc ? mCurrentCall.getId() : 0);
-                mLocalDisconnect = true;
-            } else {
-                Log.e(TAG, "HFP disconnected but call update received, ignore.");
-            }
-            return;
-        }
+    public void handleCallChanged() {
+        HfpClientConference conference = (HfpClientConference) getConference();
+        int state = mCurrentCall.getState();
 
         Log.d(TAG, "Got call state change to " + state);
         switch (state) {
@@ -138,21 +139,6 @@ public class HfpClientConnection extends Connection {
             default:
                 Log.wtf(TAG, "Unexpected phone state " + state);
         }
-        setConnectionCapabilities(CAPABILITY_SUPPORT_HOLD | CAPABILITY_MUTE |
-                CAPABILITY_SEPARATE_FROM_CONFERENCE | CAPABILITY_DISCONNECT_FROM_CONFERENCE |
-                (getState() == STATE_ACTIVE || getState() == STATE_HOLDING ? CAPABILITY_HOLD : 0));
-    }
-
-    private void finishInitializing() {
-        if (mCurrentCall == null) {
-            String number = getAddress().getSchemeSpecificPart();
-            Log.d(TAG, "Dialing " + number);
-            mHeadsetProfile.dial(mDevice, number);
-            setDialing();
-            // We will change state dependent on broadcasts from BluetoothHeadsetClientCall.
-        } else {
-            handleCallChanged(mCurrentCall);
-        }
     }
 
     private void close(int cause) {
@@ -160,6 +146,7 @@ public class HfpClientConnection extends Connection {
         if (mClosed) {
             return;
         }
+
         setDisconnected(new DisconnectCause(cause));
 
         mClosed = true;
@@ -179,15 +166,12 @@ public class HfpClientConnection extends Connection {
     @Override
     public synchronized void onDisconnect() {
         Log.d(TAG, "onDisconnect " + mCurrentCall);
-        mClosing = true;
-        if (!mClosed) {
-            // In this state we can close the call without problems.
-            if (mHeadsetProfile != null && mCurrentCall != null) {
-                mHeadsetProfile.terminateCall(mDevice, mClientHasEcc ? mCurrentCall.getId() : 0);
-                mLocalDisconnect = true;
-            } else if (mCurrentCall == null) {
-                Log.w(TAG, "Call disconnected but call handle not received.");
-            }
+        // In this state we can close the call without problems.
+        if (mHeadsetProfile != null) {
+            mHeadsetProfile.terminateCall(mDevice, mCurrentCall);
+            mLocalDisconnect = true;
+        } else if (mCurrentCall == null) {
+            Log.w(TAG, "Call disconnected but call handle not received.");
         }
     }
 
