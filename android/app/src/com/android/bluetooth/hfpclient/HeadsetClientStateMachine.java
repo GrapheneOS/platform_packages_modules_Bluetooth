@@ -73,7 +73,7 @@ import com.android.bluetooth.R;
 
 final class HeadsetClientStateMachine extends StateMachine {
     private static final String TAG = "HeadsetClientStateMachine";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     static final int NO_ACTION = 0;
 
@@ -111,11 +111,13 @@ final class HeadsetClientStateMachine extends StateMachine {
 
     public static final Integer HF_ORIGINATED_CALL_ID = new Integer(-1);
     private long OUTGOING_TIMEOUT_MILLI = 10 * 1000; // 10 seconds
+    private long QUERY_CURRENT_CALLS_WAIT_MILLIS = 2 * 1000; // 2 seconds
 
     private final Disconnected mDisconnected;
     private final Connecting mConnecting;
     private final Connected mConnected;
     private final AudioOn mAudioOn;
+    private long mClccTimer = 0;
 
     private final HeadsetClientService mService;
 
@@ -464,7 +466,7 @@ final class HeadsetClientStateMachine extends StateMachine {
         }
 
         if (loopQueryCalls()) {
-            sendMessageDelayed(QUERY_CURRENT_CALLS, 1523);
+            sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
         }
 
         mCallsUpdate.clear();
@@ -1315,7 +1317,19 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     break;
                 case QUERY_CURRENT_CALLS:
-                    queryCallsStart();
+                    // Whenever the timer expires we query calls if there are outstanding requests
+                    // for query calls.
+                    long currentElapsed = SystemClock.elapsedRealtime();
+                    if (mClccTimer < currentElapsed) {
+                        queryCallsStart();
+                        mClccTimer = currentElapsed + QUERY_CURRENT_CALLS_WAIT_MILLIS;
+                        // Request satisfied, ignore all other call query messages.
+                        removeMessages(QUERY_CURRENT_CALLS);
+                    } else {
+                        // Replace all messages with one concrete message.
+                        removeMessages(QUERY_CURRENT_CALLS);
+                        sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                    }
                     break;
                 case STACK_EVENT:
                     Intent intent = null;
@@ -1531,13 +1545,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                                 case TERMINATE_SPECIFIC_CALL:
                                     // if terminating specific succeed no other
                                     // event is send
-                                    if (event.valueInt == BluetoothHeadsetClient.ACTION_RESULT_OK) {
-                                        BluetoothHeadsetClientCall sc =
-                                                (BluetoothHeadsetClientCall) queuedAction.second;
-                                        setCallState(sc,
-                                                BluetoothHeadsetClientCall.CALL_STATE_TERMINATED);
-                                        mCalls.remove(sc.getId());
-                                    } else {
+                                    if (event.valueInt != BluetoothHeadsetClient.ACTION_RESULT_OK) {
                                         sendActionResultIntent(event);
                                     }
                                     break;
