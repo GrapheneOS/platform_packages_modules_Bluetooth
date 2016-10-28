@@ -562,10 +562,22 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
 
 }
 
-static const btgatt_client_callbacks_t sGattClientCallbacks = {
-    btgattc_register_app_cb,
+static const btgatt_scanner_callbacks_t sGattScannerCallbacks = {
     btgattc_register_scanner_cb,
     btgattc_scan_result_cb,
+    btgattc_batchscan_cfg_storage_cb,
+    btgattc_batchscan_startstop_cb,
+    btgattc_batchscan_reports_cb,
+    btgattc_batchscan_threshold_cb,
+    btgattc_track_adv_event_cb,
+    btgattc_scan_parameter_setup_completed_cb,
+    btgattc_scan_filter_cfg_cb,
+    btgattc_scan_filter_param_cb,
+    btgattc_scan_filter_status_cb,
+};
+
+static const btgatt_client_callbacks_t sGattClientCallbacks = {
+    btgattc_register_app_cb,
     btgattc_open_cb,
     btgattc_close_cb,
     btgattc_search_complete_cb,
@@ -579,16 +591,7 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_remote_rssi_cb,
     btgattc_advertise_cb,
     btgattc_configure_mtu_cb,
-    btgattc_scan_filter_cfg_cb,
-    btgattc_scan_filter_param_cb,
-    btgattc_scan_filter_status_cb,
     btgattc_congestion_cb,
-    btgattc_batchscan_cfg_storage_cb,
-    btgattc_batchscan_startstop_cb,
-    btgattc_batchscan_reports_cb,
-    btgattc_batchscan_threshold_cb,
-    btgattc_track_adv_event_cb,
-    btgattc_scan_parameter_setup_completed_cb,
     btgattc_get_gatt_db_cb,
     NULL, /* services_removed_cb */
     NULL  /* services_added_cb */
@@ -811,6 +814,7 @@ static const btgatt_callbacks_t sGattCallbacks = {
     sizeof(btgatt_callbacks_t),
     &sGattClientCallbacks,
     &sGattServerCallbacks,
+    &sGattScannerCallbacks,
 };
 
 /**
@@ -965,20 +969,20 @@ static void registerScannerNative(JNIEnv* env, jobject object,
     if (!sGattIf) return;
 
     set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
-    sGattIf->client->register_scanner(&uuid);
+    sGattIf->scanner->register_scanner(&uuid);
 }
 
 static void unregisterScannerNative(JNIEnv* env, jobject object, jint scanner_id)
 {
     if (!sGattIf) return;
 
-    sGattIf->client->unregister_scanner(scanner_id);
+    sGattIf->scanner->unregister_scanner(scanner_id);
 }
 
 static void gattClientScanNative(JNIEnv* env, jobject object, jboolean start)
 {
     if (!sGattIf) return;
-    sGattIf->client->scan(start);
+    sGattIf->scanner->scan(start);
 }
 
 static void gattClientConnectNative(JNIEnv* env, jobject object, jint clientif,
@@ -1143,7 +1147,7 @@ static void gattSetScanParametersNative(JNIEnv* env, jobject object,
                                         jint scan_window_unit)
 {
     if (!sGattIf) return;
-    sGattIf->client->set_scan_parameters(client_if, scan_interval_unit, scan_window_unit);
+    sGattIf->scanner->set_scan_parameters(client_if, scan_interval_unit, scan_window_unit);
 }
 
 static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object, jobject params)
@@ -1194,7 +1198,7 @@ static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object, jobj
     filt_params.rssi_low_thres = env->CallIntMethod(params, methodId);
 
     env->DeleteLocalRef(filtparam);
-    sGattIf->client->scan_filter_param_setup(filt_params);
+    sGattIf->scanner->scan_filter_param_setup(filt_params);
 }
 
 static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
@@ -1207,7 +1211,7 @@ static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
     filt_params.client_if = client_if;
     filt_params.action = delete_scan_filter_params_action;
     filt_params.filt_index = filt_index;
-    sGattIf->client->scan_filter_param_setup(filt_params);
+    sGattIf->scanner->scan_filter_param_setup(filt_params);
 }
 
 static void gattClientScanFilterParamClearAllNative(JNIEnv* env, jobject object, jint client_if)
@@ -1218,7 +1222,7 @@ static void gattClientScanFilterParamClearAllNative(JNIEnv* env, jobject object,
     memset(&filt_params, 0, sizeof(btgatt_filt_param_setup_t));
     filt_params.client_if = client_if;
     filt_params.action = clear_scan_filter_params_action;
-    sGattIf->client->scan_filter_param_setup(filt_params);
+    sGattIf->scanner->scan_filter_param_setup(filt_params);
 }
 
 static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
@@ -1233,7 +1237,7 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
         {
             bt_bdaddr_t bda;
             jstr2bdaddr(env, &bda, address);
-            sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index, 0,
+            sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type, filt_index, 0,
                                              0, NULL, NULL, &bda, addr_type, {}, {});
             break;
         }
@@ -1250,7 +1254,7 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
             vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
             env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
 
-            sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
+            sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type, filt_index,
                0, 0, NULL, NULL, NULL, 0, std::move(vec_data), std::move(vec_mask));
             break;
         }
@@ -1262,10 +1266,10 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
             set_uuid(uuid.uu, uuid_msb, uuid_lsb);
             set_uuid(uuid_mask.uu, uuid_mask_msb, uuid_mask_lsb);
             if (uuid_mask_lsb != 0 && uuid_mask_msb != 0)
-                sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
+                sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type, filt_index,
                                  0, 0, &uuid, &uuid_mask, NULL,0,{}, {});
             else
-                sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
+                sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type, filt_index,
                                  0, 0, &uuid, NULL, NULL, 0,{}, {});
             break;
         }
@@ -1277,7 +1281,7 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
             {
                 vector<uint8_t> vec_name(c_name, c_name + strlen(c_name));
                 env->ReleaseStringUTFChars(name, c_name);
-                sGattIf->client->scan_filter_add_remove(client_if, action, filt_type,
+                sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type,
                                  filt_index, 0, 0, NULL, NULL, NULL, 0, std::move(vec_name), {});
             }
             break;
@@ -1296,7 +1300,7 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
             vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
             env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
 
-            sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
+            sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type, filt_index,
                 company_id, company_id_mask, NULL, NULL, NULL, 0, std::move(vec_data),
                 std::move(vec_mask));
             break;
@@ -1336,14 +1340,14 @@ static void gattClientScanFilterClearNative(JNIEnv* env, jobject object, jint cl
                         jint filt_index)
 {
     if (!sGattIf) return;
-    sGattIf->client->scan_filter_clear(client_if, filt_index);
+    sGattIf->scanner->scan_filter_clear(client_if, filt_index);
 }
 
 static void gattClientScanFilterEnableNative (JNIEnv* env, jobject object, jint client_if,
                           jboolean enable)
 {
     if (!sGattIf) return;
-    sGattIf->client->scan_filter_enable(client_if, enable);
+    sGattIf->scanner->scan_filter_enable(client_if, enable);
 }
 
 static void gattClientConfigureMTUNative(JNIEnv *env, jobject object,
@@ -1420,7 +1424,7 @@ static void gattClientConfigBatchScanStorageNative(JNIEnv* env, jobject object, 
             jint notify_threshold_level_percent)
 {
     if (!sGattIf) return;
-    sGattIf->client->batchscan_cfg_storage(client_if, max_full_reports_percent,
+    sGattIf->scanner->batchscan_cfg_storage(client_if, max_full_reports_percent,
             max_trunc_reports_percent, notify_threshold_level_percent);
 }
 
@@ -1429,21 +1433,21 @@ static void gattClientStartBatchScanNative(JNIEnv* env, jobject object, jint cli
             jint discard_rule)
 {
     if (!sGattIf) return;
-    sGattIf->client->batchscan_enb_batch_scan(client_if, scan_mode, scan_interval_unit,
+    sGattIf->scanner->batchscan_enb_batch_scan(client_if, scan_mode, scan_interval_unit,
             scan_window_unit, addr_type, discard_rule);
 }
 
 static void gattClientStopBatchScanNative(JNIEnv* env, jobject object, jint client_if)
 {
     if (!sGattIf) return;
-    sGattIf->client->batchscan_dis_batch_scan(client_if);
+    sGattIf->scanner->batchscan_dis_batch_scan(client_if);
 }
 
 static void gattClientReadScanReportsNative(JNIEnv* env, jobject object, jint client_if,
         jint scan_type)
 {
     if (!sGattIf) return;
-    sGattIf->client->batchscan_read_reports(client_if, scan_type);
+    sGattIf->scanner->batchscan_read_reports(client_if, scan_type);
 }
 
 /**
