@@ -74,6 +74,8 @@ public class PbapClientService extends ProfileService {
     protected boolean start() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        // delay initial download until after the user is unlocked to add an account.
+        filter.addAction(Intent.ACTION_USER_UNLOCKED);
         try {
             registerReceiver(mPbapBroadcastReceiver, filter);
         } catch (Exception e) {
@@ -92,7 +94,9 @@ public class PbapClientService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG,"Unable to unregister pbapclient receiver",e);
         }
-        mPbapClientStateMachine.disconnect(null);
+        if (mPbapClientStateMachine != null) {
+            mPbapClientStateMachine.doQuit();
+        }
         return true;
     }
 
@@ -109,7 +113,11 @@ public class PbapClientService extends ProfileService {
             String action = intent.getAction();
             if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                disconnect(device);
+                if (getConnectionState(device) != BluetoothProfile.STATE_DISCONNECTED) {
+                    disconnect(device);
+                }
+            } else if(action.equals(Intent.ACTION_USER_UNLOCKED)) {
+                mPbapClientStateMachine.resumeDownload();
             }
         }
     }
@@ -307,4 +315,11 @@ public class PbapClientService extends ProfileService {
         return priority;
     }
 
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        if (mPbapClientStateMachine != null) {
+            mPbapClientStateMachine.dump(sb);
+        }
+    }
 }
