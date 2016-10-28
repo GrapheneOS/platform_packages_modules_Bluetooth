@@ -41,6 +41,8 @@
  */
 package com.android.bluetooth.pbapclient;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothPbapClient;
@@ -49,9 +51,11 @@ import android.content.Intent;
 import android.os.Message;
 import android.os.Process;
 import android.os.HandlerThread;
+import android.provider.CallLog;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.R;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -76,6 +80,7 @@ final class PbapClientStateMachine extends StateMachine {
     static final int MSG_CONNECTION_COMPLETE = 5;
     static final int MSG_CONNECTION_FAILED = 6;
     static final int MSG_CONNECTION_CLOSED = 7;
+    static final int MSG_RESUME_DOWNLOAD = 8;
 
     static final int CONNECT_TIMEOUT = 6000;
     static final int DISCONNECT_TIMEOUT = 3000;
@@ -142,11 +147,18 @@ final class PbapClientStateMachine extends StateMachine {
                     break;
 
                 case MSG_DISCONNECT:
+                    Log.w(TAG,"Received unexpected disconnect while disconnected.");
+                    // It is possible if something crashed for others to think we are connected
+                    // already, just remind them.
                     if (message.obj instanceof BluetoothDevice) {
                         onConnectionStateChanged((BluetoothDevice) message.obj,
                                 BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
                     }
+                    break;
+
+                case MSG_RESUME_DOWNLOAD:
+                    // Do nothing.
                     break;
 
                 default:
@@ -158,15 +170,9 @@ final class PbapClientStateMachine extends StateMachine {
     }
 
     class Connecting extends State {
-        private boolean mAccountCreated;
-        private boolean mObexAuthorized;
-
         @Override
         public void enter() {
             if (DBG) Log.d(TAG,"Enter Connecting: " + getCurrentMessage().what);
-
-            mAccountCreated = false;
-            mObexAuthorized = false;
             onConnectionStateChanged(mCurrentDevice, mMostRecentState,
                     BluetoothProfile.STATE_CONNECTING);
             mMostRecentState = BluetoothProfile.STATE_CONNECTING;
@@ -180,7 +186,6 @@ final class PbapClientStateMachine extends StateMachine {
             mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_CONNECT)
                     .sendToTarget();
             sendMessageDelayed(MSG_CONNECT_TIMEOUT, CONNECT_TIMEOUT);
-            // TODO: create account
         }
 
         @Override
@@ -206,6 +211,10 @@ final class PbapClientStateMachine extends StateMachine {
                     Log.w(TAG,"Connecting already in progress");
                     break;
 
+                case MSG_RESUME_DOWNLOAD:
+                    // Do nothing.
+                    break;
+
                 default:
                     Log.w(TAG,"Received unexpected message while Connecting");
                     return NOT_HANDLED;
@@ -221,8 +230,9 @@ final class PbapClientStateMachine extends StateMachine {
             onConnectionStateChanged(mCurrentDevice, mMostRecentState,
                     BluetoothProfile.STATE_DISCONNECTING);
             mMostRecentState = BluetoothProfile.STATE_DISCONNECTING;
-            mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DISCONNECT).sendToTarget();
-            sendMessageDelayed(MSG_DISCONNECT_TIMEOUT, DISCONNECT_TIMEOUT);
+            mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DISCONNECT)
+                    .sendToTarget();
+            sendMessageDelayed(MSG_DISCONNECT_TIMEOUT,DISCONNECT_TIMEOUT);
         }
 
         @Override
@@ -245,6 +255,10 @@ final class PbapClientStateMachine extends StateMachine {
                     mConnectionHandler.abort();
                     break;
 
+                case MSG_RESUME_DOWNLOAD:
+                    // Do nothing.
+                    break;
+
                 default:
                     Log.w(TAG,"Received unexpected message while Disconnecting");
                     return NOT_HANDLED;
@@ -260,8 +274,8 @@ final class PbapClientStateMachine extends StateMachine {
             onConnectionStateChanged(mCurrentDevice, mMostRecentState,
                     BluetoothProfile.STATE_CONNECTED);
             mMostRecentState = BluetoothProfile.STATE_CONNECTED;
-            // mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
-            // .sendToTarget();
+            mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
+                    .sendToTarget();
         }
 
         @Override
@@ -279,6 +293,11 @@ final class PbapClientStateMachine extends StateMachine {
                 case MSG_DISCONNECT:
                     transitionTo(mDisconnecting);
                     break;
+
+                case MSG_RESUME_DOWNLOAD:
+                    mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
+                    .sendToTarget();
+                break;
 
                 default:
                     Log.w(TAG,"Received unexpected message while Connected");
@@ -310,6 +329,15 @@ final class PbapClientStateMachine extends StateMachine {
     public void disconnect(BluetoothDevice device) {
         Log.d(TAG, "Disconnect Request "  + device);
         sendMessage(MSG_DISCONNECT, device);
+    }
+
+    public void resumeDownload() {
+        removeUncleanAccounts();
+        sendMessage(MSG_RESUME_DOWNLOAD);
+    }
+
+    void doQuit() {
+        quitNow();
     }
 
     public int getConnectionState() {
@@ -369,5 +397,29 @@ final class PbapClientStateMachine extends StateMachine {
             return null;
         }
         return mCurrentDevice;
+    }
+
+    Context getContext() {
+        return mContext;
+    }
+
+    private void removeUncleanAccounts() {
+        // Find all accounts that match the type "pbap" and delete them.
+        AccountManager accountManager = AccountManager.get(mContext);
+        Account[] accounts = accountManager.getAccountsByType(
+                mContext.getString(R.string.pbap_account_type));
+        Log.w(TAG, "Found " + accounts.length + " unclean accounts");
+        for (Account acc : accounts) {
+            Log.w(TAG, "Deleting " + acc);
+            // The device ID is the name of the account.
+            accountManager.removeAccountExplicitly(acc);
+        }
+        mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+
+    }
+
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
+        ProfileService.println(sb, "StateMachine: " + this.toString());
     }
 }
