@@ -1311,39 +1311,6 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
     UNUSED(p_cback);
 #endif
 }
-/*******************************************************************************
-**
-** Function         BTA_DmBleUpdateConnectionParam
-**
-** Description      Update connection parameters, can only be used when connection is up.
-**
-** Parameters:      bd_addr          - BD address of the peer
-**                  min_int   -     minimum connection interval, [0x0004~ 0x4000]
-**                  max_int   -     maximum connection interval, [0x0004~ 0x4000]
-**                  latency   -     slave latency [0 ~ 500]
-**                  timeout   -     supervision timeout [0x000a ~ 0xc80]
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmBleUpdateConnectionParam(BD_ADDR bd_addr, UINT16 min_int,
-                                    UINT16 max_int, UINT16 latency,
-                                    UINT16 timeout)
-{
-#if BLE_INCLUDED == TRUE
-    tBTA_DM_API_UPDATE_CONN_PARAM *p_msg =
-        (tBTA_DM_API_UPDATE_CONN_PARAM *)osi_calloc(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
-
-    p_msg->hdr.event = BTA_DM_API_UPDATE_CONN_PARAM_EVT;
-    bdcpy(p_msg->bd_addr, bd_addr);
-    p_msg->min_int = min_int;
-    p_msg->max_int = max_int;
-    p_msg->latency = latency;
-    p_msg->timeout = timeout;
-
-    bta_sys_sendmsg(p_msg);
-#endif
-}
 
 /*******************************************************************************
 **
@@ -1746,17 +1713,19 @@ void BTA_DmEnableScanFilter(UINT8 action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cb
 **
 ** Description      Update connection parameters, can only be used when connection is up.
 **
-** Parameters:      bd_addr   - BD address of the peer
+** Parameters:      bd_addr   -     BD address of the peer
 **                  min_int   -     minimum connection interval, [0x0004~ 0x4000]
 **                  max_int   -     maximum connection interval, [0x0004~ 0x4000]
 **                  latency   -     slave latency [0 ~ 500]
 **                  timeout   -     supervision timeout [0x000a ~ 0xc80]
+                    p_cback   -     callback on connection parameters updated
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max_int,
-                                    UINT16 latency, UINT16 timeout)
+void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int,
+                                     UINT16 max_int, UINT16 latency, UINT16 timeout,
+                                     tBTA_DM_BLE_CONN_PARAM_CBACK *p_cback)
 {
     tBTA_DM_API_UPDATE_CONN_PARAM *p_msg =
         (tBTA_DM_API_UPDATE_CONN_PARAM *)osi_calloc(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
@@ -1767,6 +1736,7 @@ void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max
     p_msg->max_int = max_int;
     p_msg->latency = latency;
     p_msg->timeout = timeout;
+    p_msg->p_conn_param_update_cback = p_cback;
 
     bta_sys_sendmsg(p_msg);
 }

@@ -441,6 +441,7 @@ typedef struct t_l2c_linkcb
     UINT16              latency;
     UINT16              timeout;
 
+    tBTA_DM_BLE_CONN_PARAM_CBACK *p_conn_param_update_cb;
 #endif
 
 #if (L2CAP_ROUND_ROBIN_CHANNEL_SERVICE == TRUE)

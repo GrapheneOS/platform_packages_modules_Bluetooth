@@ -933,6 +933,9 @@ typedef void (tBTA_DM_BLE_PF_PARAM_CBACK) (UINT8 action_type, tBTA_DM_BLE_PF_AVB
 typedef void (tBTA_DM_BLE_PF_STATUS_CBACK) (UINT8 action, tBTA_STATUS status,
                                             tBTA_DM_BLE_REF_VALUE ref_value);
 
+/* Connection update callback */
+typedef void (tBTA_DM_BLE_CONN_PARAM_CBACK) (BD_ADDR bd_addr, UINT16 interval, UINT16 latency,
+                                             UINT16 timeout, tBTA_STATUS status);
 
 #define BTA_DM_BLE_PF_BRDCAST_ADDR_FILT  1
 #define BTA_DM_BLE_PF_SERV_DATA_CHG_FILT 2
@@ -2110,7 +2113,7 @@ extern void BTA_BleDisableAdvInstance(UINT8 inst_id);
 **
 ** Description      Update connection parameters, can only be used when connection is up.
 **
-** Parameters:      bd_addr   - BD address of the peer
+** Parameters:      bd_addr   -     BD address of the peer
 **                  min_int   -     minimum connection interval, [0x0004~ 0x4000]
 **                  max_int   -     maximum connection interval, [0x0004~ 0x4000]
 **                  latency   -     slave latency [0 ~ 500]
@@ -2119,8 +2122,9 @@ extern void BTA_BleDisableAdvInstance(UINT8 inst_id);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int,
-                                   UINT16 max_int, UINT16 latency, UINT16 timeout);
+extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max_int,
+                                            UINT16 latency, UINT16 timeout,
+                                            tBTA_DM_BLE_CONN_PARAM_CBACK p_cback);
 
 /*******************************************************************************
 **

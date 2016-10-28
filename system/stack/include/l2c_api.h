@@ -29,6 +29,7 @@
 #include "bt_target.h"
 #include "l2cdefs.h"
 #include "hcidefs.h"
+#include "bta_api.h"
 
 /*****************************************************************************
 **  Constants
@@ -1188,8 +1189,9 @@ extern BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda);
 **  Return value:   TRUE if update started
 **
 *******************************************************************************/
-extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_int,
-                                         UINT16 max_int, UINT16 latency, UINT16 timeout);
+extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_int, UINT16 max_int,
+                                         UINT16 latency, UINT16 timeout,
+                                         tBTA_DM_BLE_CONN_PARAM_CBACK *p_cback);
 
 /*******************************************************************************
 **

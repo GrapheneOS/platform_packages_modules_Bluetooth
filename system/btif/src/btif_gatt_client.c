@@ -69,6 +69,7 @@
 #define BLE_RESOLVE_ADDR_MSB                 0x40   /* bit7, bit6 is 01 to be resolvable random */
 #define BLE_RESOLVE_ADDR_MASK                0xc0   /* bit 6, and bit7 */
 #define BTM_BLE_IS_RESOLVE_BDA(x)           ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
+#define BT_CONN_PARAM_UPDATE_STATUS          1010003
 
 typedef enum {
     BTIF_GATTC_REGISTER_APP = 1000,
@@ -206,12 +207,15 @@ typedef struct
 
 typedef struct
 {
+    uint8_t     client_if;
     bt_bdaddr_t bd_addr;
-    uint16_t    min_interval;
-    uint16_t    max_interval;
+    uint16_t    requested_min_interval;
+    uint16_t    requested_max_interval;
+    uint16_t    configured_interval;
     uint16_t    timeout;
     uint16_t    latency;
-} btif_conn_param_cb_t;
+    uint8_t     status;
+}__attribute__((packed)) btif_conn_param_cb_t;
 
 typedef struct
 {
@@ -799,6 +803,17 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
+        case BTA_GATTC_CONN_PARAM_UPD_EVT:
+        {
+            btif_conn_param_cb_t *p_btif_cb = (btif_conn_param_cb_t *)p_param;
+            /* Log update failures */
+            if (p_btif_cb->status != 0)
+            {
+                LOG_EVENT_INT(BT_CONN_PARAM_UPDATE_STATUS, p_btif_cb->status);
+            }
+            break;
+        }
+
         case BTIF_GATTC_SCAN_PARAM_EVT:
         {
             btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t *)p_param;
@@ -1090,6 +1105,20 @@ static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
     btif_cb.client_if = ref_value;
     btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_SCAN_FLT_STATUS_EVT,
                           (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+}
+
+static void bta_gattc_conn_param_update_cback(BD_ADDR bd_addr, UINT16 interval,
+                                              UINT16 latency, UINT16 timeout, tBTA_STATUS status)
+{
+    btif_conn_param_cb_t btif_cb;
+
+    bdcpy(btif_cb.bd_addr.address, bd_addr);
+    btif_cb.configured_interval = interval;
+    btif_cb.latency = latency;
+    btif_cb.timeout = timeout;
+    btif_cb.status = status;
+    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_CONN_PARAM_UPD_EVT,
+                          (char*) &btif_cb, sizeof(btif_conn_param_cb_t), NULL);
 }
 
 static void btgattc_free_event_data(UINT16 event, char *event_data)
@@ -1553,11 +1582,14 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             if (BTA_DmGetConnectionState(p_conn_param_cb->bd_addr.address))
             {
                 BTA_DmBleUpdateConnectionParams(p_conn_param_cb->bd_addr.address,
-                               p_conn_param_cb->min_interval, p_conn_param_cb->max_interval,
-                               p_conn_param_cb->latency, p_conn_param_cb->timeout);
+                               p_conn_param_cb->requested_min_interval,
+                               p_conn_param_cb->requested_max_interval,
+                               p_conn_param_cb->latency, p_conn_param_cb->timeout,
+                               bta_gattc_conn_param_update_cback);
             } else {
                 BTA_DmSetBlePrefConnParams(p_conn_param_cb->bd_addr.address,
-                               p_conn_param_cb->min_interval, p_conn_param_cb->max_interval,
+                               p_conn_param_cb->requested_min_interval,
+                               p_conn_param_cb->requested_max_interval,
                                p_conn_param_cb->latency, p_conn_param_cb->timeout);
             }
             break;
@@ -1874,12 +1906,12 @@ static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu)
 }
 
 static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, int min_interval,
-                    int max_interval, int latency, int timeout)
+                                                    int max_interval, int latency, int timeout)
 {
     CHECK_BTGATT_INIT();
     btif_conn_param_cb_t btif_cb;
-    btif_cb.min_interval = min_interval;
-    btif_cb.max_interval = max_interval;
+    btif_cb.requested_min_interval = min_interval;
+    btif_cb.requested_max_interval = max_interval;
     btif_cb.latency = latency;
     btif_cb.timeout = timeout;
     bdcpy(btif_cb.bd_addr.address, bd_addr->address);

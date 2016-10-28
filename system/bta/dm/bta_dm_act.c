@@ -4651,10 +4651,11 @@ void bta_dm_ble_set_conn_scan_params (tBTA_DM_MSG *p_data)
 void bta_dm_ble_update_conn_params (tBTA_DM_MSG *p_data)
 {
     if (!L2CA_UpdateBleConnParams(p_data->ble_update_conn_params.bd_addr,
-                                 p_data->ble_update_conn_params.min_int,
-                                 p_data->ble_update_conn_params.max_int,
-                                 p_data->ble_update_conn_params.latency,
-                                 p_data->ble_update_conn_params.timeout))
+                                  p_data->ble_update_conn_params.min_int,
+                                  p_data->ble_update_conn_params.max_int,
+                                  p_data->ble_update_conn_params.latency,
+                                  p_data->ble_update_conn_params.timeout,
+                                  p_data->ble_update_conn_params.p_conn_param_update_cback))
     {
         APPL_TRACE_ERROR("Update connection parameters failed!");
     }

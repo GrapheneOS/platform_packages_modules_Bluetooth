@@ -436,7 +436,6 @@ typedef struct
     UINT16                  conn_int_max;
     UINT16                  supervision_tout;
     UINT16                  slave_latency;
-
 }tBTA_DM_API_BLE_CONN_PARAMS;
 
 typedef struct
@@ -611,6 +610,8 @@ typedef struct
     tBTA_DM_LINK_TYPE link_type;
 
 } tBTA_DM_API_REMOVE_ALL_ACL;
+
+/* data type for BTA_DM_API_UPDATE_CONN_PARAM_EVT */
 typedef struct
 {
     BT_HDR      hdr;
@@ -619,7 +620,8 @@ typedef struct
     UINT16      max_int;
     UINT16      latency;
     UINT16      timeout;
-}tBTA_DM_API_UPDATE_CONN_PARAM;
+    tBTA_DM_BLE_CONN_PARAM_CBACK *p_conn_param_update_cback;
+} tBTA_DM_API_UPDATE_CONN_PARAM;
 
 #if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
 typedef struct

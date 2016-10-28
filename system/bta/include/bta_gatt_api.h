@@ -146,6 +146,7 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_SCAN_FLT_PARAM_EVT 32 /* Param filter event */
 #define BTA_GATTC_SCAN_FLT_STATUS_EVT 33 /* Filter status event */
 #define BTA_GATTC_ADV_VSC_EVT         34 /* ADV VSC event */
+#define BTA_GATTC_CONN_PARAM_UPD_EVT 35 /* Connection parameter update event */
 
 typedef UINT8 tBTA_GATTC_EVT;
 
