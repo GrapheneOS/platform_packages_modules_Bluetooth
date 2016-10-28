@@ -32,6 +32,7 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.IAdvertiserCallback;
+import android.bluetooth.le.IScannerCallback;
 import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
@@ -107,6 +108,12 @@ public class GattService extends ProfileService {
     AdvertiserMap mAdvertiserMap = new AdvertiserMap();
 
     /**
+     * List of our registered advertisers.
+     */
+    class ScannerMap extends ContextMap<IScannerCallback> {}
+    ScannerMap mScannerMap = new ScannerMap();
+
+    /**
      * List of our registered clients.
      */
     class ClientMap extends ContextMap<IBluetoothGattCallback> {}
@@ -172,6 +179,8 @@ public class GattService extends ProfileService {
 
     protected boolean stop() {
         if (DBG) Log.d(TAG, "stop()");
+        mAdvertiserMap.clear();
+        mScannerMap.clear();
         mClientMap.clear();
         mServerMap.clear();
         mHandleMap.clear();
@@ -233,19 +242,19 @@ public class GattService extends ProfileService {
      * disconnect ungracefully (ie. crash or forced close).
      */
 
-    class ClientDeathRecipient implements IBinder.DeathRecipient {
-        int mAppIf;
+    class ScannerDeathRecipient implements IBinder.DeathRecipient {
+        int mScannerId;
 
-        public ClientDeathRecipient(int appIf) {
-            mAppIf = appIf;
+        public ScannerDeathRecipient(int scannerId) {
+            mScannerId = scannerId;
         }
 
         @Override
         public void binderDied() {
-            if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
+            if (DBG) Log.d(TAG, "Binder is dead - unregistering scanner (" + mScannerId + ")!");
 
-            if (isScanClient(mAppIf)) {
-                ScanClient client = new ScanClient(mAppIf, false);
+            if (isScanClient(mScannerId)) {
+                ScanClient client = new ScanClient(mScannerId);
                 client.appDied = true;
                 stopScan(client);
             }
@@ -253,12 +262,12 @@ public class GattService extends ProfileService {
 
         private boolean isScanClient(int clientIf) {
             for (ScanClient client : mScanManager.getRegularScanQueue()) {
-                if (client.clientIf == clientIf) {
+                if (client.scannerId == clientIf) {
                     return true;
                 }
             }
             for (ScanClient client : mScanManager.getBatchScanQueue()) {
-                if (client.clientIf == clientIf) {
+                if (client.scannerId == clientIf) {
                     return true;
                 }
             }
@@ -335,27 +344,39 @@ public class GattService extends ProfileService {
             service.unregisterClient(clientIf);
         }
 
+        public void registerScanner(IScannerCallback callback) {
+            GattService service = getService();
+            if (service == null) return;
+            service.registerScanner(callback);
+        }
+
+        public void unregisterScanner(int scannerId) {
+            GattService service = getService();
+            if (service == null) return;
+            service.unregisterScanner(scannerId);
+        }
+
         @Override
-        public void startScan(int appIf, boolean isServer, ScanSettings settings,
+        public void startScan(int scannerId, ScanSettings settings,
                 List<ScanFilter> filters, WorkSource workSource, List storages,
                 String callingPackage) {
             GattService service = getService();
             if (service == null) return;
-            service.startScan(appIf, isServer, settings, filters, workSource, storages,
+            service.startScan(scannerId, settings, filters, workSource, storages,
                     callingPackage);
         }
 
-        public void stopScan(int appIf, boolean isServer) {
+        public void stopScan(int scannerId) {
             GattService service = getService();
             if (service == null) return;
-            service.stopScan(new ScanClient(appIf, isServer));
+            service.stopScan(new ScanClient(scannerId));
         }
 
         @Override
-        public void flushPendingBatchResults(int appIf, boolean isServer) {
+        public void flushPendingBatchResults(int scannerId) {
             GattService service = getService();
             if (service == null) return;
-            service.flushPendingBatchResults(appIf, isServer);
+            service.flushPendingBatchResults(scannerId);
         }
 
         public void clientConnect(int clientIf, String address, boolean isDirect, int transport) {
@@ -576,42 +597,47 @@ public class GattService extends ProfileService {
                 if (matches < client.uuids.length) continue;
             }
 
-            if (!client.isServer) {
-                ClientMap.App app = mClientMap.getById(client.clientIf);
-                if (app != null) {
-                    BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
-                            .getRemoteDevice(address);
-                    ScanResult result = new ScanResult(device, ScanRecord.parseFromBytes(adv_data),
-                            rssi, SystemClock.elapsedRealtimeNanos());
-                    // Do no report if location mode is OFF or the client has no location permission
-                    // PEERS_MAC_ADDRESS permission holders always get results
-                    if (hasScanResultPermission(client) && matchesFilters(client, result)) {
-                        try {
-                            ScanSettings settings = client.settings;
-                            if ((settings.getCallbackType() &
-                                    ScanSettings.CALLBACK_TYPE_ALL_MATCHES) != 0) {
-                                app.appScanStats.addResult();
-                                app.callback.onScanResult(result);
-                            }
-                        } catch (RemoteException e) {
-                            Log.e(TAG, "Exception: " + e);
-                            mClientMap.remove(client.clientIf);
-                            mScanManager.stopScan(client);
-                        }
-                    }
-                }
-            } else {
-                ServerMap.App app = mServerMap.getById(client.clientIf);
-                if (app != null) {
+            ScannerMap.App app = mScannerMap.getById(client.scannerId);
+            if (app != null) {
+                BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
+                        .getRemoteDevice(address);
+                ScanResult result = new ScanResult(device, ScanRecord.parseFromBytes(adv_data),
+                        rssi, SystemClock.elapsedRealtimeNanos());
+                // Do no report if location mode is OFF or the client has no location permission
+                // PEERS_MAC_ADDRESS permission holders always get results
+                if (hasScanResultPermission(client) && matchesFilters(client, result)) {
                     try {
-                        app.callback.onScanResult(address, rssi, adv_data);
+                        ScanSettings settings = client.settings;
+                        if ((settings.getCallbackType() &
+                                ScanSettings.CALLBACK_TYPE_ALL_MATCHES) != 0) {
+                            app.appScanStats.addResult();
+                            app.callback.onScanResult(result);
+                        }
                     } catch (RemoteException e) {
                         Log.e(TAG, "Exception: " + e);
-                        mServerMap.remove(client.clientIf);
+                        mScannerMap.remove(client.scannerId);
                         mScanManager.stopScan(client);
                     }
                 }
             }
+        }
+    }
+
+    void onScannerRegistered(int status, int scannerId, long uuidLsb, long uuidMsb)
+            throws RemoteException {
+        UUID uuid = new UUID(uuidMsb, uuidLsb);
+        if (DBG) Log.d(TAG, "onScannerRegistered() - UUID=" + uuid
+                + ", scannerId=" + scannerId + ", status=" + status);
+
+        ScannerMap.App app = mScannerMap.getByUuid(uuid);
+        if (app != null) {
+            if (status == 0) {
+                app.id = scannerId;
+                app.linkToDeath(new ScannerDeathRecipient(scannerId));
+            } else {
+                mScannerMap.remove(scannerId);
+            }
+            app.callback.onScannerRegistered(status, scannerId);
         }
     }
 
@@ -649,7 +675,6 @@ public class GattService extends ProfileService {
         if (app != null) {
             if (status == 0) {
                 app.id = clientIf;
-                app.linkToDeath(new ClientDeathRecipient(clientIf));
             } else {
                 mClientMap.remove(uuid);
             }
@@ -904,17 +929,17 @@ public class GattService extends ProfileService {
         mScanManager.callbackDone(clientIf, status);
     }
 
-    void onBatchScanReports(int status, int clientIf, int reportType, int numRecords,
+    void onBatchScanReports(int status, int scannerId, int reportType, int numRecords,
             byte[] recordData) throws RemoteException {
         if (DBG) {
-            Log.d(TAG, "onBatchScanReports() - clientIf=" + clientIf + ", status=" + status
+            Log.d(TAG, "onBatchScanReports() - scannerId=" + scannerId + ", status=" + status
                     + ", reportType=" + reportType + ", numRecords=" + numRecords);
         }
-        mScanManager.callbackDone(clientIf, status);
+        mScanManager.callbackDone(scannerId, status);
         Set<ScanResult> results = parseBatchScanResults(numRecords, reportType, recordData);
         if (reportType == ScanManager.SCAN_RESULT_TYPE_TRUNCATED) {
             // We only support single client for truncated mode.
-            ClientMap.App app = mClientMap.getById(clientIf);
+            ScannerMap.App app = mScannerMap.getById(scannerId);
             if (app == null) return;
             app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
         } else {
@@ -928,7 +953,7 @@ public class GattService extends ProfileService {
     // Check and deliver scan results for different scan clients.
     private void deliverBatchScan(ScanClient client, Set<ScanResult> allResults) throws
             RemoteException {
-        ClientMap.App app = mClientMap.getById(client.clientIf);
+        ScannerMap.App app = mScannerMap.getById(client.scannerId);
         if (app == null) return;
         if (client.filters == null || client.filters.isEmpty()) {
             app.callback.onBatchScanResults(new ArrayList<ScanResult>(allResults));
@@ -1039,8 +1064,7 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onBatchScanThresholdCrossed() - clientIf=" + clientIf);
         }
-        boolean isServer = false;
-        flushPendingBatchResults(clientIf, isServer);
+        flushPendingBatchResults(clientIf);
     }
 
     AdvtFilterOnFoundOnLostInfo CreateonTrackAdvFoundLostObject(int client_if, int adv_pkt_len,
@@ -1055,11 +1079,11 @@ public class GattService extends ProfileService {
     }
 
     void onTrackAdvFoundLost(AdvtFilterOnFoundOnLostInfo trackingInfo) throws RemoteException {
-        if (DBG) Log.d(TAG, "onTrackAdvFoundLost() - clientIf= " + trackingInfo.getClientIf()
+        if (DBG) Log.d(TAG, "onTrackAdvFoundLost() - scannerId= " + trackingInfo.getClientIf()
                     + " address = " + trackingInfo.getAddress()
                     + " adv_state = " + trackingInfo.getAdvState());
 
-        ClientMap.App app = mClientMap.getById(trackingInfo.getClientIf());
+        ScannerMap.App app = mScannerMap.getById(trackingInfo.getClientIf());
         if (app == null || app.callback == null) {
             Log.e(TAG, "app or callback is null");
             return;
@@ -1073,7 +1097,7 @@ public class GattService extends ProfileService {
                         trackingInfo.getRSSIValue(), SystemClock.elapsedRealtimeNanos());
 
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
-            if (client.clientIf == trackingInfo.getClientIf()) {
+            if (client.scannerId == trackingInfo.getClientIf()) {
                 ScanSettings settings = client.settings;
                 if ((advertiserState == ADVT_STATE_ONFOUND)
                         && ((settings.getCallbackType()
@@ -1085,15 +1109,15 @@ public class GattService extends ProfileService {
                     app.callback.onFoundOrLost(false, result);
                 } else {
                     Log.d(TAG, "Not reporting onlost/onfound : " + advertiserState
-                                + " clientIf = " + client.clientIf
+                                + " scannerId = " + client.scannerId
                                 + " callbackType " + settings.getCallbackType());
                 }
             }
         }
     }
 
-    void onScanParamSetupCompleted(int status, int clientIf) throws RemoteException {
-        ClientMap.App app = mClientMap.getById(clientIf);
+    void onScanParamSetupCompleted(int status, int scannerId) throws RemoteException {
+        ScannerMap.App app = mScannerMap.getById(scannerId);
         if (app == null || app.callback == null) {
             Log.e(TAG, "Advertise app or callback is null");
             return;
@@ -1115,8 +1139,8 @@ public class GattService extends ProfileService {
     }
 
     // callback from ScanManager for dispatch of errors apps.
-    void onScanManagerErrorCallback(int clientIf, int errorCode) throws RemoteException {
-        ClientMap.App app = mClientMap.getById(clientIf);
+    void onScanManagerErrorCallback(int scannerId, int errorCode) throws RemoteException {
+        ScannerMap.App app = mScannerMap.getById(scannerId);
         if (app == null || app.callback == null) {
             Log.e(TAG, "App or callback is null");
             return;
@@ -1267,7 +1291,24 @@ public class GattService extends ProfileService {
         return deviceList;
     }
 
-    void startScan(int appIf, boolean isServer, ScanSettings settings,
+    void registerScanner(IScannerCallback callback) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        UUID uuid = UUID.randomUUID();
+        if (DBG) Log.d(TAG, "registerScanner() - UUID=" + uuid);
+        mScannerMap.add(uuid, callback, this);
+        mScanManager.registerScanner(uuid);
+    }
+
+    void unregisterScanner(int scannerId) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        if (DBG) Log.d(TAG, "unregisterScanner() - scannerId=" + scannerId);
+        mScannerMap.remove(scannerId);
+        mScanManager.unregisterScanner(scannerId);
+    }
+
+    void startScan(int scannerId, ScanSettings settings,
             List<ScanFilter> filters, WorkSource workSource,
             List<List<ResultStorageDescriptor>> storages, String callingPackage) {
         if (DBG) Log.d(TAG, "start scan with filters");
@@ -1281,7 +1322,7 @@ public class GattService extends ProfileService {
             // Blame the caller if the work source is unspecified.
             workSource = new WorkSource(Binder.getCallingUid(), callingPackage);
         }
-        final ScanClient scanClient = new ScanClient(appIf, isServer, settings, filters, workSource,
+        final ScanClient scanClient = new ScanClient(scannerId, settings, filters, workSource,
                 storages);
         scanClient.hasLocationPermission = Utils.checkCallerHasLocationPermission(this, mAppOps,
                 callingPackage);
@@ -1290,11 +1331,7 @@ public class GattService extends ProfileService {
         scanClient.legacyForegroundApp = Utils.isLegacyForegroundApp(this, callingPackage);
 
         AppScanStats app = null;
-        if (isServer) {
-            app = mServerMap.getAppScanStatsById(appIf);
-        } else {
-            app = mClientMap.getAppScanStatsById(appIf);
-        }
+        app = mClientMap.getAppScanStatsById(scannerId);
 
         if (app != null) {
             if (app.isScanningTooFrequently() &&
@@ -1309,10 +1346,9 @@ public class GattService extends ProfileService {
         mScanManager.startScan(scanClient);
     }
 
-    void flushPendingBatchResults(int clientIf, boolean isServer) {
-        if (DBG) Log.d(TAG, "flushPendingBatchResults - clientIf=" + clientIf +
-                ", isServer=" + isServer);
-        mScanManager.flushBatchScanResults(new ScanClient(clientIf, isServer));
+    void flushPendingBatchResults(int scannerId) {
+        if (DBG) Log.d(TAG, "flushPendingBatchResults - scannerId=" + scannerId);
+        mScanManager.flushBatchScanResults(new ScanClient(scannerId));
     }
 
     void stopScan(ScanClient client) {
@@ -1322,11 +1358,7 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "stopScan() - queue size =" + scanQueueSize);
 
         AppScanStats app = null;
-        if (client.isServer) {
-            app = mServerMap.getAppScanStatsById(client.clientIf);
-        } else {
-            app = mClientMap.getAppScanStatsById(client.clientIf);
-        }
+        app = mScannerMap.getAppScanStatsById(client.scannerId);
         if (app != null) app.recordScanStop();
 
         mScanManager.stopScan(client);
