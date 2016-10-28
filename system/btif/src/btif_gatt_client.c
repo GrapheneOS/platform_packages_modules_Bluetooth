@@ -50,8 +50,9 @@
 #include "btif_gatt_multi_adv_util.h"
 #include "btif_gatt_util.h"
 #include "btif_storage.h"
-#include "btif_storage.h"
 #include "osi/include/log.h"
+#include "osi/include/alarm.h"
+#include "stack/include/gatt_api.h"
 #include "vendor_api.h"
 
 /*******************************************************************************
@@ -238,6 +239,133 @@ extern const btgatt_callbacks_t *bt_gatt_callbacks;
 static btif_gattc_dev_cb_t  btif_gattc_dev_cb;
 static btif_gattc_dev_cb_t  *p_dev_cb = &btif_gattc_dev_cb;
 static uint8_t rssi_request_client_if;
+
+/*******************************************************************************
+**  Auto Connection Parameter Update
+**
+**  Feature is enabled when WEAR_AUTO_CONN_PARAM_UPDATE build config is set to
+**  TRUE.  It looks for a whitelisted address in the configuration file and
+**  automatically applies a connection interval parameter update
+**  (WEAR_AUTO_CONN_IDLE_INTERVAL_1_25_MS) when the connection is idle for a
+**  specific period of time (WEAR_AUTO_CONN_IDLE_TIMEOUT_MS).
+********************************************************************************/
+#if (defined(WEAR_AUTO_CONN_PARAM_UPDATE) && (WEAR_AUTO_CONN_PARAM_UPDATE == TRUE))
+typedef struct
+{
+    bt_bdaddr_t device_address;
+    uint16_t    min_interval;
+    uint16_t    max_interval;
+    uint16_t    timeout;
+    uint16_t    latency;
+    bool        is_auto_update_address_known;
+    bool        is_auto_update_enabled;
+    bool        is_updating;
+    alarm_t     *check_idle_alarm;
+} btgatt_auto_connection_param_update_cb_t;
+
+static btgatt_auto_connection_param_update_cb_t auto_conn_param_update_cb;
+
+static bt_status_t btif_gattc_conn_parameter_update_internal(const bt_bdaddr_t *bd_addr, int min_interval,
+             int max_interval, int latency, int timeout);
+
+static void auto_connection_param_update_idle_cb(UNUSED_ATTR void *data)
+{
+    btgatt_auto_connection_param_update_cb_t *auto_update_cb =
+        (btgatt_auto_connection_param_update_cb_t *)data;
+
+    if (auto_conn_param_update_cb.is_updating)
+    {
+        LOG_WARN(LOG_TAG, "%s another connection update in progress", __FUNCTION__);
+        return;
+    }
+
+    btif_gattc_conn_parameter_update_internal(&auto_update_cb->device_address,
+        WEAR_AUTO_CONN_IDLE_INTERVAL_1_25_MS, WEAR_AUTO_CONN_IDLE_INTERVAL_1_25_MS, 0, 2000);
+    LOG_INFO(LOG_TAG, "%s auto adjust connection interval to %dms", __FUNCTION__,
+             (int)(WEAR_AUTO_CONN_IDLE_INTERVAL_1_25_MS * 1.25f));
+}
+
+static void maybe_set_connection_param_update_in_progress(const bt_bdaddr_t *bd_addr, bool in_progress)
+{
+    if (auto_conn_param_update_cb.is_auto_update_enabled &&
+        bdcmp(auto_conn_param_update_cb.device_address.address, bd_addr->address) == 0)
+    {
+        auto_conn_param_update_cb.is_updating = in_progress;
+    }
+}
+
+static void maybe_enable_auto_connection_param_update(const bt_bdaddr_t *bd_addr, int min_interval,
+                                                      int max_interval, int latency, int timeout)
+{
+    /* First check if there is a whitelisted address to enable auto connection param update */
+    if (!auto_conn_param_update_cb.is_auto_update_address_known)
+    {
+        bdstr_t bdstr;
+        int bdstr_size = sizeof(bdstr);
+        if (btif_config_get_str("Adapter", "AutoConnParamUpdateAddr", bdstr, &bdstr_size))
+        {
+            bt_bdaddr_t auto_update_addr;
+            string_to_bdaddr(bdstr, &auto_update_addr);
+            bdcpy(auto_conn_param_update_cb.device_address.address, auto_update_addr.address);
+            LOG_INFO(LOG_TAG, "%s auto connection param update for address: %s", __FUNCTION__, bdstr);
+        }
+        auto_conn_param_update_cb.is_auto_update_address_known = true;
+    }
+
+    /* If the address matches the auto update address, store the connection parameter value */
+    if (bdcmp(auto_conn_param_update_cb.device_address.address, bd_addr->address) == 0)
+    {
+        auto_conn_param_update_cb.min_interval = min_interval;
+        auto_conn_param_update_cb.max_interval = max_interval;
+        auto_conn_param_update_cb.timeout = timeout;
+        auto_conn_param_update_cb.latency = latency;
+        auto_conn_param_update_cb.is_auto_update_enabled = true;
+    }
+}
+
+static void maybe_restore_connection_parameters(BD_ADDR address) {
+    /*
+     * Will not perform auto connection parameter update if:
+     *
+     * - feature not enabled (yet)
+     * - address doesn't match auto update address
+     * - connection parameter update is in progress
+     */
+    if (!auto_conn_param_update_cb.is_auto_update_enabled ||
+        (bdcmp(auto_conn_param_update_cb.device_address.address, address) != 0) ||
+        auto_conn_param_update_cb.is_updating)
+    {
+        return;
+    }
+
+    if (alarm_is_scheduled(auto_conn_param_update_cb.check_idle_alarm))
+    {
+        /* Idle alarm is scheduled, reschedule it */
+        alarm_cancel(auto_conn_param_update_cb.check_idle_alarm);
+    }
+    else
+    {
+        /* No idle alarm and no update in progress, restore specified connection parameters */
+        btif_gattc_conn_parameter_update_internal(&auto_conn_param_update_cb.device_address,
+                                                  auto_conn_param_update_cb.min_interval,
+                                                  auto_conn_param_update_cb.max_interval,
+                                                  auto_conn_param_update_cb.latency,
+                                                  auto_conn_param_update_cb.timeout);
+        LOG_VERBOSE(LOG_TAG, "%s restore connection parameters", __FUNCTION__);
+    }
+
+    /* Schedule idle alarm */
+    if (!auto_conn_param_update_cb.check_idle_alarm)
+    {
+        auto_conn_param_update_cb.check_idle_alarm =
+            alarm_new("gatt_client.auto_conn_param_update_idle_alarm");
+    }
+    alarm_set(auto_conn_param_update_cb.check_idle_alarm, WEAR_AUTO_CONN_IDLE_TIMEOUT_MS,
+              auto_connection_param_update_idle_cb, &auto_conn_param_update_cb);
+
+    return;
+}
+#endif
 
 /*******************************************************************************
 **  Static functions
@@ -540,6 +668,10 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             if (p_data->notify.is_notify == FALSE)
                 BTA_GATTC_SendIndConfirm(p_data->notify.conn_id, p_data->notify.handle);
 
+#if (defined(WEAR_AUTO_CONN_PARAM_UPDATE) && (WEAR_AUTO_CONN_PARAM_UPDATE == TRUE))
+            maybe_restore_connection_parameters(data.bda.address);
+#endif
+
             break;
         }
 
@@ -806,6 +938,9 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         case BTA_GATTC_CONN_PARAM_UPD_EVT:
         {
             btif_conn_param_cb_t *p_btif_cb = (btif_conn_param_cb_t *)p_param;
+#if (defined(WEAR_AUTO_CONN_PARAM_UPDATE) && (WEAR_AUTO_CONN_PARAM_UPDATE == TRUE))
+            maybe_set_connection_param_update_in_progress(&p_btif_cb->bd_addr, false);
+#endif
             /* Log update failures */
             if (p_btif_cb->status != 0)
             {
@@ -1283,9 +1418,21 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
 
         case BTIF_GATTC_WRITE_CHAR:
+        {
+#if (defined(WEAR_AUTO_CONN_PARAM_UPDATE) && (WEAR_AUTO_CONN_PARAM_UPDATE == TRUE))
+            /* TODO(jackyc): find a cleaner way to get address from connection id */
+            tGATT_IF gatt_if;
+            BD_ADDR bd_addr;
+            tBT_TRANSPORT transport;
+            if (GATT_GetConnectionInfor(p_cb->conn_id, &gatt_if, bd_addr, &transport) == TRUE)
+            {
+                maybe_restore_connection_parameters(bd_addr);
+            }
+#endif
             BTA_GATTC_WriteCharValue(p_cb->conn_id, p_cb->handle, p_cb->write_type,
                                      p_cb->len, p_cb->value, p_cb->auth_req);
             break;
+        }
 
         case BTIF_GATTC_WRITE_CHAR_DESCR:
             descr_val.len = p_cb->len;
@@ -1905,10 +2052,13 @@ static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, int min_interval,
+static bt_status_t btif_gattc_conn_parameter_update_internal(const bt_bdaddr_t *bd_addr, int min_interval,
                                                     int max_interval, int latency, int timeout)
 {
     CHECK_BTGATT_INIT();
+#if (defined(WEAR_AUTO_CONN_PARAM_UPDATE) && (WEAR_AUTO_CONN_PARAM_UPDATE == TRUE))
+    maybe_set_connection_param_update_in_progress(bd_addr, true);
+#endif
     btif_conn_param_cb_t btif_cb;
     btif_cb.requested_min_interval = min_interval;
     btif_cb.requested_max_interval = max_interval;
@@ -1917,6 +2067,16 @@ static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, 
     bdcpy(btif_cb.bd_addr.address, bd_addr->address);
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_CONN_PARAM_UPDT,
                                  (char*) &btif_cb, sizeof(btif_conn_param_cb_t), NULL);
+}
+
+static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, int min_interval,
+                                                    int max_interval, int latency, int timeout)
+{
+#if (defined(WEAR_AUTO_CONN_PARAM_UPDATE) && (WEAR_AUTO_CONN_PARAM_UPDATE == TRUE))
+    maybe_enable_auto_connection_param_update(bd_addr, min_interval, max_interval, latency, timeout);
+#endif
+
+    return btif_gattc_conn_parameter_update_internal(bd_addr, min_interval, max_interval, latency, timeout);
 }
 
 static bt_status_t btif_gattc_scan_filter_param_setup(btgatt_filt_param_setup_t

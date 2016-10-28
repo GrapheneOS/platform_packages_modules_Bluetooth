@@ -3078,6 +3078,18 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             btif_storage_remove_bonded_device(&bdaddr);
             state = BT_BOND_STATE_NONE;
         } else {
+            /*
+             * Note: This is a Wear-specific feature for iOS pairing.
+             * Store the address of the first bonded device that is also of type LE to
+             * enable auto connection parameter update.
+             */
+#if (defined(WEAR_AUTO_CONN_PARAM_UPDATE) && (WEAR_AUTO_CONN_PARAM_UPDATE == TRUE))
+            if (btif_storage_get_num_bonded_devices() == 0) {
+                bdstr_t bdstr;
+                bdaddr_to_string(&bdaddr, bdstr, sizeof(bdstr));
+                btif_config_set_str("Adapter", "AutoConnParamUpdateAddr", bdstr);
+            }
+#endif
             btif_dm_save_ble_bonding_keys();
             BTA_GATTC_Refresh(bd_addr.address);
             btif_dm_get_remote_services_by_transport(&bd_addr, BTA_GATT_TRANSPORT_LE);
