@@ -241,7 +241,7 @@ final class A2dpSinkStateMachine extends StateMachine {
         private void processConnectionEvent(int state, BluetoothDevice device) {
             switch (state) {
             case CONNECTION_STATE_DISCONNECTED:
-                logw("Ignore HF DISCONNECTED event, device: " + device);
+                logw("Ignore A2DP DISCONNECTED event, device: " + device);
                 break;
             case CONNECTION_STATE_CONNECTING:
                 if (okToConnect(device)){
@@ -354,6 +354,8 @@ final class A2dpSinkStateMachine extends StateMachine {
         // in Pending state
         private void processConnectionEvent(int state, BluetoothDevice device) {
             log("processConnectionEvent state " + state);
+            log("Devices curr: " + mCurrentDevice + " target: " + mTargetDevice +
+                " incoming: " + mIncomingDevice + " device: " + device);
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     mAudioConfigs.remove(device);
@@ -383,7 +385,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                         }
                     } else if (mTargetDevice != null && mTargetDevice.equals(device)) {
                         // outgoing connection failed
-                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_CONNECTED,
+                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_DISCONNECTED,
                                                  BluetoothProfile.STATE_CONNECTING);
                         synchronized (A2dpSinkStateMachine.this) {
                             mTargetDevice = null;
