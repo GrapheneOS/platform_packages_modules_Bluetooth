@@ -288,7 +288,9 @@ static void btif_a2dp_sink_audio_handle_stop_decoding(void) {
 
   alarm_free(btif_a2dp_sink_cb.decode_alarm);
   btif_a2dp_sink_cb.decode_alarm = NULL;
+#ifndef OS_GENERIC
   BtifAvrcpAudioTrackPause(btif_a2dp_sink_cb.audio_track);
+#endif
 }
 
 static void btif_decode_alarm_cb(UNUSED_ATTR void* context) {
@@ -301,8 +303,10 @@ static void btif_decode_alarm_cb(UNUSED_ATTR void* context) {
 static void btif_a2dp_sink_clear_track_event(void) {
   APPL_TRACE_DEBUG("%s", __func__);
 
+#ifndef OS_GENERIC
   BtifAvrcpAudioTrackStop(btif_a2dp_sink_cb.audio_track);
   BtifAvrcpAudioTrackDelete(btif_a2dp_sink_cb.audio_track);
+#endif
   btif_a2dp_sink_cb.audio_track = NULL;
 }
 
@@ -310,7 +314,9 @@ static void btif_a2dp_sink_audio_handle_start_decoding(void) {
   if (btif_a2dp_sink_cb.decode_alarm != NULL)
     return;  // Already started decoding
 
+#ifndef OS_GENERIC
   BtifAvrcpAudioTrackStart(btif_a2dp_sink_cb.audio_track);
+#endif
 
   btif_a2dp_sink_cb.decode_alarm = alarm_new_periodic("btif.a2dp_sink_decode");
   if (btif_a2dp_sink_cb.decode_alarm == NULL) {
@@ -357,9 +363,11 @@ static void btif_a2dp_sink_handle_inc_media(tBT_SBC_HDR* p_msg) {
     p_msg->len = sbc_frame_len + 1;
   }
 
+#ifndef OS_GENERIC
   BtifAvrcpAudioTrackWriteData(
       btif_a2dp_sink_cb.audio_track, (void*)btif_a2dp_sink_pcm_data,
       (sizeof(btif_a2dp_sink_pcm_data) - availPcmBytes));
+#endif
 }
 
 static void btif_a2dp_sink_avk_handle_timer(UNUSED_ATTR void* context) {
@@ -476,7 +484,11 @@ static void btif_a2dp_sink_decoder_update_event(
 
   APPL_TRACE_DEBUG("%s: A2dpSink: SBC create track", __func__);
   btif_a2dp_sink_cb.audio_track =
+#ifndef OS_GENERIC
       BtifAvrcpAudioTrackCreate(sample_rate, channel_type);
+#else
+      NULL;
+#endif
   if (btif_a2dp_sink_cb.audio_track == NULL) {
     APPL_TRACE_ERROR("%s: A2dpSink: Track creation failed!!!", __func__);
     return;
@@ -565,7 +577,9 @@ static void btif_a2dp_sink_set_focus_state_event(
 
 void btif_a2dp_sink_set_audio_track_gain(float gain) {
   APPL_TRACE_DEBUG("%s set gain to %f", __func__, gain);
+#ifndef OS_GENERIC
   BtifAvrcpSetAudioTrackGain(btif_a2dp_sink_cb.audio_track, gain);
+#endif
 }
 
 static void btif_a2dp_sink_clear_track_event_req(void) {
