@@ -37,7 +37,7 @@ import com.android.bluetooth.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.UUID;
 
 /**
  * Provides Bluetooth Headset Client (HF Role) profile, as a service in the
@@ -344,12 +344,12 @@ public class HeadsetClientService extends ProfileService {
         }
 
         @Override
-        public boolean terminateCall(BluetoothDevice device, int index) {
+        public boolean terminateCall(BluetoothDevice device, BluetoothHeadsetClientCall call) {
             HeadsetClientService service = getService();
             if (service == null) {
                 return false;
             }
-            return service.terminateCall(device, index);
+            return service.terminateCall(device, call.getUUID());
         }
 
         @Override
@@ -371,30 +371,12 @@ public class HeadsetClientService extends ProfileService {
         }
 
         @Override
-        public boolean redial(BluetoothDevice device) {
+        public BluetoothHeadsetClientCall dial(BluetoothDevice device, String number) {
             HeadsetClientService service = getService();
             if (service == null) {
-                return false;
-            }
-            return service.redial(device);
-        }
-
-        @Override
-        public boolean dial(BluetoothDevice device, String number) {
-            HeadsetClientService service = getService();
-            if (service == null) {
-                return false;
+                return null;
             }
             return service.dial(device, number);
-        }
-
-        @Override
-        public boolean dialMemory(BluetoothDevice device, int location) {
-            HeadsetClientService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return service.dialMemory(device, location);
         }
 
         @Override
@@ -658,7 +640,7 @@ public class HeadsetClientService extends ProfileService {
         return true;
     }
 
-    boolean terminateCall(BluetoothDevice device, int index) {
+    boolean terminateCall(BluetoothDevice device, UUID uuid) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         int connectionState = mStateMachine.getConnectionState(device);
         if (connectionState != BluetoothProfile.STATE_CONNECTED &&
@@ -667,7 +649,7 @@ public class HeadsetClientService extends ProfileService {
         }
 
         Message msg = mStateMachine.obtainMessage(HeadsetClientStateMachine.TERMINATE_CALL);
-        msg.arg1 = index;
+        msg.obj = uuid;
         mStateMachine.sendMessage(msg);
         return true;
     }
@@ -686,44 +668,22 @@ public class HeadsetClientService extends ProfileService {
         return true;
     }
 
-    boolean redial(BluetoothDevice device) {
+    BluetoothHeadsetClientCall dial(BluetoothDevice device, String number) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         int connectionState = mStateMachine.getConnectionState(device);
         if (connectionState != BluetoothProfile.STATE_CONNECTED &&
                 connectionState != BluetoothProfile.STATE_CONNECTING) {
-            return false;
+            return null;
         }
 
-        Message msg = mStateMachine.obtainMessage(HeadsetClientStateMachine.REDIAL);
-        mStateMachine.sendMessage(msg);
-        return true;
-    }
-
-    boolean dial(BluetoothDevice device, String number) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        int connectionState = mStateMachine.getConnectionState(device);
-        if (connectionState != BluetoothProfile.STATE_CONNECTED &&
-                connectionState != BluetoothProfile.STATE_CONNECTING) {
-            return false;
-        }
-
+        BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(
+            device, HeadsetClientStateMachine.HF_ORIGINATED_CALL_ID,
+            BluetoothHeadsetClientCall.CALL_STATE_DIALING, number, false  /* multiparty */,
+            true  /* outgoing */);
         Message msg = mStateMachine.obtainMessage(HeadsetClientStateMachine.DIAL_NUMBER);
-        msg.obj = number;
+        msg.obj = call;
         mStateMachine.sendMessage(msg);
-        return true;
-    }
-
-    boolean dialMemory(BluetoothDevice device, int location) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        int connectionState = mStateMachine.getConnectionState(device);
-        if (connectionState != BluetoothProfile.STATE_CONNECTED &&
-                connectionState != BluetoothProfile.STATE_CONNECTING) {
-            return false;
-        }
-        Message msg = mStateMachine.obtainMessage(HeadsetClientStateMachine.DIAL_MEMORY);
-        msg.arg1 = location;
-        mStateMachine.sendMessage(msg);
-        return true;
+        return call;
     }
 
     public boolean sendDTMF(BluetoothDevice device, byte code) {
