@@ -15,16 +15,22 @@
  */
 package com.android.bluetooth.pbapclient;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
+import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.provider.CallLog;
 import android.util.Log;
+
+import com.android.bluetooth.R;
 
 import java.io.IOException;
 
@@ -44,6 +50,8 @@ class PbapClientConnectionHandler extends Handler {
     static final int MSG_DISCONNECT = 2;
     static final int MSG_DOWNLOAD = 3;
 
+    // The following constants are pulled from the Bluetooth Phone Book Access Profile specification
+    // 1.1
     private static final byte[] PBAP_TARGET = new byte[] {
             0x79, 0x61, 0x35, (byte) 0xf0, (byte) 0xf0, (byte) 0xc5, 0x11, (byte) 0xd8, 0x09, 0x66,
             0x08, 0x00, 0x20, 0x0c, (byte) 0x9a, 0x66
@@ -51,14 +59,19 @@ class PbapClientConnectionHandler extends Handler {
 
     public static final String PB_PATH = "telecom/pb.vcf";
     public static final String MCH_PATH = "telecom/mch.vcf";
+    public static final String ICH_PATH = "telecom/ich.vcf";
+    public static final String OCH_PATH = "telecom/och.vcf";
     public static final byte VCARD_TYPE_21 = 0;
 
+    private Account mAccount;
+    private AccountManager mAccountManager;
     private BluetoothSocket mSocket;
     private final BluetoothAdapter mAdapter;
     private final BluetoothDevice mDevice;
     private ClientSession mObexSession;
     private BluetoothPbapObexAuthenticator mAuth = null;
     private final PbapClientStateMachine mPbapClientStateMachine;
+    private boolean mAccountCreated;
 
     PbapClientConnectionHandler(Looper looper, PbapClientStateMachine stateMachine,
             BluetoothDevice device) {
@@ -67,6 +80,7 @@ class PbapClientConnectionHandler extends Handler {
         mDevice = device;
         mPbapClientStateMachine = stateMachine;
         mAuth = new BluetoothPbapObexAuthenticator(this);
+        mAccountManager = AccountManager.get(mPbapClientStateMachine.getContext());
     }
 
     @Override
@@ -80,6 +94,10 @@ class PbapClientConnectionHandler extends Handler {
                     /* To establish a connection first open a socket, establish a OBEX Transport
                      * abstraction, establish a Bluetooth Authenticator, and finally attempt to
                      * connect via an OBEX session */
+                    mAccount = new Account(mDevice.getAddress(),
+                            mPbapClientStateMachine.getContext()
+                            .getString(R.string.pbap_account_type));
+
                     mSocket = mDevice.createRfcommSocketToServiceRecord(
                             BluetoothUuid.PBAP_PSE.getUuid());
                     mSocket.connect();
@@ -116,24 +134,45 @@ class PbapClientConnectionHandler extends Handler {
                     if (mObexSession != null) {
                         mObexSession.disconnect(null);
                     }
+                    closeSocket();
                 } catch (IOException e) {
                     Log.w(TAG,"DISCONNECT Failure " + e.toString());
                 }
+                removeAccount(mAccount);
+                mPbapClientStateMachine.getContext().getContentResolver()
+                        .delete(CallLog.Calls.CONTENT_URI, null, null);
                 mPbapClientStateMachine.obtainMessage(
                         PbapClientStateMachine.MSG_CONNECTION_CLOSED).sendToTarget();
                 break;
 
             case MSG_DOWNLOAD:
+                if (mAccountCreated == true) {
+                    // If the account exists download has already completed, don't try again.
+                    return;
+                }
                 try {
+                    mAccountCreated = addAccount(mAccount);
+                    if (mAccountCreated == false) {
+                        Log.d(TAG,"Account creation failed, normal durring startup");
+                        return;
+                    }
                     BluetoothPbapRequestPullPhoneBook request =
-                            new BluetoothPbapRequestPullPhoneBook(PB_PATH, null, 0, VCARD_TYPE_21,
-                            0, 0);
+                            new BluetoothPbapRequestPullPhoneBook(PB_PATH, mAccount, 0,
+                            VCARD_TYPE_21, 0, 0);
                     request.execute(mObexSession);
-                    if (DBG) Log.d(TAG,"Download success? " + request.isSuccess());
+                    PhonebookPullRequest processor =
+                        new PhonebookPullRequest(mPbapClientStateMachine.getContext(), mAccount);
+                    processor.setResults(request.getList());
+                    processor.onPullComplete();
+
+                    downloadCallLog(MCH_PATH);
+                    downloadCallLog(ICH_PATH);
+                    downloadCallLog(OCH_PATH);
                 } catch (IOException e) {
                     Log.w(TAG,"DOWNLOAD_CONTACTS Failure" + e.toString());
                 }
                 break;
+
             default:
                 Log.w(TAG,"Received Unexpected Message");
         }
@@ -141,7 +180,10 @@ class PbapClientConnectionHandler extends Handler {
     }
 
     public void abort() {
+        // Perform forced cleanup, it is ok if the handler throws an exception this will free the
+        // handler to complete what it is doing and finish with cleanup.
         closeSocket();
+        this.getLooper().getThread().interrupt();
     }
 
     private void closeSocket() {
@@ -152,6 +194,40 @@ class PbapClientConnectionHandler extends Handler {
             }
         } catch (IOException e) {
             Log.e(TAG, "Error when closing socket", e);
+            mSocket = null;
+        }
+    }
+    void downloadCallLog(String path) {
+        try {
+            BluetoothPbapRequestPullPhoneBook request =
+                    new BluetoothPbapRequestPullPhoneBook(path,mAccount,0,VCARD_TYPE_21,0,0);
+            request.execute(mObexSession);
+            CallLogPullRequest processor =
+                    new CallLogPullRequest(mPbapClientStateMachine.getContext(),path);
+            processor.setResults(request.getList());
+            processor.onPullComplete();
+        } catch (IOException e) {
+            Log.w(TAG,"Download call log failure");
+        }
+    }
+
+    private boolean addAccount(Account account) {
+        if (mAccountManager.addAccountExplicitly(account, null, null)) {
+            if (DBG) {
+                Log.d(TAG, "Added account " + mAccount);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void removeAccount(Account acc) {
+        if (mAccountManager.removeAccountExplicitly(acc)) {
+            if (DBG) {
+                Log.d(TAG, "Removed account " + acc);
+            }
+        } else {
+            Log.e(TAG, "Failed to remove account " + mAccount);
         }
     }
 }
