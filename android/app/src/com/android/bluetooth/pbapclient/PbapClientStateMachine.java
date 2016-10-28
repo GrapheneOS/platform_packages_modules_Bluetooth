@@ -114,6 +114,7 @@ final class PbapClientStateMachine extends StateMachine {
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();
         mConnected = new Connected();
+        removeUncleanAccounts();
 
         addState(mDisconnected);
         addState(mConnecting);
@@ -353,6 +354,10 @@ final class PbapClientStateMachine extends StateMachine {
     }
 
     void doQuit() {
+        removeUncleanAccounts();
+        if (mHandlerThread != null) {
+            mHandlerThread.quitSafely();
+        }
         quitNow();
     }
 
