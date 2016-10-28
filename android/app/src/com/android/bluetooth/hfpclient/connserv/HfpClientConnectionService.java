@@ -430,10 +430,11 @@ public class HfpClientConnectionService extends ConnectionService {
         }
     }
 
-    private void disconnectAll() {
+    private synchronized void disconnectAll() {
         for (HfpClientConnection connection : mConnections.values()) {
             connection.onHfpDisconnected();
         }
+        mConnections.clear();
         if (mConference != null) {
             mConference.destroy();
             mConference = null;
