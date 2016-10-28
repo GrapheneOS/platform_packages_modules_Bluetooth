@@ -68,12 +68,12 @@ public class PbapClientService extends ProfileService {
     }
 
     @Override
-    public IProfileServiceBinder initBinder() {
+    public synchronized IProfileServiceBinder initBinder() {
         return new BluetoothPbapClientBinder(this);
     }
 
     @Override
-    protected boolean start() {
+    protected synchronized boolean start() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
@@ -90,19 +90,21 @@ public class PbapClientService extends ProfileService {
     }
 
     @Override
-    protected boolean stop() {
+    protected synchronized boolean stop() {
         try {
             unregisterReceiver(mPbapBroadcastReceiver);
         } catch (Exception e) {
             Log.w(TAG,"Unable to unregister sap receiver",e);
         }
-        mClient.disconnect(null);
+        if (mClient != null) {
+            mClient.disconnect(null);
+        }
         return true;
     }
 
     @Override
-    protected boolean cleanup() {
-        clearPbapClientService();
+    protected synchronized boolean cleanup() {
+        sPbapClientService = null;
         return true;
     }
 
@@ -215,7 +217,6 @@ public class PbapClientService extends ProfileService {
 
     }
 
-
     // API methods
     public static synchronized PbapClientService getPbapClientService() {
         if (sPbapClientService != null && sPbapClientService.isAvailable()) {
@@ -251,33 +252,30 @@ public class PbapClientService extends ProfileService {
         }
     }
 
-    private static synchronized void clearPbapClientService() {
-        sPbapClientService = null;
-    }
-
     public boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                 "Need BLUETOOTH ADMIN permission");
         Log.d(TAG,"Received request to ConnectPBAPPhonebook " + device.getAddress());
         int connectionState = mClient.getConnectionState();
         if (connectionState == BluetoothProfile.STATE_CONNECTED ||
-                connectionState == BluetoothProfile.STATE_CONNECTING) {
+            connectionState == BluetoothProfile.STATE_CONNECTING) {
             return false;
         }
-        if (getPriority(device)>BluetoothProfile.PRIORITY_OFF) {
+        if (getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
             mClient.connect(device);
             return true;
         }
         return false;
     }
 
-    boolean disconnect(BluetoothDevice device) {
+    private boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                 "Need BLUETOOTH ADMIN permission");
         mClient.disconnect(device);
         return true;
     }
-    public List<BluetoothDevice> getConnectedDevices() {
+
+    private List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         int[] desiredStates = {BluetoothProfile.STATE_CONNECTED};
         return getDevicesMatchingConnectionStates(desiredStates);

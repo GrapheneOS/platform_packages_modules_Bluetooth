@@ -79,6 +79,7 @@ class AvrcpUtils {
         }
         return BluetoothAvrcpPlayerSettings.STATE_INVALID;
     }
+
     public static int mapAvrcpPlayerSettingstoBTAttribVal(int mSetting, int mSettingVal) {
         if (mSetting == BluetoothAvrcpPlayerSettings.SETTING_EQUALIZER) {
             switch(mSettingVal) {
@@ -445,17 +446,19 @@ class TrackInfo extends MediaItem {
 
     /* reset it to default values */
     private void resetTrackInfo() {
-        mArtistName = AvrcpControllerConstants.ARTIST_NAME_INVALID;;
-        mTrackTitle = AvrcpControllerConstants.TITLE_INVALID;;
-        mAlbumTitle = AvrcpControllerConstants.ALBUM_NAME_INVALID;
-        mGenre      = AvrcpControllerConstants.GENRE_INVALID;
+        mArtistName = "";
+        mTrackTitle = "";
+        mAlbumTitle = "";
+        mGenre      = "";
         mTrackNum   = AvrcpControllerConstants.TRACK_NUM_INVALID;
-        mTotalTracks = AvrcpControllerConstants.TOTAL_TRACK_TIME_INVALID;
+        mTotalTracks = AvrcpControllerConstants.TOTAL_TRACKS_INVALID;
         mTrackLen = AvrcpControllerConstants.TOTAL_TRACK_TIME_INVALID;
     }
+
     public TrackInfo() {
         resetTrackInfo();
     }
+
     public TrackInfo(int mTrackId, byte mNumAttributes, int[] mAttribIds, String[] mAttribs) {
         mItemUid = mTrackId;
         resetTrackInfo();
