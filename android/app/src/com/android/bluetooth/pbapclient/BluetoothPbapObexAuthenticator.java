@@ -53,8 +53,6 @@ class BluetoothPbapObexAuthenticator implements Authenticator {
         mReplied = false;
 
         Log.d(TAG, "onAuthenticationChallenge: sending request");
-        mCallback.obtainMessage(BluetoothPbapObexSession.OBEX_SESSION_AUTHENTICATION_REQUEST)
-                .sendToTarget();
 
         synchronized (this) {
             while (!mReplied) {
