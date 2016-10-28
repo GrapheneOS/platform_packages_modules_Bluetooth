@@ -435,8 +435,11 @@ final class PbapClientStateMachine extends StateMachine {
             // The device ID is the name of the account.
             accountManager.removeAccountExplicitly(acc);
         }
-        mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
-
+        try {
+            mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+        } catch (IllegalArgumentException e) {
+            // CallLogs could not be deleted, they may not exist yet.
+        }
     }
 
     public void dump(StringBuilder sb) {
