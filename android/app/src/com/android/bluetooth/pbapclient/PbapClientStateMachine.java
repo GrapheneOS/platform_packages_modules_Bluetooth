@@ -48,9 +48,10 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothPbapClient;
 import android.content.Context;
 import android.content.Intent;
+import android.os.HandlerThread;
 import android.os.Message;
 import android.os.Process;
-import android.os.HandlerThread;
+import android.os.UserManager;
 import android.provider.CallLog;
 import android.util.Log;
 
@@ -93,17 +94,22 @@ final class PbapClientStateMachine extends StateMachine {
 
     // mCurrentDevice may only be changed in Disconnected State.
     private BluetoothDevice mCurrentDevice = null;
+    private PbapClientService mService;
     private Context mContext;
     private PbapClientConnectionHandler mConnectionHandler;
     private HandlerThread mHandlerThread = null;
+    private UserManager mUserManager = null;
 
     // mMostRecentState maintains previous state for broadcasting transitions.
     private int mMostRecentState = BluetoothProfile.STATE_DISCONNECTED;
 
-    PbapClientStateMachine(Context context) {
+    PbapClientStateMachine(PbapClientService svc, Context context) {
         super(TAG);
+
+        mService = svc;
         mContext = context;
         mLock = new Object();
+        mUserManager = UserManager.get(mContext);
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();
@@ -182,7 +188,7 @@ final class PbapClientStateMachine extends StateMachine {
                     Process.THREAD_PRIORITY_BACKGROUND);
             mHandlerThread.start();
             mConnectionHandler = new PbapClientConnectionHandler(mHandlerThread.getLooper(),
-                    PbapClientStateMachine.this, mCurrentDevice);
+                mContext, PbapClientStateMachine.this, mCurrentDevice);
             mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_CONNECT)
                     .sendToTarget();
             sendMessageDelayed(MSG_CONNECT_TIMEOUT, CONNECT_TIMEOUT);
@@ -274,8 +280,10 @@ final class PbapClientStateMachine extends StateMachine {
             onConnectionStateChanged(mCurrentDevice, mMostRecentState,
                     BluetoothProfile.STATE_CONNECTED);
             mMostRecentState = BluetoothProfile.STATE_CONNECTED;
-            mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
-                    .sendToTarget();
+            if (mUserManager.isUserUnlocked()) {
+                mConnectionHandler.obtainMessage(PbapClientConnectionHandler.MSG_DOWNLOAD)
+                        .sendToTarget();
+            }
         }
 
         @Override
@@ -319,6 +327,8 @@ final class PbapClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.PBAP_CLIENT, state,
+                prevState);
     }
 
     public void connect(BluetoothDevice device) {
