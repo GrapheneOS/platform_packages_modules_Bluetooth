@@ -603,18 +603,22 @@ void handle_rc_ctrl_features(btif_rc_device_cb_t* p_dev) {
 #endif
 
 void handle_rc_features(btif_rc_device_cb_t* p_dev) {
+  bt_bdaddr_t rc_addr;
+  bdcpy(rc_addr.address, p_dev->rc_addr);
+  bdstr_t addr1, addr2;
+
   if (bt_rc_callbacks == NULL) {
-    BTIF_TRACE_ERROR("%s: bt_rc_callbacks NULL, returning", __func__);
+    BTIF_TRACE_ERROR("%s: bt_rc_callbacks NULL, disabling TG role for %s",
+                     __func__, bdaddr_to_string(&rc_addr, addr2, sizeof(addr2)));
+    p_dev->rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
+    p_dev->rc_features &= ~BTA_AV_FEAT_BROWSE;
+    p_dev->rc_features &= ~BTA_AV_FEAT_METADATA;
     return;
   }
 
   btrc_remote_features_t rc_features = BTRC_FEAT_NONE;
-  bt_bdaddr_t rc_addr;
+  bt_bdaddr_t avdtp_addr  = btif_av_get_addr();
 
-  bdcpy(rc_addr.address, p_dev->rc_addr);
-  bt_bdaddr_t avdtp_addr = btif_av_get_addr();
-
-  bdstr_t addr1, addr2;
   BTIF_TRACE_DEBUG("%s: AVDTP Address: %s AVCTP address: %s", __func__,
                    bdaddr_to_string(&avdtp_addr, addr1, sizeof(addr1)),
                    bdaddr_to_string(&rc_addr, addr2, sizeof(addr2)));
@@ -662,8 +666,8 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
             "%s: register_volumechange already in progress for label: %d",
             __func__, p_dev->rc_vol_label);
         return;
-      } else
-        status = get_transaction(&p_transaction);
+      }
+      status = get_transaction(&p_transaction);
     }
     if (BT_STATUS_SUCCESS == status && NULL != p_transaction) {
       p_dev->rc_vol_label = p_transaction->lbl;
@@ -1098,7 +1102,7 @@ void handle_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg) {
     {
       rc_transaction_t* transaction = NULL;
       transaction = get_transaction_by_lbl(pmeta_msg->label);
-      if (NULL != transaction) {
+      if (transaction != NULL) {
         handle_rc_metamsg_rsp(pmeta_msg, p_dev);
       } else {
         BTIF_TRACE_DEBUG(
@@ -1253,7 +1257,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
         /* Free the Memory allocated for tAVRC_MSG */
       }
 #if (AVRC_CTRL_INCLUDED == TRUE)
-      else if ((bt_rc_callbacks == NULL) && (bt_rc_ctrl_callbacks != NULL)) {
+      else if (bt_rc_ctrl_callbacks != NULL) {
         /* This is case of Sink + CT + TG(for abs vol)) */
         BTIF_TRACE_DEBUG(
             "%s BTA_AV_META_MSG_EVT code:%d label:%d opcode %d ctype %d",
