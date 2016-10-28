@@ -31,6 +31,7 @@ import android.os.Handler;
 import android.telecom.Connection;
 import android.telecom.ConnectionRequest;
 import android.telecom.ConnectionService;
+import android.telecom.DisconnectCause;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
@@ -377,9 +378,7 @@ public class HfpClientConnectionService extends ConnectionService {
         if (mConference == null) {
             BluetoothDevice device = getDevice(getHandle());
             mConference = new HfpClientConference(getHandle(), device, mHeadsetProfile);
-            addConference(mConference);
         }
-        mConference.setActive();
         if (connection1.getConference() == null) {
             mConference.addConnection(connection1);
         }
@@ -432,6 +431,7 @@ public class HfpClientConnectionService extends ConnectionService {
             if (DBG) {
                 Log.d(TAG, "Conference has no connection, destroying");
             }
+            mConference.setDisconnected(new DisconnectCause(DisconnectCause.LOCAL));
             mConference.destroy();
             mConference = null;
         }
