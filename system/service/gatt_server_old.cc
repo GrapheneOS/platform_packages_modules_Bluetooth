@@ -424,8 +424,6 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
 // to refer to the client interface.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
     RegisterClientCallback,
-    RegisterScannerCallback,
-    ScanResultCallback,
     ClientConnectCallback,
     ClientDisconnectCallback,
     nullptr, /* search_complete_cb; */
@@ -439,19 +437,25 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr, /* read_remote_rssi_cb; */
     ListenCallback,
     nullptr, /* configure_mtu_cb; */
-    nullptr, /* scan_filter_cfg_cb; */
-    nullptr, /* scan_filter_param_cb; */
-    nullptr, /* scan_filter_status_cb; */
     nullptr, /* congestion_cb; */
+    nullptr, /* get_gatt_db_cb; */
+    nullptr, /* services_removed_cb */
+    nullptr, /* services_added_cb */
+};
+
+const btgatt_scanner_callbacks_t gatt_scanner_callbacks = {
+    RegisterScannerCallback,
+    ScanResultCallback,
     nullptr, /* batchscan_cfg_storage_cb; */
     nullptr, /* batchscan_enb_disable_cb; */
     nullptr, /* batchscan_reports_cb; */
     nullptr, /* batchscan_threshold_cb; */
     nullptr, /* track_adv_event_cb; */
     nullptr, /* scan_parameter_setup_completed_cb; */
-    nullptr, /* get_gatt_db_cb; */
-    nullptr, /* services_removed_cb */
-    nullptr, /* services_added_cb */
+    nullptr, /* scan_filter_cfg_cb; */
+    nullptr, /* scan_filter_param_cb; */
+    nullptr, /* scan_filter_status_cb; */
+
 };
 
 const btgatt_callbacks_t gatt_callbacks = {
@@ -463,6 +467,9 @@ const btgatt_callbacks_t gatt_callbacks = {
 
     /** GATT Server callbacks */
     &gatt_server_callbacks,
+
+    /** GATT Server callbacks */
+    &gatt_scanner_callbacks,
 };
 
 }  // namespace
@@ -687,7 +694,7 @@ bool Server::Stop() {
 }
 
 bool Server::ScanEnable() {
-  bt_status_t btstat = internal_->gatt->client->scan(true);
+  bt_status_t btstat = internal_->gatt->scanner->scan(true);
   if (btstat) {
     LOG_ERROR(LOG_TAG, "Enable scan failed: %d", btstat);
     return false;
@@ -696,7 +703,7 @@ bool Server::ScanEnable() {
 }
 
 bool Server::ScanDisable() {
-  bt_status_t btstat = internal_->gatt->client->scan(false);
+  bt_status_t btstat = internal_->gatt->scanner->scan(false);
   if (btstat) {
     LOG_ERROR(LOG_TAG, "Disable scan failed: %d", btstat);
     return false;

@@ -55,6 +55,7 @@ class GattClientTest : public ::testing::Test {
 
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
         nullptr,
+        nullptr,
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestClientHandler>(mock_handler_),
         nullptr);
@@ -158,24 +159,6 @@ TEST_F(GattClientTest, RegisterInstance) {
   ASSERT_TRUE(client.get() == nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_FAILURE, status);
   EXPECT_EQ(uuid1, cb_uuid);
-}
-
-TEST_F(GattClientTest, StartStopScan) {
-  EXPECT_CALL(*mock_handler_, Scan(true))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-
-  EXPECT_CALL(*mock_handler_, Scan(false))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
-
-  for (int i = 0; i < 5; i++)
-    hal::BluetoothGattInterface::Get()->StartScan(i);
-
-  for (int i = 0; i < 5; i++)
-    hal::BluetoothGattInterface::Get()->StopScan(i);
-
-  testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 }
 
 }  // namespace

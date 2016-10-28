@@ -36,6 +36,7 @@ btifCommonSrc += \
   src/btif_av.cc \
   src/btif_avrcp_audio_track.cc \
   src/btif_ble_advertiser.cc \
+  src/btif_ble_scanner.cc \
   src/btif_config.cc \
   src/btif_config_transcode.cc \
   src/btif_core.cc \

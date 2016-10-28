@@ -37,9 +37,11 @@
 #include <android/bluetooth/BnBluetoothGattClientCallback.h>
 #include <android/bluetooth/BnBluetoothLowEnergyCallback.h>
 #include <android/bluetooth/BnBluetoothLeAdvertiserCallback.h>
+#include <android/bluetooth/BnBluetoothLeScannerCallback.h>
 #include <android/bluetooth/IBluetooth.h>
 #include <android/bluetooth/IBluetoothGattClient.h>
 #include <android/bluetooth/IBluetoothLeAdvertiser.h>
+#include <android/bluetooth/IBluetoothLeScanner.h>
 #include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <bluetooth/low_energy_constants.h>
 #include <bluetooth/scan_filter.h>
@@ -58,6 +60,7 @@ using android::getService;
 using android::bluetooth::IBluetooth;
 using android::bluetooth::IBluetoothGattClient;
 using android::bluetooth::IBluetoothLeAdvertiser;
+using android::bluetooth::IBluetoothLeScanner;
 using android::bluetooth::IBluetoothLowEnergy;
 
 namespace {
@@ -99,6 +102,11 @@ std::atomic_int ble_client_id(0);
 // true then an operation to register the advertiser is in progress.
 std::atomic_bool ble_advertiser_registering(false);
 std::atomic_int ble_advertiser_id(0);
+
+// The registered IBluetoothLeScanner handle. If |ble_scanner_registering| is
+// true then an operation to register the scanner is in progress.
+std::atomic_bool ble_scanner_registering(false);
+std::atomic_int ble_scanner_id(0);
 
 // The registered IBluetoothGattClient client handle. If |gatt_registering| is
 // true then an operation to register the client is in progress.
@@ -202,22 +210,6 @@ class CLIBluetoothLowEnergyCallback
     return Status::ok();
   }
 
-  Status OnScanResult(
-      const android::bluetooth::ScanResult& scan_result) override {
-    BeginAsyncOut();
-    cout << COLOR_BOLDWHITE "Scan result: " << COLOR_BOLDYELLOW "["
-         << scan_result.device_address() << "] "
-         << COLOR_BOLDWHITE "- RSSI: " << scan_result.rssi() << COLOR_OFF;
-
-    if (dump_scan_record) {
-      cout << " - Record: "
-           << base::HexEncode(scan_result.scan_record().data(),
-                              scan_result.scan_record().size());
-    }
-    EndAsyncOut();
-    return Status::ok();
-  }
-
  private:
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
 };
@@ -257,6 +249,48 @@ class CLIBluetoothLeAdvertiserCallback
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLeAdvertiserCallback);
+};
+
+class CLIBluetoothLeScannerCallback
+    : public android::bluetooth::BnBluetoothLeScannerCallback {
+ public:
+  CLIBluetoothLeScannerCallback() = default;
+  ~CLIBluetoothLeScannerCallback() override = default;
+
+  // IBluetoothLowEnergyCallback overrides:
+  Status OnScannerRegistered(int status, int scanner_id) override {
+    BeginAsyncOut();
+    if (status != bluetooth::BLE_STATUS_SUCCESS) {
+      PrintError("Failed to register BLE client");
+    } else {
+      ble_scanner_id = scanner_id;
+      cout << COLOR_BOLDWHITE "Registered BLE client with ID: " COLOR_OFF
+           << COLOR_GREEN << scanner_id << COLOR_OFF;
+    }
+    EndAsyncOut();
+
+    ble_scanner_registering = false;
+    return Status::ok();
+  }
+
+  Status OnScanResult(
+      const android::bluetooth::ScanResult& scan_result) override {
+    BeginAsyncOut();
+    cout << COLOR_BOLDWHITE "Scan result: " << COLOR_BOLDYELLOW "["
+         << scan_result.device_address() << "] "
+         << COLOR_BOLDWHITE "- RSSI: " << scan_result.rssi() << COLOR_OFF;
+
+    if (dump_scan_record) {
+      cout << " - Record: "
+           << base::HexEncode(scan_result.scan_record().data(),
+                              scan_result.scan_record().size());
+    }
+    EndAsyncOut();
+    return Status::ok();
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLeScannerCallback);
 };
 
 class CLIGattClientCallback
@@ -787,6 +821,53 @@ void HandleSetMtu(IBluetooth* bt_iface, const vector<string>& args) {
   PrintCommandStatus(status);
 }
 
+
+void HandleRegisterBLEScanner(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (ble_scanner_registering.load()) {
+    PrintError("In progress");
+    return;
+  }
+
+  if (ble_scanner_id.load()) {
+    PrintError("Already registered");
+    return;
+  }
+
+  sp<IBluetoothLeScanner> ble_scanner_iface;
+  bt_iface->GetLeScannerInterface(&ble_scanner_iface);
+  if (!ble_scanner_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth LE Scanner interface");
+    return;
+  }
+
+  bool status;
+  ble_scanner_iface->RegisterScanner(new CLIBluetoothLeScannerCallback(), &status);
+  ble_scanner_registering = status;
+  PrintCommandStatus(status);
+}
+
+void HandleUnregisterBLEScanner(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (!ble_scanner_id.load()) {
+    PrintError("Not registered");
+    return;
+  }
+
+  sp<IBluetoothLeScanner> ble_scanner_iface;
+  bt_iface->GetLeScannerInterface(&ble_scanner_iface);
+  if (!ble_scanner_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth LE scanner interface");
+    return;
+  }
+
+  ble_scanner_iface->UnregisterScanner(ble_scanner_id.load());
+  ble_scanner_id = 0;
+  PrintCommandStatus(true);
+}
+
 void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
   if (!ble_client_id.load()) {
     PrintError("BLE not registered");
@@ -808,10 +889,10 @@ void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
     }
   }
 
-  sp<IBluetoothLowEnergy> ble_iface;
-  bt_iface->GetLowEnergyInterface(&ble_iface);
-  if (!ble_iface.get()) {
-    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+  sp<IBluetoothLeScanner> ble_scanner_iface;
+  bt_iface->GetLeScannerInterface(&ble_scanner_iface);
+  if (!ble_scanner_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth LE scanner interface");
     return;
   }
 
@@ -819,7 +900,7 @@ void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
   std::vector<android::bluetooth::ScanFilter> filters;
 
   bool status;
-  ble_iface->StartScan(ble_client_id.load(), settings, filters, &status);
+  ble_scanner_iface->StartScan(ble_scanner_id.load(), settings, filters, &status);
   PrintCommandStatus(status);
 }
 
@@ -829,15 +910,15 @@ void HandleStopLeScan(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface;
-  bt_iface->GetLowEnergyInterface(&ble_iface);
-  if (!ble_iface.get()) {
-    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+  sp<IBluetoothLeScanner> ble_scanner_iface;
+  bt_iface->GetLeScannerInterface(&ble_scanner_iface);
+  if (!ble_scanner_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth LE scanner interface");
     return;
   }
 
   bool status;
-  ble_iface->StopScan(ble_client_id.load(), &status);
+  ble_scanner_iface->StopScan(ble_scanner_id.load(), &status);
   PrintCommandStatus(status);
 }
 
@@ -880,6 +961,10 @@ struct {
     {"set-mtu", HandleSetMtu, "\t\tSet MTU (-h for options)"},
     {"start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)"},
     {"stop-adv", HandleStopAdv, "\t\tStop advertising"},
+    {"register-le-scanner", HandleRegisterBLEScanner,
+     "\t\tRegister with the Bluetooth Low Energy scanner interface"},
+    {"unregister-le-scanner", HandleUnregisterBLEScanner,
+     "\t\tUnregister from the Bluetooth LE scanner interface"},
     {"start-le-scan", HandleStartLeScan,
      "\t\tStart LE device scan (-h for options)"},
     {"stop-le-scan", HandleStopLeScan, "\t\tStop LE device scan"},

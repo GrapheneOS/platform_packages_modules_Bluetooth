@@ -37,7 +37,7 @@ class AdapterTest : public ::testing::Test {
 
     // Initialize GATT interface with default handlers.
     hal::BluetoothGattInterface::InitializeForTesting(
-        new hal::FakeBluetoothGattInterface(nullptr, nullptr, nullptr));
+        new hal::FakeBluetoothGattInterface(nullptr, nullptr, nullptr, nullptr));
 
     adapter_ = Adapter::Create();
   }
