@@ -297,6 +297,40 @@ void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
   ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
+void btif_gatts_upstreams_evt(uint16_t event, char* p_param) {
+  LOG_VERBOSE(LOG_TAG, "%s: Event %d", __func__, event);
+
+  tBTA_GATTC* p_data = (tBTA_GATTC*)p_param;
+  switch (event) {
+    case BTA_GATTC_REG_EVT: {
+      bt_uuid_t app_uuid;
+      bta_to_btif_uuid(&app_uuid, &p_data->reg_oper.app_uuid);
+      HAL_CBACK(bt_gatt_callbacks, client->register_scanner_cb,
+                p_data->reg_oper.status, p_data->reg_oper.client_if, &app_uuid);
+      break;
+    }
+
+    case BTA_GATTC_DEREG_EVT:
+      break;
+
+    case BTA_GATTC_SEARCH_CMPL_EVT: {
+      HAL_CBACK(bt_gatt_callbacks, client->search_complete_cb,
+                p_data->search_cmpl.conn_id, p_data->search_cmpl.status);
+      break;
+    }
+
+    default:
+      LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
+      break;
+  }
+}
+
+void bta_gatts_cback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
+  bt_status_t status =
+      btif_transfer_context(btif_gatts_upstreams_evt, (uint16_t)event,
+                            (char*)p_data, sizeof(tBTA_GATTC), NULL);
+  ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
+}
 void bta_batch_scan_setup_cb(tBTA_BLE_BATCH_SCAN_EVT evt,
                              tBTA_DM_BLE_REF_VALUE ref_value,
                              tBTA_STATUS status) {
@@ -503,6 +537,29 @@ bt_status_t btif_gattc_unregister_app(int client_if) {
   CHECK_BTGATT_INIT();
   return do_in_jni_thread(Bind(&btif_gattc_unregister_app_impl, client_if));
 }
+
+
+void btif_gattc_register_scanner_impl(tBT_UUID uuid) {
+  BTA_GATTC_AppRegister(&uuid, bta_gatts_cback);
+}
+
+bt_status_t btif_gattc_register_scanner(bt_uuid_t* uuid) {
+  CHECK_BTGATT_INIT();
+
+  tBT_UUID bt_uuid;
+  btif_to_bta_uuid(&bt_uuid, uuid);
+  return do_in_jni_thread(Bind(&btif_gattc_register_scanner_impl, bt_uuid));
+}
+
+void btif_gattc_unregister_scanner_impl(int client_if) {
+  BTA_GATTC_AppDeregister(client_if);
+}
+
+bt_status_t btif_gattc_unregister_scanner(int scanner_id) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&btif_gattc_unregister_scanner_impl, scanner_id));
+}
+
 
 bt_status_t btif_gattc_scan(bool start) {
   CHECK_BTGATT_INIT();
@@ -1073,6 +1130,8 @@ bt_status_t btif_gattc_test_command(int command, btgatt_test_params_t* params) {
 const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_register_app,
     btif_gattc_unregister_app,
+    btif_gattc_register_scanner,
+    btif_gattc_unregister_scanner,
     btif_gattc_scan,
     btif_gattc_open,
     btif_gattc_close,
