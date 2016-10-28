@@ -86,11 +86,6 @@ bool bta_gatts_hdl_event(BT_HDR *p_msg)
             bta_gatts_send_rsp(p_cb,(tBTA_GATTS_DATA *) p_msg);
             break;
 
-        case BTA_GATTS_API_LISTEN_EVT:
-            bta_gatts_listen(p_cb,(tBTA_GATTS_DATA *) p_msg);
-            break;
-
-
         case BTA_GATTS_API_DEL_SRVC_EVT:
         {
             tBTA_GATTS_SRVC_CB *p_srvc_cb = bta_gatts_find_srvc_cb_by_srvc_id(p_cb,
