@@ -501,7 +501,7 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     private void acceptCall(int flag, boolean retry) {
-        int action;
+        int action = -1;
 
         if (DBG) {
             Log.d(TAG, "acceptCall: (" + flag + ")");
@@ -518,6 +518,9 @@ final class HeadsetClientStateMachine extends StateMachine {
             }
         }
 
+        if (DBG) {
+            Log.d(TAG, "Call to accept: " + c);
+        }
         switch (c.getState()) {
             case BluetoothHeadsetClientCall.CALL_STATE_INCOMING:
                 if (flag != BluetoothHeadsetClient.CALL_ACCEPT_NONE) {
@@ -556,12 +559,21 @@ final class HeadsetClientStateMachine extends StateMachine {
                     break;
                 }
 
-                // if active calls are present action must be selected
-                if (flag == BluetoothHeadsetClient.CALL_ACCEPT_HOLD) {
+                // if active calls are present then we have the option to either terminate the
+                // existing call or hold the existing call. We hold the other call by default.
+                if (flag == BluetoothHeadsetClient.CALL_ACCEPT_HOLD ||
+                    flag == BluetoothHeadsetClient.CALL_ACCEPT_NONE) {
+                    if (DBG) {
+                        Log.d(TAG, "Accepting call with accept and hold");
+                    }
                     action = HeadsetClientHalConstants.CALL_ACTION_CHLD_2;
                 } else if (flag == BluetoothHeadsetClient.CALL_ACCEPT_TERMINATE) {
+                    if (DBG) {
+                        Log.d(TAG, "Accepting call with accept and reject");
+                    }
                     action = HeadsetClientHalConstants.CALL_ACTION_CHLD_1;
                 } else {
+                    Log.e(TAG, "Aceept call with invalid flag: " + flag);
                     return;
                 }
                 break;
@@ -606,6 +618,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                 BluetoothHeadsetClientCall.CALL_STATE_HELD_BY_RESPONSE_AND_HOLD,
                 BluetoothHeadsetClientCall.CALL_STATE_HELD);
         if (c == null) {
+            if (DBG) {
+                Log.d(TAG, "No call to reject, returning.");
+            }
             return;
         }
 
@@ -627,6 +642,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                 return;
         }
 
+        if (DBG) {
+            Log.d(TAG, "Reject call action " + action);
+        }
         if (handleCallActionNative(action, 0)) {
             addQueuedAction(REJECT_CALL, action);
         } else {
@@ -837,6 +855,7 @@ final class HeadsetClientStateMachine extends StateMachine {
     }
 
     public void doQuit() {
+        Log.d(TAG, "doQuit");
         quitNow();
     }
 
@@ -1059,6 +1078,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     }
                     break;
                 default:
+                    Log.w(TAG, "Message not handled " + message);
                     return NOT_HANDLED;
             }
             return retValue;
@@ -1076,7 +1096,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     break;
 
                 case HeadsetClientHalConstants.CONNECTION_STATE_SLC_CONNECTED:
-                    Log.w(TAG, "HFPClient Connected from Connecting state");
+                    Log.d(TAG, "HFPClient Connected from Connecting state");
 
                     mPeerFeatures = peer_feat;
                     mChldFeatures = chld_feat;
@@ -1155,7 +1175,6 @@ final class HeadsetClientStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Enter Connected: " + getCurrentMessage().what);
             }
-
             mAudioWbs = false;
         }
 
