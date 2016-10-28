@@ -1753,35 +1753,82 @@ public class AdapterService extends Service {
         }
     }
 
-     private void processConnectOtherProfiles (BluetoothDevice device, int firstProfileStatus){
+    // This function is called whenever a profile is connected.  This allows any other bluetooth
+    // profiles which are not already connected or in the process of connecting to attempt to
+    // connect to the device that initiated the connection.  In the event that this function is
+    // invoked and there are no current bluetooth connections no new profiles will be connected.
+    private void processConnectOtherProfiles (BluetoothDevice device, int firstProfileStatus) {
         if (getState()!= BluetoothAdapter.STATE_ON){
             return;
         }
         HeadsetService  hsService = HeadsetService.getHeadsetService();
         A2dpService a2dpService = A2dpService.getA2dpService();
+        HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
+        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        PbapClientService pbapClientService = PbapClientService.getPbapClientService();
 
-        // if any of the profile service is  null, second profile connection not required
-        if ((hsService == null) ||(a2dpService == null )){
+        boolean allProfilesEmpty = true;
+        List<BluetoothDevice> a2dpConnDevList = null;
+        List<BluetoothDevice> hsConnDevList = null;
+        List<BluetoothDevice> headsetClientConnDevList = null;
+        List<BluetoothDevice> a2dpSinkConnDevList = null;
+        List<BluetoothDevice> pbapClientConnDevList = null;
+
+        if (hsService != null) {
+            hsConnDevList = hsService.getConnectedDevices();
+            allProfilesEmpty = allProfilesEmpty && hsConnDevList.isEmpty();
+        }
+        if (a2dpService != null) {
+            a2dpConnDevList = a2dpService.getConnectedDevices();
+            allProfilesEmpty = allProfilesEmpty && a2dpConnDevList.isEmpty();
+        }
+        if (headsetClientService != null) {
+            headsetClientConnDevList = headsetClientService.getConnectedDevices();
+            allProfilesEmpty = allProfilesEmpty && headsetClientConnDevList.isEmpty();
+        }
+        if (a2dpSinkService != null) {
+            a2dpSinkConnDevList = a2dpSinkService.getConnectedDevices();
+            allProfilesEmpty = allProfilesEmpty && a2dpSinkConnDevList.isEmpty();
+        }
+        if (pbapClientService != null) {
+            pbapClientConnDevList = pbapClientService.getConnectedDevices();
+            allProfilesEmpty = allProfilesEmpty && pbapClientConnDevList.isEmpty();
+        }
+
+        if (allProfilesEmpty && (PROFILE_CONN_CONNECTED  == firstProfileStatus)) {
+            // must have connected then disconnected, don't bother connecting others.
             return;
         }
-        List<BluetoothDevice> a2dpConnDevList= a2dpService.getConnectedDevices();
-        List<BluetoothDevice> hfConnDevList= hsService.getConnectedDevices();
-        // Check if the device is in disconnected state and if so return
-        // We ned to connect other profile only if one of the profile is still in connected state
-        // This is required to avoide a race condition in which profiles would
-        // automaticlly connect if the disconnection is initiated within 6 seconds of connection
-        //First profile connection being rejected is an exception
-        if((hfConnDevList.isEmpty() && a2dpConnDevList.isEmpty())&&
-            (PROFILE_CONN_CONNECTED  == firstProfileStatus)){
-            return;
+
+        if (hsService != null) {
+            if (hsConnDevList.isEmpty() &&
+                  (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                  hsService.connect(device);
+            }
         }
-        if((hfConnDevList.isEmpty()) &&
-            (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
-            hsService.connect(device);
+        if (a2dpService != null) {
+            if (a2dpConnDevList.isEmpty() &&
+                (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                a2dpService.connect(device);
+            }
         }
-        else if((a2dpConnDevList.isEmpty()) &&
-            (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)){
-            a2dpService.connect(device);
+        if (headsetClientService != null) {
+            if (headsetClientConnDevList.isEmpty() &&
+                (headsetClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                headsetClientService.connect(device);
+            }
+        }
+        if (a2dpSinkService != null) {
+            if (a2dpSinkConnDevList.isEmpty() &&
+                (a2dpSinkService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                a2dpSinkService.connect(device);
+            }
+        }
+        if (pbapClientService != null) {
+            if (pbapClientConnDevList.isEmpty() &&
+                (pbapClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                pbapClientService.connect(device);
+            }
         }
     }
 
