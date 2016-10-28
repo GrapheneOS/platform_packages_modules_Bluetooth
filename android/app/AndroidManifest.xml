@@ -309,7 +309,8 @@
             android:process="@string/process"
             android:name=".a2dpsink.mbs.A2dpMediaBrowserService"
             android:exported="true"
-            android:enabled="@bool/profile_supported_a2dp_sink">
+            android:enabled="@bool/profile_supported_a2dp_sink"
+            android:label="@string/a2dp_sink_mbs_label">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
