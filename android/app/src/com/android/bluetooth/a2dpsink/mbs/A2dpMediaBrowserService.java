@@ -51,6 +51,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implements the MediaBrowserService interface to AVRCP and A2DP
+ *
+ * This service provides a means for external applications to access A2DP and AVRCP.
+ * The applications are expected to use MediaBrowser (see API) and all the music
+ * browsing/playback/metadata can be controlled via MediaBrowser and MediaController.
+ *
+ * The current behavior of MediaSession exposed by this service is as follows:
+ * 1. MediaSession is active (i.e. SystemUI and other overview UIs can see updates) when device is
+ * connected and first starts playing. Before it starts playing we do not active the session.
+ * 1.1 The session is active throughout the duration of connection.
+ * 2. The session is de-activated when the device disconnects. It will be connected again when (1)
+ * happens.
+ */
 public class A2dpMediaBrowserService extends MediaBrowserService {
     private static final String TAG = "A2dpMediaBrowserService";
     private static final String UNKNOWN_BT_AUDIO = "__UNKNOWN_BT_AUDIO__";
@@ -292,6 +306,11 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
                 } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
                     // Set the playback state to unconnected.
                     mAvrcpCommandQueue.obtainMessage(MSG_DEVICE_DISCONNECT, btDev).sendToTarget();
+                    // If we have been pushing updates via the session then stop sending them since
+                    // we are not connected anymore.
+                    if (mSession.isActive()) {
+                        mSession.setActive(false);
+                    }
                 }
             } else if (AvrcpControllerService.ACTION_BROWSE_CONNECTION_STATE_CHANGED.equals(
                 action)) {
@@ -409,6 +428,12 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             PlaybackState.Builder pbb = new PlaybackState.Builder(pb);
             pb = pbb.setActions(mTransportControlFlags).build();
             mSession.setPlaybackState(pb);
+
+            // If we are now playing then we should start pushing updates via MediaSession so that
+            // external UI (such as SystemUI) can show the currently playing music.
+            if (pb.getState() == PlaybackState.STATE_PLAYING && !mSession.isActive()) {
+                mSession.setActive(true);
+            }
         }
     }
 

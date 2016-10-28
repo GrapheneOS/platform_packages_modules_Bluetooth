@@ -104,10 +104,18 @@ public class HfpClientConnectionService extends ConnectionService {
                         List<BluetoothHeadsetClientCall> calls =
                                 mHeadsetProfile.getCurrentCalls(mDevice);
                         Log.d(TAG, "Got calls " + calls);
+                        if (calls == null) {
+                            // We can get null as a return if we are not connected. Hence there may
+                            // be a race in getting the broadcast and HFP Client getting
+                            // disconnected before broadcast gets delivered.
+                            Log.w(TAG, "Got connected but calls were null, ignoring the broadcast");
+                            return;
+                        }
                         for (BluetoothHeadsetClientCall call : calls) {
                             handleCall(call);
                         }
                     } else {
+                        Log.e(TAG, "headset profile is null, ignoring broadcast.");
                     }
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     Log.d(TAG, "Disconnecting from " + device);
