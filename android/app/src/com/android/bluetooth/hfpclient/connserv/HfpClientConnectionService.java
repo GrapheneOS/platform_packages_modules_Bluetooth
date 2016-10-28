@@ -449,6 +449,7 @@ public class HfpClientConnectionService extends ConnectionService {
         for (HfpClientConnection connection : mConnections.values()) {
             connection.onHfpDisconnected();
         }
+
         mConnections.clear();
 
         if (mConference != null) {

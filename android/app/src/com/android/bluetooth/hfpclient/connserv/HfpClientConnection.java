@@ -113,7 +113,7 @@ public class HfpClientConnection extends Connection {
     }
 
     public boolean inConference() {
-        return mAdded && mCurrentCall != null && mCurrentCall.isMultiParty() &&
+        return mAdded && mCurrentCall.isMultiParty() &&
                 getState() != Connection.STATE_DISCONNECTED;
     }
 
