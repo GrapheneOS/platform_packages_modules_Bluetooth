@@ -47,7 +47,6 @@ enum
     BTA_GATTS_API_OPEN_EVT,
     BTA_GATTS_API_CANCEL_OPEN_EVT,
     BTA_GATTS_API_CLOSE_EVT,
-    BTA_GATTS_API_LISTEN_EVT,
     BTA_GATTS_API_DISABLE_EVT
 };
 typedef uint16_t tBTA_GATTS_INT_EVT;
@@ -118,14 +117,6 @@ typedef struct
 
 typedef tBTA_GATTS_API_OPEN tBTA_GATTS_API_CANCEL_OPEN;
 
-typedef struct
-{
-    BT_HDR                  hdr;
-    BD_ADDR_PTR             remote_bda;
-    tBTA_GATTS_IF           server_if;
-    bool                 start;
-} tBTA_GATTS_API_LISTEN;
-
 typedef union
 {
     BT_HDR                          hdr;
@@ -138,8 +129,6 @@ typedef union
     tBTA_GATTS_API_CANCEL_OPEN      api_cancel_open;
 
     tBTA_GATTS_INT_START_IF         int_start_if;
-    /* if peripheral role is supported */
-    tBTA_GATTS_API_LISTEN           api_listen;
 } tBTA_GATTS_DATA;
 
 /* application registration control block */
@@ -199,7 +188,6 @@ extern void bta_gatts_indicate_handle (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_
 extern void bta_gatts_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);
 extern void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);
 extern void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);
-extern void bta_gatts_listen(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);
 
 extern bool bta_gatts_uuid_compare(tBT_UUID tar, tBT_UUID src);
 extern tBTA_GATTS_RCB *bta_gatts_find_app_rcb_by_app_if(tBTA_GATTS_IF server_if);

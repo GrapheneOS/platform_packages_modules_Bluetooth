@@ -411,7 +411,6 @@ typedef struct
 typedef struct
 {
     tGATT_IF        gatt_if[GATT_MAX_APPS];
-    tGATT_IF        listen_gif[GATT_MAX_APPS];
     BD_ADDR         remote_bda;
     bool            in_use;
 }tGATT_BG_CONN_DEV;
@@ -543,7 +542,7 @@ extern void gatt_set_srv_chg(void);
 extern void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr);
 extern tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind);
 extern void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id);
-extern bool    gatt_update_listen_mode(void);
+extern void gatt_update_listen_mode(int listening);
 extern bool    gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb);
 
 /* reserved handle list */
@@ -560,7 +559,7 @@ extern bool    gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_
 extern tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg);
 
 /* for background connection */
-extern bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_addr, bool    is_initiator);
+extern bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_addr);
 extern bool    gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if);
 extern bool    gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr);
 extern uint8_t gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr);

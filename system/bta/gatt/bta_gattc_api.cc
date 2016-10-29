@@ -726,13 +726,11 @@ void BTA_GATTC_Refresh(const BD_ADDR remote_bda)
 **
 ** Parameters       client_if: server interface.
 **                  start: to start or stop listening for connection
-**                  remote_bda: remote device BD address, if listen to all device
-**                              use NULL.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start, BD_ADDR_PTR target_bda)
+void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start)
 {
     tBTA_GATTC_API_LISTEN *p_buf =
         (tBTA_GATTC_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN);
@@ -740,12 +738,6 @@ void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start, BD_ADDR_PTR target_bd
     p_buf->hdr.event = BTA_GATTC_API_LISTEN_EVT;
     p_buf->client_if = client_if;
     p_buf->start = start;
-    if (target_bda) {
-        p_buf->remote_bda = (uint8_t*)(p_buf + 1);
-        memcpy(p_buf->remote_bda, target_bda, BD_ADDR_LEN);
-    } else {
-        p_buf->remote_bda = NULL;
-    }
 
     bta_sys_sendmsg(p_buf);
 }
