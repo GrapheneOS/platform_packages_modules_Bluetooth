@@ -1991,49 +1991,21 @@ void bta_gattc_listen(tBTA_GATTC_DATA * p_msg)
     }
     /* mark bg conn record */
     if (bta_gattc_mark_bg_conn(p_msg->api_listen.client_if,
-                               (BD_ADDR_PTR) p_msg->api_listen.remote_bda,
+                               (BD_ADDR_PTR) NULL,
                                p_msg->api_listen.start,
                                true))
     {
-        if (!GATT_Listen(p_msg->api_listen.client_if,
-                         p_msg->api_listen.start,
-                         p_msg->api_listen.remote_bda))
+        GATT_Listen(p_msg->api_listen.start);
+        cb_data.status = BTA_GATT_OK;
+
+        (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
+
+        if (p_msg->api_listen.start)
         {
-            APPL_TRACE_ERROR("Listen failure");
-            (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
-        }
-        else
-        {
-            cb_data.status = BTA_GATT_OK;
-
-            (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
-
-            if (p_msg->api_listen.start)
-            {
-                /* if listen to a specific target */
-                if (p_msg->api_listen.remote_bda != NULL)
-                {
-
-                    /* if is a connected remote device */
-                    if (L2CA_GetBleConnRole(p_msg->api_listen.remote_bda) == HCI_ROLE_SLAVE &&
-                        bta_gattc_find_clcb_by_cif(p_msg->api_listen.client_if,
-                                                   p_msg->api_listen.remote_bda,
-                                                   BTA_GATT_TRANSPORT_LE) == NULL)
-                    {
-
-                        bta_gattc_init_clcb_conn(p_msg->api_listen.client_if,
-                                                p_msg->api_listen.remote_bda);
-                    }
-                }
-                /* if listen to all */
-                else
-                {
-                    LOG_DEBUG(LOG_TAG, "Listen For All now");
-                    /* go through all connected device and send
-                    callback for all connected slave connection */
-                    bta_gattc_process_listen_all(p_msg->api_listen.client_if);
-                }
-            }
+            LOG_DEBUG(LOG_TAG, "Listen For All now");
+            /* go through all connected device and send
+            callback for all connected slave connection */
+            bta_gattc_process_listen_all(p_msg->api_listen.client_if);
         }
     }
 }

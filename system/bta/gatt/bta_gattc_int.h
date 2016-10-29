@@ -181,7 +181,6 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    BD_ADDR_PTR             remote_bda;
     tBTA_GATTC_IF           client_if;
     bool                 start;
 } tBTA_GATTC_API_LISTEN;

@@ -1080,15 +1080,11 @@ extern bool    GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr,
 ** Description      This function start or stop LE advertisement and listen for
 **                  connection.
 **
-** Parameters       gatt_if: applicaiton interface
-**                  p_bd_addr: listen for specific address connection, or NULL for
-**                             listen to all device connection.
-**                  start: is a direct conenection or a background auto connection
+** Parameters       start: is a direct conenection or a background auto connection
 **
-** Returns          true if advertisement is started; false if adv start failure.
 **
 *******************************************************************************/
-extern bool    GATT_Listen (tGATT_IF gatt_if, bool    start, BD_ADDR_PTR bd_addr);
+extern void GATT_Listen(bool start);
 
 /*******************************************************************************
 **
