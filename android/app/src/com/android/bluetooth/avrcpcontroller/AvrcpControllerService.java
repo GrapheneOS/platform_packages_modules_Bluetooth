@@ -709,14 +709,13 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI when a passthrough key was received.
-    private void handlePassthroughRsp(int id, int keyState) {
-        Log.d(TAG, "passthrough response received as: key: " + id + " state: " +
-            keyState);
+    private void handlePassthroughRsp(int id, int keyState, byte[] address) {
+        Log.d(TAG, "passthrough response received as: key: " + id + " state: " + keyState +
+            "address:" + address);
     }
 
     private void handleGroupNavigationRsp(int id, int keyState) {
-        Log.d(TAG, "group navigation response received as: key: " + id + " state: " +
-            keyState);
+        Log.d(TAG, "group navigation response received as: key: " + id + " state: " + keyState);
     }
 
     // Called by JNI when a device has connected or disconnected.
