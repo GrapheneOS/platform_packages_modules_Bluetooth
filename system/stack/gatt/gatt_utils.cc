@@ -2398,7 +2398,7 @@ tGATT_BG_CONN_DEV * gatt_alloc_bg_dev(BD_ADDR remote_bda)
 ** Returns          true if device added to the list; false failed
 **
 *******************************************************************************/
-bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, bool    is_initator)
+bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr)
 {
     tGATT_IF gatt_if =  p_reg->gatt_if;
     tGATT_BG_CONN_DEV   *p_dev = NULL;
@@ -2414,44 +2414,19 @@ bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr, bool    is_init
     {
         for (i = 0; i < GATT_MAX_APPS; i ++)
         {
-            if (is_initator)
+            if (p_dev->gatt_if[i] == gatt_if)
             {
-                if (p_dev->gatt_if[i] == gatt_if)
-                {
-                    GATT_TRACE_ERROR("device already in iniator white list");
-                    return true;
-                }
-                else if (p_dev->gatt_if[i] == 0)
-                {
-                    p_dev->gatt_if[i] = gatt_if;
-                    if (i == 0)
-                        ret = BTM_BleUpdateBgConnDev(true, bd_addr);
-                    else
-                        ret = true;
-                    break;
-                }
+                GATT_TRACE_ERROR("device already in iniator white list");
+                return true;
             }
-            else
+            else if (p_dev->gatt_if[i] == 0)
             {
-                if (p_dev->listen_gif[i] == gatt_if)
-                {
-                    GATT_TRACE_ERROR("device already in adv white list");
-                    return true;
-                }
-                else if (p_dev->listen_gif[i] == 0)
-                {
-                    if (p_reg->listening == GATT_LISTEN_TO_ALL)
-                        p_reg->listening = GATT_LISTEN_TO_NONE;
-
-                    p_reg->listening ++;
-                    p_dev->listen_gif[i] = gatt_if;
-
-                    if (i == 0)
-                        ret = BTM_BleUpdateAdvWhitelist(true, bd_addr);
-                    else
-                        ret = true;
-                    break;
-                }
+                p_dev->gatt_if[i] = gatt_if;
+                if (i == 0)
+                    ret = BTM_BleUpdateBgConnDev(true, bd_addr);
+                else
+                    ret = true;
+                break;
             }
         }
     }
@@ -2479,7 +2454,7 @@ bool    gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
 
     if (p_tcb)
         gatt_update_app_use_link_flag(gatt_if, p_tcb, false, false);
-    status = gatt_update_auto_connect_dev(gatt_if, false, bd_addr, true);
+    status = gatt_update_auto_connect_dev(gatt_if, false, bd_addr);
     return status;
 }
 
@@ -2553,7 +2528,7 @@ bool    gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
 ** Returns          pointer to the device record
 **
 *******************************************************************************/
-bool    gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr, bool    is_initiator)
+bool    gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr)
 {
     tGATT_IF gatt_if = p_reg->gatt_if;
     tGATT_BG_CONN_DEV   *p_dev = NULL;
@@ -2565,45 +2540,25 @@ bool    gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr, bool    
         return ret;
     }
 
-    for (i = 0; i < GATT_MAX_APPS && (p_dev->gatt_if[i] > 0 || p_dev->listen_gif[i]); i ++)
+    for (i = 0; i < GATT_MAX_APPS && (p_dev->gatt_if[i] > 0); i ++)
     {
-        if (is_initiator)
+        if (p_dev->gatt_if[i] == gatt_if)
         {
-            if (p_dev->gatt_if[i] == gatt_if)
-            {
-                p_dev->gatt_if[i] = 0;
-                /* move all element behind one forward */
-                for (j = i + 1; j < GATT_MAX_APPS; j ++)
-                    p_dev->gatt_if[j - 1] = p_dev->gatt_if[j];
+            p_dev->gatt_if[i] = 0;
+            /* move all element behind one forward */
+            for (j = i + 1; j < GATT_MAX_APPS; j ++)
+                p_dev->gatt_if[j - 1] = p_dev->gatt_if[j];
 
-                if (p_dev->gatt_if[0] == 0)
-                    ret = BTM_BleUpdateBgConnDev(false, p_dev->remote_bda);
-                else
-                    ret = true;
+            if (p_dev->gatt_if[0] == 0)
+                ret = BTM_BleUpdateBgConnDev(false, p_dev->remote_bda);
+            else
+                ret = true;
 
-                break;
-            }
-        }
-        else
-        {
-            if (p_dev->listen_gif[i] == gatt_if)
-            {
-                p_dev->listen_gif[i] = 0;
-                p_reg->listening --;
-                /* move all element behind one forward */
-                for (j = i + 1; j < GATT_MAX_APPS; j ++)
-                    p_dev->listen_gif[j - 1] = p_dev->listen_gif[j];
-
-                if (p_dev->listen_gif[0] == 0)
-                    ret = BTM_BleUpdateAdvWhitelist(false, p_dev->remote_bda);
-                else
-                    ret = true;
-                break;
-            }
+            break;
         }
     }
 
-    if (i != GATT_MAX_APPS && p_dev->gatt_if[0] == 0 && p_dev->listen_gif[0] == 0)
+    if (i != GATT_MAX_APPS && p_dev->gatt_if[0] == 0)
     {
         memset(p_dev, 0, sizeof(tGATT_BG_CONN_DEV));
     }
@@ -2623,7 +2578,6 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
     uint8_t i , j, k;
-    tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
 
     /* update the BG conn device list */
     for (i = 0 ; i <GATT_MAX_BG_CONN_DEV; i ++, p_dev_list ++ )
@@ -2632,7 +2586,7 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
         {
             for (j = 0; j < GATT_MAX_APPS; j ++)
             {
-                if (p_dev_list->gatt_if[j] == 0 && p_dev_list->listen_gif[j] == 0)
+                if (p_dev_list->gatt_if[j] == 0)
                     break;
 
                 if (p_dev_list->gatt_if[j] == gatt_if)
@@ -2642,21 +2596,6 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
 
                     if (p_dev_list->gatt_if[0] == 0)
                         BTM_BleUpdateBgConnDev(false, p_dev_list->remote_bda);
-                }
-
-                if (p_dev_list->listen_gif[j] == gatt_if)
-                {
-                    p_dev_list->listen_gif[j] = 0;
-
-                    if (p_reg != NULL && p_reg->listening > 0)
-                        p_reg->listening --;
-
-                    /* move all element behind one forward */
-                    for (k = j + 1; k < GATT_MAX_APPS; k ++)
-                        p_dev_list->listen_gif[k - 1] = p_dev_list->listen_gif[k];
-
-                    if (p_dev_list->listen_gif[0] == 0)
-                        BTM_BleUpdateAdvWhitelist(false, p_dev_list->remote_bda);
                 }
             }
         }
@@ -2692,7 +2631,7 @@ void gatt_reset_bgdev_list(void)
 ** Returns          true if connection started; false if connection start failure.
 **
 *******************************************************************************/
-bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_addr, bool    is_initator)
+bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_addr)
 {
     bool            ret = false;
     tGATT_REG        *p_reg;
@@ -2708,7 +2647,7 @@ bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_
 
     if (add)
     {
-        ret = gatt_add_bg_dev_list(p_reg, bd_addr, is_initator);
+        ret = gatt_add_bg_dev_list(p_reg, bd_addr);
 
         if (ret && p_tcb != NULL)
         {
@@ -2718,7 +2657,7 @@ bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_
     }
     else
     {
-        ret = gatt_remove_bg_dev_from_list(p_reg, bd_addr, is_initator);
+        ret = gatt_remove_bg_dev_from_list(p_reg, bd_addr);
     }
     return ret;
 }
@@ -2756,47 +2695,23 @@ tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGAT
 ** Returns    Pointer to the new service start buffer, NULL no buffer available
 **
 *******************************************************************************/
-bool    gatt_update_listen_mode(void)
+void gatt_update_listen_mode(int listening)
 {
-    uint8_t         ii = 0;
-    tGATT_REG       *p_reg = &gatt_cb.cl_rcb[0];
-    uint8_t         listening = 0;
     uint16_t        connectability, window, interval;
-    bool            rt = true;
 
-    for (; ii < GATT_MAX_APPS; ii ++, p_reg ++)
+    connectability = BTM_ReadConnectability(&window, &interval);
+
+    if (listening != GATT_LISTEN_TO_NONE)
     {
-        if ( p_reg->in_use && p_reg->listening > listening)
-        {
-            listening = p_reg->listening;
-        }
+        connectability |= BTM_BLE_CONNECTABLE;
     }
-
-    if (listening == GATT_LISTEN_TO_ALL ||
-        listening == GATT_LISTEN_TO_NONE)
-        BTM_BleUpdateAdvFilterPolicy (AP_SCAN_CONN_ALL);
     else
-        BTM_BleUpdateAdvFilterPolicy (AP_SCAN_CONN_WL);
-
-    if (rt)
     {
-        connectability = BTM_ReadConnectability (&window, &interval);
-
-        if (listening != GATT_LISTEN_TO_NONE)
-        {
-            connectability |= BTM_BLE_CONNECTABLE;
-        }
-        else
-        {
-            if ((connectability & BTM_BLE_CONNECTABLE) == 0)
-            connectability &= ~BTM_BLE_CONNECTABLE;
-        }
-        /* turning on the adv now */
-        btm_ble_set_connectability(connectability);
+        if ((connectability & BTM_BLE_CONNECTABLE) == 0)
+        connectability &= ~BTM_BLE_CONNECTABLE;
     }
-
-    return rt;
-
+    /* turning on the adv now */
+    btm_ble_set_connectability(connectability);
 }
 #endif
 

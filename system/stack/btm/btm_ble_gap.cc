@@ -229,21 +229,6 @@ const uint8_t btm_le_state_combo_tbl[BTM_BLE_STATE_MAX][BTM_BLE_STATE_MAX][2] =
 
 /*******************************************************************************
 **
-** Function         BTM_BleUpdateAdvWhitelist
-**
-** Description      Add or remove device from advertising white list
-**
-** Returns          void
-**
-*******************************************************************************/
-bool    BTM_BleUpdateAdvWhitelist(UNUSED_ATTR bool add_remove,
-                                  UNUSED_ATTR BD_ADDR remote_bda)
-{
-    return false;
-}
-
-/*******************************************************************************
-**
 ** Function         BTM_BleUpdateAdvFilterPolicy
 **
 ** Description      This function update the filter policy of advertiser.
