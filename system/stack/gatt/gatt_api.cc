@@ -1165,7 +1165,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
     gatt_deregister_bgdev_list(gatt_if);
     /* update the listen mode */
 #if (BLE_PERIPHERAL_MODE_SUPPORT == TRUE)
-    GATT_Listen(gatt_if, false, NULL);
+    GATT_Listen(false);
 #endif
 
     memset (p_reg, 0, sizeof(tGATT_REG));
@@ -1246,7 +1246,7 @@ bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
     else
     {
         if (transport == BT_TRANSPORT_LE)
-        status = gatt_update_auto_connect_dev(gatt_if,true, bd_addr, true);
+        status = gatt_update_auto_connect_dev(gatt_if,true, bd_addr);
         else
         {
             GATT_TRACE_ERROR("Unsupported transport for background connection");
@@ -1446,37 +1446,13 @@ bool    GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, uint16_t *p
 ** Description      This function start or stop LE advertisement and listen for
 **                  connection.
 **
-** Parameters       gatt_if: applicaiton interface
-**                  p_bd_addr: listen for specific address connection, or NULL for
-**                             listen to all device connection.
-**                  start: start or stop listening.
-**
-** Returns          true if advertisement is started; false if adv start failure.
+** Parameters       start: start or stop listening.
 **
 *******************************************************************************/
-bool    GATT_Listen (tGATT_IF gatt_if, bool    start, BD_ADDR_PTR bd_addr)
+void GATT_Listen(bool start)
 {
-    tGATT_REG    *p_reg;
-
-    GATT_TRACE_API ("GATT_Listen gatt_if=%d", gatt_if);
-
-    /* Make sure app is registered */
-    if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
-    {
-        GATT_TRACE_ERROR("GATT_Listen - gatt_if =%d is not registered", gatt_if);
-        return(false);
-    }
-
-    if (bd_addr != NULL)
-    {
-        gatt_update_auto_connect_dev(gatt_if,start, bd_addr, false);
-    }
-    else
-    {
-        p_reg->listening = start ? GATT_LISTEN_TO_ALL : GATT_LISTEN_TO_NONE;
-    }
-
-    return gatt_update_listen_mode();
+    GATT_TRACE_API("GATT_Listen start=%d", start);
+    gatt_update_listen_mode(start ? GATT_LISTEN_TO_ALL : GATT_LISTEN_TO_NONE);
 }
 
 #endif
