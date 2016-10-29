@@ -932,13 +932,11 @@ extern void BTA_GATTC_Refresh(const BD_ADDR remote_bda);
 **
 ** Parameters       client_if: server interface.
 **                  start: to start or stop listening for connection
-**                  remote_bda: remote device BD address, if listen to all device
-**                              use NULL.
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start, BD_ADDR_PTR target_bda);
+extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start);
 
 /*******************************************************************************
 **
@@ -1156,23 +1154,5 @@ extern void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, bo
 **
 *******************************************************************************/
 extern void BTA_GATTS_Close(uint16_t conn_id);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTS_Listen
-**
-** Description      Start advertisement to listen for connection request for a
-**                  GATT server
-**
-** Parameters       server_if: server interface.
-**                  start: to start or stop listening for connection
-**                  remote_bda: remote device BD address, if listen to all device
-**                              use NULL.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, bool start,
-                             BD_ADDR_PTR target_bda);
 
 #endif /* BTA_GATT_API_H */

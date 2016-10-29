@@ -338,7 +338,7 @@ bt_status_t btif_gattc_listen(int client_if, bool start) {
   CHECK_BTGATT_INIT();
 #if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && \
      (BLE_PERIPHERAL_MODE_SUPPORT == true))
-  return do_in_jni_thread(Bind(&BTA_GATTC_Listen, client_if, start, nullptr));
+  return do_in_jni_thread(Bind(&BTA_GATTC_Listen, client_if, start));
 #else
   return do_in_jni_thread(Bind(&BTA_GATTC_Broadcast, client_if, start));
 #endif

@@ -746,17 +746,6 @@ extern void BTM_BleTurnOnPrivacyOnRemote(BD_ADDR bd_addr,
 
 /*******************************************************************************
 **
-** Function         BTM_BleUpdateAdvWhitelist
-**
-** Description      Add or remove device from advertising white list
-**
-** Returns          void
-**
-*******************************************************************************/
-extern bool    BTM_BleUpdateAdvWhitelist(bool    add_remove, BD_ADDR emote_bda);
-
-/*******************************************************************************
-**
 ** Function         BTM_BleUpdateAdvFilterPolicy
 **
 ** Description      This function update the filter policy of advertiser.
