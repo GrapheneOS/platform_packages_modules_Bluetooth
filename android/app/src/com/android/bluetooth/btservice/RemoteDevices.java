@@ -95,10 +95,15 @@ final class RemoteDevices {
             prop.mAddress = address;
             String key = Utils.getAddressStringFromByte(address);
             DeviceProperties pv = mDevices.put(key, prop);
+
             if (pv == null) {
                 mDeviceQueue.offer(key);
                 if (mDeviceQueue.size() > MAX_DEVICE_QUEUE_SIZE) {
                     String deleteKey = mDeviceQueue.poll();
+                    for (BluetoothDevice device : mAdapterService.getBondedDevices()) {
+                        if (device.getAddress().equals(deleteKey)) return prop;
+                    }
+                    debugLog("Removing device " + deleteKey + " from property map");
                     mDevices.remove(deleteKey);
                 }
             }
