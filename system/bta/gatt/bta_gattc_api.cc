@@ -718,40 +718,4 @@ void BTA_GATTC_Refresh(const BD_ADDR remote_bda)
     bta_sys_sendmsg(p_buf);
 }
 
-/*******************************************************************************
-**
-** Function         BTA_GATTC_Listen
-**
-** Description      Start advertisement to listen for connection request for a GATT
-**                  client application.
-**
-** Parameters       start: to start or stop listening for connection
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_GATTC_Listen(bool start, base::Callback<void(uint8_t /* status */)> cb)
-{
-    GATT_Listen(start);
-    cb.Run(BTA_GATT_OK);
-}
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_Broadcast
-**
-** Description      Start broadcasting (non-connectable advertisements)
-**
-** Parameters       client_if: client interface.
-**                  start: to start or stop listening for connection
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_GATTC_Broadcast(bool start, base::Callback<void(uint8_t /* status */)> cb)
-{
-    uint8_t status = BTM_BleBroadcast(start);
-    cb.Run(status);
-}
-
 #endif /* BTA_GATT_INCLUDED */

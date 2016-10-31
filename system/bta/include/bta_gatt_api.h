@@ -922,36 +922,6 @@ extern void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI *p_read_mu
 *******************************************************************************/
 extern void BTA_GATTC_Refresh(const BD_ADDR remote_bda);
 
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_Listen
-**
-** Description      Start advertisement to listen for connection request.
-**
-** Parameters       client_if: server interface.
-**                  start: to start or stop listening for connection
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_GATTC_Listen(bool start, base::Callback<void(uint8_t /* status */)> cb);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_Broadcast
-**
-** Description      Start broadcasting (non-connectable advertisements)
-**
-** Parameters       client_if: client interface.
-**                  start: to start or stop listening for connection
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_GATTC_Broadcast(bool start, base::Callback<void(uint8_t /* status */)> cb);
-
-
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_ConfigureMTU

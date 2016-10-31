@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <base/bind.h>
 #include <algorithm>
 #include <array>
 #include <condition_variable>
@@ -335,6 +336,13 @@ void ConnectionCallback(int conn_id, int server_if, int connected,
   }
 }
 
+void EnableAdvertisingCallback(uint8_t status) {
+  LOG_INFO(LOG_TAG, "%s: status:%d", __func__, status);
+  // This terminates a Start call.
+  std::lock_guard<std::mutex> lock(g_internal->lock);
+  g_internal->api_synchronize.notify_one();
+}
+
 void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   LOG_INFO(LOG_TAG, "%s: status:%d client_if:%d uuid[0]:%u", __func__, status,
       client_if, app_uuid->uu[0]);
@@ -344,23 +352,14 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   g_internal->gatt->advertiser->SetData(false, {/*TODO: put inverval 2,2 here*/});
 
   // TODO(icoolidge): Deprecated, use multi-adv interface.
-  // This calls back to ListenCallback.
-  bt_status_t btstat = g_internal->gatt->client->listen(client_if, true);
-  if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR(LOG_TAG, "Failed to start listening");
-  }
+  // This calls back to EnableAdvertisingCallback.
+  g_internal->gatt->advertiser->Enable(true,
+                                       base::Bind(&EnableAdvertisingCallback));
 }
 
 void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t *app_uuid) {
   LOG_INFO(LOG_TAG, "%s: status:%d scanner_id:%d uuid[0]:%u", __func__, status,
       scanner_id, app_uuid->uu[0]);
-}
-
-void ListenCallback(int status, int client_if) {
-  LOG_INFO(LOG_TAG, "%s: status:%d client_if:%d", __func__, status, client_if);
-  // This terminates a Start call.
-  std::lock_guard<std::mutex> lock(g_internal->lock);
-  g_internal->api_synchronize.notify_one();
 }
 
 void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
@@ -435,7 +434,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr, /* write_descriptor_cb; */
     nullptr, /* execute_write_cb; */
     nullptr, /* read_remote_rssi_cb; */
-    ListenCallback,
     nullptr, /* configure_mtu_cb; */
     nullptr, /* congestion_cb; */
     nullptr, /* get_gatt_db_cb; */

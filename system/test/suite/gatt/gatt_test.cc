@@ -40,7 +40,6 @@ void GattTest::SetUp() {
 
   register_client_callback_sem_ = semaphore_new(0);
   scan_result_callback_sem_ = semaphore_new(0);
-  listen_callback_sem_ = semaphore_new(0);
 
   register_server_callback_sem_ = semaphore_new(0);
   service_added_callback_sem_ = semaphore_new(0);
@@ -66,7 +65,6 @@ void GattTest::TearDown() {
 
   semaphore_free(register_client_callback_sem_);
   semaphore_free(scan_result_callback_sem_);
-  semaphore_free(listen_callback_sem_);
 
   semaphore_free(register_server_callback_sem_);
   semaphore_free(service_added_callback_sem_);
@@ -104,14 +102,6 @@ void GattTest::ScanResultCallback(
     bluetooth::hal::BluetoothGattInterface* /* unused */,
     const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
   semaphore_post(scan_result_callback_sem_);
-}
-
-void GattTest::ListenCallback(
-    bluetooth::hal::BluetoothGattInterface* /* unused */,
-    int status, int client_if) {
-  status_ = status;
-  client_interface_id_ = client_if;
-  semaphore_post(listen_callback_sem_);
 }
 
 // GATT server callbacks
