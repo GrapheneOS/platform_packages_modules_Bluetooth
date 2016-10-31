@@ -29,63 +29,61 @@
 #include "test_stubs.h"
 #include "vendor.h"
 
-DECLARE_TEST_MODES(
-  init,
-  cleanup,
-  enable_disable
-);
+DECLARE_TEST_MODES(init, cleanup, enable_disable);
 
-static const low_power_manager_t *manager;
-static thread_t *thread;
-static semaphore_t *done;
+static const low_power_manager_t* manager;
+static thread_t* thread;
+static semaphore_t* done;
 
 static vendor_cb low_power_state_callback;
 
-static void flush_work_queue_item(UNUSED_ATTR void *context) {
+static void flush_work_queue_item(UNUSED_ATTR void* context) {
   semaphore_post(done);
 }
 
-STUB_FUNCTION(int, vendor_send_command, (vendor_opcode_t opcode, void *param))
-  DURING(enable_disable) AT_CALL(0) {
-    EXPECT_EQ(VENDOR_GET_LPM_IDLE_TIMEOUT, opcode);
-    *((uint32_t *)param) = 100;
+STUB_FUNCTION(int, vendor_send_command, (vendor_opcode_t opcode, void* param))
+DURING(enable_disable) AT_CALL(0) {
+  EXPECT_EQ(VENDOR_GET_LPM_IDLE_TIMEOUT, opcode);
+  *((uint32_t*)param) = 100;
+  return 0;
+}
+
+UNEXPECTED_CALL;
+return 0;
+}
+
+STUB_FUNCTION(int, vendor_send_async_command,
+              (vendor_async_opcode_t opcode, void* param))
+DURING(enable_disable) {
+  AT_CALL(0) {
+    EXPECT_EQ(VENDOR_SET_LPM_MODE, opcode);
+    EXPECT_EQ(BT_VND_LPM_ENABLE, *(uint8_t*)param);
+    low_power_state_callback(true);
+    thread_post(thread, flush_work_queue_item, NULL);
     return 0;
   }
-
-  UNEXPECTED_CALL;
-  return 0;
-}
-
-STUB_FUNCTION(int, vendor_send_async_command, (vendor_async_opcode_t opcode, void *param))
-  DURING(enable_disable) {
-    AT_CALL(0) {
-      EXPECT_EQ(VENDOR_SET_LPM_MODE, opcode);
-      EXPECT_EQ(BT_VND_LPM_ENABLE, *(uint8_t *)param);
-      low_power_state_callback(true);
-      thread_post(thread, flush_work_queue_item, NULL);
-      return 0;
-    }
-    AT_CALL(1) {
-      EXPECT_EQ(VENDOR_SET_LPM_MODE, opcode);
-      EXPECT_EQ(BT_VND_LPM_DISABLE, *(uint8_t *)param);
-      low_power_state_callback(true);
-      thread_post(thread, flush_work_queue_item, NULL);
-      return 0;
-    }
-  }
-
-  UNEXPECTED_CALL;
-  return 0;
-}
-
-STUB_FUNCTION(void, vendor_set_callback, (vendor_async_opcode_t opcode, vendor_cb callback))
-  DURING(init) AT_CALL(0) {
+  AT_CALL(1) {
     EXPECT_EQ(VENDOR_SET_LPM_MODE, opcode);
-    low_power_state_callback = callback;
-    return;
+    EXPECT_EQ(BT_VND_LPM_DISABLE, *(uint8_t*)param);
+    low_power_state_callback(true);
+    thread_post(thread, flush_work_queue_item, NULL);
+    return 0;
   }
+}
 
-  UNEXPECTED_CALL;
+UNEXPECTED_CALL;
+return 0;
+}
+
+STUB_FUNCTION(void, vendor_set_callback,
+              (vendor_async_opcode_t opcode, vendor_cb callback))
+DURING(init) AT_CALL(0) {
+  EXPECT_EQ(VENDOR_SET_LPM_MODE, opcode);
+  low_power_state_callback = callback;
+  return;
+}
+
+UNEXPECTED_CALL;
 }
 
 static void reset_for(TEST_MODES_T next) {
@@ -96,33 +94,33 @@ static void reset_for(TEST_MODES_T next) {
 }
 
 class LowPowerManagerTest : public AlarmTestHarness {
-  protected:
-    virtual void SetUp() {
-      AlarmTestHarness::SetUp();
-      low_power_state_callback = NULL;
-      vendor.send_command = vendor_send_command;
-      vendor.send_async_command = vendor_send_async_command;
-      vendor.set_callback = vendor_set_callback;
-      manager = low_power_manager_get_test_interface(&vendor);
-      thread = thread_new("test_thread");
-      done = semaphore_new(0);
+ protected:
+  virtual void SetUp() {
+    AlarmTestHarness::SetUp();
+    low_power_state_callback = NULL;
+    vendor.send_command = vendor_send_command;
+    vendor.send_async_command = vendor_send_async_command;
+    vendor.set_callback = vendor_set_callback;
+    manager = low_power_manager_get_test_interface(&vendor);
+    thread = thread_new("test_thread");
+    done = semaphore_new(0);
 
-      reset_for(init);
-      manager->init(thread);
+    reset_for(init);
+    manager->init(thread);
 
-      EXPECT_CALL_COUNT(vendor_set_callback, 1);
-    }
+    EXPECT_CALL_COUNT(vendor_set_callback, 1);
+  }
 
-    virtual void TearDown() {
-      reset_for(cleanup);
-      manager->cleanup();
+  virtual void TearDown() {
+    reset_for(cleanup);
+    manager->cleanup();
 
-      semaphore_free(done);
-      thread_free(thread);
-      AlarmTestHarness::TearDown();
-    }
+    semaphore_free(done);
+    thread_free(thread);
+    AlarmTestHarness::TearDown();
+  }
 
-    vendor_t vendor;
+  vendor_t vendor;
 };
 
 TEST_F(LowPowerManagerTest, test_enable_disable) {

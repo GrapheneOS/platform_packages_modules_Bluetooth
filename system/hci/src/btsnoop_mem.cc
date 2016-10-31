@@ -23,44 +23,36 @@
 
 static btsnoop_data_cb data_callback = NULL;
 
-void btsnoop_mem_set_callback(btsnoop_data_cb cb) {
-  data_callback = cb;
-}
+void btsnoop_mem_set_callback(btsnoop_data_cb cb) { data_callback = cb; }
 
-void btsnoop_mem_capture(const BT_HDR *packet) {
-  if (!data_callback)
-    return;
+void btsnoop_mem_capture(const BT_HDR* packet) {
+  if (!data_callback) return;
 
   assert(packet);
 
-  const uint8_t *data = &packet->data[packet->offset];
+  const uint8_t* data = &packet->data[packet->offset];
   const uint16_t type = packet->event & BT_EVT_MASK;
   size_t length = 0;
 
   switch (type) {
     case BT_EVT_TO_LM_HCI_CMD:
-      if (packet->len > 2)
-        length = data[2] + 3;
+      if (packet->len > 2) length = data[2] + 3;
       break;
 
     case BT_EVT_TO_BTU_HCI_EVT:
-      if (packet->len > 1)
-        length = data[1] + 2;
+      if (packet->len > 1) length = data[1] + 2;
       break;
 
     case BT_EVT_TO_LM_HCI_ACL:
     case BT_EVT_TO_BTU_HCI_ACL:
-      if (packet->len > 3)
-        length = (data[2] | (data[3] << 8)) + 4;
+      if (packet->len > 3) length = (data[2] | (data[3] << 8)) + 4;
       break;
 
     case BT_EVT_TO_LM_HCI_SCO:
     case BT_EVT_TO_BTU_HCI_SCO:
-      if (packet->len > 2)
-        length = data[2] + 3;
+      if (packet->len > 2) length = data[2] + 3;
       break;
   }
 
-  if (length)
-    (*data_callback)(type, data, length);
+  if (length) (*data_callback)(type, data, length);
 }
