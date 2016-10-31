@@ -176,7 +176,7 @@ public class HfpClientConnection extends Connection {
         if (mClosed) {
             return;
         }
-        Log.d(TAG, "Setting " + mCurrentCall + " to disconnected");
+        Log.d(TAG, "Setting " + mCurrentCall + " to disconnected " + getTelecomCallId());
         setDisconnected(new DisconnectCause(cause));
 
         mClosed = true;
@@ -271,11 +271,6 @@ public class HfpClientConnection extends Connection {
         }
         Uri otherAddr = ((HfpClientConnection) o).getAddress();
         return getAddress() == otherAddr || otherAddr != null && otherAddr.equals(getAddress());
-    }
-
-    @Override
-    public int hashCode() {
-        return getAddress() == null ? 0 : getAddress().hashCode();
     }
 
     @Override
