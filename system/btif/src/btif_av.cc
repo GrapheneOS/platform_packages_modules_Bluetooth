@@ -554,7 +554,7 @@ static bool btif_av_state_opening_handler(btif_sm_event_t event, void* p_data) {
     case BTIF_AV_CONNECT_REQ_EVT:
       // Check for device, if same device which moved to opening then ignore
       // callback
-      if (memcmp((bt_bdaddr_t*)p_data, &(btif_av_cb.peer_bda),
+      if (memcmp(((btif_av_connect_req_t *)p_data)->target_bda, &(btif_av_cb.peer_bda),
                  sizeof(btif_av_cb.peer_bda)) == 0) {
         BTIF_TRACE_DEBUG(
             "%s: Same device moved to Opening state,ignore Connect Req",
@@ -565,7 +565,7 @@ static bool btif_av_state_opening_handler(btif_sm_event_t event, void* p_data) {
         BTIF_TRACE_DEBUG("%s: Moved from idle by Incoming Connection request",
                          __func__);
         btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
-                                     (bt_bdaddr_t*)p_data);
+                                     ((btif_av_connect_req_t *)p_data)->target_bda);
         btif_queue_advance();
         break;
       }
