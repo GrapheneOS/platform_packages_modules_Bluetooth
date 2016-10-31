@@ -293,6 +293,7 @@ public final class BluetoothOppProvider extends ContentProvider {
         SQLiteDatabase db = mOpenHelper.getReadableDatabase();
 
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setStrict(true);
 
         int match = sURIMatcher.match(uri);
         switch (match) {
