@@ -107,7 +107,7 @@ final class HeadsetClientStateMachine extends StateMachine {
     static final int TERMINATE_SPECIFIC_CALL = 53;
 
     // Timeouts.
-    static final int CONNECTING_TIMEOUT_MS = 5000;
+    static final int CONNECTING_TIMEOUT_MS = 10000;  // 10s
 
     static final int MAX_HFP_SCO_VOICE_CALL_VOLUME = 15; // HFP 1.5 spec.
     static final int MIN_HFP_SCO_VOICE_CALL_VOLUME = 1; // HFP 1.5 spec.
@@ -920,6 +920,8 @@ final class HeadsetClientStateMachine extends StateMachine {
             mVoiceRecognitionActive = HeadsetClientHalConstants.VR_STATE_STOPPED;
             mInBandRingtone = HeadsetClientHalConstants.IN_BAND_RING_NOT_PROVIDED;
 
+            mCurrentDevice = null;
+
             mCalls.clear();
             mCallsUpdate.clear();
 
@@ -1113,7 +1115,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                 case HeadsetClientHalConstants.CONNECTION_STATE_DISCONNECTED:
                     broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
                             BluetoothProfile.STATE_CONNECTING);
-                    mCurrentDevice = null;
                     transitionTo(mDisconnected);
                     break;
 
@@ -1667,7 +1668,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                         broadcastConnectionState(mCurrentDevice,
                                 BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_CONNECTED);
-                        mCurrentDevice = null;
                         transitionTo(mDisconnected);
                     } else {
                         Log.e(TAG, "Disconnected from unknown device: " + device);
@@ -1851,7 +1851,6 @@ final class HeadsetClientStateMachine extends StateMachine {
                         broadcastConnectionState(mCurrentDevice,
                                 BluetoothProfile.STATE_DISCONNECTED,
                                 BluetoothProfile.STATE_CONNECTED);
-                        mCurrentDevice = null;
                         transitionTo(mDisconnected);
                     } else {
                         Log.e(TAG, "Disconnected from unknown device: " + device);
