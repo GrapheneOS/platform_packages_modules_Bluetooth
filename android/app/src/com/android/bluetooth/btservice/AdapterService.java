@@ -65,12 +65,13 @@ import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.R;
-import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
+import com.android.bluetooth.Utils;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
@@ -253,6 +254,8 @@ public class AdapterService extends Service {
         HeadsetService headsetService = HeadsetService.getHeadsetService();
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
         PbapClientService pbapClientService = PbapClientService.getPbapClientService();
+        PanService panService = PanService.getPanService();
+
 
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
@@ -296,6 +299,14 @@ public class AdapterService extends Service {
              (pbapClientService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED))) {
             pbapClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
         }
+
+        if ((panService != null) &&
+            (BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.PANU) &&
+             (panService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED) &&
+             getResources().getBoolean(
+                 R.bool.config_bluetooth_pan_enable_autoconnect))) {
+            panService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+        }
     }
 
     private void processProfileStateChanged(BluetoothDevice device, int profileId, int newState, int prevState) {
@@ -309,7 +320,8 @@ public class AdapterService extends Service {
 
         // Profiles relevant to Car Kitts.
         if (((profileId == BluetoothProfile.A2DP_SINK) ||
-             (profileId == BluetoothProfile.HEADSET_CLIENT)) &&
+             (profileId == BluetoothProfile.HEADSET_CLIENT) ||
+             (profileId == BluetoothProfile.PBAP_CLIENT)) &&
             (newState == BluetoothProfile.STATE_CONNECTED)) {
             debugLog( "Profile connected. Schedule missing profile connection if any");
             connectOtherProfile(device, PROFILE_CONN_CONNECTED);
@@ -545,7 +557,7 @@ public class AdapterService extends Service {
     void BleOnProcessStart() {
         debugLog("BleOnProcessStart()");
 
-        if (getApplicationContext().getResources().getBoolean(
+        if (getResources().getBoolean(
                 R.bool.config_bluetooth_reload_supported_profiles_when_enabled)) {
             Config.init(getApplicationContext());
         }
@@ -1742,8 +1754,7 @@ public class AdapterService extends Service {
          }
     }
 
-
-     public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
+    public void connectOtherProfile(BluetoothDevice device, int firstProfileStatus){
         if ((mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES) == false) &&
             (isQuietModeEnabled()== false)){
             Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
@@ -1766,6 +1777,7 @@ public class AdapterService extends Service {
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
         A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
         PbapClientService pbapClientService = PbapClientService.getPbapClientService();
+        PanService panService = PanService.getPanService();
 
         boolean allProfilesEmpty = true;
         List<BluetoothDevice> a2dpConnDevList = null;
@@ -1773,6 +1785,7 @@ public class AdapterService extends Service {
         List<BluetoothDevice> headsetClientConnDevList = null;
         List<BluetoothDevice> a2dpSinkConnDevList = null;
         List<BluetoothDevice> pbapClientConnDevList = null;
+        List<BluetoothDevice> panConnDevList = null;
 
         if (hsService != null) {
             hsConnDevList = hsService.getConnectedDevices();
@@ -1793,6 +1806,10 @@ public class AdapterService extends Service {
         if (pbapClientService != null) {
             pbapClientConnDevList = pbapClientService.getConnectedDevices();
             allProfilesEmpty = allProfilesEmpty && pbapClientConnDevList.isEmpty();
+        }
+        if (panService != null) {
+            panConnDevList = panService.getConnectedDevices();
+            allProfilesEmpty = allProfilesEmpty && panConnDevList.isEmpty();
         }
 
         if (allProfilesEmpty && (PROFILE_CONN_CONNECTED  == firstProfileStatus)) {
@@ -1828,6 +1845,12 @@ public class AdapterService extends Service {
             if (pbapClientConnDevList.isEmpty() &&
                 (pbapClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
                 pbapClientService.connect(device);
+            }
+        }
+        if (panService != null) {
+            if (panConnDevList.isEmpty() &&
+                (panService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                panService.connect(device);
             }
         }
     }

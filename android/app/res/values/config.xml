@@ -66,4 +66,7 @@
 
     <!-- For enabling the hfp client connection service -->
     <bool name="hfp_client_connection_service_enabled">false</bool>
+
+    <!-- Enabling autoconnect over pan -->
+    <bool name="config_bluetooth_pan_enable_autoconnect">true</bool>
 </resources>
