@@ -183,6 +183,7 @@ public class PbapClientService extends ProfileService {
             return service.getConnectionState(device);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             PbapClientService service = getService();
             if (service == null) {
@@ -191,6 +192,7 @@ public class PbapClientService extends ProfileService {
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             PbapClientService service = getService();
             if (service == null) {
