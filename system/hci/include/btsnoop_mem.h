@@ -28,7 +28,8 @@ extern "C" {
 
 // Callback invoked for each HCI packet.
 // Highlander mode - there can be only one...
-typedef void (*btsnoop_data_cb)(const uint16_t type, const uint8_t *p_data, const size_t len);
+typedef void (*btsnoop_data_cb)(const uint16_t type, const uint8_t* p_data,
+                                const size_t len);
 
 // This call sets the (one and only) callback that will
 // be invoked once for each HCI packet/event.
@@ -37,7 +38,7 @@ void btsnoop_mem_set_callback(btsnoop_data_cb cb);
 // This function is invoked every time an HCI packet
 // is sent/received. Packets will be filtered  and then
 // forwarded to the |btsnoop_data_cb|.
-void btsnoop_mem_capture(const BT_HDR *p_buf);
+void btsnoop_mem_capture(const BT_HDR* p_buf);
 
 #ifdef __cplusplus
 }

@@ -43,52 +43,42 @@ typedef enum {
   LPM_WAKE_ASSERTED,
 } wake_state_t;
 
-static void init(thread_t *post_thread);
+static void init(thread_t* post_thread);
 static void cleanup(void);
 static void post_command(low_power_command_t command);
 static void wake_assert(void);
 static void transmit_done(void);
 static void vendor_enable_disable_callback(bool success);
 
-static void event_disable(void *context);
-static void event_enable(void *context);
-static void event_wake_assert(void *context);
-static void event_allow_device_sleep(void *context);
-static void event_idle_timeout(void *context);
+static void event_disable(void* context);
+static void event_enable(void* context);
+static void event_wake_assert(void* context);
+static void event_allow_device_sleep(void* context);
+static void event_idle_timeout(void* context);
 
 static void reset_state();
 static void start_idle_timer();
 static void stop_idle_timer();
 
-
 // Our interface and modules we import
-static const low_power_manager_t interface = {
-  init,
-  cleanup,
-  post_command,
-  wake_assert,
-  transmit_done
-};
-static const vendor_t *vendor;
+static const low_power_manager_t interface = {init, cleanup, post_command,
+                                              wake_assert, transmit_done};
+static const vendor_t* vendor;
 
 static thread_fn event_functions[] = {
-  event_disable,
-  event_enable,
-  event_wake_assert,
-  event_allow_device_sleep
-};
+    event_disable, event_enable, event_wake_assert, event_allow_device_sleep};
 
-static thread_t *thread;
+static thread_t* thread;
 static low_power_mode_state_t state;
 static wake_state_t wake_state;
 static uint32_t idle_timeout_ms;
-static alarm_t *idle_alarm;
+static alarm_t* idle_alarm;
 static bool transmit_is_done;
 static void wake_deassert();
 
 // Interface functions
 
-static void init(thread_t *post_thread) {
+static void init(thread_t* post_thread) {
   assert(post_thread != NULL);
   thread = post_thread;
 
@@ -145,14 +135,24 @@ static void transmit_done(void) {
 static void enable(bool enable) {
   if (state == LPM_DISABLING) {
     if (enable)
-      LOG_ERROR(LOG_TAG, "%s still processing prior disable request, cannot enable.", __func__);
+      LOG_ERROR(LOG_TAG,
+                "%s still processing prior disable request, cannot enable.",
+                __func__);
     else
-      LOG_WARN(LOG_TAG, "%s still processing prior disable request, ignoring new request to disable.", __func__);
+      LOG_WARN(LOG_TAG,
+               "%s still processing prior disable request, ignoring new "
+               "request to disable.",
+               __func__);
   } else if (state == LPM_ENABLING) {
     if (enable)
-      LOG_ERROR(LOG_TAG, "%s still processing prior enable request, ignoring new request to enable.", __func__);
+      LOG_ERROR(LOG_TAG,
+                "%s still processing prior enable request, ignoring new "
+                "request to enable.",
+                __func__);
     else
-      LOG_WARN(LOG_TAG, "%s still processing prior enable request, cannot disable.", __func__);
+      LOG_WARN(LOG_TAG,
+               "%s still processing prior enable request, cannot disable.",
+               __func__);
   } else if (state == LPM_ENABLED && enable) {
     LOG_INFO(LOG_TAG, "%s already enabled.", __func__);
   } else if (state == LPM_DISABLED && !enable) {
@@ -161,7 +161,7 @@ static void enable(bool enable) {
     uint8_t command = enable ? BT_VND_LPM_ENABLE : BT_VND_LPM_DISABLE;
     state = enable ? LPM_ENABLING : LPM_DISABLING;
     if (state == LPM_ENABLING)
-        vendor->send_command(VENDOR_GET_LPM_IDLE_TIMEOUT, &idle_timeout_ms);
+      vendor->send_command(VENDOR_GET_LPM_IDLE_TIMEOUT, &idle_timeout_ms);
     vendor->send_async_command(VENDOR_SET_LPM_MODE, &command);
   }
 }
@@ -192,7 +192,7 @@ static void reset_state() {
   stop_idle_timer();
 }
 
-static void idle_timer_expired(UNUSED_ATTR void *context) {
+static void idle_timer_expired(UNUSED_ATTR void* context) {
   if (state == LPM_ENABLED && wake_state == LPM_WAKE_W4_TIMEOUT)
     thread_post(thread, event_idle_timeout, NULL);
 }
@@ -200,36 +200,26 @@ static void idle_timer_expired(UNUSED_ATTR void *context) {
 static void start_idle_timer() {
   if (state == LPM_ENABLED) {
     if (idle_timeout_ms == 0) {
-       wake_deassert();
+      wake_deassert();
     } else {
-       alarm_set(idle_alarm, idle_timeout_ms, idle_timer_expired, NULL);
+      alarm_set(idle_alarm, idle_timeout_ms, idle_timer_expired, NULL);
     }
   }
 }
 
-static void stop_idle_timer() {
-  alarm_cancel(idle_alarm);
-}
+static void stop_idle_timer() { alarm_cancel(idle_alarm); }
 
-static void event_disable(UNUSED_ATTR void *context) {
-  enable(false);
-}
+static void event_disable(UNUSED_ATTR void* context) { enable(false); }
 
-static void event_enable(UNUSED_ATTR void *context) {
-  enable(true);
-}
+static void event_enable(UNUSED_ATTR void* context) { enable(true); }
 
-static void event_wake_assert(UNUSED_ATTR void *context) {
-  wake_assert();
-}
+static void event_wake_assert(UNUSED_ATTR void* context) { wake_assert(); }
 
-static void event_allow_device_sleep(UNUSED_ATTR void *context) {
+static void event_allow_device_sleep(UNUSED_ATTR void* context) {
   allow_device_sleep();
 }
 
-static void event_idle_timeout(UNUSED_ATTR void *context) {
-  wake_deassert();
-}
+static void event_idle_timeout(UNUSED_ATTR void* context) { wake_deassert(); }
 
 static void vendor_enable_disable_callback(bool success) {
   if (success)
@@ -242,12 +232,13 @@ static void vendor_enable_disable_callback(bool success) {
   }
 }
 
-const low_power_manager_t *low_power_manager_get_interface() {
+const low_power_manager_t* low_power_manager_get_interface() {
   vendor = vendor_get_interface();
   return &interface;
 }
 
-const low_power_manager_t *low_power_manager_get_test_interface(const vendor_t *vendor_interface) {
+const low_power_manager_t* low_power_manager_get_test_interface(
+    const vendor_t* vendor_interface) {
   vendor = vendor_interface;
   return &interface;
 }

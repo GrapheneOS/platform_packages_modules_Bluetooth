@@ -50,7 +50,7 @@ typedef enum {
 // Epoch in microseconds since 01/01/0000.
 static const uint64_t BTSNOOP_EPOCH_DELTA = 0x00dcddb30f2f8000ULL;
 
-static const stack_config_t *stack_config;
+static const stack_config_t* stack_config;
 
 static int logfile_fd = INVALID_FD;
 static bool module_started;
@@ -60,21 +60,22 @@ static bool logging_enabled_via_api;
 // TODO(zachoverflow): merge btsnoop and btsnoop_net together
 void btsnoop_net_open();
 void btsnoop_net_close();
-void btsnoop_net_write(const void *data, size_t length);
+void btsnoop_net_write(const void* data, size_t length);
 
-static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool is_received);
+static void btsnoop_write_packet(packet_type_t type, const uint8_t* packet,
+                                 bool is_received);
 static void update_logging();
 
 // Module lifecycle functions
 
-static future_t *start_up(void) {
+static future_t* start_up(void) {
   module_started = true;
   update_logging();
 
   return NULL;
 }
 
-static future_t *shut_down(void) {
+static future_t* shut_down(void) {
   module_started = false;
   update_logging();
 
@@ -82,16 +83,12 @@ static future_t *shut_down(void) {
 }
 
 EXPORT_SYMBOL extern const module_t btsnoop_module = {
-  .name = BTSNOOP_MODULE,
-  .init = NULL,
-  .start_up = start_up,
-  .shut_down = shut_down,
-  .clean_up = NULL,
-  .dependencies = {
-    STACK_CONFIG_MODULE,
-    NULL
-  }
-};
+    .name = BTSNOOP_MODULE,
+    .init = NULL,
+    .start_up = start_up,
+    .shut_down = shut_down,
+    .clean_up = NULL,
+    .dependencies = {STACK_CONFIG_MODULE, NULL}};
 
 // Interface functions
 
@@ -100,13 +97,12 @@ static void set_api_wants_to_log(bool value) {
   update_logging();
 }
 
-static void capture(const BT_HDR *buffer, bool is_received) {
-  const uint8_t *p = buffer->data + buffer->offset;
+static void capture(const BT_HDR* buffer, bool is_received) {
+  const uint8_t* p = buffer->data + buffer->offset;
 
   btsnoop_mem_capture(buffer);
 
-  if (logfile_fd == INVALID_FD)
-    return;
+  if (logfile_fd == INVALID_FD) return;
 
   switch (buffer->event & MSG_EVT_MASK) {
     case MSG_HC_TO_STACK_HCI_EVT:
@@ -126,12 +122,9 @@ static void capture(const BT_HDR *buffer, bool is_received) {
   }
 }
 
-static const btsnoop_t interface = {
-  set_api_wants_to_log,
-  capture
-};
+static const btsnoop_t interface = {set_api_wants_to_log, capture};
 
-const btsnoop_t *btsnoop_get_interface() {
+const btsnoop_t* btsnoop_get_interface() {
   stack_config = stack_config_get_interface();
   return &interface;
 }
@@ -151,15 +144,14 @@ static uint64_t btsnoop_timestamp(void) {
 }
 
 static void update_logging() {
-  bool should_log = module_started &&
-    (logging_enabled_via_api || stack_config->get_btsnoop_turned_on());
+  bool should_log = module_started && (logging_enabled_via_api ||
+                                       stack_config->get_btsnoop_turned_on());
 
-  if (should_log == is_logging)
-    return;
+  if (should_log == is_logging) return;
 
   is_logging = should_log;
   if (should_log) {
-    const char *log_path = stack_config->get_btsnoop_log_path();
+    const char* log_path = stack_config->get_btsnoop_log_path();
 
     // Save the old log if configured to do so
     if (stack_config->get_btsnoop_should_save_last()) {
@@ -167,13 +159,16 @@ static void update_logging() {
       snprintf(last_log_path, PATH_MAX, "%s.%" PRIu64, log_path,
                btsnoop_timestamp());
       if (!rename(log_path, last_log_path) && errno != ENOENT)
-        LOG_ERROR(LOG_TAG, "%s unable to rename '%s' to '%s': %s", __func__, log_path, last_log_path, strerror(errno));
+        LOG_ERROR(LOG_TAG, "%s unable to rename '%s' to '%s': %s", __func__,
+                  log_path, last_log_path, strerror(errno));
     }
 
     mode_t prevmask = umask(0);
-    logfile_fd = open(log_path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    logfile_fd = open(log_path, O_WRONLY | O_CREAT | O_TRUNC,
+                      S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     if (logfile_fd == INVALID_FD) {
-      LOG_ERROR(LOG_TAG, "%s unable to open '%s': %s", __func__, log_path, strerror(errno));
+      LOG_ERROR(LOG_TAG, "%s unable to open '%s': %s", __func__, log_path,
+                strerror(errno));
       is_logging = false;
       umask(prevmask);
       return;
@@ -183,22 +178,21 @@ static void update_logging() {
     write(logfile_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16);
     btsnoop_net_open();
   } else {
-    if (logfile_fd != INVALID_FD)
-      close(logfile_fd);
+    if (logfile_fd != INVALID_FD) close(logfile_fd);
 
     logfile_fd = INVALID_FD;
     btsnoop_net_close();
   }
 }
 
-static void btsnoop_write(const void *data, size_t length) {
-  if (logfile_fd != INVALID_FD)
-    write(logfile_fd, data, length);
+static void btsnoop_write(const void* data, size_t length) {
+  if (logfile_fd != INVALID_FD) write(logfile_fd, data, length);
 
   btsnoop_net_write(data, length);
 }
 
-static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool is_received) {
+static void btsnoop_write_packet(packet_type_t type, const uint8_t* packet,
+                                 bool is_received) {
   int length_he = 0;
   int length;
   int flags;
