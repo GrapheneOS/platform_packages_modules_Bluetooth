@@ -49,10 +49,8 @@ typedef enum {
   USERIAL_PORT_18,
 } userial_port_t;
 
-// Initializes the userial module. This function should only ever be called
-// once.
-// It returns true if the module could be initialized, false if there was an
-// error.
+// Initializes the userial module. This function should only be called once.
+// It returns true if the module was initialized, false if there was an error.
 bool userial_init(void);
 
 // Opens the given serial port. Returns true if successful, false otherwise.
