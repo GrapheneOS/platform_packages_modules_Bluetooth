@@ -232,6 +232,17 @@ public class HfpClientConnectionService extends ConnectionService {
         }
         HfpClientConnection connection = findConnectionKey(call.getUUID());
 
+        // We need to have special handling for calls that mysteriously convert from
+        // DISCONNECTING -> ACTIVE/INCOMING state. This can happen for PTS (b/31159015).
+        // We terminate the previous call and create a new one here.
+        if (connection != null && isDisconnectingToActive(connection, call)) {
+            connection.close(DisconnectCause.ERROR);
+            synchronized (this) {
+                mConnections.remove(call.getUUID());
+            }
+            connection = null;
+        }
+
         if (connection != null) {
             connection.updateCall(call);
             connection.handleCallChanged();
@@ -569,5 +580,17 @@ public class HfpClientConnectionService extends ConnectionService {
             Log.d(TAG, "phoneaccount: " + account);
         }
         return account;
+    }
+
+    private boolean isDisconnectingToActive(HfpClientConnection prevConn,
+            BluetoothHeadsetClientCall newCall) {
+        if (DBG) {
+            Log.d(TAG, "prevConn " + prevConn.isClosing() + " new call " + newCall.getState());
+        }
+        if (prevConn.isClosing() &&
+                newCall.getState() != BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
+            return true;
+        }
+        return false;
     }
 }

@@ -39,6 +39,7 @@ public class HfpClientConnection extends Connection {
 
     private BluetoothHeadsetClientCall mCurrentCall;
     private boolean mClosed;
+    private boolean mClosing = false;
     private boolean mLocalDisconnect;
     private boolean mClientHasEcc;
     private boolean mAdded;
@@ -168,13 +169,14 @@ public class HfpClientConnection extends Connection {
         }
     }
 
-    private void close(int cause) {
+    public synchronized void close(int cause) {
         if (DBG) {
-            Log.d(TAG, "Closing " + mClosed);
+            Log.d(TAG, "Closing call " + mCurrentCall + "state: " + mClosed);
         }
         if (mClosed) {
             return;
         }
+        Log.d(TAG, "Setting " + mCurrentCall + " to disconnected");
         setDisconnected(new DisconnectCause(cause));
 
         mClosed = true;
@@ -183,8 +185,12 @@ public class HfpClientConnection extends Connection {
         destroy();
     }
 
+    public synchronized boolean isClosing() {
+        return mClosing;
+    }
+
     @Override
-    public void onPlayDtmfTone(char c) {
+    public synchronized void onPlayDtmfTone(char c) {
         if (DBG) {
             Log.d(TAG, "onPlayDtmfTone " + c + " " + mCurrentCall);
         }
@@ -202,6 +208,7 @@ public class HfpClientConnection extends Connection {
         if (!mClosed) {
             mHeadsetProfile.terminateCall(mDevice, mCurrentCall);
             mLocalDisconnect = true;
+            mClosing = true;
         }
     }
 
@@ -214,7 +221,7 @@ public class HfpClientConnection extends Connection {
     }
 
     @Override
-    public void onHold() {
+    public synchronized void onHold() {
         if (DBG) {
             Log.d(TAG, "onHold " + mCurrentCall);
         }
@@ -224,7 +231,7 @@ public class HfpClientConnection extends Connection {
     }
 
     @Override
-    public void onUnhold() {
+    public synchronized void onUnhold() {
         if (getConnectionService().getAllConnections().size() > 1) {
             Log.w(TAG, "Ignoring unhold; call hold on the foreground call");
             return;
@@ -238,7 +245,7 @@ public class HfpClientConnection extends Connection {
     }
 
     @Override
-    public void onAnswer() {
+    public synchronized void onAnswer() {
         if (DBG) {
             Log.d(TAG, "onAnswer " + mCurrentCall);
         }
@@ -248,7 +255,7 @@ public class HfpClientConnection extends Connection {
     }
 
     @Override
-    public void onReject() {
+    public synchronized void onReject() {
         if (DBG) {
             Log.d(TAG, "onReject " + mCurrentCall);
         }
