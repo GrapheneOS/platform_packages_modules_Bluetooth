@@ -178,12 +178,6 @@ void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_GATTC_CANCEL_OPEN_EVT:
       break;
 
-    case BTA_GATTC_LISTEN_EVT: {
-      HAL_CBACK(bt_gatt_callbacks, client->listen_cb, p_data->reg_oper.status,
-                p_data->reg_oper.client_if);
-      break;
-    }
-
     case BTA_GATTC_CFG_MTU_EVT: {
       HAL_CBACK(bt_gatt_callbacks, client->configure_mtu_cb,
                 p_data->cfg_mtu.conn_id, p_data->cfg_mtu.status,
@@ -334,13 +328,18 @@ bt_status_t btif_gattc_close(int client_if, const bt_bdaddr_t* bd_addr,
       Bind(&btif_gattc_close_impl, client_if, base::Owned(address), conn_id));
 }
 
+void btif_gattc_listen_cb(int client_if, uint8_t status)
+{
+  HAL_CBACK(bt_gatt_callbacks, client->listen_cb, status, client_if);
+}
+
 bt_status_t btif_gattc_listen(int client_if, bool start) {
   CHECK_BTGATT_INIT();
 #if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && \
      (BLE_PERIPHERAL_MODE_SUPPORT == true))
-  return do_in_jni_thread(Bind(&BTA_GATTC_Listen, client_if, start));
+  return do_in_jni_thread(Bind(&BTA_GATTC_Listen, start, base::Bind(&btif_gattc_listen_cb, client_if)));
 #else
-  return do_in_jni_thread(Bind(&BTA_GATTC_Broadcast, client_if, start));
+  return do_in_jni_thread(Bind(&BTA_GATTC_Broadcast, start, base::Bind(&btif_gattc_listen_cb, client_if)));
 #endif
 }
 

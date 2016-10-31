@@ -63,8 +63,6 @@ enum
     BTA_GATTC_INT_START_IF_EVT,
     BTA_GATTC_API_REG_EVT,
     BTA_GATTC_API_DEREG_EVT,
-    BTA_GATTC_API_LISTEN_EVT,
-    BTA_GATTC_API_BROADCAST_EVT,
     BTA_GATTC_API_DISABLE_EVT,
     BTA_GATTC_ENC_CMPL_EVT
 };
@@ -180,14 +178,6 @@ typedef struct
 
 typedef struct
 {
-    BT_HDR                  hdr;
-    tBTA_GATTC_IF           client_if;
-    bool                 start;
-} tBTA_GATTC_API_LISTEN;
-
-
-typedef struct
-{
     BT_HDR              hdr;
     uint16_t              mtu;
 }tBTA_GATTC_API_CFG_MTU;
@@ -229,8 +219,6 @@ typedef union
 
     tBTA_GATTC_INT_START_IF     int_start_if;
     tBTA_GATTC_INT_DEREG        int_dereg;
-    /* if peripheral role is supported */
-    tBTA_GATTC_API_LISTEN       api_listen;
 
 } tBTA_GATTC_DATA;
 
