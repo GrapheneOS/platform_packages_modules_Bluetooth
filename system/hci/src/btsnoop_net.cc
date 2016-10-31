@@ -138,8 +138,7 @@ static void* listen_fn_(UNUSED_ATTR void* context) {
     }
 
     /* When a new client connects, we have to send the btsnoop file header. This
-       allows
-       a decoder to treat the session as a new, valid btsnoop file. */
+     * allows a decoder to treat the session as a new, valid btsnoop file. */
     pthread_mutex_lock(&client_socket_lock_);
     safe_close_(&client_socket_);
     client_socket_ = client_socket;
