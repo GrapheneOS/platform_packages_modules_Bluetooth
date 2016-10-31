@@ -26,17 +26,17 @@ extern "C" {
 
 // Audio state definitions.
 typedef enum {
-    SCO_STATE_OFF = 0,      // Audio is off.
-    SCO_STATE_OFF_TRANSFER, // Closed pending final transfer of audio.
-    SCO_STATE_ON,           // Audio is on.
-    SCO_STATE_SETUP,        // Open pending completion of audio setup.
+  SCO_STATE_OFF = 0,       // Audio is off.
+  SCO_STATE_OFF_TRANSFER,  // Closed pending final transfer of audio.
+  SCO_STATE_ON,            // Audio is on.
+  SCO_STATE_SETUP,         // Open pending completion of audio setup.
 } sco_state_t;
 
 // Codec type definitions.
 typedef enum {
-    SCO_CODEC_NONE = 0x0000,
-    SCO_CODEC_CVSD = 0x0001,
-    SCO_CODEC_MSBC = 0x0002,
+  SCO_CODEC_NONE = 0x0000,
+  SCO_CODEC_CVSD = 0x0001,
+  SCO_CODEC_MSBC = 0x0002,
 } sco_codec_t;
 
 // Set the audio state on the controller for SCO (PCM, WBS, ...) using the

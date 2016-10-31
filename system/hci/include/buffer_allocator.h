@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-const allocator_t *buffer_allocator_get_interface();
+const allocator_t* buffer_allocator_get_interface();
 
 #ifdef __cplusplus
 }
