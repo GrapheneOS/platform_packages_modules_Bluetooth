@@ -516,8 +516,7 @@ static void fragmenter_transmit_finished(BT_HDR* packet,
     buffer_allocator->free(packet);
   } else {
     // This is kind of a weird case, since we're dispatching a partially sent
-    // packet
-    // up to a higher layer.
+    // packet up to a higher layer.
     // TODO(zachoverflow): rework upper layer so this isn't necessary.
     data_dispatcher_dispatch(interface.event_dispatcher,
                              packet->event & MSG_EVT_MASK, packet);
@@ -623,10 +622,8 @@ static void hal_says_data_ready(serial_data_type_t type) {
         if (incoming->bytes_remaining == 0) {
           incoming->state = BRAND_NEW;
           // Don't forget to let the hal know we finished the packet we were
-          // ignoring.
-          // Otherwise we'll get out of sync with hals that embed extra
-          // information
-          // in the uart stream (like H4). #badnewsbears
+          // ignoring. Otherwise we'll get out of sync with hals that embed
+          // extra information in the uart stream (like H4). #badnewsbears
           hal->packet_finished(type);
           return;
         }
