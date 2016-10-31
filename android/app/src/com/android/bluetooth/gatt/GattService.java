@@ -1161,9 +1161,9 @@ public class GattService extends ProfileService {
     }
 
     // Callback for standard advertising instance.
-    void onAdvertiseCallback(int status, int advertiserId) {
-        if (DBG) Log.d(TAG, "onAdvertiseCallback,- advertiserId=" + advertiserId + ", status=" + status);
-        mAdvertiseManager.callbackDone(advertiserId, status);
+    void onAdvertiseCallback(int status) {
+        if (DBG) Log.d(TAG, "onAdvertiseCallback status=" + status);
+        mAdvertiseManager.callbackDone(0 /* advertiser_id */, status);
     }
 
     // Followings are callbacks for Bluetooth LE Advertise operations.
