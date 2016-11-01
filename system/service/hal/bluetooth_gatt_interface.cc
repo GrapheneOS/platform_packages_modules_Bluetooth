@@ -194,14 +194,6 @@ void WriteDescriptorCallback(int conn_id, int status,
     WriteDescriptorCallback(g_interface, conn_id, status, handle));
 }
 
-void ListenCallback(int status, int client_if) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
-  VERIFY_INTERFACE_OR_RETURN();
-
-  FOR_EACH_CLIENT_OBSERVER(ListenCallback(g_interface, status, client_if));
-}
-
 void MtuChangedCallback(int conn_id, int status, int mtu) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
@@ -429,7 +421,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     WriteDescriptorCallback,
     nullptr,  // execute_write_cb
     nullptr,  // read_remote_rssi_cb
-    ListenCallback,
     MtuChangedCallback,
     nullptr,  // congestion_cb
     GetGattDbCallback,
@@ -674,13 +665,6 @@ void BluetoothGattInterface::ClientObserver::WriteDescriptorCallback(
     int /* status */,
     uint16_t /* handle */) {
   // Do nothing
-}
-
-void BluetoothGattInterface::ClientObserver::ListenCallback(
-    BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* client_if */) {
-  // Do nothing.
 }
 
 void BluetoothGattInterface::ClientObserver::MtuChangedCallback(
