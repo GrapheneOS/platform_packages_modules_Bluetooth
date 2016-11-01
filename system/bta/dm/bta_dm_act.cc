@@ -1264,7 +1264,7 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_search_cancel (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    
+
     tBTA_DM_MSG *p_msg;
 
     if (BTM_IsInquiryActive())
@@ -2882,6 +2882,8 @@ static uint8_t bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
     /*case BTM_SP_KEY_REQ_EVT: */
     case BTM_SP_KEY_NOTIF_EVT:
 #endif
+        bta_dm_cb.num_val = sec_event.key_notif.passkey = p_data->key_notif.passkey;
+
         if(BTM_SP_CFM_REQ_EVT == event)
         {
           /* Due to the switch case falling through below to BTM_SP_KEY_NOTIF_EVT,
@@ -2907,7 +2909,6 @@ static uint8_t bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
            }
         }
 
-        bta_dm_cb.num_val = sec_event.key_notif.passkey = p_data->key_notif.passkey;
         if (BTM_SP_KEY_NOTIF_EVT == event)
         {
             /* If the device name is not known, save bdaddr and devclass
@@ -4842,7 +4843,7 @@ void bta_dm_ble_enable_batch_scan (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_ble_disable_batch_scan (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
-    
+
     tBTM_STATUS btm_status = 0;
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
