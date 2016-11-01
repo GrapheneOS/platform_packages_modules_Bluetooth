@@ -29,6 +29,7 @@
 #include "gatt_api.h"
 #include "osi/include/list.h"
 
+#include <base/callback_forward.h>
 #include <vector>
 
 using std::vector;
@@ -126,7 +127,6 @@ typedef uint8_t tBTA_GATT_STATUS;
 #define BTA_GATTC_ACL_EVT           13  /* ACL up event */
 #define BTA_GATTC_CANCEL_OPEN_EVT   14  /* cancel open event */
 #define BTA_GATTC_SRVC_CHG_EVT      15  /* service change event */
-#define BTA_GATTC_LISTEN_EVT        16  /* listen event */
 #define BTA_GATTC_ENC_CMPL_CB_EVT   17  /* encryption complete callback event */
 #define BTA_GATTC_CFG_MTU_EVT       18  /* configure MTU complete event */
 #define BTA_GATTC_CONGEST_EVT       24  /* Congestion event */
@@ -368,7 +368,6 @@ typedef void (tBTA_GATTC_CBACK)(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
 #define BTA_GATTS_OPEN_EVT                              16
 #define BTA_GATTS_CANCEL_OPEN_EVT                       17
 #define BTA_GATTS_CLOSE_EVT                             18
-#define BTA_GATTS_LISTEN_EVT                            19
 #define BTA_GATTS_CONGEST_EVT                           20
 
 typedef uint8_t  tBTA_GATTS_EVT;
@@ -936,7 +935,7 @@ extern void BTA_GATTC_Refresh(const BD_ADDR remote_bda);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start);
+extern void BTA_GATTC_Listen(bool start, base::Callback<void(uint8_t /* status */)> cb);
 
 /*******************************************************************************
 **
@@ -950,7 +949,7 @@ extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, bool start);
+extern void BTA_GATTC_Broadcast(bool start, base::Callback<void(uint8_t /* status */)> cb);
 
 
 /*******************************************************************************

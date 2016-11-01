@@ -26,6 +26,7 @@
 
 #if (BTA_GATT_INCLUDED == TRUE)
 
+#include <base/callback.h>
 #include <string.h>
 #include "bt_common.h"
 #include "bta_sys.h"
@@ -724,22 +725,15 @@ void BTA_GATTC_Refresh(const BD_ADDR remote_bda)
 ** Description      Start advertisement to listen for connection request for a GATT
 **                  client application.
 **
-** Parameters       client_if: server interface.
-**                  start: to start or stop listening for connection
+** Parameters       start: to start or stop listening for connection
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start)
+void BTA_GATTC_Listen(bool start, base::Callback<void(uint8_t /* status */)> cb)
 {
-    tBTA_GATTC_API_LISTEN *p_buf =
-        (tBTA_GATTC_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN);
-
-    p_buf->hdr.event = BTA_GATTC_API_LISTEN_EVT;
-    p_buf->client_if = client_if;
-    p_buf->start = start;
-
-    bta_sys_sendmsg(p_buf);
+    GATT_Listen(start);
+    cb.Run(BTA_GATT_OK);
 }
 
 /*******************************************************************************
@@ -754,16 +748,10 @@ void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, bool start)
+void BTA_GATTC_Broadcast(bool start, base::Callback<void(uint8_t /* status */)> cb)
 {
-    tBTA_GATTC_API_LISTEN *p_buf =
-        (tBTA_GATTC_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN);
-
-    p_buf->hdr.event = BTA_GATTC_API_BROADCAST_EVT;
-    p_buf->client_if = client_if;
-    p_buf->start = start;
-
-    bta_sys_sendmsg(p_buf);
+    uint8_t status = BTM_BleBroadcast(start);
+    cb.Run(status);
 }
 
 #endif /* BTA_GATT_INCLUDED */
