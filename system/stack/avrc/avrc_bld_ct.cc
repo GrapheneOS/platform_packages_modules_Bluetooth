@@ -442,7 +442,7 @@ static tAVRC_STS avrc_bld_change_folder_cmd(BT_HDR *p_pkt, const tAVRC_CHG_PATH_
 **
 ** Function         avrc_bld_set_browsed_player_cmd
 **
-** Description      This function builds the set addressed player cmd.
+** Description      This function builds the set browsed player cmd.
 **
 ** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
 **                  Otherwise, the error code.
@@ -457,6 +457,33 @@ static tAVRC_STS avrc_bld_set_browsed_player_cmd(BT_HDR *p_pkt, const tAVRC_SET_
     uint8_t *p_data = p_start + 1; /* pdu */
 
     /* To change browsed player the following is the total length:
+     * Player ID (2)
+     */
+    UINT16_TO_BE_STREAM(p_data, 2); /* fixed length */
+    UINT16_TO_BE_STREAM(p_data, cmd->player_id);
+    p_pkt->len = (p_data - p_start);
+    return AVRC_STS_NO_ERROR;
+}
+
+/*******************************************************************************
+**
+** Function         avrc_bld_set_addressed_player_cmd
+**
+** Description      This function builds the set addressed player cmd.
+**
+** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+**                  Otherwise, the error code.
+**
+*******************************************************************************/
+static tAVRC_STS avrc_bld_set_addressed_player_cmd(
+    BT_HDR *p_pkt, const tAVRC_SET_ADDR_PLAYER_CMD *cmd)
+{
+    AVRC_TRACE_API("%s", __func__);
+    /* get the existing length, if any, and also the num attributes */
+    uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
+    uint8_t *p_data = p_data = p_start + 2; /* pdu + rsvd */
+
+    /* To change addressed player the following is the total length:
      * Player ID (2)
      */
     UINT16_TO_BE_STREAM(p_data, 2); /* fixed length */
@@ -626,6 +653,9 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
         break;
     case AVRC_PDU_SET_BROWSED_PLAYER:
         status = avrc_bld_set_browsed_player_cmd(p_pkt, &(p_cmd->br_player));
+        break;
+    case AVRC_PDU_SET_ADDRESSED_PLAYER:
+        status = avrc_bld_set_addressed_player_cmd(p_pkt, &(p_cmd->addr_player));
         break;
 #endif
     }
