@@ -85,6 +85,10 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     // Message sent when folder list is fetched.
     private static final int MSG_FOLDER_LIST = 9;
 
+    // Custom actions for PTS testing.
+    private String CUSTOM_ACTION_VOL_UP = "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_UP";
+    private String CUSTOM_ACTION_VOL_DN = "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_DN";
+
     private MediaSession mSession;
     private MediaMetadata mA2dpMetadata;
 
@@ -248,30 +252,28 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
-        // These are not yet supported.
         @Override
         public void onStop() {
             Log.d(TAG, "onStop");
+            mAvrcpCommandQueue.obtainMessage(
+                    MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_STOP)
+                    .sendToTarget();
         }
 
         @Override
-        public void onCustomAction(String action, Bundle extras) {
-            Log.d(TAG, "onCustomAction action=" + action + " extras=" + extras);
+        public void onRewind() {
+            Log.d(TAG, "onRewind");
+            mAvrcpCommandQueue.obtainMessage(
+                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_REWIND).sendToTarget();
+            // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
-        public void onPlayFromSearch(String query, Bundle extras) {
-            Log.d(TAG, "playFromSearch not supported in AVRCP");
-        }
-
-        @Override
-        public void onCommand(String command, Bundle args, ResultReceiver cb) {
-            Log.d(TAG, "onCommand command=" + command + " args=" + args);
-        }
-
-        @Override
-        public void onSkipToQueueItem(long queueId) {
-            Log.d(TAG, "onSkipToQueueItem");
+        public void onFastForward() {
+            Log.d(TAG, "onFastForward");
+            mAvrcpCommandQueue.obtainMessage(
+                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_FF).sendToTarget();
+            // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
@@ -285,6 +287,23 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             }
 
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
+        }
+
+        // Support VOL UP and VOL DOWN events for PTS testing.
+        @Override
+        public void onCustomAction(String action, Bundle extras) {
+            Log.d(TAG, "onCustomAction " + action);
+            if (CUSTOM_ACTION_VOL_UP.equals(action)) {
+                mAvrcpCommandQueue.obtainMessage(
+                    MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_VOL_UP).sendToTarget();
+            } else if (CUSTOM_ACTION_VOL_DN.equals(action)) {
+                mAvrcpCommandQueue.obtainMessage(
+                    MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_VOL_DOWN).sendToTarget();
+            } else {
+                Log.w(TAG, "Custom action " + action + " not supported.");
+            }
         }
     };
 
