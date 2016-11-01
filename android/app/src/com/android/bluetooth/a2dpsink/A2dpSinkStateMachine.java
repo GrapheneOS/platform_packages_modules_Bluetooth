@@ -437,9 +437,12 @@ final class A2dpSinkStateMachine extends StateMachine {
                     }
                 } else {
                     loge("Unknown device Connected: " + device);
-                    // something is wrong here, but sync our state with stack
+                    // something is wrong here, but sync our state with stack by connecting to
+                    // the new device and disconnect from previous device.
                     broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_DISCONNECTED);
+                    broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
+                        BluetoothProfile.STATE_CONNECTING);
                     synchronized (A2dpSinkStateMachine.this) {
                         mCurrentDevice = device;
                         mTargetDevice = null;

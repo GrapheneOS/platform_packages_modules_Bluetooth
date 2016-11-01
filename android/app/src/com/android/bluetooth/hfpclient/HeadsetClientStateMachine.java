@@ -1105,8 +1105,8 @@ final class HeadsetClientStateMachine extends StateMachine {
                       transitionTo(mDisconnected);
                       broadcastConnectionState(
                           mCurrentDevice,
-                          BluetoothProfile.STATE_CONNECTING,
-                          BluetoothProfile.STATE_DISCONNECTED);
+                          BluetoothProfile.STATE_DISCONNECTED,
+                          BluetoothProfile.STATE_CONNECTING);
                       break;
 
                 default:
@@ -1253,7 +1253,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     if (!disconnectNative(getByteAddress(dev))) {
                         // disconnecting failed
                         broadcastConnectionState(dev, BluetoothProfile.STATE_CONNECTED,
-                                BluetoothProfile.STATE_DISCONNECTED);
+                                BluetoothProfile.STATE_DISCONNECTING);
                         break;
                     }
                     break;
