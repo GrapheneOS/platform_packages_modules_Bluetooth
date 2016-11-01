@@ -56,6 +56,8 @@ public class BrowseTree {
     // Static instance of Folder ID <-> Folder Instance (for navigation purposes)
     private final HashMap<String, BrowseNode> mBrowseMap = new HashMap<String, BrowseNode>();
     private BrowseNode mCurrentBrowseNode;
+    private BrowseNode mCurrentBrowsedPlayer;
+    private BrowseNode mCurrentAddressedPlayer;
 
     BrowseTree() {
     }
@@ -287,6 +289,34 @@ public class BrowseTree {
 
     synchronized BrowseNode getCurrentBrowsedFolder() {
         return mCurrentBrowseNode;
+    }
+
+    synchronized boolean setCurrentBrowsedPlayer(String uid) {
+        BrowseNode bn = findFolderByIDLocked(uid);
+        if (bn == null) {
+            Log.e(TAG, "Setting an unknown browsed player, ignoring bn " + uid);
+            return false;
+        }
+        mCurrentBrowsedPlayer = bn;
+        return true;
+    }
+
+    synchronized BrowseNode getCurrentBrowsedPlayer() {
+        return mCurrentBrowsedPlayer;
+    }
+
+    synchronized boolean setCurrentAddressedPlayer(String uid) {
+        BrowseNode bn = findFolderByIDLocked(uid);
+        if (bn == null) {
+            Log.e(TAG, "Setting an unknown addressed player, ignoring bn " + uid);
+            return false;
+        }
+        mCurrentAddressedPlayer = bn;
+        return true;
+    }
+
+    synchronized BrowseNode getCurrentAddressedPlayer() {
+        return mCurrentAddressedPlayer;
     }
 
     @Override
