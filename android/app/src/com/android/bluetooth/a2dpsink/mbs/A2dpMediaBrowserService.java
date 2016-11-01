@@ -208,7 +208,10 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
 
         Log.d(TAG, "onLoadChildren parentMediaId=" + parentMediaId);
-        mAvrcpCtrlSrvc.getChildren(mA2dpDevice, parentMediaId, 0, 0xff);
+        if (!mAvrcpCtrlSrvc.getChildren(mA2dpDevice, parentMediaId, 0, 0xff)) {
+            result.sendResult(mEmptyList);
+            return;
+        }
 
         // Since we are using this thread from a binder thread we should make sure that
         // we synchronize against other such asynchronous calls.
