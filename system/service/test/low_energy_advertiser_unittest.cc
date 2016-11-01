@@ -624,35 +624,22 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
     callback_count++;
   };
 
-  status_cb set_params_cb;
-  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
-      .WillOnce(SaveArg<6>(&set_params_cb))
-      .WillOnce(SaveArg<6>(&set_params_cb));
-
-  // Make sure no call to set data .
-  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _))
-      .Times(Exactly(0));
-
-  // Multiple UUID test, should fail due to only one UUID allowed
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, multi_uuid_adv,
-                                               AdvertiseData(), callback));
-  set_params_cb.Run(BT_STATUS_SUCCESS);
-  EXPECT_EQ(1, callback_count);
-  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
-
-  // Make sure no call to set data .
-  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _))
-      .Times(Exactly(0));
-
-  // Multiple Service Data test, should fail due to only one service data
-  // allowed
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, multi_uuid_adv,
-                                               AdvertiseData(), callback));
-  set_params_cb.Run(BT_STATUS_SUCCESS);
-  EXPECT_EQ(2, callback_count);
-  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
-
   status_cb set_data_cb;
+  // Multiple UUID test
+  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _))
+            .Times(1)
+      .WillOnce(SaveArg<3>(&set_data_cb));
+  AdvertiseDataTestHelper(multi_uuid_adv, callback, &set_data_cb);
+  EXPECT_EQ(1, callback_count);
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+
+  // Multiple Service Data test
+  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _))
+            .Times(1)
+      .WillOnce(SaveArg<3>(&set_data_cb));
+  AdvertiseDataTestHelper(multi_service_adv, callback, &set_data_cb);
+  EXPECT_EQ(2, callback_count);
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // 16bit uuid test, should succeed with correctly parsed uuid in little-endian
   // 128-bit format.
@@ -732,16 +719,13 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_EQ(9, callback_count);
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
-  EXPECT_CALL(*mock_handler_, MultiAdvSetParameters(_, _, _, _, _, _, _))
-      .Times(1)
-      .WillOnce(SaveArg<6>(&set_params_cb));
-
   // Service data and UUID where the UUID for dont match, should fail
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, service_uuid_mismatch,
-                                               AdvertiseData(), callback));
-  set_params_cb.Run(BT_STATUS_SUCCESS);
+  EXPECT_CALL(*mock_handler_, MultiAdvSetInstData(_, _, _, _))
+      .Times(1)
+      .WillOnce(SaveArg<3>(&set_data_cb));
+  AdvertiseDataTestHelper(service_uuid_match, callback, &set_data_cb);
   EXPECT_EQ(10, callback_count);
-  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 }
 
 MATCHER_P(BitEq, x, std::string(negation ? "isn't" : "is") +
