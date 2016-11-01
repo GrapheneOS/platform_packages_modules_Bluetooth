@@ -368,13 +368,6 @@ void btgattc_remote_rssi_cb(int client_if,bt_bdaddr_t* bda, int rssi, int status
     sCallbackEnv->DeleteLocalRef(address);
 }
 
-void btgattc_advertise_cb(int status, int client_if)
-{
-    CallbackEnv sCallbackEnv(__func__);
-    if (!sCallbackEnv.valid()) return;
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiseCallback, status, client_if);
-}
-
 void btgattc_configure_mtu_cb(int conn_id, int status, int mtu)
 {
     CallbackEnv sCallbackEnv(__func__);
@@ -589,7 +582,6 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_write_descriptor_cb,
     btgattc_execute_write_cb,
     btgattc_remote_rssi_cb,
-    btgattc_advertise_cb,
     btgattc_configure_mtu_cb,
     btgattc_congestion_cb,
     btgattc_get_gatt_db_cb,
@@ -839,7 +831,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onRegisterForNotifications = env->GetMethodID(clazz, "onRegisterForNotifications", "(IIII)V");
     method_onReadRemoteRssi = env->GetMethodID(clazz, "onReadRemoteRssi", "(ILjava/lang/String;II)V");
     method_onConfigureMTU = env->GetMethodID(clazz, "onConfigureMTU", "(III)V");
-    method_onAdvertiseCallback = env->GetMethodID(clazz, "onAdvertiseCallback", "(II)V");
+    method_onAdvertiseCallback = env->GetMethodID(clazz, "onAdvertiseCallback", "(I)V");
     method_onScanFilterConfig = env->GetMethodID(clazz, "onScanFilterConfig", "(IIIII)V");
     method_onScanFilterParamsConfigured = env->GetMethodID(clazz, "onScanFilterParamsConfigured", "(IIII)V");
     method_onScanFilterEnableDisabled = env->GetMethodID(clazz, "onScanFilterEnableDisabled", "(III)V");
@@ -1123,11 +1115,18 @@ static void gattClientReadRemoteRssiNative(JNIEnv* env, jobject object, jint cli
     sGattIf->client->read_remote_rssi(clientif, &bda);
 }
 
-static void gattAdvertiseNative(JNIEnv *env, jobject object,
-        jint client_if, jboolean start)
+
+void btgattc_advertise_cb(uint8_t status)
+{
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiseCallback, status);
+}
+
+static void gattAdvertiseNative(JNIEnv *env, jobject object, jboolean start)
 {
     if (!sGattIf) return;
-    sGattIf->client->listen(client_if, start);
+    sGattIf->advertiser->Enable(start, base::Bind(&btgattc_advertise_cb));
 }
 
 static void gattSetAdvDataNative(JNIEnv *env, jobject object,
@@ -1658,7 +1657,7 @@ static JNINativeMethod sAdvertiseMethods[] = {
     {"gattClientSetAdvDataNative", "(IZ[B)V", (void *) gattClientSetAdvDataNative},
     {"gattClientEnableAdvNative", "(IZI)V", (void *) gattClientEnableAdvNative},
     {"gattSetAdvDataNative", "(Z[B)V", (void *) gattSetAdvDataNative},
-    {"gattAdvertiseNative", "(IZ)V", (void *) gattAdvertiseNative},
+    {"gattAdvertiseNative", "(Z)V", (void *) gattAdvertiseNative},
 };
 
 // JNI functions defined in ScanManager class.
