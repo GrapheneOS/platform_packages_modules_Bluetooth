@@ -332,6 +332,9 @@ class AdvertiseManager {
                 return false;
             }
             setAdvertisingData(client, client.advertiseData, false);
+            if (client.scanResponse != null) {
+                setAdvertisingData(client, client.scanResponse, true);
+            }
             return true;
         }
 
