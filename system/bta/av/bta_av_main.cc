@@ -686,7 +686,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                     {
                         bta_ar_reg_avrc(UUID_SERVCLASS_AV_REMOTE_CONTROL, NULL, NULL,
                         p_bta_av_cfg->avrc_ct_cat, BTA_ID_AV,
-                        (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_4);
+                        (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_6);
                     }
 #endif
                 }
