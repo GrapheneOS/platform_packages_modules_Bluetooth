@@ -432,34 +432,37 @@ public class AvrcpControllerService extends ProfileService {
      * start - number of item to start scanning from
      * items - number of items to fetch
      */
-    public synchronized void getChildren(BluetoothDevice device, String parentMediaId, int start, int items) {
+    public synchronized boolean getChildren(
+            BluetoothDevice device, String parentMediaId, int start, int items) {
         if (DBG) {
             Log.d(TAG, "getChildrent device = " + device + " parent " + parentMediaId);
         }
 
         if (device == null) {
             Log.e(TAG, "getChildren device is null");
-            return;
+            return false;
         }
 
         if (!device.equals(mConnectedDevice)) {
             Log.e(TAG, "getChildren device " + device + " does not match " +
                 mConnectedDevice);
-            return;
+            return false;
         }
 
         if (!mBrowseConnected) {
             Log.e(TAG, "getChildren browse not yet connected");
-            return;
+            return false;
         }
 
         if (!mAvrcpCtSm.isConnected()) {
-            return;
+            return false;
         }
         mAvrcpCtSm.getChildren(parentMediaId, start, items);
+        return true;
     }
 
-    public synchronized void getNowPlayingList(BluetoothDevice device, String id, int start, int items) {
+    public synchronized boolean getNowPlayingList(
+            BluetoothDevice device, String id, int start, int items) {
         if (DBG) {
             Log.d(TAG, "getNowPlayingList device = " + device + " start = " + start +
                 "items = " + items);
@@ -467,16 +470,18 @@ public class AvrcpControllerService extends ProfileService {
 
         if (device == null) {
             Log.e(TAG, "getNowPlayingList device is null");
-            return;
+            return false;
         }
 
         if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "getNowPlayingList device " + device + " does not match " + mConnectedDevice);
-            return;
+            Log.e(TAG, "getNowPlayingList device " + device + " does not match " +
+                mConnectedDevice);
+            return false;
         }
 
         if (!mBrowseConnected) {
             Log.e(TAG, "getNowPlayingList browse not yet connected");
+            return false;
         }
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -484,9 +489,11 @@ public class AvrcpControllerService extends ProfileService {
         Message msg = mAvrcpCtSm.obtainMessage(
             AvrcpControllerStateMachine.MESSAGE_GET_NOW_PLAYING_LIST, start, items, id);
         mAvrcpCtSm.sendMessage(msg);
+        return true;
     }
 
-    public synchronized void getFolderList(BluetoothDevice device, String id, int start, int items) {
+    public synchronized boolean getFolderList(
+            BluetoothDevice device, String id, int start, int items) {
         if (DBG) {
             Log.d(TAG, "getFolderListing device = " + device + " start = " + start +
                 "items = " + items);
@@ -494,17 +501,17 @@ public class AvrcpControllerService extends ProfileService {
 
         if (device == null) {
             Log.e(TAG, "getFolderListing device is null");
-            return;
+            return false;
         }
 
         if (!device.equals(mConnectedDevice)) {
             Log.e(TAG, "getFolderListing device " + device + " does not match " + mConnectedDevice);
-            return;
+            return false;
         }
 
         if (!mBrowseConnected) {
             Log.e(TAG, "getFolderListing browse not yet connected");
-            return;
+            return false;
         }
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -512,9 +519,10 @@ public class AvrcpControllerService extends ProfileService {
         Message msg = mAvrcpCtSm.obtainMessage(
             AvrcpControllerStateMachine.MESSAGE_GET_FOLDER_LIST, start, items, id);
         mAvrcpCtSm.sendMessage(msg);
+        return true;
     }
 
-    public synchronized void getPlayerList(BluetoothDevice device, int start, int items) {
+    public synchronized boolean getPlayerList(BluetoothDevice device, int start, int items) {
         if (DBG) {
             Log.d(TAG, "getPlayerList device = " + device + " start = " + start +
                 "items = " + items);
@@ -522,17 +530,17 @@ public class AvrcpControllerService extends ProfileService {
 
         if (device == null) {
             Log.e(TAG, "getPlayerList device is null");
-            return;
+            return false;
         }
 
         if (!device.equals(mConnectedDevice)) {
             Log.e(TAG, "getPlayerList device " + device + " does not match " + mConnectedDevice);
-            return;
+            return false;
         }
 
         if (!mBrowseConnected) {
             Log.e(TAG, "getPlayerList browse not yet connected");
-            return;
+            return false;
         }
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -540,9 +548,10 @@ public class AvrcpControllerService extends ProfileService {
         Message msg = mAvrcpCtSm.obtainMessage(
             AvrcpControllerStateMachine.MESSAGE_GET_PLAYER_LIST, start, items);
         mAvrcpCtSm.sendMessage(msg);
+        return true;
     }
 
-    public synchronized void changeFolderPath(
+    public synchronized boolean changeFolderPath(
             BluetoothDevice device, int direction, String uid, String fid) {
         if (DBG) {
             Log.d(TAG, "changeFolderPath device = " + device + " direction " +
@@ -551,18 +560,18 @@ public class AvrcpControllerService extends ProfileService {
 
         if (device == null) {
             Log.e(TAG, "changeFolderPath device is null");
-            return;
+            return false;
         }
 
         if (!device.equals(mConnectedDevice)) {
             Log.e(TAG, "changeFolderPath device " + device + " does not match " +
                 mConnectedDevice);
-            return;
+            return false;
         }
 
         if (!mBrowseConnected) {
             Log.e(TAG, "changeFolderPath browse not yet connected");
-            return;
+            return false;
         }
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -573,22 +582,28 @@ public class AvrcpControllerService extends ProfileService {
         Message msg = mAvrcpCtSm.obtainMessage(
             AvrcpControllerStateMachine.MESSAGE_CHANGE_FOLDER_PATH, direction, 0, b);
         mAvrcpCtSm.sendMessage(msg);
+        return true;
     }
 
-    public void setBrowsedPlayer(BluetoothDevice device, int id, String fid) {
+    public synchronized boolean setBrowsedPlayer(BluetoothDevice device, int id, String fid) {
         if (DBG) {
             Log.d(TAG, "setBrowsedPlayer device = " + device + " id" + id + " fid " + fid);
         }
 
         if (device == null) {
             Log.e(TAG, "setBrowsedPlayer device is null");
-            return;
+            return false;
         }
 
+        if (!device.equals(mConnectedDevice)) {
+            Log.e(TAG, "changeFolderPath device " + device + " does not match " +
+                mConnectedDevice);
+            return false;
+        }
 
         if (!mBrowseConnected) {
             Log.e(TAG, "setBrowsedPlayer browse not yet connected");
-            return;
+            return false;
         }
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -596,6 +611,7 @@ public class AvrcpControllerService extends ProfileService {
         Message msg = mAvrcpCtSm.obtainMessage(
             AvrcpControllerStateMachine.MESSAGE_SET_BROWSED_PLAYER, id, 0, fid);
         mAvrcpCtSm.sendMessage(msg);
+        return true;
     }
 
     public synchronized void fetchAttrAndPlayItem(BluetoothDevice device, String uid) {
