@@ -45,6 +45,7 @@ static jmethodID method_createFromNativeFolderItem;
 static jmethodID method_createFromNativePlayerItem;
 static jmethodID method_handleChangeFolderRsp;
 static jmethodID method_handleSetBrowsedPlayerRsp;
+static jmethodID method_handleSetAddressedPlayerRsp;
 
 static jclass class_MediaBrowser_MediaItem;
 static jclass class_AvrcpPlayer;
@@ -543,6 +544,17 @@ static void btavrcp_set_browsed_player_callback(
         sCallbacksObj, method_handleSetBrowsedPlayerRsp, (jint) num_items, (jint) depth);
 }
 
+static void btavrcp_set_addressed_player_callback(
+        bt_bdaddr_t *bd_addr, uint8_t status) {
+    ALOGI("%s status %d", __FUNCTION__, status);
+
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    sCallbackEnv->CallVoidMethod(
+        sCallbacksObj, method_handleSetAddressedPlayerRsp, (jint) status);
+}
+
 static btrc_ctrl_callbacks_t sBluetoothAvrcpCallbacks = {
     sizeof(sBluetoothAvrcpCallbacks),
     btavrcp_passthrough_response_callback,
@@ -559,7 +571,8 @@ static btrc_ctrl_callbacks_t sBluetoothAvrcpCallbacks = {
     btavrcp_play_status_changed_callback,
     btavrcp_get_folder_items_callback,
     btavrcp_change_path_callback,
-    btavrcp_set_browsed_player_callback
+    btavrcp_set_browsed_player_callback,
+    btavrcp_set_addressed_player_callback
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -618,6 +631,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         env->GetMethodID(clazz, "handleChangeFolderRsp", "(I)V");
     method_handleSetBrowsedPlayerRsp =
         env->GetMethodID(clazz, "handleSetBrowsedPlayerRsp", "(II)V");
+    method_handleSetAddressedPlayerRsp =
+        env->GetMethodID(clazz, "handleSetAddressedPlayerRsp", "(I)V");
     ALOGI("%s: succeeds", __FUNCTION__);
 }
 
@@ -931,7 +946,25 @@ static void setBrowsedPlayerNative(JNIEnv *env, jobject object, jbyteArray addre
     ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
     if ((status = sBluetoothAvrcpInterface->set_browsed_player_cmd(
             (bt_bdaddr_t *) addr, (uint16_t) id)) != BT_STATUS_SUCCESS) {
-        ALOGE("Failed sending changeFolderPathNative command, status: %d", status);
+        ALOGE("Failed sending setBrowsedPlayerNative command, status: %d", status);
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+}
+
+static void setAddressedPlayerNative(JNIEnv *env, jobject object, jbyteArray address, jint id) {
+    bt_status_t status;
+
+    if (!sBluetoothAvrcpInterface) return;
+    jbyte *addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return;
+    }
+
+    ALOGI("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    if ((status = sBluetoothAvrcpInterface->set_addressed_player_cmd(
+            (bt_bdaddr_t *) addr, (uint16_t) id)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed sending setAddressedPlayerNative command, status: %d", status);
     }
     env->ReleaseByteArrayElements(address, addr, 0);
 }
@@ -980,6 +1013,7 @@ static JNINativeMethod sMethods[] = {
     {"changeFolderPathNative", "([BB[B)V", (void *) changeFolderPathNative},
     {"playItemNative", "([BB[BI)V", (void *) playItemNative},
     {"setBrowsedPlayerNative", "([BI)V", (void *) setBrowsedPlayerNative},
+    {"setAddressedPlayerNative", "([BI)V", (void *) setAddressedPlayerNative},
 };
 
 int register_com_android_bluetooth_avrcp_controller(JNIEnv* env)

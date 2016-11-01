@@ -73,6 +73,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MESSAGE_PROCESS_GET_PLAYER_ITEMS = 111;
     static final int MESSAGE_PROCESS_FOLDER_PATH = 112;
     static final int MESSAGE_PROCESS_SET_BROWSED_PLAYER = 113;
+    static final int MESSAGE_PROCESS_SET_ADDRESSED_PLAYER = 114;
 
     // commands from A2DP sink
     static final int MESSAGE_STOP_METADATA_BROADCASTS = 201;
@@ -114,6 +115,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     private final State mDisconnected;
     private final State mConnected;
     private final SetBrowsedPlayer mSetBrowsedPlayer;
+    private final SetAddresedPlayerAndPlayItem mSetAddrPlayer;
     private final ChangeFolderPath mChangeFolderPath;
     private final GetFolderList mGetFolderList;
     private final GetPlayerListing mGetPlayerListing;
@@ -133,11 +135,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     private boolean mBroadcastMetadata = false;
     private int previousPercentageVol = -1;
 
-    // New addressed player.
-    private String mCurrentPlayer = null;
-
     // Depth from root of current browsing. This can be used to move to root directly.
-    // Only valid if mCurrentPlayer != null.
     private int mBrowseDepth = 0;
 
     // Browse tree.
@@ -156,6 +154,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         // Used to change folder path and fetch the new folder listing.
         mSetBrowsedPlayer = new SetBrowsedPlayer();
+        mSetAddrPlayer = new SetAddresedPlayerAndPlayItem();
         mChangeFolderPath = new ChangeFolderPath();
         mGetFolderList = new GetFolderList();
         mGetPlayerListing = new GetPlayerListing();
@@ -169,6 +168,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         // only handle the messages that are relevant to the sub-action. Everything else should be
         // deferred so that once we transition to the mConnected we can process them hence.
         addState(mSetBrowsedPlayer, mConnected);
+        addState(mSetAddrPlayer, mConnected);
         addState(mChangeFolderPath, mConnected);
         addState(mGetFolderList, mConnected);
         addState(mGetPlayerListing, mConnected);
@@ -295,12 +295,33 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                     case MESSAGE_FETCH_ATTR_AND_PLAY_ITEM: {
                         int scope = msg.arg1;
-                        String uid = (String) msg.obj;
-                        // String is encoded as a Hex String (mostly for display purposes)
-                        // hence convert this back to real byte string.
-                        AvrcpControllerService.playItemNative(
-                            mRemoteDevice.getBluetoothAddress(), (byte) msg.arg1,
-                            AvrcpControllerService.hexStringToByteUID(uid), (int) 0);
+                        String playItemUid = (String) msg.obj;
+                        BrowseTree.BrowseNode currBrPlayer =
+                            mBrowseTree.getCurrentBrowsedPlayer();
+                        BrowseTree.BrowseNode currAddrPlayer =
+                            mBrowseTree.getCurrentAddressedPlayer();
+                        if (DBG) {
+                            Log.d(TAG, "currBrPlayer " + currBrPlayer +
+                                " currAddrPlayer " + currAddrPlayer);
+                        }
+
+                        if (currBrPlayer == null || currBrPlayer.equals(currAddrPlayer)) {
+                            // String is encoded as a Hex String (mostly for display purposes)
+                            // hence convert this back to real byte string.
+                            // NOTE: It may be possible that sending play while the same item is
+                            // playing leads to reset of track.
+                            AvrcpControllerService.playItemNative(
+                                mRemoteDevice.getBluetoothAddress(), (byte) scope,
+                                AvrcpControllerService.hexStringToByteUID(playItemUid), (int) 0);
+                        } else {
+                            // Send out the request for setting addressed player.
+                            AvrcpControllerService.setAddressedPlayerNative(
+                                mRemoteDevice.getBluetoothAddress(),
+                                currBrPlayer.getPlayerID());
+                            mSetAddrPlayer.setItemAndScope(
+                                currBrPlayer.getID(), playItemUid, scope);
+                            transitionTo(mSetAddrPlayer);
+                        }
                         break;
                     }
 
@@ -759,10 +780,53 @@ class AvrcpControllerStateMachine extends StateMachine {
                         transitionTo(mMoveToRoot);
                     }
                     mBrowseTree.setCurrentBrowsedFolder(mID);
+                    // Also set the browsed player here.
+                    mBrowseTree.setCurrentBrowsedPlayer(mID);
                     break;
 
                 case MESSAGE_INTERNAL_CMD_TIMEOUT:
                     broadcastFolderList(mID, mEmptyMediaItemList);
+                    transitionTo(mConnected);
+                    break;
+
+                default:
+                    Log.d(STATE_TAG, "deferring message " + msg + " to connected!");
+                    deferMessage(msg);
+            }
+            return true;
+        }
+    }
+
+    class SetAddresedPlayerAndPlayItem extends CmdState {
+        private String STATE_TAG = "AVRCPSM.SetAddresedPlayerAndPlayItem";
+        int mScope;
+        String mPlayItemId;
+        String mAddrPlayerId;
+
+        public void setItemAndScope(String addrPlayerId, String playItemId, int scope) {
+            mAddrPlayerId = addrPlayerId;
+            mPlayItemId = playItemId;
+            mScope = scope;
+        }
+
+        @Override
+        public boolean processMessage(Message msg) {
+            Log.d(STATE_TAG, "processMessage " + msg);
+            switch (msg.what) {
+                case MESSAGE_PROCESS_SET_ADDRESSED_PLAYER:
+                    // Set the new addressed player.
+                    mBrowseTree.setCurrentAddressedPlayer(mAddrPlayerId);
+
+                    // And now play the item.
+                    AvrcpControllerService.playItemNative(
+                        mRemoteDevice.getBluetoothAddress(), (byte) mScope,
+                        AvrcpControllerService.hexStringToByteUID(mPlayItemId), (int) 0);
+
+                    // Transition to connected state here.
+                    transitionTo(mConnected);
+                    break;
+
+                case MESSAGE_INTERNAL_CMD_TIMEOUT:
                     transitionTo(mConnected);
                     break;
 
