@@ -524,7 +524,7 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, uint16_t conn_i
 **
 *******************************************************************************/
 bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda_ptr,
-                                bool add, bool is_listen)
+                                bool add)
 {
     tBTA_GATTC_BG_TCK   *p_bg_tck = &bta_gattc_cb.bg_track[0];
     uint8_t   i = 0;
@@ -536,7 +536,7 @@ bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda_pt
             ((remote_bda_ptr != NULL && bdcmp(p_bg_tck->remote_bda, remote_bda_ptr) == 0) ||
             (remote_bda_ptr == NULL && bdcmp(p_bg_tck->remote_bda, dummy_bda) == 0)))
         {
-             p_cif_mask = is_listen ? &p_bg_tck->cif_adv_mask : &p_bg_tck->cif_mask;
+             p_cif_mask = &p_bg_tck->cif_mask;
 
             if (add)
                 /* mask on the cif bit */
@@ -549,7 +549,7 @@ bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda_pt
                     *p_cif_mask = 0;
             }
             /* no BG connection for this device, make it available */
-            if (p_bg_tck->cif_mask == 0 && p_bg_tck->cif_adv_mask == 0)
+            if (p_bg_tck->cif_mask == 0)
             {
                 memset(p_bg_tck, 0, sizeof(tBTA_GATTC_BG_TCK));
             }
@@ -579,7 +579,7 @@ bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda_pt
                 else
                     bdcpy(p_bg_tck->remote_bda, dummy_bda);
 
-                p_cif_mask = is_listen ? &p_bg_tck->cif_adv_mask : &p_bg_tck->cif_mask;
+                p_cif_mask =  &p_bg_tck->cif_mask;
 
                 *p_cif_mask = (1 <<(client_if - 1));
                 return true;
@@ -612,10 +612,6 @@ bool bta_gattc_check_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR remote_bda, uint
         {
             if (((p_bg_tck->cif_mask &(1 <<(client_if - 1))) != 0) &&
                 role == HCI_ROLE_MASTER)
-                is_bg_conn = true;
-
-            if (((p_bg_tck->cif_adv_mask &(1 <<(client_if - 1))) != 0) &&
-                role == HCI_ROLE_SLAVE)
                 is_bg_conn = true;
         }
     }

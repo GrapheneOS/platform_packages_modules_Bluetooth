@@ -355,7 +355,6 @@ typedef struct
     bool                 in_use;
     BD_ADDR                 remote_bda;
     tBTA_GATTC_CIF_MASK     cif_mask;
-    tBTA_GATTC_CIF_MASK     cif_adv_mask;
 
 }tBTA_GATTC_BG_TCK;
 
@@ -464,7 +463,7 @@ extern bool bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data);
 
 extern bool bta_gattc_uuid_compare (const tBT_UUID *p_src, const tBT_UUID *p_tar, bool is_precise);
 extern bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB  *p_clreg, tBTA_GATTC_SERV *p_srcb, tBTA_GATTC_NOTIFY  *p_notify);
-extern bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda, bool add, bool is_listen);
+extern bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda, bool add);
 extern bool bta_gattc_check_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR remote_bda, uint8_t role);
 extern uint8_t bta_gattc_num_reg_app(void);
 extern void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, uint16_t conn_id, uint16_t start_handle, uint16_t end_handle);
