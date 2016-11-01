@@ -477,12 +477,16 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         String id = intent.getStringExtra(AvrcpControllerService.EXTRA_FOLDER_ID);
         Log.d(TAG, "Parent: " + id + " Folder list: " + folderList);
         synchronized (this) {
+            // If we have a result object then we should send the result back
+            // to client since it is blocking otherwise we may have gotten more items
+            // from remote device, hence let client know to fetch again.
             Result<List<MediaItem>> results = mParentIdToRequestMap.remove(id);
             if (results == null) {
-                Log.w(TAG, "Request no longer exists, hence ignoring reply!");
-                return;
+                Log.w(TAG, "Request no longer exists, notifying that children changed.");
+                notifyChildrenChanged(id);
+            } else {
+                results.sendResult(folderList);
             }
-            results.sendResult(folderList);
         }
     }
 

@@ -85,6 +85,13 @@ public class AvrcpControllerService extends ProfileService {
     private static final int JNI_FOLDER_TYPE_PLAYLISTS = 0x05;
     private static final int JNI_FOLDER_TYPE_YEARS = 0x06;
 
+    /*
+     * AVRCP Error types as defined in spec. Also they should be in sync with btrc_status_t.
+     * NOTE: Not all may be defined.
+     */
+    private static final int JNI_AVRC_STS_NO_ERROR = 0x04;
+    private static final int JNI_AVRC_INV_RANGE = 0x0b;
+
     /**
      * Intent used to broadcast the change in browse connection state of the AVRCP Controller
      * profile.
@@ -911,10 +918,22 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Browsing related JNI callbacks.
-    void handleGetFolderItemsRsp(MediaItem[] items) {
+    void handleGetFolderItemsRsp(int status, MediaItem[] items) {
         if (DBG) {
-            Log.d(TAG, "handleGetFolderItemsRsp called with " + items.length + " items.");
+            Log.d(TAG, "handleGetFolderItemsRsp called with status " + status +
+                " items "  + items.length + " items.");
         }
+
+        if (status == JNI_AVRC_INV_RANGE) {
+            Log.w(TAG, "Sending out of range message.");
+            // Send a special message since this could be used by state machine
+            // to take as a signal that fetch is finished.
+            Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
+                MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE);
+            mAvrcpCtSm.sendMessage(msg);
+            return;
+        }
+
         for (MediaItem item : items) {
             if (DBG) {
                 Log.d(TAG, "media item: " + item + " uid: " + item.getDescription().getMediaId());
@@ -1081,11 +1100,11 @@ public class AvrcpControllerService extends ProfileService {
         int label);
 
     /* API used to fetch the current now playing list */
-    native static void getNowPlayingListNative(byte[] address, byte start, byte items);
+    native static void getNowPlayingListNative(byte[] address, byte start, byte end);
     /* API used to fetch the current folder's listing */
-    native static void getFolderListNative(byte[] address, byte start, byte items);
+    native static void getFolderListNative(byte[] address, byte start, byte end);
     /* API used to fetch the listing of players */
-    native static void getPlayerListNative(byte[] address, byte start, byte items);
+    native static void getPlayerListNative(byte[] address, byte start, byte end);
     /* API used to change the folder */
     native static void changeFolderPathNative(byte[] address, byte direction, byte[] uid);
     native static void playItemNative(
