@@ -848,6 +848,23 @@ static void sendRegisterAbsVolRspNative(JNIEnv *env, jobject object, jbyteArray 
     env->ReleaseByteArrayElements(address, addr, 0);
 }
 
+static void getPlaybackStateNative(JNIEnv *env, jobject object, jbyteArray address) {
+
+    if (!sBluetoothAvrcpInterface) return;
+    jbyte *addr = env->GetByteArrayElements(address, NULL);
+    if (!addr) {
+        jniThrowIOException(env, EINVAL);
+        return;
+    }
+    ALOGV("%s: sBluetoothAvrcpInterface: %p", __FUNCTION__, sBluetoothAvrcpInterface);
+    bt_status_t status =
+        sBluetoothAvrcpInterface->get_playback_state_cmd((bt_bdaddr_t *) addr);
+    if (status != BT_STATUS_SUCCESS) {
+        ALOGE("Failed sending getPlaybackStateNative command, status: %d", status);
+    }
+    env->ReleaseByteArrayElements(address, addr, 0);
+}
+
 static void getNowPlayingListNative(JNIEnv *env, jobject object, jbyteArray address, jbyte start,
                                     jbyte items) {
     bt_status_t status;
@@ -1007,6 +1024,7 @@ static JNINativeMethod sMethods[] = {
                                (void *) setPlayerApplicationSettingValuesNative},
     {"sendAbsVolRspNative", "([BII)V",(void *) sendAbsVolRspNative},
     {"sendRegisterAbsVolRspNative", "([BBII)V",(void *) sendRegisterAbsVolRspNative},
+    {"getPlaybackStateNative", "([B)V", (void *) getPlaybackStateNative},
     {"getNowPlayingListNative", "([BBB)V", (void *) getNowPlayingListNative},
     {"getFolderListNative", "([BBB)V", (void *) getFolderListNative},
     {"getPlayerListNative", "([BBB)V", (void *) getPlayerListNative},

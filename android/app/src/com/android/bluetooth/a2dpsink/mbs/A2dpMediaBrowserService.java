@@ -78,16 +78,20 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private static final int MSG_TRACK = 4;
     // Internal message sent to trigger a AVRCP action.
     private static final int MSG_AVRCP_PASSTHRU = 5;
+    // Internal message to trigger a getplaystatus command to remote.
+    private static final int MSG_AVRCP_GET_PLAY_STATUS_NATIVE = 6;
     // Message sent when AVRCP browse is connected.
-    private static final int MSG_DEVICE_BROWSE_CONNECT = 6;
+    private static final int MSG_DEVICE_BROWSE_CONNECT = 7;
     // Message sent when AVRCP browse is disconnected.
-    private static final int MSG_DEVICE_BROWSE_DISCONNECT = 7;
+    private static final int MSG_DEVICE_BROWSE_DISCONNECT = 8;
     // Message sent when folder list is fetched.
     private static final int MSG_FOLDER_LIST = 9;
 
     // Custom actions for PTS testing.
     private String CUSTOM_ACTION_VOL_UP = "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_UP";
     private String CUSTOM_ACTION_VOL_DN = "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_DN";
+    private String CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE =
+        "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
 
     private MediaSession mSession;
     private MediaMetadata mA2dpMetadata;
@@ -135,6 +139,9 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
                     break;
                 case MSG_AVRCP_PASSTHRU:
                     inst.msgPassThru((int) msg.obj);
+                    break;
+                case MSG_AVRCP_GET_PLAY_STATUS_NATIVE:
+                    inst.msgGetPlayStatusNative();
                     break;
                 case MSG_DEVICE_BROWSE_CONNECT:
                     inst.msgDeviceBrowseConnect((BluetoothDevice) msg.obj);
@@ -301,7 +308,10 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
                 mAvrcpCommandQueue.obtainMessage(
                     MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_VOL_DOWN).sendToTarget();
-            } else {
+            } else if (CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE.equals(action)) {
+                mAvrcpCommandQueue.obtainMessage(
+                    MSG_AVRCP_GET_PLAY_STATUS_NATIVE).sendToTarget();
+            }else {
                 Log.w(TAG, "Custom action " + action + " not supported.");
             }
         }
@@ -470,6 +480,18 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             mA2dpDevice, cmd, AvrcpControllerService.KEY_STATE_PRESSED);
         mAvrcpCtrlSrvc.sendPassThroughCmd(
             mA2dpDevice, cmd, AvrcpControllerService.KEY_STATE_RELEASED);
+    }
+
+    private synchronized void msgGetPlayStatusNative() {
+        Log.d(TAG, "msgGetPlayStatusNative");
+        if (mA2dpDevice == null) {
+            // We should have already disconnected - ignore this message.
+            Log.e(TAG, "Already disconnected ignoring.");
+            return;
+        }
+
+        // Ask for a non cached version.
+        mAvrcpCtrlSrvc.getPlaybackState(mA2dpDevice, false);
     }
 
     private void msgDeviceBrowseConnect(BluetoothDevice device) {
