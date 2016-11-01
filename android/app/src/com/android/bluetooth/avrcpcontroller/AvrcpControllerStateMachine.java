@@ -69,8 +69,9 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MESSAGE_PROCESS_PLAY_STATUS_CHANGED = 107;
     static final int MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION = 108;
     static final int MESSAGE_PROCESS_GET_FOLDER_ITEMS = 109;
-    static final int MESSAGE_PROCESS_GET_PLAYER_ITEMS = 110;
-    static final int MESSAGE_PROCESS_FOLDER_PATH = 111;
+    static final int MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE = 110;
+    static final int MESSAGE_PROCESS_GET_PLAYER_ITEMS = 111;
+    static final int MESSAGE_PROCESS_FOLDER_PATH = 112;
     static final int MESSAGE_PROCESS_SET_BROWSED_PLAYER = 113;
 
     // commands from A2DP sink
@@ -88,6 +89,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MESSAGE_INTERNAL_CMD_TIMEOUT = 403;
 
     static final int CMD_TIMEOUT_MILLIS = 5000; // 5s
+    // Fetch only 5 items at a time.
+    static final int GET_FOLDER_ITEMS_PAGINATION_SIZE = 5;
 
     /*
      * Base value for absolute volume from JNI
@@ -102,8 +105,8 @@ class AvrcpControllerStateMachine extends StateMachine {
 
 
     private static final String TAG = "AvrcpControllerSM";
-    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
-    private static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
+    private static final boolean DBG = true;
+    private static final boolean VDBG = true;
 
     private final Context mContext;
     private final AudioManager mAudioManager;
@@ -112,9 +115,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     private final State mConnected;
     private final SetBrowsedPlayer mSetBrowsedPlayer;
     private final ChangeFolderPath mChangeFolderPath;
-    private final GetFolderList mGetFolderListing;
+    private final GetFolderList mGetFolderList;
     private final GetPlayerListing mGetPlayerListing;
-    private final GetNowPlayingList mGetNowPlayingList;
     private final MoveToRoot mMoveToRoot;
 
     private final Object mLock = new Object();
@@ -155,9 +157,8 @@ class AvrcpControllerStateMachine extends StateMachine {
         // Used to change folder path and fetch the new folder listing.
         mSetBrowsedPlayer = new SetBrowsedPlayer();
         mChangeFolderPath = new ChangeFolderPath();
-        mGetFolderListing = new GetFolderList();
+        mGetFolderList = new GetFolderList();
         mGetPlayerListing = new GetPlayerListing();
-        mGetNowPlayingList = new GetNowPlayingList();
         mMoveToRoot = new MoveToRoot();
 
         addState(mDisconnected);
@@ -169,9 +170,8 @@ class AvrcpControllerStateMachine extends StateMachine {
         // deferred so that once we transition to the mConnected we can process them hence.
         addState(mSetBrowsedPlayer, mConnected);
         addState(mChangeFolderPath, mConnected);
-        addState(mGetFolderListing, mConnected);
+        addState(mGetFolderList, mConnected);
         addState(mGetPlayerListing, mConnected);
-        addState(mGetNowPlayingList, mConnected);
         addState(mMoveToRoot, mConnected);
 
         setInitialState(mDisconnected);
@@ -185,6 +185,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             switch (msg.what) {
                 case MESSAGE_PROCESS_CONNECTION_CHANGE:
                     if (msg.arg1 == BluetoothProfile.STATE_CONNECTED) {
+                        mBrowseTree.init();
                         transitionTo(mConnected);
                         BluetoothDevice rtDevice = (BluetoothDevice) msg.obj;
                         synchronized(mLock) {
@@ -212,7 +213,6 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     class Connected extends State {
-
         @Override
         public boolean processMessage(Message msg) {
             Log.d(TAG, " HandleMessage: " + dumpMessageString(msg.what));
@@ -252,23 +252,19 @@ class AvrcpControllerStateMachine extends StateMachine {
                         break;
 
                     case MESSAGE_GET_NOW_PLAYING_LIST:
-                        AvrcpControllerService.getNowPlayingListNative(
-                            mRemoteDevice.getBluetoothAddress(), (byte) msg.arg1,
-                            (byte) msg.arg2);
-                        mGetNowPlayingList.setFolder((String) msg.obj);
-                        transitionTo(mGetNowPlayingList);
+                        mGetFolderList.setFolder((String) msg.obj);
+                        mGetFolderList.setBounds((int) msg.arg1, (int) msg.arg2);
+                        mGetFolderList.setScope(AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING);
+                        transitionTo(mGetFolderList);
                         break;
 
                     case MESSAGE_GET_FOLDER_LIST:
-                        AvrcpControllerService.getFolderListNative(
-                            mRemoteDevice.getBluetoothAddress(), (byte) msg.arg1,
-                            (byte) msg.arg2);
-
                         // Whenever we transition we set the information for folder we need to
                         // return result.
-                        mGetFolderListing.setFolder((String) msg.obj);
-                        transitionTo(mGetFolderListing);
-                        sendMessageDelayed(MESSAGE_INTERNAL_CMD_TIMEOUT, CMD_TIMEOUT_MILLIS);
+                        mGetFolderList.setBounds(msg.arg1, msg.arg2);
+                        mGetFolderList.setFolder((String) msg.obj);
+                        mGetFolderList.setScope(AvrcpControllerService.BROWSE_SCOPE_VFS);
+                        transitionTo(mGetFolderList);
                         break;
 
                     case MESSAGE_GET_PLAYER_LIST:
@@ -322,6 +318,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                                 mIsConnected = false;
                                 mRemoteDevice = null;
                             }
+                            mBrowseTree.clear();
                             transitionTo(mDisconnected);
                             BluetoothDevice rtDevice = (BluetoothDevice) msg.obj;
                             Intent intent = new Intent(
@@ -482,7 +479,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     Log.d(STATE_TAG, "New browse depth " + mBrowseDepth);
 
                     if (msg.arg1 > 0) {
-                        sendMessage(MESSAGE_GET_FOLDER_LIST, 0, 0xff, mID);
+                        sendMessage(MESSAGE_GET_FOLDER_LIST, 0, msg.arg1 -1, mID);
                     } else {
                         // Return an empty response to the upper layer.
                         broadcastFolderList(mID, mEmptyMediaItemList);
@@ -515,10 +512,36 @@ class AvrcpControllerStateMachine extends StateMachine {
         private String STATE_TAG = "AVRCPSM.GetFolderList";
 
         String mID = "";
+        int mStartInd;
+        int mEndInd;
+        int mCurrInd;
+        int mScope;
+        private ArrayList<MediaItem> mFolderList = new ArrayList<>();
+
+        @Override
+        public void enter() {
+            mCurrInd = 0;
+            mFolderList.clear();
+
+            callNativeFunctionForScope(
+                mStartInd, Math.min(mEndInd, mStartInd + GET_FOLDER_ITEMS_PAGINATION_SIZE - 1));
+        }
+
+        public void setScope(int scope) {
+            mScope = scope;
+        }
 
         public void setFolder(String id) {
             Log.d(STATE_TAG, "Setting folder to " + id);
             mID = id;
+        }
+
+        public void setBounds(int startInd, int endInd) {
+            if (DBG) {
+                Log.d(STATE_TAG, "startInd " + startInd + " endInd " + endInd);
+            }
+            mStartInd = startInd;
+            mEndInd = endInd;
         }
 
         @Override
@@ -527,30 +550,42 @@ class AvrcpControllerStateMachine extends StateMachine {
             switch (msg.what) {
                 case MESSAGE_PROCESS_GET_FOLDER_ITEMS:
                     ArrayList<MediaItem> folderList = (ArrayList<MediaItem>) msg.obj;
-                    BrowseTree.BrowseNode bn = mBrowseTree.findBrowseNodeByID(mID);
-                    if (bn.isPlayer()) {
-                        // Add the now playing folder.
-                        MediaDescription.Builder mdb = new MediaDescription.Builder();
-                        mdb.setMediaId(BrowseTree.NOW_PLAYING_PREFIX + ":" +
-                            bn.getPlayerID());
-                        mdb.setTitle(BrowseTree.NOW_PLAYING_PREFIX);
-                        Bundle mdBundle = new Bundle();
-                        mdBundle.putString(
-                            AvrcpControllerService.MEDIA_ITEM_UID_KEY,
-                            BrowseTree.NOW_PLAYING_PREFIX + ":" + bn.getID());
-                        mdb.setExtras(mdBundle);
-                        folderList.add(new MediaItem(mdb.build(), MediaItem.FLAG_BROWSABLE));
+                    mFolderList.addAll(folderList);
+                    if (DBG) {
+                        Log.d(STATE_TAG, "Start " + mStartInd + " End " + mEndInd + " Curr " +
+                            mCurrInd + " received " + folderList.size());
                     }
+                    mCurrInd += folderList.size();
 
-                    mBrowseTree.refreshChildren(bn, folderList);
-                    broadcastFolderList(mID, folderList);
+                    // Always update the node so that the user does not wait forever
+                    // for the list to populate.
+                    sendFolderBroadcastAndUpdateNode();
 
-                    transitionTo(mConnected);
+                    if (mCurrInd > mEndInd) {
+                        transitionTo(mConnected);
+                    } else {
+                        // Fetch the next set of items.
+                        callNativeFunctionForScope(
+                            (byte) mCurrInd,
+                            (byte) Math.min(
+                                mEndInd, mCurrInd + GET_FOLDER_ITEMS_PAGINATION_SIZE - 1));
+                        // Reset the timeout message since we are doing a new fetch now.
+                        removeMessages(MESSAGE_INTERNAL_CMD_TIMEOUT);
+                        sendMessageDelayed(MESSAGE_INTERNAL_CMD_TIMEOUT, CMD_TIMEOUT_MILLIS);
+                    }
                     break;
 
                 case MESSAGE_INTERNAL_CMD_TIMEOUT:
-                    // We have timed out to execute the request.
-                    broadcastFolderList(mID, mEmptyMediaItemList);
+                    // We have timed out to execute the request, we should simply send
+                    // whatever listing we have gotten until now.
+                    sendFolderBroadcastAndUpdateNode();
+                    transitionTo(mConnected);
+                    break;
+
+                case MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE:
+                    // If we have gotten an error for OUT OF RANGE we have
+                    // already sent all the items to the client hence simply
+                    // transition to Connected state here.
                     transitionTo(mConnected);
                     break;
 
@@ -559,6 +594,46 @@ class AvrcpControllerStateMachine extends StateMachine {
                     deferMessage(msg);
             }
             return true;
+        }
+
+        private void sendFolderBroadcastAndUpdateNode() {
+            BrowseTree.BrowseNode bn = mBrowseTree.findBrowseNodeByID(mID);
+            if (bn.isPlayer()) {
+                // Add the now playing folder.
+                MediaDescription.Builder mdb = new MediaDescription.Builder();
+                mdb.setMediaId(BrowseTree.NOW_PLAYING_PREFIX + ":" +
+                    bn.getPlayerID());
+                mdb.setTitle(BrowseTree.NOW_PLAYING_PREFIX);
+                Bundle mdBundle = new Bundle();
+                mdBundle.putString(
+                    AvrcpControllerService.MEDIA_ITEM_UID_KEY,
+                    BrowseTree.NOW_PLAYING_PREFIX + ":" + bn.getID());
+                mdb.setExtras(mdBundle);
+                mFolderList.add(new MediaItem(mdb.build(), MediaItem.FLAG_BROWSABLE));
+            }
+            mBrowseTree.refreshChildren(bn, mFolderList);
+            broadcastFolderList(mID, mFolderList);
+
+            // For now playing we need to set the current browsed folder here.
+            // For normal folders it is set after ChangeFolderPath.
+            if (mScope == AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING) {
+                mBrowseTree.setCurrentBrowsedFolder(mID);
+            }
+        }
+
+        private void callNativeFunctionForScope(int start, int end) {
+            switch (mScope) {
+                case AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING:
+                    AvrcpControllerService.getNowPlayingListNative(
+                        mRemoteDevice.getBluetoothAddress(), (byte) start, (byte) end);
+                    break;
+                case AvrcpControllerService.BROWSE_SCOPE_VFS:
+                    AvrcpControllerService.getFolderListNative(
+                        mRemoteDevice.getBluetoothAddress(), (byte) start, (byte) end);
+                    break;
+                default:
+                    Log.e(STATE_TAG, "Scope " + mScope + " cannot be handled here.");
+            }
         }
     }
 
@@ -590,41 +665,6 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // We have timed out to execute the request.
                     // Send an empty list here.
                     broadcastFolderList(BrowseTree.ROOT, mEmptyMediaItemList);
-                    transitionTo(mConnected);
-                    break;
-
-                default:
-                    Log.d(STATE_TAG, "deferring message " + msg + " to connected!");
-                    deferMessage(msg);
-            }
-            return true;
-        }
-    }
-
-    class GetNowPlayingList extends CmdState {
-        private String STATE_TAG = "AVRCPSM.NowPlayingList";
-        private String mID = "";
-
-        public void setFolder(String id) {
-            mID = id;
-        }
-
-        @Override
-        public boolean processMessage(Message msg) {
-            Log.d(STATE_TAG, "processMessage " + msg);
-            switch (msg.what) {
-                case MESSAGE_PROCESS_GET_FOLDER_ITEMS:
-                    ArrayList<MediaItem> folderList = (ArrayList<MediaItem>) msg.obj;
-                    broadcastFolderList(mID, folderList);
-
-                    BrowseTree.BrowseNode bn = mBrowseTree.findBrowseNodeByID(mID);
-                    mBrowseTree.refreshChildren(bn, folderList);
-                    mBrowseTree.setCurrentBrowsedFolder(mID);
-                    transitionTo(mConnected);
-                    break;
-
-                case MESSAGE_INTERNAL_CMD_TIMEOUT:
-                    broadcastFolderList(mID, mEmptyMediaItemList);
                     transitionTo(mConnected);
                     break;
 
@@ -795,7 +835,14 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
     }
 
-    // Browsing related functions.
+    // Entry point to the state machine where the services should call to fetch children
+    // for a specific node. It checks if the currently browsed node is the same as the one being
+    // asked for, in that case it returns the currently cached children. This saves bandwidth and
+    // also if we are already fetching elements for a current folder (since we need to batch
+    // fetches) then we should not submit another request but simply return what we have fetched
+    // until now.
+    //
+    // It handles fetches to all VFS, Now Playing and Media Player lists.
     void getChildren(String parentMediaId, int start, int items) {
         BrowseTree.BrowseNode bn = mBrowseTree.findBrowseNodeByID(parentMediaId);
         if (bn == null) {
@@ -804,17 +851,36 @@ class AvrcpControllerStateMachine extends StateMachine {
             return;
         }
 
+        if (bn.equals(mBrowseTree.getCurrentBrowsedFolder()) && bn.isCached()) {
+            if (DBG) {
+                Log.d(TAG, "Same cached folder -- returning existing children.");
+            }
+            BrowseTree.BrowseNode n = mBrowseTree.findBrowseNodeByID(parentMediaId);
+            ArrayList<MediaItem> childrenList = new ArrayList<MediaItem>();
+            for (BrowseTree.BrowseNode cn : n.getChildren()) {
+                childrenList.add(cn.getMediaItem());
+            }
+            broadcastFolderList(parentMediaId, childrenList);
+            return;
+        }
+
         Message msg = null;
+        int btDirection = mBrowseTree.getDirection(parentMediaId);
+        BrowseTree.BrowseNode currFol = mBrowseTree.getCurrentBrowsedFolder();
+        if (DBG) {
+            Log.d(TAG, "Browse direction parent " + mBrowseTree.getCurrentBrowsedFolder() +
+                " req " + parentMediaId + " direction " + btDirection);
+        }
         if (BrowseTree.ROOT.equals(parentMediaId)) {
             // Root contains the list of players.
             msg = obtainMessage(AvrcpControllerStateMachine.MESSAGE_GET_PLAYER_LIST, start, items);
-        } else if (bn.isPlayer()) {
+        } else if (bn.isPlayer() && btDirection != BrowseTree.DIRECTION_SAME) {
             // Set browsed (and addressed player) as the new player.
             // This should fetch the list of folders.
             msg = obtainMessage(AvrcpControllerStateMachine.MESSAGE_SET_BROWSED_PLAYER,
                 bn.getPlayerID(), 0, bn.getID());
         } else if (bn.isNowPlaying()) {
-            // Get all songs in the list.
+            // Issue a request to fetch the items.
             msg = obtainMessage(
                 AvrcpControllerStateMachine.MESSAGE_GET_NOW_PLAYING_LIST,
                 start, items, parentMediaId);
@@ -822,30 +888,31 @@ class AvrcpControllerStateMachine extends StateMachine {
             // Only change folder if desired. If an app refreshes a folder
             // (because it resumed etc) and current folder does not change
             // then we can simply fetch list.
-            BrowseTree.BrowseNode currFol = mBrowseTree.getCurrentBrowsedFolder();
 
             // We exempt two conditions from change folder:
             // a) If the new folder is the same as current folder (refresh of UI)
-            // b) If the new folder is ROOT and current folder is NOW_PLAYING. In this
-            // condition we 'fake' child-parent hierarchy but it does not exist in
+            // b) If the new folder is ROOT and current folder is NOW_PLAYING (or vice-versa)
+            // In this condition we 'fake' child-parent hierarchy but it does not exist in
             // bluetooth world.
             boolean isNowPlayingToRoot =
                 currFol.isNowPlaying() && bn.getID().equals(BrowseTree.ROOT);
-            if (!bn.equals(currFol) && !isNowPlayingToRoot) {
+            if (!isNowPlayingToRoot) {
                 // Find the direction of traversal.
-                int direction;
-                int btDirection = mBrowseTree.getDirection(parentMediaId);
+                int direction = -1;
                 Log.d(TAG, "Browse direction " + currFol + " " + bn + " = " + btDirection);
-                if (btDirection == BrowseTree.DIRECTION_DOWN) {
-                    direction = AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_DOWN;
-                } else if (btDirection == BrowseTree.DIRECTION_UP) {
-                    direction = AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP;
-                } else {
+                if (btDirection == BrowseTree.DIRECTION_UNKNOWN) {
                     Log.w(TAG, "parent " + bn + " is not a direct " +
                         "successor or predeccessor of current folder " + currFol);
                     broadcastFolderList(parentMediaId, mEmptyMediaItemList);
                     return;
                 }
+
+                if (btDirection == BrowseTree.DIRECTION_DOWN) {
+                    direction = AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_DOWN;
+                } else if (btDirection == BrowseTree.DIRECTION_UP) {
+                    direction = AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP;
+                }
+
                 Bundle b = new Bundle();
                 b.putString(AvrcpControllerService.EXTRA_FOLDER_ID, bn.getID());
                 b.putString(AvrcpControllerService.EXTRA_FOLDER_BT_ID, bn.getFolderUID());
@@ -858,6 +925,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     start, items, bn.getFolderUID());
             }
         }
+
         if (msg != null) {
             sendMessage(msg);
         }
