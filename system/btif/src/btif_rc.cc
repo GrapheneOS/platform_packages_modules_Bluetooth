@@ -317,6 +317,7 @@ static void handle_app_attr_val_txt_response(tBTA_AV_META_MSG* pmeta_msg,
                                              tAVRC_GET_APP_ATTR_TXT_RSP* p_rsp);
 static void handle_get_playstatus_response(tBTA_AV_META_MSG* pmeta_msg,
                                            tAVRC_GET_PLAY_STATUS_RSP* p_rsp);
+static void handle_set_addressed_player_response(tBTA_AV_META_MSG *pmeta_msg, tAVRC_RSP *p_rsp);
 static void handle_get_elem_attr_response(tBTA_AV_META_MSG* pmeta_msg,
                                           tAVRC_GET_ELEM_ATTRS_RSP* p_rsp);
 static void handle_set_app_attr_val_response(tBTA_AV_META_MSG* pmeta_msg,
@@ -4066,6 +4067,40 @@ static void handle_get_playstatus_response(tBTA_AV_META_MSG* pmeta_msg,
 }
 
 /***************************************************************************
+**
+** Function         handle_set_addressed_player_response
+**
+** Description      handles the the set addressed player response, calls
+**                  HAL callback
+** Returns          None
+**
+***************************************************************************/
+static void handle_set_addressed_player_response(tBTA_AV_META_MSG *pmeta_msg,
+                                                 tAVRC_RSP *p_rsp) {
+  bt_bdaddr_t rc_addr;
+
+  btif_rc_device_cb_t* p_dev =
+      btif_rc_get_device_by_handle(pmeta_msg->rc_handle);
+
+  if (p_dev == NULL) {
+    BTIF_TRACE_ERROR("%s: p_dev NULL", __func__);
+    return;
+  }
+
+  bdcpy(rc_addr.address, p_dev->rc_addr);
+
+  if (p_rsp->status == AVRC_STS_NO_ERROR) {
+    HAL_CBACK(bt_rc_ctrl_callbacks,
+              set_addressed_player_cb,
+              &rc_addr,
+              p_rsp->status);
+  } else {
+    BTIF_TRACE_ERROR("%s: Error in get play status procedure %d",
+                     __FUNCTION__, p_rsp->status);
+  }
+}
+
+/***************************************************************************
  *
  * Function         handle_get_folder_items_response
  *
@@ -4452,6 +4487,10 @@ static void handle_avk_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg) {
         handle_get_playstatus_response(pmeta_msg,
                                        &avrc_response.get_play_status);
         break;
+
+      case AVRC_PDU_SET_ADDRESSED_PLAYER:
+	handle_set_addressed_player_response(pmeta_msg, &avrc_response.rsp);
+	break;
     }
   } else if (AVRC_OP_BROWSE == pmeta_msg->p_msg->hdr.opcode) {
     BTIF_TRACE_DEBUG("%s AVRC_OP_BROWSE pdu %d", __func__, avrc_response.pdu);
@@ -4996,7 +5035,67 @@ static bt_status_t set_browsed_player_cmd(bt_bdaddr_t* bd_addr, uint16_t id) {
 #endif
 }
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
+/***************************************************************************
+ **
+ ** Function         set_addressed_player_cmd
+ **
+ ** Description      Change the addressed player.
+ **
+ ** Paramters        id: The UID of player to move to
+ **
+ ** Returns          BT_STATUS_SUCCESS if command issued successfully otherwise
+ **                  BT_STATUS_FAIL.
+ **
+ ***************************************************************************/
+static bt_status_t set_addressed_player_cmd(bt_bdaddr_t *bd_addr, uint16_t id)
+{
+  BTIF_TRACE_DEBUG("%s id (%d)", __func__, id);
+#if (AVRC_CTLR_INCLUDED == TRUE)
+  CHECK_RC_CONNECTED
+      CHECK_BR_CONNECTED
+      tAVRC_STS status = BT_STATUS_UNSUPPORTED;
+  rc_transaction_t *p_transaction = NULL;
+
+  if (btif_rc_cb.br_connected) {
+    tAVRC_COMMAND avrc_cmd = {0};
+    BT_HDR *p_msg = NULL;
+
+    avrc_cmd.addr_player.pdu = AVRC_PDU_SET_ADDRESSED_PLAYER;
+    avrc_cmd.addr_player.status = AVRC_STS_NO_ERROR;
+    // TODO(sanketa): Improve for database aware clients.
+    avrc_cmd.addr_player.player_id = id;
+
+    if (AVRC_BldCommand(&avrc_cmd, &p_msg) == AVRC_STS_NO_ERROR) {
+      bt_status_t tran_status = get_transaction(&p_transaction);
+      if (BT_STATUS_SUCCESS == tran_status && p_transaction != NULL) {
+        BTIF_TRACE_DEBUG("%s msgreq being sent out with label %d",
+                         __func__, p_transaction->lbl);
+        BTA_AvMetaCmd(btif_rc_cb.rc_handle, p_transaction->lbl,
+                      AVRC_CMD_CTRL, p_msg);
+        status = BT_STATUS_SUCCESS;
+      } else {
+        osi_free(p_msg);
+        BTIF_TRACE_ERROR("%s: failed to obtain txn details. status: 0x%02x",
+                         __func__, tran_status);
+        status = BT_STATUS_FAIL;
+      }
+    } else {
+      BTIF_TRACE_ERROR("%s failed to build command status %d",
+                       __func__, status);
+      status = BT_STATUS_FAIL;
+    }
+  } else {
+    BTIF_TRACE_ERROR("%s command not supported by peer features %d",
+                     __func__, btif_rc_cb.rc_features);
+    status = BT_STATUS_FAIL;
+  }
+  return status;
+#else
+  BTIF_TRACE_ERROR("%s AVRCP controller role is not enabled", __func__);
+  return BT_STATUS_FAIL;
+#endif
+}
+
 /***************************************************************************
  *
  * Function         get_folder_items_cmd
@@ -5065,7 +5164,6 @@ static bt_status_t get_folder_items_cmd(bt_bdaddr_t* bd_addr, uint8_t scope,
   }
   return (bt_status_t)status;
 }
-#endif
 
 /***************************************************************************
  *
@@ -5672,6 +5770,7 @@ static const btrc_ctrl_interface_t bt_rc_ctrl_interface = {
     get_player_list_cmd,
     change_folder_path_cmd,
     set_browsed_player_cmd,
+    set_addressed_player_cmd,
     set_volume_rsp,
     volume_change_notification_rsp,
     cleanup_ctrl,
