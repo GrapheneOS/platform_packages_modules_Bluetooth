@@ -339,7 +339,7 @@ class AdvertiseManager {
             if (mAdapterService.isMultiAdvertisementSupported()) {
                 gattClientEnableAdvNative(client.advertiserId, false, 0);
             } else {
-                gattAdvertiseNative(client.advertiserId, false);
+                gattAdvertiseNative(false);
                 try {
                     mService.onAdvertiseInstanceEnabled(
                             AdvertiseCallback.ADVERTISE_SUCCESS, client.advertiserId, false);
@@ -387,7 +387,7 @@ class AdvertiseManager {
             if (mAdapterService.isMultiAdvertisementSupported()) {
                 gattClientEnableAdvNative(advertiserId, enable, advertiseTimeoutSeconds);
             } else {
-                gattAdvertiseNative(client.advertiserId, enable);
+                gattAdvertiseNative(enable);
             }
         }
 
@@ -605,7 +605,7 @@ class AdvertiseManager {
 
         private native void gattSetAdvDataNative(boolean setScanRsp, byte[] data);
 
-        private native void gattAdvertiseNative(int advertiserId, boolean start);
+        private native void gattAdvertiseNative(boolean start);
     }
 
     private void logd(String s) {
