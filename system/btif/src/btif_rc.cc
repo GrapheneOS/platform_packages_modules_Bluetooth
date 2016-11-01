@@ -4825,6 +4825,22 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib,
 }
 
 /***************************************************************************
+**
+** Function         get_playback_state_cmd
+**
+** Description      Fetch the current playback state for the device
+**
+** Returns          BT_STATUS_SUCCESS if command issued successfully otherwise
+**                  BT_STATUS_FAIL.
+**
+***************************************************************************/
+static bt_status_t get_playback_state_cmd(bt_bdaddr_t *bd_addr) {
+    BTIF_TRACE_DEBUG("%s", __func__);
+    btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);
+    return get_play_status_cmd(p_dev);
+}
+
+/***************************************************************************
  *
  * Function         get_now_playing_list_cmd
  *
@@ -5765,6 +5781,7 @@ static const btrc_ctrl_interface_t bt_rc_ctrl_interface = {
     send_groupnavigation_cmd,
     change_player_app_setting,
     play_item_cmd,
+    get_playback_state_cmd,
     get_now_playing_list_cmd,
     get_folder_list_cmd,
     get_player_list_cmd,
