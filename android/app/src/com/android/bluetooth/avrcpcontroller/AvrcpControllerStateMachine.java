@@ -890,12 +890,22 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     PlaybackState getCurrentPlayBackState() {
-        synchronized (mLock) {
-            if (mAddressedPlayer == null) {
-                return new PlaybackState.Builder().setState(PlaybackState.STATE_ERROR,
-                    PlaybackState.PLAYBACK_POSITION_UNKNOWN,0).build();
+        return getCurrentPlayBackState(true);
+    }
+
+    PlaybackState getCurrentPlayBackState(boolean cached) {
+        if (cached) {
+            synchronized (mLock) {
+                if (mAddressedPlayer == null) {
+                    return new PlaybackState.Builder().setState(PlaybackState.STATE_ERROR,
+                        PlaybackState.PLAYBACK_POSITION_UNKNOWN,0).build();
+                }
+                return mAddressedPlayer.getPlaybackState();
             }
-            return mAddressedPlayer.getPlaybackState();
+        } else {
+            // Issue a native request, we return NULL since this is only for PTS.
+            AvrcpControllerService.getPlaybackStateNative(mRemoteDevice.getBluetoothAddress());
+            return null;
         }
     }
 
