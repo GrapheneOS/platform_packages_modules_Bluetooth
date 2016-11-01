@@ -78,7 +78,7 @@ LOCAL_SHARED_LIBRARIES := \
     liblog \
     libz \
     libpower \
-    libprotobuf-cpp-full \
+    libprotobuf-cpp-lite \
     libmedia \
     libutils \
     libchrome
