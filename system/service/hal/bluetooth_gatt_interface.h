@@ -114,10 +114,6 @@ class BluetoothGattInterface {
         BluetoothGattInterface* gatt_iface,
         int conn_id, int status, uint16_t handle);
 
-    virtual void ListenCallback(
-        BluetoothGattInterface* gatt_iface,
-        int status, int client_if);
-
     virtual void MtuChangedCallback(
         BluetoothGattInterface* gatt_iface,
         int conn_id, int status, int mtu);
