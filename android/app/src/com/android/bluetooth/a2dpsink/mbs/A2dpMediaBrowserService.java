@@ -256,25 +256,20 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
                     .sendToTarget();
         }
 
-        // These are not yet supported.
         @Override
-        public void onCustomAction(String action, Bundle extras) {
-            Log.d(TAG, "onCustomAction action=" + action + " extras=" + extras);
+        public void onRewind() {
+            Log.d(TAG, "onRewind");
+            mAvrcpCommandQueue.obtainMessage(
+                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_REWIND).sendToTarget();
+            // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
-        public void onPlayFromSearch(String query, Bundle extras) {
-            Log.d(TAG, "playFromSearch not supported in AVRCP");
-        }
-
-        @Override
-        public void onCommand(String command, Bundle args, ResultReceiver cb) {
-            Log.d(TAG, "onCommand command=" + command + " args=" + args);
-        }
-
-        @Override
-        public void onSkipToQueueItem(long queueId) {
-            Log.d(TAG, "onSkipToQueueItem");
+        public void onFastForward() {
+            Log.d(TAG, "onFastForward");
+            mAvrcpCommandQueue.obtainMessage(
+                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_FF).sendToTarget();
+            // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
