@@ -424,15 +424,21 @@ final class HeadsetClientStateMachine extends StateMachine {
                 callRetainedIds.add(hfOriginatedAssoc);
             } else if (SystemClock.elapsedRealtime() - cCreationElapsed > OUTGOING_TIMEOUT_MILLI) {
                 Log.w(TAG, "Outgoing call did not see a response, clear the calls and send CHUP");
+                // We send a terminate because we are in a bad state and trying to
+                // recover.
                 terminateCall();
 
-                // Clean out the state.
+                // Clean out the state for outgoing call.
                 for (Integer idx : mCalls.keySet()) {
                     BluetoothHeadsetClientCall c1 = mCalls.get(idx);
                     c1.setState(BluetoothHeadsetClientCall.CALL_STATE_TERMINATED);
-                    sendCallChangedIntent(c);
+                    sendCallChangedIntent(c1);
                 }
                 mCalls.clear();
+
+                // We return here, if there's any update to the phone we should get a
+                // follow up by getting some call indicators and hence update the calls.
+                return;
             }
         }
 
@@ -491,18 +497,7 @@ final class HeadsetClientStateMachine extends StateMachine {
         if (DBG) {
             Log.d(TAG, "loopQueryCalls, starting call query loop");
         }
-        if (mCalls.size() > 0) {
-            return true;
-        }
-
-        // Workaround for Windows Phone 7.8 not sending callsetup=0 after
-        // rejecting incoming call in 3WC use case (when no active calls present).
-        // Fixes both, AG and HF rejecting the call.
-        BluetoothHeadsetClientCall c = getCall(BluetoothHeadsetClientCall.CALL_STATE_INCOMING);
-        if (c != null && mIndicatorCallSetup == HeadsetClientHalConstants.CALLSETUP_NONE)
-            return true;
-
-        return false;
+        return (mCalls.size() > 0);
     }
 
     private void acceptCall(int flag, boolean retry) {
