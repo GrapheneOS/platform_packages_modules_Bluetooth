@@ -371,7 +371,7 @@ static void btavrcp_play_status_changed_callback(bt_bdaddr_t *bd_addr,
 }
 
 static void btavrcp_get_folder_items_callback(bt_bdaddr_t *bd_addr,
-        const btrc_folder_items_t *folder_items, uint8_t count) {
+        btrc_status_t status, const btrc_folder_items_t *folder_items, uint8_t count) {
     /* Folder items are list of items that can be either BTRC_ITEM_PLAYER
      * BTRC_ITEM_MEDIA, BTRC_ITEM_FOLDER. Here we translate them to their java
      * counterparts by calling the java constructor for each of the items.
@@ -516,7 +516,7 @@ static void btavrcp_get_folder_items_callback(bt_bdaddr_t *bd_addr,
                                      playerItemArray);
     } else {
         sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleGetFolderItemsRsp,
-                                     folderItemArray);
+                                     status, folderItemArray);
     }
     if (isPlayerListing) {
         sCallbackEnv->DeleteLocalRef(playerItemArray);
@@ -600,7 +600,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
         env->GetMethodID(clazz, "onPlayStatusChanged", "([BB)V");
 
     method_handleGetFolderItemsRsp =
-        env->GetMethodID(clazz, "handleGetFolderItemsRsp", "([Landroid/media/browse/MediaBrowser$MediaItem;)V");
+        env->GetMethodID(clazz, "handleGetFolderItemsRsp", "(I[Landroid/media/browse/MediaBrowser$MediaItem;)V");
     method_handleGetPlayerItemsRsp =
         env->GetMethodID(clazz, "handleGetPlayerItemsRsp",
                          "([Lcom/android/bluetooth/avrcpcontroller/AvrcpPlayer;)V");
