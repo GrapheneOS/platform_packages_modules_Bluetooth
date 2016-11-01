@@ -365,15 +365,6 @@ bool bta_gattc_hdl_event(BT_HDR *p_msg)
             bta_gattc_process_api_refresh((tBTA_GATTC_DATA *) p_msg);
             break;
 
-#if (BLE_INCLUDED == TRUE)
-        case BTA_GATTC_API_LISTEN_EVT:
-            bta_gattc_listen((tBTA_GATTC_DATA *) p_msg);
-            break;
-        case BTA_GATTC_API_BROADCAST_EVT:
-            bta_gattc_broadcast((tBTA_GATTC_DATA *) p_msg);
-            break;
-#endif
-
         case BTA_GATTC_ENC_CMPL_EVT:
             bta_gattc_process_enc_cmpl((tBTA_GATTC_DATA *) p_msg);
             break;
@@ -461,8 +452,6 @@ static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code)
             return "BTA_GATTC_API_DEREG_EVT";
         case BTA_GATTC_API_REFRESH_EVT:
             return "BTA_GATTC_API_REFRESH_EVT";
-        case BTA_GATTC_API_LISTEN_EVT:
-            return "BTA_GATTC_API_LISTEN_EVT";
         case BTA_GATTC_API_DISABLE_EVT:
             return "BTA_GATTC_API_DISABLE_EVT";
         case BTA_GATTC_API_CFG_MTU_EVT:
