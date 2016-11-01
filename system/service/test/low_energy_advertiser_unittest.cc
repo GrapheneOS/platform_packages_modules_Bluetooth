@@ -51,6 +51,7 @@ class MockAdvertiserHandler : public BleAdvertiserInterface {
   MOCK_METHOD1(Unregister, void(uint8_t));
 
   MOCK_METHOD2(SetData, void(bool set_scan_rsp, vector<uint8_t> data));
+  MOCK_METHOD2(Enable, void(bool enablle, BleAdvertiserCb cb));
   MOCK_METHOD7(MultiAdvSetParameters,
                void(int advertiser_id, int min_interval, int max_interval,
                     int adv_type, int chnl_map, int tx_power,
