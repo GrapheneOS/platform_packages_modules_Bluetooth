@@ -283,12 +283,8 @@ void bta_gattc_deregister(tBTA_GATTC_RCB  *p_clreg)
             {
                 if (bta_gattc_cb.bg_track[i].cif_mask & (1 <<(p_clreg->client_if - 1)))
                 {
-                    bta_gattc_mark_bg_conn(p_clreg->client_if, bta_gattc_cb.bg_track[i].remote_bda, false, false);
+                    bta_gattc_mark_bg_conn(p_clreg->client_if, bta_gattc_cb.bg_track[i].remote_bda, false);
                     GATT_CancelConnect(p_clreg->client_if, bta_gattc_cb.bg_track[i].remote_bda, false);
-                }
-                if (bta_gattc_cb.bg_track[i].cif_adv_mask & (1 <<(p_clreg->client_if - 1)))
-                {
-                    bta_gattc_mark_bg_conn(p_clreg->client_if, bta_gattc_cb.bg_track[i].remote_bda, false, true);
                 }
             }
         }
@@ -549,7 +545,7 @@ void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *p_clreg
     tBTA_GATTC_CLCB         *p_clcb;
     tBTA_GATTC_DATA         gattc_data;
 
-    if (bta_gattc_mark_bg_conn(p_data->client_if, p_data->remote_bda, true, false))
+    if (bta_gattc_mark_bg_conn(p_data->client_if, p_data->remote_bda, true))
     {
         /* always call open to hold a connection */
         if (!GATT_Connect(p_data->client_if, p_data->remote_bda, false, p_data->transport, false))
@@ -606,7 +602,7 @@ void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN *p_data)
     cb_data.status = BTA_GATT_ERROR;
 
     /* remove the device from the bg connection mask */
-    if (bta_gattc_mark_bg_conn(p_data->client_if, p_data->remote_bda, false, false))
+    if (bta_gattc_mark_bg_conn(p_data->client_if, p_data->remote_bda, false))
     {
         if (GATT_CancelConnect(p_data->client_if, p_data->remote_bda, false))
         {
@@ -1903,71 +1899,6 @@ static void bta_gattc_cong_cback (uint16_t conn_id, bool congested)
 #if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
-** Function         bta_gattc_init_clcb_conn
-**
-** Description      Initaite a BTA CLCB connection
-**
-** Returns          void
-**
-********************************************************************************/
-void bta_gattc_init_clcb_conn(uint8_t cif, BD_ADDR remote_bda)
-{
-    tBTA_GATTC_CLCB     *p_clcb = NULL;
-    tBTA_GATTC_DATA     gattc_data;
-    uint16_t              conn_id;
-
-    /* should always get the connection ID */
-    if (GATT_GetConnIdIfConnected(cif, remote_bda, &conn_id, BTA_GATT_TRANSPORT_LE) == false)
-    {
-        APPL_TRACE_ERROR("bta_gattc_init_clcb_conn ERROR: not a connected device");
-        return;
-    }
-
-    /* initaite a new connection here */
-    if ((p_clcb = bta_gattc_clcb_alloc(cif, remote_bda, BTA_GATT_TRANSPORT_LE)) != NULL)
-    {
-        gattc_data.hdr.layer_specific = p_clcb->bta_conn_id = conn_id;
-
-        gattc_data.api_conn.client_if = cif;
-        memcpy(gattc_data.api_conn.remote_bda, remote_bda, BD_ADDR_LEN);
-        gattc_data.api_conn.is_direct = true;
-
-        bta_gattc_sm_execute(p_clcb, BTA_GATTC_API_OPEN_EVT, &gattc_data);
-    }
-    else
-    {
-        APPL_TRACE_ERROR("No resources");
-    }
-}
-/*******************************************************************************
-**
-** Function         bta_gattc_process_listen_all
-**
-** Description      process listen all, send open callback to application for all
-**                  connected slave LE link.
-**
-** Returns          void
-**
-********************************************************************************/
-void bta_gattc_process_listen_all(uint8_t cif)
-{
-    uint8_t               i_conn = 0;
-    tBTA_GATTC_CONN     *p_conn = &bta_gattc_cb.conn_track[0];
-
-    for (i_conn = 0; i_conn < BTA_GATTC_CONN_MAX; i_conn++, p_conn ++)
-    {
-        if (p_conn->in_use )
-        {
-            if (bta_gattc_find_clcb_by_cif(cif, p_conn->remote_bda, BTA_GATT_TRANSPORT_LE) == NULL)
-            {
-                bta_gattc_init_clcb_conn(cif, p_conn->remote_bda);
-            }
-            /* else already connected */
-        }
-    }
-}
-/*******************************************************************************
-**
 ** Function         bta_gattc_listen
 **
 ** Description      Start or stop a listen for connection
@@ -1990,24 +1921,10 @@ void bta_gattc_listen(tBTA_GATTC_DATA * p_msg)
         return;
     }
     /* mark bg conn record */
-    if (bta_gattc_mark_bg_conn(p_msg->api_listen.client_if,
-                               (BD_ADDR_PTR) NULL,
-                               p_msg->api_listen.start,
-                               true))
-    {
-        GATT_Listen(p_msg->api_listen.start);
-        cb_data.status = BTA_GATT_OK;
+    GATT_Listen(p_msg->api_listen.start);
+    cb_data.status = BTA_GATT_OK;
 
-        (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
-
-        if (p_msg->api_listen.start)
-        {
-            LOG_DEBUG(LOG_TAG, "Listen For All now");
-            /* go through all connected device and send
-            callback for all connected slave connection */
-            bta_gattc_process_listen_all(p_msg->api_listen.client_if);
-        }
-    }
+    (*p_clreg->p_cback)(BTA_GATTC_LISTEN_EVT, &cb_data);
 }
 
 /*******************************************************************************
