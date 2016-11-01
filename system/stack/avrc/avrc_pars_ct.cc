@@ -196,6 +196,11 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE *p_msg, tAVRC_RESPONSE *p
                             __func__, get_item_rsp->pdu, get_item_rsp->status, pkt_len,
                             get_item_rsp->uid_counter, get_item_rsp->item_count);
 
+        if (get_item_rsp->status != AVRC_STS_NO_ERROR) {
+            AVRC_TRACE_WARNING("%s returning error %d", __func__, get_item_rsp->status);
+            return get_item_rsp->status;
+        }
+
         /* get each of the items */
         get_item_rsp->p_item_list =
             (tAVRC_ITEM *) osi_malloc (get_item_rsp->item_count * (sizeof(tAVRC_ITEM)));
