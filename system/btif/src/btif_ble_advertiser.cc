@@ -127,6 +127,21 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     }
   }
 
+  void EnableCb(BleAdvertiserCb cb, uint8_t status) {
+    LOG(INFO) << __func__ << " status: " << +status;
+    do_in_jni_thread(Bind(cb, status));
+  }
+
+  void Enable(bool start, BleAdvertiserCb cb) override {
+#if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && \
+     (BLE_PERIPHERAL_MODE_SUPPORT == true))
+    do_in_jni_thread(Bind(&GATT_Listen, start));
+#else
+    do_in_jni_thread(Bind(&BTM_BleBroadcast, start));
+#endif
+    cb.Run(BT_STATUS_SUCCESS);
+  }
+
   void MultiAdvSetParametersCb(BleAdvertiserCb cb, uint8_t status) {
     LOG(INFO) << __func__ << " status: " << +status ;
     do_in_jni_thread(Bind(cb, status));

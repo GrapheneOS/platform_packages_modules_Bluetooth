@@ -328,21 +328,6 @@ bt_status_t btif_gattc_close(int client_if, const bt_bdaddr_t* bd_addr,
       Bind(&btif_gattc_close_impl, client_if, base::Owned(address), conn_id));
 }
 
-void btif_gattc_listen_cb(int client_if, uint8_t status)
-{
-  HAL_CBACK(bt_gatt_callbacks, client->listen_cb, status, client_if);
-}
-
-bt_status_t btif_gattc_listen(int client_if, bool start) {
-  CHECK_BTGATT_INIT();
-#if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && \
-     (BLE_PERIPHERAL_MODE_SUPPORT == true))
-  return do_in_jni_thread(Bind(&BTA_GATTC_Listen, start, base::Bind(&btif_gattc_listen_cb, client_if)));
-#else
-  return do_in_jni_thread(Bind(&BTA_GATTC_Broadcast, start, base::Bind(&btif_gattc_listen_cb, client_if)));
-#endif
-}
-
 bt_status_t btif_gattc_refresh(int client_if, const bt_bdaddr_t* bd_addr) {
   CHECK_BTGATT_INIT();
   // Closure will own this value and free it.
@@ -561,7 +546,6 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_unregister_app,
     btif_gattc_open,
     btif_gattc_close,
-    btif_gattc_listen,
     btif_gattc_refresh,
     btif_gattc_search_service,
     btif_gattc_read_char,
