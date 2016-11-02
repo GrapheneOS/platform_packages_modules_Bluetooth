@@ -1786,6 +1786,7 @@ public class AdapterService extends Service {
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
         A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
         PbapClientService pbapClientService = PbapClientService.getPbapClientService();
+        MapClientService mapClientService = MapClientService.getMapClientService();
         PanService panService = PanService.getPanService();
 
         boolean allProfilesEmpty = true;
@@ -1794,6 +1795,7 @@ public class AdapterService extends Service {
         List<BluetoothDevice> headsetClientConnDevList = null;
         List<BluetoothDevice> a2dpSinkConnDevList = null;
         List<BluetoothDevice> pbapClientConnDevList = null;
+        List<BluetoothDevice> mapClientConnDevList = null;
         List<BluetoothDevice> panConnDevList = null;
 
         if (hsService != null) {
@@ -1815,6 +1817,10 @@ public class AdapterService extends Service {
         if (pbapClientService != null) {
             pbapClientConnDevList = pbapClientService.getConnectedDevices();
             allProfilesEmpty = allProfilesEmpty && pbapClientConnDevList.isEmpty();
+        }
+        if (mapClientService != null) {
+            mapClientConnDevList = mapClientService.getConnectedDevices();
+            allProfilesEmpty = allProfilesEmpty && mapClientConnDevList.isEmpty();
         }
         if (panService != null) {
             panConnDevList = panService.getConnectedDevices();
@@ -1854,6 +1860,14 @@ public class AdapterService extends Service {
             if (pbapClientConnDevList.isEmpty() &&
                 (pbapClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
                 pbapClientService.connect(device);
+            }
+        }
+        if (mapClientService != null) {
+            if (mapClientConnDevList.isEmpty() &&
+                    (mapClientService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)) {
+                if (pbapClientConnDevList.isEmpty() || pbapClientConnDevList.contains(device)) {
+                    mapClientService.connect(device);
+                }
             }
         }
         if (panService != null) {
