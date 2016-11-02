@@ -1886,20 +1886,6 @@ extern void BTA_DmBleConfigLocalPrivacy(bool privacy_enable);
 *******************************************************************************/
 extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, bool privacy_enable);
 
-
-/*******************************************************************************
-**
-** Function         BTA_DmBleBroadcast
-**
-** Description      This function starts or stops LE broadcasting.
-**
-** Parameters       start: start or stop broadcast.
-**
-** Returns          None
-**
-*******************************************************************************/
-extern void BTA_DmBleBroadcast (bool start);
-
 /*******************************************************************************
 **
 ** Function         BTA_DmBleUpdateConnectionParams

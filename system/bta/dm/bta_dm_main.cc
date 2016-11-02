@@ -89,7 +89,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
 #if (BLE_PRIVACY_SPT == TRUE)
     bta_dm_ble_config_local_privacy,   /* BTA_DM_API_LOCAL_PRIVACY_EVT */
 #endif
-    bta_dm_ble_broadcast,          /* BTA_DM_API_BLE_BROADCAST_EVT */
     bta_dm_ble_set_data_length,    /* BTA_DM_API_SET_DATA_LENGTH_EVT */
 #if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     bta_dm_cfg_filter_cond,         /* BTA_DM_API_CFG_FILTER_COND_EVT */
