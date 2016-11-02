@@ -249,7 +249,7 @@ final class MceStateMachine extends StateMachine {
     synchronized boolean getUnreadMessages() {
         if (DBG) Log.d(TAG, "getMessage");
         if (this.getCurrentState() == mConnected) {
-            sendMessage(MSG_GET_MESSAGE_LISTING, ""  /*FOLDER_INBOX*/);
+            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_INBOX);
             return true;
         }
         return false;
@@ -416,8 +416,7 @@ final class MceStateMachine extends StateMachine {
 
                 case MSG_GET_MESSAGE_LISTING:
                     MessagesFilter filter = new MessagesFilter();
-                    filter.setMessageType(
-                            (byte) mMasClient.mSdpMasRecord.getSupportedMessageTypes());
+                    filter.setMessageType((byte) 0);
                     mMasClient.makeRequest(
                             new RequestGetMessagesListing((String) message.obj, 0,
                                     filter, 0, 1, 0));
