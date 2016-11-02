@@ -267,6 +267,14 @@
         </provider>
         <service
             android:process="@string/process"
+            android:name=".mapclient.MapClientService"
+            android:enabled="@bool/profile_supported_mapmce" >
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothMapClient" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
             android:name=".sap.SapService"
             android:enabled="@bool/profile_supported_sap" >
             <intent-filter>
