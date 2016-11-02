@@ -524,9 +524,15 @@ bool A2DP_SetSourceCodec(tA2DP_CODEC_SEP_INDEX source_codec_sep_index,
     case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
       return A2DP_SetSourceCodecSbc(p_feeding_params, p_codec_info);
     case A2DP_CODEC_SEP_INDEX_SINK_SBC:
-      return false;
-    case A2DP_CODEC_SEP_INDEX_MAX:
+      return false;             // Not a source codec
+    default:
       break;
+  }
+
+  if (source_codec_sep_index < A2DP_CODEC_SEP_INDEX_MAX) {
+    return A2DP_VendorSetSourceCodec(source_codec_sep_index,
+                                     p_feeding_params,
+                                     p_codec_info);
   }
 
   return false;
@@ -587,12 +593,15 @@ bool A2DP_UsesRtpHeader(bool content_protection_enabled,
 const char* A2DP_CodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index) {
   switch (codec_sep_index) {
     case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
-      return "SBC";
+      return A2DP_CodecSepIndexStrSbc();
     case A2DP_CODEC_SEP_INDEX_SINK_SBC:
-      return "SBC SINK";
-    case A2DP_CODEC_SEP_INDEX_MAX:
+      return A2DP_CodecSepIndexStrSbcSink();
+    default:
       break;
   }
+
+  if (codec_sep_index < A2DP_CODEC_SEP_INDEX_MAX)
+    return A2DP_VendorCodecSepIndexStr(codec_sep_index);
 
   return "UNKNOWN CODEC SEP INDEX";
 }
@@ -611,9 +620,12 @@ bool A2DP_InitCodecConfig(tA2DP_CODEC_SEP_INDEX codec_sep_index,
       return A2DP_InitCodecConfigSbc(p_cfg);
     case A2DP_CODEC_SEP_INDEX_SINK_SBC:
       return A2DP_InitCodecConfigSbcSink(p_cfg);
-    case A2DP_CODEC_SEP_INDEX_MAX:
+    default:
       break;
   }
+
+  if (codec_sep_index < A2DP_CODEC_SEP_INDEX_MAX)
+    return A2DP_VendorInitCodecConfig(codec_sep_index, p_cfg);
 
   return false;
 }

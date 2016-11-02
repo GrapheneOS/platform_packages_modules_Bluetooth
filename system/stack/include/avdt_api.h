@@ -133,6 +133,18 @@ typedef uint8_t AVDT_REPORT_TYPE;
 #define AVDT_ASC_PROTECT            4       /* Content protection */
 #define AVDT_ASC_CODEC              7       /* Codec */
 
+/* the content protection IDs assigned by BT SIG */
+#define AVDT_CP_SCMS_T_ID     0x0002
+#define AVDT_CP_DTCP_ID       0x0001
+
+#define AVDT_CP_LOSC                  2
+#define AVDT_CP_INFO_LEN              3
+
+#define AVDT_CP_SCMS_COPY_MASK        3
+#define AVDT_CP_SCMS_COPY_FREE        2
+#define AVDT_CP_SCMS_COPY_ONCE        1
+#define AVDT_CP_SCMS_COPY_NEVER       0
+
 /* Error codes.  The following are error codes defined in the AVDTP and GAVDP
 ** specifications.  These error codes communicate protocol errors between
 ** AVDTP and the application.  More detailed descriptions of the error codes

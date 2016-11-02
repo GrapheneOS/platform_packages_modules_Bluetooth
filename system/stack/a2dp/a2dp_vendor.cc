@@ -25,6 +25,35 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+const char* A2DP_VendorCodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index)
+{
+  // Add checks based on codec_sep_index
+  switch (codec_sep_index) {
+    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
+    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
+      break;                    // This is not a vendor-specific codec
+    case A2DP_CODEC_SEP_INDEX_MAX:
+      break;
+  }
+
+  return "UNKNOWN CODEC SEP INDEX";
+}
+
+bool A2DP_VendorInitCodecConfig(tA2DP_CODEC_SEP_INDEX codec_sep_index,
+                                UNUSED_ATTR tAVDT_CFG* p_cfg)
+{
+  // Add checks based on codec_sep_index
+  switch (codec_sep_index) {
+    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
+    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
+      break;                    // This is not a vendor-specific codec
+    case A2DP_CODEC_SEP_INDEX_MAX:
+      break;
+  }
+
+  return false;
+}
+
 bool A2DP_IsVendorSourceCodecValid(UNUSED_ATTR const uint8_t* p_codec_info) {
   // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
   // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
@@ -87,6 +116,21 @@ bool A2DP_IsVendorPeerSourceCodecSupported(
   // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
 
   // Add checks based on <vendor_id, codec_id> and peer codec capabilities
+
+  return false;
+}
+
+bool A2DP_VendorSetSourceCodec(tA2DP_CODEC_SEP_INDEX source_codec_sep_index,
+                               const tA2DP_FEEDING_PARAMS* p_feeding_params,
+                               uint8_t* p_codec_info) {
+  // Add checks based on codec_sep_index
+  switch (source_codec_sep_index) {
+    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
+    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
+      break;                    // This is not a vendor-specific codec
+    case A2DP_CODEC_SEP_INDEX_MAX:
+      break;
+  }
 
   return false;
 }
