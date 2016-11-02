@@ -248,6 +248,25 @@ bool utl_isintstr(const char *p_s)
 
 /*******************************************************************************
 **
+** Function         utl_isdialchar
+**
+** Description      This utility function checks if the given character
+**                  is an acceptable dial digit
+**
+** Returns          true if successful, Otherwise false
+**
+*******************************************************************************/
+bool utl_isdialchar(const char d)
+{
+    return (((d >= '0') && (d <= '9'))
+            || (d == '*') || (d == '+') || (d == '#') || (d == ';')
+            || ((d >= 'A') && (d <= 'C'))
+            || ((d == 'p') || (d == 'P')
+            || (d == 'w') || (d == 'W')));
+}
+
+/*******************************************************************************
+**
 ** Function         utl_isdialstr
 **
 ** Description      This utility function checks if the given string contains
@@ -259,18 +278,12 @@ bool utl_isintstr(const char *p_s)
 *******************************************************************************/
 bool utl_isdialstr(const char *p_s)
 {
-    uint16_t i = 0;
-
-    for(i=0; p_s[i] != 0; i++)
-    {
-        if(!(((p_s[i] >= '0') && (p_s[i] <= '9'))
-            || (p_s[i] == '*') || (p_s[i] == '+') || (p_s[i] == '#') || (p_s[i] == ';')
-            || ((p_s[i] >= 'A') && (p_s[i] <= 'C'))
-            || ((p_s[i] == 'p') || (p_s[i] == 'P')
-            || (p_s[i] == 'w') || (p_s[i] == 'W'))))
+    for (uint16_t i = 0; p_s[i] != 0; i++) {
+        // include chars not in spec that work sent by some headsets.
+        if(!(utl_isdialchar(p_s[i])
+            || (p_s[i] == '-')))
             return false;
     }
-
     return true;
 }
 
