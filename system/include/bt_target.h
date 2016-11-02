@@ -724,10 +724,6 @@
 #define ATT_DEBUG           TRUE
 #endif
 
-#ifndef BLE_PERIPHERAL_MODE_SUPPORT
-#define BLE_PERIPHERAL_MODE_SUPPORT  TRUE
-#endif
-
 #ifndef BLE_DELAY_REQUEST_ENC
 /* This flag is to work around IPHONE problem, We need to wait for iPhone ready
    before send encryption request to iPhone */
