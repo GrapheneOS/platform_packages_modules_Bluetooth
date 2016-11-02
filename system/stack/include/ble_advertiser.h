@@ -39,7 +39,6 @@ void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
 void btm_gen_resolvable_private_addr(void *p_cmd_cplt_cback);
 void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address);
 void GATT_Listen(bool start);
-tBTM_STATUS BTM_BleBroadcast(bool start);
 
 // methods we expose to c code:
 void btm_ble_multi_adv_cleanup(void);
