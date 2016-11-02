@@ -36,6 +36,7 @@ import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.map.BluetoothMapService;
+import com.android.bluetooth.mapclient.MapClientService;
 import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 
@@ -59,7 +60,8 @@ public class Config {
         HeadsetClientService.class,
         AvrcpControllerService.class,
         SapService.class,
-        PbapClientService.class
+        PbapClientService.class,
+        MapClientService.class
     };
     /**
      * Resource flag to indicate whether profile is supported or not.
@@ -76,7 +78,8 @@ public class Config {
         R.bool.profile_supported_hfpclient,
         R.bool.profile_supported_avrcp_controller,
         R.bool.profile_supported_sap,
-        R.bool.profile_supported_pbapclient
+        R.bool.profile_supported_pbapclient,
+        R.bool.profile_supported_mapmce
     };
 
     private static Class[] SUPPORTED_PROFILES = new Class[0];
@@ -161,6 +164,8 @@ public class Config {
             profileIndex = BluetoothProfile.SAP;
         } else if (profile == PbapClientService.class) {
             profileIndex = BluetoothProfile.PBAP_CLIENT;
+        } else if (profile == MapClientService.class) {
+            profileIndex = BluetoothProfile.MAP_CLIENT;
         }
 
         return profileIndex;

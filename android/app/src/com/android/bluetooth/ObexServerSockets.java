@@ -190,7 +190,7 @@ public class ObexServerSockets {
      * Set state to accept new incoming connection. Will cause the next incoming connection to be
      * Signaled through {@link IObexConnectionValidator#onConnect()};
      */
-    public void prepareForNewConnect() {
+    synchronized public void prepareForNewConnect() {
         if(D) Log.d(TAG, "prepareForNewConnect()");
         mConAccepted = false;
     }
