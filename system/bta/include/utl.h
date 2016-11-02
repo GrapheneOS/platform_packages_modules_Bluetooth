@@ -137,6 +137,18 @@ extern bool utl_isintstr(const char *p_s);
 
 /*******************************************************************************
 **
+** Function         utl_isdialchar
+**
+** Description      This utility function checks if the given character
+**                  is an acceptable dial digit
+**
+** Returns          true if successful, Otherwise false
+**
+*******************************************************************************/
+extern bool utl_isdialchar(const char d);
+
+/*******************************************************************************
+**
 ** Function         utl_isdialstr
 **
 ** Description      This utility function checks if the given string contains

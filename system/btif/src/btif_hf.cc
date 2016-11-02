@@ -34,6 +34,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
 
+#include "bta/include/utl.h"
 #include "bta_ag_api.h"
 #include "btcore/include/bdaddr.h"
 #include "btif_common.h"
@@ -1176,7 +1177,6 @@ static bt_status_t clcc_response(int index, bthf_call_direction_t dir,
 
   if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX)) {
     tBTA_AG_RES_DATA ag_res;
-
     memset(&ag_res, 0, sizeof(ag_res));
 
     /* Format the response */
@@ -1186,15 +1186,25 @@ static bt_status_t clcc_response(int index, bthf_call_direction_t dir,
       BTIF_TRACE_EVENT(
           "clcc_response: [%d] dir %d state %d mode %d number = %s type = %d",
           index, dir, state, mode, number, type);
-      int xx = snprintf(ag_res.str, sizeof(ag_res.str), "%d,%d,%d,%d,%d", index,
-                        dir, state, mode, mpty);
+      int res_strlen = snprintf(ag_res.str, sizeof(ag_res.str),
+                                "%d,%d,%d,%d,%d", index, dir, state, mode,
+                                mpty);
 
       if (number) {
-        size_t rem_bytes = sizeof(ag_res.str) - xx;
-        if ((type == BTHF_CALL_ADDRTYPE_INTERNATIONAL) && (*number != '+'))
-          snprintf(&ag_res.str[xx], rem_bytes, ",\"+%s\",%d", number, type);
-        else
-          snprintf(&ag_res.str[xx], rem_bytes, ",\"%s\",%d", number, type);
+        size_t rem_bytes = sizeof(ag_res.str) - res_strlen;
+        char dialnum[sizeof(ag_res.str)];
+        size_t newidx = 0;
+        if (type == BTHF_CALL_ADDRTYPE_INTERNATIONAL && *number != '+') {
+          dialnum[newidx++] = '+';
+        }
+        for (size_t i = 0; number[i] != 0; i++) {
+          if (utl_isdialchar(number[i])) {
+            dialnum[newidx++] = number[i];
+          }
+        }
+        dialnum[newidx] = 0;
+        snprintf(&ag_res.str[res_strlen], rem_bytes, ",\"%s\",%d", dialnum,
+                 type);
       }
     }
     BTA_AgResult(btif_hf_cb[idx].handle, BTA_AG_CLCC_RES, &ag_res);
