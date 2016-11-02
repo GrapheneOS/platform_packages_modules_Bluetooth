@@ -281,7 +281,10 @@ public class BrowseTree {
         }
 
         // Set the previous folder as not cached so that we fetch the contents again.
-        mCurrentBrowseNode.setCached(false);
+        if (!bn.equals(mCurrentBrowseNode)) {
+            Log.d(TAG, "Set cache false " + bn + " curr " + mCurrentBrowseNode);
+            mCurrentBrowseNode.setCached(false);
+        }
 
         mCurrentBrowseNode = bn;
         return true;
