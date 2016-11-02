@@ -401,6 +401,12 @@ public class HealthService extends ProfileService {
             IBluetoothHealthCallback callback) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM,
                 "Need BLUETOOTH permission");
+
+        if (config == null) {
+            Log.e(TAG, "Trying to use a null config for registration");
+            return false;
+        }
+
         if (mApps.get(config) != null) {
             if (DBG) Log.d(TAG, "Config has already been registered");
             return false;
