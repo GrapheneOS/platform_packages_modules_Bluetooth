@@ -31,11 +31,12 @@
  * Disconnected + CONNECT -> Connecting
  * Connecting + CONNECTED -> Connected
  * Connecting + TIMEOUT -> Disconnecting
- * Connecting + DISCONNECT -> Disconnecting
+ * Connecting + DISCONNECT/CONNECT -> Defer Message
  * Connected + DISCONNECT -> Disconnecting
+ * Connected + CONNECT -> Disconnecting + Defer Message
  * Disconnecting + DISCONNECTED -> (Safe) Disconnected
- * Disconnecting + TIMEOUT -> (Force)
- * Disconnected Disconnecting + CONNECT : Defer Message
+ * Disconnecting + TIMEOUT -> (Force) Disconnected
+ * Disconnecting + DISCONNECT/CONNECT : Defer Message
  */
 package com.android.bluetooth.mapclient;
 
@@ -67,6 +68,7 @@ import com.android.vcard.VCardProperty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /* The MceStateMachine is responsible for setting up and maintaining a connection to a single
  * specific Messaging Server Equipment endpoint.  Upon connect command an SDP record is retrieved,
@@ -208,7 +210,7 @@ final class MceStateMachine extends StateMachine {
                 VCardEntry dest_entry = new VCardEntry();
                 VCardProperty dest_entry_phone = new VCardProperty();
                 if (DBG) Log.d(TAG, "Scheme " + contact.getScheme());
-                if (contact.getScheme().equals(PhoneAccount.SCHEME_TEL)) {
+                if (PhoneAccount.SCHEME_TEL.equals(contact.getScheme())) {
                     dest_entry_phone.setName(VCardConstants.PROPERTY_TEL);
                     dest_entry_phone.addValues(contact.getSchemeSpecificPart());
                     if (DBG) {
@@ -216,7 +218,7 @@ final class MceStateMachine extends StateMachine {
                                 "Sending to phone numbers " + dest_entry_phone.getValueList());
                     }
                 } else {
-                    if (DBG) Log.w(TAG, "Scheme " + contact.getScheme() + "not supported.");
+                    if (DBG) Log.w(TAG, "Scheme " + contact.getScheme() + " not supported.");
                     return false;
                 }
                 dest_entry.addProperty(dest_entry_phone);
@@ -249,7 +251,7 @@ final class MceStateMachine extends StateMachine {
     synchronized boolean getUnreadMessages() {
         if (DBG) Log.d(TAG, "getMessage");
         if (this.getCurrentState() == mConnected) {
-            sendMessage(MSG_GET_MESSAGE_LISTING, ""  /*FOLDER_INBOX*/);
+            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_INBOX);
             return true;
         }
         return false;
@@ -293,10 +295,6 @@ final class MceStateMachine extends StateMachine {
                         mDevice = (BluetoothDevice) message.obj;
                     }
                     transitionTo(mConnecting);
-                    break;
-
-                case MSG_DISCONNECT:
-                    deferMessage(message);
                     break;
 
                 default:
@@ -371,6 +369,7 @@ final class MceStateMachine extends StateMachine {
         @Override
         public void exit() {
             mPreviousState = BluetoothProfile.STATE_CONNECTING;
+            removeMessages(MSG_CONNECTING_TIMEOUT);
         }
     }
 
@@ -393,7 +392,9 @@ final class MceStateMachine extends StateMachine {
         public boolean processMessage(Message message) {
             switch (message.what) {
                 case MSG_DISCONNECT:
-                    transitionTo(mDisconnecting);
+                    if (mDevice.equals(message.obj)) {
+                        transitionTo(mDisconnecting);
+                    }
                     break;
 
                 case MSG_OUTBOUND_MESSAGE:
@@ -416,8 +417,7 @@ final class MceStateMachine extends StateMachine {
 
                 case MSG_GET_MESSAGE_LISTING:
                     MessagesFilter filter = new MessagesFilter();
-                    filter.setMessageType(
-                            (byte) mMasClient.mSdpMasRecord.getSupportedMessageTypes());
+                    filter.setMessageType((byte) 0);
                     mMasClient.makeRequest(
                             new RequestGetMessagesListing((String) message.obj, 0,
                                     filter, 0, 1, 0));
@@ -439,7 +439,10 @@ final class MceStateMachine extends StateMachine {
                     break;
 
                 case MSG_CONNECT:
-                    deferMessage(message);
+                    if (!mDevice.equals(message.obj)) {
+                        deferMessage(message);
+                        transitionTo(mDisconnecting);
+                    }
                     break;
 
                 default:
@@ -508,15 +511,23 @@ final class MceStateMachine extends StateMachine {
 
                     Intent intent = new Intent();
                     intent.setAction(BluetoothMapClient.ACTION_MESSAGE_RECEIVED);
-                    intent.putExtra(android.content.Intent.EXTRA_TEXT, message.getBodyContent());
-                    VCardEntry.PhoneData phoneData = message.getOriginator().getPhoneList().get(0);
-                    if (phoneData != null) {
-                        if (DBG) {
-                            Log.d(TAG,
-                                    message.getOriginator().getPhoneList().get(0).getNumber());
+                    intent.putExtra(android.content.Intent.EXTRA_TEXT,
+                            message.getBodyContent());
+                    VCardEntry originator = message.getOriginator();
+                    if (originator != null) {
+                        if (DBG) Log.d(TAG, originator.toString());
+                        List<VCardEntry.PhoneData> phoneData = originator.getPhoneList();
+                        if (phoneData != null && phoneData.size() > 0) {
+                            String phoneNumber = phoneData.get(0).getNumber();
+                            if (DBG) {
+                                Log.d(TAG, "Originator number: " + phoneNumber);
+                            }
+                            intent.putExtra(
+                                    ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_URI,
+                                    new String[]{getContactURIFromPhone(phoneNumber)});
                         }
-                        intent.putExtra(ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_URI,
-                                new String[]{getContactURIFromPhone(phoneData.getNumber())});
+                        intent.putExtra(ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_NAME,
+                                new String[]{originator.getDisplayName()});
                     }
                     mService.sendBroadcast(intent);
                     break;
@@ -592,6 +603,7 @@ final class MceStateMachine extends StateMachine {
         @Override
         public void exit() {
             mPreviousState = BluetoothProfile.STATE_DISCONNECTING;
+            removeMessages(MSG_DISCONNECTING_TIMEOUT);
         }
     }
 
