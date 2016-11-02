@@ -68,6 +68,7 @@ import com.android.vcard.VCardProperty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /* The MceStateMachine is responsible for setting up and maintaining a connection to a single
  * specific Messaging Server Equipment endpoint.  Upon connect command an SDP record is retrieved,
@@ -209,7 +210,7 @@ final class MceStateMachine extends StateMachine {
                 VCardEntry dest_entry = new VCardEntry();
                 VCardProperty dest_entry_phone = new VCardProperty();
                 if (DBG) Log.d(TAG, "Scheme " + contact.getScheme());
-                if (contact.getScheme().equals(PhoneAccount.SCHEME_TEL)) {
+                if (PhoneAccount.SCHEME_TEL.equals(contact.getScheme())) {
                     dest_entry_phone.setName(VCardConstants.PROPERTY_TEL);
                     dest_entry_phone.addValues(contact.getSchemeSpecificPart());
                     if (DBG) {
@@ -217,7 +218,7 @@ final class MceStateMachine extends StateMachine {
                                 "Sending to phone numbers " + dest_entry_phone.getValueList());
                     }
                 } else {
-                    if (DBG) Log.w(TAG, "Scheme " + contact.getScheme() + "not supported.");
+                    if (DBG) Log.w(TAG, "Scheme " + contact.getScheme() + " not supported.");
                     return false;
                 }
                 dest_entry.addProperty(dest_entry_phone);
@@ -510,15 +511,23 @@ final class MceStateMachine extends StateMachine {
 
                     Intent intent = new Intent();
                     intent.setAction(BluetoothMapClient.ACTION_MESSAGE_RECEIVED);
-                    intent.putExtra(android.content.Intent.EXTRA_TEXT, message.getBodyContent());
-                    VCardEntry.PhoneData phoneData = message.getOriginator().getPhoneList().get(0);
-                    if (phoneData != null) {
-                        if (DBG) {
-                            Log.d(TAG,
-                                    message.getOriginator().getPhoneList().get(0).getNumber());
+                    intent.putExtra(android.content.Intent.EXTRA_TEXT,
+                            message.getBodyContent());
+                    VCardEntry originator = message.getOriginator();
+                    if (originator != null) {
+                        if (DBG) Log.d(TAG, originator.toString());
+                        List<VCardEntry.PhoneData> phoneData = originator.getPhoneList();
+                        if (phoneData != null && phoneData.size() > 0) {
+                            String phoneNumber = phoneData.get(0).getNumber();
+                            if (DBG) {
+                                Log.d(TAG, "Originator number: " + phoneNumber);
+                            }
+                            intent.putExtra(
+                                    ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_URI,
+                                    new String[]{getContactURIFromPhone(phoneNumber)});
                         }
-                        intent.putExtra(ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_URI,
-                                new String[]{getContactURIFromPhone(phoneData.getNumber())});
+                        intent.putExtra(ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_NAME,
+                                new String[]{originator.getDisplayName()});
                     }
                     mService.sendBroadcast(intent);
                     break;
