@@ -59,7 +59,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 final class A2dpSinkStateMachine extends StateMachine {
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
@@ -120,6 +120,7 @@ final class A2dpSinkStateMachine extends StateMachine {
     private BluetoothDevice mTargetDevice = null;
     private BluetoothDevice mIncomingDevice = null;
     private BluetoothDevice mPlayingDevice = null;
+    private A2dpSinkStreamingStateMachine mStreaming = null;
 
     private final HashMap<BluetoothDevice,BluetoothAudioConfig> mAudioConfigs
             = new HashMap<BluetoothDevice,BluetoothAudioConfig>();
@@ -159,6 +160,15 @@ final class A2dpSinkStateMachine extends StateMachine {
     }
 
     public void doQuit() {
+        if(DBG) {
+            Log.d("A2dpSinkStateMachine", "Quit");
+        }
+        synchronized (A2dpSinkStateMachine.this) {
+            if (mStreaming != null) {
+                mStreaming.doQuit();
+                mStreaming = null;
+            }
+        }
         quitNow();
     }
 
@@ -492,14 +502,21 @@ final class A2dpSinkStateMachine extends StateMachine {
     }
 
     private class Connected extends State {
-        private A2dpSinkStreamingStateMachine mStreaming;
         @Override
         public void enter() {
             log("Enter Connected: " + getCurrentMessage().what);
             // Upon connected, the audio starts out as stopped
             broadcastAudioState(mCurrentDevice, BluetoothA2dpSink.STATE_NOT_PLAYING,
                                 BluetoothA2dpSink.STATE_PLAYING);
-            mStreaming = A2dpSinkStreamingStateMachine.make(A2dpSinkStateMachine.this, mContext);
+            synchronized (A2dpSinkStateMachine.this) {
+                if (mStreaming == null) {
+                    if(DBG) {
+                        log("Creating New A2dpSinkStreamingStateMachine");
+                    }
+                    mStreaming = A2dpSinkStreamingStateMachine.make(A2dpSinkStateMachine.this,
+                            mContext);
+                }
+            }
         }
 
         @Override
