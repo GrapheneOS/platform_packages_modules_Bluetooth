@@ -35,18 +35,6 @@ extern "C" {
 **  Constants and data types
 *****************************************************************************/
 
-/* the content protection IDs assigned by BT SIG */
-#define BTA_AV_CP_SCMS_T_ID     0x0002
-#define BTA_AV_CP_DTCP_ID       0x0001
-
-#define BTA_AV_CP_LOSC                  2
-#define BTA_AV_CP_INFO_LEN              3
-
-#define BTA_AV_CP_SCMS_COPY_MASK        3
-#define BTA_AV_CP_SCMS_COPY_FREE        2
-#define BTA_AV_CP_SCMS_COPY_ONCE        1
-#define BTA_AV_CP_SCMS_COPY_NEVER       0
-
 /*******************************************************************************
 **
 ** Function         bta_av_co_audio_init

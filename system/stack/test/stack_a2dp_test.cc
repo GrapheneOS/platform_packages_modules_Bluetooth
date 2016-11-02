@@ -317,9 +317,9 @@ TEST(StackA2dpTest, test_a2dp_init_codec_config) {
   }
   // Test for content protection
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  EXPECT_EQ(avdt_cfg.protect_info[0], BTA_AV_CP_LOSC);
-  EXPECT_EQ(avdt_cfg.protect_info[1], (BTA_AV_CP_SCMS_T_ID & 0xFF));
-  EXPECT_EQ(avdt_cfg.protect_info[2], ((BTA_AV_CP_SCMS_T_ID >> 8) & 0xFF));
+  EXPECT_EQ(avdt_cfg.protect_info[0], AVDT_CP_LOSC);
+  EXPECT_EQ(avdt_cfg.protect_info[1], (AVDT_CP_SCMS_T_ID & 0xFF));
+  EXPECT_EQ(avdt_cfg.protect_info[2], ((AVDT_CP_SCMS_T_ID >> 8) & 0xFF));
   EXPECT_EQ(avdt_cfg.num_protect, 1);
 #endif
 
