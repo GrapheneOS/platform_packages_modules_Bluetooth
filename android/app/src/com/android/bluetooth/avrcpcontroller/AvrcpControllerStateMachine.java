@@ -925,6 +925,10 @@ class AvrcpControllerStateMachine extends StateMachine {
             return;
         }
 
+        if (DBG) {
+            Log.d(TAG, "To Browse folder " + bn + " is cached " + bn.isCached() +
+                " current folder " + mBrowseTree.getCurrentBrowsedFolder());
+        }
         if (bn.equals(mBrowseTree.getCurrentBrowsedFolder()) && bn.isCached()) {
             if (DBG) {
                 Log.d(TAG, "Same cached folder -- returning existing children.");
