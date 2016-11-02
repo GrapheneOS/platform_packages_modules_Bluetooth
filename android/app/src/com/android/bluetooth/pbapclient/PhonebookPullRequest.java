@@ -43,7 +43,7 @@ import java.util.List;
 
 public class PhonebookPullRequest extends PullRequest {
     private static final int MAX_OPS = 200;
-    private static final boolean DBG = true;
+    private static final boolean VDBG = false;
     private static final String TAG = "PbapPhonebookPullRequest";
 
     private final Account mAccount;
@@ -72,7 +72,7 @@ public class PhonebookPullRequest extends PullRequest {
             return;
         }
 
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, "onPullComplete with " + mEntries.size() + " count.");
         }
         try {
@@ -82,7 +82,9 @@ public class PhonebookPullRequest extends PullRequest {
                 }
                 addContact(e);
             }
-            Log.d(TAG, "Sync complete: add=" + mEntries.size());
+            if (VDBG) {
+                Log.d(TAG, "Sync complete: add=" + mEntries.size());
+            }
         } catch (OperationApplicationException | RemoteException | NumberFormatException e) {
             Log.d(TAG, "Got exception: ", e);
         } catch (InterruptedException e) {
