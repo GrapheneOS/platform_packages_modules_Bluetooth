@@ -73,7 +73,7 @@ import com.android.bluetooth.R;
 
 final class HeadsetClientStateMachine extends StateMachine {
     private static final String TAG = "HeadsetClientStateMachine";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 
     static final int NO_ACTION = 0;
 
