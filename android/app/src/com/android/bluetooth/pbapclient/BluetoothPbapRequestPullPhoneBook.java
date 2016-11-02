@@ -30,7 +30,7 @@ import javax.obex.HeaderSet;
 
 final class BluetoothPbapRequestPullPhoneBook extends BluetoothPbapRequest {
 
-    private static final boolean DBG = true;
+    private static final boolean VDBG = false;
 
     private static final String TAG = "BluetoothPbapRequestPullPhoneBook";
 
@@ -98,7 +98,7 @@ final class BluetoothPbapRequestPullPhoneBook extends BluetoothPbapRequest {
         Log.v(TAG, "readResponse");
 
         mResponse = new BluetoothPbapVcardList(mAccount, stream, mFormat);
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, "Read " + mResponse.getCount() + " entries.");
         }
     }
