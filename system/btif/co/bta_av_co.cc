@@ -53,7 +53,7 @@
 #define BTA_AV_CO_AUDIO_INDX_TO_HNDL(indx) (((indx) + 1) | BTA_AV_CHNL_AUDIO)
 
 /* SCMS-T protect info */
-const uint8_t bta_av_co_cp_scmst[BTA_AV_CP_INFO_LEN] = {0x02, 0x02, 0x00};
+const uint8_t bta_av_co_cp_scmst[AVDT_CP_INFO_LEN] = {0x02, 0x02, 0x00};
 
 /*****************************************************************************
  *  Local data
@@ -63,8 +63,7 @@ typedef struct {
   uint8_t seid;                        /* peer SEP index (in peer tables) */
   uint8_t codec_caps[AVDT_CODEC_SIZE]; /* peer SEP codec capabilities */
   uint8_t num_protect;                 /* peer SEP number of CP elements */
-  uint8_t
-      protect_info[BTA_AV_CP_INFO_LEN]; /* peer SEP content protection info */
+  uint8_t protect_info[AVDT_CP_INFO_LEN]; /* peer SEP content protection info */
 } tBTA_AV_CO_SINK;
 
 typedef struct {
@@ -122,9 +121,9 @@ static bool bta_av_co_audio_codec_selected(const uint8_t* codec_config);
  ** Function         bta_av_co_cp_get_flag
  **
  ** Description      Get content protection flag
- **                  BTA_AV_CP_SCMS_COPY_NEVER
- **                  BTA_AV_CP_SCMS_COPY_ONCE
- **                  BTA_AV_CP_SCMS_COPY_FREE
+ **                  AVDT_CP_SCMS_COPY_NEVER
+ **                  AVDT_CP_SCMS_COPY_ONCE
+ **                  AVDT_CP_SCMS_COPY_FREE
  **
  ** Returns          The current flag value
  **
@@ -136,9 +135,9 @@ static uint8_t bta_av_co_cp_get_flag(void) { return bta_av_co_cb.cp.flag; }
  ** Function         bta_av_co_cp_set_flag
  **
  ** Description      Set content protection flag
- **                  BTA_AV_CP_SCMS_COPY_NEVER
- **                  BTA_AV_CP_SCMS_COPY_ONCE
- **                  BTA_AV_CP_SCMS_COPY_FREE
+ **                  AVDT_CP_SCMS_COPY_NEVER
+ **                  AVDT_CP_SCMS_COPY_ONCE
+ **                  AVDT_CP_SCMS_COPY_FREE
  **
  ** Returns          true if setting the SCMS flag is supported else false
  **
@@ -148,7 +147,7 @@ static bool bta_av_co_cp_set_flag(uint8_t cp_flag) {
 
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
 #else
-  if (cp_flag != BTA_AV_CP_SCMS_COPY_FREE) {
+  if (cp_flag != AVDT_CP_SCMS_COPY_FREE) {
     return false;
   }
 #endif
@@ -301,7 +300,7 @@ static tA2DP_STATUS bta_av_audio_sink_getconfig(
       p_src->sep_info_idx = *p_sep_info_idx;
       p_src->seid = seid;
       p_src->num_protect = *p_num_protect;
-      memcpy(p_src->protect_info, p_protect_info, BTA_AV_CP_INFO_LEN);
+      memcpy(p_src->protect_info, p_protect_info, AVDT_CP_INFO_LEN);
     } else {
       APPL_TRACE_ERROR("%s: no more room for SRC info", __func__);
     }
@@ -414,7 +413,7 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
       p_sink->sep_info_idx = *p_sep_info_idx;
       p_sink->seid = seid;
       p_sink->num_protect = *p_num_protect;
-      memcpy(p_sink->protect_info, p_protect_info, BTA_AV_CP_INFO_LEN);
+      memcpy(p_sink->protect_info, p_protect_info, AVDT_CP_INFO_LEN);
     } else {
       APPL_TRACE_ERROR("%s: no more room for SINK info", __func__);
     }
@@ -429,8 +428,35 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
     mutex_global_lock();
 
     /* Find a sink that matches the codec config */
-    const tBTA_AV_CO_SINK* p_sink =
-      bta_av_co_find_peer_sink_supports_codec(bta_av_co_cb.codec_config, p_peer);
+    const tBTA_AV_CO_SINK* p_sink = NULL;
+
+    // Initial strawman codec selection mechanism: largest codec SEP index
+    // first.
+    // TODO: Replace this mechanism with a better one, and abstract it
+    // in a separate function.
+    for (int i = A2DP_CODEC_SEP_INDEX_SOURCE_MAX - 1;
+         i >= A2DP_CODEC_SEP_INDEX_SOURCE_MIN; i--) {
+      tA2DP_CODEC_SEP_INDEX source_codec_sep_index =
+        static_cast<tA2DP_CODEC_SEP_INDEX>(i);
+      APPL_TRACE_DEBUG("%s: trying codec %s with sep_index %d", __func__,
+                       A2DP_CodecSepIndexStr(source_codec_sep_index), i);
+      tAVDT_CFG avdt_cfg;
+      if (!A2DP_InitCodecConfig(source_codec_sep_index, &avdt_cfg)) {
+        APPL_TRACE_DEBUG("%s: cannot setup source codec %s", __func__,
+                         A2DP_CodecSepIndexStr(source_codec_sep_index));
+        continue;
+      }
+      p_sink = bta_av_co_find_peer_sink_supports_codec(avdt_cfg.codec_info,
+                                                       p_peer);
+      if (p_sink == NULL)
+        continue;
+      // Found a preferred codec
+      APPL_TRACE_DEBUG("%s: selected codec %s", __func__,
+                       A2DP_CodecName(avdt_cfg.codec_info));
+      memcpy(bta_av_co_cb.codec_config, avdt_cfg.codec_info, AVDT_CODEC_SIZE);
+      break;
+    }
+
     if (p_sink == NULL) {
       APPL_TRACE_ERROR("%s: cannot find peer SINK for this codec config",
                        __func__);
@@ -466,8 +492,8 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
         p_peer->cp_active = bta_av_co_audio_sink_has_scmst(p_sink);
         bta_av_co_cb.cp.active = p_peer->cp_active;
         if (p_peer->cp_active) {
-          *p_num_protect = BTA_AV_CP_INFO_LEN;
-          memcpy(p_protect_info, bta_av_co_cp_scmst, BTA_AV_CP_INFO_LEN);
+          *p_num_protect = AVDT_CP_INFO_LEN;
+          memcpy(p_protect_info, bta_av_co_cp_scmst, AVDT_CP_INFO_LEN);
         }
 #endif
 
@@ -795,12 +821,12 @@ void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay) {
 static bool bta_av_co_cp_is_scmst(const uint8_t* p_protectinfo) {
   APPL_TRACE_DEBUG("%s", __func__);
 
-  if (*p_protectinfo >= BTA_AV_CP_LOSC) {
+  if (*p_protectinfo >= AVDT_CP_LOSC) {
     uint16_t cp_id;
 
     p_protectinfo++;
     STREAM_TO_UINT16(cp_id, p_protectinfo);
-    if (cp_id == BTA_AV_CP_SCMS_T_ID) {
+    if (cp_id == AVDT_CP_SCMS_T_ID) {
       APPL_TRACE_DEBUG("%s: SCMS-T found", __func__);
       return true;
     }
@@ -852,7 +878,7 @@ static bool bta_av_co_audio_sink_supports_cp(const tBTA_AV_CO_SINK* p_sink) {
   APPL_TRACE_DEBUG("%s", __func__);
 
   /* Check if content protection is enabled for this stream */
-  if (bta_av_co_cp_get_flag() != BTA_AV_CP_SCMS_COPY_FREE)
+  if (bta_av_co_cp_get_flag() != AVDT_CP_SCMS_COPY_FREE)
     return bta_av_co_audio_sink_has_scmst(p_sink);
 
   APPL_TRACE_DEBUG("%s: not required", __func__);
@@ -933,16 +959,24 @@ bool bta_av_co_audio_set_codec(const tA2DP_FEEDING_PARAMS* p_feeding_params) {
        i >= A2DP_CODEC_SEP_INDEX_SOURCE_MIN; i--) {
     tA2DP_CODEC_SEP_INDEX source_codec_sep_index =
       static_cast<tA2DP_CODEC_SEP_INDEX>(i);
+    APPL_TRACE_DEBUG("%s: trying codec %s with sep_index %d", __func__,
+                     A2DP_CodecSepIndexStr(source_codec_sep_index), i);
     if (!A2DP_SetSourceCodec(source_codec_sep_index, p_feeding_params,
                              new_config)) {
+      APPL_TRACE_DEBUG("%s: cannot setup source codec %s", __func__,
+                       A2DP_CodecSepIndexStr(source_codec_sep_index));
       continue;
     }
 
     /* Try to select an open device for the codec */
-    if (bta_av_co_audio_codec_selected(bta_av_co_cb.codec_config)) {
+    if (bta_av_co_audio_codec_selected(new_config)) {
+      APPL_TRACE_DEBUG("%s: selected codec %s with sep_index %d", __func__,
+                       A2DP_CodecSepIndexStr(source_codec_sep_index), i);
       mutex_global_unlock();
       return true;
     }
+    APPL_TRACE_DEBUG("%s: cannot select source codec %s", __func__,
+                     A2DP_CodecSepIndexStr(source_codec_sep_index));
   }
   mutex_global_unlock();
   return false;
@@ -995,7 +1029,7 @@ static bool bta_av_co_audio_codec_selected(const uint8_t* codec_config) {
     bool cp_active = bta_av_co_audio_sink_has_scmst(p_sink);
     bta_av_co_cb.cp.active = cp_active;
     p_peer->cp_active = cp_active;
-    if (p_peer->cp_active) num_protect = BTA_AV_CP_INFO_LEN;
+    if (p_peer->cp_active) num_protect = AVDT_CP_INFO_LEN;
 #endif
     APPL_TRACE_DEBUG("%s: call BTA_AvReconfig(0x%x)", __func__,
                      BTA_AV_CO_AUDIO_INDX_TO_HNDL(index));
@@ -1161,9 +1195,9 @@ void bta_av_co_init(void) {
   memset(&bta_av_co_cb, 0, sizeof(bta_av_co_cb));
 
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
-  bta_av_co_cp_set_flag(BTA_AV_CP_SCMS_COPY_NEVER);
+  bta_av_co_cp_set_flag(AVDT_CP_SCMS_COPY_NEVER);
 #else
-  bta_av_co_cp_set_flag(BTA_AV_CP_SCMS_COPY_FREE);
+  bta_av_co_cp_set_flag(AVDT_CP_SCMS_COPY_FREE);
 #endif
 
   /* Reset the current config */

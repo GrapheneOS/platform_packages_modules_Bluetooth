@@ -84,81 +84,61 @@ extern "C" {
 **  External Function Declarations
 *****************************************************************************/
 
-/******************************************************************************
-**
-** Function         A2DP_ParsSbcMplHdr
-**
-** Description      This function is called by an application to parse
-**                  the SBC Media Payload header.
-**                  Input Parameters:
-**                      p_src:  the byte sequence to parse..
-**
-**                  Output Parameters:
-**                      frag:  1, if fragmented. 0, otherwise.
-**
-**                      start:  1, if the starting packet of a fragmented frame.
-**
-**                      last:  1, if the last packet of a fragmented frame.
-**
-**                      num:  If frag is 1, this is the number of remaining
-**                            fragments (including this fragment) of this frame.
-**                            If frag is 0, this is the number of frames in
-**                            this packet.
-**
-** Returns          void.
-******************************************************************************/
-extern void A2DP_ParsSbcMplHdr(uint8_t* p_src, bool* p_frag, bool* p_start,
-                               bool* p_last, uint8_t* p_num);
+// Gets the A2DP SBC Source codec name.
+const char* A2DP_CodecSepIndexStrSbc(void);
 
-// Initializes SBC Source codec information into |tAVDT_CFG| configuration
+// Gets the A2DP SBC Sink codec name.
+const char* A2DP_CodecSepIndexStrSbcSink(void);
+
+// Initializes A2DP SBC Source codec information into |tAVDT_CFG| configuration
 // entry pointed by |p_cfg|.
 bool A2DP_InitCodecConfigSbc(tAVDT_CFG* p_cfg);
 
-// Initializes SBC Sink codec information into |tAVDT_CFG| configuration
+// Initializes A2DP SBC Sink codec information into |tAVDT_CFG| configuration
 // entry pointed by |p_cfg|.
 bool A2DP_InitCodecConfigSbcSink(tAVDT_CFG* p_cfg);
 
-// Checks whether the codec capabilities contain a valid A2DP SBC source codec.
+// Checks whether the codec capabilities contain a valid A2DP SBC Source codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid SBC codec,
 // otherwise false.
 bool A2DP_IsSourceCodecValidSbc(const uint8_t* p_codec_info);
 
-// Checks whether the codec capabilities contain a valid A2DP SBC sink codec.
+// Checks whether the codec capabilities contain a valid A2DP SBC Sink codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid SBC codec,
 // otherwise false.
 bool A2DP_IsSinkCodecValidSbc(const uint8_t* p_codec_info);
 
-// Checks whether the codec capabilities contain a valid peer A2DP SBC source
+// Checks whether the codec capabilities contain a valid peer A2DP SBC Source
 // codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid SBC codec,
 // otherwise false.
 bool A2DP_IsPeerSourceCodecValidSbc(const uint8_t* p_codec_info);
 
-// Checks whether the codec capabilities contain a valid peer A2DP SBC sink
+// Checks whether the codec capabilities contain a valid peer A2DP SBC Sink
 // codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid SBC codec,
 // otherwise false.
 bool A2DP_IsPeerSinkCodecValidSbc(const uint8_t* p_codec_info);
 
-// Checks whether A2DP SBC source codec is supported.
+// Checks whether A2DP SBC Source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
-// Returns true if the A2DP SBC source codec is supported, otherwise false.
+// Returns true if the A2DP SBC Source codec is supported, otherwise false.
 bool A2DP_IsSourceCodecSupportedSbc(const uint8_t* p_codec_info);
 
-// Checks whether A2DP SBC sink codec is supported.
+// Checks whether A2DP SBC Sink codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
-// Returns true if the A2DP SBC sink codec is supported, otherwise false.
+// Returns true if the A2DP SBC Sink codec is supported, otherwise false.
 bool A2DP_IsSinkCodecSupportedSbc(const uint8_t* p_codec_info);
 
-// Checks whether an A2DP SBC source codec for a peer source device is
+// Checks whether an A2DP SBC Source codec for a peer Source device is
 // supported.
 // |p_codec_info| contains information about the codec capabilities of the
 // peer device.
-// Returns true if the A2DP SBC source codec for a peer source device is
+// Returns true if the A2DP SBC Source codec for a peer Source device is
 // supported, otherwise false.
 bool A2DP_IsPeerSourceCodecSupportedSbc(const uint8_t* p_codec_info);
 
@@ -167,7 +147,7 @@ bool A2DP_IsPeerSourceCodecSupportedSbc(const uint8_t* p_codec_info);
 // |p_codec_info|.
 void A2DP_InitDefaultCodecSbc(uint8_t* p_codec_info);
 
-// Sets A2DB SBC source codec state based on the feeding information from
+// Sets A2DB SBC Source codec state based on the feeding information from
 // |p_feeding_params|.
 // The state with the codec capabilities is stored in |p_codec_info|.
 // Returns true on success, otherwise false.
@@ -282,7 +262,7 @@ int A2DP_GetMinBitpoolSbc(const uint8_t* p_codec_info);
 // contains invalid codec information.
 int A2DP_GetMaxBitpoolSbc(const uint8_t* p_codec_info);
 
-// Gets the channel type for the A2DP SBC sink codec:
+// Gets the channel type for the A2DP SBC Sink codec:
 // 1 for mono, or 3 for dual/stereo/joint.
 // |p_codec_info| is a pointer to the SBC codec_info to decode.
 // Returns the channel type on success, or -1 if |p_codec_info|
