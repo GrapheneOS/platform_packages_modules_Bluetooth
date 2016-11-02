@@ -31,11 +31,12 @@
  * Disconnected + CONNECT -> Connecting
  * Connecting + CONNECTED -> Connected
  * Connecting + TIMEOUT -> Disconnecting
- * Connecting + DISCONNECT -> Disconnecting
+ * Connecting + DISCONNECT/CONNECT -> Defer Message
  * Connected + DISCONNECT -> Disconnecting
+ * Connected + CONNECT -> Disconnecting + Defer Message
  * Disconnecting + DISCONNECTED -> (Safe) Disconnected
- * Disconnecting + TIMEOUT -> (Force)
- * Disconnected Disconnecting + CONNECT : Defer Message
+ * Disconnecting + TIMEOUT -> (Force) Disconnected
+ * Disconnecting + DISCONNECT/CONNECT : Defer Message
  */
 package com.android.bluetooth.mapclient;
 
@@ -295,10 +296,6 @@ final class MceStateMachine extends StateMachine {
                     transitionTo(mConnecting);
                     break;
 
-                case MSG_DISCONNECT:
-                    deferMessage(message);
-                    break;
-
                 default:
                     Log.w(TAG, "Unexpected message: " + message.what + " from state:" +
                         this.getName());
@@ -371,6 +368,7 @@ final class MceStateMachine extends StateMachine {
         @Override
         public void exit() {
             mPreviousState = BluetoothProfile.STATE_CONNECTING;
+            removeMessages(MSG_CONNECTING_TIMEOUT);
         }
     }
 
@@ -393,7 +391,9 @@ final class MceStateMachine extends StateMachine {
         public boolean processMessage(Message message) {
             switch (message.what) {
                 case MSG_DISCONNECT:
-                    transitionTo(mDisconnecting);
+                    if (mDevice.equals(message.obj)) {
+                        transitionTo(mDisconnecting);
+                    }
                     break;
 
                 case MSG_OUTBOUND_MESSAGE:
@@ -438,7 +438,10 @@ final class MceStateMachine extends StateMachine {
                     break;
 
                 case MSG_CONNECT:
-                    deferMessage(message);
+                    if (!mDevice.equals(message.obj)) {
+                        deferMessage(message);
+                        transitionTo(mDisconnecting);
+                    }
                     break;
 
                 default:
@@ -591,6 +594,7 @@ final class MceStateMachine extends StateMachine {
         @Override
         public void exit() {
             mPreviousState = BluetoothProfile.STATE_DISCONNECTING;
+            removeMessages(MSG_DISCONNECTING_TIMEOUT);
         }
     }
 
