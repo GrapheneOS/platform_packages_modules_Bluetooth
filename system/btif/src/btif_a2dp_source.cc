@@ -244,6 +244,11 @@ static void btif_a2dp_source_startup_delayed(UNUSED_ATTR void* context) {
 }
 
 void btif_a2dp_source_shutdown(void) {
+  if ((btif_a2dp_source_state == BTIF_A2DP_SOURCE_STATE_OFF) ||
+      (btif_a2dp_source_state == BTIF_A2DP_SOURCE_STATE_SHUTTING_DOWN)) {
+    return;
+  }
+
   /* Make sure no channels are restarted while shutting down */
   btif_a2dp_source_state = BTIF_A2DP_SOURCE_STATE_SHUTTING_DOWN;
 
