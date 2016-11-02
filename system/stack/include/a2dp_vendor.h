@@ -38,53 +38,75 @@ extern "C" {
 #define A2DP_VENDOR_CODEC_CODEC_ID_START_IDX \
   (A2DP_VENDOR_CODEC_VENDOR_ID_START_IDX + sizeof(uint32_t))
 
+// Gets the A2DP vendor codec name for a given |codec_sep_index|.
+const char* A2DP_VendorCodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index);
+
+// Initializes A2DP vendor codec-specific information into |tAVDT_CFG|
+// configuration entry pointed by |p_cfg|. The selected codec is defined by
+// |codec_sep_index|.
+// Returns true on success, otherwise false.
+bool A2DP_VendorInitCodecConfig(tA2DP_CODEC_SEP_INDEX codec_sep_index,
+                                tAVDT_CFG* p_cfg);
+
 // Checks whether the codec capabilities contain a valid A2DP vendor-specific
-// source codec.
+// Source codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid
 // vendor-specific codec, otherwise false.
 bool A2DP_IsVendorSourceCodecValid(const uint8_t* p_codec_info);
 
 // Checks whether the codec capabilities contain a valid A2DP vendor-specific
-// sink codec.
+// Sink codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid
 // vendor-specific codec, otherwise false.
 bool A2DP_IsVendorSinkCodecValid(const uint8_t* p_codec_info);
 
 // Checks whether the codec capabilities contain a valid peer A2DP
-// vendor-specific source codec.
+// vendor-specific Source codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid
 // vendor-specific codec, otherwise false.
 bool A2DP_IsVendorPeerSourceCodecValid(const uint8_t* p_codec_info);
 
 // Checks whether the codec capabilities contain a valid peer A2DP
-// vendor-specific sink codec.
+// vendor-specific Sink codec.
 // NOTE: only codecs that are implemented are considered valid.
 // Returns true if |p_codec_info| contains information about a valid
 // vendor-specific codec, otherwise false.
 bool A2DP_IsVendorPeerSinkCodecValid(const uint8_t* p_codec_info);
 
-// Checks whether a vendor-specific A2DP source codec is supported.
+// Checks whether a vendor-specific A2DP Source codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
-// Returns true if the vendor-specific A2DP source codec is supported,
+// Returns true if the vendor-specific A2DP Source codec is supported,
 // otherwise false.
 bool A2DP_IsVendorSourceCodecSupported(const uint8_t* p_codec_info);
 
-// Checks whether a vendor-specific A2DP sink codec is supported.
+// Checks whether a vendor-specific A2DP Sink codec is supported.
 // |p_codec_info| contains information about the codec capabilities.
-// Returns true if the vendor-specific A2DP sink codec is supported,
+// Returns true if the vendor-specific A2DP Sink codec is supported,
 // otherwise false.
 bool A2DP_IsVendorSinkCodecSupported(const uint8_t* p_codec_info);
 
-// Checks whether a vendor-specific A2DP source codec for a peer source device
+// Checks whether a vendor-specific A2DP Source codec for a peer Source device
 // is supported.
 // |p_codec_info| contains information about the codec capabilities of the
 // peer device.
-// Returns true if the vendor-specific A2DP source codec for a peer source
+// Returns true if the vendor-specific A2DP Source codec for a peer Source
 // device is supported, otherwise false.
 bool A2DP_IsVendorPeerSourceCodecSupported(const uint8_t* p_codec_info);
+
+// Sets A2DB vendor-specific Source codec state based on the Source codec index
+// |source_codec_sep_index| and the feeding information from
+// |p_feeding_params|.
+// The state with the codec capabilities is stored in |p_codec_info|.
+// Returns true on success, otherwise false.
+// |source_codec_sep_index| should be in the range
+// [A2DP_CODEC_SEP_INDEX_SOURCE_MIN, A2DP_CODEC_SEP_INDEX_SOURCE_MAX),
+// otherwise the return value is false.
+bool A2DP_VendorSetSourceCodec(tA2DP_CODEC_SEP_INDEX source_codec_sep_index,
+                               const tA2DP_FEEDING_PARAMS* p_feeding_params,
+                               uint8_t* p_codec_info);
 
 // Builds a vendor-specific A2DP preferred Sink capability from a vendor
 // Source capability.
@@ -214,7 +236,7 @@ int A2DP_VendorGetMinBitpool(const uint8_t* p_codec_info);
 // contains invalid codec information.
 int A2DP_VendorGetMaxBitpool(const uint8_t* p_codec_info);
 
-// Gets the channel type for the A2DP vendor-specific sink codec:
+// Gets the channel type for the A2DP vendor-specific Sink codec:
 // 1 for mono, or 3 for dual/stereo/joint.
 // |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
 // Returns the channel type on success, or -1 if |p_codec_info|
@@ -222,7 +244,7 @@ int A2DP_VendorGetMaxBitpool(const uint8_t* p_codec_info);
 int A2DP_VendorGetSinkTrackChannelType(const uint8_t* p_codec_info);
 
 // Computes the number of frames to process in a time window for the A2DP
-// vendor-specific sink codec. |time_interval_ms| is the time interval
+// vendor-specific Sink codec. |time_interval_ms| is the time interval
 // (in milliseconds).
 // |p_codec_info| is a pointer to the codec_info to decode.
 // Returns the number of frames to process on success, or -1 if |p_codec_info|
