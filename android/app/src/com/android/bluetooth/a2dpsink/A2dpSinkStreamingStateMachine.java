@@ -80,7 +80,7 @@ import com.android.internal.util.StateMachine;
  *            2. On Audio focus enable streaming in Fluoride.
  */
 final class A2dpSinkStreamingStateMachine extends StateMachine {
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final String TAG = "A2dpSinkStreamingStateMachine";
     private static final int ACT_PLAY_NUM_RETRIES = 5;
     private static final int ACT_PLAY_RETRY_DELAY = 2000; // millis.
@@ -156,6 +156,13 @@ final class A2dpSinkStreamingStateMachine extends StateMachine {
             new A2dpSinkStreamingStateMachine(a2dpSinkSm, context);
         a2dpStrStateMachine.start();
         return a2dpStrStateMachine;
+    }
+
+    public void doQuit(){
+        if(DBG) {
+            Log.d(TAG, "doQuit()");
+        }
+        quitNow();
     }
 
     /**
