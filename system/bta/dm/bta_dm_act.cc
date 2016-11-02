@@ -4757,20 +4757,6 @@ void bta_dm_ble_set_data_length(tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_dm_ble_broadcast
-**
-** Description      Starts or stops LE broadcasts
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data)
-{
-    BTM_BleBroadcast(p_data->ble_observe.start);
-}
-
-/*******************************************************************************
-**
 ** Function         bta_dm_ble_setup_storage
 **
 ** Description      This function configures up the storage parameters for ADV batch scanning

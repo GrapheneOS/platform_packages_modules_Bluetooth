@@ -407,67 +407,6 @@ tBTM_STATUS BTM_BleObserve(bool    start, uint8_t duration,
 
 }
 
-/*******************************************************************************
-**
-** Function         BTM_BleBroadcast
-**
-** Description      This function is to start or stop broadcasting.
-**
-** Parameters       start: start or stop broadcasting.
-**
-** Returns          status.
-**
-*******************************************************************************/
-tBTM_STATUS BTM_BleBroadcast(bool    start)
-{
-    tBTM_STATUS status = BTM_NO_RESOURCES;
-    tBTM_LE_RANDOM_CB *p_addr_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-    tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
-    uint8_t evt_type = p_cb->scan_rsp ? BTM_BLE_DISCOVER_EVT: BTM_BLE_NON_CONNECT_EVT;
-
-    if (!controller_get_interface()->supports_ble())
-        return BTM_ILLEGAL_VALUE;
-
-#ifdef  BTM_BLE_PC_ADV_TEST_MODE
-    if (BTM_BLE_PC_ADV_TEST_MODE)
-    {
-        evt_type = p_cb->scan_rsp ? BTM_BLE_CONNECT_EVT: BTM_BLE_NON_CONNECT_EVT;
-    }
-#endif
-
-    if (start && p_cb->adv_mode == BTM_BLE_ADV_DISABLE)
-    {
-        /* update adv params */
-        btsnd_hcic_ble_write_adv_params ((uint16_t)(p_cb->adv_interval_min ? p_cb->adv_interval_min :
-                                         BTM_BLE_GAP_ADV_INT),
-                                         (uint16_t)(p_cb->adv_interval_max ? p_cb->adv_interval_max :
-                                         BTM_BLE_GAP_ADV_INT),
-                                         evt_type,
-                                         p_addr_cb->own_addr_type,
-                                         p_cb->direct_bda.type,
-                                         p_cb->direct_bda.bda,
-                                         p_cb->adv_chnl_map,
-                                         p_cb->afp);
-
-        p_cb->evt_type = evt_type;
-        status = btm_ble_start_adv ();
-    }
-    else if (!start)
-    {
-        status = btm_ble_stop_adv();
-#if (BLE_PRIVACY_SPT == TRUE)
-        btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, true);
-#endif
-    }
-    else
-    {
-        status = BTM_WRONG_MODE;
-        BTM_TRACE_ERROR("Can not %s Broadcast, device %s in Broadcast mode",
-            (start ? "Start" : "Stop"), (start ? "already" :"not"));
-    }
-    return status;
-}
-
 #if (BLE_VND_INCLUDED == TRUE)
 /*******************************************************************************
 **

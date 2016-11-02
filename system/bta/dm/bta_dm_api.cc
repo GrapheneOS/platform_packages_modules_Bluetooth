@@ -1056,33 +1056,7 @@ extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
 /*******************************************************************************
 **                      BLE ADV data management API
 ********************************************************************************/
-#if (BLE_INCLUDED == TRUE)
 
-/*******************************************************************************
-**
-** Function         BTA_DmBleBroadcast
-**
-** Description      This function starts or stops LE broadcasting.
-**
-** Parameters       start: start or stop broadcast.
-**
-** Returns          None
-**
-*******************************************************************************/
-extern void BTA_DmBleBroadcast (bool start)
-{
-    tBTA_DM_API_BLE_OBSERVE *p_msg =
-        (tBTA_DM_API_BLE_OBSERVE *)osi_calloc(sizeof(tBTA_DM_API_BLE_OBSERVE));
-
-    APPL_TRACE_API("BTA_DmBleBroadcast: start = %d ", start);
-
-    p_msg->hdr.event = BTA_DM_API_BLE_BROADCAST_EVT;
-    p_msg->start = start;
-
-    bta_sys_sendmsg(p_msg);
-}
-
-#endif
 /*******************************************************************************
 **
 ** Function         BTA_DmBleSetBgConnType

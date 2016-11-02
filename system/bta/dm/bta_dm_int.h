@@ -93,7 +93,6 @@ enum
 #if (BLE_PRIVACY_SPT == TRUE)
     BTA_DM_API_LOCAL_PRIVACY_EVT,
 #endif
-    BTA_DM_API_BLE_BROADCAST_EVT,
     BTA_DM_API_SET_DATA_LENGTH_EVT,
 
 #if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
@@ -1040,7 +1039,6 @@ extern void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_params(uint16_t adv_int_min, uint16_t adv_int_max,
                                       tBLE_BD_ADDR *p_dir_bda);
 
-extern void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_data_length(tBTA_DM_MSG *p_data);
 
 #if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)

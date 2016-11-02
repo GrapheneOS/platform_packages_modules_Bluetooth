@@ -650,19 +650,6 @@ extern bool    BTM_ReadConnectedTransportAddress(BD_ADDR remote_bda,
 
 /*******************************************************************************
 **
-** Function         BTM_BleBroadcast
-**
-** Description      This function is to start or stop broadcasting.
-**
-** Parameters       start: start or stop broadcasting.
-**
-** Returns          status.
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_BleBroadcast(bool    start);
-
-/*******************************************************************************
-**
 ** Function         BTM_BleConfigPrivacy
 **
 ** Description      This function is called to enable or disable the privacy in
