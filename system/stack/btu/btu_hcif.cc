@@ -383,6 +383,103 @@ void btu_hcif_send_cmd (UNUSED_ATTR uint8_t controller_id, BT_HDR *p_buf)
 #endif
 }
 
+
+typedef void (*hci_cmd_complete_cb)(uint16_t opcode, uint8_t *return_parameters, uint16_t return_parameters_length);
+
+static void btu_hcif_command_complete_evt_with_cb_on_task(BT_HDR *event)
+{
+    command_complete_hack_t *hack = (command_complete_hack_t *)&event->data[0];
+
+    command_opcode_t opcode;
+    uint8_t *stream = hack->response->data + hack->response->offset + 3; // 2 to skip the event headers, 1 to skip the command credits
+    STREAM_TO_UINT16(opcode, stream);
+
+    hci_cmd_complete_cb cb = (hci_cmd_complete_cb)hack->context;
+    cb(opcode, stream, hack->response->len - 5);
+
+    osi_free(hack->response);
+    osi_free(event);
+}
+
+static void btu_hcif_command_complete_evt_with_cb(BT_HDR *response, void *context)
+{
+    BT_HDR *event =
+      static_cast<BT_HDR *>(osi_calloc(sizeof(BT_HDR) + sizeof(command_complete_hack_t)));
+    command_complete_hack_t *hack = (command_complete_hack_t *)&event->data[0];
+
+    hack->callback = btu_hcif_command_complete_evt_with_cb_on_task;
+    hack->response = response;
+    hack->context = context;
+    event->event = BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK;
+
+    fixed_queue_enqueue(btu_hci_msg_queue, event);
+}
+
+static void btu_hcif_command_status_evt_with_cb_on_task(BT_HDR *event)
+{
+    command_status_hack_t *hack = (command_status_hack_t *)&event->data[0];
+
+    command_opcode_t opcode;
+    uint8_t *stream = hack->command->data + hack->command->offset;
+    STREAM_TO_UINT16(opcode, stream);
+
+    hci_cmd_complete_cb cb = (hci_cmd_complete_cb)hack->context;
+    assert( hack->status != 0 );
+    // report command status error
+    cb(opcode, &hack->status, sizeof(uint16_t));
+
+    osi_free(hack->command);
+    osi_free(event);
+}
+
+static void btu_hcif_command_status_evt_with_cb(uint8_t status, BT_HDR *command, void *context)
+{
+    // Command is pending, we  report only error.
+    if (!status) {
+        osi_free(command);
+        return;
+    }
+
+    BT_HDR *event =
+        static_cast<BT_HDR *>(osi_calloc(sizeof(BT_HDR) + sizeof(command_status_hack_t)));
+    command_status_hack_t *hack = (command_status_hack_t *)&event->data[0];
+
+    hack->callback = btu_hcif_command_status_evt_with_cb_on_task;
+    hack->status = status;
+    hack->command = command;
+    hack->context = context;
+
+    event->event = BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK;
+
+    fixed_queue_enqueue(btu_hci_msg_queue, event);
+}
+
+/* This function is called to send commands to the Host Controller. |cb| is
+ * called when command status event is called with error code, or when the
+ * command complete event is received. */
+void btu_hcif_send_cmd_with_cb(uint16_t opcode, uint8_t *params,
+                               uint8_t params_len, hci_cmd_complete_cb cb) {
+  BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t *pp = (uint8_t *)(p + 1);
+
+  p->len = HCIC_PREAMBLE_SIZE + params_len;
+  p->offset = 0;
+
+  if (params) {
+    UINT16_TO_STREAM(pp, opcode);
+    UINT8_TO_STREAM(pp, params_len);
+    memcpy(pp, params, params_len);
+  }
+
+  hci_layer_get_interface()->transmit_command(
+      p, btu_hcif_command_complete_evt_with_cb,
+      btu_hcif_command_status_evt_with_cb, (void*) cb);
+
+#if (HCILP_INCLUDED == TRUE)
+  btu_check_bt_sleep();
+#endif
+}
+
 /*******************************************************************************
 **
 ** Function         btu_hcif_inquiry_comp_evt

@@ -30,13 +30,23 @@
 #define BTM_BLE_AD_DATA_LEN 31
 #define BTM_BLE_MULTI_ADV_WRITE_DATA_LEN (BTM_BLE_AD_DATA_LEN + 3)
 
+#define HCIC_PARAM_SIZE_WRITE_ADV_ENABLE 1
+#define HCIC_PARAM_SIZE_WRITE_RANDOM_ADDR_CMD 6
+#define HCIC_PARAM_SIZE_BLE_WRITE_ADV_PARAMS 15
+#define HCIC_PARAM_SIZE_BLE_WRITE_SCAN_RSP 31
+#define HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA 31
+
 using status_cb = BleAdvertiserHciInterface::status_cb;
 
-namespace {
-class BleAdvertiserHciInterfaceImpl;
+typedef void (*hci_cmd_complete_cb)(uint16_t opcode, uint8_t *return_parameters,
+                                    uint16_t return_parameters_length);
+extern void btu_hcif_send_cmd_with_cb(uint16_t opcode, uint8_t *params,
+                                      uint8_t params_len,
+                                      hci_cmd_complete_cb cb);
 
-BleAdvertiserHciInterfaceImpl *instance = nullptr;
-std::queue<std::pair<int, status_cb>> *pending_ops = nullptr;
+namespace {
+BleAdvertiserHciInterface *instance = nullptr;
+std::queue<std::pair<uint8_t, status_cb>> *pending_ops = nullptr;
 
 void btm_ble_multi_adv_vsc_cmpl_cback(tBTM_VSC_CMPL *p_params) {
   uint8_t status, subcode;
@@ -64,7 +74,7 @@ void btm_ble_multi_adv_vsc_cmpl_cback(tBTM_VSC_CMPL *p_params) {
   pending_op.second.Run(status);
 }
 
-class BleAdvertiserHciInterfaceImpl : public BleAdvertiserHciInterface {
+class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
   void SendVscMultiAdvCmd(uint8_t param_len, uint8_t *param_buf,
                           status_cb command_complete) {
     BTM_VendorSpecificCommand(HCI_BLE_MULTI_ADV_OCF, param_len, param_buf,
@@ -72,7 +82,8 @@ class BleAdvertiserHciInterfaceImpl : public BleAdvertiserHciInterface {
     pending_ops->push(std::make_pair(param_buf[0], command_complete));
   }
 
-  void ReadInstanceCount(base::Callback<void(uint8_t /* inst_cnt*/)> cb) override {
+  void ReadInstanceCount(
+      base::Callback<void(uint8_t /* inst_cnt*/)> cb) override {
     cb.Run(BTM_BleMaxMultiAdvInstanceCount());
   }
 
@@ -187,26 +198,152 @@ class BleAdvertiserHciInterfaceImpl : public BleAdvertiserHciInterface {
     STREAM_TO_UINT16(conn_handle, p);
   }
 };
+
+std::queue<std::pair<uint16_t, status_cb>> *legacy_pending_ops = nullptr;
+void adv_cmd_cmpl_cback(uint16_t opcode, uint8_t *return_parameters,
+                        uint16_t return_parameters_length) {
+  uint8_t status = *return_parameters;
+
+  VLOG(1) << "opcode = " << +opcode << ", status: " << +status;
+
+  auto pending_op = legacy_pending_ops->front();
+  uint16_t pending_opc_opcode = pending_op.first;
+  legacy_pending_ops->pop();
+
+  if (opcode != pending_opc_opcode) {
+    LOG(ERROR) << "unexpected command complete, expect: " << +pending_opc_opcode
+               << " get: " << +opcode;
+    return;
+  }
+
+  pending_op.second.Run(status);
+}
+
+class BleAdvertiserLegacyHciInterfaceImpl : public BleAdvertiserHciInterface {
+  void SendAdvCmd(uint16_t opcode, uint8_t *param_buf, uint8_t param_buf_len,
+                  status_cb command_complete) {
+    btu_hcif_send_cmd_with_cb(opcode, param_buf, param_buf_len,
+                              adv_cmd_cmpl_cback);
+
+    legacy_pending_ops->push(std::make_pair(opcode, command_complete));
+  }
+
+  void ReadInstanceCount(
+      base::Callback<void(uint8_t /* inst_cnt*/)> cb) override {
+    cb.Run(1);
+  }
+
+  void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
+                     uint8_t advertising_type, uint8_t own_address_type,
+                     BD_ADDR own_address, uint8_t direct_address_type,
+                     BD_ADDR direct_address, uint8_t channel_map,
+                     uint8_t filter_policy, uint8_t inst_id, uint8_t tx_power,
+                     status_cb command_complete) override {
+    VLOG(1) << __func__;
+
+    uint8_t param[HCIC_PARAM_SIZE_BLE_WRITE_ADV_PARAMS];
+
+    uint8_t *pp = param;
+    UINT16_TO_STREAM(pp, adv_int_min);
+    UINT16_TO_STREAM(pp, adv_int_max);
+    UINT8_TO_STREAM(pp, advertising_type);
+    UINT8_TO_STREAM(pp, own_address_type);
+    UINT8_TO_STREAM(pp, direct_address_type);
+    BDADDR_TO_STREAM(pp, direct_address);
+    UINT8_TO_STREAM(pp, channel_map);
+    UINT8_TO_STREAM(pp, filter_policy);
+
+    SendAdvCmd(HCI_BLE_WRITE_ADV_PARAMS, param,
+               HCIC_PARAM_SIZE_BLE_WRITE_ADV_PARAMS, command_complete);
+  }
+
+  void SetAdvertisingData(uint8_t data_length, uint8_t *data, uint8_t inst_id,
+                          status_cb command_complete) override {
+    VLOG(1) << __func__;
+
+    uint8_t param[HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA + 1];
+
+    uint8_t *pp = param;
+    memset(pp, 0, HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA + 1);
+    UINT8_TO_STREAM(pp, data_length);
+    ARRAY_TO_STREAM(pp, data, data_length);
+
+    SendAdvCmd(HCI_BLE_WRITE_ADV_DATA, param,
+               HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA + 1, command_complete);
+  }
+
+  void SetScanResponseData(uint8_t scan_response_data_length,
+                           uint8_t *scan_response_data, uint8_t inst_id,
+                           status_cb command_complete) override {
+    VLOG(1) << __func__;
+    uint8_t param[HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA + 1];
+
+    uint8_t *pp = param;
+    memset(pp, 0, HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA + 1);
+    UINT8_TO_STREAM(pp, scan_response_data_length);
+    ARRAY_TO_STREAM(pp, scan_response_data, scan_response_data_length);
+
+    SendAdvCmd(HCI_BLE_WRITE_SCAN_RSP_DATA, param,
+               HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA + 1, command_complete);
+  }
+
+  void SetRandomAddress(uint8_t random_address[6], uint8_t inst_id,
+                        status_cb command_complete) override {
+    VLOG(1) << __func__;
+
+    uint8_t param[HCIC_PARAM_SIZE_WRITE_RANDOM_ADDR_CMD];
+
+    uint8_t *pp = param;
+    BDADDR_TO_STREAM(pp, random_address);
+
+    SendAdvCmd(HCI_BLE_WRITE_RANDOM_ADDR, param,
+               HCIC_PARAM_SIZE_WRITE_RANDOM_ADDR_CMD, command_complete);
+  }
+
+  void Enable(uint8_t advertising_enable, uint8_t inst_id,
+              status_cb command_complete) override {
+    VLOG(1) << __func__;
+    uint8_t param[HCIC_PARAM_SIZE_WRITE_ADV_ENABLE];
+
+    uint8_t *pp = param;
+    UINT8_TO_STREAM(pp, advertising_enable);
+
+    SendAdvCmd(HCI_BLE_WRITE_ADV_ENABLE, param,
+               HCIC_PARAM_SIZE_WRITE_ADV_ENABLE, command_complete);
+  }
+};
+
 }  // namespace
 
 void BleAdvertiserHciInterface::Initialize() {
   VLOG(1) << __func__;
   LOG_ASSERT(instance == nullptr) << "Was already initialized.";
-  instance = new BleAdvertiserHciInterfaceImpl();
-  pending_ops = new std::queue<std::pair<int, status_cb>>();
+  pending_ops = new std::queue<std::pair<uint8_t, status_cb>>();
+  legacy_pending_ops = new std::queue<std::pair<uint16_t, status_cb>>();
 
-  BTM_RegisterForVSEvents(
-      BleAdvertiserHciInterfaceImpl::VendorSpecificEventCback, true);
+  if (BTM_BleMaxMultiAdvInstanceCount()) {
+    instance = new BleAdvertiserVscHciInterfaceImpl();
+    BTM_RegisterForVSEvents(
+        BleAdvertiserVscHciInterfaceImpl::VendorSpecificEventCback, true);
+  } else {
+    instance = new BleAdvertiserLegacyHciInterfaceImpl();
+  }
 }
 
 BleAdvertiserHciInterface *BleAdvertiserHciInterface::Get() { return instance; }
 
 void BleAdvertiserHciInterface::CleanUp() {
   VLOG(1) << __func__;
-  BTM_RegisterForVSEvents(
-      BleAdvertiserHciInterfaceImpl::VendorSpecificEventCback, false);
+
+  if (BTM_BleMaxMultiAdvInstanceCount()) {
+    BTM_RegisterForVSEvents(
+        BleAdvertiserVscHciInterfaceImpl::VendorSpecificEventCback, false);
+  }
+
   delete pending_ops;
   pending_ops = nullptr;
+  delete legacy_pending_ops;
+  legacy_pending_ops = nullptr;
   delete instance;
   instance = nullptr;
 }
