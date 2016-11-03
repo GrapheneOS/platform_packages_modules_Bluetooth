@@ -58,7 +58,7 @@ extern "C" {
  *  - array[5] contains bits 7-0.
  */
 typedef struct  {
-    OI_UINT8    addr[OI_BD_ADDR_BYTE_SIZE] ;   /**< Bluetooth device address represented as an array of 8-bit values */
+    uint8_t    addr[OI_BD_ADDR_BYTE_SIZE] ;   /**< Bluetooth device address represented as an array of 8-bit values */
 } OI_BD_ADDR ;
 
 /**
@@ -75,12 +75,12 @@ typedef struct  {
 /**
  * 16-bit representation of a 128-bit UUID
  */
-typedef OI_UINT16 OI_UUID16;
+typedef uint16_t OI_UUID16;
 
 /**
  * 32-bit representation of a 128-bit UUID
  */
-typedef OI_UINT32 OI_UUID32;
+typedef uint32_t OI_UUID32;
 
 /**
  * number of bytes in a 128 bit UUID
@@ -101,8 +101,8 @@ typedef OI_UINT32 OI_UUID32;
  * stored as bytes in big-endian order.
  */
 typedef struct {
-    OI_UINT32 ms32bits;                                    /**< most significant 32 bits of 128-bit UUID */
-    OI_UINT8 base[OI_BT_UUID128_SIZE - sizeof(OI_UINT32)]; /**< remainder of 128-bit UUID, array of 8-bit values */
+    uint32_t ms32bits;                                    /**< most significant 32 bits of 128-bit UUID */
+    uint8_t base[OI_BT_UUID128_SIZE - sizeof(uint32_t)]; /**< remainder of 128-bit UUID, array of 8-bit values */
 } OI_UUID128;
 
 /** @} */
@@ -134,7 +134,7 @@ typedef struct {
  *  - array[15] contains bits 120- 127.
  */
 typedef struct {
-    OI_UINT8    key[OI_BT_LINK_KEY_SIZE] ;   /**< link key represented as an array of 8-bit values */
+    uint8_t    key[OI_BT_LINK_KEY_SIZE] ;   /**< link key represented as an array of 8-bit values */
 } OI_LINK_KEY ;
 
 
@@ -142,7 +142,7 @@ typedef struct {
 #define OI_BT_OOB_NUM_BYTES     16
 
 typedef struct {
-    OI_UINT8    value[OI_BT_OOB_NUM_BYTES] ;   /**< same struct used for C and R values */
+    uint8_t    value[OI_BT_OOB_NUM_BYTES] ;   /**< same struct used for C and R values */
 } OI_OOB_DATA ;
 
 
@@ -166,7 +166,7 @@ typedef enum  {
 
 /** data type for a PIN (PINs are treated as strings, so endianness does not apply.) */
 typedef struct  {
-    OI_UINT8    pin[OI_BT_PIN_CODE_SIZE] ; /**< PIN represented as an array of 8-bit values */
+    uint8_t    pin[OI_BT_PIN_CODE_SIZE] ; /**< PIN represented as an array of 8-bit values */
 } OI_PIN_CODE ;
 
 /** maximum number of SCO connections per device, which is 3 as of version 2.0+EDR
@@ -174,16 +174,16 @@ typedef struct  {
 #define OI_BT_MAX_SCO_CONNECTIONS  3
 
 /** data type for clock offset */
-typedef OI_UINT16   OI_BT_CLOCK_OFFSET ;
+typedef uint16_t   OI_BT_CLOCK_OFFSET ;
 
 /** data type for a LM handle */
-typedef OI_UINT16 OI_HCI_LM_HANDLE;
+typedef uint16_t OI_HCI_LM_HANDLE;
 
 /** opaque data type for a SCO or ACL connection handle */
 typedef struct _OI_HCI_CONNECTION *OI_HCI_CONNECTION_HANDLE;
 
 /** data type for HCI Error Code, as defined in oi_hcispec.h */
-typedef OI_UINT8    OI_HCI_ERROR_CODE ;
+typedef uint8_t    OI_HCI_ERROR_CODE ;
 
 /**
  * The Bluetooth device type is indicated by a 24-bit bitfield, represented as a
@@ -191,7 +191,7 @@ typedef OI_UINT8    OI_HCI_ERROR_CODE ;
  * in the file oi_bt_assigned_nos.h and in the Bluetooth "Assigned Numbers" specification
  * at http://www.bluetooth.org/assigned-numbers/.
  */
-typedef OI_UINT32   OI_BT_DEVICE_CLASS ;
+typedef uint32_t   OI_BT_DEVICE_CLASS ;
 
 #define OI_BT_DEV_CLASS_FORMAT_MASK        0x000003    /**< Bits 0-1 contain format type. */
 #define OI_BT_DEV_CLASS_MINOR_DEVICE_MASK  0x0000FC    /**< Bits 2-7 contain minor device class value. */

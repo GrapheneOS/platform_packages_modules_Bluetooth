@@ -46,7 +46,7 @@ extern "C" {
 /**
  * Opaque type for a callback function handle. See OI_ScheduleCallbackFunction()
  */
-typedef OI_UINT32 OI_CALLBACK_HANDLE;
+typedef uint32_t OI_CALLBACK_HANDLE;
 
 
 /**
@@ -231,8 +231,8 @@ void OI_VPrintf(const OI_CHAR *format, va_list argp);
  *
  * @return   Number of characters written or -1 in the case of an error.
  */
-OI_INT32 OI_SNPrintf(OI_CHAR *buffer,
-                    OI_UINT16 bufLen,
+int32_t OI_SNPrintf(OI_CHAR *buffer,
+                    uint16_t bufLen,
                     const OI_CHAR* format, ...);
 
 
@@ -249,8 +249,8 @@ OI_INT32 OI_SNPrintf(OI_CHAR *buffer,
  *
  * @return   Number of characters written or -1 in the case of an error.
  */
-OI_INT32 OI_VSNPrintf(OI_CHAR *buffer,
-                     OI_UINT16 bufLen,
+int32_t OI_VSNPrintf(OI_CHAR *buffer,
+                     uint16_t bufLen,
                      const OI_CHAR *format, va_list argp);
 
 
@@ -278,7 +278,7 @@ OI_INT OI_atoi(const OI_CHAR *str);
  * @return       A pointer to the first character following the integer or the pointer passed in.
  */
 const OI_CHAR* OI_ScanInt(const OI_CHAR *str,
-                          OI_INT32 *val);
+                          int32_t *val);
 
 
 /**
@@ -295,7 +295,7 @@ const OI_CHAR* OI_ScanInt(const OI_CHAR *str,
  * @return       A pointer to the first character following the unsigned integer or the pointer passed in.
  */
 const OI_CHAR* OI_ScanUInt(const OI_CHAR *str,
-                           OI_UINT32 *val);
+                           uint32_t *val);
 
 /**
  * Parse a whitespace delimited substring out of a string.
@@ -309,7 +309,7 @@ const OI_CHAR* OI_ScanUInt(const OI_CHAR *str,
  */
 const OI_CHAR* OI_ScanStr(const OI_CHAR *str,
                           OI_CHAR *outStr,
-                          OI_UINT16 len);
+                          uint16_t len);
 
 
 /**
