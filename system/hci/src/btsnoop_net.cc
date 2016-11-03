@@ -30,6 +30,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <mutex>
+
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
@@ -42,7 +44,7 @@ static const int LISTEN_PORT_ = 8872;
 
 static pthread_t listen_thread_;
 static bool listen_thread_valid_ = false;
-static pthread_mutex_t client_socket_lock_ = PTHREAD_MUTEX_INITIALIZER;
+static std::mutex client_socket_mutex_;
 static int listen_socket_ = -1;
 static int client_socket_ = -1;
 
@@ -79,7 +81,7 @@ void btsnoop_net_write(const void* data, size_t length) {
   return;  // Disable using network sockets for security reasons
 #endif
 
-  pthread_mutex_lock(&client_socket_lock_);
+  std::lock_guard<std::mutex> lock(client_socket_mutex_);
   if (client_socket_ != -1) {
     ssize_t ret;
     OSI_NO_INTR(ret = send(client_socket_, data, length, 0));
@@ -88,7 +90,6 @@ void btsnoop_net_write(const void* data, size_t length) {
       safe_close_(&client_socket_);
     }
   }
-  pthread_mutex_unlock(&client_socket_lock_);
 }
 
 static void* listen_fn_(UNUSED_ATTR void* context) {
@@ -139,12 +140,11 @@ static void* listen_fn_(UNUSED_ATTR void* context) {
 
     /* When a new client connects, we have to send the btsnoop file header. This
      * allows a decoder to treat the session as a new, valid btsnoop file. */
-    pthread_mutex_lock(&client_socket_lock_);
+    std::lock_guard<std::mutex> lock(client_socket_mutex_);
     safe_close_(&client_socket_);
     client_socket_ = client_socket;
 
     OSI_NO_INTR(send(client_socket_, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16, 0));
-    pthread_mutex_unlock(&client_socket_lock_);
   }
 
 cleanup:
