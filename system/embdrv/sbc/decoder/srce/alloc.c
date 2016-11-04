@@ -25,10 +25,10 @@
 ***********************************************************************************/
 
 PRIVATE OI_STATUS OI_CODEC_SBC_Alloc(OI_CODEC_SBC_COMMON_CONTEXT *common,
-                                     OI_UINT32 *codecDataAligned,
-                                     OI_UINT32 codecDataBytes,
-                                     OI_UINT8 maxChannels,
-                                     OI_UINT8 pcmStride)
+                                     uint32_t *codecDataAligned,
+                                     uint32_t codecDataBytes,
+                                     uint8_t maxChannels,
+                                     uint8_t pcmStride)
 {
     int i;
     size_t filterBufferCount;
@@ -60,7 +60,7 @@ PRIVATE OI_STATUS OI_CODEC_SBC_Alloc(OI_CODEC_SBC_COMMON_CONTEXT *common,
     common->filterBufferLen = filterBufferCount * SBC_MAX_BANDS;
 
     /* Allocate memory for the subband data */
-    common->subdata = (OI_INT32*)codecData;
+    common->subdata = (int32_t*)codecData;
     codecData += subdataSize;
     OI_ASSERT(codecDataBytes >= subdataSize);
     codecDataBytes -= subdataSize;

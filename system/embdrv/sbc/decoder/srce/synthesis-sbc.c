@@ -161,7 +161,7 @@ The output samples X[0..7] are defined as sums of W:
 
 #include "oi_codec_sbc_private.h"
 
-const OI_INT32 dec_window_4[21] = {
+const int32_t dec_window_4[21] = {
            0,        /* +0.00000000E+00 */
           97,        /* +5.36548976E-04 */
          270,        /* +1.49188357E-03 */
@@ -213,15 +213,15 @@ const OI_INT32 dec_window_4[21] = {
  * @return  A signed 32-bit value corresponding to the 32 most significant bits
  * of the 48-bit product of u and v.
  */
-INLINE OI_INT32 default_mul_16s_32s_hi(OI_INT16 u, OI_INT32 v)
+INLINE int32_t default_mul_16s_32s_hi(int16_t u, int32_t v)
 {
-    OI_UINT16 v0;
-    OI_INT16 v1;
+    uint16_t v0;
+    int16_t v1;
 
-    OI_INT32 w,x;
+    int32_t w,x;
 
-    v0 = (OI_UINT16)(v & 0xffff);
-    v1 = (OI_INT16) (v >> 16);
+    v0 = (uint16_t)(v & 0xffff);
+    v1 = (int16_t) (v >> 16);
 
     w = v1 * u;
     x = u * v0;
@@ -233,11 +233,11 @@ INLINE OI_INT32 default_mul_16s_32s_hi(OI_INT16 u, OI_INT32 v)
 
 #define LONG_MULT_DCT(K, sample) (MUL_16S_32S_HI(K, sample)<<2)
 
-PRIVATE void SynthWindow80_generated(OI_INT16 *pcm, SBC_BUFFER_T const * RESTRICT buffer, OI_UINT strideShift);
-PRIVATE void SynthWindow112_generated(OI_INT16 *pcm, SBC_BUFFER_T const * RESTRICT buffer, OI_UINT strideShift);
-PRIVATE void dct2_8(SBC_BUFFER_T * RESTRICT out, OI_INT32 const * RESTRICT x);
+PRIVATE void SynthWindow80_generated(int16_t *pcm, SBC_BUFFER_T const * RESTRICT buffer, OI_UINT strideShift);
+PRIVATE void SynthWindow112_generated(int16_t *pcm, SBC_BUFFER_T const * RESTRICT buffer, OI_UINT strideShift);
+PRIVATE void dct2_8(SBC_BUFFER_T * RESTRICT out, int32_t const * RESTRICT x);
 
-typedef void (*SYNTH_FRAME)(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT16 *pcm, OI_UINT blkstart, OI_UINT blkcount);
+typedef void (*SYNTH_FRAME)(OI_CODEC_SBC_DECODER_CONTEXT *context, int16_t *pcm, OI_UINT blkstart, OI_UINT blkcount);
 
 #ifndef COPY_BACKWARD_32BIT_ALIGNED_72_HALFWORDS
 #define COPY_BACKWARD_32BIT_ALIGNED_72_HALFWORDS(dest, src) do { shift_buffer(dest, src, 72); } while (0)
@@ -255,14 +255,14 @@ typedef void (*SYNTH_FRAME)(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT16 *pcm
 #define SYNTH112 SynthWindow112_generated
 #endif
 
-PRIVATE void OI_SBC_SynthFrame_80(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT16 *pcm, OI_UINT blkstart, OI_UINT blkcount)
+PRIVATE void OI_SBC_SynthFrame_80(OI_CODEC_SBC_DECODER_CONTEXT *context, int16_t *pcm, OI_UINT blkstart, OI_UINT blkcount)
 {
     OI_UINT blk;
     OI_UINT ch;
     OI_UINT nrof_channels = context->common.frameInfo.nrof_channels;
     OI_UINT pcmStrideShift = context->common.pcmStride == 1 ? 0 : 1;
     OI_UINT offset = context->common.filterBufferOffset;
-    OI_INT32 *s = context->common.subdata + 8 * nrof_channels * blkstart;
+    int32_t *s = context->common.subdata + 8 * nrof_channels * blkstart;
     OI_UINT blkstop = blkstart + blkcount;
 
     for (blk = blkstart; blk < blkstop; blk++) {
@@ -286,14 +286,14 @@ PRIVATE void OI_SBC_SynthFrame_80(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT1
     context->common.filterBufferOffset = offset;
 }
 
-PRIVATE void OI_SBC_SynthFrame_4SB(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT16 *pcm, OI_UINT blkstart, OI_UINT blkcount)
+PRIVATE void OI_SBC_SynthFrame_4SB(OI_CODEC_SBC_DECODER_CONTEXT *context, int16_t *pcm, OI_UINT blkstart, OI_UINT blkcount)
 {
     OI_UINT blk;
     OI_UINT ch;
     OI_UINT nrof_channels = context->common.frameInfo.nrof_channels;
     OI_UINT pcmStrideShift = context->common.pcmStride == 1 ? 0 : 1;
     OI_UINT offset = context->common.filterBufferOffset;
-    OI_INT32 *s = context->common.subdata + 8 * nrof_channels * blkstart;
+    int32_t *s = context->common.subdata + 8 * nrof_channels * blkstart;
     OI_UINT blkstop = blkstart + blkcount;
 
     for (blk = blkstart; blk < blkstop; blk++) {
@@ -320,14 +320,14 @@ PRIVATE void OI_SBC_SynthFrame_4SB(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT
 
 #ifdef SBC_ENHANCED
 
-PRIVATE void OI_SBC_SynthFrame_Enhanced(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT16 *pcm, OI_UINT blkstart, OI_UINT blkcount)
+PRIVATE void OI_SBC_SynthFrame_Enhanced(OI_CODEC_SBC_DECODER_CONTEXT *context, int16_t *pcm, OI_UINT blkstart, OI_UINT blkcount)
 {
     OI_UINT blk;
     OI_UINT ch;
     OI_UINT nrof_channels = context->common.frameInfo.nrof_channels;
     OI_UINT pcmStrideShift = context->common.pcmStride == 1 ? 0 : 1;
     OI_UINT offset = context->common.filterBufferOffset;
-    OI_INT32 *s = context->common.subdata + 8 * nrof_channels * blkstart;
+    int32_t *s = context->common.subdata + 8 * nrof_channels * blkstart;
     OI_UINT blkstop = blkstart + blkcount;
 
     for (blk = blkstart; blk < blkstop; blk++) {
@@ -371,7 +371,7 @@ static const SYNTH_FRAME SynthFrame4SB[] = {
     OI_SBC_SynthFrame_4SB  /* stereo */
 };
 
-PRIVATE void OI_SBC_SynthFrame(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT16 *pcm, OI_UINT start_block, OI_UINT nrof_blocks)
+PRIVATE void OI_SBC_SynthFrame(OI_CODEC_SBC_DECODER_CONTEXT *context, int16_t *pcm, OI_UINT start_block, OI_UINT nrof_blocks)
 {
     OI_UINT nrof_subbands = context->common.frameInfo.nrof_subbands;
     OI_UINT nrof_channels = context->common.frameInfo.nrof_channels;
@@ -389,10 +389,10 @@ PRIVATE void OI_SBC_SynthFrame(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_INT16 *
 }
 
 
-void SynthWindow40_int32_int32_symmetry_with_sum(OI_INT16 *pcm, SBC_BUFFER_T buffer[80], OI_UINT strideShift)
+void SynthWindow40_int32_int32_symmetry_with_sum(int16_t *pcm, SBC_BUFFER_T buffer[80], OI_UINT strideShift)
 {
-    OI_INT32 pa;
-    OI_INT32 pb;
+    int32_t pa;
+    int32_t pb;
 
     /* These values should be zero, since out[2] of the 4-band cosine modulation
      * is always zero. */
@@ -415,7 +415,7 @@ void SynthWindow40_int32_int32_symmetry_with_sum(OI_INT16 *pcm, SBC_BUFFER_T buf
     pa += dec_window_4[20] *  buffer[44];
     pa = SCALE(-pa, 15);
     CLIP_INT16(pa);
-    pcm[0 << strideShift] = (OI_INT16)pa;
+    pcm[0 << strideShift] = (int16_t)pa;
 
 
     pa  = dec_window_4[ 1] * buffer[ 1]; pb  = dec_window_4[ 1] * buffer[79];
@@ -430,10 +430,10 @@ void SynthWindow40_int32_int32_symmetry_with_sum(OI_INT16 *pcm, SBC_BUFFER_T buf
     pb += dec_window_4[19] * buffer[35]; pa += dec_window_4[19] * buffer[45];
     pa = SCALE(-pa, 15);
     CLIP_INT16(pa);
-    pcm[1 << strideShift] = (OI_INT16)(pa);
+    pcm[1 << strideShift] = (int16_t)(pa);
     pb = SCALE(-pb, 15);
     CLIP_INT16(pb);
-    pcm[3 << strideShift] = (OI_INT16)(pb);
+    pcm[3 << strideShift] = (int16_t)(pb);
 
 
     pa  = dec_window_4[2] * (/*buffer[ 2] + */ buffer[78]);  /* buffer[ 2] is always zero */
@@ -443,7 +443,7 @@ void SynthWindow40_int32_int32_symmetry_with_sum(OI_INT16 *pcm, SBC_BUFFER_T buf
     pa += dec_window_4[18] * (/*buffer[34] + */ buffer[46]);  /* buffer[34] is always zero */
     pa = SCALE(-pa, 15);
     CLIP_INT16(pa);
-    pcm[2 << strideShift] = (OI_INT16)(pa);
+    pcm[2 << strideShift] = (int16_t)(pa);
 }
 
 
@@ -472,10 +472,10 @@ void SynthWindow40_int32_int32_symmetry_with_sum(OI_INT16 *pcm, SBC_BUFFER_T buf
   algebra system, manually converted to fixed-point arithmetic. S4 can be
   implemented using only assignment and negation.
   */
-PRIVATE void cosineModulateSynth4(SBC_BUFFER_T * RESTRICT out, OI_INT32 const * RESTRICT in)
+PRIVATE void cosineModulateSynth4(SBC_BUFFER_T * RESTRICT out, int32_t const * RESTRICT in)
 {
-    OI_INT32 f0, f1, f2, f3, f4, f7, f8, f9, f10;
-    OI_INT32 y0, y1, y2, y3;
+    int32_t f0, f1, f2, f3, f4, f7, f8, f9, f10;
+    int32_t y0, y1, y2, y3;
 
     f0 = (in[0] - in[3]);
     f1 = (in[0] + in[3]);
@@ -493,14 +493,14 @@ PRIVATE void cosineModulateSynth4(SBC_BUFFER_T * RESTRICT out, OI_INT32 const * 
     y3 = -SCALE(f8 + f9, DCT_SHIFT);
     y1 = -SCALE(f10 - f9, DCT_SHIFT);
 
-    out[0] = (OI_INT16)-y2;
-    out[1] = (OI_INT16)-y3;
-    out[2] = (OI_INT16)0;
-    out[3] = (OI_INT16)y3;
-    out[4] = (OI_INT16)y2;
-    out[5] = (OI_INT16)y1;
-    out[6] = (OI_INT16)y0;
-    out[7] = (OI_INT16)y1;
+    out[0] = (int16_t)-y2;
+    out[1] = (int16_t)-y3;
+    out[2] = (int16_t)0;
+    out[3] = (int16_t)y3;
+    out[4] = (int16_t)y2;
+    out[5] = (int16_t)y1;
+    out[6] = (int16_t)y0;
+    out[7] = (int16_t)y1;
 }
 
 

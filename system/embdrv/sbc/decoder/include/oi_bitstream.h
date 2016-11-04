@@ -44,28 +44,28 @@ INLINE void OI_BITSTREAM_ReadInit(OI_BITSTREAM *bs, const OI_BYTE *buffer);
 
 INLINE void OI_BITSTREAM_WriteInit(OI_BITSTREAM *bs, OI_BYTE *buffer);
 
-INLINE OI_UINT32 OI_BITSTREAM_ReadUINT(OI_BITSTREAM *bs, OI_UINT bits);
+INLINE uint32_t OI_BITSTREAM_ReadUINT(OI_BITSTREAM *bs, OI_UINT bits);
 
-INLINE OI_UINT8 OI_BITSTREAM_ReadUINT4Aligned(OI_BITSTREAM *bs);
+INLINE uint8_t OI_BITSTREAM_ReadUINT4Aligned(OI_BITSTREAM *bs);
 
-INLINE OI_UINT8 OI_BITSTREAM_ReadUINT8Aligned(OI_BITSTREAM *bs);
+INLINE uint8_t OI_BITSTREAM_ReadUINT8Aligned(OI_BITSTREAM *bs);
 
 INLINE void OI_BITSTREAM_WriteUINT(OI_BITSTREAM *bs,
-                                   OI_UINT16 value,
+                                   uint16_t value,
                                    OI_UINT bits);
 
 /*
  * Use knowledge that the bitstream is aligned to optimize the write of a byte
  */
 PRIVATE void OI_BITSTREAM_WriteUINT8Aligned(OI_BITSTREAM *bs,
-                                            OI_UINT8 datum);
+                                            uint8_t datum);
 
 /*
  * Use knowledge that the bitstream is aligned to optimize the write pair of nibbles
  */
 PRIVATE void OI_BITSTREAM_Write2xUINT4Aligned(OI_BITSTREAM *bs,
-                                              OI_UINT8 datum1,
-                                              OI_UINT8 datum2);
+                                              uint8_t datum1,
+                                              uint8_t datum2);
 
 /** Internally the bitstream looks ahead in the stream. When
  * OI_SBC_ReadScalefactors() goes to temporarily break the abstraction, it will
@@ -102,7 +102,7 @@ do {\
     \
     while ((bitPtr) <= 16) {\
         (bitPtr) += 8;\
-        *(ptr)++ = (OI_UINT8)((value) >> 24);\
+        *(ptr)++ = (uint8_t)((value) >> 24);\
         (value) <<= 8;\
     }\
 } while (0)
@@ -111,7 +111,7 @@ do {\
 do {\
     while ((bitPtr) < 32) {\
         (bitPtr) += 8;\
-        *(ptr)++ = (OI_UINT8)((value) >> 24);\
+        *(ptr)++ = (uint8_t)((value) >> 24);\
         (value) <<= 8;\
     }\
 } while (0)

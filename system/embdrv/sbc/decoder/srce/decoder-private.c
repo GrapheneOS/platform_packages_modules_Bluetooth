@@ -40,8 +40,8 @@ This file drives SBC decoding.
 OI_CHAR * const OI_Codec_Copyright = "Copyright 2002-2007 Open Interface North America, Inc. All rights reserved";
 
 INLINE OI_STATUS internal_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT *context,
-                                       OI_UINT32 *decoderData,
-                                       OI_UINT32 decoderDataBytes,
+                                       uint32_t *decoderData,
+                                       uint32_t decoderDataBytes,
                                        OI_BYTE maxChannels,
                                        OI_BYTE pcmStride,
                                        OI_BOOL enhanced)
@@ -88,7 +88,7 @@ INLINE OI_STATUS internal_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT *context,
 INLINE void OI_SBC_ReadHeader(OI_CODEC_SBC_COMMON_CONTEXT *common, const OI_BYTE *data)
 {
     OI_CODEC_SBC_FRAME_INFO *frame = &common->frameInfo;
-    OI_UINT8 d1;
+    uint8_t d1;
 
 
     OI_ASSERT(data[0] == OI_SBC_SYNCWORD || data[0] == OI_SBC_ENHANCED_SYNCWORD);
@@ -136,7 +136,7 @@ PRIVATE void OI_SBC_ReadScalefactors(OI_CODEC_SBC_COMMON_CONTEXT *common,
                              OI_BITSTREAM *bs)
 {
     OI_UINT i = common->frameInfo.nrof_subbands * common->frameInfo.nrof_channels;
-    OI_INT8 *scale_factor = common->scale_factor;
+    int8_t *scale_factor = common->scale_factor;
     OI_UINT f;
 
     if (common->frameInfo.nrof_subbands == 8 || common->frameInfo.mode != SBC_JOINT_STEREO) {
@@ -179,20 +179,20 @@ PRIVATE void OI_SBC_ReadSamples(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_BITSTR
 {
     OI_CODEC_SBC_COMMON_CONTEXT *common = &context->common;
     OI_UINT nrof_blocks = common->frameInfo.nrof_blocks;
-    OI_INT32 * RESTRICT s = common->subdata;
-    OI_UINT8 *ptr = global_bs->ptr.w;
-    OI_UINT32 value = global_bs->value;
+    int32_t * RESTRICT s = common->subdata;
+    uint8_t *ptr = global_bs->ptr.w;
+    uint32_t value = global_bs->value;
     OI_UINT bitPtr = global_bs->bitPtr;
 
     const OI_UINT iter_count = common->frameInfo.nrof_channels * common->frameInfo.nrof_subbands / 4;
     do {
         OI_UINT i;
         for (i = 0; i < iter_count; ++i) {
-            OI_UINT32 sf_by4 = ((OI_UINT32*)common->scale_factor)[i];
-            OI_UINT32 bits_by4 = common->bits.uint32[i];
+            uint32_t sf_by4 = ((uint32_t*)common->scale_factor)[i];
+            uint32_t bits_by4 = common->bits.uint32[i];
             OI_UINT n;
             for (n = 0; n < 4; ++n) {
-                OI_INT32 dequant;
+                int32_t dequant;
                 OI_UINT bits;
                 OI_INT sf;
 
@@ -208,7 +208,7 @@ PRIVATE void OI_SBC_ReadSamples(OI_CODEC_SBC_DECODER_CONTEXT *context, OI_BITSTR
                     sf_by4 <<= 8;
                 }
                 if (bits) {
-                    OI_UINT32 raw;
+                    uint32_t raw;
                     OI_BITSTREAM_READUINT(raw, bits, ptr, value, bitPtr);
                     dequant = OI_SBC_Dequant(raw, sf, bits);
                 } else {

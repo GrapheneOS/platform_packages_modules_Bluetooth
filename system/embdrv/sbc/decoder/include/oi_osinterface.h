@@ -101,7 +101,7 @@ void OI_Time_Now(OI_TIME *now);
  *
  * @param milliseconds  Number of milliseconds to sleep
  */
-void OI_Sleep(OI_UINT32 milliseconds);
+void OI_Sleep(uint32_t milliseconds);
 
 
 /**
@@ -124,7 +124,7 @@ void OI_Sleep(OI_UINT32 milliseconds);
  *
  * @param code  OI_MSG_CODE_* indicating setting the message type.
  */
-void OI_SetMsgCode(OI_UINT8 code);
+void OI_SetMsgCode(uint8_t code);
 
 /**
  * All output from OI_Printf() and all debug output is sent to OI_Print.
@@ -153,7 +153,7 @@ void OI_Print_ConsoleInput(OI_CHAR const *str);
 /**
  *  This function computes the CRC16 of the program image.
  */
-OI_UINT16  OI_ProgramImageCRC16(void);
+uint16_t  OI_ProgramImageCRC16(void);
 
 /**
  * Writes an integer to stdout in hex. This macro is intended
@@ -169,7 +169,7 @@ OI_UINT16  OI_ProgramImageCRC16(void);
     static const OI_CHAR _digits[] = "0123456789ABCDEF"; \
     OI_CHAR _buf[9]; \
     OI_CHAR *_str = &_buf[8]; \
-    OI_UINT32 _i = n; \
+    uint32_t _i = n; \
     *_str = 0; \
     do { *(--_str) = _digits[(_i & 0xF)]; _i >>= 4; } while (_i); \
     OI_Print(_str); \
@@ -183,7 +183,7 @@ OI_UINT16  OI_ProgramImageCRC16(void);
  *  allocated from the pool-based heap managed by the stack's
  *  internal memory manager.
  */
-void *OI_APP_Malloc(OI_INT32 size);
+void *OI_APP_Malloc(int32_t size);
 void OI_APP_Free(void *ptr);
 
 /*****************************************************************************/

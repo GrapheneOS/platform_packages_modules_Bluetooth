@@ -109,8 +109,8 @@
 #define SBC_DEQUANT_SCALING_FACTOR 1.38019122262781f
 #endif
 
-const OI_UINT32 dequant_long_scaled[17];
-const OI_UINT32 dequant_long_unscaled[17];
+const uint32_t dequant_long_scaled[17];
+const uint32_t dequant_long_unscaled[17];
 
 /** Scales x by y bits to the right, adding a rounding factor.
  */
@@ -122,7 +122,7 @@ const OI_UINT32 dequant_long_unscaled[17];
 
 #include <math.h>
 
-INLINE float dequant_float(OI_UINT32 raw, OI_UINT scale_factor, OI_UINT bits)
+INLINE float dequant_float(uint32_t raw, OI_UINT scale_factor, OI_UINT bits)
 {
     float result = (1 << (scale_factor+1)) * ((raw * 2.0f + 1.0f) / ((1 << bits) - 1.0f) - 1.0f);
 
@@ -141,10 +141,10 @@ INLINE float dequant_float(OI_UINT32 raw, OI_UINT scale_factor, OI_UINT bits)
 #endif
 
 
-INLINE OI_INT32 OI_SBC_Dequant(OI_UINT32 raw, OI_UINT scale_factor, OI_UINT bits)
+INLINE int32_t OI_SBC_Dequant(uint32_t raw, OI_UINT scale_factor, OI_UINT bits)
 {
-    OI_UINT32 d;
-    OI_INT32 result;
+    uint32_t d;
+    int32_t result;
 
     OI_ASSERT(scale_factor <= 15);
     OI_ASSERT(bits <= 16);
@@ -159,11 +159,11 @@ INLINE OI_INT32 OI_SBC_Dequant(OI_UINT32 raw, OI_UINT scale_factor, OI_UINT bits
 
 #ifdef DEBUG_DEQUANTIZATION
     {
-        OI_INT32 integerized_float_result;
+        int32_t integerized_float_result;
         float float_result;
 
         float_result = dequant_float(raw, scale_factor, bits);
-        integerized_float_result = (OI_INT32)floor(0.5f+float_result * (1 << 15));
+        integerized_float_result = (int32_t)floor(0.5f+float_result * (1 << 15));
 
         /* This detects overflow */
         OI_ASSERT(((result >= 0) && (integerized_float_result >= 0)) ||
@@ -180,10 +180,10 @@ INLINE OI_INT32 OI_SBC_Dequant(OI_UINT32 raw, OI_UINT scale_factor, OI_UINT bits
  * the encoder is conformant) the result will fit a 24 bit fixed point signed
  * value.*/
 
-INLINE OI_INT32 OI_SBC_Dequant_Unscaled(OI_UINT32 raw, OI_UINT scale_factor, OI_UINT bits)
+INLINE int32_t OI_SBC_Dequant_Unscaled(uint32_t raw, OI_UINT scale_factor, OI_UINT bits)
 {
-    OI_UINT32 d;
-    OI_INT32 result;
+    uint32_t d;
+    int32_t result;
 
     OI_ASSERT(scale_factor <= 15);
     OI_ASSERT(bits <= 16);
