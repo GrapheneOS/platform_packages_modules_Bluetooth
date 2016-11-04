@@ -7,7 +7,6 @@ LOCAL_SRC_FILES := \
         $(call all-java-files-under, lib/mapapi)
 
 LOCAL_MODULE := bluetooth.mapsapi
-LOCAL_MULTILIB := 32
 include $(BUILD_STATIC_JAVA_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -27,7 +26,6 @@ LOCAL_STATIC_JAVA_LIBRARIES := com.android.vcard bluetooth.mapsapi sap-api-java-
 LOCAL_PROTOC_OPTIMIZE_TYPE := micro
 
 LOCAL_REQUIRED_MODULES := bluetooth.default
-LOCAL_MULTILIB := 32
 
 LOCAL_PROGUARD_ENABLED := disabled
 
