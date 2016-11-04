@@ -21,14 +21,14 @@
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ಶ್ವೇತಪಟ್ಟಿ ಬ್ಲೂಟೂತ್‌ ಸಾಧನವನ್ನು ಪ್ರವೇಶಿಸಿ."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ಬಳಕೆದಾರರ ದೃಢೀಕರಣ ಇಲ್ಲದೆ ಈ ಸಾಧನಕ್ಕೆ ಫೈಲ್‌ಗಳನ್ನು ಕಳುಹಿಸಲು ಬ್ಲೂಟೂತ್‌ ಸಾಧನವನ್ನು ತಾತ್ಕಾಲಿಕವಾಗಿ ಶ್ವೇತಪಟ್ಟಿ ಮಾಡಲು ಅಪ್ಲಿಕೇಶನ್‌‌ಗೆ ಅನುಮತಿಸುತ್ತದೆ."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ಬ್ಲೂಟೂತ್‌"</string>
-    <string name="unknown_device" msgid="9221903979877041009">"ಅಜ್ಞಾತ ಸಾಧನ"</string>
-    <string name="unknownNumber" msgid="4994750948072751566">"ಅಜ್ಞಾತ"</string>
+    <string name="unknown_device" msgid="9221903979877041009">"ಅಪರಿಚಿತ ಸಾಧನ"</string>
+    <string name="unknownNumber" msgid="4994750948072751566">"ಅಪರಿಚಿತ"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"ಏರ್‌ಪ್ಲೇನ್ ಮೋಡ್"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"ಏರ್‌ಪ್ಲೇನ್‌ ಮೋಡ್‌ನಲ್ಲಿ ನೀವು ಬ್ಲೂಟೂತ್‌‌ ಬಳಸಲು ಸಾಧ್ಯವಿಲ್ಲ."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"ಬ್ಲೂಟೂತ್‌ ಸೇವೆಗಳನ್ನು ಬಳಸಲು, ಮೊದಲು ನೀವದನ್ನು ಆನ್‌ ಮಾಡಬೇಕು."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"ಇದೀಗ ಬ್ಲೂಟೂತ್‌ ಆನ್‌ ಮಾಡುವುದೇ?"</string>
-    <string name="bt_enable_cancel" msgid="1988832367505151727">"ರದ್ದುಮಾಡು"</string>
+    <string name="bt_enable_cancel" msgid="1988832367505151727">"ರದ್ದುಮಾಡಿ"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"ಆನ್ ಮಾಡು"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ಫೈಲ್ ವರ್ಗಾವಣೆ"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ಒಳಬರುವ ಫೈಲ್‌ಗಳನ್ನು ಸ್ವೀಕರಿಸುವುದೇ?"</string>
@@ -99,7 +99,7 @@
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"ಯಾವುದೇ SD ಕಾರ್ಡ್‌ಗಳಿಲ್ಲ. ವರ್ಗಾವಣೆ ಮಾಡಲಾದ ಫೈಲ್‌ಗಳನ್ನು ಉಳಿಸಲು SD ಕಾರ್ಡ್‌ವೊಂದನ್ನು ಸೇರಿಸಿ."</string>
     <string name="status_connection_error" msgid="947681831523219891">"ಸಂಪರ್ಕವು ವಿಫಲವಾಗಿದೆ."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"ವಿನಂತಿಯನ್ನು ಸರಿಯಾಗಿ ನಿರ್ವಹಿಸಲಾಗುವುದಿಲ್ಲ."</string>
-    <string name="status_unknown_error" msgid="8156660554237824912">"ಅಜ್ಞಾತ ದೋಷ."</string>
+    <string name="status_unknown_error" msgid="8156660554237824912">"ಅಪರಿಚಿತ ದೋಷ."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"ಬ್ಲೂಟೂತ್‌ ಸ್ವೀಕರಿಸಲಾಗಿದೆ"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಸ್ವೀಕರಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಕಳುಹಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
@@ -122,7 +122,7 @@
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ಪಟ್ಟಿಯಿಂದ ತೆರವುಗೊಳಿಸಿ"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ತೆರವುಗೊಳಿಸು"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ಉಳಿಸು"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ರದ್ದುಮಾಡು"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ರದ್ದುಮಾಡಿ"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ಬ್ಲೂಟೂತ್‌ ಮೂಲಕ ಹಂಚಿಕೊಳ್ಳಲು ಬಯಸುವ ಖಾತೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ. ಸಂಪರ್ಕಪಡಿಸುವಾಗ ಖಾತೆಗಳಿಗೆ ಯಾವುದೇ ಪ್ರವೇಶವನ್ನು ನೀವು ಈಗಲೂ ಸಮ್ಮತಿಸಬೇಕಾಗುತ್ತದೆ."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ಉಳಿದಿರುವ ಸ್ಲಾಟ್‌ಗಳು:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ಅಪ್ಲಿಕೇಶನ್‌ ಐಕಾನ್‌"</string>
