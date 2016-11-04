@@ -250,6 +250,7 @@ extern bt_status_t btif_sdp_execute_service(bool b_enable);
 extern int btif_hh_connect(bt_bdaddr_t* bd_addr);
 extern void bta_gatt_convert_uuid16_to_uuid128(uint8_t uuid_128[LEN_UUID_128],
                                                uint16_t uuid_16);
+extern void btif_av_move_idle(bt_bdaddr_t bd_addr);
 
 /******************************************************************************
  *  Functions
@@ -1733,6 +1734,7 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_DM_LINK_DOWN_EVT:
       bdcpy(bd_addr.address, p_data->link_down.bd_addr);
       btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
+      btif_av_move_idle(bd_addr);
       BTIF_TRACE_DEBUG(
           "BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
       HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
