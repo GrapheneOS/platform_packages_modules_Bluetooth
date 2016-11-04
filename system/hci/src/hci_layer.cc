@@ -21,11 +21,12 @@
 #include "hci_layer.h"
 
 #include <assert.h>
-#include <pthread.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <mutex>
 
 #include "btcore/include/module.h"
 #include "btsnoop.h"
@@ -152,7 +153,7 @@ static fixed_queue_t* packet_queue;
 // Inbound-related
 static alarm_t* command_response_timer;
 static list_t* commands_pending_response;
-static pthread_mutex_t commands_pending_response_lock;
+static std::mutex commands_pending_response_mutex;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
 
 // The hand-off point for data going to a higher layer, set by the higher layer
@@ -172,8 +173,6 @@ static future_t* start_up(void) {
   // event.
   command_credits = 1;
   firmware_is_configured = false;
-
-  pthread_mutex_init(&commands_pending_response_lock, NULL);
 
   // For now, always use the default timeout on non-Android builds.
   period_ms_t startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
@@ -303,8 +302,6 @@ static future_t* shut_down() {
   list_free(commands_pending_response);
   commands_pending_response = NULL;
 
-  pthread_mutex_destroy(&commands_pending_response_lock);
-
   packet_fragmenter->cleanup();
 
   // Free the timers
@@ -410,27 +407,23 @@ static void firmware_config_callback(bool success) {
 
   alarm_cancel(startup_timer);
 
-  pthread_mutex_lock(&commands_pending_response_lock);
+  std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
 
   if (startup_future == NULL) {
     // The firmware configuration took too long - ignore the callback
-    pthread_mutex_unlock(&commands_pending_response_lock);
     return;
   }
   firmware_is_configured = success;
   future_ready(startup_future, success ? FUTURE_SUCCESS : FUTURE_FAIL);
   startup_future = NULL;
-
-  pthread_mutex_unlock(&commands_pending_response_lock);
 }
 
 static void startup_timer_expired(UNUSED_ATTR void* context) {
   LOG_ERROR(LOG_TAG, "%s", __func__);
 
-  pthread_mutex_lock(&commands_pending_response_lock);
+  std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
   future_ready(startup_future, FUTURE_FAIL);
   startup_future = NULL;
-  pthread_mutex_unlock(&commands_pending_response_lock);
 }
 
 // Postload functions
@@ -475,9 +468,10 @@ static void event_command_ready(fixed_queue_t* queue,
     command_credits--;
 
     // Move it to the list of commands awaiting response
-    pthread_mutex_lock(&commands_pending_response_lock);
-    list_append(commands_pending_response, wait_entry);
-    pthread_mutex_unlock(&commands_pending_response_lock);
+    {
+      std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
+      list_append(commands_pending_response, wait_entry);
+    }
 
     // Send it off
     low_power_manager->wake_assert();
@@ -524,14 +518,14 @@ static void fragmenter_transmit_finished(BT_HDR* packet,
 }
 
 static void command_timed_out(UNUSED_ATTR void* context) {
-  pthread_mutex_lock(&commands_pending_response_lock);
+  std::unique_lock<std::mutex> lock(commands_pending_response_mutex);
 
   if (list_is_empty(commands_pending_response)) {
     LOG_ERROR(LOG_TAG, "%s with no commands pending response", __func__);
   } else {
     waiting_command_t* wait_entry =
         static_cast<waiting_command_t*>(list_front(commands_pending_response));
-    pthread_mutex_unlock(&commands_pending_response_lock);
+    lock.unlock();
 
     // We shouldn't try to recover the stack from this command timeout.
     // If it's caused by a software bug, fix it. If it's a hardware bug, fix it.
@@ -779,7 +773,7 @@ static serial_data_type_t event_to_data_type(uint16_t event) {
 }
 
 static waiting_command_t* get_waiting_command(command_opcode_t opcode) {
-  pthread_mutex_lock(&commands_pending_response_lock);
+  std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
 
   for (const list_node_t* node = list_begin(commands_pending_response);
        node != list_end(commands_pending_response); node = list_next(node)) {
@@ -790,11 +784,9 @@ static waiting_command_t* get_waiting_command(command_opcode_t opcode) {
 
     list_remove(commands_pending_response, wait_entry);
 
-    pthread_mutex_unlock(&commands_pending_response_lock);
     return wait_entry;
   }
 
-  pthread_mutex_unlock(&commands_pending_response_lock);
   return NULL;
 }
 

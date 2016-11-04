@@ -18,21 +18,12 @@
 
 #define LOG_TAG "bt_osi_mutex"
 
-#include <pthread.h>
+#include <mutex>
 
 #include "osi/include/mutex.h"
 
-static pthread_mutex_t global_lock;
+static std::recursive_mutex global_mutex;
 
-void mutex_init(void) {
-  pthread_mutexattr_t attr;
-  pthread_mutexattr_init(&attr);
-  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-  pthread_mutex_init(&global_lock, &attr);
-}
+void mutex_global_lock(void) { global_mutex.lock(); }
 
-void mutex_cleanup(void) { pthread_mutex_destroy(&global_lock); }
-
-void mutex_global_lock(void) { pthread_mutex_lock(&global_lock); }
-
-void mutex_global_unlock(void) { pthread_mutex_unlock(&global_lock); }
+void mutex_global_unlock(void) { global_mutex.unlock(); }
