@@ -43,15 +43,15 @@ static void p_256_copy_point(Point *q, Point *p)
 // q=2q
 static void ECC_Double(Point *q, Point *p, uint32_t keyLength)
 {
-    DWORD t1[KEY_LENGTH_DWORDS_P256];
-    DWORD t2[KEY_LENGTH_DWORDS_P256];
-    DWORD t3[KEY_LENGTH_DWORDS_P256];
-    DWORD *x1;
-    DWORD *x3;
-    DWORD *y1;
-    DWORD *y3;
-    DWORD *z1;
-    DWORD *z3;
+    uint32_t t1[KEY_LENGTH_DWORDS_P256];
+    uint32_t t2[KEY_LENGTH_DWORDS_P256];
+    uint32_t t3[KEY_LENGTH_DWORDS_P256];
+    uint32_t *x1;
+    uint32_t *x3;
+    uint32_t *y1;
+    uint32_t *y3;
+    uint32_t *z1;
+    uint32_t *z3;
 
     if (multiprecision_iszero(p->z, keyLength))
     {
@@ -90,17 +90,17 @@ static void ECC_Double(Point *q, Point *p, uint32_t keyLength)
 // q=q+p,     zp must be 1
 static void ECC_Add(Point *r, Point *p, Point *q, uint32_t keyLength)
 {
-    DWORD t1[KEY_LENGTH_DWORDS_P256];
-    DWORD t2[KEY_LENGTH_DWORDS_P256];
-    DWORD *x1;
-    DWORD *x2;
-    DWORD *x3;
-    DWORD *y1;
-    DWORD *y2;
-    DWORD *y3;
-    DWORD *z1;
-    DWORD *z2;
-    DWORD *z3;
+    uint32_t t1[KEY_LENGTH_DWORDS_P256];
+    uint32_t t2[KEY_LENGTH_DWORDS_P256];
+    uint32_t *x1;
+    uint32_t *x2;
+    uint32_t *x3;
+    uint32_t *y1;
+    uint32_t *y2;
+    uint32_t *y3;
+    uint32_t *z1;
+    uint32_t *z2;
+    uint32_t *z3;
 
     x1=p->x; y1=p->y; z1=p->z;
     x2=q->x; y2=q->y; z2=q->z;
@@ -157,7 +157,7 @@ static void ECC_Add(Point *r, Point *p, Point *q, uint32_t keyLength)
 }
 
 // Computing the Non-Adjacent Form of a positive integer
-static void ECC_NAF(uint8_t *naf, uint32_t *NumNAF, DWORD *k, uint32_t keyLength)
+static void ECC_NAF(uint8_t *naf, uint32_t *NumNAF, uint32_t *k, uint32_t keyLength)
 {
     uint32_t sign;
     int i=0;
@@ -198,14 +198,14 @@ static void ECC_NAF(uint8_t *naf, uint32_t *NumNAF, DWORD *k, uint32_t keyLength
 }
 
 // Binary Non-Adjacent Form for point multiplication
-void ECC_PointMult_Bin_NAF(Point *q, Point *p, DWORD *n, uint32_t keyLength)
+void ECC_PointMult_Bin_NAF(Point *q, Point *p, uint32_t *n, uint32_t keyLength)
 {
     uint32_t sign;
     uint8_t naf[256 / 4 +1];
     uint32_t NumNaf;
     Point minus_p;
     Point r;
-    DWORD *modp;
+    uint32_t *modp;
 
     if (keyLength == KEY_LENGTH_DWORDS_P256)
     {
