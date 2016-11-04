@@ -38,12 +38,12 @@ This file exposes OINA-specific interfaces to decoder functions.
 
 OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                            OI_BOOL enhanced,
-                                           OI_UINT8 frequency,
-                                           OI_UINT8 mode,
-                                           OI_UINT8 subbands,
-                                           OI_UINT8 blocks,
-                                           OI_UINT8 alloc,
-                                           OI_UINT8 maxBitpool)
+                                           uint8_t frequency,
+                                           uint8_t mode,
+                                           uint8_t subbands,
+                                           uint8_t blocks,
+                                           uint8_t alloc,
+                                           uint8_t maxBitpool)
 {
     if (frequency > SBC_FREQ_48000) {
         return OI_STATUS_INVALID_PARAMETERS;
@@ -99,11 +99,11 @@ OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context
 
 
 OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
-                                 OI_UINT8 bitpool,
+                                 uint8_t bitpool,
                                  const OI_BYTE **frameData,
-                                 OI_UINT32 *frameBytes,
-                                 OI_INT16 *pcmData,
-                                 OI_UINT32 *pcmBytes)
+                                 uint32_t *frameBytes,
+                                 int16_t *pcmData,
+                                 uint32_t *pcmBytes)
 {
     return internal_DecodeRaw(context,
                               bitpool,
@@ -115,7 +115,7 @@ OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
 
 OI_STATUS OI_CODEC_SBC_DecoderLimit(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                     OI_BOOL                       enhanced,
-                                    OI_UINT8                      subbands)
+                                    uint8_t                      subbands)
 {
 	if (enhanced)
 	{

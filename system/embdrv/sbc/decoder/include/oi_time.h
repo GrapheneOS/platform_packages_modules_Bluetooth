@@ -54,7 +54,7 @@ extern "C" {
  * Within the core stack timeouts are specified in intervals of tenths of seconds
  */
 
-typedef OI_UINT16 OI_INTERVAL;
+typedef uint16_t OI_INTERVAL;
 #define OI_INTERVALS_PER_SECOND     10
 #define MSECS_PER_OI_INTERVAL       (1000 / OI_INTERVALS_PER_SECOND)
 
@@ -89,8 +89,8 @@ typedef OI_UINT16 OI_INTERVAL;
  */
 
 typedef struct {
-    OI_INT32 seconds;
-    OI_INT16 mseconds;
+    int32_t seconds;
+    int16_t mseconds;
 } OI_TIME;
 
 /**
@@ -100,7 +100,7 @@ typedef struct {
  *
  * @return the time in milliseconds
  */
-OI_UINT32 OI_Time_ToMS(OI_TIME *t);
+uint32_t OI_Time_ToMS(OI_TIME *t);
 
 
 /**
@@ -118,7 +118,7 @@ OI_UINT32 OI_Time_ToMS(OI_TIME *t);
  @endverbatim
  */
 
-OI_INT16 OI_Time_Compare(OI_TIME *T1,
+int16_t OI_Time_Compare(OI_TIME *T1,
                          OI_TIME *T2);
 
 
@@ -147,13 +147,13 @@ OI_INTERVAL OI_Time_Interval(OI_TIME *Sooner,
  *
  * @param Later a time value later than Sooner
  *
- * @note The result is an OI_UINT32 value so this function only works for time intervals
+ * @note The result is an uint32_t value so this function only works for time intervals
  * that are less than about 50 days.
  *
  * @return the time interval between the two times = (Later - Sooner)
  */
 
-OI_UINT32 OI_Time_IntervalMsecs(OI_TIME *Sooner,
+uint32_t OI_Time_IntervalMsecs(OI_TIME *Sooner,
                                 OI_TIME *Later);
 
 

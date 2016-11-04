@@ -120,56 +120,56 @@ Declarations of codec functions, data types, and macros.
 @{
 */
 
-typedef OI_INT16 SBC_BUFFER_T;
+typedef int16_t SBC_BUFFER_T;
 
 
 /** Used internally. */
 typedef struct {
-    OI_UINT16 frequency;    /**< The sampling frequency. Input parameter. */
-    OI_UINT8 freqIndex;
+    uint16_t frequency;    /**< The sampling frequency. Input parameter. */
+    uint8_t freqIndex;
 
-    OI_UINT8 nrof_blocks;   /**< The block size used to encode the stream. Input parameter. */
-    OI_UINT8 blocks;
+    uint8_t nrof_blocks;   /**< The block size used to encode the stream. Input parameter. */
+    uint8_t blocks;
 
 
-    OI_UINT8 nrof_subbands; /**< The number of subbands of the encoded stream. Input parameter. */
-    OI_UINT8 subbands;
+    uint8_t nrof_subbands; /**< The number of subbands of the encoded stream. Input parameter. */
+    uint8_t subbands;
 
-    OI_UINT8 mode;          /**< The mode of the encoded channel. Input parameter. */
-    OI_UINT8 nrof_channels; /**< The number of channels of the encoded stream. */
+    uint8_t mode;          /**< The mode of the encoded channel. Input parameter. */
+    uint8_t nrof_channels; /**< The number of channels of the encoded stream. */
 
-    OI_UINT8 alloc;         /**< The bit allocation method. Input parameter. */
-    OI_UINT8 bitpool;       /**< Size of the bit allocation pool used to encode the stream. Input parameter. */
-    OI_UINT8 crc;           /**< Parity check byte used for error detection. */
-    OI_UINT8 join;          /**< Whether joint stereo has been used. */
-    OI_UINT8 enhanced;
-    OI_UINT8 min_bitpool;   /**< This value is only used when encoding. SBC_MAX_BITPOOL if variable
+    uint8_t alloc;         /**< The bit allocation method. Input parameter. */
+    uint8_t bitpool;       /**< Size of the bit allocation pool used to encode the stream. Input parameter. */
+    uint8_t crc;           /**< Parity check byte used for error detection. */
+    uint8_t join;          /**< Whether joint stereo has been used. */
+    uint8_t enhanced;
+    uint8_t min_bitpool;   /**< This value is only used when encoding. SBC_MAX_BITPOOL if variable
                                  bitpools are disallowed, otherwise the minimum bitpool size that will
                                  be used by the bit allocator.  */
 
-    OI_UINT8 cachedInfo;    /**< Information about the previous frame */
+    uint8_t cachedInfo;    /**< Information about the previous frame */
 } OI_CODEC_SBC_FRAME_INFO;
 
 /** Used internally. */
 typedef struct {
     const OI_CHAR *codecInfo;
     OI_CODEC_SBC_FRAME_INFO frameInfo;
-    OI_INT8 scale_factor[SBC_MAX_CHANNELS*SBC_MAX_BANDS];
-    OI_UINT32 frameCount;
-    OI_INT32 *subdata;
+    int8_t scale_factor[SBC_MAX_CHANNELS*SBC_MAX_BANDS];
+    uint32_t frameCount;
+    int32_t *subdata;
 
     SBC_BUFFER_T *filterBuffer[SBC_MAX_CHANNELS];
-    OI_INT32 filterBufferLen;
+    int32_t filterBufferLen;
     OI_UINT filterBufferOffset;
 
     union {
-        OI_UINT8 uint8[SBC_MAX_CHANNELS*SBC_MAX_BANDS];
-        OI_UINT32 uint32[SBC_MAX_CHANNELS*SBC_MAX_BANDS/4];
+        uint8_t uint8[SBC_MAX_CHANNELS*SBC_MAX_BANDS];
+        uint32_t uint32[SBC_MAX_CHANNELS*SBC_MAX_BANDS/4];
     } bits;
-    OI_UINT8 maxBitneed;    /**< Running maximum bitneed */
+    uint8_t maxBitneed;    /**< Running maximum bitneed */
     OI_BYTE formatByte;
-    OI_UINT8 pcmStride;
-    OI_UINT8 maxChannels;
+    uint8_t pcmStride;
+    uint8_t maxChannels;
 } OI_CODEC_SBC_COMMON_CONTEXT;
 
 
@@ -180,33 +180,33 @@ typedef struct {
 #define SBC_CODEC_MIN_FILTER_BUFFERS 16
 #define SBC_CODEC_FAST_FILTER_BUFFERS 27
 
-/* Expands to the number of OI_UINT32s needed to ensure enough memory to encode
+/* Expands to the number of uint32_ts needed to ensure enough memory to encode
  * or decode streams of numChannels channels, using numBuffers buffers.
  * Example:
- * OI_UINT32 decoderData[CODEC_DATA_WORDS(SBC_MAX_CHANNELS, SBC_DECODER_FAST_SYNTHESIS_BUFFERS)];
+ * uint32_t decoderData[CODEC_DATA_WORDS(SBC_MAX_CHANNELS, SBC_DECODER_FAST_SYNTHESIS_BUFFERS)];
  * */
 #define CODEC_DATA_WORDS(numChannels, numBuffers) \
     ((\
-        (sizeof(OI_INT32) * SBC_MAX_BLOCKS * (numChannels) * SBC_MAX_BANDS) \
+        (sizeof(int32_t) * SBC_MAX_BLOCKS * (numChannels) * SBC_MAX_BANDS) \
          + (sizeof(SBC_BUFFER_T) * SBC_MAX_CHANNELS * SBC_MAX_BANDS * (numBuffers)) \
-         + (sizeof (OI_UINT32) - 1) \
-    ) / sizeof(OI_UINT32))
+         + (sizeof (uint32_t) - 1) \
+    ) / sizeof(uint32_t))
 
 /** Opaque parameter to decoding functions; maintains decoder context. */
 typedef struct {
     OI_CODEC_SBC_COMMON_CONTEXT common;
-    OI_UINT8 limitFrameFormat;              /* Boolean, set by OI_CODEC_SBC_DecoderLimit() */
-    OI_UINT8 restrictSubbands;
-    OI_UINT8 enhancedEnabled;
-    OI_UINT8 bufferedBlocks;
+    uint8_t limitFrameFormat;              /* Boolean, set by OI_CODEC_SBC_DecoderLimit() */
+    uint8_t restrictSubbands;
+    uint8_t enhancedEnabled;
+    uint8_t bufferedBlocks;
 } OI_CODEC_SBC_DECODER_CONTEXT;
 
 typedef struct {
-    OI_UINT32 data[CODEC_DATA_WORDS(1, SBC_CODEC_FAST_FILTER_BUFFERS)];
+    uint32_t data[CODEC_DATA_WORDS(1, SBC_CODEC_FAST_FILTER_BUFFERS)];
 } OI_CODEC_SBC_CODEC_DATA_MONO;
 
 typedef struct {
-    OI_UINT32 data[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
+    uint32_t data[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
 } OI_CODEC_SBC_CODEC_DATA_STEREO;
 
 /**
@@ -231,10 +231,10 @@ typedef struct {
  *                  for decoding glitches if synchronization were to be lost.
  */
 OI_STATUS OI_CODEC_SBC_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT *context,
-                                    OI_UINT32 *decoderData,
-                                    OI_UINT32 decoderDataBytes,
-                                    OI_UINT8 maxChannels,
-                                    OI_UINT8 pcmStride,
+                                    uint32_t *decoderData,
+                                    uint32_t decoderDataBytes,
+                                    uint8_t maxChannels,
+                                    uint8_t pcmStride,
                                     OI_BOOL enhanced);
 
 /**
@@ -258,7 +258,7 @@ OI_STATUS OI_CODEC_SBC_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT *context,
  */
 OI_STATUS OI_CODEC_SBC_DecoderLimit(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                     OI_BOOL enhanced,
-                                    OI_UINT8 subbands);
+                                    uint8_t subbands);
 
 /**
  * This function sets the decoder parameters for a raw decode where the decoder parameters are not
@@ -288,12 +288,12 @@ OI_STATUS OI_CODEC_SBC_DecoderLimit(OI_CODEC_SBC_DECODER_CONTEXT *context,
  */
 OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                            OI_BOOL enhanced,
-                                           OI_UINT8 frequency,
-                                           OI_UINT8 mode,
-                                           OI_UINT8 subbands,
-                                           OI_UINT8 blocks,
-                                           OI_UINT8 alloc,
-                                           OI_UINT8 maxBitpool);
+                                           uint8_t frequency,
+                                           uint8_t mode,
+                                           uint8_t subbands,
+                                           uint8_t blocks,
+                                           uint8_t alloc,
+                                           uint8_t maxBitpool);
 
 /**
  * Decode one SBC frame. The frame has no header bytes. The context must have been previously
@@ -313,7 +313,7 @@ OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context
  *                      bytes of frame data. This value will be updated to reflect
  *                      the number of bytes remaining after a decoding operation.
  *
- * @param pcmData       Address of an array of OI_INT16 pairs, which will be
+ * @param pcmData       Address of an array of int16_t pairs, which will be
  *                      populated with the decoded audio data. This address
  *                      is not updated.
  *
@@ -324,11 +324,11 @@ OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context
  *                      frameBytes.
  */
 OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
-                                 OI_UINT8 bitpool,
+                                 uint8_t bitpool,
                                  const OI_BYTE **frameData,
-                                 OI_UINT32 *frameBytes,
-                                 OI_INT16 *pcmData,
-                                 OI_UINT32 *pcmBytes);
+                                 uint32_t *frameBytes,
+                                 int16_t *pcmData,
+                                 uint32_t *pcmBytes);
 
 /**
  * Decode one SBC frame.
@@ -344,7 +344,7 @@ OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
  *                      bytes of frame data. This value will be updated to reflect
  *                      the number of bytes remaining after a decoding operation.
  *
- * @param pcmData       Address of an array of OI_INT16 pairs, which will be
+ * @param pcmData       Address of an array of int16_t pairs, which will be
  *                      populated with the decoded audio data. This address
  *                      is not updated.
  *
@@ -356,9 +356,9 @@ OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
  */
 OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                    const OI_BYTE **frameData,
-                                   OI_UINT32 *frameBytes,
-                                   OI_INT16 *pcmData,
-                                   OI_UINT32 *pcmBytes);
+                                   uint32_t *frameBytes,
+                                   int16_t *pcmData,
+                                   uint32_t *pcmBytes);
 
 /**
  * Calculate the number of SBC frames but don't decode. CRC's are not checked,
@@ -369,8 +369,8 @@ OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT *context,
  * @param frameBytes    Number of bytes avaiable in the frameData buffer
  *
  */
-OI_UINT8 OI_CODEC_SBC_FrameCount(OI_BYTE  *frameData,
-                                 OI_UINT32 frameBytes);
+uint8_t OI_CODEC_SBC_FrameCount(OI_BYTE  *frameData,
+                                 uint32_t frameBytes);
 
 /**
  * Analyze an SBC frame but don't do the decode.
@@ -389,7 +389,7 @@ OI_UINT8 OI_CODEC_SBC_FrameCount(OI_BYTE  *frameData,
  */
 OI_STATUS OI_CODEC_SBC_SkipFrame(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                  const OI_BYTE **frameData,
-                                 OI_UINT32 *frameBytes);
+                                 uint32_t *frameBytes);
 
 /* Common functions */
 
@@ -401,7 +401,7 @@ OI_STATUS OI_CODEC_SBC_SkipFrame(OI_CODEC_SBC_DECODER_CONTEXT *context,
   @return the length of an individual encoded frame in
   bytes
   */
-OI_UINT16 OI_CODEC_SBC_CalculateFramelen(OI_CODEC_SBC_FRAME_INFO *frame);
+uint16_t OI_CODEC_SBC_CalculateFramelen(OI_CODEC_SBC_FRAME_INFO *frame);
 
 
 /**
@@ -412,8 +412,8 @@ OI_UINT16 OI_CODEC_SBC_CalculateFramelen(OI_CODEC_SBC_FRAME_INFO *frame);
  *
  * @return the maximum bitpool that will fit in the specified frame length
  */
-OI_UINT16 OI_CODEC_SBC_CalculateBitpool(OI_CODEC_SBC_FRAME_INFO *frame,
-                                        OI_UINT16 frameLen);
+uint16_t OI_CODEC_SBC_CalculateBitpool(OI_CODEC_SBC_FRAME_INFO *frame,
+                                        uint16_t frameLen);
 
 /**
   Calculate the bit rate.
@@ -423,7 +423,7 @@ OI_UINT16 OI_CODEC_SBC_CalculateBitpool(OI_CODEC_SBC_FRAME_INFO *frame,
   @return the approximate bit rate in bits per second,
   assuming that stream parameters are constant
   */
-OI_UINT32 OI_CODEC_SBC_CalculateBitrate(OI_CODEC_SBC_FRAME_INFO *frame);
+uint32_t OI_CODEC_SBC_CalculateBitrate(OI_CODEC_SBC_FRAME_INFO *frame);
 
 /**
   Calculate decoded audio data length for one frame.
@@ -433,7 +433,7 @@ OI_UINT32 OI_CODEC_SBC_CalculateBitrate(OI_CODEC_SBC_FRAME_INFO *frame);
   @return length of decoded audio data for a
   single frame, in bytes
   */
-OI_UINT16 OI_CODEC_SBC_CalculatePcmBytes(OI_CODEC_SBC_COMMON_CONTEXT *common);
+uint16_t OI_CODEC_SBC_CalculatePcmBytes(OI_CODEC_SBC_COMMON_CONTEXT *common);
 
 /**
  * Get the codec version text.
