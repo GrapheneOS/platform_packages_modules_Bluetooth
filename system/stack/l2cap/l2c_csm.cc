@@ -654,7 +654,15 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, uint16_t event, void 
                                btu_general_alarm_queue);
         }
         else
-            l2cu_release_ccb (p_ccb);
+        {
+            tL2CA_DISCONNECT_CFM_CB *disconnect_cfm = p_ccb->p_rcb->api.pL2CA_DisconnectCfm_Cb;
+            l2cu_release_ccb(p_ccb);
+            if (disconnect_cfm)
+            {
+                L2CAP_TRACE_API("%s: L2CAP - Calling DisconnectCfm_Cb(), CID: 0x%04x", __func__, local_cid);
+                (*disconnect_cfm)(local_cid, L2CAP_CONN_NO_LINK);
+            }
+        }
         break;
 
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
