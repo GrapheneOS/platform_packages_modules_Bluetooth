@@ -580,17 +580,20 @@ void handle_rc_ctrl_features(btif_rc_device_cb_t* p_dev) {
       (p_dev->rc_features & BTA_AV_FEAT_RCCT)) {
     rc_features |= BTRC_FEAT_ABSOLUTE_VOLUME;
   }
+
   if ((p_dev->rc_features & BTA_AV_FEAT_METADATA) &&
       (p_dev->rc_features & BTA_AV_FEAT_VENDOR) &&
       (p_dev->rc_features_processed != true)) {
     rc_features |= BTRC_FEAT_METADATA;
+
     /* Mark rc features processed to avoid repeating
      * the AVRCP procedure every time on receiving this
      * update.
      */
     p_dev->rc_features_processed = true;
-    if (btif_av_is_sink_enabled())
+    if (btif_av_is_sink_enabled()) {
       getcapabilities_cmd(AVRC_CAP_COMPANY_ID, p_dev);
+    }
   }
 
   /* Add browsing feature capability */
@@ -752,6 +755,8 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
   }
   memcpy(p_dev->rc_addr, p_rc_open->peer_addr, sizeof(BD_ADDR));
   p_dev->rc_features = p_rc_open->peer_features;
+  BTIF_TRACE_DEBUG("%s: handle_rc_connect in features: 0x%x out features 0x%x",
+                   __func__, p_rc_open->peer_features, p_dev->rc_features);
   p_dev->rc_vol_label = MAX_LABEL;
   p_dev->rc_volume = MAX_VOLUME;
 
@@ -760,7 +765,7 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
   p_dev->rc_state = BTRC_CONNECTION_STATE_CONNECTED;
   /* on locally initiated connection we will get remote features as part of
    * connect */
-  if (p_dev->rc_features != 0) {
+  if (p_dev->rc_features != 0 && bt_rc_callbacks != NULL) {
     handle_rc_features(p_dev);
   }
 
@@ -773,8 +778,6 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
     BTIF_TRACE_WARNING("%s: Avrcp TG role not enabled, not initializing UInput",
                        __func__);
   }
-  BTIF_TRACE_DEBUG("%s: handle_rc_connect features: %d ", __func__,
-                   p_dev->rc_features);
 #if (AVRC_CTRL_INCLUDED == TRUE)
   p_dev->rc_playing_uid = RC_INVALID_TRACK_ID;
   bdcpy(rc_addr.address, p_dev->rc_addr);
@@ -3196,7 +3199,13 @@ static void btif_rc_control_cmd_timer_timeout(void* data) {
  **************************************************************************/
 static void btif_rc_play_status_timeout_handler(UNUSED_ATTR uint16_t event,
                                                 char* p_data) {
-  btif_rc_device_cb_t* p_dev = (btif_rc_device_cb_t*)p_data;
+  uint8_t rc_handle = PTR_TO_UINT(p_data);
+  btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_handle(rc_handle);
+  if (p_dev == NULL) {
+    BTIF_TRACE_ERROR("%s timeout handler but no device found for handle %d",
+                     __func__, rc_handle);
+    return;
+  }
   get_play_status_cmd(p_dev);
   rc_start_play_status_timer(p_dev);
 }
@@ -3212,9 +3221,9 @@ static void btif_rc_play_status_timeout_handler(UNUSED_ATTR uint16_t event,
  *
  **************************************************************************/
 static void btif_rc_play_status_timer_timeout(void* data) {
-  btif_rc_device_cb_t* p_dev = (btif_rc_device_cb_t*)data;
-  btif_transfer_context(btif_rc_play_status_timeout_handler, 0, (char*)p_dev, 0,
-                        NULL);
+  bt_bdaddr_t *rc_addr = (bt_bdaddr_t *) data;
+  btif_transfer_context(btif_rc_play_status_timeout_handler, 0,
+                        (char *)rc_addr, BD_ADDR_LEN, NULL);
 }
 
 /***************************************************************************
@@ -3225,7 +3234,7 @@ static void btif_rc_play_status_timer_timeout(void* data) {
  * Returns          None
  *
  **************************************************************************/
-static void rc_start_play_status_timer(btif_rc_device_cb_t* p_dev) {
+static void rc_start_play_status_timer(btif_rc_device_cb_t *p_dev) {
   /* Start the Play status timer only if it is not started */
   if (!alarm_is_scheduled(p_dev->rc_play_status_timer)) {
     if (p_dev->rc_play_status_timer == NULL) {
@@ -3233,7 +3242,8 @@ static void rc_start_play_status_timer(btif_rc_device_cb_t* p_dev) {
     }
     alarm_set_on_queue(
         p_dev->rc_play_status_timer, BTIF_TIMEOUT_RC_INTERIM_RSP_MS,
-        btif_rc_play_status_timer_timeout, p_dev, btu_general_alarm_queue);
+        btif_rc_play_status_timer_timeout, UINT_TO_PTR(p_dev->rc_handle),
+        btu_general_alarm_queue);
   }
 }
 
