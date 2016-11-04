@@ -1016,7 +1016,10 @@ void btif_a2dp_source_update_metrics(void) {
 }
 
 static void btm_read_rssi_cb(void* data) {
-  assert(data);
+  if (data == nullptr) {
+    LOG_ERROR(LOG_TAG, "%s RSSI request timed out", __func__);
+    return;
+  }
 
   tBTM_RSSI_RESULTS* result = (tBTM_RSSI_RESULTS*)data;
   if (result->status != BTM_SUCCESS) {
