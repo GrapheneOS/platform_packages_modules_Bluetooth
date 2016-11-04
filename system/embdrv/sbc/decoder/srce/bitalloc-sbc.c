@@ -108,7 +108,7 @@ PRIVATE void OI_SBC_ComputeBitAllocation(OI_CODEC_SBC_COMMON_CONTEXT *common)
     balloc[common->frameInfo.mode](common);
 }
 
-OI_UINT32 OI_CODEC_SBC_CalculateBitrate(OI_CODEC_SBC_FRAME_INFO *frame)
+uint32_t OI_CODEC_SBC_CalculateBitrate(OI_CODEC_SBC_FRAME_INFO *frame)
 {
     return internal_CalculateBitrate(frame);
 }
@@ -116,9 +116,9 @@ OI_UINT32 OI_CODEC_SBC_CalculateBitrate(OI_CODEC_SBC_FRAME_INFO *frame)
 /*
  * Return the current maximum bitneed and clear it.
  */
-OI_UINT8 OI_CODEC_SBC_GetMaxBitneed(OI_CODEC_SBC_COMMON_CONTEXT *common)
+uint8_t OI_CODEC_SBC_GetMaxBitneed(OI_CODEC_SBC_COMMON_CONTEXT *common)
 {
-    OI_UINT8 max = common->maxBitneed;
+    uint8_t max = common->maxBitneed;
 
     common->maxBitneed = 0;
     return max;
@@ -127,13 +127,13 @@ OI_UINT8 OI_CODEC_SBC_GetMaxBitneed(OI_CODEC_SBC_COMMON_CONTEXT *common)
 /*
  * Calculates the bitpool size for a given frame length
  */
-OI_UINT16 OI_CODEC_SBC_CalculateBitpool(OI_CODEC_SBC_FRAME_INFO *frame,
-                                        OI_UINT16 frameLen)
+uint16_t OI_CODEC_SBC_CalculateBitpool(OI_CODEC_SBC_FRAME_INFO *frame,
+                                        uint16_t frameLen)
 {
-    OI_UINT16 nrof_subbands = frame->nrof_subbands;
-    OI_UINT16 nrof_blocks = frame->nrof_blocks;
-    OI_UINT16 hdr;
-    OI_UINT16 bits;
+    uint16_t nrof_subbands = frame->nrof_subbands;
+    uint16_t nrof_blocks = frame->nrof_blocks;
+    uint16_t hdr;
+    uint16_t bits;
 
     if (frame->mode == SBC_JOINT_STEREO) {
         hdr = 9 * nrof_subbands;
@@ -151,13 +151,13 @@ OI_UINT16 OI_CODEC_SBC_CalculateBitpool(OI_CODEC_SBC_FRAME_INFO *frame,
     return DIVIDE(bits, nrof_blocks);
 }
 
-OI_UINT16 OI_CODEC_SBC_CalculatePcmBytes(OI_CODEC_SBC_COMMON_CONTEXT *common)
+uint16_t OI_CODEC_SBC_CalculatePcmBytes(OI_CODEC_SBC_COMMON_CONTEXT *common)
 {
-    return sizeof(OI_INT16) * common->pcmStride * common->frameInfo.nrof_subbands * common->frameInfo.nrof_blocks;
+    return sizeof(int16_t) * common->pcmStride * common->frameInfo.nrof_subbands * common->frameInfo.nrof_blocks;
 }
 
 
-OI_UINT16 OI_CODEC_SBC_CalculateFramelen(OI_CODEC_SBC_FRAME_INFO *frame)
+uint16_t OI_CODEC_SBC_CalculateFramelen(OI_CODEC_SBC_FRAME_INFO *frame)
 {
     return internal_CalculateFramelen(frame);
 }

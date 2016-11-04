@@ -40,23 +40,23 @@ Functions for manipulating input bitstreams.
 PRIVATE void OI_BITSTREAM_ReadInit(OI_BITSTREAM *bs,
                                    const OI_BYTE *buffer)
 {
-    bs->value = ((OI_INT32)buffer[0] << 16) | ((OI_INT32)buffer[1] << 8) | (buffer[2]);
+    bs->value = ((int32_t)buffer[0] << 16) | ((int32_t)buffer[1] << 8) | (buffer[2]);
     bs->ptr.r = buffer + 3;
     bs->bitPtr = 8;
 }
 
-PRIVATE OI_UINT32 OI_BITSTREAM_ReadUINT(OI_BITSTREAM *bs, OI_UINT bits)
+PRIVATE uint32_t OI_BITSTREAM_ReadUINT(OI_BITSTREAM *bs, OI_UINT bits)
 {
-    OI_UINT32 result;
+    uint32_t result;
 
     OI_BITSTREAM_READUINT(result, bits, bs->ptr.r, bs->value, bs->bitPtr);
 
     return result;
 }
 
-PRIVATE OI_UINT8 OI_BITSTREAM_ReadUINT4Aligned(OI_BITSTREAM *bs)
+PRIVATE uint8_t OI_BITSTREAM_ReadUINT4Aligned(OI_BITSTREAM *bs)
 {
-    OI_UINT32 result;
+    uint32_t result;
 
     OI_ASSERT(bs->bitPtr < 16);
     OI_ASSERT(bs->bitPtr % 4 == 0);
@@ -71,18 +71,18 @@ PRIVATE OI_UINT8 OI_BITSTREAM_ReadUINT4Aligned(OI_BITSTREAM *bs)
     }
     result >>= 28;
     OI_ASSERT(result < (1u << 4));
-    return (OI_UINT8)result;
+    return (uint8_t)result;
 }
 
-PRIVATE OI_UINT8 OI_BITSTREAM_ReadUINT8Aligned(OI_BITSTREAM *bs)
+PRIVATE uint8_t OI_BITSTREAM_ReadUINT8Aligned(OI_BITSTREAM *bs)
 {
-    OI_UINT32 result;
+    uint32_t result;
     OI_ASSERT(bs->bitPtr == 8);
 
     result = bs->value >> 16;
     bs->value = (bs->value << 8) | *bs->ptr.r++;
 
-    return (OI_UINT8)result;
+    return (uint8_t)result;
 }
 
 /**

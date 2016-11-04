@@ -97,9 +97,9 @@ static tBTIF_A2DP_SINK_CB btif_a2dp_sink_cb;
 static int btif_a2dp_sink_state = BTIF_A2DP_SINK_STATE_OFF;
 
 static OI_CODEC_SBC_DECODER_CONTEXT btif_a2dp_sink_context;
-static OI_UINT32 btif_a2dp_sink_context_data[CODEC_DATA_WORDS(
+static uint32_t btif_a2dp_sink_context_data[CODEC_DATA_WORDS(
     2, SBC_CODEC_FAST_FILTER_BUFFERS)];
-static OI_INT16
+static int16_t
     btif_a2dp_sink_pcm_data[15 * SBC_MAX_SAMPLES_PER_FRAME * SBC_MAX_CHANNELS];
 
 static void btif_a2dp_sink_startup_delayed(void* context);
@@ -331,7 +331,7 @@ static void btif_a2dp_sink_handle_inc_media(tBT_SBC_HDR* p_msg) {
   uint8_t* sbc_start_frame = ((uint8_t*)(p_msg + 1) + p_msg->offset + 1);
   int count;
   uint32_t pcmBytes, availPcmBytes;
-  OI_INT16* pcmDataPointer =
+  int16_t* pcmDataPointer =
       btif_a2dp_sink_pcm_data; /* Will be overwritten on next packet receipt */
   OI_STATUS status;
   int num_sbc_frames = p_msg->num_frames_to_be_processed;
@@ -351,8 +351,8 @@ static void btif_a2dp_sink_handle_inc_media(tBT_SBC_HDR* p_msg) {
     pcmBytes = availPcmBytes;
     status = OI_CODEC_SBC_DecodeFrame(
         &btif_a2dp_sink_context, (const OI_BYTE**)&sbc_start_frame,
-        (OI_UINT32*)&sbc_frame_len, (OI_INT16*)pcmDataPointer,
-        (OI_UINT32*)&pcmBytes);
+        (uint32_t*)&sbc_frame_len, (int16_t*)pcmDataPointer,
+        (uint32_t*)&pcmBytes);
     if (!OI_SUCCESS(status)) {
       APPL_TRACE_ERROR("%s: Decoding failure: %d", __func__, status);
       break;
