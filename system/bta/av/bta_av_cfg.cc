@@ -77,11 +77,13 @@ const uint16_t  bta_av_audio_flush_to[] = {
 
 /* Note: Android doesnt support AVRC_SUPF_TG_GROUP_NAVI  */
 /* Note: if AVRC_SUPF_TG_GROUP_NAVI is set, bta_av_cfg.avrc_group should be true */
+#ifndef BTA_AV_RC_SUPF_TG
 #if (AVRC_METADATA_INCLUDED == TRUE)
-#define BTA_AV_RC_SUPF_TG    (AVRC_SUPF_TG_CAT1 | AVRC_SUPF_TG_MULTI_PLAYER | \
-                                 AVRC_SUPF_TG_BROWSE) /* TODO: | AVRC_SUPF_TG_APP_SETTINGS) */
+#define BTA_AV_RC_SUPF_TG (AVRC_SUPF_TG_CAT1 | AVRC_SUPF_TG_MULTI_PLAYER | \
+                           AVRC_SUPF_TG_BROWSE) /* TODO: | AVRC_SUPF_TG_APP_SETTINGS) */
 #else
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1)
+#define BTA_AV_RC_SUPF_TG (AVRC_SUPF_TG_CAT1)
+#endif
 #endif
 
 /*
@@ -199,25 +201,19 @@ const uint16_t bta_av_rc_id[] =
                          4=INPUT_SEL, 5=DISP_INFO, 6=HELP, 7=PAGE_UP,
                          8=PAGE_DOWN */
 
-#if (BTA_AV_RC_PASS_RSP_CODE == BTA_AV_RSP_INTERIM)
     /* btui_app provides an example of how to leave the decision of rejecting a command or not
      * based on which media player is currently addressed (this is only applicable for AVRCP 1.4 or later)
-     * If the decision is per player for a particular rc_id, the related bit is clear (not set) */
-    0x0070, /* bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE,
-                         4=PLAY, 5=STOP, 6=PAUSE, 7=RECORD,
-                         8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
-                         12=BACKWARD */
+     * If the decision is per player for a particular rc_id, the related bit is clear (not set)
+     * bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE, 4=PLAY, 5=STOP,
+                 6=PAUSE, 7=RECORD, 8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
+                 12=BACKWARD */
+#if (BTA_AV_RC_PASS_RSP_CODE == BTA_AV_RSP_INTERIM)
+    0x0070, /* PLAY | STOP | PAUSE */
 #else /* BTA_AV_RC_PASS_RSP_CODE != BTA_AV_RSP_INTERIM */
 #if (BTA_AVRCP_FF_RW_SUPPORT == TRUE)
-    0x1b70, /* bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE,
-                         4=PLAY, 5=STOP, 6=PAUSE, 7=RECORD,
-                         8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
-                         12=BACKWARD */
+    0x1b7E, /* PLAY | STOP | PAUSE | FF | RW | VOL_UP | VOL_DOWN | MUTE | FW | BACK */
 #else /* BTA_AVRCP_FF_RW_SUPPORT == FALSE */
-    0x1870, /* bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE,
-                         4=PLAY, 5=STOP, 6=PAUSE, 7=RECORD,
-                         8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
-                         12=BACKWARD */
+    0x187E, /* PLAY | STOP | PAUSE | VOL_UP | VOL_DOWN | MUTE | FW | BACK */
 #endif /* BTA_AVRCP_FF_RW_SUPPORT */
 #endif /* BTA_AV_RC_PASS_RSP_CODE */
 
