@@ -74,7 +74,7 @@ extern "C" {
  * The underlying implementation is the ANSI memmove() or equivalant, so
  * overlapping memory copies will work correctly.
  */
-void OI_MemCopy(void *To, void const *From, OI_UINT32 Size);
+void OI_MemCopy(void *To, void const *From, uint32_t Size);
 
 
 /*
@@ -82,7 +82,7 @@ void OI_MemCopy(void *To, void const *From, OI_UINT32 Size);
  *
  * Sets all bytes in a block of memory to the same value
  */
-void OI_MemSet(void *Block, OI_UINT8 Val, OI_UINT32 Size);
+void OI_MemSet(void *Block, uint8_t Val, uint32_t Size);
 
 
 /*
@@ -90,7 +90,7 @@ void OI_MemSet(void *Block, OI_UINT8 Val, OI_UINT32 Size);
  *
  * Sets all bytes in a block of memory to zero
  */
-void OI_MemZero(void *Block, OI_UINT32 Size);
+void OI_MemZero(void *Block, uint32_t Size);
 
 
 /*
@@ -103,7 +103,7 @@ void OI_MemZero(void *Block, OI_UINT32 Size);
  *      < 0, if s1 < s2
  *      > 0, if s2 > s2
  */
-OI_INT OI_MemCmp(void const *s1, void const *s2, OI_UINT32 n);
+OI_INT OI_MemCmp(void const *s1, void const *s2, uint32_t n);
 
 /*
  * OI_Strcpy
@@ -158,7 +158,7 @@ OI_INT OI_Strcmp(OI_CHAR const *s1,
  */
 OI_INT OI_Strncmp(OI_CHAR const *s1,
                   OI_CHAR const *s2,
-                  OI_UINT32      len);
+                  uint32_t      len);
 
 
 #endif /* USE_NATIVE_MEMCPY */

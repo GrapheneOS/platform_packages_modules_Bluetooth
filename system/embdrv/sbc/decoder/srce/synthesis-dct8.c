@@ -60,15 +60,15 @@
  * @return  A signed 32-bit value corresponding to the 32 most significant bits
  * of the 64-bit product of u and v.
  */
-INLINE OI_INT32 default_mul_32s_32s_hi(OI_INT32 u, OI_INT32 v)
+INLINE int32_t default_mul_32s_32s_hi(int32_t u, int32_t v)
 {
-    OI_UINT32 u0, v0;
-    OI_INT32 u1, v1, w1, w2, t;
+    uint32_t u0, v0;
+    int32_t u1, v1, w1, w2, t;
 
     u0 = u & 0xFFFF; u1 = u >> 16;
     v0 = v & 0xFFFF; v1 = v >> 16;
     t = u0*v0;
-    t = u1*v0 + ((OI_UINT32)t >> 16);
+    t = u1*v0 + ((uint32_t)t >> 16);
     w1 = t & 0xFFFF;
     w2 = t >> 16;
     w1 = u0*v1 + w1;
@@ -79,7 +79,7 @@ INLINE OI_INT32 default_mul_32s_32s_hi(OI_INT32 u, OI_INT32 v)
 
 
 #ifdef DEBUG_DCT
-PRIVATE void float_dct2_8(float * RESTRICT out, OI_INT32 const *RESTRICT in)
+PRIVATE void float_dct2_8(float * RESTRICT out, int32_t const *RESTRICT in)
 {
 #define FIX(x,bits) (((int)floor(0.5f+((x)*((float)(1<<bits)))))/((float)(1<<bits)))
 #define FLOAT_BUTTERFLY(x,y) x += y; y = x - (y*2); OI_ASSERT(VALID_INT32(x)); OI_ASSERT(VALID_INT32(y));
@@ -206,16 +206,16 @@ PRIVATE void float_dct2_8(float * RESTRICT out, OI_INT32 const *RESTRICT in)
  * [ 0  0  0  0  0  0  1  2 ]
  *
  */
-PRIVATE void dct2_8(SBC_BUFFER_T * RESTRICT out, OI_INT32 const *RESTRICT in)
+PRIVATE void dct2_8(SBC_BUFFER_T * RESTRICT out, int32_t const *RESTRICT in)
 {
 #define BUTTERFLY(x,y) x += (y); (y) = (x) - ((y)<<1);
 #define FIX_MULT_DCT(K, x) (MUL_32S_32S_HI(K,x)<<2)
 
-    OI_INT32 L00,L01,L02,L03,L04,L05,L06,L07;
-    OI_INT32 L25;
+    int32_t L00,L01,L02,L03,L04,L05,L06,L07;
+    int32_t L25;
 
-    OI_INT32 in0,in1,in2,in3;
-    OI_INT32 in4,in5,in6,in7;
+    int32_t in0,in1,in2,in3;
+    int32_t in4,in5,in6,in7;
 
 #if DCTII_8_SHIFT_IN != 0
     in0 = SCALE(in[0], DCTII_8_SHIFT_IN);
@@ -256,12 +256,12 @@ PRIVATE void dct2_8(SBC_BUFFER_T * RESTRICT out, OI_INT32 const *RESTRICT in)
 
     BUTTERFLY(L00, L01);
 
-    out[0] = (OI_INT16)SCALE(L00, DCTII_8_SHIFT_0);
-    out[4] = (OI_INT16)SCALE(L01, DCTII_8_SHIFT_4);
+    out[0] = (int16_t)SCALE(L00, DCTII_8_SHIFT_0);
+    out[4] = (int16_t)SCALE(L01, DCTII_8_SHIFT_4);
 
     BUTTERFLY(L03, L02);
-    out[6] = (OI_INT16)SCALE(L02, DCTII_8_SHIFT_6);
-    out[2] = (OI_INT16)SCALE(L03, DCTII_8_SHIFT_2);
+    out[6] = (int16_t)SCALE(L02, DCTII_8_SHIFT_6);
+    out[2] = (int16_t)SCALE(L03, DCTII_8_SHIFT_2);
 
     L04 += L05;
     L05 += L06;
@@ -286,12 +286,12 @@ PRIVATE void dct2_8(SBC_BUFFER_T * RESTRICT out, OI_INT32 const *RESTRICT in)
     BUTTERFLY(L07, L05);
 
     BUTTERFLY(L05, L04);
-    out[3] = (OI_INT16)SCALE(L04, DCTII_8_SHIFT_3-1);
-    out[5] = (OI_INT16)SCALE(L05, DCTII_8_SHIFT_5-1);
+    out[3] = (int16_t)SCALE(L04, DCTII_8_SHIFT_3-1);
+    out[5] = (int16_t)SCALE(L05, DCTII_8_SHIFT_5-1);
 
     BUTTERFLY(L07, L06);
-    out[7] = (OI_INT16)SCALE(L06, DCTII_8_SHIFT_7-1);
-    out[1] = (OI_INT16)SCALE(L07, DCTII_8_SHIFT_1-1);
+    out[7] = (int16_t)SCALE(L06, DCTII_8_SHIFT_7-1);
+    out[1] = (int16_t)SCALE(L07, DCTII_8_SHIFT_1-1);
 #undef BUTTERFLY
 
 #ifdef DEBUG_DCT
