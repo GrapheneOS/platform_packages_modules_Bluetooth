@@ -454,7 +454,7 @@ static void btif_a2dp_sink_decoder_update_event(
                    p_buf->codec_info[3], p_buf->codec_info[4],
                    p_buf->codec_info[5], p_buf->codec_info[6]);
 
-  int sample_rate = A2DP_GetTrackFrequency(p_buf->codec_info);
+  int sample_rate = A2DP_GetTrackSampleRate(p_buf->codec_info);
   if (sample_rate == -1) {
     APPL_TRACE_ERROR("%s: cannot get the track frequency", __func__);
     return;

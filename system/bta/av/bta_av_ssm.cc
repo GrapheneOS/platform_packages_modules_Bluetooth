@@ -466,9 +466,7 @@ static const tBTA_AV_SST_TBL bta_av_sst_tbl[] = {
     bta_av_sst_init, bta_av_sst_incoming, bta_av_sst_opening,
     bta_av_sst_open, bta_av_sst_rcfg,     bta_av_sst_closing};
 
-#if (BTA_AV_DEBUG == TRUE)
 static const char* bta_av_sst_code(uint8_t state);
-#endif
 
 /*******************************************************************************
  *
@@ -530,13 +528,9 @@ void bta_av_ssm_execute(tBTA_AV_SCB* p_scb, uint16_t event,
     }
   }
 
-#if (BTA_AV_DEBUG == TRUE)
-  APPL_TRACE_VERBOSE("AV Sevent(0x%x)=0x%x(%s) state=%d(%s)", p_scb->hndl,
-                     event, bta_av_evt_code(event), p_scb->state,
+  APPL_TRACE_VERBOSE("%s: AV Sevent(0x%x)=0x%x(%s) state=%d(%s)", __func__,
+                     p_scb->hndl, event, bta_av_evt_code(event), p_scb->state,
                      bta_av_sst_code(p_scb->state));
-#else
-  APPL_TRACE_VERBOSE("AV Sevent=0x%x state=%d", event, p_scb->state);
-#endif
 
   /* look up the state table for the current state */
   state_table = bta_av_sst_tbl[p_scb->state];
@@ -651,7 +645,6 @@ void bta_av_set_scb_sst_incoming(tBTA_AV_SCB* p_scb) {
 /*****************************************************************************
  *  Debug Functions
  ****************************************************************************/
-#if (BTA_AV_DEBUG == TRUE)
 /*******************************************************************************
  *
  * Function         bta_av_sst_code
@@ -679,5 +672,3 @@ static const char* bta_av_sst_code(uint8_t state) {
       return "unknown";
   }
 }
-
-#endif
