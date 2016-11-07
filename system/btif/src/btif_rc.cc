@@ -870,18 +870,21 @@ void handle_rc_disconnect(tBTA_AV_RC_CLOSE* p_rc_close) {
  *
  ***************************************************************************/
 void handle_rc_passthrough_cmd(tBTA_AV_REMOTE_CMD* p_remote_cmd) {
-  btif_rc_device_cb_t* p_dev = NULL;
-  const char* status;
-  int pressed;
-  bt_bdaddr_t rc_addr;
+  btif_rc_device_cb_t* p_dev =
+      btif_rc_get_device_by_handle(p_remote_cmd->rc_handle);
 
-  p_dev = btif_rc_get_device_by_handle(p_remote_cmd->rc_handle);
   if (p_dev == NULL) {
     BTIF_TRACE_ERROR("%s: Got passthrough command from invalid rc handle",
                      __func__);
     return;
   }
 
+  if (p_remote_cmd == NULL) {
+    BTIF_TRACE_ERROR("%s: No remote command!", __func__);
+    return;
+  }
+
+  bt_bdaddr_t rc_addr;
   bdcpy(rc_addr.address, p_dev->rc_addr);
 
   BTIF_TRACE_DEBUG("%s: p_remote_cmd->rc_id: %d", __func__,
@@ -889,26 +892,21 @@ void handle_rc_passthrough_cmd(tBTA_AV_REMOTE_CMD* p_remote_cmd) {
 
   /* If AVRC is open and peer sends PLAY but there is no AVDT, then we queue-up
    * this PLAY */
-  if (p_remote_cmd) {
-    /* queue AVRC PLAY if GAVDTP Open notification to app is pending (2 second
-     * timer) */
-    if ((p_remote_cmd->rc_id == BTA_AV_RC_PLAY) && (!btif_av_is_connected())) {
-      if (p_remote_cmd->key_state == AVRC_STATE_PRESS) {
-        APPL_TRACE_WARNING("%s: AVDT not open, queuing the PLAY command",
+  if ((p_remote_cmd->rc_id == BTA_AV_RC_PLAY) && (!btif_av_is_connected())) {
+    if (p_remote_cmd->key_state == AVRC_STATE_PRESS) {
+      APPL_TRACE_WARNING("%s: AVDT not open, queuing the PLAY command",
                            __func__);
-        p_dev->rc_pending_play = true;
-      }
-      return;
+      p_dev->rc_pending_play = true;
     }
-    if ((p_remote_cmd->rc_id == BTA_AV_RC_PAUSE) && (p_dev->rc_pending_play)) {
-      APPL_TRACE_WARNING("%s: Clear the pending PLAY on PAUSE received",
-                         __func__);
-      p_dev->rc_pending_play = false;
-      return;
-    }
-    if ((p_remote_cmd->rc_id == BTA_AV_RC_VOL_UP) ||
-        (p_remote_cmd->rc_id == BTA_AV_RC_VOL_DOWN))
-      return;  // this command is not to be sent to UINPUT, only needed for PTS
+    return;
+  }
+
+  /* If we previously queued a play and we get a PAUSE, clear it. */
+  if ((p_remote_cmd->rc_id == BTA_AV_RC_PAUSE) && (p_dev->rc_pending_play)) {
+    APPL_TRACE_WARNING("%s: Clear the pending PLAY on PAUSE received",
+                       __func__);
+    p_dev->rc_pending_play = false;
+    return;
   }
 
   if ((p_remote_cmd->rc_id == BTA_AV_RC_STOP) &&
@@ -917,23 +915,9 @@ void handle_rc_passthrough_cmd(tBTA_AV_REMOTE_CMD* p_remote_cmd) {
     return;
   }
 
-  if (p_remote_cmd->key_state == AVRC_STATE_RELEASE) {
-    status = "released";
-    pressed = 0;
-  } else {
-    status = "pressed";
-    pressed = 1;
-  }
+  int pressed = (p_remote_cmd->key_state == AVRC_STATE_PRESS) ? 1 : 0;
 
-  if (p_remote_cmd->rc_id == BTA_AV_RC_FAST_FOR ||
-      p_remote_cmd->rc_id == BTA_AV_RC_REWIND) {
-    HAL_CBACK(bt_rc_callbacks, passthrough_cmd_cb, p_remote_cmd->rc_id, pressed,
-              &rc_addr);
-    return;
-  }
-
-  /* handle all pass through commands in upper layers through Android media apis
-   */
+  /* pass all commands up */
   BTIF_TRACE_DEBUG("%s: rc_features: %d, cmd->rc_id: %d, pressed: %d", __func__,
                    p_dev->rc_features, p_remote_cmd->rc_id, pressed);
   HAL_CBACK(bt_rc_callbacks, passthrough_cmd_cb, p_remote_cmd->rc_id, pressed,
@@ -962,28 +946,20 @@ void handle_rc_passthrough_rsp(tBTA_AV_REMOTE_RSP* p_remote_rsp) {
   bdcpy(rc_addr.address, p_dev->rc_addr);
 
 #if (AVRC_CTRL_INCLUDED == TRUE)
-  const char* status;
-  if (p_dev->rc_features & BTA_AV_FEAT_RCTG) {
-    int key_state;
-    if (p_remote_rsp->key_state == AVRC_STATE_RELEASE) {
-      status = "released";
-      key_state = 1;
-    } else {
-      status = "pressed";
-      key_state = 0;
-    }
-
-    BTIF_TRACE_DEBUG("%s: rc_id: %d status: %s", __func__, p_remote_rsp->rc_id,
-                     status);
-
-    release_transaction(p_remote_rsp->label);
-    if (bt_rc_ctrl_callbacks != NULL) {
-      HAL_CBACK(bt_rc_ctrl_callbacks, passthrough_rsp_cb, &rc_addr,
-                p_remote_rsp->rc_id, key_state);
-    }
-  } else {
+  if (!(p_dev->rc_features & BTA_AV_FEAT_RCTG)) {
     BTIF_TRACE_ERROR("%s: DUT does not support AVRCP controller role",
                      __func__);
+    return;
+  }
+
+  const char *status = (p_remote_rsp->key_state == 1) ? "released" : "pressed";
+  BTIF_TRACE_DEBUG("%s: rc_id: %d state: %s", __func__, p_remote_rsp->rc_id,
+                   status);
+
+  release_transaction(p_remote_rsp->label);
+  if (bt_rc_ctrl_callbacks != NULL) {
+    HAL_CBACK(bt_rc_ctrl_callbacks, passthrough_rsp_cb, &rc_addr,
+              p_remote_rsp->rc_id, p_remote_rsp->key_state);
   }
 #else
   BTIF_TRACE_ERROR("%s: AVRCP controller role is not enabled", __func__);
