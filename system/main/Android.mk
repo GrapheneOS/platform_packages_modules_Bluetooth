@@ -79,7 +79,7 @@ LOCAL_SHARED_LIBRARIES := \
     libz \
     libpower \
     libprotobuf-cpp-lite \
-    libmedia \
+    libaudioclient \
     libutils \
     libchrome
 
