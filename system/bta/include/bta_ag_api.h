@@ -49,10 +49,6 @@ extern "C" {
 #define BTA_HFP_VERSION         HFP_VERSION_1_7
 #endif
 
-#ifndef BTA_HFP_HF_IND_SUPPORTED
-#define BTA_HFP_HF_IND_SUPPORTED    TRUE
-#endif
-
 /* AG feature masks */
 #define BTA_AG_FEAT_3WAY    0x00000001   /* Three-way calling */
 #define BTA_AG_FEAT_ECNR    0x00000002   /* Echo cancellation and/or noise reduction */
@@ -64,8 +60,13 @@ extern "C" {
 #define BTA_AG_FEAT_ECC     0x00000080   /* Enhanced Call Control */
 #define BTA_AG_FEAT_EXTERR  0x00000100   /* Extended error codes */
 #define BTA_AG_FEAT_CODEC   0x00000200   /* Codec Negotiation */
+
+#define HFP_1_6_FEAT_MASK   0x000003FF   /* Valid feature bit mask for HFP 1.6 (and below) */
+
+/* HFP 1.7+ */
 #define BTA_AG_FEAT_HF_IND  0x00000400   /* HF Indicators */
 #define BTA_AG_FEAT_ESCO    0x00000800   /* eSCO S4 (and T2) setting supported */
+
 
 /* Proprietary features: using 31 ~ 16 bits */
 #define BTA_AG_FEAT_BTRH    0x00010000   /* CCAP incoming call hold */
