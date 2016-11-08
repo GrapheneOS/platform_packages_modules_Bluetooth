@@ -20,13 +20,12 @@
  *
  *  Filename:      uipc.cc
  *
- *  Description:   UIPC implementation for fluoride
+ *  Description:   UIPC implementation for bluedroid
  *
  *****************************************************************************/
 
 #include <errno.h>
 #include <fcntl.h>
-#include <mutex>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
@@ -61,6 +60,9 @@
 
 #define UIPC_DISCONNECTED (-1)
 
+#define UIPC_LOCK() /*BTIF_TRACE_EVENT(" %s lock", __func__);*/ pthread_mutex_lock(&uipc_main.mutex);
+#define UIPC_UNLOCK() /*BTIF_TRACE_EVENT("%s unlock", __func__);*/ pthread_mutex_unlock(&uipc_main.mutex);
+
 #define SAFE_FD_ISSET(fd, set) (((fd) == -1) ? false : FD_ISSET((fd), (set)))
 
 #define UIPC_FLUSH_BUFFER_SIZE 1024
@@ -78,13 +80,16 @@ typedef struct {
     int fd;
     int read_poll_tmo_ms;
     int task_evt_flags;   /* event flags pending to be processed in read task */
+    tUIPC_EVENT cond_flags;
+    pthread_mutex_t cond_mutex;
+    pthread_cond_t  cond;
     tUIPC_RCV_CBACK *cback;
 } tUIPC_CHAN;
 
 typedef struct {
     pthread_t tid; /* main thread id */
     int running;
-    std::recursive_mutex mutex;
+    pthread_mutex_t mutex;
 
     fd_set active_set;
     fd_set read_set;
@@ -218,6 +223,10 @@ static int accept_server_socket(int sfd)
 static int uipc_main_init(void)
 {
     int i;
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&uipc_main.mutex, &attr);
 
     BTIF_TRACE_EVENT("### uipc_main_init ###");
 
@@ -236,6 +245,8 @@ static int uipc_main_init(void)
         p->srvfd = UIPC_DISCONNECTED;
         p->fd = UIPC_DISCONNECTED;
         p->task_evt_flags = 0;
+        pthread_cond_init(&p->cond, NULL);
+        pthread_mutex_init(&p->cond_mutex, NULL);
         p->cback = NULL;
     }
 
@@ -265,6 +276,7 @@ static void uipc_check_task_flags_locked(void)
 
     for (i=0; i<UIPC_CH_NUM; i++)
     {
+        //BTIF_TRACE_EVENT("CHECK TASK FLAGS %x %x",  uipc_main.ch[i].task_evt_flags, UIPC_TASK_FLAG_DISCONNECT_CHAN);
         if (uipc_main.ch[i].task_evt_flags & UIPC_TASK_FLAG_DISCONNECT_CHAN)
         {
             uipc_main.ch[i].task_evt_flags &= ~UIPC_TASK_FLAG_DISCONNECT_CHAN;
@@ -294,8 +306,8 @@ static int uipc_check_fd_locked(tUIPC_CH_ID ch_id)
 
         if ((uipc_main.ch[ch_id].fd > 0) && uipc_main.ch[ch_id].cback)
         {
-            /* if we have a callback we should add this fd to the active set
-               and notify user with callback event */
+            /*  if we have a callback we should add this fd to the active set
+                and notify user with callback event */
             BTIF_TRACE_EVENT("ADD FD %d TO ACTIVE SET", uipc_main.ch[ch_id].fd);
             FD_SET(uipc_main.ch[ch_id].fd, &uipc_main.active_set);
             uipc_main.max_fd = MAX(uipc_main.max_fd, uipc_main.ch[ch_id].fd);
@@ -351,13 +363,15 @@ static int uipc_setup_server_locked(tUIPC_CH_ID ch_id, const char *name,
     if (ch_id >= UIPC_CH_NUM)
         return -1;
 
-    std::lock_guard<std::recursive_mutex> guard(uipc_main.mutex);
+    UIPC_LOCK();
 
     fd = create_server_socket(name);
 
-    if (fd < 0) {
-      BTIF_TRACE_ERROR("failed to setup %s", name, strerror(errno));
-      return -1;
+    if (fd < 0)
+    {
+        BTIF_TRACE_ERROR("failed to setup %s", name, strerror(errno));
+        UIPC_UNLOCK();
+         return -1;
     }
 
     BTIF_TRACE_EVENT("ADD SERVER FD TO ACTIVE SET %d", fd);
@@ -370,6 +384,8 @@ static int uipc_setup_server_locked(tUIPC_CH_ID ch_id, const char *name,
 
     /* trigger main thread to update read set */
     uipc_wakeup_locked();
+
+    UIPC_UNLOCK();
 
     return 0;
 }
@@ -513,7 +529,7 @@ static void *uipc_read_task(UNUSED_ATTR void *arg)
             continue;
         }
 
-        std::lock_guard<std::recursive_mutex> guard(uipc_main.mutex);
+        UIPC_LOCK();
 
         /* clear any wakeup interrupt */
         uipc_check_interrupt_locked();
@@ -530,6 +546,8 @@ static void *uipc_read_task(UNUSED_ATTR void *arg)
             if (ch_id != UIPC_CH_ID_AV_AUDIO)
                 uipc_check_fd_locked(ch_id);
         }
+
+        UIPC_UNLOCK();
     }
 
     BTIF_TRACE_EVENT("UIPC READ THREAD EXITING");
@@ -562,11 +580,10 @@ int uipc_start_main_server_thread(void)
 void uipc_stop_main_server_thread(void)
 {
     /* request shutdown of read thread */
-    {
-      std::lock_guard<std::recursive_mutex> lock(uipc_main.mutex);
-      uipc_main.running = 0;
-      uipc_wakeup_locked();
-    }
+    UIPC_LOCK();
+    uipc_main.running = 0;
+    uipc_wakeup_locked();
+    UIPC_UNLOCK();
 
     /* wait until read thread is fully terminated */
     /* tid might hold pointer value where it's value
@@ -610,15 +627,18 @@ bool    UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
 {
     BTIF_TRACE_DEBUG("UIPC_Open : ch_id %d, p_cback %x", ch_id, p_cback);
 
-    std::lock_guard<std::recursive_mutex> lock(uipc_main.mutex);
+    UIPC_LOCK();
 
-    if (ch_id >= UIPC_CH_NUM) {
+    if (ch_id >= UIPC_CH_NUM)
+    {
+        UIPC_UNLOCK();
         return false;
     }
 
     if (uipc_main.ch[ch_id].srvfd != UIPC_DISCONNECTED)
     {
         BTIF_TRACE_EVENT("CHANNEL %d ALREADY OPEN", ch_id);
+        UIPC_UNLOCK();
         return 0;
     }
 
@@ -632,6 +652,8 @@ bool    UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
             uipc_setup_server_locked(ch_id, A2DP_DATA_PATH, p_cback);
             break;
     }
+
+    UIPC_UNLOCK();
 
     return true;
 }
@@ -651,10 +673,14 @@ void UIPC_Close(tUIPC_CH_ID ch_id)
     BTIF_TRACE_DEBUG("UIPC_Close : ch_id %d", ch_id);
 
     /* special case handling uipc shutdown */
-    if (ch_id != UIPC_CH_ID_ALL) {
-        std::lock_guard<std::recursive_mutex> lock(uipc_main.mutex);
+    if (ch_id != UIPC_CH_ID_ALL)
+    {
+        UIPC_LOCK();
         uipc_close_locked(ch_id);
-    } else {
+        UIPC_UNLOCK();
+    }
+    else
+    {
         BTIF_TRACE_DEBUG("UIPC_Close : waiting for shutdown to complete");
         uipc_stop_main_server_thread();
         BTIF_TRACE_DEBUG("UIPC_Close : shutdown complete");
@@ -676,13 +702,15 @@ bool    UIPC_Send(tUIPC_CH_ID ch_id,
 {
     BTIF_TRACE_DEBUG("UIPC_Send : ch_id:%d %d bytes", ch_id, msglen);
 
-    std::lock_guard<std::recursive_mutex> lock(uipc_main.mutex);
+    UIPC_LOCK();
 
     ssize_t ret;
     OSI_NO_INTR(ret = write(uipc_main.ch[ch_id].fd, p_buf, msglen));
     if (ret < 0) {
         BTIF_TRACE_ERROR("failed to write (%s)", strerror(errno));
     }
+
+    UIPC_UNLOCK();
 
     return false;
 }
@@ -747,8 +775,9 @@ uint32_t UIPC_Read(tUIPC_CH_ID ch_id,
         if (pfd.revents & (POLLHUP|POLLNVAL) )
         {
             BTIF_TRACE_WARNING("poll : channel detached remotely");
-            std::lock_guard<std::recursive_mutex> lock(uipc_main.mutex);
+            UIPC_LOCK();
             uipc_close_locked(ch_id);
+            UIPC_UNLOCK();
             return 0;
         }
 
@@ -760,8 +789,9 @@ uint32_t UIPC_Read(tUIPC_CH_ID ch_id,
         if (n == 0)
         {
             BTIF_TRACE_WARNING("UIPC_Read : channel detached remotely");
-            std::lock_guard<std::recursive_mutex> lock(uipc_main.mutex);
+            UIPC_LOCK();
             uipc_close_locked(ch_id);
+            UIPC_UNLOCK();
             return 0;
         }
 
@@ -792,7 +822,7 @@ extern bool    UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void *param)
 {
     BTIF_TRACE_DEBUG("#### UIPC_Ioctl : ch_id %d, request %d ####", ch_id, request);
 
-    std::lock_guard<std::recursive_mutex> lock(uipc_main.mutex);
+    UIPC_LOCK();
 
     switch(request)
     {
@@ -827,6 +857,8 @@ extern bool    UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void *param)
             BTIF_TRACE_EVENT("UIPC_Ioctl : request not handled (%d)", request);
             break;
     }
+
+    UIPC_UNLOCK();
 
     return false;
 }

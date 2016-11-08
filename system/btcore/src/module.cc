@@ -20,9 +20,8 @@
 
 #include <assert.h>
 #include <dlfcn.h>
+#include <pthread.h>
 #include <string.h>
-
-#include <mutex>
 #include <unordered_map>
 
 #include "btcore/include/module.h"
@@ -38,8 +37,8 @@ typedef enum {
 
 static std::unordered_map<const module_t*, module_state_t> metadata;
 
-// TODO(jamuraa): remove this lock after the startup sequence is clean
-static std::mutex metadata_mutex;
+// Include this lock for now for correctness, while the startup sequence is being refactored
+static pthread_mutex_t metadata_lock;
 
 static bool call_lifecycle_function(module_lifecycle_fn function);
 static module_state_t get_module_state(const module_t *module);
@@ -47,10 +46,13 @@ static void set_module_state(const module_t *module, module_state_t state);
 
 
 void module_management_start(void) {
+  pthread_mutex_init(&metadata_lock, NULL);
 }
 
 void module_management_stop(void) {
   metadata.clear();
+
+  pthread_mutex_destroy(&metadata_lock);
 }
 
 const module_t *get_module(const char *name) {
@@ -150,15 +152,17 @@ static bool call_lifecycle_function(module_lifecycle_fn function) {
 }
 
 static module_state_t get_module_state(const module_t *module) {
-  std::lock_guard<std::mutex> lock(metadata_mutex);
+  pthread_mutex_lock(&metadata_lock);
   auto map_ptr = metadata.find(module);
+  pthread_mutex_unlock(&metadata_lock);
 
   return (map_ptr != metadata.end()) ? map_ptr->second : MODULE_STATE_NONE;
 }
 
 static void set_module_state(const module_t *module, module_state_t state) {
-  std::lock_guard<std::mutex> lock(metadata_mutex);
+  pthread_mutex_lock(&metadata_lock);
   metadata[module] = state;
+  pthread_mutex_unlock(&metadata_lock);
 }
 
 // TODO(zachoverflow): remove when everything modulized
