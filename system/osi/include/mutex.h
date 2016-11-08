@@ -24,6 +24,12 @@
 extern "C" {
 #endif
 
+// Mutex-related state init
+void mutex_init(void);
+
+// Mutex-related state cleanup
+void mutex_cleanup(void);
+
 // Lock the global mutex
 void mutex_global_lock(void);
 
