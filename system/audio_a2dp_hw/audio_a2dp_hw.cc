@@ -29,7 +29,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#include <mutex>
+#include <pthread.h>
 #include <stdint.h>
 #include <sys/errno.h>
 #include <sys/socket.h>
@@ -100,7 +100,7 @@ struct a2dp_config {
 /* move ctrl_fd outside output stream and keep open until HAL unloaded ? */
 
 struct a2dp_stream_common {
-    std::recursive_mutex    *mutex;
+    pthread_mutex_t         lock;
     int                     ctrl_fd;
     int                     audio_fd;
     size_t                  buffer_sz;
@@ -454,9 +454,13 @@ static void a2dp_open_ctrl_path(struct a2dp_stream_common *common)
 
 static void a2dp_stream_common_init(struct a2dp_stream_common *common)
 {
+    pthread_mutexattr_t lock_attr;
+
     FNLOG();
 
-    common->mutex = new std::recursive_mutex;
+    pthread_mutexattr_init(&lock_attr);
+    pthread_mutexattr_settype(&lock_attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&common->lock, &lock_attr);
 
     common->ctrl_fd = AUDIO_SKT_DISCONNECTED;
     common->audio_fd = AUDIO_SKT_DISCONNECTED;
@@ -464,14 +468,6 @@ static void a2dp_stream_common_init(struct a2dp_stream_common *common)
 
     /* manages max capacity of socket pipe */
     common->buffer_sz = AUDIO_STREAM_OUTPUT_BUFFER_SZ;
-}
-
-static void a2dp_stream_common_destroy(struct a2dp_stream_common *common)
-{
-    FNLOG();
-
-    delete common->mutex;
-    common->mutex = NULL;
 }
 
 static int start_audio_datapath(struct a2dp_stream_common *common)
@@ -575,7 +571,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     DEBUG("write %zu bytes (fd %d)", bytes, out->common.audio_fd);
 
-    std::unique_lock<std::recursive_mutex> lock(*out->common.mutex);
+    pthread_mutex_lock(&out->common.lock);
     if (out->common.state == AUDIO_A2DP_STATE_SUSPENDED ||
             out->common.state == AUDIO_A2DP_STATE_STOPPING) {
         DEBUG("stream suspended or closing");
@@ -597,9 +593,9 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
         goto finish;
     }
 
-    lock.unlock();
+    pthread_mutex_unlock(&out->common.lock);
     sent = skt_write(out->common.audio_fd, buffer,  bytes);
-    lock.lock();
+    pthread_mutex_lock(&out->common.lock);
 
     if (sent == -1) {
         skt_disconnect(out->common.audio_fd);
@@ -617,7 +613,7 @@ finish: ;
     const size_t frames = bytes / audio_stream_out_frame_size(stream);
     out->frames_rendered += frames;
     out->frames_presented += frames;
-    lock.unlock();
+    pthread_mutex_unlock(&out->common.lock);
 
     // If send didn't work out, sleep to emulate write delay.
     if (sent == -1) {
@@ -699,11 +695,12 @@ static int out_standby(struct audio_stream *stream)
 
     FNLOG();
 
-    std::lock_guard<std::recursive_mutex> lock(*out->common.mutex);
+    pthread_mutex_lock(&out->common.lock);
     // Do nothing in SUSPENDED state.
     if (out->common.state != AUDIO_A2DP_STATE_SUSPENDED)
         retVal = suspend_audio_datapath(&out->common, true);
     out->frames_rendered = 0; // rendered is reset, presented is not
+    pthread_mutex_unlock (&out->common.lock);
 
     return retVal;
 }
@@ -728,7 +725,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     if (params.empty())
       return status;
 
-    std::lock_guard<std::recursive_mutex> lock(*out->common.mutex);
+    pthread_mutex_lock(&out->common.lock);
 
     /* dump params */
     hash_map_utils_dump_string_keys_string_values(params);
@@ -753,6 +750,8 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
             out->common.state = AUDIO_A2DP_STATE_STANDBY;
         /* Irrespective of the state, return 0 */
     }
+
+    pthread_mutex_unlock(&out->common.lock);
 
     return status;
 }
@@ -804,13 +803,14 @@ static int out_get_presentation_position(const struct audio_stream_out *stream,
         return -EINVAL;
 
     int ret = -EWOULDBLOCK;
-    std::lock_guard<std::recursive_mutex> lock(*out->common.mutex);
+    pthread_mutex_lock(&out->common.lock);
     uint64_t latency_frames = (uint64_t)out_get_latency(stream) * out->common.cfg.rate / 1000;
     if (out->frames_presented >= latency_frames) {
         *frames = out->frames_presented - latency_frames;
         clock_gettime(CLOCK_MONOTONIC, timestamp); // could also be associated with out_write().
         ret = 0;
     }
+    pthread_mutex_unlock(&out->common.lock);
     return ret;
 }
 
@@ -823,13 +823,14 @@ static int out_get_render_position(const struct audio_stream_out *stream,
     if (stream == NULL || dsp_frames == NULL)
         return -EINVAL;
 
-    std::lock_guard<std::recursive_mutex> lock(*out->common.mutex);
+    pthread_mutex_lock(&out->common.lock);
     uint64_t latency_frames = (uint64_t)out_get_latency(stream) * out->common.cfg.rate / 1000;
     if (out->frames_rendered >= latency_frames) {
         *dsp_frames = (uint32_t)(out->frames_rendered - latency_frames);
     } else {
         *dsp_frames = 0;
     }
+    pthread_mutex_unlock(&out->common.lock);
     return 0;
 }
 
@@ -950,7 +951,7 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
 
     DEBUG("read %zu bytes, state: %d", bytes, in->common.state);
 
-    std::unique_lock<std::recursive_mutex> lock(*in->common.mutex);
+    pthread_mutex_lock(&in->common.lock);
     if (in->common.state == AUDIO_A2DP_STATE_SUSPENDED ||
             in->common.state == AUDIO_A2DP_STATE_STOPPING)
     {
@@ -973,9 +974,9 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
         goto error;
     }
 
-    lock.unlock();
+    pthread_mutex_unlock(&in->common.lock);
     read = skt_read(in->common.audio_fd, buffer, bytes);
-    lock.lock();
+    pthread_mutex_lock(&in->common.lock);
     if (read == -1)
     {
         skt_disconnect(in->common.audio_fd);
@@ -992,13 +993,13 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
         memset(buffer, 0, bytes);
         read = bytes;
     }
-    lock.unlock();
+    pthread_mutex_unlock(&in->common.lock);
 
     DEBUG("read %d bytes out of %zu bytes", read, bytes);
     return read;
 
 error:
-    lock.unlock();
+    pthread_mutex_unlock(&in->common.lock);
     memset(buffer, 0, bytes);
     us_delay = calc_audiotime(in->common.cfg, bytes);
     DEBUG("emulate a2dp read delay (%d us)", us_delay);
@@ -1100,7 +1101,6 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     return 0;
 
 err_open:
-    a2dp_stream_common_destroy(&out->common);
     free(out);
     *stream_out = NULL;
     a2dp_dev->output = NULL;
@@ -1116,7 +1116,7 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
 
     INFO("closing output (state %d)", out->common.state);
 
-    std::unique_lock<std::recursive_mutex> lock(*out->common.mutex);
+    pthread_mutex_lock(&out->common.lock);
     if ((out->common.state == AUDIO_A2DP_STATE_STARTED) ||
             (out->common.state == AUDIO_A2DP_STATE_STOPPING)) {
         stop_audio_datapath(&out->common);
@@ -1124,10 +1124,9 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
 
     skt_disconnect(out->common.ctrl_fd);
     out->common.ctrl_fd = AUDIO_SKT_DISCONNECTED;
-    lock.unlock();
-    a2dp_stream_common_destroy(&out->common);
     free(stream);
     a2dp_dev->output = NULL;
+    pthread_mutex_unlock(&out->common.lock);
 
     DEBUG("done");
 }
@@ -1276,7 +1275,6 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
     return 0;
 
 err_open:
-    a2dp_stream_common_destroy(&in->common);
     free(in);
     *stream_in = NULL;
     a2dp_dev->input = NULL;
@@ -1298,7 +1296,6 @@ static void adev_close_input_stream(struct audio_hw_device *dev,
 
     skt_disconnect(in->common.ctrl_fd);
     in->common.ctrl_fd = AUDIO_SKT_DISCONNECTED;
-    a2dp_stream_common_destroy(&in->common);
     free(stream);
     a2dp_dev->input = NULL;
 
