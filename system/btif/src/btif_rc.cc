@@ -214,6 +214,10 @@ typedef struct {
   BD_ADDR rc_addr;
 } rc_context_t;
 
+typedef struct {
+  uint8_t handle;
+} btif_rc_handle_t;
+
 rc_device_t device;
 
 #define MAX_UINPUT_PATHS 3
@@ -3175,11 +3179,11 @@ static void btif_rc_control_cmd_timer_timeout(void* data) {
  **************************************************************************/
 static void btif_rc_play_status_timeout_handler(UNUSED_ATTR uint16_t event,
                                                 char* p_data) {
-  uint8_t rc_handle = PTR_TO_UINT(p_data);
-  btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_handle(rc_handle);
+  btif_rc_handle_t *rc_handle = (btif_rc_handle_t *) p_data;
+  btif_rc_device_cb_t *p_dev = btif_rc_get_device_by_handle(rc_handle->handle);
   if (p_dev == NULL) {
     BTIF_TRACE_ERROR("%s timeout handler but no device found for handle %d",
-                     __func__, rc_handle);
+                     __func__, rc_handle->handle);
     return;
   }
   get_play_status_cmd(p_dev);
@@ -3197,9 +3201,11 @@ static void btif_rc_play_status_timeout_handler(UNUSED_ATTR uint16_t event,
  *
  **************************************************************************/
 static void btif_rc_play_status_timer_timeout(void* data) {
-  bt_bdaddr_t *rc_addr = (bt_bdaddr_t *) data;
+  btif_rc_handle_t rc_handle;
+  rc_handle.handle = PTR_TO_UINT(data);
+  BTIF_TRACE_DEBUG("%s called with handle: %d", __func__, rc_handle);
   btif_transfer_context(btif_rc_play_status_timeout_handler, 0,
-                        (char *)rc_addr, BD_ADDR_LEN, NULL);
+                        (char *) (&rc_handle), sizeof(btif_rc_handle_t), NULL);
 }
 
 /***************************************************************************
