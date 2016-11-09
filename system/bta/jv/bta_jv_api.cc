@@ -22,12 +22,13 @@
  *  Technology (JABWT) as specified by the JSR82 specificiation
  *
  ******************************************************************************/
+#include <string.h>
+
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_jv_api.h"
 #include "bta_jv_int.h"
 #include "bt_common.h"
-#include <string.h>
 #include "port_api.h"
 #include "sdp_api.h"
 #include "utl.h"

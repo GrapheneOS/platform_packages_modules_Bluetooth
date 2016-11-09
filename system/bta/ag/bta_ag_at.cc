@@ -23,6 +23,8 @@
  ******************************************************************************/
 
 #include <string.h>
+
+#include "bta_ag_at.h"
 #include "bt_common.h"
 #include "bta_ag_at.h"
 #include "utl.h"

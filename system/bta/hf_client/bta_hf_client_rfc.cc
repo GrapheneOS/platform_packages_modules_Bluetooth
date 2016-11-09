@@ -25,6 +25,7 @@
  ******************************************************************************/
 
 #include <string.h>
+
 #include "bta_api.h"
 #include "bta_hf_client_int.h"
 #include "osi/include/osi.h"

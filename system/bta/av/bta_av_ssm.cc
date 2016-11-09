@@ -21,10 +21,9 @@
  *  This is the stream state machine for the BTA advanced audio/video.
  *
  ******************************************************************************/
+#include <string.h>
 
 #include "bt_target.h"
-
-#include <string.h>
 #include "bta_av_co.h"
 #include "bta_av_int.h"
 

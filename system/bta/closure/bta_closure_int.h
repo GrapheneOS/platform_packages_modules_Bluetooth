@@ -20,6 +20,7 @@
 #define BTA_CLOSURE_INT_H
 
 #include <stdbool.h>
+
 #include "bta/sys/bta_sys.h"
 #include "bta_api.h"
 #include "include/bt_trace.h"

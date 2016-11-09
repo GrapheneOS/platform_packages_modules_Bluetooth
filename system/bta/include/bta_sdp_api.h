@@ -25,6 +25,7 @@
 #define BTA_SDP_API_H
 
 #include <hardware/bt_sdp.h>
+
 #include "bt_target.h"
 #include "bt_types.h"
 #include "bta_api.h"

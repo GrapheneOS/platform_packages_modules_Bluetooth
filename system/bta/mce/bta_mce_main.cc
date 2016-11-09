@@ -24,6 +24,7 @@
  ******************************************************************************/
 
 #include <stddef.h>
+
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_mce_api.h"
