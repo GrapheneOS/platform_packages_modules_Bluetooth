@@ -36,14 +36,14 @@ static const char CONTROLLER_MODULE[] = "controller_module";
 typedef struct controller_t {
   bool (*get_is_ready)(void);
 
-  const bt_bdaddr_t *(*get_address)(void);
-  const bt_version_t *(*get_bt_version)(void);
+  const bt_bdaddr_t* (*get_address)(void);
+  const bt_version_t* (*get_bt_version)(void);
 
-  const bt_device_features_t *(*get_features_classic)(int index);
+  const bt_device_features_t* (*get_features_classic)(int index);
   uint8_t (*get_last_features_classic_index)(void);
 
-  const bt_device_features_t *(*get_features_ble)(void);
-  const uint8_t *(*get_ble_supported_states)(void);
+  const bt_device_features_t* (*get_features_ble)(void);
+  const uint8_t* (*get_ble_supported_states)(void);
 
   bool (*supports_simple_pairing)(void);
   bool (*supports_secure_connections)(void);
@@ -79,15 +79,15 @@ typedef struct controller_t {
 
   uint8_t (*get_ble_resolving_list_max_size)(void);
   void (*set_ble_resolving_list_max_size)(int resolving_list_max_size);
-  uint8_t *(*get_local_supported_codecs)(uint8_t *number_of_codecs);
+  uint8_t* (*get_local_supported_codecs)(uint8_t* number_of_codecs);
 } controller_t;
 
-const controller_t *controller_get_interface();
+const controller_t* controller_get_interface();
 
-const controller_t *controller_get_test_interface(
-    const hci_t *hci_interface,
-    const hci_packet_factory_t *packet_factory_interface,
-    const hci_packet_parser_t *packet_parser_interface);
+const controller_t* controller_get_test_interface(
+    const hci_t* hci_interface,
+    const hci_packet_factory_t* packet_factory_interface,
+    const hci_packet_parser_t* packet_parser_interface);
 
 #ifdef __cplusplus
 }
