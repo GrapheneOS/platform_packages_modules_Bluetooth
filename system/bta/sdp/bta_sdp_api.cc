@@ -32,8 +32,8 @@
 #include "sdp_api.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 static const tBTA_SYS_REG bta_sdp_reg =
 {
@@ -42,19 +42,19 @@ static const tBTA_SYS_REG bta_sdp_reg =
 };
 
 /*******************************************************************************
-**
-** Function         BTA_SdpEnable
-**
-** Description      Enable the SDP search I/F service. When the enable
-**                  operation is complete the callback function will be
-**                  called with a BTA_SDP_ENABLE_EVT. This function must
-**                  be called before other functions in the SDP search API are
-**                  called.
-**
-** Returns          BTA_SDP_SUCCESS if successful.
-**                  BTA_SDP_FAIL if internal failure.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpEnable
+ *
+ * Description      Enable the SDP search I/F service. When the enable
+ *                  operation is complete the callback function will be
+ *                  called with a BTA_SDP_ENABLE_EVT. This function must
+ *                  be called before other functions in the SDP search API are
+ *                  called.
+ *
+ * Returns          BTA_SDP_SUCCESS if successful.
+ *                  BTA_SDP_FAIL if internal failure.
+ *
+ ******************************************************************************/
 tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK *p_cback)
 {
     tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
@@ -80,18 +80,18 @@ tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_SdpSearch
-**
-** Description      This function performs service discovery for a specific service
-**                  on given peer device. When the operation is completed
-**                  the tBTA_SDP_DM_CBACK callback function will be  called with
-**                  a BTA_SDP_SEARCH_COMPLETE_EVT.
-**
-** Returns          BTA_SDP_SUCCESS, if the request is being processed.
-**                  BTA_SDP_FAILURE, otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpSearch
+ *
+ * Description      This function performs service discovery for a specific service
+ *                  on given peer device. When the operation is completed
+ *                  the tBTA_SDP_DM_CBACK callback function will be  called with
+ *                  a BTA_SDP_SEARCH_COMPLETE_EVT.
+ *
+ * Returns          BTA_SDP_SUCCESS, if the request is being processed.
+ *                  BTA_SDP_FAILURE, otherwise.
+ *
+ ******************************************************************************/
 tBTA_SDP_STATUS BTA_SdpSearch(BD_ADDR bd_addr, tSDP_UUID *uuid)
 {
     tBTA_SDP_API_SEARCH *p_msg =
@@ -110,17 +110,17 @@ tBTA_SDP_STATUS BTA_SdpSearch(BD_ADDR bd_addr, tSDP_UUID *uuid)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_SdpCreateRecordByUser
-**
-** Description      This function is used to request a callback to create a SDP
-**                  record. The registered callback will be called with event
-**                  BTA_SDP_CREATE_RECORD_USER_EVT.
-**
-** Returns          BTA_SDP_SUCCESS, if the request is being processed.
-**                  BTA_SDP_FAILURE, otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpCreateRecordByUser
+ *
+ * Description      This function is used to request a callback to create a SDP
+ *                  record. The registered callback will be called with event
+ *                  BTA_SDP_CREATE_RECORD_USER_EVT.
+ *
+ * Returns          BTA_SDP_SUCCESS, if the request is being processed.
+ *                  BTA_SDP_FAILURE, otherwise.
+ *
+ ******************************************************************************/
 tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data)
 {
     tBTA_SDP_API_RECORD_USER *p_msg =
@@ -137,17 +137,17 @@ tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_SdpRemoveRecordByUser
-**
-** Description      This function is used to request a callback to remove a SDP
-**                  record. The registered callback will be called with event
-**                  BTA_SDP_REMOVE_RECORD_USER_EVT.
-**
-** Returns          BTA_SDP_SUCCESS, if the request is being processed.
-**                  BTA_SDP_FAILURE, otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpRemoveRecordByUser
+ *
+ * Description      This function is used to request a callback to remove a SDP
+ *                  record. The registered callback will be called with event
+ *                  BTA_SDP_REMOVE_RECORD_USER_EVT.
+ *
+ * Returns          BTA_SDP_SUCCESS, if the request is being processed.
+ *                  BTA_SDP_FAILURE, otherwise.
+ *
+ ******************************************************************************/
 tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data)
 {
     tBTA_SDP_API_RECORD_USER *p_msg =

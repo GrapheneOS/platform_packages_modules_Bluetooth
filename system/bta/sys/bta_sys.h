@@ -33,8 +33,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants and data types
-*****************************************************************************/
+ *  Constants and data types
+ ****************************************************************************/
 
 /* vendor specific event handler function type */
 typedef bool (tBTA_SYS_VS_EVT_HDLR)(uint16_t evt, void *p);
@@ -170,22 +170,22 @@ typedef void (*tBTA_SYS_REGISTER)(uint8_t id, const tBTA_SYS_REG *p_reg);
 typedef void (*tBTA_SYS_SENDMSG)(void *p_msg);
 
 /*****************************************************************************
-**  Global data
-*****************************************************************************/
+ *  Global data
+ ****************************************************************************/
 
 /* trace level */
 extern uint8_t appl_trace_level;
 
 /*****************************************************************************
-**  Macros
-*****************************************************************************/
+ *  Macros
+ ****************************************************************************/
 
 /* Calculate start of event enumeration; id is top 8 bits of event */
 #define BTA_SYS_EVT_START(id)       ((id) << 8)
 
 /*****************************************************************************
-**  events for BTA SYS HW manager
-*****************************************************************************/
+ *  events for BTA SYS HW manager
+ ****************************************************************************/
 
 /* events sent to SYS HW manager - must be kept synchronized with tables in bta_sys_main.cc */
 enum
@@ -219,8 +219,8 @@ typedef uint8_t tBTA_SYS_HW_EVT;
 typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
 
 /*****************************************************************************
-**  Function declarations
-*****************************************************************************/
+ *  Function declarations
+ ****************************************************************************/
 
 extern void bta_sys_init(void);
 extern void bta_sys_free(void);

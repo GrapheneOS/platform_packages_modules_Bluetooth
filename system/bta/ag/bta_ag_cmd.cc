@@ -37,8 +37,8 @@
 
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* Ring timeout */
 #define BTA_AG_RING_TIMEOUT_MS  (5 * 1000)      /* 5 seconds */
@@ -215,15 +215,15 @@ static size_t bta_ag_indicator_by_result_code(size_t code)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_send_result
-**
-** Description      Send an AT result code.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_send_result
+ *
+ * Description      Send an AT result code.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_send_result(tBTA_AG_SCB *p_scb, size_t code, const char *p_arg,
                                int16_t int_arg)
 {
@@ -283,31 +283,31 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, size_t code, const char *p_ar
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_send_ok
-**
-** Description      Send an OK result code.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_send_ok
+ *
+ * Description      Send an OK result code.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_send_ok(tBTA_AG_SCB *p_scb)
 {
     bta_ag_send_result(p_scb, BTA_AG_LOCAL_RES_OK, NULL, 0);
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_send_error
-**
-** Description      Send an ERROR result code.
-**                      errcode - used to send verbose errocode
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_send_error
+ *
+ * Description      Send an ERROR result code.
+ *                      errcode - used to send verbose errocode
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_send_error(tBTA_AG_SCB *p_scb, int16_t errcode)
 {
     /* If HFP and extended audio gateway error codes are enabled */
@@ -318,15 +318,15 @@ static void bta_ag_send_error(tBTA_AG_SCB *p_scb, int16_t errcode)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_send_ind
-**
-** Description      Send an indicator CIEV result code.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_send_ind
+ *
+ * Description      Send an indicator CIEV result code.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, uint16_t id, uint16_t value, bool on_demand)
 {
     char    str[12];
@@ -404,15 +404,15 @@ static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, uint16_t id, uint16_t value, boo
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_parse_cmer
-**
-** Description      Parse AT+CMER parameter string.
-**
-**
-** Returns          true if parsed ok, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_parse_cmer
+ *
+ * Description      Parse AT+CMER parameter string.
+ *
+ *
+ * Returns          true if parsed ok, false otherwise.
+ *
+ ******************************************************************************/
 static bool bta_ag_parse_cmer(char *p_s, bool *p_enabled)
 {
     int16_t n[4] = {-1, -1, -1, -1};
@@ -449,16 +449,16 @@ static bool bta_ag_parse_cmer(char *p_s, bool *p_enabled)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_parse_chld
-**
-** Description      Parse AT+CHLD parameter string.
-**
-**
-** Returns          Returns idx (1-7), 0 if ECC not enabled or BTA_AG_INVALID_CHLD
+ *
+ * Function         bta_ag_parse_chld
+ *
+ * Description      Parse AT+CHLD parameter string.
+ *
+ *
+ * Returns          Returns idx (1-7), 0 if ECC not enabled or BTA_AG_INVALID_CHLD
                     if idx doesn't exist/1st character of argument is not a digit
-**
-*******************************************************************************/
+ *
+ ******************************************************************************/
 static uint8_t bta_ag_parse_chld(UNUSED_ATTR tBTA_AG_SCB *p_scb, char *p_s)
 {
     uint8_t retval = 0;
@@ -488,14 +488,14 @@ static uint8_t bta_ag_parse_chld(UNUSED_ATTR tBTA_AG_SCB *p_scb, char *p_s)
 
 #if (BTM_WBS_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_ag_parse_bac
-**
-** Description      Parse AT+BAC parameter string.
-**
-** Returns          Returns bitmap of supported codecs.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_parse_bac
+ *
+ * Description      Parse AT+BAC parameter string.
+ *
+ * Returns          Returns bitmap of supported codecs.
+ *
+ ******************************************************************************/
 static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
 {
     tBTA_AG_PEER_CODEC  retval = BTA_AG_CODEC_NONE;
@@ -538,16 +538,16 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_ag_process_unat_res
-**
-** Description      Process the unat response data and remove extra carriage return
-**                  and line feed
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_process_unat_res
+ *
+ * Description      Process the unat response data and remove extra carriage return
+ *                  and line feed
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 
 static void bta_ag_process_unat_res(char *unat_result)
 {
@@ -591,15 +591,15 @@ static void bta_ag_process_unat_res(char *unat_result)
 
 
 /*******************************************************************************
-**
-** Function         bta_ag_inband_enabled
-**
-** Description      Determine whether in-band ring can be used.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_inband_enabled
+ *
+ * Description      Determine whether in-band ring can be used.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_ag_inband_enabled(tBTA_AG_SCB *p_scb)
 {
     /* if feature is enabled and no other scbs connected */
@@ -614,15 +614,15 @@ bool bta_ag_inband_enabled(tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_send_call_inds
-**
-** Description      Send call and callsetup indicators.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_send_call_inds
+ *
+ * Description      Send call and callsetup indicators.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
 {
     uint8_t call = p_scb->call_ind;
@@ -650,15 +650,15 @@ void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_at_hsp_cback
-**
-** Description      AT command processing callback for HSP.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_at_hsp_cback
+ *
+ * Description      AT command processing callback for HSP.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, uint16_t command_id, uint8_t arg_type,
                                 char *p_arg, int16_t int_arg)
 {
@@ -678,17 +678,17 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, uint16_t command_id, uint8_t arg_ty
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_find_empty_hf_ind)
-**
-** Description      This function returns the index of an empty HF indicator
-**                  structure.
-**
-** Returns          int : index of the empty HF indicator structure or
-**                            -1 if no empty indicator
-**                            is available.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_find_empty_hf_ind)
+ *
+ * Description      This function returns the index of an empty HF indicator
+ *                  structure.
+ *
+ * Returns          int : index of the empty HF indicator structure or
+ *                            -1 if no empty indicator
+ *                            is available.
+ *
+ ******************************************************************************/
 static int bta_ag_find_empty_hf_ind(tBTA_AG_SCB *p_scb)
 {
     for (int index = 0; index < BTA_AG_MAX_NUM_PEER_HF_IND; index++)
@@ -702,17 +702,17 @@ static int bta_ag_find_empty_hf_ind(tBTA_AG_SCB *p_scb)
 
 
 /*******************************************************************************
-**
-** Function         bta_ag_find_hf_ind_by_id
-**
-** Description      This function returns the index of the HF indicator
-**                  structure by the indicator id
-**
-** Returns          int : index of the HF indicator structure
-**                            -1 if the indicator
-**                            was not found.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_find_hf_ind_by_id
+ *
+ * Description      This function returns the index of the HF indicator
+ *                  structure by the indicator id
+ *
+ * Returns          int : index of the HF indicator structure
+ *                            -1 if the indicator
+ *                            was not found.
+ *
+ ******************************************************************************/
 static int bta_ag_find_hf_ind_by_id(tBTA_AG_HF_IND *p_hf_ind, int size, uint32_t ind_id)
 {
     for (int index = 0; index < size; index++)
@@ -725,14 +725,14 @@ static int bta_ag_find_hf_ind_by_id(tBTA_AG_HF_IND *p_hf_ind, int size, uint32_t
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_parse_bind_set
-**
-** Description      Parse AT+BIND set command and save the indicators
-**
-** Returns          true if successful
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_parse_bind_set
+ *
+ * Description      Parse AT+BIND set command and save the indicators
+ *
+ * Returns          true if successful
+ *
+ ******************************************************************************/
 static bool bta_ag_parse_bind_set(tBTA_AG_SCB *p_scb, tBTA_AG_VAL val)
 {
     char *p_token = strtok(val.str, ",");
@@ -759,15 +759,15 @@ static bool bta_ag_parse_bind_set(tBTA_AG_SCB *p_scb, tBTA_AG_VAL val)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_bind_response
-**
-** Description      Send response for the AT+BIND command (HFP 1.7) received
-**                  from the headset based on the argument types.
-**
-** Returns          Void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_bind_response
+ *
+ * Description      Send response for the AT+BIND command (HFP 1.7) received
+ *                  from the headset based on the argument types.
+ *
+ * Returns          Void
+ *
+ ******************************************************************************/
 static void bta_ag_bind_response(tBTA_AG_SCB *p_scb, uint8_t arg_type)
 {
     char buffer[BTA_AG_AT_MAX_LEN];
@@ -842,15 +842,15 @@ static void bta_ag_bind_response(tBTA_AG_SCB *p_scb, uint8_t arg_type)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_parse_biev_response
-**
-** Description      Send response for AT+BIEV command (HFP 1.7) received from
-**                  the headset based on the argument types.
-**
-** Returns          true if the response was parsed successfully
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_parse_biev_response
+ *
+ * Description      Send response for AT+BIEV command (HFP 1.7) received from
+ *                  the headset based on the argument types.
+ *
+ * Returns          true if the response was parsed successfully
+ *
+ ******************************************************************************/
 static bool bta_ag_parse_biev_response(tBTA_AG_SCB *p_scb, tBTA_AG_VAL *val)
 {
     char *p_token = strtok(val->str, ",");
@@ -894,15 +894,15 @@ static bool bta_ag_parse_biev_response(tBTA_AG_SCB *p_scb, tBTA_AG_VAL *val)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_at_hfp_cback
-**
-** Description      AT command processing callback for HFP.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_at_hfp_cback
+ *
+ * Description      AT command processing callback for HFP.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
                                 char *p_arg, int16_t int_arg)
 {
@@ -1381,15 +1381,15 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_at_err_cback
-**
-** Description      AT command parser error callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_at_err_cback
+ *
+ * Description      AT command parser error callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, bool unknown, char *p_arg)
 {
     tBTA_AG_VAL     val;
@@ -1418,15 +1418,15 @@ void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, bool unknown, char *p_arg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_hsp_result
-**
-** Description      Handle API result for HSP connections.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_hsp_result
+ *
+ * Description      Handle API result for HSP connections.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 {
     APPL_TRACE_DEBUG("bta_ag_hsp_result : res = %d", p_result->result);
@@ -1528,15 +1528,15 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_hfp_result
-**
-** Description      Handle API result for HFP connections.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_hfp_result
+ *
+ * Description      Handle API result for HFP connections.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 {
     APPL_TRACE_DEBUG("bta_ag_hfp_result : res = %d", p_result->result);
@@ -1843,15 +1843,15 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_result
-**
-** Description      Handle API result.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_result
+ *
+ * Description      Handle API result.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_result(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     if (p_scb->conn_service == BTA_AG_HSP)
@@ -1866,14 +1866,14 @@ void bta_ag_result(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 
 #if (BTM_WBS_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_ag_send_bcs
-**
-** Description      Send +BCS AT command to peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_send_bcs
+ *
+ * Description      Send +BCS AT command to peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     uint16_t codec_uuid;
@@ -1904,15 +1904,15 @@ void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_ag_send_ring
-**
-** Description      Send RING result code to peer.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_send_ring
+ *
+ * Description      Send RING result code to peer.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_send_ring(tBTA_AG_SCB *p_scb, UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
     /* send RING */

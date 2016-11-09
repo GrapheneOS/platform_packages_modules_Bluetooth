@@ -102,14 +102,14 @@ tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB *p_cb, const tBTA_JV_CONN_
         new_st);
 
 /*******************************************************************************
-**
-** Function     bta_jv_alloc_sec_id
-**
-** Description  allocate a security id
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_alloc_sec_id
+ *
+ * Description  allocate a security id
+ *
+ * Returns
+ *
+ ******************************************************************************/
 uint8_t bta_jv_alloc_sec_id(void)
 {
     uint8_t ret = 0;
@@ -156,14 +156,14 @@ static int get_rfc_cb_used(void)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_free_sec_id
-**
-** Description  free the given security id
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_free_sec_id
+ *
+ * Description  free the given security id
+ *
+ * Returns
+ *
+ ******************************************************************************/
 static void bta_jv_free_sec_id(uint8_t *p_sec_id)
 {
     uint8_t sec_id = *p_sec_id;
@@ -176,14 +176,14 @@ static void bta_jv_free_sec_id(uint8_t *p_sec_id)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_alloc_rfc_cb
-**
-** Description  allocate a control block for the given port handle
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_alloc_rfc_cb
+ *
+ * Description  allocate a control block for the given port handle
+ *
+ * Returns
+ *
+ ******************************************************************************/
 tBTA_JV_RFC_CB * bta_jv_alloc_rfc_cb(uint16_t port_handle, tBTA_JV_PCB **pp_pcb)
 {
     tBTA_JV_RFC_CB *p_cb = NULL;
@@ -222,14 +222,14 @@ tBTA_JV_RFC_CB * bta_jv_alloc_rfc_cb(uint16_t port_handle, tBTA_JV_PCB **pp_pcb)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_rfc_port_to_pcb
-**
-** Description  find the port control block associated with the given port handle
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_rfc_port_to_pcb
+ *
+ * Description  find the port control block associated with the given port handle
+ *
+ * Returns
+ *
+ ******************************************************************************/
 tBTA_JV_PCB * bta_jv_rfc_port_to_pcb(uint16_t port_handle)
 {
     tBTA_JV_PCB *p_pcb = NULL;
@@ -244,14 +244,14 @@ tBTA_JV_PCB * bta_jv_rfc_port_to_pcb(uint16_t port_handle)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_rfc_port_to_cb
-**
-** Description  find the RFCOMM control block associated with the given port handle
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_rfc_port_to_cb
+ *
+ * Description  find the RFCOMM control block associated with the given port handle
+ *
+ * Returns
+ *
+ ******************************************************************************/
 tBTA_JV_RFC_CB * bta_jv_rfc_port_to_cb(uint16_t port_handle)
 {
     tBTA_JV_RFC_CB *p_cb = NULL;
@@ -373,14 +373,14 @@ static tBTA_JV_STATUS bta_jv_free_rfc_cb(tBTA_JV_RFC_CB *p_cb, tBTA_JV_PCB *p_pc
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_free_l2c_cb
-**
-** Description  free the given L2CAP control block
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_free_l2c_cb
+ *
+ * Description  free the given L2CAP control block
+ *
+ * Returns
+ *
+ ******************************************************************************/
 tBTA_JV_STATUS bta_jv_free_l2c_cb(tBTA_JV_L2C_CB *p_cb)
 {
     tBTA_JV_STATUS status = BTA_JV_SUCCESS;
@@ -400,17 +400,17 @@ tBTA_JV_STATUS bta_jv_free_l2c_cb(tBTA_JV_L2C_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-**
-** Function    bta_jv_clear_pm_cb
-**
-** Description clears jv pm control block and optionally calls bta_sys_conn_close()
-**             In general close_conn should be set to true to remove registering with
-**             dm pm!
-**
-** WARNING:    Make sure to clear pointer form port or l2c to this control block too!
-**
-*******************************************************************************/
+ *
+ *
+ * Function    bta_jv_clear_pm_cb
+ *
+ * Description clears jv pm control block and optionally calls bta_sys_conn_close()
+ *             In general close_conn should be set to true to remove registering with
+ *             dm pm!
+ *
+ * WARNING:    Make sure to clear pointer form port or l2c to this control block too!
+ *
+ ******************************************************************************/
 static void bta_jv_clear_pm_cb(tBTA_JV_PM_CB *p_pm_cb, bool close_conn)
 {
     /* needs to be called if registered with bta pm, otherwise we may run out of dm pm slots! */
@@ -423,14 +423,14 @@ static void bta_jv_clear_pm_cb(tBTA_JV_PM_CB *p_pm_cb, bool close_conn)
 }
 
 /*******************************************************************************
- **
- ** Function     bta_jv_free_set_pm_profile_cb
- **
- ** Description  free pm profile control block
- **
- ** Returns     BTA_JV_SUCCESS if cb has been freed correctly,
- **             BTA_JV_FAILURE in case of no profile has been registered or already freed
- **
+ *
+ * Function     bta_jv_free_set_pm_profile_cb
+ *
+ * Description  free pm profile control block
+ *
+ * Returns     BTA_JV_SUCCESS if cb has been freed correctly,
+ *             BTA_JV_FAILURE in case of no profile has been registered or already freed
+ *
  *******************************************************************************/
 static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(uint32_t jv_handle)
 {
@@ -510,13 +510,13 @@ static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(uint32_t jv_handle)
 }
 
 /*******************************************************************************
- **
- ** Function    bta_jv_alloc_set_pm_profile_cb
- **
- ** Description set PM profile control block
- **
- ** Returns     pointer to allocated cb or NULL in case of failure
- **
+ *
+ * Function    bta_jv_alloc_set_pm_profile_cb
+ *
+ * Description set PM profile control block
+ *
+ * Returns     pointer to allocated cb or NULL in case of failure
+ *
  *******************************************************************************/
 static tBTA_JV_PM_CB *bta_jv_alloc_set_pm_profile_cb(uint32_t jv_handle, tBTA_JV_PM_ID app_id)
 {
@@ -584,14 +584,14 @@ static tBTA_JV_PM_CB *bta_jv_alloc_set_pm_profile_cb(uint32_t jv_handle, tBTA_JV
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_check_psm
-**
-** Description  for now use only the legal PSM per JSR82 spec
-**
-** Returns      true, if allowed
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_check_psm
+ *
+ * Description  for now use only the legal PSM per JSR82 spec
+ *
+ * Returns      true, if allowed
+ *
+ ******************************************************************************/
 bool bta_jv_check_psm(uint16_t psm)
 {
     bool ret = false;
@@ -650,14 +650,14 @@ bool bta_jv_check_psm(uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_enable
-**
-** Description  Initialises the JAVA I/F
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_enable
+ *
+ * Description  Initialises the JAVA I/F
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_enable(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_STATUS status = BTA_JV_SUCCESS;
@@ -667,15 +667,15 @@ void bta_jv_enable(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_disable
-**
-** Description  Disables the BT device manager
-**              free the resources used by java
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_disable
+ *
+ * Description  Disables the BT device manager
+ *              free the resources used by java
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_disable (UNUSED_ATTR tBTA_JV_MSG *p_data)
 {
     APPL_TRACE_ERROR("%s",__func__);
@@ -720,15 +720,15 @@ static void bta_jv_set_free_psm(uint16_t psm) {
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_get_channel_id
-**
-** Description  Obtain a free SCN (Server Channel Number)
-**              (RFCOMM channel or L2CAP PSM)
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_get_channel_id
+ *
+ * Description  Obtain a free SCN (Server Channel Number)
+ *              (RFCOMM channel or L2CAP PSM)
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_get_channel_id(tBTA_JV_MSG *p_data)
 {
     uint16_t   psm = 0;
@@ -775,14 +775,14 @@ void bta_jv_get_channel_id(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_free_scn
-**
-** Description  free a SCN
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_free_scn
+ *
+ * Description  free a SCN
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_free_scn(tBTA_JV_MSG *p_data)
 {
     uint16_t   scn = p_data->free_channel.scn;
@@ -844,14 +844,14 @@ static inline tBT_UUID shorten_sdp_uuid(const tBT_UUID* u)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_start_discovery_cback
-**
-** Description  Callback for Start Discovery
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_start_discovery_cback
+ *
+ * Description  Callback for Start Discovery
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static void bta_jv_start_discovery_cback(uint16_t result, void * user_data)
 {
     tBTA_JV_STATUS status;
@@ -886,14 +886,14 @@ static void bta_jv_start_discovery_cback(uint16_t result, void * user_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_start_discovery
-**
-** Description  Discovers services on a remote device
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_start_discovery
+ *
+ * Description  Discovers services on a remote device
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_start_discovery(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_STATUS status = BTA_JV_FAILURE;
@@ -936,14 +936,14 @@ void bta_jv_start_discovery(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_create_record
-**
-** Description  Create an SDP record with the given attributes
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_create_record
+ *
+ * Description  Create an SDP record with the given attributes
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_create_record(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_API_CREATE_RECORD *cr = &(p_data->create_record);
@@ -955,15 +955,15 @@ void bta_jv_create_record(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_delete_record
-**
-** Description  Delete an SDP record
-**
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_delete_record
+ *
+ * Description  Delete an SDP record
+ *
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_delete_record(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_API_ADD_ATTRIBUTE *dr = &(p_data->add_attr);
@@ -975,14 +975,14 @@ void bta_jv_delete_record(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_client_cback
-**
-** Description  handles the l2cap client events
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_client_cback
+ *
+ * Description  handles the l2cap client events
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event)
 {
     tBTA_JV_L2C_CB  *p_cb = &bta_jv_cb.l2c_cb[gap_handle];
@@ -1037,14 +1037,14 @@ static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_connect
-**
-** Description  makes an l2cap client connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_connect
+ *
+ * Description  makes an l2cap client connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_connect(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2C_CB      *p_cb;
@@ -1119,14 +1119,14 @@ void bta_jv_l2cap_connect(tBTA_JV_MSG *p_data)
 
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_close
-**
-** Description  Close an L2CAP client connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_close
+ *
+ * Description  Close an L2CAP client connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_close(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2CAP_CLOSE  evt_data;
@@ -1143,14 +1143,14 @@ void bta_jv_l2cap_close(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_jv_l2cap_server_cback
-**
-** Description      handles the l2cap server callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_jv_l2cap_server_cback
+ *
+ * Description      handles the l2cap server callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_jv_l2cap_server_cback(uint16_t gap_handle, uint16_t event)
 {
     tBTA_JV_L2C_CB  *p_cb = &bta_jv_cb.l2c_cb[gap_handle];
@@ -1208,14 +1208,14 @@ static void bta_jv_l2cap_server_cback(uint16_t gap_handle, uint16_t event)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_start_server
-**
-** Description  starts an L2CAP server
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_start_server
+ *
+ * Description  starts an L2CAP server
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_start_server(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2C_CB      *p_cb;
@@ -1284,14 +1284,14 @@ void bta_jv_l2cap_start_server(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_stop_server
-**
-** Description  stops an L2CAP server
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_stop_server
+ *
+ * Description  stops an L2CAP server
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_stop_server(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2C_CB      *p_cb;
@@ -1319,14 +1319,14 @@ void bta_jv_l2cap_stop_server(tBTA_JV_MSG *p_data)
 
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_read
-**
-** Description  Read data from an L2CAP connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_read
+ *
+ * Description  Read data from an L2CAP connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_read(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2CAP_READ evt_data;
@@ -1348,14 +1348,14 @@ void bta_jv_l2cap_read(tBTA_JV_MSG *p_data)
 
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_write
-**
-** Description  Write data to an L2CAP connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_write
+ *
+ * Description  Write data to an L2CAP connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_write(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2CAP_WRITE evt_data;
@@ -1395,14 +1395,14 @@ void bta_jv_l2cap_write(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_write_fixed
-**
-** Description  Write data to an L2CAP connection using Fixed channels
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_write_fixed
+ *
+ * Description  Write data to an L2CAP connection using Fixed channels
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_write_fixed(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2CAP_WRITE_FIXED evt_data;
@@ -1426,15 +1426,15 @@ void bta_jv_l2cap_write_fixed(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_port_data_co_cback
-**
-** Description  port data callback function of rfcomm
-**              connections
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_port_data_co_cback
+ *
+ * Description  port data callback function of rfcomm
+ *              connections
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static int bta_jv_port_data_co_cback(uint16_t port_handle, uint8_t *buf, uint16_t len, int type)
 {
     tBTA_JV_RFC_CB  *p_cb = bta_jv_rfc_port_to_cb(port_handle);
@@ -1459,15 +1459,15 @@ static int bta_jv_port_data_co_cback(uint16_t port_handle, uint8_t *buf, uint16_
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_port_mgmt_cl_cback
-**
-** Description  callback for port mamangement function of rfcomm
-**              client connections
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_port_mgmt_cl_cback
+ *
+ * Description  callback for port mamangement function of rfcomm
+ *              client connections
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static void bta_jv_port_mgmt_cl_cback(uint32_t code, uint16_t port_handle)
 {
     tBTA_JV_RFC_CB  *p_cb = bta_jv_rfc_port_to_cb(port_handle);
@@ -1514,14 +1514,14 @@ static void bta_jv_port_mgmt_cl_cback(uint32_t code, uint16_t port_handle)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_port_event_cl_cback
-**
-** Description  Callback for RFCOMM client port events
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_port_event_cl_cback
+ *
+ * Description  Callback for RFCOMM client port events
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static void bta_jv_port_event_cl_cback(uint32_t code, uint16_t port_handle)
 {
     tBTA_JV_RFC_CB  *p_cb = bta_jv_rfc_port_to_cb(port_handle);
@@ -1556,14 +1556,14 @@ static void bta_jv_port_event_cl_cback(uint32_t code, uint16_t port_handle)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_rfcomm_connect
-**
-** Description  Client initiates an RFCOMM connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_rfcomm_connect
+ *
+ * Description  Client initiates an RFCOMM connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_rfcomm_connect(tBTA_JV_MSG *p_data)
 {
     uint16_t handle = 0;
@@ -1664,14 +1664,14 @@ static int find_rfc_pcb(void* user_data, tBTA_JV_RFC_CB **cb, tBTA_JV_PCB **pcb)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_rfcomm_close
-**
-** Description  Close an RFCOMM connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_rfcomm_close
+ *
+ * Description  Close an RFCOMM connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_rfcomm_close(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_API_RFCOMM_CLOSE *cc = &(p_data->rfcomm_close);
@@ -1693,15 +1693,15 @@ void bta_jv_rfcomm_close(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_port_mgmt_sr_cback
-**
-** Description  callback for port mamangement function of rfcomm
-**              server connections
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_port_mgmt_sr_cback
+ *
+ * Description  callback for port mamangement function of rfcomm
+ *              server connections
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static void bta_jv_port_mgmt_sr_cback(uint32_t code, uint16_t port_handle)
 {
     tBTA_JV_PCB     *p_pcb = bta_jv_rfc_port_to_pcb(port_handle);
@@ -1764,14 +1764,14 @@ static void bta_jv_port_mgmt_sr_cback(uint32_t code, uint16_t port_handle)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_port_event_sr_cback
-**
-** Description  Callback for RFCOMM server port events
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_port_event_sr_cback
+ *
+ * Description  Callback for RFCOMM server port events
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static void bta_jv_port_event_sr_cback(uint32_t code, uint16_t port_handle)
 {
     tBTA_JV_PCB     *p_pcb = bta_jv_rfc_port_to_pcb(port_handle);
@@ -1807,14 +1807,14 @@ static void bta_jv_port_event_sr_cback(uint32_t code, uint16_t port_handle)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_add_rfc_port
-**
-** Description  add a port for server when the existing posts is open
-**
-** Returns   return a pointer to tBTA_JV_PCB just added
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_add_rfc_port
+ *
+ * Description  add a port for server when the existing posts is open
+ *
+ * Returns   return a pointer to tBTA_JV_PCB just added
+ *
+ ******************************************************************************/
 static tBTA_JV_PCB * bta_jv_add_rfc_port(tBTA_JV_RFC_CB *p_cb, tBTA_JV_PCB *p_pcb_open)
 {
     uint8_t   used = 0, i, listen=0;
@@ -1892,15 +1892,15 @@ static tBTA_JV_PCB * bta_jv_add_rfc_port(tBTA_JV_RFC_CB *p_cb, tBTA_JV_PCB *p_pc
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_rfcomm_start_server
-**
-** Description  waits for an RFCOMM client to connect
-**
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_rfcomm_start_server
+ *
+ * Description  waits for an RFCOMM client to connect
+ *
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_rfcomm_start_server(tBTA_JV_MSG *p_data)
 {
     uint16_t handle = 0;
@@ -1983,14 +1983,14 @@ void bta_jv_rfcomm_start_server(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_rfcomm_stop_server
-**
-** Description  stops an RFCOMM server
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_rfcomm_stop_server
+ *
+ * Description  stops an RFCOMM server
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 
 void bta_jv_rfcomm_stop_server(tBTA_JV_MSG *p_data)
 {
@@ -2014,14 +2014,14 @@ void bta_jv_rfcomm_stop_server(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_rfcomm_write
-**
-** Description  write data to an RFCOMM connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_rfcomm_write
+ *
+ * Description  write data to an RFCOMM connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_rfcomm_write(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_API_RFCOMM_WRITE *wc = &(p_data->rfcomm_write);
@@ -2061,13 +2061,13 @@ void bta_jv_rfcomm_write(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
- **
- ** Function     bta_jv_set_pm_profile
- **
- ** Description  Set or free power mode profile for a JV application
- **
- ** Returns      void
- **
+ *
+ * Function     bta_jv_set_pm_profile
+ *
+ * Description  Set or free power mode profile for a JV application
+ *
+ * Returns      void
+ *
  *******************************************************************************/
 void bta_jv_set_pm_profile(tBTA_JV_MSG *p_data)
 {
@@ -2101,13 +2101,13 @@ void bta_jv_set_pm_profile(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
- **
- ** Function     bta_jv_change_pm_state
- **
- ** Description  change jv pm connect state, used internally
- **
- ** Returns      void
- **
+ *
+ * Function     bta_jv_change_pm_state
+ *
+ * Description  change jv pm connect state, used internally
+ *
+ * Returns      void
+ *
  *******************************************************************************/
 void bta_jv_change_pm_state(tBTA_JV_MSG *p_data)
 {
@@ -2119,17 +2119,17 @@ void bta_jv_change_pm_state(tBTA_JV_MSG *p_data)
 
 
 /*******************************************************************************
- **
- ** Function    bta_jv_set_pm_conn_state
- **
- ** Description Send pm event state change to jv state machine to serialize jv pm changes
- **             in relation to other jv messages. internal API use mainly.
- **
- ** Params:     p_cb: jv pm control block, NULL pointer returns failure
- **             new_state: new PM connections state, setting is forced by action function
- **
- ** Returns     BTA_JV_SUCCESS, BTA_JV_FAILURE (buffer allocation, or NULL ptr!)
- **
+ *
+ * Function    bta_jv_set_pm_conn_state
+ *
+ * Description Send pm event state change to jv state machine to serialize jv pm changes
+ *             in relation to other jv messages. internal API use mainly.
+ *
+ * Params:     p_cb: jv pm control block, NULL pointer returns failure
+ *             new_state: new PM connections state, setting is forced by action function
+ *
+ * Returns     BTA_JV_SUCCESS, BTA_JV_FAILURE (buffer allocation, or NULL ptr!)
+ *
  *******************************************************************************/
 tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB *p_cb, const tBTA_JV_CONN_STATE
         new_st)
@@ -2152,15 +2152,15 @@ tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB *p_cb, const tBTA_JV_CONN_
 }
 
 /*******************************************************************************
- **
- ** Function    bta_jv_pm_conn_busy
- **
- ** Description set pm connection busy state (input param safe)
- **
- ** Params      p_cb: pm control block of jv connection
- **
- ** Returns     void
- **
+ *
+ * Function    bta_jv_pm_conn_busy
+ *
+ * Description set pm connection busy state (input param safe)
+ *
+ * Params      p_cb: pm control block of jv connection
+ *
+ * Returns     void
+ *
  *******************************************************************************/
 static void bta_jv_pm_conn_busy(tBTA_JV_PM_CB *p_cb)
 {
@@ -2169,15 +2169,15 @@ static void bta_jv_pm_conn_busy(tBTA_JV_PM_CB *p_cb)
 }
 
 /*******************************************************************************
- **
- ** Function    bta_jv_pm_conn_busy
- **
- ** Description set pm connection busy state (input param safe)
- **
- ** Params      p_cb: pm control block of jv connection
- **
- ** Returns     void
- **
+ *
+ * Function    bta_jv_pm_conn_busy
+ *
+ * Description set pm connection busy state (input param safe)
+ *
+ * Params      p_cb: pm control block of jv connection
+ *
+ * Returns     void
+ *
  *******************************************************************************/
 static void bta_jv_pm_conn_idle(tBTA_JV_PM_CB *p_cb)
 {
@@ -2186,15 +2186,15 @@ static void bta_jv_pm_conn_idle(tBTA_JV_PM_CB *p_cb)
 }
 
 /*******************************************************************************
- **
- ** Function     bta_jv_pm_state_change
- **
- ** Description  Notify power manager there is state change
- **
- ** Params      p_cb: must be NONE NULL
- **
- ** Returns      void
- **
+ *
+ * Function     bta_jv_pm_state_change
+ *
+ * Description  Notify power manager there is state change
+ *
+ * Params      p_cb: must be NONE NULL
+ *
+ * Returns      void
+ *
  *******************************************************************************/
 static void bta_jv_pm_state_change(tBTA_JV_PM_CB *p_cb, const tBTA_JV_CONN_STATE state)
 {
@@ -2508,14 +2508,14 @@ static void fcchan_data_cbk(uint16_t chan, BD_ADDR bd_addr, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_connect_le
-**
-** Description  makes an le l2cap client connection
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_connect_le
+ *
+ * Description  makes an le l2cap client connection
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_connect_le(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_API_L2CAP_CONNECT *cc = &(p_data->l2cap_connect);
@@ -2560,14 +2560,14 @@ void bta_jv_l2cap_connect_le(tBTA_JV_MSG *p_data)
 
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_stop_server_le
-**
-** Description  stops an LE L2CAP server
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_stop_server_le
+ *
+ * Description  stops an LE L2CAP server
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_stop_server_le(tBTA_JV_MSG *p_data)
 {
     tBTA_JV  evt;
@@ -2600,14 +2600,14 @@ void bta_jv_l2cap_stop_server_le(tBTA_JV_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_start_server_le
-**
-** Description  starts an LE L2CAP server
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_start_server_le
+ *
+ * Description  starts an LE L2CAP server
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_jv_l2cap_start_server_le(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_API_L2CAP_SERVER *ss = &(p_data->l2cap_server);
@@ -2635,14 +2635,14 @@ out:
 }
 
 /*******************************************************************************
-**
-** Function     bta_jv_l2cap_close_fixed
-**
-** Description  close a fixed channel connection. calls no callbacks. idempotent
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_jv_l2cap_close_fixed
+ *
+ * Description  close a fixed channel connection. calls no callbacks. idempotent
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 extern void bta_jv_l2cap_close_fixed (tBTA_JV_MSG *p_data)
 {
     tBTA_JV_API_L2CAP_CLOSE *cc = &(p_data->l2cap_close);

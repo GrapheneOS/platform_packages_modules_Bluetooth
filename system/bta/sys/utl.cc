@@ -27,18 +27,18 @@
 #include "btm_api.h"
 
 /*******************************************************************************
-**
-** Function         utl_str2int
-**
-** Description      This utility function converts a character string to an
-**                  integer.  Acceptable values in string are 0-9.  If invalid
-**                  string or string value too large, -1 is returned.  Leading
-**                  spaces are skipped.
-**
-**
-** Returns          Integer value or -1 on error.
-**
-*******************************************************************************/
+ *
+ * Function         utl_str2int
+ *
+ * Description      This utility function converts a character string to an
+ *                  integer.  Acceptable values in string are 0-9.  If invalid
+ *                  string or string value too large, -1 is returned.  Leading
+ *                  spaces are skipped.
+ *
+ *
+ * Returns          Integer value or -1 on error.
+ *
+ ******************************************************************************/
 int16_t utl_str2int(const char *p_s)
 {
     int32_t   val = 0;
@@ -67,18 +67,18 @@ int16_t utl_str2int(const char *p_s)
 }
 
 /*******************************************************************************
-**
-** Function         utl_strucmp
-**
-** Description      This utility function compares two strings in uppercase.
-**                  String p_s must be uppercase.  String p_t is converted to
-**                  uppercase if lowercase.  If p_s ends first, the substring
-**                  match is counted as a match.
-**
-**
-** Returns          0 if strings match, nonzero otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         utl_strucmp
+ *
+ * Description      This utility function compares two strings in uppercase.
+ *                  String p_s must be uppercase.  String p_t is converted to
+ *                  uppercase if lowercase.  If p_s ends first, the substring
+ *                  match is counted as a match.
+ *
+ *
+ * Returns          0 if strings match, nonzero otherwise.
+ *
+ ******************************************************************************/
 int utl_strucmp(const char *p_s, const char *p_t)
 {
     char c;
@@ -108,17 +108,17 @@ int utl_strucmp(const char *p_s, const char *p_t)
 }
 
 /*******************************************************************************
-**
-** Function         utl_itoa
-**
-** Description      This utility function converts a uint16_t to a string.  The
-**                  string is NULL-terminated.  The length of the string is
-**                  returned;
-**
-**
-** Returns          Length of string.
-**
-*******************************************************************************/
+ *
+ * Function         utl_itoa
+ *
+ * Description      This utility function converts a uint16_t to a string.  The
+ *                  string is NULL-terminated.  The length of the string is
+ *                  returned;
+ *
+ *
+ * Returns          Length of string.
+ *
+ ******************************************************************************/
 uint8_t utl_itoa(uint16_t i, char *p_s)
 {
     uint16_t  j, k;
@@ -148,24 +148,24 @@ uint8_t utl_itoa(uint16_t i, char *p_s)
 }
 
 /*******************************************************************************
-**
-** Function         utl_set_device_class
-**
-** Description      This function updates the local Device Class.
-**
-** Parameters:
-**                  p_cod   - Pointer to the device class to set to
-**
-**                  cmd     - the fields of the device class to update.
-**                            BTA_UTL_SET_COD_MAJOR_MINOR, - overwrite major, minor class
-**                            BTA_UTL_SET_COD_SERVICE_CLASS - set the bits in the input
-**                            BTA_UTL_CLR_COD_SERVICE_CLASS - clear the bits in the input
-**                            BTA_UTL_SET_COD_ALL - overwrite major, minor, set the bits in service class
-**                            BTA_UTL_INIT_COD - overwrite major, minor, and service class
-**
-** Returns          true if successful, Otherwise false
-**
-*******************************************************************************/
+ *
+ * Function         utl_set_device_class
+ *
+ * Description      This function updates the local Device Class.
+ *
+ * Parameters:
+ *                  p_cod   - Pointer to the device class to set to
+ *
+ *                  cmd     - the fields of the device class to update.
+ *                            BTA_UTL_SET_COD_MAJOR_MINOR, - overwrite major, minor class
+ *                            BTA_UTL_SET_COD_SERVICE_CLASS - set the bits in the input
+ *                            BTA_UTL_CLR_COD_SERVICE_CLASS - clear the bits in the input
+ *                            BTA_UTL_SET_COD_ALL - overwrite major, minor, set the bits in service class
+ *                            BTA_UTL_INIT_COD - overwrite major, minor, and service class
+ *
+ * Returns          true if successful, Otherwise false
+ *
+ ******************************************************************************/
 bool utl_set_device_class(tBTA_UTL_COD *p_cod, uint8_t cmd)
 {
     uint8_t *dev;
@@ -223,16 +223,16 @@ bool utl_set_device_class(tBTA_UTL_COD *p_cod, uint8_t cmd)
 }
 
 /*******************************************************************************
-**
-** Function         utl_isintstr
-**
-** Description      This utility function checks if the given string is an
-**                  integer string or not
-**
-**
-** Returns          true if successful, Otherwise false
-**
-*******************************************************************************/
+ *
+ * Function         utl_isintstr
+ *
+ * Description      This utility function checks if the given string is an
+ *                  integer string or not
+ *
+ *
+ * Returns          true if successful, Otherwise false
+ *
+ ******************************************************************************/
 bool utl_isintstr(const char *p_s)
 {
     uint16_t i = 0;
@@ -247,15 +247,15 @@ bool utl_isintstr(const char *p_s)
 }
 
 /*******************************************************************************
-**
-** Function         utl_isdialchar
-**
-** Description      This utility function checks if the given character
-**                  is an acceptable dial digit
-**
-** Returns          true if successful, Otherwise false
-**
-*******************************************************************************/
+ *
+ * Function         utl_isdialchar
+ *
+ * Description      This utility function checks if the given character
+ *                  is an acceptable dial digit
+ *
+ * Returns          true if successful, Otherwise false
+ *
+ ******************************************************************************/
 bool utl_isdialchar(const char d)
 {
     return (((d >= '0') && (d <= '9'))
@@ -266,16 +266,16 @@ bool utl_isdialchar(const char d)
 }
 
 /*******************************************************************************
-**
-** Function         utl_isdialstr
-**
-** Description      This utility function checks if the given string contains
-**                  only dial digits or not
-**
-**
-** Returns          true if successful, Otherwise false
-**
-*******************************************************************************/
+ *
+ * Function         utl_isdialstr
+ *
+ * Description      This utility function checks if the given string contains
+ *                  only dial digits or not
+ *
+ *
+ * Returns          true if successful, Otherwise false
+ *
+ ******************************************************************************/
 bool utl_isdialstr(const char *p_s)
 {
     for (uint16_t i = 0; p_s[i] != 0; i++) {

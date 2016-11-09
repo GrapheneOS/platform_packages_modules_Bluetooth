@@ -42,18 +42,18 @@
 #define BTA_HF_CLIENT_AT_HOLD_TIMEOUT 41
 
 /******************************************************************************
-**
-**          DATA TYPES AND CONTAINERS
-**
-*******************************************************************************/
+ *
+ *          DATA TYPES AND CONTAINERS
+ *
+ ******************************************************************************/
 /* BRSF: store received values here */
 extern tBTA_HF_CLIENT_CB  bta_hf_client_cb;
 
 extern fixed_queue_t *btu_bta_alarm_queue;
 
 /******************************************************************************
-**       SUPPORTED EVENT MESSAGES
-*******************************************************************************/
+ *       SUPPORTED EVENT MESSAGES
+ ******************************************************************************/
 
 /* CIND: supported indicator names */
 #define BTA_HF_CLIENT_INDICATOR_BATTERYCHG  "battchg"
@@ -238,12 +238,12 @@ static void bta_hf_client_start_at_hold_timer(void)
 }
 
 /******************************************************************************
-**
-**          COMMON AT EVENT HANDLING funcS
-**
-**   Receives data (strings, ints, etc.) from the parser and processes this data.
-**   No buffer parsing is being done here.
-*******************************************************************************/
+ *
+ *          COMMON AT EVENT HANDLING funcS
+ *
+ *   Receives data (strings, ints, etc.) from the parser and processes this data.
+ *   No buffer parsing is being done here.
+ ******************************************************************************/
 
 static void bta_hf_client_handle_ok()
 {
@@ -577,10 +577,10 @@ static void bta_hf_client_handle_btrh( uint16_t code)
 }
 
 /******************************************************************************
-**
-**          COMMON AT EVENTS PARSING FUNCTIONS
-**
-*******************************************************************************/
+ *
+ *          COMMON AT EVENTS PARSING FUNCTIONS
+ *
+ ******************************************************************************/
 
 /* Check if prefix match and skip spaces if any */
 #define AT_CHECK_EVENT(buf, event) \
@@ -1300,8 +1300,8 @@ static char *bta_hf_client_skip_unknown(char *buffer)
 
 
 /******************************************************************************
-**       SUPPORTED EVENT MESSAGES
-*******************************************************************************/
+ *       SUPPORTED EVENT MESSAGES
+ ******************************************************************************/
 
 /* returned values are as follow:
  * != NULL && != buf  : match and parsed ok
@@ -1453,11 +1453,11 @@ static void bta_hf_client_at_clear_buf(void)
 }
 
 /******************************************************************************
-**
-**          MAIN PARSING FUNCTION
-**
-**
-*******************************************************************************/
+ *
+ *          MAIN PARSING FUNCTION
+ *
+ *
+ ******************************************************************************/
 void bta_hf_client_at_parse(char *buf, unsigned int len)
 {
     APPL_TRACE_DEBUG("%s offset: %u len: %u", __func__, bta_hf_client_cb.scb.at_cb.offset, len);

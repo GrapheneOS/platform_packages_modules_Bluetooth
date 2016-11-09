@@ -31,14 +31,14 @@
 tBTA_AR_CB  bta_ar_cb;
 
 /*******************************************************************************
-**
-** Function         bta_ar_id
-**
-** Description      This function maps sys_id to ar id mask.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_id
+ *
+ * Description      This function maps sys_id to ar id mask.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static uint8_t bta_ar_id(tBTA_SYS_ID sys_id)
 {
     uint8_t   mask = 0;
@@ -55,14 +55,14 @@ static uint8_t bta_ar_id(tBTA_SYS_ID sys_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ar_init
-**
-** Description      This function is called to register to AVDTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_init
+ *
+ * Description      This function is called to register to AVDTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ar_init(void)
 {
     /* initialize control block */
@@ -70,14 +70,14 @@ void bta_ar_init(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ar_reg_avdt
-**
-** Description      This function is called to register to AVDTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_reg_avdt
+ *
+ * Description      This function is called to register to AVDTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ar_avdt_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
     /* route the AVDT registration callback to av or avk */
@@ -88,14 +88,14 @@ static void bta_ar_avdt_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tA
 }
 
 /*******************************************************************************
-**
-** Function         bta_ar_reg_avdt
-**
-** Description      AR module registration to AVDT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_reg_avdt
+ *
+ * Description      AR module registration to AVDT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sys_id)
 {
     uint8_t   mask = 0;
@@ -128,14 +128,14 @@ void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sy
 }
 
 /*******************************************************************************
-**
-** Function         bta_ar_dereg_avdt
-**
-** Description      This function is called to de-register from AVDTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_dereg_avdt
+ *
+ * Description      This function is called to de-register from AVDTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id)
 {
     uint8_t   mask = 0;
@@ -157,17 +157,17 @@ void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ar_avdt_conn
-**
-** Description      This function is called to let ar know that some AVDTP profile
-**                  is connected for this sys_id.
-**                  If the other sys modules started a timer for PENDING_EVT,
-**                  the timer can be stopped now.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_avdt_conn
+ *
+ * Description      This function is called to let ar know that some AVDTP profile
+ *                  is connected for this sys_id.
+ *                  If the other sys modules started a timer for PENDING_EVT,
+ *                  the timer can be stopped now.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr)
 {
     uint8_t     event = BTA_AR_AVDT_CONN_EVT;
@@ -190,14 +190,14 @@ void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ar_reg_avct
-**
-** Description      This function is called to register to AVCTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_reg_avct
+ *
+ * Description      This function is called to register to AVCTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ar_reg_avct(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask, tBTA_SYS_ID sys_id)
 {
     uint8_t   mask = bta_ar_id (sys_id);
@@ -213,14 +213,14 @@ void bta_ar_reg_avct(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask, tBTA_SYS_I
 }
 
 /*******************************************************************************
-**
-** Function         bta_ar_dereg_avct
-**
-** Description      This function is called to deregister from AVCTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_dereg_avct
+ *
+ * Description      This function is called to deregister from AVCTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ar_dereg_avct(tBTA_SYS_ID sys_id)
 {
     uint8_t   mask = bta_ar_id (sys_id);
@@ -232,14 +232,14 @@ void bta_ar_dereg_avct(tBTA_SYS_ID sys_id)
 }
 
 /******************************************************************************
-**
-** Function         bta_ar_reg_avrc
-**
-** Description      This function is called to register an SDP record for AVRCP.
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ar_reg_avrc
+ *
+ * Description      This function is called to register an SDP record for AVRCP.
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void bta_ar_reg_avrc(uint16_t service_uuid, const char *service_name,
                      const char *provider_name, uint16_t categories,
                      tBTA_SYS_ID sys_id, bool browse_supported,
@@ -289,14 +289,14 @@ void bta_ar_reg_avrc(uint16_t service_uuid, const char *service_name,
 }
 
 /******************************************************************************
-**
-** Function         bta_ar_dereg_avrc
-**
-** Description      This function is called to de-register/delete an SDP record for AVRCP.
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ar_dereg_avrc
+ *
+ * Description      This function is called to de-register/delete an SDP record for AVRCP.
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void bta_ar_dereg_avrc(uint16_t service_uuid, tBTA_SYS_ID sys_id)
 {
     uint8_t   mask = bta_ar_id (sys_id);
