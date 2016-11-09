@@ -127,17 +127,17 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #endif
 
 /******************************************************************************
-**
-** Trace Levels
-**
-** The following values may be used for different levels:
-**      BT_TRACE_LEVEL_NONE    0        * No trace messages to be generated
-**      BT_TRACE_LEVEL_ERROR   1        * Error condition trace messages
-**      BT_TRACE_LEVEL_WARNING 2        * Warning condition trace messages
-**      BT_TRACE_LEVEL_API     3        * API traces
-**      BT_TRACE_LEVEL_EVENT   4        * Debug messages for events
-**      BT_TRACE_LEVEL_DEBUG   5        * Debug messages (general)
-******************************************************************************/
+ *
+ * Trace Levels
+ *
+ * The following values may be used for different levels:
+ *      BT_TRACE_LEVEL_NONE    0        * No trace messages to be generated
+ *      BT_TRACE_LEVEL_ERROR   1        * Error condition trace messages
+ *      BT_TRACE_LEVEL_WARNING 2        * Warning condition trace messages
+ *      BT_TRACE_LEVEL_API     3        * API traces
+ *      BT_TRACE_LEVEL_EVENT   4        * Debug messages for events
+ *      BT_TRACE_LEVEL_DEBUG   5        * Debug messages (general)
+ *****************************************************************************/
 
 /* Core Stack default trace levels */
 #ifndef HCI_INITIAL_TRACE_LEVEL
