@@ -31,27 +31,23 @@ extern "C" {
 #endif
 
 #ifndef BTA_SCO_OUT_PKT_SIZE
-    #define BTA_SCO_OUT_PKT_SIZE    BTM_SCO_DATA_SIZE_MAX
+#define BTA_SCO_OUT_PKT_SIZE BTM_SCO_DATA_SIZE_MAX
 #endif
 
-#define BTA_SCO_CODEC_PCM       0       /* used for regular SCO */
-#define BTA_SCO_CODEC_SBC       1       /* used for WBS */
-typedef uint8_t   tBTA_SCO_CODEC_TYPE;
+#define BTA_SCO_CODEC_PCM 0 /* used for regular SCO */
+#define BTA_SCO_CODEC_SBC 1 /* used for WBS */
+typedef uint8_t tBTA_SCO_CODEC_TYPE;
 
-#define BTA_DM_SCO_SAMP_RATE_8K     8000
-#define BTA_DM_SCO_SAMP_RATE_16K    16000
+#define BTA_DM_SCO_SAMP_RATE_8K 8000
+#define BTA_DM_SCO_SAMP_RATE_16K 16000
 
 /* SCO codec information */
-typedef struct
-{
-    tBTA_SCO_CODEC_TYPE   codec_type;
-}tBTA_CODEC_INFO;
+typedef struct { tBTA_SCO_CODEC_TYPE codec_type; } tBTA_CODEC_INFO;
 
-#define BTA_DM_SCO_ROUTE_PCM	BTM_SCO_ROUTE_PCM
-#define BTA_DM_SCO_ROUTE_HCI	BTM_SCO_ROUTE_HCI
+#define BTA_DM_SCO_ROUTE_PCM BTM_SCO_ROUTE_PCM
+#define BTA_DM_SCO_ROUTE_HCI BTM_SCO_ROUTE_HCI
 
 typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
-
 
 /*****************************************************************************
  *  Function Declarations
@@ -61,31 +57,35 @@ typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
  *
  * Function         bta_dm_co_io_req
  *
- * Description      This callout function is executed by DM to get IO capabilities
+ * Description      This callout function is executed by DM to get IO
+ *capabilities
  *                  of the local device for the Simple Pairing process
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
- *                  *p_oob_data - true, if OOB data is available for the peer device.
+ *                  *p_oob_data - true, if OOB data is available for the peer
+ *device.
  *                  *p_auth_req - true, if MITM protection is required.
  *
  * Returns          void.
  *
  ******************************************************************************/
-extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
-                             tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ *p_auth_req,
-                             bool is_orig);
+extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
+                             tBTA_OOB_DATA* p_oob_data,
+                             tBTA_AUTH_REQ* p_auth_req, bool is_orig);
 
 /*******************************************************************************
  *
  * Function         bta_dm_co_io_rsp
  *
- * Description      This callout function is executed by DM to report IO capabilities
+ * Description      This callout function is executed by DM to report IO
+ *capabilities
  *                  of the peer device for the Simple Pairing process
  *
  * Parameters       bd_addr  - The peer device
  *                  io_cap - The remote Input/Output capabilities
- *                  oob_data - true, if OOB data is available for the peer device.
+ *                  oob_data - true, if OOB data is available for the peer
+ *device.
  *                  auth_req - true, if MITM protection is required.
  *
  * Returns          void.
@@ -107,7 +107,7 @@ extern void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
  * Returns          void.
  *
  ******************************************************************************/
-extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, bool *p_upgrade );
+extern void bta_dm_co_lk_upgrade(BD_ADDR bd_addr, bool* p_upgrade);
 
 /*******************************************************************************
  *
@@ -147,7 +147,8 @@ extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
  * Function         bta_dm_sco_co_init
  *
  * Description      This function can be used by the phone to initialize audio
- *                  codec or for other initialization purposes before SCO connection
+ *                  codec or for other initialization purposes before SCO
+ *connection
  *                  is opened.
  *
  *
@@ -155,8 +156,8 @@ extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
  *
  ******************************************************************************/
 extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(uint32_t rx_bw, uint32_t tx_bw,
-                                                 tBTA_CODEC_INFO *p_codec_info, uint8_t app_id);
-
+                                                 tBTA_CODEC_INFO* p_codec_info,
+                                                 uint8_t app_id);
 
 /*******************************************************************************
  *
@@ -168,7 +169,8 @@ extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(uint32_t rx_bw, uint32_t tx_bw,
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_dm_sco_co_open(uint16_t handle, uint8_t pkt_size, uint16_t event);
+extern void bta_dm_sco_co_open(uint16_t handle, uint8_t pkt_size,
+                               uint16_t event);
 
 /*******************************************************************************
  *
@@ -191,32 +193,34 @@ extern void bta_dm_sco_co_close(void);
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_dm_sco_co_out_data(BT_HDR  **p_buf);
+extern void bta_dm_sco_co_out_data(BT_HDR** p_buf);
 
 /*******************************************************************************
  *
  * Function         bta_dm_sco_co_in_data
  *
- * Description      This function is called to send incoming SCO data to application.
+ * Description      This function is called to send incoming SCO data to
+ *application.
  *
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG status);
-
-
+extern void bta_dm_sco_co_in_data(BT_HDR* p_buf, tBTM_SCO_DATA_FLAG status);
 
 /*******************************************************************************
  *
  * Function         bta_dm_co_ble_io_req
  *
- * Description      This callout function is executed by DM to get BLE IO capabilities
+ * Description      This callout function is executed by DM to get BLE IO
+ *capabilities
  *                  before SMP pairing gets going.
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
- *                  *p_oob_data - true, if OOB data is available for the peer device.
- *                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
+ *                  *p_oob_data - true, if OOB data is available for the peer
+ *device.
+ *                  *p_auth_req -  Auth request setting (Bonding and MITM
+ *required or not)
  *                  *p_max_key_size - max key size local device supported.
  *                  *p_init_key - initiator keys.
  *                  *p_resp_key - responder keys.
@@ -224,19 +228,19 @@ extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG status);
  * Returns          void.
  *
  ******************************************************************************/
-extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
-                                 tBTA_OOB_DATA *p_oob_data,
-                                 tBTA_LE_AUTH_REQ *p_auth_req,
-                                 uint8_t *p_max_key_size,
-                                 tBTA_LE_KEY_TYPE *p_init_key,
-                                 tBTA_LE_KEY_TYPE  *p_resp_key );
-
+extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
+                                 tBTA_OOB_DATA* p_oob_data,
+                                 tBTA_LE_AUTH_REQ* p_auth_req,
+                                 uint8_t* p_max_key_size,
+                                 tBTA_LE_KEY_TYPE* p_init_key,
+                                 tBTA_LE_KEY_TYPE* p_resp_key);
 
 /*******************************************************************************
  *
  * Function         bta_dm_co_ble_local_key_reload
  *
- * Description      This callout function is to load the local BLE keys if available
+ * Description      This callout function is to load the local BLE keys if
+ *available
  *                  on the device.
  *
  * Parameters       none
@@ -244,20 +248,24 @@ extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
  * Returns          void.
  *
  ******************************************************************************/
-extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OCTET16 er,
-                                           tBTA_BLE_LOCAL_ID_KEYS *p_id_keys);
+extern void bta_dm_co_ble_load_local_keys(
+    tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask, BT_OCTET16 er,
+    tBTA_BLE_LOCAL_ID_KEYS* p_id_keys);
 
 /*******************************************************************************
  *
  * Function         bta_dm_co_ble_io_req
  *
- * Description      This callout function is executed by DM to get BLE IO capabilities
+ * Description      This callout function is executed by DM to get BLE IO
+ *capabilities
  *                  before SMP pairing gets going.
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
- *                  *p_oob_data - true, if OOB data is available for the peer device.
- *                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
+ *                  *p_oob_data - true, if OOB data is available for the peer
+ *device.
+ *                  *p_auth_req -  Auth request setting (Bonding and MITM
+ *required or not)
  *                  *p_max_key_size - max key size local device supported.
  *                  *p_init_key - initiator keys.
  *                  *p_resp_key - responder keys.
@@ -265,12 +273,12 @@ extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mas
  * Returns          void.
  *
  ******************************************************************************/
-extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
-                                 tBTA_OOB_DATA *p_oob_data,
-                                 tBTA_LE_AUTH_REQ *p_auth_req,
-                                 uint8_t *p_max_key_size,
-                                 tBTA_LE_KEY_TYPE *p_init_key,
-                                 tBTA_LE_KEY_TYPE  *p_resp_key );
+extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
+                                 tBTA_OOB_DATA* p_oob_data,
+                                 tBTA_LE_AUTH_REQ* p_auth_req,
+                                 uint8_t* p_max_key_size,
+                                 tBTA_LE_KEY_TYPE* p_init_key,
+                                 tBTA_LE_KEY_TYPE* p_resp_key);
 
 #ifdef __cplusplus
 }

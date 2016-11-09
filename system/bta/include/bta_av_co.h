@@ -24,8 +24,8 @@
 #ifndef BTA_AV_CO_H
 #define BTA_AV_CO_H
 
-#include "l2c_api.h"
 #include "bta_av_api.h"
+#include "l2c_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,7 +49,7 @@ extern "C" {
  *
  ******************************************************************************/
 bool bta_av_co_audio_init(tA2DP_CODEC_SEP_INDEX codec_sep_index,
-                          tAVDT_CFG *p_cfg);
+                          tAVDT_CFG* p_cfg);
 
 /*******************************************************************************
  *
@@ -79,33 +79,34 @@ void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
  * Returns          Stream codec and content protection configuration info.
  *
  ******************************************************************************/
-tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl,
-                                       uint8_t *p_codec_info,
-                                       uint8_t *p_sep_info_idx, uint8_t seid,
-                                       uint8_t *p_num_protect,
-                                       uint8_t *p_protect_info);
+tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
+                                       uint8_t* p_sep_info_idx, uint8_t seid,
+                                       uint8_t* p_num_protect,
+                                       uint8_t* p_protect_info);
 
 /*******************************************************************************
  *
  * Function         bta_av_co_audio_setconfig
  *
  * Description      This callout function is executed by AV to set the
- *                  codec and content protection configuration of the audio stream.
+ *                  codec and content protection configuration of the audio
+ *stream.
  *
  *
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
+void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
                                uint8_t seid, BD_ADDR addr, uint8_t num_protect,
-                               uint8_t *p_protect_info,uint8_t t_local_sep,
+                               uint8_t* p_protect_info, uint8_t t_local_sep,
                                uint8_t avdt_handle);
 
 /*******************************************************************************
  *
  * Function         bta_av_co_audio_open
  *
- * Description      This function is called by AV when the audio stream connection
+ * Description      This function is called by AV when the audio stream
+ *connection
  *                  is opened.
  *                  BTA-AV maintains the MTU of A2DP streams.
  *                  If this is the 2nd audio stream, mtu is the smaller of the 2
@@ -114,14 +115,15 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t *p_codec_info,
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t *p_codec_info,
+void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
                           uint16_t mtu);
 
 /*******************************************************************************
  *
  * Function         bta_av_co_audio_close
  *
- * Description      This function is called by AV when the audio stream connection
+ * Description      This function is called by AV when the audio stream
+ *connection
  *                  is closed.
  *                  BTA-AV maintains the MTU of A2DP streams.
  *                  When one stream is closed and no other audio stream is open,
@@ -144,8 +146,8 @@ void bta_av_co_audio_close(tBTA_AV_HNDL hndl, uint16_t mtu);
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_co_audio_start(tBTA_AV_HNDL hndl, uint8_t *p_codec_info,
-                           bool *p_no_rtp_hdr);
+void bta_av_co_audio_start(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
+                           bool* p_no_rtp_hdr);
 
 /*******************************************************************************
  *
@@ -171,8 +173,8 @@ void bta_av_co_audio_stop(tBTA_AV_HNDL hndl);
  *                  Otherwise, a buffer (BT_HDR*) containing the audio data.
  *
  ******************************************************************************/
-void *bta_av_co_audio_src_data_path(const uint8_t *p_codec_info,
-                                    uint32_t *p_timestamp);
+void* bta_av_co_audio_src_data_path(const uint8_t* p_codec_info,
+                                    uint32_t* p_timestamp);
 
 /*******************************************************************************
  *
@@ -192,7 +194,8 @@ void bta_av_co_audio_drop(tBTA_AV_HNDL hndl);
  *
  * Function         bta_av_co_audio_delay
  *
- * Description      This function is called by AV when the audio stream connection
+ * Description      This function is called by AV when the audio stream
+ *connection
  *                  needs to send the initial delay report to the connected SRC.
  *
  *

@@ -25,12 +25,12 @@
 
 #include <string.h>
 
-#include "bta_api.h"
+#include "bt_common.h"
 #include "bt_types.h"
-#include "bta_sys.h"
+#include "bta_api.h"
 #include "bta_mce_api.h"
 #include "bta_mce_int.h"
-#include "bt_common.h"
+#include "bta_sys.h"
 #include "port_api.h"
 #include "sdp_api.h"
 
@@ -38,11 +38,7 @@
  *  Constants
  ****************************************************************************/
 
-static const tBTA_SYS_REG bta_mce_reg =
-{
-    bta_mce_sm_execute,
-    NULL
-};
+static const tBTA_SYS_REG bta_mce_reg = {bta_mce_sm_execute, NULL};
 
 /*******************************************************************************
  *
@@ -58,29 +54,28 @@ static const tBTA_SYS_REG bta_mce_reg =
  *                  BTA_MCE_FAIL if internal failure.
  *
  ******************************************************************************/
-tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback)
-{
-    tBTA_MCE_STATUS status = BTA_MCE_FAILURE;
+tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK* p_cback) {
+  tBTA_MCE_STATUS status = BTA_MCE_FAILURE;
 
-    APPL_TRACE_API("%", __func__);
+  APPL_TRACE_API("%", __func__);
 
-    if (p_cback && false == bta_sys_is_register(BTA_ID_MCE)) {
-        memset(&bta_mce_cb, 0, sizeof(tBTA_MCE_CB));
+  if (p_cback && false == bta_sys_is_register(BTA_ID_MCE)) {
+    memset(&bta_mce_cb, 0, sizeof(tBTA_MCE_CB));
 
-        /* register with BTA system manager */
-        bta_sys_register(BTA_ID_MCE, &bta_mce_reg);
+    /* register with BTA system manager */
+    bta_sys_register(BTA_ID_MCE, &bta_mce_reg);
 
-        if (p_cback) {
-            tBTA_MCE_API_ENABLE *p_buf =
-                (tBTA_MCE_API_ENABLE *)osi_malloc(sizeof(tBTA_MCE_API_ENABLE));
-            p_buf->hdr.event = BTA_MCE_API_ENABLE_EVT;
-            p_buf->p_cback = p_cback;
-            bta_sys_sendmsg(p_buf);
-            status = BTA_MCE_SUCCESS;
-        }
+    if (p_cback) {
+      tBTA_MCE_API_ENABLE* p_buf =
+          (tBTA_MCE_API_ENABLE*)osi_malloc(sizeof(tBTA_MCE_API_ENABLE));
+      p_buf->hdr.event = BTA_MCE_API_ENABLE_EVT;
+      p_buf->p_cback = p_cback;
+      bta_sys_sendmsg(p_buf);
+      status = BTA_MCE_SUCCESS;
     }
+  }
 
-    return status;
+  return status;
 }
 
 /*******************************************************************************
@@ -96,17 +91,17 @@ tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback)
  *                  BTA_MCE_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_MCE_STATUS BTA_MceGetRemoteMasInstances(BD_ADDR bd_addr)
-{
-    tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES *p_msg =
-        (tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES *)osi_malloc(sizeof(tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES));
+tBTA_MCE_STATUS BTA_MceGetRemoteMasInstances(BD_ADDR bd_addr) {
+  tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES* p_msg =
+      (tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES*)osi_malloc(
+          sizeof(tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES));
 
-    APPL_TRACE_API("%s", __func__);
+  APPL_TRACE_API("%s", __func__);
 
-    p_msg->hdr.event = BTA_MCE_API_GET_REMOTE_MAS_INSTANCES_EVT;
-    bdcpy(p_msg->bd_addr, bd_addr);
+  p_msg->hdr.event = BTA_MCE_API_GET_REMOTE_MAS_INSTANCES_EVT;
+  bdcpy(p_msg->bd_addr, bd_addr);
 
-    bta_sys_sendmsg(p_msg);
+  bta_sys_sendmsg(p_msg);
 
-    return BTA_MCE_SUCCESS;
+  return BTA_MCE_SUCCESS;
 }
