@@ -363,7 +363,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   ALOGI("%s: succeeds", __func__);
 }
 
-static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients) {
+static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
+                             jboolean inband_ringing_support) {
   const bt_interface_t* btInf = getBluetoothInterface();
   if (btInf == NULL) {
     ALOGE("Bluetooth module is not loaded");
@@ -389,8 +390,8 @@ static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients) {
     return;
   }
 
-  bt_status_t status =
-      sBluetoothHfpInterface->init(&sBluetoothHfpCallbacks, max_hf_clients);
+  bt_status_t status = sBluetoothHfpInterface->init(
+      &sBluetoothHfpCallbacks, max_hf_clients, inband_ringing_support);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed to initialize Bluetooth HFP, status: %d", status);
     sBluetoothHfpInterface = NULL;
@@ -746,7 +747,7 @@ static jboolean configureWBSNative(JNIEnv* env, jobject object,
 
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
-    {"initializeNative", "(I)V", (void*)initializeNative},
+    {"initializeNative", "(IZ)V", (void*)initializeNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
     {"connectHfpNative", "([B)Z", (void*)connectHfpNative},
     {"disconnectHfpNative", "([B)Z", (void*)disconnectHfpNative},
