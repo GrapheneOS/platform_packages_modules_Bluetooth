@@ -435,19 +435,15 @@ bool BTA_JvIsEncrypted(BD_ADDR bd_addr);
  * Description      This function reserves a SCN/PSM for applications running
  *                  over RFCOMM or L2CAP. It is primarily called by
  *                  server profiles/applications to register their SCN/PSM into
- *the
- *                  SDP database. The SCN is reported by the tBTA_JV_DM_CBACK
- *                  callback with a BTA_JV_GET_SCN_EVT.
+ *                  the SDP database. The SCN is reported by the
+ *                  tBTA_JV_DM_CBACK callback with a BTA_JV_GET_SCN_EVT.
  *                  If the SCN/PSM reported is 0, that means all SCN resources
- *are
- *                  exhausted.
+ *                  are exhausted.
  *                  The channel parameter can be used to request a specific
  *                  channel. If the request on the specific channel fails, the
  *                  SCN/PSM returned in the EVT will be 0 - no attempt to
- *request
- *                  a new channel will be made. set channel to <= 0 to
- *automatically
- *                  assign an channel ID.
+ *                  request a new channel will be made. set channel to <= 0 to
+ *                  automatically assign an channel ID.
  *
  * Returns          BTA_JV_SUCCESS, if the request is being processed.
  *                  BTA_JV_FAILURE, otherwise.
@@ -572,8 +568,7 @@ tBTA_JV_STATUS BTA_JvL2capClose(uint32_t handle);
  * Function         BTA_JvL2capCloseLE
  *
  * Description      This function closes an L2CAP client connection for Fixed
- *Channels
- *                  Function is idempotent and no callbacks are called!
+ *                  Channels Function is idempotent and no callbacks are called!
  *
  * Returns          BTA_JV_SUCCESS, if the request is being processed.
  *                  BTA_JV_FAILURE, otherwise.
@@ -586,11 +581,11 @@ tBTA_JV_STATUS BTA_JvL2capCloseLE(uint32_t handle);
  * Function         BTA_JvL2capStartServer
  *
  * Description      This function starts an L2CAP server and listens for an
- *L2CAP
- *                  connection from a remote Bluetooth device.  When the server
- *                  is started successfully, tBTA_JV_L2CAP_CBACK is called with
- *                  BTA_JV_L2CAP_START_EVT.  When the connection is established,
- *                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT.
+ *                  L2CAP connection from a remote Bluetooth device.  When the
+ *                  server is started successfully, tBTA_JV_L2CAP_CBACK is
+ *                  called with BTA_JV_L2CAP_START_EVT.  When the connection is
+ *                  established, tBTA_JV_L2CAP_CBACK is called with
+ *                  BTA_JV_L2CAP_OPEN_EVT.
  *
  * Returns          BTA_JV_SUCCESS, if the request is being processed.
  *                  BTA_JV_FAILURE, otherwise.
@@ -606,9 +601,8 @@ tBTA_JV_STATUS BTA_JvL2capStartServer(
  * Function         BTA_JvL2capStartServerLE
  *
  * Description      This function starts an LE L2CAP server and listens for an
- *L2CAP
- *                  connection from a remote Bluetooth device on a fixed channel
- *                  over an LE link.  When the server
+ *                  L2CAP connection from a remote Bluetooth device on a fixed
+ *                  channel over an LE link.  When the server
  *                  is started successfully, tBTA_JV_L2CAP_CBACK is called with
  *                  BTA_JV_L2CAP_START_EVT.  When the connection is established,
  *                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT.
@@ -629,8 +623,7 @@ tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
  * Function         BTA_JvL2capStopServerLE
  *
  * Description      This function stops the LE L2CAP server. If the server has
- *an
- *                  active connection, it would be closed.
+ *                  an active connection, it would be closed.
  *
  * Returns          BTA_JV_SUCCESS, if the request is being processed.
  *                  BTA_JV_FAILURE, otherwise.
@@ -643,8 +636,7 @@ tBTA_JV_STATUS BTA_JvL2capStopServerLE(uint16_t local_chan, void* user_data);
  * Function         BTA_JvL2capStopServerLE
  *
  * Description      This function stops the LE L2CAP server. If the server has
- *an
- *                  active connection, it would be closed.
+ *                  an active connection, it would be closed.
  *
  * Returns          BTA_JV_SUCCESS, if the request is being processed.
  *                  BTA_JV_FAILURE, otherwise.
@@ -723,7 +715,7 @@ tBTA_JV_STATUS BTA_JvL2capWriteFixed(uint16_t channel, BD_ADDR* addr,
  *                  Address.
  *                  When the connection is initiated or failed to initiate,
  *                  tBTA_JV_RFCOMM_CBACK is called with
- *BTA_JV_RFCOMM_CL_INIT_EVT
+ *                  BTA_JV_RFCOMM_CL_INIT_EVT
  *                  When the connection is established or failed,
  *                  tBTA_JV_RFCOMM_CBACK is called with BTA_JV_RFCOMM_OPEN_EVT
  *
@@ -800,22 +792,22 @@ tBTA_JV_STATUS BTA_JvRfcommWrite(uint32_t handle, uint32_t req_id);
  * Function    BTA_JVSetPmProfile
  *
  * Description This function set or free power mode profile for different JV
- *application
+ *             application
  *
  * Parameters:  handle,  JV handle from RFCOMM or L2CAP
  *              app_id:  app specific pm ID, can be BTA_JV_PM_ALL, see
- *bta_dm_cfg.c for details
+ *                       bta_dm_cfg.c for details
  *              BTA_JV_PM_ID_CLEAR: removes pm management on the handle. init_st
- *is ignored and
- *              BTA_JV_CONN_CLOSE is called implicitely
- *              init_st:  state after calling this API. typically it should be
- *BTA_JV_CONN_OPEN
+ *                                  is ignored and BTA_JV_CONN_CLOSE is called
+ *                                  implicitly
+ *              init_st: state after calling this API. typically it should be
+ *                       BTA_JV_CONN_OPEN
  *
  * Returns      BTA_JV_SUCCESS, if the request is being processed.
  *              BTA_JV_FAILURE, otherwise.
  *
  * NOTE:        BTA_JV_PM_ID_CLEAR: In general no need to be called as jv pm
- *calls automatically
+ *                                  calls automatically
  *              BTA_JV_CONN_CLOSE to remove in case of connection close!
  *
  *******************************************************************************/

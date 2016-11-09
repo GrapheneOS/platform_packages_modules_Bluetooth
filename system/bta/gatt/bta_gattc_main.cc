@@ -300,8 +300,7 @@ static char* gattc_state_code(tBTA_GATTC_STATE state_code);
  *
  *
  * Returns          bool  : true if queued client request buffer can be
- *immediately released
- *                                        else false
+ *                          immediately released, else false
  *
  ******************************************************************************/
 bool bta_gattc_sm_execute(tBTA_GATTC_CLCB* p_clcb, uint16_t event,

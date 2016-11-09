@@ -48,7 +48,7 @@ extern "C" {
  *
  * Parameters      app_id - application ID
  *                 p_num_of_mdep (output) - number of MDEP configurations
- *supported
+ *                                          supported
  *                                          by the application
  *
  * Returns         Bloolean - true success
@@ -61,7 +61,7 @@ extern bool bta_hl_co_get_num_of_mdep(uint8_t app_id, uint8_t* p_num_of_mdep);
  *
  * Description     This function is called to find out whether the SOURCE MDEP
  *                 configuration information should be advertize in the SDP or
- *nopt
+ *                 not
  *
  * Parameters      app_id - application ID
  *
@@ -76,7 +76,7 @@ extern bool bta_hl_co_advrtise_source_sdp(uint8_t app_id);
  *
  * Description     This function is called to get the supported feature
  *                 configuration for the specified mdep index and it also
- *assigns
+ *                 assigns
  *                 the MDEP ID for the specified mdep index
  *
  * Parameters      app_id - HDP application ID
@@ -102,8 +102,7 @@ extern bool bta_hl_co_get_mdep_config(uint8_t app_id, uint8_t mdep_idx,
  *
  * Parameters      app_id - HDP application ID
  *                 p_echo_cfg (output) - pointer to the Echo test maximum APDU
- *size
- *                                       configuration
+ *                                       size configuration
  *
  * Returns         Bloolean - true success
  ******************************************************************************/
@@ -115,8 +114,7 @@ extern bool bta_hl_co_get_echo_config(uint8_t app_id,
  * Function        bta_hl_co_save_mdl
  *
  * Description     This function is called to save a MDL configuration item in
- *persistent
- *                 storage
+ *                 persistent storage
  *
  * Parameters      app_id - HDP application ID
  *                 item_idx - the MDL configuration storage index
@@ -132,8 +130,7 @@ extern void bta_hl_co_save_mdl(uint8_t app_id, uint8_t item_idx,
  * Function        bta_hl_co_delete_mdl
  *
  * Description     This function is called to delete a MDL configuration item in
- *persistent
- *                 storage
+ *                 persistent storage
  *
  * Parameters      app_id - HDP application ID
  *                 item_idx - the MDL configuration storage index

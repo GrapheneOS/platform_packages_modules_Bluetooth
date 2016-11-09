@@ -146,8 +146,7 @@ void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id) {
  * Function         bta_ar_avdt_conn
  *
  * Description      This function is called to let ar know that some AVDTP
- *profile
- *                  is connected for this sys_id.
+ *                  profile is connected for this sys_id.
  *                  If the other sys modules started a timer for PENDING_EVT,
  *                  the timer can be stopped now.
  *
@@ -262,7 +261,7 @@ void bta_ar_reg_avrc(uint16_t service_uuid, const char* service_name,
  * Function         bta_ar_dereg_avrc
  *
  * Description      This function is called to de-register/delete an SDP record
- *for AVRCP.
+ *                  for AVRCP.
  *
  * Returns          void
  *

@@ -778,8 +778,7 @@ void bta_gattc_set_discover_st(tBTA_GATTC_SERV* p_srcb) {
  *
  * Description      process service change in discovery state, mark up the auto
  *                  update flag and set status to be discovery cancel for
- *current
- *                  discovery.
+ *                  current discovery.
  *
  * Returns          None.
  *
@@ -1279,8 +1278,7 @@ void bta_gattc_search(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
  * Function         bta_gattc_q_cmd
  *
  * Description      enqueue a command into control block, usually because
- *discovery
- *                  operation is busy.
+ *                  discovery operation is busy.
  *
  * Returns          None.
  *
@@ -1416,8 +1414,7 @@ static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda) {
  * Function         bta_gattc_process_api_refresh
  *
  * Description      process refresh API to delete cache and start a new
- *discovery
- *                  if currently connected.
+ *                  discovery if currently connected.
  *
  * Returns          None.
  *

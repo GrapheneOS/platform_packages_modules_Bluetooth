@@ -89,7 +89,7 @@ void BTA_PanDisable(void) {
  *
  * Description      Sets PAN roles. When the enable operation is complete
  *                  the callback function will be called with a
- *BTA_PAN_SET_ROLE_EVT.
+ *                  BTA_PAN_SET_ROLE_EVT.
  *
  * Returns          void
  *

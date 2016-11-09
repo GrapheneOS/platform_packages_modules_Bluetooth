@@ -103,7 +103,7 @@ tBTA_GATTS_RCB* bta_gatts_find_app_rcb_by_app_if(tBTA_GATTS_IF server_if) {
  * Description      find the index of the application control block by app ID.
  *
  * Returns          index of the control block, or BTA_GATTS_INVALID_APP if
- *failed.
+ *                  failed.
  *
  ******************************************************************************/
 

@@ -382,9 +382,8 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB* p_cb, tBTA_HH_DATA* p_data) {
  *
  * Function         bta_hh_sdp_cmpl
  *
- * Description      When SDP completed, initiate a connection or report error
- *depend
- *                  on SDP result.
+ * Description      When SDP completes, initiate a connection or report an error
+ *                  depending on the SDP result.
  *
  *
  * Returns          void
@@ -760,8 +759,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB* p_cb, tBTA_HH_DATA* p_data) {
  * Function         bta_hh_open_failure
  *
  * Description      report HID open failure when at wait for connection state
- *and receive
- *                  device close event.
+ *                  and receive device close event.
  *
  *
  * Returns          void
