@@ -30,7 +30,8 @@
 #include <fcntl.h>
 
 namespace android {
-
+// OOB_LE_BD_ADDR_SIZE is 6 bytes addres + 1 byte address type
+#define OOB_LE_BD_ADDR_SIZE 7
 #define OOB_TK_SIZE 16
 #define OOB_LE_SC_C_SIZE 16
 #define OOB_LE_SC_R_SIZE 16
@@ -838,13 +839,28 @@ static jboolean createBondOutOfBandNative(JNIEnv* env, jobject obj, jbyteArray a
         return result;
     }
 
+    jbyte* leBtDeviceAddressBytes = NULL;
     jbyte* smTKBytes = NULL;
     jbyte* leScCBytes = NULL;
     jbyte* leScRBytes = NULL;
+    jbyteArray leBtDeviceAddress = NULL;
+    jbyteArray smTK = NULL;
     jbyteArray leScC = NULL;
     jbyteArray leScR = NULL;
 
-    jbyteArray smTK = callByteArrayGetter(env, oobData, "android/bluetooth/OobData", "getSecurityManagerTk");
+    leBtDeviceAddress = callByteArrayGetter(env, oobData, "android/bluetooth/OobData", "getLeBluetoothDeviceAddress");
+    if (leBtDeviceAddress != NULL) {
+        leBtDeviceAddressBytes = env->GetByteArrayElements(leBtDeviceAddress, NULL);
+        int len = env->GetArrayLength(leBtDeviceAddress);
+        if (len != OOB_LE_BD_ADDR_SIZE) {
+            ALOGI("%s: wrong length of leBtDeviceAddress, should be empty or %d bytes.", __func__, OOB_LE_BD_ADDR_SIZE);
+            jniThrowIOException(env, EINVAL);
+            goto done;
+        }
+        memcpy(oob_data.le_bt_dev_addr, leBtDeviceAddressBytes, len);
+    }
+
+    smTK = callByteArrayGetter(env, oobData, "android/bluetooth/OobData", "getSecurityManagerTk");
     if (smTK != NULL) {
         smTKBytes = env->GetByteArrayElements(smTK, NULL);
         int len = env->GetArrayLength(smTK);
@@ -890,6 +906,9 @@ static jboolean createBondOutOfBandNative(JNIEnv* env, jobject obj, jbyteArray a
 
 done:
     env->ReleaseByteArrayElements(address, addr, 0);
+
+    if (leBtDeviceAddress != NULL)
+        env->ReleaseByteArrayElements(leBtDeviceAddress, leBtDeviceAddressBytes, 0);
 
     if (smTK != NULL)
         env->ReleaseByteArrayElements(smTK, smTKBytes, 0);
