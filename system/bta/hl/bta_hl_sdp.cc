@@ -132,10 +132,8 @@ int bta_hl_compose_supported_feature_list(
  *
  * Description      This function is called to add a protocol descriptor list to
  *                  a record. This would be through the SDP database maintenance
- *API.
- *                  If the protocol list already exists in the record, it is
- *replaced
- *                  with the new list.
+ *                  API. If the protocol list already exists in the record, it
+ *                  is replaced with the new list.
  *
  * Returns          true if added OK, else false
  *
@@ -519,13 +517,10 @@ tBTA_HL_STATUS bta_hl_sdp_register(uint8_t app_idx) {
  * Function         bta_hl_find_sink_or_src_srv_class_in_db
  *
  * Description      This function queries an SDP database for either a HDP Sink
- *or
- *                  Source service class ID.
+ *                  or Source service class ID.
  *                  If the p_start_rec pointer is NULL, it looks from the
- *beginning
- *                  of the database, else it continues from the next record
- *after
- *                  p_start_rec.
+ *                  beginning of the database, else it continues from the next
+ *                  record after p_start_rec.
  *
  * Returns          Pointer to record containing service class, or NULL
  *

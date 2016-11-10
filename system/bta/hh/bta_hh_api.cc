@@ -262,14 +262,11 @@ void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type) {
  *                  dev_bda: remote device address
  *                  p_data: data to be sent in the DATA transaction; or
  *                          the data to be write into the Output Report of a LE
- *HID
- *                          device. The report is identified the report ID which
- *is
- *                          the value of the byte (uint8_t *)(p_buf + 1) +
- *p_buf->offset.
+ *                          HID device. The report is identified the report ID
+ *                          which is the value of the byte
+ *                          (uint8_t *)(p_buf + 1) + *p_buf->offset.
  *                          p_data->layer_specific needs to be set to the report
- *type,
- *                          it can be OUTPUT report, or FEATURE report.
+ *                          type. It can be OUTPUT report, or FEATURE report.
  *
  * Returns          void
  *

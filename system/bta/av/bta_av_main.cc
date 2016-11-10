@@ -671,8 +671,8 @@ void bta_av_api_deregister(tBTA_AV_DATA* p_data) {
  *
  * Function         bta_av_ci_data
  *
- * Description      forward the BTA_AV_CI_SRC_DATA_READY_EVT to stream state
- *machine
+ * Description      Forward the BTA_AV_CI_SRC_DATA_READY_EVT to stream state
+ *                  machine.
  *
  *
  * Returns          void
@@ -878,8 +878,7 @@ static void bta_av_sys_rs_cback(UNUSED_ATTR tBTA_SYS_CONN_STATUS status,
  *
  * Description      receive & process the SCO connection up/down event from sys.
  *                  call setup also triggers this callback, to suspend av before
- *sco
- *                  activity happens, or to resume av once call ends.
+ *                  SCO activity happens, or to resume av once call ends.
  *
  * Returns          void
  *
@@ -1055,7 +1054,7 @@ uint16_t bta_av_chk_mtu(tBTA_AV_SCB* p_scb, UNUSED_ATTR uint16_t mtu) {
  * Function         bta_av_dup_audio_buf
  *
  * Description      dup the audio data to the q_info.a2dp of other audio
- *channels
+ *                  channels
  *
  * Returns          void
  *

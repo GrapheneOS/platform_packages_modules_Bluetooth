@@ -236,8 +236,7 @@ static void bta_hf_client_start_at_hold_timer(void) {
  *          COMMON AT EVENT HANDLING funcS
  *
  *   Receives data (strings, ints, etc.) from the parser and processes this
- *data.
- *   No buffer parsing is being done here.
+ *   data. No buffer parsing is being done here.
  ******************************************************************************/
 
 static void bta_hf_client_handle_ok() {

@@ -58,13 +58,13 @@ typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
  * Function         bta_dm_co_io_req
  *
  * Description      This callout function is executed by DM to get IO
- *capabilities
- *                  of the local device for the Simple Pairing process
+ *                  capabilities of the local device for the Simple Pairing
+ *                  process
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
  *                  *p_oob_data - true, if OOB data is available for the peer
- *device.
+ *                                device.
  *                  *p_auth_req - true, if MITM protection is required.
  *
  * Returns          void.
@@ -79,13 +79,13 @@ extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
  * Function         bta_dm_co_io_rsp
  *
  * Description      This callout function is executed by DM to report IO
- *capabilities
- *                  of the peer device for the Simple Pairing process
+ *                  capabilities of the peer device for the Simple Pairing
+ *                  process
  *
  * Parameters       bd_addr  - The peer device
  *                  io_cap - The remote Input/Output capabilities
  *                  oob_data - true, if OOB data is available for the peer
- *device.
+ *                             device.
  *                  auth_req - true, if MITM protection is required.
  *
  * Returns          void.
@@ -148,8 +148,7 @@ extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
  *
  * Description      This function can be used by the phone to initialize audio
  *                  codec or for other initialization purposes before SCO
- *connection
- *                  is opened.
+ *                  connection is opened.
  *
  *
  * Returns          Void.
@@ -200,7 +199,7 @@ extern void bta_dm_sco_co_out_data(BT_HDR** p_buf);
  * Function         bta_dm_sco_co_in_data
  *
  * Description      This function is called to send incoming SCO data to
- *application.
+ *                  application.
  *
  * Returns          void
  *
@@ -212,15 +211,14 @@ extern void bta_dm_sco_co_in_data(BT_HDR* p_buf, tBTM_SCO_DATA_FLAG status);
  * Function         bta_dm_co_ble_io_req
  *
  * Description      This callout function is executed by DM to get BLE IO
- *capabilities
- *                  before SMP pairing gets going.
+ *                  capabilities before SMP pairing gets going.
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
  *                  *p_oob_data - true, if OOB data is available for the peer
- *device.
+ *                                device.
  *                  *p_auth_req -  Auth request setting (Bonding and MITM
- *required or not)
+ *                                                       required or not)
  *                  *p_max_key_size - max key size local device supported.
  *                  *p_init_key - initiator keys.
  *                  *p_resp_key - responder keys.
@@ -240,8 +238,7 @@ extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
  * Function         bta_dm_co_ble_local_key_reload
  *
  * Description      This callout function is to load the local BLE keys if
- *available
- *                  on the device.
+ *                  available on the device.
  *
  * Parameters       none
  *
@@ -257,15 +254,14 @@ extern void bta_dm_co_ble_load_local_keys(
  * Function         bta_dm_co_ble_io_req
  *
  * Description      This callout function is executed by DM to get BLE IO
- *capabilities
- *                  before SMP pairing gets going.
+ *                  capabilities before SMP pairing gets going.
  *
  * Parameters       bd_addr  - The peer device
  *                  *p_io_cap - The local Input/Output capabilities
  *                  *p_oob_data - true, if OOB data is available for the peer
- *device.
+ *                                device.
  *                  *p_auth_req -  Auth request setting (Bonding and MITM
- *required or not)
+ *                                                       required or not)
  *                  *p_max_key_size - max key size local device supported.
  *                  *p_init_key - initiator keys.
  *                  *p_resp_key - responder keys.

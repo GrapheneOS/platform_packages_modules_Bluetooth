@@ -1604,8 +1604,7 @@ static void bta_av_accept_signalling_timer_cback(void* data) {
  * Function         bta_av_check_peer_features
  *
  * Description      check supported features on the peer device from the SDP
- *record
- *                  and return the feature mask
+ *                  record and return the feature mask
  *
  * Returns          tBTA_AV_FEAT peer device feature mask
  *
@@ -1670,8 +1669,7 @@ tBTA_AV_FEAT bta_av_check_peer_features(uint16_t service_uuid) {
  * Function         bta_avk_check_peer_features
  *
  * Description      check supported features on the peer device from the SDP
- *record
- *                  and return the feature mask
+ *                  record and return the feature mask
  *
  * Returns          tBTA_AV_FEAT peer device feature mask
  *

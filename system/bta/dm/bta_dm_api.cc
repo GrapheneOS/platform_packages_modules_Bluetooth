@@ -160,7 +160,7 @@ void BTA_DmSetDeviceName(char* p_name) {
  *
  * Description      This function sets the Bluetooth connectable,
  *                  discoverable, pairable and conn paired only modes of local
- *device
+ *                  device
  *
  *
  * Returns          void
@@ -185,9 +185,8 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode,
  * Function         BTA_DmSearch
  *
  * Description      This function searches for peer Bluetooth devices. It
- *performs
- *                  an inquiry and gets the remote name for devices. Service
- *                  discovery is done if services is non zero
+ *                  performs an inquiry and gets the remote name for devices.
+ *                  Service discovery is done if services is non zero
  *
  *
  * Returns          void
@@ -463,8 +462,8 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
  * Function         BTA_DmRemoveDevice
  *
  * Description      This function removes a device fromthe security database
- *list of
- *                  peer device. It manages unpairing even while connected.
+ *                  list of peer device. It manages unpairing even while
+ *                  connected.
  *
  *
  * Returns          void
@@ -576,7 +575,7 @@ tBTA_STATUS BTA_DmSetLocalDiRecord(tBTA_DI_RECORD* p_device_info,
  * Function         bta_dmexecutecallback
  *
  * Description      This function will request BTA to execute a call back in the
- *context of BTU task
+ *                  context of BTU task.
  *                  This API was named in lower case because it is only intended
  *                  for the internal customers(like BTIF).
  *
@@ -693,7 +692,7 @@ void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, bool accept, uint32_t passkey) {
  *
  * Parameters:      bd_addr          - BD address of the peer
  *                  accept           - numbers to compare are the same or
- *different.
+ *                                     different.
  *
  * Returns          void
  *
@@ -810,7 +809,7 @@ void BTA_DmSetBleConnScanParams(uint32_t scan_interval, uint32_t scan_window) {
  *                  scan_window - scan window
  *                  scan_mode - scan mode
  *                  scan_param_setup_status_cback - Set scan param status
- *callback
+ *                                                  callback
  *
  * Returns          void
  *
@@ -840,10 +839,9 @@ void BTA_DmSetBleScanParams(
  * Function         BTA_DmSetBleAdvParams
  *
  * Description      This function sets the advertising parameters BLE
- *functionality.
+ *                  functionality.
  *                  It is to be called when device act in peripheral or
- *broadcaster
- *                  role.
+ *                  broadcaster role.
  *
  *
  * Returns          void
@@ -878,11 +876,11 @@ void BTA_DmSetBleAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
  * Description      This function is called to override the BTA scan response.
  *
  * Parameters       batch_scan_full_max -Max storage space (in %) allocated to
- *full scanning
+ *                                       full scanning
  *                  batch_scan_trunc_max -Max storage space (in %) allocated to
- *truncated scanning
+ *                                        truncated scanning
  *                  batch_scan_notify_threshold -Setup notification level based
- *on total space
+ *                                               on total space
  *                  p_setup_cback - Setup callback pointer
  *                  p_thres_cback - Threshold callback pointer
  *                  p_rep_cback - Reports callback pointer
@@ -1037,10 +1035,9 @@ extern void BTA_DmBleTrackAdvertiser(
  *                  peripheral device.
  *
  * Parameters       bg_conn_type: it can be auto connection, or selective
- *connection.
+ *                                connection.
  *                  p_select_cback: callback function when selective connection
- *procedure
- *                              is being used.
+ *                                  procedure is being used.
  *
  * Returns          void
  *
@@ -1155,17 +1152,15 @@ void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT* p_services,
  * Function         BTA_DmSearchExt
  *
  * Description      This function searches for peer Bluetooth devices. It
- *performs
- *                  an inquiry and gets the remote name for devices. Service
- *                  discovery is done if services is non zero
+ *                  performs an inquiry and gets the remote name for devices.
+ *                  Service discovery is done if services is non zero
  *
  * Parameters       p_dm_inq: inquiry conditions
  *                  p_services: if service is not empty, service discovery will
- *be done.
- *                            for all GATT based service condition, put
- *num_uuid, and
- *                            p_uuid is the pointer to the list of UUID values.
- *                  p_cback: callback functino when search is completed.
+ *                              be done. For all GATT based service conditions,
+ *                              put num_uuid, and p_uuid is the pointer to the
+ *                              list of UUID values.
+ *                  p_cback: callback function when search is completed.
  *
  *
  *
@@ -1210,13 +1205,13 @@ void BTA_DmSearchExt(UNUSED_ATTR tBTA_DM_INQ* p_dm_inq,
  * Function         BTA_DmBleUpdateConnectionParam
  *
  * Description      Update connection parameters, can only be used when
- *connection is up.
+ *                  connection is up.
  *
  * Parameters:      bd_addr          - BD address of the peer
- *                  min_int   -     minimum connection interval, [0x0004~
- *0x4000]
- *                  max_int   -     maximum connection interval, [0x0004~
- *0x4000]
+ *                  min_int   -     minimum connection interval,
+ *                                  [0x0004 ~ 0x4000]
+ *                  max_int   -     maximum connection interval,
+ *                                  [0x0004 ~ 0x4000]
  *                  latency   -     slave latency [0 ~ 500]
  *                  timeout   -     supervision timeout [0x000a ~ 0xc80]
  *
@@ -1273,8 +1268,7 @@ void BTA_DmBleConfigLocalPrivacy(bool privacy_enable) {
  * Function         BTA_DmBleCfgFilterCondition
  *
  * Description      This function is called to configure the adv data payload
- *filter
- *                  condition.
+ *                  filter condition.
  *
  * Parameters       action: to read/write/clear
  *                  cond_type: filter condition type
@@ -1395,10 +1389,10 @@ void BTA_DmBleCfgFilterCondition(
  * Function         BTA_DmBleScanFilterSetup
  *
  * Description      This function is called to setup the adv data payload filter
- *param
+ *                  param
  *
  * Parameters       p_target: enable the filter condition on a target device; if
- *NULL
+ *                            NULL
  *                  filt_index - Filter index
  *                  p_filt_params -Filter parameters
  *                  ref_value - Reference value
@@ -1478,7 +1472,7 @@ void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK* p_cmpl_cback) {
  * Function         BTA_DmEnableScanFilter
  *
  * Description      This function is called to enable the adv data payload
- *filter
+ *                  filter
  *
  * Parameters       action - enable or disable the APCF feature
  *                  p_cmpl_cback - Command completed callback
@@ -1517,13 +1511,13 @@ void BTA_DmEnableScanFilter(
  * Function         BTA_DmBleUpdateConnectionParams
  *
  * Description      Update connection parameters, can only be used when
- *connection is up.
+ *                  connection is up.
  *
  * Parameters:      bd_addr   - BD address of the peer
- *                  min_int   -     minimum connection interval, [0x0004~
- *0x4000]
- *                  max_int   -     maximum connection interval, [0x0004~
- *0x4000]
+ *                  min_int   -     minimum connection interval,
+ *                                  [0x0004 ~ 0x4000]
+ *                  max_int   -     maximum connection interval,
+ *                                  [0x0004 ~ 0x4000]
  *                  latency   -     slave latency [0 ~ 500]
  *                  timeout   -     supervision timeout [0x000a ~ 0xc80]
  *
@@ -1585,12 +1579,10 @@ void BTA_DmBleSetDataLength(BD_ADDR remote_device, uint16_t tx_data_length) {
  *                  p_callback    - Pointer to callback function to indicat the
  *                                  link encryption status
  *                  sec_act       - This is the security action to indicate
- *                                  what knid of BLE security level is required
- *for
- *                                  the BLE link if the BLE is supported
+ *                                  what kind of BLE security level is required
+ *                                  for the BLE link if BLE is supported.
  *                                  Note: This parameter is ignored for the
- *BR/EDR link
- *                                        or the BLE is not supported
+ *                                        BR/EDR or if BLE is not supported.
  *
  * Returns          void
  *
@@ -1617,8 +1609,7 @@ void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport,
  * Function         BTA_DmCloseACL
  *
  * Description      This function force to close an ACL connection and remove
- *the
- *                  device from the security database list of known devices.
+ *                  the device from the security database list of known devices.
  *
  * Parameters:      bd_addr       - Address of the peer device
  *                  remove_dev    - remove device or not after link down
@@ -1688,7 +1679,7 @@ void BTA_VendorInit(void) { APPL_TRACE_API("BTA_VendorInit"); }
  * Function         BTA_VendorCleanup
  *
  * Description      This function frees up Broadcom specific VS specific dynamic
- *memory
+ *                  memory
  *
  * Returns          void
  *

@@ -629,15 +629,13 @@ void BTA_DmPcmInitSamples(uint32_t src_sps, uint32_t bits,
  * Function         BTA_DmPcmResample
  *
  * Description      Down sampling utility to convert higher sampling rate into
- *8K/16bits
- *                  PCM samples.
+ *                  8K/16bits PCM samples.
  *
  * Parameters       p_src: pointer to the buffer where the original sampling PCM
  *                              are stored.
  *                  in_bytes:  Length of the input PCM sample buffer in byte.
  *                  p_dst:      pointer to the buffer which is to be used to
- *store
- *                              the converted PCM samples.
+ *                              store the converted PCM samples.
  *
  *
  * Returns          int32_t: number of samples converted.

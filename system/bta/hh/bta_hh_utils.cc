@@ -415,7 +415,7 @@ tBTA_HH_STATUS bta_hh_read_ssr_param(BD_ADDR bd_addr, uint16_t* p_max_ssr_lat,
  * Function         bta_hh_cleanup_disable
  *
  * Description      when disable finished, cleanup control block and send
- *callback
+ *                  callback
  *
  *
  * Returns          void
@@ -440,7 +440,7 @@ void bta_hh_cleanup_disable(tBTA_HH_STATUS status) {
  * Function         bta_hh_dev_handle_to_cb_idx
  *
  * Description      convert a HID device handle to the device control block
- *index.
+ *                  index.
  *
  *
  * Returns          uint8_t: index of the device control block.

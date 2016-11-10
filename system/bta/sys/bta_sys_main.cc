@@ -250,7 +250,7 @@ void bta_sys_hw_unregister(tBTA_SYS_HW_MODULE module) {
  * Function         bta_sys_hw_btm_cback
  *
  * Description     This function is registered by BTA SYS to BTM in order to get
- *status notifications
+ *                 status notifications
  *
  *
  * Returns
@@ -280,7 +280,7 @@ void bta_sys_hw_btm_cback(tBTM_DEV_STATUS status) {
  * Function         bta_sys_hw_error
  *
  * Description     In case the HW device stops answering... Try to turn it off,
- *then re-enable all
+ *                 then re-enable all
  *                      previously active SW modules.
  *
  * Returns          success or failure
@@ -313,7 +313,7 @@ void bta_sys_hw_error(UNUSED_ATTR tBTA_SYS_HW_MSG* p_sys_hw_msg) {
  * Function         bta_sys_hw_enable
  *
  * Description     this function is called after API enable and HW has been
- *turned on
+ *                 turned on
  *
  *
  * Returns          success or failure
@@ -349,8 +349,8 @@ void bta_sys_hw_api_enable(tBTA_SYS_HW_MSG* p_sys_hw_msg) {
  *
  * Function         bta_sys_hw_disable
  *
- * Description     if no other module is using the HW, this function will call (
- *if defined ) a user-macro to turn off the HW
+ * Description     if no other module is using the HW, this function will call
+ *                 (if defined) a user-macro to turn off the HW
  *
  *
  * Returns          success or failure
@@ -428,10 +428,9 @@ void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG* p_sys_hw_msg) {
  *
  * Function         bta_sys_hw_event_stack_enabled
  *
- * Description     we receive this event once the SW side is ready ( stack, FW
- *download,... ),
- *                       i.e. we can really start using the device. So notify
- *the app.
+ * Description     we receive this event once the SW side is ready (stack, FW
+ *                 download,... ), i.e. we can really start using the device. So
+ *                 notify the app.
  *
  * Returns          success or failure
  *

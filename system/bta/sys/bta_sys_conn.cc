@@ -223,8 +223,7 @@ void bta_sys_conn_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr) {
  * Function         bta_sys_app_open
  *
  * Description      Called by BTA subsystems when application initiates
- *connection
- *                  to a peer device
+ *                  connection to a peer device
  *
  *
  * Returns          void
@@ -257,8 +256,7 @@ void bta_sys_app_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr) {
  * Function         bta_sys_sco_open
  *
  * Description      Called by BTA subsystems when sco connection for that
- *service
- *                  is open
+ *                  service is open
  *
  * Returns          void
  *
@@ -280,8 +278,7 @@ void bta_sys_sco_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr) {
  * Function         bta_sys_sco_close
  *
  * Description      Called by BTA subsystems when sco connection for that
- *service
- *                  is closed
+ *                  service is closed
  *
  * Returns          void
  *
@@ -323,8 +320,7 @@ void bta_sys_sco_use(UNUSED_ATTR uint8_t id, uint8_t app_id,
  * Function         bta_sys_sco_unuse
  *
  * Description      Called by BTA subsystems when sco connection for that
- *service
- *                  is no longer needed.
+ *                  service is no longer needed.
  *
  * Returns          void
  *
@@ -343,8 +339,7 @@ void bta_sys_sco_unuse(UNUSED_ATTR uint8_t id, uint8_t app_id,
  * Function         bta_sys_chg_ssr_config
  *
  * Description      Called by BTA subsystems to indicate that the given app SSR
- *setting
- *                  need to be changed.
+ *                  setting needs to be changed.
  *
  * Returns          void
  *
@@ -467,8 +462,7 @@ void bta_sys_busy(uint8_t id, uint8_t app_id, BD_ADDR peer_addr) {
  * Function         bta_sys_eir_register
  *
  * Description      Called by BTA DM to register EIR utility function that can
- *be
- *                  used by the other BTA modules to add/remove UUID.
+ *                  be used by the other BTA modules to add/remove UUID.
  *
  * Returns          void
  *
