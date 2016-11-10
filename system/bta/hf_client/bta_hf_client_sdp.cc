@@ -39,15 +39,15 @@
 #define BTA_HF_CLIENT_NUM_SVC_ELEMS        2
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sdp_cback
-**
-** Description      SDP callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sdp_cback
+ *
+ * Description      SDP callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_sdp_cback(uint16_t status)
 {
     uint16_t event;
@@ -69,18 +69,18 @@ static void bta_hf_client_sdp_cback(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         bta_hf_client_add_record
-**
-** Description      This function is called by a server application to add
-**                  HFP Client information to an SDP record.  Prior to
-**                  calling this function the application must call
-**                  SDP_CreateRecord() to create an SDP record.
-**
-** Returns          true if function execution succeeded,
-**                  false if function execution failed.
-**
-******************************************************************************/
+ *
+ * Function         bta_hf_client_add_record
+ *
+ * Description      This function is called by a server application to add
+ *                  HFP Client information to an SDP record.  Prior to
+ *                  calling this function the application must call
+ *                  SDP_CreateRecord() to create an SDP record.
+ *
+ * Returns          true if function execution succeeded,
+ *                  false if function execution failed.
+ *
+ *****************************************************************************/
 bool bta_hf_client_add_record(char *p_service_name, uint8_t scn,
                           tBTA_HF_CLIENT_FEAT features, uint32_t sdp_handle)
 {
@@ -153,15 +153,15 @@ bool bta_hf_client_add_record(char *p_service_name, uint8_t scn,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_create_record
-**
-** Description      Create SDP record for registered service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_create_record
+ *
+ * Description      Create SDP record for registered service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_create_record(tBTA_HF_CLIENT_DATA *p_data)
 {
     /* add sdp record if not already registered */
@@ -180,15 +180,15 @@ void bta_hf_client_create_record(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_del_record
-**
-** Description      Delete SDP record for registered service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_del_record
+ *
+ * Description      Delete SDP record for registered service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_del_record(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("bta_hf_client_del_record");
@@ -204,15 +204,15 @@ void bta_hf_client_del_record(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sdp_find_attr
-**
-** Description      Process SDP discovery results to find requested attribute
-**
-**
-** Returns          true if results found, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sdp_find_attr
+ *
+ * Description      Process SDP discovery results to find requested attribute
+ *
+ *
+ * Returns          true if results found, false otherwise.
+ *
+ ******************************************************************************/
 bool bta_hf_client_sdp_find_attr(void)
 {
     tSDP_DISC_REC       *p_rec = NULL;
@@ -288,15 +288,15 @@ bool bta_hf_client_sdp_find_attr(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_do_disc
-**
-** Description      Do service discovery.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_do_disc
+ *
+ * Description      Do service discovery.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_do_disc(void)
 {
     tSDP_UUID       uuid_list[2];
@@ -353,15 +353,15 @@ void bta_hf_client_do_disc(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_free_db
-**
-** Description      Free discovery database.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_free_db
+ *
+ * Description      Free discovery database.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_free_db(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     osi_free_and_reset((void **)&bta_hf_client_cb.scb.p_disc_db);

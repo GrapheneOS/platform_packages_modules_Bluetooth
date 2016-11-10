@@ -32,8 +32,8 @@
 #include <string.h>
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 static const tBTA_SYS_REG bta_ag_reg =
 {
@@ -42,18 +42,18 @@ static const tBTA_SYS_REG bta_ag_reg =
 };
 
 /*******************************************************************************
-**
-** Function         BTA_AgEnable
-**
-** Description      Enable the audio gateway service. When the enable
-**                  operation is complete the callback function will be
-**                  called with a BTA_AG_ENABLE_EVT. This function must
-**                  be called before other function in the AG API are
-**                  called.
-**
-** Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgEnable
+ *
+ * Description      Enable the audio gateway service. When the enable
+ *                  operation is complete the callback function will be
+ *                  called with a BTA_AG_ENABLE_EVT. This function must
+ *                  be called before other function in the AG API are
+ *                  called.
+ *
+ * Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
+ *
+ ******************************************************************************/
 tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback)
 {
     /* Error if AG is already enabled, or AG is in the middle of disabling. */
@@ -79,15 +79,15 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgDisable
-**
-** Description      Disable the audio gateway service
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgDisable
+ *
+ * Description      Disable the audio gateway service
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgDisable(void)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -98,15 +98,15 @@ void BTA_AgDisable(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgRegister
-**
-** Description      Register an Audio Gateway service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgRegister
+ *
+ * Description      Register an Audio Gateway service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,tBTA_AG_FEAT features,
                   const char * p_service_names[], uint8_t app_id)
 {
@@ -129,15 +129,15 @@ void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,tBTA_AG_FEAT f
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgDeregister
-**
-** Description      Deregister an audio gateway service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgDeregister
+ *
+ * Description      Deregister an audio gateway service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgDeregister(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -149,18 +149,18 @@ void BTA_AgDeregister(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgOpen
-**
-** Description      Opens a connection to a headset or hands-free device.
-**                  When connection is open callback function is called
-**                  with a BTA_AG_OPEN_EVT. Only the data connection is
-**                  opened. The audio connection is not opened.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgOpen
+ *
+ * Description      Opens a connection to a headset or hands-free device.
+ *                  When connection is open callback function is called
+ *                  with a BTA_AG_OPEN_EVT. Only the data connection is
+ *                  opened. The audio connection is not opened.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services)
 {
     tBTA_AG_API_OPEN *p_buf =
@@ -176,16 +176,16 @@ void BTA_AgOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVIC
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgClose
-**
-** Description      Close the current connection to a headset or a handsfree
-**                  Any current audio connection will also be closed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgClose
+ *
+ * Description      Close the current connection to a headset or a handsfree
+ *                  Any current audio connection will also be closed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgClose(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -197,16 +197,16 @@ void BTA_AgClose(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgAudioOpen
-**
-** Description      Opens an audio connection to the currently connected
-**                  headset or hnadsfree.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgAudioOpen
+ *
+ * Description      Opens an audio connection to the currently connected
+ *                  headset or hnadsfree.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgAudioOpen(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -218,16 +218,16 @@ void BTA_AgAudioOpen(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgAudioClose
-**
-** Description      Close the currently active audio connection to a headset
-**                  or hnadsfree. The data connection remains open
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgAudioClose
+ *
+ * Description      Close the currently active audio connection to a headset
+ *                  or hnadsfree. The data connection remains open
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgAudioClose(uint16_t handle)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -239,17 +239,17 @@ void BTA_AgAudioClose(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgResult
-**
-** Description      Send an AT result code to a headset or hands-free device.
-**                  This function is only used when the AG parse mode is set
-**                  to BTA_AG_PARSE.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgResult
+ *
+ * Description      Send an AT result code to a headset or hands-free device.
+ *                  This function is only used when the AG parse mode is set
+ *                  to BTA_AG_PARSE.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgResult(uint16_t handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data)
 {
     tBTA_AG_API_RESULT *p_buf =
@@ -265,17 +265,17 @@ void BTA_AgResult(uint16_t handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AgSetCodec
-**
-** Description      Specify the codec type to be used for the subsequent
-**                  audio connection.
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AgSetCodec
+ *
+ * Description      Specify the codec type to be used for the subsequent
+ *                  audio connection.
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec)
 {
     tBTA_AG_API_SETCODEC *p_buf =

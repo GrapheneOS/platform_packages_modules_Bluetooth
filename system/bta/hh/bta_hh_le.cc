@@ -231,15 +231,15 @@ static const char *bta_hh_le_rpt_name[4] =
 };
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_hid_report_dbg
-**
-** Description      debug function to print out all HID report available on remote
-**                  device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_hid_report_dbg
+ *
+ * Description      debug function to print out all HID report available on remote
+ *                  device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hh_le_hid_report_dbg(tBTA_HH_DEV_CB *p_cb)
 {
     APPL_TRACE_DEBUG("%s: HID Report DB", __func__);
@@ -277,14 +277,14 @@ static void bta_hh_le_hid_report_dbg(tBTA_HH_DEV_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_uuid_to_str
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_uuid_to_str
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static const char *bta_hh_uuid_to_str(uint16_t uuid)
 {
     switch(uuid)
@@ -318,15 +318,15 @@ static const char *bta_hh_uuid_to_str(uint16_t uuid)
 
 #endif
 /*******************************************************************************
-**
-** Function         bta_hh_le_enable
-**
-** Description      initialize LE HID related functionality
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_enable
+ *
+ * Description      initialize LE HID related functionality
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_enable(void)
 {
     char       app_name[LEN_UUID_128 + 1];
@@ -349,14 +349,14 @@ void bta_hh_le_enable(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_register_cmpl
-**
-** Description      BTA HH register with BTA GATTC completed
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_register_cmpl
+ *
+ * Description      BTA HH register with BTA GATTC completed
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_register_cmpl(tBTA_GATTC_REG *p_reg)
 {
     tBTA_HH_STATUS      status = BTA_HH_ERR;
@@ -374,44 +374,44 @@ void bta_hh_le_register_cmpl(tBTA_GATTC_REG *p_reg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_is_hh_gatt_if
-**
-** Description      Check to see if client_if is BTA HH LE GATT interface
-**
-**
-** Returns          whether it is HH GATT IF
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_is_hh_gatt_if
+ *
+ * Description      Check to see if client_if is BTA HH LE GATT interface
+ *
+ *
+ * Returns          whether it is HH GATT IF
+ *
+ ******************************************************************************/
 bool bta_hh_le_is_hh_gatt_if(tBTA_GATTC_IF client_if)
 {
     return (bta_hh_cb.gatt_if == client_if);
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_deregister
-**
-** Description      De-register BTA HH from BTA GATTC
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_deregister
+ *
+ * Description      De-register BTA HH from BTA GATTC
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_deregister(void)
 {
     BTA_GATTC_AppDeregister(bta_hh_cb.gatt_if);
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_is_le_device
-**
-** Description      Check to see if the remote device is a LE only device
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_is_le_device
+ *
+ * Description      Check to see if the remote device is a LE only device
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 bool bta_hh_is_le_device(tBTA_HH_DEV_CB *p_cb, BD_ADDR remote_bda)
 {
     p_cb->is_le_device = BTM_UseLeLink (remote_bda);
@@ -420,14 +420,14 @@ bool bta_hh_is_le_device(tBTA_HH_DEV_CB *p_cb, BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_open_conn
-**
-** Description      open a GATT connection first.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_open_conn
+ *
+ * Description      open a GATT connection first.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_open_conn(tBTA_HH_DEV_CB *p_cb, BD_ADDR remote_bda)
 {
     /* update cb_index[] map */
@@ -440,12 +440,12 @@ void bta_hh_le_open_conn(tBTA_HH_DEV_CB *p_cb, BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_find_dev_cb_by_conn_id
-**
-** Description      Utility function find a device control block by connection ID.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_find_dev_cb_by_conn_id
+ *
+ * Description      Utility function find a device control block by connection ID.
+ *
+ ******************************************************************************/
 tBTA_HH_DEV_CB * bta_hh_le_find_dev_cb_by_conn_id(uint16_t conn_id)
 {
     uint8_t   i;
@@ -460,12 +460,12 @@ tBTA_HH_DEV_CB * bta_hh_le_find_dev_cb_by_conn_id(uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_find_dev_cb_by_bda
-**
-** Description      Utility function find a device control block by BD address.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_find_dev_cb_by_bda
+ *
+ * Description      Utility function find a device control block by BD address.
+ *
+ ******************************************************************************/
 tBTA_HH_DEV_CB * bta_hh_le_find_dev_cb_by_bda(BD_ADDR bda)
 {
     uint8_t   i;
@@ -481,12 +481,12 @@ tBTA_HH_DEV_CB * bta_hh_le_find_dev_cb_by_bda(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_find_service_inst_by_battery_inst_id
-**
-** Description      find HID service instance ID by battery service instance ID
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_find_service_inst_by_battery_inst_id
+ *
+ * Description      find HID service instance ID by battery service instance ID
+ *
+ ******************************************************************************/
 uint8_t bta_hh_le_find_service_inst_by_battery_inst_id(tBTA_HH_DEV_CB *p_cb, uint8_t ba_inst_id)
 {
     if (p_cb->hid_srvc.in_use &&
@@ -498,13 +498,13 @@ uint8_t bta_hh_le_find_service_inst_by_battery_inst_id(tBTA_HH_DEV_CB *p_cb, uin
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_find_report_entry
-**
-** Description      find the report entry by service instance and report UUID and
-**                  instance ID
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_find_report_entry
+ *
+ * Description      find the report entry by service instance and report UUID and
+ *                  instance ID
+ *
+ ******************************************************************************/
 tBTA_HH_LE_RPT * bta_hh_le_find_report_entry(tBTA_HH_DEV_CB *p_cb,
                                              uint8_t  srvc_inst_id,  /* service instance ID */
                                              uint16_t rpt_uuid,
@@ -539,14 +539,14 @@ tBTA_HH_LE_RPT * bta_hh_le_find_report_entry(tBTA_HH_DEV_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_find_rpt_by_idtype
-**
-** Description      find a report entry by report ID and protocol mode
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_find_rpt_by_idtype
+ *
+ * Description      find a report entry by report ID and protocol mode
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTA_HH_LE_RPT * bta_hh_le_find_rpt_by_idtype(tBTA_HH_LE_RPT*p_head, uint8_t mode,
                                               tBTA_HH_RPT_TYPE r_type, uint8_t rpt_id)
 {
@@ -577,12 +577,12 @@ tBTA_HH_LE_RPT * bta_hh_le_find_rpt_by_idtype(tBTA_HH_LE_RPT*p_head, uint8_t mod
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_find_alloc_report_entry
-**
-** Description      find or allocate a report entry in the HID service report list.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_find_alloc_report_entry
+ *
+ * Description      find or allocate a report entry in the HID service report list.
+ *
+ ******************************************************************************/
 tBTA_HH_LE_RPT * bta_hh_le_find_alloc_report_entry(tBTA_HH_DEV_CB *p_cb,
                                                    uint8_t srvc_inst_id,
                                                    uint16_t rpt_uuid,
@@ -665,12 +665,12 @@ static tBTA_GATTC_DESCRIPTOR *find_descriptor_by_short_uuid(uint16_t conn_id,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_read_char_descriptor
-**
-** Description      read characteristic descriptor
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_read_char_descriptor
+ *
+ * Description      read characteristic descriptor
+ *
+ ******************************************************************************/
 static tBTA_HH_STATUS bta_hh_le_read_char_descriptor(tBTA_HH_DEV_CB *p_cb, uint16_t char_handle,
                                                      uint16_t short_uuid, GATT_READ_OP_CB cb,
                                                      void* cb_data)
@@ -685,14 +685,14 @@ static tBTA_HH_STATUS bta_hh_le_read_char_descriptor(tBTA_HH_DEV_CB *p_cb, uint1
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_save_report_ref
-**
-** Description      save report reference information and move to next one.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_save_report_ref
+ *
+ * Description      save report reference information and move to next one.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_save_report_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
                             tGATT_STATUS status, uint8_t *value, uint16_t len)
 {
@@ -738,15 +738,15 @@ void bta_hh_le_save_report_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_register_input_notif
-**
-** Description      Register for all notifications for the report applicable
-**                  for the protocol mode.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_register_input_notif
+ *
+ * Description      Register for all notifications for the report applicable
+ *                  for the protocol mode.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_register_input_notif(tBTA_HH_DEV_CB *p_dev_cb, uint8_t proto_mode, bool register_ba)
 {
     tBTA_HH_LE_RPT  *p_rpt = &p_dev_cb->hid_srvc.report[0];
@@ -810,12 +810,12 @@ void bta_hh_le_register_input_notif(tBTA_HH_DEV_CB *p_dev_cb, uint8_t proto_mode
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_deregister_input_notif
-**
-** Description      Deregister all notifications
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_deregister_input_notif
+ *
+ * Description      Deregister all notifications
+ *
+ ******************************************************************************/
 void bta_hh_le_deregister_input_notif(tBTA_HH_DEV_CB *p_dev_cb)
 {
     tBTA_HH_LE_RPT  *p_rpt = &p_dev_cb->hid_srvc.report[0];
@@ -845,12 +845,12 @@ void bta_hh_le_deregister_input_notif(tBTA_HH_DEV_CB *p_dev_cb)
 
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_open_cmpl
-**
-** Description      HID over GATT connection sucessfully opened
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_open_cmpl
+ *
+ * Description      HID over GATT connection sucessfully opened
+ *
+ ******************************************************************************/
 void bta_hh_le_open_cmpl(tBTA_HH_DEV_CB *p_cb)
 {
     if ( p_cb->disc_active == BTA_HH_LE_DISC_NONE)
@@ -871,13 +871,13 @@ void bta_hh_le_open_cmpl(tBTA_HH_DEV_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_write_ccc
-**
-** Description      Utility function to find and write client configuration of
-**                  a characteristic
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_write_ccc
+ *
+ * Description      Utility function to find and write client configuration of
+ *                  a characteristic
+ *
+ ******************************************************************************/
 bool bta_hh_le_write_ccc(tBTA_HH_DEV_CB *p_cb,
                                      uint8_t char_handle,
                                      uint16_t clt_cfg_value,
@@ -930,13 +930,13 @@ static void write_rpt_ctl_cfg_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t
     }
 }
 /*******************************************************************************
-**
-** Function         bta_hh_le_write_rpt_clt_cfg
-**
-** Description      write client configuration. This is only for input report
-**                  enable all input notification upon connection open.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_write_rpt_clt_cfg
+ *
+ * Description      write client configuration. This is only for input report
+ *                  enable all input notification upon connection open.
+ *
+ ******************************************************************************/
 bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB *p_cb)
 {
     uint8_t           i;
@@ -997,12 +997,12 @@ static void write_proto_mode_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t 
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_set_protocol_mode
-**
-** Description      Set remote device protocol mode.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_set_protocol_mode
+ *
+ * Description      Set remote device protocol mode.
+ *
+ ******************************************************************************/
 bool bta_hh_le_set_protocol_mode(tBTA_HH_DEV_CB *p_cb, tBTA_HH_PROTO_MODE mode)
 {
     tBTA_HH_CBDATA      cback_data;
@@ -1046,12 +1046,12 @@ bool bta_hh_le_set_protocol_mode(tBTA_HH_DEV_CB *p_cb, tBTA_HH_PROTO_MODE mode)
 }
 
 /*******************************************************************************
-** Function         get_protocol_mode_cb
-**
-** Description      Process the Read protocol mode, send GET_PROTO_EVT to application
-**                  with the protocol mode.
-**
-*******************************************************************************/
+ * Function         get_protocol_mode_cb
+ *
+ * Description      Process the Read protocol mode, send GET_PROTO_EVT to application
+ *                  with the protocol mode.
+ *
+ ******************************************************************************/
 static void get_protocol_mode_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, uint16_t len,
                                  uint8_t *value, void* data) {
     tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB *)data;
@@ -1085,12 +1085,12 @@ static void get_protocol_mode_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_get_protocol_mode
-**
-** Description      Get remote device protocol mode.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_get_protocol_mode
+ *
+ * Description      Get remote device protocol mode.
+ *
+ ******************************************************************************/
 void bta_hh_le_get_protocol_mode(tBTA_HH_DEV_CB *p_cb)
 {
     tBTA_HH_HSDATA    hs_data;
@@ -1111,14 +1111,14 @@ void bta_hh_le_get_protocol_mode(tBTA_HH_DEV_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_dis_cback
-**
-** Description      DIS read complete callback
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_dis_cback
+ *
+ * Description      DIS read complete callback
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_dis_cback(BD_ADDR addr, tDIS_VALUE *p_dis_value)
 {
     tBTA_HH_DEV_CB *p_cb = bta_hh_le_find_dev_cb_by_bda(addr);
@@ -1148,15 +1148,15 @@ void bta_hh_le_dis_cback(BD_ADDR addr, tDIS_VALUE *p_dis_value)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_pri_service_discovery
-**
-** Description      Initialize GATT discovery on the remote LE HID device by opening
-**                  a GATT connection first.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_pri_service_discovery
+ *
+ * Description      Initialize GATT discovery on the remote LE HID device by opening
+ *                  a GATT connection first.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_pri_service_discovery(tBTA_HH_DEV_CB *p_cb)
 {
     tBT_UUID        pri_srvc;
@@ -1181,14 +1181,14 @@ void bta_hh_le_pri_service_discovery(tBTA_HH_DEV_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_encrypt_cback
-**
-** Description      link encryption complete callback for bond verification.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_encrypt_cback
+ *
+ * Description      link encryption complete callback for bond verification.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, UNUSED_ATTR tBTA_GATT_TRANSPORT transport,
                                     UNUSED_ATTR void *p_ref_data, tBTM_STATUS result)
 {
@@ -1209,15 +1209,15 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr, UNUSED_ATTR tBTA_GATT_TRANSPORT tr
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_security_cmpl
-**
-** Description      Security check completed, start the service discovery
-**                  if no cache available, otherwise report connection open completed
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_security_cmpl
+ *
+ * Description      Security check completed, start the service discovery
+ *                  if no cache available, otherwise report connection open completed
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb,
                           UNUSED_ATTR tBTA_HH_DATA *p_buf)
 {
@@ -1264,14 +1264,14 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_notify_enc_cmpl
-**
-** Description      process GATT encryption complete event
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_notify_enc_cmpl
+ *
+ * Description      process GATT encryption complete event
+ *
+ * Returns
+ *
+ ******************************************************************************/
 void bta_hh_le_notify_enc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 {
     if (p_cb == NULL || p_cb->security_pending == false ||
@@ -1285,14 +1285,14 @@ void bta_hh_le_notify_enc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_clear_service_cache
-**
-** Description      clear the service cache
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_clear_service_cache
+ *
+ * Description      clear the service cache
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_clear_service_cache(tBTA_HH_DEV_CB *p_cb)
 {
     tBTA_HH_LE_HID_SRVC     *p_hid_srvc = &p_cb->hid_srvc;
@@ -1305,14 +1305,14 @@ void bta_hh_clear_service_cache(tBTA_HH_DEV_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_start_security
-**
-** Description      start the security check of the established connection
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_start_security
+ *
+ * Description      start the security check of the established connection
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb,
                            UNUSED_ATTR tBTA_HH_DATA *p_buf)
 {
@@ -1364,14 +1364,14 @@ void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_gatt_open
-**
-** Description      process GATT open event.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_gatt_open
+ *
+ * Description      process GATT open event.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_gatt_open(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 {
     tBTA_GATTC_OPEN *p_data = &p_buf->le_open;
@@ -1414,15 +1414,15 @@ void bta_hh_gatt_open(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_close
-**
-** Description      This function process the GATT close event and post it as a
-**                  BTA HH internal event
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_close
+ *
+ * Description      This function process the GATT close event and post it as a
+ *                  BTA HH internal event
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_close(tBTA_GATTC_CLOSE * p_data)
 {
     tBTA_HH_DEV_CB *p_dev_cb = bta_hh_le_find_dev_cb_by_bda(p_data->remote_bda);
@@ -1443,14 +1443,14 @@ void bta_hh_le_close(tBTA_GATTC_CLOSE * p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_gatt_disc_cmpl
-**
-** Description      Check to see if the remote device is a LE only device
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_gatt_disc_cmpl
+ *
+ * Description      Check to see if the remote device is a LE only device
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_gatt_disc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_STATUS status)
 {
     APPL_TRACE_DEBUG("bta_hh_le_gatt_disc_cmpl ");
@@ -1595,15 +1595,15 @@ void read_pref_conn_params_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t ha
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_search_hid_chars
-**
-** Description      This function discover all characteristics a service and
-**                  all descriptors available.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_search_hid_chars
+ *
+ * Description      This function discover all characteristics a service and
+ *                  all descriptors available.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERVICE *service)
 {
     tBTA_HH_LE_RPT *p_rpt;
@@ -1688,14 +1688,14 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERV
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_srvc_search_cmpl
-**
-** Description      This function process the GATT service search complete.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_srvc_search_cmpl
+ *
+ * Description      This function process the GATT service search complete.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
 {
     tBTA_HH_DEV_CB *p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->conn_id);
@@ -1774,14 +1774,14 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_input_rpt_notify
-**
-** Description      process the notificaton event, most likely for input report.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_input_rpt_notify
+ *
+ * Description      process the notificaton event, most likely for input report.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
 {
     tBTA_HH_DEV_CB       *p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->conn_id);
@@ -1851,14 +1851,14 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_gatt_open_fail
-**
-** Description      action function to process the open fail
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_gatt_open_fail
+ *
+ * Description      action function to process the open fail
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat ;
@@ -1887,14 +1887,14 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_gatt_close
-**
-** Description      action function to process the GATT close int he state machine.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_gatt_close
+ *
+ * Description      action function to process the GATT close int he state machine.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_gatt_close(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CBDATA          disc_dat = {BTA_HH_OK, 0};
@@ -1931,14 +1931,14 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_api_disc_act
-**
-** Description      initaite a Close API to a remote HID device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_api_disc_act
+ *
+ * Description      initaite a Close API to a remote HID device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB *p_cb)
 {
     if (p_cb->conn_id != BTA_GATT_INVALID_CONN_ID)
@@ -1953,15 +1953,15 @@ void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB *p_cb)
 
 
 /*******************************************************************************
-**
-** Function         read_report_cb
-**
-** Description      Process the Read report complete, send GET_REPORT_EVT to application
-**                  with the report data.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         read_report_cb
+ *
+ * Description      Process the Read report complete, send GET_REPORT_EVT to application
+ *                  with the report data.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void read_report_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
                            uint16_t len, uint8_t *value, void* data) {
     const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, handle);
@@ -2028,14 +2028,14 @@ static void read_report_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handl
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_get_rpt
-**
-** Description      GET_REPORT on a LE HID Report
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_get_rpt
+ *
+ * Description      GET_REPORT on a LE HID Report
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_get_rpt(tBTA_HH_DEV_CB *p_cb, tBTA_HH_RPT_TYPE r_type, uint8_t rpt_id)
 {
     tBTA_HH_LE_RPT  *p_rpt = bta_hh_le_find_rpt_by_idtype(p_cb->hid_srvc.report,
@@ -2079,14 +2079,14 @@ static void write_report_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t hand
     (* bta_hh_cb.p_cback)(cb_evt, (tBTA_HH *)&cback_data);
 }
 /*******************************************************************************
-**
-** Function         bta_hh_le_write_rpt
-**
-** Description      SET_REPORT/or DATA output on a LE HID Report
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_write_rpt
+ *
+ * Description      SET_REPORT/or DATA output on a LE HID Report
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb,
                          tBTA_HH_RPT_TYPE r_type,
                          BT_HDR *p_buf, uint16_t w4_evt )
@@ -2126,14 +2126,14 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_suspend
-**
-** Description      send LE suspend or exit suspend mode to remote device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_suspend
+ *
+ * Description      send LE suspend or exit suspend mode to remote device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_suspend(tBTA_HH_DEV_CB *p_cb, tBTA_HH_TRANS_CTRL_TYPE ctrl_type)
 {
     ctrl_type -= BTA_HH_CTRL_SUSPEND;
@@ -2144,14 +2144,14 @@ void bta_hh_le_suspend(tBTA_HH_DEV_CB *p_cb, tBTA_HH_TRANS_CTRL_TYPE ctrl_type)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_write_dev_act
-**
-** Description      Write LE device action. can be SET/GET/DATA transaction.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_write_dev_act
+ *
+ * Description      Write LE device action. can be SET/GET/DATA transaction.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     switch(p_data->api_sndcmd.t_type)
@@ -2204,14 +2204,14 @@ void bta_hh_le_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_get_dscp_act
-**
-** Description      Send ReportDescriptor to application for all HID services.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_get_dscp_act
+ *
+ * Description      Send ReportDescriptor to application for all HID services.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_get_dscp_act(tBTA_HH_DEV_CB *p_cb)
 {
     if (p_cb->hid_srvc.in_use)
@@ -2224,14 +2224,14 @@ void bta_hh_le_get_dscp_act(tBTA_HH_DEV_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_add_dev_bg_conn
-**
-** Description      Remove a LE HID device from back ground connection procedure.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_add_dev_bg_conn
+ *
+ * Description      Remove a LE HID device from back ground connection procedure.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, bool check_bond)
 {
     uint8_t           sec_flag=0;
@@ -2260,15 +2260,15 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, bool check_bond)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_add_device
-**
-** Description      Add a LE HID device as a known device, and also add the address
-**                  into back ground connection WL for incoming connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_add_device
+ *
+ * Description      Add a LE HID device as a known device, and also add the address
+ *                  into back ground connection WL for incoming connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint8_t bta_hh_le_add_device(tBTA_HH_DEV_CB *p_cb, tBTA_HH_MAINT_DEV *p_dev_info)
 {
     p_cb->hid_handle = BTA_HH_GET_LE_DEV_HDL(p_cb->index);
@@ -2296,14 +2296,14 @@ uint8_t bta_hh_le_add_device(tBTA_HH_DEV_CB *p_cb, tBTA_HH_MAINT_DEV *p_dev_info
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_remove_dev_bg_conn
-**
-** Description      Remove a LE HID device from back ground connection procedure.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_remove_dev_bg_conn
+ *
+ * Description      Remove a LE HID device from back ground connection procedure.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_remove_dev_bg_conn(tBTA_HH_DEV_CB *p_dev_cb)
 {
     if (p_dev_cb->in_bg_conn)
@@ -2318,14 +2318,14 @@ void bta_hh_le_remove_dev_bg_conn(tBTA_HH_DEV_CB *p_dev_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_gattc_callback
-**
-** Description      This is GATT client callback function used in BTA HH.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_gattc_callback
+ *
+ * Description      This is GATT client callback function used in BTA HH.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 {
     tBTA_HH_DEV_CB *p_dev_cb;
@@ -2388,14 +2388,14 @@ static void read_report_descriptor_ccc_cb(uint16_t conn_id, tGATT_STATUS status,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_le_hid_read_rpt_clt_cfg
-**
-** Description      a test command to read report descriptor client configuration
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_le_hid_read_rpt_clt_cfg
+ *
+ * Description      a test command to read report descriptor client configuration
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id)
 {
     tBTA_HH_DEV_CB *p_cb = NULL;
@@ -2426,14 +2426,14 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_process_cache_rpt
-**
-** Description      Process the cached reports
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_process_cache_rpt
+ *
+ * Description      Process the cached reports
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 //TODO(jpawlowski): uncomment when fixed
 // static void bta_hh_process_cache_rpt (tBTA_HH_DEV_CB *p_cb,
 //                                       tBTA_HH_RPT_CACHE_ENTRY *p_rpt_cache,

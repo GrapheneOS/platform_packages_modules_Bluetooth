@@ -37,8 +37,8 @@
 #include "utl.h"
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 
 
@@ -144,22 +144,22 @@ const tBTA_PAN_ST_TBL bta_pan_st_tbl[] = {
 };
 
 /*****************************************************************************
-** Global data
-*****************************************************************************/
+ * Global data
+ ****************************************************************************/
 
 /* PAN control block */
 tBTA_PAN_CB  bta_pan_cb;
 
 /*******************************************************************************
-**
-** Function         bta_pan_scb_alloc
-**
-** Description      Allocate a PAN server control block.
-**
-**
-** Returns          pointer to the scb, or NULL if none could be allocated.
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_scb_alloc
+ *
+ * Description      Allocate a PAN server control block.
+ *
+ *
+ * Returns          pointer to the scb, or NULL if none could be allocated.
+ *
+ ******************************************************************************/
 tBTA_PAN_SCB *bta_pan_scb_alloc(void)
 {
     tBTA_PAN_SCB     *p_scb = &bta_pan_cb.scb[0];
@@ -185,15 +185,15 @@ tBTA_PAN_SCB *bta_pan_scb_alloc(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_sm_execute
-**
-** Description      State machine event handling function for PAN
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_sm_execute
+ *
+ * Description      State machine event handling function for PAN
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_sm_execute(tBTA_PAN_SCB *p_scb, uint16_t event, tBTA_PAN_DATA *p_data)
 {
     tBTA_PAN_ST_TBL      state_table;
@@ -225,15 +225,15 @@ static void bta_pan_sm_execute(tBTA_PAN_SCB *p_scb, uint16_t event, tBTA_PAN_DAT
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_api_enable
-**
-** Description      Handle an API enable event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_api_enable
+ *
+ * Description      Handle an API enable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_api_enable(tBTA_PAN_DATA *p_data)
 {
     /* initialize control block */
@@ -245,15 +245,15 @@ static void bta_pan_api_enable(tBTA_PAN_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_api_disable
-**
-** Description      Handle an API disable event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_api_disable
+ *
+ * Description      Handle an API disable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_api_disable(UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
     bta_pan_disable();
@@ -261,15 +261,15 @@ static void bta_pan_api_disable(UNUSED_ATTR tBTA_PAN_DATA *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_api_open
-**
-** Description      Handle an API listen event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_api_open
+ *
+ * Description      Handle an API listen event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_api_open(tBTA_PAN_DATA *p_data)
 {
     tBTA_PAN_SCB     *p_scb;
@@ -289,15 +289,15 @@ static void bta_pan_api_open(tBTA_PAN_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_pan_scb_dealloc
-**
-** Description      Deallocate a link control block.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_scb_dealloc
+ *
+ * Description      Deallocate a link control block.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_scb_dealloc(tBTA_PAN_SCB *p_scb)
 {
     APPL_TRACE_DEBUG("bta_pan_scb_dealloc %d", bta_pan_scb_to_idx(p_scb));
@@ -306,15 +306,15 @@ void bta_pan_scb_dealloc(tBTA_PAN_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_scb_to_idx
-**
-** Description      Given a pointer to an scb, return its index.
-**
-**
-** Returns          Index of scb.
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_scb_to_idx
+ *
+ * Description      Given a pointer to an scb, return its index.
+ *
+ *
+ * Returns          Index of scb.
+ *
+ ******************************************************************************/
 uint8_t bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb)
 {
 
@@ -324,15 +324,15 @@ uint8_t bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb)
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_scb_by_handle
-**
-** Description      Find scb associated with handle.
-**
-**
-** Returns          Pointer to scb or NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_scb_by_handle
+ *
+ * Description      Find scb associated with handle.
+ *
+ *
+ * Returns          Pointer to scb or NULL if not found.
+ *
+ ******************************************************************************/
 tBTA_PAN_SCB *bta_pan_scb_by_handle(uint16_t handle)
 {
     tBTA_PAN_SCB     *p_scb = &bta_pan_cb.scb[0];
@@ -353,15 +353,15 @@ tBTA_PAN_SCB *bta_pan_scb_by_handle(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_hdl_event
-**
-** Description      Data gateway main event handling function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_hdl_event
+ *
+ * Description      Data gateway main event handling function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_pan_hdl_event(BT_HDR *p_msg)
 {
     tBTA_PAN_SCB *p_scb;

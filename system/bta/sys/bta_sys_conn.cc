@@ -31,15 +31,15 @@
 #include "utl.h"
 
 /*******************************************************************************
-**
-** Function         bta_sys_rm_register
-**
-** Description      Called by BTA DM to register role management callbacks
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_rm_register
+ *
+ * Description      Called by BTA DM to register role management callbacks
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_rm_register(tBTA_SYS_CONN_CBACK * p_cback)
 {
     bta_sys_cb.prm_cb = p_cback;
@@ -47,44 +47,44 @@ void bta_sys_rm_register(tBTA_SYS_CONN_CBACK * p_cback)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_policy_register
-**
-** Description      Called by BTA DM to register link policy change callbacks
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_policy_register
+ *
+ * Description      Called by BTA DM to register link policy change callbacks
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_policy_register(tBTA_SYS_CONN_CBACK * p_cback)
 {
     bta_sys_cb.p_policy_cb = p_cback;
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_role_chg_register
-**
-** Description      Called by BTA AV to register role change callbacks
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_role_chg_register
+ *
+ * Description      Called by BTA AV to register role change callbacks
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_role_chg_register(tBTA_SYS_CONN_CBACK * p_cback)
 {
     bta_sys_cb.p_role_cb = p_cback;
 }
 /*******************************************************************************
-**
-** Function         bta_sys_ssr_cfg_register
-**
-** Description      Called by BTA DM to register SSR configuration callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_ssr_cfg_register
+ *
+ * Description      Called by BTA DM to register SSR configuration callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
 void bta_sys_ssr_cfg_register(tBTA_SYS_SSR_CFG_CBACK * p_cback)
 {
@@ -92,15 +92,15 @@ void bta_sys_ssr_cfg_register(tBTA_SYS_SSR_CFG_CBACK * p_cback)
 }
 #endif
 /*******************************************************************************
-**
-** Function         bta_sys_role_chg_register
-**
-** Description      Called by BTA AV to register role change callbacks
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_role_chg_register
+ *
+ * Description      Called by BTA AV to register role change callbacks
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, uint8_t new_role, uint8_t hci_status)
 {
     if (bta_sys_cb.p_role_cb)
@@ -110,15 +110,15 @@ void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, uint8_t new_role, uint8_t hci_st
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_collision_register
-**
-** Description      Called by any BTA module to register for collision event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_collision_register
+ *
+ * Description      Called by any BTA module to register for collision event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_collision_register(uint8_t bta_id, tBTA_SYS_CONN_CBACK *p_cback)
 {
     uint8_t index;
@@ -136,15 +136,15 @@ void bta_sys_collision_register(uint8_t bta_id, tBTA_SYS_CONN_CBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_notify_collision
-**
-** Description      Called by BTA DM to notify collision event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_notify_collision
+ *
+ * Description      Called by BTA DM to notify collision event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_notify_collision (BD_ADDR_PTR p_bda)
 {
     uint8_t index;
@@ -160,46 +160,46 @@ void bta_sys_notify_collision (BD_ADDR_PTR p_bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_sco_register
-**
-** Description      Called by BTA AV to register sco connection change callbacks
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_sco_register
+ *
+ * Description      Called by BTA AV to register sco connection change callbacks
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_sco_register(tBTA_SYS_CONN_CBACK * p_cback)
 {
     bta_sys_cb.p_sco_cb = p_cback;
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_pm_register
-**
-** Description      Called by BTA DM to register power management callbacks
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_pm_register
+ *
+ * Description      Called by BTA DM to register power management callbacks
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_pm_register(tBTA_SYS_CONN_CBACK * p_cback)
 {
     bta_sys_cb.ppm_cb = p_cback;
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_conn_open
-**
-** Description      Called by BTA subsystems when a connection is made to
-**                  the service
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_conn_open
+ *
+ * Description      Called by BTA subsystems when a connection is made to
+ *                  the service
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_conn_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.prm_cb)
@@ -220,16 +220,16 @@ void bta_sys_conn_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_conn_close
-**
-** Description      Called by BTA subsystems when a connection to the service
-**                  is closed
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_conn_close
+ *
+ * Description      Called by BTA subsystems when a connection to the service
+ *                  is closed
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_conn_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.prm_cb)
@@ -249,16 +249,16 @@ void bta_sys_conn_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_app_open
-**
-** Description      Called by BTA subsystems when application initiates connection
-**                  to a peer device
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_app_open
+ *
+ * Description      Called by BTA subsystems when application initiates connection
+ *                  to a peer device
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_app_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.ppm_cb)
@@ -270,15 +270,15 @@ void bta_sys_app_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_app_close
-**
-** Description      Called by BTA subsystems when application initiates close
-**                  of connection to peer device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_app_close
+ *
+ * Description      Called by BTA subsystems when application initiates close
+ *                  of connection to peer device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_app_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.ppm_cb)
@@ -289,15 +289,15 @@ void bta_sys_app_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_sco_open
-**
-** Description      Called by BTA subsystems when sco connection for that service
-**                  is open
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_sco_open
+ *
+ * Description      Called by BTA subsystems when sco connection for that service
+ *                  is open
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_sco_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     /* AG triggers p_sco_cb by bta_sys_sco_use. */
@@ -314,15 +314,15 @@ void bta_sys_sco_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_sco_close
-**
-** Description      Called by BTA subsystems when sco connection for that service
-**                  is closed
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_sco_close
+ *
+ * Description      Called by BTA subsystems when sco connection for that service
+ *                  is closed
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_sco_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     uint8_t num_sco_links;
@@ -340,15 +340,15 @@ void bta_sys_sco_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_sco_use
-**
-** Description      Called by BTA subsystems when that service needs to use sco.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_sco_use
+ *
+ * Description      Called by BTA subsystems when that service needs to use sco.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_sco_use(UNUSED_ATTR uint8_t id, uint8_t app_id,
                      BD_ADDR peer_addr)
 {
@@ -361,15 +361,15 @@ void bta_sys_sco_use(UNUSED_ATTR uint8_t id, uint8_t app_id,
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_sco_unuse
-**
-** Description      Called by BTA subsystems when sco connection for that service
-**                  is no longer needed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_sco_unuse
+ *
+ * Description      Called by BTA subsystems when sco connection for that service
+ *                  is no longer needed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_sco_unuse(UNUSED_ATTR uint8_t id, uint8_t app_id,
                        BD_ADDR peer_addr)
 {
@@ -382,15 +382,15 @@ void bta_sys_sco_unuse(UNUSED_ATTR uint8_t id, uint8_t app_id,
     }
 }
 /*******************************************************************************
-**
-** Function         bta_sys_chg_ssr_config
-**
-** Description      Called by BTA subsystems to indicate that the given app SSR setting
-**                  need to be changed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_chg_ssr_config
+ *
+ * Description      Called by BTA subsystems to indicate that the given app SSR setting
+ *                  need to be changed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
 void bta_sys_chg_ssr_config (uint8_t id, uint8_t app_id, uint16_t max_latency, uint16_t min_tout)
 {
@@ -401,15 +401,15 @@ void bta_sys_chg_ssr_config (uint8_t id, uint8_t app_id, uint16_t max_latency, u
 }
 #endif
 /*******************************************************************************
-**
-** Function         bta_sys_set_policy
-**
-** Description      Called by BTA subsystems to indicate that the given link
-**                  policy to peer device should be set
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_set_policy
+ *
+ * Description      Called by BTA subsystems to indicate that the given link
+ *                  policy to peer device should be set
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_set_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.p_policy_cb)
@@ -419,15 +419,15 @@ void bta_sys_set_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_clear_policy
-**
-** Description      Called by BTA subsystems to indicate that the given link
-**                  policy to peer device should be clear
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_clear_policy
+ *
+ * Description      Called by BTA subsystems to indicate that the given link
+ *                  policy to peer device should be clear
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_clear_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.p_policy_cb)
@@ -437,15 +437,15 @@ void bta_sys_clear_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_set_default_policy
-**
-** Description      Called by BTA subsystems to indicate that the given default
-**                  link policy should be set
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_set_default_policy
+ *
+ * Description      Called by BTA subsystems to indicate that the given default
+ *                  link policy should be set
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_set_default_policy (uint8_t id, uint8_t policy)
 {
     if(bta_sys_cb.p_policy_cb)
@@ -455,15 +455,15 @@ void bta_sys_set_default_policy (uint8_t id, uint8_t policy)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_clear_default_policy
-**
-** Description      Called by BTA subsystems to indicate that the given default
-**                  link policy should be clear
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_clear_default_policy
+ *
+ * Description      Called by BTA subsystems to indicate that the given default
+ *                  link policy should be clear
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_clear_default_policy (uint8_t id, uint8_t policy)
 {
     if(bta_sys_cb.p_policy_cb)
@@ -473,15 +473,15 @@ void bta_sys_clear_default_policy (uint8_t id, uint8_t policy)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_idle
-**
-** Description      Called by BTA subsystems to indicate that the connection to
-**                  peer device is idle
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_idle
+ *
+ * Description      Called by BTA subsystems to indicate that the connection to
+ *                  peer device is idle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_idle(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
 
@@ -500,15 +500,15 @@ void bta_sys_idle(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_busy
-**
-** Description      Called by BTA subsystems to indicate that the connection to
-**                  peer device is busy
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_busy
+ *
+ * Description      Called by BTA subsystems to indicate that the connection to
+ *                  peer device is busy
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_busy(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.prm_cb)
@@ -528,30 +528,30 @@ void bta_sys_busy(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 /*******************************************************************************
-**
-** Function         bta_sys_eir_register
-**
-** Description      Called by BTA DM to register EIR utility function that can be
-**                  used by the other BTA modules to add/remove UUID.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_eir_register
+ *
+ * Description      Called by BTA DM to register EIR utility function that can be
+ *                  used by the other BTA modules to add/remove UUID.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_eir_register(tBTA_SYS_EIR_CBACK * p_cback)
 {
     bta_sys_cb.eir_cb = p_cback;
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_add_uuid
-**
-** Description      Called by BTA subsystems to indicate to DM that new service
-**                  class UUID is added.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_add_uuid
+ *
+ * Description      Called by BTA subsystems to indicate to DM that new service
+ *                  class UUID is added.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_add_uuid(uint16_t uuid16)
 {
     if(bta_sys_cb.eir_cb)
@@ -561,15 +561,15 @@ void bta_sys_add_uuid(uint16_t uuid16)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_remove_uuid
-**
-** Description      Called by BTA subsystems to indicate to DM that the service
-**                  class UUID is removed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_remove_uuid
+ *
+ * Description      Called by BTA subsystems to indicate to DM that the service
+ *                  class UUID is removed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_remove_uuid(uint16_t uuid16)
 {
     if(bta_sys_cb.eir_cb)

@@ -77,15 +77,15 @@ const tBTA_AG_DATA_CBACK bta_ag_data_cback_tbl[] =
 };
 
 /*******************************************************************************
-**
-** Function         bta_ag_port_cback
-**
-** Description      RFCOMM Port callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_port_cback
+ *
+ * Description      RFCOMM Port callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle,
                               uint16_t handle)
 {
@@ -109,15 +109,15 @@ static void bta_ag_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_mgmt_cback
-**
-** Description      RFCOMM management callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_mgmt_cback
+ *
+ * Description      RFCOMM management callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle, uint16_t handle)
 {
     tBTA_AG_SCB  *p_scb;
@@ -180,15 +180,15 @@ static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle, uint16_t hand
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_data_cback
-**
-** Description      RFCOMM data callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_data_cback
+ *
+ * Description      RFCOMM data callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static int bta_ag_data_cback(UNUSED_ATTR uint16_t port_handle, void *p_data,
                              uint16_t len, uint16_t handle)
 {
@@ -198,17 +198,17 @@ static int bta_ag_data_cback(UNUSED_ATTR uint16_t port_handle, void *p_data,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_port_cback_1 to 3
-**                  bta_ag_mgmt_cback_1 to 3
-**
-** Description      RFCOMM callback functions.  This is an easy way to
-**                  distinguish scb from the callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_port_cback_1 to 3
+ *                  bta_ag_mgmt_cback_1 to 3
+ *
+ * Description      RFCOMM callback functions.  This is an easy way to
+ *                  distinguish scb from the callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_mgmt_cback_1(uint32_t code, uint16_t handle) {bta_ag_mgmt_cback(code, handle, 1);}
 void bta_ag_mgmt_cback_2(uint32_t code, uint16_t handle) {bta_ag_mgmt_cback(code, handle, 2);}
 void bta_ag_mgmt_cback_3(uint32_t code, uint16_t handle) {bta_ag_mgmt_cback(code, handle, 3);}
@@ -217,16 +217,16 @@ void bta_ag_port_cback_2(uint32_t code, uint16_t handle) {bta_ag_port_cback(code
 void bta_ag_port_cback_3(uint32_t code, uint16_t handle) {bta_ag_port_cback(code, handle, 3);}
 
 /*******************************************************************************
-**
-** Function         bta_ag_data_cback_1 to 3
-**
-** Description      RFCOMM data callback functions.  This is an easy way to
-**                  distinguish scb from the callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_data_cback_1 to 3
+ *
+ * Description      RFCOMM data callback functions.  This is an easy way to
+ *                  distinguish scb from the callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 int bta_ag_data_cback_1(uint16_t port_handle, void *p_data, uint16_t len)
 {
     return bta_ag_data_cback(port_handle, p_data, len, 1);
@@ -241,15 +241,15 @@ int bta_ag_data_cback_3(uint16_t port_handle, void *p_data, uint16_t len)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_setup_port
-**
-** Description      Setup RFCOMM port for use by AG.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_setup_port
+ *
+ * Description      Setup RFCOMM port for use by AG.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_setup_port(tBTA_AG_SCB *p_scb, uint16_t handle)
 {
     uint16_t i = bta_ag_scb_to_idx(p_scb) - 1;
@@ -265,15 +265,15 @@ void bta_ag_setup_port(tBTA_AG_SCB *p_scb, uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_start_servers
-**
-** Description      Setup RFCOMM servers for use by AG.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_start_servers
+ *
+ * Description      Setup RFCOMM servers for use by AG.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_start_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
 {
     int i;
@@ -306,15 +306,15 @@ void bta_ag_start_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_close_servers
-**
-** Description      Close RFCOMM servers port for use by AG.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_close_servers
+ *
+ * Description      Close RFCOMM servers port for use by AG.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_close_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
 {
     int i;
@@ -332,15 +332,15 @@ void bta_ag_close_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_is_server_closed
-**
-** Description      Returns true if all servers are closed.
-**
-**
-** Returns          true if all servers are closed, false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_is_server_closed
+ *
+ * Description      Returns true if all servers are closed.
+ *
+ *
+ * Returns          true if all servers are closed, false otherwise
+ *
+ ******************************************************************************/
 bool bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
 {
     uint8_t xx;
@@ -356,15 +356,15 @@ bool bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rfc_do_open
-**
-** Description      Open an RFCOMM connection to the peer device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rfc_do_open
+ *
+ * Description      Open an RFCOMM connection to the peer device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     BTM_SetSecurityLevel(true, "", bta_ag_sec_id[p_scb->conn_service],
@@ -385,15 +385,15 @@ void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rfc_do_close
-**
-** Description      Close RFCOMM connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rfc_do_close
+ *
+ * Description      Close RFCOMM connection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rfc_do_close(tBTA_AG_SCB *p_scb,
                          UNUSED_ATTR tBTA_AG_DATA *p_data)
 {

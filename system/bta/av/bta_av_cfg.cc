@@ -60,10 +60,10 @@ const uint32_t  bta_av_meta_caps_co_ids[] = {
 #endif
 
 /* Added to modify
-**	1. flush timeout
-**	2. Remove Group navigation support in SupportedFeatures
-**	3. GetCapabilities supported event_ids list
-**	4. GetCapabilities supported event_ids count
+ *	1. flush timeout
+ *	2. Remove Group navigation support in SupportedFeatures
+ *	3. GetCapabilities supported event_ids list
+ *	4. GetCapabilities supported event_ids count
 */
 /* Flushing partial avdtp packets can cause some headsets to disconnect the link
    if receiving partial a2dp frames */

@@ -31,8 +31,8 @@
 #include "utl.h"
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 #ifndef BTA_AG_DEBUG
 #define BTA_AG_DEBUG FALSE
 #endif
@@ -267,22 +267,22 @@ const tBTA_AG_ST_TBL bta_ag_st_tbl[] =
 };
 
 /*****************************************************************************
-** Global data
-*****************************************************************************/
+ * Global data
+ ****************************************************************************/
 
 /* AG control block */
 tBTA_AG_CB  bta_ag_cb;
 
 /*******************************************************************************
-**
-** Function         bta_ag_scb_alloc
-**
-** Description      Allocate an AG service control block.
-**
-**
-** Returns          pointer to the scb, or NULL if none could be allocated.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_scb_alloc
+ *
+ * Description      Allocate an AG service control block.
+ *
+ *
+ * Returns          pointer to the scb, or NULL if none could be allocated.
+ *
+ ******************************************************************************/
 static tBTA_AG_SCB *bta_ag_scb_alloc(void)
 {
     tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
@@ -324,15 +324,15 @@ static tBTA_AG_SCB *bta_ag_scb_alloc(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_scb_dealloc
-**
-** Description      Deallocate a service control block.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_scb_dealloc
+ *
+ * Description      Deallocate a service control block.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
 {
     uint8_t   idx;
@@ -372,15 +372,15 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_scb_to_idx
-**
-** Description      Given a pointer to an scb, return its index.
-**
-**
-** Returns          Index of scb.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_scb_to_idx
+ *
+ * Description      Given a pointer to an scb, return its index.
+ *
+ *
+ * Returns          Index of scb.
+ *
+ ******************************************************************************/
 uint16_t bta_ag_scb_to_idx(tBTA_AG_SCB *p_scb)
 {
     /* use array arithmetic to determine index */
@@ -388,15 +388,15 @@ uint16_t bta_ag_scb_to_idx(tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_scb_by_idx
-**
-** Description      Given an scb index return pointer to scb.
-**
-**
-** Returns          Pointer to scb or NULL if not allocated.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_scb_by_idx
+ *
+ * Description      Given an scb index return pointer to scb.
+ *
+ *
+ * Returns          Pointer to scb or NULL if not allocated.
+ *
+ ******************************************************************************/
 tBTA_AG_SCB *bta_ag_scb_by_idx(uint16_t idx)
 {
     tBTA_AG_SCB     *p_scb;
@@ -420,15 +420,15 @@ tBTA_AG_SCB *bta_ag_scb_by_idx(uint16_t idx)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_service_to_idx
-**
-** Description      Given a BTA service mask convert to profile index.
-**
-**
-** Returns          Profile ndex of scb.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_service_to_idx
+ *
+ * Description      Given a BTA service mask convert to profile index.
+ *
+ *
+ * Returns          Profile ndex of scb.
+ *
+ ******************************************************************************/
 uint8_t bta_ag_service_to_idx(tBTA_SERVICE_MASK services)
 {
     if (services & BTA_HFP_SERVICE_MASK)
@@ -442,15 +442,15 @@ uint8_t bta_ag_service_to_idx(tBTA_SERVICE_MASK services)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_idx_by_bdaddr
-**
-** Description      Find SCB associated with peer BD address.
-**
-**
-** Returns          Index of SCB or zero if none found.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_idx_by_bdaddr
+ *
+ * Description      Find SCB associated with peer BD address.
+ *
+ *
+ * Returns          Index of SCB or zero if none found.
+ *
+ ******************************************************************************/
 uint16_t bta_ag_idx_by_bdaddr(BD_ADDR peer_addr)
 {
     tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
@@ -473,15 +473,15 @@ uint16_t bta_ag_idx_by_bdaddr(BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_other_scb_open
-**
-** Description      Check whether any other scb is in open state.
-**
-**
-** Returns          true if another scb is in open state, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_other_scb_open
+ *
+ * Description      Check whether any other scb is in open state.
+ *
+ *
+ * Returns          true if another scb is in open state, false otherwise.
+ *
+ ******************************************************************************/
 bool bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
 {
     tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
@@ -501,15 +501,15 @@ bool bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_scb_open
-**
-** Description      Check whether given scb is in open state.
-**
-**
-** Returns          true if scb is in open state, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_scb_open
+ *
+ * Description      Check whether given scb is in open state.
+ *
+ *
+ * Returns          true if scb is in open state, false otherwise.
+ *
+ ******************************************************************************/
 bool bta_ag_scb_open(tBTA_AG_SCB *p_curr_scb)
 {
     if (p_curr_scb && p_curr_scb->in_use && p_curr_scb->state == BTA_AG_OPEN_ST)
@@ -521,15 +521,15 @@ bool bta_ag_scb_open(tBTA_AG_SCB *p_curr_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_get_other_idle_scb
-**
-** Description      Return other scb if it is in INIT st.
-**
-**
-** Returns          Pointer to other scb if INIT st, NULL otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_get_other_idle_scb
+ *
+ * Description      Return other scb if it is in INIT st.
+ *
+ *
+ * Returns          Pointer to other scb if INIT st, NULL otherwise.
+ *
+ ******************************************************************************/
 tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb)
 {
     tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
@@ -549,15 +549,15 @@ tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_collision_timer_cback
-**
-** Description      AG connection collision timer callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_collision_timer_cback
+ *
+ * Description      AG connection collision timer callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_collision_timer_cback(void *data)
 {
     tBTA_AG_SCB *p_scb = (tBTA_AG_SCB *)data;
@@ -570,15 +570,15 @@ static void bta_ag_collision_timer_cback(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_collision_cback
-**
-** Description      Get notified about collision.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_collision_cback
+ *
+ * Description      Get notified about collision.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_collision_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status, uint8_t id,
                                     UNUSED_ATTR uint8_t app_id, BD_ADDR peer_addr)
 {
@@ -626,15 +626,15 @@ void bta_ag_collision_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status, uint8_t id
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_resume_open
-**
-** Description      Resume opening process.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_resume_open
+ *
+ * Description      Resume opening process.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_resume_open (tBTA_AG_SCB *p_scb)
 {
     if (p_scb)
@@ -655,15 +655,15 @@ void bta_ag_resume_open (tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_api_enable
-**
-** Description      Handle an API enable event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_api_enable
+ *
+ * Description      Handle an API enable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_api_enable(tBTA_AG_DATA *p_data)
 {
     /* initialize control block */
@@ -690,15 +690,15 @@ static void bta_ag_api_enable(tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_api_disable
-**
-** Description      Handle an API disable event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_api_disable
+ *
+ * Description      Handle an API disable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_api_disable(tBTA_AG_DATA *p_data)
 {
     /* deregister all scbs in use */
@@ -734,15 +734,15 @@ static void bta_ag_api_disable(tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_api_register
-**
-** Description      Handle an API event registers a new service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_api_register
+ *
+ * Description      Handle an API event registers a new service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_api_register(tBTA_AG_DATA *p_data)
 {
     tBTA_AG_SCB     *p_scb;
@@ -762,15 +762,15 @@ static void bta_ag_api_register(tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_api_result
-**
-** Description      Handle an API result event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_api_result
+ *
+ * Description      Handle an API result event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_api_result(tBTA_AG_DATA *p_data)
 {
     tBTA_AG_SCB     *p_scb;
@@ -798,15 +798,15 @@ static void bta_ag_api_result(tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sm_execute
-**
-** Description      State machine event handling function for AG
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sm_execute
+ *
+ * Description      State machine event handling function for AG
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, uint16_t event, tBTA_AG_DATA *p_data)
 {
     tBTA_AG_ST_TBL      state_table;
@@ -867,15 +867,15 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, uint16_t event, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_hdl_event
-**
-** Description      Data gateway main event handling function.
-**
-**
-** Returns          bool
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_hdl_event
+ *
+ * Description      Data gateway main event handling function.
+ *
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
 bool bta_ag_hdl_event(BT_HDR *p_msg)
 {
     tBTA_AG_SCB *p_scb;

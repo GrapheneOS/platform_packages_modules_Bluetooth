@@ -40,13 +40,13 @@
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_set_ctrl_psm_for_dch
-**
-** Description    This function set the control PSM for the DCH setup
-**
-** Returns     bool - true - control PSM setting is successful
-*******************************************************************************/
+ *
+ * Function      bta_hl_set_ctrl_psm_for_dch
+ *
+ * Description    This function set the control PSM for the DCH setup
+ *
+ * Returns     bool - true - control PSM setting is successful
+ ******************************************************************************/
 bool bta_hl_set_ctrl_psm_for_dch(uint8_t app_idx, uint8_t mcl_idx,
                                     UNUSED_ATTR uint8_t mdl_idx, uint16_t ctrl_psm)
 {
@@ -86,14 +86,14 @@ bool bta_hl_set_ctrl_psm_for_dch(uint8_t app_idx, uint8_t mcl_idx,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_sdp_idx_using_ctrl_psm
-**
-** Description
-**
-** Returns      true if found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_sdp_idx_using_ctrl_psm
+ *
+ * Description
+ *
+ * Returns      true if found
+ *
+ ******************************************************************************/
 bool bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
                                            uint16_t ctrl_psm,
                                            uint8_t *p_sdp_idx)
@@ -132,14 +132,14 @@ bool bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_set_user_tx_buf_size
-**
-** Description  This function sets the user tx buffer size
-**
-** Returns      uint16_t buf_size
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_set_user_tx_buf_size
+ *
+ * Description  This function sets the user tx buffer size
+ *
+ * Returns      uint16_t buf_size
+ *
+ ******************************************************************************/
 
 uint16_t bta_hl_set_user_tx_buf_size(uint16_t max_tx_size)
 {
@@ -149,14 +149,14 @@ uint16_t bta_hl_set_user_tx_buf_size(uint16_t max_tx_size)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_set_user_rx_buf_size
-**
-** Description  This function sets the user rx buffer size
-**
-** Returns      uint16_t buf_size
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_set_user_rx_buf_size
+ *
+ * Description  This function sets the user rx buffer size
+ *
+ * Returns      uint16_t buf_size
+ *
+ ******************************************************************************/
 
 uint16_t bta_hl_set_user_rx_buf_size(uint16_t mtu)
 {
@@ -168,14 +168,14 @@ uint16_t bta_hl_set_user_rx_buf_size(uint16_t mtu)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_set_tx_win_size
-**
-** Description  This function sets the tx window size
-**
-** Returns      uint8_t tx_win_size
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_set_tx_win_size
+ *
+ * Description  This function sets the tx window size
+ *
+ * Returns      uint8_t tx_win_size
+ *
+ ******************************************************************************/
 uint8_t bta_hl_set_tx_win_size(uint16_t mtu, uint16_t mps)
 {
     uint8_t tx_win_size;
@@ -205,14 +205,14 @@ uint8_t bta_hl_set_tx_win_size(uint16_t mtu, uint16_t mps)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_set_mps
-**
-** Description  This function sets the MPS
-**
-** Returns      uint16_t MPS
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_set_mps
+ *
+ * Description  This function sets the MPS
+ *
+ * Returns      uint16_t MPS
+ *
+ ******************************************************************************/
 uint16_t bta_hl_set_mps(uint16_t mtu)
 {
     uint16_t mps;
@@ -233,14 +233,14 @@ uint16_t bta_hl_set_mps(uint16_t mtu)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_clean_mdl_cb
-**
-** Description  This function clean up the specified MDL control block
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_clean_mdl_cb
+ *
+ * Description  This function clean up the specified MDL control block
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_hl_clean_mdl_cb(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx)
 {
     tBTA_HL_MDL_CB      *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
@@ -258,14 +258,14 @@ void bta_hl_clean_mdl_cb(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_get_buf
-**
-** Description  This function allocate a buffer based on the specified data size
-**
-** Returns      BT_HDR *.
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_get_buf
+ *
+ * Description  This function allocate a buffer based on the specified data size
+ *
+ * Returns      BT_HDR *.
+ *
+ ******************************************************************************/
 BT_HDR * bta_hl_get_buf(uint16_t data_size, bool fcs_use)
 {
     size_t size = data_size + L2CAP_MIN_OFFSET + BT_HDR_SIZE + L2CAP_FCS_LEN
@@ -282,16 +282,16 @@ BT_HDR * bta_hl_get_buf(uint16_t data_size, bool fcs_use)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_service_in_db
-**
-** Description  This function check the specified service class(es) can be find in
-**              the received SDP database
-**
-** Returns      bool true - found
-**                      false - not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_service_in_db
+ *
+ * Description  This function check the specified service class(es) can be find in
+ *              the received SDP database
+ *
+ * Returns      bool true - found
+ *                      false - not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_service_in_db( uint8_t app_idx, uint8_t mcl_idx,
                                    uint16_t service_uuid,
                                    tSDP_DISC_REC **pp_rec )
@@ -321,17 +321,17 @@ bool bta_hl_find_service_in_db( uint8_t app_idx, uint8_t mcl_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_get_service_uuids
-**
-**
-** Description  This function finds the service class(es) for both CCH and DCH oeprations
-**
-** Returns      uint16_t - service_id
-**                       if service_uuid = 0xFFFF then it means service uuid
-**                       can be either Sink or Source
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_get_service_uuids
+ *
+ *
+ * Description  This function finds the service class(es) for both CCH and DCH oeprations
+ *
+ * Returns      uint16_t - service_id
+ *                       if service_uuid = 0xFFFF then it means service uuid
+ *                       can be either Sink or Source
+ *
+ ******************************************************************************/
 uint16_t bta_hl_get_service_uuids(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
                                 uint8_t mdl_idx )
 {
@@ -368,16 +368,16 @@ uint16_t bta_hl_get_service_uuids(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_echo_cfg_rsp
-**
-**
-** Description  This function finds the configuration response for the echo test
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_echo_cfg_rsp
+ *
+ *
+ * Description  This function finds the configuration response for the echo test
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_echo_cfg_rsp(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdep_idx, uint8_t cfg,
                                  uint8_t *p_cfg_rsp)
 {
@@ -415,15 +415,15 @@ bool bta_hl_find_echo_cfg_rsp(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdep_idx
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_validate_dch_cfg
-**
-** Description  This function validate the DCH configuration
-**
-** Returns      bool - true cfg is valid
-**                        false not valid
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_validate_dch_cfg
+ *
+ * Description  This function validate the DCH configuration
+ *
+ * Returns      bool - true cfg is valid
+ *                        false not valid
+ *
+ ******************************************************************************/
 bool bta_hl_validate_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                             uint8_t cfg)
 {
@@ -468,15 +468,15 @@ bool bta_hl_validate_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function       bta_hl_find_cch_cb_indexes
-**
-** Description  This function finds the indexes needed for the CCH state machine
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function       bta_hl_find_cch_cb_indexes
+ *
+ * Description  This function finds the indexes needed for the CCH state machine
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
                                    uint8_t *p_app_idx,
                                    uint8_t  *p_mcl_idx)
@@ -576,15 +576,15 @@ bool bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
 }
 
 /*******************************************************************************
-**
-** Function       bta_hl_find_dch_cb_indexes
-**
-** Description  This function finds the indexes needed for the DCH state machine
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function       bta_hl_find_dch_cb_indexes
+ *
+ * Description  This function finds the indexes needed for the DCH state machine
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
                                    uint8_t *p_app_idx,
                                    uint8_t *p_mcl_idx,
@@ -750,14 +750,14 @@ bool bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_allocate_mdl_id
-**
-** Description  This function allocates a MDL ID
-**
-** Returns      uint16_t - MDL ID
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_allocate_mdl_id
+ *
+ * Description  This function allocates a MDL ID
+ *
+ * Returns      uint16_t - MDL ID
+ *
+ ******************************************************************************/
 uint16_t  bta_hl_allocate_mdl_id(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx )
 {
     uint16_t  mdl_id=0;
@@ -808,14 +808,14 @@ uint16_t  bta_hl_allocate_mdl_id(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_i
     return mdl_id;
 }
 /*******************************************************************************
-**
-** Function      bta_hl_find_mdl_idx
-**
-** Description  This function finds the MDL index based on mdl_id
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_mdl_idx
+ *
+ * Description  This function finds the MDL index based on mdl_id
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_mdl_idx(uint8_t app_idx, uint8_t mcl_idx, uint16_t mdl_id,
                             uint8_t *p_mdl_idx)
 {
@@ -847,14 +847,14 @@ bool bta_hl_find_mdl_idx(uint8_t app_idx, uint8_t mcl_idx, uint16_t mdl_id,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_an_active_mdl_idx
-**
-** Description  This function finds an active MDL
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_an_active_mdl_idx
+ *
+ * Description  This function finds an active MDL
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_an_active_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
                                       uint8_t *p_mdl_idx)
 {
@@ -885,14 +885,14 @@ bool bta_hl_find_an_active_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_dch_setup_mdl_idx
-**
-** Description  This function finds a MDL which in the DCH setup state
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_dch_setup_mdl_idx
+ *
+ * Description  This function finds a MDL which in the DCH setup state
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_dch_setup_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
                                       uint8_t *p_mdl_idx)
 {
@@ -923,14 +923,14 @@ bool bta_hl_find_dch_setup_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_an_in_use_mcl_idx
-**
-** Description  This function finds an in-use MCL control block index
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_an_in_use_mcl_idx
+ *
+ * Description  This function finds an in-use MCL control block index
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_an_in_use_mcl_idx(uint8_t app_idx,
                                       uint8_t *p_mcl_idx)
 {
@@ -963,14 +963,14 @@ bool bta_hl_find_an_in_use_mcl_idx(uint8_t app_idx,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_an_in_use_app_idx
-**
-** Description  This function finds an in-use application control block index
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_an_in_use_app_idx
+ *
+ * Description  This function finds an in-use application control block index
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_an_in_use_app_idx(uint8_t *p_app_idx)
 {
     tBTA_HL_APP_CB      *p_acb ;
@@ -999,15 +999,15 @@ bool bta_hl_find_an_in_use_app_idx(uint8_t *p_app_idx)
     return found;
 }
 /*******************************************************************************
-**
-** Function      bta_hl_find_app_idx
-**
-** Description  This function finds the application control block index based on
-**              the application ID
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_app_idx
+ *
+ * Description  This function finds the application control block index based on
+ *              the application ID
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_app_idx(uint8_t app_id, uint8_t *p_app_idx)
 {
     bool found=false;
@@ -1034,15 +1034,15 @@ bool bta_hl_find_app_idx(uint8_t app_id, uint8_t *p_app_idx)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_app_idx_using_handle
-**
-** Description  This function finds the application control block index based on
-**              the application handle
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_app_idx_using_handle
+ *
+ * Description  This function finds the application control block index based on
+ *              the application handle
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_app_idx_using_handle(tBTA_HL_APP_HANDLE app_handle,
                                          uint8_t *p_app_idx)
 {
@@ -1073,15 +1073,15 @@ bool bta_hl_find_app_idx_using_handle(tBTA_HL_APP_HANDLE app_handle,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_mcl_idx_using_handle
-**
-** Description  This function finds the MCL control block index based on
-**              the MCL handle
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_mcl_idx_using_handle
+ *
+ * Description  This function finds the MCL control block index based on
+ *              the MCL handle
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
                                           uint8_t *p_app_idx, uint8_t *p_mcl_idx)
 {
@@ -1118,15 +1118,15 @@ bool bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_mcl_idx
-**
-** Description  This function finds the MCL control block index based on
-**              the peer BD address
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_mcl_idx
+ *
+ * Description  This function finds the MCL control block index based on
+ *              the peer BD address
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_mcl_idx(uint8_t app_idx, BD_ADDR p_bd_addr, uint8_t *p_mcl_idx)
 {
     bool found=false;
@@ -1156,15 +1156,15 @@ bool bta_hl_find_mcl_idx(uint8_t app_idx, BD_ADDR p_bd_addr, uint8_t *p_mcl_idx)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_mdl_idx_using_handle
-**
-** Description  This function finds the MDL control block index based on
-**              the MDL handle
-**
-** Returns      bool true-found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_mdl_idx_using_handle
+ *
+ * Description  This function finds the MDL control block index based on
+ *              the MDL handle
+ *
+ * Returns      bool true-found
+ *
+ ******************************************************************************/
 bool bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
                                          uint8_t *p_app_idx,uint8_t *p_mcl_idx,
                                          uint8_t *p_mdl_idx)
@@ -1216,16 +1216,16 @@ bool bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
     return found;
 }
 /*******************************************************************************
-**
-** Function      bta_hl_is_the_first_reliable_existed
-**
-** Description  This function checks whether the first reliable DCH channel
-**              has been setup on the MCL or not
-**
-** Returns      bool - true exist
-**                        false does not exist
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_is_the_first_reliable_existed
+ *
+ * Description  This function checks whether the first reliable DCH channel
+ *              has been setup on the MCL or not
+ *
+ * Returns      bool - true exist
+ *                        false does not exist
+ *
+ ******************************************************************************/
 bool bta_hl_is_the_first_reliable_existed(uint8_t app_idx, uint8_t mcl_idx )
 {
     tBTA_HL_MCL_CB      *p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
@@ -1248,16 +1248,16 @@ bool bta_hl_is_the_first_reliable_existed(uint8_t app_idx, uint8_t mcl_idx )
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_non_active_mdl_cfg
-**
-** Description  This function finds a valid MDL configiration index and this
-**              MDL ID is not active
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_non_active_mdl_cfg
+ *
+ * Description  This function finds a valid MDL configiration index and this
+ *              MDL ID is not active
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool  bta_hl_find_non_active_mdl_cfg(uint8_t app_idx, uint8_t start_mdl_cfg_idx,
                                         uint8_t *p_mdl_cfg_idx)
 {
@@ -1310,15 +1310,15 @@ bool  bta_hl_find_non_active_mdl_cfg(uint8_t app_idx, uint8_t start_mdl_cfg_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_mdl_cfg_idx
-**
-** Description  This function finds an available MDL configuration index
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_mdl_cfg_idx
+ *
+ * Description  This function finds an available MDL configuration index
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool  bta_hl_find_avail_mdl_cfg_idx(uint8_t app_idx, UNUSED_ATTR uint8_t mcl_idx,
                                        uint8_t *p_mdl_cfg_idx)
 {
@@ -1403,16 +1403,16 @@ bool  bta_hl_find_avail_mdl_cfg_idx(uint8_t app_idx, UNUSED_ATTR uint8_t mcl_idx
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_mdl_cfg_idx
-**
-** Description  This function finds the MDL configuration index based on
-**              the MDL ID
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_mdl_cfg_idx
+ *
+ * Description  This function finds the MDL configuration index based on
+ *              the MDL ID
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool  bta_hl_find_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
                                  tBTA_HL_MDL_ID mdl_id, uint8_t *p_mdl_cfg_idx)
 {
@@ -1452,15 +1452,15 @@ bool  bta_hl_find_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_get_cur_time
-**
-** Description  This function get the cuurent time value
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_get_cur_time
+ *
+ * Description  This function get the cuurent time value
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool  bta_hl_get_cur_time(uint8_t app_idx, uint8_t *p_cur_time)
 {
     tBTA_HL_MDL_CFG     *p_mdl;
@@ -1520,16 +1520,16 @@ bool  bta_hl_get_cur_time(uint8_t app_idx, uint8_t *p_cur_time)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_sort_cfg_time_idx
-**
-** Description  This function sort the mdl configuration idx stored in array a
-**              based on decending time value
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_sort_cfg_time_idx
+ *
+ * Description  This function sort the mdl configuration idx stored in array a
+ *              based on decending time value
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 void bta_hl_sort_cfg_time_idx(uint8_t app_idx, uint8_t *a, uint8_t n)
 {
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -1550,16 +1550,16 @@ void bta_hl_sort_cfg_time_idx(uint8_t app_idx, uint8_t *a, uint8_t n)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_compact_mdl_cfg_time
-**
-** Description  This function finds the MDL configuration index based on
-**              the MDL ID
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_compact_mdl_cfg_time
+ *
+ * Description  This function finds the MDL configuration index based on
+ *              the MDL ID
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 void  bta_hl_compact_mdl_cfg_time(uint8_t app_idx, uint8_t mdep_id)
 {
     tBTA_HL_MDL_CFG     *p_mdl;
@@ -1602,16 +1602,16 @@ void  bta_hl_compact_mdl_cfg_time(uint8_t app_idx, uint8_t mdep_id)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_is_mdl_exsit_in_mcl
-**
-** Description  This function checks whether the MDL ID
-**              has already existed in teh MCL or not
-**
-** Returns      bool - true exist
-**                        false does not exist
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_is_mdl_exsit_in_mcl
+ *
+ * Description  This function checks whether the MDL ID
+ *              has already existed in teh MCL or not
+ *
+ * Returns      bool - true exist
+ *                        false does not exist
+ *
+ ******************************************************************************/
 bool  bta_hl_is_mdl_exsit_in_mcl(uint8_t app_idx, BD_ADDR bd_addr,
                                     tBTA_HL_MDL_ID mdl_id)
 {
@@ -1645,15 +1645,15 @@ bool  bta_hl_is_mdl_exsit_in_mcl(uint8_t app_idx, BD_ADDR bd_addr,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_delete_mdl_cfg
-**
-** Description  This function delete the specified MDL ID
-**
-** Returns      bool - true Success
-**                        false Failed
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_delete_mdl_cfg
+ *
+ * Description  This function delete the specified MDL ID
+ *
+ * Returns      bool - true Success
+ *                        false Failed
+ *
+ ******************************************************************************/
 bool  bta_hl_delete_mdl_cfg(uint8_t app_idx, BD_ADDR bd_addr,
                                tBTA_HL_MDL_ID mdl_id)
 {
@@ -1691,21 +1691,21 @@ bool  bta_hl_delete_mdl_cfg(uint8_t app_idx, BD_ADDR bd_addr,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_is_mdl_value_valid
-**
-**
-** Description  This function checks the specified MDL ID is in valid range or not
-**
-** Returns      bool - true Success
-**                        false Failed
-**
-** note:   mdl_id range   0x0000 reserved,
-**                        0x0001-oxFEFF dynamic range,
-**                        0xFF00-0xFFFE reserved,
-**                        0xFFFF indicates all MDLs (for delete operation only)
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_is_mdl_value_valid
+ *
+ *
+ * Description  This function checks the specified MDL ID is in valid range or not
+ *
+ * Returns      bool - true Success
+ *                        false Failed
+ *
+ * note:   mdl_id range   0x0000 reserved,
+ *                        0x0001-oxFEFF dynamic range,
+ *                        0xFF00-0xFFFE reserved,
+ *                        0xFFFF indicates all MDLs (for delete operation only)
+ *
+ ******************************************************************************/
 bool  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id)
 {
     bool             status = true;
@@ -1729,16 +1729,16 @@ bool  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_mdep_cfg_idx
-**
-** Description  This function finds the MDEP configuration index based
-**                on the local MDEP ID
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_mdep_cfg_idx
+ *
+ * Description  This function finds the MDEP configuration index based
+ *                on the local MDEP ID
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_mdep_cfg_idx(uint8_t app_idx,  tBTA_HL_MDEP_ID local_mdep_id,
                                  uint8_t *p_mdep_cfg_idx)
 {
@@ -1769,15 +1769,15 @@ bool bta_hl_find_mdep_cfg_idx(uint8_t app_idx,  tBTA_HL_MDEP_ID local_mdep_id,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_rxtx_apdu_size
-**
-** Description  This function finds the maximum APDU rx and tx sizes based on
-**              the MDEP configuration data
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_rxtx_apdu_size
+ *
+ * Description  This function finds the maximum APDU rx and tx sizes based on
+ *              the MDEP configuration data
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_hl_find_rxtx_apdu_size(uint8_t app_idx, uint8_t mdep_cfg_idx,
                                 uint16_t *p_rx_apu_size,
                                 uint16_t *p_tx_apu_size)
@@ -1817,15 +1817,15 @@ void bta_hl_find_rxtx_apdu_size(uint8_t app_idx, uint8_t mdep_cfg_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_validate_peer_cfg
-**
-** Description  This function validates the peer DCH configuration
-**
-** Returns      bool - true validation is successful
-**                        false validation failed
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_validate_peer_cfg
+ *
+ * Description  This function validates the peer DCH configuration
+ *
+ * Returns      bool - true validation is successful
+ *                        false validation failed
+ *
+ ******************************************************************************/
 bool bta_hl_validate_peer_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                  tBTA_HL_MDEP_ID peer_mdep_id,
                                  tBTA_HL_MDEP_ROLE peer_mdep_role,
@@ -1870,17 +1870,17 @@ bool bta_hl_validate_peer_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_chk_local_cfg
-**
-** Description  This function check whether the local DCH configuration is OK or not
-**
-** Returns      tBTA_HL_STATUS - OK - local DCH configuration is OK
-**                               NO_FIRST_RELIABLE - the streaming DCH configuration
-**                                                   is not OK and it needs to use
-**                                                   reliable DCH configuration
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_chk_local_cfg
+ *
+ * Description  This function check whether the local DCH configuration is OK or not
+ *
+ * Returns      tBTA_HL_STATUS - OK - local DCH configuration is OK
+ *                               NO_FIRST_RELIABLE - the streaming DCH configuration
+ *                                                   is not OK and it needs to use
+ *                                                   reliable DCH configuration
+ *
+ ******************************************************************************/
 tBTA_HL_STATUS bta_hl_chk_local_cfg(uint8_t app_idx, uint8_t mcl_idx,
                                     uint8_t mdep_cfg_idx,
                                     tBTA_HL_DCH_CFG local_cfg)
@@ -1902,14 +1902,14 @@ tBTA_HL_STATUS bta_hl_chk_local_cfg(uint8_t app_idx, uint8_t mcl_idx,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_validate_reconnect_params
-**
-** Description  This function validates the reconnect parameters
-**
-** Returns      bool - true validation is successful
-**                        false validation failed
-*******************************************************************************/
+ *
+ * Function      bta_hl_validate_reconnect_params
+ *
+ * Description  This function validates the reconnect parameters
+ *
+ * Returns      bool - true validation is successful
+ *                        false validation failed
+ ******************************************************************************/
 bool bta_hl_validate_reconnect_params(uint8_t app_idx, uint8_t mcl_idx,
                                          tBTA_HL_API_DCH_RECONNECT *p_reconnect,
                                          uint8_t *p_mdep_cfg_idx, uint8_t *p_mdl_cfg_idx)
@@ -1985,13 +1985,13 @@ bool bta_hl_validate_reconnect_params(uint8_t app_idx, uint8_t mcl_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_avail_mcl_idx
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_avail_mcl_idx
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_avail_mcl_idx(uint8_t app_idx, uint8_t *p_mcl_idx)
 {
     bool found=false;
@@ -2020,15 +2020,15 @@ bool bta_hl_find_avail_mcl_idx(uint8_t app_idx, uint8_t *p_mcl_idx)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_avail_mdl_idx
-**
-** Description  This function finds an available MDL control block index
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_avail_mdl_idx
+ *
+ * Description  This function finds an available MDL control block index
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_avail_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
                                   uint8_t *p_mdl_idx)
 {
@@ -2058,14 +2058,14 @@ bool bta_hl_find_avail_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_is_a_duplicate_id
-**
-** Description  This function finds the application has been used or not
-**
-** Returns      bool - true the app_id is a duplicate ID
-**                        false not a duplicate ID
-*******************************************************************************/
+ *
+ * Function      bta_hl_is_a_duplicate_id
+ *
+ * Description  This function finds the application has been used or not
+ *
+ * Returns      bool - true the app_id is a duplicate ID
+ *                        false not a duplicate ID
+ ******************************************************************************/
 bool bta_hl_is_a_duplicate_id(uint8_t app_id)
 {
     bool is_duplicate=false;
@@ -2096,15 +2096,15 @@ bool bta_hl_is_a_duplicate_id(uint8_t app_id)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_find_avail_app_idx
-**
-** Description  This function finds an available application control block index
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_find_avail_app_idx
+ *
+ * Description  This function finds an available application control block index
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 bool bta_hl_find_avail_app_idx(uint8_t *p_idx)
 {
     bool found=false;
@@ -2131,14 +2131,14 @@ bool bta_hl_find_avail_app_idx(uint8_t *p_idx)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_app_update
-**
-** Description  This function registers an HDP application MCAP and DP
-**
-** Returns      tBTA_HL_STATUS -registration status
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_app_update
+ *
+ * Description  This function registers an HDP application MCAP and DP
+ *
+ * Returns      tBTA_HL_STATUS -registration status
+ *
+ ******************************************************************************/
 tBTA_HL_STATUS bta_hl_app_update(uint8_t app_id, bool is_register)
 {
     tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
@@ -2292,14 +2292,14 @@ tBTA_HL_STATUS bta_hl_app_update(uint8_t app_id, bool is_register)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_app_registration
-**
-** Description  This function registers an HDP application MCAP and DP
-**
-** Returns      tBTA_HL_STATUS -registration status
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_app_registration
+ *
+ * Description  This function registers an HDP application MCAP and DP
+ *
+ * Returns      tBTA_HL_STATUS -registration status
+ *
+ ******************************************************************************/
 tBTA_HL_STATUS bta_hl_app_registration(uint8_t app_idx)
 {
     tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
@@ -2433,14 +2433,14 @@ tBTA_HL_STATUS bta_hl_app_registration(uint8_t app_idx)
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_discard_data
-**
-** Description  This function discard an HDP event
-**
-** Returns     void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_discard_data
+ *
+ * Description  This function discard an HDP event
+ *
+ * Returns     void
+ *
+ ******************************************************************************/
 void bta_hl_discard_data(uint16_t event, tBTA_HL_DATA *p_data)
 {
 
@@ -2465,14 +2465,14 @@ void bta_hl_discard_data(uint16_t event, tBTA_HL_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_save_mdl_cfg
-**
-** Description    This function saves the MDL configuration
-**
-** Returns     void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_save_mdl_cfg
+ *
+ * Description    This function saves the MDL configuration
+ *
+ * Returns     void
+ *
+ ******************************************************************************/
 void bta_hl_save_mdl_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx )
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2537,13 +2537,13 @@ void bta_hl_save_mdl_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx )
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_set_dch_chan_cfg
-**
-** Description    This function setups the L2CAP DCH channel configuration
-**
-** Returns     void
-*******************************************************************************/
+ *
+ * Function      bta_hl_set_dch_chan_cfg
+ *
+ * Description    This function setups the L2CAP DCH channel configuration
+ *
+ * Returns     void
+ ******************************************************************************/
 void bta_hl_set_dch_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,tBTA_HL_DATA *p_data)
 {
     tBTA_HL_APP_CB *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2628,13 +2628,13 @@ void bta_hl_set_dch_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,t
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_get_l2cap_cfg
-**
-** Description    This function get the current L2CAP channel configuration
-**
-** Returns     bool - true - operation is successful
-*******************************************************************************/
+ *
+ * Function      bta_hl_get_l2cap_cfg
+ *
+ * Description    This function get the current L2CAP channel configuration
+ *
+ * Returns     bool - true - operation is successful
+ ******************************************************************************/
 bool bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO *p_cfg)
 {
     bool success = false;
@@ -2700,13 +2700,13 @@ bool bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO *p_
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_validate_chan_cfg
-**
-** Description    This function validates the L2CAP channel configuration
-**
-** Returns     bool - true - validation is successful
-*******************************************************************************/
+ *
+ * Function      bta_hl_validate_chan_cfg
+ *
+ * Description    This function validates the L2CAP channel configuration
+ *
+ * Returns     bool - true - validation is successful
+ ******************************************************************************/
 bool bta_hl_validate_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx)
 {
     tBTA_HL_APP_CB *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2752,15 +2752,15 @@ bool bta_hl_validate_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_is_cong_on
-**
-** Description    This function checks whether the congestion condition is on or not
-**
-** Returns      bool - true DCH is congested
-**                        false not congested
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_is_cong_on
+ *
+ * Description    This function checks whether the congestion condition is on or not
+ *
+ * Returns      bool - true DCH is congested
+ *                        false not congested
+ *
+ ******************************************************************************/
 bool  bta_hl_is_cong_on(uint8_t app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id)
 
 {
@@ -2784,14 +2784,14 @@ bool  bta_hl_is_cong_on(uint8_t app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_check_cch_close
-**
-** Description   This function checks whether there is a pending CCH close request
-**               or not
-**
-** Returns      void
-*******************************************************************************/
+ *
+ * Function      bta_hl_check_cch_close
+ *
+ * Description   This function checks whether there is a pending CCH close request
+ *               or not
+ *
+ * Returns      void
+ ******************************************************************************/
 void bta_hl_check_cch_close(uint8_t app_idx, uint8_t mcl_idx, tBTA_HL_DATA *p_data, bool check_dch_setup )
 {
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
@@ -2837,14 +2837,14 @@ void bta_hl_check_cch_close(uint8_t app_idx, uint8_t mcl_idx, tBTA_HL_DATA *p_da
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_clean_app
-**
-** Description      Cleans up the HDP application resources and control block
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_clean_app
+ *
+ * Description      Cleans up the HDP application resources and control block
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_clean_app(uint8_t app_idx)
 {
     tBTA_HL_APP_CB         *p_acb   = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2873,14 +2873,14 @@ void bta_hl_clean_app(uint8_t app_idx)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_check_deregistration
-**
-** Description   This function checks whether there is a pending deregistration
-**               request or not
-**
-** Returns      void
-*******************************************************************************/
+ *
+ * Function      bta_hl_check_deregistration
+ *
+ * Description   This function checks whether there is a pending deregistration
+ *               request or not
+ *
+ * Returns      void
+ ******************************************************************************/
 void bta_hl_check_deregistration(uint8_t app_idx, tBTA_HL_DATA *p_data )
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2921,15 +2921,15 @@ void bta_hl_check_deregistration(uint8_t app_idx, tBTA_HL_DATA *p_data )
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_check_disable
-**
-** Description   This function checks whether there is a pending disable
-**               request or not
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_check_disable
+ *
+ * Description   This function checks whether there is a pending disable
+ *               request or not
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_hl_check_disable(tBTA_HL_DATA *p_data )
 {
     tBTA_HL_CB          *p_cb= &bta_hl_cb;
@@ -2964,14 +2964,14 @@ void bta_hl_check_disable(tBTA_HL_DATA *p_data )
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_abort_cfm
-**
-** Description   This function builds the abort confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_abort_cfm
+ *
+ * Description   This function builds the abort confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_abort_cfm(tBTA_HL *p_evt_data,
                              tBTA_HL_APP_HANDLE app_handle,
                              tBTA_HL_MCL_HANDLE mcl_handle,
@@ -2983,14 +2983,14 @@ void  bta_hl_build_abort_cfm(tBTA_HL *p_evt_data,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_abort_ind
-**
-** Description   This function builds the abort indication event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_abort_ind
+ *
+ * Description   This function builds the abort indication event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_abort_ind(tBTA_HL *p_evt_data,
                              tBTA_HL_APP_HANDLE app_handle,
                              tBTA_HL_MCL_HANDLE mcl_handle)
@@ -2999,14 +2999,14 @@ void  bta_hl_build_abort_ind(tBTA_HL *p_evt_data,
     p_evt_data->dch_abort_ind.app_handle = app_handle;
 }
 /*******************************************************************************
-**
-** Function      bta_hl_build_close_cfm
-**
-** Description   This function builds the close confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_close_cfm
+ *
+ * Description   This function builds the close confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_dch_close_cfm(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3020,14 +3020,14 @@ void  bta_hl_build_dch_close_cfm(tBTA_HL *p_evt_data,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_dch_close_ind
-**
-** Description   This function builds the close indication event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_dch_close_ind
+ *
+ * Description   This function builds the close indication event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_dch_close_ind(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3041,14 +3041,14 @@ void  bta_hl_build_dch_close_ind(tBTA_HL *p_evt_data,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_send_data_cfm
-**
-** Description   This function builds the send data confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_send_data_cfm
+ *
+ * Description   This function builds the send data confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_send_data_cfm(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3063,14 +3063,14 @@ void  bta_hl_build_send_data_cfm(tBTA_HL *p_evt_data,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_rcv_data_ind
-**
-** Description   This function builds the received data indication event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_rcv_data_ind
+ *
+ * Description   This function builds the received data indication event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_rcv_data_ind(tBTA_HL *p_evt_data,
                                 tBTA_HL_APP_HANDLE app_handle,
                                 tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3083,14 +3083,14 @@ void  bta_hl_build_rcv_data_ind(tBTA_HL *p_evt_data,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_cch_open_cfm
-**
-** Description   This function builds the CCH open confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_cch_open_cfm
+ *
+ * Description   This function builds the CCH open confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_cch_open_cfm(tBTA_HL *p_evt_data,
                                 uint8_t app_id,
                                 tBTA_HL_APP_HANDLE app_handle,
@@ -3107,14 +3107,14 @@ void  bta_hl_build_cch_open_cfm(tBTA_HL *p_evt_data,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_cch_open_ind
-**
-** Description   This function builds the CCH open indication event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_cch_open_ind
+ *
+ * Description   This function builds the CCH open indication event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_cch_open_ind(tBTA_HL *p_evt_data, tBTA_HL_APP_HANDLE app_handle,
                                 tBTA_HL_MCL_HANDLE mcl_handle,
                                 BD_ADDR bd_addr )
@@ -3126,14 +3126,14 @@ void  bta_hl_build_cch_open_ind(tBTA_HL *p_evt_data, tBTA_HL_APP_HANDLE app_hand
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_cch_close_cfm
-**
-** Description   This function builds the CCH close confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_cch_close_cfm
+ *
+ * Description   This function builds the CCH close confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_cch_close_cfm(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3146,14 +3146,14 @@ void  bta_hl_build_cch_close_cfm(tBTA_HL *p_evt_data,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_cch_close_ind
-**
-** Description   This function builds the CCH colse indication event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_cch_close_ind
+ *
+ * Description   This function builds the CCH colse indication event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_cch_close_ind(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3165,14 +3165,14 @@ void  bta_hl_build_cch_close_ind(tBTA_HL *p_evt_data,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_dch_open_cfm
-**
-** Description   This function builds the DCH open confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_dch_open_cfm
+ *
+ * Description   This function builds the DCH open confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_dch_open_cfm(tBTA_HL *p_evt_data,
                                 tBTA_HL_APP_HANDLE app_handle,
                                 tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3198,14 +3198,14 @@ void  bta_hl_build_dch_open_cfm(tBTA_HL *p_evt_data,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_sdp_query_cfm
-**
-** Description   This function builds the SDP query indication event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_sdp_query_cfm
+ *
+ * Description   This function builds the SDP query indication event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_sdp_query_cfm(tBTA_HL *p_evt_data,
                                  uint8_t app_id,
                                  tBTA_HL_APP_HANDLE app_handle,
@@ -3225,14 +3225,14 @@ void  bta_hl_build_sdp_query_cfm(tBTA_HL *p_evt_data,
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_delete_mdl_cfm
-**
-** Description   This function builds the delete MDL confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_delete_mdl_cfm
+ *
+ * Description   This function builds the delete MDL confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_delete_mdl_cfm(tBTA_HL *p_evt_data,
                                   tBTA_HL_APP_HANDLE app_handle,
                                   tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3247,14 +3247,14 @@ void  bta_hl_build_delete_mdl_cfm(tBTA_HL *p_evt_data,
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_build_echo_test_cfm
-**
-** Description   This function builds the echo test confirmation event data
-**
-** Returns      None
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_build_echo_test_cfm
+ *
+ * Description   This function builds the echo test confirmation event data
+ *
+ * Returns      None
+ *
+ ******************************************************************************/
 void  bta_hl_build_echo_test_cfm(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
@@ -3267,19 +3267,19 @@ void  bta_hl_build_echo_test_cfm(tBTA_HL *p_evt_data,
 
 
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 #if (BTA_HL_DEBUG == TRUE)
 
 /*******************************************************************************
-**
-** Function         bta_hl_status_code
-**
-** Description      get the status string pointer
-**
-** Returns          char * - status string pointer
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_status_code
+ *
+ * Description      get the status string pointer
+ *
+ * Returns          char * - status string pointer
+ *
+ ******************************************************************************/
 const char *bta_hl_status_code(tBTA_HL_STATUS status)
 {
     switch (status)
@@ -3340,14 +3340,14 @@ const char *bta_hl_status_code(tBTA_HL_STATUS status)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_hl_evt_code
-**
-** Description      Maps HL event code to the corresponding event string
-**
-** Returns          string pointer for the associated event name
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_evt_code
+ *
+ * Description      Maps HL event code to the corresponding event string
+ *
+ * Returns          string pointer for the associated event name
+ *
+ ******************************************************************************/
 const char *bta_hl_evt_code(tBTA_HL_INT_EVT evt_code)
 {
     switch (evt_code)

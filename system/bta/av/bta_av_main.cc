@@ -43,8 +43,8 @@
 #endif
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 #ifndef BTA_AV_RET_TOUT
 #define BTA_AV_RET_TOUT     4
@@ -190,8 +190,8 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
 };
 
 /*****************************************************************************
-** Global data
-*****************************************************************************/
+ * Global data
+ ****************************************************************************/
 
 /* AV control block */
 tBTA_AV_CB  bta_av_cb;
@@ -201,15 +201,15 @@ static const char *bta_av_st_code(uint8_t state);
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_api_enable
-**
-** Description      Handle an API enable event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_api_enable
+ *
+ * Description      Handle an API enable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_api_enable(tBTA_AV_DATA *p_data)
 {
     /* initialize control block */
@@ -247,14 +247,14 @@ static void bta_av_api_enable(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_addr_to_scb
-**
-** Description      find the stream control block by the peer addr
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_addr_to_scb
+ *
+ * Description      find the stream control block by the peer addr
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static tBTA_AV_SCB * bta_av_addr_to_scb(BD_ADDR bd_addr)
 {
     tBTA_AV_SCB * p_scb = NULL;
@@ -275,14 +275,14 @@ static tBTA_AV_SCB * bta_av_addr_to_scb(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_hndl_to_scb
-**
-** Description      find the stream control block by the handle
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_hndl_to_scb
+ *
+ * Description      find the stream control block by the handle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTA_AV_SCB * bta_av_hndl_to_scb(uint16_t handle)
 {
     tBTA_AV_HNDL hndl = (tBTA_AV_HNDL)handle;
@@ -297,16 +297,16 @@ tBTA_AV_SCB * bta_av_hndl_to_scb(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_alloc_scb
-**
-** Description      allocate stream control block,
-**                  register the service to stack
-**                  create SDP record
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_alloc_scb
+ *
+ * Description      allocate stream control block,
+ *                  register the service to stack
+ *                  create SDP record
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
 {
     tBTA_AV_SCB *p_ret = NULL;
@@ -359,7 +359,7 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
 }
 
 /*******************************************************************************
-*******************************************************************************/
+ ******************************************************************************/
 void bta_av_conn_cback(UNUSED_ATTR uint8_t handle, BD_ADDR bd_addr,
                        uint8_t event, tAVDT_CTRL *p_data)
 {
@@ -404,14 +404,14 @@ void bta_av_conn_cback(UNUSED_ATTR uint8_t handle, BD_ADDR bd_addr,
 
 #if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
-**
-** Function         bta_av_a2dp_report_cback
-**
-** Description      A2DP report callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_a2dp_report_cback
+ *
+ * Description      A2DP report callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_a2dp_report_cback(UNUSED_ATTR uint8_t handle, UNUSED_ATTR AVDT_REPORT_TYPE type,
                                     UNUSED_ATTR tAVDT_REPORT_DATA *p_data)
 {
@@ -421,16 +421,16 @@ static void bta_av_a2dp_report_cback(UNUSED_ATTR uint8_t handle, UNUSED_ATTR AVD
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_api_register
-**
-** Description      allocate stream control block,
-**                  register the service to stack
-**                  create SDP record
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_api_register
+ *
+ * Description      allocate stream control block,
+ *                  register the service to stack
+ *                  create SDP record
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_api_register(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_REGISTER    registr;
@@ -709,15 +709,15 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_api_deregister
-**
-** Description      de-register a channel
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_api_deregister
+ *
+ * Description      de-register a channel
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_api_deregister(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_SCB *p_scb = bta_av_hndl_to_scb(p_data->hdr.layer_specific);
@@ -734,15 +734,15 @@ void bta_av_api_deregister(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_ci_data
-**
-** Description      forward the BTA_AV_CI_SRC_DATA_READY_EVT to stream state machine
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_ci_data
+ *
+ * Description      forward the BTA_AV_CI_SRC_DATA_READY_EVT to stream state machine
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_ci_data(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_SCB *p_scb;
@@ -761,14 +761,14 @@ static void bta_av_ci_data(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rpc_conn
-**
-** Description      report report channel open
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rpc_conn
+ *
+ * Description      report report channel open
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if (AVDT_REPORTING == TRUE)
 static void bta_av_rpc_conn(UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -776,15 +776,15 @@ static void bta_av_rpc_conn(UNUSED_ATTR tBTA_AV_DATA *p_data)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_api_to_ssm
-**
-** Description      forward the API request to stream state machine
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_api_to_ssm
+ *
+ * Description      forward the API request to stream state machine
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data)
 {
     int xx;
@@ -797,15 +797,15 @@ static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_chk_start
-**
-** Description      if this is audio channel, check if more than one audio
-**                  channel is connected & already started.
-**
-** Returns          true, if need api_start
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_chk_start
+ *
+ * Description      if this is audio channel, check if more than one audio
+ *                  channel is connected & already started.
+ *
+ * Returns          true, if need api_start
+ *
+ ******************************************************************************/
 bool bta_av_chk_start(tBTA_AV_SCB *p_scb)
 {
     bool start = false;
@@ -840,15 +840,15 @@ bool bta_av_chk_start(tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_restore_switch
-**
-** Description      assume that the caller of this function already makes
-**                  sure that there's only one ACL connection left
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_restore_switch
+ *
+ * Description      assume that the caller of this function already makes
+ *                  sure that there's only one ACL connection left
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_restore_switch (void)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -871,14 +871,14 @@ void bta_av_restore_switch (void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_sys_rs_cback
-**
-** Description      Receives the role change event from dm
-**
-** Returns          (BTA_SYS_ROLE_CHANGE, new_role, hci_status, p_bda)
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_sys_rs_cback
+ *
+ * Description      Receives the role change event from dm
+ *
+ * Returns          (BTA_SYS_ROLE_CHANGE, new_role, hci_status, p_bda)
+ *
+ ******************************************************************************/
 static void bta_av_sys_rs_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status,uint8_t id,
                                  uint8_t app_id, BD_ADDR peer_addr)
 {
@@ -948,16 +948,16 @@ static void bta_av_sys_rs_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status,uint8_t
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_sco_chg_cback
-**
-** Description      receive & process the SCO connection up/down event from sys.
-**                  call setup also triggers this callback, to suspend av before sco
-**                  activity happens, or to resume av once call ends.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_sco_chg_cback
+ *
+ * Description      receive & process the SCO connection up/down event from sys.
+ *                  call setup also triggers this callback, to suspend av before sco
+ *                  activity happens, or to resume av once call ends.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status,
                                  uint8_t id,UNUSED_ATTR uint8_t app_id,
                                  UNUSED_ATTR BD_ADDR peer_addr)
@@ -1005,16 +1005,16 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_switch_if_needed
-**
-** Description      This function checks if there is another existing AV
-**                  channel that is local as slave role.
-**                  If so, role switch and remove it from link policy.
-**
-** Returns          true, if role switch is done
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_switch_if_needed
+ *
+ * Description      This function checks if there is another existing AV
+ *                  channel that is local as slave role.
+ *                  If so, role switch and remove it from link policy.
+ *
+ * Returns          true, if role switch is done
+ *
+ ******************************************************************************/
 bool bta_av_switch_if_needed(tBTA_AV_SCB *p_scb)
 {
     uint8_t role;
@@ -1056,15 +1056,15 @@ bool bta_av_switch_if_needed(tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_link_role_ok
-**
-** Description      This function checks if the SCB has existing ACL connection
-**                  If so, check if the link role fits the requirements.
-**
-** Returns          true, if role is ok
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_link_role_ok
+ *
+ * Description      This function checks if the SCB has existing ACL connection
+ *                  If so, check if the link role fits the requirements.
+ *
+ * Returns          true, if role is ok
+ *
+ ******************************************************************************/
 bool bta_av_link_role_ok(tBTA_AV_SCB *p_scb, uint8_t bits)
 {
     uint8_t role;
@@ -1095,15 +1095,15 @@ bool bta_av_link_role_ok(tBTA_AV_SCB *p_scb, uint8_t bits)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_chk_mtu
-**
-** Description      if this is audio channel, check if more than one audio
-**                  channel is connected.
-**
-** Returns          The smallest mtu of the connected audio channels
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_chk_mtu
+ *
+ * Description      if this is audio channel, check if more than one audio
+ *                  channel is connected.
+ *
+ * Returns          The smallest mtu of the connected audio channels
+ *
+ ******************************************************************************/
 uint16_t bta_av_chk_mtu(tBTA_AV_SCB *p_scb,
                         UNUSED_ATTR uint16_t mtu)
 {
@@ -1141,14 +1141,14 @@ uint16_t bta_av_chk_mtu(tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_dup_audio_buf
-**
-** Description      dup the audio data to the q_info.a2dp of other audio channels
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_dup_audio_buf
+ *
+ * Description      dup the audio data to the q_info.a2dp of other audio channels
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
 {
     /* Test whether there is more than one audio channel connected */
@@ -1182,15 +1182,15 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_sm_execute
-**
-** Description      State machine event handling function for AV
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_sm_execute
+ *
+ * Description      State machine event handling function for AV
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_sm_execute(tBTA_AV_CB *p_cb, uint16_t event, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_ST_TBL      state_table;
@@ -1221,15 +1221,15 @@ void bta_av_sm_execute(tBTA_AV_CB *p_cb, uint16_t event, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_hdl_event
-**
-** Description      Advanced audio/video main event handling function.
-**
-**
-** Returns          bool
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_hdl_event
+ *
+ * Description      Advanced audio/video main event handling function.
+ *
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
 bool bta_av_hdl_event(BT_HDR *p_msg)
 {
     uint16_t event = p_msg->event;
@@ -1271,18 +1271,18 @@ bool bta_av_hdl_event(BT_HDR *p_msg)
 }
 
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 #if (BTA_AV_DEBUG == TRUE)
 /*******************************************************************************
-**
-** Function         bta_av_st_code
-**
-** Description
-**
-** Returns          char *
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_st_code
+ *
+ * Description
+ *
+ * Returns          char *
+ *
+ ******************************************************************************/
 static const char *bta_av_st_code(uint8_t state)
 {
     switch(state)
@@ -1293,14 +1293,14 @@ static const char *bta_av_st_code(uint8_t state)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_av_evt_code
-**
-** Description
-**
-** Returns          char *
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_evt_code
+ *
+ * Description
+ *
+ * Returns          char *
+ *
+ ******************************************************************************/
 const char *bta_av_evt_code(uint16_t evt_code)
 {
     switch(evt_code)

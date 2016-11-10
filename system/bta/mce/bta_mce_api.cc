@@ -34,8 +34,8 @@
 #include "sdp_api.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 static const tBTA_SYS_REG bta_mce_reg =
 {
@@ -44,19 +44,19 @@ static const tBTA_SYS_REG bta_mce_reg =
 };
 
 /*******************************************************************************
-**
-** Function         BTA_MceEnable
-**
-** Description      Enable the MCE I/F service. When the enable
-**                  operation is complete the callback function will be
-**                  called with a BTA_MCE_ENABLE_EVT. This function must
-**                  be called before other functions in the MCE API are
-**                  called.
-**
-** Returns          BTA_MCE_SUCCESS if successful.
-**                  BTA_MCE_FAIL if internal failure.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_MceEnable
+ *
+ * Description      Enable the MCE I/F service. When the enable
+ *                  operation is complete the callback function will be
+ *                  called with a BTA_MCE_ENABLE_EVT. This function must
+ *                  be called before other functions in the MCE API are
+ *                  called.
+ *
+ * Returns          BTA_MCE_SUCCESS if successful.
+ *                  BTA_MCE_FAIL if internal failure.
+ *
+ ******************************************************************************/
 tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback)
 {
     tBTA_MCE_STATUS status = BTA_MCE_FAILURE;
@@ -83,18 +83,18 @@ tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_MceGetRemoteMasInstances
-**
-** Description      This function performs service discovery for the MAS service
-**                  by the given peer device. When the operation is completed
-**                  the tBTA_MCE_DM_CBACK callback function will be  called with
-**                  a BTA_MCE_MAS_DISCOVERY_COMP_EVT.
-**
-** Returns          BTA_MCE_SUCCESS, if the request is being processed.
-**                  BTA_MCE_FAILURE, otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_MceGetRemoteMasInstances
+ *
+ * Description      This function performs service discovery for the MAS service
+ *                  by the given peer device. When the operation is completed
+ *                  the tBTA_MCE_DM_CBACK callback function will be  called with
+ *                  a BTA_MCE_MAS_DISCOVERY_COMP_EVT.
+ *
+ * Returns          BTA_MCE_SUCCESS, if the request is being processed.
+ *                  BTA_MCE_FAILURE, otherwise.
+ *
+ ******************************************************************************/
 tBTA_MCE_STATUS BTA_MceGetRemoteMasInstances(BD_ADDR bd_addr)
 {
     tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES *p_msg =

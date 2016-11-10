@@ -44,8 +44,8 @@
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 /* the timeout to wait for open req after setconfig for incoming connections */
 #ifndef BTA_AV_SIGNALLING_TIMEOUT_MS
 #define BTA_AV_SIGNALLING_TIMEOUT_MS (8 * 1000)         /* 8 seconds */
@@ -66,14 +66,14 @@ static void bta_av_accept_signalling_timer_cback(void *data);
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_get_rcb_by_shdl
-**
-** Description      find the RCB associated with the given SCB handle.
-**
-** Returns          tBTA_AV_RCB
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_get_rcb_by_shdl
+ *
+ * Description      find the RCB associated with the given SCB handle.
+ *
+ * Returns          tBTA_AV_RCB
+ *
+ ******************************************************************************/
 tBTA_AV_RCB * bta_av_get_rcb_by_shdl(uint8_t shdl)
 {
     tBTA_AV_RCB *p_rcb = NULL;
@@ -92,14 +92,14 @@ tBTA_AV_RCB * bta_av_get_rcb_by_shdl(uint8_t shdl)
 #define BTA_AV_STS_NO_RSP       0xFF    /* a number not used by tAVRC_STS */
 
 /*******************************************************************************
-**
-** Function         bta_av_del_rc
-**
-** Description      delete the given AVRC handle.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_del_rc
+ *
+ * Description      delete the given AVRC handle.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_del_rc(tBTA_AV_RCB *p_rcb)
 {
     tBTA_AV_SCB  *p_scb;
@@ -148,14 +148,14 @@ void bta_av_del_rc(tBTA_AV_RCB *p_rcb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_close_all_rc
-**
-** Description      close the all AVRC handle.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_close_all_rc
+ *
+ * Description      close the all AVRC handle.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_close_all_rc(tBTA_AV_CB *p_cb)
 {
     int i;
@@ -168,14 +168,14 @@ static void bta_av_close_all_rc(tBTA_AV_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_del_sdp_rec
-**
-** Description      delete the given SDP record handle.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_del_sdp_rec
+ *
+ * Description      delete the given SDP record handle.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_del_sdp_rec(uint32_t *p_sdp_handle)
 {
     if (*p_sdp_handle != 0)
@@ -186,14 +186,14 @@ static void bta_av_del_sdp_rec(uint32_t *p_sdp_handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_avrc_sdp_cback
-**
-** Description      AVRCP service discovery callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_avrc_sdp_cback
+ *
+ * Description      AVRCP service discovery callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_avrc_sdp_cback(UNUSED_ATTR uint16_t status)
 {
     BT_HDR *p_msg = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -204,14 +204,14 @@ static void bta_av_avrc_sdp_cback(UNUSED_ATTR uint16_t status)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_ctrl_cback
-**
-** Description      AVRCP control callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_ctrl_cback
+ *
+ * Description      AVRCP control callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_rc_ctrl_cback(uint8_t handle, uint8_t event,
                                  UNUSED_ATTR uint16_t result, BD_ADDR peer_addr)
 {
@@ -250,14 +250,14 @@ static void bta_av_rc_ctrl_cback(uint8_t handle, uint8_t event,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_msg_cback
-**
-** Description      AVRCP message callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_msg_cback
+ *
+ * Description      AVRCP message callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_rc_msg_cback(uint8_t handle, uint8_t label, uint8_t opcode, tAVRC_MSG *p_msg)
 {
     uint8_t           *p_data_src = NULL;
@@ -310,14 +310,14 @@ static void bta_av_rc_msg_cback(uint8_t handle, uint8_t label, uint8_t opcode, t
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_create
-**
-** Description      alloc RCB and call AVRC_Open
-**
-** Returns          the created rc handle
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_create
+ *
+ * Description      alloc RCB and call AVRC_Open
+ *
+ * Returns          the created rc handle
+ *
+ ******************************************************************************/
 uint8_t bta_av_rc_create(tBTA_AV_CB *p_cb, uint8_t role, uint8_t shdl, uint8_t lidx)
 {
     tAVRC_CONN_CB ccb;
@@ -380,14 +380,14 @@ uint8_t bta_av_rc_create(tBTA_AV_CB *p_cb, uint8_t role, uint8_t shdl, uint8_t l
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_valid_group_navi_msg
-**
-** Description      Check if it is Group Navigation Msg for Metadata
-**
-** Returns          BTA_AV_RSP_ACCEPT or BTA_AV_RSP_NOT_IMPL.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_valid_group_navi_msg
+ *
+ * Description      Check if it is Group Navigation Msg for Metadata
+ *
+ * Returns          BTA_AV_RSP_ACCEPT or BTA_AV_RSP_NOT_IMPL.
+ *
+ ******************************************************************************/
 static tBTA_AV_CODE bta_av_group_navi_supported(uint8_t len, uint8_t *p_data, bool is_inquiry)
 {
     tBTA_AV_CODE ret=BTA_AV_RSP_NOT_IMPL;
@@ -421,14 +421,14 @@ static tBTA_AV_CODE bta_av_group_navi_supported(uint8_t len, uint8_t *p_data, bo
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_op_supported
-**
-** Description      Check if remote control operation is supported.
-**
-** Returns          BTA_AV_RSP_ACCEPT of supported, BTA_AV_RSP_NOT_IMPL if not.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_op_supported
+ *
+ * Description      Check if remote control operation is supported.
+ *
+ * Returns          BTA_AV_RSP_ACCEPT of supported, BTA_AV_RSP_NOT_IMPL if not.
+ *
+ ******************************************************************************/
 static tBTA_AV_CODE bta_av_op_supported(tBTA_AV_RC rc_id, bool is_inquiry)
 {
     tBTA_AV_CODE ret_code = BTA_AV_RSP_NOT_IMPL;
@@ -462,14 +462,14 @@ static tBTA_AV_CODE bta_av_op_supported(tBTA_AV_RC rc_id, bool is_inquiry)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_find_lcb
-**
-** Description      Given BD_addr, find the associated LCB.
-**
-** Returns          NULL, if not found.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_find_lcb
+ *
+ * Description      Given BD_addr, find the associated LCB.
+ *
+ * Returns          NULL, if not found.
+ *
+ ******************************************************************************/
 tBTA_AV_LCB * bta_av_find_lcb(BD_ADDR addr, uint8_t op)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -495,14 +495,14 @@ tBTA_AV_LCB * bta_av_find_lcb(BD_ADDR addr, uint8_t op)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_opened
-**
-** Description      Set AVRCP state to opened.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_opened
+ *
+ * Description      Set AVRCP state to opened.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RC_OPEN rc_open;
@@ -617,14 +617,14 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_remote_cmd
-**
-** Description      Send an AVRCP remote control command.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_remote_cmd
+ *
+ * Description      Send an AVRCP remote control command.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_remote_cmd(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RCB    *p_rcb;
@@ -643,14 +643,14 @@ void bta_av_rc_remote_cmd(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_vendor_cmd
-**
-** Description      Send an AVRCP vendor specific command.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_vendor_cmd
+ *
+ * Description      Send an AVRCP vendor specific command.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_vendor_cmd(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RCB    *p_rcb;
@@ -666,14 +666,14 @@ void bta_av_rc_vendor_cmd(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_vendor_rsp
-**
-** Description      Send an AVRCP vendor specific response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_vendor_rsp
+ *
+ * Description      Send an AVRCP vendor specific response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_vendor_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RCB    *p_rcb;
@@ -689,14 +689,14 @@ void bta_av_rc_vendor_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_meta_rsp
-**
-** Description      Send an AVRCP metadata/advanced control command/response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_meta_rsp
+ *
+ * Description      Send an AVRCP metadata/advanced control command/response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RCB *p_rcb;
@@ -722,28 +722,28 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_free_rsp
-**
-** Description      free an AVRCP metadata command buffer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_free_rsp
+ *
+ * Description      free an AVRCP metadata command buffer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_free_rsp (UNUSED_ATTR tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     osi_free_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_free_browse_msg
-**
-** Description      free an AVRCP browse message buffer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_free_browse_msg
+ *
+ * Description      free an AVRCP browse message buffer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_free_browse_msg (UNUSED_ATTR tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     if (p_data->rc_msg.opcode == AVRC_OP_BROWSE)
@@ -753,14 +753,14 @@ void bta_av_rc_free_browse_msg (UNUSED_ATTR tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_da
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_chk_notif_evt_id
-**
-** Description      make sure the requested player id is valid.
-**
-** Returns          BTA_AV_STS_NO_RSP, if no error
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_chk_notif_evt_id
+ *
+ * Description      make sure the requested player id is valid.
+ *
+ * Returns          BTA_AV_STS_NO_RSP, if no error
+ *
+ ******************************************************************************/
 static tAVRC_STS bta_av_chk_notif_evt_id(tAVRC_MSG_VENDOR *p_vendor)
 {
     tAVRC_STS   status = BTA_AV_STS_NO_RSP;
@@ -794,14 +794,14 @@ static tAVRC_STS bta_av_chk_notif_evt_id(tAVRC_MSG_VENDOR *p_vendor)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_proc_meta_cmd
-**
-** Description      Process an AVRCP metadata command from the peer.
-**
-** Returns          true to respond immediately
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_proc_meta_cmd
+ *
+ * Description      Process an AVRCP metadata command from the peer.
+ *
+ * Returns          true to respond immediately
+ *
+ ******************************************************************************/
 tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_msg, uint8_t *p_ctype)
 {
     tBTA_AV_EVT evt = BTA_AV_META_MSG_EVT;
@@ -901,14 +901,14 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_msg
-**
-** Description      Process an AVRCP message from the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_msg
+ *
+ * Description      Process an AVRCP message from the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_EVT evt = 0;
@@ -1111,14 +1111,14 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_close
-**
-** Description      close the specified AVRC handle.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_close
+ *
+ * Description      close the specified AVRC handle.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_close (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     uint16_t handle = p_data->hdr.layer_specific;
@@ -1151,26 +1151,26 @@ void bta_av_rc_close (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_browse_close
-**
-** Description      Empty placeholder.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_browse_close
+ *
+ * Description      Empty placeholder.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_browse_close (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     APPL_TRACE_WARNING("%s empty placeholder does nothing!", __func__);
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_get_shdl
-**
-** Returns          The index to p_scb[]
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_get_shdl
+ *
+ * Returns          The index to p_scb[]
+ *
+ ******************************************************************************/
 static uint8_t bta_av_get_shdl(tBTA_AV_SCB *p_scb)
 {
     int     i;
@@ -1188,14 +1188,14 @@ static uint8_t bta_av_get_shdl(tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_stream_chg
-**
-** Description      audio streaming status changed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_stream_chg
+ *
+ * Description      audio streaming status changed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_stream_chg(tBTA_AV_SCB *p_scb, bool started)
 {
     uint8_t   started_msk;
@@ -1262,15 +1262,15 @@ void bta_av_stream_chg(tBTA_AV_SCB *p_scb, bool started)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_conn_chg
-**
-** Description      connetion status changed.
-**                  Open an AVRCP acceptor channel, if new conn.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_conn_chg
+ *
+ * Description      connetion status changed.
+ *                  Open an AVRCP acceptor channel, if new conn.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_conn_chg(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -1472,14 +1472,14 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_disable
-**
-** Description      disable AV.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_disable
+ *
+ * Description      disable AV.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_disable(tBTA_AV_CB *p_cb,
                     UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1510,14 +1510,14 @@ void bta_av_disable(tBTA_AV_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_api_disconnect
-**
-** Description      .
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_api_disconnect
+ *
+ * Description      .
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_api_disconnect(tBTA_AV_DATA *p_data)
 {
     AVDT_DisconnectReq(p_data->api_discnt.bd_addr, bta_av_conn_cback);
@@ -1525,14 +1525,14 @@ void bta_av_api_disconnect(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_sig_chg
-**
-** Description      process AVDT signal channel up/down.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_sig_chg
+ *
+ * Description      process AVDT signal channel up/down.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 {
     uint16_t event = p_data->str_msg.hdr.layer_specific;
@@ -1658,17 +1658,17 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_signalling_timer
-**
-** Description      process the signal channel timer. This timer is started
-**                  when the AVDTP signal channel is connected. If no profile
-**                  is connected, the timer goes off every
-**                  BTA_AV_SIGNALLING_TIMEOUT_MS.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_signalling_timer
+ *
+ * Description      process the signal channel timer. This timer is started
+ *                  when the AVDTP signal channel is connected. If no profile
+ *                  is connected, the timer goes off every
+ *                  BTA_AV_SIGNALLING_TIMEOUT_MS.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_signalling_timer(UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -1697,15 +1697,15 @@ void bta_av_signalling_timer(UNUSED_ATTR tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_accept_signalling_timer_cback
-**
-** Description      Process the timeout when SRC is accepting connection
-**                  and SNK did not start signalling.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_accept_signalling_timer_cback
+ *
+ * Description      Process the timeout when SRC is accepting connection
+ *                  and SNK did not start signalling.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_accept_signalling_timer_cback(void *data)
 {
     uint32_t   inx = PTR_TO_UINT(data);
@@ -1766,15 +1766,15 @@ static void bta_av_accept_signalling_timer_cback(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_check_peer_features
-**
-** Description      check supported features on the peer device from the SDP record
-**                  and return the feature mask
-**
-** Returns          tBTA_AV_FEAT peer device feature mask
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_check_peer_features
+ *
+ * Description      check supported features on the peer device from the SDP record
+ *                  and return the feature mask
+ *
+ * Returns          tBTA_AV_FEAT peer device feature mask
+ *
+ ******************************************************************************/
 tBTA_AV_FEAT bta_av_check_peer_features (uint16_t service_uuid)
 {
     tBTA_AV_FEAT peer_features = 0;
@@ -1836,15 +1836,15 @@ tBTA_AV_FEAT bta_av_check_peer_features (uint16_t service_uuid)
 }
 
 /*******************************************************************************
-**
-** Function         bta_avk_check_peer_features
-**
-** Description      check supported features on the peer device from the SDP record
-**                  and return the feature mask
-**
-** Returns          tBTA_AV_FEAT peer device feature mask
-**
-*******************************************************************************/
+ *
+ * Function         bta_avk_check_peer_features
+ *
+ * Description      check supported features on the peer device from the SDP record
+ *                  and return the feature mask
+ *
+ * Returns          tBTA_AV_FEAT peer device feature mask
+ *
+ ******************************************************************************/
 tBTA_AV_FEAT bta_avk_check_peer_features (uint16_t service_uuid)
 {
     tBTA_AV_FEAT peer_features = 0;
@@ -1912,15 +1912,15 @@ tBTA_AV_FEAT bta_avk_check_peer_features (uint16_t service_uuid)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_disc_done
-**
-** Description      Handle AVRCP service discovery results.  If matching
-**                  service found, open AVRCP connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_disc_done
+ *
+ * Description      Handle AVRCP service discovery results.  If matching
+ *                  service found, open AVRCP connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -2040,14 +2040,14 @@ void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_closed
-**
-** Description      Set AVRCP state to closed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_closed
+ *
+ * Description      Set AVRCP state to closed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_closed(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -2139,14 +2139,14 @@ void bta_av_rc_closed(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_browse_opened
-**
-** Description      AVRC browsing channel is opened
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_browse_opened
+ *
+ * Description      AVRC browsing channel is opened
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_browse_opened(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -2167,14 +2167,14 @@ void bta_av_rc_browse_opened(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_browse_closed
-**
-** Description      AVRC browsing channel is closed
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_browse_closed
+ *
+ * Description      AVRC browsing channel is closed
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_browse_closed(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -2194,14 +2194,14 @@ void bta_av_rc_browse_closed(tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rc_disc
-**
-** Description      start AVRC SDP discovery.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rc_disc
+ *
+ * Description      start AVRC SDP discovery.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rc_disc(uint8_t disc)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
@@ -2261,14 +2261,14 @@ void bta_av_rc_disc(uint8_t disc)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_dereg_comp
-**
-** Description      deregister complete. free the stream control block.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_dereg_comp
+ *
+ * Description      deregister complete. free the stream control block.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;

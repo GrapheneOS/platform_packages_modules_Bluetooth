@@ -38,104 +38,104 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants and data types
-*****************************************************************************/
+ *  Constants and data types
+ ****************************************************************************/
 /* This event signal to AR user that other profile is connected */
 #define BTA_AR_AVDT_CONN_EVT    (AVDT_MAX_EVT + 1)
 
 /*******************************************************************************
-**
-** Function         bta_ar_init
-**
-** Description      This function is called from bta_sys_init().
-**                  to initialize the control block
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_init
+ *
+ * Description      This function is called from bta_sys_init().
+ *                  to initialize the control block
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_ar_init(void);
 
 /*******************************************************************************
-**
-** Function         bta_ar_reg_avdt
-**
-** Description      This function is called to register to AVDTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_reg_avdt
+ *
+ * Description      This function is called to register to AVDTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sys_id);
 
 /*******************************************************************************
-**
-** Function         bta_ar_dereg_avdt
-**
-** Description      This function is called to de-register from AVDTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_dereg_avdt
+ *
+ * Description      This function is called to de-register from AVDTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id);
 
 /*******************************************************************************
-**
-** Function         bta_ar_avdt_conn
-**
-** Description      This function is called to let ar know that some AVDTP profile
-**                  is connected for this sys_id.
-**                  If the other sys modules started a timer for PENDING_EVT,
-**                  the timer can be stopped now.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_avdt_conn
+ *
+ * Description      This function is called to let ar know that some AVDTP profile
+ *                  is connected for this sys_id.
+ *                  If the other sys modules started a timer for PENDING_EVT,
+ *                  the timer can be stopped now.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         bta_ar_reg_avct
-**
-** Description      This function is called to register to AVCTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_reg_avct
+ *
+ * Description      This function is called to register to AVCTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_ar_reg_avct(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask, tBTA_SYS_ID sys_id);
 
 /*******************************************************************************
-**
-** Function         bta_ar_dereg_avct
-**
-** Description      This function is called to deregister from AVCTP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ar_dereg_avct
+ *
+ * Description      This function is called to deregister from AVCTP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_ar_dereg_avct(tBTA_SYS_ID sys_id);
 
 /******************************************************************************
-**
-** Function         bta_ar_reg_avrc
-**
-** Description      This function is called to register an SDP record for AVRCP.
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ar_reg_avrc
+ *
+ * Description      This function is called to register an SDP record for AVRCP.
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 extern void bta_ar_reg_avrc(uint16_t service_uuid, const char *p_service_name,
                             const char *p_provider_name, uint16_t categories,
                             tBTA_SYS_ID sys_id, bool browse_supported,
                             uint16_t profile_version);
 
 /******************************************************************************
-**
-** Function         bta_ar_dereg_avrc
-**
-** Description      This function is called to de-register/delete an SDP record for AVRCP.
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ar_dereg_avrc
+ *
+ * Description      This function is called to de-register/delete an SDP record for AVRCP.
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 extern void bta_ar_dereg_avrc(uint16_t service_uuid, tBTA_SYS_ID sys_id);
 
 

@@ -30,8 +30,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants and Type Definitions
-*****************************************************************************/
+ *  Constants and Type Definitions
+ ****************************************************************************/
 #ifndef BTA_HH_DEBUG
 #define BTA_HH_DEBUG    true
 #endif
@@ -317,219 +317,219 @@ typedef void (tBTA_HH_CBACK) (tBTA_HH_EVT event, tBTA_HH *p_data);
 
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         BTA_HhRegister
-**
-** Description      This function enable HID host and registers HID-Host with
-**                  lower layers.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhRegister
+ *
+ * Description      This function enable HID host and registers HID-Host with
+ *                  lower layers.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_HhDeregister
-**
-** Description      This function is called when the host is about power down.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhDeregister
+ *
+ * Description      This function is called when the host is about power down.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhDisable(void);
 
 /*******************************************************************************
-**
-** Function         BTA_HhOpen
-**
-** Description      This function is called to start an inquiry and read SDP
-**                  record of responding devices; connect to a device if only
-**                  one active HID device is found.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhOpen
+ *
+ * Description      This function is called to start an inquiry and read SDP
+ *                  record of responding devices; connect to a device if only
+ *                  one active HID device is found.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhOpen (BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode,
                         tBTA_SEC sec_mask);
 
 /*******************************************************************************
-**
-** Function         BTA_HhClose
-**
-** Description      This function disconnects the device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhClose
+ *
+ * Description      This function disconnects the device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhClose(uint8_t dev_handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HhSetProtoMode
-**
-** Description      This function set the protocol mode at specified HID handle
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSetProtoMode
+ *
+ * Description      This function set the protocol mode at specified HID handle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhSetProtoMode(uint8_t handle, tBTA_HH_PROTO_MODE t_type);
 
 /*******************************************************************************
-**
-** Function         BTA_HhGetProtoMode
-**
-** Description      This function get the protocol mode of a specified HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetProtoMode
+ *
+ * Description      This function get the protocol mode of a specified HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhGetProtoMode(uint8_t dev_handle);
 /*******************************************************************************
-**
-** Function         BTA_HhSetReport
-**
-** Description      send SET_REPORT to device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSetReport
+ *
+ * Description      send SET_REPORT to device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhSetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
                             BT_HDR *p_data);
 
 /*******************************************************************************
-**
-** Function         BTA_HhGetReport
-**
-** Description      Send a GET_REPORT to HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetReport
+ *
+ * Description      Send a GET_REPORT to HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
                             uint8_t rpt_id, uint16_t buf_size);
 /*******************************************************************************
-**
-** Function         BTA_HhSetIdle
-**
-** Description      send SET_IDLE to device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSetIdle
+ *
+ * Description      send SET_IDLE to device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
 
 /*******************************************************************************
-**
-** Function         BTA_HhGetIdle
-**
-** Description      Send a GET_IDLE to HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetIdle
+ *
+ * Description      Send a GET_IDLE to HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhGetIdle(uint8_t dev_handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HhSendCtrl
-**
-** Description      Send HID_CONTROL request to a HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSendCtrl
+ *
+ * Description      Send HID_CONTROL request to a HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhSendCtrl(uint8_t dev_handle,
                            tBTA_HH_TRANS_CTRL_TYPE c_type);
 
 /*******************************************************************************
-**
-** Function         BTA_HhSetIdle
-**
-** Description      send SET_IDLE to device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSetIdle
+ *
+ * Description      send SET_IDLE to device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
 
 
 /*******************************************************************************
-**
-** Function         BTA_HhGetIdle
-**
-** Description      Send a GET_IDLE from HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetIdle
+ *
+ * Description      Send a GET_IDLE from HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhGetIdle(uint8_t dev_handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HhSendData
-**
-** Description      Send DATA transaction to a HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSendData
+ *
+ * Description      Send DATA transaction to a HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhSendData(uint8_t dev_handle, BD_ADDR dev_bda, BT_HDR  *p_buf);
 
 /*******************************************************************************
-**
-** Function         BTA_HhGetDscpInfo
-**
-** Description      Get report descriptor of the device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetDscpInfo
+ *
+ * Description      Get report descriptor of the device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhGetDscpInfo(uint8_t dev_handle);
 
 /*******************************************************************************
-** Function         BTA_HhAddDev
-**
-** Description      Add a virtually cabled device into HID-Host device list
-**                  to manage and assign a device handle for future API call,
-**                  host applciation call this API at start-up to initialize its
-**                  virtually cabled devices.
-**
-** Returns          void
-**
-*******************************************************************************/
+ * Function         BTA_HhAddDev
+ *
+ * Description      Add a virtually cabled device into HID-Host device list
+ *                  to manage and assign a device handle for future API call,
+ *                  host applciation call this API at start-up to initialize its
+ *                  virtually cabled devices.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
                          uint8_t sub_class, uint8_t app_id,
                          tBTA_HH_DEV_DSCP_INFO dscp_info);
 /*******************************************************************************
-**
-** Function         BTA_HhRemoveDev
-**
-** Description      Remove a device from the HID host devices list.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhRemoveDev
+ *
+ * Description      Remove a device from the HID host devices list.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhRemoveDev(uint8_t dev_handle );
 
 /*******************************************************************************
-**
-**              Parsing Utility Functions
-**
-*******************************************************************************/
+ *
+ *              Parsing Utility Functions
+ *
+ ******************************************************************************/
 /*******************************************************************************
-**
-** Function         BTA_HhParseBootRpt
-**
-** Description      This utility function parse a boot mode report.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhParseBootRpt
+ *
+ * Description      This utility function parse a boot mode report.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, uint8_t *p_report,
                                uint16_t report_len);
 

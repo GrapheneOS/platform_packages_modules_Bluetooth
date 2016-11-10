@@ -29,8 +29,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* AT command argument capabilities */
 #define BTA_AG_AT_NONE          0x01        /* no argument */
@@ -44,8 +44,8 @@ extern "C" {
 #define BTA_AG_AT_INT           1           /* integer */
 
 /*****************************************************************************
-**  Data types
-*****************************************************************************/
+ *  Data types
+ ****************************************************************************/
 
 /* AT command table element */
 typedef struct
@@ -79,47 +79,47 @@ typedef struct
 } tBTA_AG_AT_CB;
 
 /*****************************************************************************
-**  Function prototypes
-*****************************************************************************/
+ *  Function prototypes
+ ****************************************************************************/
 
 /*****************************************************************************
-**
-** Function         bta_ag_at_init
-**
-** Description      Initialize the AT command parser control block.
-**
-**
-** Returns          void
-**
-*****************************************************************************/
+ *
+ * Function         bta_ag_at_init
+ *
+ * Description      Initialize the AT command parser control block.
+ *
+ *
+ * Returns          void
+ *
+ ****************************************************************************/
 extern void bta_ag_at_init(tBTA_AG_AT_CB *p_cb);
 
 /*****************************************************************************
-**
-** Function         bta_ag_at_reinit
-**
-** Description      Re-initialize the AT command parser control block.  This
-**                  function resets the AT command parser state and frees
-**                  any GKI buffer.
-**
-**
-** Returns          void
-**
-*****************************************************************************/
+ *
+ * Function         bta_ag_at_reinit
+ *
+ * Description      Re-initialize the AT command parser control block.  This
+ *                  function resets the AT command parser state and frees
+ *                  any GKI buffer.
+ *
+ *
+ * Returns          void
+ *
+ ****************************************************************************/
 extern void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb);
 
 /*****************************************************************************
-**
-** Function         bta_ag_at_parse
-**
-** Description      Parse AT commands.  This function will take the input
-**                  character string and parse it for AT commands according to
-**                  the AT command table passed in the control block.
-**
-**
-** Returns          void
-**
-*****************************************************************************/
+ *
+ * Function         bta_ag_at_parse
+ *
+ * Description      Parse AT commands.  This function will take the input
+ *                  character string and parse it for AT commands according to
+ *                  the AT command table passed in the control block.
+ *
+ *
+ * Returns          void
+ *
+ ****************************************************************************/
 extern void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, uint16_t len);
 
 #ifdef __cplusplus

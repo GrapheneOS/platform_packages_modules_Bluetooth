@@ -60,15 +60,15 @@ const tBTA_AG_SDP_CBACK bta_ag_sdp_cback_tbl[] =
 };
 
 /*******************************************************************************
-**
-** Function         bta_ag_sdp_cback
-**
-** Description      SDP callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sdp_cback
+ *
+ * Description      SDP callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_sdp_cback(uint16_t status, uint8_t idx)
 {
     uint16_t             event;
@@ -98,34 +98,34 @@ static void bta_ag_sdp_cback(uint16_t status, uint8_t idx)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sdp_cback_1 to 3
-**
-** Description      SDP callback functions.  Since there is no way to
-**                  distinguish scb from the callback we need separate
-**                  callbacks for each scb.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sdp_cback_1 to 3
+ *
+ * Description      SDP callback functions.  Since there is no way to
+ *                  distinguish scb from the callback we need separate
+ *                  callbacks for each scb.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sdp_cback_1(uint16_t status) {bta_ag_sdp_cback(status, 1);}
 void bta_ag_sdp_cback_2(uint16_t status) {bta_ag_sdp_cback(status, 2);}
 void bta_ag_sdp_cback_3(uint16_t status) {bta_ag_sdp_cback(status, 3);}
 
 /******************************************************************************
-**
-** Function         bta_ag_add_record
-**
-** Description      This function is called by a server application to add
-**                  HSP or HFP information to an SDP record.  Prior to
-**                  calling this function the application must call
-**                  SDP_CreateRecord() to create an SDP record.
-**
-** Returns          true if function execution succeeded,
-**                  false if function execution failed.
-**
-******************************************************************************/
+ *
+ * Function         bta_ag_add_record
+ *
+ * Description      This function is called by a server application to add
+ *                  HSP or HFP information to an SDP record.  Prior to
+ *                  calling this function the application must call
+ *                  SDP_CreateRecord() to create an SDP record.
+ *
+ * Returns          true if function execution succeeded,
+ *                  false if function execution failed.
+ *
+ *****************************************************************************/
 bool bta_ag_add_record(uint16_t service_uuid, char *p_service_name, uint8_t scn,
                           tBTA_AG_FEAT features, uint32_t sdp_handle)
 {
@@ -203,15 +203,15 @@ bool bta_ag_add_record(uint16_t service_uuid, char *p_service_name, uint8_t scn,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_create_records
-**
-** Description      Create SDP records for registered services.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_create_records
+ *
+ * Description      Create SDP records for registered services.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_create_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     int                 i;
@@ -241,15 +241,15 @@ void bta_ag_create_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_del_records
-**
-** Description      Delete SDP records for any registered services.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_del_records
+ *
+ * Description      Delete SDP records for any registered services.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_del_records(tBTA_AG_SCB *p_scb,
                         UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -293,16 +293,16 @@ void bta_ag_del_records(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sdp_find_attr
-**
-** Description      Process SDP discovery results to find requested attributes
-**                  for requested service.
-**
-**
-** Returns          true if results found, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sdp_find_attr
+ *
+ * Description      Process SDP discovery results to find requested attributes
+ *                  for requested service.
+ *
+ *
+ * Returns          true if results found, false otherwise.
+ *
+ ******************************************************************************/
 bool bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 {
     tSDP_DISC_REC       *p_rec = NULL;
@@ -394,15 +394,15 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_do_disc
-**
-** Description      Do service discovery.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_do_disc
+ *
+ * Description      Do service discovery.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 {
     tSDP_UUID       uuid_list[2];
@@ -478,15 +478,15 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_free_db
-**
-** Description      Free discovery database.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_free_db
+ *
+ * Description      Free discovery database.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_free_db(tBTA_AG_SCB *p_scb,
                     UNUSED_ATTR tBTA_AG_DATA *p_data)
 {

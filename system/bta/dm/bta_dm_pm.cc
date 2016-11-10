@@ -63,15 +63,15 @@ tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_init_pm
-**
-** Description      Initializes the BT low power manager
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_init_pm
+ *
+ * Description      Initializes the BT low power manager
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_init_pm(void)
 {
     memset(&bta_dm_conn_srvcs, 0x00, sizeof(bta_dm_conn_srvcs));
@@ -95,15 +95,15 @@ void bta_dm_init_pm(void)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_disable_pm
-**
-** Description      Disable PM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disable_pm
+ *
+ * Description      Disable PM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_disable_pm(void)
 {
     BTM_PmRegister( BTM_PM_DEREG, &bta_dm_cb.pm_id, NULL);
@@ -126,15 +126,15 @@ void bta_dm_disable_pm(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_get_av_count
-**
-** Description      Get the number of connected AV
-**
-**
-** Returns          number of av connections
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_get_av_count
+ *
+ * Description      Get the number of connected AV
+ *
+ *
+ * Returns          number of av connections
+ *
+ ******************************************************************************/
 uint8_t bta_dm_get_av_count(void)
 {
     uint8_t count = 0;
@@ -147,15 +147,15 @@ uint8_t bta_dm_get_av_count(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_stop_timer
-**
-** Description      stop a PM timer
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_stop_timer
+ *
+ * Description      stop a PM timer
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
 {
     APPL_TRACE_DEBUG("%s: ", __func__);
@@ -184,15 +184,15 @@ static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pm_action_to_timer_idx
-**
-** Description      convert power mode into timer index for each connected device
-**
-**
-** Returns          index of the power mode delay timer
-**
-*******************************************************************************/
+ *
+ * Function         bta_pm_action_to_timer_idx
+ *
+ * Description      convert power mode into timer index for each connected device
+ *
+ *
+ * Returns          index of the power mode delay timer
+ *
+ ******************************************************************************/
 static uint8_t bta_pm_action_to_timer_idx(uint8_t pm_action)
 {
     if (pm_action == BTA_DM_PM_SUSPEND)
@@ -207,15 +207,15 @@ static uint8_t bta_pm_action_to_timer_idx(uint8_t pm_action)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_stop_timer_by_mode
-**
-** Description      stop a PM timer
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_stop_timer_by_mode
+ *
+ * Description      stop a PM timer
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pm_stop_timer_by_mode(BD_ADDR peer_addr, uint8_t power_mode)
 {
     const uint8_t timer_idx = bta_pm_action_to_timer_idx(power_mode);
@@ -243,15 +243,15 @@ static void bta_dm_pm_stop_timer_by_mode(BD_ADDR peer_addr, uint8_t power_mode)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_stop_timer_by_srvc_id
-**
-** Description      stop all timer started by the service ID.
-**
-**
-** Returns          index of the power mode delay timer
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_stop_timer_by_srvc_id
+ *
+ * Description      stop all timer started by the service ID.
+ *
+ *
+ * Returns          index of the power mode delay timer
+ *
+ ******************************************************************************/
 static void bta_dm_pm_stop_timer_by_srvc_id(BD_ADDR peer_addr, uint8_t srvc_id)
 {
     for (int i = 0; i < BTA_DM_NUM_PM_TIMER; i++)
@@ -272,15 +272,15 @@ static void bta_dm_pm_stop_timer_by_srvc_id(BD_ADDR peer_addr, uint8_t srvc_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_start_timer
-**
-** Description      start a PM timer
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_start_timer
+ *
+ * Description      start a PM timer
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pm_start_timer(tBTA_PM_TIMER *p_timer, uint8_t timer_idx,
                                   period_ms_t timeout_ms, uint8_t srvc_id,
                                   uint8_t pm_action)
@@ -301,15 +301,15 @@ static void bta_dm_pm_start_timer(tBTA_PM_TIMER *p_timer, uint8_t timer_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_stop_timer_by_index
-**
-** Description      stop a PM timer
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_stop_timer_by_index
+ *
+ * Description      stop a PM timer
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER *p_timer,
                                           uint8_t timer_idx)
 {
@@ -331,15 +331,15 @@ static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER *p_timer,
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_cback
-**
-** Description      Conn change callback from sys for low power management
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_cback
+ *
+ * Description      Conn change callback from sys for low power management
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
 
@@ -517,15 +517,15 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_set_mode
-**
-** Description      Set the power mode for the device
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_set_mode
+ *
+ * Description      Set the power mode for the device
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 
 static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
                                tBTA_DM_PM_REQ pm_req )
@@ -721,15 +721,15 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
     }
 }
 /*******************************************************************************
-**
-** Function         bta_ag_pm_park
-**
-** Description      Switch to park mode.
-**
-**
-** Returns          true if park attempted, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_pm_park
+ *
+ * Description      Switch to park mode.
+ *
+ *
+ * Returns          true if park attempted, false otherwise.
+ *
+ ******************************************************************************/
 static bool bta_dm_pm_park(BD_ADDR peer_addr)
 {
 
@@ -747,15 +747,15 @@ static bool bta_dm_pm_park(BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_pm_sniff
-**
-** Description      Switch to sniff mode.
-**
-**
-** Returns          true if sniff attempted, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_pm_sniff
+ *
+ * Description      Switch to sniff mode.
+ *
+ *
+ * Returns          true if sniff attempted, false otherwise.
+ *
+ ******************************************************************************/
 static bool bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, uint8_t index)
 {
     tBTM_PM_MODE    mode = BTM_PM_STS_ACTIVE;
@@ -817,14 +817,14 @@ static bool bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, uint8_t index)
 
 }
 /*******************************************************************************
-**
-** Function         bta_dm_pm_ssr
-**
-** Description      checks and sends SSR parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_ssr
+ *
+ * Description      checks and sends SSR parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
 static void bta_dm_pm_ssr(BD_ADDR peer_addr)
 {
@@ -898,15 +898,15 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
 }
 #endif
 /*******************************************************************************
-**
-** Function         bta_dm_pm_active
-**
-** Description      Brings connection to active mode
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_active
+ *
+ * Description      Brings connection to active mode
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_pm_active(BD_ADDR peer_addr)
 {
     tBTM_PM_PWR_MD  pm;
@@ -922,15 +922,15 @@ void bta_dm_pm_active(BD_ADDR peer_addr)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_btm_cback
-**
-** Description      BTM power manager callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_btm_cback
+ *
+ * Description      BTM power manager callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, uint16_t value, uint8_t hci_status)
 {
     tBTA_DM_PM_BTM_STATUS *p_buf =
@@ -946,15 +946,15 @@ static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, uint16_t
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_timer_cback
-**
-** Description      Power management timer callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_timer_cback
+ *
+ * Description      Power management timer callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pm_timer_cback(void *data)
 {
     uint8_t i, j;
@@ -996,15 +996,15 @@ static void bta_dm_pm_timer_cback(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_btm_status
-**
-** Description      Process pm status event from btm
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_btm_status
+ *
+ * Description      Process pm status event from btm
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_DEBUG("%s status: %d", __func__, p_data->pm_status.status);
@@ -1100,15 +1100,15 @@ void bta_dm_pm_btm_status(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_timer
-**
-** Description      Process pm timer event from btm
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_timer
+ *
+ * Description      Process pm timer event from btm
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_pm_timer(tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_EVENT("%s", __func__);
@@ -1116,14 +1116,14 @@ void bta_dm_pm_timer(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_find_peer_device
-**
-** Description      Given an address, find the associated control block.
-**
-** Returns          tBTA_DM_PEER_DEVICE
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_find_peer_device
+ *
+ * Description      Given an address, find the associated control block.
+ *
+ * Returns          tBTA_DM_PEER_DEVICE
+ *
+ ******************************************************************************/
 tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(const BD_ADDR peer_addr)
 {
     tBTA_DM_PEER_DEVICE *p_dev = NULL;
@@ -1141,14 +1141,14 @@ tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(const BD_ADDR peer_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_is_sco_active
-**
-** Description      Loop through connected services for HFP+State=SCO
-**
-** Returns          bool. true if SCO active, else false
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_is_sco_active
+ *
+ * Description      Loop through connected services for HFP+State=SCO
+ *
+ * Returns          bool. true if SCO active, else false
+ *
+ ******************************************************************************/
 static bool bta_dm_pm_is_sco_active ()
 {
     int j;
@@ -1170,14 +1170,14 @@ static bool bta_dm_pm_is_sco_active ()
 
 
 /*******************************************************************************
-**
-** Function        bta_dm_get_sco_index
-**
-** Description     Loop through connected services for HFP+State=SCO
-**
-** Returns         index at which SCO is connected, in absence of SCO return -1
-**
-*******************************************************************************/
+ *
+ * Function        bta_dm_get_sco_index
+ *
+ * Description     Loop through connected services for HFP+State=SCO
+ *
+ * Returns         index at which SCO is connected, in absence of SCO return -1
+ *
+ ******************************************************************************/
 static int bta_dm_get_sco_index()
 {
     for(int j = 0; j < bta_dm_conn_srvcs.count; j++)
@@ -1193,14 +1193,14 @@ static int bta_dm_get_sco_index()
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_hid_check
-**
-** Description      Disables/Enables sniff in link policy based on SCO Up/Down
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_hid_check
+ *
+ * Description      Disables/Enables sniff in link policy based on SCO Up/Down
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 static void bta_dm_pm_hid_check(bool bScoActive)
 {
     int j;
@@ -1225,14 +1225,14 @@ static void bta_dm_pm_hid_check(bool bScoActive)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pm_set_sniff_policy
-**
-** Description      Disables/Enables sniff in link policy for the give device
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_set_sniff_policy
+ *
+ * Description      Disables/Enables sniff in link policy for the give device
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, bool bDisable)
 {
     uint16_t policy_setting;
@@ -1266,14 +1266,14 @@ static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, bool bDisable
 
 #if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_dm_pm_obtain_controller_state
-**
-** Description      This function obtains the consolidated controller power state
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pm_obtain_controller_state
+ *
+ * Description      This function obtains the consolidated controller power state
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 tBTA_DM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void)
 {
     /*   Did not use counts as it is not sure, how accurate the count values are in

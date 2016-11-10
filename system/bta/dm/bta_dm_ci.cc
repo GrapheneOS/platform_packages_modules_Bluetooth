@@ -31,16 +31,16 @@
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_ci_io_req
-**
-** Description      This function must be called in response to function
-**                  bta_dm_co_io_req(), if *p_oob_data to BTA_OOB_UNKNOWN
-**                  by bta_dm_co_io_req().
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ci_io_req
+ *
+ * Description      This function must be called in response to function
+ *                  bta_dm_co_io_req(), if *p_oob_data to BTA_OOB_UNKNOWN
+ *                  by bta_dm_co_io_req().
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap, tBTA_OOB_DATA oob_data,
                                      tBTA_AUTH_REQ auth_req)
 
@@ -58,16 +58,16 @@ void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap, tBTA_OOB_DATA oob_dat
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ci_rmt_oob
-**
-** Description      This function must be called in response to function
-**                  bta_dm_co_rmt_oob() to provide the OOB data associated
-**                  with the remote device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ci_rmt_oob
+ *
+ * Description      This function must be called in response to function
+ *                  bta_dm_co_rmt_oob() to provide the OOB data associated
+ *                  with the remote device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_ci_rmt_oob(bool accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16 r)
 {
     tBTA_DM_CI_RMT_OOB *p_msg =
@@ -84,20 +84,20 @@ void bta_dm_ci_rmt_oob(bool accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16 r)
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_dm_sco_ci_data_ready
-**
-** Description      This function sends an event to indicating that the phone
-**                  has SCO data ready.
-**
-** Parameters       event: is obtained from bta_dm_sco_co_open() function, which
-**                          is the BTA event we want to send back to BTA module
-**                          when there is encoded data ready.
-**                  sco_handle: is the BTA sco handle which indicate a specific
-**                           SCO connection.
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sco_ci_data_ready
+ *
+ * Description      This function sends an event to indicating that the phone
+ *                  has SCO data ready.
+ *
+ * Parameters       event: is obtained from bta_dm_sco_co_open() function, which
+ *                          is the BTA event we want to send back to BTA module
+ *                          when there is encoded data ready.
+ *                  sco_handle: is the BTA sco handle which indicate a specific
+ *                           SCO connection.
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_sco_ci_data_ready(uint16_t event, uint16_t sco_handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));

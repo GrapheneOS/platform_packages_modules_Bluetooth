@@ -45,8 +45,8 @@
 #if (BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, uint16_t conn_id,
                                  bool connected, tGATT_DISCONN_REASON reason,
                                  tBT_TRANSPORT transport);
@@ -95,22 +95,22 @@ static const char *bta_gattc_op_code_name[] =
 };
 #endif // BT_TRACE_VERBOSE
 /*****************************************************************************
-**  Action Functions
-*****************************************************************************/
+ *  Action Functions
+ ****************************************************************************/
 
 
 void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS status);
 
 /*******************************************************************************
-**
-** Function         bta_gattc_enable
-**
-** Description      Enables GATTC module
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_enable
+ *
+ * Description      Enables GATTC module
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_gattc_enable()
 {
     APPL_TRACE_DEBUG("bta_gattc_enable");
@@ -128,15 +128,15 @@ static void bta_gattc_enable()
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_disable
-**
-** Description      Disable GATTC module by cleaning up all active connections
-**                  and deregister all application.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_disable
+ *
+ * Description      Disable GATTC module by cleaning up all active connections
+ *                  and deregister all application.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_disable()
 {
     uint8_t           i;
@@ -175,14 +175,14 @@ void bta_gattc_disable()
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_register
-**
-** Description      Register a GATT client application with BTA.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_register
+ *
+ * Description      Register a GATT client application with BTA.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_register(tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC               cb_data;
@@ -241,14 +241,14 @@ void bta_gattc_register(tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_start_if
-**
-** Description      start an application interface.
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_start_if
+ *
+ * Description      start an application interface.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 void bta_gattc_start_if(tBTA_GATTC_DATA *p_msg)
 {
     if (bta_gattc_cl_get_regcb(p_msg->int_start_if.client_if) !=NULL )
@@ -261,14 +261,14 @@ void bta_gattc_start_if(tBTA_GATTC_DATA *p_msg)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_deregister
-**
-** Description      De-Register a GATT client application with BTA.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_deregister
+ *
+ * Description      De-Register a GATT client application with BTA.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_deregister(tBTA_GATTC_RCB  *p_clreg)
 {
     uint8_t               i;
@@ -313,14 +313,14 @@ void bta_gattc_deregister(tBTA_GATTC_RCB  *p_clreg)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_process_api_open
-**
-** Description      process connect API request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_process_api_open
+ *
+ * Description      process connect API request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_process_api_open (tBTA_GATTC_DATA * p_msg)
 {
     uint16_t event = ((BT_HDR *)p_msg)->event;
@@ -360,14 +360,14 @@ void bta_gattc_process_api_open (tBTA_GATTC_DATA * p_msg)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_process_api_open_cancel
-**
-** Description      process connect API request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_process_api_open_cancel
+ *
+ * Description      process connect API request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_process_api_open_cancel (tBTA_GATTC_DATA * p_msg)
 {
     uint16_t event = ((BT_HDR *)p_msg)->event;
@@ -404,14 +404,14 @@ void bta_gattc_process_api_open_cancel (tBTA_GATTC_DATA * p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_process_enc_cmpl
-**
-** Description      process encryption complete message.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_process_enc_cmpl
+ *
+ * Description      process encryption complete message.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_process_enc_cmpl(tBTA_GATTC_DATA *p_msg)
 {
     tBTA_GATTC_RCB *p_clreg;
@@ -431,14 +431,14 @@ void bta_gattc_process_enc_cmpl(tBTA_GATTC_DATA *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cancel_open_error
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cancel_open_error
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_cancel_open_error(tBTA_GATTC_CLCB *p_clcb,
                                  UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -451,14 +451,14 @@ void bta_gattc_cancel_open_error(tBTA_GATTC_CLCB *p_clcb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_open_error
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_open_error
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_open_error(tBTA_GATTC_CLCB *p_clcb,
                           UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -472,14 +472,14 @@ void bta_gattc_open_error(tBTA_GATTC_CLCB *p_clcb,
                               0);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_open_fail
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_open_fail
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_open_fail(tBTA_GATTC_CLCB *p_clcb,
                          UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -494,14 +494,14 @@ void bta_gattc_open_fail(tBTA_GATTC_CLCB *p_clcb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_open
-**
-** Description      Process API connection function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_open
+ *
+ * Description      Process API connection function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC_DATA gattc_data;
@@ -530,14 +530,14 @@ void bta_gattc_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_init_bk_conn
-**
-** Description      Process API Open for a background connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_init_bk_conn
+ *
+ * Description      Process API Open for a background connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *p_clreg)
 {
     tBTA_GATT_STATUS         status = BTA_GATT_NO_RESOURCES;
@@ -587,14 +587,14 @@ void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *p_clreg
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_cancel_bk_conn
-**
-** Description      Process API Cancel Open for a background connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cancel_bk_conn
+ *
+ * Description      Process API Cancel Open for a background connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN *p_data)
 {
     tBTA_GATTC_RCB      *p_clreg;
@@ -622,14 +622,14 @@ void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN *p_data)
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_int_cancel_open_ok
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_int_cancel_open_ok
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_cancel_open_ok(tBTA_GATTC_CLCB *p_clcb,
                               UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -644,14 +644,14 @@ void bta_gattc_cancel_open_ok(tBTA_GATTC_CLCB *p_clcb,
     bta_gattc_clcb_dealloc(p_clcb);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_cancel_open
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cancel_open
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_cancel_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC          cb_data;
@@ -670,14 +670,14 @@ void bta_gattc_cancel_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_conn
-**
-** Description      receive connection callback from stack
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_conn
+ *
+ * Description      receive connection callback from stack
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_conn(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC_IF   gatt_if;
@@ -743,14 +743,14 @@ void bta_gattc_conn(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         }
     }
 /*******************************************************************************
-**
-** Function         bta_gattc_close_fail
-**
-** Description      close a  connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_close_fail
+ *
+ * Description      close a  connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_close_fail(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC           cb_data;
@@ -768,14 +768,14 @@ void bta_gattc_close_fail(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_api_close
-**
-** Description      close a GATTC connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_api_close
+ *
+ * Description      close a GATTC connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC_CBACK    *p_cback = p_clcb->p_rcb->p_cback;
@@ -814,14 +814,14 @@ void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_reset_discover_st
-**
-** Description      when a SRCB finished discovery, tell all related clcb.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_reset_discover_st
+ *
+ * Description      when a SRCB finished discovery, tell all related clcb.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS status)
 {
     uint8_t i;
@@ -836,14 +836,14 @@ void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS statu
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_disc_close
-**
-** Description      close a GATTC connection while in discovery state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_disc_close
+ *
+ * Description      close a GATTC connection while in discovery state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_disc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s: Discovery cancel conn_id=%d", __func__,
@@ -865,15 +865,15 @@ void bta_gattc_disc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_set_discover_st
-**
-** Description      when a SRCB start discovery, tell all related clcb and set
-**                  the state.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_set_discover_st
+ *
+ * Description      when a SRCB start discovery, tell all related clcb and set
+ *                  the state.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_set_discover_st(tBTA_GATTC_SERV *p_srcb)
 {
     uint8_t   i;
@@ -891,16 +891,16 @@ void bta_gattc_set_discover_st(tBTA_GATTC_SERV *p_srcb)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_restart_discover
-**
-** Description      process service change in discovery state, mark up the auto
-**                  update flag and set status to be discovery cancel for current
-**                  discovery.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_restart_discover
+ *
+ * Description      process service change in discovery state, mark up the auto
+ *                  update flag and set status to be discovery cancel for current
+ *                  discovery.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_restart_discover(tBTA_GATTC_CLCB *p_clcb,
                                 UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -909,14 +909,14 @@ void bta_gattc_restart_discover(tBTA_GATTC_CLCB *p_clcb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cfg_mtu
-**
-** Description      Configure MTU size on the GATT connection.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cfg_mtu
+ *
+ * Description      Configure MTU size on the GATT connection.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATT_STATUS    status;
@@ -937,14 +937,14 @@ void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_start_discover
-**
-** Description      Start a discovery on server.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_start_discover
+ *
+ * Description      Start a discovery on server.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_start_discover(tBTA_GATTC_CLCB *p_clcb,
                               UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -1000,14 +1000,14 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB *p_clcb,
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_disc_cmpl
-**
-** Description      discovery on server is finished
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_disc_cmpl
+ *
+ * Description      discovery on server is finished
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb,
                          UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -1061,14 +1061,14 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb,
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_read
-**
-** Description      Read an attribute
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_read
+ *
+ * Description      Read an attribute
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_read(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     if (!bta_gattc_enqueue(p_clcb, p_data))
@@ -1092,13 +1092,13 @@ void bta_gattc_read(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_read_multi
-**
-** Description      read multiple
-**
-** Returns          None.
-*********************************************************************************/
+ *
+ * Function         bta_gattc_read_multi
+ *
+ * Description      read multiple
+ *
+ * Returns          None.
+ ********************************************************************************/
 void bta_gattc_read_multi(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
@@ -1130,14 +1130,14 @@ void bta_gattc_read_multi(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_write
-**
-** Description      Write an attribute
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_write
+ *
+ * Description      Write an attribute
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_write(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     if (!bta_gattc_enqueue(p_clcb, p_data))
@@ -1168,13 +1168,13 @@ void bta_gattc_write(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_execute
-**
-** Description      send execute write
-**
-** Returns          None.
-*********************************************************************************/
+ *
+ * Function         bta_gattc_execute
+ *
+ * Description      send execute write
+ *
+ * Returns          None.
+ ********************************************************************************/
 void bta_gattc_execute(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATT_STATUS    status;
@@ -1194,14 +1194,14 @@ void bta_gattc_execute(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_confirm
-**
-** Description      send handle value confirmation
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_confirm
+ *
+ * Description      send handle value confirmation
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_confirm(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     uint16_t handle = p_data->api_confirm.handle;
@@ -1218,14 +1218,14 @@ void bta_gattc_confirm(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_read_cmpl
-**
-** Description      read complete
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_read_cmpl
+ *
+ * Description      read complete
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     GATT_READ_OP_CB cb = p_clcb->p_q_cmd->api_read.read_cb;
@@ -1240,14 +1240,14 @@ void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_write_cmpl
-**
-** Description      write complete
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_write_cmpl
+ *
+ * Description      write complete
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_write_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     GATT_WRITE_OP_CB cb = p_clcb->p_q_cmd->api_write.write_cb;
@@ -1260,14 +1260,14 @@ void bta_gattc_write_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_exec_cmpl
-**
-** Description      execute write complete
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_exec_cmpl
+ *
+ * Description      execute write complete
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_exec_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     tBTA_GATTC          cb_data;
@@ -1284,14 +1284,14 @@ void bta_gattc_exec_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cfg_mtu_cmpl
-**
-** Description      configure MTU operation complete
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cfg_mtu_cmpl
+ *
+ * Description      configure MTU operation complete
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_cfg_mtu_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     tBTA_GATTC          cb_data;
@@ -1311,14 +1311,14 @@ void bta_gattc_cfg_mtu_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_op_cmpl
-**
-** Description      operation completed.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_op_cmpl
+ *
+ * Description      operation completed.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void  bta_gattc_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     uint8_t           op = (uint8_t)p_data->op_cmpl.op_code;
@@ -1381,14 +1381,14 @@ void  bta_gattc_op_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_op_cmpl
-**
-** Description      operation completed.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_op_cmpl
+ *
+ * Description      operation completed.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void  bta_gattc_ignore_op_cmpl(UNUSED_ATTR tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     /* receive op complete when discovery is started, ignore the response,
@@ -1397,14 +1397,14 @@ void  bta_gattc_ignore_op_cmpl(UNUSED_ATTR tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_D
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_search
-**
-** Description      start a search in the local server cache
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_search
+ *
+ * Description      start a search in the local server cache
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_search(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATT_STATUS    status = GATT_INTERNAL_ERROR;
@@ -1423,29 +1423,29 @@ void bta_gattc_search(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     ( *p_clcb->p_rcb->p_cback)(BTA_GATTC_SEARCH_CMPL_EVT,  &cb_data);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_q_cmd
-**
-** Description      enqueue a command into control block, usually because discovery
-**                  operation is busy.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_q_cmd
+ *
+ * Description      enqueue a command into control block, usually because discovery
+ *                  operation is busy.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_q_cmd(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     bta_gattc_enqueue(p_clcb, p_data);
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_fail
-**
-** Description      report API call failure back to apps
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_fail
+ *
+ * Description      report API call failure back to apps
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_fail(tBTA_GATTC_CLCB *p_clcb,
                     UNUSED_ATTR tBTA_GATTC_DATA *p_data)
 {
@@ -1456,14 +1456,14 @@ void bta_gattc_fail(tBTA_GATTC_CLCB *p_clcb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_deregister_cmpl
-**
-** Description      De-Register a GATT client application with BTA completed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_deregister_cmpl
+ *
+ * Description      De-Register a GATT client application with BTA completed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg)
 {
     tBTA_GATTC_IF       client_if = p_clreg->client_if;
@@ -1488,14 +1488,14 @@ static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_conn_cback
-**
-** Description      callback functions to GATT client stack.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_conn_cback
+ *
+ * Description      callback functions to GATT client stack.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, uint16_t conn_id,
                                  bool connected, tGATT_DISCONN_REASON reason,
                                  tBT_TRANSPORT transport)
@@ -1527,14 +1527,14 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, uint16_t conn_i
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_enc_cmpl_cback
-**
-** Description      encryption complete callback function to GATT client stack.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_enc_cmpl_cback
+ *
+ * Description      encryption complete callback function to GATT client stack.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda)
 {
     tBTA_GATTC_CLCB *p_clcb =
@@ -1566,15 +1566,15 @@ static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_process_api_refresh
-**
-** Description      process refresh API to delete cache and start a new discovery
-**                  if currently connected.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_process_api_refresh
+ *
+ * Description      process refresh API to delete cache and start a new discovery
+ *                  if currently connected.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_process_api_refresh(tBTA_GATTC_DATA * p_msg)
 {
     tBTA_GATTC_SERV *p_srvc_cb = bta_gattc_find_srvr_cache(p_msg->api_conn.remote_bda);
@@ -1612,14 +1612,14 @@ void bta_gattc_process_api_refresh(tBTA_GATTC_DATA * p_msg)
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_process_srvc_chg_ind
-**
-** Description      process service change indication.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_process_srvc_chg_ind
+ *
+ * Description      process service change indication.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 bool bta_gattc_process_srvc_chg_ind(uint16_t conn_id,
                                        tBTA_GATTC_RCB      *p_clrcb,
                                        tBTA_GATTC_SERV     *p_srcb,
@@ -1695,14 +1695,14 @@ bool bta_gattc_process_srvc_chg_ind(uint16_t conn_id,
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_proc_other_indication
-**
-** Description      process all non-service change indication/notification.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_proc_other_indication
+ *
+ * Description      process all non-service change indication/notification.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_proc_other_indication(tBTA_GATTC_CLCB *p_clcb, uint8_t op,
                                      tGATT_CL_COMPLETE *p_data,
                                      tBTA_GATTC_NOTIFY *p_notify)
@@ -1723,14 +1723,14 @@ void bta_gattc_proc_other_indication(tBTA_GATTC_CLCB *p_clcb, uint8_t op,
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_process_indicate
-**
-** Description      process indication/notification.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_process_indicate
+ *
+ * Description      process indication/notification.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_process_indicate(uint16_t conn_id, tGATTC_OPTYPE op, tGATT_CL_COMPLETE *p_data)
 {
     uint16_t              handle = p_data->att_value.handle;
@@ -1803,14 +1803,14 @@ void bta_gattc_process_indicate(uint16_t conn_id, tGATTC_OPTYPE op, tGATT_CL_COM
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_cmpl_cback
-**
-** Description      client operation complete callback register with BTE GATT.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cmpl_cback
+ *
+ * Description      client operation complete callback register with BTE GATT.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 static void  bta_gattc_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
                                   tGATT_CL_COMPLETE *p_data)
 {
@@ -1842,14 +1842,14 @@ static void  bta_gattc_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STAT
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cmpl_sendmsg
-**
-** Description      client operation complete send message
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cmpl_sendmsg
+ *
+ * Description      client operation complete send message
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 static void bta_gattc_cmpl_sendmsg(uint16_t conn_id, tGATTC_OPTYPE op,
                                    tBTA_GATT_STATUS status,
                                    tGATT_CL_COMPLETE *p_data)
@@ -1871,14 +1871,14 @@ static void bta_gattc_cmpl_sendmsg(uint16_t conn_id, tGATTC_OPTYPE op,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cong_cback
-**
-** Description      congestion callback for BTA GATT client.
-**
-** Returns          void
-**
-********************************************************************************/
+ *
+ * Function         bta_gattc_cong_cback
+ *
+ * Description      congestion callback for BTA GATT client.
+ *
+ * Returns          void
+ *
+ *******************************************************************************/
 static void bta_gattc_cong_cback (uint16_t conn_id, bool congested)
 {
     tBTA_GATTC_CLCB *p_clcb;

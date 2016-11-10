@@ -35,8 +35,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants and data types
-*****************************************************************************/
+ *  Constants and data types
+ ****************************************************************************/
 /* Extra Debug Code */
 #ifndef BTA_HL_DEBUG
 #define BTA_HL_DEBUG           true
@@ -628,261 +628,261 @@ typedef void tBTA_HL_CBACK(tBTA_HL_EVT event, tBTA_HL *p_data);
 
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /**************************
-**  API Functions
-***************************/
+ *  API Functions
+ **************************/
 
 /*******************************************************************************
-**
-** Function         BTA_HlEnable
-**
-** Description      Enable the HL subsystems.  This function must be
-**                  called before any other functions in the HL API are called.
-**                  When the enable operation is completed the callback function
-**                  will be called with an BTA_HL_CTRL_ENABLE_CFM_EVT event.
-**
-** Parameters       p_cback - HL event call back function
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlEnable
+ *
+ * Description      Enable the HL subsystems.  This function must be
+ *                  called before any other functions in the HL API are called.
+ *                  When the enable operation is completed the callback function
+ *                  will be called with an BTA_HL_CTRL_ENABLE_CFM_EVT event.
+ *
+ * Parameters       p_cback - HL event call back function
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlEnable(tBTA_HL_CTRL_CBACK *p_ctrl_cback);
 /*******************************************************************************
-**
-** Function         BTA_HlDisable
-**
-** Description     Disable the HL subsystem.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlDisable
+ *
+ * Description     Disable the HL subsystem.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlDisable(void);
 
 /*******************************************************************************
-**
-** Function         BTA_HlUpdate
-**
-** Description      Register an HDP application
-**
-** Parameters       app_id        - Application ID
-**                  p_reg_param   - non-platform related parameters for the
-**                                  HDP application
-**                  p_cback       - HL event callback fucntion
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlUpdate
+ *
+ * Description      Register an HDP application
+ *
+ * Parameters       app_id        - Application ID
+ *                  p_reg_param   - non-platform related parameters for the
+ *                                  HDP application
+ *                  p_cback       - HL event callback fucntion
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlUpdate(uint8_t  app_id,
                          tBTA_HL_REG_PARAM *p_reg_param, bool is_register,
                          tBTA_HL_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_HlRegister
-**
-** Description      Register a HDP application
-**
-**
-** Parameters       app_id        - hdp application ID
-**                  p_reg_param   - non-platform related parameters for the
-**                                  HDP application
-**                  p_cback       - HL event callback fucntion
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlRegister
+ *
+ * Description      Register a HDP application
+ *
+ *
+ * Parameters       app_id        - hdp application ID
+ *                  p_reg_param   - non-platform related parameters for the
+ *                                  HDP application
+ *                  p_cback       - HL event callback fucntion
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlRegister(uint8_t  app_id,
                            tBTA_HL_REG_PARAM *p_reg_param,
                            tBTA_HL_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_HlDeregister
-**
-** Description      Deregister an HDP application
-**
-** Parameters       app_handle - Application handle
-**
-** Returns         void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlDeregister
+ *
+ * Description      Deregister an HDP application
+ *
+ * Parameters       app_handle - Application handle
+ *
+ * Returns         void
+ *
+ ******************************************************************************/
 extern void BTA_HlDeregister(uint8_t app_id,tBTA_HL_APP_HANDLE app_handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HlCchOpen
-**
-** Description      Open a Control channel connection with the specified BD address
-**                  and the control PSM value is used to select which
-**                  HDP insatnce should be used in case the peer device support
-**                  multiple HDP instances.
-**
-**
-** Parameters       app_handle - Application Handle
-**                  p_open_param - parameters for opening a control channel
-**
-** Returns          void
-**
-**                  Note: If the control PSM value is zero then the first HDP
-**                        instance is used for the control channel setup
-*******************************************************************************/
+ *
+ * Function         BTA_HlCchOpen
+ *
+ * Description      Open a Control channel connection with the specified BD address
+ *                  and the control PSM value is used to select which
+ *                  HDP insatnce should be used in case the peer device support
+ *                  multiple HDP instances.
+ *
+ *
+ * Parameters       app_handle - Application Handle
+ *                  p_open_param - parameters for opening a control channel
+ *
+ * Returns          void
+ *
+ *                  Note: If the control PSM value is zero then the first HDP
+ *                        instance is used for the control channel setup
+ ******************************************************************************/
 extern void BTA_HlCchOpen(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
                           tBTA_HL_CCH_OPEN_PARAM *p_open_param);
 
 /*******************************************************************************
-**
-** Function         BTA_HlCchClose
-**
-** Description      Close a Control channel connection with the specified MCL
-**                  handle
-**
-** Parameters       mcl_handle - MCL handle
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlCchClose
+ *
+ * Description      Close a Control channel connection with the specified MCL
+ *                  handle
+ *
+ * Parameters       mcl_handle - MCL handle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern  void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HlDchOpen
-**
-** Description      Open a data channel connection with the specified DCH parameters
-**
-** Parameters       mcl_handle - MCL handle
-**                  p_open_param - parameters for opening a data channel
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlDchOpen
+ *
+ * Description      Open a data channel connection with the specified DCH parameters
+ *
+ * Parameters       mcl_handle - MCL handle
+ *                  p_open_param - parameters for opening a data channel
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern  void BTA_HlDchOpen(tBTA_HL_MCL_HANDLE mcl_handle,
                            tBTA_HL_DCH_OPEN_PARAM *p_open_param);
 /*******************************************************************************
-**
-** Function         BTA_HlDchReconnect
-**
-** Description      Reconnect a data channel with the specified MDL_ID
-**
-** Parameters       mcl_handle      - MCL handle
+ *
+ * Function         BTA_HlDchReconnect
+ *
+ * Description      Reconnect a data channel with the specified MDL_ID
+ *
+ * Parameters       mcl_handle      - MCL handle
 *8                  p_recon_param   - parameters for reconnecting a data channel
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlDchReconnect(tBTA_HL_MCL_HANDLE mcl_handle,
                                tBTA_HL_DCH_RECONNECT_PARAM *p_recon_param);
 /*******************************************************************************
-**
-** Function         BTA_HlDchClose
-**
-** Description      Close a data channel with the specified MDL handle
-**
-** Parameters       mdl_handle  - MDL handle
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlDchClose
+ *
+ * Description      Close a data channel with the specified MDL handle
+ *
+ * Parameters       mdl_handle  - MDL handle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlDchClose(tBTA_HL_MDL_HANDLE mdl_handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HlDchAbort
-**
-** Description      Abort the current data channel setup with the specified MCL
-**                  handle
-**
-** Parameters       mcl_handle  - MCL handle
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlDchAbort
+ *
+ * Description      Abort the current data channel setup with the specified MCL
+ *                  handle
+ *
+ * Parameters       mcl_handle  - MCL handle
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HlSendData
-**
-** Description      Send an APDU to the peer device
-**
-** Parameters       mdl_handle  - MDL handle
-**                  pkt_size    - size of the data packet to be sent
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlSendData
+ *
+ * Description      Send an APDU to the peer device
+ *
+ * Parameters       mdl_handle  - MDL handle
+ *                  pkt_size    - size of the data packet to be sent
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle,
                            uint16_t           pkt_size);
 
 /*******************************************************************************
-**
-** Function         BTA_HlDeleteMdl
-**
-** Description      Delete the specified MDL_ID within the specified MCL handle
-**
-** Parameters       mcl_handle  - MCL handle
-**                  mdl_id      - MDL ID
-**
-** Returns          void
-**
-**                  note: If mdl_id = 0xFFFF then this means to delete all MDLs
-**                        and this value can only be used with DeleteMdl request only
-**                        not other requests
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlDeleteMdl
+ *
+ * Description      Delete the specified MDL_ID within the specified MCL handle
+ *
+ * Parameters       mcl_handle  - MCL handle
+ *                  mdl_id      - MDL ID
+ *
+ * Returns          void
+ *
+ *                  note: If mdl_id = 0xFFFF then this means to delete all MDLs
+ *                        and this value can only be used with DeleteMdl request only
+ *                        not other requests
+ *
+ ******************************************************************************/
 extern void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle,
                             tBTA_HL_MDL_ID mdl_id );
 
 /*******************************************************************************
-**
-** Function         BTA_HlDchEchoTest
-**
-** Description      Initiate an echo test with the specified MCL handle
-**
-** Parameters       mcl_handle           - MCL handle
+ *
+ * Function         BTA_HlDchEchoTest
+ *
+ * Description      Initiate an echo test with the specified MCL handle
+ *
+ * Parameters       mcl_handle           - MCL handle
 *8                  p_echo_test_param   -  parameters for echo testing
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlDchEchoTest( tBTA_HL_MCL_HANDLE  mcl_handle,
                                tBTA_HL_DCH_ECHO_TEST_PARAM *p_echo_test_param);
 
 /*******************************************************************************
-**
-** Function         BTA_HlSdpQuery
-**
-** Description      SDP query request for the specified BD address
-**
-** Parameters       app_id
+ *
+ * Function         BTA_HlSdpQuery
+ *
+ * Description      SDP query request for the specified BD address
+ *
+ * Parameters       app_id
                         app_handle      - application handle
-**                  bd_addr         - BD address
-**
-** Returns          void
-**
-*******************************************************************************/
+ *                  bd_addr         - BD address
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern  void BTA_HlSdpQuery(uint8_t  app_id,tBTA_HL_APP_HANDLE app_handle,
                             BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         BTA_HlDchCreateMdlRsp
-**
-** Description      Set the Response and configuration values for the Create MDL
-**                  request
-**
-** Parameters       mcl_handle  - MCL handle
-**                  p_rsp_param - parameters specified whether the request should
-**                                be accepted or not and if it should be accepted
-**                                then it also specified the configuration response
-**                                value
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HlDchCreateMdlRsp
+ *
+ * Description      Set the Response and configuration values for the Create MDL
+ *                  request
+ *
+ * Parameters       mcl_handle  - MCL handle
+ *                  p_rsp_param - parameters specified whether the request should
+ *                                be accepted or not and if it should be accepted
+ *                                then it also specified the configuration response
+ *                                value
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_HlDchCreateRsp(tBTA_HL_MCL_HANDLE mcl_handle,
                                tBTA_HL_DCH_CREATE_RSP_PARAM *p_rsp_param);
 

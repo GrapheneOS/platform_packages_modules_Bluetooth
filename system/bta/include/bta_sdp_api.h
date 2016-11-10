@@ -81,61 +81,61 @@ typedef struct
 } tBTA_SDP_CFG;
 
 /*******************************************************************************
-**
-** Function         BTA_SdpEnable
-**
-** Description      Enable the SDP I/F service. When the enable
-**                  operation is complete the callback function will be
-**                  called with a BTA_SDP_ENABLE_EVT. This function must
-**                  be called before other functions in the MCE API are
-**                  called.
-**
-** Returns          BTA_SDP_SUCCESS if successful.
-**                  BTA_SDP_FAIL if internal failure.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpEnable
+ *
+ * Description      Enable the SDP I/F service. When the enable
+ *                  operation is complete the callback function will be
+ *                  called with a BTA_SDP_ENABLE_EVT. This function must
+ *                  be called before other functions in the MCE API are
+ *                  called.
+ *
+ * Returns          BTA_SDP_SUCCESS if successful.
+ *                  BTA_SDP_FAIL if internal failure.
+ *
+ ******************************************************************************/
 extern tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_SdpSearch
-**
-** Description      Start a search for sdp records for a specific BD_ADDR with a
-**                  specific profile uuid.
-**                  When the search operation is completed, the callback function
-**                  will be called with a BTA_SDP_SEARCH_EVT.
-** Returns          BTA_SDP_SUCCESS if successful.
-**                  BTA_SDP_FAIL if internal failure.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpSearch
+ *
+ * Description      Start a search for sdp records for a specific BD_ADDR with a
+ *                  specific profile uuid.
+ *                  When the search operation is completed, the callback function
+ *                  will be called with a BTA_SDP_SEARCH_EVT.
+ * Returns          BTA_SDP_SUCCESS if successful.
+ *                  BTA_SDP_FAIL if internal failure.
+ *
+ ******************************************************************************/
 extern tBTA_SDP_STATUS BTA_SdpSearch(BD_ADDR bd_addr,tSDP_UUID *uuid);
 
 /*******************************************************************************
-**
-** Function         BTA_SdpCreateRecordByUser
-**
-** Description      This function is used to request a callback to create a SDP
-**                  record. The registered callback will be called with event
-**                  BTA_SDP_CREATE_RECORD_USER_EVT.
-**
-** Returns          BTA_SDP_SUCCESS, if the request is being processed.
-**                  BTA_SDP_FAILURE, otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpCreateRecordByUser
+ *
+ * Description      This function is used to request a callback to create a SDP
+ *                  record. The registered callback will be called with event
+ *                  BTA_SDP_CREATE_RECORD_USER_EVT.
+ *
+ * Returns          BTA_SDP_SUCCESS, if the request is being processed.
+ *                  BTA_SDP_FAILURE, otherwise.
+ *
+ ******************************************************************************/
 extern tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data);
 
 /*******************************************************************************
-**
-** Function         BTA_SdpRemoveRecordByUser
-**
-** Description      This function is used to request a callback to remove a SDP
-**                  record. The registered callback will be called with event
-**                  BTA_SDP_REMOVE_RECORD_USER_EVT.
-**
-** Returns          BTA_SDP_SUCCESS, if the request is being processed.
-**                  BTA_SDP_FAILURE, otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_SdpRemoveRecordByUser
+ *
+ * Description      This function is used to request a callback to remove a SDP
+ *                  record. The registered callback will be called with event
+ *                  BTA_SDP_REMOVE_RECORD_USER_EVT.
+ *
+ * Returns          BTA_SDP_SUCCESS, if the request is being processed.
+ *                  BTA_SDP_FAILURE, otherwise.
+ *
+ ******************************************************************************/
 extern tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data);
 
 #ifdef __cplusplus
