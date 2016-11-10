@@ -1388,7 +1388,7 @@ uint16_t btm_get_acl_disc_reason_code (void)
 ** Returns          the handle of the connection, or 0xFFFF if none.
 **
 *******************************************************************************/
-uint16_t BTM_GetHCIConnHandle (BD_ADDR remote_bda, tBT_TRANSPORT transport)
+uint16_t BTM_GetHCIConnHandle (const BD_ADDR remote_bda, tBT_TRANSPORT transport)
 {
     tACL_CONN   *p;
     BTM_TRACE_DEBUG ("BTM_GetHCIConnHandle");
