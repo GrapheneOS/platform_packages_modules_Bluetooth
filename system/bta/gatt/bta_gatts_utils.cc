@@ -27,6 +27,7 @@
 #if (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
+
 #include "utl.h"
 #include "bt_common.h"
 #include "bta_sys.h"

@@ -22,6 +22,7 @@
  *  Broadcom's Bluetooth application layer for mobile phones.
  *
  ******************************************************************************/
+#include <string.h>
 
 #include "bt_target.h"
 
@@ -31,7 +32,6 @@
 #include "bt_common.h"
 #include "bta_pan_api.h"
 #include "bta_pan_int.h"
-#include <string.h>
 #include "bt_utils.h"
 #include "osi/include/osi.h"
 

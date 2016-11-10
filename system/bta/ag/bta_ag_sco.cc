@@ -23,6 +23,7 @@
  ******************************************************************************/
 
 #include <stddef.h>
+
 #include "bta_api.h"
 #include "bta_ag_api.h"
 #include "bta_ag_co.h"

@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#include <string.h>
+
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_ag_api.h"
@@ -31,7 +33,6 @@
 #include "osi/include/osi.h"
 #include "port_api.h"
 #include "utl.h"
-#include <string.h>
 #include "l2c_api.h"
 
 /*****************************************************************************
