@@ -29,6 +29,7 @@ import android.content.IntentFilter.MalformedMimeTypeException;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -1195,8 +1196,15 @@ public class BluetoothMapContentObserver {
         if (mEnableSmsMms) {
             HashMap<Long, Msg> msgListSms = new HashMap<Long, Msg>();
 
-            Cursor c = mResolver.query(Sms.CONTENT_URI,
+            Cursor c;
+            try {
+                c = mResolver.query(Sms.CONTENT_URI,
                     SMS_PROJECTION_SHORT, null, null, null);
+            } catch (SQLiteException e) {
+                Log.e(TAG, "Failed to initialize the list of messages: " + e.toString());
+                return;
+            }
+
             try {
                 if (c != null && c.moveToFirst()) {
                     do {
