@@ -33,12 +33,8 @@
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
-static const tBTA_SYS_REG bta_hf_client_reg =
-{
-    bta_hf_client_hdl_event,
-    BTA_HfClientDisable
-};
-
+static const tBTA_SYS_REG bta_hf_client_reg = {bta_hf_client_hdl_event,
+                                               BTA_HfClientDisable};
 
 /*****************************************************************************
  *  External Function Declarations
@@ -57,25 +53,23 @@ static const tBTA_SYS_REG bta_hf_client_reg =
  * Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
  *
  ******************************************************************************/
-tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
-{
-    if (bta_sys_is_register (BTA_ID_HS))
-    {
-        APPL_TRACE_ERROR("BTA HF Client is already enabled, ignoring ...");
-        return BTA_FAILURE;
-    }
+tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback) {
+  if (bta_sys_is_register(BTA_ID_HS)) {
+    APPL_TRACE_ERROR("BTA HF Client is already enabled, ignoring ...");
+    return BTA_FAILURE;
+  }
 
-    /* register with BTA system manager */
-    bta_sys_register(BTA_ID_HS, &bta_hf_client_reg);
+  /* register with BTA system manager */
+  bta_sys_register(BTA_ID_HS, &bta_hf_client_reg);
 
-    tBTA_HF_CLIENT_API_ENABLE *p_buf =
-        (tBTA_HF_CLIENT_API_ENABLE *)osi_malloc(sizeof(tBTA_HF_CLIENT_API_ENABLE));
-    p_buf->hdr.event = BTA_HF_CLIENT_API_ENABLE_EVT;
-    p_buf->p_cback = p_cback;
+  tBTA_HF_CLIENT_API_ENABLE* p_buf =
+      (tBTA_HF_CLIENT_API_ENABLE*)osi_malloc(sizeof(tBTA_HF_CLIENT_API_ENABLE));
+  p_buf->hdr.event = BTA_HF_CLIENT_API_ENABLE_EVT;
+  p_buf->p_cback = p_cback;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 
-    return BTA_SUCCESS;
+  return BTA_SUCCESS;
 }
 
 /*******************************************************************************
@@ -88,13 +82,12 @@ tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientDisable(void)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void BTA_HfClientDisable(void) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->event = BTA_HF_CLIENT_API_DISABLE_EVT;
+  p_buf->event = BTA_HF_CLIENT_API_DISABLE_EVT;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -108,20 +101,19 @@ void BTA_HfClientDisable(void)
  *
  ******************************************************************************/
 void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
-                          const char *p_service_name)
-{
-    tBTA_HF_CLIENT_API_REGISTER *p_buf =
-        (tBTA_HF_CLIENT_API_REGISTER *)osi_malloc(sizeof(tBTA_HF_CLIENT_API_REGISTER));
+                          const char* p_service_name) {
+  tBTA_HF_CLIENT_API_REGISTER* p_buf = (tBTA_HF_CLIENT_API_REGISTER*)osi_malloc(
+      sizeof(tBTA_HF_CLIENT_API_REGISTER));
 
-    p_buf->hdr.event = BTA_HF_CLIENT_API_REGISTER_EVT;
-    p_buf->features = features;
-    p_buf->sec_mask = sec_mask;
-    if (p_service_name)
-        strlcpy(p_buf->name, p_service_name, BTA_SERVICE_NAME_LEN);
-    else
-        p_buf->name[0] = 0;
+  p_buf->hdr.event = BTA_HF_CLIENT_API_REGISTER_EVT;
+  p_buf->features = features;
+  p_buf->sec_mask = sec_mask;
+  if (p_service_name)
+    strlcpy(p_buf->name, p_service_name, BTA_SERVICE_NAME_LEN);
+  else
+    p_buf->name[0] = 0;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -134,14 +126,13 @@ void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientDeregister(uint16_t handle)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void BTA_HfClientDeregister(uint16_t handle) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->event = BTA_HF_CLIENT_API_DEREGISTER_EVT;
-    p_buf->layer_specific = handle;
+  p_buf->event = BTA_HF_CLIENT_API_DEREGISTER_EVT;
+  p_buf->layer_specific = handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -157,17 +148,16 @@ void BTA_HfClientDeregister(uint16_t handle)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
-{
-    tBTA_HF_CLIENT_API_OPEN *p_buf =
-        (tBTA_HF_CLIENT_API_OPEN *)osi_malloc(sizeof(tBTA_HF_CLIENT_API_OPEN));
+void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask) {
+  tBTA_HF_CLIENT_API_OPEN* p_buf =
+      (tBTA_HF_CLIENT_API_OPEN*)osi_malloc(sizeof(tBTA_HF_CLIENT_API_OPEN));
 
-    p_buf->hdr.event = BTA_HF_CLIENT_API_OPEN_EVT;
-    p_buf->hdr.layer_specific = handle;
-    bdcpy(p_buf->bd_addr, bd_addr);
-    p_buf->sec_mask = sec_mask;
+  p_buf->hdr.event = BTA_HF_CLIENT_API_OPEN_EVT;
+  p_buf->hdr.layer_specific = handle;
+  bdcpy(p_buf->bd_addr, bd_addr);
+  p_buf->sec_mask = sec_mask;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -181,14 +171,13 @@ void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientClose(uint16_t handle)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void BTA_HfClientClose(uint16_t handle) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->event = BTA_HF_CLIENT_API_CLOSE_EVT;
-    p_buf->layer_specific = handle;
+  p_buf->event = BTA_HF_CLIENT_API_CLOSE_EVT;
+  p_buf->layer_specific = handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -202,14 +191,13 @@ void BTA_HfClientClose(uint16_t handle)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientAudioOpen(uint16_t handle)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void BTA_HfClientAudioOpen(uint16_t handle) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->event = BTA_HF_CLIENT_API_AUDIO_OPEN_EVT;
-    p_buf->layer_specific = handle;
+  p_buf->event = BTA_HF_CLIENT_API_AUDIO_OPEN_EVT;
+  p_buf->layer_specific = handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -223,14 +211,13 @@ void BTA_HfClientAudioOpen(uint16_t handle)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientAudioClose(uint16_t handle)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void BTA_HfClientAudioClose(uint16_t handle) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->event = BTA_HF_CLIENT_API_AUDIO_CLOSE_EVT;
-    p_buf->layer_specific = handle;
+  p_buf->event = BTA_HF_CLIENT_API_AUDIO_CLOSE_EVT;
+  p_buf->layer_specific = handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -243,24 +230,24 @@ void BTA_HfClientAudioClose(uint16_t handle)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, uint32_t val1, uint32_t val2, const char *str)
-{
-    tBTA_HF_CLIENT_DATA_VAL *p_buf =
-        (tBTA_HF_CLIENT_DATA_VAL *)osi_malloc(sizeof(tBTA_HF_CLIENT_DATA_VAL));
+void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
+                        uint32_t val1, uint32_t val2, const char* str) {
+  tBTA_HF_CLIENT_DATA_VAL* p_buf =
+      (tBTA_HF_CLIENT_DATA_VAL*)osi_malloc(sizeof(tBTA_HF_CLIENT_DATA_VAL));
 
-    p_buf->hdr.event = BTA_HF_CLIENT_SEND_AT_CMD_EVT;
-    p_buf->uint8_val = at;
-    p_buf->uint32_val1 = val1;
-    p_buf->uint32_val2 = val2;
+  p_buf->hdr.event = BTA_HF_CLIENT_SEND_AT_CMD_EVT;
+  p_buf->uint8_val = at;
+  p_buf->uint32_val1 = val1;
+  p_buf->uint32_val2 = val2;
 
-    if (str) {
-        strlcpy(p_buf->str, str, BTA_HF_CLIENT_NUMBER_LEN + 1);
-        p_buf->str[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
-    } else {
-        p_buf->str[0] = '\0';
-    }
+  if (str) {
+    strlcpy(p_buf->str, str, BTA_HF_CLIENT_NUMBER_LEN + 1);
+    p_buf->str[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
+  } else {
+    p_buf->str[0] = '\0';
+  }
 
-    p_buf->hdr.layer_specific = handle;
+  p_buf->hdr.layer_specific = handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }

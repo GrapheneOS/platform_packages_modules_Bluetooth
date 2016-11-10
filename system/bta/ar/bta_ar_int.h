@@ -32,24 +32,24 @@ extern "C" {
 #endif
 
 #ifndef BTA_AR_DEBUG
-#define BTA_AR_DEBUG    TRUE
+#define BTA_AR_DEBUG TRUE
 #endif
 
-#define BTA_AR_AV_MASK      0x01
-#define BTA_AR_AVK_MASK     0x02
+#define BTA_AR_AV_MASK 0x01
+#define BTA_AR_AVK_MASK 0x02
 
 /* data associated with BTA_AR */
-typedef struct
-{
-    tAVDT_CTRL_CBACK *p_av_conn_cback;       /* av connection callback function */
-    tAVDT_CTRL_CBACK *p_avk_conn_cback;      /* avk connection callback function */
-    uint8_t           avdt_registered;
-    uint8_t           avct_registered;
-    uint32_t          sdp_tg_handle;
-    uint32_t          sdp_ct_handle;
-    uint16_t          ct_categories[2];
-    uint8_t           tg_registered;
-    tBTA_AV_HNDL    hndl;       /* Handle associated with the stream that rejected the connection. */
+typedef struct {
+  tAVDT_CTRL_CBACK* p_av_conn_cback;  /* av connection callback function */
+  tAVDT_CTRL_CBACK* p_avk_conn_cback; /* avk connection callback function */
+  uint8_t avdt_registered;
+  uint8_t avct_registered;
+  uint32_t sdp_tg_handle;
+  uint32_t sdp_ct_handle;
+  uint16_t ct_categories[2];
+  uint8_t tg_registered;
+  tBTA_AV_HNDL hndl; /* Handle associated with the stream that rejected the
+                        connection. */
 } tBTA_AR_CB;
 
 /*****************************************************************************

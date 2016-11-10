@@ -36,89 +36,78 @@ extern "C" {
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
-#define BTA_PAN_SUCCESS          0
-#define BTA_PAN_FAIL             1
+#define BTA_PAN_SUCCESS 0
+#define BTA_PAN_FAIL 1
 
 typedef uint8_t tBTA_PAN_STATUS;
 
-
 /* PAN Callback events */
-#define BTA_PAN_ENABLE_EVT       0       /* PAN service is enabled. */
-#define BTA_PAN_SET_ROLE_EVT     1       /* PAN roles registered */
-#define BTA_PAN_OPENING_EVT      2       /* Connection is being opened. */
-#define BTA_PAN_OPEN_EVT         3       /* Connection has been opened. */
-#define BTA_PAN_CLOSE_EVT        4       /* Connection has been closed. */
+#define BTA_PAN_ENABLE_EVT 0   /* PAN service is enabled. */
+#define BTA_PAN_SET_ROLE_EVT 1 /* PAN roles registered */
+#define BTA_PAN_OPENING_EVT 2  /* Connection is being opened. */
+#define BTA_PAN_OPEN_EVT 3     /* Connection has been opened. */
+#define BTA_PAN_CLOSE_EVT 4    /* Connection has been closed. */
 
 typedef uint8_t tBTA_PAN_EVT;
 
-
 /* pan roles */
-#define BTA_PAN_ROLE_PANU        PAN_ROLE_CLIENT
-#define BTA_PAN_ROLE_GN          PAN_ROLE_GN_SERVER
-#define BTA_PAN_ROLE_NAP         PAN_ROLE_NAP_SERVER
+#define BTA_PAN_ROLE_PANU PAN_ROLE_CLIENT
+#define BTA_PAN_ROLE_GN PAN_ROLE_GN_SERVER
+#define BTA_PAN_ROLE_NAP PAN_ROLE_NAP_SERVER
 
-
-typedef uint8_t   tBTA_PAN_ROLE;
+typedef uint8_t tBTA_PAN_ROLE;
 
 /*  information regarding PAN roles */
-typedef struct
-{
-    const char *p_srv_name;  /* service name for the PAN role */
-    uint8_t app_id;      /* application id */
-    tBTA_SEC sec_mask; /* security setting for the role */
+typedef struct {
+  const char* p_srv_name; /* service name for the PAN role */
+  uint8_t app_id;         /* application id */
+  tBTA_SEC sec_mask;      /* security setting for the role */
 
 } tBTA_PAN_ROLE_INFO;
 
-
 /* Event associated with BTA_PAN_SET_ROLE_EVT */
-typedef struct
-{
-    tBTA_PAN_STATUS status;     /* status of set role event */
-    tBTA_PAN_ROLE   role;       /* PAN roles successfully registered */
+typedef struct {
+  tBTA_PAN_STATUS status; /* status of set role event */
+  tBTA_PAN_ROLE role;     /* PAN roles successfully registered */
 } tBTA_PAN_SET_ROLE;
 
 /* Event associated with BTA_PAN_OPENING_EVT */
-typedef struct
-{
-    BD_ADDR         bd_addr;    /* BD address of peer device. */
-    uint16_t          handle;     /* Handle associated with this connection. */
+typedef struct {
+  BD_ADDR bd_addr; /* BD address of peer device. */
+  uint16_t handle; /* Handle associated with this connection. */
 
 } tBTA_PAN_OPENING;
 
-
 /* Event associated with BTA_PAN_OPEN_EVT */
-typedef struct
-{
-    BD_ADDR         bd_addr;    /* BD address of peer device. */
-    uint16_t          handle;     /* Handle associated with this connection. */
-    tBTA_PAN_STATUS status;     /* status of open event */
-    tBTA_PAN_ROLE   local_role; /* Local device PAN role for the connection */
-    tBTA_PAN_ROLE   peer_role;  /* Peer device PAN role for the connection */
+typedef struct {
+  BD_ADDR bd_addr;          /* BD address of peer device. */
+  uint16_t handle;          /* Handle associated with this connection. */
+  tBTA_PAN_STATUS status;   /* status of open event */
+  tBTA_PAN_ROLE local_role; /* Local device PAN role for the connection */
+  tBTA_PAN_ROLE peer_role;  /* Peer device PAN role for the connection */
 
 } tBTA_PAN_OPEN;
 
 /* Event associated with BTA_PAN_CLOSE_EVT */
-typedef struct
-{
-    uint16_t          handle;     /* Handle associated with the connection. */
+typedef struct {
+  uint16_t handle; /* Handle associated with the connection. */
 } tBTA_PAN_CLOSE;
 
 /* Union of all PAN callback structures */
-typedef union
-{
-    tBTA_PAN_SET_ROLE   set_role;   /* set_role event */
-    tBTA_PAN_OPEN       open;       /* Connection has been opened. */
-    tBTA_PAN_OPENING    opening;    /* Connection being opened */
-    tBTA_PAN_CLOSE      close;      /* Connection has been closed. */
+typedef union {
+  tBTA_PAN_SET_ROLE set_role; /* set_role event */
+  tBTA_PAN_OPEN open;         /* Connection has been opened. */
+  tBTA_PAN_OPENING opening;   /* Connection being opened */
+  tBTA_PAN_CLOSE close;       /* Connection has been closed. */
 } tBTA_PAN;
 
 /* Number of PAN connections */
 #ifndef BTA_PAN_NUM_CONN
-#define BTA_PAN_NUM_CONN         4
+#define BTA_PAN_NUM_CONN 4
 #endif
 
 /* PAN callback */
-typedef void (tBTA_PAN_CBACK)(tBTA_PAN_EVT event, tBTA_PAN *p_data);
+typedef void(tBTA_PAN_CBACK)(tBTA_PAN_EVT event, tBTA_PAN* p_data);
 
 /*****************************************************************************
  *  External Function Declarations
@@ -149,20 +138,20 @@ extern void BTA_PanEnable(tBTA_PAN_CBACK p_cback);
  ******************************************************************************/
 extern void BTA_PanDisable(void);
 
-
 /*******************************************************************************
  *
  * Function         BTA_PanSetRole
  *
  * Description      Sets PAN roles. When the enable operation is complete
- *                  the callback function will be called with a BTA_PAN_SET_ROLE_EVT.
+ *                  the callback function will be called with a
+ *BTA_PAN_SET_ROLE_EVT.
  *
  * Returns          void
  *
  ******************************************************************************/
-void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PAN_ROLE_INFO *p_gn_info,
-                    tBTA_PAN_ROLE_INFO *p_nap_info);
-
+void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO* p_user_info,
+                    tBTA_PAN_ROLE_INFO* p_gn_info,
+                    tBTA_PAN_ROLE_INFO* p_nap_info);
 
 /*******************************************************************************
  *
@@ -176,9 +165,8 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
  * Returns          void
  *
  ******************************************************************************/
-void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE  peer_role);
-
-
+void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE local_role,
+                 tBTA_PAN_ROLE peer_role);
 
 /*******************************************************************************
  *
@@ -191,7 +179,6 @@ void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE  pe
  *
  ******************************************************************************/
 extern void BTA_PanClose(uint16_t handle);
-
 
 #ifdef __cplusplus
 }
