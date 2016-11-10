@@ -284,7 +284,7 @@ static void bta_ag_sco_read_cback(uint16_t sco_inx, BT_HDR* p_data,
  *
  * Description      Removes the specified SCO from the system.
  *                  If only_active is true, then SCO is only removed if
- *connected
+ *                  connected
  *
  * Returns          bool   - true if Sco removal was started
  *
@@ -583,7 +583,7 @@ static void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
  * Function         bta_ag_attempt_msbc_safe_settings
  *
  * Description    Checks if ESCO connection needs to be attempted using mSBC
- *T1(safe) settings
+ *                T1(safe) settings
  *
  *
  * Returns          true if T1 settings has to be used, false otherwise
@@ -1227,7 +1227,7 @@ bool bta_ag_sco_is_open(tBTA_AG_SCB* p_scb) {
  *
  *
  * Returns          true if sco is in Opening state for this scb, false
- *otherwise.
+ *                  otherwise.
  *
  ******************************************************************************/
 bool bta_ag_sco_is_opening(tBTA_AG_SCB* p_scb) {

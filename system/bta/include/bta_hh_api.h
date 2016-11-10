@@ -364,7 +364,7 @@ extern void BTA_HhSetProtoMode(uint8_t handle, tBTA_HH_PROTO_MODE t_type);
  * Function         BTA_HhGetProtoMode
  *
  * Description      This function get the protocol mode of a specified HID
- *device.
+ *                  device.
  *
  * Returns          void
  *

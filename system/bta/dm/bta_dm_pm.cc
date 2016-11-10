@@ -177,7 +177,7 @@ static void bta_dm_pm_stop_timer(BD_ADDR peer_addr) {
  * Function         bta_pm_action_to_timer_idx
  *
  * Description      convert power mode into timer index for each connected
- *device
+ *                  device
  *
  *
  * Returns          index of the power mode delay timer
@@ -1153,7 +1153,7 @@ static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE* p_dev,
  * Function         bta_dm_pm_obtain_controller_state
  *
  * Description      This function obtains the consolidated controller power
- *state
+ *                  state
  *
  * Parameters:
  *

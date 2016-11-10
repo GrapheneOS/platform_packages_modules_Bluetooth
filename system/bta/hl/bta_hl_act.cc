@@ -2083,7 +2083,7 @@ void bta_hl_cch_mca_disconnect(uint8_t app_idx, uint8_t mcl_idx,
  * Function         bta_hl_cch_mca_disc_open
  *
  * Description      Action routine for disconnect the just opened Control
- *channel
+ *                  channel
  *
  * Returns          void
  *

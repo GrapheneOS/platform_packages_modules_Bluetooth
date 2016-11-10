@@ -204,7 +204,7 @@ void BTA_HlDeregister(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle) {
  * Function         BTA_HlCchOpen
  *
  * Description      Open a Control channel connection with the specified BD
- *address
+ *                  address
  *
  * Parameters       app_handle - Application Handle
  *                  p_open_param - parameters for opening a control channel
@@ -214,9 +214,8 @@ void BTA_HlDeregister(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle) {
  *                  Note: The control PSM value is used to select which
  *                  HDP insatnce should be used in case the peer device support
  *                  multiple HDP instances. Also, if the control PSM value is
- *zero
- *                  then the first HDP instance is used for the control channel
- *setup
+ *                  zero then the first HDP instance is used for the control
+ *                  channel setup
  ******************************************************************************/
 void BTA_HlCchOpen(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
                    tBTA_HL_CCH_OPEN_PARAM* p_open_param) {
@@ -261,7 +260,7 @@ void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle) {
  * Function         BTA_HlDchOpen
  *
  * Description      Open a data channel connection with the specified DCH
- *parameters
+ *                  parameters
  *
  * Parameters       mcl_handle - MCL handle
  *                  p_open_param - parameters for opening a data channel
@@ -391,8 +390,7 @@ void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle, uint16_t pkt_size) {
  *
  *                  note: If mdl_id = 0xFFFF then this means to delete all MDLs
  *                        and this value can only be used with DeleteMdl request
- *only
- *                        not other requests
+ *                        only not other requests
  *
  ******************************************************************************/
 void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle, tBTA_HL_MDL_ID mdl_id) {
@@ -466,12 +464,9 @@ void BTA_HlSdpQuery(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
  *
  * Parameters       mcl_handle  - MCL handle
  *                  p_rsp_param - parameters specified whether the request
- *should
- *                                be accepted or not and if it should be
- *accepted
- *                                then it also specified the configuration
- *response
- *                                value
+ *                                should be accepted or not and if it should be
+ *                                accepted, then it also specified the
+ *                                configuration response value
  *
  * Returns          void
  *

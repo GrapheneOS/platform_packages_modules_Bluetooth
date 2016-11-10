@@ -102,8 +102,7 @@ extern tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback);
  * Description      Start a search for sdp records for a specific BD_ADDR with a
  *                  specific profile uuid.
  *                  When the search operation is completed, the callback
- *function
- *                  will be called with a BTA_SDP_SEARCH_EVT.
+ *                  function will be called with a BTA_SDP_SEARCH_EVT.
  * Returns          BTA_SDP_SUCCESS if successful.
  *                  BTA_SDP_FAIL if internal failure.
  *

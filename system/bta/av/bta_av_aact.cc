@@ -2685,7 +2685,7 @@ void bta_av_rcfg_cfm(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  * Function         bta_av_rcfg_open
  *
  * Description      AVDT is connected. open the stream with the new
- *configuration
+ *                  configuration
  *
  * Returns          void
  *
@@ -2733,7 +2733,7 @@ void bta_av_security_rej(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
  *
  * Description      check if this is 2nd stream and if it needs to be started.
  *                  This function needs to be kept very similar to
- *bta_av_chk_start
+ *                  bta_av_chk_start
  *
  * Returns          void
  *

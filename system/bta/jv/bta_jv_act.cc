@@ -207,7 +207,7 @@ tBTA_JV_RFC_CB* bta_jv_alloc_rfc_cb(uint16_t port_handle,
  * Function     bta_jv_rfc_port_to_pcb
  *
  * Description  find the port control block associated with the given port
- *handle
+ *              handle
  *
  * Returns
  *
@@ -228,7 +228,7 @@ tBTA_JV_PCB* bta_jv_rfc_port_to_pcb(uint16_t port_handle) {
  * Function     bta_jv_rfc_port_to_cb
  *
  * Description  find the RFCOMM control block associated with the given port
- *handle
+ *              handle
  *
  * Returns
  *
@@ -383,13 +383,12 @@ tBTA_JV_STATUS bta_jv_free_l2c_cb(tBTA_JV_L2C_CB* p_cb) {
  * Function    bta_jv_clear_pm_cb
  *
  * Description clears jv pm control block and optionally calls
- *bta_sys_conn_close()
+ *             bta_sys_conn_close()
  *             In general close_conn should be set to true to remove registering
- *with
- *             dm pm!
+ *             with dm pm!
  *
  * WARNING:    Make sure to clear pointer form port or l2c to this control block
- *too!
+ *             too!
  *
  ******************************************************************************/
 static void bta_jv_clear_pm_cb(tBTA_JV_PM_CB* p_pm_cb, bool close_conn) {
@@ -411,7 +410,7 @@ static void bta_jv_clear_pm_cb(tBTA_JV_PM_CB* p_pm_cb, bool close_conn) {
  *
  * Returns     BTA_JV_SUCCESS if cb has been freed correctly,
  *             BTA_JV_FAILURE in case of no profile has been registered or
- *already freed
+ *             already freed
  *
  *******************************************************************************/
 static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(uint32_t jv_handle) {
@@ -2019,12 +2018,12 @@ void bta_jv_change_pm_state(tBTA_JV_MSG* p_data) {
  * Function    bta_jv_set_pm_conn_state
  *
  * Description Send pm event state change to jv state machine to serialize jv pm
- *changes
- *             in relation to other jv messages. internal API use mainly.
+ *             changes in relation to other jv messages. internal API use
+ *             mainly.
  *
  * Params:     p_cb: jv pm control block, NULL pointer returns failure
  *             new_state: new PM connections state, setting is forced by action
- *function
+ *                        function
  *
  * Returns     BTA_JV_SUCCESS, BTA_JV_FAILURE (buffer allocation, or NULL ptr!)
  *

@@ -426,7 +426,7 @@ bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB* p_clreg,
  * Function         bta_gattc_clear_notif_registration
  *
  * Description      Clear up the notification registration information by
- *BD_ADDR.
+ *                  BD_ADDR.
  *                  Where handle is between start_handle and end_handle, and
  *                  start_handle and end_handle are boundaries of service
  *                  containing characteristic.
@@ -470,8 +470,7 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV* p_srcb,
  * Function         bta_gattc_mark_bg_conn
  *
  * Description      mark background connection status when a bg connection is
- *initiated
- *                  or terminated.
+ *                  initiated or terminated.
  *
  * Returns          true if success; false otherwise.
  *
@@ -539,7 +538,7 @@ bool bta_gattc_mark_bg_conn(tBTA_GATTC_IF client_if, BD_ADDR_PTR remote_bda_ptr,
  * Function         bta_gattc_check_bg_conn
  *
  * Description      check if this is a background connection background
- *connection.
+ *                  connection.
  *
  * Returns          true if success; false otherwise.
  *
@@ -682,7 +681,7 @@ bool bta_gattc_conn_dealloc(BD_ADDR remote_bda) {
  * Function         bta_gattc_find_int_conn_clcb
  *
  * Description      try to locate a clcb when an internal connecion event
- *arrives.
+ *                  arrives.
  *
  * Returns          pointer to the clcb
  *
@@ -716,7 +715,7 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA* p_msg) {
  * Function         bta_gattc_find_int_disconn_clcb
  *
  * Description      try to locate a clcb when an internal disconnect callback
- *arrives.
+ *                  arrives.
  *
  * Returns          pointer to the clcb
  *

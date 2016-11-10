@@ -235,8 +235,7 @@ static const char* bta_hh_le_rpt_name[4] = {"UNKNOWN", "INPUT", "OUTPUT",
  * Function         bta_hh_le_hid_report_dbg
  *
  * Description      debug function to print out all HID report available on
- *remote
- *                  device.
+ *                  remote device.
  *
  * Returns          void
  *
@@ -425,7 +424,7 @@ void bta_hh_le_open_conn(tBTA_HH_DEV_CB* p_cb, BD_ADDR remote_bda) {
  * Function         bta_hh_le_find_dev_cb_by_conn_id
  *
  * Description      Utility function find a device control block by connection
- *ID.
+ *                  ID.
  *
  ******************************************************************************/
 tBTA_HH_DEV_CB* bta_hh_le_find_dev_cb_by_conn_id(uint16_t conn_id) {
@@ -476,8 +475,7 @@ uint8_t bta_hh_le_find_service_inst_by_battery_inst_id(tBTA_HH_DEV_CB* p_cb,
  * Function         bta_hh_le_find_report_entry
  *
  * Description      find the report entry by service instance and report UUID
- *and
- *                  instance ID
+ *                  and instance ID
  *
  ******************************************************************************/
 tBTA_HH_LE_RPT* bta_hh_le_find_report_entry(
@@ -548,7 +546,7 @@ tBTA_HH_LE_RPT* bta_hh_le_find_rpt_by_idtype(tBTA_HH_LE_RPT* p_head,
  * Function         bta_hh_le_find_alloc_report_entry
  *
  * Description      find or allocate a report entry in the HID service report
- *list.
+ *                  list.
  *
  ******************************************************************************/
 tBTA_HH_LE_RPT* bta_hh_le_find_alloc_report_entry(tBTA_HH_DEV_CB* p_cb,
@@ -981,8 +979,7 @@ bool bta_hh_le_set_protocol_mode(tBTA_HH_DEV_CB* p_cb,
  * Function         get_protocol_mode_cb
  *
  * Description      Process the Read protocol mode, send GET_PROTO_EVT to
- *application
- *                  with the protocol mode.
+ *                  application with the protocol mode.
  *
  ******************************************************************************/
 static void get_protocol_mode_cb(uint16_t conn_id, tGATT_STATUS status,
@@ -1084,8 +1081,7 @@ void bta_hh_le_dis_cback(BD_ADDR addr, tDIS_VALUE* p_dis_value) {
  * Function         bta_hh_le_pri_service_discovery
  *
  * Description      Initialize GATT discovery on the remote LE HID device by
- *opening
- *                  a GATT connection first.
+ *                  opening a GATT connection first.
  *
  * Parameters:
  *
@@ -1144,7 +1140,7 @@ void bta_hh_le_encrypt_cback(BD_ADDR bd_addr,
  *
  * Description      Security check completed, start the service discovery
  *                  if no cache available, otherwise report connection open
- *completed
+ *                  completed
  *
  * Parameters:
  *
@@ -1791,7 +1787,7 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB* p_cb, tBTA_HH_DATA* p_data) {
  * Function         bta_hh_gatt_close
  *
  * Description      action function to process the GATT close int he state
- *machine.
+ *                  machine.
  *
  * Returns          void
  *
@@ -1849,8 +1845,7 @@ void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB* p_cb) {
  * Function         read_report_cb
  *
  * Description      Process the Read report complete, send GET_REPORT_EVT to
- *application
- *                  with the report data.
+ *                  application with the report data.
  *
  * Parameters:
  *
@@ -2108,7 +2103,7 @@ void bta_hh_le_get_dscp_act(tBTA_HH_DEV_CB* p_cb) {
  * Function         bta_hh_le_add_dev_bg_conn
  *
  * Description      Remove a LE HID device from back ground connection
- *procedure.
+ *                  procedure.
  *
  * Returns          void
  *
@@ -2141,7 +2136,7 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb, bool check_bond) {
  * Function         bta_hh_le_add_device
  *
  * Description      Add a LE HID device as a known device, and also add the
- *address
+ *                  address
  *                  into back ground connection WL for incoming connection.
  *
  * Returns          void
@@ -2174,7 +2169,7 @@ uint8_t bta_hh_le_add_device(tBTA_HH_DEV_CB* p_cb,
  * Function         bta_hh_le_remove_dev_bg_conn
  *
  * Description      Remove a LE HID device from back ground connection
- *procedure.
+ *                  procedure.
  *
  * Returns          void
  *
@@ -2264,7 +2259,7 @@ static void read_report_descriptor_ccc_cb(uint16_t conn_id, tGATT_STATUS status,
  * Function         bta_hh_le_hid_read_rpt_clt_cfg
  *
  * Description      a test command to read report descriptor client
- *configuration
+ *                  configuration
  *
  * Returns          void
  *
