@@ -56,7 +56,7 @@ tBTM_BLE_SCAN_SETUP_CBACK bta_ble_scan_setup_cb;
 ** Returns          true if added OK, else false
 **
 *******************************************************************************/
-extern bool    BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name,
+extern bool    BTM_SecAddBleDevice (const BD_ADDR bd_addr, BD_NAME bd_name,
                                            tBT_DEVICE_TYPE dev_type, tBLE_ADDR_TYPE addr_type);
 
 /*******************************************************************************
