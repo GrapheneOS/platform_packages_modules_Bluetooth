@@ -69,7 +69,7 @@ extern bool    aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t
 ** Returns          true if added OK, else false
 **
 *******************************************************************************/
-bool    BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE dev_type,
+bool    BTM_SecAddBleDevice (const BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE dev_type,
                              tBLE_ADDR_TYPE addr_type)
 {
     BTM_TRACE_DEBUG ("%s: dev_type=0x%x", __func__, dev_type);

@@ -672,7 +672,15 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t* bd_addr,
     }
     if (btif_storage_get_remote_addr_type(bd_addr, &addr_type) !=
         BT_STATUS_SUCCESS) {
-      btif_storage_set_remote_addr_type(bd_addr, BLE_ADDR_PUBLIC);
+
+      // Try to read address type. OOB pairing might have set it earlier, but
+      // didn't store it, it defaults to BLE_ADDR_PUBLIC
+      uint8_t tmp_dev_type;
+      uint8_t tmp_addr_type;
+      BTM_ReadDevInfo(bd_addr->address, &tmp_dev_type, &tmp_addr_type);
+      addr_type = tmp_addr_type;
+
+      btif_storage_set_remote_addr_type(bd_addr, addr_type);
     }
   }
   if ((btif_config_get_int((char const*)&bdstr, "DevType", &device_type) &&
@@ -2291,6 +2299,19 @@ bt_status_t btif_dm_create_bond_out_of_band(
     const bt_out_of_band_data_t* oob_data) {
   bdcpy(oob_cb.bdaddr, bd_addr->address);
   memcpy(&oob_cb.oob_data, oob_data, sizeof(bt_out_of_band_data_t));
+
+  uint8_t empty[] = {0, 0, 0, 0, 0, 0, 0};
+  // If LE Bluetooth Device Address is provided, use provided address type
+  // value.
+  if (memcmp(oob_data->le_bt_dev_addr, empty, 7) != 0) {
+    /* byte no 7 is address type in LE Bluetooth Address OOB data */
+    uint8_t address_type = oob_data->le_bt_dev_addr[6];
+    if (address_type == BLE_ADDR_PUBLIC || address_type == BLE_ADDR_RANDOM) {
+      // bd_addr->address is already reversed, so use it instead of
+      // oob_data->le_bt_dev_addr
+      BTM_SecAddBleDevice(bd_addr->address, NULL, BT_DEVICE_TYPE_BLE, address_type);
+    }
+  }
 
   bdstr_t bdstr;
   BTIF_TRACE_EVENT("%s: bd_addr=%s, transport=%d", __func__,

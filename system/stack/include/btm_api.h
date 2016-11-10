@@ -1851,7 +1851,7 @@ extern tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, uint16_t max_lat,
 ** Returns          the handle of the connection, or 0xFFFF if none.
 **
 *******************************************************************************/
-extern uint16_t BTM_GetHCIConnHandle (BD_ADDR remote_bda, tBT_TRANSPORT transport);
+extern uint16_t BTM_GetHCIConnHandle (const BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 /*******************************************************************************
 **
