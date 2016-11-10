@@ -38,8 +38,8 @@
 #include "osi/include/allocator.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 static const tBTA_SYS_REG bta_av_reg =
 {
@@ -48,18 +48,18 @@ static const tBTA_SYS_REG bta_av_reg =
 };
 
 /*******************************************************************************
-**
-** Function         BTA_AvEnable
-**
-** Description      Enable the advanced audio/video service. When the enable
-**                  operation is complete the callback function will be
-**                  called with a BTA_AV_ENABLE_EVT. This function must
-**                  be called before other function in the AV API are
-**                  called.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvEnable
+ *
+ * Description      Enable the advanced audio/video service. When the enable
+ *                  operation is complete the callback function will be
+ *                  called with a BTA_AV_ENABLE_EVT. This function must
+ *                  be called before other function in the AV API are
+ *                  called.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvEnable(tBTA_SEC sec_mask, tBTA_AV_FEAT features, tBTA_AV_CBACK *p_cback)
 {
     tBTA_AV_API_ENABLE *p_buf =
@@ -77,14 +77,14 @@ void BTA_AvEnable(tBTA_SEC sec_mask, tBTA_AV_FEAT features, tBTA_AV_CBACK *p_cba
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvDisable
-**
-** Description      Disable the advanced audio/video service.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvDisable
+ *
+ * Description      Disable the advanced audio/video service.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvDisable(void)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -96,18 +96,18 @@ void BTA_AvDisable(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvRegister
-**
-** Description      Register the audio or video service to stack. When the
-**                  operation is complete the callback function will be
-**                  called with a BTA_AV_REGISTER_EVT. This function must
-**                  be called before AVDT stream is open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvRegister
+ *
+ * Description      Register the audio or video service to stack. When the
+ *                  operation is complete the callback function will be
+ *                  called with a BTA_AV_REGISTER_EVT. This function must
+ *                  be called before AVDT stream is open.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
                     uint8_t app_id, tBTA_AV_SINK_DATA_CBACK *p_sink_data_cback,
                     uint16_t service_uuid)
@@ -129,14 +129,14 @@ void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvDeregister
-**
-** Description      Deregister the audio or video service
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvDeregister
+ *
+ * Description      Deregister the audio or video service
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvDeregister(tBTA_AV_HNDL hndl)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -148,16 +148,16 @@ void BTA_AvDeregister(tBTA_AV_HNDL hndl)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvOpen
-**
-** Description      Opens an advanced audio/video connection to a peer device.
-**                  When connection is open callback function is called
-**                  with a BTA_AV_OPEN_EVT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvOpen
+ *
+ * Description      Opens an advanced audio/video connection to a peer device.
+ *                  When connection is open callback function is called
+ *                  with a BTA_AV_OPEN_EVT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle, bool use_rc, tBTA_SEC sec_mask,
                                                                              uint16_t uuid)
 {
@@ -176,14 +176,14 @@ void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle, bool use_rc, tBTA_SEC sec_
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvClose
-**
-** Description      Close the current streams.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvClose
+ *
+ * Description      Close the current streams.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvClose(tBTA_AV_HNDL handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -195,14 +195,14 @@ void BTA_AvClose(tBTA_AV_HNDL handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvDisconnect
-**
-** Description      Close the connection to the address.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvDisconnect
+ *
+ * Description      Close the connection to the address.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvDisconnect(BD_ADDR bd_addr)
 {
     tBTA_AV_API_DISCNT *p_buf =
@@ -215,14 +215,14 @@ void BTA_AvDisconnect(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvStart
-**
-** Description      Start audio/video stream data transfer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvStart
+ *
+ * Description      Start audio/video stream data transfer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvStart(void)
 {
     BT_HDR *p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR));
@@ -233,14 +233,14 @@ void BTA_AvStart(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvOffloadStart
-**
-** Description      Start a2dp audio offloading.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvOffloadStart
+ *
+ * Description      Start a2dp audio offloading.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvOffloadStart(tBTA_AV_HNDL hndl)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -252,14 +252,14 @@ void BTA_AvOffloadStart(tBTA_AV_HNDL hndl)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvOffloadStartRsp
-**
-** Description      Response from vendor lib for A2DP Offload Start request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvOffloadStartRsp
+ *
+ * Description      Response from vendor lib for A2DP Offload Start request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvOffloadStartRsp(tBTA_AV_HNDL hndl, tBTA_AV_STATUS status)
 {
     tBTA_AV_API_STATUS_RSP *p_buf =
@@ -273,16 +273,16 @@ void BTA_AvOffloadStartRsp(tBTA_AV_HNDL hndl, tBTA_AV_STATUS status)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvStop
-**
-** Description      Stop audio/video stream data transfer.
-**                  If suspend is true, this function sends AVDT suspend signal
-**                  to the connected peer(s).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvStop
+ *
+ * Description      Stop audio/video stream data transfer.
+ *                  If suspend is true, this function sends AVDT suspend signal
+ *                  to the connected peer(s).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvStop(bool suspend)
 {
     tBTA_AV_API_STOP *p_buf =
@@ -296,18 +296,18 @@ void BTA_AvStop(bool suspend)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvReconfig
-**
-** Description      Reconfigure the audio/video stream.
-**                  If suspend is true, this function tries the suspend/reconfigure
-**                  procedure first.
-**                  If suspend is false or when suspend/reconfigure fails,
-**                  this function closes and re-opens the AVDT connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvReconfig
+ *
+ * Description      Reconfigure the audio/video stream.
+ *                  If suspend is true, this function tries the suspend/reconfigure
+ *                  procedure first.
+ *                  If suspend is false or when suspend/reconfigure fails,
+ *                  this function closes and re-opens the AVDT connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvReconfig(tBTA_AV_HNDL hndl, bool suspend, uint8_t sep_info_idx,
                     uint8_t *p_codec_info, uint8_t num_protect,
                     const uint8_t *p_protect_info)
@@ -328,15 +328,15 @@ void BTA_AvReconfig(tBTA_AV_HNDL hndl, bool suspend, uint8_t sep_info_idx,
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvProtectReq
-**
-** Description      Send a content protection request.  This function can only
-**                  be used if AV is enabled with feature BTA_AV_FEAT_PROTECT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvProtectReq
+ *
+ * Description      Send a content protection request.  This function can only
+ *                  be used if AV is enabled with feature BTA_AV_FEAT_PROTECT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvProtectReq(tBTA_AV_HNDL hndl, uint8_t *p_data, uint16_t len)
 {
     tBTA_AV_API_PROTECT_REQ *p_buf =
@@ -356,17 +356,17 @@ void BTA_AvProtectReq(tBTA_AV_HNDL hndl, uint8_t *p_data, uint16_t len)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvProtectRsp
-**
-** Description      Send a content protection response.  This function must
-**                  be called if a BTA_AV_PROTECT_REQ_EVT is received.
-**                  This function can only be used if AV is enabled with
-**                  feature BTA_AV_FEAT_PROTECT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvProtectRsp
+ *
+ * Description      Send a content protection response.  This function must
+ *                  be called if a BTA_AV_PROTECT_REQ_EVT is received.
+ *                  This function can only be used if AV is enabled with
+ *                  feature BTA_AV_FEAT_PROTECT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, uint8_t error_code, uint8_t *p_data, uint16_t len)
 {
     tBTA_AV_API_PROTECT_RSP *p_buf =
@@ -387,15 +387,15 @@ void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, uint8_t error_code, uint8_t *p_data, ui
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvRemoteCmd
-**
-** Description      Send a remote control command.  This function can only
-**                  be used if AV is enabled with feature BTA_AV_FEAT_RCCT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvRemoteCmd
+ *
+ * Description      Send a remote control command.  This function can only
+ *                  be used if AV is enabled with feature BTA_AV_FEAT_RCCT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvRemoteCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_RC rc_id, tBTA_AV_STATE key_state)
 {
     tBTA_AV_API_REMOTE_CMD *p_buf =
@@ -413,16 +413,16 @@ void BTA_AvRemoteCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_RC rc_id, tBTA_AV
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvRemoteVendorUniqueCmd
-**
-** Description      Send a remote control command with Vendor Unique rc_id.
-**                  This function can only be used if AV is enabled with
-**                  feature BTA_AV_FEAT_RCCT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvRemoteVendorUniqueCmd
+ *
+ * Description      Send a remote control command with Vendor Unique rc_id.
+ *                  This function can only be used if AV is enabled with
+ *                  feature BTA_AV_FEAT_RCCT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvRemoteVendorUniqueCmd(uint8_t rc_handle, uint8_t label,
                                  tBTA_AV_STATE key_state, uint8_t* p_msg,
                                  uint8_t buf_len)
@@ -447,16 +447,16 @@ void BTA_AvRemoteVendorUniqueCmd(uint8_t rc_handle, uint8_t label,
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvVendorCmd
-**
-** Description      Send a vendor dependent remote control command.  This
-**                  function can only be used if AV is enabled with feature
-**                  BTA_AV_FEAT_VENDOR.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvVendorCmd
+ *
+ * Description      Send a vendor dependent remote control command.  This
+ *                  function can only be used if AV is enabled with feature
+ *                  BTA_AV_FEAT_VENDOR.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvVendorCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE cmd_code, uint8_t *p_data, uint16_t len)
 {
     tBTA_AV_API_VENDOR *p_buf =
@@ -481,17 +481,17 @@ void BTA_AvVendorCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE cmd_code, ui
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvVendorRsp
-**
-** Description      Send a vendor dependent remote control response.
-**                  This function must be called if a BTA_AV_VENDOR_CMD_EVT
-**                  is received. This function can only be used if AV is
-**                  enabled with feature BTA_AV_FEAT_VENDOR.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvVendorRsp
+ *
+ * Description      Send a vendor dependent remote control response.
+ *                  This function must be called if a BTA_AV_VENDOR_CMD_EVT
+ *                  is received. This function can only be used if AV is
+ *                  enabled with feature BTA_AV_FEAT_VENDOR.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvVendorRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code, uint8_t *p_data, uint16_t len, uint32_t company_id)
 {
     tBTA_AV_API_VENDOR *p_buf =
@@ -519,15 +519,15 @@ void BTA_AvVendorRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code, ui
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvOpenRc
-**
-** Description      Open an AVRCP connection toward the device with the
-**                  specified handle
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvOpenRc
+ *
+ * Description      Open an AVRCP connection toward the device with the
+ *                  specified handle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvOpenRc(tBTA_AV_HNDL handle)
 {
     tBTA_AV_API_OPEN_RC *p_buf =
@@ -540,14 +540,14 @@ void BTA_AvOpenRc(tBTA_AV_HNDL handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvCloseRc
-**
-** Description      Close an AVRCP connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvCloseRc
+ *
+ * Description      Close an AVRCP connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvCloseRc(uint8_t rc_handle)
 {
     tBTA_AV_API_CLOSE_RC *p_buf =
@@ -560,17 +560,17 @@ void BTA_AvCloseRc(uint8_t rc_handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvMetaRsp
-**
-** Description      Send a Metadata/Advanced Control response. The message contained
-**                  in p_pkt can be composed with AVRC utility functions.
-**                  This function can only be used if AV is enabled with feature
-**                  BTA_AV_FEAT_METADATA.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_AvMetaRsp
+ *
+ * Description      Send a Metadata/Advanced Control response. The message contained
+ *                  in p_pkt can be composed with AVRC utility functions.
+ *                  This function can only be used if AV is enabled with feature
+ *                  BTA_AV_FEAT_METADATA.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvMetaRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
                                BT_HDR *p_pkt)
 {
@@ -588,19 +588,19 @@ void BTA_AvMetaRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
 }
 
 /*******************************************************************************
-**
-** Function         BTA_AvMetaCmd
-**
-** Description      Send a Metadata/Advanced Control command. The message contained
-**                  in p_pkt can be composed with AVRC utility functions.
-**                  This function can only be used if AV is enabled with feature
-**                  BTA_AV_FEAT_METADATA.
-**                  This message is sent only when the peer supports the TG role.
+ *
+ * Function         BTA_AvMetaCmd
+ *
+ * Description      Send a Metadata/Advanced Control command. The message contained
+ *                  in p_pkt can be composed with AVRC utility functions.
+ *                  This function can only be used if AV is enabled with feature
+ *                  BTA_AV_FEAT_METADATA.
+ *                  This message is sent only when the peer supports the TG role.
 *8                  The only command makes sense right now is the absolute volume command.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_AvMetaCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt)
 {
     tBTA_AV_API_META_RSP *p_buf =

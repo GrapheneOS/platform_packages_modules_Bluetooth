@@ -33,8 +33,8 @@
 #include "bt_common.h"
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 /* state machine action enumeration list */
 enum
@@ -213,28 +213,28 @@ const tBTA_HH_ST_TBL bta_hh_st_tbl[] =
 };
 
 /*****************************************************************************
-** Global data
-*****************************************************************************/
+ * Global data
+ ****************************************************************************/
 tBTA_HH_CB  bta_hh_cb;
 
 /*****************************************************************************
-** Static functions
-*****************************************************************************/
+ * Static functions
+ ****************************************************************************/
 #if (BTA_HH_DEBUG == TRUE)
 static const char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code);
 static const char *bta_hh_state_code(tBTA_HH_STATE state_code);
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_hh_sm_execute
-**
-** Description      State machine event handling function for HID Host
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_sm_execute
+ *
+ * Description      State machine event handling function for HID Host
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, uint16_t event, tBTA_HH_DATA * p_data)
 {
     tBTA_HH_ST_TBL  state_table;
@@ -368,15 +368,15 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, uint16_t event, tBTA_HH_DATA * p_da
     return;
 }
 /*******************************************************************************
-**
-** Function         bta_hh_hdl_event
-**
-** Description      HID host main event handling function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_hdl_event
+ *
+ * Description      HID host main event handling function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_hh_hdl_event(BT_HDR *p_msg)
 {
     uint8_t           index = BTA_HH_IDX_INVALID;
@@ -444,18 +444,18 @@ bool bta_hh_hdl_event(BT_HDR *p_msg)
 }
 
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 #if (BTA_HH_DEBUG == TRUE)
 /*******************************************************************************
-**
-** Function         bta_hh_evt_code
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_evt_code
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static const char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
 {
   switch(evt_code)
@@ -506,14 +506,14 @@ static const char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_state_code
-**
-** Description      get string representation of HID host state code.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_state_code
+ *
+ * Description      get string representation of HID host state code.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static const char *bta_hh_state_code(tBTA_HH_STATE state_code)
 {
     switch (state_code)

@@ -37,13 +37,13 @@
 #include "utl.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 
 /*****************************************************************************
-**  Local Function prototypes
-*****************************************************************************/
+ *  Local Function prototypes
+ ****************************************************************************/
 static void bta_hh_cback (uint8_t dev_handle, BD_ADDR addr, uint8_t event,
                             uint32_t data, BT_HDR *pdata);
 static tBTA_HH_STATUS bta_hh_get_trans_status(uint32_t result);
@@ -54,18 +54,18 @@ static const char * bta_hh_hid_event_name(uint16_t event);
 #endif
 
 /*****************************************************************************
-**  Action Functions
-*****************************************************************************/
+ *  Action Functions
+ ****************************************************************************/
 /*******************************************************************************
-**
-** Function         bta_hh_api_enable
-**
-** Description      Perform necessary operations to enable HID host.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_api_enable
+ *
+ * Description      Perform necessary operations to enable HID host.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_api_enable(tBTA_HH_DATA *p_data)
 {
     tBTA_HH_STATUS      status = BTA_HH_ERR;
@@ -109,15 +109,15 @@ void bta_hh_api_enable(tBTA_HH_DATA *p_data)
         (* bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, (tBTA_HH *)&status);
 }
 /*******************************************************************************
-**
-** Function         bta_hh_api_disable
-**
-** Description      Perform necessary operations to disable HID host.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_api_disable
+ *
+ * Description      Perform necessary operations to disable HID host.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_api_disable(void)
 {
     uint8_t xx;
@@ -152,15 +152,15 @@ void bta_hh_api_disable(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_disc_cmpl
-**
-** Description      All connections have been closed, disable service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_disc_cmpl
+ *
+ * Description      All connections have been closed, disable service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_disc_cmpl(void)
 {
 #if (BTA_HH_LE_INCLUDED == TRUE)
@@ -178,14 +178,14 @@ void bta_hh_disc_cmpl(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_sdp_cback
-**
-** Description      SDP callback function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_sdp_cback
+ *
+ * Description      SDP callback function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hh_sdp_cback(uint16_t result, uint16_t attr_mask,
                                   tHID_DEV_SDP_INFO *sdp_rec )
 {
@@ -259,14 +259,14 @@ static void bta_hh_sdp_cback(uint16_t result, uint16_t attr_mask,
     return;
 }
 /*******************************************************************************
-**
-** Function         bta_hh_di_sdp_cback
-**
-** Description      SDP DI callback function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_di_sdp_cback
+ *
+ * Description      SDP DI callback function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hh_di_sdp_cback(uint16_t result)
 {
     tBTA_HH_DEV_CB     *p_cb = bta_hh_cb.p_cur;
@@ -325,17 +325,17 @@ static void bta_hh_di_sdp_cback(uint16_t result)
 
 
 /*******************************************************************************
-**
-** Function         bta_hh_start_sdp
-**
-** Description      Start SDP service search, and obtain necessary SDP records.
-**                  Only one SDP service search request is allowed at the same
-**                  time. For every BTA_HhOpen API call, do SDP first unless SDP
-**                  has been done previously.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_start_sdp
+ *
+ * Description      Start SDP service search, and obtain necessary SDP records.
+ *                  Only one SDP service search request is allowed at the same
+ *                  time. For every BTA_HhOpen API call, do SDP first unless SDP
+ *                  has been done previously.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_STATUS          status = BTA_HH_ERR_SDP;
@@ -417,16 +417,16 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
 }
 /*******************************************************************************
-**
-** Function         bta_hh_sdp_cmpl
-**
-** Description      When SDP completed, initiate a connection or report error depend
-**                  on SDP result.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_sdp_cmpl
+ *
+ * Description      When SDP completed, initiate a connection or report error depend
+ *                  on SDP result.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat;
@@ -515,15 +515,15 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_api_disc_act
-**
-** Description      HID Host initiate a disconnection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_api_disc_act
+ *
+ * Description      HID Host initiate a disconnection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_api_disc_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CBDATA    disc_dat;
@@ -549,15 +549,15 @@ void bta_hh_api_disc_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
 }
 /*******************************************************************************
-**
-** Function         bta_hh_open_cmpl_act
-**
-** Description      HID host connection completed
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_open_cmpl_act
+ *
+ * Description      HID host connection completed
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN        conn ;
@@ -616,15 +616,15 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
 }
 /*******************************************************************************
-**
-** Function         bta_hh_open_act
-**
-** Description      HID host receive HID_OPEN_EVT .
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_open_act
+ *
+ * Description      HID host receive HID_OPEN_EVT .
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_API_CONN    conn_data;
@@ -659,15 +659,15 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_hh_data_act
-**
-** Description      HID Host process a data report
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_data_act
+ *
+ * Description      HID Host process a data report
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_data_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 {
     BT_HDR  *pdata = p_data->hid_cback.p_data;
@@ -681,15 +681,15 @@ void bta_hh_data_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_hh_handsk_act
-**
-** Description      HID Host process a handshake acknoledgement.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_handsk_act
+ *
+ * Description      HID Host process a handshake acknoledgement.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 {
     tBTA_HH_CBDATA  cback_data ;
@@ -754,15 +754,15 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     return;
 }
 /*******************************************************************************
-**
-** Function         bta_hh_ctrl_dat_act
-**
-** Description      HID Host process a data report from control channel.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_ctrl_dat_act
+ *
+ * Description      HID Host process a data report from control channel.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 {
     BT_HDR          *pdata = p_data->hid_cback.p_data;
@@ -820,16 +820,16 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_open_failure
-**
-** Description      report HID open failure when at wait for connection state and receive
-**                  device close event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_open_failure
+ *
+ * Description      report HID open failure when at wait for connection state and receive
+ *                  device close event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat ;
@@ -864,15 +864,15 @@ void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_close_act
-**
-** Description      HID Host process a close event
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_close_act
+ *
+ * Description      HID Host process a close event
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat ;
@@ -945,15 +945,15 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_get_dscp_act
-**
-** Description      Get device report descriptor
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_get_dscp_act
+ *
+ * Description      Get device report descriptor
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_get_dscp_act(tBTA_HH_DEV_CB *p_cb,
                          UNUSED_ATTR tBTA_HH_DATA *p_data)
 {
@@ -969,15 +969,15 @@ void bta_hh_get_dscp_act(tBTA_HH_DEV_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_maint_dev_act
-**
-** Description      HID Host maintain device list.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_maint_dev_act
+ *
+ * Description      HID Host maintain device list.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_MAINT_DEV       *p_dev_info = &p_data->api_maintdev;
@@ -1078,14 +1078,14 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     (* bta_hh_cb.p_cback)(p_dev_info->sub_event, (tBTA_HH *)&dev_info);
 }
 /*******************************************************************************
-**
-** Function         bta_hh_write_dev_act
-**
-** Description      Write device action. can be SET/GET/DATA transaction.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_write_dev_act
+ *
+ * Description      Write device action. can be SET/GET/DATA transaction.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CBDATA     cbdata = {BTA_HH_OK, 0};
@@ -1181,18 +1181,18 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 }
 
 /*****************************************************************************
-**  Static Function
-*****************************************************************************/
+ *  Static Function
+ ****************************************************************************/
 /*******************************************************************************
-**
-** Function         bta_hh_cback
-**
-** Description      BTA HH callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_cback
+ *
+ * Description      BTA HH callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hh_cback (uint8_t dev_handle, BD_ADDR addr, uint8_t event,
                         uint32_t data, BT_HDR *pdata)
 {
@@ -1254,13 +1254,13 @@ static void bta_hh_cback (uint8_t dev_handle, BD_ADDR addr, uint8_t event,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_get_trans_status
-**
-** Description      translate a handshake result code into BTA HH
-**                  status code
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_get_trans_status
+ *
+ * Description      translate a handshake result code into BTA HH
+ *                  status code
+ *
+ ******************************************************************************/
 static tBTA_HH_STATUS bta_hh_get_trans_status(uint32_t result)
 {
     switch(result)
@@ -1280,8 +1280,8 @@ static tBTA_HH_STATUS bta_hh_get_trans_status(uint32_t result)
     }
 }
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 
 #if (BTA_HH_DEBUG == TRUE)
 static const char* bta_hh_get_w4_event(uint16_t event)

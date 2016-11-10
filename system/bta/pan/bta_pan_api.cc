@@ -44,17 +44,17 @@ static const tBTA_SYS_REG bta_pan_reg =
 };
 
 /*******************************************************************************
-**
-** Function         BTA_PanEnable
-**
-** Description      Enable PAN service.  This function must be
-**                  called before any other functions in the PAN API are called.
-**                  When the enable operation is complete the callback function
-**                  will be called with a BTA_PAN_ENABLE_EVT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_PanEnable
+ *
+ * Description      Enable PAN service.  This function must be
+ *                  called before any other functions in the PAN API are called.
+ *                  When the enable operation is complete the callback function
+ *                  will be called with a BTA_PAN_ENABLE_EVT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_PanEnable(tBTA_PAN_CBACK p_cback)
 {
     tBTA_PAN_API_ENABLE *p_buf =
@@ -72,15 +72,15 @@ void BTA_PanEnable(tBTA_PAN_CBACK p_cback)
 
 
 /*******************************************************************************
-**
-** Function         BTA_PanDisable
-**
-** Description      Disables PAN service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_PanDisable
+ *
+ * Description      Disables PAN service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_PanDisable(void)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -92,15 +92,15 @@ void BTA_PanDisable(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_PanSetRole
-**
-** Description      Sets PAN roles. When the enable operation is complete
-**                  the callback function will be called with a BTA_PAN_SET_ROLE_EVT.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_PanSetRole
+ *
+ * Description      Sets PAN roles. When the enable operation is complete
+ *                  the callback function will be called with a BTA_PAN_SET_ROLE_EVT.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PAN_ROLE_INFO *p_gn_info,
                                         tBTA_PAN_ROLE_INFO *p_nap_info)
 {
@@ -139,17 +139,17 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
 }
 
 /*******************************************************************************
-**
-** Function         BTA_PanOpen
-**
-** Description      Opens a connection to a peer device.
-**                  When connection is open callback function is called
-**                  with a BTA_PAN_OPEN_EVT.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_PanOpen
+ *
+ * Description      Opens a connection to a peer device.
+ *                  When connection is open callback function is called
+ *                  with a BTA_PAN_OPEN_EVT.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE    peer_role)
 {
     tBTA_PAN_API_OPEN *p_buf =
@@ -164,15 +164,15 @@ void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE    
 }
 
 /*******************************************************************************
-**
-** Function         BTA_PanClose
-**
-** Description      Close a PAN  connection to a peer device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_PanClose
+ *
+ * Description      Close a PAN  connection to a peer device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_PanClose(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));

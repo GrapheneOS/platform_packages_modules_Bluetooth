@@ -35,15 +35,15 @@
 tBTA_GATTS_CB  bta_gatts_cb;
 
 /*******************************************************************************
-**
-** Function         bta_gatts_hdl_event
-**
-** Description      BTA GATT server main event handling function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gatts_hdl_event
+ *
+ * Description      BTA GATT server main event handling function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_gatts_hdl_event(BT_HDR *p_msg)
 {
     tBTA_GATTS_CB *p_cb = &bta_gatts_cb;

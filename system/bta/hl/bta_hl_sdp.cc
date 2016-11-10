@@ -27,15 +27,15 @@
 #include "utl.h"
 
 /*******************************************************************************
-**
-** Function         bta_hl_fill_sup_feature_list
-**
-** Description      Fill the supported features from teh SDP record
-**
-** Returns          true if found, false if not
-**                  If found, the passed protocol list element is filled in.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_fill_sup_feature_list
+ *
+ * Description      Fill the supported features from teh SDP record
+ *
+ * Returns          true if found, false if not
+ *                  If found, the passed protocol list element is filled in.
+ *
+ ******************************************************************************/
 bool bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr,
                                       tBTA_HL_SUP_FEATURE_LIST_ELEM *p_list)
 {
@@ -84,15 +84,15 @@ bool bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_compose_supported_feature_list
-**
-** Description      This function is called to compose a data sequence from
-**                  the supported  feature element list struct pointer
-**
-** Returns          the length of the data sequence
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_compose_supported_feature_list
+ *
+ * Description      This function is called to compose a data sequence from
+ *                  the supported  feature element list struct pointer
+ *
+ * Returns          the length of the data sequence
+ *
+ ******************************************************************************/
 int bta_hl_compose_supported_feature_list( uint8_t *p, uint16_t num_elem,
                                            const tBTA_HL_SUP_FEATURE_ELEM *p_elem_list)
 {
@@ -131,17 +131,17 @@ int bta_hl_compose_supported_feature_list( uint8_t *p, uint16_t num_elem,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_add_sup_feature_list
-**
-** Description      This function is called to add a protocol descriptor list to
-**                  a record. This would be through the SDP database maintenance API.
-**                  If the protocol list already exists in the record, it is replaced
-**                  with the new list.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_add_sup_feature_list
+ *
+ * Description      This function is called to add a protocol descriptor list to
+ *                  a record. This would be through the SDP database maintenance API.
+ *                  If the protocol list already exists in the record, it is replaced
+ *                  with the new list.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool bta_hl_add_sup_feature_list (uint32_t handle, uint16_t num_elem,
                                      const tBTA_HL_SUP_FEATURE_ELEM *p_elem_list)
 {
@@ -159,16 +159,16 @@ bool bta_hl_add_sup_feature_list (uint32_t handle, uint16_t num_elem,
 }
 
 /*****************************************************************************
-**
-**  Function:    bta_hl_sdp_update
-**
-**  Purpose:     Register an HDP application with SDP
-**
-**  Parameters:
-**
-**  Returns:     void
-**
-*****************************************************************************/
+ *
+ *  Function:    bta_hl_sdp_update
+ *
+ *  Purpose:     Register an HDP application with SDP
+ *
+ *  Parameters:
+ *
+ *  Returns:     void
+ *
+ ****************************************************************************/
 tBTA_HL_STATUS bta_hl_sdp_update (UNUSED_ATTR uint8_t app_id)
 {
     uint16_t                          svc_class_id_list[BTA_HL_NUM_SVC_ELEMS];
@@ -357,20 +357,20 @@ tBTA_HL_STATUS bta_hl_sdp_update (UNUSED_ATTR uint8_t app_id)
 
 
 /*****************************************************************************
-**
-**  Function:    bta_hl_sdp_register
-**
-**  Purpose:     Register an HDP application with SDP
-**
-**  Parameters:  p_cb           - Pointer to MA instance control block
-**               p_service_name - MA server name
-**               inst_id        - MAS instance ID
-**               msg_type       - Supported message type(s)
-**
-**
-**  Returns:     void
-**
-*****************************************************************************/
+ *
+ *  Function:    bta_hl_sdp_register
+ *
+ *  Purpose:     Register an HDP application with SDP
+ *
+ *  Parameters:  p_cb           - Pointer to MA instance control block
+ *               p_service_name - MA server name
+ *               inst_id        - MAS instance ID
+ *               msg_type       - Supported message type(s)
+ *
+ *
+ *  Returns:     void
+ *
+ ****************************************************************************/
 tBTA_HL_STATUS bta_hl_sdp_register (uint8_t app_idx)
 {
     uint16_t                          svc_class_id_list[BTA_HL_NUM_SVC_ELEMS];
@@ -563,18 +563,18 @@ tBTA_HL_STATUS bta_hl_sdp_register (uint8_t app_idx)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_find_sink_or_src_srv_class_in_db
-**
-** Description      This function queries an SDP database for either a HDP Sink or
-**                  Source service class ID.
-**                  If the p_start_rec pointer is NULL, it looks from the beginning
-**                  of the database, else it continues from the next record after
-**                  p_start_rec.
-**
-** Returns          Pointer to record containing service class, or NULL
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_find_sink_or_src_srv_class_in_db
+ *
+ * Description      This function queries an SDP database for either a HDP Sink or
+ *                  Source service class ID.
+ *                  If the p_start_rec pointer is NULL, it looks from the beginning
+ *                  of the database, else it continues from the next record after
+ *                  p_start_rec.
+ *
+ * Returns          Pointer to record containing service class, or NULL
+ *
+ ******************************************************************************/
 tSDP_DISC_REC *bta_hl_find_sink_or_src_srv_class_in_db (const tSDP_DISCOVERY_DB *p_db,
                                                         const tSDP_DISC_REC *p_start_rec)
 {

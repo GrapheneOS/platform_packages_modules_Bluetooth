@@ -46,11 +46,11 @@ static const char *bta_hl_dch_state_code(tBTA_HL_DCH_STATE state_code);
 extern uint16_t L2CA_AllocateRandomPsm(void);
 extern uint16_t L2CA_AllocatePsm(void);
 /*****************************************************************************
-** DCH State Table
-*****************************************************************************/
+ * DCH State Table
+ ****************************************************************************/
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 /* state machine action enumeration list for DCH */
 /* The order of this enumeration must be the same as bta_hl_dch_act_tbl[] */
 enum
@@ -285,11 +285,11 @@ const tBTA_HL_DCH_ST_TBL bta_hl_dch_st_tbl[] =
 };
 
 /*****************************************************************************
-** CCH State Table
-*****************************************************************************/
+ * CCH State Table
+ ****************************************************************************/
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 /* state machine action enumeration list for CCH */
 enum
 {
@@ -397,21 +397,21 @@ const tBTA_HL_CCH_ST_TBL bta_hl_cch_st_tbl[] =
 
 
 /*****************************************************************************
-** Global data
-*****************************************************************************/
+ * Global data
+ ****************************************************************************/
 
 /* HL control block */
 tBTA_HL_CB  bta_hl_cb;
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_sm_execute
-**
-** Description      State machine event handling function for CCH
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_sm_execute
+ *
+ * Description      State machine event handling function for CCH
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_sm_execute(uint8_t app_idx, uint8_t mcl_idx,
                            uint16_t event, tBTA_HL_DATA *p_data)
 {
@@ -462,14 +462,14 @@ void bta_hl_cch_sm_execute(uint8_t app_idx, uint8_t mcl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_sm_execute
-**
-** Description      State machine event handling function for DCH
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_sm_execute
+ *
+ * Description      State machine event handling function for DCH
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_sm_execute(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                            uint16_t event, tBTA_HL_DATA *p_data)
 {
@@ -519,14 +519,14 @@ void bta_hl_dch_sm_execute(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 #endif
 }
 /*******************************************************************************
-**
-** Function         bta_hl_api_enable
-**
-** Description      Process the API enable request to enable the HL subsystem
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_enable
+ *
+ * Description      Process the API enable request to enable the HL subsystem
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_enable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL_CTRL    evt_data;
@@ -552,14 +552,14 @@ static void bta_hl_api_enable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 
 }
 /*******************************************************************************
-**
-** Function         bta_hl_api_disable
-**
-** Description      Process the API disable request to disable the HL subsystem
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_disable
+ *
+ * Description      Process the API disable request to disable the HL subsystem
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_disable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL_CTRL    evt_data;
@@ -588,14 +588,14 @@ static void bta_hl_api_disable(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_update
-**
-** Description      Process the API registration request to register an HDP applciation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_update
+ *
+ * Description      Process the API registration request to register an HDP applciation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_update(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -667,14 +667,14 @@ static void bta_hl_api_update(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_register
-**
-** Description      Process the API registration request to register an HDP applciation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_register
+ *
+ * Description      Process the API registration request to register an HDP applciation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -757,14 +757,14 @@ static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_deregister
-**
-** Description      Process the API de-registration request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_deregister
+ *
+ * Description      Process the API de-registration request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_deregister(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     uint8_t           app_idx;
@@ -783,14 +783,14 @@ static void bta_hl_api_deregister(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_cch_open
-**
-** Description      Process the API CCH open request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_cch_open
+ *
+ * Description      Process the API CCH open request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_cch_open(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -881,14 +881,14 @@ static void bta_hl_api_cch_open(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_da
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_cch_close
-**
-** Description      Process the API CCH close request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_cch_close
+ *
+ * Description      Process the API CCH close request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_cch_close(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -941,14 +941,14 @@ static void bta_hl_api_cch_close(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_d
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_dch_open
-**
-** Description      Process the API DCH open request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_dch_open
+ *
+ * Description      Process the API DCH open request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_dch_open(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL                     evt_data;
@@ -1094,14 +1094,14 @@ static void bta_hl_api_dch_open(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_da
 
 }
 /*******************************************************************************
-**
-** Function         bta_hl_api_dch_close
-**
-** Description      Process the API DCH close request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_dch_close
+ *
+ * Description      Process the API DCH close request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_dch_close(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -1162,14 +1162,14 @@ static void bta_hl_api_dch_close(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_d
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_dch_reconnect
-**
-** Description      Process the API DCH reconnect request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_dch_reconnect
+ *
+ * Description      Process the API DCH reconnect request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_dch_reconnect(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -1302,14 +1302,14 @@ static void bta_hl_api_dch_reconnect(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA 
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_dch_echo_test
-**
-** Description      Process the API Echo test request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_dch_echo_test
+ *
+ * Description      Process the API Echo test request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_dch_echo_test(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL             evt_data;
@@ -1435,14 +1435,14 @@ static void bta_hl_api_dch_echo_test(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA 
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_sdp_query
-**
-** Description      Process the API SDP query request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_sdp_query
+ *
+ * Description      Process the API SDP query request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_sdp_query(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -1536,14 +1536,14 @@ static void bta_hl_api_sdp_query(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_d
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_sdp_query_results
-**
-** Description      Process the SDP query results
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_sdp_query_results
+ *
+ * Description      Process the SDP query results
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_sdp_query_results(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL             evt_data;
@@ -1596,14 +1596,14 @@ static void bta_hl_sdp_query_results(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA 
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_delete_mdl
-**
-** Description      Process the API DELETE MDL request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_delete_mdl
+ *
+ * Description      Process the API DELETE MDL request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_delete_mdl(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -1684,14 +1684,14 @@ static void bta_hl_api_delete_mdl(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_mca_delete_mdl_cfm
-**
-** Description      Process the DELETE MDL confirmation event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_mca_delete_mdl_cfm
+ *
+ * Description      Process the DELETE MDL confirmation event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_mca_delete_mdl_cfm(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -1763,14 +1763,14 @@ static void bta_hl_mca_delete_mdl_cfm(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_mca_delete_mdl_ind
-**
-** Description      Process the DELETE MDL indication event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_mca_delete_mdl_ind
+ *
+ * Description      Process the DELETE MDL indication event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_mca_delete_mdl_ind(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL         evt_data;
@@ -1825,14 +1825,14 @@ static void bta_hl_mca_delete_mdl_ind(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_api_dch_abort
-**
-** Description      Process the API DCH abort request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_api_dch_abort
+ *
+ * Description      Process the API DCH abort request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hl_api_dch_abort(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 {
     tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
@@ -1909,14 +1909,14 @@ static void bta_hl_api_dch_abort(UNUSED_ATTR tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_d
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_hdl_event
-**
-** Description      HL main event handling function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_hdl_event
+ *
+ * Description      HL main event handling function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_hl_hdl_event(BT_HDR *p_msg)
 {
     uint8_t app_idx, mcl_idx, mdl_idx;
@@ -2038,19 +2038,19 @@ bool bta_hl_hdl_event(BT_HDR *p_msg)
 
 
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 #if (BTA_HL_DEBUG == TRUE)
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_state_code
-**
-** Description      Map CCH state code to the corresponding state string
-**
-** Returns          string pointer for the associated state name
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_state_code
+ *
+ * Description      Map CCH state code to the corresponding state string
+ *
+ * Returns          string pointer for the associated state name
+ *
+ ******************************************************************************/
 static const char *bta_hl_cch_state_code(tBTA_HL_CCH_STATE state_code)
 {
     switch (state_code)
@@ -2069,14 +2069,14 @@ static const char *bta_hl_cch_state_code(tBTA_HL_CCH_STATE state_code)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_state_code
-**
-** Description      Map DCH state code to the corresponding state string
-**
-** Returns          string pointer for the associated state name
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_state_code
+ *
+ * Description      Map DCH state code to the corresponding state string
+ *
+ * Returns          string pointer for the associated state name
+ *
+ ******************************************************************************/
 static const char *bta_hl_dch_state_code(tBTA_HL_DCH_STATE state_code)
 {
     switch (state_code)

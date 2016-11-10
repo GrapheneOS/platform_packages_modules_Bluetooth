@@ -54,176 +54,176 @@ typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
 
 
 /*****************************************************************************
-**  Function Declarations
-*****************************************************************************/
+ *  Function Declarations
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_io_req
-**
-** Description      This callout function is executed by DM to get IO capabilities
-**                  of the local device for the Simple Pairing process
-**
-** Parameters       bd_addr  - The peer device
-**                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - true, if OOB data is available for the peer device.
-**                  *p_auth_req - true, if MITM protection is required.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_io_req
+ *
+ * Description      This callout function is executed by DM to get IO capabilities
+ *                  of the local device for the Simple Pairing process
+ *
+ * Parameters       bd_addr  - The peer device
+ *                  *p_io_cap - The local Input/Output capabilities
+ *                  *p_oob_data - true, if OOB data is available for the peer device.
+ *                  *p_auth_req - true, if MITM protection is required.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
                              tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ *p_auth_req,
                              bool is_orig);
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_io_rsp
-**
-** Description      This callout function is executed by DM to report IO capabilities
-**                  of the peer device for the Simple Pairing process
-**
-** Parameters       bd_addr  - The peer device
-**                  io_cap - The remote Input/Output capabilities
-**                  oob_data - true, if OOB data is available for the peer device.
-**                  auth_req - true, if MITM protection is required.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_io_rsp
+ *
+ * Description      This callout function is executed by DM to report IO capabilities
+ *                  of the peer device for the Simple Pairing process
+ *
+ * Parameters       bd_addr  - The peer device
+ *                  io_cap - The remote Input/Output capabilities
+ *                  oob_data - true, if OOB data is available for the peer device.
+ *                  auth_req - true, if MITM protection is required.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
                              tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req);
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_lk_upgrade
-**
-** Description      This callout function is executed by DM to check if the
-**                  platform wants allow link key upgrade
-**
-** Parameters       bd_addr  - The peer device
-**                  *p_upgrade - true, if link key upgrade is desired.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_lk_upgrade
+ *
+ * Description      This callout function is executed by DM to check if the
+ *                  platform wants allow link key upgrade
+ *
+ * Parameters       bd_addr  - The peer device
+ *                  *p_upgrade - true, if link key upgrade is desired.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, bool *p_upgrade );
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_loc_oob
-**
-** Description      This callout function is executed by DM to report the OOB
-**                  data of the local device for the Simple Pairing process
-**
-** Parameters       valid - true, if the local OOB data is retrieved from LM
-**                  c     - Simple Pairing Hash C
-**                  r     - Simple Pairing Randomnizer R
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_loc_oob
+ *
+ * Description      This callout function is executed by DM to report the OOB
+ *                  data of the local device for the Simple Pairing process
+ *
+ * Parameters       valid - true, if the local OOB data is retrieved from LM
+ *                  c     - Simple Pairing Hash C
+ *                  r     - Simple Pairing Randomnizer R
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void bta_dm_co_loc_oob(bool valid, BT_OCTET16 c, BT_OCTET16 r);
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_rmt_oob
-**
-** Description      This callout function is executed by DM to request the OOB
-**                  data for the remote device for the Simple Pairing process
-**
-** Parameters       bd_addr  - The peer device
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_rmt_oob
+ *
+ * Description      This callout function is executed by DM to request the OOB
+ *                  data for the remote device for the Simple Pairing process
+ *
+ * Parameters       bd_addr  - The peer device
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
 
 /*****************************************************************************
-**  SCO over HCI Function Declarations
-*****************************************************************************/
+ *  SCO over HCI Function Declarations
+ ****************************************************************************/
 /*******************************************************************************
-**
-** Function         bta_dm_sco_co_init
-**
-** Description      This function can be used by the phone to initialize audio
-**                  codec or for other initialization purposes before SCO connection
-**                  is opened.
-**
-**
-** Returns          Void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sco_co_init
+ *
+ * Description      This function can be used by the phone to initialize audio
+ *                  codec or for other initialization purposes before SCO connection
+ *                  is opened.
+ *
+ *
+ * Returns          Void.
+ *
+ ******************************************************************************/
 extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(uint32_t rx_bw, uint32_t tx_bw,
                                                  tBTA_CODEC_INFO *p_codec_info, uint8_t app_id);
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_sco_co_open
-**
-** Description      This function is executed when a SCO connection is open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sco_co_open
+ *
+ * Description      This function is executed when a SCO connection is open.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_dm_sco_co_open(uint16_t handle, uint8_t pkt_size, uint16_t event);
 
 /*******************************************************************************
-**
-** Function         bta_dm_sco_co_close
-**
-** Description      This function is called when a SCO connection is closed
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sco_co_close
+ *
+ * Description      This function is called when a SCO connection is closed
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_dm_sco_co_close(void);
 
 /*******************************************************************************
-**
-** Function         bta_dm_sco_co_out_data
-**
-** Description      This function is called to send SCO data over HCI.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sco_co_out_data
+ *
+ * Description      This function is called to send SCO data over HCI.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_dm_sco_co_out_data(BT_HDR  **p_buf);
 
 /*******************************************************************************
-**
-** Function         bta_dm_sco_co_in_data
-**
-** Description      This function is called to send incoming SCO data to application.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sco_co_in_data
+ *
+ * Description      This function is called to send incoming SCO data to application.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG status);
 
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_ble_io_req
-**
-** Description      This callout function is executed by DM to get BLE IO capabilities
-**                  before SMP pairing gets going.
-**
-** Parameters       bd_addr  - The peer device
-**                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - true, if OOB data is available for the peer device.
-**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
-**                  *p_max_key_size - max key size local device supported.
-**                  *p_init_key - initiator keys.
-**                  *p_resp_key - responder keys.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_ble_io_req
+ *
+ * Description      This callout function is executed by DM to get BLE IO capabilities
+ *                  before SMP pairing gets going.
+ *
+ * Parameters       bd_addr  - The peer device
+ *                  *p_io_cap - The local Input/Output capabilities
+ *                  *p_oob_data - true, if OOB data is available for the peer device.
+ *                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
+ *                  *p_max_key_size - max key size local device supported.
+ *                  *p_init_key - initiator keys.
+ *                  *p_resp_key - responder keys.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                                  tBTA_OOB_DATA *p_oob_data,
                                  tBTA_LE_AUTH_REQ *p_auth_req,
@@ -233,38 +233,38 @@ extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_ble_local_key_reload
-**
-** Description      This callout function is to load the local BLE keys if available
-**                  on the device.
-**
-** Parameters       none
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_ble_local_key_reload
+ *
+ * Description      This callout function is to load the local BLE keys if available
+ *                  on the device.
+ *
+ * Parameters       none
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OCTET16 er,
                                            tBTA_BLE_LOCAL_ID_KEYS *p_id_keys);
 
 /*******************************************************************************
-**
-** Function         bta_dm_co_ble_io_req
-**
-** Description      This callout function is executed by DM to get BLE IO capabilities
-**                  before SMP pairing gets going.
-**
-** Parameters       bd_addr  - The peer device
-**                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - true, if OOB data is available for the peer device.
-**                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
-**                  *p_max_key_size - max key size local device supported.
-**                  *p_init_key - initiator keys.
-**                  *p_resp_key - responder keys.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_co_ble_io_req
+ *
+ * Description      This callout function is executed by DM to get BLE IO capabilities
+ *                  before SMP pairing gets going.
+ *
+ * Parameters       bd_addr  - The peer device
+ *                  *p_io_cap - The local Input/Output capabilities
+ *                  *p_oob_data - true, if OOB data is available for the peer device.
+ *                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
+ *                  *p_max_key_size - max key size local device supported.
+ *                  *p_init_key - initiator keys.
+ *                  *p_resp_key - responder keys.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                                  tBTA_OOB_DATA *p_oob_data,
                                  tBTA_LE_AUTH_REQ *p_auth_req,

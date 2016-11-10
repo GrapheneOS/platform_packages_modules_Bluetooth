@@ -41,8 +41,8 @@
 #include "utl.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 static const tBTA_SYS_REG bta_hh_reg =
 {
@@ -51,18 +51,18 @@ static const tBTA_SYS_REG bta_hh_reg =
 };
 
 /*******************************************************************************
-**
-** Function         BTA_HhEnable
-**
-** Description      Enable the HID host.  This function must be called before
-**                  any other functions in the HID host API are called. When the
-**                  enable operation is complete the callback function will be
-**                  called with BTA_HH_ENABLE_EVT.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhEnable
+ *
+ * Description      Enable the HID host.  This function must be called before
+ *                  any other functions in the HID host API are called. When the
+ *                  enable operation is complete the callback function will be
+ *                  called with BTA_HH_ENABLE_EVT.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback)
 {
     tBTA_HH_API_ENABLE *p_buf =
@@ -82,15 +82,15 @@ void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhDisable
-**
-** Description      Disable the HID host. If the server is currently
-**                  connected, the connection will be closed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhDisable
+ *
+ * Description      Disable the HID host. If the server is currently
+ *                  connected, the connection will be closed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhDisable(void)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -102,14 +102,14 @@ void BTA_HhDisable(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhClose
-**
-** Description      Disconnect a connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhClose
+ *
+ * Description      Disconnect a connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhClose(uint8_t dev_handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_calloc(sizeof(BT_HDR));
@@ -121,15 +121,15 @@ void BTA_HhClose(uint8_t dev_handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhOpen
-**
-** Description      Connect to a device of specified BD address in specified
-**                  protocol mode and security level.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhOpen
+ *
+ * Description      Connect to a device of specified BD address in specified
+ *                  protocol mode and security level.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhOpen(BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, tBTA_SEC sec_mask)
 {
     tBTA_HH_API_CONN *p_buf =
@@ -145,10 +145,10 @@ void BTA_HhOpen(BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, tBTA_SEC sec_mask)
 }
 
 /*******************************************************************************
-**
-** Function  bta_hh_snd_write_dev
-**
-*******************************************************************************/
+ *
+ * Function  bta_hh_snd_write_dev
+ *
+ ******************************************************************************/
 static void bta_hh_snd_write_dev(uint8_t dev_handle, uint8_t t_type, uint8_t param,
                                  uint16_t data, uint8_t rpt_id, BT_HDR  *p_data)
 {
@@ -167,30 +167,30 @@ static void bta_hh_snd_write_dev(uint8_t dev_handle, uint8_t t_type, uint8_t par
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhSetReport
-**
-** Description      send SET_REPORT to device.
-**
-** Parameter        dev_handle: device handle
-**                  r_type:     report type, could be BTA_HH_RPTT_OUTPUT or
-**                              BTA_HH_RPTT_FEATURE.
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSetReport
+ *
+ * Description      send SET_REPORT to device.
+ *
+ * Parameter        dev_handle: device handle
+ *                  r_type:     report type, could be BTA_HH_RPTT_OUTPUT or
+ *                              BTA_HH_RPTT_FEATURE.
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhSetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type, BT_HDR *p_data)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_REPORT, r_type, 0, 0, p_data);
 }
 /*******************************************************************************
-**
-** Function         BTA_HhGetReport
-**
-** Description      Send a GET_REPORT to HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetReport
+ *
+ * Description      Send a GET_REPORT to HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type, uint8_t rpt_id, uint16_t buf_size)
 {
     uint8_t param = (buf_size) ? (r_type | 0x08) : r_type;
@@ -199,90 +199,90 @@ void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type, uint8_t rpt_id
                         buf_size, rpt_id, NULL);
 }
 /*******************************************************************************
-**
-** Function         BTA_HhSetProtoMode
-**
-** Description      This function set the protocol mode at specified HID handle
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSetProtoMode
+ *
+ * Description      This function set the protocol mode at specified HID handle
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhSetProtoMode(uint8_t dev_handle, tBTA_HH_PROTO_MODE p_type)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_PROTOCOL, (uint8_t)p_type,
                         0, 0, NULL);
 }
 /*******************************************************************************
-**
-** Function         BTA_HhGetProtoMode
-**
-** Description      This function get protocol mode information.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetProtoMode
+ *
+ * Description      This function get protocol mode information.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhGetProtoMode(uint8_t dev_handle)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_PROTOCOL, 0, 0, 0, NULL);
 }
 /*******************************************************************************
-**
-** Function         BTA_HhSetIdle
-**
-** Description      send SET_IDLE to device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSetIdle
+ *
+ * Description      send SET_IDLE to device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_IDLE, 0, idle_rate, 0, NULL);
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhGetIdle
-**
-** Description      Send a GET_IDLE from HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetIdle
+ *
+ * Description      Send a GET_IDLE from HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhGetIdle(uint8_t dev_handle)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_IDLE, 0, 0, 0, NULL);
 }
 /*******************************************************************************
-**
-** Function         BTA_HhSendCtrl
-**
-** Description      Send a control command to HID device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSendCtrl
+ *
+ * Description      Send a control command to HID device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_CONTROL, (uint8_t)c_type, 0, 0, NULL);
 }
 /*******************************************************************************
-**
-** Function         BTA_HhSendData
-**
-** Description      This function send DATA transaction to HID device.
-**
-** Parameter        dev_handle: device handle
-**                  dev_bda: remote device address
-**                  p_data: data to be sent in the DATA transaction; or
-**                          the data to be write into the Output Report of a LE HID
-**                          device. The report is identified the report ID which is
-**                          the value of the byte (uint8_t *)(p_buf + 1) + p_buf->offset.
-**                          p_data->layer_specific needs to be set to the report type,
-**                          it can be OUTPUT report, or FEATURE report.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhSendData
+ *
+ * Description      This function send DATA transaction to HID device.
+ *
+ * Parameter        dev_handle: device handle
+ *                  dev_bda: remote device address
+ *                  p_data: data to be sent in the DATA transaction; or
+ *                          the data to be write into the Output Report of a LE HID
+ *                          device. The report is identified the report ID which is
+ *                          the value of the byte (uint8_t *)(p_buf + 1) + p_buf->offset.
+ *                          p_data->layer_specific needs to be set to the report type,
+ *                          it can be OUTPUT report, or FEATURE report.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhSendData(uint8_t dev_handle,
                     UNUSED_ATTR BD_ADDR dev_bda, BT_HDR  *p_data)
 {
@@ -297,14 +297,14 @@ void BTA_HhSendData(uint8_t dev_handle,
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhGetDscpInfo
-**
-** Description      Get HID device report descriptor
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhGetDscpInfo
+ *
+ * Description      Get HID device report descriptor
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhGetDscpInfo(uint8_t dev_handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_calloc(sizeof(BT_HDR));
@@ -316,17 +316,17 @@ void BTA_HhGetDscpInfo(uint8_t dev_handle)
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhAddDev
-**
-** Description      Add a virtually cabled device into HID-Host device list
-**                  to manage and assign a device handle for future API call,
-**                  host applciation call this API at start-up to initialize its
-**                  virtually cabled devices.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhAddDev
+ *
+ * Description      Add a virtually cabled device into HID-Host device list
+ *                  to manage and assign a device handle for future API call,
+ *                  host applciation call this API at start-up to initialize its
+ *                  virtually cabled devices.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, uint8_t sub_class,
                   uint8_t app_id, tBTA_HH_DEV_DSCP_INFO dscp_info)
 {
@@ -358,14 +358,14 @@ void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, uint8_t sub_class,
 }
 
 /*******************************************************************************
-**
-** Function         BTA_HhRemoveDev
-**
-** Description      Remove a device from the HID host devices list.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhRemoveDev
+ *
+ * Description      Remove a device from the HID host devices list.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhRemoveDev(uint8_t dev_handle )
 {
     tBTA_HH_MAINT_DEV *p_buf =
@@ -385,18 +385,18 @@ void BTA_HhRemoveDev(uint8_t dev_handle )
 /*******************************************************************************/
 
 /*******************************************************************************
-**
-** Function         BTA_HhParseBootRpt
-**
-** Description      This utility function parse a boot mode report.
-**                  For keyboard report, report data will carry the keycode max
-**                  up to 6 key press in one report. Application need to convert
-**                  the keycode into keypress character according to keyboard
-**                  language.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HhParseBootRpt
+ *
+ * Description      This utility function parse a boot mode report.
+ *                  For keyboard report, report data will carry the keycode max
+ *                  up to 6 key press in one report. Application need to convert
+ *                  the keycode into keypress character according to keyboard
+ *                  language.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, uint8_t *p_report,
                         uint16_t report_len)
 {

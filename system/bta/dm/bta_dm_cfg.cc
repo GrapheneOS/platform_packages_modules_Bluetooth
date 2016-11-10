@@ -534,21 +534,21 @@ tBTA_DM_PM_SPEC *p_bta_dm_pm_spec = (tBTA_DM_PM_SPEC *)&bta_dm_pm_spec;
 tBTM_PM_PWR_MD *p_bta_dm_pm_md = (tBTM_PM_PWR_MD *)&bta_dm_pm_md;
 
 /* The performance impact of EIR packet size
-**
-** When BTM_EIR_DEFAULT_FEC_REQUIRED is true,
-** 1 to 17 bytes,    DM1 is used and most robust.
-** 18 to 121 bytes,  DM3 is used but impacts inquiry scan time with large number
-**                    of devices.(almost double with 150 users)
-** 122 to 224 bytes, DM5 is used but cause quite big performance loss even with
-**                    small number of users. so it is not recommended.
-** 225 to 240 bytes, DH5 is used without FEC but it not recommended.
-**                    (same reason of DM5)
-**
-** When BTM_EIR_DEFAULT_FEC_REQUIRED is false,
-** 1 to 27 bytes,    DH1 is used but only robust at short range.
-** 28 to 183 bytes,  DH3 is used but only robust at short range and impacts inquiry
-**                    scan time with large number of devices.
-** 184 to 240 bytes, DH5 is used but it not recommended.
+ *
+ * When BTM_EIR_DEFAULT_FEC_REQUIRED is true,
+ * 1 to 17 bytes,    DM1 is used and most robust.
+ * 18 to 121 bytes,  DM3 is used but impacts inquiry scan time with large number
+ *                    of devices.(almost double with 150 users)
+ * 122 to 224 bytes, DM5 is used but cause quite big performance loss even with
+ *                    small number of users. so it is not recommended.
+ * 225 to 240 bytes, DH5 is used without FEC but it not recommended.
+ *                    (same reason of DM5)
+ *
+ * When BTM_EIR_DEFAULT_FEC_REQUIRED is false,
+ * 1 to 27 bytes,    DH1 is used but only robust at short range.
+ * 28 to 183 bytes,  DH3 is used but only robust at short range and impacts inquiry
+ *                    scan time with large number of devices.
+ * 184 to 240 bytes, DH5 is used but it not recommended.
 */
 
 #if (BTA_EIR_CANNED_UUID_LIST == TRUE)

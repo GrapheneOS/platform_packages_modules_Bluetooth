@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants and data types
-*****************************************************************************/
+ *  Constants and data types
+ ****************************************************************************/
 
 /* HFP peer (AG) features*/
 #define BTA_HF_CLIENT_PEER_FEAT_3WAY   0x00000001  /* Three-way calling */
@@ -243,125 +243,125 @@ typedef uint32_t tBTA_HF_CLIENT_FEAT;
 typedef void (tBTA_HF_CLIENT_CBACK)(tBTA_HF_CLIENT_EVT event, tBTA_HF_CLIENT *p_data);
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientEnable
-**
-** Description      Enable the HF CLient service. When the enable
-**                  operation is complete the callback function will be
-**                  called with a BTA_HF_CLIENT_ENABLE_EVT. This function must
-**                  be called before other function in the HF CLient API are
-**                  called.
-**
-** Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientEnable
+ *
+ * Description      Enable the HF CLient service. When the enable
+ *                  operation is complete the callback function will be
+ *                  called with a BTA_HF_CLIENT_ENABLE_EVT. This function must
+ *                  be called before other function in the HF CLient API are
+ *                  called.
+ *
+ * Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
+ *
+ ******************************************************************************/
 tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientDisable
-**
-** Description      Disable the HF Client service
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientDisable
+ *
+ * Description      Disable the HF Client service
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientDisable(void);
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientRegister
-**
-** Description      Register an HF Client service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientRegister
+ *
+ * Description      Register an HF Client service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
                           const char *p_service_name);
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientDeregister
-**
-** Description      Deregister an HF Client service.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientDeregister
+ *
+ * Description      Deregister an HF Client service.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientDeregister(uint16_t handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientOpen
-**
-** Description      Opens a connection to an audio gateway.
-**                  When connection is open callback function is called
-**                  with a BTA_HF_CLIENT_OPEN_EVT. Only the data connection is
-**                  opened. The audio connection is not opened.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientOpen
+ *
+ * Description      Opens a connection to an audio gateway.
+ *                  When connection is open callback function is called
+ *                  with a BTA_HF_CLIENT_OPEN_EVT. Only the data connection is
+ *                  opened. The audio connection is not opened.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask);
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientClose
-**
-** Description      Close the current connection to an audio gateway.
-**                  Any current audio connection will also be closed
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientClose
+ *
+ * Description      Close the current connection to an audio gateway.
+ *                  Any current audio connection will also be closed
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientClose(uint16_t handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HfCllientAudioOpen
-**
-** Description      Opens an audio connection to the currently connected
-**                 audio gateway
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfCllientAudioOpen
+ *
+ * Description      Opens an audio connection to the currently connected
+ *                 audio gateway
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientAudioOpen(uint16_t handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientAudioClose
-**
-** Description      Close the currently active audio connection to an audio
-**                  gateway. The data connection remains open
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientAudioClose
+ *
+ * Description      Close the currently active audio connection to an audio
+ *                  gateway. The data connection remains open
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientAudioClose(uint16_t handle);
 
 /*******************************************************************************
-**
-** Function         BTA_HfClientSendAT
-**
-** Description      send AT command
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_HfClientSendAT
+ *
+ * Description      send AT command
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, uint32_t val1, uint32_t val2, const char *str);
 
 #ifdef __cplusplus

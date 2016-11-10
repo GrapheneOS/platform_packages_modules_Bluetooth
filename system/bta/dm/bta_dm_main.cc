@@ -28,8 +28,8 @@
 
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 tBTA_DM_CB  bta_dm_cb;
 tBTA_DM_SEARCH_CB bta_dm_search_cb;
@@ -263,15 +263,15 @@ const tBTA_DM_ST_TBL bta_dm_search_st_tbl[] = {
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_sm_disable
-**
-** Description     unregister BTA DM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sm_disable
+ *
+ * Description     unregister BTA DM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_sm_disable( )
 {
     bta_sys_deregister( BTA_ID_DM );
@@ -279,15 +279,15 @@ void bta_dm_sm_disable( )
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_sm_execute
-**
-** Description      State machine event handling function for DM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sm_execute
+ *
+ * Description      State machine event handling function for DM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_dm_sm_execute(BT_HDR *p_msg)
 {
     uint16_t  event = p_msg->event & 0x00ff;
@@ -304,15 +304,15 @@ bool bta_dm_sm_execute(BT_HDR *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_sm_search_disable
-**
-** Description     unregister BTA SEARCH DM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sm_search_disable
+ *
+ * Description     unregister BTA SEARCH DM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_sm_disable( )
 {
     bta_sys_deregister( BTA_ID_DM_SEARCH );
@@ -321,15 +321,15 @@ void bta_dm_search_sm_disable( )
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_sm_execute
-**
-** Description      State machine event handling function for DM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_sm_execute
+ *
+ * Description      State machine event handling function for DM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_dm_search_sm_execute(BT_HDR *p_msg)
 {
     tBTA_DM_ST_TBL      state_table;

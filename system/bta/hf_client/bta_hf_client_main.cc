@@ -230,15 +230,15 @@ const tBTA_HF_CLIENT_ST_TBL bta_hf_client_st_tbl[] =
 tBTA_HF_CLIENT_CB  bta_hf_client_cb;
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_scb_init
-**
-** Description      Initialize an HF_Client service control block.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_scb_init
+ *
+ * Description      Initialize an HF_Client service control block.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_scb_init(void)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -254,15 +254,15 @@ void bta_hf_client_scb_init(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_scb_disable
-**
-** Description      Disable a service control block.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_scb_disable
+ *
+ * Description      Disable a service control block.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_scb_disable(void)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -273,15 +273,15 @@ void bta_hf_client_scb_disable(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_resume_open
-**
-** Description      Resume opening process.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_resume_open
+ *
+ * Description      Resume opening process.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_resume_open (void)
 {
     APPL_TRACE_DEBUG ("%s", __func__);
@@ -295,15 +295,15 @@ void bta_hf_client_resume_open (void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_collision_timer_cback
-**
-** Description      HF Client connection collision timer callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_collision_timer_cback
+ *
+ * Description      HF Client connection collision timer callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_collision_timer_cback(UNUSED_ATTR void *data)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -313,15 +313,15 @@ static void bta_hf_client_collision_timer_cback(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_collision_cback
-**
-** Description      Get notified about collision.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_collision_cback
+ *
+ * Description      Get notified about collision.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_collision_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status, uint8_t id,
                                     UNUSED_ATTR uint8_t app_id,
                                     UNUSED_ATTR BD_ADDR peer_addr)
@@ -364,15 +364,15 @@ void bta_hf_client_collision_cback (UNUSED_ATTR tBTA_SYS_CONN_STATUS status, uin
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_api_enable
-**
-** Description      Handle an API enable event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_api_enable
+ *
+ * Description      Handle an API enable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_api_enable(tBTA_HF_CLIENT_DATA *p_data)
 {
     char value[PROPERTY_VALUE_MAX];
@@ -402,15 +402,15 @@ static void bta_hf_client_api_enable(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_api_disable
-**
-** Description      Handle an API disable event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_api_disable
+ *
+ * Description      Handle an API disable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_api_disable(tBTA_HF_CLIENT_DATA *p_data)
 {
     if (!bta_sys_is_register (BTA_ID_HS))
@@ -428,15 +428,15 @@ static void bta_hf_client_api_disable(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_hdl_event
-**
-** Description      Data HF Client main event handling function.
-**
-**
-** Returns          bool
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_hdl_event
+ *
+ * Description      Data HF Client main event handling function.
+ *
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
 bool bta_hf_client_hdl_event(BT_HDR *p_msg)
 {
 #if (BTA_HF_CLIENT_DEBUG == TRUE)
@@ -463,15 +463,15 @@ bool bta_hf_client_hdl_event(BT_HDR *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sm_execute
-**
-** Description      State machine event handling function for HF Client
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sm_execute
+ *
+ * Description      State machine event handling function for HF Client
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_sm_execute(uint16_t event, tBTA_HF_CLIENT_DATA *p_data)
 {
     tBTA_HF_CLIENT_ST_TBL      state_table;
@@ -542,15 +542,15 @@ static void send_post_slc_cmd(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_slc_seq
-**
-** Description      Handles AT commands sequence required for SLC creation
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_slc_seq
+ *
+ * Description      Handles AT commands sequence required for SLC creation
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_slc_seq(bool error)
 {
     APPL_TRACE_DEBUG("bta_hf_client_slc_seq cmd: %u", bta_hf_client_cb.scb.at_cb.current_cmd);

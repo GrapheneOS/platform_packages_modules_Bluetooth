@@ -31,16 +31,16 @@
 #include <string.h>
 
 /*******************************************************************************
-**
-** Function         bta_av_ci_src_data_ready
-**
-** Description      This function sends an event to the AV indicating that
-**                  the phone has audio stream data ready to send and AV
-**                  should call bta_av_co_audio_src_data_path().
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_ci_src_data_ready
+ *
+ * Description      This function sends an event to the AV indicating that
+ *                  the phone has audio stream data ready to send and AV
+ *                  should call bta_av_co_audio_src_data_path().
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -52,18 +52,18 @@ void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_ci_setconfig
-**
-** Description      This function must be called in response to function
-**                  bta_av_co_audio_setconfig().
-**                  Parameter err_code is set to an AVDTP status value;
-**                  AVDT_SUCCESS if the codec configuration is ok,
-**                  otherwise error.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_ci_setconfig
+ *
+ * Description      This function must be called in response to function
+ *                  bta_av_co_audio_setconfig().
+ *                  Parameter err_code is set to an AVDTP status value;
+ *                  AVDT_SUCCESS if the codec configuration is ok,
+ *                  otherwise error.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, uint8_t err_code, uint8_t category,
                          uint8_t num_seid, uint8_t *p_seid, bool recfg_needed, uint8_t avdt_handle)
 {

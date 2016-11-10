@@ -50,11 +50,11 @@ using std::vector;
 #endif
 
 /*****************************************************************************
-**  Constants and data types
-*****************************************************************************/
+ *  Constants and data types
+ ****************************************************************************/
 /**************************
-**  Common Definitions
-***************************/
+ *  Common Definitions
+ **************************/
 /* GATT ID */
 typedef struct
 {
@@ -563,172 +563,172 @@ typedef struct
 } __attribute__((packed)) tBTA_GATTC_INCLUDED_SVC;
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /**************************
-**  Client Functions
-***************************/
+ *  Client Functions
+ **************************/
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_Disable
-**
-** Description      This function is called to disable the GATTC module
-**
-** Parameters       None.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_Disable
+ *
+ * Description      This function is called to disable the GATTC module
+ *
+ * Parameters       None.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_Disable(void);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_AppRegister
-**
-** Description      This function is called to register application callbacks
-**                    with BTA GATTC module.
-**
-** Parameters       p_app_uuid - applicaiton UUID
-**                  p_client_cb - pointer to the application callback function.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_AppRegister
+ *
+ * Description      This function is called to register application callbacks
+ *                    with BTA GATTC module.
+ *
+ * Parameters       p_app_uuid - applicaiton UUID
+ *                  p_client_cb - pointer to the application callback function.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_AppDeregister
-**
-** Description      This function is called to deregister an application
-**                  from BTA GATTC module.
-**
-** Parameters       client_if - client interface identifier.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_AppDeregister
+ *
+ * Description      This function is called to deregister an application
+ *                  from BTA GATTC module.
+ *
+ * Parameters       client_if - client interface identifier.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_AppDeregister (tBTA_GATTC_IF client_if);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_Open
-**
-** Description      Open a direct connection or add a background auto connection
-**                  bd address
-**
-** Parameters       client_if: server interface.
-**                  remote_bda: remote device BD address.
-**                  is_direct: direct connection or background auto connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_Open
+ *
+ * Description      Open a direct connection or add a background auto connection
+ *                  bd address
+ *
+ * Parameters       client_if: server interface.
+ *                  remote_bda: remote device BD address.
+ *                  is_direct: direct connection or background auto connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
                            bool is_direct, tBTA_GATT_TRANSPORT transport);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_CancelOpen
-**
-** Description      Open a direct connection or add a background auto connection
-**                  bd address
-**
-** Parameters       client_if: server interface.
-**                  remote_bda: remote device BD address.
-**                  is_direct: direct connection or background auto connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_CancelOpen
+ *
+ * Description      Open a direct connection or add a background auto connection
+ *                  bd address
+ *
+ * Parameters       client_if: server interface.
+ *                  remote_bda: remote device BD address.
+ *                  is_direct: direct connection or background auto connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, bool is_direct);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_Close
-**
-** Description      Close a connection to a GATT server.
-**
-** Parameters       conn_id: connectino ID to be closed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_Close
+ *
+ * Description      Close a connection to a GATT server.
+ *
+ * Parameters       conn_id: connectino ID to be closed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_Close(uint16_t conn_id);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_ServiceSearchRequest
-**
-** Description      This function is called to request a GATT service discovery
-**                    on a GATT server. This function report service search result
-**                  by a callback event, and followed by a service search complete
-**                  event.
-**
-** Parameters       conn_id: connection ID.
-**                  p_srvc_uuid: a UUID of the service application is interested in.
-**                              If Null, discover for all services.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_ServiceSearchRequest
+ *
+ * Description      This function is called to request a GATT service discovery
+ *                    on a GATT server. This function report service search result
+ *                  by a callback event, and followed by a service search complete
+ *                  event.
+ *
+ * Parameters       conn_id: connection ID.
+ *                  p_srvc_uuid: a UUID of the service application is interested in.
+ *                              If Null, discover for all services.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_ServiceSearchRequest(uint16_t conn_id, tBT_UUID *p_srvc_uuid);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_GetServices
-**
-** Description      This function is called to find the services on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**
-** Returns          returns list_t of tBTA_GATTC_SERVICE or NULL.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_GetServices
+ *
+ * Description      This function is called to find the services on the given server.
+ *
+ * Parameters       conn_id: connection ID which identify the server.
+ *
+ * Returns          returns list_t of tBTA_GATTC_SERVICE or NULL.
+ *
+ ******************************************************************************/
 extern const list_t* BTA_GATTC_GetServices(uint16_t conn_id);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_GetCharacteristic
-**
-** Description      This function is called to find the characteristic on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  handle: characteristic handle
-**
-** Returns          returns pointer to tBTA_GATTC_CHARACTERISTIC or NULL.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_GetCharacteristic
+ *
+ * Description      This function is called to find the characteristic on the given server.
+ *
+ * Parameters       conn_id: connection ID which identify the server.
+ *                  handle: characteristic handle
+ *
+ * Returns          returns pointer to tBTA_GATTC_CHARACTERISTIC or NULL.
+ *
+ ******************************************************************************/
 extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(uint16_t conn_id, uint16_t handle);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_GetDescriptor
-**
-** Description      This function is called to find the characteristic on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  handle: descriptor handle
-**
-** Returns          returns pointer to tBTA_GATTC_DESCRIPTOR or NULL.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_GetDescriptor
+ *
+ * Description      This function is called to find the characteristic on the given server.
+ *
+ * Parameters       conn_id: connection ID which identify the server.
+ *                  handle: descriptor handle
+ *
+ * Returns          returns pointer to tBTA_GATTC_DESCRIPTOR or NULL.
+ *
+ ******************************************************************************/
 extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(uint16_t conn_id, uint16_t handle);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_GetGattDb
-**
-** Description      This function is called to get gatt db.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  db: output parameter which will contain gatt db copy.
-**                      Caller is responsible for freeing it.
-**                  count: number of elements in db.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_GetGattDb
+ *
+ * Description      This function is called to get gatt db.
+ *
+ * Parameters       conn_id: connection ID which identify the server.
+ *                  db: output parameter which will contain gatt db copy.
+ *                      Caller is responsible for freeing it.
+ *                  count: number of elements in db.
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_GetGattDb(uint16_t conn_id, uint16_t start_handle, uint16_t end_handle,
                                 btgatt_db_element_t **db, int *count);
 
@@ -737,49 +737,49 @@ typedef void (*GATT_READ_OP_CB)(uint16_t conn_id, tGATT_STATUS status, uint16_t 
 typedef void (*GATT_WRITE_OP_CB)(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, void* data);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_ReadCharacteristic
-**
-** Description      This function is called to read a characteristics value
-**
-** Parameters       conn_id - connectino ID.
-**                  handle - characteritic handle to read.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_ReadCharacteristic
+ *
+ * Description      This function is called to read a characteristics value
+ *
+ * Parameters       conn_id - connectino ID.
+ *                  handle - characteritic handle to read.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req,
                                   GATT_READ_OP_CB callback, void* cb_data);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_ReadCharDescr
-**
-** Description      This function is called to read a descriptor value.
-**
-** Parameters       conn_id - connection ID.
-**                  handle - descriptor handle to read.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_ReadCharDescr
+ *
+ * Description      This function is called to read a descriptor value.
+ *
+ * Parameters       conn_id - connection ID.
+ *                  handle - descriptor handle to read.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void BTA_GATTC_ReadCharDescr (uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req,
                               GATT_READ_OP_CB callback, void* cb_data);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_WriteCharValue
-**
-** Description      This function is called to write characteristic value.
-**
-** Parameters       conn_id - connection ID.
-**                  handle - characteristic handle to write.
-**                  write_type - type of write.
-**                  value - the value to be written.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_WriteCharValue
+ *
+ * Description      This function is called to write characteristic value.
+ *
+ * Parameters       conn_id - connection ID.
+ *                  handle - characteristic handle to write.
+ *                  write_type - type of write.
+ *                  value - the value to be written.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
                                 uint16_t handle,
                                 tBTA_GATTC_WRITE_TYPE  write_type,
@@ -789,18 +789,18 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
                                 void* cb_data);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_WriteCharDescr
-**
-** Description      This function is called to write descriptor value.
-**
-** Parameters       conn_id - connection ID
-**                  handle - descriptor handle to write.
-**                  value - the value to be written.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_WriteCharDescr
+ *
+ * Description      This function is called to write descriptor value.
+ *
+ * Parameters       conn_id - connection ID
+ *                  handle - descriptor handle to write.
+ *                  value - the value to be written.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
                                uint16_t handle,
                                vector<uint8_t> value,
@@ -809,67 +809,67 @@ void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
                                void* cb_data);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_SendIndConfirm
-**
-** Description      This function is called to send handle value confirmation.
-**
-** Parameters       conn_id - connection ID.
-**                  handle - characteristic handle to confirm.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_SendIndConfirm
+ *
+ * Description      This function is called to send handle value confirmation.
+ *
+ * Parameters       conn_id - connection ID.
+ *                  handle - characteristic handle to confirm.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_SendIndConfirm (uint16_t conn_id, uint16_t handle);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_RegisterForNotifications
-**
-** Description      This function is called to register for notification of a service.
-**
-** Parameters       client_if - client interface.
-**                  remote_bda - target GATT server.
-**                  handle - GATT characteristic handle.
-**
-** Returns          OK if registration succeed, otherwise failed.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_RegisterForNotifications
+ *
+ * Description      This function is called to register for notification of a service.
+ *
+ * Parameters       client_if - client interface.
+ *                  remote_bda - target GATT server.
+ *                  handle - GATT characteristic handle.
+ *
+ * Returns          OK if registration succeed, otherwise failed.
+ *
+ ******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      client_if,
                                                             const BD_ADDR      remote_bda,
                                                             uint16_t             handle);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_DeregisterForNotifications
-**
-** Description      This function is called to de-register for notification of a servbice.
-**
-** Parameters       client_if - client interface.
-**                  remote_bda - target GATT server.
-**                  handle - GATT characteristic handle.
-**
-** Returns          OK if deregistration succeed, otherwise failed.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_DeregisterForNotifications
+ *
+ * Description      This function is called to de-register for notification of a servbice.
+ *
+ * Parameters       client_if - client interface.
+ *                  remote_bda - target GATT server.
+ *                  handle - GATT characteristic handle.
+ *
+ * Returns          OK if deregistration succeed, otherwise failed.
+ *
+ ******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF      client_if,
                                                               const BD_ADDR      remote_bda,
                                                               uint16_t             handle);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_PrepareWrite
-**
-** Description      This function is called to prepare write a characteristic value.
-**
-** Parameters       conn_id - connection ID.
-**                  handle - GATT characteritic handle.
-**                  offset - offset of the write value.
-**                  value - the value to be written.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_PrepareWrite
+ *
+ * Description      This function is called to prepare write a characteristic value.
+ *
+ * Parameters       conn_id - connection ID.
+ *                  handle - GATT characteritic handle.
+ *                  offset - offset of the write value.
+ *                  value - the value to be written.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_PrepareWrite  (uint16_t conn_id,
                                      uint16_t handle,
                                      uint16_t offset,
@@ -879,249 +879,249 @@ extern void BTA_GATTC_PrepareWrite  (uint16_t conn_id,
                                      void* cb_data);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_ExecuteWrite
-**
-** Description      This function is called to execute write a prepare write sequence.
-**
-** Parameters       conn_id - connection ID.
-**                    is_execute - execute or cancel.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_ExecuteWrite
+ *
+ * Description      This function is called to execute write a prepare write sequence.
+ *
+ * Parameters       conn_id - connection ID.
+ *                    is_execute - execute or cancel.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_ExecuteWrite  (uint16_t conn_id, bool is_execute);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_ReadMultiple
-**
-** Description      This function is called to read multiple characteristic or
-**                  characteristic descriptors.
-**
-** Parameters       conn_id - connectino ID.
-**                    p_read_multi - read multiple parameters.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_ReadMultiple
+ *
+ * Description      This function is called to read multiple characteristic or
+ *                  characteristic descriptors.
+ *
+ * Parameters       conn_id - connectino ID.
+ *                    p_read_multi - read multiple parameters.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI *p_read_multi,
                                    tBTA_GATT_AUTH_REQ auth_req);
 
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_Refresh
-**
-** Description      Refresh the server cache of the remote device
-**
-** Parameters       remote_bda: remote device BD address.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_Refresh
+ *
+ * Description      Refresh the server cache of the remote device
+ *
+ * Parameters       remote_bda: remote device BD address.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_Refresh(const BD_ADDR remote_bda);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTC_ConfigureMTU
-**
-** Description      Configure the MTU size in the GATT channel. This can be done
-**                  only once per connection.
-**
-** Parameters       conn_id: connection ID.
-**                  mtu: desired MTU size to use.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTC_ConfigureMTU
+ *
+ * Description      Configure the MTU size in the GATT channel. This can be done
+ *                  only once per connection.
+ *
+ * Parameters       conn_id: connection ID.
+ *                  mtu: desired MTU size to use.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu);
 
 /*******************************************************************************
-**  BTA GATT Server API
-********************************************************************************/
+ *  BTA GATT Server API
+ *******************************************************************************/
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_Init
-**
-** Description      This function is called to initalize GATTS module
-**
-** Parameters       None
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_Init
+ *
+ * Description      This function is called to initalize GATTS module
+ *
+ * Parameters       None
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_Init();
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_Disable
-**
-** Description      This function is called to disable GATTS module
-**
-** Parameters       None.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_Disable
+ *
+ * Description      This function is called to disable GATTS module
+ *
+ * Parameters       None.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_Disable(void);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_AppRegister
-**
-** Description      This function is called to register application callbacks
-**                    with BTA GATTS module.
-**
-** Parameters       p_app_uuid - applicaiton UUID
-**                  p_cback - pointer to the application callback function.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_AppRegister
+ *
+ * Description      This function is called to register application callbacks
+ *                    with BTA GATTS module.
+ *
+ * Parameters       p_app_uuid - applicaiton UUID
+ *                  p_cback - pointer to the application callback function.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTS_CBACK *p_cback);
 
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_AppDeregister
-**
-** Description      De-register with BTA GATT Server.
-**
-** Parameters       server_if: server interface
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_AppDeregister
+ *
+ * Description      De-register with BTA GATT Server.
+ *
+ * Parameters       server_if: server interface
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_AddService
-**
-** Description      Add the given |service| and all included elements to the
-**                  GATT database. a |BTA_GATTS_ADD_SRVC_EVT| is triggered to
-**                  report the status and attribute handles.
-**
-** Parameters       server_if: server interface.
-**                  service: pointer to vector describing service.
-**
-** Returns          Returns |BTA_GATT_OK| on success or |BTA_GATT_ERROR| if the
-**                  service cannot be added.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_AddService
+ *
+ * Description      Add the given |service| and all included elements to the
+ *                  GATT database. a |BTA_GATTS_ADD_SRVC_EVT| is triggered to
+ *                  report the status and attribute handles.
+ *
+ * Parameters       server_if: server interface.
+ *                  service: pointer to vector describing service.
+ *
+ * Returns          Returns |BTA_GATT_OK| on success or |BTA_GATT_ERROR| if the
+ *                  service cannot be added.
+ *
+ ******************************************************************************/
 extern uint16_t BTA_GATTS_AddService(tBTA_GATTS_IF server_if, vector<btgatt_db_element_t> &service);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_DeleteService
-**
-** Description      This function is called to delete a service. When this is done,
-**                  a callback event BTA_GATTS_DELETE_EVT is report with the status.
-**
-** Parameters       service_id: service_id to be deleted.
-**
-** Returns          returns none.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_DeleteService
+ *
+ * Description      This function is called to delete a service. When this is done,
+ *                  a callback event BTA_GATTS_DELETE_EVT is report with the status.
+ *
+ * Parameters       service_id: service_id to be deleted.
+ *
+ * Returns          returns none.
+ *
+ ******************************************************************************/
 extern void  BTA_GATTS_DeleteService(uint16_t service_id);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_StopService
-**
-** Description      This function is called to stop a service.
-**
-** Parameters       service_id - service to be topped.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_StopService
+ *
+ * Description      This function is called to stop a service.
+ *
+ * Parameters       service_id - service to be topped.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_StopService(uint16_t service_id);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_HandleValueIndication
-**
-** Description      This function is called to read a characteristics descriptor.
-**
-** Parameters       conn_id - connection identifier.
-**                  attr_id - attribute ID to indicate.
-**                  value - data to indicate.
-**                  need_confirm - if this indication expects a confirmation or not.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_HandleValueIndication
+ *
+ * Description      This function is called to read a characteristics descriptor.
+ *
+ * Parameters       conn_id - connection identifier.
+ *                  attr_id - attribute ID to indicate.
+ *                  value - data to indicate.
+ *                  need_confirm - if this indication expects a confirmation or not.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_HandleValueIndication (uint16_t conn_id, uint16_t attr_id,
                                              vector<uint8_t> value,
                                              bool need_confirm);
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_SendRsp
-**
-** Description      This function is called to send a response to a request.
-**
-** Parameters       conn_id - connection identifier.
-**                  trans_id - transaction ID.
-**                  status - response status
-**                  p_msg - response data.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_SendRsp
+ *
+ * Description      This function is called to send a response to a request.
+ *
+ * Parameters       conn_id - connection identifier.
+ *                  trans_id - transaction ID.
+ *                  status - response status
+ *                  p_msg - response data.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_SendRsp (uint16_t conn_id, uint32_t trans_id,
                                tBTA_GATT_STATUS status, tBTA_GATTS_RSP *p_msg);
 
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_Open
-**
-** Description      Open a direct open connection or add a background auto connection
-**                  bd address
-**
-** Parameters       server_if: server interface.
-**                  remote_bda: remote device BD address.
-**                  is_direct: direct connection or background auto connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_Open
+ *
+ * Description      Open a direct open connection or add a background auto connection
+ *                  bd address
+ *
+ * Parameters       server_if: server interface.
+ *                  remote_bda: remote device BD address.
+ *                  is_direct: direct connection or background auto connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda,
                            bool is_direct, tBTA_GATT_TRANSPORT transport);
 
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_CancelOpen
-**
-** Description      Cancel a direct open connection or remove a background auto connection
-**                  bd address
-**
-** Parameters       server_if: server interface.
-**                  remote_bda: remote device BD address.
-**                  is_direct: direct connection or background auto connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_CancelOpen
+ *
+ * Description      Cancel a direct open connection or remove a background auto connection
+ *                  bd address
+ *
+ * Parameters       server_if: server interface.
+ *                  remote_bda: remote device BD address.
+ *                  is_direct: direct connection or background auto connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, bool is_direct);
 
 
 /*******************************************************************************
-**
-** Function         BTA_GATTS_Close
-**
-** Description      Close a connection  a remote device.
-**
-** Parameters       conn_id: connectino ID to be closed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GATTS_Close
+ *
+ * Description      Close a connection  a remote device.
+ *
+ * Parameters       conn_id: connectino ID to be closed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_GATTS_Close(uint16_t conn_id);
 
 #endif /* BTA_GATT_API_H */

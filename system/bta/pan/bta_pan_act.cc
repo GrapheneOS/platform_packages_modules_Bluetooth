@@ -43,15 +43,15 @@
 #define BTA_PAN_TX_MASK              0xF0
 
 /*******************************************************************************
- **
- ** Function    bta_pan_pm_conn_busy
- **
- ** Description set pan pm connection busy state
- **
- ** Params      p_scb: state machine control block of pan connection
- **
- ** Returns     void
- **
+ *
+ * Function    bta_pan_pm_conn_busy
+ *
+ * Description set pan pm connection busy state
+ *
+ * Params      p_scb: state machine control block of pan connection
+ *
+ * Returns     void
+ *
  *******************************************************************************/
 static void bta_pan_pm_conn_busy(tBTA_PAN_SCB *p_scb)
 {
@@ -60,15 +60,15 @@ static void bta_pan_pm_conn_busy(tBTA_PAN_SCB *p_scb)
 }
 
 /*******************************************************************************
- **
- ** Function    bta_pan_pm_conn_idle
- **
- ** Description set pan pm connection idle state
- **
- ** Params      p_scb: state machine control block of pan connection
- **
- ** Returns     void
- **
+ *
+ * Function    bta_pan_pm_conn_idle
+ *
+ * Description set pan pm connection idle state
+ *
+ * Params      p_scb: state machine control block of pan connection
+ *
+ * Returns     void
+ *
  *******************************************************************************/
 static void bta_pan_pm_conn_idle(tBTA_PAN_SCB *p_scb)
 {
@@ -77,15 +77,15 @@ static void bta_pan_pm_conn_idle(tBTA_PAN_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_conn_state_cback
-**
-** Description      Connection state callback from Pan profile
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_conn_state_cback
+ *
+ * Description      Connection state callback from Pan profile
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_conn_state_cback(uint16_t handle, BD_ADDR bd_addr, tPAN_RESULT state,
                                      bool is_role_change, uint8_t src_role, uint8_t dst_role)
 {
@@ -131,15 +131,15 @@ static void bta_pan_conn_state_cback(uint16_t handle, BD_ADDR bd_addr, tPAN_RESU
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_data_flow_cb
-**
-** Description      Data flow status callback from PAN
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_data_flow_cb
+ *
+ * Description      Data flow status callback from PAN
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_data_flow_cb(uint16_t handle, tPAN_RESULT result)
 {
     tBTA_PAN_SCB *p_scb;
@@ -160,15 +160,15 @@ static void bta_pan_data_flow_cb(uint16_t handle, tPAN_RESULT result)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_data_buf_ind_cback
-**
-** Description      data indication callback from pan profile
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_data_buf_ind_cback
+ *
+ * Description      data indication callback from pan profile
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_data_buf_ind_cback(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t protocol, BT_HDR *p_buf,
                                    bool ext, bool forward)
 {
@@ -206,15 +206,15 @@ static void bta_pan_data_buf_ind_cback(uint16_t handle, BD_ADDR src, BD_ADDR dst
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_pfilt_ind_cback
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_pfilt_ind_cback
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_pfilt_ind_cback(uint16_t handle, bool indication,tBNEP_RESULT result,
                                     uint16_t num_filters, uint8_t *p_filters)
 {
@@ -227,15 +227,15 @@ static void bta_pan_pfilt_ind_cback(uint16_t handle, bool indication,tBNEP_RESUL
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_mfilt_ind_cback
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_mfilt_ind_cback
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_pan_mfilt_ind_cback(uint16_t handle, bool indication,tBNEP_RESULT result,
                                     uint16_t num_mfilters, uint8_t *p_mfilters)
 {
@@ -247,16 +247,16 @@ static void bta_pan_mfilt_ind_cback(uint16_t handle, bool indication,tBNEP_RESUL
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_has_multiple_connections
-**
-** Description      Check whether there are multiple GN/NAP connections to
-**                  different devices
-**
-**
-** Returns          bool
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_has_multiple_connections
+ *
+ * Description      Check whether there are multiple GN/NAP connections to
+ *                  different devices
+ *
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
 static bool bta_pan_has_multiple_connections(uint8_t app_id)
 {
     tBTA_PAN_SCB *p_scb = NULL;
@@ -294,16 +294,16 @@ static bool bta_pan_has_multiple_connections(uint8_t app_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_enable
-**
-** Description
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_enable
+ *
+ * Description
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_enable(tBTA_PAN_DATA *p_data)
 {
     tPAN_REGISTER reg_data;
@@ -344,14 +344,14 @@ void bta_pan_enable(tBTA_PAN_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_set_role
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_set_role
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_set_role(tBTA_PAN_DATA *p_data)
 {
     tPAN_RESULT status;
@@ -408,16 +408,16 @@ void bta_pan_set_role(tBTA_PAN_DATA *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_disable
-**
-** Description
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_disable
+ *
+ * Description
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_disable(void)
 {
 
@@ -454,14 +454,14 @@ void bta_pan_disable(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_open
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_open
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
     tPAN_RESULT status;
@@ -499,16 +499,16 @@ void bta_pan_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_close
-**
-** Description
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_close
+ *
+ * Description
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_api_close (tBTA_PAN_SCB *p_scb,
                         UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
@@ -527,14 +527,14 @@ void bta_pan_api_close (tBTA_PAN_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_conn_open
-**
-** Description      process connection open event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_conn_open
+ *
+ * Description      process connection open event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_conn_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
 
@@ -578,16 +578,16 @@ void bta_pan_conn_open(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_conn_close
-**
-** Description      process connection close event
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_conn_close
+ *
+ * Description      process connection close event
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
 
@@ -612,16 +612,16 @@ void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_rx_path
-**
-** Description      Handle data on the RX path (data sent from the phone to
-**                  BTA).
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_rx_path
+ *
+ * Description      Handle data on the RX path (data sent from the phone to
+ *                  BTA).
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_rx_path(tBTA_PAN_SCB *p_scb,
                      UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
@@ -643,15 +643,15 @@ void bta_pan_rx_path(tBTA_PAN_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_tx_path
-**
-** Description      Handle the TX data path (data sent from BTA to the phone).
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_tx_path
+ *
+ * Description      Handle the TX data path (data sent from BTA to the phone).
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_tx_path(tBTA_PAN_SCB *p_scb,
                      UNUSED_ATTR tBTA_PAN_DATA *p_data)
 {
@@ -707,30 +707,30 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_tx_flow
-**
-** Description      Set the application flow control state.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_tx_flow
+ *
+ * Description      Set the application flow control state.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_tx_flow(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
     p_scb->app_flow_enable = p_data->ci_tx_flow.enable;
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_write_buf
-**
-** Description      Handle a bta_pan_ci_rx_writebuf() and send data to PAN.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_write_buf
+ *
+ * Description      Handle a bta_pan_ci_rx_writebuf() and send data to PAN.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
     if ((bta_pan_cb.flow_mask & BTA_PAN_RX_MASK) == BTA_PAN_RX_PUSH_BUF)
@@ -749,15 +749,15 @@ void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_free_buf
-**
-** Description      Frees the data buffer during closing state
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_free_buf
+ *
+ * Description      Frees the data buffer during closing state
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_free_buf(UNUSED_ATTR tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
     osi_free(p_data);

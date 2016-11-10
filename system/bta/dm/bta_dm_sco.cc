@@ -35,8 +35,8 @@
 #define BTA_DM_SCO_DEBUG    false
 #endif
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 #define BTA_DM_PCM_OVERLAP_SIZE			     48
 
@@ -45,8 +45,8 @@
 #define BTA_DM_PCM_SMPL_RATE_11025     11025
 
 /*****************************************************************************
-**  Data types for PCM Resampling utility
-*****************************************************************************/
+ *  Data types for PCM Resampling utility
+ ****************************************************************************/
 
 typedef int32_t   (*PCONVERT_TO_BT_FILTERED)  (uint8_t *pSrc, void *pDst, uint32_t dwSrcSamples,
                              uint32_t dwSrcSps,int32_t *pLastCurPos, uint8_t *pOverlapArea);
@@ -71,8 +71,8 @@ typedef struct
 tBTA_DM_PCM_RESAMPLE_CB bta_dm_pcm_cb;
 
 /*****************************************************************************
-**  Macro Definition
-*****************************************************************************/
+ *  Macro Definition
+ ****************************************************************************/
 
 #define CHECK_SATURATION16(x) \
   do {                        \
@@ -229,8 +229,8 @@ tBTA_DM_PCM_RESAMPLE_CB bta_dm_pcm_cb;
 #define SRC_SAMPLE(x)   ((pS[x]  - 0x80) << 8)
 
 /*****************************************************************************
-**  Local Function
-*****************************************************************************/
+ *  Local Function
+ ****************************************************************************/
 int32_t Convert_8M_ToBT_Filtered (uint8_t *pSrc, void *pDst, uint32_t dwSrcSamples,
                     uint32_t dwSrcSps, int32_t *pLastCurPos, uint8_t *pOverlapArea)
 {
@@ -566,19 +566,19 @@ int32_t Convert_16S_ToBT_NoFilter (void *pSrc, void *pDst, uint32_t dwSrcSamples
 }
 
 /*******************************************************************************
-**
-** Function         BTA_DmPcmInitSamples
-**
-** Description      initialize the down sample converter.
-**
-**                  src_sps: original samples per second (source audio data)
-**                            (ex. 44100, 48000)
-**                  bits: number of bits per pcm sample (16)
-**                  n_channels: number of channels (i.e. mono(1), stereo(2)...)
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmPcmInitSamples
+ *
+ * Description      initialize the down sample converter.
+ *
+ *                  src_sps: original samples per second (source audio data)
+ *                            (ex. 44100, 48000)
+ *                  bits: number of bits per pcm sample (16)
+ *                  n_channels: number of channels (i.e. mono(1), stereo(2)...)
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void BTA_DmPcmInitSamples (uint32_t src_sps, uint32_t bits, uint32_t n_channels)
 {
     tBTA_DM_PCM_RESAMPLE_CB *p_cb = &bta_dm_pcm_cb;
@@ -645,21 +645,21 @@ void BTA_DmPcmInitSamples (uint32_t src_sps, uint32_t bits, uint32_t n_channels)
 }
 
 /**************************************************************************************
-** Function         BTA_DmPcmResample
-**
-** Description      Down sampling utility to convert higher sampling rate into 8K/16bits
-**                  PCM samples.
-**
-** Parameters       p_src: pointer to the buffer where the original sampling PCM
-**                              are stored.
-**                  in_bytes:  Length of the input PCM sample buffer in byte.
-**                  p_dst:      pointer to the buffer which is to be used to store
-**                              the converted PCM samples.
-**
-**
-** Returns          int32_t: number of samples converted.
-**
-**************************************************************************************/
+ * Function         BTA_DmPcmResample
+ *
+ * Description      Down sampling utility to convert higher sampling rate into 8K/16bits
+ *                  PCM samples.
+ *
+ * Parameters       p_src: pointer to the buffer where the original sampling PCM
+ *                              are stored.
+ *                  in_bytes:  Length of the input PCM sample buffer in byte.
+ *                  p_dst:      pointer to the buffer which is to be used to store
+ *                              the converted PCM samples.
+ *
+ *
+ * Returns          int32_t: number of samples converted.
+ *
+ *************************************************************************************/
 int32_t BTA_DmPcmResample (void *p_src, uint32_t in_bytes, void *p_dst)
 {
     uint32_t out_sample;

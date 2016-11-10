@@ -35,8 +35,8 @@
 #include "l2c_api.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* maximum length of data to read from RFCOMM */
 #define BTA_AG_RFC_READ_MAX     512
@@ -78,15 +78,15 @@ const tBTA_AG_ATCMD_CBACK bta_ag_at_cback_tbl[BTA_AG_NUM_IDX] =
 };
 
 /*******************************************************************************
-**
-** Function         bta_ag_cback_open
-**
-** Description      Send open callback event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_cback_open
+ *
+ * Description      Send open callback event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_cback_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data, tBTA_AG_STATUS status)
 {
     tBTA_AG_OPEN    open;
@@ -110,16 +110,16 @@ static void bta_ag_cback_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data, tBTA_AG_
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_register
-**
-** Description      This function initializes values of the AG cb and sets up
-**                  the SDP record for the services.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_register
+ *
+ * Description      This function initializes values of the AG cb and sets up
+ *                  the SDP record for the services.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_register(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     tBTA_AG_REGISTER reg;
@@ -144,16 +144,16 @@ void bta_ag_register(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_deregister
-**
-** Description      This function removes the sdp records, closes the RFCOMM
-**                  servers, and deallocates the service control block.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_deregister
+ *
+ * Description      This function removes the sdp records, closes the RFCOMM
+ *                  servers, and deallocates the service control block.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_deregister(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* set dealloc */
@@ -170,15 +170,15 @@ void bta_ag_deregister(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_start_dereg
-**
-** Description      Start a deregister event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_start_dereg
+ *
+ * Description      Start a deregister event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_start_dereg(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* set dealloc */
@@ -189,15 +189,15 @@ void bta_ag_start_dereg(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_start_open
-**
-** Description      This starts an AG open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_start_open
+ *
+ * Description      This starts an AG open.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_start_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     BD_ADDR pending_bd_addr;
@@ -231,15 +231,15 @@ void bta_ag_start_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_disc_int_res
-**
-** Description      This function handles a discovery result when initiator.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_disc_int_res
+ *
+ * Description      This function handles a discovery result when initiator.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_disc_int_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     uint16_t event = BTA_AG_DISC_FAIL_EVT;
@@ -299,15 +299,15 @@ void bta_ag_disc_int_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_disc_acp_res
-**
-** Description      This function handles a discovery result when acceptor.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_disc_acp_res
+ *
+ * Description      This function handles a discovery result when acceptor.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_disc_acp_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* if found service */
@@ -323,15 +323,15 @@ void bta_ag_disc_acp_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_disc_fail
-**
-** Description      This function handles a discovery failure.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_disc_fail
+ *
+ * Description      This function handles a discovery failure.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_disc_fail(tBTA_AG_SCB *p_scb,
                       UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -348,15 +348,15 @@ void bta_ag_disc_fail(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_open_fail
-**
-** Description      open connection failed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_open_fail
+ *
+ * Description      open connection failed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_open_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* call open cback w. failure */
@@ -364,15 +364,15 @@ void bta_ag_open_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rfc_fail
-**
-** Description      RFCOMM connection failed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rfc_fail
+ *
+ * Description      RFCOMM connection failed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
     /* reinitialize stuff */
@@ -397,15 +397,15 @@ void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, UNUSED_ATTR tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rfc_close
-**
-** Description      RFCOMM connection closed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rfc_close
+ *
+ * Description      RFCOMM connection closed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rfc_close(tBTA_AG_SCB *p_scb,
                       UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -493,15 +493,15 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rfc_open
-**
-** Description      Handle RFCOMM channel open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rfc_open
+ *
+ * Description      Handle RFCOMM channel open.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rfc_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* initialize AT feature variables */
@@ -537,15 +537,15 @@ void bta_ag_rfc_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rfc_acp_open
-**
-** Description      Handle RFCOMM channel open when accepting connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rfc_acp_open
+ *
+ * Description      Handle RFCOMM channel open when accepting connection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     uint16_t        lcid;
@@ -629,15 +629,15 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rfc_data
-**
-** Description      Read and process data from RFCOMM.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rfc_data
+ *
+ * Description      Read and process data from RFCOMM.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rfc_data(tBTA_AG_SCB *p_scb,
                      UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -683,15 +683,15 @@ void bta_ag_rfc_data(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_start_close
-**
-** Description      Start the process of closing SCO and RFCOMM connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_start_close
+ *
+ * Description      Start the process of closing SCO and RFCOMM connection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_start_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* Take the link out of sniff and set L2C idle time to 0 */
@@ -714,15 +714,15 @@ void bta_ag_start_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_post_sco_open
-**
-** Description      Perform post-SCO open action, if any
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_post_sco_open
+ *
+ * Description      Perform post-SCO open action, if any
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_post_sco_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     switch (p_scb->post_sco)
@@ -743,15 +743,15 @@ void bta_ag_post_sco_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_post_sco_close
-**
-** Description      Perform post-SCO close action, if any
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_post_sco_close
+ *
+ * Description      Perform post-SCO close action, if any
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_post_sco_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     switch (p_scb->post_sco)
@@ -800,15 +800,15 @@ void bta_ag_post_sco_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_svc_conn_open
-**
-** Description      Service level connection opened
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_svc_conn_open
+ *
+ * Description      Service level connection opened
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb,
                           UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -844,14 +844,14 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_ci_rx_data
-**
-** Description      Send result code
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_ci_rx_data
+ *
+ * Description      Send result code
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     uint16_t len;
@@ -874,14 +874,14 @@ void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_rcvd_slc_ready
-**
-** Description      Handles SLC ready call-in in case of pass-through mode.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_rcvd_slc_ready
+ *
+ * Description      Handles SLC ready call-in in case of pass-through mode.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb,
                            UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -895,15 +895,15 @@ void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_setcodec
-**
-** Description      Handle API SetCodec
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_setcodec
+ *
+ * Description      Handle API SetCodec
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
 #if (BTM_WBS_INCLUDED == TRUE)

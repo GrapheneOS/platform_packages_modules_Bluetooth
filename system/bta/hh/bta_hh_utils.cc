@@ -29,8 +29,8 @@
 #define BTA_HH_GET_DEF_SSR_MAX_LAT(x)   ((x)>> 1)
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 #define BTA_HH_KB_CTRL_MASK         0x11
 #define BTA_HH_KB_SHIFT_MASK        0x22
 #define BTA_HH_KB_ALT_MASK          0x44
@@ -52,15 +52,15 @@ static const uint8_t bta_hh_mod_key_mask[BTA_HH_MOD_MAX_KEY] =
 
 
 /*******************************************************************************
-**
-** Function         bta_hh_find_cb
-**
-** Description      Find best available control block according to BD address.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_find_cb
+ *
+ * Description      Find best available control block according to BD address.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint8_t  bta_hh_find_cb(BD_ADDR bda)
 {
     uint8_t xx;
@@ -109,15 +109,15 @@ uint8_t  bta_hh_find_cb(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_clean_up_kdev
-**
-** Description      Clean up device control block when device is removed from
-**                  manitainace list, and update control block index map.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_clean_up_kdev
+ *
+ * Description      Clean up device control block when device is removed from
+ *                  manitainace list, and update control block index map.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_clean_up_kdev(tBTA_HH_DEV_CB *p_cb)
 {
     uint8_t index;
@@ -146,14 +146,14 @@ void bta_hh_clean_up_kdev(tBTA_HH_DEV_CB *p_cb)
 
 }
 /*******************************************************************************
-**
-** Function         bta_hh_update_di_info
-**
-** Description      Maintain a known device list for BTA HH.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_update_di_info
+ *
+ * Description      Maintain a known device list for BTA HH.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, uint16_t vendor_id, uint16_t product_id,
                            uint16_t version,
 #if (BTA_HH_LE_INCLUDED == TRUE)
@@ -174,14 +174,14 @@ void bta_hh_update_di_info(tBTA_HH_DEV_CB *p_cb, uint16_t vendor_id, uint16_t pr
 #endif
 }
 /*******************************************************************************
-**
-** Function         bta_hh_add_device_to_list
-**
-** Description      Maintain a known device list for BTA HH.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_add_device_to_list
+ *
+ * Description      Maintain a known device list for BTA HH.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, uint8_t handle,
                                uint16_t attr_mask,
                                tHID_DEV_DSCP_INFO *p_dscp_info,
@@ -219,14 +219,14 @@ void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, uint8_t handle,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_tod_spt
-**
-** Description      Check to see if this type of device is supported
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_tod_spt
+ *
+ * Description      Check to see if this type of device is supported
+ *
+ * Returns
+ *
+ ******************************************************************************/
 bool bta_hh_tod_spt(tBTA_HH_DEV_CB *p_cb,uint8_t sub_class)
 {
     uint8_t    xx;
@@ -251,14 +251,14 @@ bool bta_hh_tod_spt(tBTA_HH_DEV_CB *p_cb,uint8_t sub_class)
 
 
 /*******************************************************************************
-**
-** Function         bta_hh_parse_keybd_rpt
-**
-** Description      This utility function parse a boot mode keyboard report.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_parse_keybd_rpt
+ *
+ * Description      This utility function parse a boot mode keyboard report.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, uint8_t *p_report,
                             uint16_t report_len)
 {
@@ -348,14 +348,14 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT *p_kb_data, uint8_t *p_report,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_parse_mice_rpt
-**
-** Description      This utility function parse a boot mode mouse report.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_parse_mice_rpt
+ *
+ * Description      This utility function parse a boot mode mouse report.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_parse_mice_rpt(tBTA_HH_BOOT_RPT *p_mice_data, uint8_t *p_report,
                            uint16_t report_len)
 {
@@ -400,14 +400,14 @@ void bta_hh_parse_mice_rpt(tBTA_HH_BOOT_RPT *p_mice_data, uint8_t *p_report,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_read_ssr_param
-**
-** Description      Read the SSR Parameter for the remote device
-**
-** Returns          tBTA_HH_STATUS  operation status
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_read_ssr_param
+ *
+ * Description      Read the SSR Parameter for the remote device
+ *
+ * Returns          tBTA_HH_STATUS  operation status
+ *
+ ******************************************************************************/
 tBTA_HH_STATUS bta_hh_read_ssr_param(BD_ADDR bd_addr, uint16_t *p_max_ssr_lat, uint16_t *p_min_ssr_tout)
 {
     tBTA_HH_STATUS  status = BTA_HH_ERR;
@@ -453,15 +453,15 @@ tBTA_HH_STATUS bta_hh_read_ssr_param(BD_ADDR bd_addr, uint16_t *p_max_ssr_lat, u
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_cleanup_disable
-**
-** Description      when disable finished, cleanup control block and send callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_cleanup_disable
+ *
+ * Description      when disable finished, cleanup control block and send callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hh_cleanup_disable(tBTA_HH_STATUS status)
 {
     uint8_t   xx;
@@ -477,15 +477,15 @@ void bta_hh_cleanup_disable(tBTA_HH_STATUS status)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hh_dev_handle_to_cb_idx
-**
-** Description      convert a HID device handle to the device control block index.
-**
-**
-** Returns          uint8_t: index of the device control block.
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_dev_handle_to_cb_idx
+ *
+ * Description      convert a HID device handle to the device control block index.
+ *
+ *
+ * Returns          uint8_t: index of the device control block.
+ *
+ ******************************************************************************/
 uint8_t bta_hh_dev_handle_to_cb_idx(uint8_t dev_handle)
 {
     uint8_t index = BTA_HH_IDX_INVALID;
@@ -510,14 +510,14 @@ uint8_t bta_hh_dev_handle_to_cb_idx(uint8_t dev_handle)
 }
 #if (BTA_HH_DEBUG == TRUE)
 /*******************************************************************************
-**
-** Function         bta_hh_trace_dev_db
-**
-** Description      Check to see if this type of device is supported
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_hh_trace_dev_db
+ *
+ * Description      Check to see if this type of device is supported
+ *
+ * Returns
+ *
+ ******************************************************************************/
 void bta_hh_trace_dev_db(void)
 {
     uint8_t    xx;

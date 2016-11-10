@@ -144,15 +144,15 @@ static const tBTM_ESCO_PARAMS bta_ag_esco_params =
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_conn_cback
-**
-** Description      BTM SCO connection callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_conn_cback
+ *
+ * Description      BTM SCO connection callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_sco_conn_cback(uint16_t sco_idx)
 {
     uint16_t  handle;
@@ -187,15 +187,15 @@ static void bta_ag_sco_conn_cback(uint16_t sco_idx)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_disc_cback
-**
-** Description      BTM SCO disconnection callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_disc_cback
+ *
+ * Description      BTM SCO disconnection callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_sco_disc_cback(uint16_t sco_idx)
 {
     uint16_t  handle = 0;
@@ -274,15 +274,15 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx)
 }
 #if (BTM_SCO_HCI_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_ag_sco_read_cback
-**
-** Description      Callback function is the callback function for incoming
-**                  SCO data over HCI.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_read_cback
+ *
+ * Description      Callback function is the callback function for incoming
+ *                  SCO data over HCI.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_sco_read_cback (uint16_t sco_inx, BT_HDR *p_data, tBTM_SCO_DATA_FLAG status)
 {
     if (status != BTM_SCO_DATA_CORRECT)
@@ -295,15 +295,15 @@ static void bta_ag_sco_read_cback (uint16_t sco_inx, BT_HDR *p_data, tBTM_SCO_DA
 }
 #endif
 /*******************************************************************************
-**
-** Function         bta_ag_remove_sco
-**
-** Description      Removes the specified SCO from the system.
-**                  If only_active is true, then SCO is only removed if connected
-**
-** Returns          bool   - true if Sco removal was started
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_remove_sco
+ *
+ * Description      Removes the specified SCO from the system.
+ *                  If only_active is true, then SCO is only removed if connected
+ *
+ * Returns          bool   - true if Sco removal was started
+ *
+ ******************************************************************************/
 static bool bta_ag_remove_sco(tBTA_AG_SCB *p_scb, bool only_active)
 {
     bool        removed_started = false;
@@ -336,15 +336,15 @@ static bool bta_ag_remove_sco(tBTA_AG_SCB *p_scb, bool only_active)
 
 
 /*******************************************************************************
-**
-** Function         bta_ag_esco_connreq_cback
-**
-** Description      BTM eSCO connection requests and eSCO change requests
-**                  Only the connection requests are processed by BTA.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_esco_connreq_cback
+ *
+ * Description      BTM eSCO connection requests and eSCO change requests
+ *                  Only the connection requests are processed by BTA.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_esco_connreq_cback(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 {
     tBTA_AG_SCB         *p_scb;
@@ -404,15 +404,15 @@ static void bta_ag_esco_connreq_cback(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_cback_sco
-**
-** Description      Call application callback function with SCO event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_cback_sco
+ *
+ * Description      Call application callback function with SCO event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_cback_sco(tBTA_AG_SCB *p_scb, uint8_t event)
 {
     tBTA_AG_HDR    sco;
@@ -425,15 +425,15 @@ static void bta_ag_cback_sco(tBTA_AG_SCB *p_scb, uint8_t event)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_create_sco
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_create_sco
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, bool is_orig)
 {
     tBTM_STATUS       status;
@@ -613,15 +613,15 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, bool is_orig)
 
 #if (BTM_WBS_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_ag_attempt_msbc_safe_settings
-**
-** Description    Checks if ESCO connection needs to be attempted using mSBC T1(safe) settings
-**
-**
-** Returns          true if T1 settings has to be used, false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_attempt_msbc_safe_settings
+ *
+ * Description    Checks if ESCO connection needs to be attempted using mSBC T1(safe) settings
+ *
+ *
+ * Returns          true if T1 settings has to be used, false otherwise
+ *
+ ******************************************************************************/
 bool bta_ag_attempt_msbc_safe_settings(tBTA_AG_SCB *p_scb)
 {
     if (p_scb->svc_conn && p_scb->sco_codec == BTM_SCO_CODEC_MSBC &&
@@ -632,15 +632,15 @@ bool bta_ag_attempt_msbc_safe_settings(tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_codec_negotiation_timer_cback
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_codec_negotiation_timer_cback
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_codec_negotiation_timer_cback(void *data)
 {
     tBTA_AG_SCB *p_scb = (tBTA_AG_SCB *)data;
@@ -653,15 +653,15 @@ static void bta_ag_codec_negotiation_timer_cback(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_codec_negotiate
-**
-** Description      Initiate codec negotiation by sending AT command.
-**                  If not necessary, skip negotiation.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_codec_negotiate
+ *
+ * Description      Initiate codec negotiation by sending AT command.
+ *                  If not necessary, skip negotiation.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_codec_negotiate(tBTA_AG_SCB *p_scb)
 {
     bta_ag_cb.sco.p_curr_scb = p_scb;
@@ -693,15 +693,15 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB *p_scb)
 #endif /* (BTM_WBS_INCLUDED == TRUE) */
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_event
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_event
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_ag_sco_event(tBTA_AG_SCB *p_scb, uint8_t event)
 {
     tBTA_AG_SCO_CB *p_sco = &bta_ag_cb.sco;
@@ -1281,15 +1281,15 @@ static void bta_ag_sco_event(tBTA_AG_SCB *p_scb, uint8_t event)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_is_open
-**
-** Description      Check if sco is open for this scb.
-**
-**
-** Returns          true if sco open for this scb, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_is_open
+ *
+ * Description      Check if sco is open for this scb.
+ *
+ *
+ * Returns          true if sco open for this scb, false otherwise.
+ *
+ ******************************************************************************/
 bool bta_ag_sco_is_open(tBTA_AG_SCB *p_scb)
 {
     return ((bta_ag_cb.sco.state == BTA_AG_SCO_OPEN_ST) &&
@@ -1297,15 +1297,15 @@ bool bta_ag_sco_is_open(tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_is_opening
-**
-** Description      Check if sco is in Opening state.
-**
-**
-** Returns          true if sco is in Opening state for this scb, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_is_opening
+ *
+ * Description      Check if sco is in Opening state.
+ *
+ *
+ * Returns          true if sco is in Opening state for this scb, false otherwise.
+ *
+ ******************************************************************************/
 bool bta_ag_sco_is_opening(tBTA_AG_SCB *p_scb)
 {
     return ((bta_ag_cb.sco.state == BTA_AG_SCO_OPENING_ST) &&
@@ -1313,15 +1313,15 @@ bool bta_ag_sco_is_opening(tBTA_AG_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_listen
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_listen
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_listen(tBTA_AG_SCB *p_scb,
                        UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -1329,15 +1329,15 @@ void bta_ag_sco_listen(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_open
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_open
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_open(tBTA_AG_SCB *p_scb,
                      UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -1358,15 +1358,15 @@ void bta_ag_sco_open(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_close
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_close
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_close(tBTA_AG_SCB *p_scb,
                       UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -1386,15 +1386,15 @@ void bta_ag_sco_close(tBTA_AG_SCB *p_scb,
 #if (BTM_WBS_INCLUDED == TRUE)
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_codec_nego
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_codec_nego
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_codec_nego(tBTA_AG_SCB *p_scb, bool result)
 {
     if(result == true)
@@ -1410,15 +1410,15 @@ void bta_ag_sco_codec_nego(tBTA_AG_SCB *p_scb, bool result)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_shutdown
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_shutdown
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_shutdown(tBTA_AG_SCB *p_scb,
                          UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -1426,15 +1426,15 @@ void bta_ag_sco_shutdown(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_conn_open
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_conn_open
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_conn_open(tBTA_AG_SCB *p_scb,
                           UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -1465,15 +1465,15 @@ void bta_ag_sco_conn_open(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_conn_close
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_conn_close
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_conn_close(tBTA_AG_SCB *p_scb,
                            UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -1536,15 +1536,15 @@ void bta_ag_sco_conn_close(tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_sco_conn_rsp
-**
-** Description      Process the SCO connection request
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_sco_conn_rsp
+ *
+ * Description      Process the SCO connection request
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_sco_conn_rsp(tBTA_AG_SCB *p_scb, tBTM_ESCO_CONN_REQ_EVT_DATA *p_data)
 {
     tBTM_ESCO_PARAMS    resp;
@@ -1620,15 +1620,15 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB *p_scb, tBTM_ESCO_CONN_REQ_EVT_DATA *p_data
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_ci_sco_data
-**
-** Description      Process the SCO data ready callin event
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_ci_sco_data
+ *
+ * Description      Process the SCO data ready callin event
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_ci_sco_data(UNUSED_ATTR tBTA_AG_SCB *p_scb,
                         UNUSED_ATTR tBTA_AG_DATA *p_data)
 {
@@ -1638,15 +1638,15 @@ void bta_ag_ci_sco_data(UNUSED_ATTR tBTA_AG_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_ag_set_esco_param
-**
-** Description      Update esco parameters from script wrapper.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_set_esco_param
+ *
+ * Description      Update esco parameters from script wrapper.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_ag_set_esco_param(bool set_reset, tBTM_ESCO_PARAMS *param)
 {
     if(set_reset == false)    /* reset the parameters to default */
@@ -1663,8 +1663,8 @@ void bta_ag_set_esco_param(bool set_reset, tBTM_ESCO_PARAMS *param)
 }
 
 /*******************************************************************************
-**  Debugging functions
-*******************************************************************************/
+ *  Debugging functions
+ ******************************************************************************/
 
 #if (BTA_AG_SCO_DEBUG == TRUE)
 static char *bta_ag_sco_evt_str(uint8_t event)
