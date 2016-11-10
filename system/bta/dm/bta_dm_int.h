@@ -25,6 +25,7 @@
 #define BTA_DM_INT_H
 
 #include "bt_target.h"
+#include "bta_sys.h"
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
 #include "bta_gatt_api.h"

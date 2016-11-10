@@ -16,10 +16,10 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
-#include "bta_hf_client_int.h"
-#include <bt_trace.h>
 #include <string.h>
+
+#include "bt_trace.h"
+#include "bta_hf_client_int.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"
 
