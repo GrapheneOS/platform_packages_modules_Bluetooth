@@ -30,29 +30,30 @@
 extern "C" {
 #endif
 
-typedef struct
-{
-    uint16_t              rpt_uuid;
-    uint8_t               rpt_id;
-    tBTA_HH_RPT_TYPE    rpt_type;
-    uint8_t               srvc_inst_id;
-    uint8_t               char_inst_id;
-}tBTA_HH_RPT_CACHE_ENTRY;
+typedef struct {
+  uint16_t rpt_uuid;
+  uint8_t rpt_id;
+  tBTA_HH_RPT_TYPE rpt_type;
+  uint8_t srvc_inst_id;
+  uint8_t char_inst_id;
+} tBTA_HH_RPT_CACHE_ENTRY;
 
 /*******************************************************************************
  *
  * Function         bta_hh_co_data
  *
- * Description      This callout function is executed by HH when data is received
+ * Description      This callout function is executed by HH when data is
+ *received
  *                  in interupt channel.
  *
  *
  * Returns          void.
  *
  ******************************************************************************/
-extern void bta_hh_co_data(uint8_t dev_handle, uint8_t *p_rpt, uint16_t len,
-                           tBTA_HH_PROTO_MODE  mode, uint8_t sub_class,
-                           uint8_t ctry_code, BD_ADDR peer_addr, uint8_t app_id);
+extern void bta_hh_co_data(uint8_t dev_handle, uint8_t* p_rpt, uint16_t len,
+                           tBTA_HH_PROTO_MODE mode, uint8_t sub_class,
+                           uint8_t ctry_code, BD_ADDR peer_addr,
+                           uint8_t app_id);
 
 /*******************************************************************************
  *
@@ -98,15 +99,17 @@ extern void bta_hh_co_close(uint8_t dev_handle, uint8_t app_id);
  *
  ******************************************************************************/
 extern void bta_hh_le_co_rpt_info(BD_ADDR remote_bda,
-                                          tBTA_HH_RPT_CACHE_ENTRY *p_entry,
-                                          uint8_t app_id);
+                                  tBTA_HH_RPT_CACHE_ENTRY* p_entry,
+                                  uint8_t app_id);
 
 /*******************************************************************************
  *
  * Function         bta_hh_le_co_cache_load
  *
- * Description      This callout function is to request the application to load the
- *                  cached HOGP report if there is any. When cache reading is completed,
+ * Description      This callout function is to request the application to load
+ *the
+ *                  cached HOGP report if there is any. When cache reading is
+ *completed,
  *                  bta_hh_le_ci_cache_load() is called by the application.
  *
  * Parameters       remote_bda  - remote device address
@@ -116,9 +119,9 @@ extern void bta_hh_le_co_rpt_info(BD_ADDR remote_bda,
  * Returns          the acched report array
  *
  ******************************************************************************/
-extern tBTA_HH_RPT_CACHE_ENTRY *bta_hh_le_co_cache_load (BD_ADDR remote_bda,
-                                                                 uint8_t *p_num_rpt,
-                                                                 uint8_t app_id);
+extern tBTA_HH_RPT_CACHE_ENTRY* bta_hh_le_co_cache_load(BD_ADDR remote_bda,
+                                                        uint8_t* p_num_rpt,
+                                                        uint8_t app_id);
 
 /*******************************************************************************
  *
@@ -131,7 +134,7 @@ extern tBTA_HH_RPT_CACHE_ENTRY *bta_hh_le_co_cache_load (BD_ADDR remote_bda,
  * Returns          none
  *
  ******************************************************************************/
-extern void bta_hh_le_co_reset_rpt_cache (BD_ADDR remote_bda, uint8_t app_id);
+extern void bta_hh_le_co_reset_rpt_cache(BD_ADDR remote_bda, uint8_t app_id);
 
 #endif /* #if (BLE_INCLUDED == true && BTA_HH_LE_INCLUDED == TRUE) */
 

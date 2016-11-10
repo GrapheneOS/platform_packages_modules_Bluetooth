@@ -26,12 +26,12 @@
 #ifndef BTA_AR_API_H
 #define BTA_AR_API_H
 
-#include "avdt_api.h"
 #include "avct_api.h"
+#include "avdt_api.h"
 #include "avrc_api.h"
-#include "sdp_api.h"
 #include "bta_av_api.h"
 #include "bta_sys.h"
+#include "sdp_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,7 +41,7 @@ extern "C" {
  *  Constants and data types
  ****************************************************************************/
 /* This event signal to AR user that other profile is connected */
-#define BTA_AR_AVDT_CONN_EVT    (AVDT_MAX_EVT + 1)
+#define BTA_AR_AVDT_CONN_EVT (AVDT_MAX_EVT + 1)
 
 /*******************************************************************************
  *
@@ -64,7 +64,8 @@ extern void bta_ar_init(void);
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sys_id);
+extern void bta_ar_reg_avdt(tAVDT_REG* p_reg, tAVDT_CTRL_CBACK* p_cback,
+                            tBTA_SYS_ID sys_id);
 
 /*******************************************************************************
  *
@@ -81,7 +82,8 @@ extern void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id);
  *
  * Function         bta_ar_avdt_conn
  *
- * Description      This function is called to let ar know that some AVDTP profile
+ * Description      This function is called to let ar know that some AVDTP
+ *profile
  *                  is connected for this sys_id.
  *                  If the other sys modules started a timer for PENDING_EVT,
  *                  the timer can be stopped now.
@@ -100,7 +102,8 @@ extern void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr);
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_ar_reg_avct(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask, tBTA_SYS_ID sys_id);
+extern void bta_ar_reg_avct(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask,
+                            tBTA_SYS_ID sys_id);
 
 /*******************************************************************************
  *
@@ -122,8 +125,8 @@ extern void bta_ar_dereg_avct(tBTA_SYS_ID sys_id);
  * Returns          void
  *
  *****************************************************************************/
-extern void bta_ar_reg_avrc(uint16_t service_uuid, const char *p_service_name,
-                            const char *p_provider_name, uint16_t categories,
+extern void bta_ar_reg_avrc(uint16_t service_uuid, const char* p_service_name,
+                            const char* p_provider_name, uint16_t categories,
                             tBTA_SYS_ID sys_id, bool browse_supported,
                             uint16_t profile_version);
 
@@ -131,13 +134,13 @@ extern void bta_ar_reg_avrc(uint16_t service_uuid, const char *p_service_name,
  *
  * Function         bta_ar_dereg_avrc
  *
- * Description      This function is called to de-register/delete an SDP record for AVRCP.
+ * Description      This function is called to de-register/delete an SDP record
+ *for AVRCP.
  *
  * Returns          void
  *
  *****************************************************************************/
 extern void bta_ar_dereg_avrc(uint16_t service_uuid, tBTA_SYS_ID sys_id);
-
 
 #ifdef __cplusplus
 }

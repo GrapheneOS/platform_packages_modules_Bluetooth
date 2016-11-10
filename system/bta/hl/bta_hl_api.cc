@@ -37,11 +37,7 @@
  *  Constants
  ****************************************************************************/
 
-static const tBTA_SYS_REG bta_hl_reg =
-{
-    bta_hl_hdl_event,
-    BTA_HlDisable
-};
+static const tBTA_SYS_REG bta_hl_reg = {bta_hl_hdl_event, BTA_HlDisable};
 
 /*******************************************************************************
  *
@@ -57,18 +53,17 @@ static const tBTA_SYS_REG bta_hl_reg =
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlEnable(tBTA_HL_CTRL_CBACK *p_ctrl_cback)
-{
-    tBTA_HL_API_ENABLE *p_buf =
-        (tBTA_HL_API_ENABLE *)osi_malloc(sizeof(tBTA_HL_API_ENABLE));
+void BTA_HlEnable(tBTA_HL_CTRL_CBACK* p_ctrl_cback) {
+  tBTA_HL_API_ENABLE* p_buf =
+      (tBTA_HL_API_ENABLE*)osi_malloc(sizeof(tBTA_HL_API_ENABLE));
 
-    /* register with BTA system manager */
-    bta_sys_register(BTA_ID_HL, &bta_hl_reg);
+  /* register with BTA system manager */
+  bta_sys_register(BTA_ID_HL, &bta_hl_reg);
 
-    p_buf->hdr.event = BTA_HL_API_ENABLE_EVT;
-    p_buf->p_cback = p_ctrl_cback;
+  p_buf->hdr.event = BTA_HL_API_ENABLE_EVT;
+  p_buf->p_cback = p_ctrl_cback;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -80,14 +75,13 @@ void BTA_HlEnable(tBTA_HL_CTRL_CBACK *p_ctrl_cback)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlDisable(void)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void BTA_HlDisable(void) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    bta_sys_deregister(BTA_ID_HL);
-    p_buf->event = BTA_HL_API_DISABLE_EVT;
+  bta_sys_deregister(BTA_ID_HL);
+  p_buf->event = BTA_HL_API_DISABLE_EVT;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -104,38 +98,39 @@ void BTA_HlDisable(void)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlUpdate(uint8_t app_id, tBTA_HL_REG_PARAM *p_reg_param,
-                  bool is_register, tBTA_HL_CBACK *p_cback)
-{
-    tBTA_HL_API_UPDATE *p_buf =
-        (tBTA_HL_API_UPDATE *)osi_malloc(sizeof(tBTA_HL_API_UPDATE));
+void BTA_HlUpdate(uint8_t app_id, tBTA_HL_REG_PARAM* p_reg_param,
+                  bool is_register, tBTA_HL_CBACK* p_cback) {
+  tBTA_HL_API_UPDATE* p_buf =
+      (tBTA_HL_API_UPDATE*)osi_malloc(sizeof(tBTA_HL_API_UPDATE));
 
-    APPL_TRACE_DEBUG("%s", __func__);
+  APPL_TRACE_DEBUG("%s", __func__);
 
-    p_buf->hdr.event = BTA_HL_API_UPDATE_EVT;
-    p_buf->app_id = app_id;
-    p_buf->is_register = is_register;
+  p_buf->hdr.event = BTA_HL_API_UPDATE_EVT;
+  p_buf->app_id = app_id;
+  p_buf->is_register = is_register;
 
-    if (is_register) {
-        p_buf->sec_mask = (p_reg_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
-        p_buf->p_cback = p_cback;
-        if (p_reg_param->p_srv_name)
-            strlcpy(p_buf->srv_name, p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
-        else
-            p_buf->srv_name[0] = 0;
+  if (is_register) {
+    p_buf->sec_mask =
+        (p_reg_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
+    p_buf->p_cback = p_cback;
+    if (p_reg_param->p_srv_name)
+      strlcpy(p_buf->srv_name, p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
+    else
+      p_buf->srv_name[0] = 0;
 
-        if (p_reg_param->p_srv_desp)
-            strlcpy(p_buf->srv_desp, p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
-        else
-            p_buf->srv_desp[0] = 0;
+    if (p_reg_param->p_srv_desp)
+      strlcpy(p_buf->srv_desp, p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
+    else
+      p_buf->srv_desp[0] = 0;
 
-        if (p_reg_param->p_provider_name)
-            strlcpy(p_buf->provider_name, p_reg_param->p_provider_name, BTA_PROVIDER_NAME_LEN);
-        else
-            p_buf->provider_name[0] = 0;
-    }
+    if (p_reg_param->p_provider_name)
+      strlcpy(p_buf->provider_name, p_reg_param->p_provider_name,
+              BTA_PROVIDER_NAME_LEN);
+    else
+      p_buf->provider_name[0] = 0;
+  }
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -152,34 +147,34 @@ void BTA_HlUpdate(uint8_t app_id, tBTA_HL_REG_PARAM *p_reg_param,
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlRegister(uint8_t  app_id,
-                    tBTA_HL_REG_PARAM *p_reg_param,
-                    tBTA_HL_CBACK *p_cback)
-{
-    tBTA_HL_API_REGISTER *p_buf =
-        (tBTA_HL_API_REGISTER *)osi_malloc(sizeof(tBTA_HL_API_REGISTER));
+void BTA_HlRegister(uint8_t app_id, tBTA_HL_REG_PARAM* p_reg_param,
+                    tBTA_HL_CBACK* p_cback) {
+  tBTA_HL_API_REGISTER* p_buf =
+      (tBTA_HL_API_REGISTER*)osi_malloc(sizeof(tBTA_HL_API_REGISTER));
 
-    p_buf->hdr.event    = BTA_HL_API_REGISTER_EVT;
-    p_buf->app_id       = app_id;
-    p_buf->sec_mask     = (p_reg_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
-    p_buf->p_cback = p_cback;
+  p_buf->hdr.event = BTA_HL_API_REGISTER_EVT;
+  p_buf->app_id = app_id;
+  p_buf->sec_mask =
+      (p_reg_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
+  p_buf->p_cback = p_cback;
 
-    if (p_reg_param->p_srv_name)
-        strlcpy(p_buf->srv_name, p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
-    else
-        p_buf->srv_name[0] = 0;
+  if (p_reg_param->p_srv_name)
+    strlcpy(p_buf->srv_name, p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
+  else
+    p_buf->srv_name[0] = 0;
 
-    if (p_reg_param->p_srv_desp)
-        strlcpy(p_buf->srv_desp, p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
-    else
-        p_buf->srv_desp[0] = 0;
+  if (p_reg_param->p_srv_desp)
+    strlcpy(p_buf->srv_desp, p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
+  else
+    p_buf->srv_desp[0] = 0;
 
-    if (p_reg_param->p_provider_name)
-        strlcpy(p_buf->provider_name, p_reg_param->p_provider_name, BTA_PROVIDER_NAME_LEN);
-    else
-        p_buf->provider_name[0] = 0;
+  if (p_reg_param->p_provider_name)
+    strlcpy(p_buf->provider_name, p_reg_param->p_provider_name,
+            BTA_PROVIDER_NAME_LEN);
+  else
+    p_buf->provider_name[0] = 0;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -193,23 +188,23 @@ void BTA_HlRegister(uint8_t  app_id,
  * Returns           void
  *
  ******************************************************************************/
-void BTA_HlDeregister(uint8_t app_id,tBTA_HL_APP_HANDLE app_handle)
-{
-    tBTA_HL_API_DEREGISTER *p_buf =
-        (tBTA_HL_API_DEREGISTER *)osi_malloc(sizeof(tBTA_HL_API_DEREGISTER));
+void BTA_HlDeregister(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle) {
+  tBTA_HL_API_DEREGISTER* p_buf =
+      (tBTA_HL_API_DEREGISTER*)osi_malloc(sizeof(tBTA_HL_API_DEREGISTER));
 
-    p_buf->hdr.event   = BTA_HL_API_DEREGISTER_EVT;
-    p_buf->app_id      = app_id;
-    p_buf->app_handle  = app_handle;
+  p_buf->hdr.event = BTA_HL_API_DEREGISTER_EVT;
+  p_buf->app_id = app_id;
+  p_buf->app_handle = app_handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
  *
  * Function         BTA_HlCchOpen
  *
- * Description      Open a Control channel connection with the specified BD address
+ * Description      Open a Control channel connection with the specified BD
+ *address
  *
  * Parameters       app_handle - Application Handle
  *                  p_open_param - parameters for opening a control channel
@@ -218,23 +213,25 @@ void BTA_HlDeregister(uint8_t app_id,tBTA_HL_APP_HANDLE app_handle)
  *
  *                  Note: The control PSM value is used to select which
  *                  HDP insatnce should be used in case the peer device support
- *                  multiple HDP instances. Also, if the control PSM value is zero
- *                  then the first HDP instance is used for the control channel setup
+ *                  multiple HDP instances. Also, if the control PSM value is
+ *zero
+ *                  then the first HDP instance is used for the control channel
+ *setup
  ******************************************************************************/
 void BTA_HlCchOpen(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
-                   tBTA_HL_CCH_OPEN_PARAM *p_open_param)
-{
-    tBTA_HL_API_CCH_OPEN *p_buf =
-        (tBTA_HL_API_CCH_OPEN *)osi_malloc(sizeof(tBTA_HL_API_CCH_OPEN));
+                   tBTA_HL_CCH_OPEN_PARAM* p_open_param) {
+  tBTA_HL_API_CCH_OPEN* p_buf =
+      (tBTA_HL_API_CCH_OPEN*)osi_malloc(sizeof(tBTA_HL_API_CCH_OPEN));
 
-    p_buf->hdr.event = BTA_HL_API_CCH_OPEN_EVT;
-    p_buf->app_id = app_id;
-    p_buf->app_handle = app_handle;
-    p_buf->sec_mask = (p_open_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
-    bdcpy(p_buf->bd_addr, p_open_param->bd_addr);
-    p_buf->ctrl_psm = p_open_param->ctrl_psm;
+  p_buf->hdr.event = BTA_HL_API_CCH_OPEN_EVT;
+  p_buf->app_id = app_id;
+  p_buf->app_handle = app_handle;
+  p_buf->sec_mask =
+      (p_open_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
+  bdcpy(p_buf->bd_addr, p_open_param->bd_addr);
+  p_buf->ctrl_psm = p_open_param->ctrl_psm;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -249,22 +246,22 @@ void BTA_HlCchOpen(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle)
-{
-    tBTA_HL_API_CCH_CLOSE *p_buf =
-        (tBTA_HL_API_CCH_CLOSE *)osi_malloc(sizeof(tBTA_HL_API_CCH_CLOSE));
+void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle) {
+  tBTA_HL_API_CCH_CLOSE* p_buf =
+      (tBTA_HL_API_CCH_CLOSE*)osi_malloc(sizeof(tBTA_HL_API_CCH_CLOSE));
 
-    p_buf->hdr.event = BTA_HL_API_CCH_CLOSE_EVT;
-    p_buf->mcl_handle = mcl_handle;
+  p_buf->hdr.event = BTA_HL_API_CCH_CLOSE_EVT;
+  p_buf->mcl_handle = mcl_handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
  *
  * Function         BTA_HlDchOpen
  *
- * Description      Open a data channel connection with the specified DCH parameters
+ * Description      Open a data channel connection with the specified DCH
+ *parameters
  *
  * Parameters       mcl_handle - MCL handle
  *                  p_open_param - parameters for opening a data channel
@@ -273,20 +270,20 @@ void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle)
  *
  ******************************************************************************/
 void BTA_HlDchOpen(tBTA_HL_MCL_HANDLE mcl_handle,
-                   tBTA_HL_DCH_OPEN_PARAM *p_open_param)
-{
-    tBTA_HL_API_DCH_OPEN *p_buf =
-        (tBTA_HL_API_DCH_OPEN *)osi_malloc(sizeof(tBTA_HL_API_DCH_OPEN));
+                   tBTA_HL_DCH_OPEN_PARAM* p_open_param) {
+  tBTA_HL_API_DCH_OPEN* p_buf =
+      (tBTA_HL_API_DCH_OPEN*)osi_malloc(sizeof(tBTA_HL_API_DCH_OPEN));
 
-    p_buf->hdr.event = BTA_HL_API_DCH_OPEN_EVT;
-    p_buf->mcl_handle = mcl_handle;
-    p_buf->ctrl_psm = p_open_param->ctrl_psm;
-    p_buf->local_mdep_id = p_open_param->local_mdep_id;
-    p_buf->peer_mdep_id = p_open_param->peer_mdep_id;
-    p_buf->local_cfg = p_open_param->local_cfg;
-    p_buf->sec_mask = (p_open_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
+  p_buf->hdr.event = BTA_HL_API_DCH_OPEN_EVT;
+  p_buf->mcl_handle = mcl_handle;
+  p_buf->ctrl_psm = p_open_param->ctrl_psm;
+  p_buf->local_mdep_id = p_open_param->local_mdep_id;
+  p_buf->peer_mdep_id = p_open_param->peer_mdep_id;
+  p_buf->local_cfg = p_open_param->local_cfg;
+  p_buf->sec_mask =
+      (p_open_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -302,17 +299,16 @@ void BTA_HlDchOpen(tBTA_HL_MCL_HANDLE mcl_handle,
  *
  ******************************************************************************/
 void BTA_HlDchReconnect(tBTA_HL_MCL_HANDLE mcl_handle,
-                        tBTA_HL_DCH_RECONNECT_PARAM *p_recon_param)
-{
-    tBTA_HL_API_DCH_RECONNECT *p_buf =
-        (tBTA_HL_API_DCH_RECONNECT *)osi_malloc(sizeof(tBTA_HL_API_DCH_RECONNECT));
+                        tBTA_HL_DCH_RECONNECT_PARAM* p_recon_param) {
+  tBTA_HL_API_DCH_RECONNECT* p_buf =
+      (tBTA_HL_API_DCH_RECONNECT*)osi_malloc(sizeof(tBTA_HL_API_DCH_RECONNECT));
 
-    p_buf->hdr.event = BTA_HL_API_DCH_RECONNECT_EVT;
-    p_buf->mcl_handle = mcl_handle;
-    p_buf->ctrl_psm = p_recon_param->ctrl_psm;
-    p_buf->mdl_id = p_recon_param->mdl_id;
+  p_buf->hdr.event = BTA_HL_API_DCH_RECONNECT_EVT;
+  p_buf->mcl_handle = mcl_handle;
+  p_buf->ctrl_psm = p_recon_param->ctrl_psm;
+  p_buf->mdl_id = p_recon_param->mdl_id;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -326,15 +322,14 @@ void BTA_HlDchReconnect(tBTA_HL_MCL_HANDLE mcl_handle,
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlDchClose(tBTA_HL_MDL_HANDLE mdl_handle)
-{
-    tBTA_HL_API_DCH_CLOSE *p_buf =
-        (tBTA_HL_API_DCH_CLOSE *)osi_malloc(sizeof(tBTA_HL_API_DCH_CLOSE));
+void BTA_HlDchClose(tBTA_HL_MDL_HANDLE mdl_handle) {
+  tBTA_HL_API_DCH_CLOSE* p_buf =
+      (tBTA_HL_API_DCH_CLOSE*)osi_malloc(sizeof(tBTA_HL_API_DCH_CLOSE));
 
-    p_buf->hdr.event = BTA_HL_API_DCH_CLOSE_EVT;
-    p_buf->mdl_handle = mdl_handle;
+  p_buf->hdr.event = BTA_HL_API_DCH_CLOSE_EVT;
+  p_buf->mdl_handle = mdl_handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -350,15 +345,14 @@ void BTA_HlDchClose(tBTA_HL_MDL_HANDLE mdl_handle)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle)
-{
-    tBTA_HL_API_DCH_ABORT *p_buf =
-        (tBTA_HL_API_DCH_ABORT *)osi_malloc(sizeof(tBTA_HL_API_DCH_ABORT));
+void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle) {
+  tBTA_HL_API_DCH_ABORT* p_buf =
+      (tBTA_HL_API_DCH_ABORT*)osi_malloc(sizeof(tBTA_HL_API_DCH_ABORT));
 
-    p_buf->hdr.event = BTA_HL_API_DCH_ABORT_EVT;
-    p_buf->mcl_handle = mcl_handle;
+  p_buf->hdr.event = BTA_HL_API_DCH_ABORT_EVT;
+  p_buf->mcl_handle = mcl_handle;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -373,17 +367,15 @@ void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle)
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle,
-                    uint16_t           pkt_size)
-{
-    tBTA_HL_API_SEND_DATA *p_buf =
-        (tBTA_HL_API_SEND_DATA *)osi_malloc(sizeof(tBTA_HL_API_SEND_DATA));
+void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle, uint16_t pkt_size) {
+  tBTA_HL_API_SEND_DATA* p_buf =
+      (tBTA_HL_API_SEND_DATA*)osi_malloc(sizeof(tBTA_HL_API_SEND_DATA));
 
-    p_buf->hdr.event = BTA_HL_API_SEND_DATA_EVT;
-    p_buf->mdl_handle = mdl_handle;
-    p_buf->pkt_size = pkt_size;
+  p_buf->hdr.event = BTA_HL_API_SEND_DATA_EVT;
+  p_buf->mdl_handle = mdl_handle;
+  p_buf->pkt_size = pkt_size;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -398,21 +390,20 @@ void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle,
  * Returns          void
  *
  *                  note: If mdl_id = 0xFFFF then this means to delete all MDLs
- *                        and this value can only be used with DeleteMdl request only
+ *                        and this value can only be used with DeleteMdl request
+ *only
  *                        not other requests
  *
  ******************************************************************************/
-void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle,
-                     tBTA_HL_MDL_ID mdl_id )
-{
-    tBTA_HL_API_DELETE_MDL *p_buf =
-        (tBTA_HL_API_DELETE_MDL *)osi_malloc(sizeof(tBTA_HL_API_DELETE_MDL));
+void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle, tBTA_HL_MDL_ID mdl_id) {
+  tBTA_HL_API_DELETE_MDL* p_buf =
+      (tBTA_HL_API_DELETE_MDL*)osi_malloc(sizeof(tBTA_HL_API_DELETE_MDL));
 
-    p_buf->hdr.event = BTA_HL_API_DELETE_MDL_EVT;
-    p_buf->mcl_handle = mcl_handle;
-    p_buf->mdl_id = mdl_id;
+  p_buf->hdr.event = BTA_HL_API_DELETE_MDL_EVT;
+  p_buf->mcl_handle = mcl_handle;
+  p_buf->mdl_id = mdl_id;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -427,19 +418,18 @@ void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle,
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlDchEchoTest( tBTA_HL_MCL_HANDLE  mcl_handle,
-                        tBTA_HL_DCH_ECHO_TEST_PARAM *p_echo_test_param)
-{
-    tBTA_HL_API_DCH_ECHO_TEST *p_buf =
-        (tBTA_HL_API_DCH_ECHO_TEST *)osi_malloc(sizeof(tBTA_HL_API_DCH_ECHO_TEST));
+void BTA_HlDchEchoTest(tBTA_HL_MCL_HANDLE mcl_handle,
+                       tBTA_HL_DCH_ECHO_TEST_PARAM* p_echo_test_param) {
+  tBTA_HL_API_DCH_ECHO_TEST* p_buf =
+      (tBTA_HL_API_DCH_ECHO_TEST*)osi_malloc(sizeof(tBTA_HL_API_DCH_ECHO_TEST));
 
-    p_buf->hdr.event = BTA_HL_API_DCH_ECHO_TEST_EVT;
-    p_buf->mcl_handle = mcl_handle;
-    p_buf->ctrl_psm = p_echo_test_param->ctrl_psm;
-    p_buf->local_cfg = p_echo_test_param->local_cfg;
-    p_buf->pkt_size = p_echo_test_param->pkt_size;
+  p_buf->hdr.event = BTA_HL_API_DCH_ECHO_TEST_EVT;
+  p_buf->mcl_handle = mcl_handle;
+  p_buf->ctrl_psm = p_echo_test_param->ctrl_psm;
+  p_buf->local_cfg = p_echo_test_param->local_cfg;
+  p_buf->pkt_size = p_echo_test_param->pkt_size;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -454,18 +444,17 @@ void BTA_HlDchEchoTest( tBTA_HL_MCL_HANDLE  mcl_handle,
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HlSdpQuery(uint8_t  app_id,tBTA_HL_APP_HANDLE app_handle,
-                    BD_ADDR bd_addr)
-{
-    tBTA_HL_API_SDP_QUERY *p_buf =
-        (tBTA_HL_API_SDP_QUERY *)osi_malloc(sizeof(tBTA_HL_API_SDP_QUERY));
+void BTA_HlSdpQuery(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
+                    BD_ADDR bd_addr) {
+  tBTA_HL_API_SDP_QUERY* p_buf =
+      (tBTA_HL_API_SDP_QUERY*)osi_malloc(sizeof(tBTA_HL_API_SDP_QUERY));
 
-    p_buf->hdr.event = BTA_HL_API_SDP_QUERY_EVT;
-    p_buf->app_id = app_id;
-    p_buf->app_handle = app_handle;
-    bdcpy(p_buf->bd_addr, bd_addr);
+  p_buf->hdr.event = BTA_HL_API_SDP_QUERY_EVT;
+  p_buf->app_id = app_id;
+  p_buf->app_handle = app_handle;
+  bdcpy(p_buf->bd_addr, bd_addr);
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -476,28 +465,30 @@ void BTA_HlSdpQuery(uint8_t  app_id,tBTA_HL_APP_HANDLE app_handle,
  *                  request
  *
  * Parameters       mcl_handle  - MCL handle
- *                  p_rsp_param - parameters specified whether the request should
- *                                be accepted or not and if it should be accepted
- *                                then it also specified the configuration response
+ *                  p_rsp_param - parameters specified whether the request
+ *should
+ *                                be accepted or not and if it should be
+ *accepted
+ *                                then it also specified the configuration
+ *response
  *                                value
  *
  * Returns          void
  *
  ******************************************************************************/
 void BTA_HlDchCreateRsp(tBTA_HL_MCL_HANDLE mcl_handle,
-                        tBTA_HL_DCH_CREATE_RSP_PARAM *p_rsp_param)
-{
-    tBTA_HL_API_DCH_CREATE_RSP *p_buf =
-        (tBTA_HL_API_DCH_CREATE_RSP *)osi_malloc(sizeof(tBTA_HL_API_DCH_CREATE_RSP));
+                        tBTA_HL_DCH_CREATE_RSP_PARAM* p_rsp_param) {
+  tBTA_HL_API_DCH_CREATE_RSP* p_buf = (tBTA_HL_API_DCH_CREATE_RSP*)osi_malloc(
+      sizeof(tBTA_HL_API_DCH_CREATE_RSP));
 
-    p_buf->hdr.event = BTA_HL_API_DCH_CREATE_RSP_EVT;
-    p_buf->mcl_handle = mcl_handle;
-    p_buf->mdl_id = p_rsp_param->mdl_id;
-    p_buf->local_mdep_id = p_rsp_param->local_mdep_id;
-    p_buf->rsp_code = p_rsp_param->rsp_code;
-    p_buf->cfg_rsp = p_rsp_param->cfg_rsp;
+  p_buf->hdr.event = BTA_HL_API_DCH_CREATE_RSP_EVT;
+  p_buf->mcl_handle = mcl_handle;
+  p_buf->mdl_id = p_rsp_param->mdl_id;
+  p_buf->local_mdep_id = p_rsp_param->local_mdep_id;
+  p_buf->rsp_code = p_rsp_param->rsp_code;
+  p_buf->cfg_rsp = p_rsp_param->cfg_rsp;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 #endif /* HL_INCLUDED */

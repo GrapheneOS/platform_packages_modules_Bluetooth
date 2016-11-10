@@ -33,7 +33,7 @@ extern "C" {
  * override system methods for tests.
  */
 void bta_closure_init(tBTA_SYS_REGISTER registerer, tBTA_SYS_SENDMSG sender);
-bool bta_closure_execute(BT_HDR *p_msg);
+bool bta_closure_execute(BT_HDR* p_msg);
 
 #ifdef __cplusplus
 }

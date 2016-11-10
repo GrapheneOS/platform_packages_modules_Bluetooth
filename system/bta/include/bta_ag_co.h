@@ -50,13 +50,16 @@ extern void bta_ag_co_init(void);
  *
  * Function         bta_ag_co_audio_state
  *
- * Description      This function is called by the AG before the audio connection
+ * Description      This function is called by the AG before the audio
+ *connection
  *                  is brought up, after it comes up, and after it goes down.
  *
  * Parameters       handle - handle of the AG instance
  *                  state - Audio state
- *                  codec - if WBS support is compiled in, codec to going to be used is provided
- *                      and when in SCO_STATE_SETUP, BTM_I2SPCMConfig() must be called with
+ *                  codec - if WBS support is compiled in, codec to going to be
+ *used is provided
+ *                      and when in SCO_STATE_SETUP, BTM_I2SPCMConfig() must be
+ *called with
  *                      the correct platform parameters.
  *                      in the other states codec type should not be ignored
  *
@@ -64,18 +67,20 @@ extern void bta_ag_co_init(void);
  *
  ******************************************************************************/
 #if (BTM_WBS_INCLUDED == TRUE)
-extern void bta_ag_co_audio_state(uint16_t handle, uint8_t app_id, uint8_t state,
-                                          tBTA_AG_PEER_CODEC codec);
+extern void bta_ag_co_audio_state(uint16_t handle, uint8_t app_id,
+                                  uint8_t state, tBTA_AG_PEER_CODEC codec);
 
 #else
-extern void bta_ag_co_audio_state(uint16_t handle, uint8_t app_id, uint8_t state);
+extern void bta_ag_co_audio_state(uint16_t handle, uint8_t app_id,
+                                  uint8_t state);
 #endif
 
 /*******************************************************************************
  *
  * Function         bta_ag_co_data_open
  *
- * Description      This function is executed by AG when a service level connection
+ * Description      This function is executed by AG when a service level
+ *connection
  *                  is opened.  The phone can use this function to set
  *                  up data paths or perform any required initialization or
  *                  set up particular to the connected service.
@@ -111,7 +116,7 @@ extern void bta_ag_co_data_close(uint16_t handle);
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_ag_co_tx_write(uint16_t handle, uint8_t *p_data, uint16_t len);
+extern void bta_ag_co_tx_write(uint16_t handle, uint8_t* p_data, uint16_t len);
 
 #ifdef __cplusplus
 }
