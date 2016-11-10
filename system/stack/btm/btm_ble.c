@@ -70,7 +70,7 @@ extern void gatt_notify_enc_cmpl(BD_ADDR bd_addr);
 ** Returns          TRUE if added OK, else FALSE
 **
 *******************************************************************************/
-BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE dev_type,
+BOOLEAN BTM_SecAddBleDevice (const BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE dev_type,
                              tBLE_ADDR_TYPE addr_type)
 {
     BTM_TRACE_DEBUG ("%s: dev_type=0x%x", __func__, dev_type);
