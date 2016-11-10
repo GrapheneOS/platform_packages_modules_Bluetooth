@@ -24,6 +24,7 @@
  ******************************************************************************/
 
 #include <string.h>
+
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_ag_api.h"
