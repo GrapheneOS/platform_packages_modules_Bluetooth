@@ -30,29 +30,29 @@ namespace {
 
 int test_counter = 0;
 int msg_send_counter = 0;
-tBTA_SYS_EVT_HDLR *closure_handler = NULL;
-void *msg = NULL;
+tBTA_SYS_EVT_HDLR* closure_handler = NULL;
+void* msg = NULL;
 
 void test_plus_one_task() { test_counter++; }
 
 void test_plus_two_task() { test_counter += 2; }
 
-void fake_bta_sys_sendmsg(void *p_msg) {
+void fake_bta_sys_sendmsg(void* p_msg) {
   msg_send_counter++;
   msg = p_msg;
 }
 
-void fake_bta_sys_register(uint8_t id, const tBTA_SYS_REG *p_reg) {
+void fake_bta_sys_register(uint8_t id, const tBTA_SYS_REG* p_reg) {
   closure_handler = p_reg->evt_hdlr;
 }
 
-bool fake_bta_sys_sendmsg_execute() { return closure_handler((BT_HDR *)msg); }
+bool fake_bta_sys_sendmsg_execute() { return closure_handler((BT_HDR*)msg); }
 
 }  // namespace
 
 // TODO(jpawlowski): there is some weird dependency issue in tests, and the
 // tests here fail to compile without this definition.
-extern "C" void LogMsg(uint32_t trace_set_mask, const char *fmt_str, ...) {}
+extern "C" void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
 TEST(ClosureTest, test_post_task) {
   msg_send_counter = 0;

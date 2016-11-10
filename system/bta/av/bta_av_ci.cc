@@ -23,10 +23,10 @@
  *
  ******************************************************************************/
 
-#include "bta_api.h"
-#include "bta_sys.h"
-#include "bta_av_int.h"
 #include "bta_av_ci.h"
+#include "bta_api.h"
+#include "bta_av_int.h"
+#include "bta_sys.h"
 
 #include <string.h>
 
@@ -41,14 +41,13 @@
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->layer_specific   = chnl;
-    p_buf->event = BTA_AV_CI_SRC_DATA_READY_EVT;
+  p_buf->layer_specific = chnl;
+  p_buf->event = BTA_AV_CI_SRC_DATA_READY_EVT;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -65,26 +64,26 @@ void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
  *
  ******************************************************************************/
 void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, uint8_t err_code, uint8_t category,
-                         uint8_t num_seid, uint8_t *p_seid, bool recfg_needed, uint8_t avdt_handle)
-{
-    tBTA_AV_CI_SETCONFIG *p_buf =
-        (tBTA_AV_CI_SETCONFIG *)osi_malloc(sizeof(tBTA_AV_CI_SETCONFIG));
+                         uint8_t num_seid, uint8_t* p_seid, bool recfg_needed,
+                         uint8_t avdt_handle) {
+  tBTA_AV_CI_SETCONFIG* p_buf =
+      (tBTA_AV_CI_SETCONFIG*)osi_malloc(sizeof(tBTA_AV_CI_SETCONFIG));
 
-    p_buf->hdr.layer_specific   = hndl;
-    p_buf->hdr.event = (err_code == A2DP_SUCCESS) ?
-        BTA_AV_CI_SETCONFIG_OK_EVT : BTA_AV_CI_SETCONFIG_FAIL_EVT;
-    p_buf->err_code = err_code;
-    p_buf->category = category;
-    p_buf->recfg_needed = recfg_needed;
-    p_buf->num_seid = num_seid;
-    p_buf->avdt_handle= avdt_handle;
-    if (p_seid && num_seid) {
-        p_buf->p_seid   = (uint8_t *)(p_buf + 1);
-        memcpy(p_buf->p_seid, p_seid, num_seid);
-    } else {
-        p_buf->p_seid   = NULL;
-        p_buf->num_seid = 0;
-    }
+  p_buf->hdr.layer_specific = hndl;
+  p_buf->hdr.event = (err_code == A2DP_SUCCESS) ? BTA_AV_CI_SETCONFIG_OK_EVT
+                                                : BTA_AV_CI_SETCONFIG_FAIL_EVT;
+  p_buf->err_code = err_code;
+  p_buf->category = category;
+  p_buf->recfg_needed = recfg_needed;
+  p_buf->num_seid = num_seid;
+  p_buf->avdt_handle = avdt_handle;
+  if (p_seid && num_seid) {
+    p_buf->p_seid = (uint8_t*)(p_buf + 1);
+    memcpy(p_buf->p_seid, p_seid, num_seid);
+  } else {
+    p_buf->p_seid = NULL;
+    p_buf->num_seid = 0;
+  }
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }

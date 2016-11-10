@@ -39,7 +39,6 @@ extern "C" {
  *  Common Definitions
  **************************/
 
-
 /*******************************************************************************
  *
  * Function        bta_hl_co_get_num_of_mdep
@@ -48,19 +47,21 @@ extern "C" {
  *                 application ID
  *
  * Parameters      app_id - application ID
- *                 p_num_of_mdep (output) - number of MDEP configurations supported
+ *                 p_num_of_mdep (output) - number of MDEP configurations
+ *supported
  *                                          by the application
  *
  * Returns         Bloolean - true success
  *
  ******************************************************************************/
-extern bool bta_hl_co_get_num_of_mdep(uint8_t app_id, uint8_t *p_num_of_mdep);
+extern bool bta_hl_co_get_num_of_mdep(uint8_t app_id, uint8_t* p_num_of_mdep);
 /*******************************************************************************
  *
  * Function        bta_hl_co_advrtise_source_sdp
  *
  * Description     This function is called to find out whether the SOURCE MDEP
- *                 configuration information should be advertize in the SDP or nopt
+ *                 configuration information should be advertize in the SDP or
+ *nopt
  *
  * Parameters      app_id - application ID
  *
@@ -74,7 +75,8 @@ extern bool bta_hl_co_advrtise_source_sdp(uint8_t app_id);
  * Function        bta_hl_co_get_mdep_config
  *
  * Description     This function is called to get the supported feature
- *                 configuration for the specified mdep index and it also assigns
+ *                 configuration for the specified mdep index and it also
+ *assigns
  *                 the MDEP ID for the specified mdep index
  *
  * Parameters      app_id - HDP application ID
@@ -86,12 +88,10 @@ extern bool bta_hl_co_advrtise_source_sdp(uint8_t app_id);
  *
  * Returns         Bloolean - true success
  ******************************************************************************/
-extern bool bta_hl_co_get_mdep_config(uint8_t app_id,
-                                         uint8_t mdep_idx,
-                                         uint8_t mdep_counter,
-                                         tBTA_HL_MDEP_ID mdep_id,
-                                         tBTA_HL_MDEP_CFG *p_mdep_cfg);
-
+extern bool bta_hl_co_get_mdep_config(uint8_t app_id, uint8_t mdep_idx,
+                                      uint8_t mdep_counter,
+                                      tBTA_HL_MDEP_ID mdep_id,
+                                      tBTA_HL_MDEP_CFG* p_mdep_cfg);
 
 /*******************************************************************************
  *
@@ -101,20 +101,21 @@ extern bool bta_hl_co_get_mdep_config(uint8_t app_id,
  *                 maximum APDU size configuration
  *
  * Parameters      app_id - HDP application ID
- *                 p_echo_cfg (output) - pointer to the Echo test maximum APDU size
+ *                 p_echo_cfg (output) - pointer to the Echo test maximum APDU
+ *size
  *                                       configuration
  *
  * Returns         Bloolean - true success
  ******************************************************************************/
-extern bool bta_hl_co_get_echo_config(uint8_t  app_id,
-                                         tBTA_HL_ECHO_CFG *p_echo_cfg);
-
+extern bool bta_hl_co_get_echo_config(uint8_t app_id,
+                                      tBTA_HL_ECHO_CFG* p_echo_cfg);
 
 /*******************************************************************************
  *
  * Function        bta_hl_co_save_mdl
  *
- * Description     This function is called to save a MDL configuration item in persistent
+ * Description     This function is called to save a MDL configuration item in
+ *persistent
  *                 storage
  *
  * Parameters      app_id - HDP application ID
@@ -124,12 +125,14 @@ extern bool bta_hl_co_get_echo_config(uint8_t  app_id,
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_hl_co_save_mdl(uint8_t app_id, uint8_t item_idx, tBTA_HL_MDL_CFG *p_mdl_cfg );
+extern void bta_hl_co_save_mdl(uint8_t app_id, uint8_t item_idx,
+                               tBTA_HL_MDL_CFG* p_mdl_cfg);
 /*******************************************************************************
  *
  * Function        bta_hl_co_delete_mdl
  *
- * Description     This function is called to delete a MDL configuration item in persistent
+ * Description     This function is called to delete a MDL configuration item in
+ *persistent
  *                 storage
  *
  * Parameters      app_id - HDP application ID
@@ -144,20 +147,21 @@ extern void bta_hl_co_delete_mdl(uint8_t app_id, uint8_t item_idx);
  * Function         bta_hl_co_get_mdl_config
  *
  * Description     This function is called to get the MDL configuration
- *                 from teh persistent memory. This function shall only be called
+ *                 from teh persistent memory. This function shall only be
+*called
 *8                 once after the device is powered up
  *
  * Parameters      app_id - HDP application ID
- *                 buffer_size - the unit of the buffer size is sizeof(tBTA_HL_MDL_CFG)
+ *                 buffer_size - the unit of the buffer size is
+*sizeof(tBTA_HL_MDL_CFG)
  *                 p_mdl_buf - Point to the starting location of the buffer
  *
  * Returns         bool
  *
  *
  ******************************************************************************/
-extern bool bta_hl_co_load_mdl_config (uint8_t app_id, uint8_t buffer_size,
-                                          tBTA_HL_MDL_CFG *p_mdl_buf );
-
+extern bool bta_hl_co_load_mdl_config(uint8_t app_id, uint8_t buffer_size,
+                                      tBTA_HL_MDL_CFG* p_mdl_buf);
 
 /*******************************************************************************
  *
@@ -175,9 +179,9 @@ extern bool bta_hl_co_load_mdl_config (uint8_t app_id, uint8_t buffer_size,
  * Returns        Void
  *
  ******************************************************************************/
-extern void bta_hl_co_get_tx_data (uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle,
-                                   uint16_t buf_size, uint8_t *p_buf, uint16_t evt);
-
+extern void bta_hl_co_get_tx_data(uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle,
+                                  uint16_t buf_size, uint8_t* p_buf,
+                                  uint16_t evt);
 
 /*******************************************************************************
  *
@@ -195,8 +199,9 @@ extern void bta_hl_co_get_tx_data (uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle
  * Returns        Void
  *
  ******************************************************************************/
-extern void bta_hl_co_put_rx_data (uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle,
-                                   uint16_t data_size, uint8_t *p_data, uint16_t evt);
+extern void bta_hl_co_put_rx_data(uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle,
+                                  uint16_t data_size, uint8_t* p_data,
+                                  uint16_t evt);
 /*******************************************************************************
  *
  * Function         bta_hl_co_get_tx_data
@@ -213,8 +218,10 @@ extern void bta_hl_co_put_rx_data (uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle
  * Returns        Void
  *
  ******************************************************************************/
-extern void bta_hl_co_get_echo_data (uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_handle,
-                                     uint16_t buf_size, uint8_t *p_buf, uint16_t evt);
+extern void bta_hl_co_get_echo_data(uint8_t app_id,
+                                    tBTA_HL_MCL_HANDLE mcl_handle,
+                                    uint16_t buf_size, uint8_t* p_buf,
+                                    uint16_t evt);
 
 /*******************************************************************************
  *
@@ -232,8 +239,10 @@ extern void bta_hl_co_get_echo_data (uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_hand
  * Returns        Void
  *
  ******************************************************************************/
-extern void bta_hl_co_put_echo_data (uint8_t app_id, tBTA_HL_MCL_HANDLE mcl_handle,
-                                     uint16_t data_size, uint8_t *p_data, uint16_t evt);
+extern void bta_hl_co_put_echo_data(uint8_t app_id,
+                                    tBTA_HL_MCL_HANDLE mcl_handle,
+                                    uint16_t data_size, uint8_t* p_data,
+                                    uint16_t evt);
 
 #ifdef __cplusplus
 }

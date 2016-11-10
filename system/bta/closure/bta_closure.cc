@@ -54,7 +54,7 @@ void bta_closure_init(tBTA_SYS_REGISTER registerer, tBTA_SYS_SENDMSG sender) {
   bta_closure_sys_sendmsg = sender;
 }
 
-bool bta_closure_execute(BT_HDR *p_msg) {
+bool bta_closure_execute(BT_HDR* p_msg) {
   if (p_msg->event != BTA_CLOSURE_EXECUTE_EVT) {
     APPL_TRACE_ERROR("%s: don't know how to execute event type %d", __func__,
                      p_msg->event);
@@ -84,14 +84,14 @@ bool bta_closure_execute(BT_HDR *p_msg) {
  * for how to handle dynamic memory ownership/smart pointers with base::Owned(),
  * base::Passed(), base::ConstRef() and others.
  */
-void do_in_bta_thread(const tracked_objects::Location &from_here,
-                      const base::Closure &task) {
+void do_in_bta_thread(const tracked_objects::Location& from_here,
+                      const base::Closure& task) {
   PendingTask pending_task(from_here, task, TimeTicks(), true);
 
   task_queue.push(std::move(pending_task));
 
-  tBTA_CLOSURE_EXECUTE *p_msg =
-      (tBTA_CLOSURE_EXECUTE *)osi_malloc(sizeof(tBTA_CLOSURE_EXECUTE));
+  tBTA_CLOSURE_EXECUTE* p_msg =
+      (tBTA_CLOSURE_EXECUTE*)osi_malloc(sizeof(tBTA_CLOSURE_EXECUTE));
 
   APPL_TRACE_API("%s", __func__);
 
