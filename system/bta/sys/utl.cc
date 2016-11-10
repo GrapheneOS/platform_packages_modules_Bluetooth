@@ -22,6 +22,7 @@
  *
  ******************************************************************************/
 #include <stddef.h>
+
 #include "utl.h"
 #include "bt_common.h"
 #include "btm_api.h"

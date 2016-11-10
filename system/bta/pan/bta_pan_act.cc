@@ -26,6 +26,8 @@
 
 #if (PAN_INCLUDED == TRUE)
 
+#include <string.h>
+
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bt_common.h"
@@ -34,7 +36,6 @@
 #include "bta_pan_int.h"
 #include "bta_pan_co.h"
 #include "osi/include/osi.h"
-#include <string.h>
 #include "utl.h"
 
 

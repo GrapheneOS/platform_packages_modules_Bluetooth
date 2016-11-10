@@ -22,12 +22,13 @@
  *
  ******************************************************************************/
 
+#include <string.h>
+
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sdp_api.h"
 #include "bta_sdp_int.h"
 #include "bt_common.h"
-#include <string.h>
 #include "port_api.h"
 #include "sdp_api.h"
 

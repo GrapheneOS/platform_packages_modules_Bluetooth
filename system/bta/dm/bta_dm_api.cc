@@ -21,6 +21,7 @@
  *  This is the API implementation file for the BTA device manager.
  *
  ******************************************************************************/
+#include <string.h>
 
 #include "bt_common.h"
 #include "bta_sys.h"
@@ -31,7 +32,6 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "osi/include/osi.h"
-#include <string.h>
 #include "utl.h"
 
 /*****************************************************************************
