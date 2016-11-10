@@ -655,8 +655,7 @@ extern void BTA_HlDeregister(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle);
  * Function         BTA_HlCchOpen
  *
  * Description      Open a Control channel connection with the specified BD
- *address
- *                  and the control PSM value is used to select which
+ *                  address and the control PSM value is used to select which
  *                  HDP insatnce should be used in case the peer device support
  *                  multiple HDP instances.
  *
@@ -691,7 +690,7 @@ extern void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle);
  * Function         BTA_HlDchOpen
  *
  * Description      Open a data channel connection with the specified DCH
- *parameters
+ *                  parameters
  *
  * Parameters       mcl_handle - MCL handle
  *                  p_open_param - parameters for opening a data channel
@@ -770,8 +769,7 @@ extern void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle, uint16_t pkt_size);
  *
  *                  note: If mdl_id = 0xFFFF then this means to delete all MDLs
  *                        and this value can only be used with DeleteMdl request
- *only
- *                        not other requests
+ *                        only not other requests
  *
  ******************************************************************************/
 extern void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle,
@@ -817,12 +815,9 @@ extern void BTA_HlSdpQuery(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
  *
  * Parameters       mcl_handle  - MCL handle
  *                  p_rsp_param - parameters specified whether the request
- *should
- *                                be accepted or not and if it should be
- *accepted
- *                                then it also specified the configuration
- *response
- *                                value
+ *                                should be accepted or not and if it should be
+ *                                accepted then it also specified the
+ *                                configuration response value
  *
  * Returns          void
  *

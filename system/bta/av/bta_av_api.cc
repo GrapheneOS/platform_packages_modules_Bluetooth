@@ -287,8 +287,7 @@ void BTA_AvStop(bool suspend) {
  *
  * Description      Reconfigure the audio/video stream.
  *                  If suspend is true, this function tries the
- *suspend/reconfigure
- *                  procedure first.
+ *                  suspend/reconfigure procedure first.
  *                  If suspend is false or when suspend/reconfigure fails,
  *                  this function closes and re-opens the AVDT connection.
  *
@@ -545,8 +544,8 @@ void BTA_AvCloseRc(uint8_t rc_handle) {
  * Function         BTA_AvMetaRsp
  *
  * Description      Send a Metadata/Advanced Control response. The message
- *contained
- *                  in p_pkt can be composed with AVRC utility functions.
+ *                  contained in p_pkt can be composed with AVRC utility
+ *                  functions.
  *                  This function can only be used if AV is enabled with feature
  *                  BTA_AV_FEAT_METADATA.
  *

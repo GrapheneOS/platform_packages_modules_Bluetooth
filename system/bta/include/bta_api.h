@@ -1322,10 +1322,9 @@ extern void BTA_DmSetDeviceName(char* p_name);
  *
  * Description      This function sets the Bluetooth connectable,discoverable,
  *                  pairable and conn paired only modesmodes of the local
- *device.
+ *                  device.
  *                  This controls whether other Bluetooth devices can find and
- *connect to
- *                  the local device.
+ *                  connect to the local device.
  *
  *
  * Returns          void
@@ -1425,9 +1424,8 @@ extern void BTA_DmBond(BD_ADDR bd_addr);
  *
  * Description      This function initiates a bonding procedure with a peer
  *                  device by designated transport.  The bonding procedure
- *enables
- *                  authentication and optionally encryption on the Bluetooth
- *link.
+ *                  enables authentication and optionally encryption on the
+ *                  Bluetooth link.
  *
  *
  * Returns          void
@@ -1583,7 +1581,7 @@ extern void BTA_DmCloseACL(BD_ADDR bd_addr, bool remove_dev,
  * Function         bta_dmexecutecallback
  *
  * Description      This function will request BTA to execute a call back in the
- *context of BTU task
+ *                  context of BTU task.
  *                  This API was named in lower case because it is only intended
  *                  for the internal customers(like BTIF).
  *
@@ -1615,15 +1613,14 @@ extern void BTA_DmPcmInitSamples(uint32_t src_sps, uint32_t bits,
  * Function         BTA_DmPcmResample
  *
  * Description      Down sampling utility to convert higher sampling rate into
- *8K/16bits
+ *                  8K/16bits
  *                  PCM samples.
  *
  * Parameters       p_src: pointer to the buffer where the original sampling PCM
  *                              are stored.
  *                  in_bytes:  Length of the input PCM sample buffer in byte.
- *                  p_dst:      pointer to the buffer which is to be used to
- *store
- *                              the converted PCM samples.
+ *                  p_dst: pointer to the buffer which is to be used to store
+ *                         the converted PCM samples.
  *
  *
  * Returns          int32_t: number of samples converted.
@@ -1656,10 +1653,9 @@ extern void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res);
  *                  peripheral device.
  *
  * Parameters       bg_conn_type: it can be auto connection, or selective
- *connection.
+ *                                connection.
  *                  p_select_cback: callback function when selective connection
- *procedure
- *                              is being used.
+ *                                  procedure is being used.
  *
  * Returns          void
  *
@@ -1692,7 +1688,7 @@ extern void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, bool accept,
  *
  * Parameters:      bd_addr          - BD address of the peer
  *                  accept           - numbers to compare are the same or
- *different.
+ *                                     different.
  *
  * Returns          void
  *
@@ -1785,7 +1781,7 @@ extern void BTA_DmSetBleConnScanParams(uint32_t scan_interval,
  *                  scan_window - scan window
  *                  scan_mode - scan mode
  *                  scan_param_setup_status_cback - Set scan param status
- *callback
+ *                                                  callback
  *
  * Returns          void
  *
@@ -1800,10 +1796,9 @@ extern void BTA_DmSetBleScanParams(
  * Function         BTA_DmSetBleAdvParams
  *
  * Description      This function sets the advertising parameters BLE
- *functionality.
+ *                  functionality.
  *                  It is to be called when device act in peripheral or
- *broadcaster
- *                  role.
+ *                  broadcaster role.
  *
  * Parameters:      adv_int_min    - adv interval minimum
  *                  adv_int_max    - adv interval max
@@ -1819,16 +1814,15 @@ extern void BTA_DmSetBleAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
  * Function         BTA_DmSearchExt
  *
  * Description      This function searches for peer Bluetooth devices. It
- *performs
- *                  an inquiry and gets the remote name for devices. Service
- *                  discovery is done if services is non zero
+ *                  performs an inquiry and gets the remote name for devices.
+ *                  Service discovery is done if services is non zero
  *
  * Parameters       p_dm_inq: inquiry conditions
  *                  services: if service is not empty, service discovery will be
- *done.
+ *                            done.
  *                            for all GATT based service condition, put
- *num_uuid, and
- *                            p_uuid is the pointer to the list of UUID values.
+ *                            num_uuid, and p_uuid is the pointer to the list of
+ *                            UUID values.
  *                  p_cback: callback functino when search is completed.
  *
  *
@@ -1895,12 +1889,10 @@ extern void BTA_DmDiscoverByTransport(BD_ADDR bd_addr,
  *                  p_callback    - Pointer to callback function to indicat the
  *                                  link encryption status
  *                  sec_act       - This is the security action to indicate
- *                                  what knid of BLE security level is required
- *for
- *                                  the BLE link if the BLE is supported
- *                                  Note: This parameter is ignored for the
- *BR/EDR link
- *                                        or the BLE is not supported
+ *                                  what kind of BLE security level is required
+ *                                  for the BLE link if BLE is supported
+ *                                  Note: This parameter is ignored for
+ *                                        BR/EDR or if BLE is not supported.
  *
  * Returns          void
  *
@@ -1919,7 +1911,7 @@ extern void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport,
  *
  * Parameters       start: start or stop observe.
  *                  duration : Duration of the scan. Continuous scan if 0 is
- *passed
+ *                             passed
  *                  p_results_cb: Callback to be called with scan results
  *
  * Returns          void
@@ -1963,15 +1955,13 @@ extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, bool privacy_enable);
  * Function         BTA_DmBleUpdateConnectionParams
  *
  * Description      Update connection parameters, can only be used when
- *connection is up.
+ *                  connection is up.
  *
  * Parameters:      bd_addr   - BD address of the peer
- *                  min_int   -     minimum connection interval, [0x0004~
- *0x4000]
- *                  max_int   -     maximum connection interval, [0x0004~
- *0x4000]
- *                  latency   -     slave latency [0 ~ 500]
- *                  timeout   -     supervision timeout [0x000a ~ 0xc80]
+ *                  min_int   - minimum connection interval, [0x0004 ~ 0x4000]
+ *                  max_int   - maximum connection interval, [0x0004 ~ 0x4000]
+ *                  latency   - slave latency [0 ~ 500]
+ *                  timeout   - supervision timeout [0x000a ~ 0xc80]
  *
  * Returns          void
  *
@@ -1999,13 +1989,14 @@ extern void BTA_DmBleSetDataLength(BD_ADDR remote_device,
  * Description      This function is called to set the storage parameters
  *
  * Parameters       batch_scan_full_max -Max storage space (in %) allocated to
- *full scanning
+ *                                       full scanning
  *                  batch_scan_trunc_max -Max storage space (in %) allocated to
- *truncated scanning
+ *                                        truncated scanning
  *                  batch_scan_notify_threshold - Setup notification level based
- *on total space
- *                  consumed by both pools. Setting it to 0 will disable
- *threshold notification
+ *                                                on total space consumed by
+ *                                                both pools. Setting it to 0
+ *                                                will disable threshold
+ *                                                notification
  *                  p_setup_cback - Setup callback
  *                  p_thres_cback - Threshold callback
  *                  p_rep_cback - Reports callback
@@ -2077,7 +2068,7 @@ extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
  * Function         BTA_DmEnableScanFilter
  *
  * Description      This function is called to enable the adv data payload
- *filter
+ *                  filter
  *
  * Parameters       action - enable or disable the APCF feature
  *                  p_cmpl_cback - Command completed callback
@@ -2097,7 +2088,7 @@ extern void BTA_DmEnableScanFilter(uint8_t action,
  * Description      This function is called to setup the filter params
  *
  * Parameters       p_target: enable the filter condition on a target device; if
- *NULL
+ *                            NULL
  *                  filt_index - Filter index
  *                  p_filt_params -Filter parameters
  *                  ref_value - Reference value
@@ -2119,8 +2110,7 @@ extern void BTA_DmBleScanFilterSetup(uint8_t action,
  * Function         BTA_DmBleCfgFilterCondition
  *
  * Description      This function is called to configure the adv data payload
- *filter
- *                  condition.
+ *                  filter condition.
  *
  * Parameters       action: to read/write/clear
  *                  cond_type: filter condition type
@@ -2173,7 +2163,7 @@ extern void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK* p_cmpl_cback);
  * Function         BTA_BrcmInit
  *
  * Description      This function initializes Broadcom specific VS handler in
- *BTA
+ *                  BTA
  *
  * Returns          void
  *
@@ -2185,7 +2175,7 @@ extern void BTA_VendorInit(void);
  * Function         BTA_BrcmCleanup
  *
  * Description      This function frees up Broadcom specific VS specific dynamic
- *memory
+ *                  memory
  *
  * Returns          void
  *

@@ -165,9 +165,8 @@ extern uint16_t BTA_GATTS_AddService(tBTA_GATTS_IF server_if,
  * Function         BTA_GATTS_DeleteService
  *
  * Description      This function is called to delete a service. When this is
- *done,
- *                  a callback event BTA_GATTS_DELETE_EVT is report with the
- *status.
+ *                  done, a callback event BTA_GATTS_DELETE_EVT is report with
+ *                  the status.
  *
  * Parameters       service_id: service_id to be deleted.
  *
@@ -208,13 +207,13 @@ void BTA_GATTS_StopService(uint16_t service_id) {
  * Function         BTA_GATTS_HandleValueIndication
  *
  * Description      This function is called to read a characteristics
- *descriptor.
+ *                  descriptor.
  *
  * Parameters       bda - remote device bd address to indicate.
  *                  attr_id - attribute ID to indicate.
  *                  value - data to indicate.
  *                  need_confirm - if this indication expects a confirmation or
- *not.
+ *                                 not.
  *
  * Returns          None
  *
@@ -273,14 +272,13 @@ void BTA_GATTS_SendRsp(uint16_t conn_id, uint32_t trans_id,
  * Function         BTA_GATTS_Open
  *
  * Description      Open a direct open connection or add a background auto
- *connection
- *                  bd address
+ *                  connection bd address
  *
  * Parameters       server_if: server interface.
  *                  remote_bda: remote device BD address.
  *                  is_direct: direct connection or background auto connection
  *                  transport : Transport on which GATT connection to be opened
- *(BR/EDR or LE)
+ *                              (BR/EDR or LE)
  *
  * Returns          void
  *
@@ -304,8 +302,7 @@ void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, bool is_direct,
  * Function         BTA_GATTS_CancelOpen
  *
  * Description      Cancel a direct open connection or remove a background auto
- *connection
- *                  bd address
+ *                  connection bd address
  *
  * Parameters       server_if: server interface.
  *                  remote_bda: remote device BD address.

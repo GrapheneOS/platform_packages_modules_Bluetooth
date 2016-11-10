@@ -615,8 +615,7 @@ void BTA_AvStop(bool suspend);
  *
  * Description      Reconfigure the audio/video stream.
  *                  If suspend is true, this function tries the
- *suspend/reconfigure
- *                  procedure first.
+ *                  suspend/reconfigure procedure first.
  *                  If suspend is false or when suspend/reconfigure fails,
  *                  this function closes and re-opens the AVDT connection.
  *
@@ -775,8 +774,7 @@ void BTA_AvMetaCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CMD cmd_code,
  *
  * Description      Request Starting of A2DP Offload.
  *                  This function is used to start A2DP offload if vendor lib
- *has
- *                  the feature enabled.
+ *                  has the feature enabled.
  *
  * Returns          void
  *

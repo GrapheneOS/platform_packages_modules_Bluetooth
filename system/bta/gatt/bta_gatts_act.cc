@@ -66,7 +66,7 @@ tGATT_APPL_INFO bta_gatts_nv_cback = {bta_gatts_nv_save_cback,
  * Description      NV save callback function.
  *
  * Parameter        is_add: true is to add a handle range; otherwise is to
- *delete.
+ *                          delete.
  * Returns          none.
  *
  ******************************************************************************/
@@ -83,7 +83,7 @@ static void bta_gatts_nv_save_cback(bool is_add,
  * Description      NV save callback function.
  *
  * Parameter        is_add: true is to add a handle range; otherwise is to
- *delete.
+ *                          delete.
  * Returns          none.
  *
  ******************************************************************************/

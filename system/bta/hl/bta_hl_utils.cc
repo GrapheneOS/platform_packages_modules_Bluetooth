@@ -248,8 +248,7 @@ BT_HDR* bta_hl_get_buf(uint16_t data_size, bool fcs_use) {
  * Function      bta_hl_find_service_in_db
  *
  * Description  This function check the specified service class(es) can be find
- *in
- *              the received SDP database
+ *              in the received SDP database
  *
  * Returns      bool true - found
  *                      false - not found
@@ -284,7 +283,7 @@ bool bta_hl_find_service_in_db(uint8_t app_idx, uint8_t mcl_idx,
  *
  *
  * Description  This function finds the service class(es) for both CCH and DCH
- *oeprations
+ *              operations
  *
  * Returns      uint16_t - service_id
  *                       if service_uuid = 0xFFFF then it means service uuid
@@ -1501,8 +1500,7 @@ bool bta_hl_delete_mdl_cfg(uint8_t app_idx, BD_ADDR bd_addr,
  * Function      bta_hl_is_mdl_value_valid
  *
  *
- * Description  This function checks the specified MDL ID is in valid range or
- *not
+ * Description  This function checks the specified MDL ID is in valid range.
  *
  * Returns      bool - true Success
  *                        false Failed
@@ -1659,15 +1657,13 @@ bool bta_hl_validate_peer_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
  *
  * Function      bta_hl_chk_local_cfg
  *
- * Description  This function check whether the local DCH configuration is OK or
- *not
+ * Description  This function check whether the local DCH configuration is OK.
  *
  * Returns      tBTA_HL_STATUS - OK - local DCH configuration is OK
  *                               NO_FIRST_RELIABLE - the streaming DCH
- *configuration
- *                                                   is not OK and it needs to
- *use
- *                                                   reliable DCH configuration
+ *                                                   configuration is not OK and
+ *                                                   it needs to use reliable
+ *                                                   DCH configuration
  *
  ******************************************************************************/
 tBTA_HL_STATUS bta_hl_chk_local_cfg(uint8_t app_idx, uint8_t mcl_idx,
@@ -2419,8 +2415,7 @@ bool bta_hl_validate_chan_cfg(uint8_t app_idx, uint8_t mcl_idx,
  *
  * Function      bta_hl_is_cong_on
  *
- * Description    This function checks whether the congestion condition is on or
- *not
+ * Description    This function checks whether the congestion condition is on.
  *
  * Returns      bool - true DCH is congested
  *                        false not congested
@@ -2450,8 +2445,7 @@ bool bta_hl_is_cong_on(uint8_t app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id)
  * Function      bta_hl_check_cch_close
  *
  * Description   This function checks whether there is a pending CCH close
- *request
- *               or not
+ *               request or not
  *
  * Returns      void
  ******************************************************************************/

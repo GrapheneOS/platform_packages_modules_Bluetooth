@@ -79,10 +79,9 @@ tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback) {
  * Function         BTA_SdpSearch
  *
  * Description      This function performs service discovery for a specific
- *service
- *                  on given peer device. When the operation is completed
- *                  the tBTA_SDP_DM_CBACK callback function will be  called with
- *                  a BTA_SDP_SEARCH_COMPLETE_EVT.
+ *                  service on given peer device. When the operation is
+ *                  completed the tBTA_SDP_DM_CBACK callback function will be
+ *                  called with a BTA_SDP_SEARCH_COMPLETE_EVT.
  *
  * Returns          BTA_SDP_SUCCESS, if the request is being processed.
  *                  BTA_SDP_FAILURE, otherwise.

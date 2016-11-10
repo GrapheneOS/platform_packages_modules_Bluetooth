@@ -499,8 +499,7 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB* p_scb, char* p_s) {
  * Function         bta_ag_process_unat_res
  *
  * Description      Process the unat response data and remove extra carriage
- *return
- *                  and line feed
+ *                  return and line feed
  *
  *
  * Returns          void
