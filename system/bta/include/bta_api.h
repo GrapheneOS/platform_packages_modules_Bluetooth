@@ -38,8 +38,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants and data types
-*****************************************************************************/
+ *  Constants and data types
+ ****************************************************************************/
 
 /* Status Return Value */
 #define BTA_SUCCESS             0           /* Successful operation. */
@@ -1200,658 +1200,658 @@ typedef uint8_t tBTA_DM_LINK_TYPE;
 #define LOWEST_RSSI_VALUE     129
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         BTA_EnableBluetooth
-**
-** Description      This function initializes BTA and prepares BTA and the
-**                  Bluetooth protocol stack for use.  This function is
-**                  typically called at startup or when Bluetooth services
-**                  are required by the phone.  This function must be called
-**                  before calling any other API function.
-**
-**
-** Returns          BTA_SUCCESS if successful.
-**                  BTA_FAIL if internal failure.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_EnableBluetooth
+ *
+ * Description      This function initializes BTA and prepares BTA and the
+ *                  Bluetooth protocol stack for use.  This function is
+ *                  typically called at startup or when Bluetooth services
+ *                  are required by the phone.  This function must be called
+ *                  before calling any other API function.
+ *
+ *
+ * Returns          BTA_SUCCESS if successful.
+ *                  BTA_FAIL if internal failure.
+ *
+ ******************************************************************************/
 extern tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_DisableBluetooth
-**
-** Description      This function disables BTA and the Bluetooth protocol
-**                  stack.  It is called when BTA is no longer being used
-**                  by any application in the system.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DisableBluetooth
+ *
+ * Description      This function disables BTA and the Bluetooth protocol
+ *                  stack.  It is called when BTA is no longer being used
+ *                  by any application in the system.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern tBTA_STATUS BTA_DisableBluetooth(void);
 
 /*******************************************************************************
-**
-** Function         BTA_EnableTestMode
-**
-** Description      Enables bluetooth device under test mode
-**
-**
-** Returns          tBTA_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         BTA_EnableTestMode
+ *
+ * Description      Enables bluetooth device under test mode
+ *
+ *
+ * Returns          tBTA_STATUS
+ *
+ ******************************************************************************/
 extern tBTA_STATUS BTA_EnableTestMode(void);
 
 /*******************************************************************************
-**
-** Function         BTA_DisableTestMode
-**
-** Description      Disable bluetooth device under test mode
-**
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DisableTestMode
+ *
+ * Description      Disable bluetooth device under test mode
+ *
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_DisableTestMode(void);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetDeviceName
-**
-** Description      This function sets the Bluetooth name of the local device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetDeviceName
+ *
+ * Description      This function sets the Bluetooth name of the local device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSetDeviceName(char *p_name);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetVisibility
-**
-** Description      This function sets the Bluetooth connectable,discoverable,
-**                  pairable and conn paired only modesmodes of the local device.
-**                  This controls whether other Bluetooth devices can find and connect to
-**                  the local device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetVisibility
+ *
+ * Description      This function sets the Bluetooth connectable,discoverable,
+ *                  pairable and conn paired only modesmodes of the local device.
+ *                  This controls whether other Bluetooth devices can find and connect to
+ *                  the local device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, uint8_t pairable_mode, uint8_t conn_filter);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSearch
-**
-** Description      This function searches for peer Bluetooth devices.  It
-**                  first performs an inquiry; for each device found from the
-**                  inquiry it gets the remote name of the device.  If
-**                  parameter services is nonzero, service discovery will be
-**                  performed on each device for the services specified.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSearch
+ *
+ * Description      This function searches for peer Bluetooth devices.  It
+ *                  first performs an inquiry; for each device found from the
+ *                  inquiry it gets the remote name of the device.  If
+ *                  parameter services is nonzero, service discovery will be
+ *                  performed on each device for the services specified.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSearch(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK services,
                          tBTA_DM_SEARCH_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSearchCancel
-**
-** Description      This function cancels a search that has been initiated
-**                  by calling BTA_DmSearch().
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSearchCancel
+ *
+ * Description      This function cancels a search that has been initiated
+ *                  by calling BTA_DmSearch().
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSearchCancel(void);
 
 /*******************************************************************************
-**
-** Function         BTA_DmDiscover
-**
-** Description      This function performs service discovery for the services
-**                  of a particular peer device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmDiscover
+ *
+ * Description      This function performs service discovery for the services
+ *                  of a particular peer device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
                            tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search);
 
 /*******************************************************************************
-**
-** Function         BTA_DmDiscoverUUID
-**
-** Description      This function performs service discovery for the services
-**                  of a particular peer device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmDiscoverUUID
+ *
+ * Description      This function performs service discovery for the services
+ *                  of a particular peer device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
                                tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search);
 
 /*******************************************************************************
-**
-** Function         BTA_DmGetCachedRemoteName
-**
-** Description      Retieve cached remote name if available
-**
-** Returns          BTA_SUCCESS if cached name was retrieved
-**                  BTA_FAILURE if cached name is not available
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmGetCachedRemoteName
+ *
+ * Description      Retieve cached remote name if available
+ *
+ * Returns          BTA_SUCCESS if cached name was retrieved
+ *                  BTA_FAILURE if cached name is not available
+ *
+ ******************************************************************************/
 tBTA_STATUS BTA_DmGetCachedRemoteName(BD_ADDR remote_device, uint8_t **pp_cached_name);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBond
-**
-** Description      This function initiates a bonding procedure with a peer
-**                  device.  The bonding procedure enables authentication
-**                  and optionally encryption on the Bluetooth link.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBond
+ *
+ * Description      This function initiates a bonding procedure with a peer
+ *                  device.  The bonding procedure enables authentication
+ *                  and optionally encryption on the Bluetooth link.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBond(BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBondByTransport
-**
-** Description      This function initiates a bonding procedure with a peer
-**                  device by designated transport.  The bonding procedure enables
-**                  authentication and optionally encryption on the Bluetooth link.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBondByTransport
+ *
+ * Description      This function initiates a bonding procedure with a peer
+ *                  device by designated transport.  The bonding procedure enables
+ *                  authentication and optionally encryption on the Bluetooth link.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBondByTransport(BD_ADDR bd_addr, tBTA_TRANSPORT transport);
 
 
 /*******************************************************************************
-**
-** Function         BTA_DmBondCancel
-**
-** Description      This function cancels a bonding procedure with a peer
-**                  device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBondCancel
+ *
+ * Description      This function cancels a bonding procedure with a peer
+ *                  device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBondCancel(BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         BTA_DmPinReply
-**
-** Description      This function provides a PIN when one is requested by DM
-**                  during a bonding procedure.  The application should call
-**                  this function after the security callback is called with
-**                  a BTA_DM_PIN_REQ_EVT.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmPinReply
+ *
+ * Description      This function provides a PIN when one is requested by DM
+ *                  during a bonding procedure.  The application should call
+ *                  this function after the security callback is called with
+ *                  a BTA_DM_PIN_REQ_EVT.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmPinReply(BD_ADDR bd_addr, bool accept, uint8_t pin_len,
                            uint8_t *p_pin);
 
 /*******************************************************************************
-**
-** Function         BTA_DmLocalOob
-**
-** Description      This function retrieves the OOB data from local controller.
-**                  The result is reported by bta_dm_co_loc_oob().
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmLocalOob
+ *
+ * Description      This function retrieves the OOB data from local controller.
+ *                  The result is reported by bta_dm_co_loc_oob().
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmLocalOob(void);
 
 /*******************************************************************************
-**
-** Function         BTA_DmConfirm
-**
-** Description      This function accepts or rejects the numerical value of the
-**                  Simple Pairing process on BTA_DM_SP_CFM_REQ_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmConfirm
+ *
+ * Description      This function accepts or rejects the numerical value of the
+ *                  Simple Pairing process on BTA_DM_SP_CFM_REQ_EVT
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmConfirm(BD_ADDR bd_addr, bool accept);
 
 /*******************************************************************************
-**
-** Function         BTA_DmAddDevice
-**
-** Description      This function adds a device to the security database list
-**                  of peer devices. This function would typically be called
-**                  at system startup to initialize the security database with
-**                  known peer devices.  This is a direct execution function
-**                  that may lock task scheduling on some platforms.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmAddDevice
+ *
+ * Description      This function adds a device to the security database list
+ *                  of peer devices. This function would typically be called
+ *                  at system startup to initialize the security database with
+ *                  known peer devices.  This is a direct execution function
+ *                  that may lock task scheduling on some platforms.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
                             LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
                             bool is_trusted, uint8_t key_type,
                             tBTA_IO_CAP io_cap, uint8_t pin_length);
 
 /*******************************************************************************
-**
-** Function         BTA_DmRemoveDevice
-**
-** Description      This function removes a device from the security database.
-**                  This is a direct execution function that may lock task
-**                  scheduling on some platforms.
-**
-**
-** Returns          BTA_SUCCESS if successful.
-**                  BTA_FAIL if operation failed.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmRemoveDevice
+ *
+ * Description      This function removes a device from the security database.
+ *                  This is a direct execution function that may lock task
+ *                  scheduling on some platforms.
+ *
+ *
+ * Returns          BTA_SUCCESS if successful.
+ *                  BTA_FAIL if operation failed.
+ *
+ ******************************************************************************/
 extern tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         BTA_GetEirService
-**
-** Description      This function is called to get BTA service mask from EIR.
-**
-** Parameters       p_eir - pointer of EIR significant part
-**                  p_services - return the BTA service mask
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_GetEirService
+ *
+ * Description      This function is called to get BTA service mask from EIR.
+ *
+ * Parameters       p_eir - pointer of EIR significant part
+ *                  p_services - return the BTA service mask
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_GetEirService( uint8_t *p_eir, tBTA_SERVICE_MASK *p_services );
 
 /*******************************************************************************
-**
-** Function         BTA_DmGetConnectionState
-**
-** Description      Returns whether the remote device is currently connected.
-**
-** Returns          0 if the device is NOT connected.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmGetConnectionState
+ *
+ * Description      Returns whether the remote device is currently connected.
+ *
+ * Returns          0 if the device is NOT connected.
+ *
+ ******************************************************************************/
 extern uint16_t BTA_DmGetConnectionState( const BD_ADDR bd_addr );
 
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetLocalDiRecord
-**
-** Description      This function adds a DI record to the local SDP database.
-**
-** Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetLocalDiRecord
+ *
+ * Description      This function adds a DI record to the local SDP database.
+ *
+ * Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
+ *
+ ******************************************************************************/
 extern tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
                                            uint32_t *p_handle );
 
 /*******************************************************************************
-**
-**
-** Function         BTA_DmCloseACL
-**
-** Description      This function force to close an ACL connection and remove the
-**                  device from the security database list of known devices.
-**
-** Parameters:      bd_addr       - Address of the peer device
-**                  remove_dev    - remove device or not after link down
-**                  transport     - which transport to close
+ *
+ *
+ * Function         BTA_DmCloseACL
+ *
+ * Description      This function force to close an ACL connection and remove the
+ *                  device from the security database list of known devices.
+ *
+ * Parameters:      bd_addr       - Address of the peer device
+ *                  remove_dev    - remove device or not after link down
+ *                  transport     - which transport to close
 
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 extern void BTA_DmCloseACL(BD_ADDR bd_addr, bool remove_dev, tBTA_TRANSPORT transport);
 
 /*******************************************************************************
-**
-** Function         bta_dmexecutecallback
-**
-** Description      This function will request BTA to execute a call back in the context of BTU task
-**                  This API was named in lower case because it is only intended
-**                  for the internal customers(like BTIF).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dmexecutecallback
+ *
+ * Description      This function will request BTA to execute a call back in the context of BTU task
+ *                  This API was named in lower case because it is only intended
+ *                  for the internal customers(like BTIF).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param);
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         BTA_DmPcmInitSamples
-**
-** Description      initialize the down sample converter.
-**
-**                  src_sps: original samples per second (source audio data)
-**                            (ex. 44100, 48000)
-**                  bits: number of bits per pcm sample (16)
-**                  n_channels: number of channels (i.e. mono(1), stereo(2)...)
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmPcmInitSamples
+ *
+ * Description      initialize the down sample converter.
+ *
+ *                  src_sps: original samples per second (source audio data)
+ *                            (ex. 44100, 48000)
+ *                  bits: number of bits per pcm sample (16)
+ *                  n_channels: number of channels (i.e. mono(1), stereo(2)...)
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 extern void BTA_DmPcmInitSamples (uint32_t src_sps, uint32_t bits, uint32_t n_channels);
 
 /**************************************************************************************
-** Function         BTA_DmPcmResample
-**
-** Description      Down sampling utility to convert higher sampling rate into 8K/16bits
-**                  PCM samples.
-**
-** Parameters       p_src: pointer to the buffer where the original sampling PCM
-**                              are stored.
-**                  in_bytes:  Length of the input PCM sample buffer in byte.
-**                  p_dst:      pointer to the buffer which is to be used to store
-**                              the converted PCM samples.
-**
-**
-** Returns          int32_t: number of samples converted.
-**
-**************************************************************************************/
+ * Function         BTA_DmPcmResample
+ *
+ * Description      Down sampling utility to convert higher sampling rate into 8K/16bits
+ *                  PCM samples.
+ *
+ * Parameters       p_src: pointer to the buffer where the original sampling PCM
+ *                              are stored.
+ *                  in_bytes:  Length of the input PCM sample buffer in byte.
+ *                  p_dst:      pointer to the buffer which is to be used to store
+ *                              the converted PCM samples.
+ *
+ *
+ * Returns          int32_t: number of samples converted.
+ *
+ *************************************************************************************/
 extern int32_t BTA_DmPcmResample (void *p_src, uint32_t in_bytes, void *p_dst);
 #endif
 
 #if (BLE_INCLUDED == TRUE)
 /* BLE related API functions */
 /*******************************************************************************
-**
-** Function         BTA_DmBleSecurityGrant
-**
-** Description      Grant security request access.
-**
-** Parameters:      bd_addr          - BD address of the peer
-**                  res              - security grant status.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleSecurityGrant
+ *
+ * Description      Grant security request access.
+ *
+ * Parameters:      bd_addr          - BD address of the peer
+ *                  res              - security grant status.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res);
 
 
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleSetBgConnType
-**
-** Description      This function is called to set BLE connectable mode for a
-**                  peripheral device.
-**
-** Parameters       bg_conn_type: it can be auto connection, or selective connection.
-**                  p_select_cback: callback function when selective connection procedure
-**                              is being used.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleSetBgConnType
+ *
+ * Description      This function is called to set BLE connectable mode for a
+ *                  peripheral device.
+ *
+ * Parameters       bg_conn_type: it can be auto connection, or selective connection.
+ *                  p_select_cback: callback function when selective connection procedure
+ *                              is being used.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_CBACK *p_select_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBlePasskeyReply
-**
-** Description      Send BLE SMP passkey reply.
-**
-** Parameters:      bd_addr          - BD address of the peer
-**                  accept           - passkey entry sucessful or declined.
-**                  passkey          - passkey value, must be a 6 digit number,
-**                                     can be lead by 0.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBlePasskeyReply
+ *
+ * Description      Send BLE SMP passkey reply.
+ *
+ * Parameters:      bd_addr          - BD address of the peer
+ *                  accept           - passkey entry sucessful or declined.
+ *                  passkey          - passkey value, must be a 6 digit number,
+ *                                     can be lead by 0.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, bool accept, uint32_t passkey);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleConfirmReply
-**
-** Description      Send BLE SMP SC user confirmation reply.
-**
-** Parameters:      bd_addr          - BD address of the peer
-**                  accept           - numbers to compare are the same or different.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleConfirmReply
+ *
+ * Description      Send BLE SMP SC user confirmation reply.
+ *
+ * Parameters:      bd_addr          - BD address of the peer
+ *                  accept           - numbers to compare are the same or different.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleConfirmReply(BD_ADDR bd_addr, bool accept);
 
 /*******************************************************************************
-**
-** Function         BTA_DmAddBleDevice
-**
-** Description      Add a BLE device.  This function will be normally called
-**                  during host startup to restore all required information
-**                  for a LE device stored in the NVRAM.
-**
-** Parameters:      bd_addr          - BD address of the peer
-**                  dev_type         - Remote device's device type.
-**                  addr_type        - LE device address type.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmAddBleDevice
+ *
+ * Description      Add a BLE device.  This function will be normally called
+ *                  during host startup to restore all required information
+ *                  for a LE device stored in the NVRAM.
+ *
+ * Parameters:      bd_addr          - BD address of the peer
+ *                  dev_type         - Remote device's device type.
+ *                  addr_type        - LE device address type.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type,
                                tBT_DEVICE_TYPE dev_type);
 
 
 /*******************************************************************************
-**
-** Function         BTA_DmAddBleKey
-**
-** Description      Add/modify LE device information.  This function will be
-**                  normally called during host startup to restore all required
-**                  information stored in the NVRAM.
-**
-** Parameters:      bd_addr          - BD address of the peer
-**                  p_le_key         - LE key values.
-**                  key_type         - LE SMP key type.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmAddBleKey
+ *
+ * Description      Add/modify LE device information.  This function will be
+ *                  normally called during host startup to restore all required
+ *                  information stored in the NVRAM.
+ *
+ * Parameters:      bd_addr          - BD address of the peer
+ *                  p_le_key         - LE key values.
+ *                  key_type         - LE SMP key type.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmAddBleKey (BD_ADDR bd_addr,
                              tBTA_LE_KEY_VALUE *p_le_key,
                              tBTA_LE_KEY_TYPE key_type);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetBlePrefConnParams
-**
-** Description      This function is called to set the preferred connection
-**                  parameters when default connection parameter is not desired.
-**
-** Parameters:      bd_addr          - BD address of the peripheral
-**                  min_conn_int     - minimum preferred connection interval
-**                  max_conn_int     - maximum preferred connection interval
-**                  slave_latency    - preferred slave latency
-**                  supervision_tout - preferred supervision timeout
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetBlePrefConnParams
+ *
+ * Description      This function is called to set the preferred connection
+ *                  parameters when default connection parameter is not desired.
+ *
+ * Parameters:      bd_addr          - BD address of the peripheral
+ *                  min_conn_int     - minimum preferred connection interval
+ *                  max_conn_int     - maximum preferred connection interval
+ *                  slave_latency    - preferred slave latency
+ *                  supervision_tout - preferred supervision timeout
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSetBlePrefConnParams(const BD_ADDR bd_addr,
                                        uint16_t min_conn_int, uint16_t max_conn_int,
                                        uint16_t slave_latency, uint16_t supervision_tout );
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetBleConnScanParams
-**
-** Description      This function is called to set scan parameters used in
-**                  BLE connection request
-**
-** Parameters:      scan_interval    - scan interval
-**                  scan_window      - scan window
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetBleConnScanParams
+ *
+ * Description      This function is called to set scan parameters used in
+ *                  BLE connection request
+ *
+ * Parameters:      scan_interval    - scan interval
+ *                  scan_window      - scan window
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSetBleConnScanParams(uint32_t scan_interval,
                                        uint32_t scan_window);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetBleScanParams
-**
-** Description      This function is called to set scan parameters
-**
-** Parameters:      client_if - Client IF
-**                  scan_interval - scan interval
-**                  scan_window - scan window
-**                  scan_mode - scan mode
-**                  scan_param_setup_status_cback - Set scan param status callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetBleScanParams
+ *
+ * Description      This function is called to set scan parameters
+ *
+ * Parameters:      client_if - Client IF
+ *                  scan_interval - scan interval
+ *                  scan_window - scan window
+ *                  scan_mode - scan mode
+ *                  scan_param_setup_status_cback - Set scan param status callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSetBleScanParams(tGATT_IF client_if, uint32_t scan_interval,
                                    uint32_t scan_window, tBLE_SCAN_MODE scan_mode,
                                    tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_status_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetBleAdvParams
-**
-** Description      This function sets the advertising parameters BLE functionality.
-**                  It is to be called when device act in peripheral or broadcaster
-**                  role.
-**
-** Parameters:      adv_int_min    - adv interval minimum
-**                  adv_int_max    - adv interval max
-**                  p_dir_bda      - directed adv initator address
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetBleAdvParams
+ *
+ * Description      This function sets the advertising parameters BLE functionality.
+ *                  It is to be called when device act in peripheral or broadcaster
+ *                  role.
+ *
+ * Parameters:      adv_int_min    - adv interval minimum
+ *                  adv_int_max    - adv interval max
+ *                  p_dir_bda      - directed adv initator address
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSetBleAdvParams (uint16_t adv_int_min, uint16_t adv_int_max,
                                    tBLE_BD_ADDR *p_dir_bda);
 /*******************************************************************************
-**
-** Function         BTA_DmSearchExt
-**
-** Description      This function searches for peer Bluetooth devices. It performs
-**                  an inquiry and gets the remote name for devices. Service
-**                  discovery is done if services is non zero
-**
-** Parameters       p_dm_inq: inquiry conditions
-**                  services: if service is not empty, service discovery will be done.
-**                            for all GATT based service condition, put num_uuid, and
-**                            p_uuid is the pointer to the list of UUID values.
-**                  p_cback: callback functino when search is completed.
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSearchExt
+ *
+ * Description      This function searches for peer Bluetooth devices. It performs
+ *                  an inquiry and gets the remote name for devices. Service
+ *                  discovery is done if services is non zero
+ *
+ * Parameters       p_dm_inq: inquiry conditions
+ *                  services: if service is not empty, service discovery will be done.
+ *                            for all GATT based service condition, put num_uuid, and
+ *                            p_uuid is the pointer to the list of UUID values.
+ *                  p_cback: callback functino when search is completed.
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services,
                             tBTA_DM_SEARCH_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_DmDiscoverExt
-**
-** Description      This function does service discovery for services of a
-**                  peer device. When services.num_uuid is 0, it indicates all
-**                  GATT based services are to be searched; other wise a list of
-**                  UUID of interested services should be provided through
-**                  services.p_uuid.
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmDiscoverExt
+ *
+ * Description      This function does service discovery for services of a
+ *                  peer device. When services.num_uuid is 0, it indicates all
+ *                  GATT based services are to be searched; other wise a list of
+ *                  UUID of interested services should be provided through
+ *                  services.p_uuid.
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
                               tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search);
 
 /*******************************************************************************
-**
-** Function         BTA_DmDiscoverByTransport
-**
-** Description      This function does service discovery on particular transport
-**                  for services of a
-**                  peer device. When services.num_uuid is 0, it indicates all
-**                  GATT based services are to be searched; other wise a list of
-**                  UUID of interested services should be provided through
-**                  p_services->p_uuid.
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmDiscoverByTransport
+ *
+ * Description      This function does service discovery on particular transport
+ *                  for services of a
+ *                  peer device. When services.num_uuid is 0, it indicates all
+ *                  GATT based services are to be searched; other wise a list of
+ *                  UUID of interested services should be provided through
+ *                  p_services->p_uuid.
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
                                       tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search,
                                       tBTA_TRANSPORT transport);
 
 /*******************************************************************************
-**
-** Function         BTA_DmSetEncryption
-**
-** Description      This function is called to ensure that connection is
-**                  encrypted.  Should be called only on an open connection.
-**                  Typically only needed for connections that first want to
-**                  bring up unencrypted links, then later encrypt them.
-**
-** Parameters:      bd_addr       - Address of the peer device
-**                  transport     - transport of the link to be encruypted
-**                  p_callback    - Pointer to callback function to indicat the
-**                                  link encryption status
-**                  sec_act       - This is the security action to indicate
-**                                  what knid of BLE security level is required for
-**                                  the BLE link if the BLE is supported
-**                                  Note: This parameter is ignored for the BR/EDR link
-**                                        or the BLE is not supported
-**
-** Returns          void
-**
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmSetEncryption
+ *
+ * Description      This function is called to ensure that connection is
+ *                  encrypted.  Should be called only on an open connection.
+ *                  Typically only needed for connections that first want to
+ *                  bring up unencrypted links, then later encrypt them.
+ *
+ * Parameters:      bd_addr       - Address of the peer device
+ *                  transport     - transport of the link to be encruypted
+ *                  p_callback    - Pointer to callback function to indicat the
+ *                                  link encryption status
+ *                  sec_act       - This is the security action to indicate
+ *                                  what knid of BLE security level is required for
+ *                                  the BLE link if the BLE is supported
+ *                                  Note: This parameter is ignored for the BR/EDR link
+ *                                        or the BLE is not supported
+ *
+ * Returns          void
+ *
+ *
+ ******************************************************************************/
 extern void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport,
                                 tBTA_DM_ENCRYPT_CBACK *p_callback,
                                 tBTA_DM_BLE_SEC_ACT sec_act);
 
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleObserve
-**
-** Description      This procedure keep the device listening for advertising
-**                  events from a broadcast device.
-**
-** Parameters       start: start or stop observe.
-**                  duration : Duration of the scan. Continuous scan if 0 is passed
-**                  p_results_cb: Callback to be called with scan results
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleObserve
+ *
+ * Description      This procedure keep the device listening for advertising
+ *                  events from a broadcast device.
+ *
+ * Parameters       start: start or stop observe.
+ *                  duration : Duration of the scan. Continuous scan if 0 is passed
+ *                  p_results_cb: Callback to be called with scan results
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleObserve(bool start, uint8_t duration,
                              tBTA_DM_SEARCH_CBACK *p_results_cb);
 
@@ -1860,79 +1860,79 @@ extern void BTA_DmBleObserve(bool start, uint8_t duration,
 
 #if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         BTA_DmBleConfigLocalPrivacy
-**
-** Description      Enable/disable privacy on the local device
-**
-** Parameters:      privacy_enable   - enable/disabe privacy on remote device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleConfigLocalPrivacy
+ *
+ * Description      Enable/disable privacy on the local device
+ *
+ * Parameters:      privacy_enable   - enable/disabe privacy on remote device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleConfigLocalPrivacy(bool privacy_enable);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleEnableRemotePrivacy
-**
-** Description      Enable/disable privacy on a remote device
-**
-** Parameters:      bd_addr          - BD address of the peer
-**                  privacy_enable   - enable/disabe privacy on remote device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleEnableRemotePrivacy
+ *
+ * Description      Enable/disable privacy on a remote device
+ *
+ * Parameters:      bd_addr          - BD address of the peer
+ *                  privacy_enable   - enable/disabe privacy on remote device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, bool privacy_enable);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleUpdateConnectionParams
-**
-** Description      Update connection parameters, can only be used when connection is up.
-**
-** Parameters:      bd_addr   - BD address of the peer
-**                  min_int   -     minimum connection interval, [0x0004~ 0x4000]
-**                  max_int   -     maximum connection interval, [0x0004~ 0x4000]
-**                  latency   -     slave latency [0 ~ 500]
-**                  timeout   -     supervision timeout [0x000a ~ 0xc80]
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleUpdateConnectionParams
+ *
+ * Description      Update connection parameters, can only be used when connection is up.
+ *
+ * Parameters:      bd_addr   - BD address of the peer
+ *                  min_int   -     minimum connection interval, [0x0004~ 0x4000]
+ *                  max_int   -     maximum connection interval, [0x0004~ 0x4000]
+ *                  latency   -     slave latency [0 ~ 500]
+ *                  timeout   -     supervision timeout [0x000a ~ 0xc80]
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleUpdateConnectionParams(const BD_ADDR bd_addr, uint16_t min_int,
                                    uint16_t max_int, uint16_t latency, uint16_t timeout);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleSetDataLength
-**
-** Description      This function is to set maximum LE data packet size
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleSetDataLength
+ *
+ * Description      This function is to set maximum LE data packet size
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleSetDataLength(BD_ADDR remote_device, uint16_t tx_data_length);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleSetStorageParams
-**
-** Description      This function is called to set the storage parameters
-**
-** Parameters       batch_scan_full_max -Max storage space (in %) allocated to full scanning
-**                  batch_scan_trunc_max -Max storage space (in %) allocated to truncated scanning
-**                  batch_scan_notify_threshold - Setup notification level based on total space
-**                  consumed by both pools. Setting it to 0 will disable threshold notification
-**                  p_setup_cback - Setup callback
-**                  p_thres_cback - Threshold callback
-**                  p_rep_cback - Reports callback
-**                  ref_value - Reference value
-**
-** Returns           None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleSetStorageParams
+ *
+ * Description      This function is called to set the storage parameters
+ *
+ * Parameters       batch_scan_full_max -Max storage space (in %) allocated to full scanning
+ *                  batch_scan_trunc_max -Max storage space (in %) allocated to truncated scanning
+ *                  batch_scan_notify_threshold - Setup notification level based on total space
+ *                  consumed by both pools. Setting it to 0 will disable threshold notification
+ *                  p_setup_cback - Setup callback
+ *                  p_thres_cback - Threshold callback
+ *                  p_rep_cback - Reports callback
+ *                  ref_value - Reference value
+ *
+ * Returns           None
+ *
+ ******************************************************************************/
 extern void BTA_DmBleSetStorageParams(uint8_t batch_scan_full_max,
                                          uint8_t batch_scan_trunc_max,
                                          uint8_t batch_scan_notify_threshold,
@@ -1942,21 +1942,21 @@ extern void BTA_DmBleSetStorageParams(uint8_t batch_scan_full_max,
                                          tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleEnableBatchScan
-**
-** Description      This function is called to enable the batch scan
-**
-** Parameters       scan_mode -Batch scan mode
-**                  scan_interval - Scan interval
-**                  scan_window - Scan window
-**                  discard_rule -Discard rules
-**                  addr_type - Address type
-**                  ref_value - Reference value
-**
-** Returns           None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleEnableBatchScan
+ *
+ * Description      This function is called to enable the batch scan
+ *
+ * Parameters       scan_mode -Batch scan mode
+ *                  scan_interval - Scan interval
+ *                  scan_window - Scan window
+ *                  discard_rule -Discard rules
+ *                  addr_type - Address type
+ *                  ref_value - Reference value
+ *
+ * Returns           None
+ *
+ ******************************************************************************/
 extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
                                          uint32_t scan_interval, uint32_t scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
@@ -1964,66 +1964,66 @@ extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
                                          tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleReadScanReports
-**
-** Description      This function is called to read the batch scan reports
-**
-** Parameters       scan_mode -Batch scan mode
-**                  ref_value - Reference value
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleReadScanReports
+ *
+ * Description      This function is called to read the batch scan reports
+ *
+ * Parameters       scan_mode -Batch scan mode
+ *                  ref_value - Reference value
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_DmBleReadScanReports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
                                              tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleDisableBatchScan
-**
-** Description      This function is called to disable the batch scanning
-**
-** Parameters       ref_value - Reference value
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleDisableBatchScan
+ *
+ * Description      This function is called to disable the batch scanning
+ *
+ * Parameters       ref_value - Reference value
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
-**
-** Function         BTA_DmEnableScanFilter
-**
-** Description      This function is called to enable the adv data payload filter
-**
-** Parameters       action - enable or disable the APCF feature
-**                  p_cmpl_cback - Command completed callback
-**                  ref_value - Reference value
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmEnableScanFilter
+ *
+ * Description      This function is called to enable the adv data payload filter
+ *
+ * Parameters       action - enable or disable the APCF feature
+ *                  p_cmpl_cback - Command completed callback
+ *                  ref_value - Reference value
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmEnableScanFilter(uint8_t action,
                                         tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cback,
                                         tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleScanFilterSetup
-**
-** Description      This function is called to setup the filter params
-**
-** Parameters       p_target: enable the filter condition on a target device; if NULL
-**                  filt_index - Filter index
-**                  p_filt_params -Filter parameters
-**                  ref_value - Reference value
-**                  action - Add, delete or clear
-**                  p_cmpl_back - Command completed callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleScanFilterSetup
+ *
+ * Description      This function is called to setup the filter params
+ *
+ * Parameters       p_target: enable the filter condition on a target device; if NULL
+ *                  filt_index - Filter index
+ *                  p_filt_params -Filter parameters
+ *                  ref_value - Reference value
+ *                  action - Add, delete or clear
+ *                  p_cmpl_back - Command completed callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleScanFilterSetup(uint8_t action,
                                                    tBTA_DM_BLE_PF_FILT_INDEX filt_index,
                                                    tBTA_DM_BLE_PF_FILT_PARAMS *p_filt_params,
@@ -2032,22 +2032,22 @@ extern void BTA_DmBleScanFilterSetup(uint8_t action,
                                                    tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleCfgFilterCondition
-**
-** Description      This function is called to configure the adv data payload filter
-**                  condition.
-**
-** Parameters       action: to read/write/clear
-**                  cond_type: filter condition type
-**                  filt_index - Filter index
-**                  p_cond: filter condition parameter
-**                  p_cmpl_back - Command completed callback
-**                  ref_value - Reference value
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleCfgFilterCondition
+ *
+ * Description      This function is called to configure the adv data payload filter
+ *                  condition.
+ *
+ * Parameters       action: to read/write/clear
+ *                  cond_type: filter condition type
+ *                  filt_index - Filter index
+ *                  p_cond: filter condition parameter
+ *                  p_cmpl_back - Command completed callback
+ *                  ref_value - Reference value
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                                  tBTA_DM_BLE_PF_COND_TYPE cond_type,
                                                  tBTA_DM_BLE_PF_FILT_INDEX filt_index,
@@ -2057,53 +2057,53 @@ extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
 
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleTrackAdvertiser
-**
-** Description      This function is called to track the advertiser
-**
-** Parameters    ref_value - Reference value
-**               p_track_adv_cback - ADV callback
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleTrackAdvertiser
+ *
+ * Description      This function is called to track the advertiser
+ *
+ * Parameters    ref_value - Reference value
+ *               p_track_adv_cback - ADV callback
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
                             tBTA_BLE_TRACK_ADV_CBACK *p_track_adv_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_DmBleGetEnergyInfo
-**
-** Description      This function is called to obtain the energy info
-**
-** Parameters       p_cmpl_cback - Command complete callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_DmBleGetEnergyInfo
+ *
+ * Description      This function is called to obtain the energy info
+ *
+ * Parameters       p_cmpl_cback - Command complete callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback);
 
 /*******************************************************************************
-**
-** Function         BTA_BrcmInit
-**
-** Description      This function initializes Broadcom specific VS handler in BTA
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_BrcmInit
+ *
+ * Description      This function initializes Broadcom specific VS handler in BTA
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_VendorInit  (void);
 
 /*******************************************************************************
-**
-** Function         BTA_BrcmCleanup
-**
-** Description      This function frees up Broadcom specific VS specific dynamic memory
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTA_BrcmCleanup
+ *
+ * Description      This function frees up Broadcom specific VS specific dynamic memory
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTA_VendorCleanup (void);
 
 #endif

@@ -31,8 +31,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 
 
@@ -51,153 +51,153 @@ extern "C" {
 
 
 /*****************************************************************************
-**  Function Declarations
-*****************************************************************************/
+ *  Function Declarations
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_init
-**
-** Description      This callout function is executed by PAN when a server is
-**                  started by calling BTA_PanEnable().  This function can be
-**                  used by the phone to initialize data paths or for other
-**                  initialization purposes.  The function must return the
-**                  data flow mask as described below.
-**
-**
-** Returns          Data flow mask.
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_init
+ *
+ * Description      This callout function is executed by PAN when a server is
+ *                  started by calling BTA_PanEnable().  This function can be
+ *                  used by the phone to initialize data paths or for other
+ *                  initialization purposes.  The function must return the
+ *                  data flow mask as described below.
+ *
+ *
+ * Returns          Data flow mask.
+ *
+ ******************************************************************************/
 extern uint8_t bta_pan_co_init(uint8_t *q_level);
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_open
-**
-** Description      This function is executed by PAN when a connection
-**                  is opened.  The phone can use this function to set
-**                  up data paths or perform any required initialization.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_open
+ *
+ * Description      This function is executed by PAN when a connection
+ *                  is opened.  The phone can use this function to set
+ *                  up data paths or perform any required initialization.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_open(uint16_t handle, uint8_t app_id, tBTA_PAN_ROLE local_role, tBTA_PAN_ROLE peer_role, BD_ADDR peer_addr);
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_close
-**
-** Description      This function is called by PAN when a connection to a
-**                  server is closed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_close
+ *
+ * Description      This function is called by PAN when a connection to a
+ *                  server is closed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_close(uint16_t handle, uint8_t app_id);
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_tx_path
-**
-** Description      This function is called by PAN to transfer data on the
-**                  TX path; that is, data being sent from BTA to the phone.
-**                  This function is used when the TX data path is configured
-**                  to use the pull interface.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_tx_path
+ *
+ * Description      This function is called by PAN to transfer data on the
+ *                  TX path; that is, data being sent from BTA to the phone.
+ *                  This function is used when the TX data path is configured
+ *                  to use the pull interface.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_tx_path(uint16_t handle, uint8_t app_id);
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_rx_path
-**
-** Description      This function is called by PAN to transfer data on the
-**                  RX path; that is, data being sent from the phone to BTA.
-**                  This function is used when the RX data path is configured
-**                  to use the pull interface.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_rx_path
+ *
+ * Description      This function is called by PAN to transfer data on the
+ *                  RX path; that is, data being sent from the phone to BTA.
+ *                  This function is used when the RX data path is configured
+ *                  to use the pull interface.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_rx_path(uint16_t handle, uint8_t app_id);
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_tx_write
-**
-** Description      This function is called by PAN to send data to the phone
-**                  when the TX path is configured to use a push interface.
-**                  The implementation of this function must copy the data to
-**                  the phone's memory.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_tx_write
+ *
+ * Description      This function is called by PAN to send data to the phone
+ *                  when the TX path is configured to use a push interface.
+ *                  The implementation of this function must copy the data to
+ *                  the phone's memory.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_tx_write(uint16_t handle, uint8_t app_id, BD_ADDR src, BD_ADDR dst, uint16_t protocol, uint8_t *p_data,
                                 uint16_t len, bool ext, bool forward);
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_tx_writebuf
-**
-** Description      This function is called by PAN to send data to the phone
-**                  when the TX path is configured to use a push interface with
-**                  zero copy.  The phone must free the buffer using function
-**                  osi_free() when it is through processing the buffer.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_tx_writebuf
+ *
+ * Description      This function is called by PAN to send data to the phone
+ *                  when the TX path is configured to use a push interface with
+ *                  zero copy.  The phone must free the buffer using function
+ *                  osi_free() when it is through processing the buffer.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_tx_writebuf(uint16_t handle, uint8_t app_id, BD_ADDR src, BD_ADDR dst, uint16_t protocol, BT_HDR *p_buf,
                                    bool ext, bool forward);
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_rx_flow
-**
-** Description      This function is called by PAN to enable or disable
-**                  data flow on the RX path when it is configured to use
-**                  a push interface.  If data flow is disabled the phone must
-**                  not call bta_pan_ci_rx_write() or bta_pan_ci_rx_writebuf()
-**                  until data flow is enabled again.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_rx_flow
+ *
+ * Description      This function is called by PAN to enable or disable
+ *                  data flow on the RX path when it is configured to use
+ *                  a push interface.  If data flow is disabled the phone must
+ *                  not call bta_pan_ci_rx_write() or bta_pan_ci_rx_writebuf()
+ *                  until data flow is enabled again.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_rx_flow(uint16_t handle, uint8_t app_id, bool enable);
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_filt_ind
-**
-** Description      protocol filter indication from peer device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_filt_ind
+ *
+ * Description      protocol filter indication from peer device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_pfilt_ind(uint16_t handle, bool indication, tBTA_PAN_STATUS result,
                                  uint16_t len, uint8_t *p_filters);
 
 /*******************************************************************************
-**
-** Function         bta_pan_co_mfilt_ind
-**
-** Description      multicast filter indication from peer device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_co_mfilt_ind
+ *
+ * Description      multicast filter indication from peer device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_pan_co_mfilt_ind(uint16_t handle,  bool indication, tBTA_PAN_STATUS result,
                                  uint16_t len, uint8_t *p_filters);
 

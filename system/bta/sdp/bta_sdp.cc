@@ -30,8 +30,8 @@
 #include "bta_sdp_int.h"
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 tBTA_SDP_CB bta_sdp_cb;
 
@@ -51,12 +51,12 @@ const tBTA_SDP_ACTION bta_sdp_action[] =
 };
 
 /*******************************************************************************
-** Function         bta_sdp_sm_execute
-**
-** Description      State machine event handling function for SDP search
-**
-** Returns          void
-*******************************************************************************/
+ * Function         bta_sdp_sm_execute
+ *
+ * Description      State machine event handling function for SDP search
+ *
+ * Returns          void
+ ******************************************************************************/
 bool bta_sdp_sm_execute(BT_HDR *p_msg)
 {
     if(p_msg == NULL) return false;

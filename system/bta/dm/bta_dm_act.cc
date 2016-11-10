@@ -251,15 +251,15 @@ extern DEV_CLASS local_device_default_class;
 extern fixed_queue_t *btu_bta_alarm_queue;
 
 /*******************************************************************************
-**
-** Function         bta_dm_enable
-**
-** Description      Initialises the BT device manager
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_enable
+ *
+ * Description      Initialises the BT device manager
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_enable(tBTA_DM_MSG *p_data)
 {
     tBTA_DM_ENABLE enable_event;
@@ -295,15 +295,15 @@ void bta_dm_enable(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_init_cb
-**
-** Description      Initializes the bta_dm_cb control block
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_init_cb
+ *
+ * Description      Initializes the bta_dm_cb control block
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_init_cb(void)
 {
     memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
@@ -317,15 +317,15 @@ void bta_dm_init_cb(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_deinit_cb
-**
-** Description      De-initializes the bta_dm_cb control block
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_deinit_cb
+ *
+ * Description      De-initializes the bta_dm_cb control block
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_deinit_cb(void)
 {
     /*
@@ -343,15 +343,15 @@ void bta_dm_deinit_cb(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_sys_hw_cback
-**
-** Description     callback register to SYS to get HW status updates
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sys_hw_cback
+ *
+ * Description     callback register to SYS to get HW status updates
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
 {
     DEV_CLASS   dev_class;
@@ -477,15 +477,15 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_disable
-**
-** Description      Disables the BT device manager
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disable
+ *
+ * Description      Disables the BT device manager
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_disable (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     /* Set l2cap idle timeout to 0 (so BTE immediately disconnects ACL link after last channel is closed) */
@@ -530,17 +530,17 @@ void bta_dm_disable (UNUSED_ATTR tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_disable_timer_cback
-**
-** Description      Called if the disable timer expires
-**                  Used to close ACL connections which are still active
-**
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disable_timer_cback
+ *
+ * Description      Called if the disable timer expires
+ *                  Used to close ACL connections which are still active
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_disable_timer_cback(void *data)
 {
     uint8_t i;
@@ -584,15 +584,15 @@ static void bta_dm_disable_timer_cback(void *data)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_set_dev_name
-**
-** Description      Sets local device name
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_set_dev_name
+ *
+ * Description      Sets local device name
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_set_dev_name (tBTA_DM_MSG *p_data)
 {
 
@@ -601,15 +601,15 @@ void bta_dm_set_dev_name (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_set_visibility
-**
-** Description      Sets discoverability, connectability and pairability
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_set_visibility
+ *
+ * Description      Sets discoverability, connectability and pairability
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_set_visibility(tBTA_DM_MSG *p_data)
 {
     uint16_t window, interval;
@@ -682,12 +682,12 @@ void bta_dm_set_visibility(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_process_remove_device
-**
-** Description      Removes device, Disconnects ACL link if required.
-****
-*******************************************************************************/
+ *
+ * Function         bta_dm_process_remove_device
+ *
+ * Description      Removes device, Disconnects ACL link if required.
+ ***
+ ******************************************************************************/
 void bta_dm_process_remove_device(BD_ADDR bd_addr)
 {
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
@@ -713,12 +713,12 @@ void bta_dm_process_remove_device(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_remove_device
-**
-** Description      Removes device, disconnects ACL link if required.
-****
-*******************************************************************************/
+ *
+ * Function         bta_dm_remove_device
+ *
+ * Description      Removes device, disconnects ACL link if required.
+ ***
+ ******************************************************************************/
 void bta_dm_remove_device(tBTA_DM_MSG *p_data)
 {
     tBTA_DM_API_REMOVE_DEVICE *p_dev = &p_data->remove_dev;
@@ -806,14 +806,14 @@ void bta_dm_remove_device(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_add_device
-**
-** Description      This function adds a Link Key to an security database entry.
-**                  It is normally called during host startup to restore all required information
-**                  stored in the NVRAM.
-****
-*******************************************************************************/
+ *
+ * Function         bta_dm_add_device
+ *
+ * Description      This function adds a Link Key to an security database entry.
+ *                  It is normally called during host startup to restore all required information
+ *                  stored in the NVRAM.
+ ***
+ ******************************************************************************/
 void bta_dm_add_device (tBTA_DM_MSG *p_data)
 {
     tBTA_DM_API_ADD_DEVICE *p_dev = &p_data->add_dev;
@@ -861,14 +861,14 @@ void bta_dm_add_device (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_close_acl
-**
-** Description      This function forces to close the connection to a remote device
-**                  and optionaly remove the device from security database if
-**                  required.
-****
-*******************************************************************************/
+ *
+ * Function         bta_dm_close_acl
+ *
+ * Description      This function forces to close the connection to a remote device
+ *                  and optionaly remove the device from security database if
+ *                  required.
+ ***
+ ******************************************************************************/
 void bta_dm_close_acl(tBTA_DM_MSG *p_data)
 {
     tBTA_DM_API_REMOVE_ACL *p_remove_acl = &p_data->remove_acl;
@@ -914,12 +914,12 @@ void bta_dm_close_acl(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_remove_all_acl
-**
-** Description      This function forces to close all the ACL links specified by link type
-****
-*******************************************************************************/
+ *
+ * Function         bta_dm_remove_all_acl
+ *
+ * Description      This function forces to close all the ACL links specified by link type
+ ***
+ ******************************************************************************/
 void bta_dm_remove_all_acl(tBTA_DM_MSG *p_data)
 {
     const tBTA_DM_LINK_TYPE link_type = p_data->remove_all_acl.link_type;
@@ -946,15 +946,15 @@ void bta_dm_remove_all_acl(tBTA_DM_MSG *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_bond
-**
-** Description      Bonds with peer device
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_bond
+ *
+ * Description      Bonds with peer device
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_bond (tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS status;
@@ -999,15 +999,15 @@ void bta_dm_bond (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_bond_cancel
-**
-** Description      Cancels bonding with a peer device
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_bond_cancel
+ *
+ * Description      Cancels bonding with a peer device
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_bond_cancel (tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS status;
@@ -1026,15 +1026,15 @@ void bta_dm_bond_cancel (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pin_reply
-**
-** Description      Send the pin_reply to a request from BTM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pin_reply
+ *
+ * Description      Send the pin_reply to a request from BTM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_pin_reply (tBTA_DM_MSG *p_data)
 {
     uint32_t  trusted_mask[BTM_SEC_SERVICE_ARRAY_SIZE];
@@ -1064,14 +1064,14 @@ void bta_dm_pin_reply (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_policy_cback
-**
-** Description      process the link policy changes
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_policy_cback
+ *
+ * Description      process the link policy changes
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     tBTA_DM_PEER_DEVICE *p_dev = NULL;
@@ -1128,15 +1128,15 @@ static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_confirm
-**
-** Description      Send the user confirm request reply in response to a
-**                  request from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_confirm
+ *
+ * Description      Send the user confirm request reply in response to a
+ *                  request from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_confirm(tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS res = BTM_NOT_AUTHORIZED;
@@ -1147,28 +1147,28 @@ void bta_dm_confirm(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_loc_oob
-**
-** Description      Retrieve the OOB data from the local LM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_loc_oob
+ *
+ * Description      Retrieve the OOB data from the local LM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_loc_oob(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     BTM_ReadLocalOobData();
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ci_io_req_act
-**
-** Description      respond to the IO capabilities request from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ci_io_req_act
+ *
+ * Description      respond to the IO capabilities request from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_ci_io_req_act(tBTA_DM_MSG *p_data)
 {
     tBTM_AUTH_REQ   auth_req = BTM_AUTH_AP_NO;
@@ -1179,15 +1179,15 @@ void bta_dm_ci_io_req_act(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ci_rmt_oob_act
-**
-** Description      respond to the OOB data request for the remote device from BTM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ci_rmt_oob_act
+ *
+ * Description      respond to the OOB data request for the remote device from BTM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_ci_rmt_oob_act(tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS res = BTM_NOT_AUTHORIZED;
@@ -1199,15 +1199,15 @@ void bta_dm_ci_rmt_oob_act(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_start
-**
-** Description      Starts an inquiry
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_start
+ *
+ * Description      Starts an inquiry
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_start (tBTA_DM_MSG *p_data)
 {
     tBTM_INQUIRY_CMPL result;
@@ -1253,15 +1253,15 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_cancel
-**
-** Description      Cancels an ongoing search for devices
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_cancel
+ *
+ * Description      Cancels an ongoing search for devices
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_cancel (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
 
@@ -1306,15 +1306,15 @@ void bta_dm_search_cancel (UNUSED_ATTR tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_discover
-**
-** Description      Discovers services on a remote device
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_discover
+ *
+ * Description      Discovers services on a remote device
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_discover (tBTA_DM_MSG *p_data)
 {
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
@@ -1353,14 +1353,14 @@ void bta_dm_discover (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_di_disc_cmpl
-**
-** Description      Sends event to application when DI discovery complete
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_di_disc_cmpl
+ *
+ * Description      Sends event to application when DI discovery complete
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_di_disc_cmpl(tBTA_DM_MSG *p_data)
 {
     tBTA_DM_DI_DISC_CMPL    di_disc;
@@ -1381,15 +1381,15 @@ void bta_dm_di_disc_cmpl(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_di_disc_callback
-**
-** Description      This function queries a remote device for DI information.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_di_disc_callback
+ *
+ * Description      This function queries a remote device for DI information.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_di_disc_callback(uint16_t result)
 {
     tBTA_DM_MSG *p_msg = (tBTA_DM_MSG *)osi_malloc(sizeof(tBTA_DM_MSG));
@@ -1402,16 +1402,16 @@ static void bta_dm_di_disc_callback(uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_disable_search_and_disc
-**
-** Description      Cancels an ongoing search or discovery for devices in case of
-**                  a Bluetooth disable
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disable_search_and_disc
+ *
+ * Description      Cancels an ongoing search or discovery for devices in case of
+ *                  a Bluetooth disable
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_disable_search_and_disc (void)
 {
     tBTA_DM_DI_DISC_CMPL    di_disc;
@@ -1431,15 +1431,15 @@ static void bta_dm_disable_search_and_disc (void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_di_disc
-**
-** Description      This function queries a remote device for DI information.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_di_disc
+ *
+ * Description      This function queries a remote device for DI information.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_di_disc (tBTA_DM_MSG *p_data)
 {
     uint16_t  result = BTA_FAILURE;
@@ -1466,14 +1466,14 @@ void bta_dm_di_disc (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_read_remote_device_name
-**
-** Description      Initiate to get remote device name
-**
-** Returns          true if started to get remote name
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_read_remote_device_name
+ *
+ * Description      Initiate to get remote device name
+ *
+ * Returns          true if started to get remote name
+ *
+ ******************************************************************************/
 static bool bta_dm_read_remote_device_name (BD_ADDR bd_addr,tBT_TRANSPORT transport)
 {
     tBTM_STATUS  btm_status;
@@ -1512,14 +1512,14 @@ static bool bta_dm_read_remote_device_name (BD_ADDR bd_addr,tBT_TRANSPORT transp
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_inq_cmpl
-**
-** Description      Process the inquiry complete event from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_inq_cmpl
+ *
+ * Description      Process the inquiry complete event from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_inq_cmpl (tBTA_DM_MSG *p_data)
 {
     tBTA_DM_SEARCH  data;
@@ -1548,14 +1548,14 @@ void bta_dm_inq_cmpl (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_rmt_name
-**
-** Description      Process the remote name result from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_rmt_name
+ *
+ * Description      Process the remote name result from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_rmt_name (tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_DEBUG("bta_dm_rmt_name");
@@ -1569,15 +1569,15 @@ void bta_dm_rmt_name (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_disc_rmt_name
-**
-** Description      Process the remote name result from BTM when application
-**                  wants to find the name for a bdaddr
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disc_rmt_name
+ *
+ * Description      Process the remote name result from BTM when application
+ *                  wants to find the name for a bdaddr
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_disc_rmt_name (tBTA_DM_MSG *p_data)
 {
     tBTM_INQ_INFO *p_btm_inq_info;
@@ -1597,14 +1597,14 @@ void bta_dm_disc_rmt_name (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_sdp_result
-**
-** Description      Process the discovery result from sdp
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sdp_result
+ *
+ * Description      Process the discovery result from sdp
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 {
 
@@ -1842,14 +1842,14 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_cmpl
-**
-** Description      Sends event to application
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_cmpl
+ *
+ * Description      Sends event to application
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_cmpl(tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_EVENT("%s", __func__);
@@ -1865,14 +1865,14 @@ void bta_dm_search_cmpl(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_disc_result
-**
-** Description      Service discovery result when discovering services on a device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disc_result
+ *
+ * Description      Service discovery result when discovering services on a device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_disc_result (tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_EVENT("%s", __func__);
@@ -1892,14 +1892,14 @@ void bta_dm_disc_result (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_result
-**
-** Description      Service discovery result while searching for devices
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_result
+ *
+ * Description      Service discovery result while searching for devices
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_result (tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_DEBUG("%s searching:0x%04x, result:0x%04x", __func__,
@@ -1932,15 +1932,15 @@ void bta_dm_search_result (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_timer_cback
-**
-** Description      Called when ACL disconnect time is over
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_timer_cback
+ *
+ * Description      Called when ACL disconnect time is over
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_search_timer_cback(UNUSED_ATTR void *data)
 {
     APPL_TRACE_EVENT("%s", __func__);
@@ -1953,28 +1953,28 @@ static void bta_dm_search_timer_cback(UNUSED_ATTR void *data)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_free_sdp_db
-**
-** Description      Frees SDP data base
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_free_sdp_db
+ *
+ * Description      Frees SDP data base
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_free_sdp_db (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_queue_search
-**
-** Description      Queues search command while search is being cancelled
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_queue_search
+ *
+ * Description      Queues search command while search is being cancelled
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_queue_search(tBTA_DM_MSG *p_data)
 {
     osi_free(bta_dm_search_cb.p_search_queue);
@@ -1985,14 +1985,14 @@ void bta_dm_queue_search(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_queue_disc
-**
-** Description      Queues discovery command while search is being cancelled
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_queue_disc
+ *
+ * Description      Queues discovery command while search is being cancelled
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_queue_disc(tBTA_DM_MSG *p_data)
 {
     osi_free(bta_dm_search_cb.p_search_queue);
@@ -2003,28 +2003,28 @@ void bta_dm_queue_disc(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_clear_queue
-**
-** Description      Clears the queue if API search cancel is called
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_clear_queue
+ *
+ * Description      Clears the queue if API search cancel is called
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_clear_queue(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     osi_free_and_reset((void **)&bta_dm_search_cb.p_search_queue);
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_cancel_cmpl
-**
-** Description      Search cancel is complete
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_cancel_cmpl
+ *
+ * Description      Search cancel is complete
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_cancel_cmpl (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     if(bta_dm_search_cb.p_search_queue)
@@ -2036,15 +2036,15 @@ void bta_dm_search_cancel_cmpl (UNUSED_ATTR tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_cancel_transac_cmpl
-**
-** Description      Current Service Discovery or remote name procedure is
-**                  completed after search cancellation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_cancel_transac_cmpl
+ *
+ * Description      Current Service Discovery or remote name procedure is
+ *                  completed after search cancellation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_cancel_transac_cmpl(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
@@ -2053,14 +2053,14 @@ void bta_dm_search_cancel_transac_cmpl(UNUSED_ATTR tBTA_DM_MSG *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_search_cancel_notify
-**
-** Description      Notify application that search has been cancelled
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_search_cancel_notify
+ *
+ * Description      Notify application that search has been cancelled
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_search_cancel_notify (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     if (bta_dm_search_cb.p_search_cback)
@@ -2081,14 +2081,14 @@ void bta_dm_search_cancel_notify (UNUSED_ATTR tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_find_services
-**
-** Description      Starts discovery on a device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_find_services
+ *
+ * Description      Starts discovery on a device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_find_services ( BD_ADDR bd_addr)
 {
 
@@ -2199,14 +2199,14 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_discover_next_device
-**
-** Description      Starts discovery on the next device in Inquiry data base
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_discover_next_device
+ *
+ * Description      Starts discovery on the next device in Inquiry data base
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_discover_next_device(void)
 {
     APPL_TRACE_DEBUG("bta_dm_discover_next_device");
@@ -2231,14 +2231,14 @@ static void bta_dm_discover_next_device(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_discover_device
-**
-** Description      Starts name and service discovery on the device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_discover_device
+ *
+ * Description      Starts name and service discovery on the device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 {
     tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
@@ -2381,14 +2381,14 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_sdp_callback
-**
-** Description      Callback from sdp with discovery status
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sdp_callback
+ *
+ * Description      Callback from sdp with discovery status
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_sdp_callback (uint16_t sdp_status)
 {
 
@@ -2402,14 +2402,14 @@ static void bta_dm_sdp_callback (uint16_t sdp_status)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_inq_results_cb
-**
-** Description      Inquiry results callback from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_inq_results_cb
+ *
+ * Description      Inquiry results callback from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, uint8_t *p_eir)
 {
 
@@ -2457,14 +2457,14 @@ static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, uint8_t *p_eir)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_inq_cmpl_cb
-**
-** Description      Inquiry complete callback from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_inq_cmpl_cb
+ *
+ * Description      Inquiry complete callback from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_inq_cmpl_cb (void * p_result)
 {
     tBTA_DM_MSG *p_msg = (tBTA_DM_MSG *)osi_malloc(sizeof(tBTA_DM_MSG));
@@ -2485,14 +2485,14 @@ static void bta_dm_inq_cmpl_cb (void * p_result)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_service_search_remname_cback
-**
-** Description      Remote name call back from BTM during service discovery
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_service_search_remname_cback
+ *
+ * Description      Remote name call back from BTM during service discovery
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr,
                                                  UNUSED_ATTR DEV_CLASS dc, BD_NAME bd_name)
 {
@@ -2541,14 +2541,14 @@ static void bta_dm_service_search_remname_cback (BD_ADDR bd_addr,
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_remname_cback
-**
-** Description      Remote name complete call back from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_remname_cback
+ *
+ * Description      Remote name complete call back from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
 {
     APPL_TRACE_DEBUG("bta_dm_remname_cback len = %d name=<%s>", p_remote_name->length,
@@ -2579,14 +2579,14 @@ static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_authorize_cback
-**
-** Description      cback requesting authorization
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_authorize_cback
+ *
+ * Description      cback requesting authorization
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static uint8_t bta_dm_authorize_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
                                      UNUSED_ATTR uint8_t *service_name, uint8_t service_id,
                                        UNUSED_ATTR bool is_originator)
@@ -2636,14 +2636,14 @@ static uint8_t bta_dm_authorize_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_pinname_cback
-**
-** Description      Callback requesting pin_key
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pinname_cback
+ *
+ * Description      Callback requesting pin_key
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_pinname_cback (void *p_data)
 {
     tBTM_REMOTE_DEV_NAME *p_result = (tBTM_REMOTE_DEV_NAME *)p_data;
@@ -2697,14 +2697,14 @@ static void bta_dm_pinname_cback (void *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_pin_cback
-**
-** Description      Callback requesting pin_key
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_pin_cback
+ *
+ * Description      Callback requesting pin_key
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static uint8_t bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
         bool min_16_digit)
 {
@@ -2735,14 +2735,14 @@ static uint8_t bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME b
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_new_link_key_cback
-**
-** Description      Callback from BTM to notify new link key
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_new_link_key_cback
+ *
+ * Description      Callback from BTM to notify new link key
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static uint8_t  bta_dm_new_link_key_cback(BD_ADDR bd_addr, UNUSED_ATTR DEV_CLASS dev_class,
                                         BD_NAME bd_name, LINK_KEY key, uint8_t key_type)
 {
@@ -2793,14 +2793,14 @@ static uint8_t  bta_dm_new_link_key_cback(BD_ADDR bd_addr, UNUSED_ATTR DEV_CLASS
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_authentication_complete_cback
-**
-** Description      Authentication complete callback from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_authentication_complete_cback
+ *
+ * Description      Authentication complete callback from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static uint8_t bta_dm_authentication_complete_cback(BD_ADDR bd_addr,
                                                     UNUSED_ATTR DEV_CLASS dev_class,BD_NAME bd_name,
                                                     int result)
@@ -2831,14 +2831,14 @@ static uint8_t bta_dm_authentication_complete_cback(BD_ADDR bd_addr,
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_sp_cback
-**
-** Description      simple pairing callback from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sp_cback
+ *
+ * Description      simple pairing callback from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static uint8_t bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 {
     tBTM_STATUS status = BTM_CMD_STARTED;
@@ -2986,15 +2986,15 @@ static uint8_t bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_local_name_cback
-**
-** Description      Callback from btm after local name is read
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_local_name_cback
+ *
+ * Description      Callback from btm after local name is read
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_local_name_cback(UNUSED_ATTR uint8_t *p_name)
 {
     tBTA_DM_SEC sec_event;
@@ -3007,15 +3007,15 @@ static void bta_dm_local_name_cback(UNUSED_ATTR uint8_t *p_name)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_bl_change_cback
-**
-** Description      Callback from btm when acl connection goes up or down
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_bl_change_cback
+ *
+ * Description      Callback from btm when acl connection goes up or down
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
 {
     tBTA_DM_ACL_CHANGE *p_msg =
@@ -3059,14 +3059,14 @@ static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_rs_cback
-**
-** Description      Receives the role switch complete event
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_rs_cback
+ *
+ * Description      Receives the role switch complete event
+ *
+ * Returns
+ *
+ ******************************************************************************/
 static void bta_dm_rs_cback (UNUSED_ATTR tBTM_ROLE_SWITCH_CMPL *p1)
 {
     APPL_TRACE_WARNING("bta_dm_rs_cback:%d", bta_dm_cb.rs_event);
@@ -3079,15 +3079,15 @@ static void bta_dm_rs_cback (UNUSED_ATTR tBTM_ROLE_SWITCH_CMPL *p1)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_check_av
-**
-** Description      This function checks if AV is active
-**                  if yes, make sure the AV link is master
-**
-** Returns          bool - true, if switch is in progress
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_check_av
+ *
+ * Description      This function checks if AV is active
+ *                  if yes, make sure the AV link is master
+ *
+ * Returns          bool - true, if switch is in progress
+ *
+ ******************************************************************************/
 static bool bta_dm_check_av(uint16_t event)
 {
     bool avoid_roleswitch = false;
@@ -3133,15 +3133,15 @@ static bool bta_dm_check_av(uint16_t event)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_acl_change
-**
-** Description      Process BTA_DM_ACL_CHANGE_EVT
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_acl_change
+ *
+ * Description      Process BTA_DM_ACL_CHANGE_EVT
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_acl_change(tBTA_DM_MSG *p_data)
 {
 
@@ -3355,15 +3355,15 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_disable_conn_down_timer_cback
-**
-** Description      Sends disable event to application
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disable_conn_down_timer_cback
+ *
+ * Description      Sends disable event to application
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_disable_conn_down_timer_cback(UNUSED_ATTR void *data)
 {
     tBTA_SYS_HW_MSG *sys_enable_event =
@@ -3384,15 +3384,15 @@ static void bta_dm_disable_conn_down_timer_cback(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_rm_cback
-**
-** Description      Role management callback from sys
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_rm_cback
+ *
+ * Description      Role management callback from sys
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     uint8_t j;
@@ -3456,14 +3456,14 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t app
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_delay_role_switch_cback
-**
-** Description      Callback from btm to delay a role switch
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_delay_role_switch_cback
+ *
+ * Description      Callback from btm to delay a role switch
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_delay_role_switch_cback(UNUSED_ATTR void *data)
 {
     APPL_TRACE_EVENT("%s: initiating Delayed RS", __func__);
@@ -3471,16 +3471,16 @@ static void bta_dm_delay_role_switch_cback(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_reset_sec_dev_pending
-**
-** Description      Setting the remove device pending status to false from
-**                  security device DB, when the link key notification
-**                  event comes.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_reset_sec_dev_pending
+ *
+ * Description      Setting the remove device pending status to false from
+ *                  security device DB, when the link key notification
+ *                  event comes.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_reset_sec_dev_pending(BD_ADDR remote_bd_addr)
 {
     for (size_t i = 0; i < bta_dm_cb.device_list.count; i++)
@@ -3494,16 +3494,16 @@ static void bta_dm_reset_sec_dev_pending(BD_ADDR remote_bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_remove_sec_dev_entry
-**
-** Description      Removes device entry from Security device DB if ACL connection with
-**                  remtoe device does not exist, else schedule for dev entry removal upon
+ *
+ * Function         bta_dm_remove_sec_dev_entry
+ *
+ * Description      Removes device entry from Security device DB if ACL connection with
+ *                  remtoe device does not exist, else schedule for dev entry removal upon
                      ACL close
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr)
 {
     if ( BTM_IsAclConnectionUp(remote_bd_addr, BT_TRANSPORT_LE) ||
@@ -3535,15 +3535,15 @@ static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr)
 
 
 /*******************************************************************************
-**
-** Function         bta_dm_adjust_roles
-**
-** Description      Adjust roles
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_adjust_roles
+ *
+ * Description      Adjust roles
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_adjust_roles(bool delay_role_switch)
 {
 
@@ -3628,14 +3628,14 @@ static void bta_dm_adjust_roles(bool delay_role_switch)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_get_remname
-**
-** Description      Returns a pointer to the remote name stored in the DM control
-**                  block if it exists, or from the BTM memory.
-**
-** Returns          char * - Pointer to the remote device name
-*******************************************************************************/
+ *
+ * Function         bta_dm_get_remname
+ *
+ * Description      Returns a pointer to the remote name stored in the DM control
+ *                  block if it exists, or from the BTM memory.
+ *
+ * Returns          char * - Pointer to the remote device name
+ ******************************************************************************/
 static char *bta_dm_get_remname(void)
 {
     char *p_name = (char *)bta_dm_search_cb.peer_name;
@@ -3650,14 +3650,14 @@ static char *bta_dm_get_remname(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_bond_cancel_complete_cback
-**
-** Description      Authentication complete callback from BTM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_bond_cancel_complete_cback
+ *
+ * Description      Authentication complete callback from BTM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result)
 {
 
@@ -3675,16 +3675,16 @@ static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result)
 }
 
 /*******************************************************************************
-**
-** Function         find_utf8_char_boundary
-**
-** Description      This function checks a UTF8 string |utf8str| starting at
-**                  |offset|, moving backwards and returns the offset of the
-**                  next valid UTF8 character boundary found.
-**
-** Returns          Offset of UTF8 character boundary
-**
-*******************************************************************************/
+ *
+ * Function         find_utf8_char_boundary
+ *
+ * Description      This function checks a UTF8 string |utf8str| starting at
+ *                  |offset|, moving backwards and returns the offset of the
+ *                  next valid UTF8 character boundary found.
+ *
+ * Returns          Offset of UTF8 character boundary
+ *
+ ******************************************************************************/
 static size_t find_utf8_char_boundary(const char *utf8str, size_t offset)
 {
     assert(utf8str);
@@ -3703,14 +3703,14 @@ static size_t find_utf8_char_boundary(const char *utf8str, size_t offset)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_set_eir
-**
-** Description      This function creates EIR tagged data and writes it to controller.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_set_eir
+ *
+ * Description      This function creates EIR tagged data and writes it to controller.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 static void bta_dm_set_eir (char *local_name)
 {
     uint8_t    *p;
@@ -3986,14 +3986,14 @@ static void bta_dm_set_eir (char *local_name)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_eir_search_services
-**
-** Description      This function searches services in received EIR
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_eir_search_services
+ *
+ * Description      This function searches services in received EIR
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
                                         tBTA_SERVICE_MASK *p_services_to_search,
                                         tBTA_SERVICE_MASK *p_services_found)
@@ -4061,14 +4061,14 @@ static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 /*******************************************************************************
-**
-** Function         bta_dm_eir_update_uuid
-**
-** Description      This function adds or removes service UUID in EIR database.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_eir_update_uuid
+ *
+ * Description      This function adds or removes service UUID in EIR database.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void bta_dm_eir_update_uuid(uint16_t uuid16, bool adding)
 {
     /* if this UUID is not advertised in EIR */
@@ -4096,45 +4096,45 @@ void bta_dm_eir_update_uuid(uint16_t uuid16, bool adding)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_dm_enable_test_mode
-**
-** Description      enable test mode
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_enable_test_mode
+ *
+ * Description      enable test mode
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_enable_test_mode(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     BTM_EnableTestMode();
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_disable_test_mode
-**
-** Description      disable test mode
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_disable_test_mode
+ *
+ * Description      disable test mode
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_disable_test_mode(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     BTM_DeviceReset(NULL);
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_execute_callback
-**
-** Description      Just execute a generic call back in the context of the BTU/BTA tack
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_execute_callback
+ *
+ * Description      Just execute a generic call back in the context of the BTU/BTA tack
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_dm_execute_callback(tBTA_DM_MSG *p_data)
 {
     /* sanity check */
@@ -4147,14 +4147,14 @@ void bta_dm_execute_callback(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_encrypt_cback
-**
-** Description      link encryption complete callback.
-**
-** Returns         None
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_encrypt_cback
+ *
+ * Description      link encryption complete callback.
+ *
+ * Returns         None
+ *
+ ******************************************************************************/
 void bta_dm_encrypt_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
                           UNUSED_ATTR void *p_ref_data, tBTM_STATUS result)
 {
@@ -4202,14 +4202,14 @@ void bta_dm_encrypt_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_set_encryption
-**
-** Description      This function to encrypt the link
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_set_encryption
+ *
+ * Description      This function to encrypt the link
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
 {
     uint8_t i ;
@@ -4248,15 +4248,15 @@ void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
 
 #if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_dm_observe_results_cb
-**
-** Description      Callback for BLE Observe result
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_observe_results_cb
+ *
+ * Description      Callback for BLE Observe result
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, uint8_t *p_eir)
 {
 ;
@@ -4293,15 +4293,15 @@ static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, uint8_t *p_eir)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_observe_cmpl_cb
-**
-** Description      Callback for BLE Observe complete
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_observe_cmpl_cb
+ *
+ * Description      Callback for BLE Observe complete
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_observe_cmpl_cb (void * p_result)
 {
     tBTA_DM_SEARCH  data;
@@ -4317,15 +4317,15 @@ static void bta_dm_observe_cmpl_cb (void * p_result)
 
 #if (SMP_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_dm_ble_smp_cback
-**
-** Description      Callback for BLE SMP
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_smp_cback
+ *
+ * Description      Callback for BLE SMP
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static uint8_t bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_DATA *p_data)
 {
     tBTM_STATUS status = BTM_SUCCESS;
@@ -4441,15 +4441,15 @@ static uint8_t bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT
 #endif  /* SMP_INCLUDED == TRUE */
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_id_key_cback
-**
-** Description      Callback for BLE local ID keys
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_id_key_cback
+ *
+ * Description      Callback for BLE local ID keys
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_ble_id_key_cback (uint8_t key_type, tBTM_BLE_LOCAL_KEYS *p_key)
 {
     uint8_t   evt;
@@ -4478,17 +4478,17 @@ static void bta_dm_ble_id_key_cback (uint8_t key_type, tBTM_BLE_LOCAL_KEYS *p_ke
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_add_blekey
-**
-** Description      This function adds an BLE Key to an security database entry.
-**                  This function shall only be called AFTER BTA_DmAddBleDevice has been called.
-**                  It is normally called during host startup to restore all required information
-**                  stored in the NVRAM.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_add_blekey
+ *
+ * Description      This function adds an BLE Key to an security database entry.
+ *                  This function shall only be called AFTER BTA_DmAddBleDevice has been called.
+ *                  It is normally called during host startup to restore all required information
+ *                  stored in the NVRAM.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_add_blekey (tBTA_DM_MSG *p_data)
 {
     if (!BTM_SecAddBleKey (p_data->add_ble_key.bd_addr,
@@ -4503,16 +4503,16 @@ void bta_dm_add_blekey (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_add_ble_device
-**
-** Description      This function adds an BLE device to an security database entry.
-**                  It is normally called during host startup to restore all required information
-**                  stored in the NVRAM.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_add_ble_device
+ *
+ * Description      This function adds an BLE device to an security database entry.
+ *                  It is normally called during host startup to restore all required information
+ *                  stored in the NVRAM.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_add_ble_device (tBTA_DM_MSG *p_data)
 {
     if (!BTM_SecAddBleDevice (p_data->add_ble_device.bd_addr, NULL,
@@ -4527,16 +4527,16 @@ void bta_dm_add_ble_device (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_add_ble_device
-**
-** Description      This function adds an BLE device to an security database entry.
-**                  It is normally called during host startup to restore all required information
-**                  stored in the NVRAM.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_add_ble_device
+ *
+ * Description      This function adds an BLE device to an security database entry.
+ *                  It is normally called during host startup to restore all required information
+ *                  stored in the NVRAM.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_passkey_reply (tBTA_DM_MSG *p_data)
 {
     if (p_data->pin_reply.accept)
@@ -4551,15 +4551,15 @@ void bta_dm_ble_passkey_reply (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_confirm_reply
-**
-** Description      This is response to SM numeric comparison request submitted
-**                  to application.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_confirm_reply
+ *
+ * Description      This is response to SM numeric comparison request submitted
+ *                  to application.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_confirm_reply (tBTA_DM_MSG *p_data)
 {
     if (p_data->confirm.accept)
@@ -4573,28 +4573,28 @@ void bta_dm_ble_confirm_reply (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_security_grant
-**
-** Description      This function grant SMP security request access.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_security_grant
+ *
+ * Description      This function grant SMP security request access.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_security_grant (tBTA_DM_MSG *p_data)
 {
     BTM_SecurityGrant(p_data->ble_sec_grant.bd_addr, p_data->ble_sec_grant.res);
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_set_bg_conn_type
-**
-** Description      This function set the BLE background connection type
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_set_bg_conn_type
+ *
+ * Description      This function set the BLE background connection type
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_set_bg_conn_type (tBTA_DM_MSG *p_data)
 {
     BTM_BleSetBgConnType(p_data->ble_set_bd_conn_type.bg_conn_type,
@@ -4602,14 +4602,14 @@ void bta_dm_ble_set_bg_conn_type (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_set_conn_params
-**
-** Description      This function set the preferred connection parameters.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_set_conn_params
+ *
+ * Description      This function set the preferred connection parameters.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data)
 {
     BTM_BleSetPrefConnParams(p_data->ble_set_conn_params.peer_bda,
@@ -4620,14 +4620,14 @@ void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_set_conn_scan_params
-**
-** Description      This function sets BLE scan parameters.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_set_conn_scan_params
+ *
+ * Description      This function sets BLE scan parameters.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_set_scan_params(tBTA_DM_MSG *p_data)
 {
     BTM_BleSetScanParams(p_data->ble_set_scan_params.client_if,
@@ -4638,28 +4638,28 @@ void bta_dm_ble_set_scan_params(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_set_conn_scan_params
-**
-** Description      This function set the preferred connection scan parameters.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_set_conn_scan_params
+ *
+ * Description      This function set the preferred connection scan parameters.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_set_conn_scan_params (tBTA_DM_MSG *p_data)
 {
     BTM_BleSetConnScanParams(p_data->ble_set_conn_scan_params.scan_int,
                              p_data->ble_set_conn_scan_params.scan_window);
 }
 /*******************************************************************************
-**
-** Function         bta_dm_ble_update_conn_params
-**
-** Description      This function update LE connection parameters.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_update_conn_params
+ *
+ * Description      This function update LE connection parameters.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_update_conn_params (tBTA_DM_MSG *p_data)
 {
     if (!L2CA_UpdateBleConnParams(p_data->ble_update_conn_params.bd_addr,
@@ -4674,14 +4674,14 @@ void bta_dm_ble_update_conn_params (tBTA_DM_MSG *p_data)
 
 #if (BLE_PRIVACY_SPT == TRUE)
 /*******************************************************************************
-**
-** Function         bta_dm_ble_config_local_privacy
-**
-** Description      This function set the local device LE privacy settings.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_config_local_privacy
+ *
+ * Description      This function set the local device LE privacy settings.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data)
 {
     BTM_BleConfigPrivacy (p_data->ble_local_privacy.privacy_enable);
@@ -4689,14 +4689,14 @@ void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_observe
-**
-** Description      This function set the preferred connection scan parameters.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_observe
+ *
+ * Description      This function set the preferred connection scan parameters.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS status;
@@ -4723,14 +4723,14 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
     }
 }
 /*******************************************************************************
-**
-** Function         bta_dm_ble_set_adv_params
-**
-** Description      This function set the adv parameters.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_set_adv_params
+ *
+ * Description      This function set the adv parameters.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_set_adv_params (uint16_t adv_int_min, uint16_t adv_int_max,
                                 tBLE_BD_ADDR *p_dir_bda)
 {
@@ -4738,14 +4738,14 @@ void bta_dm_ble_set_adv_params (uint16_t adv_int_min, uint16_t adv_int_max,
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_set_data_length
-**
-** Description      This function set the maximum transmission packet size
-**
-** Parameters
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_set_data_length
+ *
+ * Description      This function set the maximum transmission packet size
+ *
+ * Parameters
+ *
+ ******************************************************************************/
 void bta_dm_ble_set_data_length(tBTA_DM_MSG *p_data)
 {
     if (BTM_SetBleDataLength(p_data->ble_set_data_length.remote_bda,
@@ -4756,14 +4756,14 @@ void bta_dm_ble_set_data_length(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_setup_storage
-**
-** Description      This function configures up the storage parameters for ADV batch scanning
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_setup_storage
+ *
+ * Description      This function configures up the storage parameters for ADV batch scanning
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_setup_storage (tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS btm_status = 0;
@@ -4788,14 +4788,14 @@ void bta_dm_ble_setup_storage (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_enable_batch_scan
-**
-** Description      This function sets up the parameters and enables batch scan
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_enable_batch_scan
+ *
+ * Description      This function sets up the parameters and enables batch scan
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_enable_batch_scan (tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS btm_status = 0;
@@ -4819,14 +4819,14 @@ void bta_dm_ble_enable_batch_scan (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_disable_batch_scan
-**
-** Description      This function disables the batch scan
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_disable_batch_scan
+ *
+ * Description      This function disables the batch scan
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_disable_batch_scan (UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
 
@@ -4846,14 +4846,14 @@ void bta_dm_ble_disable_batch_scan (UNUSED_ATTR tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_read_scan_reports
-**
-** Description      This function reads the batch scan reports
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_read_scan_reports
+ *
+ * Description      This function reads the batch scan reports
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_read_scan_reports(tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS btm_status = 0;
@@ -4873,14 +4873,14 @@ void bta_dm_ble_read_scan_reports(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_track_advertiser
-**
-** Description      This function tracks the specific advertiser
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_track_advertiser
+ *
+ * Description      This function tracks the specific advertiser
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_track_advertiser(tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS btm_status = 0;
@@ -4908,14 +4908,14 @@ void bta_dm_ble_track_advertiser(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_ble_scan_setup_cb
-**
-** Description      Handle the setup callback from BTM layer and forward it to app layer
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_ble_scan_setup_cb
+ *
+ * Description      Handle the setup callback from BTM layer and forward it to app layer
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_ble_scan_setup_cb(tBTM_BLE_BATCH_SCAN_EVT evt, tBTM_BLE_REF_VALUE ref_value,
                                   tBTM_STATUS status)
 {
@@ -4949,15 +4949,15 @@ void bta_ble_scan_setup_cb(tBTM_BLE_BATCH_SCAN_EVT evt, tBTM_BLE_REF_VALUE ref_v
 
 #if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 /*******************************************************************************
-**
-** Function         bta_ble_scan_pf_cmpl
-**
-** Description      ADV payload filtering operation complete callback
-**
-**
-** Returns         true if handled, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         bta_ble_scan_pf_cmpl
+ *
+ * Description      ADV payload filtering operation complete callback
+ *
+ *
+ * Returns         true if handled, otherwise false.
+ *
+ ******************************************************************************/
 static void bta_ble_scan_cfg_cmpl(tBTM_BLE_PF_ACTION action, tBTM_BLE_SCAN_COND_OP cfg_op,
                                  tBTM_BLE_PF_AVBL_SPACE avbl_space, tBTM_STATUS status,
                                  tBTM_BLE_REF_VALUE ref_value)
@@ -4971,14 +4971,14 @@ static void bta_ble_scan_cfg_cmpl(tBTM_BLE_PF_ACTION action, tBTM_BLE_SCAN_COND_
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_cfg_filter_cond
-**
-** Description      This function configure adv payload filtering condition
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_cfg_filter_cond
+ *
+ * Description      This function configure adv payload filtering condition
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
@@ -5010,14 +5010,14 @@ void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_enable_scan_filter
-**
-** Description      This function enable/disable adv payload filtering condition
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_enable_scan_filter
+ *
+ * Description      This function enable/disable adv payload filtering condition
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_enable_scan_filter(tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
@@ -5043,14 +5043,14 @@ void bta_dm_enable_scan_filter(tBTA_DM_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_scan_filter_param_setup
-**
-** Description      This function sets up scan filter params
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_scan_filter_param_setup
+ *
+ * Description      This function sets up scan filter params
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_scan_filter_param_setup (tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
@@ -5083,15 +5083,15 @@ void bta_dm_scan_filter_param_setup (tBTA_DM_MSG *p_data)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_ble_enable_scan_cmpl
-**
-** Description      ADV payload filtering enable / disable complete callback
-**
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_ble_enable_scan_cmpl
+ *
+ * Description      ADV payload filtering enable / disable complete callback
+ *
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 static void bta_ble_energy_info_cmpl(tBTM_BLE_TX_TIME_MS tx_time,
                                         tBTM_BLE_RX_TIME_MS rx_time,
                                         tBTM_BLE_IDLE_TIME_MS idle_time,
@@ -5109,14 +5109,14 @@ static void bta_ble_energy_info_cmpl(tBTM_BLE_TX_TIME_MS tx_time,
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_ble_get_energy_info
-**
-** Description      This function obtains the energy info
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ble_get_energy_info
+ *
+ * Description      This function obtains the energy info
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_ble_get_energy_info(tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS btm_status = 0;
@@ -5133,15 +5133,15 @@ void bta_dm_ble_get_energy_info(tBTA_DM_MSG *p_data)
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_dm_gattc_register
-**
-** Description      Register with GATTC in DM if BLE is needed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_gattc_register
+ *
+ * Description      Register with GATTC in DM if BLE is needed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_dm_gattc_register(void)
 {
     tBT_UUID                app_uuid = {LEN_UUID_128,{0}};
@@ -5154,14 +5154,14 @@ static void bta_dm_gattc_register(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_dm_start_disc_gatt_services
-**
-** Description      This function starts a GATT service search request.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         btm_dm_start_disc_gatt_services
+ *
+ * Description      This function starts a GATT service search request.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void btm_dm_start_disc_gatt_services (uint16_t conn_id)
 {
     tBT_UUID    *p_uuid = bta_dm_search_cb.p_srvc_uuid +
@@ -5175,14 +5175,14 @@ static void btm_dm_start_disc_gatt_services (uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_gatt_disc_result
-**
-** Description      This function process the GATT service search result.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_gatt_disc_result
+ *
+ * Description      This function process the GATT service search result.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void bta_dm_gatt_disc_result(tBTA_GATT_ID service_id)
 {
     tBTA_DM_SEARCH   result;
@@ -5230,14 +5230,14 @@ static void bta_dm_gatt_disc_result(tBTA_GATT_ID service_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_gatt_disc_complete
-**
-** Description      This function process the GATT service search complete.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_gatt_disc_complete
+ *
+ * Description      This function process the GATT service search complete.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void bta_dm_gatt_disc_complete(uint16_t conn_id, tBTA_GATT_STATUS status)
 {
     APPL_TRACE_DEBUG("%s conn_id = %d", __func__, conn_id);
@@ -5297,14 +5297,14 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id, tBTA_GATT_STATUS status)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_close_gatt_conn
-**
-** Description      This function close the GATT connection after delay timeout.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_close_gatt_conn
+ *
+ * Description      This function close the GATT connection after delay timeout.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_close_gatt_conn(UNUSED_ATTR tBTA_DM_MSG *p_data)
 {
     if (bta_dm_search_cb.conn_id != BTA_GATT_INVALID_CONN_ID)
@@ -5314,15 +5314,15 @@ void bta_dm_close_gatt_conn(UNUSED_ATTR tBTA_DM_MSG *p_data)
     bta_dm_search_cb.conn_id = BTA_GATT_INVALID_CONN_ID;
 }
 /*******************************************************************************
-**
-** Function         btm_dm_start_gatt_discovery
-**
-** Description      This is GATT initiate the service search by open a GATT connection
-**                  first.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         btm_dm_start_gatt_discovery
+ *
+ * Description      This is GATT initiate the service search by open a GATT connection
+ *                  first.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void btm_dm_start_gatt_discovery (BD_ADDR bd_addr)
 {
     bta_dm_search_cb.gatt_disc_active = true;
@@ -5340,14 +5340,14 @@ void btm_dm_start_gatt_discovery (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_cancel_gatt_discovery
-**
-** Description      This is GATT cancel the GATT service search.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_cancel_gatt_discovery
+ *
+ * Description      This is GATT cancel the GATT service search.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void bta_dm_cancel_gatt_discovery(BD_ADDR bd_addr)
 {
     if (bta_dm_search_cb.conn_id == BTA_GATT_INVALID_CONN_ID)
@@ -5359,14 +5359,14 @@ static void bta_dm_cancel_gatt_discovery(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_proc_open_evt
-**
-** Description      process BTA_GATTC_OPEN_EVT in DM.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_proc_open_evt
+ *
+ * Description      process BTA_GATTC_OPEN_EVT in DM.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 void bta_dm_proc_open_evt(tBTA_GATTC_OPEN *p_data)
 {
     uint8_t           *p1;
@@ -5400,14 +5400,14 @@ void bta_dm_proc_open_evt(tBTA_GATTC_OPEN *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_gattc_callback
-**
-** Description      This is GATT client callback function used in DM.
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_gattc_callback
+ *
+ * Description      This is GATT client callback function used in DM.
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 {
     APPL_TRACE_DEBUG("bta_dm_gattc_callback event = %d", event);
@@ -5455,14 +5455,14 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 
 #if (BLE_VND_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         bta_dm_ctrl_features_rd_cmpl_cback
-**
-** Description      callback to handle controller feature read complete
-**
-** Parameters:
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_ctrl_features_rd_cmpl_cback
+ *
+ * Description      callback to handle controller feature read complete
+ *
+ * Parameters:
+ *
+ ******************************************************************************/
 static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result)
 {
     APPL_TRACE_DEBUG("%s  status = %d ", __func__, result);

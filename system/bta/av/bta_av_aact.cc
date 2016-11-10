@@ -44,8 +44,8 @@
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* the delay time in milliseconds to start service discovery on AVRCP */
 #ifndef BTA_AV_RC_DISC_TIME_VAL
@@ -238,14 +238,14 @@ tAVDT_CTRL_CBACK * const bta_av_dt_cback[] =
 #endif
 };
 /***********************************************
-**
-** Function         bta_get_scb_handle
-**
-** Description      gives the registered AVDT handle.by checking with sep_type.
-**
-**
-** Returns          void
-***********************************************/
+ *
+ * Function         bta_get_scb_handle
+ *
+ * Description      gives the registered AVDT handle.by checking with sep_type.
+ *
+ *
+ * Returns          void
+ **********************************************/
 static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, uint8_t local_sep)
 {
     for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
@@ -260,14 +260,14 @@ static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, uint8_t local_sep)
 }
 
 /***********************************************
-**
-** Function         bta_av_get_scb_sep_type
-**
-** Description      gives the sep type by cross-checking with AVDT handle
-**
-**
-** Returns          void
-***********************************************/
+ *
+ * Function         bta_av_get_scb_sep_type
+ *
+ * Description      gives the sep type by cross-checking with AVDT handle
+ *
+ *
+ * Returns          void
+ **********************************************/
 static uint8_t bta_av_get_scb_sep_type(tBTA_AV_SCB *p_scb, uint8_t tavdt_handle)
 {
     for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
@@ -279,15 +279,15 @@ static uint8_t bta_av_get_scb_sep_type(tBTA_AV_SCB *p_scb, uint8_t tavdt_handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_save_addr
-**
-** Description      copy the bd_addr and maybe reset the supported flags
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_save_addr
+ *
+ * Description      copy the bd_addr and maybe reset the supported flags
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_save_addr(tBTA_AV_SCB *p_scb, const BD_ADDR b)
 {
     APPL_TRACE_DEBUG("%s: r:%d, s:%d", __func__,
@@ -306,15 +306,15 @@ static void bta_av_save_addr(tBTA_AV_SCB *p_scb, const BD_ADDR b)
 }
 
 /*******************************************************************************
-**
-** Function         notify_start_failed
-**
-** Description      notify up-layer AV start failed
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         notify_start_failed
+ *
+ * Description      notify up-layer AV start failed
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void notify_start_failed(tBTA_AV_SCB *p_scb)
 {
     tBTA_AV_START   start;
@@ -328,16 +328,16 @@ static void notify_start_failed(tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_st_rc_timer
-**
-** Description      start the AVRC timer if no RC connection & CT is supported &
-**                  RC is used or
-**                  as ACP (we do not really know if we want AVRC)
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_st_rc_timer
+ *
+ * Description      start the AVRC timer if no RC connection & CT is supported &
+ *                  RC is used or
+ *                  as ACP (we do not really know if we want AVRC)
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb,
                                UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -359,15 +359,15 @@ static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_next_getcap
-**
-** Description      The function gets the capabilities of the next available
-**                  stream found in the discovery results.
-**
-** Returns          true if we sent request to AVDT, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_next_getcap
+ *
+ * Description      The function gets the capabilities of the next available
+ *                  stream found in the discovery results.
+ *
+ * Returns          true if we sent request to AVDT, false otherwise.
+ *
+ ******************************************************************************/
 static bool bta_av_next_getcap(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     int     i;
@@ -420,14 +420,14 @@ static bool bta_av_next_getcap(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_proc_stream_evt
-**
-** Description      Utility function to compose stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_proc_stream_evt
+ *
+ * Description      Utility function to compose stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_proc_stream_evt(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data, int index)
 {
     uint16_t              sec_len = 0;
@@ -568,14 +568,14 @@ static void bta_av_proc_stream_evt(uint8_t handle, BD_ADDR bd_addr, uint8_t even
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_sink_data_cback
-**
-** Description      This is the AVDTP callback function for sink stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_sink_data_cback
+ *
+ * Description      This is the AVDTP callback function for sink stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_sink_data_cback(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp,
                             uint8_t m_pt)
 {
@@ -607,14 +607,14 @@ void bta_av_sink_data_cback(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_stream0_cback
-**
-** Description      This is the AVDTP callback function for stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_stream0_cback
+ *
+ * Description      This is the AVDTP callback function for stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_stream0_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
     APPL_TRACE_VERBOSE("%s: avdt_handle: %d event=0x%x",
@@ -623,14 +623,14 @@ static void bta_av_stream0_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_stream1_cback
-**
-** Description      This is the AVDTP callback function for stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_stream1_cback
+ *
+ * Description      This is the AVDTP callback function for stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_stream1_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
     APPL_TRACE_EVENT("%s: avdt_handle: %d event=0x%x", __func__, handle, event);
@@ -639,14 +639,14 @@ static void bta_av_stream1_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 
 #if BTA_AV_NUM_STRS > 2
 /*******************************************************************************
-**
-** Function         bta_av_stream2_cback
-**
-** Description      This is the AVDTP callback function for stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_stream2_cback
+ *
+ * Description      This is the AVDTP callback function for stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_stream2_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
     APPL_TRACE_EVENT("%s: avdt_handle: %d event=0x%x", __func__, handle, event);
@@ -656,14 +656,14 @@ static void bta_av_stream2_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 
 #if BTA_AV_NUM_STRS > 3
 /*******************************************************************************
-**
-** Function         bta_av_stream3_cback
-**
-** Description      This is the AVDTP callback function for stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_stream3_cback
+ *
+ * Description      This is the AVDTP callback function for stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_stream3_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
     APPL_TRACE_EVENT("%s: avdt_handle: %d event=0x%x", __func__, handle, event);
@@ -672,14 +672,14 @@ static void bta_av_stream3_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_stream4_cback
-**
-** Description      This is the AVDTP callback function for stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_stream4_cback
+ *
+ * Description      This is the AVDTP callback function for stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if BTA_AV_NUM_STRS > 4
 static void bta_av_stream4_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
@@ -689,14 +689,14 @@ static void bta_av_stream4_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_stream5_cback
-**
-** Description      This is the AVDTP callback function for stream events.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_stream5_cback
+ *
+ * Description      This is the AVDTP callback function for stream events.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if BTA_AV_NUM_STRS > 5
 static void bta_av_stream5_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
@@ -706,14 +706,14 @@ static void bta_av_stream5_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event,
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_a2dp_sdp_cback
-**
-** Description      A2DP service discovery callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_a2dp_sdp_cback
+ *
+ * Description      A2DP service discovery callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_av_a2dp_sdp_cback(bool found, tA2DP_Service *p_service)
 {
     tBTA_AV_SCB *p_scb = bta_av_hndl_to_scb(bta_av_cb.handle);
@@ -738,14 +738,14 @@ static void bta_av_a2dp_sdp_cback(bool found, tA2DP_Service *p_service)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_adjust_seps_idx
-**
-** Description      adjust the sep_idx
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_adjust_seps_idx
+ *
+ * Description      adjust the sep_idx
+ *
+ * Returns
+ *
+ ******************************************************************************/
 static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 {
     APPL_TRACE_DEBUG("%s: codec: %s", __func__,
@@ -766,15 +766,15 @@ static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, uint8_t avdt_handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_switch_role
-**
-** Description      Switch role was not started and a timer was started.
-**                  another attempt to switch role now - still opening.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_switch_role
+ *
+ * Description      Switch role was not started and a timer was started.
+ *                  another attempt to switch role now - still opening.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_switch_role (tBTA_AV_SCB *p_scb,
                          UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -821,15 +821,15 @@ void bta_av_switch_role (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_role_res
-**
-** Description      Handle the role changed event
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_role_res
+ *
+ * Description      Handle the role changed event
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_role_res (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     bool           initiator = false;
@@ -904,29 +904,29 @@ void bta_av_role_res (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_delay_co
-**
-** Description      Call the delay call-out function to report the delay report
-**                  from SNK
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_delay_co
+ *
+ * Description      Call the delay call-out function to report the delay report
+ *                  from SNK
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_delay_co (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     p_scb->p_cos->delay(p_scb->hndl, p_data->str_msg.msg.delay_rpt_cmd.delay);
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_do_disc_a2dp
-**
-** Description      Do service discovery for A2DP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_do_disc_a2dp
+ *
+ * Description      Do service discovery for A2DP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_do_disc_a2dp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     bool        ok_continue = false;
@@ -1053,14 +1053,14 @@ void bta_av_do_disc_a2dp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_cleanup
-**
-** Description      cleanup AV stream control block.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_cleanup
+ *
+ * Description      cleanup AV stream control block.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_cleanup(tBTA_AV_SCB *p_scb,
                     UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1117,14 +1117,14 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_free_sdb
-**
-** Description      Free service discovery db buffer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_free_sdb
+ *
+ * Description      Free service discovery db buffer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_free_sdb(tBTA_AV_SCB *p_scb,
                      UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1132,14 +1132,14 @@ void bta_av_free_sdb(tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_config_ind
-**
-** Description      Handle a stream configuration indication from the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_config_ind
+ *
+ * Description      Handle a stream configuration indication from the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_config_ind (tBTA_AV_SCB *p_scb,
                         UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1220,14 +1220,14 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_disconnect_req
-**
-** Description      Disconnect AVDTP connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_disconnect_req
+ *
+ * Description      Disconnect AVDTP connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_disconnect_req (tBTA_AV_SCB *p_scb,
                             UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1249,14 +1249,14 @@ void bta_av_disconnect_req (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_security_req
-**
-** Description      Send an AVDTP security request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_security_req
+ *
+ * Description      Send an AVDTP security request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_security_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     if (bta_av_cb.features & BTA_AV_FEAT_PROTECT)
@@ -1267,14 +1267,14 @@ void bta_av_security_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_security_rsp
-**
-** Description      Send an AVDTP security response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_security_rsp
+ *
+ * Description      Send an AVDTP security response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_security_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     if (bta_av_cb.features & BTA_AV_FEAT_PROTECT)
@@ -1290,14 +1290,14 @@ void bta_av_security_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_setconfig_rsp
-**
-** Description      setconfig is OK
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_setconfig_rsp
+ *
+ * Description      setconfig is OK
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     uint8_t num = p_data->ci_setconfig.num_seid + 1;
@@ -1384,14 +1384,14 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_str_opened
-**
-** Description      Stream opened OK (incoming/outgoing).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_str_opened
+ *
+ * Description      Stream opened OK (incoming/outgoing).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CONN_CHG msg;
@@ -1475,14 +1475,14 @@ void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_security_ind
-**
-** Description      Handle an AVDTP security indication.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_security_ind
+ *
+ * Description      Handle an AVDTP security indication.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_security_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_PROTECT_REQ protect_req;
@@ -1506,14 +1506,14 @@ void bta_av_security_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_security_cfm
-**
-** Description      Handle an AVDTP security confirm.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_security_cfm
+ *
+ * Description      Handle an AVDTP security confirm.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_security_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_PROTECT_RSP protect_rsp;
@@ -1531,14 +1531,14 @@ void bta_av_security_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_do_close
-**
-** Description      Close stream.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_do_close
+ *
+ * Description      Close stream.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_do_close (tBTA_AV_SCB *p_scb,
 		      UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1565,14 +1565,14 @@ void bta_av_do_close (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_connect_req
-**
-** Description      Connect AVDTP connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_connect_req
+ *
+ * Description      Connect AVDTP connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_connect_req(tBTA_AV_SCB *p_scb,
                         UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1592,14 +1592,14 @@ void bta_av_connect_req(tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_sdp_failed
-**
-** Description      Service discovery failed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_sdp_failed
+ *
+ * Description      Service discovery failed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_sdp_failed(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     if (!p_scb->open_status)
@@ -1610,16 +1610,16 @@ void bta_av_sdp_failed(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_disc_results
-**
-** Description      Handle the AVDTP discover results.  Search through the
-**                  results and find the first available stream, and get
-**                  its capabilities.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_disc_results
+ *
+ * Description      Handle the AVDTP discover results.  Search through the
+ *                  results and find the first available stream, and get
+ *                  its capabilities.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_disc_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     uint8_t num_snks = 0, num_srcs =0, i;
@@ -1669,16 +1669,16 @@ void bta_av_disc_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_disc_res_as_acp
-**
-** Description      Handle the AVDTP discover results.  Search through the
-**                  results and find the first available stream, and get
-**                  its capabilities.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_disc_res_as_acp
+ *
+ * Description      Handle the AVDTP discover results.  Search through the
+ *                  results and find the first available stream, and get
+ *                  its capabilities.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_disc_res_as_acp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     uint8_t num_snks = 0, i;
@@ -1720,14 +1720,14 @@ void bta_av_disc_res_as_acp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_save_caps
-**
-** Description      report the SNK SEP capabilities to application
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_save_caps
+ *
+ * Description      report the SNK SEP capabilities to application
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_save_caps(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tAVDT_CFG cfg;
@@ -1768,14 +1768,14 @@ void bta_av_save_caps(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_set_use_rc
-**
-** Description      set to use AVRC for this stream control block.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_set_use_rc
+ *
+ * Description      set to use AVRC for this stream control block.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_set_use_rc (tBTA_AV_SCB *p_scb,
                         UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1783,14 +1783,14 @@ void bta_av_set_use_rc (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_cco_close
-**
-** Description      call close call-out function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_cco_close
+ *
+ * Description      call close call-out function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_cco_close (tBTA_AV_SCB *p_scb,
                        UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1802,14 +1802,14 @@ void bta_av_cco_close (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_open_failed
-**
-** Description      Failed to open an AVDT stream
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_open_failed
+ *
+ * Description      Failed to open an AVDT stream
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_open_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
 
@@ -1860,16 +1860,16 @@ void bta_av_open_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
 
 /*******************************************************************************
-**
-** Function         bta_av_getcap_results
-**
-** Description      Handle the AVDTP get capabilities results.  Check the codec
-**                  type and see if it matches ours.  If it does not, get the
-**                  capabilities of the next stream, if any.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_getcap_results
+ *
+ * Description      Handle the AVDTP get capabilities results.  Check the codec
+ *                  type and see if it matches ours.  If it does not, get the
+ *                  capabilities of the next stream, if any.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tAVDT_CFG   cfg;
@@ -1946,14 +1946,14 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_setconfig_rej
-**
-** Description      Send AVDTP set config reject.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_setconfig_rej
+ *
+ * Description      Send AVDTP set config reject.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_setconfig_rej (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_REJECT reject;
@@ -1969,14 +1969,14 @@ void bta_av_setconfig_rej (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_discover_req
-**
-** Description      Send an AVDTP discover request to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_discover_req
+ *
+ * Description      Send an AVDTP discover request to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_discover_req (tBTA_AV_SCB *p_scb,
                           UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -1986,14 +1986,14 @@ void bta_av_discover_req (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_conn_failed
-**
-** Description      AVDTP connection failed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_conn_failed
+ *
+ * Description      AVDTP connection failed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_conn_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     p_scb->open_status = BTA_AV_FAIL_STREAM;
@@ -2001,14 +2001,14 @@ void bta_av_conn_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_do_start
-**
-** Description      Start stream.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_do_start
+ *
+ * Description      Start stream.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_do_start (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     uint8_t policy = HCI_ENABLE_SNIFF_MODE;
@@ -2056,14 +2056,14 @@ void bta_av_do_start (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_str_stopped
-**
-** Description      Stream stopped.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_str_stopped
+ *
+ * Description      Stream stopped.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_SUSPEND suspend_rsp;
@@ -2149,16 +2149,16 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_reconfig
-**
-** Description      process the reconfigure request.
-**                  save the parameter in control block and
-**                  suspend, reconfigure or close the stream
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_reconfig
+ *
+ * Description      process the reconfigure request.
+ *                  save the parameter in control block and
+ *                  suspend, reconfigure or close the stream
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tAVDT_CFG   *p_cfg;
@@ -2220,14 +2220,14 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_data_path
-**
-** Description      Handle stream data path.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_data_path
+ *
+ * Description      Handle stream data path.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_data_path (tBTA_AV_SCB *p_scb,
                        UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2314,14 +2314,14 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_start_ok
-**
-** Description      Stream started.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_start_ok
+ *
+ * Description      Stream started.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_START    start;
@@ -2495,14 +2495,14 @@ void bta_av_start_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_start_failed
-**
-** Description      Stream start failed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_start_failed
+ *
+ * Description      Stream start failed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_start_failed (tBTA_AV_SCB *p_scb,
                           UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2517,14 +2517,14 @@ void bta_av_start_failed (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_str_closed
-**
-** Description      Stream closed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_str_closed
+ *
+ * Description      Stream closed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_str_closed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV     data;
@@ -2586,14 +2586,14 @@ void bta_av_str_closed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_clr_cong
-**
-** Description      Clear stream congestion flag.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_clr_cong
+ *
+ * Description      Clear stream congestion flag.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_clr_cong (tBTA_AV_SCB *p_scb,
 		      UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2602,14 +2602,14 @@ void bta_av_clr_cong (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_suspend_cfm
-**
-** Description      process the suspend response
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_suspend_cfm
+ *
+ * Description      process the suspend response
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_SUSPEND suspend_rsp;
@@ -2691,14 +2691,14 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rcfg_str_ok
-**
-** Description      report reconfigure successful
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rcfg_str_ok
+ *
+ * Description      report reconfigure successful
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rcfg_str_ok (tBTA_AV_SCB *p_scb,
                          UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2726,14 +2726,14 @@ void bta_av_rcfg_str_ok (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rcfg_failed
-**
-** Description      process reconfigure failed
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rcfg_failed
+ *
+ * Description      process reconfigure failed
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rcfg_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RECONFIG evt;
@@ -2767,14 +2767,14 @@ void bta_av_rcfg_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rcfg_connect
-**
-** Description      stream closed. reconnect the stream
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rcfg_connect
+ *
+ * Description      stream closed. reconnect the stream
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rcfg_connect (tBTA_AV_SCB *p_scb,
                           UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2791,14 +2791,14 @@ void bta_av_rcfg_connect (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rcfg_discntd
-**
-** Description      AVDT disconnected. reconnect the stream
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rcfg_discntd
+ *
+ * Description      AVDT disconnected. reconnect the stream
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rcfg_discntd (tBTA_AV_SCB *p_scb,
                           UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2821,15 +2821,15 @@ void bta_av_rcfg_discntd (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_suspend_cont
-**
-** Description      received the suspend response.
-**                  continue to reconfigure the stream
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_suspend_cont
+ *
+ * Description      received the suspend response.
+ *                  continue to reconfigure the stream
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_suspend_cont (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     uint8_t       err_code = p_data->str_msg.msg.hdr.err_code;
@@ -2871,15 +2871,15 @@ void bta_av_suspend_cont (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rcfg_cfm
-**
-** Description      if reconfigure is successful, report the event
-**                  otherwise, close the stream.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rcfg_cfm
+ *
+ * Description      if reconfigure is successful, report the event
+ *                  otherwise, close the stream.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rcfg_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     uint8_t   err_code = p_data->str_msg.msg.hdr.err_code;
@@ -2911,14 +2911,14 @@ void bta_av_rcfg_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_rcfg_open
-**
-** Description      AVDT is connected. open the stream with the new configuration
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_rcfg_open
+ *
+ * Description      AVDT is connected. open the stream with the new configuration
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_rcfg_open (tBTA_AV_SCB *p_scb,
                        UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2948,14 +2948,14 @@ void bta_av_rcfg_open (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_security_rej
-**
-** Description      Send an AVDTP security reject.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_security_rej
+ *
+ * Description      Send an AVDTP security reject.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_security_rej (tBTA_AV_SCB *p_scb,
 			  UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -2964,15 +2964,15 @@ void bta_av_security_rej (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_chk_2nd_start
-**
-** Description      check if this is 2nd stream and if it needs to be started.
-**                  This function needs to be kept very similar to bta_av_chk_start
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_chk_2nd_start
+ *
+ * Description      check if this is 2nd stream and if it needs to be started.
+ *                  This function needs to be kept very similar to bta_av_chk_start
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_chk_2nd_start (tBTA_AV_SCB *p_scb,
                            UNUSED_ATTR tBTA_AV_DATA *p_data)
 {
@@ -3011,14 +3011,14 @@ void bta_av_chk_2nd_start (tBTA_AV_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_open_rc
-**
-** Description      Send a message to main SM to open RC channel.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_open_rc
+ *
+ * Description      Send a message to main SM to open RC channel.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_open_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_START   start;
@@ -3086,15 +3086,15 @@ void bta_av_open_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_open_at_inc
-**
-** Description      This function is called if API open is called by application
-**                  while state-machine is at incoming state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_open_at_inc
+ *
+ * Description      This function is called if API open is called by application
+ *                  while state-machine is at incoming state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     memcpy (&(p_scb->open_api), &(p_data->api_open), sizeof(tBTA_AV_API_OPEN));
@@ -3122,15 +3122,15 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_offload_req
-**
-** Description      This function is called if application requests offload of
-**                  a2dp audio.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_offload_req
+ *
+ * Description      This function is called if application requests offload of
+ *                  a2dp audio.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_offload_req(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_STATUS status = BTA_AV_FAIL_RESOURCES;
@@ -3183,15 +3183,15 @@ void bta_av_offload_req(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_offload_rsp
-**
-** Description      This function is called when the vendor lib responds to
-**                  BT_VND_OP_A2DP_OFFLOAD_START.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_offload_rsp
+ *
+ * Description      This function is called when the vendor lib responds to
+ *                  BT_VND_OP_A2DP_OFFLOAD_START.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_offload_rsp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_STATUS status = p_data->api_status_rsp.status;

@@ -41,8 +41,8 @@
 #include "osi/include/osi.h"
 
 /*****************************************************************************
-**  Local Function prototypes
-*****************************************************************************/
+ *  Local Function prototypes
+ ****************************************************************************/
 #if (BTA_HL_DEBUG == TRUE && BT_TRACE_VERBOSE == TRUE)
 static char *bta_hl_mcap_evt_code(uint8_t evt_code);
 static char *bta_hl_dch_oper_code(tBTA_HL_DCH_OPER oper_code);
@@ -73,14 +73,14 @@ static tSDP_DISC_CMPL_CB * const bta_hl_sdp_cback_arr[] =
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_cong_change
-**
-** Description      Action routine for processing congestion change notification
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_cong_change
+ *
+ * Description      Action routine for processing congestion change notification
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_cong_change(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                 tBTA_HL_DATA *p_data)
 {
@@ -107,14 +107,14 @@ void bta_hl_dch_mca_cong_change(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_id
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_echo_test
-**
-** Description      Action routine for processing echo test request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_echo_test
+ *
+ * Description      Action routine for processing echo test request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_echo_test(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                           UNUSED_ATTR tBTA_HL_DATA *p_data)
 {
@@ -136,14 +136,14 @@ void bta_hl_dch_echo_test(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
 }
 /*******************************************************************************
-**
-** Function         bta_hl_dch_sdp_init
-**
-** Description      Action routine for processing DCH SDP initiation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_sdp_init
+ *
+ * Description      Action routine for processing DCH SDP initiation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_sdp_init(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                          tBTA_HL_DATA *p_data)
 {
@@ -182,14 +182,14 @@ void bta_hl_dch_sdp_init(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_close_echo_test
-**
-** Description      Action routine for processing the closing of echo test
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_close_echo_test
+ *
+ * Description      Action routine for processing the closing of echo test
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_close_echo_test(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                 tBTA_HL_DATA *p_data)
 {
@@ -221,14 +221,14 @@ void bta_hl_dch_close_echo_test(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_id
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_rcv_data
-**
-** Description      Action routine for processing the received data
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_rcv_data
+ *
+ * Description      Action routine for processing the received data
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_rcv_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                              tBTA_HL_DATA *p_data)
 {
@@ -286,15 +286,15 @@ void bta_hl_dch_mca_rcv_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_ci_put_echo_data
-**
-** Description      Action routine for processing the call-in of the
-**                  put echo data event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_ci_put_echo_data
+ *
+ * Description      Action routine for processing the call-in of the
+ *                  put echo data event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_ci_put_echo_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                  tBTA_HL_DATA *p_data)
 {
@@ -315,15 +315,15 @@ void bta_hl_dch_ci_put_echo_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_i
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_ci_get_echo_data
-**
-** Description      Action routine for processing the call-in of the
-**                  get echo data event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_ci_get_echo_data
+ *
+ * Description      Action routine for processing the call-in of the
+ *                  get echo data event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_ci_get_echo_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                  tBTA_HL_DATA *p_data)
 {
@@ -357,15 +357,15 @@ void bta_hl_dch_ci_get_echo_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_i
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_ci_put_rx_data
-**
-** Description      Action routine for processing the call-in of the
-**                  put rx data event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_ci_put_rx_data
+ *
+ * Description      Action routine for processing the call-in of the
+ *                  put rx data event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_ci_put_rx_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                tBTA_HL_DATA *p_data)
 {
@@ -398,15 +398,15 @@ void bta_hl_dch_ci_put_rx_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_ci_get_tx_data
-**
-** Description      Action routine for processing the call-in of the
-**                  get tx data event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_ci_get_tx_data
+ *
+ * Description      Action routine for processing the call-in of the
+ *                  get tx data event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_ci_get_tx_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                tBTA_HL_DATA *p_data)
 {
@@ -474,14 +474,14 @@ void bta_hl_dch_ci_get_tx_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_send_data
-**
-** Description      Action routine for processing api send data request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_send_data
+ *
+ * Description      Action routine for processing api send data request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_send_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                           tBTA_HL_DATA *p_data)
 {
@@ -530,14 +530,14 @@ void bta_hl_dch_send_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_close_cmpl
-**
-** Description      Action routine for processing the close complete event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_close_cmpl
+ *
+ * Description      Action routine for processing the close complete event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                            tBTA_HL_DATA *p_data)
 {
@@ -723,14 +723,14 @@ void bta_hl_dch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
     bta_hl_check_cch_close(app_idx, mcl_idx, p_data, false);
 }
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_close_ind
-**
-** Description      Action routine for processing the close indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_close_ind
+ *
+ * Description      Action routine for processing the close indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_close_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                               tBTA_HL_DATA *p_data)
 {
@@ -766,14 +766,14 @@ void bta_hl_dch_mca_close_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_close_cfm
-**
-** Description      Action routine for processing the close confirmation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_close_cfm
+ *
+ * Description      Action routine for processing the close confirmation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_close_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                               tBTA_HL_DATA *p_data)
 {
@@ -813,14 +813,14 @@ void bta_hl_dch_mca_close_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_close
-**
-** Description      Action routine for processing the DCH close request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_close
+ *
+ * Description      Action routine for processing the DCH close request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_close(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                           tBTA_HL_DATA *p_data)
 {
@@ -864,14 +864,14 @@ void bta_hl_dch_mca_close(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_open_ind
-**
-** Description      Action routine for processing the open indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_open_ind
+ *
+ * Description      Action routine for processing the open indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_open_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                              tBTA_HL_DATA *p_data)
 {
@@ -971,14 +971,14 @@ void bta_hl_dch_mca_open_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_open_cfm
-**
-** Description      Action routine for processing the open confirmation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_open_cfm
+ *
+ * Description      Action routine for processing the open confirmation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_open_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                              tBTA_HL_DATA *p_data)
 {
@@ -1092,14 +1092,14 @@ void bta_hl_dch_mca_open_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_abort_ind
-**
-** Description      Action routine for processing the abort indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_abort_ind
+ *
+ * Description      Action routine for processing the abort indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_abort_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                               tBTA_HL_DATA *p_data)
 {
@@ -1115,14 +1115,14 @@ void bta_hl_dch_mca_abort_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_abort_cfm
-**
-** Description      Action routine for processing the abort confirmation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_abort_cfm
+ *
+ * Description      Action routine for processing the abort confirmation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_abort_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                               tBTA_HL_DATA *p_data)
 {
@@ -1160,14 +1160,14 @@ void bta_hl_dch_mca_abort_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_abort
-**
-** Description      Action routine for processing the abort request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_abort
+ *
+ * Description      Action routine for processing the abort request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_abort(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                           tBTA_HL_DATA *p_data)
 {
@@ -1221,14 +1221,14 @@ void bta_hl_dch_mca_abort(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_reconnect_ind
-**
-** Description      Action routine for processing the reconnect indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_reconnect_ind
+ *
+ * Description      Action routine for processing the reconnect indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_reconnect_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                   tBTA_HL_DATA *p_data)
 {
@@ -1295,14 +1295,14 @@ void bta_hl_dch_mca_reconnect_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_reconnect_cfm
-**
-** Description      Action routine for processing the reconenct confirmation
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_reconnect_cfm
+ *
+ * Description      Action routine for processing the reconenct confirmation
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_reconnect_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                   tBTA_HL_DATA *p_data)
 {
@@ -1344,14 +1344,14 @@ void bta_hl_dch_mca_reconnect_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_reconnect
-**
-** Description      Action routine for processing the reconnect request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_reconnect
+ *
+ * Description      Action routine for processing the reconnect request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_reconnect(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                               tBTA_HL_DATA *p_data)
 {
@@ -1383,14 +1383,14 @@ void bta_hl_dch_mca_reconnect(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_create_rsp
-**
-** Description      Action routine for processing BTA_HL_API_DCH_CREATE_RSP_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_create_rsp
+ *
+ * Description      Action routine for processing BTA_HL_API_DCH_CREATE_RSP_EVT
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_create_rsp(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                            tBTA_HL_DATA *p_data)
 {
@@ -1428,14 +1428,14 @@ void bta_hl_dch_create_rsp(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_create_ind
-**
-** Description      Action routine for processing
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_create_ind
+ *
+ * Description      Action routine for processing
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_create_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                tBTA_HL_DATA *p_data)
 {
@@ -1534,14 +1534,14 @@ void bta_hl_dch_mca_create_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_create_cfm
-**
-** Description      Action routine for processing
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_create_cfm
+ *
+ * Description      Action routine for processing
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_create_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                tBTA_HL_DATA *p_data)
 {
@@ -1598,14 +1598,14 @@ void bta_hl_dch_mca_create_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_mca_create
-**
-** Description      Action routine for processing the MDL create request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_mca_create
+ *
+ * Description      Action routine for processing the MDL create request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_mca_create(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                            tBTA_HL_DATA *p_data)
 {
@@ -1646,14 +1646,14 @@ void bta_hl_dch_mca_create(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_sdp_fail
-**
-** Description      Action routine for processing the SDP failed event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_sdp_fail
+ *
+ * Description      Action routine for processing the SDP failed event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_dch_sdp_fail(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                          tBTA_HL_DATA *p_data)
 {
@@ -1665,19 +1665,19 @@ void bta_hl_dch_sdp_fail(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 }
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback
-**
-** Description      This is the SDP callback function used by HL.
-**                  This function will be executed by SDP when the service
-**                  search is completed.  If the search is successful, it
-**                  finds the first record in the database that matches the
-**                  UUID of the search.  Then retrieves the scn from the
-**                  record.
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback
+ *
+ * Description      This is the SDP callback function used by HL.
+ *                  This function will be executed by SDP when the service
+ *                  search is completed.  If the search is successful, it
+ *                  finds the first record in the database that matches the
+ *                  UUID of the search.  Then retrieves the scn from the
+ *                  record.
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
                              uint8_t mdl_idx, uint16_t status)
 {
@@ -1928,14 +1928,14 @@ static void bta_hl_sdp_cback(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
 
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback0
-**
-** Description      This is the SDP callback function used by index = 0
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback0
+ *
+ * Description      This is the SDP callback function used by index = 0
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback0(uint16_t status)
 {
     bta_hl_sdp_cback(bta_hl_cb.scb[0].sdp_oper,
@@ -1947,16 +1947,16 @@ static void bta_hl_sdp_cback0(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback1
-**
-** Description      This is the SDP callback function used by index = 1
-**
-** Parameters       status  - status of the SDP callabck
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback1
+ *
+ * Description      This is the SDP callback function used by index = 1
+ *
+ * Parameters       status  - status of the SDP callabck
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback1(uint16_t status)
 {
     bta_hl_sdp_cback(bta_hl_cb.scb[1].sdp_oper,
@@ -1968,14 +1968,14 @@ static void bta_hl_sdp_cback1(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback2
-**
-** Description      This is the SDP callback function used by index = 2
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback2
+ *
+ * Description      This is the SDP callback function used by index = 2
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback2(uint16_t status)
 {
     bta_hl_sdp_cback(bta_hl_cb.scb[2].sdp_oper,
@@ -1987,14 +1987,14 @@ static void bta_hl_sdp_cback2(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback3
-**
-** Description      This is the SDP callback function used by index = 3
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback3
+ *
+ * Description      This is the SDP callback function used by index = 3
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback3(uint16_t status)
 {
     bta_hl_sdp_cback(bta_hl_cb.scb[3].sdp_oper,
@@ -2006,16 +2006,16 @@ static void bta_hl_sdp_cback3(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback4
-**
-** Description      This is the SDP callback function used by index = 4
-**
-** Parameters       status  - status of the SDP callabck
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback4
+ *
+ * Description      This is the SDP callback function used by index = 4
+ *
+ * Parameters       status  - status of the SDP callabck
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback4(uint16_t status)
 {
     bta_hl_sdp_cback(bta_hl_cb.scb[4].sdp_oper,
@@ -2027,16 +2027,16 @@ static void bta_hl_sdp_cback4(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback5
-**
-** Description      This is the SDP callback function used by index = 5
-**
-** Parameters       status  - status of the SDP callabck
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback5
+ *
+ * Description      This is the SDP callback function used by index = 5
+ *
+ * Parameters       status  - status of the SDP callabck
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback5(uint16_t status)
 {
     bta_hl_sdp_cback(bta_hl_cb.scb[5].sdp_oper,
@@ -2048,14 +2048,14 @@ static void bta_hl_sdp_cback5(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         bta_hl_sdp_cback6
-**
-** Description      This is the SDP callback function used by index = 6
-**
-** Returns          void.
-**
-******************************************************************************/
+ *
+ * Function         bta_hl_sdp_cback6
+ *
+ * Description      This is the SDP callback function used by index = 6
+ *
+ * Returns          void.
+ *
+ *****************************************************************************/
 static void bta_hl_sdp_cback6(uint16_t status)
 {
     bta_hl_sdp_cback(bta_hl_cb.scb[6].sdp_oper,
@@ -2068,15 +2068,15 @@ static void bta_hl_sdp_cback6(uint16_t status)
 
 
 /*******************************************************************************
-**
-** Function      bta_hl_deallocate_spd_cback
-**
-** Description   Deallocate a SDP control block
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_deallocate_spd_cback
+ *
+ * Description   Deallocate a SDP control block
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 void bta_hl_deallocate_spd_cback(uint8_t sdp_cback_idx)
 {
     tBTA_HL_SDP_CB *p_spd_cb = &bta_hl_cb.scb[sdp_cback_idx];
@@ -2091,16 +2091,16 @@ void bta_hl_deallocate_spd_cback(uint8_t sdp_cback_idx)
 }
 
 /*******************************************************************************
-**
-** Function      bta_hl_allocate_spd_cback
-**
-** Description   Finds a not in used SDP control block index
-**
-**
-** Returns      bool - true found
-**                        false not found
-**
-*******************************************************************************/
+ *
+ * Function      bta_hl_allocate_spd_cback
+ *
+ * Description   Finds a not in used SDP control block index
+ *
+ *
+ * Returns      bool - true found
+ *                        false not found
+ *
+ ******************************************************************************/
 tSDP_DISC_CMPL_CB *bta_hl_allocate_spd_cback(tBTA_HL_SDP_OPER sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
                                              uint8_t mdl_idx,
                                              uint8_t *p_sdp_cback_idx)
@@ -2144,14 +2144,14 @@ tSDP_DISC_CMPL_CB *bta_hl_allocate_spd_cback(tBTA_HL_SDP_OPER sdp_oper, uint8_t 
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_init_sdp
-**
-** Description      Action routine for processing the SDP initiattion request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_init_sdp
+ *
+ * Description      Action routine for processing the SDP initiattion request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTA_HL_STATUS bta_hl_init_sdp(tBTA_HL_SDP_OPER sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
                                uint8_t mdl_idx)
 {
@@ -2204,14 +2204,14 @@ tBTA_HL_STATUS bta_hl_init_sdp(tBTA_HL_SDP_OPER sdp_oper, uint8_t app_idx, uint8
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_sdp_init
-**
-** Description      Action routine for processing the CCH SDP init event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_sdp_init
+ *
+ * Description      Action routine for processing the CCH SDP init event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_sdp_init(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
     tBTA_HL_MCL_CB      *p_cb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
@@ -2237,14 +2237,14 @@ void bta_hl_cch_sdp_init(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_mca_open
-**
-** Description      Action routine for processing the CCH open request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_mca_open
+ *
+ * Description      Action routine for processing the CCH open request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_mca_open(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2275,14 +2275,14 @@ void bta_hl_cch_mca_open(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_mca_close
-**
-** Description      Action routine for processing the CCH close request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_mca_close
+ *
+ * Description      Action routine for processing the CCH close request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_mca_close(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
@@ -2313,14 +2313,14 @@ void bta_hl_cch_mca_close(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_dat
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_close_cmpl
-**
-** Description      Action routine for processing the CCH close complete event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_close_cmpl
+ *
+ * Description      Action routine for processing the CCH close complete event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2376,14 +2376,14 @@ void bta_hl_cch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_da
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_mca_disconnect
-**
-** Description      Action routine for processing the CCH disconnect indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_mca_disconnect
+ *
+ * Description      Action routine for processing the CCH disconnect indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_mca_disconnect(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
 
@@ -2419,14 +2419,14 @@ void bta_hl_cch_mca_disconnect(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_mca_disc_open
-**
-** Description      Action routine for disconnect the just opened Control channel
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_mca_disc_open
+ *
+ * Description      Action routine for disconnect the just opened Control channel
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_mca_disc_open(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
@@ -2441,14 +2441,14 @@ void bta_hl_cch_mca_disc_open(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_mca_rsp_tout
-**
-** Description      Action routine for processing the MCAP response timeout
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_mca_rsp_tout
+ *
+ * Description      Action routine for processing the MCAP response timeout
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_mca_rsp_tout(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
 
@@ -2463,14 +2463,14 @@ void bta_hl_cch_mca_rsp_tout(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_cch_mca_connect
-**
-** Description      Action routine for processing the CCH connect indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cch_mca_connect
+ *
+ * Description      Action routine for processing the CCH connect indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_cch_mca_connect(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data)
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -2513,14 +2513,14 @@ void bta_hl_cch_mca_connect(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_d
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_mcap_ctrl_cback
-**
-** Description      MCAP control callback function for HL.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_mcap_ctrl_cback
+ *
+ * Description      MCAP control callback function for HL.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_mcap_ctrl_cback (tMCA_HANDLE handle, tMCA_CL mcl, uint8_t event,
                              tMCA_CTRL *p_data)
 {
@@ -2605,14 +2605,14 @@ void bta_hl_mcap_ctrl_cback (tMCA_HANDLE handle, tMCA_CL mcl, uint8_t event,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_mcap_data_cback
-**
-** Description      MCAP data callback function for HL.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_mcap_data_cback
+ *
+ * Description      MCAP data callback function for HL.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_mcap_data_cback (tMCA_DL mdl, BT_HDR *p_pkt)
 {
     uint8_t app_idx, mcl_idx, mdl_idx;
@@ -2630,19 +2630,19 @@ void bta_hl_mcap_data_cback (tMCA_DL mdl, BT_HDR *p_pkt)
 }
 
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 #if (BTA_HL_DEBUG == TRUE && BT_TRACE_VERBOSE == TRUE)
 
 /*******************************************************************************
-**
-** Function         bta_hl_mcap_evt_code
-**
-** Description      get the MCAP event string pointer
-**
-** Returns          char * - event string pointer
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_mcap_evt_code
+ *
+ * Description      get the MCAP event string pointer
+ *
+ * Returns          char * - event string pointer
+ *
+ ******************************************************************************/
 static char *bta_hl_mcap_evt_code(uint8_t evt_code)
 {
 
@@ -2691,14 +2691,14 @@ static char *bta_hl_mcap_evt_code(uint8_t evt_code)
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_cback_evt_code
-**
-** Description      get the HDP event string pointer
-**
-** Returns          char * - event string pointer
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_cback_evt_code
+ *
+ * Description      get the HDP event string pointer
+ *
+ * Returns          char * - event string pointer
+ *
+ ******************************************************************************/
 static char *bta_hl_cback_evt_code(uint8_t evt_code)
 {
 
@@ -2755,14 +2755,14 @@ static char *bta_hl_cback_evt_code(uint8_t evt_code)
 
 
 /*******************************************************************************
-**
-** Function         bta_hl_dch_oper_code
-**
-** Description      Get the DCH operation string
-**
-** Returns          char * - DCH operation string pointer
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_dch_oper_code
+ *
+ * Description      Get the DCH operation string
+ *
+ * Returns          char * - DCH operation string pointer
+ *
+ ******************************************************************************/
 static char *bta_hl_dch_oper_code(tBTA_HL_DCH_OPER oper_code)
 {
 

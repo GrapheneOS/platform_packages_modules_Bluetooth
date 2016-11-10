@@ -30,8 +30,8 @@
 #include "bta_mce_int.h"
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 tBTA_MCE_CB bta_mce_cb;
 
@@ -49,15 +49,15 @@ const tBTA_MCE_ACTION bta_mce_action[] =
 };
 
 /*******************************************************************************
-**
-** Function         bta_mce_sm_execute
-**
-** Description      State machine event handling function for MCE
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_mce_sm_execute
+ *
+ * Description      State machine event handling function for MCE
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_mce_sm_execute(BT_HDR *p_msg)
 {
     if(p_msg == NULL) return false;

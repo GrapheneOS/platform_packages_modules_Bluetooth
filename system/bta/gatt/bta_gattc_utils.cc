@@ -38,8 +38,8 @@
 #include "utl.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 static const uint8_t  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -47,14 +47,14 @@ static const uint8_t  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0
 static const BD_ADDR dummy_bda = {0,0,0,0,0,0};
 
 /*******************************************************************************
-**
-** Function         bta_gatt_convert_uuid16_to_uuid128
-**
-** Description      Convert a 16 bits UUID to be an standard 128 bits one.
-**
-** Returns          true if two uuid match; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gatt_convert_uuid16_to_uuid128
+ *
+ * Description      Convert a 16 bits UUID to be an standard 128 bits one.
+ *
+ * Returns          true if two uuid match; false otherwise.
+ *
+ ******************************************************************************/
 void bta_gatt_convert_uuid16_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint16_t uuid_16)
 {
     uint8_t   *p = &uuid_128[LEN_UUID_128 - 4];
@@ -64,14 +64,14 @@ void bta_gatt_convert_uuid16_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint16_t
     UINT16_TO_STREAM(p, uuid_16);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_uuid_compare
-**
-** Description      Compare two UUID to see if they are the same.
-**
-** Returns          true if two uuid match; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_uuid_compare
+ *
+ * Description      Compare two UUID to see if they are the same.
+ *
+ * Returns          true if two uuid match; false otherwise.
+ *
+ ******************************************************************************/
 bool bta_gattc_uuid_compare (const tBT_UUID *p_src, const tBT_UUID *p_tar, bool is_precise)
 {
     uint8_t  su[LEN_UUID_128], tu[LEN_UUID_128];
@@ -115,14 +115,14 @@ bool bta_gattc_uuid_compare (const tBT_UUID *p_src, const tBT_UUID *p_tar, bool 
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cl_get_regcb
-**
-** Description      get registration control block by client interface.
-**
-** Returns          pointer to the regcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cl_get_regcb
+ *
+ * Description      get registration control block by client interface.
+ *
+ * Returns          pointer to the regcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_RCB * bta_gattc_cl_get_regcb(uint8_t client_if)
 {
     uint8_t   i = 0;
@@ -137,14 +137,14 @@ tBTA_GATTC_RCB * bta_gattc_cl_get_regcb(uint8_t client_if)
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_num_reg_app
-**
-** Description      find the number of registered application.
-**
-** Returns          pointer to the regcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_num_reg_app
+ *
+ * Description      find the number of registered application.
+ *
+ * Returns          pointer to the regcb
+ *
+ ******************************************************************************/
 uint8_t bta_gattc_num_reg_app(void)
 {
     uint8_t   i = 0, j = 0;
@@ -157,14 +157,14 @@ uint8_t bta_gattc_num_reg_app(void)
     return j;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_find_clcb_by_cif
-**
-** Description      get clcb by client interface and remote bd adddress
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_clcb_by_cif
+ *
+ * Description      get clcb by client interface and remote bd adddress
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_cif (uint8_t client_if, BD_ADDR remote_bda,
                                               tBTA_TRANSPORT transport)
 {
@@ -182,14 +182,14 @@ tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_cif (uint8_t client_if, BD_ADDR remote_
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_find_clcb_by_conn_id
-**
-** Description      get clcb by connection ID
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_clcb_by_conn_id
+ *
+ * Description      get clcb by connection ID
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_conn_id (uint16_t conn_id)
 {
     tBTA_GATTC_CLCB *p_clcb = &bta_gattc_cb.clcb[0];
@@ -205,14 +205,14 @@ tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_conn_id (uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_clcb_alloc
-**
-** Description      allocate CLCB
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_clcb_alloc
+ *
+ * Description      allocate CLCB
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CLCB * bta_gattc_clcb_alloc(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
                                        tBTA_TRANSPORT transport)
 {
@@ -254,14 +254,14 @@ tBTA_GATTC_CLCB * bta_gattc_clcb_alloc(tBTA_GATTC_IF client_if, BD_ADDR remote_b
     return p_clcb;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_find_alloc_clcb
-**
-** Description      find or allocate CLCB if not found.
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_alloc_clcb
+ *
+ * Description      find or allocate CLCB if not found.
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CLCB *bta_gattc_find_alloc_clcb(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
                                            tBTA_TRANSPORT transport)
 {
@@ -275,14 +275,14 @@ tBTA_GATTC_CLCB *bta_gattc_find_alloc_clcb(tBTA_GATTC_IF client_if, BD_ADDR remo
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_clcb_dealloc
-**
-** Description      Deallocte a clcb
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_clcb_dealloc
+ *
+ * Description      Deallocte a clcb
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB *p_clcb)
 {
     tBTA_GATTC_SERV     *p_srcb = NULL;
@@ -312,14 +312,14 @@ void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB *p_clcb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_find_srcb
-**
-** Description      find server cache by remote bd address currently in use
-**
-** Returns          pointer to the server cache.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_srcb
+ *
+ * Description      find server cache by remote bd address currently in use
+ *
+ * Returns          pointer to the server cache.
+ *
+ ******************************************************************************/
 tBTA_GATTC_SERV * bta_gattc_find_srcb(BD_ADDR bda)
 {
     tBTA_GATTC_SERV *p_srcb = &bta_gattc_cb.known_server[0];
@@ -334,14 +334,14 @@ tBTA_GATTC_SERV * bta_gattc_find_srcb(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_find_srvr_cache
-**
-** Description      find server cache by remote bd address
-**
-** Returns          pointer to the server cache.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_srvr_cache
+ *
+ * Description      find server cache by remote bd address
+ *
+ * Returns          pointer to the server cache.
+ *
+ ******************************************************************************/
 tBTA_GATTC_SERV * bta_gattc_find_srvr_cache(BD_ADDR bda)
 {
     tBTA_GATTC_SERV *p_srcb = &bta_gattc_cb.known_server[0];
@@ -355,14 +355,14 @@ tBTA_GATTC_SERV * bta_gattc_find_srvr_cache(BD_ADDR bda)
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_find_scb_by_cid
-**
-** Description      find server control block by connection ID
-**
-** Returns          pointer to the server cache.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_scb_by_cid
+ *
+ * Description      find server control block by connection ID
+ *
+ * Returns          pointer to the server cache.
+ *
+ ******************************************************************************/
 tBTA_GATTC_SERV * bta_gattc_find_scb_by_cid (uint16_t conn_id)
 {
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
@@ -373,14 +373,14 @@ tBTA_GATTC_SERV * bta_gattc_find_scb_by_cid (uint16_t conn_id)
         return NULL;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_srcb_alloc
-**
-** Description      allocate server cache control block
-**
-** Returns          pointer to the server cache.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_srcb_alloc
+ *
+ * Description      allocate server cache control block
+ *
+ * Returns          pointer to the server cache.
+ *
+ ******************************************************************************/
 tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
 {
     tBTA_GATTC_SERV *p_tcb = &bta_gattc_cb.known_server[0],
@@ -421,14 +421,14 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
     return p_tcb;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_enqueue
-**
-** Description      enqueue a client request in clcb.
-**
-** Returns          success or failure.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_enqueue
+ *
+ * Description      enqueue a client request in clcb.
+ *
+ * Returns          success or failure.
+ *
+ ******************************************************************************/
 bool bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
 
@@ -444,14 +444,14 @@ bool bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_check_notif_registry
-**
-** Description      check if the service notificaition has been registered.
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_check_notif_registry
+ *
+ * Description      check if the service notificaition has been registered.
+ *
+ * Returns
+ *
+ ******************************************************************************/
 bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB  *p_clreg, tBTA_GATTC_SERV *p_srcb,
                                        tBTA_GATTC_NOTIFY  *p_notify)
 {
@@ -471,17 +471,17 @@ bool bta_gattc_check_notif_registry(tBTA_GATTC_RCB  *p_clreg, tBTA_GATTC_SERV *p
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_clear_notif_registration
-**
-** Description      Clear up the notification registration information by BD_ADDR.
-**                  Where handle is between start_handle and end_handle, and
-**                  start_handle and end_handle are boundaries of service
-**                  containing characteristic.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_clear_notif_registration
+ *
+ * Description      Clear up the notification registration information by BD_ADDR.
+ *                  Where handle is between start_handle and end_handle, and
+ *                  start_handle and end_handle are boundaries of service
+ *                  containing characteristic.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, uint16_t conn_id,
                                         uint16_t start_handle, uint16_t end_handle)
 {
@@ -514,15 +514,15 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, uint16_t conn_i
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_mark_bg_conn
-**
-** Description      mark background connection status when a bg connection is initiated
-**                  or terminated.
-**
-** Returns          true if success; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_mark_bg_conn
+ *
+ * Description      mark background connection status when a bg connection is initiated
+ *                  or terminated.
+ *
+ * Returns          true if success; false otherwise.
+ *
+ ******************************************************************************/
 bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda_ptr,
                                 bool add)
 {
@@ -590,14 +590,14 @@ bool bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda_pt
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_check_bg_conn
-**
-** Description      check if this is a background connection background connection.
-**
-** Returns          true if success; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_check_bg_conn
+ *
+ * Description      check if this is a background connection background connection.
+ *
+ * Returns          true if success; false otherwise.
+ *
+ ******************************************************************************/
 bool bta_gattc_check_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR remote_bda, uint8_t role)
 {
     tBTA_GATTC_BG_TCK   *p_bg_tck = &bta_gattc_cb.bg_track[0];
@@ -618,14 +618,14 @@ bool bta_gattc_check_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR remote_bda, uint
     return is_bg_conn;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_send_open_cback
-**
-** Description      send open callback
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_send_open_cback
+ *
+ * Description      send open callback
+ *
+ * Returns
+ *
+ ******************************************************************************/
 void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS status,
                                 BD_ADDR remote_bda, uint16_t conn_id,
                                 tBTA_TRANSPORT transport, uint16_t mtu)
@@ -647,14 +647,14 @@ void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS status
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_conn_alloc
-**
-** Description      allocate connection tracking spot
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_conn_alloc
+ *
+ * Description      allocate connection tracking spot
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CONN * bta_gattc_conn_alloc(BD_ADDR remote_bda)
 {
     uint8_t               i_conn = 0;
@@ -676,14 +676,14 @@ tBTA_GATTC_CONN * bta_gattc_conn_alloc(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_conn_find
-**
-** Description      allocate connection tracking spot
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_conn_find
+ *
+ * Description      allocate connection tracking spot
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CONN * bta_gattc_conn_find(BD_ADDR remote_bda)
 {
     uint8_t               i_conn = 0;
@@ -703,14 +703,14 @@ tBTA_GATTC_CONN * bta_gattc_conn_find(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_conn_find_alloc
-**
-** Description      find or allocate connection tracking spot
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_conn_find_alloc
+ *
+ * Description      find or allocate connection tracking spot
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CONN * bta_gattc_conn_find_alloc(BD_ADDR remote_bda)
 {
     tBTA_GATTC_CONN     *p_conn = bta_gattc_conn_find (remote_bda);
@@ -723,14 +723,14 @@ tBTA_GATTC_CONN * bta_gattc_conn_find_alloc(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_conn_dealloc
-**
-** Description      de-allocate connection tracking spot
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_conn_dealloc
+ *
+ * Description      de-allocate connection tracking spot
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 bool bta_gattc_conn_dealloc(BD_ADDR remote_bda)
 {
     tBTA_GATTC_CONN     *p_conn = bta_gattc_conn_find (remote_bda);
@@ -745,14 +745,14 @@ bool bta_gattc_conn_dealloc(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_find_int_conn_clcb
-**
-** Description      try to locate a clcb when an internal connecion event arrives.
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_int_conn_clcb
+ *
+ * Description      try to locate a clcb when an internal connecion event arrives.
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CLCB * bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA *p_msg)
 {
     tBTA_GATTC_CLCB *p_clcb = NULL;
@@ -781,14 +781,14 @@ tBTA_GATTC_CLCB * bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_find_int_disconn_clcb
-**
-** Description      try to locate a clcb when an internal disconnect callback arrives.
-**
-** Returns          pointer to the clcb
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_find_int_disconn_clcb
+ *
+ * Description      try to locate a clcb when an internal disconnect callback arrives.
+ *
+ * Returns          pointer to the clcb
+ *
+ ******************************************************************************/
 tBTA_GATTC_CLCB * bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA *p_msg)
 {
     tBTA_GATTC_CLCB         *p_clcb = NULL;

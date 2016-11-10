@@ -33,8 +33,8 @@
 
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 
 /* state machine action enumeration list */
@@ -239,8 +239,8 @@ const tBTA_GATTC_ST_TBL bta_gattc_st_tbl[] =
 };
 
 /*****************************************************************************
-** Global data
-*****************************************************************************/
+ * Global data
+ ****************************************************************************/
 
 /* GATTC control block */
 tBTA_GATTC_CB  bta_gattc_cb;
@@ -251,16 +251,16 @@ static char *gattc_state_code(tBTA_GATTC_STATE state_code);
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_gattc_sm_execute
-**
-** Description      State machine event handling function for GATTC
-**
-**
-** Returns          bool  : true if queued client request buffer can be immediately released
-**                                        else false
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_sm_execute
+ *
+ * Description      State machine event handling function for GATTC
+ *
+ *
+ * Returns          bool  : true if queued client request buffer can be immediately released
+ *                                        else false
+ *
+ ******************************************************************************/
 bool bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, uint16_t event, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC_ST_TBL     state_table;
@@ -317,15 +317,15 @@ bool bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, uint16_t event, tBTA_GATTC_DA
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_hdl_event
-**
-** Description      GATT client main event handling function.
-**
-**
-** Returns          bool
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_hdl_event
+ *
+ * Description      GATT client main event handling function.
+ *
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
 bool bta_gattc_hdl_event(BT_HDR *p_msg)
 {
     tBTA_GATTC_CLCB *p_clcb = NULL;
@@ -395,19 +395,19 @@ bool bta_gattc_hdl_event(BT_HDR *p_msg)
 
 
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 #if (BTA_GATT_DEBUG == TRUE)
 
 /*******************************************************************************
-**
-** Function         gattc_evt_code
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gattc_evt_code
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code)
 {
     switch (evt_code)
@@ -462,14 +462,14 @@ static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code)
 }
 
 /*******************************************************************************
-**
-** Function         gattc_state_code
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gattc_state_code
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static char *gattc_state_code(tBTA_GATTC_STATE state_code)
 {
     switch (state_code)

@@ -282,8 +282,8 @@ typedef struct
 } tBTA_HH_KB_CB;
 
 /******************************************************************************
-** Main Control Block
-*******************************************************************************/
+ * Main Control Block
+ ******************************************************************************/
 typedef struct
 {
     tBTA_HH_KB_CB           kb_cb;                  /* key board control block,
@@ -313,8 +313,8 @@ extern tBTA_HH_CB  bta_hh_cb;
 extern tBTA_HH_CFG *p_bta_hh_cfg;
 
 /*****************************************************************************
-**  Function prototypes
-*****************************************************************************/
+ *  Function prototypes
+ ****************************************************************************/
 extern bool bta_hh_hdl_event(BT_HDR *p_msg);
 extern void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, uint16_t event,
                               tBTA_HH_DATA *p_data);
