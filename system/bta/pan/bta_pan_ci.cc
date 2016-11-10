@@ -27,13 +27,13 @@
 #include <string.h>
 
 #include "bt_common.h"
-#include "pan_api.h"
+#include "bt_utils.h"
 #include "bta_api.h"
 #include "bta_pan_api.h"
 #include "bta_pan_ci.h"
 #include "bta_pan_int.h"
-#include "bt_utils.h"
 #include "osi/include/osi.h"
+#include "pan_api.h"
 
 #if (BTA_PAN_INCLUDED == TRUE)
 
@@ -42,7 +42,8 @@
  * Function         bta_pan_ci_tx_ready
  *
  * Description      This function sends an event to PAN indicating the phone is
- *                  ready for more data and PAN should call bta_pan_co_tx_path().
+ *                  ready for more data and PAN should call
+ *bta_pan_co_tx_path().
  *                  This function is used when the TX data path is configured
  *                  to use a pull interface.
  *
@@ -50,14 +51,13 @@
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_ci_tx_ready(uint16_t handle)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void bta_pan_ci_tx_ready(uint16_t handle) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->layer_specific = handle;
-    p_buf->event = BTA_PAN_CI_TX_READY_EVT;
+  p_buf->layer_specific = handle;
+  p_buf->event = BTA_PAN_CI_TX_READY_EVT;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -73,14 +73,13 @@ void bta_pan_ci_tx_ready(uint16_t handle)
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_ci_rx_ready(uint16_t handle)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+void bta_pan_ci_rx_ready(uint16_t handle) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
 
-    p_buf->layer_specific = handle;
-    p_buf->event = BTA_PAN_CI_RX_READY_EVT;
+  p_buf->layer_specific = handle;
+  p_buf->event = BTA_PAN_CI_RX_READY_EVT;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -98,16 +97,15 @@ void bta_pan_ci_rx_ready(uint16_t handle)
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_ci_tx_flow(uint16_t handle, bool enable)
-{
-    tBTA_PAN_CI_TX_FLOW  *p_buf =
-        (tBTA_PAN_CI_TX_FLOW *)osi_malloc(sizeof(tBTA_PAN_CI_TX_FLOW));
+void bta_pan_ci_tx_flow(uint16_t handle, bool enable) {
+  tBTA_PAN_CI_TX_FLOW* p_buf =
+      (tBTA_PAN_CI_TX_FLOW*)osi_malloc(sizeof(tBTA_PAN_CI_TX_FLOW));
 
-    p_buf->hdr.layer_specific = handle;
-    p_buf->hdr.event = BTA_PAN_CI_TX_FLOW_EVT;
-    p_buf->enable = enable;
+  p_buf->hdr.layer_specific = handle;
+  p_buf->hdr.event = BTA_PAN_CI_TX_FLOW_EVT;
+  p_buf->enable = enable;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -122,27 +120,27 @@ void bta_pan_ci_tx_flow(uint16_t handle, bool enable)
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_ci_rx_write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol,
-                            uint8_t *p_data, uint16_t len, bool ext)
-{
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
+void bta_pan_ci_rx_write(uint16_t handle, BD_ADDR dst, BD_ADDR src,
+                         uint16_t protocol, uint8_t* p_data, uint16_t len,
+                         bool ext) {
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(PAN_BUF_SIZE);
 
-    p_buf->offset = PAN_MINIMUM_OFFSET;
+  p_buf->offset = PAN_MINIMUM_OFFSET;
 
-    /* copy all other params before the data */
-    bdcpy(((tBTA_PAN_DATA_PARAMS *)p_buf)->src, src);
-    bdcpy(((tBTA_PAN_DATA_PARAMS *)p_buf)->dst, dst);
-    ((tBTA_PAN_DATA_PARAMS *)p_buf)->protocol = protocol;
-    ((tBTA_PAN_DATA_PARAMS *)p_buf)->ext = ext;
-    p_buf->len=len;
+  /* copy all other params before the data */
+  bdcpy(((tBTA_PAN_DATA_PARAMS*)p_buf)->src, src);
+  bdcpy(((tBTA_PAN_DATA_PARAMS*)p_buf)->dst, dst);
+  ((tBTA_PAN_DATA_PARAMS*)p_buf)->protocol = protocol;
+  ((tBTA_PAN_DATA_PARAMS*)p_buf)->ext = ext;
+  p_buf->len = len;
 
-    /* copy data */
-    memcpy((uint8_t *)(p_buf + 1) + p_buf->offset, p_data, len);
+  /* copy data */
+  memcpy((uint8_t*)(p_buf + 1) + p_buf->offset, p_data, len);
 
-    p_buf->layer_specific = handle;
-    p_buf->event = BTA_PAN_CI_RX_WRITEBUF_EVT;
+  p_buf->layer_specific = handle;
+  p_buf->event = BTA_PAN_CI_RX_WRITEBUF_EVT;
 
-    bta_sys_sendmsg(p_buf);
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -159,23 +157,18 @@ void bta_pan_ci_rx_write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t pro
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol,
-                            BT_HDR *p_buf, bool ext)
-{
+void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR dst, BD_ADDR src,
+                            uint16_t protocol, BT_HDR* p_buf, bool ext) {
+  /* copy all other params before the data */
+  bdcpy(((tBTA_PAN_DATA_PARAMS*)p_buf)->src, src);
+  bdcpy(((tBTA_PAN_DATA_PARAMS*)p_buf)->dst, dst);
+  ((tBTA_PAN_DATA_PARAMS*)p_buf)->protocol = protocol;
+  ((tBTA_PAN_DATA_PARAMS*)p_buf)->ext = ext;
 
-    /* copy all other params before the data */
-    bdcpy(((tBTA_PAN_DATA_PARAMS *)p_buf)->src, src);
-    bdcpy(((tBTA_PAN_DATA_PARAMS *)p_buf)->dst, dst);
-    ((tBTA_PAN_DATA_PARAMS *)p_buf)->protocol = protocol;
-    ((tBTA_PAN_DATA_PARAMS *)p_buf)->ext = ext;
-
-    p_buf->layer_specific = handle;
-    p_buf->event = BTA_PAN_CI_RX_WRITEBUF_EVT;
-    bta_sys_sendmsg(p_buf);
+  p_buf->layer_specific = handle;
+  p_buf->event = BTA_PAN_CI_RX_WRITEBUF_EVT;
+  bta_sys_sendmsg(p_buf);
 }
-
-
-
 
 /*******************************************************************************
  *
@@ -187,27 +180,24 @@ void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t 
  * Returns          void
  *
  ******************************************************************************/
-BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t* p_protocol,
-                                 bool* p_ext, bool* p_forward)
-{
-    tBTA_PAN_SCB * p_scb;
-    BT_HDR * p_buf;
+BT_HDR* bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst,
+                           uint16_t* p_protocol, bool* p_ext, bool* p_forward) {
+  tBTA_PAN_SCB* p_scb;
+  BT_HDR* p_buf;
 
-    p_scb = bta_pan_scb_by_handle(handle);
+  p_scb = bta_pan_scb_by_handle(handle);
 
-    p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_scb->data_queue);
-    if (p_buf != NULL)
-    {
-        bdcpy(src,((tBTA_PAN_DATA_PARAMS *)p_buf)->src);
-        bdcpy(dst,((tBTA_PAN_DATA_PARAMS *)p_buf)->dst);
-        *p_protocol = ((tBTA_PAN_DATA_PARAMS *)p_buf)->protocol;
-        *p_ext = ((tBTA_PAN_DATA_PARAMS *)p_buf)->ext;
-        *p_forward = ((tBTA_PAN_DATA_PARAMS *)p_buf)->forward;
-    }
+  p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_scb->data_queue);
+  if (p_buf != NULL) {
+    bdcpy(src, ((tBTA_PAN_DATA_PARAMS*)p_buf)->src);
+    bdcpy(dst, ((tBTA_PAN_DATA_PARAMS*)p_buf)->dst);
+    *p_protocol = ((tBTA_PAN_DATA_PARAMS*)p_buf)->protocol;
+    *p_ext = ((tBTA_PAN_DATA_PARAMS*)p_buf)->ext;
+    *p_forward = ((tBTA_PAN_DATA_PARAMS*)p_buf)->forward;
+  }
 
-    return p_buf;
+  return p_buf;
 }
-
 
 /*******************************************************************************
  *
@@ -219,14 +209,11 @@ BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t*
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_t *p_start_array,
-                                                    uint8_t *p_end_array)
-{
-
-    PAN_SetMulticastFilters(handle, num_mcast_filters, p_start_array, p_end_array);
-
+void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters,
+                             uint8_t* p_start_array, uint8_t* p_end_array) {
+  PAN_SetMulticastFilters(handle, num_mcast_filters, p_start_array,
+                          p_end_array);
 }
-
 
 /*******************************************************************************
  *
@@ -238,47 +225,39 @@ void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters, uint16_t *p_start_array, uint16_t *p_end_array)
-{
-
-    PAN_SetProtocolFilters(handle, num_filters, p_start_array, p_end_array );
-
+void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters,
+                             uint16_t* p_start_array, uint16_t* p_end_array) {
+  PAN_SetProtocolFilters(handle, num_filters, p_start_array, p_end_array);
 }
 #else
 
-void bta_pan_ci_tx_ready(UNUSED_ATTR uint16_t handle)
-{
+void bta_pan_ci_tx_ready(UNUSED_ATTR uint16_t handle) {}
+
+void bta_pan_ci_rx_ready(UNUSED_ATTR uint16_t handle) {}
+
+void bta_pan_ci_tx_flow(UNUSED_ATTR uint16_t handle, UNUSED_ATTR bool enable) {}
+
+void bta_pan_ci_rx_writebuf(UNUSED_ATTR uint16_t handle,
+                            UNUSED_ATTR BD_ADDR src, UNUSED_ATTR BD_ADDR dst,
+                            UNUSED_ATTR uint16_t protocol,
+                            UNUSED_ATTR BT_HDR* p_buf, UNUSED_ATTR bool ext) {}
+
+BT_HDR* bta_pan_ci_readbuf(UNUSED_ATTR uint16_t handle, UNUSED_ATTR BD_ADDR src,
+                           UNUSED_ATTR BD_ADDR dst,
+                           UNUSED_ATTR uint16_t* p_protocol,
+                           UNUSED_ATTR bool* p_ext,
+                           UNUSED_ATTR bool* p_forward) {
+  return NULL;
 }
 
-void bta_pan_ci_rx_ready(UNUSED_ATTR uint16_t handle)
-{
-}
+void bta_pan_ci_set_pfilters(UNUSED_ATTR uint16_t handle,
+                             UNUSED_ATTR uint16_t num_filters,
+                             UNUSED_ATTR uint16_t* p_start_array,
+                             UNUSED_ATTR uint16_t* p_end_array) {}
 
-void bta_pan_ci_tx_flow(UNUSED_ATTR uint16_t handle,
-                        UNUSED_ATTR bool enable)
-{
-}
-
-void bta_pan_ci_rx_writebuf(UNUSED_ATTR uint16_t handle, UNUSED_ATTR BD_ADDR src, UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t protocol, UNUSED_ATTR BT_HDR *p_buf,
-                            UNUSED_ATTR bool ext)
-{
-}
-
-BT_HDR * bta_pan_ci_readbuf(UNUSED_ATTR uint16_t handle, UNUSED_ATTR BD_ADDR src, UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t *p_protocol,
-                            UNUSED_ATTR bool *p_ext,
-                            UNUSED_ATTR bool *p_forward)
-{
-    return NULL;
-}
-
-void bta_pan_ci_set_pfilters(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint16_t num_filters, UNUSED_ATTR uint16_t *p_start_array,
-                             UNUSED_ATTR uint16_t *p_end_array)
-{
-}
-
-void bta_pan_ci_set_mfilters(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint16_t num_mcast_filters, UNUSED_ATTR uint8_t *p_start_array,
-                             UNUSED_ATTR uint8_t *p_end_array)
-{
-}
+void bta_pan_ci_set_mfilters(UNUSED_ATTR uint16_t handle,
+                             UNUSED_ATTR uint16_t num_mcast_filters,
+                             UNUSED_ATTR uint8_t* p_start_array,
+                             UNUSED_ATTR uint8_t* p_end_array) {}
 
 #endif /* BTA_PAN_API */

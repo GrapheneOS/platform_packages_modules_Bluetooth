@@ -33,49 +33,48 @@ extern "C" {
  ****************************************************************************/
 
 /* AT command argument capabilities */
-#define BTA_AG_AT_NONE          0x01        /* no argument */
-#define BTA_AG_AT_SET           0x02        /* set value */
-#define BTA_AG_AT_READ          0x04        /* read value */
-#define BTA_AG_AT_TEST          0x08        /* test value range */
-#define BTA_AG_AT_FREE          0x10        /* freeform argument */
+#define BTA_AG_AT_NONE 0x01 /* no argument */
+#define BTA_AG_AT_SET 0x02  /* set value */
+#define BTA_AG_AT_READ 0x04 /* read value */
+#define BTA_AG_AT_TEST 0x08 /* test value range */
+#define BTA_AG_AT_FREE 0x10 /* freeform argument */
 
 /* AT command argument format */
-#define BTA_AG_AT_STR           0           /* string */
-#define BTA_AG_AT_INT           1           /* integer */
+#define BTA_AG_AT_STR 0 /* string */
+#define BTA_AG_AT_INT 1 /* integer */
 
 /*****************************************************************************
  *  Data types
  ****************************************************************************/
 
 /* AT command table element */
-typedef struct
-{
-    const char  *p_cmd;         /* AT command string */
-    size_t      command_id;     /* passed to the callback on p_cmd match */
-    uint8_t     arg_type;       /* allowable argument type syntax */
-    uint8_t     fmt;            /* whether arg is int or string */
-    uint8_t     min;            /* minimum value for int arg */
-    int16_t     max;            /* maximum value for int arg */
+typedef struct {
+  const char* p_cmd; /* AT command string */
+  size_t command_id; /* passed to the callback on p_cmd match */
+  uint8_t arg_type;  /* allowable argument type syntax */
+  uint8_t fmt;       /* whether arg is int or string */
+  uint8_t min;       /* minimum value for int arg */
+  int16_t max;       /* maximum value for int arg */
 } tBTA_AG_AT_CMD;
 
 /* callback function executed when command is parsed */
-typedef void (tBTA_AG_AT_CMD_CBACK)(void *p_user, uint16_t command_id, uint8_t arg_type,
-                                    char *p_arg, int16_t int_arg);
+typedef void(tBTA_AG_AT_CMD_CBACK)(void* p_user, uint16_t command_id,
+                                   uint8_t arg_type, char* p_arg,
+                                   int16_t int_arg);
 
 /* callback function executed to send "ERROR" result code */
-typedef void (tBTA_AG_AT_ERR_CBACK)(void *p_user, bool unknown, char *p_arg);
+typedef void(tBTA_AG_AT_ERR_CBACK)(void* p_user, bool unknown, char* p_arg);
 
 /* AT command parsing control block */
-typedef struct
-{
-    tBTA_AG_AT_CMD          *p_at_tbl;      /* AT command table */
-    tBTA_AG_AT_CMD_CBACK    *p_cmd_cback;   /* command callback */
-    tBTA_AG_AT_ERR_CBACK    *p_err_cback;   /* error callback */
-    void                    *p_user;        /* user-defined data */
-    char                    *p_cmd_buf;     /* temp parsing buffer */
-    uint16_t                cmd_pos;        /* position in temp buffer */
-    uint16_t                cmd_max_len;    /* length of temp buffer to allocate */
-    uint8_t                 state;          /* parsing state */
+typedef struct {
+  tBTA_AG_AT_CMD* p_at_tbl;          /* AT command table */
+  tBTA_AG_AT_CMD_CBACK* p_cmd_cback; /* command callback */
+  tBTA_AG_AT_ERR_CBACK* p_err_cback; /* error callback */
+  void* p_user;                      /* user-defined data */
+  char* p_cmd_buf;                   /* temp parsing buffer */
+  uint16_t cmd_pos;                  /* position in temp buffer */
+  uint16_t cmd_max_len;              /* length of temp buffer to allocate */
+  uint8_t state;                     /* parsing state */
 } tBTA_AG_AT_CB;
 
 /*****************************************************************************
@@ -92,7 +91,7 @@ typedef struct
  * Returns          void
  *
  ****************************************************************************/
-extern void bta_ag_at_init(tBTA_AG_AT_CB *p_cb);
+extern void bta_ag_at_init(tBTA_AG_AT_CB* p_cb);
 
 /*****************************************************************************
  *
@@ -106,7 +105,7 @@ extern void bta_ag_at_init(tBTA_AG_AT_CB *p_cb);
  * Returns          void
  *
  ****************************************************************************/
-extern void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb);
+extern void bta_ag_at_reinit(tBTA_AG_AT_CB* p_cb);
 
 /*****************************************************************************
  *
@@ -120,7 +119,7 @@ extern void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb);
  * Returns          void
  *
  ****************************************************************************/
-extern void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, uint16_t len);
+extern void bta_ag_at_parse(tBTA_AG_AT_CB* p_cb, char* p_buf, uint16_t len);
 
 #ifdef __cplusplus
 }

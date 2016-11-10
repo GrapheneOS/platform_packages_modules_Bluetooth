@@ -24,11 +24,11 @@
 
 #include <string.h>
 
+#include "bt_common.h"
 #include "bta_api.h"
-#include "bta_sys.h"
 #include "bta_sdp_api.h"
 #include "bta_sdp_int.h"
-#include "bt_common.h"
+#include "bta_sys.h"
 #include "port_api.h"
 #include "sdp_api.h"
 
@@ -36,11 +36,7 @@
  *  Constants
  ****************************************************************************/
 
-static const tBTA_SYS_REG bta_sdp_reg =
-{
-    bta_sdp_sm_execute,
-    NULL
-};
+static const tBTA_SYS_REG bta_sdp_reg = {bta_sdp_sm_execute, NULL};
 
 /*******************************************************************************
  *
@@ -56,35 +52,34 @@ static const tBTA_SYS_REG bta_sdp_reg =
  *                  BTA_SDP_FAIL if internal failure.
  *
  ******************************************************************************/
-tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK *p_cback)
-{
-    tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
+tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK* p_cback) {
+  tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
 
-    APPL_TRACE_API(__func__);
-    if(p_cback && false == bta_sys_is_register(BTA_ID_SDP))
-    {
-        memset(&bta_sdp_cb, 0, sizeof(tBTA_SDP_CB));
+  APPL_TRACE_API(__func__);
+  if (p_cback && false == bta_sys_is_register(BTA_ID_SDP)) {
+    memset(&bta_sdp_cb, 0, sizeof(tBTA_SDP_CB));
 
-        /* register with BTA system manager */
-        bta_sys_register(BTA_ID_SDP, &bta_sdp_reg);
+    /* register with BTA system manager */
+    bta_sys_register(BTA_ID_SDP, &bta_sdp_reg);
 
-        if (p_cback) {
-            tBTA_SDP_API_ENABLE *p_buf =
-                (tBTA_SDP_API_ENABLE *)osi_malloc(sizeof(tBTA_SDP_API_ENABLE));
-            p_buf->hdr.event = BTA_SDP_API_ENABLE_EVT;
-            p_buf->p_cback = p_cback;
-            bta_sys_sendmsg(p_buf);
-            status = BTA_SDP_SUCCESS;
-        }
+    if (p_cback) {
+      tBTA_SDP_API_ENABLE* p_buf =
+          (tBTA_SDP_API_ENABLE*)osi_malloc(sizeof(tBTA_SDP_API_ENABLE));
+      p_buf->hdr.event = BTA_SDP_API_ENABLE_EVT;
+      p_buf->p_cback = p_cback;
+      bta_sys_sendmsg(p_buf);
+      status = BTA_SDP_SUCCESS;
     }
-    return status;
+  }
+  return status;
 }
 
 /*******************************************************************************
  *
  * Function         BTA_SdpSearch
  *
- * Description      This function performs service discovery for a specific service
+ * Description      This function performs service discovery for a specific
+ *service
  *                  on given peer device. When the operation is completed
  *                  the tBTA_SDP_DM_CBACK callback function will be  called with
  *                  a BTA_SDP_SEARCH_COMPLETE_EVT.
@@ -93,21 +88,20 @@ tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK *p_cback)
  *                  BTA_SDP_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_SDP_STATUS BTA_SdpSearch(BD_ADDR bd_addr, tSDP_UUID *uuid)
-{
-    tBTA_SDP_API_SEARCH *p_msg =
-        (tBTA_SDP_API_SEARCH *)osi_malloc(sizeof(tBTA_SDP_API_SEARCH));
+tBTA_SDP_STATUS BTA_SdpSearch(BD_ADDR bd_addr, tSDP_UUID* uuid) {
+  tBTA_SDP_API_SEARCH* p_msg =
+      (tBTA_SDP_API_SEARCH*)osi_malloc(sizeof(tBTA_SDP_API_SEARCH));
 
-    APPL_TRACE_API("%s", __func__);
+  APPL_TRACE_API("%s", __func__);
 
-    p_msg->hdr.event = BTA_SDP_API_SEARCH_EVT;
-    bdcpy(p_msg->bd_addr, bd_addr);
-    // p_msg->uuid = uuid;
-    memcpy(&(p_msg->uuid), uuid, sizeof(tSDP_UUID));
+  p_msg->hdr.event = BTA_SDP_API_SEARCH_EVT;
+  bdcpy(p_msg->bd_addr, bd_addr);
+  // p_msg->uuid = uuid;
+  memcpy(&(p_msg->uuid), uuid, sizeof(tSDP_UUID));
 
-    bta_sys_sendmsg(p_msg);
+  bta_sys_sendmsg(p_msg);
 
-    return BTA_SDP_SUCCESS;
+  return BTA_SDP_SUCCESS;
 }
 
 /*******************************************************************************
@@ -122,19 +116,18 @@ tBTA_SDP_STATUS BTA_SdpSearch(BD_ADDR bd_addr, tSDP_UUID *uuid)
  *                  BTA_SDP_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data)
-{
-    tBTA_SDP_API_RECORD_USER *p_msg =
-        (tBTA_SDP_API_RECORD_USER *)osi_malloc(sizeof(tBTA_SDP_API_RECORD_USER));
+tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data) {
+  tBTA_SDP_API_RECORD_USER* p_msg =
+      (tBTA_SDP_API_RECORD_USER*)osi_malloc(sizeof(tBTA_SDP_API_RECORD_USER));
 
-    APPL_TRACE_API("%s", __func__);
+  APPL_TRACE_API("%s", __func__);
 
-    p_msg->hdr.event = BTA_SDP_API_CREATE_RECORD_USER_EVT;
-    p_msg->user_data = user_data;
+  p_msg->hdr.event = BTA_SDP_API_CREATE_RECORD_USER_EVT;
+  p_msg->user_data = user_data;
 
-    bta_sys_sendmsg(p_msg);
+  bta_sys_sendmsg(p_msg);
 
-    return BTA_SDP_SUCCESS;
+  return BTA_SDP_SUCCESS;
 }
 
 /*******************************************************************************
@@ -149,17 +142,16 @@ tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data)
  *                  BTA_SDP_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data)
-{
-    tBTA_SDP_API_RECORD_USER *p_msg =
-        (tBTA_SDP_API_RECORD_USER *)osi_malloc(sizeof(tBTA_SDP_API_RECORD_USER));
+tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data) {
+  tBTA_SDP_API_RECORD_USER* p_msg =
+      (tBTA_SDP_API_RECORD_USER*)osi_malloc(sizeof(tBTA_SDP_API_RECORD_USER));
 
-    APPL_TRACE_API("%s", __func__);
+  APPL_TRACE_API("%s", __func__);
 
-    p_msg->hdr.event = BTA_SDP_API_REMOVE_RECORD_USER_EVT;
-    p_msg->user_data = user_data;
+  p_msg->hdr.event = BTA_SDP_API_REMOVE_RECORD_USER_EVT;
+  p_msg->user_data = user_data;
 
-    bta_sys_sendmsg(p_msg);
+  bta_sys_sendmsg(p_msg);
 
-    return BTA_SDP_SUCCESS;
+  return BTA_SDP_SUCCESS;
 }

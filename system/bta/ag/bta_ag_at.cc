@@ -24,7 +24,6 @@
 
 #include <string.h>
 
-#include "bta_ag_at.h"
 #include "bt_common.h"
 #include "bta_ag_at.h"
 #include "utl.h"
@@ -43,10 +42,9 @@
  * Returns          void
  *
  *****************************************************************************/
-void bta_ag_at_init(tBTA_AG_AT_CB *p_cb)
-{
-    p_cb->p_cmd_buf = NULL;
-    p_cb->cmd_pos = 0;
+void bta_ag_at_init(tBTA_AG_AT_CB* p_cb) {
+  p_cb->p_cmd_buf = NULL;
+  p_cb->cmd_pos = 0;
 }
 
 /******************************************************************************
@@ -61,10 +59,9 @@ void bta_ag_at_init(tBTA_AG_AT_CB *p_cb)
  * Returns          void
  *
  *****************************************************************************/
-void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
-{
-    osi_free_and_reset((void **)&p_cb->p_cmd_buf);
-    p_cb->cmd_pos = 0;
+void bta_ag_at_reinit(tBTA_AG_AT_CB* p_cb) {
+  osi_free_and_reset((void**)&p_cb->p_cmd_buf);
+  p_cb->cmd_pos = 0;
 }
 
 /******************************************************************************
@@ -79,101 +76,78 @@ void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
  * Returns          void
  *
  *****************************************************************************/
-void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
-{
-    uint16_t    idx;
-    uint8_t     arg_type;
-    char        *p_arg;
-    int16_t     int_arg = 0;
-    /* loop through at command table looking for match */
-    for (idx = 0; p_cb->p_at_tbl[idx].p_cmd[0] != 0; idx++)
+void bta_ag_process_at(tBTA_AG_AT_CB* p_cb) {
+  uint16_t idx;
+  uint8_t arg_type;
+  char* p_arg;
+  int16_t int_arg = 0;
+  /* loop through at command table looking for match */
+  for (idx = 0; p_cb->p_at_tbl[idx].p_cmd[0] != 0; idx++) {
+    if (!utl_strucmp(p_cb->p_at_tbl[idx].p_cmd, p_cb->p_cmd_buf)) {
+      break;
+    }
+  }
+
+  /* if there is a match; verify argument type */
+  if (p_cb->p_at_tbl[idx].p_cmd[0] != 0) {
+    /* start of argument is p + strlen matching command */
+    p_arg = p_cb->p_cmd_buf + strlen(p_cb->p_at_tbl[idx].p_cmd);
+
+    /* if no argument */
+    if (p_arg[0] == 0) {
+      arg_type = BTA_AG_AT_NONE;
+    }
+    /* else if arg is '?' and it is last character */
+    else if (p_arg[0] == '?' && p_arg[1] == 0) {
+      /* we have a read */
+      arg_type = BTA_AG_AT_READ;
+    }
+    /* else if arg is '=' */
+    else if (p_arg[0] == '=' && p_arg[1] != 0) {
+      if (p_arg[1] == '?' && p_arg[2] == 0) {
+        /* we have a test */
+        arg_type = BTA_AG_AT_TEST;
+      } else {
+        /* we have a set */
+        arg_type = BTA_AG_AT_SET;
+
+        /* skip past '=' */
+        p_arg++;
+      }
+    } else
+    /* else it is freeform argument */
     {
-        if (!utl_strucmp(p_cb->p_at_tbl[idx].p_cmd, p_cb->p_cmd_buf))
-        {
-            break;
-        }
+      arg_type = BTA_AG_AT_FREE;
     }
 
-    /* if there is a match; verify argument type */
-    if (p_cb->p_at_tbl[idx].p_cmd[0] != 0)
-    {
-        /* start of argument is p + strlen matching command */
-        p_arg = p_cb->p_cmd_buf + strlen(p_cb->p_at_tbl[idx].p_cmd);
-
-        /* if no argument */
-        if (p_arg[0] == 0)
-        {
-            arg_type = BTA_AG_AT_NONE;
+    /* if arguments match command capabilities */
+    if ((arg_type & p_cb->p_at_tbl[idx].arg_type) != 0) {
+      /* if it's a set integer check max, min range */
+      if (arg_type == BTA_AG_AT_SET &&
+          p_cb->p_at_tbl[idx].fmt == BTA_AG_AT_INT) {
+        int_arg = utl_str2int(p_arg);
+        if (int_arg < (int16_t)p_cb->p_at_tbl[idx].min ||
+            int_arg > (int16_t)p_cb->p_at_tbl[idx].max) {
+          /* arg out of range; error */
+          (*p_cb->p_err_cback)(p_cb->p_user, false, NULL);
+        } else {
+          (*p_cb->p_cmd_cback)(p_cb->p_user, p_cb->p_at_tbl[idx].command_id,
+                               arg_type, p_arg, int_arg);
         }
-        /* else if arg is '?' and it is last character */
-        else if (p_arg[0] == '?' && p_arg[1] == 0)
-        {
-            /* we have a read */
-            arg_type = BTA_AG_AT_READ;
-        }
-        /* else if arg is '=' */
-        else if (p_arg[0] == '=' && p_arg[1] != 0)
-        {
-            if (p_arg[1] == '?' && p_arg[2] == 0)
-            {
-                /* we have a test */
-                arg_type = BTA_AG_AT_TEST;
-            }
-            else
-            {
-                /* we have a set */
-                arg_type = BTA_AG_AT_SET;
-
-                /* skip past '=' */
-                p_arg++;
-            }
-        }
-        else
-        /* else it is freeform argument */
-        {
-            arg_type = BTA_AG_AT_FREE;
-        }
-
-        /* if arguments match command capabilities */
-        if ((arg_type & p_cb->p_at_tbl[idx].arg_type) != 0)
-        {
-            /* if it's a set integer check max, min range */
-            if (arg_type == BTA_AG_AT_SET &&
-                p_cb->p_at_tbl[idx].fmt == BTA_AG_AT_INT)
-            {
-                int_arg = utl_str2int(p_arg);
-                if (int_arg < (int16_t) p_cb->p_at_tbl[idx].min ||
-                    int_arg > (int16_t) p_cb->p_at_tbl[idx].max)
-                {
-                    /* arg out of range; error */
-                    (*p_cb->p_err_cback)(p_cb->p_user, false, NULL);
-                }
-                else
-                {
-
-                    (*p_cb->p_cmd_cback)(p_cb->p_user,
-                                         p_cb->p_at_tbl[idx].command_id,
-                                         arg_type, p_arg, int_arg);
-                }
-            }
-            else
-            {
-                (*p_cb->p_cmd_cback)(p_cb->p_user,
-                                     p_cb->p_at_tbl[idx].command_id,
-                                     arg_type, p_arg, int_arg);
-            }
-        }
-        /* else error */
-        else
-        {
-            (*p_cb->p_err_cback)(p_cb->p_user, false, NULL);
-        }
+      } else {
+        (*p_cb->p_cmd_cback)(p_cb->p_user, p_cb->p_at_tbl[idx].command_id,
+                             arg_type, p_arg, int_arg);
+      }
     }
-    /* else no match call error callback */
-    else
-    {
-        (*p_cb->p_err_cback)(p_cb->p_user, true, p_cb->p_cmd_buf);
+    /* else error */
+    else {
+      (*p_cb->p_err_cback)(p_cb->p_user, false, NULL);
     }
+  }
+  /* else no match call error callback */
+  else {
+    (*p_cb->p_err_cback)(p_cb->p_user, true, p_cb->p_cmd_buf);
+  }
 }
 
 /******************************************************************************
@@ -188,58 +162,48 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
  * Returns          void
  *
  *****************************************************************************/
-void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, uint16_t len)
-{
-    int i = 0;
-    char* p_save;
+void bta_ag_at_parse(tBTA_AG_AT_CB* p_cb, char* p_buf, uint16_t len) {
+  int i = 0;
+  char* p_save;
 
-    if (p_cb->p_cmd_buf == NULL) {
-        p_cb->p_cmd_buf = (char *)osi_malloc(p_cb->cmd_max_len);
-        p_cb->cmd_pos = 0;
-    }
+  if (p_cb->p_cmd_buf == NULL) {
+    p_cb->p_cmd_buf = (char*)osi_malloc(p_cb->cmd_max_len);
+    p_cb->cmd_pos = 0;
+  }
 
-    for (i = 0; i < len;)
-    {
-        while (p_cb->cmd_pos < p_cb->cmd_max_len-1 && i < len)
-        {
-            /* Skip null characters between AT commands. */
-            if ((p_cb->cmd_pos == 0) && (p_buf[i] == 0))
-            {
-                i++;
-                continue;
-            }
+  for (i = 0; i < len;) {
+    while (p_cb->cmd_pos < p_cb->cmd_max_len - 1 && i < len) {
+      /* Skip null characters between AT commands. */
+      if ((p_cb->cmd_pos == 0) && (p_buf[i] == 0)) {
+        i++;
+        continue;
+      }
 
-            p_cb->p_cmd_buf[p_cb->cmd_pos] = p_buf[i++];
-            if ( p_cb->p_cmd_buf[p_cb->cmd_pos] == '\r' || p_cb->p_cmd_buf[p_cb->cmd_pos] == '\n')
-            {
-                p_cb->p_cmd_buf[p_cb->cmd_pos] = 0;
-                if ((p_cb->cmd_pos > 2)                                      &&
-                    (p_cb->p_cmd_buf[0] == 'A' || p_cb->p_cmd_buf[0] == 'a') &&
-                    (p_cb->p_cmd_buf[1] == 'T' || p_cb->p_cmd_buf[1] == 't'))
-                {
-                    p_save = p_cb->p_cmd_buf;
-                    p_cb->p_cmd_buf += 2;
-                    bta_ag_process_at(p_cb);
-                    p_cb->p_cmd_buf = p_save;
-                }
-
-                p_cb->cmd_pos = 0;
-
-            }
-            else if( p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1A || p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1B )
-            {
-                p_cb->p_cmd_buf[++p_cb->cmd_pos] = 0;
-                (*p_cb->p_err_cback)(p_cb->p_user, true, p_cb->p_cmd_buf);
-                p_cb->cmd_pos = 0;
-            }
-            else
-            {
-                ++p_cb->cmd_pos;
-            }
+      p_cb->p_cmd_buf[p_cb->cmd_pos] = p_buf[i++];
+      if (p_cb->p_cmd_buf[p_cb->cmd_pos] == '\r' ||
+          p_cb->p_cmd_buf[p_cb->cmd_pos] == '\n') {
+        p_cb->p_cmd_buf[p_cb->cmd_pos] = 0;
+        if ((p_cb->cmd_pos > 2) &&
+            (p_cb->p_cmd_buf[0] == 'A' || p_cb->p_cmd_buf[0] == 'a') &&
+            (p_cb->p_cmd_buf[1] == 'T' || p_cb->p_cmd_buf[1] == 't')) {
+          p_save = p_cb->p_cmd_buf;
+          p_cb->p_cmd_buf += 2;
+          bta_ag_process_at(p_cb);
+          p_cb->p_cmd_buf = p_save;
         }
 
-        if (i < len)
-            p_cb->cmd_pos = 0;
-    }
-}
+        p_cb->cmd_pos = 0;
 
+      } else if (p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1A ||
+                 p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1B) {
+        p_cb->p_cmd_buf[++p_cb->cmd_pos] = 0;
+        (*p_cb->p_err_cback)(p_cb->p_user, true, p_cb->p_cmd_buf);
+        p_cb->cmd_pos = 0;
+      } else {
+        ++p_cb->cmd_pos;
+      }
+    }
+
+    if (i < len) p_cb->cmd_pos = 0;
+  }
+}

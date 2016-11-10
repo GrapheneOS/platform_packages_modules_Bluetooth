@@ -30,8 +30,7 @@
  *  Function Declarations
  ****************************************************************************/
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /*******************************************************************************
@@ -45,7 +44,7 @@ extern "C"
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_ag_ci_rx_write(uint16_t handle, char *p_data, uint16_t len);
+extern void bta_ag_ci_rx_write(uint16_t handle, char* p_data, uint16_t len);
 
 /******************************************************************************
  *
@@ -70,7 +69,7 @@ extern void bta_ag_ci_slc_ready(uint16_t handle);
  * Returns          void
  *
  *****************************************************************************/
-extern void bta_ag_ci_wbs_command (uint16_t handle, char *p_data, uint16_t len);
+extern void bta_ag_ci_wbs_command(uint16_t handle, char* p_data, uint16_t len);
 
 #ifdef __cplusplus
 }

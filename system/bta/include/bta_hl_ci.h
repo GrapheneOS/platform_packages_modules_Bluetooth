@@ -60,9 +60,8 @@ extern "C" {
  * Returns          void
  *
  ******************************************************************************/
-extern  void bta_hl_ci_get_tx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
-                                     tBTA_HL_STATUS status,
-                                     uint16_t evt );
+extern void bta_hl_ci_get_tx_data(tBTA_HL_MDL_HANDLE mdl_handle,
+                                  tBTA_HL_STATUS status, uint16_t evt);
 
 /*******************************************************************************
  *
@@ -79,11 +78,8 @@ extern  void bta_hl_ci_get_tx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
  * Returns          void
  *
  ******************************************************************************/
-extern  void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
-                                     tBTA_HL_STATUS status,
-                                     uint16_t evt );
-
-
+extern void bta_hl_ci_put_rx_data(tBTA_HL_MDL_HANDLE mdl_handle,
+                                  tBTA_HL_STATUS status, uint16_t evt);
 
 /*******************************************************************************
  *
@@ -100,10 +96,8 @@ extern  void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
  * Returns          void
  *
  ******************************************************************************/
-extern  void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
-                                       tBTA_HL_STATUS status,
-                                       uint16_t evt );
-
+extern void bta_hl_ci_get_echo_data(tBTA_HL_MCL_HANDLE mcl_handle,
+                                    tBTA_HL_STATUS status, uint16_t evt);
 
 /*******************************************************************************
  *
@@ -120,9 +114,8 @@ extern  void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_hl_ci_put_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
-                                      tBTA_HL_STATUS status,
-                                      uint16_t evt );
+extern void bta_hl_ci_put_echo_data(tBTA_HL_MCL_HANDLE mcl_handle,
+                                    tBTA_HL_STATUS status, uint16_t evt);
 
 #ifdef __cplusplus
 }
