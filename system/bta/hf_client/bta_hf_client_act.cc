@@ -37,23 +37,23 @@
 #include <string.h>
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* maximum length of data to read from RFCOMM */
 #define BTA_HF_CLIENT_RFC_READ_MAX     512
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_register
-**
-** Description      This function initializes values of the scb and sets up
-**                  the SDP record for the services.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_register
+ *
+ * Description      This function initializes values of the scb and sets up
+ *                  the SDP record for the services.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_register(tBTA_HF_CLIENT_DATA *p_data)
 {
     tBTA_HF_CLIENT evt;
@@ -86,16 +86,16 @@ void bta_hf_client_register(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_deregister
-**
-** Description      This function removes the sdp records, closes the RFCOMM
-**                  servers, and deallocates the service control block.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_deregister
+ *
+ * Description      This function removes the sdp records, closes the RFCOMM
+ *                  servers, and deallocates the service control block.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_deregister(tBTA_HF_CLIENT_DATA *p_data)
 {
     bta_hf_client_cb.scb.deregister = true;
@@ -111,15 +111,15 @@ void bta_hf_client_deregister(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_start_dereg
-**
-** Description      Start a deregister event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_start_dereg
+ *
+ * Description      Start a deregister event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_start_dereg(tBTA_HF_CLIENT_DATA *p_data)
 {
     bta_hf_client_cb.scb.deregister = true;
@@ -129,15 +129,15 @@ void bta_hf_client_start_dereg(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_start_close
-**
-** Description      Start the process of closing SCO and RFCOMM connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_start_close
+ *
+ * Description      Start the process of closing SCO and RFCOMM connection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_start_close(tBTA_HF_CLIENT_DATA *p_data)
 {
     /* Take the link out of sniff and set L2C idle time to 0 */
@@ -159,15 +159,15 @@ void bta_hf_client_start_close(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_start_open
-**
-** Description      This starts an HF Client open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_start_open
+ *
+ * Description      This starts an HF Client open.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_start_open(tBTA_HF_CLIENT_DATA *p_data)
 {
     BD_ADDR pending_bd_addr;
@@ -200,15 +200,15 @@ void bta_hf_client_start_open(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_cback_open
-**
-** Description      Send open callback event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_cback_open
+ *
+ * Description      Send open callback event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_cback_open(tBTA_HF_CLIENT_DATA *p_data, tBTA_HF_CLIENT_STATUS status)
 {
     tBTA_HF_CLIENT evt;
@@ -231,15 +231,15 @@ static void bta_hf_client_cback_open(tBTA_HF_CLIENT_DATA *p_data, tBTA_HF_CLIENT
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_rfc_open
-**
-** Description      Handle RFCOMM channel open.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_rfc_open
+ *
+ * Description      Handle RFCOMM channel open.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_rfc_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     bta_sys_conn_open(BTA_ID_HS, 1, bta_hf_client_cb.scb.peer_addr);
@@ -251,15 +251,15 @@ void bta_hf_client_rfc_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_rfc_acp_open
-**
-** Description      Handle RFCOMM channel open when accepting connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_rfc_acp_open
+ *
+ * Description      Handle RFCOMM channel open when accepting connection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA *p_data)
 {
     uint16_t          lcid;
@@ -305,15 +305,15 @@ void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_rfc_fail
-**
-** Description      RFCOMM connection failed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_rfc_fail
+ *
+ * Description      RFCOMM connection failed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_rfc_fail(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     /* reinitialize stuff */
@@ -335,15 +335,15 @@ void bta_hf_client_rfc_fail(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_disc_fail
-**
-** Description      This function handles a discovery failure.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_disc_fail
+ *
+ * Description      This function handles a discovery failure.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_disc_fail(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     /* reopen server */
@@ -356,15 +356,15 @@ void bta_hf_client_disc_fail(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_open_fail
-**
-** Description      open connection failed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_open_fail
+ *
+ * Description      open connection failed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_open_fail(tBTA_HF_CLIENT_DATA *p_data)
 {
     /* call open cback w. failure */
@@ -372,15 +372,15 @@ void bta_hf_client_open_fail(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_rfc_close
-**
-** Description      RFCOMM connection closed.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_rfc_close
+ *
+ * Description      RFCOMM connection closed.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_rfc_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     /* reinitialize stuff */
@@ -423,15 +423,15 @@ void bta_hf_client_rfc_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_disc_int_res
-**
-** Description      This function handles a discovery result when initiator.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_disc_int_res
+ *
+ * Description      This function handles a discovery result when initiator.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_disc_int_res(tBTA_HF_CLIENT_DATA *p_data)
 {
     uint16_t event = BTA_HF_CLIENT_DISC_FAIL_EVT;
@@ -457,15 +457,15 @@ void bta_hf_client_disc_int_res(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_disc_acp_res
-**
-** Description      This function handles a discovery result when acceptor.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_disc_acp_res
+ *
+ * Description      This function handles a discovery result when acceptor.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_disc_acp_res(tBTA_HF_CLIENT_DATA *p_data)
 {
     /* if found service */
@@ -481,15 +481,15 @@ void bta_hf_client_disc_acp_res(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_rfc_data
-**
-** Description      Read and process data from RFCOMM.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_rfc_data
+ *
+ * Description      Read and process data from RFCOMM.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_rfc_data(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     uint16_t  len;
@@ -517,15 +517,15 @@ void bta_hf_client_rfc_data(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_svc_conn_open
-**
-** Description      Service level connection opened
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_svc_conn_open
+ *
+ * Description      Service level connection opened
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_svc_conn_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     tBTA_HF_CLIENT evt;
@@ -546,14 +546,14 @@ void bta_hf_client_svc_conn_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_cback_ind
-**
-** Description      Send indicator callback event to application.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_cback_ind
+ *
+ * Description      Send indicator callback event to application.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, uint16_t value)
 {
     tBTA_HF_CLIENT evt;
@@ -567,16 +567,16 @@ void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, uint16_t value)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_evt_val
-**
-** Description      Send event to application.
-**                  This is a generic helper for events with common data.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_evt_val
+ *
+ * Description      Send event to application.
+ *                  This is a generic helper for events with common data.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_evt_val(tBTA_HF_CLIENT_EVT type, uint16_t value)
 {
     tBTA_HF_CLIENT evt;
@@ -589,15 +589,15 @@ void bta_hf_client_evt_val(tBTA_HF_CLIENT_EVT type, uint16_t value)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_operator_name
-**
-** Description      Send operator name event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_operator_name
+ *
+ * Description      Send operator name event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_operator_name(char *name)
 {
     tBTA_HF_CLIENT evt;
@@ -612,15 +612,15 @@ void bta_hf_client_operator_name(char *name)
 
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_clip
-**
-** Description      Send CLIP event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_clip
+ *
+ * Description      Send CLIP event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_clip(char *number)
 {
     tBTA_HF_CLIENT evt;
@@ -634,15 +634,15 @@ void bta_hf_client_clip(char *number)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_ccwa
-**
-** Description      Send CLIP event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_ccwa
+ *
+ * Description      Send CLIP event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_ccwa(char *number)
 {
     tBTA_HF_CLIENT evt;
@@ -656,15 +656,15 @@ void bta_hf_client_ccwa(char *number)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_at_result
-**
-** Description      Send AT result event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_at_result
+ *
+ * Description      Send AT result event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, uint16_t cme)
 {
     tBTA_HF_CLIENT evt;
@@ -678,15 +678,15 @@ void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, uint16_t cme)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_clcc
-**
-** Description      Send clcc event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_clcc
+ *
+ * Description      Send clcc event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_clcc(uint32_t idx, bool incoming, uint8_t status, bool mpty, char *number)
 {
     tBTA_HF_CLIENT evt;
@@ -709,15 +709,15 @@ void bta_hf_client_clcc(uint32_t idx, bool incoming, uint8_t status, bool mpty, 
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_cnum
-**
-** Description      Send cnum event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_cnum
+ *
+ * Description      Send cnum event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_cnum(char *number, uint16_t service)
 {
     tBTA_HF_CLIENT evt;
@@ -732,15 +732,15 @@ void bta_hf_client_cnum(char *number, uint16_t service)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_binp
-**
-** Description      Send BINP event to application.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_binp
+ *
+ * Description      Send BINP event to application.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_binp(char *number)
 {
     tBTA_HF_CLIENT evt;

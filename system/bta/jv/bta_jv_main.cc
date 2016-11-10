@@ -28,8 +28,8 @@
 #include "bta_jv_int.h"
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 tBTA_JV_CB bta_jv_cb;
 
@@ -70,15 +70,15 @@ const tBTA_JV_ACTION bta_jv_action[] =
 };
 
 /*******************************************************************************
-**
-** Function         bta_jv_sm_execute
-**
-** Description      State machine event handling function for JV
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_jv_sm_execute
+ *
+ * Description      State machine event handling function for JV
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_jv_sm_execute(BT_HDR *p_msg)
 {
     bool ret = false;

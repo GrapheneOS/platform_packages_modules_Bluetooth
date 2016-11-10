@@ -39,8 +39,8 @@
 #include "sdp_api.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 static const uint8_t  UUID_OBEX_OBJECT_PUSH[] = {0x00, 0x00, 0x11, 0x05, 0x00, 0x00, 0x10, 0x00,
                                                  0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
@@ -370,14 +370,14 @@ static void bta_create_raw_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 
 
 /*******************************************************************************
-**
-** Function     bta_sdp_search_cback
-**
-** Description  Callback from btm after search is completed
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_sdp_search_cback
+ *
+ * Description  Callback from btm after search is completed
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 static void bta_sdp_search_cback(uint16_t result, void * user_data)
 {
     tSDP_DISC_REC *p_rec = NULL;
@@ -446,14 +446,14 @@ static void bta_sdp_search_cback(uint16_t result, void * user_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_sdp_enable
-**
-** Description  Initializes the SDP I/F
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_sdp_enable
+ *
+ * Description  Initializes the SDP I/F
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_sdp_enable(tBTA_SDP_MSG *p_data)
 {
     APPL_TRACE_DEBUG("%s in, sdp_active:%d", __func__, bta_sdp_cb.sdp_active);
@@ -463,14 +463,14 @@ void bta_sdp_enable(tBTA_SDP_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_sdp_search
-**
-** Description  Discovers all sdp records for an uuid on remote device
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_sdp_search
+ *
+ * Description  Discovers all sdp records for an uuid on remote device
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_sdp_search(tBTA_SDP_MSG *p_data)
 {
     if (p_data == NULL) {
@@ -533,14 +533,14 @@ void bta_sdp_search(tBTA_SDP_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_sdp_record
-**
-** Description  Discovers all sdp records for an uuid on remote device
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_sdp_record
+ *
+ * Description  Discovers all sdp records for an uuid on remote device
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_sdp_create_record(tBTA_SDP_MSG *p_data)
 {
     APPL_TRACE_DEBUG("%s() event: %d", __func__, p_data->record.hdr.event);
@@ -549,14 +549,14 @@ void bta_sdp_create_record(tBTA_SDP_MSG *p_data)
 }
 
 /*******************************************************************************
-**
-** Function     bta_sdp_create_record
-**
-** Description  Discovers all sdp records for an uuid on remote device
-**
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     bta_sdp_create_record
+ *
+ * Description  Discovers all sdp records for an uuid on remote device
+ *
+ * Returns      void
+ *
+ ******************************************************************************/
 void bta_sdp_remove_record(tBTA_SDP_MSG *p_data)
 {
     APPL_TRACE_DEBUG("%s() event: %d", __func__, p_data->record.hdr.event);

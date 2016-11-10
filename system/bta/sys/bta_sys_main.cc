@@ -158,15 +158,15 @@ const tBTA_SYS_ST_TBL bta_sys_st_tbl[] = {
 };
 
 /*******************************************************************************
-**
-** Function         bta_sys_init
-**
-** Description      BTA initialization; called from task initialization.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_init
+ *
+ * Description      BTA initialization; called from task initialization.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_init(void)
 {
     memset(&bta_sys_cb, 0, sizeof(tBTA_SYS_CB));
@@ -197,15 +197,15 @@ void bta_sys_free(void) {
 }
 
 /*******************************************************************************
-**
-** Function         bta_dm_sm_execute
-**
-** Description      State machine event handling function for DM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_dm_sm_execute
+ *
+ * Description      State machine event handling function for DM
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_sys_sm_execute(BT_HDR *p_msg)
 {
     bool freebuf = true;
@@ -249,15 +249,15 @@ void bta_sys_hw_unregister( tBTA_SYS_HW_MODULE module )
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_hw_btm_cback
-**
-** Description     This function is registered by BTA SYS to BTM in order to get status notifications
-**
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_hw_btm_cback
+ *
+ * Description     This function is registered by BTA SYS to BTM in order to get status notifications
+ *
+ *
+ * Returns
+ *
+ ******************************************************************************/
 void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
 {
 
@@ -281,15 +281,15 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_hw_error
-**
-** Description     In case the HW device stops answering... Try to turn it off, then re-enable all
-**                      previously active SW modules.
-**
-** Returns          success or failure
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_hw_error
+ *
+ * Description     In case the HW device stops answering... Try to turn it off, then re-enable all
+ *                      previously active SW modules.
+ *
+ * Returns          success or failure
+ *
+ ******************************************************************************/
 void bta_sys_hw_error(UNUSED_ATTR tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     uint8_t module_index;
@@ -317,15 +317,15 @@ void bta_sys_hw_error(UNUSED_ATTR tBTA_SYS_HW_MSG *p_sys_hw_msg)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_hw_enable
-**
-** Description     this function is called after API enable and HW has been turned on
-**
-**
-** Returns          success or failure
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_hw_enable
+ *
+ * Description     this function is called after API enable and HW has been turned on
+ *
+ *
+ * Returns          success or failure
+ *
+ ******************************************************************************/
 
 void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
 {
@@ -357,15 +357,15 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_hw_disable
-**
-** Description     if no other module is using the HW, this function will call ( if defined ) a user-macro to turn off the HW
-**
-**
-** Returns          success or failure
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_hw_disable
+ *
+ * Description     if no other module is using the HW, this function will call ( if defined ) a user-macro to turn off the HW
+ *
+ *
+ * Returns          success or failure
+ *
+ ******************************************************************************/
 void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     APPL_TRACE_DEBUG("bta_sys_hw_api_disable for %d, active modules: 0x%04X",
@@ -401,15 +401,15 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_hw_event_enabled
-**
-** Description
-**
-**
-** Returns          success or failure
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_hw_event_enabled
+ *
+ * Description
+ *
+ *
+ * Returns          success or failure
+ *
+ ******************************************************************************/
 void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     APPL_TRACE_EVENT("bta_sys_hw_evt_enabled for %i", p_sys_hw_msg->hw_module);
@@ -418,15 +418,15 @@ void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_hw_event_disabled
-**
-** Description
-**
-**
-** Returns          success or failure
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_hw_event_disabled
+ *
+ * Description
+ *
+ *
+ * Returns          success or failure
+ *
+ ******************************************************************************/
 void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     uint8_t hw_module_index;
@@ -441,15 +441,15 @@ void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_hw_event_stack_enabled
-**
-** Description     we receive this event once the SW side is ready ( stack, FW download,... ),
-**                       i.e. we can really start using the device. So notify the app.
-**
-** Returns          success or failure
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_hw_event_stack_enabled
+ *
+ * Description     we receive this event once the SW side is ready ( stack, FW download,... ),
+ *                       i.e. we can really start using the device. So notify the app.
+ *
+ * Returns          success or failure
+ *
+ ******************************************************************************/
 void bta_sys_hw_evt_stack_enabled(UNUSED_ATTR tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     uint8_t hw_module_index;
@@ -467,15 +467,15 @@ void bta_sys_hw_evt_stack_enabled(UNUSED_ATTR tBTA_SYS_HW_MSG *p_sys_hw_msg)
 
 
 /*******************************************************************************
-**
-** Function         bta_sys_event
-**
-** Description      BTA event handler; called from task event handler.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_event
+ *
+ * Description      BTA event handler; called from task event handler.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_event(BT_HDR *p_msg)
 {
     uint8_t       id;
@@ -504,16 +504,16 @@ void bta_sys_event(BT_HDR *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_register
-**
-** Description      Called by other BTA subsystems to register their event
-**                  handler.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_register
+ *
+ * Description      Called by other BTA subsystems to register their event
+ *                  handler.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_register(uint8_t id, const tBTA_SYS_REG *p_reg)
 {
     bta_sys_cb.reg[id] = (tBTA_SYS_REG *) p_reg;
@@ -521,49 +521,49 @@ void bta_sys_register(uint8_t id, const tBTA_SYS_REG *p_reg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_deregister
-**
-** Description      Called by other BTA subsystems to de-register
-**                  handler.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_deregister
+ *
+ * Description      Called by other BTA subsystems to de-register
+ *                  handler.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_deregister(uint8_t id)
 {
     bta_sys_cb.is_reg[id] = false;
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_is_register
-**
-** Description      Called by other BTA subsystems to get registeration
-**                  status.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_is_register
+ *
+ * Description      Called by other BTA subsystems to get registeration
+ *                  status.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool bta_sys_is_register(uint8_t id)
 {
     return bta_sys_cb.is_reg[id];
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_sendmsg
-**
-** Description      Send a GKI message to BTA.  This function is designed to
-**                  optimize sending of messages to BTA.  It is called by BTA
-**                  API functions and call-in functions.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_sendmsg
+ *
+ * Description      Send a GKI message to BTA.  This function is designed to
+ *                  optimize sending of messages to BTA.  It is called by BTA
+ *                  API functions and call-in functions.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_sendmsg(void *p_msg)
 {
     // There is a race condition that occurs if the stack is shut down while
@@ -575,15 +575,15 @@ void bta_sys_sendmsg(void *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_start_timer
-**
-** Description      Start a protocol timer for the specified amount
-**                  of time in milliseconds.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_start_timer
+ *
+ * Description      Start a protocol timer for the specified amount
+ *                  of time in milliseconds.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_start_timer(alarm_t *alarm, period_ms_t interval, uint16_t event,
                          uint16_t layer_specific)
 {
@@ -596,14 +596,14 @@ void bta_sys_start_timer(alarm_t *alarm, period_ms_t interval, uint16_t event,
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_disable
-**
-** Description      For each registered subsystem execute its disable function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_disable
+ *
+ * Description      For each registered subsystem execute its disable function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_disable(tBTA_SYS_HW_MODULE module)
 {
     int bta_id = 0;
@@ -635,28 +635,28 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_set_trace_level
-**
-** Description      Set trace level for BTA
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_set_trace_level
+ *
+ * Description      Set trace level for BTA
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_sys_set_trace_level(uint8_t level)
 {
     appl_trace_level = level;
 }
 
 /*******************************************************************************
-**
-** Function         bta_sys_get_sys_features
-**
-** Description      Returns sys_features to other BTA modules.
-**
-** Returns          sys_features
-**
-*******************************************************************************/
+ *
+ * Function         bta_sys_get_sys_features
+ *
+ * Description      Returns sys_features to other BTA modules.
+ *
+ * Returns          sys_features
+ *
+ ******************************************************************************/
 uint16_t bta_sys_get_sys_features (void)
 {
     return bta_sys_cb.sys_features;

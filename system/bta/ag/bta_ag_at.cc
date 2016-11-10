@@ -28,19 +28,19 @@
 #include "utl.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /******************************************************************************
-**
-** Function         bta_ag_at_init
-**
-** Description      Initialize the AT command parser control block.
-**
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ag_at_init
+ *
+ * Description      Initialize the AT command parser control block.
+ *
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void bta_ag_at_init(tBTA_AG_AT_CB *p_cb)
 {
     p_cb->p_cmd_buf = NULL;
@@ -48,17 +48,17 @@ void bta_ag_at_init(tBTA_AG_AT_CB *p_cb)
 }
 
 /******************************************************************************
-**
-** Function         bta_ag_at_reinit
-**
-** Description      Re-initialize the AT command parser control block.  This
-**                  function resets the AT command parser state and frees
-**                  any GKI buffer.
-**
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ag_at_reinit
+ *
+ * Description      Re-initialize the AT command parser control block.  This
+ *                  function resets the AT command parser state and frees
+ *                  any GKI buffer.
+ *
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
 {
     osi_free_and_reset((void **)&p_cb->p_cmd_buf);
@@ -66,17 +66,17 @@ void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
 }
 
 /******************************************************************************
-**
-** Function         bta_ag_process_at
-**
-** Description      Parse AT commands.  This function will take the input
-**                  character string and parse it for AT commands according to
-**                  the AT command table passed in the control block.
-**
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ag_process_at
+ *
+ * Description      Parse AT commands.  This function will take the input
+ *                  character string and parse it for AT commands according to
+ *                  the AT command table passed in the control block.
+ *
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
 {
     uint16_t    idx;
@@ -175,17 +175,17 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
 }
 
 /******************************************************************************
-**
-** Function         bta_ag_at_parse
-**
-** Description      Parse AT commands.  This function will take the input
-**                  character string and parse it for AT commands according to
-**                  the AT command table passed in the control block.
-**
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ag_at_parse
+ *
+ * Description      Parse AT commands.  This function will take the input
+ *                  character string and parse it for AT commands according to
+ *                  the AT command table passed in the control block.
+ *
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, uint16_t len)
 {
     int i = 0;

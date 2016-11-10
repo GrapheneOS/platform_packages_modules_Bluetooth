@@ -38,18 +38,18 @@
 #if (BTA_PAN_INCLUDED == TRUE)
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_tx_ready
-**
-** Description      This function sends an event to PAN indicating the phone is
-**                  ready for more data and PAN should call bta_pan_co_tx_path().
-**                  This function is used when the TX data path is configured
-**                  to use a pull interface.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_tx_ready
+ *
+ * Description      This function sends an event to PAN indicating the phone is
+ *                  ready for more data and PAN should call bta_pan_co_tx_path().
+ *                  This function is used when the TX data path is configured
+ *                  to use a pull interface.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_ci_tx_ready(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -61,18 +61,18 @@ void bta_pan_ci_tx_ready(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_rx_ready
-**
-** Description      This function sends an event to PAN indicating the phone
-**                  has data available to send to PAN and PAN should call
-**                  bta_pan_co_rx_path().  This function is used when the RX
-**                  data path is configured to use a pull interface.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_rx_ready
+ *
+ * Description      This function sends an event to PAN indicating the phone
+ *                  has data available to send to PAN and PAN should call
+ *                  bta_pan_co_rx_path().  This function is used when the RX
+ *                  data path is configured to use a pull interface.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_ci_rx_ready(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
@@ -84,20 +84,20 @@ void bta_pan_ci_rx_ready(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_tx_flow
-**
-** Description      This function is called to enable or disable data flow on
-**                  the TX path.  The phone should call this function to
-**                  disable data flow when it is congested and cannot handle
-**                  any more data sent by bta_pan_co_tx_write() or
-**                  bta_pan_co_tx_writebuf().  This function is used when the
-**                  TX data path is configured to use a push interface.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_tx_flow
+ *
+ * Description      This function is called to enable or disable data flow on
+ *                  the TX path.  The phone should call this function to
+ *                  disable data flow when it is congested and cannot handle
+ *                  any more data sent by bta_pan_co_tx_write() or
+ *                  bta_pan_co_tx_writebuf().  This function is used when the
+ *                  TX data path is configured to use a push interface.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_ci_tx_flow(uint16_t handle, bool enable)
 {
     tBTA_PAN_CI_TX_FLOW  *p_buf =
@@ -111,17 +111,17 @@ void bta_pan_ci_tx_flow(uint16_t handle, bool enable)
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_rx_write
-**
-** Description      This function is called to send data to PAN when the RX path
-**                  is configured to use a push interface.  The function copies
-**                  data to an event buffer and sends it to PAN.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_rx_write
+ *
+ * Description      This function is called to send data to PAN when the RX path
+ *                  is configured to use a push interface.  The function copies
+ *                  data to an event buffer and sends it to PAN.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_ci_rx_write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol,
                             uint8_t *p_data, uint16_t len, bool ext)
 {
@@ -146,19 +146,19 @@ void bta_pan_ci_rx_write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t pro
 }
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_rx_writebuf
-**
-** Description      This function is called to send data to the phone when
-**                  the RX path is configured to use a push interface with
-**                  zero copy.  The function sends an event to PAN containing
-**                  the data buffer. The buffer will be freed by BTA; the
-**                  phone must not free the buffer.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_rx_writebuf
+ *
+ * Description      This function is called to send data to the phone when
+ *                  the RX path is configured to use a push interface with
+ *                  zero copy.  The function sends an event to PAN containing
+ *                  the data buffer. The buffer will be freed by BTA; the
+ *                  phone must not free the buffer.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol,
                             BT_HDR *p_buf, bool ext)
 {
@@ -178,15 +178,15 @@ void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t 
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_readbuf
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_readbuf
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t* p_protocol,
                                  bool* p_ext, bool* p_forward)
 {
@@ -210,15 +210,15 @@ BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t*
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_set_mfilters
-**
-** Description      This function is called to set multicast filters
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_set_mfilters
+ *
+ * Description      This function is called to set multicast filters
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_t *p_start_array,
                                                     uint8_t *p_end_array)
 {
@@ -229,15 +229,15 @@ void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_
 
 
 /*******************************************************************************
-**
-** Function         bta_pan_ci_set_mfilters
-**
-** Description      This function is called to set protocol filters
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_pan_ci_set_mfilters
+ *
+ * Description      This function is called to set protocol filters
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters, uint16_t *p_start_array, uint16_t *p_end_array)
 {
 

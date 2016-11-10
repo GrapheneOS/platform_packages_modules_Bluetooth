@@ -27,49 +27,49 @@
 #include "bta_ag_api.h"
 
 /*****************************************************************************
-**  Function Declarations
-*****************************************************************************/
+ *  Function Declarations
+ ****************************************************************************/
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_ag_ci_rx_write
-**
-** Description      This function is called to send data to the AG when the AG
-**                  is configured for AT command pass-through.  The function
-**                  copies data to an event buffer and sends it.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_ag_ci_rx_write
+ *
+ * Description      This function is called to send data to the AG when the AG
+ *                  is configured for AT command pass-through.  The function
+ *                  copies data to an event buffer and sends it.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_ag_ci_rx_write(uint16_t handle, char *p_data, uint16_t len);
 
 /******************************************************************************
-**
-** Function         bta_ag_ci_slc_ready
-**
-** Description      This function is called to notify AG that SLC is up at
-**                  the application. This funcion is only used when the app
-**                  is running in pass-through mode.
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ag_ci_slc_ready
+ *
+ * Description      This function is called to notify AG that SLC is up at
+ *                  the application. This funcion is only used when the app
+ *                  is running in pass-through mode.
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 extern void bta_ag_ci_slc_ready(uint16_t handle);
 
 /******************************************************************************
-**
-** Function         bta_ag_ci_wbs_command
-**
-** Description      This function is called to notify AG that a WBS command is
-**                  received
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         bta_ag_ci_wbs_command
+ *
+ * Description      This function is called to notify AG that a WBS command is
+ *                  received
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 extern void bta_ag_ci_wbs_command (uint16_t handle, char *p_data, uint16_t len);
 
 #ifdef __cplusplus

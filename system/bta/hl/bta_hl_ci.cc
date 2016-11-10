@@ -33,20 +33,20 @@
 #include "bta_hl_int.h"
 
 /*******************************************************************************
-**
-** Function         bta_hl_ci_get_tx_data
-**
-** Description      This function is called in response to the
-**                  bta_hl_co_get_tx_data call-out function.
-**
-** Parameters       mdl_handle -MDL handle
-**                  status - BTA_MA_STATUS_OK if operation is successful
-**                           BTA_MA_STATUS_FAIL if any errors have occurred.
-**                  evt    - evt from the call-out function
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_ci_get_tx_data
+ *
+ * Description      This function is called in response to the
+ *                  bta_hl_co_get_tx_data call-out function.
+ *
+ * Parameters       mdl_handle -MDL handle
+ *                  status - BTA_MA_STATUS_OK if operation is successful
+ *                           BTA_MA_STATUS_FAIL if any errors have occurred.
+ *                  evt    - evt from the call-out function
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hl_ci_get_tx_data(tBTA_HL_MDL_HANDLE mdl_handle,
                            tBTA_HL_STATUS status, uint16_t evt)
 {
@@ -66,20 +66,20 @@ void bta_hl_ci_get_tx_data(tBTA_HL_MDL_HANDLE mdl_handle,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_ci_put_rx_data
-**
-** Description      This function is called in response to the
-**                  bta_hl_co_put_rx_data call-out function.
-**
-** Parameters       mdl_handle -MDL handle
-**                  status - BTA_MA_STATUS_OK if operation is successful
-**                           BTA_MA_STATUS_FAIL if any errors have occurred.
-**                  evt    - evt from the call-out function
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_ci_put_rx_data
+ *
+ * Description      This function is called in response to the
+ *                  bta_hl_co_put_rx_data call-out function.
+ *
+ * Parameters       mdl_handle -MDL handle
+ *                  status - BTA_MA_STATUS_OK if operation is successful
+ *                           BTA_MA_STATUS_FAIL if any errors have occurred.
+ *                  evt    - evt from the call-out function
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
                                     tBTA_HL_STATUS status,
                                     uint16_t evt )
@@ -100,20 +100,20 @@ extern void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_ci_get_echo_data
-**
-** Description      This function is called in response to the
-**                  bta_hl_co_get_echo_data call-out function.
-**
-** Parameters       mcl_handle -MCL handle
-**                  status - BTA_MA_STATUS_OK if operation is successful
-**                           BTA_MA_STATUS_FAIL if any errors have occurred.
-**                  evt    - evt from the call-out function
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_ci_get_echo_data
+ *
+ * Description      This function is called in response to the
+ *                  bta_hl_co_get_echo_data call-out function.
+ *
+ * Parameters       mcl_handle -MCL handle
+ *                  status - BTA_MA_STATUS_OK if operation is successful
+ *                           BTA_MA_STATUS_FAIL if any errors have occurred.
+ *                  evt    - evt from the call-out function
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
                                       tBTA_HL_STATUS status,
                                       uint16_t evt )
@@ -134,20 +134,20 @@ extern void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
 }
 
 /*******************************************************************************
-**
-** Function         bta_hl_ci_put_echo_data
-**
-** Description      This function is called in response to the
-**                  bta_hl_co_put_echo_data call-out function.
-**
-** Parameters       mcl_handle -MCL handle
-**                  status - BTA_MA_STATUS_OK if operation is successful
-**                           BTA_MA_STATUS_FAIL if any errors have occurred.
-**                  evt    - evt from the call-out function
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hl_ci_put_echo_data
+ *
+ * Description      This function is called in response to the
+ *                  bta_hl_co_put_echo_data call-out function.
+ *
+ * Parameters       mcl_handle -MCL handle
+ *                  status - BTA_MA_STATUS_OK if operation is successful
+ *                           BTA_MA_STATUS_FAIL if any errors have occurred.
+ *                  evt    - evt from the call-out function
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void bta_hl_ci_put_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
                                       tBTA_HL_STATUS status,
                                       uint16_t evt )

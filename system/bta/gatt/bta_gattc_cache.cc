@@ -67,8 +67,8 @@ static void bta_gattc_generate_cache_file_name(char *buffer,
 }
 
 /*****************************************************************************
-**  Constants and data types
-*****************************************************************************/
+ *  Constants and data types
+ ****************************************************************************/
 
 typedef struct
 {
@@ -109,14 +109,14 @@ bool display_cache_service(void *data, void *context) {
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_display_cache_server
-**
-** Description      debug function to display the server cache.
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_display_cache_server
+ *
+ * Description      debug function to display the server cache.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 static void bta_gattc_display_cache_server(list_t *p_cache)
 {
     APPL_TRACE_ERROR("<================Start Server Cache =============>");
@@ -126,14 +126,14 @@ static void bta_gattc_display_cache_server(list_t *p_cache)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_display_explore_record
-**
-** Description      debug function to display the exploration list
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_display_explore_record
+ *
+ * Description      debug function to display the exploration list
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, uint8_t num_rec)
 {
     uint8_t i;
@@ -152,14 +152,14 @@ static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, uint8_t
 #endif  /* BTA_GATT_DEBUG == TRUE */
 
 /*******************************************************************************
-**
-** Function         bta_gattc_init_cache
-**
-** Description      Initialize the database cache and discovery related resources.
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_init_cache
+ *
+ * Description      Initialize the database cache and discovery related resources.
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
 {
     if (p_srvc_cb->p_srvc_cache != NULL) {
@@ -192,14 +192,14 @@ static void service_free(void *ptr) {
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_add_srvc_to_cache
-**
-** Description      Add a service into database cache.
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_add_srvc_to_cache
+ *
+ * Description      Add a service into database cache.
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
                                                     uint16_t s_handle, uint16_t e_handle,
                                                     tBT_UUID *p_uuid,
@@ -267,14 +267,14 @@ static tBTA_GATT_STATUS bta_gattc_add_char_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_add_attr_to_cache
-**
-** Description      Add an attribute into database cache buffer.
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_add_attr_to_cache
+ *
+ * Description      Add an attribute into database cache buffer.
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
                                                     uint16_t handle,
                                                     tBT_UUID *p_uuid,
@@ -335,14 +335,14 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_get_disc_range
-**
-** Description      get discovery stating and ending handle range.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_get_disc_range
+ *
+ * Description      get discovery stating and ending handle range.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_get_disc_range(tBTA_GATTC_SERV *p_srvc_cb, uint16_t *p_s_hdl, uint16_t *p_e_hdl, bool is_srvc)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
@@ -365,14 +365,14 @@ void bta_gattc_get_disc_range(tBTA_GATTC_SERV *p_srvc_cb, uint16_t *p_s_hdl, uin
     return;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_discover_pri_service
-**
-** Description      Start primary service discovery
-**
-** Returns          status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_discover_pri_service
+ *
+ * Description      Start primary service discovery
+ *
+ * Returns          status of the operation.
+ *
+ ******************************************************************************/
 tBTA_GATT_STATUS bta_gattc_discover_pri_service(uint16_t conn_id, tBTA_GATTC_SERV *p_server_cb,
                                                     uint8_t disc_type)
 {
@@ -390,14 +390,14 @@ tBTA_GATT_STATUS bta_gattc_discover_pri_service(uint16_t conn_id, tBTA_GATTC_SER
     return status;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_discover_procedure
-**
-** Description      Start a particular type of discovery procedure on server.
-**
-** Returns          status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_discover_procedure
+ *
+ * Description      Start a particular type of discovery procedure on server.
+ *
+ * Returns          status of the operation.
+ *
+ ******************************************************************************/
 tBTA_GATT_STATUS bta_gattc_discover_procedure(uint16_t conn_id, tBTA_GATTC_SERV *p_server_cb,
                                                    uint8_t disc_type)
 {
@@ -427,27 +427,27 @@ tBTA_GATT_STATUS bta_gattc_discover_procedure(uint16_t conn_id, tBTA_GATTC_SERV 
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_start_disc_include_srvc
-**
-** Description      Start discovery for included service
-**
-** Returns          status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_start_disc_include_srvc
+ *
+ * Description      Start discovery for included service
+ *
+ * Returns          status of the operation.
+ *
+ ******************************************************************************/
 tBTA_GATT_STATUS bta_gattc_start_disc_include_srvc(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     return bta_gattc_discover_procedure(conn_id, p_srvc_cb, GATT_DISC_INC_SRVC);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_start_disc_char
-**
-** Description      Start discovery for characteristic
-**
-** Returns          status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_start_disc_char
+ *
+ * Description      Start discovery for characteristic
+ *
+ * Returns          status of the operation.
+ *
+ ******************************************************************************/
 tBTA_GATT_STATUS bta_gattc_start_disc_char(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     p_srvc_cb->total_char = 0;
@@ -455,14 +455,14 @@ tBTA_GATT_STATUS bta_gattc_start_disc_char(uint16_t conn_id, tBTA_GATTC_SERV *p_
     return bta_gattc_discover_procedure(conn_id, p_srvc_cb, GATT_DISC_CHAR);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_start_disc_char_dscp
-**
-** Description      Start discovery for characteristic descriptor
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_start_disc_char_dscp
+ *
+ * Description      Start discovery for characteristic descriptor
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 void bta_gattc_start_disc_char_dscp(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     APPL_TRACE_DEBUG("starting discover characteristics descriptor");
@@ -472,14 +472,14 @@ void bta_gattc_start_disc_char_dscp(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb
 
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_explore_srvc
-**
-** Description      process the service discovery complete event
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_explore_srvc
+ *
+ * Description      process the service discovery complete event
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static void bta_gattc_explore_srvc(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATTC_ATTR_REC *p_rec = p_srvc_cb->p_srvc_list + p_srvc_cb->cur_srvc_idx;
@@ -525,14 +525,14 @@ static void bta_gattc_explore_srvc(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
     bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_OK);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_incl_srvc_disc_cmpl
-**
-** Description      process the relationship discovery complete event
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_incl_srvc_disc_cmpl
+ *
+ * Description      process the relationship discovery complete event
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static void bta_gattc_incl_srvc_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     p_srvc_cb->cur_char_idx = p_srvc_cb->total_srvc;
@@ -541,14 +541,14 @@ static void bta_gattc_incl_srvc_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_s
     bta_gattc_start_disc_char(conn_id, p_srvc_cb);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_char_disc_cmpl
-**
-** Description      process the characteristic discovery complete event
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_char_disc_cmpl
+ *
+ * Description      process the characteristic discovery complete event
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static void bta_gattc_char_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATTC_ATTR_REC *p_rec = p_srvc_cb->p_srvc_list + p_srvc_cb->cur_char_idx;
@@ -574,14 +574,14 @@ static void bta_gattc_char_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_c
     }
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_char_dscpt_disc_cmpl
-**
-** Description      process the char descriptor discovery complete event
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_char_dscpt_disc_cmpl
+ *
+ * Description      process the char descriptor discovery complete event
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static void bta_gattc_char_dscpt_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
@@ -640,14 +640,14 @@ static bool bta_gattc_srvc_in_list(tBTA_GATTC_SERV *p_srvc_cb, uint16_t s_handle
     return exist_srvc;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_add_srvc_to_list
-**
-** Description      Add a service into explore pending list
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_add_srvc_to_list
+ *
+ * Description      Add a service into explore pending list
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
                                                    uint16_t s_handle, uint16_t e_handle,
                                                    tBT_UUID uuid, bool is_primary)
@@ -679,14 +679,14 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
     return status;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_add_char_to_list
-**
-** Description      Add a characteristic into explore pending list
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_add_char_to_list
+ *
+ * Description      Add a characteristic into explore pending list
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_char_to_list(tBTA_GATTC_SERV *p_srvc_cb,
                                                    uint16_t decl_handle, uint16_t value_handle,
                                                    tBT_UUID uuid, uint8_t property)
@@ -731,14 +731,14 @@ static tBTA_GATT_STATUS bta_gattc_add_char_to_list(tBTA_GATTC_SERV *p_srvc_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_sdp_callback
-**
-** Description      Process the discovery result from sdp
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_sdp_callback
+ *
+ * Description      Process the discovery result from sdp
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_sdp_callback(uint16_t sdp_status, void* user_data)
 {
     tSDP_DISC_REC       *p_sdp_rec = NULL;
@@ -807,14 +807,14 @@ void bta_gattc_sdp_callback(uint16_t sdp_status, void* user_data)
     osi_free(cb_data);
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_sdp_service_disc
-**
-** Description      Start DSP Service Discovert
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_sdp_service_disc
+ *
+ * Description      Start DSP Service Discovert
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(uint16_t conn_id, tBTA_GATTC_SERV *p_server_cb)
 {
     tSDP_UUID       uuid;
@@ -852,15 +852,15 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(uint16_t conn_id, tBTA_GATTC_
     return BTA_GATT_OK;
 }
 /*******************************************************************************
-**
-** Function         bta_gattc_disc_res_cback
-**                  bta_gattc_disc_cmpl_cback
-**
-** Description      callback functions to GATT client stack.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_disc_res_cback
+ *                  bta_gattc_disc_cmpl_cback
+ *
+ * Description      callback functions to GATT client stack.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_gattc_disc_res_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_DISC_RES *p_data)
 {
     tBTA_GATTC_SERV * p_srvc_cb = NULL;
@@ -976,14 +976,14 @@ void bta_gattc_disc_cmpl_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGA
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_search_service
-**
-** Description      search local cache for matching service record.
-**
-** Returns          false if map can not be found.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_search_service
+ *
+ * Description      search local cache for matching service record.
+ *
+ * Returns          false if map can not be found.
+ *
+ ******************************************************************************/
 void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid)
 {
     tBTA_GATTC          cb_data;
@@ -1120,14 +1120,14 @@ tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor(uint16_t conn_id, uint16_t hand
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_fill_gatt_db_el
-**
-** Description      fill a btgatt_db_element_t value
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_fill_gatt_db_el
+ *
+ * Description      fill a btgatt_db_element_t value
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_fill_gatt_db_el(btgatt_db_element_t *p_attr,
                                bt_gatt_db_attribute_type_t type,
                                uint16_t att_handle,
@@ -1144,8 +1144,8 @@ void bta_gattc_fill_gatt_db_el(btgatt_db_element_t *p_attr,
 }
 
 /*******************************************************************************
-** Returns          number of elements inside db from start_handle to end_handle
-*******************************************************************************/
+ * Returns          number of elements inside db from start_handle to end_handle
+ ******************************************************************************/
 static size_t bta_gattc_get_db_size(list_t *services,
                                  uint16_t start_handle, uint16_t end_handle) {
     if (!services || list_is_empty(services))
@@ -1185,20 +1185,20 @@ static size_t bta_gattc_get_db_size(list_t *services,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_get_gatt_db_impl
-**
-** Description      copy the server GATT database into db parameter.
-**
-** Parameters       p_srvc_cb: server.
-**                  db: output parameter which will contain GATT database copy.
-**                      Caller is responsible for freeing it.
-**                  count: output parameter which will contain number of
-**                  elements in database.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_get_gatt_db_impl
+ *
+ * Description      copy the server GATT database into db parameter.
+ *
+ * Parameters       p_srvc_cb: server.
+ *                  db: output parameter which will contain GATT database copy.
+ *                      Caller is responsible for freeing it.
+ *                  count: output parameter which will contain number of
+ *                  elements in database.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
                                        uint16_t start_handle, uint16_t end_handle,
                                        btgatt_db_element_t **db,
@@ -1300,19 +1300,19 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_get_gatt_db
-**
-** Description      copy the server GATT database into db parameter.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  db: output parameter which will contain GATT database copy.
-**                      Caller is responsible for freeing it.
-**                  count: number of elements in database.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_get_gatt_db
+ *
+ * Description      copy the server GATT database into db parameter.
+ *
+ * Parameters       conn_id: connection ID which identify the server.
+ *                  db: output parameter which will contain GATT database copy.
+ *                      Caller is responsible for freeing it.
+ *                  count: number of elements in database.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_get_gatt_db(uint16_t conn_id, uint16_t start_handle, uint16_t end_handle, btgatt_db_element_t **db, int *count)
 {
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
@@ -1339,16 +1339,16 @@ void bta_gattc_get_gatt_db(uint16_t conn_id, uint16_t start_handle, uint16_t end
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_rebuild_cache
-**
-** Description      rebuild server cache from NV cache.
-**
-** Parameters
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_rebuild_cache
+ *
+ * Description      rebuild server cache from NV cache.
+ *
+ * Parameters
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, uint16_t num_attr,
                              tBTA_GATTC_NV_ATTR *p_attr)
 {
@@ -1395,14 +1395,14 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, uint16_t num_attr,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_fill_nv_attr
-**
-** Description      fill a NV attribute entry value
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_fill_nv_attr
+ *
+ * Description      fill a NV attribute entry value
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_fill_nv_attr(tBTA_GATTC_NV_ATTR *p_attr, uint8_t type, uint16_t s_handle,
                             uint16_t e_handle, tBT_UUID uuid, uint8_t prop, uint16_t incl_srvc_handle,
                             bool is_primary)
@@ -1419,14 +1419,14 @@ void bta_gattc_fill_nv_attr(tBTA_GATTC_NV_ATTR *p_attr, uint8_t type, uint16_t s
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cache_save
-**
-** Description      save the server cache into NV
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cache_save
+ *
+ * Description      save the server cache into NV
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, uint16_t conn_id)
 {
     if (!p_srvc_cb->p_srvc_cache || list_is_empty(p_srvc_cb->p_srvc_cache))
@@ -1511,16 +1511,16 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cache_load
-**
-** Description      Load GATT cache from storage for server.
-**
-** Parameter        p_clcb: pointer to server clcb, that will
-**                          be filled from storage
-** Returns          true on success, false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cache_load
+ *
+ * Description      Load GATT cache from storage for server.
+ *
+ * Parameter        p_clcb: pointer to server clcb, that will
+ *                          be filled from storage
+ * Returns          true on success, false otherwise
+ *
+ ******************************************************************************/
 bool bta_gattc_cache_load(tBTA_GATTC_CLCB *p_clcb)
 {
     char fname[255] = {0};
@@ -1572,18 +1572,18 @@ done:
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cache_write
-**
-** Description      This callout function is executed by GATT when a server cache
-**                  is available to save.
-**
-** Parameter        server_bda: server bd address of this cache belongs to
-**                  num_attr: number of attribute to be save.
-**                  attr: pointer to the list of attributes to save.
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cache_write
+ *
+ * Description      This callout function is executed by GATT when a server cache
+ *                  is available to save.
+ *
+ * Parameter        server_bda: server bd address of this cache belongs to
+ *                  num_attr: number of attribute to be save.
+ *                  attr: pointer to the list of attributes to save.
+ * Returns
+ *
+ ******************************************************************************/
 static void bta_gattc_cache_write(BD_ADDR server_bda, uint16_t num_attr,
                            tBTA_GATTC_NV_ATTR *attr)
 {
@@ -1619,17 +1619,17 @@ static void bta_gattc_cache_write(BD_ADDR server_bda, uint16_t num_attr,
 }
 
 /*******************************************************************************
-**
-** Function         bta_gattc_cache_reset
-**
-** Description      This callout function is executed by GATTC to reset cache in
-**                  application
-**
-** Parameter        server_bda: server bd address of this cache belongs to
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         bta_gattc_cache_reset
+ *
+ * Description      This callout function is executed by GATTC to reset cache in
+ *                  application
+ *
+ * Parameter        server_bda: server bd address of this cache belongs to
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void bta_gattc_cache_reset(BD_ADDR server_bda)
 {
     BTIF_TRACE_DEBUG("%s", __func__);

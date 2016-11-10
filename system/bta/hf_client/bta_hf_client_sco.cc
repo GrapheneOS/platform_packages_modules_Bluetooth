@@ -80,15 +80,15 @@ enum
 };
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_remove_sco
-**
-** Description      Removes the specified SCO from the system.
-**                  If only_active is true, then SCO is only removed if connected
-**
-** Returns          bool   - true if Sco removal was started
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_remove_sco
+ *
+ * Description      Removes the specified SCO from the system.
+ *                  If only_active is true, then SCO is only removed if connected
+ *
+ * Returns          bool   - true if Sco removal was started
+ *
+ ******************************************************************************/
 static bool bta_hf_client_sco_remove(bool only_active)
 {
     bool     removed_started = false;
@@ -116,15 +116,15 @@ static bool bta_hf_client_sco_remove(bool only_active)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_cback_sco
-**
-** Description      Call application callback function with SCO event.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_cback_sco
+ *
+ * Description      Call application callback function with SCO event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_cback_sco(uint8_t event)
 {
     tBTA_HF_CLIENT    evt;
@@ -136,15 +136,15 @@ void bta_hf_client_cback_sco(uint8_t event)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_conn_rsp
-**
-** Description      Process the SCO connection request
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_conn_rsp
+ *
+ * Description      Process the SCO connection request
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_sco_conn_rsp(tBTM_ESCO_CONN_REQ_EVT_DATA *p_data)
 {
     tBTM_ESCO_PARAMS    resp;
@@ -175,15 +175,15 @@ static void bta_hf_client_sco_conn_rsp(tBTM_ESCO_CONN_REQ_EVT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_connreq_cback
-**
-** Description      BTM eSCO connection requests and eSCO change requests
-**                  Only the connection requests are processed by BTA.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_connreq_cback
+ *
+ * Description      BTM eSCO connection requests and eSCO change requests
+ *                  Only the connection requests are processed by BTA.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_esco_connreq_cback(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s %d", __func__, event);
@@ -204,15 +204,15 @@ static void bta_hf_client_esco_connreq_cback(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_conn_cback
-**
-** Description      BTM SCO connection callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_conn_cback
+ *
+ * Description      BTM SCO connection callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_sco_conn_cback(uint16_t sco_idx)
 {
     uint8_t *rem_bd;
@@ -238,15 +238,15 @@ static void bta_hf_client_sco_conn_cback(uint16_t sco_idx)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_disc_cback
-**
-** Description      BTM SCO disconnection callback.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_disc_cback
+ *
+ * Description      BTM SCO disconnection callback.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_sco_disc_cback(uint16_t sco_idx)
 {
     APPL_TRACE_DEBUG("%s %d", __func__, sco_idx);
@@ -260,15 +260,15 @@ static void bta_hf_client_sco_disc_cback(uint16_t sco_idx)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_create_sco
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_create_sco
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_sco_create(bool is_orig)
 {
     tBTM_STATUS       status;
@@ -337,15 +337,15 @@ static void bta_hf_client_sco_create(bool is_orig)
 
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_event
-**
-** Description      Handle SCO events
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_event
+ *
+ * Description      Handle SCO events
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_sco_event(uint8_t event)
 {
     APPL_TRACE_DEBUG("%s state: %d event: %d", __func__,
@@ -572,15 +572,15 @@ static void bta_hf_client_sco_event(uint8_t event)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_listen
-**
-** Description      Initialize SCO listener
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_listen
+ *
+ * Description      Initialize SCO listener
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_sco_listen(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -589,15 +589,15 @@ void bta_hf_client_sco_listen(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_shutdown
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_shutdown
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_sco_shutdown(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -606,15 +606,15 @@ void bta_hf_client_sco_shutdown(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_conn_open
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_conn_open
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_sco_conn_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -636,15 +636,15 @@ void bta_hf_client_sco_conn_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_conn_close
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_conn_close
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_sco_conn_close(tBTA_HF_CLIENT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -679,15 +679,15 @@ void bta_hf_client_sco_conn_close(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_open
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_open
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_sco_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -696,15 +696,15 @@ void bta_hf_client_sco_open(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_sco_close
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_sco_close
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_sco_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     APPL_TRACE_DEBUG("%s  0x%x", __func__, bta_hf_client_cb.scb.sco_idx);

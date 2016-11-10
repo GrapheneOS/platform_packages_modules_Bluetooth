@@ -29,8 +29,8 @@
 #include "bta_av_int.h"
 
 /*****************************************************************************
-** Constants and types
-*****************************************************************************/
+ * Constants and types
+ ****************************************************************************/
 
 /* state machine states */
 enum
@@ -382,15 +382,15 @@ static const char *bta_av_sst_code(uint8_t state);
 #endif
 
 /*******************************************************************************
-**
-** Function         bta_av_is_rcfg_sst
-**
-** Description      Check if stream state machine is in reconfig state.
-**
-**
-** Returns          true if stream state machine is in reconfig state.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_is_rcfg_sst
+ *
+ * Description      Check if stream state machine is in reconfig state.
+ *
+ *
+ * Returns          true if stream state machine is in reconfig state.
+ *
+ ******************************************************************************/
 bool bta_av_is_rcfg_sst (tBTA_AV_SCB *p_scb)
 {
     bool is_rcfg_sst = false;
@@ -405,15 +405,15 @@ bool bta_av_is_rcfg_sst (tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_ssm_execute
-**
-** Description      Stream state machine event handling function for AV
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_ssm_execute
+ *
+ * Description      Stream state machine event handling function for AV
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_av_ssm_execute(tBTA_AV_SCB *p_scb, uint16_t event, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_SST_TBL     state_table;
@@ -477,15 +477,15 @@ void bta_av_ssm_execute(tBTA_AV_SCB *p_scb, uint16_t event, tBTA_AV_DATA *p_data
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_is_scb_opening
-**
-** Description      Returns true is scb is in opening state.
-**
-**
-** Returns          true if scb is in opening state.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_is_scb_opening
+ *
+ * Description      Returns true is scb is in opening state.
+ *
+ *
+ * Returns          true if scb is in opening state.
+ *
+ ******************************************************************************/
 bool bta_av_is_scb_opening (tBTA_AV_SCB *p_scb)
 {
     bool is_opening = false;
@@ -500,15 +500,15 @@ bool bta_av_is_scb_opening (tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_is_scb_incoming
-**
-** Description      Returns true is scb is in incoming state.
-**
-**
-** Returns          true if scb is in incoming state.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_is_scb_incoming
+ *
+ * Description      Returns true is scb is in incoming state.
+ *
+ *
+ * Returns          true if scb is in incoming state.
+ *
+ ******************************************************************************/
 bool bta_av_is_scb_incoming (tBTA_AV_SCB *p_scb)
 {
     bool is_incoming = false;
@@ -523,15 +523,15 @@ bool bta_av_is_scb_incoming (tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_set_scb_sst_init
-**
-** Description      Set SST state to INIT.
-**                  Use this function to change SST outside of state machine.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_set_scb_sst_init
+ *
+ * Description      Set SST state to INIT.
+ *                  Use this function to change SST outside of state machine.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void bta_av_set_scb_sst_init (tBTA_AV_SCB *p_scb)
 {
     if (p_scb)
@@ -541,15 +541,15 @@ void bta_av_set_scb_sst_init (tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_is_scb_init
-**
-** Description      Returns true is scb is in init state.
-**
-**
-** Returns          true if scb is in incoming state.
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_is_scb_init
+ *
+ * Description      Returns true is scb is in init state.
+ *
+ *
+ * Returns          true if scb is in incoming state.
+ *
+ ******************************************************************************/
 bool bta_av_is_scb_init (tBTA_AV_SCB *p_scb)
 {
     bool is_init = false;
@@ -564,15 +564,15 @@ bool bta_av_is_scb_init (tBTA_AV_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_set_scb_sst_incoming
-**
-** Description      Set SST state to incoming.
-**                  Use this function to change SST outside of state machine.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_set_scb_sst_incoming
+ *
+ * Description      Set SST state to incoming.
+ *                  Use this function to change SST outside of state machine.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void bta_av_set_scb_sst_incoming (tBTA_AV_SCB *p_scb)
 {
     if (p_scb)
@@ -582,18 +582,18 @@ void bta_av_set_scb_sst_incoming (tBTA_AV_SCB *p_scb)
 }
 
 /*****************************************************************************
-**  Debug Functions
-*****************************************************************************/
+ *  Debug Functions
+ ****************************************************************************/
 #if (BTA_AV_DEBUG == TRUE)
 /*******************************************************************************
-**
-** Function         bta_av_sst_code
-**
-** Description
-**
-** Returns          char *
-**
-*******************************************************************************/
+ *
+ * Function         bta_av_sst_code
+ *
+ * Description
+ *
+ * Returns          char *
+ *
+ ******************************************************************************/
 static const char *bta_av_sst_code(uint8_t state)
 {
     switch(state)

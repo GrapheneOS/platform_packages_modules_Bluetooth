@@ -32,15 +32,15 @@
 #include "bt_utils.h"
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_port_cback
-**
-** Description      RFCOMM Port callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_port_cback
+ *
+ * Description      RFCOMM Port callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle)
 {
     /* ignore port events for port handles other than connected handle */
@@ -58,15 +58,15 @@ static void bta_hf_client_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_ha
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_mgmt_cback
-**
-** Description      RFCOMM management callback
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_mgmt_cback
+ *
+ * Description      RFCOMM management callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle)
 {
     uint16_t                  event;
@@ -113,15 +113,15 @@ static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_setup_port
-**
-** Description      Setup RFCOMM port for use by HF Client.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_setup_port
+ *
+ * Description      Setup RFCOMM port for use by HF Client.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_setup_port(uint16_t handle)
 {
     PORT_SetEventMask(handle, PORT_EV_RXCHAR);
@@ -129,15 +129,15 @@ void bta_hf_client_setup_port(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_start_server
-**
-** Description      Setup RFCOMM server for use by HF Client.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_start_server
+ *
+ * Description      Setup RFCOMM server for use by HF Client.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_start_server(void)
 {
     int port_status;
@@ -169,15 +169,15 @@ void bta_hf_client_start_server(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_close_server
-**
-** Description      Close RFCOMM server port for use by HF Client.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_close_server
+ *
+ * Description      Close RFCOMM server port for use by HF Client.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_close_server(void)
 {
     APPL_TRACE_DEBUG("%s %d", __func__, bta_hf_client_cb.scb.serv_handle);
@@ -193,15 +193,15 @@ void bta_hf_client_close_server(void)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_rfc_do_open
-**
-** Description      Open an RFCOMM connection to the peer device.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_rfc_do_open
+ *
+ * Description      Open an RFCOMM connection to the peer device.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA *p_data)
 {
     BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_HF_HANDSFREE,
@@ -223,15 +223,15 @@ void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bta_hf_client_rfc_do_close
-**
-** Description      Close RFCOMM connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bta_hf_client_rfc_do_close
+ *
+ * Description      Close RFCOMM connection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_rfc_do_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA *p_data)
 {
     if (bta_hf_client_cb.scb.conn_handle) {
