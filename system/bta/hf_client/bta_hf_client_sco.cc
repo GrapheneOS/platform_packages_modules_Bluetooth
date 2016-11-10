@@ -80,9 +80,9 @@ enum {
  *
  * Description      Removes the specified SCO from the system.
  *                  If only_active is true, then SCO is only removed if
- *connected
+ *                  connected.
  *
- * Returns          bool   - true if Sco removal was started
+ * Returns          bool   - true if SCO removal was started
  *
  ******************************************************************************/
 static bool bta_hf_client_sco_remove(bool only_active) {

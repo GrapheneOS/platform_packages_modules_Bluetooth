@@ -113,15 +113,15 @@ extern uint8_t utl_itoa(uint16_t i, char* p_s);
  *
  *                  cmd     - the fields of the device class to update.
  *                            BTA_UTL_SET_COD_MAJOR_MINOR, - overwrite major,
- *minor class
+ *                                                           minor class
  *                            BTA_UTL_SET_COD_SERVICE_CLASS - set the bits in
- *the input
+ *                                                            the input
  *                            BTA_UTL_CLR_COD_SERVICE_CLASS - clear the bits in
- *the input
+ *                                                            the input
  *                            BTA_UTL_SET_COD_ALL - overwrite major, minor, set
- *the bits in service class
+ *                                                  the bits in service class
  *                            BTA_UTL_INIT_COD - overwrite major, minor, and
- *service class
+ *                                               service class
  *
  * Returns          true if successful, Otherwise false
  *

@@ -127,7 +127,7 @@ void BTA_GATTC_AppDeregister(tBTA_GATTC_IF client_if) {
  *                  remote_bda: remote device BD address.
  *                  is_direct: direct connection or background auto connection
  *                  transport: Transport to be used for GATT connection
- *(BREDR/LE)
+ *                             (BREDR/LE)
  *
  * Returns          void
  *
@@ -151,7 +151,7 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, bool is_direct,
  * Function         BTA_GATTC_CancelOpen
  *
  * Description      Cancel a direct open connection or remove a background auto
- *connection
+ *                  connection
  *                  bd address
  *
  * Parameters       client_if: server interface.
@@ -223,15 +223,13 @@ void BTA_GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu) {
  * Function         BTA_GATTC_ServiceSearchRequest
  *
  * Description      This function is called to request a GATT service discovery
- *                    on a GATT server. This function report service search
- *result
- *                  by a callback event, and followed by a service search
- *complete
- *                  event.
+ *                  on a GATT server. This function report service search
+ *                  result by a callback event, and followed by a service search
+ *                  complete event.
  *
  * Parameters       conn_id: connection ID.
  *                  p_srvc_uuid: a UUID of the service application is interested
- *in.
+ *                               in.
  *                              If Null, discover for all services.
  *
  * Returns          None
@@ -258,7 +256,7 @@ void BTA_GATTC_ServiceSearchRequest(uint16_t conn_id, tBT_UUID* p_srvc_uuid) {
  * Function         BTA_GATTC_GetServices
  *
  * Description      This function is called to find the services on the given
- *server.
+ *                  server.
  *
  * Parameters       conn_id: connection ID which identify the server.
  *
@@ -274,7 +272,7 @@ const list_t* BTA_GATTC_GetServices(uint16_t conn_id) {
  * Function         BTA_GATTC_GetCharacteristic
  *
  * Description      This function is called to find the characteristic on the
- *given server.
+ *                  given server.
  *
  * Parameters       conn_id - connection ID which identify the server.
  *                  handle - characteristic handle
@@ -292,7 +290,7 @@ const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(uint16_t conn_id,
  * Function         BTA_GATTC_GetDescriptor
  *
  * Description      This function is called to find the characteristic on the
- *given server.
+ *                  given server.
  *
  * Parameters       conn_id - connection ID which identify the server.
  *                  handle - descriptor handle
@@ -313,8 +311,7 @@ const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(uint16_t conn_id,
  *
  * Parameters       conn_id: connection ID which identify the server.
  *                  db: output parameter which will contain the GATT database
- *copy.
- *                      Caller is responsible for freeing it.
+ *                      copy. Caller is responsible for freeing it.
  *                  count: number of elements in database.
  *
  ******************************************************************************/
@@ -491,7 +488,7 @@ void BTA_GATTC_WriteCharDescr(uint16_t conn_id, uint16_t handle,
  * Function         BTA_GATTC_PrepareWrite
  *
  * Description      This function is called to prepare write a characteristic
- *value.
+ *                  value.
  *
  * Parameters       conn_id - connection ID.
  *                  p_char_id - GATT characteritic ID of the service.
@@ -532,7 +529,7 @@ void BTA_GATTC_PrepareWrite(uint16_t conn_id, uint16_t handle, uint16_t offset,
  * Function         BTA_GATTC_ExecuteWrite
  *
  * Description      This function is called to execute write a prepare write
- *sequence.
+ *                  sequence.
  *
  * Parameters       conn_id - connection ID.
  *                    is_execute - execute or cancel.
@@ -581,7 +578,7 @@ void BTA_GATTC_SendIndConfirm(uint16_t conn_id, uint16_t handle) {
  * Function         BTA_GATTC_RegisterForNotifications
  *
  * Description      This function is called to register for notification of a
- *service.
+ *                  service.
  *
  * Parameters       client_if - client interface.
  *                  bda - target GATT server.
@@ -643,7 +640,7 @@ tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications(tBTA_GATTC_IF client_if,
  * Function         BTA_GATTC_DeregisterForNotifications
  *
  * Description      This function is called to de-register for notification of a
- *servbice.
+ *                  service.
  *
  * Parameters       client_if - client interface.
  *                  remote_bda - target GATT server.

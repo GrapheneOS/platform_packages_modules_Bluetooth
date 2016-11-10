@@ -801,8 +801,7 @@ void bta_dm_remove_device(tBTA_DM_MSG* p_data) {
  *
  * Description      This function adds a Link Key to an security database entry.
  *                  It is normally called during host startup to restore all
- *required information
- *                  stored in the NVRAM.
+ *                  required information stored in the NVRAM.
  ***
  ******************************************************************************/
 void bta_dm_add_device(tBTA_DM_MSG* p_data) {
@@ -851,9 +850,8 @@ void bta_dm_add_device(tBTA_DM_MSG* p_data) {
  * Function         bta_dm_close_acl
  *
  * Description      This function forces to close the connection to a remote
- *device
- *                  and optionaly remove the device from security database if
- *                  required.
+ *                  device and optionaly remove the device from security
+ *                  database if required.
  ***
  ******************************************************************************/
 void bta_dm_close_acl(tBTA_DM_MSG* p_data) {
@@ -897,7 +895,7 @@ void bta_dm_close_acl(tBTA_DM_MSG* p_data) {
  * Function         bta_dm_remove_all_acl
  *
  * Description      This function forces to close all the ACL links specified by
- *link type
+ *                  link type
  ***
  ******************************************************************************/
 void bta_dm_remove_all_acl(tBTA_DM_MSG* p_data) {
@@ -1131,7 +1129,7 @@ void bta_dm_ci_io_req_act(tBTA_DM_MSG* p_data) {
  * Function         bta_dm_ci_rmt_oob_act
  *
  * Description      respond to the OOB data request for the remote device from
- *BTM
+ *                  BTM
  *
  *
  * Returns          void
@@ -1343,8 +1341,7 @@ static void bta_dm_di_disc_callback(uint16_t result) {
  * Function         bta_dm_disable_search_and_disc
  *
  * Description      Cancels an ongoing search or discovery for devices in case
- *of
- *                  a Bluetooth disable
+ *                  of a Bluetooth disable
  *
  *
  * Returns          void
@@ -1787,7 +1784,7 @@ void bta_dm_search_cmpl(tBTA_DM_MSG* p_data) {
  * Function         bta_dm_disc_result
  *
  * Description      Service discovery result when discovering services on a
- *device
+ *                  device
  *
  * Returns          void
  *
@@ -3463,8 +3460,7 @@ static void bta_dm_adjust_roles(bool delay_role_switch) {
  * Function         bta_dm_get_remname
  *
  * Description      Returns a pointer to the remote name stored in the DM
- *control
- *                  block if it exists, or from the BTM memory.
+ *                  control block if it exists, or from the BTM memory.
  *
  * Returns          char * - Pointer to the remote device name
  ******************************************************************************/
@@ -3533,7 +3529,7 @@ static size_t find_utf8_char_boundary(const char* utf8str, size_t offset) {
  * Function         bta_dm_set_eir
  *
  * Description      This function creates EIR tagged data and writes it to
- *controller.
+ *                  controller.
  *
  * Returns          None
  *
@@ -3917,7 +3913,7 @@ void bta_dm_disable_test_mode(UNUSED_ATTR tBTA_DM_MSG* p_data) {
  * Function         bta_dm_execute_callback
  *
  * Description      Just execute a generic call back in the context of the
- *BTU/BTA tack
+ *                  BTU/BTA tack
  *
  *
  * Returns          void
@@ -4250,10 +4246,9 @@ static void bta_dm_ble_id_key_cback(uint8_t key_type,
  *
  * Description      This function adds an BLE Key to an security database entry.
  *                  This function shall only be called AFTER BTA_DmAddBleDevice
- *has been called.
+ *                  has been called.
  *                  It is normally called during host startup to restore all
- *required information
- *                  stored in the NVRAM.
+ *                  required information stored in the NVRAM.
  *
  * Parameters:
  *
@@ -4277,10 +4272,9 @@ void bta_dm_add_blekey(tBTA_DM_MSG* p_data) {
  * Function         bta_dm_add_ble_device
  *
  * Description      This function adds an BLE device to an security database
- *entry.
+ *                  entry.
  *                  It is normally called during host startup to restore all
- *required information
- *                  stored in the NVRAM.
+ *                  required information stored in the NVRAM.
  *
  * Parameters:
  *
@@ -4304,10 +4298,9 @@ void bta_dm_add_ble_device(tBTA_DM_MSG* p_data) {
  * Function         bta_dm_add_ble_device
  *
  * Description      This function adds an BLE device to an security database
- *entry.
+ *                  entry.
  *                  It is normally called during host startup to restore all
- *required information
- *                  stored in the NVRAM.
+ *                  required information stored in the NVRAM.
  *
  * Parameters:
  *
@@ -4515,7 +4508,7 @@ void bta_dm_ble_set_data_length(tBTA_DM_MSG* p_data) {
  * Function         bta_dm_ble_setup_storage
  *
  * Description      This function configures up the storage parameters for ADV
- *batch scanning
+ *                  batch scanning
  *
  * Parameters:
  *
@@ -4657,7 +4650,7 @@ void bta_dm_ble_track_advertiser(tBTA_DM_MSG* p_data) {
  * Function         bta_ble_scan_setup_cb
  *
  * Description      Handle the setup callback from BTM layer and forward it to
- *app layer
+ *                  app layer
  *
  * Parameters:
  *
@@ -5055,8 +5048,7 @@ void bta_dm_close_gatt_conn(UNUSED_ATTR tBTA_DM_MSG* p_data) {
  * Function         btm_dm_start_gatt_discovery
  *
  * Description      This is GATT initiate the service search by open a GATT
- *connection
- *                  first.
+ *                  connection first.
  *
  * Parameters:
  *

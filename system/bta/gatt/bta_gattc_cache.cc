@@ -156,7 +156,7 @@ static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC* p_rec,
  * Function         bta_gattc_init_cache
  *
  * Description      Initialize the database cache and discovery related
- *resources.
+ *                  resources.
  *
  * Returns          status
  *
@@ -1481,8 +1481,7 @@ done:
  * Function         bta_gattc_cache_write
  *
  * Description      This callout function is executed by GATT when a server
- *cache
- *                  is available to save.
+ *                  cache is available to save.
  *
  * Parameter        server_bda: server bd address of this cache belongs to
  *                  num_attr: number of attribute to be save.

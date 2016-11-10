@@ -587,7 +587,7 @@ static void bta_hl_api_disable(tBTA_HL_CB* p_cb, tBTA_HL_DATA* p_data) {
  * Function         bta_hl_api_update
  *
  * Description      Process the API registration request to register an HDP
- *applciation
+ *                  application
  *
  * Returns          void
  *
@@ -655,7 +655,7 @@ static void bta_hl_api_update(tBTA_HL_CB* p_cb, tBTA_HL_DATA* p_data) {
  * Function         bta_hl_api_register
  *
  * Description      Process the API registration request to register an HDP
- *applciation
+ *                  application
  *
  * Returns          void
  *

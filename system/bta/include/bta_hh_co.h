@@ -43,7 +43,7 @@ typedef struct {
  * Function         bta_hh_co_data
  *
  * Description      This callout function is executed by HH when data is
- *received
+ *                  received
  *                  in interupt channel.
  *
  *
@@ -107,10 +107,9 @@ extern void bta_hh_le_co_rpt_info(BD_ADDR remote_bda,
  * Function         bta_hh_le_co_cache_load
  *
  * Description      This callout function is to request the application to load
- *the
- *                  cached HOGP report if there is any. When cache reading is
- *completed,
- *                  bta_hh_le_ci_cache_load() is called by the application.
+ *                  the cached HOGP report if there is any. When cache reading
+ *                  is completed, bta_hh_le_ci_cache_load() is called by the
+ *                  application.
  *
  * Parameters       remote_bda  - remote device address
  *                  p_num_rpt: number of cached report

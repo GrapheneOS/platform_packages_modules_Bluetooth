@@ -39,7 +39,7 @@ extern "C" {
  *
  * Description      This function sends an event to PAN indicating the phone is
  *                  ready for more data and PAN should call
- *bta_pan_co_tx_path().
+ *                  bta_pan_co_tx_path().
  *                  This function is used when the TX data path is configured
  *                  to use a pull interface.
  *

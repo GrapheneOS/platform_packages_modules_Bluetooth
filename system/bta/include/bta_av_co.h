@@ -90,7 +90,7 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  *
  * Description      This callout function is executed by AV to set the
  *                  codec and content protection configuration of the audio
- *stream.
+ *                  stream.
  *
  *
  * Returns          void
@@ -106,8 +106,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
  * Function         bta_av_co_audio_open
  *
  * Description      This function is called by AV when the audio stream
- *connection
- *                  is opened.
+ *                  connection is opened.
  *                  BTA-AV maintains the MTU of A2DP streams.
  *                  If this is the 2nd audio stream, mtu is the smaller of the 2
  *                  streams.
@@ -123,8 +122,7 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  * Function         bta_av_co_audio_close
  *
  * Description      This function is called by AV when the audio stream
- *connection
- *                  is closed.
+ *                  connection is closed.
  *                  BTA-AV maintains the MTU of A2DP streams.
  *                  When one stream is closed and no other audio stream is open,
  *                  mtu is reported as 0.
@@ -195,8 +193,8 @@ void bta_av_co_audio_drop(tBTA_AV_HNDL hndl);
  * Function         bta_av_co_audio_delay
  *
  * Description      This function is called by AV when the audio stream
- *connection
- *                  needs to send the initial delay report to the connected SRC.
+ *                  connection needs to send the initial delay report to the
+ *                  connected SRC.
  *
  *
  * Returns          void
