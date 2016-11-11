@@ -77,6 +77,8 @@ enum { kPipeReadEnd = 0, kPipeWriteEnd = 1, kPipeNumEnds = 2 };
 
 }  // namespace
 
+void DoNothing(uint8_t p) {}
+
 namespace bluetooth {
 namespace gatt {
 
@@ -349,12 +351,13 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   g_internal->client_if = client_if;
 
   // Setup our advertisement. This has no callback.
-  g_internal->gatt->advertiser->SetData(false, {/*TODO: put inverval 2,2 here*/});
+  g_internal->gatt->advertiser->SetData(0 /* std_inst */, false,
+                                        {/*TODO: put inverval 2,2 here*/},
+                                        base::Bind(&DoNothing));
 
-  // TODO(icoolidge): Deprecated, use multi-adv interface.
-  // This calls back to EnableAdvertisingCallback.
-  g_internal->gatt->advertiser->Enable(true,
-                                       base::Bind(&EnableAdvertisingCallback));
+  g_internal->gatt->advertiser->Enable(
+      0 /* std_inst */, true, base::Bind(&EnableAdvertisingCallback),
+      0 /* no timeout */, base::Bind(&DoNothing));
 }
 
 void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t *app_uuid) {
@@ -585,9 +588,9 @@ bool Server::SetAdvertisement(const std::vector<UUID>& ids,
   std::lock_guard<std::mutex> lock(internal_->lock);
 
   // Setup our advertisement. This has no callback.
-  internal_->gatt->advertiser->SetData(
+  internal_->gatt->advertiser->SetData(0,
       false, /* beacon, not scan response */
-      {});
+      {}, base::Bind(&DoNothing));
       // transmit_name,               /* name */
       // 2, 2,                         interval 
       // mutable_manufacturer_data,
@@ -612,9 +615,9 @@ bool Server::SetScanResponse(const std::vector<UUID>& ids,
   std::lock_guard<std::mutex> lock(internal_->lock);
 
   // Setup our advertisement. This has no callback.
-  internal_->gatt->advertiser->SetData(
+  internal_->gatt->advertiser->SetData(0,
       true, /* scan response */
-      {});
+      {}, base::Bind(&DoNothing));
       // transmit_name,              /* name */
       // false,                      /* no txpower */
       // 2, 2,                        interval 
