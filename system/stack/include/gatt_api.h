@@ -712,6 +712,9 @@ extern bool    GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range);
 *******************************************************************************/
 extern bool     GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info);
 
+/* Converts 16bit uuid to bt_uuid_t that can be used when adding
+ * service/characteristic/descriptor with GATTS_AddService */
+void uuid_128_from_16(bt_uuid_t *uuid, uint16_t uuid16);
 
 /*******************************************************************************
 **
