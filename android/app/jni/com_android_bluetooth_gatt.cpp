@@ -148,7 +148,6 @@ static jmethodID method_onWriteDescriptor;
 static jmethodID method_onNotify;
 static jmethodID method_onRegisterForNotifications;
 static jmethodID method_onReadRemoteRssi;
-static jmethodID method_onAdvertiseCallback;
 static jmethodID method_onConfigureMTU;
 static jmethodID method_onScanFilterConfig;
 static jmethodID method_onScanFilterParamsConfigured;
@@ -831,7 +830,6 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onRegisterForNotifications = env->GetMethodID(clazz, "onRegisterForNotifications", "(IIII)V");
     method_onReadRemoteRssi = env->GetMethodID(clazz, "onReadRemoteRssi", "(ILjava/lang/String;II)V");
     method_onConfigureMTU = env->GetMethodID(clazz, "onConfigureMTU", "(III)V");
-    method_onAdvertiseCallback = env->GetMethodID(clazz, "onAdvertiseCallback", "(I)V");
     method_onScanFilterConfig = env->GetMethodID(clazz, "onScanFilterConfig", "(IIIII)V");
     method_onScanFilterParamsConfigured = env->GetMethodID(clazz, "onScanFilterParamsConfigured", "(IIII)V");
     method_onScanFilterEnableDisabled = env->GetMethodID(clazz, "onScanFilterEnableDisabled", "(III)V");
@@ -1115,32 +1113,6 @@ static void gattClientReadRemoteRssiNative(JNIEnv* env, jobject object, jint cli
     sGattIf->client->read_remote_rssi(clientif, &bda);
 }
 
-
-void btgattc_advertise_cb(uint8_t status)
-{
-    CallbackEnv sCallbackEnv(__func__);
-    if (!sCallbackEnv.valid()) return;
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiseCallback, status);
-}
-
-static void gattAdvertiseNative(JNIEnv *env, jobject object, jboolean start)
-{
-    if (!sGattIf) return;
-    sGattIf->advertiser->Enable(start, base::Bind(&btgattc_advertise_cb));
-}
-
-static void gattSetAdvDataNative(JNIEnv *env, jobject object,
-                                 jboolean setScanRsp, jbyteArray data)
-{
-    if (!sGattIf) return;
-    jbyte* data_data = env->GetByteArrayElements(data, NULL);
-    uint16_t data_len = (uint16_t) env->GetArrayLength(data);
-    vector<uint8_t> data_vec(data_data, data_data + data_len);
-    env->ReleaseByteArrayElements(data, data_data, JNI_ABORT);
-
-    sGattIf->advertiser->SetData(setScanRsp, std::move(data_vec));
-}
-
 static void gattSetScanParametersNative(JNIEnv* env, jobject object,
                                         jint client_if, jint scan_interval_unit,
                                         jint scan_window_unit)
@@ -1388,7 +1360,7 @@ static void gattClientEnableAdvNative(JNIEnv* env, jobject object, jint advertis
 {
     if (!sGattIf) return;
 
-    sGattIf->advertiser->MultiAdvEnable(
+    sGattIf->advertiser->Enable(
         advertiser_id, enable,
         base::Bind(&ble_advertiser_enable_cb, enable, advertiser_id), timeout_s,
         base::Bind(&ble_advertiser_enable_cb, false, advertiser_id));
@@ -1399,7 +1371,7 @@ static void gattClientSetAdvParamsNative(JNIEnv* env, jobject object, jint adver
 {
     if (!sGattIf) return;
 
-    sGattIf->advertiser->MultiAdvSetParameters(
+    sGattIf->advertiser->SetParameters(
         advertiser_id, min_interval, max_interval, adv_type, chnl_map, tx_power,
         base::Bind(&ble_advertiser_set_params_cb, advertiser_id));
 }
@@ -1413,7 +1385,7 @@ static void gattClientSetAdvDataNative(JNIEnv* env, jobject object, jint adverti
     vector<uint8_t> data_vec(data_data, data_data + data_len);
     env->ReleaseByteArrayElements(data, data_data, JNI_ABORT);
 
-    sGattIf->advertiser->MultiAdvSetInstData(
+    sGattIf->advertiser->SetData(
         advertiser_id, set_scan_rsp, std::move(data_vec),
         base::Bind(&ble_advertiser_setadv_data_cb, advertiser_id));
 }
@@ -1656,8 +1628,6 @@ static JNINativeMethod sAdvertiseMethods[] = {
     {"gattClientSetParamsNative", "(IIIIII)V", (void *) gattClientSetAdvParamsNative},
     {"gattClientSetAdvDataNative", "(IZ[B)V", (void *) gattClientSetAdvDataNative},
     {"gattClientEnableAdvNative", "(IZI)V", (void *) gattClientEnableAdvNative},
-    {"gattSetAdvDataNative", "(Z[B)V", (void *) gattSetAdvDataNative},
-    {"gattAdvertiseNative", "(Z)V", (void *) gattAdvertiseNative},
 };
 
 // JNI functions defined in ScanManager class.
