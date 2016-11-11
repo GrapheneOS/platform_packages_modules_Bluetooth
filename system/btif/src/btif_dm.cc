@@ -3220,8 +3220,9 @@ static void btif_dm_ble_sc_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type) {
    * btif_dm_set_oob_for_le_io_req, but check here again. If it's not present
    * do nothing, pairing will timeout.
    */
-  if (!is_empty_128bit(oob_cb.oob_data.le_sc_c) &&
-      !is_empty_128bit(oob_cb.oob_data.le_sc_r)) {
+  if (is_empty_128bit(oob_cb.oob_data.le_sc_c) &&
+      is_empty_128bit(oob_cb.oob_data.le_sc_r)) {
+    BTIF_TRACE_WARNING("%s: LE SC OOB data is empty", __func__);
     return;
   }
 
