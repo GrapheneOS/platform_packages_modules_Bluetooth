@@ -1420,12 +1420,6 @@ public class AdapterService extends Service {
              return service.isMultiAdvertisementSupported();
          }
 
-         public boolean isPeripheralModeSupported() {
-             AdapterService service = getService();
-             if (service == null) return false;
-             return service.isPeripheralModeSupported();
-         }
-
          public boolean isOffloadedFilteringSupported() {
              AdapterService service = getService();
              if (service == null) return false;
@@ -2279,10 +2273,6 @@ public class AdapterService extends Service {
     public int getNumOfOffloadedScanFilterSupported() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.getNumOfOffloadedScanFilterSupported();
-    }
-
-    public boolean isPeripheralModeSupported() {
-        return getResources().getBoolean(R.bool.config_bluetooth_le_peripheral_mode_supported);
     }
 
     public int getOffloadedScanResultStorage() {
