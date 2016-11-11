@@ -1,24 +1,30 @@
+cc_defaults {
+    name: "libbt-hci_defaults",
+    defaults: ["fluoride_defaults"],
+    shared_libs: [
+        "android.hardware.bluetooth@1.0",
+        "libhidlbase",
+        "libhidltransport",
+        "libhwbinder",
+    ],
+}
+
 // HCI static library for target
 // ========================================================
 cc_library_static {
     name: "libbt-hci",
-    defaults: ["fluoride_defaults"],
+    defaults: ["libbt-hci_defaults"],
     srcs: [
         "src/btsnoop.cc",
         "src/btsnoop_mem.cc",
         "src/btsnoop_net.cc",
         "src/buffer_allocator.cc",
         "src/hci_audio.cc",
-        "src/hci_hal.cc",
-        "src/hci_hal_h4.cc",
-        "src/hci_hal_mct.cc",
         "src/hci_inject.cc",
         "src/hci_layer.cc",
         "src/hci_packet_factory.cc",
         "src/hci_packet_parser.cc",
-        "src/low_power_manager.cc",
         "src/packet_fragmenter.cc",
-        "src/vendor.cc",
     ],
     local_include_dirs: [
         "include",
@@ -30,6 +36,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/bta/include",
+        "system/libhwbinder/include",
     ],
 }
 
@@ -37,7 +44,7 @@ cc_library_static {
 // ========================================================
 cc_test {
     name: "net_test_hci",
-    defaults: ["fluoride_defaults"],
+    defaults: ["libbt-hci_defaults"],
     local_include_dirs: [
         "include",
     ],
@@ -48,12 +55,9 @@ cc_test {
         "packages/modules/Bluetooth/system/osi/test",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/utils/include",
+        "system/libhwbinder/include",
     ],
     srcs: [
-        "test/hci_hal_h4_test.cc",
-        "test/hci_hal_mct_test.cc",
-        "test/hci_layer_test.cc",
-        "test/low_power_manager_test.cc",
         "test/packet_fragmenter_test.cc",
     ],
     shared_libs: [
