@@ -116,7 +116,7 @@ LowEnergyAdvertiser::~LowEnergyAdvertiser() {
 
   // Stop advertising and ignore the result.
   hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->MultiAdvEnable(advertiser_id_, false, base::Bind(&DoNothing), 0, base::Bind(&DoNothing));
+      GetAdvertiserHALInterface()->Enable(advertiser_id_, false, base::Bind(&DoNothing), 0, base::Bind(&DoNothing));
   hal::BluetoothGattInterface::Get()->
       GetAdvertiserHALInterface()->Unregister(advertiser_id_);
 }
@@ -159,14 +159,14 @@ bool LowEnergyAdvertiser::StartAdvertising(const AdvertiseSettings& settings,
   GetAdvertiseParams(settings, !scan_response_.data().empty(), &params);
 
   hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->MultiAdvSetParameters(
+      GetAdvertiserHALInterface()->SetParameters(
           advertiser_id_,
           params.min_interval,
           params.max_interval,
           params.event_type,
           kAdvertisingChannelAll,
           params.tx_power_level,
-          base::Bind(&LowEnergyAdvertiser::MultiAdvSetParamsCallback, base::Unretained(this), advertiser_id_));
+          base::Bind(&LowEnergyAdvertiser::SetParamsCallback, base::Unretained(this), advertiser_id_));
 
   // Always update advertising data.
   adv_data_needs_update_ = true;
@@ -200,11 +200,11 @@ bool LowEnergyAdvertiser::StopAdvertising(const StatusCallback& callback) {
 
   hal::BluetoothGattInterface::Get()
       ->GetAdvertiserHALInterface()
-      ->MultiAdvEnable(
+      ->Enable(
           advertiser_id_, false,
-          base::Bind(&LowEnergyAdvertiser::MultiAdvEnableCallback,
+          base::Bind(&LowEnergyAdvertiser::EnableCallback,
                      base::Unretained(this), false, advertiser_id_),
-          0, base::Bind(&LowEnergyAdvertiser::MultiAdvEnableCallback,
+          0, base::Bind(&LowEnergyAdvertiser::EnableCallback,
                         base::Unretained(this), false, advertiser_id_));
 
   // OK to set this at the end since we're still holding |adv_fields_lock_|.
@@ -264,16 +264,16 @@ void LowEnergyAdvertiser::HandleDeferredAdvertiseData() {
 
   hal::BluetoothGattInterface::Get()
       ->GetAdvertiserHALInterface()
-      ->MultiAdvEnable(
+      ->Enable(
           advertiser_id_, true,
-          base::Bind(&LowEnergyAdvertiser::MultiAdvEnableCallback,
+          base::Bind(&LowEnergyAdvertiser::EnableCallback,
                      base::Unretained(this), true, advertiser_id_),
           params.timeout_s,
-          base::Bind(&LowEnergyAdvertiser::MultiAdvEnableCallback,
+          base::Bind(&LowEnergyAdvertiser::EnableCallback,
                      base::Unretained(this), false, advertiser_id_));
 }
 
-void LowEnergyAdvertiser::MultiAdvSetParamsCallback(
+void LowEnergyAdvertiser::SetParamsCallback(
     uint8_t advertiser_id, uint8_t status) {
   if (advertiser_id != advertiser_id_)
     return;
@@ -293,7 +293,7 @@ void LowEnergyAdvertiser::MultiAdvSetParamsCallback(
   HandleDeferredAdvertiseData();
 }
 
-void LowEnergyAdvertiser::MultiAdvDataCallback(
+void LowEnergyAdvertiser::SetDataCallback(
     uint8_t advertiser_id, uint8_t status) {
   if (advertiser_id != advertiser_id_)
     return;
@@ -315,7 +315,7 @@ void LowEnergyAdvertiser::MultiAdvDataCallback(
   HandleDeferredAdvertiseData();
 }
 
-void LowEnergyAdvertiser::MultiAdvEnableCallback(
+void LowEnergyAdvertiser::EnableCallback(
     bool enable, uint8_t advertiser_id, uint8_t status) {
   if (advertiser_id != advertiser_id_)
     return;
@@ -370,11 +370,10 @@ bt_status_t LowEnergyAdvertiser::SetAdvertiseData(
   // integers so a call to std::vector::size might get capped. This is very
   // unlikely anyway but it's safer to stop using signed-integer types for
   // length in APIs, so we should change that.
-  hal::BluetoothGattInterface::Get()
-      ->GetAdvertiserHALInterface()
-      ->MultiAdvSetInstData(
-          advertiser_id_, set_scan_rsp, data.data(),
-          base::Bind(&LowEnergyAdvertiser::MultiAdvDataCallback, base::Unretained(this), advertiser_id_));
+  hal::BluetoothGattInterface::Get()->GetAdvertiserHALInterface()->SetData(
+      advertiser_id_, set_scan_rsp, data.data(),
+      base::Bind(&LowEnergyAdvertiser::SetDataCallback,
+                 base::Unretained(this), advertiser_id_));
 
   if (set_scan_rsp)
     scan_rsp_needs_update_ = false;

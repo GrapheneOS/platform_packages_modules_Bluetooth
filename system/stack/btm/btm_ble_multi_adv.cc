@@ -89,8 +89,9 @@ class BleAdvertisingManagerImpl
  public:
   BleAdvertisingManagerImpl(BleAdvertiserHciInterface *interface) {
     this->hci_interface = interface;
-    hci_interface->ReadInstanceCount(base::Bind(
-        &BleAdvertisingManagerImpl::ReadInstanceCountCb, base::Unretained(this)));
+    hci_interface->ReadInstanceCount(
+        base::Bind(&BleAdvertisingManagerImpl::ReadInstanceCountCb,
+                   base::Unretained(this)));
   }
 
   ~BleAdvertisingManagerImpl() { adv_inst.clear(); }
@@ -100,16 +101,15 @@ class BleAdvertisingManagerImpl
     adv_inst.reserve(inst_count);
     /* Initialize adv instance indices and IDs. */
     for (uint8_t i = 0; i < inst_count; i++) {
-      adv_inst.emplace_back(i + 1);
+      adv_inst.emplace_back(i);
     }
   }
 
   void OnRpaGenerationComplete(uint8_t inst_id, tBTM_RAND_ENC *p) {
 #if (SMP_INCLUDED == TRUE)
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
+    LOG(INFO) << "inst_id = " << +inst_id;
 
-    LOG(INFO) << "inst_id = " << +p_inst->inst_id;
-
+    AdvertisingInstance *p_inst = &adv_inst[inst_id];
     if (!p) return;
 
     p->param_buf[2] &= (~BLE_RESOLVE_ADDR_MASK);
@@ -131,12 +131,9 @@ class BleAdvertisingManagerImpl
     p_inst->rpa[4] = output.param_buf[1];
     p_inst->rpa[3] = output.param_buf[2];
 
-    if (p_inst->inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD &&
-        p_inst->inst_id < inst_count) {
-      /* set it to controller */
-      GetHciInterface()->SetRandomAddress(p_inst->rpa, p_inst->inst_id,
-                                          Bind(DoNothing));
-    }
+    /* set it to controller */
+    GetHciInterface()->SetRandomAddress(p_inst->rpa, p_inst->inst_id,
+                                        Bind(DoNothing));
 #endif
   }
 
@@ -154,32 +151,25 @@ class BleAdvertisingManagerImpl
   void RegisterAdvertiser(
       base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)> cb)
       override {
-    if (inst_count == 0) {
-      LOG(ERROR) << "multi adv not supported";
-      cb.Run(0xFF, BTM_BLE_MULTI_ADV_FAILURE);
-      return;
-    }
-
     AdvertisingInstance *p_inst = &adv_inst[0];
-    for (uint8_t i = 0; i < inst_count - 1;
-         i++, p_inst++) {
-      if (!p_inst->in_use) {
-        p_inst->in_use = TRUE;
+    for (uint8_t i = 0; i < inst_count; i++, p_inst++) {
+      if (p_inst->in_use) continue;
+
+      p_inst->in_use = true;
 
 #if (BLE_PRIVACY_SPT == TRUE)
-        // configure the address, and set up periodic timer to update it.
-        ConfigureRpa(p_inst->inst_id);
+      // configure the address, and set up periodic timer to update it.
+      ConfigureRpa(p_inst->inst_id);
 
-        if (BTM_BleLocalPrivacyEnabled()) {
-          alarm_set_on_queue(
-              p_inst->adv_raddr_timer, BTM_BLE_PRIVATE_ADDR_INT_MS,
-              btm_ble_adv_raddr_timer_timeout, p_inst, btu_general_alarm_queue);
-        }
+      if (BTM_BleLocalPrivacyEnabled()) {
+        alarm_set_on_queue(p_inst->adv_raddr_timer, BTM_BLE_PRIVATE_ADDR_INT_MS,
+                           btm_ble_adv_raddr_timer_timeout, p_inst,
+                           btu_general_alarm_queue);
+      }
 #endif
 
-        cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
-        return;
-      }
+      cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
+      return;
     }
 
     LOG(INFO) << "no free advertiser instance";
@@ -188,7 +178,7 @@ class BleAdvertisingManagerImpl
 
   void EnableWithTimerCb(uint8_t inst_id, int timeout_s, MultiAdvCb timeout_cb,
                          uint8_t status) {
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
+    AdvertisingInstance *p_inst = &adv_inst[inst_id];
     p_inst->timeout_s = timeout_s;
     p_inst->timeout_cb = std::move(timeout_cb);
 
@@ -199,15 +189,15 @@ class BleAdvertisingManagerImpl
 
   void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb, int timeout_s,
               MultiAdvCb timeout_cb) {
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
-
-    VLOG(1) << __func__ << " inst_id: " << +inst_id << ", enable: " << enable;
-    if (inst_count == 0) {
-      LOG(ERROR) << "multi adv not supported";
+    VLOG(1) << __func__ << " inst_id: " << +inst_id;
+    if (inst_id >= inst_count) {
+      LOG(ERROR) << "bad instance id " << +inst_id;
       return;
     }
 
-    if (!p_inst || !p_inst->in_use) {
+    AdvertisingInstance *p_inst = &adv_inst[inst_id];
+    VLOG(1) << __func__ << "enable: " << enable;
+    if (!p_inst->in_use) {
       LOG(ERROR) << "Invalid or no active instance";
       cb.Run(BTM_BLE_MULTI_ADV_FAILURE);
       return;
@@ -231,21 +221,13 @@ class BleAdvertisingManagerImpl
 
   void SetParameters(uint8_t inst_id, tBTM_BLE_ADV_PARAMS *p_params,
                      MultiAdvCb cb) override {
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
-
-    VLOG(1) << __func__ << " inst_id:" << +inst_id;
-
-    if (inst_count == 0) {
-      LOG(ERROR) << "multi adv not supported";
-      return;
-    }
-
-    if (inst_id > inst_count || inst_id < 0 ||
-        inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
+    VLOG(1) << __func__ << " inst_id: " << +inst_id;
+    if (inst_id >= inst_count) {
       LOG(ERROR) << "bad instance id " << +inst_id;
       return;
     }
 
+    AdvertisingInstance *p_inst = &adv_inst[inst_id];
     if (!p_inst->in_use) {
       LOG(ERROR) << "adv instance not in use" << +inst_id;
       cb.Run(BTM_BLE_MULTI_ADV_FAILURE);
@@ -289,14 +271,14 @@ class BleAdvertisingManagerImpl
 
   void SetData(uint8_t inst_id, bool is_scan_rsp, std::vector<uint8_t> data,
                MultiAdvCb cb) override {
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
-
-    VLOG(1) << "inst_id = " << +inst_id << ", is_scan_rsp = " << is_scan_rsp;
-
-    if (inst_count == 0) {
-      LOG(ERROR) << "multi adv not supported";
+    VLOG(1) << __func__ << " inst_id: " << +inst_id;
+    if (inst_id >= inst_count) {
+      LOG(ERROR) << "bad instance id " << +inst_id;
       return;
     }
+
+    AdvertisingInstance *p_inst = &adv_inst[inst_id];
+    VLOG(1) << "is_scan_rsp = " << is_scan_rsp;
 
     if (!is_scan_rsp && p_inst->adv_evt != BTM_BLE_NON_CONNECT_EVT) {
       uint8_t flags_val = BTM_GENERAL_DISCOVERABLE;
@@ -304,7 +286,7 @@ class BleAdvertisingManagerImpl
       if (p_inst->timeout_s) flags_val = BTM_LIMITED_DISCOVERABLE;
 
       std::vector<uint8_t> flags;
-      flags.push_back(2); // length
+      flags.push_back(2);  // length
       flags.push_back(HCI_EIR_FLAGS_TYPE);
       flags.push_back(flags_val);
 
@@ -317,17 +299,10 @@ class BleAdvertisingManagerImpl
       while (i < data.size()) {
         uint8_t type = data[i + 1];
         if (type == HCI_EIR_TX_POWER_LEVEL_TYPE) {
-          int8_t tx_power = adv_inst[inst_id - 1].tx_power;
-          data[i + 2] = tx_power;
+          data[i + 2] = adv_inst[inst_id].tx_power;
         }
         i += data[i] + 1;
       }
-    }
-
-    if (inst_id > inst_count || inst_id < 0 ||
-        inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
-      LOG(ERROR) << "bad instance id " << +inst_id;
-      return;
     }
 
     VLOG(1) << "data is: " << base::HexEncode(data.data(), data.size());
@@ -342,17 +317,10 @@ class BleAdvertisingManagerImpl
   }
 
   void Unregister(uint8_t inst_id) override {
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
+    AdvertisingInstance *p_inst = &adv_inst[inst_id];
 
     VLOG(1) << __func__ << " inst_id: " << +inst_id;
-
-    if (inst_count == 0) {
-      LOG(ERROR) << "multi adv not supported";
-      return;
-    }
-
-    if (inst_id > inst_count || inst_id < 0 ||
-        inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
+    if (inst_id >= inst_count) {
       LOG(ERROR) << "bad instance id " << +inst_id;
       return;
     }
@@ -366,37 +334,27 @@ class BleAdvertisingManagerImpl
 
   void OnAdvertisingStateChanged(uint8_t inst_id, uint8_t reason,
                                  uint16_t conn_handle) override {
-    AdvertisingInstance *p_inst = &adv_inst[inst_id - 1];
+    AdvertisingInstance *p_inst = &adv_inst[inst_id];
     VLOG(1) << __func__ << " inst_id: 0x" << std::hex << inst_id
             << ", reason: 0x" << std::hex << reason << ", conn_handle: 0x"
             << std::hex << conn_handle;
 
 #if (BLE_PRIVACY_SPT == TRUE)
-    if (BTM_BleLocalPrivacyEnabled() && inst_id <= BTM_BLE_MULTI_ADV_MAX &&
-        inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD) {
+    if (BTM_BleLocalPrivacyEnabled() && inst_id <= BTM_BLE_MULTI_ADV_MAX) {
       btm_acl_update_conn_addr(conn_handle, p_inst->rpa);
     }
 #endif
 
-    if (inst_id < inst_count &&
-        inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD) {
-      VLOG(1) << "reneabling advertising";
+    VLOG(1) << "reneabling advertising";
 
-      if (p_inst->in_use == true) {
-        // TODO(jpawlowski): we don't really allow to do directed advertising
-        // right now. This should probably be removed, check with Andre.
-        if (p_inst->adv_evt != BTM_BLE_CONNECT_DIR_EVT) {
-          GetHciInterface()->Enable(true, inst_id, Bind(DoNothing));
-        } else {
-          /* mark directed adv as disabled if adv has been stopped */
-          p_inst->in_use = false;
-        }
-      }
-    } else if (inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD) {
-      /* re-enable connectibility */
-      uint16_t conn_mode = BTM_ReadConnectability(nullptr, nullptr);
-      if (conn_mode == BTM_BLE_CONNECTABLE) {
-        btm_ble_set_connectability(conn_mode);
+    if (p_inst->in_use == true) {
+      // TODO(jpawlowski): we don't really allow to do directed advertising
+      // right now. This should probably be removed, check with Andre.
+      if (p_inst->adv_evt != BTM_BLE_CONNECT_DIR_EVT) {
+        GetHciInterface()->Enable(true, inst_id, Bind(DoNothing));
+      } else {
+        /* mark directed adv as disabled if adv has been stopped */
+        p_inst->in_use = false;
       }
     }
   }
@@ -445,8 +403,7 @@ void btm_ble_adv_raddr_timer_timeout(void *data) {
 *******************************************************************************/
 void btm_ble_multi_adv_init() {
   BleAdvertiserHciInterface::Initialize();
-  BleAdvertisingManager::Initialize(
-      BleAdvertiserHciInterface::Get());
+  BleAdvertisingManager::Initialize(BleAdvertiserHciInterface::Get());
 }
 
 /*******************************************************************************

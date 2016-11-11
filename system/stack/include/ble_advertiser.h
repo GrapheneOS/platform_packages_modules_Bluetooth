@@ -23,8 +23,6 @@
 #include <vector>
 #include "btm_ble_api.h"
 
-#define BTM_BLE_MULTI_ADV_DEFAULT_STD 0
-
 #define BTM_BLE_MULTI_ADV_SUCCESS 0
 #define BTM_BLE_MULTI_ADV_FAILURE 1
 
@@ -32,7 +30,6 @@ using MultiAdvCb = base::Callback<void(uint8_t /* status */)>;
 
 extern "C" {
 // methods we must have defined
-tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode);
 void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
                                   const uint16_t connect_mode,
                                   const uint16_t disc_mode);

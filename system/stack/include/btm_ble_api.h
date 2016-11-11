@@ -93,37 +93,6 @@ extern tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min, uint16_t adv_int_ma
 
 /*******************************************************************************
 **
-** Function         BTM_BleWriteAdvData
-**
-** Description      This function is called to write advertising data.
-**
-** Parameters:       None.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTM_BleWriteAdvData(uint8_t* data, uint8_t length,
-                                tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
-
-/*******************************************************************************
-**
-** Function         BTM_BleSetAdvParams
-**
-** Description      This function is called to set advertising parameters.
-**
-** Parameters       adv_int_min: minimum advertising interval
-**                  adv_int_max: maximum advertising interval
-**                  p_dir_bda: connectable direct initiator's LE device address
-**                  chnl_map: advertising channel map.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTM_BleReadAdvParams (uint16_t *adv_int_min, uint16_t *adv_int_max,
-                                  tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP *p_chnl_map);
-
-/*******************************************************************************
-**
 ** Function         BTM_BleObtainVendorCapabilities
 **
 ** Description      This function is called to obatin vendor capabilties
