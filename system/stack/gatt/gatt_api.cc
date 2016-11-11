@@ -120,16 +120,14 @@ bool     GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info)
     return status;
 }
 
-
-static unsigned char BASE_UUID[16] = {
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
-    0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb, };
+static uint8_t BASE_UUID[16] = {0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80,
+                                0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static int uuidType(unsigned char* p_uuid)
 {
-    if (memcmp(p_uuid+4, BASE_UUID+4, 12) != 0)
+    if (memcmp(p_uuid, BASE_UUID, 12) != 0)
         return LEN_UUID_128;
-    if (memcmp(p_uuid, BASE_UUID, 2) != 0)
+    if (memcmp(p_uuid + 14, BASE_UUID + 14, 2) != 0)
         return LEN_UUID_32;
 
     return LEN_UUID_16;
@@ -149,12 +147,12 @@ static void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
     switch (p_dest->len)
     {
         case LEN_UUID_16:
-            p_dest->uu.uuid16 = (p_src->uu[2] << 8) + p_src->uu[3];
+            p_dest->uu.uuid16 = (p_src->uu[13] << 8) + p_src->uu[12];
             break;
 
         case LEN_UUID_32:
-            p_dest->uu.uuid32  = (p_src->uu[0] << 24) + (p_src->uu[1] << 16)
-                               + (p_src->uu[2] <<  8) + p_src->uu[3];
+            p_dest->uu.uuid32  = (p_src->uu[15] << 24) + (p_src->uu[14] << 16)
+                               + (p_src->uu[13] <<  8) + p_src->uu[12];
             break;
 
         case LEN_UUID_128:
@@ -167,6 +165,14 @@ static void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
             break;
     }
 }
+
+void uuid_128_from_16(bt_uuid_t *uuid, uint16_t uuid16) {
+  memcpy(uuid, &BASE_UUID, sizeof(bt_uuid_t));
+
+  uuid->uu[13] = (uint8_t)((0xFF00 & uuid16)>>8);
+  uuid->uu[12] = (uint8_t)(0x00FF & uuid16);
+}
+
 
 static uint16_t compute_service_size(btgatt_db_element_t *service, int count) {
     int db_size = 0;
