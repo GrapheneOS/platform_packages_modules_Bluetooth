@@ -87,11 +87,11 @@ class LowEnergyAdvertiser : public BluetoothInstance {
   LowEnergyAdvertiser(const UUID& uuid, int advertiser_id);
 
   // BluetoothGattInterface::AdvertiserObserver overrides:
-  void MultiAdvDataCallback(
+  void SetDataCallback(
       uint8_t advertiser_id, uint8_t status);
-  void MultiAdvSetParamsCallback(
+  void SetParamsCallback(
       uint8_t advertiser_id, uint8_t status);
-  void MultiAdvEnableCallback(
+  void EnableCallback(
       bool enable, uint8_t advertiser_id, uint8_t status);
 
   // Helper method called from SetAdvertiseData/SetScanResponse.
