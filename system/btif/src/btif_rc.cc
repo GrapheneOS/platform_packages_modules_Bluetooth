@@ -319,7 +319,7 @@ static void handle_get_playstatus_response(tBTA_AV_META_MSG* pmeta_msg,
                                            tAVRC_GET_PLAY_STATUS_RSP* p_rsp);
 static void handle_set_addressed_player_response(tBTA_AV_META_MSG *pmeta_msg, tAVRC_RSP *p_rsp);
 static void handle_get_elem_attr_response(tBTA_AV_META_MSG* pmeta_msg,
-                                          tAVRC_GET_ELEM_ATTRS_RSP* p_rsp);
+                                          tAVRC_GET_ATTRS_RSP* p_rsp);
 static void handle_set_app_attr_val_response(tBTA_AV_META_MSG* pmeta_msg,
                                              tAVRC_RSP* p_rsp);
 static bt_status_t get_play_status_cmd(btif_rc_device_cb_t* p_dev);
@@ -2060,10 +2060,10 @@ static bt_status_t get_element_attr_rsp(bt_bdaddr_t* bd_addr, uint8_t num_attr,
     }
     avrc_rsp.get_play_status.status = AVRC_STS_NO_ERROR;
   }
-  avrc_rsp.get_elem_attrs.num_attr = num_attr;
-  avrc_rsp.get_elem_attrs.p_attrs = element_attrs;
-  avrc_rsp.get_elem_attrs.pdu = AVRC_PDU_GET_ELEMENT_ATTR;
-  avrc_rsp.get_elem_attrs.opcode = opcode_from_pdu(AVRC_PDU_GET_ELEMENT_ATTR);
+  avrc_rsp.get_attrs.num_attrs = num_attr;
+  avrc_rsp.get_attrs.p_attrs = element_attrs;
+  avrc_rsp.get_attrs.pdu = AVRC_PDU_GET_ELEMENT_ATTR;
+  avrc_rsp.get_attrs.opcode = opcode_from_pdu(AVRC_PDU_GET_ELEMENT_ATTR);
 
   /* Send the response */
   send_metamsg_rsp(p_dev, IDX_GET_ELEMENT_ATTR_RSP,
@@ -2623,8 +2623,8 @@ static bt_status_t get_item_attr_rsp(bt_bdaddr_t* bd_addr,
       fill_avrc_attr_entry(item_attrs, num_attr, p_attrs);
     }
   }
-  avrc_rsp.get_attrs.attr_count = num_attr;
-  avrc_rsp.get_attrs.p_attr_list = item_attrs;
+  avrc_rsp.get_attrs.num_attrs = num_attr;
+  avrc_rsp.get_attrs.p_attrs = item_attrs;
   avrc_rsp.get_attrs.pdu = AVRC_PDU_GET_ITEM_ATTRIBUTES;
   avrc_rsp.get_attrs.opcode = opcode_from_pdu(AVRC_PDU_GET_ITEM_ATTRIBUTES);
 
@@ -3086,8 +3086,8 @@ static void btif_rc_status_cmd_timeout_handler(UNUSED_ATTR uint16_t event,
       break;
 
     case AVRC_PDU_GET_ELEMENT_ATTR:
-      avrc_response.get_elem_attrs.status = BTIF_RC_STS_TIMEOUT;
-      handle_get_elem_attr_response(&meta_msg, &avrc_response.get_elem_attrs);
+      avrc_response.get_attrs.status = BTIF_RC_STS_TIMEOUT;
+      handle_get_elem_attr_response(&meta_msg, &avrc_response.get_attrs);
       break;
 
     case AVRC_PDU_GET_PLAY_STATUS:
@@ -3975,13 +3975,13 @@ static void handle_set_app_attr_val_response(tBTA_AV_META_MSG* pmeta_msg,
  *
  **************************************************************************/
 static void handle_get_elem_attr_response(tBTA_AV_META_MSG* pmeta_msg,
-                                          tAVRC_GET_ELEM_ATTRS_RSP* p_rsp) {
+                                          tAVRC_GET_ATTRS_RSP* p_rsp) {
   btif_rc_device_cb_t* p_dev =
       btif_rc_get_device_by_handle(pmeta_msg->rc_handle);
 
   if (p_rsp->status == AVRC_STS_NO_ERROR) {
     bt_bdaddr_t rc_addr;
-    size_t buf_size = p_rsp->num_attr * sizeof(btrc_element_attr_val_t);
+    size_t buf_size = p_rsp->num_attrs * sizeof(btrc_element_attr_val_t);
     btrc_element_attr_val_t* p_attr =
         (btrc_element_attr_val_t*)osi_calloc(buf_size);
 
@@ -3992,7 +3992,7 @@ static void handle_get_elem_attr_response(tBTA_AV_META_MSG* pmeta_msg,
 
     bdcpy(rc_addr.address, p_dev->rc_addr);
 
-    for (int i = 0; i < p_rsp->num_attr; i++) {
+    for (int i = 0; i < p_rsp->num_attrs; i++) {
       p_attr[i].attr_id = p_rsp->p_attrs[i].attr_id;
       /* Todo. Legth limit check to include null */
       if (p_rsp->p_attrs[i].name.str_len && p_rsp->p_attrs[i].name.p_str) {
@@ -4001,7 +4001,7 @@ static void handle_get_elem_attr_response(tBTA_AV_META_MSG* pmeta_msg,
         osi_free_and_reset((void**)&p_rsp->p_attrs[i].name.p_str);
       }
     }
-    HAL_CBACK(bt_rc_ctrl_callbacks, track_changed_cb, &rc_addr, p_rsp->num_attr,
+    HAL_CBACK(bt_rc_ctrl_callbacks, track_changed_cb, &rc_addr, p_rsp->num_attrs,
               p_attr);
     osi_free(p_attr);
   } else if (p_rsp->status == BTIF_RC_STS_TIMEOUT) {
@@ -4466,7 +4466,7 @@ static void handle_avk_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg) {
         break;
 
       case AVRC_PDU_GET_ELEMENT_ATTR:
-        handle_get_elem_attr_response(pmeta_msg, &avrc_response.get_elem_attrs);
+        handle_get_elem_attr_response(pmeta_msg, &avrc_response.get_attrs);
         break;
 
       case AVRC_PDU_GET_PLAY_STATUS:
