@@ -37,9 +37,6 @@ const int num_adv_instances = 16;
  * whole stack. They will be removed, or changed into mocks one by one in the
  * future, as the refactoring progresses */
 bool BTM_BleLocalPrivacyEnabled() { return true; }
-uint16_t BTM_ReadConnectability(uint16_t *p_window, uint16_t *p_interval) {
-  return true;
-}
 uint16_t BTM_ReadDiscoverability(uint16_t *p_window, uint16_t *p_interval) {
   return true;
 }
@@ -48,7 +45,6 @@ bool SMP_Encrypt(uint8_t *key, uint8_t key_len, uint8_t *plain_text,
   return true;
 }
 void BTM_GetDeviceIDRoot(BT_OCTET16 irk) {}
-tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode) { return 0; }
 void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
                                   const uint16_t connect_mode,
                                   const uint16_t disc_mode) {}

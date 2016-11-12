@@ -997,39 +997,6 @@ tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
 
 /*******************************************************************************
 **
-** Function         BTM_BleReadAdvParams
-**
-** Description      This function is called to set advertising parameters.
-**
-** Parameters       adv_int_min: minimum advertising interval
-**                  adv_int_max: maximum advertising interval
-**                  p_dir_bda: connectable direct initiator's LE device address
-**                  chnl_map: advertising channel map.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTM_BleReadAdvParams (uint16_t *adv_int_min, uint16_t *adv_int_max,
-                           tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP *p_chnl_map)
-{
-    tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
-
-    BTM_TRACE_EVENT ("BTM_BleReadAdvParams ");
-    if (!controller_get_interface()->supports_ble())
-        return ;
-
-    *adv_int_min = p_cb->adv_interval_min;
-    *adv_int_max = p_cb->adv_interval_max;
-    *p_chnl_map = p_cb->adv_chnl_map;
-
-    if (p_dir_bda != NULL)
-    {
-        memcpy(p_dir_bda, &p_cb->direct_bda, sizeof(tBLE_BD_ADDR));
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         BTM_BleSetScanParams
 **
 ** Description      This function is called to set scan parameters.
@@ -1117,34 +1084,6 @@ void BTM_BleWriteScanRsp(uint8_t* data, uint8_t length,
     else
         btm_cb.ble_ctr_cb.inq_var.scan_rsp = false;
 
-    p_adv_data_cback(BTM_SUCCESS);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_BleWriteAdvData
-**
-** Description      This function is called to write advertising data.
-**
-** Parameters:       None.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTM_BleWriteAdvData(uint8_t* data, uint8_t length,
-                         tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
-{
-    //TODO(jpawlowski) : delete btm_cb.ble_ctr_cb.inq_var.adv_data ??
-    BTM_TRACE_EVENT ("BTM_BleWriteAdvData ");
-
-    if (!controller_get_interface()->supports_ble()) {
-        p_adv_data_cback(BTM_ILLEGAL_VALUE);
-        return;
-    }
-
-    //TODO(jpawlowski): fill flags, old code had them empty always.
-
-    btsnd_hcic_ble_set_adv_data(length, data);
     p_adv_data_cback(BTM_SUCCESS);
 }
 
