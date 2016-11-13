@@ -104,18 +104,10 @@ l2cap_client_t *l2cap_client_new(const l2cap_client_callbacks_t *callbacks, void
 
   ret->remote_mtu = L2CAP_MTU_DEFAULT;
   ret->outbound_fragments = list_new(NULL);
-  if (!ret) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate outbound L2CAP fragment list.", __func__);
-    goto error;
-  }
 
   list_append(l2cap_clients, ret);
 
   return ret;
-
-error:;
-  osi_free(ret);
-  return NULL;
 }
 
 void l2cap_client_free(l2cap_client_t *client) {
