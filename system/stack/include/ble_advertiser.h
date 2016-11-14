@@ -70,8 +70,8 @@ class BleAdvertisingManager {
 
   /* This function enables/disables an advertising instance. Operation status is
    * returned in |cb| */
-  virtual void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb, int timeout_s,
-                    MultiAdvCb timeout_cb) = 0;
+  virtual void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb,
+                      int timeout_s, MultiAdvCb timeout_cb) = 0;
 
   /* This function update a Multi-ADV instance with the specififed adv
    * parameters. */
@@ -85,6 +85,11 @@ class BleAdvertisingManager {
 
   /*  This function disable a Multi-ADV instance */
   virtual void Unregister(uint8_t inst_id) = 0;
+
+  /* This method is a member of BleAdvertiserHciInterface, and is exposed here
+   * just for tests. It should never be called from upper layers*/
+  virtual void OnAdvertisingStateChanged(uint8_t inst_id, uint8_t reason,
+                                         uint16_t conn_handle) = 0;
 };
 
 #endif  // BLE_ADVERTISER_H

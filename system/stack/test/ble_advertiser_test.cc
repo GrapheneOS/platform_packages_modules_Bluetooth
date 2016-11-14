@@ -71,6 +71,7 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
   ~AdvertiserHciMock() override = default;
 
   MOCK_METHOD1(ReadInstanceCount, void(base::Callback<void(uint8_t /* inst_cnt*/)>));
+  MOCK_METHOD1(SetAdvertisingEventObserver, void(AdvertisingEventObserver *observer));
   MOCK_METHOD4(SetAdvertisingData,
                void(uint8_t, uint8_t *, uint8_t, status_cb));
   MOCK_METHOD4(SetScanResponseData,
@@ -142,7 +143,7 @@ class BleAdvertisingManagerTest : public testing::Test {
 };
 
 TEST_F(BleAdvertisingManagerTest, test_registration) {
-  for (int i = 1; i < num_adv_instances; i++) {
+  for (int i = 0; i < num_adv_instances; i++) {
     BleAdvertisingManager::Get()->RegisterAdvertiser(base::Bind(
         &BleAdvertisingManagerTest::RegistrationCb, base::Unretained(this)));
     EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, reg_status);
@@ -314,5 +315,32 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
                  base::Unretained(this)));
   set_data_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_data_status);
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+}
+
+TEST_F(BleAdvertisingManagerTest, test_reenabling) {
+  BleAdvertisingManager::Get()->RegisterAdvertiser(base::Bind(
+      &BleAdvertisingManagerTest::RegistrationCb, base::Unretained(this)));
+  EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, reg_status);
+  EXPECT_EQ(0, reg_inst_id);
+
+  uint8_t advertiser_id = reg_inst_id;
+
+  status_cb enable_cb;
+  EXPECT_CALL(*hci_mock, Enable(0x01 /* enable */, advertiser_id, _))
+      .Times(1)
+      .WillOnce(SaveArg<2>(&enable_cb));
+  BleAdvertisingManager::Get()->OnAdvertisingStateChanged(advertiser_id, 0, 5);
+  enable_cb.Run(0);
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+}
+
+/* Make sure that instance is not reenabled if it's already disabled */
+TEST_F(BleAdvertisingManagerTest, test_reenabling_disabled_instance) {
+  uint8_t advertiser_id = 1; // any unregistered value
+
+  EXPECT_CALL(*hci_mock, Enable(_, _, _))
+      .Times(Exactly(0));
+  BleAdvertisingManager::Get()->OnAdvertisingStateChanged(advertiser_id, 0, 5);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 }
