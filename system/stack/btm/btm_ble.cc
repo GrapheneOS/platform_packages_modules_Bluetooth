@@ -843,6 +843,13 @@ bool    BTM_UseLeLink (BD_ADDR bd_addr)
 tBTM_STATUS BTM_SetBleDataLength(BD_ADDR bd_addr, uint16_t tx_pdu_length)
 {
     tACL_CONN *p_acl = btm_bda_to_acl(bd_addr, BT_TRANSPORT_LE);
+
+    if(p_acl == NULL)
+    {
+        BTM_TRACE_ERROR("%s: Wrong mode: no LE link exist or LE not supported",__func__);
+        return BTM_WRONG_MODE;
+    }
+
     BTM_TRACE_DEBUG("%s: tx_pdu_length =%d", __func__, tx_pdu_length);
 
     if (!controller_get_interface()->supports_ble_packet_extension())
@@ -857,24 +864,16 @@ tBTM_STATUS BTM_SetBleDataLength(BD_ADDR bd_addr, uint16_t tx_pdu_length)
         return BTM_ILLEGAL_VALUE;
     }
 
-    if (p_acl != NULL)
-    {
-        if (tx_pdu_length > BTM_BLE_DATA_SIZE_MAX)
-            tx_pdu_length =  BTM_BLE_DATA_SIZE_MAX;
-        else if (tx_pdu_length < BTM_BLE_DATA_SIZE_MIN)
-            tx_pdu_length =  BTM_BLE_DATA_SIZE_MIN;
+    if (tx_pdu_length > BTM_BLE_DATA_SIZE_MAX)
+        tx_pdu_length =  BTM_BLE_DATA_SIZE_MAX;
+    else if (tx_pdu_length < BTM_BLE_DATA_SIZE_MIN)
+        tx_pdu_length =  BTM_BLE_DATA_SIZE_MIN;
 
-        /* always set the TxTime to be max, as controller does not care for now */
-        btsnd_hcic_ble_set_data_length(p_acl->hci_handle, tx_pdu_length,
-                                            BTM_BLE_DATA_TX_TIME_MAX);
+    /* always set the TxTime to be max, as controller does not care for now */
+    btsnd_hcic_ble_set_data_length(p_acl->hci_handle, tx_pdu_length,
+                                        BTM_BLE_DATA_TX_TIME_MAX);
 
-        return BTM_SUCCESS;
-    }
-    else
-    {
-        BTM_TRACE_ERROR("%s: Wrong mode: no LE link exist or LE not supported",__func__);
-        return BTM_WRONG_MODE;
-    }
+    return BTM_SUCCESS;
 }
 
 /*******************************************************************************
