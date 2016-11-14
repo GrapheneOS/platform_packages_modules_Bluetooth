@@ -87,6 +87,11 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
     cb.Run(BTM_BleMaxMultiAdvInstanceCount());
   }
 
+  void SetAdvertisingEventObserver(
+      AdvertisingEventObserver *observer) override {
+    this->advertising_event_observer = observer;
+  }
+
   void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
                      uint8_t advertising_type, uint8_t own_address_type,
                      BD_ADDR own_address, uint8_t direct_address_type,
@@ -196,7 +201,15 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
     STREAM_TO_UINT8(adv_inst, p);
     STREAM_TO_UINT8(change_reason, p);
     STREAM_TO_UINT16(conn_handle, p);
+
+    AdvertisingEventObserver *observer =
+        ((BleAdvertiserVscHciInterfaceImpl *)BleAdvertiserHciInterface::Get())->advertising_event_observer;
+    if (observer)
+      observer->OnAdvertisingStateChanged(adv_inst, change_reason, conn_handle);
   }
+
+ private:
+  AdvertisingEventObserver *advertising_event_observer = nullptr;
 };
 
 std::queue<std::pair<uint16_t, status_cb>> *legacy_pending_ops = nullptr;
@@ -232,6 +245,9 @@ class BleAdvertiserLegacyHciInterfaceImpl : public BleAdvertiserHciInterface {
       base::Callback<void(uint8_t /* inst_cnt*/)> cb) override {
     cb.Run(1);
   }
+
+  void SetAdvertisingEventObserver(
+      AdvertisingEventObserver *observer) override {}
 
   void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
                      uint8_t advertising_type, uint8_t own_address_type,
