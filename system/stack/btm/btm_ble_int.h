@@ -32,7 +32,7 @@
 #include "btm_ble_api.h"
 #include "btm_int.h"
 
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
 #include "smp_api.h"
 #endif
 

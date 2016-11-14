@@ -669,10 +669,6 @@
  *
  *****************************************************************************/
 
-#ifndef BLE_INCLUDED
-#define BLE_INCLUDED TRUE
-#endif
-
 #ifndef BLE_ANDROID_CONTROLLER_SCAN_FILTER
 #define BLE_ANDROID_CONTROLLER_SCAN_FILTER TRUE
 #endif
@@ -721,15 +717,7 @@
  *
  *****************************************************************************/
 #ifndef BTA_GATT_INCLUDED
-#if BLE_INCLUDED == TRUE
 #define BTA_GATT_INCLUDED TRUE
-#else
-#define BTA_GATT_INCLUDED FALSE
-#endif
-#endif
-
-#if BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == FALSE
-#error "can't have GATT without BLE"
 #endif
 
 #ifndef BLE_LLT_INCLUDED
@@ -788,15 +776,7 @@
  *
  *****************************************************************************/
 #ifndef SMP_INCLUDED
-#if (BLE_INCLUDED == TRUE)
 #define SMP_INCLUDED TRUE
-#else
-#define SMP_INCLUDED FALSE
-#endif
-#endif
-
-#if (SMP_INCLUDED == TRUE && BLE_INCLUDED == FALSE)
-#error "can't have SMP without BLE"
 #endif
 
 #ifndef SMP_DEBUG

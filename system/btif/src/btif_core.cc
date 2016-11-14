@@ -269,9 +269,7 @@ int btif_is_enabled(void) {
 
 void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char* p_param) {
   BTIF_TRACE_DEBUG("btif_task: received trigger stack init event");
-#if (BLE_INCLUDED == TRUE)
   btif_dm_load_ble_local_keys();
-#endif
   BTA_EnableBluetooth(bte_dm_evt);
 }
 
@@ -573,11 +571,9 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status) {
 bt_status_t btif_disable_bluetooth(void) {
   BTIF_TRACE_DEBUG("BTIF DISABLE BLUETOOTH");
 
-#if (BLE_INCLUDED == TRUE)
   btm_ble_multi_adv_cleanup();
 // TODO(jpawlowski): this should do whole BTA_VendorCleanup(), but it would kill
 // the stack now.
-#endif
 
   btif_dm_on_disable();
   /* cleanup rfcomm & l2cap api */
@@ -626,9 +622,7 @@ void btif_disable_bluetooth_evt(void) {
 bt_status_t btif_cleanup_bluetooth(void) {
   BTIF_TRACE_DEBUG("%s", __func__);
 
-#if (BLE_INCLUDED == TRUE)
   BTA_VendorCleanup();
-#endif
 
   btif_dm_cleanup();
   btif_jni_disassociate();
@@ -856,7 +850,6 @@ static void execute_storage_request(uint16_t event, char* p_param) {
       prop.val = (void*)buf;
       prop.len = sizeof(buf);
       if (prop.type == BT_PROPERTY_LOCAL_LE_FEATURES) {
-#if (BLE_INCLUDED == true)
         tBTM_BLE_VSC_CB cmn_vsc_cb;
         bt_local_le_features_t local_le_features;
 
@@ -886,7 +879,6 @@ static void execute_storage_request(uint16_t event, char* p_param) {
         local_le_features.debug_logging_supported =
             cmn_vsc_cb.debug_logging_supported > 0;
         memcpy(prop.val, &local_le_features, prop.len);
-#endif
       } else {
         status = btif_storage_get_adapter_property(&prop);
       }

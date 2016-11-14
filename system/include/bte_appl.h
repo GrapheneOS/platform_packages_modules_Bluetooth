@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 typedef struct {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
   uint8_t ble_auth_req;
   uint8_t ble_io_cap;
   uint8_t ble_init_key;

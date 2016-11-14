@@ -1695,10 +1695,8 @@ bool    L2CA_ConnectFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
         return (false);
     }
 
-#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
-#endif
 
     tL2C_BLE_FIXED_CHNLS_MASK peer_channel_mask;
 
@@ -1708,11 +1706,9 @@ bool    L2CA_ConnectFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
         // Fixed channels are mandatory on LE transports so ignore the received
         // channel mask and use the locally cached LE channel mask.
 
-#if (BLE_INCLUDED == TRUE)
         if (transport == BT_TRANSPORT_LE)
             peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
         else
-#endif
             peer_channel_mask = p_lcb->peer_chnl_mask[0];
 
         // Check for supported channel
@@ -1741,13 +1737,8 @@ bool    L2CA_ConnectFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
             return true;
         }
 
-#if (BLE_INCLUDED == TRUE)
         (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedConn_Cb)
         (fixed_cid,p_lcb->remote_bd_addr, true, 0, p_lcb->transport);
-#else
-        (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedConn_Cb)
-        (fixed_cid, p_lcb->remote_bd_addr, true, 0, BT_TRANSPORT_BR_EDR);
-#endif
         return true;
     }
 
@@ -1799,10 +1790,8 @@ uint16_t L2CA_SendFixedChnlData (uint16_t fixed_cid, BD_ADDR rem_bda, BT_HDR *p_
     L2CAP_TRACE_API ("L2CA_SendFixedChnlData()  CID: 0x%04x  BDA: %08x%04x", fixed_cid,
                      (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
 
-#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
-#endif
 
     // Check CID is valid and registered
     if ( (fixed_cid < L2CAP_FIRST_FIXED_CHNL) || (fixed_cid > L2CAP_LAST_FIXED_CHNL)
@@ -1834,11 +1823,9 @@ uint16_t L2CA_SendFixedChnlData (uint16_t fixed_cid, BD_ADDR rem_bda, BT_HDR *p_
     tL2C_BLE_FIXED_CHNLS_MASK peer_channel_mask;
 
     // Select peer channels mask to use depending on transport
-#if (BLE_INCLUDED == TRUE)
     if (transport == BT_TRANSPORT_LE)
         peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
     else
-#endif
         peer_channel_mask = p_lcb->peer_chnl_mask[0];
 
     if ((peer_channel_mask & (1 << fixed_cid)) == 0)
@@ -1915,10 +1902,8 @@ bool    L2CA_RemoveFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
         return (false);
     }
 
-#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
-#endif
 
     /* Is a fixed channel connected to the remote BDA ?*/
     p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, transport);
@@ -1939,7 +1924,6 @@ bool    L2CA_RemoveFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
     p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL] = NULL;
     p_lcb->disc_reason = HCI_ERR_CONN_CAUSE_LOCAL_HOST;
 
-#if (BLE_INCLUDED == TRUE)
     // Retain the link for a few more seconds after SMP pairing is done, since the Android
     // platform always does service discovery after pairing is complete. This will avoid
     // the link down (pairing is complete) and an immediate re-connection for service
@@ -1948,7 +1932,6 @@ bool    L2CA_RemoveFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
     // connection and service discovery.
     if ((fixed_cid == L2CAP_ATT_CID ) && !p_lcb->ccb_queue.p_first_ccb)
         p_lcb->idle_timeout = 0;
-#endif
 
     l2cu_release_ccb (p_ccb);
 
@@ -1977,10 +1960,8 @@ bool    L2CA_SetFixedChannelTout (BD_ADDR rem_bda, uint16_t fixed_cid, uint16_t 
     tL2C_LCB        *p_lcb;
     tBT_TRANSPORT   transport = BT_TRANSPORT_BR_EDR;
 
-#if (BLE_INCLUDED == TRUE)
     if (fixed_cid >= L2CAP_ATT_CID && fixed_cid <= L2CAP_SMP_CID)
         transport = BT_TRANSPORT_LE;
-#endif
 
     /* Is a fixed channel connected to the remote BDA ?*/
     p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, transport);

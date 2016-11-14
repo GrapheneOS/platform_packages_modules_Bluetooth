@@ -31,7 +31,6 @@
 #include "gap_api.h"
 #include "device/include/controller.h"
 
-#if (BLE_INCLUDED == TRUE)
 #include "btm_ble_int.h"
 #include "smp_api.h"
 
@@ -91,7 +90,7 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 *******************************************************************************/
 void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
 {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tSMP_ENC    output;
 
@@ -312,7 +311,7 @@ bool    btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
 *******************************************************************************/
 static bool    btm_ble_match_random_bda(void *data, void *context)
 {
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
     /* use the 3 MSB of bd address as prand */
 
     tBTM_LE_RANDOM_CB *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -578,6 +577,5 @@ void btm_ble_refresh_local_resolvable_private_addr(BD_ADDR pseudo_addr,
     }
 #endif
 }
-#endif
 
 

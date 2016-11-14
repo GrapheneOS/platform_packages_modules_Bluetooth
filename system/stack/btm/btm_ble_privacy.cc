@@ -24,7 +24,7 @@
 #include <string.h>
 #include "bt_target.h"
 
-#if (BLE_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE)
+#if (BLE_PRIVACY_SPT == TRUE)
 #include "bt_types.h"
 #include "hcimsgs.h"
 #include "btu.h"

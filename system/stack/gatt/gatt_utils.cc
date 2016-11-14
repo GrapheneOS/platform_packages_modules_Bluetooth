@@ -25,21 +25,20 @@
 #include "bt_utils.h"
 #include "osi/include/osi.h"
 
-#if (BLE_INCLUDED == TRUE)
-    #include <string.h>
-    #include "stdio.h"
-    #include "bt_common.h"
+#include <string.h>
+#include "stdio.h"
+#include "bt_common.h"
 
-    #include "l2cdefs.h"
-    #include "gatt_int.h"
-    #include "gatt_api.h"
-    #include "gattdefs.h"
-    #include "sdp_api.h"
-    #include "btm_int.h"
+#include "l2cdefs.h"
+#include "gatt_int.h"
+#include "gatt_api.h"
+#include "gattdefs.h"
+#include "sdp_api.h"
+#include "btm_int.h"
 /* check if [x, y] and [a, b] have overlapping range */
-    #define GATT_VALIDATE_HANDLE_RANGE(x, y, a, b)   ((y) >= (a) && (x) <= (b))
+#define GATT_VALIDATE_HANDLE_RANGE(x, y, a, b)   ((y) >= (a) && (x) <= (b))
 
-    #define GATT_GET_NEXT_VALID_HANDLE(x)    (((x)/10 + 1) * 10)
+#define GATT_GET_NEXT_VALID_HANDLE(x)    (((x)/10 + 1) * 10)
 
 const char * const op_code_name[] =
 {
@@ -2686,7 +2685,3 @@ tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGAT
 
     return p_buf;
 }
-
-#endif
-
-

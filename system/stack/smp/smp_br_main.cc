@@ -21,8 +21,6 @@
 #include <string.h>
 #include "smp_int.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 const char *const smp_br_state_name [SMP_BR_STATE_MAX+1] =
 {
     "SMP_BR_STATE_IDLE",
@@ -395,5 +393,3 @@ void smp_br_state_machine_event(tSMP_CB *p_cb, tSMP_BR_EVENT event, void *p_data
     }
     SMP_TRACE_DEBUG( "result state = %s", smp_get_br_state_name( p_cb->br_state ) ) ;
 }
-
-#endif
