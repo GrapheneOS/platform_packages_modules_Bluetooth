@@ -404,6 +404,8 @@ void btm_ble_adv_raddr_timer_timeout(void *data) {
 void btm_ble_multi_adv_init() {
   BleAdvertiserHciInterface::Initialize();
   BleAdvertisingManager::Initialize(BleAdvertiserHciInterface::Get());
+  BleAdvertiserHciInterface::Get()->SetAdvertisingEventObserver(
+      (BleAdvertisingManagerImpl *)BleAdvertisingManager::Get());
 }
 
 /*******************************************************************************
