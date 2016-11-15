@@ -272,7 +272,6 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg,
                                   btif_rc_device_cb_t* p_dev);
 #endif
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
 static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg);
 static void handle_avk_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg);
 static void btif_rc_ctrl_upstreams_rsp_cmd(uint8_t event,
@@ -330,7 +329,6 @@ void get_folder_item_type_player(const tAVRC_ITEM* avrc_item,
                                  btrc_folder_items_t* btrc_item);
 static bt_status_t get_folder_items_cmd(bt_bdaddr_t* bd_addr, uint8_t scope,
                                         uint8_t start_item, uint8_t num_items);
-#endif
 
 static void btif_rc_upstreams_evt(uint16_t event, tAVRC_COMMAND* p_param,
                                   uint8_t ctype, uint8_t label,
@@ -458,7 +456,6 @@ void fill_avrc_attr_entry(tAVRC_ATTR_ENTRY* attr_vals, int num_attrs,
   }
 }
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
 void rc_cleanup_sent_cmd(void* p_data) { BTIF_TRACE_DEBUG("%s: ", __func__); }
 
 void handle_rc_ctrl_features(btif_rc_device_cb_t* p_dev) {
@@ -500,7 +497,6 @@ void handle_rc_ctrl_features(btif_rc_device_cb_t* p_dev) {
   BTIF_TRACE_DEBUG("%s: Update rc features to CTRL: %d", __func__, rc_features);
   HAL_CBACK(bt_rc_ctrl_callbacks, getrcfeatures_cb, &rc_addr, rc_features);
 }
-#endif
 
 void handle_rc_features(btif_rc_device_cb_t* p_dev) {
   bt_bdaddr_t rc_addr;
@@ -588,7 +584,6 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
 void handle_rc_browse_connect(tBTA_AV_RC_OPEN* p_rc_open) {
   BTIF_TRACE_DEBUG("%s rc_handle %d status %d", __func__, p_rc_open->rc_handle,
                    p_rc_open->status);
-#if (AVRC_CTRL_INCLUDED == TRUE)
   btif_rc_device_cb_t* p_dev =
       btif_rc_get_device_by_handle(p_rc_open->rc_handle);
 
@@ -606,7 +601,6 @@ void handle_rc_browse_connect(tBTA_AV_RC_OPEN* p_rc_open) {
     p_dev->br_connected = true;
     HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, true, true, &rc_addr);
   }
-#endif
 }
 
 /***************************************************************************
@@ -619,9 +613,6 @@ void handle_rc_browse_connect(tBTA_AV_RC_OPEN* p_rc_open) {
  ***************************************************************************/
 void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
   BTIF_TRACE_DEBUG("%s: rc_handle: %d", __func__, p_rc_open->rc_handle);
-#if (AVRC_CTRL_INCLUDED == TRUE)
-  bt_bdaddr_t rc_addr;
-#endif
 
   btif_rc_device_cb_t* p_dev = alloc_device();
   if (p_dev == NULL) {
@@ -664,15 +655,14 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
     handle_rc_features(p_dev);
   }
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
   p_dev->rc_playing_uid = RC_INVALID_TRACK_ID;
+  bt_bdaddr_t rc_addr;
   bdcpy(rc_addr.address, p_dev->rc_addr);
   if (bt_rc_ctrl_callbacks != NULL) {
     HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, true, false, &rc_addr);
   }
   /* report connection state if remote device is AVRCP target */
   handle_rc_ctrl_features(p_dev);
-#endif
 }
 
 /***************************************************************************
@@ -685,10 +675,6 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
  ***************************************************************************/
 void handle_rc_disconnect(tBTA_AV_RC_CLOSE* p_rc_close) {
   btif_rc_device_cb_t* p_dev = NULL;
-#if (AVRC_CTRL_INCLUDED == TRUE)
-  bt_bdaddr_t rc_addr;
-  tBTA_AV_FEAT features = 0;
-#endif
   BTIF_TRACE_DEBUG("%s: rc_handle: %d", __func__, p_rc_close->rc_handle);
 
   p_dev = btif_rc_get_device_by_handle(p_rc_close->rc_handle);
@@ -702,9 +688,8 @@ void handle_rc_disconnect(tBTA_AV_RC_CLOSE* p_rc_close) {
     BTIF_TRACE_ERROR("Got disconnect of unknown device");
     return;
   }
-#if (AVRC_CTRL_INCLUDED == TRUE)
+  bt_bdaddr_t rc_addr;
   bdcpy(rc_addr.address, p_dev->rc_addr);
-  features = p_dev->rc_features;
   /* Clean up AVRCP procedure flags */
   memset(&p_dev->rc_app_settings, 0, sizeof(btif_rc_player_app_settings_t));
   p_dev->rc_features_processed = false;
@@ -715,7 +700,6 @@ void handle_rc_disconnect(tBTA_AV_RC_CLOSE* p_rc_close) {
     list_clear(p_dev->rc_supported_event_list);
     p_dev->rc_supported_event_list = NULL;
   }
-#endif
 
   /* check if there is another device connected */
   if (p_dev->rc_state == BTRC_CONNECTION_STATE_CONNECTED) {
@@ -737,13 +721,11 @@ void handle_rc_disconnect(tBTA_AV_RC_CLOSE* p_rc_close) {
   }
 
   memset(p_dev->rc_addr, 0, sizeof(BD_ADDR));
-#if (AVRC_CTRL_INCLUDED == TRUE)
   /* report connection state if device is AVRCP target */
   if (bt_rc_ctrl_callbacks != NULL) {
     HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, false, false,
               &rc_addr);
   }
-#endif
 }
 
 /***************************************************************************
@@ -831,7 +813,6 @@ void handle_rc_passthrough_rsp(tBTA_AV_REMOTE_RSP* p_remote_rsp) {
 
   bdcpy(rc_addr.address, p_dev->rc_addr);
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
   if (!(p_dev->rc_features & BTA_AV_FEAT_RCTG)) {
     BTIF_TRACE_ERROR("%s: DUT does not support AVRCP controller role",
                      __func__);
@@ -847,9 +828,6 @@ void handle_rc_passthrough_rsp(tBTA_AV_REMOTE_RSP* p_remote_rsp) {
     HAL_CBACK(bt_rc_ctrl_callbacks, passthrough_rsp_cb, &rc_addr,
               p_remote_rsp->rc_id, p_remote_rsp->key_state);
   }
-#else
-  BTIF_TRACE_ERROR("%s: AVRCP controller role is not enabled", __func__);
-#endif
 }
 
 /***************************************************************************
@@ -861,7 +839,6 @@ void handle_rc_passthrough_rsp(tBTA_AV_REMOTE_RSP* p_remote_rsp) {
  *
  ***************************************************************************/
 void handle_rc_vendorunique_rsp(tBTA_AV_REMOTE_RSP* p_remote_rsp) {
-#if (AVRC_CTRL_INCLUDED == TRUE)
   btif_rc_device_cb_t* p_dev = NULL;
   const char* status;
   uint8_t vendor_id = 0;
@@ -897,9 +874,6 @@ void handle_rc_vendorunique_rsp(tBTA_AV_REMOTE_RSP* p_remote_rsp) {
   } else {
     BTIF_TRACE_ERROR("%s: Remote does not support AVRCP TG role", __func__);
   }
-#else
-  BTIF_TRACE_ERROR("%s: AVRCP controller role is not enabled", __func__);
-#endif
 }
 
 void handle_uid_changed_notification(btif_rc_device_cb_t* p_dev, uint8_t label,
@@ -1076,7 +1050,6 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
       }
     } break;
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
     case BTA_AV_REMOTE_RSP_EVT: {
       BTIF_TRACE_DEBUG("%s: RSP: rc_id: 0x%x key_state: %d", __func__,
                        p_data->remote_rsp.rc_id, p_data->remote_rsp.key_state);
@@ -1088,7 +1061,6 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
       }
     } break;
 
-#endif
     case BTA_AV_RC_FEAT_EVT: {
       BTIF_TRACE_DEBUG("%s: Peer_features: %x", __func__,
                        p_data->rc_feat.peer_features);
@@ -1102,11 +1074,9 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
       p_dev->rc_features = p_data->rc_feat.peer_features;
       handle_rc_features(p_dev);
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
       if ((p_dev->rc_connected) && (bt_rc_ctrl_callbacks != NULL)) {
         handle_rc_ctrl_features(p_dev);
       }
-#endif
     } break;
 
     case BTA_AV_META_MSG_EVT: {
@@ -1121,9 +1091,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
         handle_rc_metamsg_cmd(&(p_data->meta_msg));
 
         /* Free the Memory allocated for tAVRC_MSG */
-      }
-#if (AVRC_CTRL_INCLUDED == TRUE)
-      else if (bt_rc_ctrl_callbacks != NULL) {
+      } else if (bt_rc_ctrl_callbacks != NULL) {
         /* This is case of Sink + CT + TG(for abs vol)) */
         BTIF_TRACE_DEBUG(
             "%s BTA_AV_META_MSG_EVT code:%d label:%d opcode %d ctype %d",
@@ -1153,10 +1121,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
             }
             break;
         }
-
-      }
-#endif
-      else {
+      } else {
         BTIF_TRACE_ERROR("Neither CTRL, nor TG is up, drop meta commands");
       }
     } break;
@@ -1712,7 +1677,6 @@ static void btif_rc_upstreams_evt(uint16_t event, tAVRC_COMMAND* pavrc_cmd,
   }
 }
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
  *
  * Function         btif_rc_ctrl_upstreams_rsp_cmd
@@ -1743,7 +1707,6 @@ static void btif_rc_ctrl_upstreams_rsp_cmd(uint8_t event,
       break;
   }
 }
-#endif
 
 /*******************************************************************************
  *
@@ -2821,7 +2784,6 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg,
 }
 #endif
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
 /***************************************************************************
  *
  * Function         iterate_supported_event_list_for_interim_rsp
@@ -4449,7 +4411,6 @@ static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg) {
     return;
   }
 }
-#endif
 
 /***************************************************************************
  *
@@ -4514,7 +4475,6 @@ static bt_status_t getcapabilities_cmd(uint8_t cap_id,
                                        btif_rc_device_cb_t* p_dev) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG("%s: cap_id: %d", __func__, cap_id);
 
   CHECK_RC_CONNECTED(p_dev);
@@ -4542,9 +4502,6 @@ static bt_status_t getcapabilities_cmd(uint8_t cap_id,
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -4561,7 +4518,6 @@ static bt_status_t list_player_app_setting_attrib_cmd(
     btif_rc_device_cb_t* p_dev) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG("%s: ", __func__);
 
   CHECK_RC_CONNECTED(p_dev);
@@ -4589,9 +4545,6 @@ static bt_status_t list_player_app_setting_attrib_cmd(
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -4608,7 +4561,6 @@ static bt_status_t list_player_app_setting_value_cmd(
     uint8_t attrib_id, btif_rc_device_cb_t* p_dev) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG("%s: attrib_id: %d", __func__, attrib_id);
 
   CHECK_RC_CONNECTED(p_dev);
@@ -4637,9 +4589,6 @@ static bt_status_t list_player_app_setting_value_cmd(
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -4658,7 +4607,6 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib,
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
   int count = 0;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG("%s: num attrib_id: %d", __func__, num_attrib);
 
   CHECK_RC_CONNECTED(p_dev);
@@ -4691,9 +4639,6 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib,
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -4730,13 +4675,8 @@ static bt_status_t get_now_playing_list_cmd(bt_bdaddr_t* bd_addr,
                                             uint8_t start_item,
                                             uint8_t num_items) {
   BTIF_TRACE_DEBUG("%s start, end: (%d, %d)", __func__, start_item, num_items);
-#if (AVRC_CTRL_INCLUDED == TRUE)
   return get_folder_items_cmd(bd_addr, AVRC_SCOPE_NOW_PLAYING, start_item,
                               num_items);
-#else
-  BTIF_TRACE_ERROR("%s AVRCP controller role is not enabled", __func__);
-  return BT_STATUS_FAIL;
-#endif
 }
 
 /***************************************************************************
@@ -4755,13 +4695,8 @@ static bt_status_t get_now_playing_list_cmd(bt_bdaddr_t* bd_addr,
 static bt_status_t get_folder_list_cmd(bt_bdaddr_t* bd_addr, uint8_t start_item,
                                        uint8_t num_items) {
   BTIF_TRACE_DEBUG("%s start, end: (%d, %d)", __func__, start_item, num_items);
-#if (AVRC_CTRL_INCLUDED == TRUE)
   return get_folder_items_cmd(bd_addr, AVRC_SCOPE_FILE_SYSTEM, start_item,
                               num_items);
-#else
-  BTIF_TRACE_ERROR("%s AVRCP controller role is not enabled", __func__);
-  return BT_STATUS_FAIL;
-#endif
 }
 
 /***************************************************************************
@@ -4780,13 +4715,8 @@ static bt_status_t get_folder_list_cmd(bt_bdaddr_t* bd_addr, uint8_t start_item,
 static bt_status_t get_player_list_cmd(bt_bdaddr_t* bd_addr, uint8_t start_item,
                                        uint8_t num_items) {
   BTIF_TRACE_DEBUG("%s start, end: (%d, %d)", __func__, start_item, num_items);
-#if (AVRC_CTRL_INCLUDED == TRUE)
   return get_folder_items_cmd(bd_addr, AVRC_SCOPE_PLAYER_LIST, start_item,
                               num_items);
-#else
-  BTIF_TRACE_ERROR("%s AVRCP controller role is not enabled", __func__);
-  return BT_STATUS_FAIL;
-#endif
 }
 
 /***************************************************************************
@@ -4807,7 +4737,6 @@ static bt_status_t get_player_list_cmd(bt_bdaddr_t* bd_addr, uint8_t start_item,
 static bt_status_t change_folder_path_cmd(bt_bdaddr_t* bd_addr,
                                           uint8_t direction, uint8_t* uid) {
   BTIF_TRACE_DEBUG("%s direction (%d)", __func__, direction);
-#if (AVRC_CTRL_INCLUDED == TRUE)
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);
 
   CHECK_RC_CONNECTED(p_dev);
@@ -4855,10 +4784,6 @@ static bt_status_t change_folder_path_cmd(bt_bdaddr_t* bd_addr,
     status = BT_STATUS_FAIL;
   }
   return (bt_status_t)status;
-#else
-  BTIF_TRACE_ERROR("%s AVRCP controller role is not enabled", __func__);
-  return BT_STATUS_FAIL;
-#endif
 }
 
 /***************************************************************************
@@ -4875,7 +4800,6 @@ static bt_status_t change_folder_path_cmd(bt_bdaddr_t* bd_addr,
  **************************************************************************/
 static bt_status_t set_browsed_player_cmd(bt_bdaddr_t* bd_addr, uint16_t id) {
   BTIF_TRACE_DEBUG("%s id (%d)", __func__, id);
-#if (AVRC_CTRL_INCLUDED == TRUE)
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);
   CHECK_RC_CONNECTED(p_dev);
   CHECK_BR_CONNECTED(p_dev);
@@ -4918,10 +4842,6 @@ static bt_status_t set_browsed_player_cmd(bt_bdaddr_t* bd_addr, uint16_t id) {
     status = BT_STATUS_FAIL;
   }
   return (bt_status_t)status;
-#else
-  BTIF_TRACE_ERROR("%s AVRCP controller role is not enabled", __func__);
-  return BT_STATUS_FAIL;
-#endif
 }
 
 /***************************************************************************
@@ -5071,7 +4991,6 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t* bd_addr,
   rc_transaction_t* p_transaction = NULL;
   int count = 0;
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);
-#if (AVRC_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG("%s: num attrib_id: %d", __func__, num_attrib);
 
   CHECK_RC_CONNECTED(p_dev);
@@ -5107,9 +5026,6 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t* bd_addr,
   }
   osi_free(p_msg);
   osi_free_and_reset((void**)&avrc_cmd.set_app_val.p_vals);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5125,7 +5041,6 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t* bd_addr,
 static bt_status_t play_item_cmd(bt_bdaddr_t* bd_addr, uint8_t scope,
                                  uint8_t* uid, uint16_t uid_counter) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   rc_transaction_t* p_transaction = NULL;
   BTIF_TRACE_DEBUG("%s: scope %d uid_counter %d", __FUNCTION__, scope,
                    uid_counter);
@@ -5159,9 +5074,6 @@ static bt_status_t play_item_cmd(bt_bdaddr_t* bd_addr, uint8_t scope,
                      __FUNCTION__, status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5179,7 +5091,6 @@ static bt_status_t get_player_app_setting_attr_text_cmd(
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
   int count = 0;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   tAVRC_COMMAND avrc_cmd = {0};
   BT_HDR* p_msg = NULL;
   bt_status_t tran_status;
@@ -5214,9 +5125,6 @@ static bt_status_t get_player_app_setting_attr_text_cmd(
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5234,7 +5142,6 @@ static bt_status_t get_player_app_setting_value_text_cmd(
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
   int count = 0;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   tAVRC_COMMAND avrc_cmd = {0};
   BT_HDR* p_msg = NULL;
   bt_status_t tran_status;
@@ -5270,9 +5177,6 @@ static bt_status_t get_player_app_setting_value_text_cmd(
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5289,7 +5193,6 @@ static bt_status_t register_notification_cmd(uint8_t label, uint8_t event_id,
                                              uint32_t event_value,
                                              btif_rc_device_cb_t* p_dev) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   tAVRC_COMMAND avrc_cmd = {0};
   BT_HDR* p_msg = NULL;
 
@@ -5318,9 +5221,6 @@ static bt_status_t register_notification_cmd(uint8_t label, uint8_t event_id,
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5339,7 +5239,6 @@ static bt_status_t get_element_attribute_cmd(uint8_t num_attribute,
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
   int count = 0;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   tAVRC_COMMAND avrc_cmd = {0};
   BT_HDR* p_msg = NULL;
   bt_status_t tran_status;
@@ -5377,9 +5276,6 @@ static bt_status_t get_element_attribute_cmd(uint8_t num_attribute,
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5395,7 +5291,6 @@ static bt_status_t get_element_attribute_cmd(uint8_t num_attribute,
 static bt_status_t get_play_status_cmd(btif_rc_device_cb_t* p_dev) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   rc_transaction_t* p_transaction = NULL;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   tAVRC_COMMAND avrc_cmd = {0};
   BT_HDR* p_msg = NULL;
   bt_status_t tran_status;
@@ -5426,9 +5321,6 @@ static bt_status_t get_play_status_cmd(btif_rc_device_cb_t* p_dev) {
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5444,7 +5336,6 @@ static bt_status_t get_play_status_cmd(btif_rc_device_cb_t* p_dev) {
 static bt_status_t set_volume_rsp(bt_bdaddr_t* bd_addr, uint8_t abs_vol,
                                   uint8_t label) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   tAVRC_RESPONSE avrc_rsp;
   BT_HDR* p_msg = NULL;
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);
@@ -5472,9 +5363,6 @@ static bt_status_t set_volume_rsp(bt_bdaddr_t* bd_addr, uint8_t abs_vol,
                      status);
   }
   osi_free(p_msg);
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5493,7 +5381,6 @@ static bt_status_t volume_change_notification_rsp(
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
   tAVRC_RESPONSE avrc_rsp;
   BT_HDR* p_msg = NULL;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   BTIF_TRACE_DEBUG("%s: rsp_type: %d abs_vol: %d", __func__, rsp_type, abs_vol);
 
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);
@@ -5523,9 +5410,6 @@ static bt_status_t volume_change_notification_rsp(
   }
   osi_free(p_msg);
 
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5542,7 +5426,6 @@ static bt_status_t send_groupnavigation_cmd(bt_bdaddr_t* bd_addr,
                                             uint8_t key_code,
                                             uint8_t key_state) {
   tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTRL_INCLUDED == TRUE)
   rc_transaction_t* p_transaction = NULL;
   BTIF_TRACE_DEBUG("%s: key-code: %d, key-state: %d", __func__, key_code,
                    key_state);
@@ -5572,9 +5455,6 @@ static bt_status_t send_groupnavigation_cmd(bt_bdaddr_t* bd_addr,
     status = BT_STATUS_FAIL;
     BTIF_TRACE_DEBUG("%s: feature not supported", __func__);
   }
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
@@ -5593,7 +5473,6 @@ static bt_status_t send_passthrough_cmd(bt_bdaddr_t* bd_addr, uint8_t key_code,
   btif_rc_device_cb_t* p_dev = NULL;
   BTIF_TRACE_ERROR("%s: calling btif_rc_get_device_by_bda", __func__);
   p_dev = btif_rc_get_device_by_bda(bd_addr);
-#if (AVRC_CTRL_INCLUDED == TRUE)
 
   CHECK_RC_CONNECTED(p_dev);
 
@@ -5616,9 +5495,6 @@ static bt_status_t send_passthrough_cmd(bt_bdaddr_t* bd_addr, uint8_t key_code,
     status = BT_STATUS_FAIL;
     BTIF_TRACE_DEBUG("%s: feature not supported", __func__);
   }
-#else
-  BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);
-#endif
   return (bt_status_t)status;
 }
 
