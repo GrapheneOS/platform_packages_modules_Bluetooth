@@ -2686,33 +2686,7 @@ tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGAT
 
     return p_buf;
 }
-/*******************************************************************************
-**
-** Function     gatt_update_listen_mode
-**
-** Description  update peripheral role listening mode
-**
-** Returns    Pointer to the new service start buffer, NULL no buffer available
-**
-*******************************************************************************/
-void gatt_update_listen_mode(int listening)
-{
-    uint16_t        connectability, window, interval;
 
-    connectability = BTM_ReadConnectability(&window, &interval);
-
-    if (listening != GATT_LISTEN_TO_NONE)
-    {
-        connectability |= BTM_BLE_CONNECTABLE;
-    }
-    else
-    {
-        if ((connectability & BTM_BLE_CONNECTABLE) == 0)
-        connectability &= ~BTM_BLE_CONNECTABLE;
-    }
-    /* turning on the adv now */
-    btm_ble_set_connectability(connectability);
-}
 #endif
 
 
