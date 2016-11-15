@@ -1169,8 +1169,6 @@ void GATT_Deregister (tGATT_IF gatt_if)
     }
 
     gatt_deregister_bgdev_list(gatt_if);
-    /* update the listen mode */
-    GATT_Listen(false);
 
     memset (p_reg, 0, sizeof(tGATT_REG));
 }
@@ -1440,23 +1438,6 @@ bool    GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, uint16_t *p
 
     GATT_TRACE_API ("GATT_GetConnIdIfConnected status=%d", status);
     return status;
-}
-
-
-/*******************************************************************************
-**
-** Function         GATT_Listen
-**
-** Description      This function start or stop LE advertisement and listen for
-**                  connection.
-**
-** Parameters       start: start or stop listening.
-**
-*******************************************************************************/
-void GATT_Listen(bool start)
-{
-    GATT_TRACE_API("GATT_Listen start=%d", start);
-    gatt_update_listen_mode(start ? GATT_LISTEN_TO_ALL : GATT_LISTEN_TO_NONE);
 }
 
 #endif
