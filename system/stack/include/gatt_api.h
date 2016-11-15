@@ -1075,20 +1075,6 @@ extern bool    GATT_GetConnectionInfor(uint16_t conn_id, tGATT_IF *p_gatt_if,
 extern bool    GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr,
                                          uint16_t *p_conn_id, tBT_TRANSPORT transport);
 
-
-/*******************************************************************************
-**
-** Function         GATT_Listen
-**
-** Description      This function start or stop LE advertisement and listen for
-**                  connection.
-**
-** Parameters       start: is a direct conenection or a background auto connection
-**
-**
-*******************************************************************************/
-extern void GATT_Listen(bool start);
-
 /*******************************************************************************
 **
 ** Function         GATT_ConfigServiceChangeCCC

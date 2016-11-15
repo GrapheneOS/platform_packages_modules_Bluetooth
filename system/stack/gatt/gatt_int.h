@@ -215,9 +215,6 @@ typedef struct
     bool            in_use;
 } tGATT_SR_REG;
 
-#define GATT_LISTEN_TO_ALL  0xff
-#define GATT_LISTEN_TO_NONE 0
-
 /* Data Structure used for GATT server */
 /* An GATT registration record consists of a handle, and 1 or more attributes */
 /* A service registration information record consists of beginning and ending */
@@ -542,7 +539,6 @@ extern void gatt_set_srv_chg(void);
 extern void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr);
 extern tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind);
 extern void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id);
-extern void gatt_update_listen_mode(int listening);
 extern bool    gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb);
 
 /* reserved handle list */
