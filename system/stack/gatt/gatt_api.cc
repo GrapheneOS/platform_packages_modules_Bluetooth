@@ -652,15 +652,15 @@ tGATT_STATUS GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu)
 
     GATT_TRACE_API ("GATTC_ConfigureMTU conn_id=%d mtu=%d", conn_id, mtu );
 
+    if ( (p_tcb == NULL) || (p_reg == NULL) || (mtu < GATT_DEF_BLE_MTU_SIZE) || (mtu > GATT_MAX_MTU_SIZE))
+    {
+        return GATT_ILLEGAL_PARAMETER;
+    }
+
     /* Validate that the link is BLE, not BR/EDR */
     if (p_tcb->transport != BT_TRANSPORT_LE)
     {
         return GATT_ERROR;
-    }
-
-    if ( (p_tcb == NULL) || (p_reg==NULL) || (mtu < GATT_DEF_BLE_MTU_SIZE) || (mtu > GATT_MAX_MTU_SIZE))
-    {
-        return GATT_ILLEGAL_PARAMETER;
     }
 
     if (gatt_is_clcb_allocated(conn_id))
