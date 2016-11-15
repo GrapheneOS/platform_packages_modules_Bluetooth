@@ -49,7 +49,6 @@
 #include "osi/include/list.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
-#include "uinput.h"
 #define RC_INVALID_TRACK_ID (0xFFFFFFFFFFFFFFFFULL)
 
 /*****************************************************************************
@@ -220,30 +219,7 @@ typedef struct {
 
 rc_device_t device;
 
-#define MAX_UINPUT_PATHS 3
-static const char* uinput_dev_path[] = {"/dev/uinput", "/dev/input/uinput",
-                                        "/dev/misc/uinput"};
-static int uinput_fd = -1;
-
-static int uinput_driver_check();
-static int uinput_create(const char* name);
-static int init_uinput(void);
-static void close_uinput(void);
 static void sleep_ms(period_ms_t timeout_ms);
-
-static const struct {
-  const char* name;
-  uint8_t avrcp;
-  uint16_t mapped_id;
-  uint8_t release_quirk;
-} key_map[] = {{"PLAY", AVRC_ID_PLAY, KEY_PLAYCD, 1},
-               {"STOP", AVRC_ID_STOP, KEY_STOPCD, 0},
-               {"PAUSE", AVRC_ID_PAUSE, KEY_PAUSECD, 1},
-               {"FORWARD", AVRC_ID_FORWARD, KEY_NEXTSONG, 0},
-               {"BACKWARD", AVRC_ID_BACKWARD, KEY_PREVIOUSSONG, 0},
-               {"REWIND", AVRC_ID_REWIND, KEY_REWIND, 0},
-               {"FAST FORWARD", AVRC_ID_FAST_FOR, KEY_FAST_FORWARD, 0},
-               {NULL, 0, 0, 0}};
 
 /* Response status code - Unknown Error - this is changed to "reserved" */
 #define BTIF_STS_GEN_ERROR 0x06
@@ -482,90 +458,6 @@ void fill_avrc_attr_entry(tAVRC_ATTR_ENTRY* attr_vals, int num_attrs,
   }
 }
 
-/*****************************************************************************
- *   Local uinput helper functions
- *****************************************************************************/
-/************** uinput related functions **************/
-int uinput_driver_check() {
-  uint32_t i;
-  for (i = 0; i < MAX_UINPUT_PATHS; i++) {
-    if (access(uinput_dev_path[i], O_RDWR) == 0) {
-      return 0;
-    }
-  }
-  BTIF_TRACE_ERROR("%s: ERROR: uinput device is not in the system", __func__);
-  return -1;
-}
-
-int uinput_create(const char* name) {
-  struct uinput_dev dev;
-  int fd, x = 0;
-
-  for (x = 0; x < MAX_UINPUT_PATHS; x++) {
-    fd = open(uinput_dev_path[x], O_RDWR);
-    if (fd < 0) continue;
-    break;
-  }
-  if (x == MAX_UINPUT_PATHS) {
-    BTIF_TRACE_ERROR("%s: ERROR: uinput device open failed", __func__);
-    return -1;
-  }
-  memset(&dev, 0, sizeof(dev));
-  if (name) strncpy(dev.name, name, UINPUT_MAX_NAME_SIZE - 1);
-
-  dev.id.bustype = BUS_BLUETOOTH;
-  dev.id.vendor = 0x0000;
-  dev.id.product = 0x0000;
-  dev.id.version = 0x0000;
-
-  ssize_t ret;
-  OSI_NO_INTR(ret = write(fd, &dev, sizeof(dev)));
-  if (ret < 0) {
-    BTIF_TRACE_ERROR("%s: Unable to write device information", __func__);
-    close(fd);
-    return -1;
-  }
-
-  ioctl(fd, UI_SET_EVBIT, EV_KEY);
-  ioctl(fd, UI_SET_EVBIT, EV_REL);
-  ioctl(fd, UI_SET_EVBIT, EV_SYN);
-
-  for (x = 0; key_map[x].name != NULL; x++)
-    ioctl(fd, UI_SET_KEYBIT, key_map[x].mapped_id);
-
-  if (ioctl(fd, UI_DEV_CREATE, NULL) < 0) {
-    BTIF_TRACE_ERROR("%s: Unable to create uinput device", __func__);
-    close(fd);
-    return -1;
-  }
-  return fd;
-}
-
-int init_uinput(void) {
-  const char* name = "AVRCP";
-
-  BTIF_TRACE_DEBUG("%s: ", __func__);
-  uinput_fd = uinput_create(name);
-  if (uinput_fd < 0) {
-    BTIF_TRACE_ERROR("%s: AVRCP: Failed to initialize uinput for %s (%d)",
-                     __func__, name, uinput_fd);
-  } else {
-    BTIF_TRACE_DEBUG("%s: AVRCP: Initialized uinput for %s (fd: %d)", __func__,
-                     name, uinput_fd);
-  }
-  return uinput_fd;
-}
-
-void close_uinput(void) {
-  BTIF_TRACE_DEBUG("%s: ", __func__);
-  if (uinput_fd > 0) {
-    ioctl(uinput_fd, UI_DEV_DESTROY);
-
-    close(uinput_fd);
-    uinput_fd = -1;
-  }
-}
-
 #if (AVRC_CTRL_INCLUDED == TRUE)
 void rc_cleanup_sent_cmd(void* p_data) { BTIF_TRACE_DEBUG("%s: ", __func__); }
 
@@ -727,7 +619,6 @@ void handle_rc_browse_connect(tBTA_AV_RC_OPEN* p_rc_open) {
  ***************************************************************************/
 void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
   BTIF_TRACE_DEBUG("%s: rc_handle: %d", __func__, p_rc_open->rc_handle);
-  bt_status_t result = BT_STATUS_SUCCESS;
 #if (AVRC_CTRL_INCLUDED == TRUE)
   bt_bdaddr_t rc_addr;
 #endif
@@ -773,15 +664,6 @@ void handle_rc_connect(tBTA_AV_RC_OPEN* p_rc_open) {
     handle_rc_features(p_dev);
   }
 
-  if (bt_rc_callbacks) {
-    result = (bt_status_t)uinput_driver_check();
-    if (result == BT_STATUS_SUCCESS) {
-      init_uinput();
-    }
-  } else {
-    BTIF_TRACE_WARNING("%s: Avrcp TG role not enabled, not initializing UInput",
-                       __func__);
-  }
 #if (AVRC_CTRL_INCLUDED == TRUE)
   p_dev->rc_playing_uid = RC_INVALID_TRACK_ID;
   bdcpy(rc_addr.address, p_dev->rc_addr);
@@ -4580,7 +4462,6 @@ static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg) {
  **************************************************************************/
 static void cleanup() {
   BTIF_TRACE_EVENT("%s: ", __func__);
-  close_uinput();
   if (bt_rc_callbacks) {
     bt_rc_callbacks = NULL;
   }
