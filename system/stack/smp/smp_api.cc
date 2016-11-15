@@ -28,16 +28,15 @@
 #include "bt_utils.h"
 #include "stack_config.h"
 
-#if (SMP_INCLUDED == TRUE)
-    #include "smp_int.h"
-    #include "smp_api.h"
-    #include "l2cdefs.h"
-    #include "l2c_int.h"
-    #include "btm_int.h"
-    #include "hcimsgs.h"
+#include "smp_int.h"
+#include "smp_api.h"
+#include "l2cdefs.h"
+#include "l2c_int.h"
+#include "btm_int.h"
+#include "hcimsgs.h"
 
-    #include "btu.h"
-    #include "p_256_ecc_pp.h"
+#include "btu.h"
+#include "p_256_ecc_pp.h"
 
 /*******************************************************************************
 **
@@ -618,5 +617,3 @@ bool    SMP_CreateLocalSecureConnectionsOobData (tBLE_BD_ADDR *addr_to_send_to)
 
     return true;
 }
-
-#endif /* SMP_INCLUDED */

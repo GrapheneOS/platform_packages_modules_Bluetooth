@@ -18,8 +18,6 @@
 
 #include "bt_target.h"
 
-#if (SMP_INCLUDED == TRUE)
-
 #include <string.h>
 #include "smp_int.h"
 
@@ -856,6 +854,3 @@ const char * smp_get_event_name(tSMP_EVENT event)
     }
     return p_str;
 }
-
-#endif
-

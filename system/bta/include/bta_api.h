@@ -679,13 +679,11 @@ typedef struct {
   uint8_t level_flags; /* indicates individual flags */
 } tBTA_DM_BUSY_LEVEL;
 
-#define BTA_IO_CAP_OUT BTM_IO_CAP_OUT   /* 0 DisplayOnly */
-#define BTA_IO_CAP_IO BTM_IO_CAP_IO     /* 1 DisplayYesNo */
-#define BTA_IO_CAP_IN BTM_IO_CAP_IN     /* 2 KeyboardOnly */
-#define BTA_IO_CAP_NONE BTM_IO_CAP_NONE /* 3 NoInputNoOutput */
-#if (SMP_INCLUDED == TRUE)
+#define BTA_IO_CAP_OUT BTM_IO_CAP_OUT       /* 0 DisplayOnly */
+#define BTA_IO_CAP_IO BTM_IO_CAP_IO         /* 1 DisplayYesNo */
+#define BTA_IO_CAP_IN BTM_IO_CAP_IN         /* 2 KeyboardOnly */
+#define BTA_IO_CAP_NONE BTM_IO_CAP_NONE     /* 3 NoInputNoOutput */
 #define BTA_IO_CAP_KBDISP BTM_IO_CAP_KBDISP /* 4 Keyboard display */
-#endif
 typedef tBTM_IO_CAP tBTA_IO_CAP;
 
 #define BTA_AUTH_SP_NO                                      \

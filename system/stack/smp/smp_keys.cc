@@ -23,7 +23,6 @@
  ******************************************************************************/
 #include "bt_target.h"
 
-#if (SMP_INCLUDED == TRUE)
 #if (SMP_DEBUG == TRUE)
     #include <stdio.h>
 #endif
@@ -2249,6 +2248,3 @@ static void smp_rand_back(tBTM_RAND_ENC *p)
     SMP_TRACE_ERROR("%s key generation failed: (%d)", __func__, p_cb->rand_enc_proc_state);
     smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
 }
-
-#endif
-

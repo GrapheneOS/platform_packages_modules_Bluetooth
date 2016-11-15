@@ -461,10 +461,8 @@ typedef struct
     uint8_t             active_addr_type;
 #endif
 
-#if (SMP_INCLUDED == TRUE)
     tBTM_LE_KEY_TYPE    key_type;       /* bit mask of valid key types in record */
     tBTM_SEC_BLE_KEYS   keys;           /* LE device security info in slave rode */
-#endif
 } tBTM_SEC_BLE;
 
 /* Peering bond type */

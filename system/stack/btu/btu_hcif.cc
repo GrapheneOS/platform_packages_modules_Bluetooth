@@ -1740,9 +1740,7 @@ static void btu_ble_proc_ltk_req (uint8_t *p)
     STREAM_TO_UINT16(handle, p);
     pp = p + 8;
     STREAM_TO_UINT16(ediv, pp);
-#if (SMP_INCLUDED == TRUE)
     btm_ble_ltk_request(handle, p, ediv);
-#endif
     /* This is empty until an upper layer cares about returning event */
 }
 

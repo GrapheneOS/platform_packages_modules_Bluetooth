@@ -23,8 +23,6 @@
  ******************************************************************************/
 #include "bt_target.h"
 
-#if (SMP_INCLUDED == TRUE)
-
 #include "bt_types.h"
 #include "bt_utils.h"
 #include <string.h>
@@ -1555,7 +1553,3 @@ bool    smp_request_oob_data(tSMP_CB *p_cb)
 
     return true;
 }
-
-
-#endif
-
