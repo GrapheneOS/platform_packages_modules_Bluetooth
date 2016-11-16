@@ -250,6 +250,7 @@ typedef struct {
   uint32_t handle;       /* The connection handle */
   uint32_t req_id;       /* The req_id in the associated BTA_JvL2capWrite() */
   uint16_t len;          /* The length of the data written. */
+  uint8_t* p_data;       /* The buffer where data is held */
   bool cong;             /* congestion status */
 } tBTA_JV_L2CAP_WRITE;
 
@@ -259,6 +260,7 @@ typedef struct {
   uint16_t channel;      /* The connection channel */
   BD_ADDR addr;          /* The peer address */
   uint32_t req_id;       /* The req_id in the associated BTA_JvL2capWrite() */
+  uint8_t* p_data;       /* The buffer where data is held */
   uint16_t len;          /* The length of the data written. */
   bool cong;             /* congestion status */
 } tBTA_JV_L2CAP_WRITE_FIXED;

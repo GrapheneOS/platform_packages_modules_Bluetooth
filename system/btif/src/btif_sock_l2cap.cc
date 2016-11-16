@@ -775,13 +775,13 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV* p_data,
 
     case BTA_JV_L2CAP_WRITE_EVT:
       APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_EVT: id: %u", sock_id);
-      on_l2cap_write_done(UINT_TO_PTR(p_data->l2c_write.req_id),
+      on_l2cap_write_done(p_data->l2c_write.p_data,
                           p_data->l2c_write.len, sock_id);
       break;
 
     case BTA_JV_L2CAP_WRITE_FIXED_EVT:
       APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_FIXED_EVT: id: %u", sock_id);
-      on_l2cap_write_fixed_done(UINT_TO_PTR(p_data->l2c_write_fixed.req_id),
+      on_l2cap_write_fixed_done(p_data->l2c_write_fixed.p_data,
                                 p_data->l2c_write.len, sock_id);
       break;
 
@@ -1035,9 +1035,6 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
       if (!(flags & SOCK_THREAD_FD_EXCEPTION) ||
           (ioctl(sock->our_fd, FIONREAD, &size) == 0 && size)) {
         uint8_t* buffer = (uint8_t*)osi_malloc(L2CAP_MAX_SDU_LENGTH);
-        /* Apparently we hijack the req_id (uint32_t) to pass the pointer to the
-         * buffer to the write complete callback, which call a free... wonder if
-         * this works on a 64 bit platform? */
         /* The socket is created with SOCK_SEQPACKET, hence we read one message
          * at the time. The maximum size of a message is allocated to ensure
          * data is not lost. This is okay to do as Android uses virtual memory,
@@ -1061,13 +1058,6 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
         APPL_TRACE_DEBUG(
             "btsock_l2cap_signaled - %d bytes received from socket", count);
 
-        // TODO(armansito): |buffer|, which is created above via
-        // malloc, is being cast below to uint32_t to be used as
-        // the |req_id| parameter of BTA_JvL2capWriteFixed and
-        // BTA_JvL2capWrite. The "id" then gets freed in an
-        // obscure callback elsewhere. We need to watch out for
-        // this type of unsafe practice, as this is error prone
-        // and difficult to follow.
         if (sock->fixed_chan) {
           if (BTA_JvL2capWriteFixed(sock->channel, (BD_ADDR*)&sock->addr,
                                     PTR_TO_UINT(buffer), btsock_l2cap_cbk,
