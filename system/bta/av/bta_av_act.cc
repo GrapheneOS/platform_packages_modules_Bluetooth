@@ -867,15 +867,11 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
               p_data->rc_msg.msg.pass.pass_len,
               p_data->rc_msg.msg.pass.p_pass_data, is_inquiry);
 #endif
-      }
-#if (AVRC_CTRL_INCLUDED == TRUE)
-      else if (((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_UP) ||
+      } else if (((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_UP) ||
                 (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_DOWN)) &&
                !strcmp(avrcp_ct_support, "true")) {
         p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_ACCEPT;
-      }
-#endif
-      else {
+      } else {
         p_data->rc_msg.msg.hdr.ctype =
             bta_av_op_supported(p_data->rc_msg.msg.pass.op_id, is_inquiry);
       }
