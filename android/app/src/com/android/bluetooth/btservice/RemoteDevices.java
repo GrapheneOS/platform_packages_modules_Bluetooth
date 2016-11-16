@@ -24,9 +24,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
-
 import com.android.bluetooth.Utils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -269,6 +267,23 @@ final class RemoteDevices {
 
         //Remove the outstanding UUID request
         mSdpTracker.remove(device);
+    }
+
+  /**
+   * When bonding is initiated to remote device that we have never seen, i.e Out Of Band pairing, we
+   * must add device first before setting it's properties. This is a helper method for doing that.
+   */
+  void setBondingInitiatedLocally(byte[] address) {
+        DeviceProperties properties;
+
+        BluetoothDevice device = getDevice(address);
+        if (device == null) {
+            properties = addDeviceProperties(address);
+        } else {
+            properties = getDeviceProperties(device);
+        }
+
+        properties.setBondingInitiatedLocally(true);
     }
 
 
