@@ -27,7 +27,6 @@
 *****************************************************************************/
 #if (AVRC_METADATA_INCLUDED == TRUE)
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         avrc_ctrl_pars_vendor_cmd
@@ -86,7 +85,6 @@ static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAN
     }
     return status;
 }
-#endif
 
 /*******************************************************************************
 **
@@ -375,7 +373,6 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
     return status;
 }
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         AVRC_Ctrl_ParsCommand
@@ -409,7 +406,6 @@ tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result)
     AVRC_TRACE_DEBUG("%s return status:0x%x", __func__, status);
     return status;
 }
-#endif
 
 /*******************************************************************************
 **
