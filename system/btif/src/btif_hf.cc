@@ -1186,9 +1186,9 @@ static bt_status_t clcc_response(int index, bthf_call_direction_t dir,
       BTIF_TRACE_EVENT(
           "clcc_response: [%d] dir %d state %d mode %d number = %s type = %d",
           index, dir, state, mode, number, type);
-      int res_strlen = snprintf(ag_res.str, sizeof(ag_res.str),
-                                "%d,%d,%d,%d,%d", index, dir, state, mode,
-                                mpty);
+      int res_strlen =
+          snprintf(ag_res.str, sizeof(ag_res.str), "%d,%d,%d,%d,%d", index, dir,
+                   state, mode, mpty);
 
       if (number) {
         size_t rem_bytes = sizeof(ag_res.str) - res_strlen;

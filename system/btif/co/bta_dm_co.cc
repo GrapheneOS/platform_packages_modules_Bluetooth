@@ -23,9 +23,9 @@
 #include "bta_dm_ci.h"
 #include "bta_dm_co.h"
 #include "bta_sys.h"
+#include "bte_appl.h"
 #include "btif_dm.h"
 #include "osi/include/osi.h"
-#include "bte_appl.h"
 
 tBTE_APPL_CFG bte_appl_cfg = {
     BTA_LE_AUTH_REQ_SC_MITM_BOND,  // Authentication requirements
@@ -46,8 +46,9 @@ tBTE_APPL_CFG bte_appl_cfg = {
  * Returns          true for success, false for fail.
  *
  ******************************************************************************/
-bool bta_dm_co_get_compress_memory(UNUSED_ATTR tBTA_SYS_ID id, UNUSED_ATTR uint8_t **memory_p,
-                                   UNUSED_ATTR uint32_t *memory_size) {
+bool bta_dm_co_get_compress_memory(UNUSED_ATTR tBTA_SYS_ID id,
+                                   UNUSED_ATTR uint8_t** memory_p,
+                                   UNUSED_ATTR uint32_t* memory_size) {
   return true;
 }
 
@@ -115,8 +116,7 @@ void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
  *
  ******************************************************************************/
 void bta_dm_co_lk_upgrade(UNUSED_ATTR BD_ADDR bd_addr,
-                          UNUSED_ATTR bool *p_upgrade) {
-}
+                          UNUSED_ATTR bool* p_upgrade) {}
 
 /*******************************************************************************
  *
@@ -316,7 +316,8 @@ void bta_dm_sco_co_out_data(BT_HDR** p_buf) { btui_sco_codec_readbuf(p_buf); }
  * Returns          void.
  *
  ******************************************************************************/
-void bta_dm_co_le_io_key_req(UNUSED_ATTR BD_ADDR bd_addr, uint8_t* p_max_key_size,
+void bta_dm_co_le_io_key_req(UNUSED_ATTR BD_ADDR bd_addr,
+                             uint8_t* p_max_key_size,
                              tBTA_LE_KEY_TYPE* p_init_key,
                              tBTA_LE_KEY_TYPE* p_resp_key) {
   BTIF_TRACE_ERROR("##################################");
@@ -408,4 +409,3 @@ void bta_dm_co_ble_io_req(UNUSED_ATTR BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
   if (bte_appl_cfg.ble_max_key_size > 7 && bte_appl_cfg.ble_max_key_size <= 16)
     *p_max_key_size = bte_appl_cfg.ble_max_key_size;
 }
-

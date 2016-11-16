@@ -229,10 +229,11 @@ void bta_pan_co_rx_path(UNUSED_ATTR uint16_t handle,
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_tx_write(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint8_t app_id, UNUSED_ATTR BD_ADDR src,
-                         UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t protocol, UNUSED_ATTR uint8_t *p_data,
-                         UNUSED_ATTR uint16_t len, UNUSED_ATTR bool ext,
-                         UNUSED_ATTR bool forward) {
+void bta_pan_co_tx_write(UNUSED_ATTR uint16_t handle,
+                         UNUSED_ATTR uint8_t app_id, UNUSED_ATTR BD_ADDR src,
+                         UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t protocol,
+                         UNUSED_ATTR uint8_t* p_data, UNUSED_ATTR uint16_t len,
+                         UNUSED_ATTR bool ext, UNUSED_ATTR bool forward) {
   BTIF_TRACE_API("bta_pan_co_tx_write not used");
 }
 
@@ -249,9 +250,11 @@ void bta_pan_co_tx_write(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint8_t app_id
  * Returns          true if flow enabled
  *
  ******************************************************************************/
-void bta_pan_co_tx_writebuf(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint8_t app_id, UNUSED_ATTR BD_ADDR src,
-                            UNUSED_ATTR BD_ADDR dst, UNUSED_ATTR uint16_t protocol, UNUSED_ATTR BT_HDR *p_buf,
-                            UNUSED_ATTR bool ext,
+void bta_pan_co_tx_writebuf(UNUSED_ATTR uint16_t handle,
+                            UNUSED_ATTR uint8_t app_id, UNUSED_ATTR BD_ADDR src,
+                            UNUSED_ATTR BD_ADDR dst,
+                            UNUSED_ATTR uint16_t protocol,
+                            UNUSED_ATTR BT_HDR* p_buf, UNUSED_ATTR bool ext,
                             UNUSED_ATTR bool forward) {
   BTIF_TRACE_API("bta_pan_co_tx_writebuf not used");
 }
@@ -287,9 +290,11 @@ void bta_pan_co_rx_flow(UNUSED_ATTR uint16_t handle, UNUSED_ATTR uint8_t app_id,
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_pfilt_ind(UNUSED_ATTR uint16_t handle, UNUSED_ATTR bool indication,
-                          UNUSED_ATTR tBTA_PAN_STATUS result, UNUSED_ATTR uint16_t len,
-                          UNUSED_ATTR uint8_t *p_filters) {
+void bta_pan_co_pfilt_ind(UNUSED_ATTR uint16_t handle,
+                          UNUSED_ATTR bool indication,
+                          UNUSED_ATTR tBTA_PAN_STATUS result,
+                          UNUSED_ATTR uint16_t len,
+                          UNUSED_ATTR uint8_t* p_filters) {
   BTIF_TRACE_API("bta_pan_co_pfilt_ind");
 }
 
@@ -302,8 +307,10 @@ void bta_pan_co_pfilt_ind(UNUSED_ATTR uint16_t handle, UNUSED_ATTR bool indicati
  * Returns          void
  *
  ******************************************************************************/
-void bta_pan_co_mfilt_ind(UNUSED_ATTR uint16_t handle, UNUSED_ATTR bool indication,
-                          UNUSED_ATTR tBTA_PAN_STATUS result, UNUSED_ATTR uint16_t len,
-                          UNUSED_ATTR uint8_t *p_filters) {
+void bta_pan_co_mfilt_ind(UNUSED_ATTR uint16_t handle,
+                          UNUSED_ATTR bool indication,
+                          UNUSED_ATTR tBTA_PAN_STATUS result,
+                          UNUSED_ATTR uint16_t len,
+                          UNUSED_ATTR uint8_t* p_filters) {
   BTIF_TRACE_API("bta_pan_co_mfilt_ind");
 }

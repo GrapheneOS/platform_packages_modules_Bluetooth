@@ -246,8 +246,8 @@ void btif_gatt_check_encrypted_link(BD_ADDR bd_addr,
 }
 #else
 void btif_gatt_check_encrypted_link(UNUSED_ATTR BD_ADDR bd_addr,
-                                    UNUSED_ATTR tBTA_GATT_TRANSPORT transport_link) {
-}
+                                    UNUSED_ATTR tBTA_GATT_TRANSPORT
+                                        transport_link) {}
 #endif
 
 void btif_gatt_move_track_adv_data(btgatt_track_adv_info_t* p_dest,

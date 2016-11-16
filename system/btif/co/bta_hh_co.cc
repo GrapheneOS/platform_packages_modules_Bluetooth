@@ -403,8 +403,8 @@ void bta_hh_co_close(uint8_t dev_handle, uint8_t app_id) {
  ******************************************************************************/
 void bta_hh_co_data(uint8_t dev_handle, uint8_t* p_rpt, uint16_t len,
                     tBTA_HH_PROTO_MODE mode, uint8_t sub_class,
-                    uint8_t ctry_code,
-                    UNUSED_ATTR BD_ADDR peer_addr, uint8_t app_id) {
+                    uint8_t ctry_code, UNUSED_ATTR BD_ADDR peer_addr,
+                    uint8_t app_id) {
   btif_hh_device_t* p_dev;
 
   APPL_TRACE_DEBUG(
@@ -522,7 +522,6 @@ void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
  ******************************************************************************/
 void bta_hh_le_co_rpt_info(BD_ADDR remote_bda, tBTA_HH_RPT_CACHE_ENTRY* p_entry,
                            UNUSED_ATTR uint8_t app_id) {
-
   unsigned idx = 0;
 
   bdstr_t bdstr;
@@ -564,7 +563,6 @@ void bta_hh_le_co_rpt_info(BD_ADDR remote_bda, tBTA_HH_RPT_CACHE_ENTRY* p_entry,
 tBTA_HH_RPT_CACHE_ENTRY* bta_hh_le_co_cache_load(BD_ADDR remote_bda,
                                                  uint8_t* p_num_rpt,
                                                  UNUSED_ATTR uint8_t app_id) {
-
   bdstr_t bdstr;
   snprintf(bdstr, sizeof(bdstr), "%02x:%02x:%02x:%02x:%02x:%02x", remote_bda[0],
            remote_bda[1], remote_bda[2], remote_bda[3], remote_bda[4],
@@ -596,7 +594,6 @@ tBTA_HH_RPT_CACHE_ENTRY* bta_hh_le_co_cache_load(BD_ADDR remote_bda,
  ******************************************************************************/
 void bta_hh_le_co_reset_rpt_cache(BD_ADDR remote_bda,
                                   UNUSED_ATTR uint8_t app_id) {
-
   bdstr_t bdstr;
   snprintf(bdstr, sizeof(bdstr), "%02x:%02x:%02x:%02x:%02x:%02x", remote_bda[0],
            remote_bda[1], remote_bda[2], remote_bda[3], remote_bda[4],

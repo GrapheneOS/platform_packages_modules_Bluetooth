@@ -86,8 +86,9 @@ static char* format_uuid(tBT_UUID bt_uuid, char* str_buf, size_t buf_size) {
   return str_buf;
 }
 
-static void btif_test_connect_cback(UNUSED_ATTR tGATT_IF gatt_if, UNUSED_ATTR BD_ADDR bda,
-                                    uint16_t conn_id, bool connected,
+static void btif_test_connect_cback(UNUSED_ATTR tGATT_IF gatt_if,
+                                    UNUSED_ATTR BD_ADDR bda, uint16_t conn_id,
+                                    bool connected,
                                     UNUSED_ATTR tGATT_DISCONN_REASON reason,
                                     UNUSED_ATTR tBT_TRANSPORT transport) {
   LOG_DEBUG(LOG_TAG, "%s: conn_id=%d, connected=%d", __func__, conn_id,
@@ -179,9 +180,9 @@ static void btif_test_discovery_result_cback(UNUSED_ATTR uint16_t conn_id,
             "-----------------------------------------------------------");
 }
 
-static void btif_test_discovery_complete_cback(UNUSED_ATTR uint16_t conn_id,
-                                               UNUSED_ATTR tGATT_DISC_TYPE disc_type,
-                                               tGATT_STATUS status) {
+static void btif_test_discovery_complete_cback(
+    UNUSED_ATTR uint16_t conn_id, UNUSED_ATTR tGATT_DISC_TYPE disc_type,
+    tGATT_STATUS status) {
   LOG_DEBUG(LOG_TAG, "%s: status=%d", __func__, status);
 }
 
