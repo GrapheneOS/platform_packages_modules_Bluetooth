@@ -1627,7 +1627,7 @@ public class AdapterService extends Service {
             return false;
         }
 
-        deviceProp.setBondingInitiatedLocally(true);
+        mRemoteDevices.setBondingInitiatedLocally(Utils.getByteAddress(device));
 
         // Pairing is unreliable while scanning, so cancel discovery
         // Note, remove this when native stack improves
