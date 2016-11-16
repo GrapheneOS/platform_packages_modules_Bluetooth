@@ -1317,6 +1317,7 @@ void bta_jv_l2cap_write(tBTA_JV_MSG* p_data) {
     evt_data.status = BTA_JV_FAILURE;
     evt_data.handle = ls->handle;
     evt_data.req_id = ls->req_id;
+    evt_data.p_data = ls->p_data;
     evt_data.cong = ls->p_cb->cong;
     evt_data.len = 0;
     bta_jv_pm_conn_busy(ls->p_cb->p_pm_cb);
@@ -1355,6 +1356,7 @@ void bta_jv_l2cap_write_fixed(tBTA_JV_MSG* p_data) {
   evt_data.channel = ls->channel;
   memcpy(evt_data.addr, ls->addr, sizeof(evt_data.addr));
   evt_data.req_id = ls->req_id;
+  evt_data.p_data = ls->p_data;
   evt_data.len = 0;
 
   memcpy(((uint8_t*)(msg + 1)) + L2CAP_MIN_OFFSET, ls->p_data, ls->len);
