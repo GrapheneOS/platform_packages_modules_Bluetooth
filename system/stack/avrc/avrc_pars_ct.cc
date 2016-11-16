@@ -398,7 +398,6 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE *p_msg, tAVRC_RESPONSE *p
     return status;
 }
 
-#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         avrc_ctrl_pars_vendor_rsp
@@ -668,7 +667,7 @@ tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, ui
     }
     return status;
 }
-#endif /* (AVRC_CTRL_INCLUDED) == TRUE) */
+
 /*******************************************************************************
 **
 ** Function         AVRC_ParsResponse
