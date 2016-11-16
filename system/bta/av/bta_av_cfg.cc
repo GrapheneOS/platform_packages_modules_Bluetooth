@@ -41,11 +41,9 @@
 const uint32_t bta_av_meta_caps_co_ids[] = {AVRC_CO_METADATA, AVRC_CO_BROADCOM};
 
 /* AVRCP supported categories */
-#if (AVRC_CTRL_INCLUDED == TRUE)
 #define BTA_AV_RC_SUPF_CT (AVRC_SUPF_CT_CAT2)
 #define BTA_AVK_RC_SUPF_CT (AVRC_SUPF_CT_CAT1 | AVRC_SUPF_CT_BROWSE)
 #define BTA_AVK_RC_SUPF_TG (AVRC_SUPF_TG_CAT2)
-#endif
 
 /* AVRCP Controller and Targer default name */
 #ifndef BTA_AV_RC_CT_NAME
