@@ -259,18 +259,14 @@ static uint8_t opcode_from_pdu(uint8_t pdu);
 static void send_metamsg_rsp(btif_rc_device_cb_t* p_dev, int index,
                              uint8_t label, tBTA_AV_CODE code,
                              tAVRC_RESPONSE* pmetamsg_resp);
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 static void register_volumechange(uint8_t label, btif_rc_device_cb_t* p_dev);
-#endif
 static void lbl_init();
 static void init_all_transactions();
 static bt_status_t get_transaction(rc_transaction_t** ptransaction);
 static void release_transaction(uint8_t label);
 static rc_transaction_t* get_transaction_by_lbl(uint8_t label);
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg,
                                   btif_rc_device_cb_t* p_dev);
-#endif
 
 static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg);
 static void handle_avk_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg);
@@ -334,12 +330,11 @@ static void btif_rc_upstreams_evt(uint16_t event, tAVRC_COMMAND* p_param,
                                   uint8_t ctype, uint8_t label,
                                   btif_rc_device_cb_t* p_dev);
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 static void btif_rc_upstreams_rsp_evt(uint16_t event,
                                       tAVRC_RESPONSE* pavrc_resp, uint8_t ctype,
                                       uint8_t label,
                                       btif_rc_device_cb_t* p_dev);
-#endif
+
 static void rc_start_play_status_timer(btif_rc_device_cb_t* p_dev);
 static bool absolute_volume_disabled(void);
 
@@ -938,7 +933,6 @@ void handle_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg) {
   }
 
   if (pmeta_msg->code >= AVRC_RSP_NOT_IMPL) {
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
     {
       rc_transaction_t* transaction = NULL;
       transaction = get_transaction_by_lbl(pmeta_msg->label);
@@ -951,15 +945,6 @@ void handle_rc_metamsg_cmd(tBTA_AV_META_MSG* pmeta_msg) {
       }
       return;
     }
-#else
-    {
-      BTIF_TRACE_DEBUG(
-          "%s: Received vendor dependent rsp. code: %d len: %d. Not processing "
-          "it.",
-          __func__, pmeta_msg->code, pmeta_msg->len);
-      return;
-    }
-#endif
   }
 
   status = AVRC_ParsCommand(pmeta_msg->p_msg, &avrc_command, scratch_buf,
@@ -1727,7 +1712,6 @@ static void btif_rc_upstreams_rsp_evt(uint16_t event,
   bt_bdaddr_t rc_addr;
   bdcpy(rc_addr.address, p_dev->rc_addr);
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
   switch (event) {
     case AVRC_PDU_REGISTER_NOTIFICATION: {
       if (AVRC_RSP_CHANGED == ctype)
@@ -1750,7 +1734,6 @@ static void btif_rc_upstreams_rsp_evt(uint16_t event,
     default:
       return;
   }
-#endif
 }
 
 /************************************************************************************
@@ -2373,7 +2356,6 @@ static bt_status_t set_browsed_player_rsp(bt_bdaddr_t* bd_addr,
   return status == AVRC_STS_NO_ERROR ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
  *
  * Function         change_path_rsp
@@ -2406,7 +2388,6 @@ static bt_status_t change_path_rsp(bt_bdaddr_t* bd_addr,
 
   return BT_STATUS_SUCCESS;
 }
-#endif
 
 /***************************************************************************
  *
@@ -2665,7 +2646,6 @@ static bt_status_t set_volume(uint8_t volume) {
   return (bt_status_t)status;
 }
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 /***************************************************************************
  *
  * Function         register_volumechange
@@ -2782,7 +2762,6 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG* pmeta_msg,
   btif_rc_upstreams_rsp_evt((uint16_t)avrc_response.rsp.pdu, &avrc_response,
                             pmeta_msg->code, pmeta_msg->label, p_dev);
 }
-#endif
 
 /***************************************************************************
  *
