@@ -71,7 +71,7 @@ static const tA2DP_SBC_CIE a2dp_sbc_sink_caps = {
     (A2DP_SBC_IE_SUBBAND_4 | A2DP_SBC_IE_SUBBAND_8),   /* num_subbands */
     (A2DP_SBC_IE_ALLOC_MD_L | A2DP_SBC_IE_ALLOC_MD_S), /* alloc_method */
     A2DP_SBC_IE_MIN_BITPOOL,                           /* min_bitpool */
-    A2DP_SBC_IE_MAX_BITPOOL                            /* max_bitpool */
+    A2DP_SBC_MAX_BITPOOL                               /* max_bitpool */
 };
 
 /* Default SBC codec configuration */
@@ -476,10 +476,10 @@ static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilitySbc(
     return A2DP_NS_ALLOC_METHOD;
 
   /* min bitpool */
-  if (cfg_cie.min_bitpool < p_cap->min_bitpool) return A2DP_NS_MIN_BITPOOL;
+  if (cfg_cie.min_bitpool > p_cap->max_bitpool) return A2DP_NS_MIN_BITPOOL;
 
   /* max bitpool */
-  if (cfg_cie.max_bitpool > p_cap->max_bitpool) return A2DP_NS_MAX_BITPOOL;
+  if (cfg_cie.max_bitpool < p_cap->min_bitpool) return A2DP_NS_MAX_BITPOOL;
 
   return A2DP_SUCCESS;
 }
