@@ -36,11 +36,6 @@
 /* can be moved to bta_api.h */
 #define BTA_HH_MAX_RPT_CHARS 8
 
-#if (BTA_GATT_INCLUDED == FALSE)
-#undef BTA_HH_LE_INCLUDED
-#define BTA_HH_LE_INCLUDED false
-#endif
-
 /* state machine events, these events are handled by the state machine */
 enum {
   BTA_HH_API_OPEN_EVT = BTA_SYS_EVT_START(BTA_ID_HH),

@@ -18,8 +18,6 @@
 
 #include "bta_api.h"
 
-#if (BTA_GATT_INCLUDED == TRUE)
-
 #include <stdlib.h>
 #include <string.h>
 #include "bt_common.h"
@@ -146,5 +144,3 @@ bool bta_gatts_co_load_handle_range(UNUSED_ATTR uint8_t index,
                                     UNUSED_ATTR tBTA_GATTS_HNDL_RANGE *p_handle_range) {
   return false;
 }
-
-#endif  // BTA_GATT_INCLUDED == TRUE

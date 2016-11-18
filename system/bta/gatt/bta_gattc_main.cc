@@ -24,8 +24,6 @@
 
 #include "bt_target.h"
 
-#if (BTA_GATT_INCLUDED == TRUE)
-
 #include <string.h>
 
 #include "bt_common.h"
@@ -514,4 +512,3 @@ static char* gattc_state_code(tBTA_GATTC_STATE state_code) {
 }
 
 #endif /* Debug Functions */
-#endif /* BTA_GATT_INCLUDED */

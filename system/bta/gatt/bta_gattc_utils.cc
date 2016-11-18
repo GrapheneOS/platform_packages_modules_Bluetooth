@@ -26,8 +26,6 @@
 
 #include "bt_target.h"
 
-#if (BTA_GATT_INCLUDED == TRUE)
-
 #include <string.h>
 
 #include "bt_common.h"
@@ -737,5 +735,3 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA* p_msg) {
   }
   return p_clcb;
 }
-
-#endif /* BTA_GATT_INCLUDED */
