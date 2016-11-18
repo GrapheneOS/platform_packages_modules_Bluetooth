@@ -94,16 +94,6 @@ class LowEnergyAdvertiser : public BluetoothInstance {
   void EnableCallback(
       bool enable, uint8_t advertiser_id, uint8_t status);
 
-  // Helper method called from SetAdvertiseData/SetScanResponse.
-  bt_status_t SetAdvertiseData(
-      const AdvertiseData& data,
-      bool set_scan_rsp);
-
-  // Handles deferred advertise/scan-response data updates. We set the data if
-  // there's data to be set, otherwise we either defer it if advertisements
-  // aren't enabled or do nothing.
-  void HandleDeferredAdvertiseData();
-
   // Calls and clears the pending callbacks.
   void InvokeAndClearStartCallback(BLEStatus status);
   void InvokeAndClearStopCallback(BLEStatus status);
@@ -115,19 +105,9 @@ class LowEnergyAdvertiser : public BluetoothInstance {
   // Protects advertising-related members below.
   std::mutex adv_fields_lock_;
 
-  // The advertising and scan response data fields that will be sent to the
-  // controller.
-  AdvertiseData adv_data_;
-  AdvertiseData scan_response_;
-  std::atomic_bool adv_data_needs_update_;
-  std::atomic_bool scan_rsp_needs_update_;
-
   // Latest advertising settings.
   AdvertiseSettings advertise_settings_;
 
-  // Whether or not there is a pending call to update advertising or scan
-  // response data.
-  std::atomic_bool is_setting_adv_data_;
 
   std::atomic_bool adv_started_;
   std::unique_ptr<StatusCallback> adv_start_callback_;

@@ -65,16 +65,8 @@ int GetAdvertisingIntervalUnit(AdvertiseSettings::Mode mode) {
   return (ms * 1000) / 625;
 }
 
-struct AdvertiseParams {
-  int min_interval;
-  int max_interval;
-  int event_type;
-  int tx_power_level;
-  int timeout_s;
-};
-
 void GetAdvertiseParams(const AdvertiseSettings& settings, bool has_scan_rsp,
-                        AdvertiseParams* out_params) {
+                        AdvertiseParameters* out_params) {
   CHECK(out_params);
 
   out_params->min_interval = GetAdvertisingIntervalUnit(settings.mode());
@@ -82,14 +74,13 @@ void GetAdvertiseParams(const AdvertiseSettings& settings, bool has_scan_rsp,
       out_params->min_interval + kAdvertisingIntervalDeltaUnit;
 
   if (settings.connectable())
-    out_params->event_type = kAdvertisingEventTypeConnectable;
+    out_params->adv_type = kAdvertisingEventTypeConnectable;
   else if (has_scan_rsp)
-    out_params->event_type = kAdvertisingEventTypeScannable;
+    out_params->adv_type = kAdvertisingEventTypeScannable;
   else
-    out_params->event_type = kAdvertisingEventTypeNonConnectable;
+    out_params->adv_type = kAdvertisingEventTypeNonConnectable;
 
-  out_params->tx_power_level = settings.tx_power_level();
-  out_params->timeout_s = settings.timeout().InSeconds();
+  out_params->channel_map = kAdvertisingChannelAll;
 }
 
 void DoNothing(uint8_t status) {}
@@ -102,9 +93,6 @@ void DoNothing(uint8_t status) {}
 LowEnergyAdvertiser::LowEnergyAdvertiser(const UUID& uuid, int advertiser_id) :
       app_identifier_(uuid),
       advertiser_id_(advertiser_id),
-      adv_data_needs_update_(false),
-      scan_rsp_needs_update_(false),
-      is_setting_adv_data_(false),
       adv_started_(false),
       adv_start_callback_(nullptr),
       adv_stop_callback_(nullptr) {
@@ -148,37 +136,24 @@ bool LowEnergyAdvertiser::StartAdvertising(const AdvertiseSettings& settings,
     return false;
   }
 
-  CHECK(!adv_data_needs_update_.load());
-  CHECK(!scan_rsp_needs_update_.load());
-
-  adv_data_ = advertise_data;
-  scan_response_ = scan_response;
   advertise_settings_ = settings;
 
-  AdvertiseParams params;
-  GetAdvertiseParams(settings, !scan_response_.data().empty(), &params);
+  AdvertiseParameters params;
+  GetAdvertiseParams(settings, !scan_response.data().empty(), &params);
 
-  hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->SetParameters(
+  hal::BluetoothGattInterface::Get()
+      ->GetAdvertiserHALInterface()
+      ->StartAdvertising(
           advertiser_id_,
-          params.min_interval,
-          params.max_interval,
-          params.event_type,
-          kAdvertisingChannelAll,
-          params.tx_power_level,
-          base::Bind(&LowEnergyAdvertiser::SetParamsCallback, base::Unretained(this), advertiser_id_));
+          base::Bind(&LowEnergyAdvertiser::EnableCallback,
+                     base::Unretained(this), true, advertiser_id_),
+          params, advertise_data.data(), scan_response.data(),
+          settings.timeout().InSeconds(),
+          base::Bind(&LowEnergyAdvertiser::EnableCallback,
+                     base::Unretained(this), false, advertiser_id_));
+  ;
 
-  // Always update advertising data.
-  adv_data_needs_update_ = true;
-
-  // Update scan response only if it has data, since otherwise we just won't
-  // send ADV_SCAN_IND.
-  if (!scan_response_.data().empty())
-    scan_rsp_needs_update_ = true;
-
-  // OK to set this at the end since we're still holding |adv_fields_lock_|.
   adv_start_callback_.reset(new StatusCallback(callback));
-
   return true;
 }
 
@@ -195,8 +170,6 @@ bool LowEnergyAdvertiser::StopAdvertising(const StatusCallback& callback) {
     LOG(ERROR) << "StopAdvertising already pending";
     return false;
   }
-
-  CHECK(!adv_start_callback_);
 
   hal::BluetoothGattInterface::Get()
       ->GetAdvertiserHALInterface()
@@ -231,88 +204,6 @@ const UUID& LowEnergyAdvertiser::GetAppIdentifier() const {
 
 int LowEnergyAdvertiser::GetInstanceId() const {
   return advertiser_id_;
-}
-
-void LowEnergyAdvertiser::HandleDeferredAdvertiseData() {
-  VLOG(2) << __func__;
-
-  CHECK(!IsAdvertisingStarted());
-  CHECK(!IsStoppingAdvertising());
-  CHECK(IsStartingAdvertising());
-  CHECK(!is_setting_adv_data_.load());
-
-  if (adv_data_needs_update_.load()) {
-    bt_status_t status = SetAdvertiseData(adv_data_, false);
-    if (status != BT_STATUS_SUCCESS) {
-      LOG(ERROR) << "Failed setting advertisement data";
-      InvokeAndClearStartCallback(GetBLEStatus(status));
-    }
-    return;
-  }
-
-  if (scan_rsp_needs_update_.load()) {
-    bt_status_t status = SetAdvertiseData(scan_response_, true);
-    if (status != BT_STATUS_SUCCESS) {
-      LOG(ERROR) << "Failed setting scan response data";
-      InvokeAndClearStartCallback(GetBLEStatus(status));
-    }
-    return;
-  }
-
-  AdvertiseParams params;
-  GetAdvertiseParams(advertise_settings_, !scan_response_.data().empty(), &params);
-
-  hal::BluetoothGattInterface::Get()
-      ->GetAdvertiserHALInterface()
-      ->Enable(
-          advertiser_id_, true,
-          base::Bind(&LowEnergyAdvertiser::EnableCallback,
-                     base::Unretained(this), true, advertiser_id_),
-          params.timeout_s,
-          base::Bind(&LowEnergyAdvertiser::EnableCallback,
-                     base::Unretained(this), false, advertiser_id_));
-}
-
-void LowEnergyAdvertiser::SetParamsCallback(
-    uint8_t advertiser_id, uint8_t status) {
-  if (advertiser_id != advertiser_id_)
-    return;
-
-  lock_guard<mutex> lock(adv_fields_lock_);
-
-  VLOG(1) << __func__ << "advertiser_id: " << advertiser_id << " status: " << status;
-
-  // Terminate operation in case of error.
-  if (status != BT_STATUS_SUCCESS) {
-    LOG(ERROR) << "Failed to set advertising parameters";
-    InvokeAndClearStartCallback(GetBLEStatus(status));
-    return;
-  }
-
-  // Now handle deferred tasks.
-  HandleDeferredAdvertiseData();
-}
-
-void LowEnergyAdvertiser::SetDataCallback(
-    uint8_t advertiser_id, uint8_t status) {
-  if (advertiser_id != advertiser_id_)
-    return;
-
-  lock_guard<mutex> lock(adv_fields_lock_);
-
-  VLOG(1) << __func__ << "advertiser_id: " << advertiser_id << " status: " << status;
-
-  is_setting_adv_data_ = false;
-
-  // Terminate operation in case of error.
-  if (status != BT_STATUS_SUCCESS) {
-    LOG(ERROR) << "Failed to set advertising data";
-    InvokeAndClearStartCallback(GetBLEStatus(status));
-    return;
-  }
-
-  // Now handle deferred tasks.
-  HandleDeferredAdvertiseData();
 }
 
 void LowEnergyAdvertiser::EnableCallback(
@@ -356,39 +247,7 @@ void LowEnergyAdvertiser::EnableCallback(
   }
 }
 
-bt_status_t LowEnergyAdvertiser::SetAdvertiseData(
-    const AdvertiseData& data,
-    bool set_scan_rsp) {
-  VLOG(2) << __func__;
-
-  if (is_setting_adv_data_.load()) {
-    LOG(ERROR) << "Setting advertising data already in progress.";
-    return BT_STATUS_FAIL;
-  }
-
-  // TODO(armansito): The length fields in the BTIF function below are signed
-  // integers so a call to std::vector::size might get capped. This is very
-  // unlikely anyway but it's safer to stop using signed-integer types for
-  // length in APIs, so we should change that.
-  hal::BluetoothGattInterface::Get()->GetAdvertiserHALInterface()->SetData(
-      advertiser_id_, set_scan_rsp, data.data(),
-      base::Bind(&LowEnergyAdvertiser::SetDataCallback,
-                 base::Unretained(this), advertiser_id_));
-
-  if (set_scan_rsp)
-    scan_rsp_needs_update_ = false;
-  else
-    adv_data_needs_update_ = false;
-
-  is_setting_adv_data_ = true;
-
-  return BT_STATUS_SUCCESS;
-}
-
 void LowEnergyAdvertiser::InvokeAndClearStartCallback(BLEStatus status) {
-  adv_data_needs_update_ = false;
-  scan_rsp_needs_update_ = false;
-
   // We allow NULL callbacks.
   if (*adv_start_callback_)
     (*adv_start_callback_)(status);

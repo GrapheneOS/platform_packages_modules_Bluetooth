@@ -160,6 +160,34 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              Bind(&BleAdvertiserInterfaceImpl::EnableTimeoutCb,
                   base::Unretained(this), timeout_cb)));
   }
+
+  void StartAdvertising(uint8_t advertiser_id, Callback cb,
+                        AdvertiseParameters params,
+                        std::vector<uint8_t> advertise_data,
+                        std::vector<uint8_t> scan_response_data, int timeout_s,
+                        MultiAdvCb timeout_cb) override {
+    VLOG(1) << __func__;
+
+    tBTM_BLE_ADV_PARAMS* p_params = new tBTM_BLE_ADV_PARAMS;
+    p_params->adv_int_min = params.min_interval;
+    p_params->adv_int_max = params.max_interval;
+    p_params->adv_type = params.adv_type;
+    p_params->channel_map = params.channel_map;
+    p_params->adv_filter_policy = 0;
+    p_params->tx_power = ble_map_adv_tx_power(params.tx_power);
+
+    do_in_bta_thread(
+        FROM_HERE,
+        Bind(&BleAdvertisingManager::StartAdvertising,
+             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
+             base::Bind(
+                 [](Callback cb, uint8_t status) {
+                   do_in_jni_thread(Bind(cb, status));
+                 },
+                 cb),
+             base::Owned(p_params), std::move(advertise_data),
+             std::move(scan_response_data), timeout_s, timeout_cb));
+  }
 };
 
 BleAdvertiserInterface* btLeAdvertiserInstance = nullptr;
