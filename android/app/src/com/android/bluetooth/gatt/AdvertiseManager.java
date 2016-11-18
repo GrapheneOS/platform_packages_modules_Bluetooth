@@ -277,25 +277,24 @@ class AdvertiseManager {
 
         boolean startAdverising(AdvertiseClient client) {
             logd("starting advertising");
+
+            int advertiserId = client.advertiserId;
+            int minAdvertiseUnit = (int) getAdvertisingIntervalUnit(client.settings);
+            int maxAdvertiseUnit = minAdvertiseUnit + ADVERTISING_INTERVAL_DELTA_UNIT;
+            int advertiseEventType = getAdvertisingEventType(client);
+            int txPowerLevel = getTxPowerLevel(client.settings);
+
+            byte [] adv_data = advertiseDataToBytes(client.advertiseData);
+            byte [] scan_resp_data = advertiseDataToBytes(client.scanResponse);
+
+            int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
+                    client.settings.getTimeout());
+
             resetCountDownLatch();
-            setAdvertisingParameters(client);
-            if (!waitForCallback()) {
-                return false;
-            }
-            resetCountDownLatch();
-            setAdvertisingData(client, client.advertiseData, false);
-            if (!waitForCallback()) {
-                return false;
-            }
-            if (client.scanResponse != null) {
-                resetCountDownLatch();
-                setAdvertisingData(client, client.scanResponse, true);
-                if (!waitForCallback()) {
-                    return false;
-                }
-            }
-            resetCountDownLatch();
-            enableAdvertising(client, true);
+
+            startAdvertiserNative(advertiserId, minAdvertiseUnit, maxAdvertiseUnit,
+                    advertiseEventType, ADVERTISING_CHANNEL_ALL, txPowerLevel, adv_data,
+                    scan_resp_data, advertiseTimeoutSeconds);
             if (!waitForCallback()) {
                 return false;
             }
@@ -320,29 +319,6 @@ class AdvertiseManager {
             }
         }
 
-        private void setAdvertisingParameters(AdvertiseClient client) {
-            int advertiserId = client.advertiserId;
-            int minAdvertiseUnit = (int) getAdvertisingIntervalUnit(client.settings);
-            int maxAdvertiseUnit = minAdvertiseUnit + ADVERTISING_INTERVAL_DELTA_UNIT;
-            int advertiseEventType = getAdvertisingEventType(client);
-            int txPowerLevel = getTxPowerLevel(client.settings);
-
-            // if only legacy advertising is supported, the TX power settings wont take effect
-            gattClientSetParamsNative(
-                        advertiserId,
-                        minAdvertiseUnit, maxAdvertiseUnit,
-                        advertiseEventType,
-                        ADVERTISING_CHANNEL_ALL,
-                        txPowerLevel);
-        }
-
-        private void enableAdvertising(AdvertiseClient client, boolean enable) {
-            int advertiserId = client.advertiserId;
-            int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
-                    client.settings.getTimeout());
-            gattClientEnableAdvNative(advertiserId, enable, advertiseTimeoutSeconds);
-        }
-
         private static final int DEVICE_NAME_MAX = 18;
 
         private static final int COMPLETE_LIST_16_BIT_SERVICE_UUIDS = 0X03;
@@ -357,6 +333,10 @@ class AdvertiseManager {
         private static final int MANUFACTURER_SPECIFIC_DATA = 0XFF;
 
         private byte[] advertiseDataToBytes(AdvertiseData data) {
+
+            if (data == null)
+                return new byte[0];
+
             // Flags are added by lower layers of the stack, only if needed;
             // no need to add them here.
 
@@ -482,16 +462,6 @@ class AdvertiseManager {
             return ret.toByteArray();
         }
 
-        private void setAdvertisingData(AdvertiseClient client, AdvertiseData data,
-                boolean isScanResponse) {
-            if (data == null) {
-                return;
-            }
-
-            byte [] data_out = advertiseDataToBytes(data);
-            gattClientSetAdvDataNative(client.advertiserId, isScanResponse, data_out);
-        }
-
         // Convert settings tx power level to stack tx power level.
         private int getTxPowerLevel(AdvertiseSettings settings) {
             switch (settings.getTxPowerLevel()) {
@@ -541,14 +511,13 @@ class AdvertiseManager {
 
         private native void unregisterAdvertiserNative(int advertiserId);
 
-        private native void gattClientSetParamsNative(int advertiserId,
-                int min_interval, int max_interval, int adv_type, int chnl_map, int tx_power);
-
-        private native void gattClientSetAdvDataNative(int advertiserId,
-                boolean set_scan_rsp, byte[] data);
-
         private native void gattClientEnableAdvNative(int advertiserId,
                 boolean enable, int timeout_s);
+
+        private native void startAdvertiserNative(int advertiserId,
+                int min_interval, int max_interval, int adv_type, int chnl_map, int tx_power,
+                byte[] adv_data, byte[] scan_resp_data, int timeout_s);
+
     }
 
     private void logd(String s) {
