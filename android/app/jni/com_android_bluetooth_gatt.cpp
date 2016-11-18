@@ -153,8 +153,7 @@ static jmethodID method_onScanFilterConfig;
 static jmethodID method_onScanFilterParamsConfigured;
 static jmethodID method_onScanFilterEnableDisabled;
 static jmethodID method_onAdvertiserRegistered;
-static jmethodID method_onMultiAdvSetParams;
-static jmethodID method_onMultiAdvSetAdvData;
+static jmethodID method_onAdvertiserStarted;
 static jmethodID method_onMultiAdvEnable;
 static jmethodID method_onClientCongestion;
 static jmethodID method_onBatchScanStorageConfigured;
@@ -599,25 +598,19 @@ void ble_advertiser_register_cb(bt_uuid_t uuid, uint8_t advertiser_id, uint8_t s
                                  status, advertiser_id, UUID_PARAMS(&uuid));
 }
 
-void ble_advertiser_set_params_cb(uint8_t advertiser_id, uint8_t status)
-{
-    CallbackEnv sCallbackEnv(__func__);
-    if (!sCallbackEnv.valid()) return;
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvSetParams, status, advertiser_id);
-}
-
-void ble_advertiser_setadv_data_cb(uint8_t advertiser_id, uint8_t status)
-{
-    CallbackEnv sCallbackEnv(__func__);
-    if (!sCallbackEnv.valid()) return;
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvSetAdvData, status, advertiser_id);
-}
-
 void ble_advertiser_enable_cb(bool enable, uint8_t advertiser_id, uint8_t status)
 {
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onMultiAdvEnable, status, advertiser_id, enable);
+}
+
+void ble_advertiser_start_cb(uint8_t advertiser_id, uint8_t status)
+{
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAdvertiserStarted,
+                                 status, advertiser_id);
 }
 
 /**
@@ -834,8 +827,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
     method_onScanFilterParamsConfigured = env->GetMethodID(clazz, "onScanFilterParamsConfigured", "(IIII)V");
     method_onScanFilterEnableDisabled = env->GetMethodID(clazz, "onScanFilterEnableDisabled", "(III)V");
     method_onAdvertiserRegistered = env->GetMethodID(clazz, "onAdvertiserRegistered", "(IIJJ)V");
-    method_onMultiAdvSetParams = env->GetMethodID(clazz, "onAdvertiseParamsSet", "(II)V");
-    method_onMultiAdvSetAdvData = env->GetMethodID(clazz, "onAdvertiseDataSet", "(II)V");
+    method_onAdvertiserStarted = env->GetMethodID(clazz, "onAdvertiserStarted", "(II)V");
     method_onMultiAdvEnable = env->GetMethodID(clazz, "onAdvertiseInstanceEnabled", "(IIZ)V");
     method_onClientCongestion = env->GetMethodID(clazz, "onClientCongestion", "(IZ)V");
     method_onBatchScanStorageConfigured = env->GetMethodID(clazz, "onBatchScanStorageConfigured", "(II)V");
@@ -1348,6 +1340,34 @@ static void registerAdvertiserNative(JNIEnv* env, jobject object,
     sGattIf->advertiser->RegisterAdvertiser(base::Bind(&ble_advertiser_register_cb, uuid));
 }
 
+static void startAdvertiserNative(JNIEnv *env, jobject object, jint advertiser_id,
+                                  jint min_interval, jint max_interval, jint adv_type, jint chnl_map,
+                                  jint tx_power, jbyteArray adv_data, jbyteArray scan_resp, jint timeout_s) {
+    if (!sGattIf) return;
+
+    AdvertiseParameters params;
+    params.min_interval = min_interval;
+    params.max_interval = max_interval;
+    params.adv_type = adv_type;
+    params.channel_map = chnl_map;
+    params.tx_power = tx_power;
+
+    jbyte* adv_data_data = env->GetByteArrayElements(adv_data, NULL);
+    uint16_t adv_data_len = (uint16_t) env->GetArrayLength(adv_data);
+    vector<uint8_t> data_vec(adv_data_data, adv_data_data + adv_data_len);
+    env->ReleaseByteArrayElements(adv_data, adv_data_data, JNI_ABORT);
+
+    jbyte* scan_resp_data = env->GetByteArrayElements(scan_resp, NULL);
+    uint16_t scan_resp_len = (uint16_t) env->GetArrayLength(scan_resp);
+    vector<uint8_t> scan_resp_vec(scan_resp_data, scan_resp_data + scan_resp_len);
+    env->ReleaseByteArrayElements(scan_resp, scan_resp_data, JNI_ABORT);
+
+    sGattIf->advertiser->StartAdvertising(advertiser_id,
+        base::Bind(&ble_advertiser_start_cb, advertiser_id),
+        params, data_vec, scan_resp_vec, timeout_s,
+        base::Bind(&ble_advertiser_enable_cb, false,
+        advertiser_id));
+}
 static void unregisterAdvertiserNative(JNIEnv* env, jobject object, jint advertiser_id)
 {
     if (!sGattIf) return;
@@ -1364,30 +1384,6 @@ static void gattClientEnableAdvNative(JNIEnv* env, jobject object, jint advertis
         advertiser_id, enable,
         base::Bind(&ble_advertiser_enable_cb, enable, advertiser_id), timeout_s,
         base::Bind(&ble_advertiser_enable_cb, false, advertiser_id));
-}
-
-static void gattClientSetAdvParamsNative(JNIEnv* env, jobject object, jint advertiser_id,
-       jint min_interval, jint max_interval, jint adv_type, jint chnl_map, jint tx_power)
-{
-    if (!sGattIf) return;
-
-    sGattIf->advertiser->SetParameters(
-        advertiser_id, min_interval, max_interval, adv_type, chnl_map, tx_power,
-        base::Bind(&ble_advertiser_set_params_cb, advertiser_id));
-}
-
-static void gattClientSetAdvDataNative(JNIEnv* env, jobject object, jint advertiser_id,
-        jboolean set_scan_rsp, jbyteArray data)
-{
-    if (!sGattIf) return;
-    jbyte* data_data = env->GetByteArrayElements(data, NULL);
-    uint16_t data_len = (uint16_t) env->GetArrayLength(data);
-    vector<uint8_t> data_vec(data_data, data_data + data_len);
-    env->ReleaseByteArrayElements(data, data_data, JNI_ABORT);
-
-    sGattIf->advertiser->SetData(
-        advertiser_id, set_scan_rsp, std::move(data_vec),
-        base::Bind(&ble_advertiser_setadv_data_cb, advertiser_id));
 }
 
 static void gattClientConfigBatchScanStorageNative(JNIEnv* env, jobject object, jint client_if,
@@ -1625,9 +1621,8 @@ static void gattTestNative(JNIEnv *env, jobject object, jint command,
 static JNINativeMethod sAdvertiseMethods[] = {
     {"registerAdvertiserNative", "(JJ)V", (void *) registerAdvertiserNative},
     {"unregisterAdvertiserNative", "(I)V", (void *) unregisterAdvertiserNative},
-    {"gattClientSetParamsNative", "(IIIIII)V", (void *) gattClientSetAdvParamsNative},
-    {"gattClientSetAdvDataNative", "(IZ[B)V", (void *) gattClientSetAdvDataNative},
     {"gattClientEnableAdvNative", "(IZI)V", (void *) gattClientEnableAdvNative},
+    {"startAdvertiserNative", "(IIIIII[B[BI)V", (void *) startAdvertiserNative},
 };
 
 // JNI functions defined in ScanManager class.
