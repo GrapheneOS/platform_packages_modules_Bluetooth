@@ -1185,18 +1185,23 @@ public class GattService extends ProfileService {
         }
     }
 
-    // Callback when advertise parameters are set.
-    void onAdvertiseParamsSet(int status, int advertiserId) {
-        if (DBG) Log.d(TAG, "onAdvertiseParamsSet() - advertiserId=" + advertiserId
-            + ", status=" + status);
-        mAdvertiseManager.callbackDone(advertiserId, status);
-    }
+    void onAdvertiserStarted(int status, int advertiserId)
+            throws RemoteException {
+        if (DBG) Log.d(TAG, "onAdvertiserStarted() - advertiserId=" + advertiserId +
+            ", status=" + status);
 
-    // Callback when advertise data or scan response is set.
-    void onAdvertiseDataSet(int status, int advertiserId) {
-        if (DBG) Log.d(TAG, "onAdvertiseDataSet() - advertiserId=" + advertiserId
-            + ", status=" + status);
         mAdvertiseManager.callbackDone(advertiserId, status);
+
+        AdvertiserMap.App app = mAdvertiserMap.getById(advertiserId);
+        if (app != null) {
+            if (status == 0) {
+                app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS,
+                        true, null);
+            } else {
+                app.callback.onMultiAdvertiseCallback(
+                        AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR, true, null);
+            }
+        }
     }
 
     // Callback when advertise instance is enabled.
