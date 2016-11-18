@@ -63,6 +63,19 @@ class BleAdvertisingManager {
   /* Register an advertising instance, status will be returned in |cb|
   * callback, with assigned id, if operation succeeds. Instance is freed when
   * advertising is disabled by calling |BTM_BleDisableAdvInstance|, or when any
+  * of the operations fails.
+  * The instance will have data set to |advertise_data|, scan response set to
+  * |scan_response_data|, and will be enabled.
+  */
+  virtual void StartAdvertising(
+      uint8_t advertiser_id, MultiAdvCb cb,
+      tBTM_BLE_ADV_PARAMS *params, std::vector<uint8_t> advertise_data,
+      std::vector<uint8_t> scan_response_data, int timeout_s,
+      MultiAdvCb timeout_cb) = 0;
+
+  /* Register an advertising instance, status will be returned in |cb|
+  * callback, with assigned id, if operation succeeds. Instance is freed when
+  * advertising is disabled by calling |BTM_BleDisableAdvInstance|, or when any
   * of the operations fails. */
   virtual void RegisterAdvertiser(
       base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)>) = 0;
