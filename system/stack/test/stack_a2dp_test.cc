@@ -133,16 +133,19 @@ TEST(StackA2dpTest, test_a2dp_get_codec_type) {
 
 TEST(StackA2dpTest, test_a2dp_is_source_codec_supported) {
   EXPECT_TRUE(A2DP_IsSourceCodecSupported(codec_info_sbc));
+  EXPECT_TRUE(A2DP_IsSourceCodecSupported(codec_info_sbc_sink));
   EXPECT_FALSE(A2DP_IsSourceCodecSupported(codec_info_non_a2dp));
 }
 
 TEST(StackA2dpTest, test_a2dp_is_sink_codec_supported) {
   EXPECT_TRUE(A2DP_IsSinkCodecSupported(codec_info_sbc));
+  EXPECT_TRUE(A2DP_IsSinkCodecSupported(codec_info_sbc_sink));
   EXPECT_FALSE(A2DP_IsSinkCodecSupported(codec_info_non_a2dp));
 }
 
 TEST(StackA2dpTest, test_a2dp_is_peer_source_codec_supported) {
   EXPECT_TRUE(A2DP_IsPeerSourceCodecSupported(codec_info_sbc));
+  EXPECT_TRUE(A2DP_IsPeerSourceCodecSupported(codec_info_sbc_sink));
   EXPECT_FALSE(A2DP_IsPeerSourceCodecSupported(codec_info_non_a2dp));
 }
 
