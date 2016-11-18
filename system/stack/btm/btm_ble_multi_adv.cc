@@ -176,6 +176,72 @@ class BleAdvertisingManagerImpl
     cb.Run(0xFF, BTM_BLE_MULTI_ADV_FAILURE);
   }
 
+  void StartAdvertising(uint8_t advertiser_id, MultiAdvCb cb,
+                        tBTM_BLE_ADV_PARAMS *params,
+                        std::vector<uint8_t> advertise_data,
+                        std::vector<uint8_t> scan_response_data, int timeout_s,
+                        MultiAdvCb timeout_cb) override {
+    /* a temporary type for holding all the data needed in callbacks below*/
+    struct CreatorParams {
+      uint8_t inst_id;
+      BleAdvertisingManagerImpl *self;
+      MultiAdvCb cb;
+      tBTM_BLE_ADV_PARAMS params;
+      std::vector<uint8_t> advertise_data;
+      std::vector<uint8_t> scan_response_data;
+      int timeout_s;
+      MultiAdvCb timeout_cb;
+    };
+
+    std::unique_ptr<CreatorParams> c;
+    c.reset(new CreatorParams());
+
+    c->self = this;
+    c->cb = std::move(cb);
+    c->params = *params;
+    c->advertise_data = std::move(advertise_data);
+    c->scan_response_data = std::move(scan_response_data);
+    c->timeout_s = timeout_s;
+    c->timeout_cb = std::move(timeout_cb);
+    c->inst_id = advertiser_id;
+
+    using c_type = std::unique_ptr<CreatorParams>;
+
+    // this code is intentionally left formatted this way to highlight the
+    // asynchronous flow
+    // clang-format off
+    c->self->SetParameters(c->inst_id, &c->params, Bind(
+      [](c_type c, uint8_t status) {
+        if (status != 0) {
+          LOG(ERROR) << "setting parameters failed, status: " << +status;
+          c->cb.Run(status);
+          return;
+        }
+
+        c->self->SetData(c->inst_id, false, std::move(c->advertise_data), Bind(
+          [](c_type c, uint8_t status) {
+            if (status != 0) {
+              LOG(ERROR) << "setting advertise data failed, status: " << +status;
+              c->cb.Run(status);
+              return;
+            }
+
+            c->self->SetData(c->inst_id, true, std::move(c->scan_response_data), Bind(
+              [](c_type c, uint8_t status) {
+                if (status != 0) {
+                  LOG(ERROR) << "setting scan response data failed, status: " << +status;
+                  c->cb.Run(status);
+                  return;
+                }
+
+                c->self->Enable(c->inst_id, true, c->cb, c->timeout_s, c->timeout_cb);
+
+            }, base::Passed(&c)));
+        }, base::Passed(&c)));
+      }, base::Passed(&c)));
+    // clang-format on
+  }
+
   void EnableWithTimerCb(uint8_t inst_id, int timeout_s, MultiAdvCb timeout_cb,
                          uint8_t status) {
     AdvertisingInstance *p_inst = &adv_inst[inst_id];
