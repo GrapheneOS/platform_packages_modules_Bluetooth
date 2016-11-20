@@ -1388,6 +1388,65 @@ static uint8_t opcode_from_pdu(uint8_t pdu) {
   return opcode;
 }
 
+/***************************************************************************
+ * Function:  fill_attribute_id_array
+ *
+ * - Argument:
+ *     cmd_attribute_number         input attribute number from AVRCP command
+ *     cmd_attribute_id_array       input attribute list from AVRCP command
+ *     out_array_size               allocated size of out attribute id array
+ *     out_attribute_id_array       output attribute list resolved here
+ *
+ * - Description:
+ *     Resolve attribute id array as defined by the AVRCP specification.
+ *
+ * - Returns:
+ *     The number of attributes filled in
+ *
+ ***************************************************************************/
+static uint8_t fill_attribute_id_array(
+    uint8_t cmd_attribute_number, btrc_media_attr_t* cmd_attribute_id_array,
+    size_t out_array_size, btrc_media_attr_t* out_attribute_id_array) {
+  /* Reset attribute array */
+  memset(out_attribute_id_array, 0, out_array_size);
+  /* Default case for cmd_attribute_number == 0xFF, No attribute */
+  uint8_t out_attribute_number = 0;
+  if (cmd_attribute_number == 0) {
+    /* All attributes */
+    out_attribute_number =
+        out_array_size < AVRC_MAX_NUM_MEDIA_ATTR_ID ?
+            out_array_size : AVRC_MAX_NUM_MEDIA_ATTR_ID;
+    for (int i = 0; i < out_attribute_number; i++) {
+      out_attribute_id_array[i] = (btrc_media_attr_t) (i + 1);
+    }
+  } else if (cmd_attribute_number != 0xFF) {
+    /* Attribute List */
+    out_attribute_number = 0;
+    int filled_id_count = 0;
+    for (int i = 0; (i < cmd_attribute_number)
+            && (out_attribute_number < out_array_size)
+            && (out_attribute_number < AVRC_MAX_NUM_MEDIA_ATTR_ID); i++) {
+      /* Fill only valid entries */
+      if (AVRC_IS_VALID_MEDIA_ATTRIBUTE(cmd_attribute_id_array[i])) {
+        /* Skip the duplicate entries */
+        for (filled_id_count = 0; filled_id_count < out_attribute_number;
+            filled_id_count++) {
+          if (out_attribute_id_array[filled_id_count]
+              == cmd_attribute_id_array[i])
+            break;
+        }
+        /* New ID */
+        if (filled_id_count == out_attribute_number) {
+          out_attribute_id_array[out_attribute_number] =
+              (btrc_media_attr_t) cmd_attribute_id_array[i];
+          out_attribute_number++;
+        }
+      }
+    }
+  }
+  return out_attribute_number;
+}
+
 /*******************************************************************************
  *
  * Function         btif_rc_upstreams_evt
@@ -1424,51 +1483,17 @@ static void btif_rc_upstreams_evt(uint16_t event, tAVRC_COMMAND* pavrc_cmd,
     } break;
     case AVRC_PDU_GET_ELEMENT_ATTR: {
       btrc_media_attr_t element_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
-      uint8_t num_attr;
-      memset(&element_attrs, 0, sizeof(element_attrs));
-      if (pavrc_cmd->get_elem_attrs.num_attr == 0) {
-        /* CT requests for all attributes */
-        int attr_cnt;
-        num_attr = BTRC_MAX_ELEM_ATTR_SIZE;
-        for (attr_cnt = 0; attr_cnt < BTRC_MAX_ELEM_ATTR_SIZE; attr_cnt++) {
-          element_attrs[attr_cnt] = (btrc_media_attr_t)(attr_cnt + 1);
-        }
-      } else if (pavrc_cmd->get_elem_attrs.num_attr == 0xFF) {
-        /* 0xff indicates, no attributes requested - reject */
+      uint8_t num_attr = fill_attribute_id_array(
+          pavrc_cmd->get_elem_attrs.num_attr,
+          (btrc_media_attr_t*)pavrc_cmd->get_elem_attrs.attrs,
+          BTRC_MAX_ELEM_ATTR_SIZE, element_attrs);
+      if (num_attr == 0) {
+        BTIF_TRACE_ERROR(
+            "%s: No valid attributes requested in GET_ELEMENT_ATTRIBUTES",
+            __func__);
         send_reject_response(p_dev->rc_handle, label, pavrc_cmd->pdu,
                              AVRC_STS_BAD_PARAM, pavrc_cmd->cmd.opcode);
         return;
-      } else {
-        int attr_cnt, filled_attr_count;
-
-        num_attr = 0;
-        /* Attribute IDs from 1 to AVRC_MAX_NUM_MEDIA_ATTR_ID are only valid,
-         * hence HAL definition limits the attributes to
-         * AVRC_MAX_NUM_MEDIA_ATTR_ID.
-         * Fill only valid entries.
-         */
-        for (attr_cnt = 0; (attr_cnt < pavrc_cmd->get_elem_attrs.num_attr) &&
-                           (num_attr < AVRC_MAX_NUM_MEDIA_ATTR_ID);
-             attr_cnt++) {
-          if ((pavrc_cmd->get_elem_attrs.attrs[attr_cnt] > 0) &&
-              (pavrc_cmd->get_elem_attrs.attrs[attr_cnt] <=
-               AVRC_MAX_NUM_MEDIA_ATTR_ID)) {
-            /* Skip the duplicate entries : PTS sends duplicate entries for
-             * Fragment cases
-             */
-            for (filled_attr_count = 0; filled_attr_count < num_attr;
-                 filled_attr_count++) {
-              if (element_attrs[filled_attr_count] ==
-                  pavrc_cmd->get_elem_attrs.attrs[attr_cnt])
-                break;
-            }
-            if (filled_attr_count == num_attr) {
-              element_attrs[num_attr] =
-                  (btrc_media_attr_t)pavrc_cmd->get_elem_attrs.attrs[attr_cnt];
-              num_attr++;
-            }
-          }
-        }
       }
       fill_pdu_queue(IDX_GET_ELEMENT_ATTR_RSP, ctype, label, true, p_dev);
       HAL_CBACK(bt_rc_callbacks, get_element_attr_cb, num_attr, element_attrs,
@@ -1595,41 +1620,24 @@ static void btif_rc_upstreams_evt(uint16_t event, tAVRC_COMMAND* pavrc_cmd,
 
     case AVRC_PDU_GET_ITEM_ATTRIBUTES: {
       btrc_media_attr_t item_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
-      uint8_t num_attr;
-      uint8_t scope;
-      uint16_t uid_counter;
-
-      scope = pavrc_cmd->get_attrs.scope;
-      uid_counter = pavrc_cmd->get_attrs.uid_counter;
-      memset(&item_attrs, 0, sizeof(item_attrs));
-
-      if (pavrc_cmd->get_attrs.attr_count == 0xFF) {
+      uint8_t num_attr = fill_attribute_id_array(
+          pavrc_cmd->get_elem_attrs.num_attr,
+          (btrc_media_attr_t*)pavrc_cmd->get_elem_attrs.attrs,
+          BTRC_MAX_ELEM_ATTR_SIZE, item_attrs);
+      if (num_attr == 0) {
         BTIF_TRACE_ERROR(
-            "%s: No attributes are requested in GET_ITEM_ATTRIBUTES", __func__);
-        /* 0xff indicates, no attributes requested - reject this */
+            "%s: No valid attributes requested in GET_ITEM_ATTRIBUTES",
+            __func__);
         send_reject_response(p_dev->rc_handle, label, pavrc_cmd->pdu,
                              AVRC_STS_BAD_PARAM, pavrc_cmd->cmd.opcode);
         return;
       }
-
-      if (pavrc_cmd->get_attrs.attr_count == 0) {
-        /* CT requests for all attributes */
-        int attr_cnt;
-        num_attr = BTRC_MAX_ELEM_ATTR_SIZE;
-        for (attr_cnt = 0; attr_cnt < BTRC_MAX_ELEM_ATTR_SIZE; attr_cnt++) {
-          item_attrs[attr_cnt] = (btrc_media_attr_t)(attr_cnt + 1);
-        }
-      } else {
-        num_attr = pavrc_cmd->get_attrs.attr_count;
-        memcpy(item_attrs, pavrc_cmd->get_attrs.p_attr_list,
-               sizeof(uint32_t) * pavrc_cmd->get_attrs.attr_count);
-      }
       fill_pdu_queue(IDX_GET_ITEM_ATTR_RSP, ctype, label, true, p_dev);
       BTIF_TRACE_DEBUG("%s: GET_ITEM_ATTRIBUTES: num_attr: %d", __func__,
                        num_attr);
-      HAL_CBACK(bt_rc_callbacks, get_item_attr_cb, scope,
-                pavrc_cmd->get_attrs.uid, uid_counter, num_attr, item_attrs,
-                &rc_addr);
+      HAL_CBACK(bt_rc_callbacks, get_item_attr_cb, pavrc_cmd->get_attrs.scope,
+                pavrc_cmd->get_attrs.uid, pavrc_cmd->get_attrs.uid_counter,
+                num_attr, item_attrs, &rc_addr);
     } break;
 
     case AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS: {
