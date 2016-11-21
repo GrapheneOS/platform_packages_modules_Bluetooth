@@ -127,9 +127,12 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"נקה"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"שמור"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"בטל"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"‏בחר את חשבונות שברצונך לשתף באמצעות Bluetooth. עדיין יהיה עליך לאשר גישה אל החשבונות בעת החיבור."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"‏בחר בחשבונות שברצונך לשתף באמצעות Bluetooth. עדיין יהיה עליך לאשר גישה אל החשבונות בעת החיבור."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"מקומות נותרים:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"סמל אפליקציה"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"‏הגדרות לשיתוף הודעות ב-Bluetooth"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"לא ניתן לבחור חשבון. נותרו 0 מקומות"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"‏אודיו Bluetooth מחובר"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"‏אודיו Bluetooth מנותק"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"‏אודיו Bluetooth"</string>
 </resources>

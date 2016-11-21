@@ -127,9 +127,12 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Vymazať"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Uložiť"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Zrušiť"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Vyberte účty, ktoré chcete zdieľať prostredníctvom rozhrania Bluetooth. Počas pripájania budete musieť aj tak prijať akékoľvek prístupy k účtom."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Vyberte účty, ktoré chcete zdieľať prostredníctvom rozhrania Bluetooth. Počas pripájania budete musieť aj tak prijať akékoľvek prístupy k účtom."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Počet zostávajúcich slotov:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Ikona aplikácie"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Nastavenia zdieľania správ prostredníctvom rozhrania Bluetooth"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Účet sa nedá vybrať. Nie sú k dispozícii žiadne ďalšie sloty."</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Rozhranie Bluetooth Audio je pripojené"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Rozhranie Bluetooth Audio je odpojené"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetooth Audio"</string>
 </resources>
