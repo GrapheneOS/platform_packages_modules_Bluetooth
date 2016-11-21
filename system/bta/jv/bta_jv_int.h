@@ -83,7 +83,7 @@ typedef struct {
   tSDP_UUID uuid_list[BTA_JV_MAX_UUIDS];
   uint16_t num_attr;
   uint16_t attr_list[BTA_JV_MAX_ATTRS];
-  void* user_data; /* piggyback caller's private data*/
+  uint32_t rfcomm_slot_id;
 } tBTA_JV_API_START_DISCOVERY;
 
 enum {
@@ -317,7 +317,8 @@ typedef struct {
   BT_HDR hdr;
   int32_t type;    /* One of BTA_JV_CONN_TYPE_ */
   int32_t channel; /* optionally request a specific channel */
-  void* user_data;
+  uint32_t l2cap_socket_id;
+  uint32_t rfcomm_slot_id;
 } tBTA_JV_API_ALLOC_CHANNEL;
 /* union of all data types */
 typedef union {
