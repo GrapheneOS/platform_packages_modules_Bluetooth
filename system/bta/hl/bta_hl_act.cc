@@ -42,10 +42,10 @@
 /*****************************************************************************
  *  Local Function prototypes
  ****************************************************************************/
-#if (BTA_HL_DEBUG == TRUE && BT_TRACE_VERBOSE == TRUE)
-static char* bta_hl_mcap_evt_code(uint8_t evt_code);
-static char* bta_hl_dch_oper_code(tBTA_HL_DCH_OPER oper_code);
-static char* bta_hl_cback_evt_code(uint8_t evt_code);
+#if (BTA_HL_DEBUG == TRUE)
+static const char* bta_hl_mcap_evt_code(uint8_t evt_code);
+static const char* bta_hl_dch_oper_code(tBTA_HL_DCH_OPER oper_code);
+static const char* bta_hl_cback_evt_code(uint8_t evt_code);
 #endif
 static void bta_hl_sdp_cback(uint8_t sdp_op, uint8_t app_idx, uint8_t mcl_idx,
                              uint8_t mdl_idx, uint16_t status);
@@ -472,12 +472,8 @@ void bta_hl_dch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
   tBTA_HL_STATUS status;
 
 #if (BTA_HL_DEBUG == TRUE)
-#if (BT_TRACE_VERBOSE == TRUE)
   APPL_TRACE_DEBUG("bta_hl_dch_close_cmpl dch oper=%s",
                    bta_hl_dch_oper_code(p_dcb->dch_oper));
-#else
-  APPL_TRACE_DEBUG("bta_hl_dch_close_cmpl dch oper=%d", p_dcb->dch_oper);
-#endif
 #endif
 
   switch (p_dcb->dch_oper) {
@@ -546,12 +542,8 @@ void bta_hl_dch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
     default:
 #if (BTA_HL_DEBUG == TRUE)
-#if (BT_TRACE_VERBOSE == TRUE)
       APPL_TRACE_ERROR("DCH operation not found oper=%s",
                        bta_hl_dch_oper_code(p_dcb->dch_oper));
-#else
-      APPL_TRACE_ERROR("DCH operation not found oper=%d", p_dcb->dch_oper);
-#endif
 #endif
       send_evt = false;
       break;
@@ -596,11 +588,7 @@ void bta_hl_dch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
   if (send_evt) {
     if (p_acb->p_cback) {
 #if (BTA_HL_DEBUG == TRUE)
-#if (BT_TRACE_VERBOSE == TRUE)
       APPL_TRACE_DEBUG("Send Event: %s", bta_hl_cback_evt_code(event));
-#else
-      APPL_TRACE_DEBUG("Send Event: 0x%02x", event);
-#endif
 #endif
       p_acb->p_cback(event, (tBTA_HL*)&evt_data);
     }
@@ -622,12 +610,8 @@ void bta_hl_dch_mca_close_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
   tBTA_HL_MDL_CB* p_dcb = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
 
 #if (BTA_HL_DEBUG == TRUE)
-#if (BT_TRACE_VERBOSE == TRUE)
   APPL_TRACE_DEBUG("bta_hl_dch_mca_close_ind dch oper=%s",
                    bta_hl_dch_oper_code(p_dcb->dch_oper));
-#else
-  APPL_TRACE_DEBUG("bta_hl_dch_mca_close_ind dch oper=%d", p_dcb->dch_oper);
-#endif
 #endif
 
   p_dcb->intentional_close = false;
@@ -661,12 +645,8 @@ void bta_hl_dch_mca_close_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
   tBTA_HL_MDL_CB* p_dcb = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
 
 #if (BTA_HL_DEBUG == TRUE)
-#if (BT_TRACE_VERBOSE == TRUE)
   APPL_TRACE_DEBUG("bta_hl_dch_mca_close_cfm dch_oper=%s",
                    bta_hl_dch_oper_code(p_dcb->dch_oper));
-#else
-  APPL_TRACE_DEBUG("bta_hl_dch_mca_close_cfm dch_oper=%d", p_dcb->dch_oper);
-#endif
 #endif
 
   switch (p_dcb->dch_oper) {
@@ -682,12 +662,8 @@ void bta_hl_dch_mca_close_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
       break;
     default:
 #if (BTA_HL_DEBUG == TRUE)
-#if (BT_TRACE_VERBOSE == TRUE)
       APPL_TRACE_ERROR("Invalid dch_oper=%s for close cfm",
                        bta_hl_dch_oper_code(p_dcb->dch_oper));
-#else
-      APPL_TRACE_ERROR("Invalid dch_oper=%d for close cfm", p_dcb->dch_oper);
-#endif
 #endif
       break;
   }
@@ -2186,12 +2162,8 @@ void bta_hl_mcap_ctrl_cback(tMCA_HANDLE handle, tMCA_CL mcl, uint8_t event,
   uint16_t mca_event;
 
 #if (BTA_HL_DEBUG == TRUE)
-#if (BT_TRACE_VERBOSE == TRUE)
   APPL_TRACE_EVENT("bta_hl_mcap_ctrl_cback event[%s]",
                    bta_hl_mcap_evt_code(event));
-#else
-  APPL_TRACE_EVENT("bta_hl_mcap_ctrl_cback event[0x%02x]", event);
-#endif
 #endif
 
   switch (event) {
@@ -2288,7 +2260,11 @@ void bta_hl_mcap_data_cback(tMCA_DL mdl, BT_HDR* p_pkt) {
 /*****************************************************************************
  *  Debug Functions
  ****************************************************************************/
-#if (BTA_HL_DEBUG == TRUE && BT_TRACE_VERBOSE == TRUE)
+#if (BTA_HL_DEBUG == TRUE)
+
+#define CASE_RETURN_STR(const) \
+  case const:                  \
+    return #const;
 
 /*******************************************************************************
  *
@@ -2299,43 +2275,25 @@ void bta_hl_mcap_data_cback(tMCA_DL mdl, BT_HDR* p_pkt) {
  * Returns          char * - event string pointer
  *
  ******************************************************************************/
-static char* bta_hl_mcap_evt_code(uint8_t evt_code) {
+static const char* bta_hl_mcap_evt_code(uint8_t evt_code) {
   switch (evt_code) {
-    case MCA_ERROR_RSP_EVT:
-      return "MCA_ERROR_RSP_EVT";
-    case MCA_CREATE_IND_EVT:
-      return "MCA_CREATE_IND_EVT";
-    case MCA_CREATE_CFM_EVT:
-      return "MCA_CREATE_CFM_EVT";
-    case MCA_RECONNECT_IND_EVT:
-      return "MCA_RECONNECT_IND_EVT";
-    case MCA_RECONNECT_CFM_EVT:
-      return "MCA_RECONNECT_CFM_EVT";
-    case MCA_ABORT_IND_EVT:
-      return "MCA_ABORT_IND_EVT";
-    case MCA_ABORT_CFM_EVT:
-      return "MCA_ABORT_CFM_EVT";
-    case MCA_DELETE_IND_EVT:
-      return "MCA_DELETE_IND_EVT";
-    case MCA_DELETE_CFM_EVT:
-      return "MCA_DELETE_CFM_EVT";
-
-    case MCA_CONNECT_IND_EVT:
-      return "MCA_CONNECT_IND_EVT";
-    case MCA_DISCONNECT_IND_EVT:
-      return "MCA_DISCONNECT_IND_EVT";
-    case MCA_OPEN_IND_EVT:
-      return "MCA_OPEN_IND_EVT";
-    case MCA_OPEN_CFM_EVT:
-      return "MCA_OPEN_CFM_EVT";
-    case MCA_CLOSE_IND_EVT:
-      return "MCA_CLOSE_IND_EVT";
-    case MCA_CLOSE_CFM_EVT:
-      return "MCA_CLOSE_CFM_EVT";
-    case MCA_CONG_CHG_EVT:
-      return "MCA_CONG_CHG_EVT";
-    case MCA_RSP_TOUT_IND_EVT:
-      return "MCA_RSP_TOUT_IND_EVT";
+    CASE_RETURN_STR(MCA_ERROR_RSP_EVT)
+    CASE_RETURN_STR(MCA_CREATE_IND_EVT)
+    CASE_RETURN_STR(MCA_CREATE_CFM_EVT)
+    CASE_RETURN_STR(MCA_RECONNECT_IND_EVT)
+    CASE_RETURN_STR(MCA_RECONNECT_CFM_EVT)
+    CASE_RETURN_STR(MCA_ABORT_IND_EVT)
+    CASE_RETURN_STR(MCA_ABORT_CFM_EVT)
+    CASE_RETURN_STR(MCA_DELETE_IND_EVT)
+    CASE_RETURN_STR(MCA_DELETE_CFM_EVT)
+    CASE_RETURN_STR(MCA_CONNECT_IND_EVT)
+    CASE_RETURN_STR(MCA_DISCONNECT_IND_EVT)
+    CASE_RETURN_STR(MCA_OPEN_IND_EVT)
+    CASE_RETURN_STR(MCA_OPEN_CFM_EVT)
+    CASE_RETURN_STR(MCA_CLOSE_IND_EVT)
+    CASE_RETURN_STR(MCA_CLOSE_CFM_EVT)
+    CASE_RETURN_STR(MCA_CONG_CHG_EVT)
+    CASE_RETURN_STR(MCA_RSP_TOUT_IND_EVT)
     default:
       return "Unknown MCAP event code";
   }
@@ -2350,50 +2308,29 @@ static char* bta_hl_mcap_evt_code(uint8_t evt_code) {
  * Returns          char * - event string pointer
  *
  ******************************************************************************/
-static char* bta_hl_cback_evt_code(uint8_t evt_code) {
+static const char* bta_hl_cback_evt_code(uint8_t evt_code) {
   switch (evt_code) {
-    case BTA_HL_CCH_OPEN_IND_EVT:
-      return "BTA_HL_CCH_OPEN_IND_EVT";
-    case BTA_HL_CCH_OPEN_CFM_EVT:
-      return "BTA_HL_CCH_OPEN_CFM_EVT";
-    case BTA_HL_CCH_CLOSE_IND_EVT:
-      return "BTA_HL_CCH_CLOSE_IND_EVT";
-    case BTA_HL_CCH_CLOSE_CFM_EVT:
-      return "BTA_HL_CCH_CLOSE_CFM_EVT";
-    case BTA_HL_DCH_OPEN_IND_EVT:
-      return "BTA_HL_DCH_OPEN_IND_EVT";
-    case BTA_HL_DCH_OPEN_CFM_EVT:
-      return "BTA_HL_DCH_OPEN_CFM_EVT";
-    case BTA_HL_DCH_CLOSE_IND_EVT:
-      return "BTA_HL_DCH_CLOSE_IND_EVT";
-    case BTA_HL_DCH_CLOSE_CFM_EVT:
-      return "BTA_HL_DCH_CLOSE_CFM_EVT";
-    case BTA_HL_DCH_RCV_DATA_IND_EVT:
-      return "BTA_HL_DCH_RCV_DATA_IND_EVT";
-    case BTA_HL_REGISTER_CFM_EVT:
-      return "BTA_HL_REGISTER_CFM_EVT";
-    case BTA_HL_DEREGISTER_CFM_EVT:
-      return "BTA_HL_DEREGISTER_CFM_EVT";
-    case BTA_HL_DCH_RECONNECT_CFM_EVT:
-      return "BTA_HL_DCH_RECONNECT_CFM_EVT";
-    case BTA_HL_DCH_RECONNECT_IND_EVT:
-      return "BTA_HL_DCH_RECONNECT_IND_EVT";
-    case BTA_HL_DCH_ECHO_TEST_CFM_EVT:
-      return "BTA_HL_DCH_ECHO_TEST_CFM_EVT";
-    case BTA_HL_SDP_QUERY_CFM_EVT:
-      return "BTA_HL_SDP_QUERY_CFM_EVT";
-    case BTA_HL_CONG_CHG_IND_EVT:
-      return "BTA_HL_CONG_CHG_IND_EVT";
-    case BTA_HL_DCH_CREATE_IND_EVT:
-      return "BTA_HL_DCH_CREATE_IND_EVT";
-    case BTA_HL_DELETE_MDL_IND_EVT:
-      return "BTA_HL_DELETE_MDL_IND_EVT";
-    case BTA_HL_DELETE_MDL_CFM_EVT:
-      return "BTA_HL_DELETE_MDL_CFM_EVT";
-    case BTA_HL_DCH_ABORT_IND_EVT:
-      return "BTA_HL_DCH_ABORT_IND_EVT";
-    case BTA_HL_DCH_ABORT_CFM_EVT:
-      return "BTA_HL_DCH_ABORT_CFM_EVT";
+    CASE_RETURN_STR(BTA_HL_CCH_OPEN_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_CCH_OPEN_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_CCH_CLOSE_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_CCH_CLOSE_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_OPEN_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_OPEN_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_CLOSE_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_CLOSE_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_RCV_DATA_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_REGISTER_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_DEREGISTER_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_RECONNECT_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_RECONNECT_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_ECHO_TEST_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_SDP_QUERY_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_CONG_CHG_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_CREATE_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_DELETE_MDL_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_DELETE_MDL_CFM_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_ABORT_IND_EVT)
+    CASE_RETURN_STR(BTA_HL_DCH_ABORT_CFM_EVT)
     default:
       return "Unknown HDP event code";
   }
@@ -2408,32 +2345,20 @@ static char* bta_hl_cback_evt_code(uint8_t evt_code) {
  * Returns          char * - DCH operation string pointer
  *
  ******************************************************************************/
-static char* bta_hl_dch_oper_code(tBTA_HL_DCH_OPER oper_code) {
+static const char* bta_hl_dch_oper_code(tBTA_HL_DCH_OPER oper_code) {
   switch (oper_code) {
-    case BTA_HL_DCH_OP_NONE:
-      return "BTA_HL_DCH_OP_NONE";
-    case BTA_HL_DCH_OP_REMOTE_CREATE:
-      return "BTA_HL_DCH_OP_REMOTE_CREATE";
-    case BTA_HL_DCH_OP_LOCAL_OPEN:
-      return "BTA_HL_DCH_OP_LOCAL_OPEN";
-    case BTA_HL_DCH_OP_REMOTE_OPEN:
-      return "BTA_HL_DCH_OP_REMOTE_OPEN";
-    case BTA_HL_DCH_OP_LOCAL_CLOSE:
-      return "BTA_HL_DCH_OP_LOCAL_CLOSE";
-    case BTA_HL_DCH_OP_REMOTE_CLOSE:
-      return "BTA_HL_DCH_OP_REMOTE_CLOSE";
-    case BTA_HL_DCH_OP_LOCAL_DELETE:
-      return "BTA_HL_DCH_OP_LOCAL_DELETE";
-    case BTA_HL_DCH_OP_REMOTE_DELETE:
-      return "BTA_HL_DCH_OP_REMOTE_DELETE";
-    case BTA_HL_DCH_OP_LOCAL_RECONNECT:
-      return "BTA_HL_DCH_OP_LOCAL_RECONNECT";
-    case BTA_HL_DCH_OP_REMOTE_RECONNECT:
-      return "BTA_HL_DCH_OP_REMOTE_RECONNECT";
-    case BTA_HL_DCH_OP_LOCAL_CLOSE_ECHO_TEST:
-      return "BTA_HL_DCH_OP_LOCAL_CLOSE_ECHO_TEST";
-    case BTA_HL_DCH_OP_LOCAL_CLOSE_RECONNECT:
-      return "BTA_HL_DCH_OP_LOCAL_CLOSE_RECONNECT";
+    CASE_RETURN_STR(BTA_HL_DCH_OP_NONE)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_REMOTE_CREATE)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_LOCAL_OPEN)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_REMOTE_OPEN)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_LOCAL_CLOSE)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_REMOTE_CLOSE)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_LOCAL_DELETE)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_REMOTE_DELETE)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_LOCAL_RECONNECT)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_REMOTE_RECONNECT)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_LOCAL_CLOSE_ECHO_TEST)
+    CASE_RETURN_STR(BTA_HL_DCH_OP_LOCAL_CLOSE_RECONNECT)
     default:
       return "Unknown DCH oper code";
   }
