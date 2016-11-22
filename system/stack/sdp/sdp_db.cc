@@ -399,7 +399,6 @@ bool    SDP_AddAttribute (uint32_t handle, uint16_t attr_id, uint8_t attr_type,
     uint16_t        xx, yy, zz;
     tSDP_RECORD     *p_rec = &sdp_cb.server_db.record[0];
 
-#if (BT_TRACE_VERBOSE == TRUE)
     if (sdp_cb.trace_level >= BT_TRACE_LEVEL_DEBUG)
     {
         if ((attr_type == UINT_DESC_TYPE) ||
@@ -420,7 +419,7 @@ bool    SDP_AddAttribute (uint32_t handle, uint16_t attr_id, uint8_t attr_type,
             SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%s",
                             handle,attr_id,attr_type,attr_len,p_val,num_array);
         }
-        else if (attr_type == bool   _DESC_TYPE)
+        else if (attr_type == BOOLEAN_DESC_TYPE)
         {
             SDP_TRACE_DEBUG("SDP_AddAttribute: handle:%X, id:%04X, type:%d, len:%d, p_val:%p, *p_val:%d",
                              handle,attr_id,attr_type,attr_len,p_val,*p_val);
@@ -431,7 +430,6 @@ bool    SDP_AddAttribute (uint32_t handle, uint16_t attr_id, uint8_t attr_type,
                 handle,attr_id,attr_type,attr_len,p_val,p_val);
         }
     }
-#endif
 
     /* Find the record in the database */
     for (zz = 0; zz < sdp_cb.server_db.num_records; zz++, p_rec++)
