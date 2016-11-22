@@ -39,6 +39,11 @@ extern "C" {
 // |p_init_params| cannot be null.
 void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS* p_init_params);
 
+// Gets the current A2DP encoder's feeding parameters. The result
+// is stored in |p_feeding_params|.
+void bta_av_co_get_encoder_feeding_parameters(
+    tA2DP_FEEDING_PARAMS* p_feeding_params);
+
 // Gets the current A2DP encoder interface that can be used to encode and
 // prepare A2DP packets for transmission - see |tA2DP_ENCODER_INTERFACE|.
 // Returns the A2DP encoder interface if the current codec is setup,
