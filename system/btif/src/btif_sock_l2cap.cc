@@ -855,11 +855,11 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket* sock) {
      * else we request a PSM and start the server after we receive a PSM. */
     if (sock->channel < 0) {
       if (sock->is_le_coc) {
-        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP_LE, UINT_TO_PTR(sock->id),
+        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP_LE, sock->id,
                                0) != BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       } else {
-        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, UINT_TO_PTR(sock->id),
+        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, sock->id,
                                0) != BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       }
