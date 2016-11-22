@@ -373,7 +373,7 @@ typedef union {
 
 /* JAVA DM Interface callback */
 typedef void(tBTA_JV_DM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
-                               void* user_data);
+                               uint32_t id);
 
 /* JAVA RFCOMM interface callback */
 typedef void*(tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
@@ -451,7 +451,7 @@ bool BTA_JvIsEncrypted(BD_ADDR bd_addr);
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, void* user_data,
+tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, uint32_t id,
                                   int32_t channel);
 
 /*******************************************************************************
@@ -481,7 +481,8 @@ tBTA_JV_STATUS BTA_JvFreeChannel(uint16_t channel, int conn_type);
  *
  ******************************************************************************/
 tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, uint16_t num_uuid,
-                                    tSDP_UUID* p_uuid_list, void* user_data);
+                                    tSDP_UUID* p_uuid_list,
+                                    uint32_t rfcomm_slot_id);
 
 /*******************************************************************************
  *

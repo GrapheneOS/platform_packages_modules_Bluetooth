@@ -715,7 +715,7 @@ void bta_jv_get_channel_id(tBTA_JV_MSG* p_data) {
       }
       if (bta_jv_cb.p_dm_cback)
         bta_jv_cb.p_dm_cback(BTA_JV_GET_SCN_EVT, (tBTA_JV*)&scn,
-                             p_data->alloc_channel.user_data);
+                             p_data->alloc_channel.rfcomm_slot_id);
       return;
     }
     case BTA_JV_CONN_TYPE_L2CAP:
@@ -733,7 +733,7 @@ void bta_jv_get_channel_id(tBTA_JV_MSG* p_data) {
 
   if (bta_jv_cb.p_dm_cback)
     bta_jv_cb.p_dm_cback(BTA_JV_GET_PSM_EVT, (tBTA_JV*)&psm,
-                         p_data->alloc_channel.user_data);
+                         p_data->alloc_channel.l2cap_socket_id);
 }
 
 /*******************************************************************************
@@ -835,7 +835,7 @@ static void bta_jv_start_discovery_cback(uint16_t result, void* user_data) {
 
     dcomp.status = status;
     bta_jv_cb.p_dm_cback(BTA_JV_DISCOVERY_COMP_EVT, (tBTA_JV*)&dcomp,
-                         user_data);
+                         PTR_TO_UINT(user_data));
   }
 }
 
@@ -857,7 +857,7 @@ void bta_jv_start_discovery(tBTA_JV_MSG* p_data) {
     status = BTA_JV_BUSY;
     if (bta_jv_cb.p_dm_cback)
       bta_jv_cb.p_dm_cback(BTA_JV_DISCOVERY_COMP_EVT, (tBTA_JV*)&status,
-                           p_data->start_discovery.user_data);
+                           p_data->start_discovery.rfcomm_slot_id);
     return;
   }
 
@@ -879,12 +879,12 @@ void bta_jv_start_discovery(tBTA_JV_MSG* p_data) {
   bta_jv_cb.sdp_active = BTA_JV_SDP_ACT_YES;
   if (!SDP_ServiceSearchAttributeRequest2(
           p_data->start_discovery.bd_addr, p_bta_jv_cfg->p_sdp_db,
-          bta_jv_start_discovery_cback, p_data->start_discovery.user_data)) {
+          bta_jv_start_discovery_cback, UINT_TO_PTR(p_data->start_discovery.rfcomm_slot_id))) {
     bta_jv_cb.sdp_active = BTA_JV_SDP_ACT_NONE;
     /* failed to start SDP. report the failure right away */
     if (bta_jv_cb.p_dm_cback)
       bta_jv_cb.p_dm_cback(BTA_JV_DISCOVERY_COMP_EVT, (tBTA_JV*)&status,
-                           p_data->start_discovery.user_data);
+                           p_data->start_discovery.rfcomm_slot_id);
   }
   /*
   else report the result when the cback is called
@@ -908,7 +908,7 @@ void bta_jv_create_record(tBTA_JV_MSG* p_data) {
     // callback user immediately to create his own sdp record in stack thread
     // context
     bta_jv_cb.p_dm_cback(BTA_JV_CREATE_RECORD_EVT, (tBTA_JV*)&evt_data,
-                         cr->user_data);
+                         PTR_TO_UINT(cr->user_data));
 }
 
 /*******************************************************************************
