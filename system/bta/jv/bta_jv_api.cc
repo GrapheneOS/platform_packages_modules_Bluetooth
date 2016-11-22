@@ -303,7 +303,7 @@ tBTA_JV_STATUS BTA_JvL2capConnectLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                     uint16_t remote_chan, uint16_t rx_mtu,
                                     tL2CAP_CFG_INFO* cfg, BD_ADDR peer_bd_addr,
                                     tBTA_JV_L2CAP_CBACK* p_cback,
-                                    void* user_data) {
+                                    uint32_t l2cap_socket_id) {
   APPL_TRACE_API("%s", __func__);
 
   if (p_cback == NULL) return BTA_JV_FAILURE; /* Nothing to do */
@@ -329,7 +329,7 @@ tBTA_JV_STATUS BTA_JvL2capConnectLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
   }
   memcpy(p_msg->peer_bd_addr, peer_bd_addr, sizeof(BD_ADDR));
   p_msg->p_cback = p_cback;
-  p_msg->user_data = user_data;
+  p_msg->l2cap_socket_id = l2cap_socket_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -357,7 +357,7 @@ tBTA_JV_STATUS BTA_JvL2capConnect(int conn_type, tBTA_SEC sec_mask,
                                   uint16_t remote_psm, uint16_t rx_mtu,
                                   tL2CAP_CFG_INFO* cfg, BD_ADDR peer_bd_addr,
                                   tBTA_JV_L2CAP_CBACK* p_cback,
-                                  void* user_data) {
+                                  uint32_t l2cap_socket_id) {
   APPL_TRACE_API("%s", __func__);
 
   if (p_cback == NULL) return BTA_JV_FAILURE; /* Nothing to do */
@@ -384,7 +384,7 @@ tBTA_JV_STATUS BTA_JvL2capConnect(int conn_type, tBTA_SEC sec_mask,
   }
   memcpy(p_msg->peer_bd_addr, peer_bd_addr, sizeof(BD_ADDR));
   p_msg->p_cback = p_cback;
-  p_msg->user_data = user_data;
+  p_msg->l2cap_socket_id = l2cap_socket_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -460,10 +460,13 @@ tBTA_JV_STATUS BTA_JvL2capCloseLE(uint32_t handle) {
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvL2capStartServer(
-    int conn_type, tBTA_SEC sec_mask, tBTA_JV_ROLE role,
-    const tL2CAP_ERTM_INFO* ertm_info, uint16_t local_psm, uint16_t rx_mtu,
-    tL2CAP_CFG_INFO* cfg, tBTA_JV_L2CAP_CBACK* p_cback, void* user_data) {
+tBTA_JV_STATUS BTA_JvL2capStartServer(int conn_type, tBTA_SEC sec_mask,
+                                      tBTA_JV_ROLE role,
+                                      const tL2CAP_ERTM_INFO* ertm_info,
+                                      uint16_t local_psm, uint16_t rx_mtu,
+                                      tL2CAP_CFG_INFO* cfg,
+                                      tBTA_JV_L2CAP_CBACK* p_cback,
+                                      uint32_t l2cap_socket_id) {
   APPL_TRACE_API("%s", __func__);
 
   if (p_cback == NULL) return BTA_JV_FAILURE; /* Nothing to do */
@@ -489,7 +492,7 @@ tBTA_JV_STATUS BTA_JvL2capStartServer(
     p_msg->has_ertm_info = false;
   }
   p_msg->p_cback = p_cback;
-  p_msg->user_data = user_data;
+  p_msg->l2cap_socket_id = l2cap_socket_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -516,7 +519,7 @@ tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                         uint16_t local_chan, uint16_t rx_mtu,
                                         tL2CAP_CFG_INFO* cfg,
                                         tBTA_JV_L2CAP_CBACK* p_cback,
-                                        void* user_data) {
+                                        uint32_t l2cap_socket_id) {
   APPL_TRACE_API("%s", __func__);
 
   if (p_cback == NULL) return BTA_JV_FAILURE; /* Nothing to do */
@@ -541,7 +544,7 @@ tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
     p_msg->has_ertm_info = false;
   }
   p_msg->p_cback = p_cback;
-  p_msg->user_data = user_data;
+  p_msg->l2cap_socket_id = l2cap_socket_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -559,14 +562,15 @@ tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvL2capStopServer(uint16_t local_psm, void* user_data) {
+tBTA_JV_STATUS BTA_JvL2capStopServer(uint16_t local_psm,
+                                     uint32_t l2cap_socket_id) {
   APPL_TRACE_API("%s", __func__);
 
   tBTA_JV_API_L2CAP_SERVER* p_msg =
       (tBTA_JV_API_L2CAP_SERVER*)osi_malloc(sizeof(tBTA_JV_API_L2CAP_SERVER));
   p_msg->hdr.event = BTA_JV_API_L2CAP_STOP_SERVER_EVT;
   p_msg->local_psm = local_psm;
-  p_msg->user_data = user_data;
+  p_msg->l2cap_socket_id = l2cap_socket_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -584,14 +588,15 @@ tBTA_JV_STATUS BTA_JvL2capStopServer(uint16_t local_psm, void* user_data) {
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvL2capStopServerLE(uint16_t local_chan, void* user_data) {
+tBTA_JV_STATUS BTA_JvL2capStopServerLE(uint16_t local_chan,
+                                       uint32_t l2cap_socket_id) {
   APPL_TRACE_API("%s", __func__);
 
   tBTA_JV_API_L2CAP_SERVER* p_msg =
       (tBTA_JV_API_L2CAP_SERVER*)osi_malloc(sizeof(tBTA_JV_API_L2CAP_SERVER));
   p_msg->hdr.event = BTA_JV_API_L2CAP_STOP_SERVER_LE_EVT;
   p_msg->local_chan = local_chan;
-  p_msg->user_data = user_data;
+  p_msg->l2cap_socket_id = l2cap_socket_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -632,7 +637,7 @@ tBTA_JV_STATUS BTA_JvL2capRead(uint32_t handle, uint32_t req_id,
       evt_data.status = BTA_JV_SUCCESS;
     }
     bta_jv_cb.l2c_cb[handle].p_cback(BTA_JV_L2CAP_READ_EVT, (tBTA_JV*)&evt_data,
-                                     bta_jv_cb.l2c_cb[handle].user_data);
+                                     bta_jv_cb.l2c_cb[handle].l2cap_socket_id);
   }
 
   return (status);
@@ -679,7 +684,7 @@ tBTA_JV_STATUS BTA_JvL2capReady(uint32_t handle, uint32_t* p_data_size) {
  ******************************************************************************/
 tBTA_JV_STATUS BTA_JvL2capWrite(uint32_t handle, uint32_t req_id,
                                 uint8_t* p_data, uint16_t len,
-                                void* user_data) {
+                                uint32_t user_id) {
   tBTA_JV_STATUS status = BTA_JV_FAILURE;
 
   APPL_TRACE_API("%s", __func__);
@@ -693,7 +698,7 @@ tBTA_JV_STATUS BTA_JvL2capWrite(uint32_t handle, uint32_t req_id,
     p_msg->p_data = p_data;
     p_msg->p_cb = &bta_jv_cb.l2c_cb[handle];
     p_msg->len = len;
-    p_msg->user_data = user_data;
+    p_msg->user_id = user_id;
 
     bta_sys_sendmsg(p_msg);
 
@@ -720,7 +725,7 @@ tBTA_JV_STATUS BTA_JvL2capWriteFixed(uint16_t channel, BD_ADDR* addr,
                                      uint32_t req_id,
                                      tBTA_JV_L2CAP_CBACK* p_cback,
                                      uint8_t* p_data, uint16_t len,
-                                     void* user_data) {
+                                     uint32_t user_id) {
   tBTA_JV_API_L2CAP_WRITE_FIXED* p_msg =
       (tBTA_JV_API_L2CAP_WRITE_FIXED*)osi_malloc(
           sizeof(tBTA_JV_API_L2CAP_WRITE_FIXED));
@@ -734,7 +739,7 @@ tBTA_JV_STATUS BTA_JvL2capWriteFixed(uint16_t channel, BD_ADDR* addr,
   p_msg->p_data = p_data;
   p_msg->p_cback = p_cback;
   p_msg->len = len;
-  p_msg->user_data = user_data;
+  p_msg->user_id = user_id;
 
   bta_sys_sendmsg(p_msg);
 

@@ -55,7 +55,7 @@ struct fc_client {
   BD_ADDR remote_addr;
   uint32_t id;
   tBTA_JV_L2CAP_CBACK* p_cback;
-  void* user_data;
+  uint32_t l2cap_socket_id;
   uint16_t handle;
   uint16_t chan;
   uint8_t sec_id;
@@ -810,7 +810,8 @@ static inline tBT_UUID shorten_sdp_uuid(const tBT_UUID* u) {
  * Returns      void
  *
  ******************************************************************************/
-static void bta_jv_start_discovery_cback(uint16_t result, void* user_data) {
+static void bta_jv_start_discovery_cback(uint16_t result,
+                                         void* rfcomm_slot_id) {
   tBTA_JV_STATUS status;
 
   APPL_TRACE_DEBUG("bta_jv_start_discovery_cback res: 0x%x", result);
@@ -838,7 +839,7 @@ static void bta_jv_start_discovery_cback(uint16_t result, void* user_data) {
 
     dcomp.status = status;
     bta_jv_cb.p_dm_cback(BTA_JV_DISCOVERY_COMP_EVT, (tBTA_JV*)&dcomp,
-                         PTR_TO_UINT(user_data));
+                         PTR_TO_UINT(rfcomm_slot_id));
   }
 }
 
@@ -957,14 +958,14 @@ static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event) {
       bdcpy(evt_data.l2c_open.rem_bda, GAP_ConnGetRemoteAddr(gap_handle));
       evt_data.l2c_open.tx_mtu = GAP_ConnGetRemMtuSize(gap_handle);
       p_cb->state = BTA_JV_ST_CL_OPEN;
-      p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data, p_cb->user_data);
+      p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data, p_cb->l2cap_socket_id);
       break;
 
     case GAP_EVT_CONN_CLOSED:
       p_cb->state = BTA_JV_ST_NONE;
       bta_jv_free_sec_id(&p_cb->sec_id);
       evt_data.l2c_close.async = true;
-      p_cb->p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data, p_cb->user_data);
+      p_cb->p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data, p_cb->l2cap_socket_id);
       p_cb->p_cback = NULL;
       break;
 
@@ -972,7 +973,8 @@ static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event) {
       evt_data.data_ind.handle = gap_handle;
       /* Reset idle timer to avoid requesting sniff mode while receiving data */
       bta_jv_pm_conn_busy(p_cb->p_pm_cb);
-      p_cb->p_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data, p_cb->user_data);
+      p_cb->p_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data,
+                    p_cb->l2cap_socket_id);
       bta_jv_pm_conn_idle(p_cb->p_pm_cb);
       break;
 
@@ -984,7 +986,7 @@ static void bta_jv_l2cap_client_cback(uint16_t gap_handle, uint16_t event) {
     case GAP_EVT_CONN_UNCONGESTED:
       p_cb->cong = (event == GAP_EVT_CONN_CONGESTED) ? true : false;
       evt_data.l2c_cong.cong = p_cb->cong;
-      p_cb->p_cback(BTA_JV_L2CAP_CONG_EVT, &evt_data, p_cb->user_data);
+      p_cb->p_cback(BTA_JV_L2CAP_CONG_EVT, &evt_data, p_cb->l2cap_socket_id);
       break;
 
     default:
@@ -1055,7 +1057,7 @@ void bta_jv_l2cap_connect(tBTA_JV_MSG* p_data) {
     p_cb = &bta_jv_cb.l2c_cb[handle];
     p_cb->handle = handle;
     p_cb->p_cback = cc->p_cback;
-    p_cb->user_data = cc->user_data;
+    p_cb->l2cap_socket_id = cc->l2cap_socket_id;
     p_cb->psm = 0; /* not a server */
     p_cb->sec_id = sec_id;
     p_cb->state = BTA_JV_ST_CL_OPENING;
@@ -1065,7 +1067,8 @@ void bta_jv_l2cap_connect(tBTA_JV_MSG* p_data) {
 
   evt_data.handle = handle;
   if (cc->p_cback)
-    cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, (tBTA_JV*)&evt_data, cc->user_data);
+    cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, (tBTA_JV*)&evt_data,
+                cc->l2cap_socket_id);
 }
 
 /*******************************************************************************
@@ -1081,13 +1084,14 @@ void bta_jv_l2cap_close(tBTA_JV_MSG* p_data) {
   tBTA_JV_L2CAP_CLOSE evt_data;
   tBTA_JV_API_L2CAP_CLOSE* cc = &(p_data->l2cap_close);
   tBTA_JV_L2CAP_CBACK* p_cback = cc->p_cb->p_cback;
-  void* user_data = cc->p_cb->user_data;
+  uint32_t l2cap_socket_id = cc->p_cb->l2cap_socket_id;
 
   evt_data.handle = cc->handle;
   evt_data.status = bta_jv_free_l2c_cb(cc->p_cb);
   evt_data.async = false;
 
-  if (p_cback) p_cback(BTA_JV_L2CAP_CLOSE_EVT, (tBTA_JV*)&evt_data, user_data);
+  if (p_cback)
+    p_cback(BTA_JV_L2CAP_CLOSE_EVT, (tBTA_JV*)&evt_data, l2cap_socket_id);
 }
 
 /*******************************************************************************
@@ -1103,7 +1107,7 @@ static void bta_jv_l2cap_server_cback(uint16_t gap_handle, uint16_t event) {
   tBTA_JV_L2C_CB* p_cb = &bta_jv_cb.l2c_cb[gap_handle];
   tBTA_JV evt_data;
   tBTA_JV_L2CAP_CBACK* p_cback;
-  void* user_data;
+  uint32_t socket_id;
 
   if (gap_handle >= BTA_JV_MAX_L2C_CONN && !p_cb->p_cback) return;
 
@@ -1116,23 +1120,24 @@ static void bta_jv_l2cap_server_cback(uint16_t gap_handle, uint16_t event) {
       bdcpy(evt_data.l2c_open.rem_bda, GAP_ConnGetRemoteAddr(gap_handle));
       evt_data.l2c_open.tx_mtu = GAP_ConnGetRemMtuSize(gap_handle);
       p_cb->state = BTA_JV_ST_SR_OPEN;
-      p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data, p_cb->user_data);
+      p_cb->p_cback(BTA_JV_L2CAP_OPEN_EVT, &evt_data, p_cb->l2cap_socket_id);
       break;
 
     case GAP_EVT_CONN_CLOSED:
       evt_data.l2c_close.async = true;
       evt_data.l2c_close.handle = p_cb->handle;
       p_cback = p_cb->p_cback;
-      user_data = p_cb->user_data;
+      socket_id = p_cb->l2cap_socket_id;
       evt_data.l2c_close.status = bta_jv_free_l2c_cb(p_cb);
-      p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data, user_data);
+      p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt_data, socket_id);
       break;
 
     case GAP_EVT_CONN_DATA_AVAIL:
       evt_data.data_ind.handle = gap_handle;
       /* Reset idle timer to avoid requesting sniff mode while receiving data */
       bta_jv_pm_conn_busy(p_cb->p_pm_cb);
-      p_cb->p_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data, p_cb->user_data);
+      p_cb->p_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data,
+                    p_cb->l2cap_socket_id);
       bta_jv_pm_conn_idle(p_cb->p_pm_cb);
       break;
 
@@ -1144,7 +1149,7 @@ static void bta_jv_l2cap_server_cback(uint16_t gap_handle, uint16_t event) {
     case GAP_EVT_CONN_UNCONGESTED:
       p_cb->cong = (event == GAP_EVT_CONN_CONGESTED) ? true : false;
       evt_data.l2c_cong.cong = p_cb->cong;
-      p_cb->p_cback(BTA_JV_L2CAP_CONG_EVT, &evt_data, p_cb->user_data);
+      p_cb->p_cback(BTA_JV_L2CAP_CONG_EVT, &evt_data, p_cb->l2cap_socket_id);
       break;
 
     default:
@@ -1213,7 +1218,7 @@ void bta_jv_l2cap_start_server(tBTA_JV_MSG* p_data) {
     evt_data.handle = handle;
     evt_data.sec_id = sec_id;
     p_cb->p_cback = ls->p_cback;
-    p_cb->user_data = ls->user_data;
+    p_cb->l2cap_socket_id = ls->l2cap_socket_id;
     p_cb->handle = handle;
     p_cb->sec_id = sec_id;
     p_cb->state = BTA_JV_ST_SR_LISTEN;
@@ -1221,7 +1226,8 @@ void bta_jv_l2cap_start_server(tBTA_JV_MSG* p_data) {
   }
 
   if (ls->p_cback)
-    ls->p_cback(BTA_JV_L2CAP_START_EVT, (tBTA_JV*)&evt_data, ls->user_data);
+    ls->p_cback(BTA_JV_L2CAP_START_EVT, (tBTA_JV*)&evt_data,
+                ls->l2cap_socket_id);
 }
 
 /*******************************************************************************
@@ -1238,17 +1244,16 @@ void bta_jv_l2cap_stop_server(tBTA_JV_MSG* p_data) {
   tBTA_JV_L2CAP_CLOSE evt_data;
   tBTA_JV_API_L2CAP_SERVER* ls = &(p_data->l2cap_server);
   tBTA_JV_L2CAP_CBACK* p_cback;
-  void* user_data;
   for (int i = 0; i < BTA_JV_MAX_L2C_CONN; i++) {
     if (bta_jv_cb.l2c_cb[i].psm == ls->local_psm) {
       p_cb = &bta_jv_cb.l2c_cb[i];
       p_cback = p_cb->p_cback;
-      user_data = p_cb->user_data;
+      uint32_t l2cap_socket_id = p_cb->l2cap_socket_id;
       evt_data.handle = p_cb->handle;
       evt_data.status = bta_jv_free_l2c_cb(p_cb);
       evt_data.async = false;
       if (p_cback)
-        p_cback(BTA_JV_L2CAP_CLOSE_EVT, (tBTA_JV*)&evt_data, user_data);
+        p_cback(BTA_JV_L2CAP_CLOSE_EVT, (tBTA_JV*)&evt_data, l2cap_socket_id);
       break;
     }
   }
@@ -1278,7 +1283,7 @@ void bta_jv_l2cap_read(tBTA_JV_MSG* p_data) {
     evt_data.status = BTA_JV_SUCCESS;
   }
 
-  rc->p_cback(BTA_JV_L2CAP_READ_EVT, (tBTA_JV*)&evt_data, rc->user_data);
+  rc->p_cback(BTA_JV_L2CAP_READ_EVT, (tBTA_JV*)&evt_data, rc->l2cap_socket_id);
 }
 
 /*******************************************************************************
@@ -1330,8 +1335,7 @@ void bta_jv_l2cap_write(tBTA_JV_MSG* p_data) {
             GAP_ConnWriteData(ls->handle, ls->p_data, ls->len, &evt_data.len)) {
       evt_data.status = BTA_JV_SUCCESS;
     }
-    ls->p_cb->p_cback(BTA_JV_L2CAP_WRITE_EVT, (tBTA_JV*)&evt_data,
-                      ls->user_data);
+    ls->p_cb->p_cback(BTA_JV_L2CAP_WRITE_EVT, (tBTA_JV*)&evt_data, ls->user_id);
   } else {
     /* As this pointer is checked in the API function, this occurs only when the
      * channel is
@@ -1369,7 +1373,7 @@ void bta_jv_l2cap_write_fixed(tBTA_JV_MSG* p_data) {
 
   L2CA_SendFixedChnlData(ls->channel, ls->addr, msg);
 
-  ls->p_cback(BTA_JV_L2CAP_WRITE_FIXED_EVT, (tBTA_JV*)&evt_data, ls->user_data);
+  ls->p_cback(BTA_JV_L2CAP_WRITE_FIXED_EVT, (tBTA_JV*)&evt_data, ls->user_id);
 }
 
 /*******************************************************************************
@@ -2295,7 +2299,7 @@ static void fcchan_conn_chng_cbk(uint16_t chan, BD_ADDR bd_addr, bool connected,
   struct fc_client *t = NULL, *new_conn;
   tBTA_JV_L2CAP_CBACK* p_cback = NULL;
   char call_init = false;
-  void* user_data = NULL;
+  uint32_t l2cap_socket_id;
 
   tc = fcchan_get(chan, false);
   if (tc) {
@@ -2303,7 +2307,7 @@ static void fcchan_conn_chng_cbk(uint16_t chan, BD_ADDR bd_addr, bool connected,
         tc->clients, bd_addr);  // try to find an open socked for that addr
     if (t) {
       p_cback = t->p_cback;
-      user_data = t->user_data;
+      l2cap_socket_id = t->l2cap_socket_id;
     } else {
       t = fcclient_find_by_addr(
           tc->clients,
@@ -2319,7 +2323,7 @@ static void fcchan_conn_chng_cbk(uint16_t chan, BD_ADDR bd_addr, bool connected,
           new_conn->init_called = true; /*nop need to do it again */
 
           p_cback = t->p_cback;
-          user_data = t->user_data;
+          l2cap_socket_id = t->l2cap_socket_id;
 
           t = new_conn;
         }
@@ -2344,8 +2348,10 @@ static void fcchan_conn_chng_cbk(uint16_t chan, BD_ADDR bd_addr, bool connected,
     open_evt.l2c_open.tx_mtu = 23; /* 23, why not ?*/
     memcpy(&open_evt.l2c_le_open.rem_bda, &t->remote_addr,
            sizeof(open_evt.l2c_le_open.rem_bda));
+    // TODO: (apanicke) Change the way these functions work so that casting
+    // isn't needed
     open_evt.l2c_le_open.p_p_cback = (void**)&t->p_cback;
-    open_evt.l2c_le_open.p_user_data = &t->user_data;
+    open_evt.l2c_le_open.p_user_data = (void**)&t->l2cap_socket_id;
     open_evt.l2c_le_open.status = BTA_JV_SUCCESS;
 
     if (connected) {
@@ -2356,11 +2362,11 @@ static void fcchan_conn_chng_cbk(uint16_t chan, BD_ADDR bd_addr, bool connected,
     }
   }
 
-  if (call_init) p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &init_evt, user_data);
+  if (call_init) p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &init_evt, l2cap_socket_id);
 
   // call this with lock taken so socket does not disappear from under us */
   if (p_cback) {
-    p_cback(BTA_JV_L2CAP_OPEN_EVT, &open_evt, user_data);
+    p_cback(BTA_JV_L2CAP_OPEN_EVT, &open_evt, l2cap_socket_id);
     if (!t->p_cback) /* no callback set, means they do not want this one... */
       fcclient_free(t);
   }
@@ -2371,7 +2377,7 @@ static void fcchan_data_cbk(uint16_t chan, BD_ADDR bd_addr, BT_HDR* p_buf) {
   struct fc_channel* tc;
   struct fc_client* t = NULL;
   tBTA_JV_L2CAP_CBACK* sock_cback = NULL;
-  void* sock_user_data;
+  uint32_t sock_id;
 
   tc = fcchan_get(chan, false);
   if (tc) {
@@ -2385,12 +2391,11 @@ static void fcchan_data_cbk(uint16_t chan, BD_ADDR bd_addr, BT_HDR* p_buf) {
   }
 
   sock_cback = t->p_cback;
-  sock_user_data = t->user_data;
+  sock_id = t->l2cap_socket_id;
   evt_data.le_data_ind.handle = t->id;
   evt_data.le_data_ind.p_buf = p_buf;
 
-  if (sock_cback)
-    sock_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data, sock_user_data);
+  if (sock_cback) sock_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data, sock_id);
 }
 
 /*******************************************************************************
@@ -2414,12 +2419,12 @@ void bta_jv_l2cap_connect_le(tBTA_JV_MSG* p_data) {
 
   t = fcclient_alloc(cc->remote_chan, false, NULL);
   if (!t) {
-    cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &evt, cc->user_data);
+    cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &evt, cc->l2cap_socket_id);
     return;
   }
 
   t->p_cback = cc->p_cback;
-  t->user_data = cc->user_data;
+  t->l2cap_socket_id = cc->l2cap_socket_id;
   memcpy(&t->remote_addr, &cc->peer_bd_addr, sizeof(t->remote_addr));
   id = t->id;
   t->init_called = false;
@@ -2437,7 +2442,8 @@ void bta_jv_l2cap_connect_le(tBTA_JV_MSG* p_data) {
     else
       fcclient_free(t);
   }
-  if (call_init_f) cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &evt, cc->user_data);
+  if (call_init_f)
+    cc->p_cback(BTA_JV_L2CAP_CL_INIT_EVT, &evt, cc->l2cap_socket_id);
   t->init_called = true;
 }
 
@@ -2456,7 +2462,7 @@ void bta_jv_l2cap_stop_server_le(tBTA_JV_MSG* p_data) {
   tBTA_JV_L2CAP_CBACK* p_cback = NULL;
   struct fc_channel* fcchan;
   struct fc_client* fcclient;
-  void* user_data;
+  uint32_t l2cap_socket_id;
 
   evt.l2c_close.status = BTA_JV_FAILURE;
   evt.l2c_close.async = false;
@@ -2466,7 +2472,7 @@ void bta_jv_l2cap_stop_server_le(tBTA_JV_MSG* p_data) {
   if (fcchan) {
     while ((fcclient = fcchan->clients)) {
       p_cback = fcclient->p_cback;
-      user_data = fcclient->user_data;
+      l2cap_socket_id = fcclient->l2cap_socket_id;
 
       evt.l2c_close.handle = fcclient->id;
       evt.l2c_close.status = BTA_JV_SUCCESS;
@@ -2474,7 +2480,7 @@ void bta_jv_l2cap_stop_server_le(tBTA_JV_MSG* p_data) {
 
       fcclient_free(fcclient);
 
-      if (p_cback) p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt, user_data);
+      if (p_cback) p_cback(BTA_JV_L2CAP_CLOSE_EVT, &evt, l2cap_socket_id);
     }
   }
 }
@@ -2500,7 +2506,7 @@ void bta_jv_l2cap_start_server_le(tBTA_JV_MSG* p_data) {
   if (!t) goto out;
 
   t->p_cback = ss->p_cback;
-  t->user_data = ss->user_data;
+  t->l2cap_socket_id = ss->l2cap_socket_id;
 
   // if we got here, we're registered...
   evt_data.status = BTA_JV_SUCCESS;
@@ -2508,7 +2514,7 @@ void bta_jv_l2cap_start_server_le(tBTA_JV_MSG* p_data) {
   evt_data.sec_id = t->sec_id;
 
 out:
-  ss->p_cback(BTA_JV_L2CAP_START_EVT, (tBTA_JV*)&evt_data, ss->user_data);
+  ss->p_cback(BTA_JV_L2CAP_START_EVT, (tBTA_JV*)&evt_data, ss->l2cap_socket_id);
 }
 
 /*******************************************************************************
