@@ -105,7 +105,7 @@ static uid_set_t* uid_set = NULL;
 
 static rfc_slot_t* find_free_slot(void);
 static void cleanup_rfc_slot(rfc_slot_t* rs);
-static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data);
+static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id);
 static void* rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data);
 static bool send_app_scn(rfc_slot_t* rs);
 
@@ -309,7 +309,7 @@ bt_status_t btsock_rfc_listen(const char* service_name,
   }
   APPL_TRACE_DEBUG("BTA_JvGetChannelId: service_name: %s - channel: %d",
                    service_name, channel);
-  BTA_JvGetChannelId(BTA_JV_CONN_TYPE_RFCOMM, UINT_TO_PTR(slot->id), channel);
+  BTA_JvGetChannelId(BTA_JV_CONN_TYPE_RFCOMM, slot->id, channel);
   *sock_fd = slot->app_fd;  // Transfer ownership of fd to caller.
   /*TODO:
    * We are leaking one of the app_fd's - either the listen socket, or the
@@ -373,7 +373,7 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t* bd_addr,
 
     if (!is_requesting_sdp()) {
       BTA_JvStartDiscovery((uint8_t*)bd_addr->address, 1, &sdp_uuid,
-                           (void*)(uintptr_t)slot->id);
+                           slot->id);
       slot->f.pending_sdp_request = false;
       slot->f.doing_sdp_request = true;
     } else {
@@ -633,8 +633,7 @@ static void* rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data) {
   return new_user_data;
 }
 
-static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data) {
-  uint32_t id = PTR_TO_UINT(user_data);
+static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id) {
   switch (event) {
     case BTA_JV_GET_SCN_EVT: {
       std::unique_lock<std::recursive_mutex> lock(slot_lock);
@@ -742,7 +741,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data) {
         memcpy(sdp_uuid.uu.uuid128, slot->service_uuid,
                sizeof(sdp_uuid.uu.uuid128));
         BTA_JvStartDiscovery((uint8_t*)slot->addr.address, 1, &sdp_uuid,
-                             (void*)(uintptr_t)slot->id);
+                             slot->id);
         slot->f.pending_sdp_request = false;
         slot->f.doing_sdp_request = true;
       }
