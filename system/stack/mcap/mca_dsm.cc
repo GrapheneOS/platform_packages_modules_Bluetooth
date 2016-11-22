@@ -104,7 +104,6 @@ const tMCA_DCB_ST_TBL mca_dcb_st_tbl[] = {
     mca_dcb_st_closing
 };
 
-#if (BT_TRACE_VERBOSE == TRUE)
 /* verbose event strings for trace */
 const char * const mca_dcb_evt_str[] = {
     "API_CLOSE_EVT",
@@ -121,7 +120,6 @@ const char * const mca_dcb_st_str[] = {
     "OPEN_ST",
     "CLOSING_ST"
 };
-#endif
 
 /*******************************************************************************
 **
@@ -141,11 +139,7 @@ void mca_dcb_event(tMCA_DCB *p_dcb, uint8_t event, tMCA_DCB_EVT *p_data)
 
     if (p_dcb == NULL)
         return;
-#if (BT_TRACE_VERBOSE == TRUE)
     MCA_TRACE_EVENT("DCB dcb=%d event=%s state=%s", mca_dcb_to_hdl(p_dcb), mca_dcb_evt_str[event], mca_dcb_st_str[p_dcb->state]);
-#else
-    MCA_TRACE_EVENT("DCB dcb=%d event=%d state=%d", mca_dcb_to_hdl(p_dcb), event, p_dcb->state);
-#endif
 
     /* look up the state table for the current state */
     state_table = mca_dcb_st_tbl[p_dcb->state - 1];

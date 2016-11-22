@@ -52,9 +52,7 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 static void l2c_csm_w4_l2cap_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 
-#if (BT_TRACE_VERBOSE == TRUE)
-static char *l2c_csm_get_event_name (uint16_t event);
-#endif
+static const char *l2c_csm_get_event_name (uint16_t event);
 
 /*******************************************************************************
 **
@@ -136,11 +134,7 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 
     if (p_ccb->p_rcb == NULL)
     {
-#if (BT_TRACE_VERBOSE == TRUE)
         L2CAP_TRACE_ERROR ("L2CAP - LCID: 0x%04x  st: CLOSED  evt: %s p_rcb == NULL", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-        L2CAP_TRACE_ERROR ("L2CAP - LCID: 0x%04x  st: CLOSED  evt: 0x%04x p_rcb == NULL", p_ccb->local_cid, event);
-#endif
         return;
     }
 
@@ -159,11 +153,7 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
     disconnect_ind = p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb;
     connect_cfm    = p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: CLOSED  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: CLOSED evt: %d", event);
-#endif
 
     switch (event)
     {
@@ -335,11 +325,7 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_d
     tL2CA_CONNECT_CFM_CB    *connect_cfm = p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb;
     uint16_t                local_cid = p_ccb->local_cid;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: ORIG_W4_SEC_COMP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: ORIG_W4_SEC_COMP evt: %d", event);
-#endif
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     if ( local_cid == L2CAP_CONNECTIONLESS_CID )
@@ -449,11 +435,7 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_d
 *******************************************************************************/
 static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: TERM_W4_SEC_COMP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: TERM_W4_SEC_COMP evt: %d", event);
-#endif
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     if ( p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )
@@ -575,11 +557,7 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, uint16_t event, void 
     tL2CA_CONNECT_CFM_CB    *connect_cfm = p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb;
     uint16_t                local_cid = p_ccb->local_cid;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: W4_L2CAP_CON_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: W4_L2CAP_CON_RSP evt: %d", event);
-#endif
 
     switch (event)
     {
@@ -712,11 +690,7 @@ static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *
     tL2CA_DISCONNECT_IND_CB *disconnect_ind = p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb;
     uint16_t                local_cid = p_ccb->local_cid;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: W4_L2CA_CON_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: W4_L2CA_CON_RSP evt: %d", event);
-#endif
 
     switch (event)
     {
@@ -831,11 +805,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
     uint16_t                local_cid = p_ccb->local_cid;
     uint8_t                 cfg_result;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: CONFIG  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: CONFIG evt: %d", event);
-#endif
 
     switch (event)
     {
@@ -1083,12 +1053,8 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
     uint8_t                 cfg_result;
     uint16_t                *credit;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: OPEN  evt: %s",
             p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: OPEN evt: %d", event);
-#endif
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     if ( local_cid == L2CAP_CONNECTIONLESS_CID )
@@ -1271,11 +1237,7 @@ static void l2c_csm_w4_l2cap_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, vo
     tL2CA_DISCONNECT_CFM_CB *disconnect_cfm = p_ccb->p_rcb->api.pL2CA_DisconnectCfm_Cb;
     uint16_t                local_cid = p_ccb->local_cid;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: W4_L2CAP_DISC_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: W4_L2CAP_DISC_RSP evt: %d", event);
-#endif
 
     switch (event)
     {
@@ -1336,11 +1298,7 @@ static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, voi
     tL2CA_DISCONNECT_IND_CB *disconnect_ind = p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb;
     uint16_t                local_cid = p_ccb->local_cid;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: W4_L2CA_DISC_RSP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
-#else
-    L2CAP_TRACE_EVENT ("L2CAP - st: W4_L2CA_DISC_RSP evt: %d", event);
-#endif
 
     switch (event)
     {
@@ -1370,8 +1328,6 @@ static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, voi
     }
 }
 
-
-#if (BT_TRACE_VERBOSE == TRUE)
 /*******************************************************************************
 **
 ** Function         l2c_csm_get_event_name
@@ -1383,7 +1339,7 @@ static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, voi
 ** Returns          pointer to the name
 **
 *******************************************************************************/
-static char *l2c_csm_get_event_name (uint16_t event)
+static const char *l2c_csm_get_event_name (uint16_t event)
 {
     switch (event)
     {
@@ -1465,8 +1421,6 @@ static char *l2c_csm_get_event_name (uint16_t event)
         return ("???? UNKNOWN EVENT");
     }
 }
-#endif /* (BT_TRACE_VERBOSE == TRUE) */
-
 
 /*******************************************************************************
 **
