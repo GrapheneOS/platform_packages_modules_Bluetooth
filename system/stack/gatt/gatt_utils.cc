@@ -852,7 +852,8 @@ tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
     tGATT_TCB   *p_tcb = NULL;
     uint8_t i = 0;
 
-    if ((i = gatt_find_i_tcb_by_addr(bda, transport)) != GATT_INDEX_INVALID)
+    i = gatt_find_i_tcb_by_addr(bda, transport);
+    if (i != GATT_INDEX_INVALID)
         p_tcb = &gatt_cb.tcb[i];
 
     return p_tcb;
@@ -1442,7 +1443,8 @@ tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, uint8_t err_code, uint8_t op
     error.reason = err_code;
     error.handle =handle;
 
-    if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_ERROR, (tGATT_SR_MSG *)&error)) != NULL)
+    p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_ERROR, (tGATT_SR_MSG *)&error);
+    if (p_buf != NULL)
     {
         status = attp_send_sr_msg (p_tcb, p_buf);
     }
@@ -1475,7 +1477,8 @@ uint32_t gatt_add_sdp_record (tBT_UUID *p_uuid, uint16_t start_hdl, uint16_t end
 
     GATT_TRACE_DEBUG("gatt_add_sdp_record s_hdl=0x%x  s_hdl=0x%x",start_hdl, end_hdl);
 
-    if ((sdp_handle = SDP_CreateRecord()) == 0)
+    sdp_handle = SDP_CreateRecord();
+    if (sdp_handle == 0)
         return 0;
 
     switch (p_uuid->len)
@@ -2200,7 +2203,8 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, uint16_t reason, tBT_TRANSPORT transpor
 
     GATT_TRACE_DEBUG ("gatt_cleanup_upon_disc ");
 
-    if ((p_tcb = gatt_find_tcb_by_addr(bda, transport)) != NULL)
+    p_tcb = gatt_find_tcb_by_addr(bda, transport);
+    if (p_tcb != NULL)
     {
         GATT_TRACE_DEBUG ("found p_tcb ");
         gatt_set_ch_state(p_tcb, GATT_CH_CLOSE);
@@ -2404,7 +2408,8 @@ bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr)
     uint8_t     i;
     bool         ret = false;
 
-    if ((p_dev = gatt_find_bg_dev(bd_addr)) == NULL)
+    p_dev = gatt_find_bg_dev(bd_addr);
+    if (p_dev == NULL)
     {
         p_dev = gatt_alloc_bg_dev(bd_addr);
     }
@@ -2473,7 +2478,8 @@ uint8_t gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr)
     uint8_t i;
     uint8_t cnt = 0;
 
-    if ((p_dev = gatt_find_bg_dev(bd_addr)) != NULL)
+    p_dev = gatt_find_bg_dev(bd_addr);
+    if (p_dev != NULL)
     {
         for (i = 0; i < GATT_MAX_APPS; i ++)
         {
@@ -2499,7 +2505,8 @@ bool    gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
     uint8_t i;
     bool    ret = false;
 
-    if ((p_dev = gatt_find_bg_dev(bd_addr)) == NULL)
+    p_dev = gatt_find_bg_dev(bd_addr);
+    if (p_dev == NULL)
     {
         return ret;
     }
@@ -2534,7 +2541,8 @@ bool    gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr)
     uint8_t i, j;
     bool    ret = false;
 
-    if ((p_dev = gatt_find_bg_dev(bd_addr)) == NULL)
+    p_dev = gatt_find_bg_dev(bd_addr);
+    if (p_dev == NULL)
     {
         return ret;
     }
@@ -2638,7 +2646,8 @@ bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_
 
     GATT_TRACE_API ("gatt_update_auto_connect_dev ");
     /* Make sure app is registered */
-    if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
+    p_reg = gatt_get_regcb(gatt_if);
+    if (p_reg == NULL)
     {
         GATT_TRACE_ERROR("gatt_update_auto_connect_dev - gatt_if is not registered", gatt_if);
         return(false);

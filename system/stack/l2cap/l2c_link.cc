@@ -201,7 +201,8 @@ bool    l2c_link_hci_conn_comp (uint8_t status, uint16_t handle, BD_ADDR p_bda)
         l2cu_send_peer_info_req (p_lcb, L2CAP_EXTENDED_FEATURES_INFO_TYPE);
 
         /* Tell BTM Acl management about the link */
-        if ((p_dev_info = btm_find_dev (p_bda)) != NULL)
+        p_dev_info = btm_find_dev(p_bda);
+        if (p_dev_info != NULL)
             btm_acl_created (ci.bd_addr, p_dev_info->dev_class,
                              p_dev_info->sec_bd_name, handle,
                              p_lcb->link_role, BT_TRANSPORT_BR_EDR);
@@ -1128,9 +1129,12 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
                 break;
             }
             /* If nothing on the link queue, check the channel queue */
-            else if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb)) != NULL)
-            {
-                l2c_link_send_to_lower (p_lcb, p_buf);
+            else {
+                p_buf = l2cu_get_next_buffer_to_send(p_lcb);
+                if (p_buf != NULL)
+                {
+                    l2c_link_send_to_lower (p_lcb, p_buf);
+                }
             }
         }
 
@@ -1174,7 +1178,8 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
                     (l2cb.controller_le_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_LE)))
                     && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
             {
-                if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb)) == NULL)
+                p_buf = l2cu_get_next_buffer_to_send(p_lcb);
+                if (p_buf == NULL)
                     break;
 
                 if (!l2c_link_send_to_lower (p_lcb, p_buf))
@@ -1466,7 +1471,8 @@ void l2c_link_segments_xmitted (BT_HDR *p_msg)
     handle   = HCID_GET_HANDLE (handle);
 
     /* Find the LCB based on the handle */
-    if ((p_lcb = l2cu_find_lcb_by_handle (handle)) == NULL)
+    p_lcb = l2cu_find_lcb_by_handle(handle);
+    if (p_lcb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - rcvd segment complete, unknown handle: %d", handle);
         osi_free(p_msg);

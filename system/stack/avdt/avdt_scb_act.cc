@@ -1485,7 +1485,8 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb,
     avdt_ctrl.hdr.err_code = AVDT_ERR_BAD_STATE;
     avdt_ctrl.hdr.err_param = 0;
     /* flush the media data queued at L2CAP */
-    if((p_ccb = p_scb->p_ccb) != NULL)
+    p_ccb = p_scb->p_ccb;
+    if(p_ccb != NULL)
     {
         /* get tcid from type, scb */
         tcid = avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb);

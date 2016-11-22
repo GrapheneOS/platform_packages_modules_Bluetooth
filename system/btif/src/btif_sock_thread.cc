@@ -123,8 +123,8 @@ static inline int create_thread(void* (*start_routine)(void*), void* arg,
   int ret = -1;
   struct sched_param param;
 
-  if ((ret = pthread_create(thread_id, &thread_attr, start_routine, arg)) !=
-      0) {
+  ret = pthread_create(thread_id, &thread_attr, start_routine, arg);
+  if (ret != 0) {
     APPL_TRACE_ERROR("pthread_create : %s", strerror(errno));
     return ret;
   }

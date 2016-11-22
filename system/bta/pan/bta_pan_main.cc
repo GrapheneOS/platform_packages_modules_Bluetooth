@@ -183,7 +183,8 @@ static void bta_pan_sm_execute(tBTA_PAN_SCB* p_scb, uint16_t event,
 
   /* execute action functions */
   for (i = 0; i < BTA_PAN_ACTIONS; i++) {
-    if ((action = state_table[event][i]) != BTA_PAN_IGNORE) {
+    action = state_table[event][i];
+    if (action != BTA_PAN_IGNORE) {
       (*bta_pan_action[action])(p_scb, p_data);
     } else {
       break;
@@ -239,7 +240,8 @@ static void bta_pan_api_open(tBTA_PAN_DATA* p_data) {
   tBTA_PAN_OPEN data;
 
   /* allocate an scb */
-  if ((p_scb = bta_pan_scb_alloc()) != NULL) {
+  p_scb = bta_pan_scb_alloc();
+  if (p_scb != NULL) {
     bta_pan_open(p_scb, p_data);
   } else {
     bdcpy(data.bd_addr, p_data->api_open.bd_addr);
@@ -341,14 +343,16 @@ bool bta_pan_hdl_event(BT_HDR* p_msg) {
     /* events that require buffer not be released */
     case BTA_PAN_CI_RX_WRITEBUF_EVT:
       freebuf = false;
-      if ((p_scb = bta_pan_scb_by_handle(p_msg->layer_specific)) != NULL) {
+      p_scb = bta_pan_scb_by_handle(p_msg->layer_specific);
+      if (p_scb != NULL) {
         bta_pan_sm_execute(p_scb, p_msg->event, (tBTA_PAN_DATA*)p_msg);
       }
       break;
 
     /* all other events */
     default:
-      if ((p_scb = bta_pan_scb_by_handle(p_msg->layer_specific)) != NULL) {
+      p_scb = bta_pan_scb_by_handle(p_msg->layer_specific);
+      if (p_scb != NULL) {
         bta_pan_sm_execute(p_scb, p_msg->event, (tBTA_PAN_DATA*)p_msg);
       }
       break;

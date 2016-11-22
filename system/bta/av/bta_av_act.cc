@@ -316,7 +316,8 @@ uint8_t bta_av_rc_create(tBTA_AV_CB* p_cb, uint8_t role, uint8_t shdl,
     bda = p_scb->peer_addr;
     status = BTA_AV_RC_ROLE_INT;
   } else {
-    if ((p_rcb = bta_av_get_rcb_by_shdl(shdl)) != NULL) {
+    p_rcb = bta_av_get_rcb_by_shdl(shdl);
+    if (p_rcb != NULL) {
       APPL_TRACE_ERROR("bta_av_rc_create ACP handle exist for shdl:%d", shdl);
       return p_rcb->handle;
     }
@@ -868,8 +869,8 @@ void bta_av_rc_msg(tBTA_AV_CB* p_cb, tBTA_AV_DATA* p_data) {
               p_data->rc_msg.msg.pass.p_pass_data, is_inquiry);
 #endif
       } else if (((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_UP) ||
-                (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_DOWN)) &&
-               !strcmp(avrcp_ct_support, "true")) {
+                  (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_DOWN)) &&
+                 !strcmp(avrcp_ct_support, "true")) {
         p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_ACCEPT;
       } else {
         p_data->rc_msg.msg.hdr.ctype =
@@ -1603,8 +1604,8 @@ tBTA_AV_FEAT bta_av_check_peer_features(uint16_t service_uuid) {
   /* loop through all records we found */
   while (true) {
     /* get next record; if none found, we're done */
-    if ((p_rec = SDP_FindServiceInDb(p_cb->p_disc_db, service_uuid, p_rec)) ==
-        NULL) {
+    p_rec = SDP_FindServiceInDb(p_cb->p_disc_db, service_uuid, p_rec);
+    if (p_rec == NULL) {
       break;
     }
 
@@ -1633,8 +1634,8 @@ tBTA_AV_FEAT bta_av_check_peer_features(uint16_t service_uuid) {
       if (peer_rc_version >= AVRC_REV_1_4) {
         peer_features |= (BTA_AV_FEAT_ADV_CTRL);
         /* get supported categories */
-        if ((p_attr = SDP_FindAttributeInRec(
-                 p_rec, ATTR_ID_SUPPORTED_FEATURES)) != NULL) {
+        p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES);
+        if (p_attr != NULL) {
           categories = p_attr->attr_value.v.u16;
           if (categories & AVRC_SUPF_CT_BROWSE)
             peer_features |= (BTA_AV_FEAT_BROWSE);

@@ -82,7 +82,8 @@ bool    GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range)
     tGATT_HDL_LIST_ELEM *p_buf;
     bool    status= false;
 
-    if ((p_buf = gatt_alloc_hdl_buffer()) != NULL)
+    p_buf = gatt_alloc_hdl_buffer();
+    if (p_buf != NULL)
     {
         p_buf->asgn_range = *p_hndl_range;
         status  = gatt_add_an_item_to_list(&gatt_cb.hdl_list_info, p_buf);
@@ -249,7 +250,8 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int co
         return GATT_INTERNAL_ERROR;
     }
 
-    if ( (p_list = gatt_alloc_hdl_buffer()) == NULL) {
+    p_list = gatt_alloc_hdl_buffer();
+    if (p_list == NULL) {
         /* No free entry */
         GATT_TRACE_ERROR ("GATTS_ReserveHandles: no free handle blocks");
         return GATT_INTERNAL_ERROR;
@@ -306,7 +308,8 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int co
             el->attribute_handle = gatts_add_char_descr(&p_list->svc_db, el->permissions, &uuid);
         } else if (el->type == BTGATT_DB_INCLUDED_SERVICE) {
             tGATT_HDL_LIST_ELEM  *p_incl_decl;
-            if ((p_incl_decl = gatt_find_hdl_buffer_by_handle(el->attribute_handle)) == NULL) {
+            p_incl_decl = gatt_find_hdl_buffer_by_handle(el->attribute_handle);
+            if (p_incl_decl == NULL) {
                 GATT_TRACE_DEBUG("Included Service not created");
                 return GATT_INTERNAL_ERROR;
             }
@@ -325,7 +328,8 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int co
     GATT_TRACE_API("%s: service parsed correctly, now starting", __func__);
 
     /*this is a new application servoce start */
-    if ((i_sreg = gatt_sr_alloc_rcb(p_list)) ==  GATT_MAX_SR_PROFILES) {
+    i_sreg = gatt_sr_alloc_rcb(p_list);
+    if (i_sreg ==  GATT_MAX_SR_PROFILES) {
         GATT_TRACE_ERROR ("%s: no free server registration block", __func__);
         return GATT_NO_RESOURCES;
     }
@@ -385,7 +389,8 @@ bool    GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, uint16_t sv
     }
     p_app_uuid128 = &p_reg->app_uuid128;
 
-    if ((p_list = gatt_find_hdl_buffer_by_app_id(p_app_uuid128, p_svc_uuid, svc_inst)) == NULL)
+    p_list = gatt_find_hdl_buffer_by_app_id(p_app_uuid128, p_svc_uuid, svc_inst);
+    if (p_list == NULL)
     {
         GATT_TRACE_ERROR ("No Service found");
         return false;
@@ -393,9 +398,8 @@ bool    GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, uint16_t sv
 
     gatt_proc_srv_chg();
 
-    if ((i_sreg = gatt_sr_find_i_rcb_by_app_id (p_app_uuid128,
-                                                p_svc_uuid,
-                                                svc_inst)) != GATT_MAX_SR_PROFILES)
+    i_sreg = gatt_sr_find_i_rcb_by_app_id(p_app_uuid128, p_svc_uuid, svc_inst);
+    if (i_sreg != GATT_MAX_SR_PROFILES)
     {
         GATTS_StopService(gatt_cb.sr_reg[i_sreg].s_hdl);
     }
@@ -492,7 +496,8 @@ tGATT_STATUS GATTS_HandleValueIndication (uint16_t conn_id,  uint16_t attr_handl
     if (GATT_HANDLE_IS_VALID(p_tcb->indicate_handle))
     {
         GATT_TRACE_DEBUG ("Add a pending indication");
-        if ((p_buf = gatt_add_pending_ind(p_tcb, &indication)) !=NULL)
+        p_buf = gatt_add_pending_ind(p_tcb, &indication);
+        if (p_buf !=NULL)
         {
             cmd_status = GATT_SUCCESS;
         }
@@ -504,7 +509,8 @@ tGATT_STATUS GATTS_HandleValueIndication (uint16_t conn_id,  uint16_t attr_handl
     else
     {
 
-        if ( (p_msg = attp_build_sr_msg (p_tcb, GATT_HANDLE_VALUE_IND, (tGATT_SR_MSG *)&indication)) != NULL)
+        p_msg = attp_build_sr_msg(p_tcb, GATT_HANDLE_VALUE_IND, (tGATT_SR_MSG *)&indication);
+        if (p_msg != NULL)
         {
             cmd_status = attp_send_sr_msg (p_tcb, p_msg);
 
@@ -558,8 +564,8 @@ tGATT_STATUS GATTS_HandleValueNotification (uint16_t conn_id, uint16_t attr_hand
         memcpy (notif.value, p_val, val_len);
         notif.auth_req = GATT_AUTH_REQ_NONE;;
 
-        if ((p_buf = attp_build_sr_msg (p_tcb, GATT_HANDLE_VALUE_NOTIF, (tGATT_SR_MSG *)&notif))
-                   != NULL)
+        p_buf = attp_build_sr_msg(p_tcb, GATT_HANDLE_VALUE_NOTIF, (tGATT_SR_MSG *)&notif);
+        if (p_buf != NULL)
         {
             cmd_sent = attp_send_sr_msg (p_tcb, p_buf);
         }
@@ -666,7 +672,8 @@ tGATT_STATUS GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu)
         return GATT_BUSY;
     }
 
-    if ((p_clcb = gatt_clcb_alloc(conn_id)) != NULL)
+    p_clcb = gatt_clcb_alloc(conn_id);
+    if (p_clcb != NULL)
     {
         p_clcb->p_tcb->payload_size = mtu;
         p_clcb->operation = GATTC_OPTYPE_CONFIG;
@@ -718,7 +725,8 @@ tGATT_STATUS GATTC_Discover (uint16_t conn_id, tGATT_DISC_TYPE disc_type,
     }
 
 
-    if ((p_clcb = gatt_clcb_alloc(conn_id)) != NULL )
+    p_clcb = gatt_clcb_alloc(conn_id);
+    if (p_clcb != NULL)
     {
         if (!GATT_HANDLE_IS_VALID(p_param->s_handle) ||
             !GATT_HANDLE_IS_VALID(p_param->e_handle) ||
@@ -783,7 +791,8 @@ tGATT_STATUS GATTC_Read (uint16_t conn_id, tGATT_READ_TYPE type, tGATT_READ_PARA
         return GATT_BUSY;
     }
 
-    if ( (p_clcb = gatt_clcb_alloc(conn_id)) != NULL  )
+    p_clcb = gatt_clcb_alloc(conn_id);
+    if (p_clcb != NULL)
     {
         p_clcb->operation = GATTC_OPTYPE_READ;
         p_clcb->op_subtype = type;
@@ -873,7 +882,8 @@ tGATT_STATUS GATTC_Write (uint16_t conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *
         return GATT_BUSY;
     }
 
-    if ((p_clcb = gatt_clcb_alloc(conn_id)) != NULL )
+    p_clcb = gatt_clcb_alloc(conn_id);
+    if (p_clcb != NULL)
     {
         p_clcb->operation  = GATTC_OPTYPE_WRITE;
         p_clcb->op_subtype = type;
@@ -938,7 +948,8 @@ tGATT_STATUS GATTC_ExecuteWrite (uint16_t conn_id, bool    is_execute)
         return GATT_BUSY;
     }
 
-    if ((p_clcb = gatt_clcb_alloc(conn_id)) != NULL)
+    p_clcb = gatt_clcb_alloc(conn_id);
+    if (p_clcb != NULL)
     {
         p_clcb->operation  = GATTC_OPTYPE_EXE_WRITE;
         flag = is_execute ? GATT_PREP_WRITE_EXEC : GATT_PREP_WRITE_CANCEL;
@@ -1022,7 +1033,8 @@ void GATT_SetIdleTimeout (BD_ADDR bd_addr, uint16_t idle_tout, tBT_TRANSPORT tra
     tGATT_TCB       *p_tcb;
     bool            status = false;
 
-    if ((p_tcb = gatt_find_tcb_by_addr (bd_addr, transport)) != NULL)
+    p_tcb = gatt_find_tcb_by_addr(bd_addr, transport);
+    if (p_tcb != NULL)
     {
         if (p_tcb->att_lcid == L2CAP_ATT_CID)
         {
@@ -1194,7 +1206,8 @@ void GATT_StartIf (tGATT_IF gatt_if)
     tGATT_TRANSPORT transport ;
 
     GATT_TRACE_API ("GATT_StartIf gatt_if=%d", gatt_if);
-    if ((p_reg = gatt_get_regcb(gatt_if)) != NULL)
+    p_reg = gatt_get_regcb(gatt_if);
+    if (p_reg != NULL)
     {
         start_idx = 0;
         while (gatt_find_the_connected_bda(start_idx, bda, &found_idx, &transport))
@@ -1234,7 +1247,8 @@ bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
     GATT_TRACE_API ("GATT_Connect gatt_if=%d", gatt_if);
 
     /* Make sure app is registered */
-    if ((p_reg = gatt_get_regcb(gatt_if)) == NULL)
+    p_reg = gatt_get_regcb(gatt_if);
+    if (p_reg == NULL)
     {
         GATT_TRACE_ERROR("GATT_Connect - gatt_if =%d is not registered", gatt_if);
         return(false);

@@ -550,7 +550,8 @@ void bta_hf_client_sm_execute(uint16_t event, tBTA_HF_CLIENT_DATA* p_data) {
 
   /* execute action functions */
   for (i = 0; i < BTA_HF_CLIENT_ACTIONS; i++) {
-    if ((action = state_table[event][i]) != BTA_HF_CLIENT_IGNORE) {
+    action = state_table[event][i];
+    if (action != BTA_HF_CLIENT_IGNORE) {
       (*bta_hf_client_action[action])(p_data);
     } else {
       break;

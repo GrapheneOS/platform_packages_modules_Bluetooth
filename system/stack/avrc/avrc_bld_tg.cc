@@ -1400,7 +1400,8 @@ tAVRC_STS AVRC_BldResponse( uint8_t handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_p
 
     if (*pp_pkt == NULL)
     {
-        if ((*pp_pkt = avrc_bld_init_rsp_buffer(p_rsp)) == NULL)
+        *pp_pkt = avrc_bld_init_rsp_buffer(p_rsp);
+        if (*pp_pkt == NULL)
         {
             AVRC_TRACE_API("%s Failed to initialize response buffer", __func__);
             return AVRC_STS_INTERNAL_ERR;

@@ -344,7 +344,8 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t* local_addr) {
 
     BTIF_TRACE_DEBUG("%s, local bdaddr is stored in %s", __func__, val);
 
-    if ((addr_fd = open(val, O_RDONLY)) != -1) {
+    addr_fd = open(val, O_RDONLY);
+    if (addr_fd != -1) {
       memset(val, 0, sizeof(val));
       read(addr_fd, val, FACTORY_BT_BDADDR_STORAGE_LEN);
       /* If this is not a reserved/special bda, then use it */

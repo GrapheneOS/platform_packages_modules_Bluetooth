@@ -192,7 +192,8 @@ void mca_ccb_event(tMCA_CCB *p_ccb, uint8_t event, tMCA_CCB_EVT *p_data)
     p_ccb->state = state_table[event][MCA_CCB_NEXT_STATE];
 
     /* execute action functions */
-    if ((action = state_table[event][MCA_CCB_ACT_COL]) != MCA_CCB_IGNORE)
+    action = state_table[event][MCA_CCB_ACT_COL];
+    if (action != MCA_CCB_IGNORE)
     {
         (*mca_ccb_action[action])(p_ccb, p_data);
     }

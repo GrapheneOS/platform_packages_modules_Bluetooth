@@ -582,7 +582,8 @@ void rfc_process_rpn (tRFC_MCB *p_mcb, bool    is_command,
     tPORT_STATE port_pars;
     tPORT       *p_port;
 
-    if ((p_port = port_find_mcb_dlci_port (p_mcb, p_frame->dlci)) == NULL)
+    p_port = port_find_mcb_dlci_port(p_mcb, p_frame->dlci);
+    if (p_port == NULL)
     {
         /* This is the first command on the port */
         if (is_command)

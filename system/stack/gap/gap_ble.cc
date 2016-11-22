@@ -674,9 +674,11 @@ bool    gap_ble_accept_cl_operation(BD_ADDR peer_bda, uint16_t uuid, tGAP_BLE_CM
     if (p_cback == NULL && uuid != GATT_UUID_GAP_PREF_CONN_PARAM)
         return(started);
 
-    if ((p_clcb = gap_find_clcb_by_bd_addr (peer_bda)) == NULL)
+    p_clcb = gap_find_clcb_by_bd_addr(peer_bda);
+    if (p_clcb == NULL)
     {
-        if ((p_clcb = gap_clcb_alloc(peer_bda)) == NULL)
+        p_clcb = gap_clcb_alloc(peer_bda);
+        if (p_clcb == NULL)
         {
             GAP_TRACE_ERROR("gap_ble_accept_cl_operation max connection reached");
             return started;

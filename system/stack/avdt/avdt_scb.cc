@@ -546,7 +546,8 @@ void avdt_scb_event(tAVDT_SCB *p_scb, uint8_t event, tAVDT_SCB_EVT *p_data)
     /* execute action functions */
     for (i = 0; i < AVDT_SCB_ACTIONS; i++)
     {
-        if ((action = state_table[event][i]) != AVDT_SCB_IGNORE)
+        action = state_table[event][i];
+        if (action != AVDT_SCB_IGNORE)
         {
             (*avdt_cb.p_scb_act[action])(p_scb, p_data);
         }
@@ -713,7 +714,8 @@ uint8_t avdt_scb_verify(tAVDT_CCB *p_ccb, uint8_t state, uint8_t *p_seid, uint16
     /* verify every scb */
     for (i = 0, *p_err_code = 0; (i < num_seid) && (*p_err_code == 0) && (i < AVDT_NUM_SEPS); i++)
     {
-        if ((p_scb = avdt_scb_by_hdl(p_seid[i])) == NULL)
+        p_scb = avdt_scb_by_hdl(p_seid[i]);
+        if (p_scb == NULL)
             *p_err_code = AVDT_ERR_BAD_STATE;
         else if (p_scb->p_ccb != p_ccb)
             *p_err_code = AVDT_ERR_BAD_STATE;
@@ -761,7 +763,8 @@ void avdt_scb_peer_seid_list(tAVDT_MULTI *p_multi)
 
     for (i = 0; i < p_multi->num_seps; i++)
     {
-        if ((p_scb = avdt_scb_by_hdl(p_multi->seid_list[i])) != NULL)
+        p_scb = avdt_scb_by_hdl(p_multi->seid_list[i]);
+        if (p_scb != NULL)
         {
             p_multi->seid_list[i] = p_scb->peer_seid;
         }

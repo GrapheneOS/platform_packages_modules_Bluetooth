@@ -548,7 +548,8 @@ void bta_av_ssm_execute(tBTA_AV_SCB* p_scb, uint16_t event,
 
   /* execute action functions */
   for (i = 0; i < BTA_AV_SACTIONS; i++) {
-    if ((action = state_table[event][i]) != BTA_AV_SIGNORE) {
+    action = state_table[event][i];
+    if (action != BTA_AV_SIGNORE) {
       (*p_scb->p_act_tbl[action])(p_scb, p_data);
     } else
       break;

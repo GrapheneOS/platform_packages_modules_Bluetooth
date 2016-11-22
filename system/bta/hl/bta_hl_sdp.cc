@@ -369,7 +369,8 @@ tBTA_HL_STATUS bta_hl_sdp_register(uint8_t app_idx) {
     return BTA_HL_STATUS_OK;
   }
 
-  if ((p_cb->sdp_handle = SDP_CreateRecord()) == 0) {
+  p_cb->sdp_handle = SDP_CreateRecord();
+  if (p_cb->sdp_handle == 0) {
     return BTA_HL_STATUS_SDP_NO_RESOURCE;
   }
 

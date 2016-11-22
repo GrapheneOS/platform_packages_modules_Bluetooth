@@ -136,7 +136,8 @@ uint16_t AVCT_CreateConn(uint8_t *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
     AVCT_TRACE_API("AVCT_CreateConn: %d, control:%d", p_cc->role, p_cc->control);
 
     /* Allocate ccb; if no ccbs, return failure */
-    if ((p_ccb = avct_ccb_alloc(p_cc)) == NULL)
+    p_ccb = avct_ccb_alloc(p_cc);
+    if (p_ccb == NULL)
     {
         result = AVCT_NO_RESOURCES;
     }
@@ -149,9 +150,11 @@ uint16_t AVCT_CreateConn(uint8_t *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
         if (p_cc->role == AVCT_INT)
         {
             /* find link; if none allocate a new one */
-            if ((p_lcb = avct_lcb_by_bd(peer_addr)) == NULL)
+            p_lcb = avct_lcb_by_bd(peer_addr);
+            if (p_lcb == NULL)
             {
-                if ((p_lcb = avct_lcb_alloc(peer_addr)) == NULL)
+                p_lcb = avct_lcb_alloc(peer_addr);
+                if (p_lcb == NULL)
                 {
                     /* no link resources; free ccb as well */
                     avct_ccb_dealloc(p_ccb, AVCT_NO_EVT, 0, NULL);
@@ -198,7 +201,8 @@ uint16_t AVCT_RemoveConn(uint8_t handle)
     AVCT_TRACE_API("AVCT_RemoveConn");
 
     /* map handle to ccb */
-    if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
+    p_ccb = avct_ccb_by_idx(handle);
+    if (p_ccb == NULL)
     {
         result = AVCT_BAD_HANDLE;
     }
@@ -241,7 +245,8 @@ uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
     AVCT_TRACE_API("AVCT_CreateBrowse: %d", role);
 
     /* map handle to ccb */
-    if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
+    p_ccb = avct_ccb_by_idx(handle);
+    if (p_ccb == NULL)
     {
         return AVCT_BAD_HANDLE;
     }
@@ -311,7 +316,8 @@ uint16_t AVCT_RemoveBrowse (uint8_t handle)
     AVCT_TRACE_API("AVCT_RemoveBrowse");
 
     /* map handle to ccb */
-    if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
+    p_ccb = avct_ccb_by_idx(handle);
+    if (p_ccb == NULL)
     {
         result = AVCT_BAD_HANDLE;
     }
@@ -364,7 +370,8 @@ uint16_t AVCT_GetPeerMtu (uint8_t handle)
     tAVCT_CCB   *p_ccb;
 
     /* map handle to ccb */
-    if ((p_ccb = avct_ccb_by_idx(handle)) != NULL)
+    p_ccb = avct_ccb_by_idx(handle);
+    if (p_ccb != NULL)
     {
         if (p_ccb->p_lcb)
         {
@@ -412,7 +419,8 @@ uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg)
     AVCT_TRACE_API("%s len: %d layer_specific: %d", __func__, p_msg->len, p_msg->layer_specific);
 
     /* map handle to ccb */
-    if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
+    p_ccb = avct_ccb_by_idx(handle);
+    if (p_ccb == NULL)
     {
         result = AVCT_BAD_HANDLE;
         osi_free(p_msg);

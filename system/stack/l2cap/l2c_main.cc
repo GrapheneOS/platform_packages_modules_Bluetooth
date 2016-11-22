@@ -83,7 +83,8 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     if (pkt_type != L2CAP_PKT_CONTINUE)
     {
         /* Find the LCB based on the handle */
-        if ((p_lcb = l2cu_find_lcb_by_handle (handle)) == NULL)
+        p_lcb = l2cu_find_lcb_by_handle(handle);
+        if (p_lcb == NULL)
         {
             uint8_t     cmd_code;
 
@@ -143,7 +144,8 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     /* Find the CCB for this CID */
     if (rcv_cid >= L2CAP_BASE_APPL_CID)
     {
-        if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, rcv_cid)) == NULL)
+        p_ccb = l2cu_find_ccb_by_cid(p_lcb, rcv_cid);
+        if (p_ccb == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - unknown CID: 0x%04x", rcv_cid);
             osi_free(p_msg);
@@ -376,7 +378,8 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
         case L2CAP_CMD_CONN_REQ:
             STREAM_TO_UINT16 (con_info.psm, p);
             STREAM_TO_UINT16 (rcid, p);
-            if ((p_rcb = l2cu_find_rcb_by_psm (con_info.psm)) == NULL)
+            p_rcb = l2cu_find_rcb_by_psm(con_info.psm);
+            if (p_rcb == NULL)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - rcvd conn req for unknown PSM: %d", con_info.psm);
                 l2cu_reject_connection (p_lcb, rcid, id, L2CAP_CONN_NO_PSM);
@@ -391,7 +394,8 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
                     break;
                 }
             }
-            if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
+            p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+            if (p_ccb == NULL)
             {
                 L2CAP_TRACE_ERROR ("L2CAP - unable to allocate CCB");
                 l2cu_reject_connection (p_lcb, rcid, id, L2CAP_CONN_NO_RESOURCES);
@@ -410,7 +414,8 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
             STREAM_TO_UINT16 (con_info.l2cap_result, p);
             STREAM_TO_UINT16 (con_info.l2cap_status, p);
 
-            if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) == NULL)
+            p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+            if (p_ccb == NULL)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - no CCB for conn rsp, LCID: %d RCID: %d",
                                       lcid, con_info.remote_cid);
@@ -519,7 +524,8 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
                 }
             }
 
-            if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) != NULL)
+            p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+            if (p_ccb != NULL)
             {
                 p_ccb->remote_id = id;
                 if (cfg_rej)
@@ -602,7 +608,8 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
                 }
             }
 
-            if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) != NULL)
+            p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+            if (p_ccb != NULL)
             {
                 if (p_ccb->local_id != id)
                 {
@@ -625,7 +632,8 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
             STREAM_TO_UINT16 (lcid, p);
             STREAM_TO_UINT16 (rcid, p);
 
-            if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) != NULL)
+            p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+            if (p_ccb != NULL)
             {
                 if (p_ccb->remote_cid == rcid)
                 {
@@ -642,7 +650,8 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
             STREAM_TO_UINT16 (rcid, p);
             STREAM_TO_UINT16 (lcid, p);
 
-            if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) != NULL)
+            p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+            if (p_ccb != NULL)
             {
                 if ((p_ccb->remote_cid == rcid) && (p_ccb->local_id == id))
                 {
@@ -895,7 +904,8 @@ uint8_t l2c_data_write (uint16_t cid, BT_HDR *p_data, uint16_t flags)
     tL2C_CCB        *p_ccb;
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_DataWrite, CID: %d", cid);
         osi_free(p_data);

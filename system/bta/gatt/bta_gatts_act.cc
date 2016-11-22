@@ -419,8 +419,8 @@ void bta_gatts_open(UNUSED_ATTR tBTA_GATTS_CB* p_cb, tBTA_GATTS_DATA* p_msg) {
   tBTA_GATT_STATUS status = BTA_GATT_ERROR;
   uint16_t conn_id;
 
-  if ((p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_open.server_if)) !=
-      NULL) {
+  p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_open.server_if);
+  if (p_rcb != NULL) {
     /* should always get the connection ID */
     if (GATT_Connect(p_rcb->gatt_if, p_msg->api_open.remote_bda,
                      p_msg->api_open.is_direct, p_msg->api_open.transport,
@@ -453,8 +453,8 @@ void bta_gatts_cancel_open(UNUSED_ATTR tBTA_GATTS_CB* p_cb,
   tBTA_GATTS_RCB* p_rcb;
   tBTA_GATT_STATUS status = BTA_GATT_ERROR;
 
-  if ((p_rcb = bta_gatts_find_app_rcb_by_app_if(
-           p_msg->api_cancel_open.server_if)) != NULL) {
+  p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_cancel_open.server_if);
+  if (p_rcb != NULL) {
     if (!GATT_CancelConnect(p_rcb->gatt_if, p_msg->api_cancel_open.remote_bda,
                             p_msg->api_cancel_open.is_direct)) {
       APPL_TRACE_ERROR("bta_gatts_cancel_open failed for open request");

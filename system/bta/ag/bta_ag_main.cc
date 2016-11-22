@@ -668,7 +668,8 @@ static void bta_ag_api_register(tBTA_AG_DATA* p_data) {
   tBTA_AG_REGISTER reg;
 
   /* allocate an scb */
-  if ((p_scb = bta_ag_scb_alloc()) != NULL) {
+  p_scb = bta_ag_scb_alloc();
+  if (p_scb != NULL) {
     APPL_TRACE_DEBUG("bta_ag_api_register: p_scb 0x%08x ", p_scb);
     bta_ag_sm_execute(p_scb, p_data->hdr.event, p_data);
   } else {
@@ -692,7 +693,8 @@ static void bta_ag_api_result(tBTA_AG_DATA* p_data) {
   int i;
 
   if (p_data->hdr.layer_specific != BTA_AG_HANDLE_ALL) {
-    if ((p_scb = bta_ag_scb_by_idx(p_data->hdr.layer_specific)) != NULL) {
+    p_scb = bta_ag_scb_by_idx(p_data->hdr.layer_specific);
+    if (p_scb != NULL) {
       APPL_TRACE_DEBUG("bta_ag_api_result: p_scb 0x%08x ", p_scb);
       bta_ag_sm_execute(p_scb, BTA_AG_API_RESULT_EVT, p_data);
     }
@@ -753,7 +755,8 @@ void bta_ag_sm_execute(tBTA_AG_SCB* p_scb, uint16_t event,
 
   /* execute action functions */
   for (i = 0; i < BTA_AG_ACTIONS; i++) {
-    if ((action = state_table[event][i]) != BTA_AG_IGNORE) {
+    action = state_table[event][i];
+    if (action != BTA_AG_IGNORE) {
       (*bta_ag_action[action])(p_scb, p_data);
     } else {
       break;
@@ -805,7 +808,8 @@ bool bta_ag_hdl_event(BT_HDR* p_msg) {
 
     /* all others reference scb by handle */
     default:
-      if ((p_scb = bta_ag_scb_by_idx(p_msg->layer_specific)) != NULL) {
+      p_scb = bta_ag_scb_by_idx(p_msg->layer_specific);
+      if (p_scb != NULL) {
         APPL_TRACE_DEBUG("bta_ag_hdl_event: p_scb 0x%08x ", p_scb);
         bta_ag_sm_execute(p_scb, p_msg->event, (tBTA_AG_DATA*)p_msg);
       }

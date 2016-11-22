@@ -205,7 +205,8 @@ void avct_lcb_event(tAVCT_LCB *p_lcb, uint8_t event, tAVCT_LCB_EVT *p_data)
     /* execute action functions */
     for (i = 0; i < AVCT_LCB_ACTIONS; i++)
     {
-        if ((action = state_table[event][i]) != AVCT_LCB_IGNORE)
+        action = state_table[event][i];
+        if (action != AVCT_LCB_IGNORE)
         {
             (*avct_lcb_action[action])(p_lcb, p_data);
         }
@@ -243,7 +244,8 @@ void avct_bcb_event(tAVCT_BCB *p_bcb, uint8_t event, tAVCT_LCB_EVT *p_data)
     /* execute action functions */
     for (i = 0; i < AVCT_LCB_ACTIONS; i++)
     {
-        if ((action = state_table[event][i]) != AVCT_LCB_IGNORE)
+        action = state_table[event][i];
+        if (action != AVCT_LCB_IGNORE)
         {
             (*avct_bcb_action[action])(p_bcb, p_data);
         }

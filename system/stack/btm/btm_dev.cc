@@ -220,7 +220,8 @@ char *BTM_SecReadDevName (BD_ADDR bd_addr)
     char *p_name = NULL;
     tBTM_SEC_DEV_REC *p_srec;
 
-    if ((p_srec = btm_find_dev(bd_addr)) != NULL)
+    p_srec = btm_find_dev(bd_addr);
+    if (p_srec != NULL)
         p_name = (char *)p_srec->sec_bd_name;
 
     return(p_name);
@@ -256,7 +257,8 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
 
     /* Check with the BT manager if details about remote device are known */
     /* outgoing connection */
-    if ((p_inq_info = BTM_InqDbRead(bd_addr)) != NULL)
+    p_inq_info = BTM_InqDbRead(bd_addr);
+    if (p_inq_info != NULL)
     {
         memcpy (p_dev_rec->dev_class, p_inq_info->results.dev_class, DEV_CLASS_LEN);
 
@@ -487,7 +489,8 @@ tBTM_SEC_DEV_REC *btm_find_or_alloc_dev (BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
     BTM_TRACE_EVENT ("btm_find_or_alloc_dev");
-    if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec == NULL)
     {
 
         /* Allocate a new device record or reuse the oldest one */
