@@ -867,9 +867,7 @@ typedef struct
     bool                    discing;
     fixed_queue_t          *sec_pending_q;  /* pending sequrity requests in tBTM_SEC_QUEUE_ENTRY format */
 
-#if (BT_TRACE_VERBOSE == FALSE)
     char state_temp_buffer[BTM_STATE_BUFFER_SIZE];
-#endif
 } tBTM_CB;
 
 /* security action for L2CAP COC channels */

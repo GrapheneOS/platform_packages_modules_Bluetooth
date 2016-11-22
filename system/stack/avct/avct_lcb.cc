@@ -36,8 +36,6 @@
 ** state machine constants and types
 *****************************************************************************/
 
-#if (BT_TRACE_VERBOSE == TRUE)
-
 /* verbose state strings for trace */
 const char * const avct_lcb_st_str[] = {
     "LCB_IDLE_ST",
@@ -57,8 +55,6 @@ const char * const avct_lcb_evt_str[] = {
     "LL_MSG_EVT",
     "LL_CONG_EVT"
 };
-
-#endif
 
 /* lcb state machine states */
 enum {
@@ -198,11 +194,7 @@ void avct_lcb_event(tAVCT_LCB *p_lcb, uint8_t event, tAVCT_LCB_EVT *p_data)
     uint8_t             action;
     int                 i;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     AVCT_TRACE_EVENT("LCB lcb=%d event=%s state=%s", p_lcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_lcb->state]);
-#else
-    AVCT_TRACE_EVENT("LCB lcb=%d event=%d state=%d", p_lcb->allocated, event, p_lcb->state);
-#endif
 
     /* look up the state table for the current state */
     state_table = avct_lcb_st_tbl[p_lcb->state];
@@ -240,11 +232,7 @@ void avct_bcb_event(tAVCT_BCB *p_bcb, uint8_t event, tAVCT_LCB_EVT *p_data)
     uint8_t             action;
     int                 i;
 
-#if (BT_TRACE_VERBOSE == TRUE)
     AVCT_TRACE_EVENT("BCB lcb=%d event=%s state=%s", p_bcb->allocated, avct_lcb_evt_str[event], avct_lcb_st_str[p_bcb->state]);
-#else
-    AVCT_TRACE_EVENT("BCB lcb=%d event=%d state=%d", p_bcb->allocated, event, p_bcb->state);
-#endif
 
     /* look up the state table for the current state */
     state_table = avct_lcb_st_tbl[p_bcb->state];
