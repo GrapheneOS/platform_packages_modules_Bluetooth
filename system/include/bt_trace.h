@@ -122,10 +122,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define BTTRC_ID_MAX_ID BTTRC_ID_BT_PROTOCOL
 #define BTTRC_ID_ALL_LAYERS 0xFF /* all trace layers */
 
-/* Enables or disables verbose trace information. */
-#ifndef BT_TRACE_VERBOSE
-#define BT_TRACE_VERBOSE FALSE
-#endif
 
 /******************************************************************************
  *

@@ -76,11 +76,9 @@ static uint16_t bta_gattc_opcode_to_int_evt[] = {
     BTA_GATTC_API_READ_EVT, BTA_GATTC_API_WRITE_EVT, BTA_GATTC_API_EXEC_EVT,
     BTA_GATTC_API_CFG_MTU_EVT};
 
-#if (BT_TRACE_VERBOSE == TRUE)
 static const char* bta_gattc_op_code_name[] = {
     "Unknown", "Discovery", "Read",         "Write",
     "Exec",    "Config",    "Notification", "Indication"};
-#endif  // BT_TRACE_VERBOSE
 /*****************************************************************************
  *  Action Functions
  ****************************************************************************/
@@ -1192,16 +1190,10 @@ void bta_gattc_op_cmpl(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
                   GATTC_OPTYPE_READ;
       if (mapped_op > GATTC_OPTYPE_INDICATION) mapped_op = 0;
 
-#if (BT_TRACE_VERBOSE == TRUE)
       APPL_TRACE_ERROR(
           "expect op:(%s :0x%04x), receive unexpected operation (%s).",
           bta_gattc_op_code_name[mapped_op], p_clcb->p_q_cmd->hdr.event,
           bta_gattc_op_code_name[op]);
-#else
-      APPL_TRACE_ERROR(
-          "expect op:(%u :0x%04x), receive unexpected operation (%u).",
-          mapped_op, p_clcb->p_q_cmd->hdr.event, op);
-#endif
       return;
     }
 

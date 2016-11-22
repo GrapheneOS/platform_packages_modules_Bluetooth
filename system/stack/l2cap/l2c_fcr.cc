@@ -47,10 +47,8 @@ extern fixed_queue_t *btu_general_alarm_queue;
 /* this is the minimal offset required by OBX to process incoming packets */
 static const uint16_t OBX_BUF_MIN_OFFSET = 4;
 
-#if (BT_TRACE_VERBOSE == TRUE)
-static char *SAR_types[] = { "Unsegmented", "Start", "End", "Continuation" };
-static char *SUP_types[] = { "RR", "REJ", "RNR", "SREJ" };
-#endif
+static const char *SAR_types[] = { "Unsegmented", "Start", "End", "Continuation" };
+static const char *SUP_types[] = { "RR", "REJ", "RNR", "SREJ" };
 
 /* Look-up table for the CRC calculation */
 static const unsigned short crctab[256] = {
@@ -463,7 +461,6 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, bool    is_retransm
         p_buf->len += L2CAP_FCS_LEN;
     }
 
-#if (BT_TRACE_VERBOSE == TRUE)
     if (is_retransmission)
     {
         L2CAP_TRACE_EVENT ("L2CAP eRTM ReTx I-frame  CID: 0x%04x  Len: %u  SAR: %s  TxSeq: %u  ReqSeq: %u  F: %u",
@@ -482,7 +479,6 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, bool    is_retransm
                             (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
                             (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
     }
-#endif
 
     /* Start the retransmission timer if not already running */
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
@@ -553,7 +549,6 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, uint16_t function_code, uint16_t pf_
     p_buf->layer_specific = L2CAP_NON_FLUSHABLE_PKT;
     l2cu_set_acl_hci_header (p_buf, p_ccb);
 
-#if (BT_TRACE_VERBOSE == TRUE)
     if ((((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 1)
         || (((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 3)) {
         L2CAP_TRACE_WARNING("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
@@ -572,7 +567,6 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, uint16_t function_code, uint16_t pf_
                           (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
         L2CAP_TRACE_EVENT("                  Buf Len: %u", p_buf->len);
     }
-#endif  /* BT_TRACE_VERBOSE */
 
     l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, p_buf);
 
@@ -618,7 +612,6 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         return;
     }
 
-#if (BT_TRACE_VERBOSE == TRUE)
     /* Get the control word */
     p = ((uint8_t *)(p_buf+1)) + p_buf->offset;
     STREAM_TO_UINT16 (ctrl_word, p);
@@ -662,8 +655,6 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                        p_ccb->fcrb.last_ack_sent,
                        fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q),
                        p_ccb->fcrb.num_tries);
-
-#endif /* BT_TRACE_VERBOSE */
 
     /* Verify FCS if using */
     if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
@@ -1380,14 +1371,12 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         return;
     }
 
-#if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP eRTM Rx I-frame: cid: 0x%04x  Len: %u  SAR: %-12s  TxSeq: %u  ReqSeq: %u  F: %u",
                         p_ccb->local_cid, p_buf->len,
                         SAR_types[(ctrl_word & L2CAP_FCR_SAR_BITS) >> L2CAP_FCR_SAR_BITS_SHIFT],
                         (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT,
                         (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
                         (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
-#endif
 
     /* Extract the sequence number */
     tx_seq = (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT;

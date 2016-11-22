@@ -136,10 +136,6 @@
 #define BTA_HOST_INTERLEAVE_SEARCH FALSE
 #endif
 
-#ifndef BT_TRACE_VERBOSE
-#define BT_TRACE_VERBOSE FALSE
-#endif
-
 #ifndef BTA_DM_SDP_DB_SIZE
 #define BTA_DM_SDP_DB_SIZE 8000
 #endif
