@@ -392,19 +392,12 @@ static bt_status_t btif_in_fetch_bonded_device(const char* bdstr) {
       bt_linkkey_file_found = false;
     }
   }
-#if (BLE_INCLUDED == TRUE)
   if ((btif_in_fetch_bonded_ble_device(bdstr, false, NULL) !=
        BT_STATUS_SUCCESS) &&
       (!bt_linkkey_file_found)) {
     BTIF_TRACE_DEBUG("Remote device:%s, no link key or ble key found", bdstr);
     return BT_STATUS_FAIL;
   }
-#else
-  if ((!bt_linkkey_file_found)) {
-    BTIF_TRACE_DEBUG("Remote device:%s, no link key found", bdstr);
-    return BT_STATUS_FAIL;
-  }
-#endif
   return BT_STATUS_SUCCESS;
 }
 
@@ -449,34 +442,22 @@ static bt_status_t btif_in_fetch_bonded_devices(
           BTA_DmAddDevice(bd_addr.address, dev_class, link_key, 0, 0,
                           (uint8_t)linkkey_type, 0, pin_length);
 
-#if (BLE_INCLUDED == TRUE)
           if (btif_config_get_int(name, "DevType", &device_type) &&
               (device_type == BT_DEVICE_TYPE_DUMO)) {
             btif_gatts_add_bonded_dev_from_nv(bd_addr.address);
           }
-#endif
         }
         bt_linkkey_file_found = true;
         memcpy(&p_bonded_devices->devices[p_bonded_devices->num_devices++],
                &bd_addr, sizeof(bt_bdaddr_t));
       } else {
-#if (BLE_INCLUDED == TRUE)
         bt_linkkey_file_found = false;
-#else
-        BTIF_TRACE_ERROR(
-            "bounded device:%s, LinkKeyType or PinLength is invalid", name);
-#endif
       }
     }
-#if (BLE_INCLUDED == TRUE)
     if (!btif_in_fetch_bonded_ble_device(name, add, p_bonded_devices) &&
         !bt_linkkey_file_found) {
       BTIF_TRACE_DEBUG("Remote device:%s, no link key or ble key found", name);
     }
-#else
-    if (!bt_linkkey_file_found)
-      BTIF_TRACE_DEBUG("Remote device:%s, no link key", name);
-#endif
   }
   return BT_STATUS_SUCCESS;
 }
@@ -770,9 +751,7 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t* remote_bd_addr) {
   bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
   BTIF_TRACE_DEBUG("in bd addr:%s", bdstr);
 
-#if (BLE_INCLUDED == TRUE)
   btif_storage_remove_ble_bonding_keys(remote_bd_addr);
-#endif
 
   int ret = 1;
   if (btif_config_exist(bdstr, "LinkKeyType"))
@@ -914,8 +893,6 @@ bt_status_t btif_storage_load_bonded_devices(void) {
   }
   return BT_STATUS_SUCCESS;
 }
-
-#if (BLE_INCLUDED == TRUE)
 
 /*******************************************************************************
  *
@@ -1211,7 +1188,6 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t* remote_bd_addr,
   int ret = btif_config_get_int(bdstr, "AddrType", addr_type);
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
-#endif
 /*******************************************************************************
  *
  * Function         btif_storage_add_hid_device_info

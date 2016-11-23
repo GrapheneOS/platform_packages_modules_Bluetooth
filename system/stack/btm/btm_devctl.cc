@@ -41,9 +41,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
 
-#if (BLE_INCLUDED == TRUE)
 #include "gatt_int.h"
-#endif /* BLE_INCLUDED */
 
 extern fixed_queue_t *btu_general_alarm_queue;
 extern thread_t *bt_workqueue_thread;
@@ -168,17 +166,14 @@ static void reset_complete(void *result) {
   btm_cb.btm_inq_vars.page_scan_period  = HCI_DEF_PAGESCAN_INTERVAL;
   btm_cb.btm_inq_vars.page_scan_type    = HCI_DEF_SCAN_TYPE;
 
-#if (BLE_INCLUDED == TRUE)
   btm_cb.ble_ctr_cb.conn_state = BLE_CONN_IDLE;
   btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
   btm_cb.ble_ctr_cb.p_select_cback = NULL;
   gatt_reset_bgdev_list();
-#endif
 
   btm_pm_reset();
 
   l2c_link_processs_num_bufs(controller->get_acl_buffer_count_classic());
-#if (BLE_INCLUDED == TRUE)
 
 #if (BLE_PRIVACY_SPT == TRUE)
   /* Set up the BLE privacy settings */
@@ -194,7 +189,6 @@ static void reset_complete(void *result) {
     btm_ble_white_list_init(controller->get_ble_white_list_size());
     l2c_link_processs_ble_num_bufs(controller->get_acl_buffer_count_ble());
   }
-#endif
 
   BTM_SetPinType (btm_cb.cfg.pin_type, btm_cb.cfg.pin_code, btm_cb.cfg.pin_code_len);
 
