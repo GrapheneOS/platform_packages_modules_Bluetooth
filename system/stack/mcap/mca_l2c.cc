@@ -62,15 +62,15 @@ const tL2CAP_FCR_OPTS mca_l2c_fcr_opts_def =
 
 
 /*******************************************************************************
-**
-** Function         mca_sec_check_complete_term
-**
-** Description      The function called when Security Manager finishes
-**                  verification of the service side connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_sec_check_complete_term
+ *
+ * Description      The function called when Security Manager finishes
+ *                  verification of the service side connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void mca_sec_check_complete_term (BD_ADDR bd_addr,
                                          UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
                                          uint8_t res)
@@ -109,15 +109,15 @@ static void mca_sec_check_complete_term (BD_ADDR bd_addr,
 }
 
 /*******************************************************************************
-**
-** Function         mca_sec_check_complete_orig
-**
-** Description      The function called when Security Manager finishes
-**                  verification of the service side connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_sec_check_complete_orig
+ *
+ * Description      The function called when Security Manager finishes
+ *                  verification of the service side connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void mca_sec_check_complete_orig (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
                                          uint8_t res)
 {
@@ -142,14 +142,14 @@ static void mca_sec_check_complete_orig (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATT
     }
 }
 /*******************************************************************************
-**
-** Function         mca_l2c_cconn_ind_cback
-**
-** Description      This is the L2CAP connect indication callback function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_cconn_ind_cback
+ *
+ * Description      This is the L2CAP connect indication callback function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
 {
     tMCA_HANDLE handle = mca_handle_by_cpsm(psm);
@@ -219,15 +219,15 @@ void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8
 }
 
 /*******************************************************************************
-**
-** Function         mca_l2c_dconn_ind_cback
-**
-** Description      This is the L2CAP connect indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_dconn_ind_cback
+ *
+ * Description      This is the L2CAP connect indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id)
 {
     tMCA_HANDLE handle = mca_handle_by_dpsm(psm);
@@ -286,15 +286,15 @@ void mca_l2c_dconn_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8
 }
 
 /*******************************************************************************
-**
-** Function         mca_l2c_connect_cfm_cback
-**
-** Description      This is the L2CAP connect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_connect_cfm_cback
+ *
+ * Description      This is the L2CAP connect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tMCA_TC_TBL    *p_tbl;
@@ -357,15 +357,15 @@ void mca_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         mca_l2c_config_cfm_cback
-**
-** Description      This is the L2CAP config confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_config_cfm_cback
+ *
+ * Description      This is the L2CAP config confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tMCA_TC_TBL    *p_tbl;
@@ -400,15 +400,15 @@ void mca_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         mca_l2c_config_ind_cback
-**
-** Description      This is the L2CAP config indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_config_ind_cback
+ *
+ * Description      This is the L2CAP config indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tMCA_TC_TBL    *p_tbl;
@@ -454,15 +454,15 @@ void mca_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         mca_l2c_disconnect_ind_cback
-**
-** Description      This is the L2CAP disconnect indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_disconnect_ind_cback
+ *
+ * Description      This is the L2CAP disconnect indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_disconnect_ind_cback(uint16_t lcid, bool    ack_needed)
 {
     tMCA_TC_TBL    *p_tbl;
@@ -488,15 +488,15 @@ void mca_l2c_disconnect_ind_cback(uint16_t lcid, bool    ack_needed)
 }
 
 /*******************************************************************************
-**
-** Function         mca_l2c_disconnect_cfm_cback
-**
-** Description      This is the L2CAP disconnect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_disconnect_cfm_cback
+ *
+ * Description      This is the L2CAP disconnect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tMCA_TC_TBL    *p_tbl;
@@ -514,15 +514,15 @@ void mca_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 
 
 /*******************************************************************************
-**
-** Function         mca_l2c_congestion_ind_cback
-**
-** Description      This is the L2CAP congestion indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_congestion_ind_cback
+ *
+ * Description      This is the L2CAP congestion indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_congestion_ind_cback(uint16_t lcid, bool    is_congested)
 {
     tMCA_TC_TBL    *p_tbl;
@@ -536,15 +536,15 @@ void mca_l2c_congestion_ind_cback(uint16_t lcid, bool    is_congested)
 }
 
 /*******************************************************************************
-**
-** Function         mca_l2c_data_ind_cback
-**
-** Description      This is the L2CAP data indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_data_ind_cback
+ *
+ * Description      This is the L2CAP data indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tMCA_TC_TBL    *p_tbl;
@@ -561,14 +561,14 @@ void mca_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         mca_l2c_open_req
-**
-** Description      This function calls L2CA_ConnectReq() to initiate a L2CAP channel.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_l2c_open_req
+ *
+ * Description      This function calls L2CA_ConnectReq() to initiate a L2CAP channel.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 uint16_t mca_l2c_open_req(BD_ADDR bd_addr, uint16_t psm, const tMCA_CHNL_CFG *p_chnl_cfg)
 {
     tL2CAP_ERTM_INFO ertm_info;

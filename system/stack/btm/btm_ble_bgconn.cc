@@ -95,11 +95,11 @@ static bool background_connections_pending() {
 }
 
 /*******************************************************************************
-**
-** Function         btm_update_scanner_filter_policy
-**
-** Description      This function updates the filter policy of scanner
-*******************************************************************************/
+ *
+ * Function         btm_update_scanner_filter_policy
+ *
+ * Description      This function updates the filter policy of scanner
+ ******************************************************************************/
 void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
@@ -127,11 +127,11 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
     }
 }
 /*******************************************************************************
-**
-** Function         btm_add_dev_to_controller
-**
-** Description      This function load the device into controller white list
-*******************************************************************************/
+ *
+ * Function         btm_add_dev_to_controller
+ *
+ * Description      This function load the device into controller white list
+ ******************************************************************************/
 bool    btm_add_dev_to_controller (bool    to_add, BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (bd_addr);
@@ -178,11 +178,11 @@ bool    btm_add_dev_to_controller (bool    to_add, BD_ADDR bd_addr)
 
 }
 /*******************************************************************************
-**
-** Function         btm_execute_wl_dev_operation
-**
-** Description      execute the pending whitelist device operation(loading or removing)
-*******************************************************************************/
+ *
+ * Function         btm_execute_wl_dev_operation
+ *
+ * Description      execute the pending whitelist device operation(loading or removing)
+ ******************************************************************************/
 bool    btm_execute_wl_dev_operation(void)
 {
     tBTM_BLE_WL_OP *p_dev_op = btm_cb.ble_ctr_cb.wl_op_q;
@@ -202,11 +202,11 @@ bool    btm_execute_wl_dev_operation(void)
     return rt;
 }
 /*******************************************************************************
-**
-** Function         btm_enq_wl_dev_operation
-**
-** Description      enqueue the pending whitelist device operation(loading or removing).
-*******************************************************************************/
+ *
+ * Function         btm_enq_wl_dev_operation
+ *
+ * Description      enqueue the pending whitelist device operation(loading or removing).
+ ******************************************************************************/
 void btm_enq_wl_dev_operation(bool    to_add, BD_ADDR bd_addr)
 {
     tBTM_BLE_WL_OP *p_dev_op = btm_cb.ble_ctr_cb.wl_op_q;
@@ -236,13 +236,13 @@ void btm_enq_wl_dev_operation(bool    to_add, BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         btm_update_dev_to_white_list
-**
-** Description      This function adds or removes a device into/from
-**                  the white list.
-**
-*******************************************************************************/
+ *
+ * Function         btm_update_dev_to_white_list
+ *
+ * Description      This function adds or removes a device into/from
+ *                  the white list.
+ *
+ ******************************************************************************/
 bool    btm_update_dev_to_white_list(bool    to_add, BD_ADDR bd_addr)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
@@ -265,12 +265,12 @@ bool    btm_update_dev_to_white_list(bool    to_add, BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_clear_white_list
-**
-** Description      This function clears the white list.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_clear_white_list
+ *
+ * Description      This function clears the white list.
+ *
+ ******************************************************************************/
 void btm_ble_clear_white_list (void)
 {
     BTM_TRACE_EVENT ("btm_ble_clear_white_list");
@@ -279,12 +279,12 @@ void btm_ble_clear_white_list (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_clear_white_list_complete
-**
-** Description      Indicates white list cleared.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_clear_white_list_complete
+ *
+ * Description      Indicates white list cleared.
+ *
+ ******************************************************************************/
 void btm_ble_clear_white_list_complete(uint8_t *p_data,
                                        UNUSED_ATTR uint16_t evt_len)
 {
@@ -299,12 +299,12 @@ void btm_ble_clear_white_list_complete(uint8_t *p_data,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_white_list_init
-**
-** Description      Initialize white list size
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_white_list_init
+ *
+ * Description      Initialize white list size
+ *
+ ******************************************************************************/
 void btm_ble_white_list_init(uint8_t white_list_size)
 {
     BTM_TRACE_DEBUG("%s white_list_size = %d", __func__, white_list_size);
@@ -312,12 +312,12 @@ void btm_ble_white_list_init(uint8_t white_list_size)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_add_2_white_list_complete
-**
-** Description      White list element added
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_add_2_white_list_complete
+ *
+ * Description      White list element added
+ *
+ ******************************************************************************/
 void btm_ble_add_2_white_list_complete(uint8_t status)
 {
     BTM_TRACE_EVENT("%s status=%d", __func__, status);
@@ -326,12 +326,12 @@ void btm_ble_add_2_white_list_complete(uint8_t status)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_remove_from_white_list_complete
-**
-** Description      White list element removal complete
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_remove_from_white_list_complete
+ *
+ * Description      White list element removal complete
+ *
+ ******************************************************************************/
 void btm_ble_remove_from_white_list_complete(uint8_t *p,
                                              UNUSED_ATTR uint16_t evt_len)
 {
@@ -341,16 +341,16 @@ void btm_ble_remove_from_white_list_complete(uint8_t *p,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_start_auto_conn
-**
-** Description      This function is to start/stop auto connection procedure.
-**
-** Parameters       start: true to start; false to stop.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_start_auto_conn
+ *
+ * Description      This function is to start/stop auto connection procedure.
+ *
+ * Parameters       start: true to start; false to stop.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    btm_ble_start_auto_conn(bool    start)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
@@ -424,18 +424,18 @@ bool    btm_ble_start_auto_conn(bool    start)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_start_select_conn
-**
-** Description      This function is to start/stop selective connection procedure.
-**
-** Parameters       start: true to start; false to stop.
-**                  p_select_cback: callback function to return application
-**                                  selection.
-**
-** Returns          bool   : selective connectino procedure is started.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_start_select_conn
+ *
+ * Description      This function is to start/stop selective connection procedure.
+ *
+ * Parameters       start: true to start; false to stop.
+ *                  p_select_cback: callback function to return application
+ *                                  selection.
+ *
+ * Returns          bool   : selective connectino procedure is started.
+ *
+ ******************************************************************************/
 bool    btm_ble_start_select_conn(bool    start, tBTM_BLE_SEL_CBACK *p_select_cback)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
@@ -511,18 +511,18 @@ bool    btm_ble_start_select_conn(bool    start, tBTM_BLE_SEL_CBACK *p_select_cb
     return true;
 }
 /*******************************************************************************
-**
-** Function         btm_ble_initiate_select_conn
-**
-** Description      This function is to start/stop selective connection procedure.
-**
-** Parameters       start: true to start; false to stop.
-**                  p_select_cback: callback function to return application
-**                                  selection.
-**
-** Returns          bool   : selective connectino procedure is started.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_initiate_select_conn
+ *
+ * Description      This function is to start/stop selective connection procedure.
+ *
+ * Parameters       start: true to start; false to stop.
+ *                  p_select_cback: callback function to return application
+ *                                  selection.
+ *
+ * Returns          bool   : selective connectino procedure is started.
+ *
+ ******************************************************************************/
 void btm_ble_initiate_select_conn(BD_ADDR bda)
 {
     BTM_TRACE_EVENT ("btm_ble_initiate_select_conn");
@@ -534,17 +534,17 @@ void btm_ble_initiate_select_conn(BD_ADDR bda)
     }
 }
 /*******************************************************************************
-**
-** Function         btm_ble_suspend_bg_conn
-**
-** Description      This function is to suspend an active background connection
-**                  procedure.
-**
-** Parameters       none.
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_suspend_bg_conn
+ *
+ * Description      This function is to suspend an active background connection
+ *                  procedure.
+ *
+ * Parameters       none.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 bool    btm_ble_suspend_bg_conn(void)
 {
     BTM_TRACE_EVENT ("%s", __func__);
@@ -557,14 +557,14 @@ bool    btm_ble_suspend_bg_conn(void)
     return false;
 }
 /*******************************************************************************
-**
-** Function         btm_suspend_wl_activity
-**
-** Description      This function is to suspend white list related activity
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_suspend_wl_activity
+ *
+ * Description      This function is to suspend white list related activity
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 static void btm_suspend_wl_activity(tBTM_BLE_WL_STATE wl_state)
 {
     if (wl_state & BTM_BLE_WL_INIT)
@@ -582,14 +582,14 @@ static void btm_suspend_wl_activity(tBTM_BLE_WL_STATE wl_state)
 
 }
 /*******************************************************************************
-**
-** Function         btm_resume_wl_activity
-**
-** Description      This function is to resume white list related activity
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_resume_wl_activity
+ *
+ * Description      This function is to resume white list related activity
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state)
 {
     btm_ble_resume_bg_conn();
@@ -601,17 +601,17 @@ static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state)
 
 }
 /*******************************************************************************
-**
-** Function         btm_ble_resume_bg_conn
-**
-** Description      This function is to resume a background auto connection
-**                  procedure.
-**
-** Parameters       none.
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resume_bg_conn
+ *
+ * Description      This function is to resume a background auto connection
+ *                  procedure.
+ *
+ * Parameters       none.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 bool    btm_ble_resume_bg_conn(void)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
@@ -629,27 +629,27 @@ bool    btm_ble_resume_bg_conn(void)
     return ret;
 }
 /*******************************************************************************
-**
-** Function         btm_ble_get_conn_st
-**
-** Description      This function get BLE connection state
-**
-** Returns          connection state
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_get_conn_st
+ *
+ * Description      This function get BLE connection state
+ *
+ * Returns          connection state
+ *
+ ******************************************************************************/
 tBTM_BLE_CONN_ST btm_ble_get_conn_st(void)
 {
     return btm_cb.ble_ctr_cb.conn_state;
 }
 /*******************************************************************************
-**
-** Function         btm_ble_set_conn_st
-**
-** Description      This function set BLE connection state
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_set_conn_st
+ *
+ * Description      This function set BLE connection state
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st)
 {
     btm_cb.ble_ctr_cb.conn_state = new_st;
@@ -661,14 +661,14 @@ void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_enqueue_direct_conn_req
-**
-** Description      This function enqueue the direct connection request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_enqueue_direct_conn_req
+ *
+ * Description      This function enqueue the direct connection request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void btm_ble_enqueue_direct_conn_req(void *p_param)
 {
     tBTM_BLE_CONN_REQ *p = (tBTM_BLE_CONN_REQ *)osi_malloc(sizeof(tBTM_BLE_CONN_REQ));
@@ -678,14 +678,14 @@ void btm_ble_enqueue_direct_conn_req(void *p_param)
     fixed_queue_enqueue(btm_cb.ble_ctr_cb.conn_pending_q, p);
 }
 /*******************************************************************************
-**
-** Function         btm_ble_dequeue_direct_conn_req
-**
-** Description      This function dequeues the direct connection request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_dequeue_direct_conn_req
+ *
+ * Description      This function dequeues the direct connection request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda)
 {
     if (fixed_queue_is_empty(btm_cb.ble_ctr_cb.conn_pending_q))
@@ -709,14 +709,14 @@ void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda)
     }
 }
 /*******************************************************************************
-**
-** Function         btm_send_pending_direct_conn
-**
-** Description      This function send the pending direct connection request in queue
-**
-** Returns          true if started, false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         btm_send_pending_direct_conn
+ *
+ * Description      This function send the pending direct connection request in queue
+ *
+ * Returns          true if started, false otherwise
+ *
+ ******************************************************************************/
 bool    btm_send_pending_direct_conn(void)
 {
     tBTM_BLE_CONN_REQ *p_req;

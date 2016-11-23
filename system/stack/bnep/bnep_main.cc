@@ -49,16 +49,16 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-/********************************************************************************/
+/******************************************************************************/
 /*                       G L O B A L    B N E P       D A T A                   */
-/********************************************************************************/
+/******************************************************************************/
 tBNEP_CB bnep_cb;
 
 const uint16_t bnep_frame_hdr_sizes[] = {14, 1, 2, 8, 8};
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void bnep_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id);
 static void bnep_connect_cfm (uint16_t l2cap_cid, uint16_t result);
 static void bnep_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
@@ -70,14 +70,14 @@ static void bnep_congestion_ind (uint16_t lcid, bool    is_congested);
 
 
 /*******************************************************************************
-**
-** Function         bnep_register_with_l2cap
-**
-** Description      This function registers BNEP PSM with L2CAP
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_register_with_l2cap
+ *
+ * Description      This function registers BNEP PSM with L2CAP
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBNEP_RESULT bnep_register_with_l2cap (void)
 {
     /* Initialize the L2CAP configuration. We only care about MTU and flush */
@@ -109,16 +109,16 @@ tBNEP_RESULT bnep_register_with_l2cap (void)
 
 
 /*******************************************************************************
-**
-** Function         bnep_connect_ind
-**
-** Description      This function handles an inbound connection indication
-**                  from L2CAP. This is the case where we are acting as a
-**                  server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_connect_ind
+ *
+ * Description      This function handles an inbound connection indication
+ *                  from L2CAP. This is the case where we are acting as a
+ *                  server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bnep_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
                               UNUSED_ATTR uint16_t psm, uint8_t l2cap_id)
 {
@@ -156,16 +156,16 @@ static void bnep_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
 
 
 /*******************************************************************************
-**
-** Function         bnep_connect_cfm
-**
-** Description      This function handles the connect confirm events
-**                  from L2CAP. This is the case when we are acting as a
-**                  client and have sent a connect request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_connect_cfm
+ *
+ * Description      This function handles the connect confirm events
+ *                  from L2CAP. This is the case when we are acting as a
+ *                  client and have sent a connect request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bnep_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     tBNEP_CONN    *p_bcb;
@@ -210,15 +210,15 @@ static void bnep_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         bnep_config_ind
-**
-** Description      This function processes the L2CAP configuration indication
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_config_ind
+ *
+ * Description      This function processes the L2CAP configuration indication
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bnep_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tBNEP_CONN    *p_bcb;
@@ -287,15 +287,15 @@ static void bnep_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         bnep_config_cfm
-**
-** Description      This function processes the L2CAP configuration confirmation
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_config_cfm
+ *
+ * Description      This function processes the L2CAP configuration confirmation
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bnep_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tBNEP_CONN    *p_bcb;
@@ -349,15 +349,15 @@ static void bnep_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         bnep_disconnect_ind
-**
-** Description      This function handles a disconnect event from L2CAP. If
-**                  requested to, we ack the disconnect before dropping the CCB
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_disconnect_ind
+ *
+ * Description      This function handles a disconnect event from L2CAP. If
+ *                  requested to, we ack the disconnect before dropping the CCB
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bnep_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 {
     tBNEP_CONN    *p_bcb;
@@ -394,14 +394,14 @@ static void bnep_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 
 
 /*******************************************************************************
-**
-** Function         bnep_disconnect_cfm
-**
-** Description      This function gets the disconnect confirm event from L2CAP
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_disconnect_cfm
+ *
+ * Description      This function gets the disconnect confirm event from L2CAP
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bnep_disconnect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     BNEP_TRACE_EVENT ("BNEP - Rcvd L2CAP disc cfm, CID: 0x%x, Result 0x%x", l2cap_cid, result);
@@ -410,13 +410,13 @@ static void bnep_disconnect_cfm (uint16_t l2cap_cid, uint16_t result)
 
 
 /*******************************************************************************
-**
-** Function         bnep_congestion_ind
-**
-** Description      This is a callback function called by L2CAP when
-**                  congestion status changes
-**
-*******************************************************************************/
+ *
+ * Function         bnep_congestion_ind
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  congestion status changes
+ *
+ ******************************************************************************/
 static void bnep_congestion_ind (uint16_t l2cap_cid, bool    is_congested)
 {
     tBNEP_CONN    *p_bcb;
@@ -462,20 +462,20 @@ static void bnep_congestion_ind (uint16_t l2cap_cid, bool    is_congested)
 
 
 /*******************************************************************************
-**
-** Function         bnep_data_ind
-**
-** Description      This function is called when data is received from L2CAP.
-**                  if we are the originator of the connection, we are the SDP
-**                  client, and the received message is queued up for the client.
-**
-**                  If we are the destination of the connection, we are the SDP
-**                  server, so the message is passed to the server processing
-**                  function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_data_ind
+ *
+ * Description      This function is called when data is received from L2CAP.
+ *                  if we are the originator of the connection, we are the SDP
+ *                  client, and the received message is queued up for the client.
+ *
+ *                  If we are the destination of the connection, we are the SDP
+ *                  server, so the message is passed to the server processing
+ *                  function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bnep_data_ind (uint16_t l2cap_cid, BT_HDR *p_buf)
 {
     tBNEP_CONN    *p_bcb;
@@ -672,16 +672,16 @@ static void bnep_data_ind (uint16_t l2cap_cid, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         bnep_conn_timer_timeout
-**
-** Description      This function processes a timeout. If it is a startup
-**                  timeout, we check for reading our BD address. If it
-**                  is an L2CAP timeout, we send a disconnect req to L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_conn_timer_timeout
+ *
+ * Description      This function processes a timeout. If it is a startup
+ *                  timeout, we check for reading our BD address. If it
+ *                  is an L2CAP timeout, we send a disconnect req to L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_conn_timer_timeout(void *data)
 {
     tBNEP_CONN *p_bcb = (tBNEP_CONN *)data;
@@ -779,15 +779,15 @@ void bnep_conn_timer_timeout(void *data)
 
 
 /*******************************************************************************
-**
-** Function         bnep_connected
-**
-** Description      This function is called when a connection is established
-**                  (after config).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_connected
+ *
+ * Description      This function is called when a connection is established
+ *                  (after config).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_connected (tBNEP_CONN *p_bcb)
 {
     bool        is_role_change;

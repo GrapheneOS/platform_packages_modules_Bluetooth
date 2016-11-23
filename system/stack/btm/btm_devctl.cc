@@ -46,9 +46,9 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 extern thread_t *bt_workqueue_thread;
 
-/********************************************************************************/
+/******************************************************************************/
 /*                 L O C A L    D A T A    D E F I N I T I O N S                */
-/********************************************************************************/
+/******************************************************************************/
 
 #ifndef BTM_DEV_RESET_TIMEOUT
 #define BTM_DEV_RESET_TIMEOUT   4
@@ -59,21 +59,21 @@ extern thread_t *bt_workqueue_thread;
 
 #define BTM_INFO_TIMEOUT        5   /* 5 seconds for info response */
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 
 static void btm_decode_ext_features_page (uint8_t page_number, const BD_FEATURES p_features);
 
 /*******************************************************************************
-**
-** Function         btm_dev_init
-**
-** Description      This function is on the BTM startup
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_dev_init
+ *
+ * Description      This function is on the BTM startup
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_dev_init (void)
 {
     /* Initialize nonzero defaults */
@@ -103,16 +103,16 @@ void btm_dev_init (void)
 
 
 /*******************************************************************************
-**
-** Function         btm_db_reset
-**
-** Description      This function is called by BTM_DeviceReset and clears out any
-**                  pending callbacks for inquiries, discoveries, other pending
-**                  functions that may be in progress.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_db_reset
+ *
+ * Description      This function is called by BTM_DeviceReset and clears out any
+ *                  pending callbacks for inquiries, discoveries, other pending
+ *                  functions that may be in progress.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_db_reset (void)
 {
     tBTM_CMPL_CB    *p_cb;
@@ -215,28 +215,28 @@ void BTM_DeviceReset (UNUSED_ATTR tBTM_CMPL_CB *p_cb) {
 }
 
 /*******************************************************************************
-**
-** Function         BTM_IsDeviceUp
-**
-** Description      This function is called to check if the device is up.
-**
-** Returns          true if device is up, else false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_IsDeviceUp
+ *
+ * Description      This function is called to check if the device is up.
+ *
+ * Returns          true if device is up, else false
+ *
+ ******************************************************************************/
 bool    BTM_IsDeviceUp (void)
 {
     return controller_get_interface()->get_is_ready();
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_local_name_timeout
-**
-** Description      Callback when reading the local name times out.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_local_name_timeout
+ *
+ * Description      Callback when reading the local name times out.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_local_name_timeout(UNUSED_ATTR void *data)
 {
     tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
@@ -246,14 +246,14 @@ void btm_read_local_name_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_decode_ext_features_page
-**
-** Description      This function is decodes a features page.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_decode_ext_features_page
+ *
+ * Description      This function is decodes a features page.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_decode_ext_features_page (uint8_t page_number, const uint8_t *p_features)
 {
     BTM_TRACE_DEBUG ("btm_decode_ext_features_page page: %d", page_number);
@@ -421,14 +421,14 @@ static void btm_decode_ext_features_page (uint8_t page_number, const uint8_t *p_
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetLocalDeviceName
-**
-** Description      This function is called to set the local device name.
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetLocalDeviceName
+ *
+ * Description      This function is called to set the local device name.
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 {
     uint8_t  *p;
@@ -450,18 +450,18 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
 
 
 /*******************************************************************************
-**
-** Function         BTM_ReadLocalDeviceName
-**
-** Description      This function is called to read the local device name.
-**
-** Returns          status of the operation
-**                  If success, BTM_SUCCESS is returned and p_name points stored
-**                              local device name
-**                  If BTM doesn't store local device name, BTM_NO_RESOURCES is
-**                              is returned and p_name is set to NULL
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadLocalDeviceName
+ *
+ * Description      This function is called to read the local device name.
+ *
+ * Returns          status of the operation
+ *                  If success, BTM_SUCCESS is returned and p_name points stored
+ *                              local device name
+ *                  If BTM doesn't store local device name, BTM_NO_RESOURCES is
+ *                              is returned and p_name is set to NULL
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_ReadLocalDeviceName (char **p_name)
 {
     *p_name = btm_cb.cfg.bd_name;
@@ -470,15 +470,15 @@ tBTM_STATUS BTM_ReadLocalDeviceName (char **p_name)
 
 
 /*******************************************************************************
-**
-** Function         BTM_ReadLocalDeviceNameFromController
-**
-** Description      Get local device name from controller. Do not use cached
-**                  name (used to get chip-id prior to btm reset complete).
-**
-** Returns          BTM_CMD_STARTED if successful, otherwise an error
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadLocalDeviceNameFromController
+ *
+ * Description      Get local device name from controller. Do not use cached
+ *                  name (used to get chip-id prior to btm reset complete).
+ *
+ * Returns          BTM_CMD_STARTED if successful, otherwise an error
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cback)
 {
     /* Check if rln already in progress */
@@ -498,15 +498,15 @@ tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cbac
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_local_name_complete
-**
-** Description      This function is called when local name read complete.
-**                  message is received from the HCI.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_local_name_complete
+ *
+ * Description      This function is called when local name read complete.
+ *                  message is received from the HCI.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_local_name_complete (uint8_t *p,
                                    UNUSED_ATTR uint16_t evt_len)
 {
@@ -530,14 +530,14 @@ void btm_read_local_name_complete (uint8_t *p,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetDeviceClass
-**
-** Description      This function is called to set the local device class
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetDeviceClass
+ *
+ * Description      This function is called to set the local device class
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetDeviceClass (DEV_CLASS dev_class)
 {
     if(!memcmp (btm_cb.devcb.dev_class, dev_class, DEV_CLASS_LEN))
@@ -555,14 +555,14 @@ tBTM_STATUS BTM_SetDeviceClass (DEV_CLASS dev_class)
 
 
 /*******************************************************************************
-**
-** Function         BTM_ReadDeviceClass
-**
-** Description      This function is called to read the local device class
-**
-** Returns          pointer to the device class
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadDeviceClass
+ *
+ * Description      This function is called to read the local device class
+ *
+ * Returns          pointer to the device class
+ *
+ ******************************************************************************/
 uint8_t *BTM_ReadDeviceClass (void)
 {
     return ((uint8_t *)btm_cb.devcb.dev_class);
@@ -570,14 +570,14 @@ uint8_t *BTM_ReadDeviceClass (void)
 
 
 /*******************************************************************************
-**
-** Function         BTM_ReadLocalFeatures
-**
-** Description      This function is called to read the local features
-**
-** Returns          pointer to the local features string
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadLocalFeatures
+ *
+ * Description      This function is called to read the local features
+ *
+ * Returns          pointer to the local features string
+ *
+ ******************************************************************************/
 // TODO(zachoverflow): get rid of this function
 uint8_t *BTM_ReadLocalFeatures (void)
 {
@@ -586,19 +586,19 @@ uint8_t *BTM_ReadLocalFeatures (void)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_RegisterForDeviceStatusNotif
-**
-** Description      This function is called to register for device status
-**                  change notifications.
-**
-**                  If one registration is already there calling function should
-**                  save the pointer to the function that is return and
-**                  call it when processing of the event is complete
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         BTM_RegisterForDeviceStatusNotif
+ *
+ * Description      This function is called to register for device status
+ *                  change notifications.
+ *
+ *                  If one registration is already there calling function should
+ *                  save the pointer to the function that is return and
+ *                  call it when processing of the event is complete
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
 {
     tBTM_DEV_STATUS_CB *p_prev = btm_cb.devcb.p_dev_status_cb;
@@ -608,15 +608,15 @@ tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_VendorSpecificCommand
-**
-** Description      Send a vendor specific HCI command to the controller.
-**
-** Notes
-**      Opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_VendorSpecificCommand
+ *
+ * Description      Send a vendor specific HCI command to the controller.
+ *
+ * Notes
+ *      Opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC.
+ *
+ ******************************************************************************/
 void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
                                       uint8_t *p_param_buf, tBTM_VSC_CMPL_CB *p_cb)
 {
@@ -633,15 +633,15 @@ void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
 
 
 /*******************************************************************************
-**
-** Function         btm_vsc_complete
-**
-** Description      This function is called when local HCI Vendor Specific
-**                  Command complete message is received from the HCI.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_vsc_complete
+ *
+ * Description      This function is called when local HCI Vendor Specific
+ *                  Command complete message is received from the HCI.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_vsc_complete (uint8_t *p, uint16_t opcode, uint16_t evt_len,
                        tBTM_CMPL_CB *p_vsc_cplt_cback)
 {
@@ -659,20 +659,20 @@ void btm_vsc_complete (uint8_t *p, uint16_t opcode, uint16_t evt_len,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_RegisterForVSEvents
-**
-** Description      This function is called to register/deregister for vendor
-**                  specific HCI events.
-**
-**                  If is_register=true, then the function will be registered;
-**                  if is_register=false, then the function will be deregistered.
-**
-** Returns          BTM_SUCCESS if successful,
-**                  BTM_BUSY if maximum number of callbacks have already been
-**                           registered.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_RegisterForVSEvents
+ *
+ * Description      This function is called to register/deregister for vendor
+ *                  specific HCI events.
+ *
+ *                  If is_register=true, then the function will be registered;
+ *                  if is_register=false, then the function will be deregistered.
+ *
+ * Returns          BTM_SUCCESS if successful,
+ *                  BTM_BUSY if maximum number of callbacks have already been
+ *                           registered.
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, bool    is_register)
 {
     tBTM_STATUS retval = BTM_SUCCESS;
@@ -719,17 +719,17 @@ tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, bool    is_register)
 }
 
 /*******************************************************************************
-**
-** Function         btm_vendor_specific_evt
-**
-** Description      Process event HCI_VENDOR_SPECIFIC_EVT
-**
-**                  Note: Some controllers do not send command complete, so
-**                  the callback and busy flag are cleared here also.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_vendor_specific_evt
+ *
+ * Description      Process event HCI_VENDOR_SPECIFIC_EVT
+ *
+ *                  Note: Some controllers do not send command complete, so
+ *                  the callback and busy flag are cleared here also.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_vendor_specific_evt (uint8_t *p, uint8_t evt_len)
 {
     uint8_t i;
@@ -745,12 +745,12 @@ void btm_vendor_specific_evt (uint8_t *p, uint8_t evt_len)
 
 
 /*******************************************************************************
-**
-** Function         BTM_WritePageTimeout
-**
-** Description      Send HCI Write Page Timeout.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_WritePageTimeout
+ *
+ * Description      Send HCI Write Page Timeout.
+ *
+ ******************************************************************************/
 void BTM_WritePageTimeout(uint16_t timeout)
 {
     BTM_TRACE_EVENT ("BTM: BTM_WritePageTimeout: Timeout: %d.", timeout);
@@ -760,13 +760,13 @@ void BTM_WritePageTimeout(uint16_t timeout)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_WriteVoiceSettings
-**
-** Description      Send HCI Write Voice Settings command.
-**                  See hcidefs.h for settings bitmask values.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_WriteVoiceSettings
+ *
+ * Description      Send HCI Write Voice Settings command.
+ *                  See hcidefs.h for settings bitmask values.
+ *
+ ******************************************************************************/
 void BTM_WriteVoiceSettings(uint16_t settings)
 {
     BTM_TRACE_EVENT ("BTM: BTM_WriteVoiceSettings: Settings: 0x%04x.", settings);
@@ -776,20 +776,20 @@ void BTM_WriteVoiceSettings(uint16_t settings)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_EnableTestMode
-**
-** Description      Send HCI the enable device under test command.
-**
-**                  Note: Controller can only be taken out of this mode by
-**                      resetting the controller.
-**
-** Returns
-**      BTM_SUCCESS         Command sent.
-**      BTM_NO_RESOURCES    If out of resources to send the command.
-**
-**
-*******************************************************************************/
+ *
+ * Function         BTM_EnableTestMode
+ *
+ * Description      Send HCI the enable device under test command.
+ *
+ *                  Note: Controller can only be taken out of this mode by
+ *                      resetting the controller.
+ *
+ * Returns
+ *      BTM_SUCCESS         Command sent.
+ *      BTM_NO_RESOURCES    If out of resources to send the command.
+ *
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_EnableTestMode(void)
 {
     uint8_t cond;
@@ -829,18 +829,18 @@ tBTM_STATUS BTM_EnableTestMode(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_DeleteStoredLinkKey
-**
-** Description      This function is called to delete link key for the specified
-**                  device addresses from the NVRAM storage attached to the Bluetooth
-**                  controller.
-**
-** Parameters:      bd_addr      - Addresses of the devices
-**                  p_cb         - Call back function to be called to return
-**                                 the results
-**
-*******************************************************************************/
+ *
+ * Function         BTM_DeleteStoredLinkKey
+ *
+ * Description      This function is called to delete link key for the specified
+ *                  device addresses from the NVRAM storage attached to the Bluetooth
+ *                  controller.
+ *
+ * Parameters:      bd_addr      - Addresses of the devices
+ *                  p_cb         - Call back function to be called to return
+ *                                 the results
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
 {
     BD_ADDR local_bd_addr;
@@ -869,15 +869,15 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         btm_delete_stored_link_key_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the delete stored link key command.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_delete_stored_link_key_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the delete stored link key command.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_delete_stored_link_key_complete (uint8_t *p)
 {
     tBTM_CMPL_CB         *p_cb = btm_cb.devcb.p_stored_link_key_cmpl_cb;
@@ -901,16 +901,16 @@ void btm_delete_stored_link_key_complete (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_report_device_status
-**
-** Description      This function is called when there is a change in the device
-**                  status. This function will report the new device status to
-**                  the application
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_report_device_status
+ *
+ * Description      This function is called when there is a change in the device
+ *                  status. This function will report the new device status to
+ *                  the application
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_report_device_status (tBTM_DEV_STATUS status)
 {
     tBTM_DEV_STATUS_CB *p_cb = btm_cb.devcb.p_dev_status_cb;

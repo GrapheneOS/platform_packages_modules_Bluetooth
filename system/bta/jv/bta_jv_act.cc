@@ -412,7 +412,7 @@ static void bta_jv_clear_pm_cb(tBTA_JV_PM_CB* p_pm_cb, bool close_conn) {
  *             BTA_JV_FAILURE in case of no profile has been registered or
  *             already freed
  *
- *******************************************************************************/
+ ******************************************************************************/
 static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(uint32_t jv_handle) {
   tBTA_JV_STATUS status = BTA_JV_FAILURE;
   tBTA_JV_PM_CB** p_cb;
@@ -495,7 +495,7 @@ static tBTA_JV_STATUS bta_jv_free_set_pm_profile_cb(uint32_t jv_handle) {
  *
  * Returns     pointer to allocated cb or NULL in case of failure
  *
- *******************************************************************************/
+ ******************************************************************************/
 static tBTA_JV_PM_CB* bta_jv_alloc_set_pm_profile_cb(uint32_t jv_handle,
                                                      tBTA_JV_PM_ID app_id) {
   bool bRfcHandle = (jv_handle & BTA_JV_RFCOMM_MASK) != 0;
@@ -1979,7 +1979,7 @@ void bta_jv_rfcomm_write(tBTA_JV_MSG* p_data) {
  *
  * Returns      void
  *
- *******************************************************************************/
+ ******************************************************************************/
 void bta_jv_set_pm_profile(tBTA_JV_MSG* p_data) {
   tBTA_JV_STATUS status;
   tBTA_JV_PM_CB* p_cb;
@@ -2016,7 +2016,7 @@ void bta_jv_set_pm_profile(tBTA_JV_MSG* p_data) {
  *
  * Returns      void
  *
- *******************************************************************************/
+ ******************************************************************************/
 void bta_jv_change_pm_state(tBTA_JV_MSG* p_data) {
   tBTA_JV_API_PM_STATE_CHANGE* p_msg = (tBTA_JV_API_PM_STATE_CHANGE*)p_data;
 
@@ -2037,7 +2037,7 @@ void bta_jv_change_pm_state(tBTA_JV_MSG* p_data) {
  *
  * Returns     BTA_JV_SUCCESS, BTA_JV_FAILURE (buffer allocation, or NULL ptr!)
  *
- *******************************************************************************/
+ ******************************************************************************/
 tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB* p_cb,
                                         const tBTA_JV_CONN_STATE new_st) {
   if (p_cb == NULL) return BTA_JV_FAILURE;
@@ -2065,7 +2065,7 @@ tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB* p_cb,
  *
  * Returns     void
  *
- *******************************************************************************/
+ ******************************************************************************/
 static void bta_jv_pm_conn_busy(tBTA_JV_PM_CB* p_cb) {
   if ((NULL != p_cb) && (BTA_JV_PM_IDLE_ST == p_cb->state))
     bta_jv_pm_state_change(p_cb, BTA_JV_CONN_BUSY);
@@ -2081,7 +2081,7 @@ static void bta_jv_pm_conn_busy(tBTA_JV_PM_CB* p_cb) {
  *
  * Returns     void
  *
- *******************************************************************************/
+ ******************************************************************************/
 static void bta_jv_pm_conn_idle(tBTA_JV_PM_CB* p_cb) {
   if ((NULL != p_cb) && (BTA_JV_PM_IDLE_ST != p_cb->state))
     bta_jv_pm_state_change(p_cb, BTA_JV_CONN_IDLE);
@@ -2097,7 +2097,7 @@ static void bta_jv_pm_conn_idle(tBTA_JV_PM_CB* p_cb) {
  *
  * Returns      void
  *
- *******************************************************************************/
+ ******************************************************************************/
 static void bta_jv_pm_state_change(tBTA_JV_PM_CB* p_cb,
                                    const tBTA_JV_CONN_STATE state) {
   APPL_TRACE_API(
@@ -2146,7 +2146,7 @@ static void bta_jv_pm_state_change(tBTA_JV_PM_CB* p_cb,
       break;
   }
 }
-/**********************************************************************************************/
+/******************************************************************************/
 
 static struct fc_channel* fcchan_get(uint16_t chan, char create) {
   struct fc_channel* t = fc_channels;

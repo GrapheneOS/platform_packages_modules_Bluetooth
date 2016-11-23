@@ -38,9 +38,9 @@
  * Additional information is available in the @ref data_types_docpage section.
  */
 
-/**********************************************************************************
+/*******************************************************************************
   $Revision: #1 $
-***********************************************************************************/
+ ******************************************************************************/
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,7 +111,7 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 
 
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_X86
 
@@ -119,7 +119,7 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARM
 /* This CPU type is deprecated (removed from use). Instead, use OI_CPU_ARM7_LEND or OI_CPU_ARM7_BEND for
@@ -127,7 +127,7 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 #error OI_CPU_ARM is deprecated
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARC
 /* This CPU type is deprecated (removed from use). Instead, use OI_CPU_ARC_LEND or OI_CPU_ARC_BEND for
@@ -135,7 +135,7 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 #error OI_CPU_ARC is deprecated
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_SH3
 /* The Hitachi SH C compiler defines _LIT or _BIG, depending on the endianness
@@ -149,107 +149,107 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 #endif
 
 #endif
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_SH2
 
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER /**< SH-2 platform byte ordering is big-endian. */
 
 #endif
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_H8
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #error basic types not defined
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_MIPS
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_SPARC
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #error basic types not defined
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_M68000
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER  /**< M68000 platform byte ordering is big-endian. */
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_PPC
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_SH4_7750
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER  /**< SH7750 platform byte ordering is big-endian. */
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARM7_LEND
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARM7_BEND
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_GDM1202
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARC_LEND
 
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARC_BEND
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_M30833F
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_CR16C
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_M64111
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARMV5_LEND
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 
 
 #ifndef OI_CPU_BYTE_ORDER
@@ -263,5 +263,5 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 }
 #endif
 
-/*********************************************************************************/
+/******************************************************************************/
 #endif /* _OI_CPU_DEP_H */

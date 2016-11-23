@@ -1631,17 +1631,17 @@ bool btif_av_peer_supports_3mbps(void) {
 }
 
 /*******************************************************************************
-**
-** Function         btif_av_move_idle
-**
-** Description      Opening state is intermediate state. It cannot handle
-**                  incoming/outgoing connect/disconnect requests.When ACL
-**                  is disconnected and we are in opening state then move back
-**                  to idle state which is proper to handle connections.
-**
-** Returns          Void
-**
-*******************************************************************************/
+ *
+ * Function         btif_av_move_idle
+ *
+ * Description      Opening state is intermediate state. It cannot handle
+ *                  incoming/outgoing connect/disconnect requests.When ACL
+ *                  is disconnected and we are in opening state then move back
+ *                  to idle state which is proper to handle connections.
+ *
+ * Returns          Void
+ *
+ ******************************************************************************/
 void btif_av_move_idle(bt_bdaddr_t bd_addr) {
   /* inform the application that ACL is disconnected and move to idle state */
   btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);

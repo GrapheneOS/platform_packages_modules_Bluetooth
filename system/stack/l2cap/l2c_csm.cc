@@ -39,9 +39,9 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void l2c_csm_closed (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
@@ -55,14 +55,14 @@ static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, voi
 static const char *l2c_csm_get_event_name (uint16_t event);
 
 /*******************************************************************************
-**
-** Function         l2c_csm_execute
-**
-** Description      This function executes the state machine.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_execute
+ *
+ * Description      This function executes the state machine.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_csm_execute (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     if (!l2cu_is_ccb_active(p_ccb)) {
@@ -115,16 +115,16 @@ void l2c_csm_execute (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_csm_closed
-**
-** Description      This function handles events when the channel is in
-**                  CLOSED state. This state exists only when the link is
-**                  being initially established.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_closed
+ *
+ * Description      This function handles events when the channel is in
+ *                  CLOSED state. This state exists only when the link is
+ *                  being initially established.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_closed (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     tL2C_CONN_INFO          *p_ci = (tL2C_CONN_INFO *)p_data;
@@ -310,15 +310,15 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_orig_w4_sec_comp
-**
-** Description      This function handles events when the channel is in
-**                  CST_ORIG_W4_SEC_COMP state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_orig_w4_sec_comp
+ *
+ * Description      This function handles events when the channel is in
+ *                  CST_ORIG_W4_SEC_COMP state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     tL2CA_DISCONNECT_IND_CB *disconnect_ind = p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb;
@@ -424,15 +424,15 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_d
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_term_w4_sec_comp
-**
-** Description      This function handles events when the channel is in
-**                  CST_TERM_W4_SEC_COMP state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_term_w4_sec_comp
+ *
+ * Description      This function handles events when the channel is in
+ *                  CST_TERM_W4_SEC_COMP state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: TERM_W4_SEC_COMP  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
@@ -541,15 +541,15 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_d
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_w4_l2cap_connect_rsp
-**
-** Description      This function handles events when the channel is in
-**                  CST_W4_L2CAP_CONNECT_RSP state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_w4_l2cap_connect_rsp
+ *
+ * Description      This function handles events when the channel is in
+ *                  CST_W4_L2CAP_CONNECT_RSP state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     tL2C_CONN_INFO          *p_ci = (tL2C_CONN_INFO *)p_data;
@@ -675,15 +675,15 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, uint16_t event, void 
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_w4_l2ca_connect_rsp
-**
-** Description      This function handles events when the channel is in
-**                  CST_W4_L2CA_CONNECT_RSP state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_w4_l2ca_connect_rsp
+ *
+ * Description      This function handles events when the channel is in
+ *                  CST_W4_L2CA_CONNECT_RSP state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     tL2C_CONN_INFO          *p_ci;
@@ -789,15 +789,15 @@ static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_config
-**
-** Description      This function handles events when the channel is in
-**                  CONFIG state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_config
+ *
+ * Description      This function handles events when the channel is in
+ *                  CONFIG state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_config (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     tL2CAP_CFG_INFO         *p_cfg = (tL2CAP_CFG_INFO *)p_data;
@@ -1036,15 +1036,15 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_open
-**
-** Description      This function handles events when the channel is in
-**                  OPEN state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_open
+ *
+ * Description      This function handles events when the channel is in
+ *                  OPEN state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_open (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     uint16_t                local_cid = p_ccb->local_cid;
@@ -1225,15 +1225,15 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_w4_l2cap_disconnect_rsp
-**
-** Description      This function handles events when the channel is in
-**                  CST_W4_L2CAP_DISCONNECT_RSP state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_w4_l2cap_disconnect_rsp
+ *
+ * Description      This function handles events when the channel is in
+ *                  CST_W4_L2CAP_DISCONNECT_RSP state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_w4_l2cap_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     tL2CA_DISCONNECT_CFM_CB *disconnect_cfm = p_ccb->p_rcb->api.pL2CA_DisconnectCfm_Cb;
@@ -1286,15 +1286,15 @@ static void l2c_csm_w4_l2cap_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, vo
 
 
 /*******************************************************************************
-**
-** Function         l2c_csm_w4_l2ca_disconnect_rsp
-**
-** Description      This function handles events when the channel is in
-**                  CST_W4_L2CA_DISCONNECT_RSP state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_w4_l2ca_disconnect_rsp
+ *
+ * Description      This function handles events when the channel is in
+ *                  CST_W4_L2CA_DISCONNECT_RSP state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     tL2CA_DISCONNECT_IND_CB *disconnect_ind = p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb;
@@ -1331,16 +1331,16 @@ static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, uint16_t event, voi
 }
 
 /*******************************************************************************
-**
-** Function         l2c_csm_get_event_name
-**
-** Description      This function returns the event name.
-**
-** NOTE             conditionally compiled to save memory.
-**
-** Returns          pointer to the name
-**
-*******************************************************************************/
+ *
+ * Function         l2c_csm_get_event_name
+ *
+ * Description      This function returns the event name.
+ *
+ * NOTE             conditionally compiled to save memory.
+ *
+ * Returns          pointer to the name
+ *
+ ******************************************************************************/
 static const char *l2c_csm_get_event_name (uint16_t event)
 {
     switch (event)
@@ -1425,15 +1425,15 @@ static const char *l2c_csm_get_event_name (uint16_t event)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_enqueue_peer_data
-**
-** Description      Enqueues data destined for the peer in the ccb. Handles
-**                  FCR segmentation and checks for congestion.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_enqueue_peer_data
+ *
+ * Description      Enqueues data destined for the peer in the ccb. Handles
+ *                  FCR segmentation and checks for congestion.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 {
     uint8_t     *p;

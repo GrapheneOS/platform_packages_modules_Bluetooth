@@ -50,9 +50,9 @@ extern fixed_queue_t *btu_general_alarm_queue;
 #define SDP_MAX_SERVATTR_RSPHDR_LEN     10
 #define SDP_MAX_ATTR_RSPHDR_LEN         10
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
                                     uint16_t param_len, uint8_t *p_req,
                                     UNUSED_ATTR uint8_t *p_req_end);
@@ -66,12 +66,12 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num
                                              UNUSED_ATTR uint8_t *p_req_end);
 
 
-/********************************************************************************/
+/******************************************************************************/
 /*                  E R R O R   T E X T   S T R I N G S                         */
 /*                                                                              */
 /* The default is to have no text string, but we allow the strings to be        */
 /* configured in target.h if people want them.                                  */
-/********************************************************************************/
+/******************************************************************************/
 #ifndef SDP_TEXT_BAD_HEADER
 #define SDP_TEXT_BAD_HEADER     NULL
 #endif
@@ -105,16 +105,16 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num
 #endif
 
 /*******************************************************************************
-**
-** Function         sdp_server_handle_client_req
-**
-** Description      This is the main dispatcher of the SDP server. It is called
-**                  when any data is received from L2CAP, and dispatches the
-**                  request to the appropriate handler.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_server_handle_client_req
+ *
+ * Description      This is the main dispatcher of the SDP server. It is called
+ *                  when any data is received from L2CAP, and dispatches the
+ *                  request to the appropriate handler.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
 {
     uint8_t *p_req     = (uint8_t *) (p_msg + 1) + p_msg->offset;
@@ -164,16 +164,16 @@ void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
 
 
 /*******************************************************************************
-**
-** Function         process_service_search
-**
-** Description      This function handles a service search request from the
-**                  client. It builds a reply message with info from the database,
-**                  and sends the reply back to the client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         process_service_search
+ *
+ * Description      This function handles a service search request from the
+ *                  client. It builds a reply message with info from the database,
+ *                  and sends the reply back to the client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
                                     uint16_t param_len, uint8_t *p_req,
                                     UNUSED_ATTR uint8_t *p_req_end)
@@ -302,16 +302,16 @@ static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
 
 
 /*******************************************************************************
-**
-** Function         process_service_attr_req
-**
-** Description      This function handles an attribute request from the client.
-**                  It builds a reply message with info from the database,
-**                  and sends the reply back to the client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         process_service_attr_req
+ *
+ * Description      This function handles an attribute request from the client.
+ *                  It builds a reply message with info from the database,
+ *                  and sends the reply back to the client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
                                       uint16_t param_len, uint8_t *p_req,
                                       uint8_t *p_req_end)
@@ -531,16 +531,16 @@ static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
 
 
 /*******************************************************************************
-**
-** Function         process_service_search_attr_req
-**
-** Description      This function handles a combined service search and attribute
-**                  read request from the client. It builds a reply message with
-**                  info from the database, and sends the reply back to the client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         process_service_search_attr_req
+ *
+ * Description      This function handles a combined service search and attribute
+ *                  read request from the client. It builds a reply message with
+ *                  info from the database, and sends the reply back to the client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
                                              uint16_t param_len, uint8_t *p_req,
                                              UNUSED_ATTR uint8_t *p_req_end)

@@ -32,8 +32,8 @@
 #include "osi/include/osi.h"
 
 /*****************************************************************************
-**  Global data
-*****************************************************************************/
+ *  Global data
+ ****************************************************************************/
 extern fixed_queue_t *btu_general_alarm_queue;
 
 
@@ -71,15 +71,15 @@ static const uint8_t avrc_ctrl_event_map[] =
 #define AVRC_MSG_MASK_IS_CONTINUATION_RSP   0x02
 
 /******************************************************************************
-**
-** Function         avrc_ctrl_cback
-**
-** Description      This is the callback function used by AVCTP to report
-**                  received link events.
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_ctrl_cback
+ *
+ * Description      This is the callback function used by AVCTP to report
+ *                  received link events.
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 static void avrc_ctrl_cback(uint8_t handle, uint8_t event, uint16_t result,
                                 BD_ADDR peer_addr)
 {
@@ -104,14 +104,14 @@ static void avrc_ctrl_cback(uint8_t handle, uint8_t event, uint16_t result,
 }
 
 /******************************************************************************
-**
-** Function         avrc_flush_cmd_q
-**
-** Description      Flush command queue for the specified avrc handle
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_flush_cmd_q
+ *
+ * Description      Flush command queue for the specified avrc handle
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 void avrc_flush_cmd_q(uint8_t handle)
 {
     AVRC_TRACE_DEBUG("AVRC: Flushing command queue for handle=0x%02x", handle);
@@ -122,14 +122,14 @@ void avrc_flush_cmd_q(uint8_t handle)
 }
 
 /******************************************************************************
-**
-** Function         avrc_process_timeout
-**
-** Description      Handle avrc command timeout
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_process_timeout
+ *
+ * Description      Handle avrc command timeout
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 void avrc_process_timeout(void *data)
 {
     tAVRC_PARAM *param = (tAVRC_PARAM *)data;
@@ -153,14 +153,14 @@ void avrc_process_timeout(void *data)
 }
 
 /******************************************************************************
-**
-** Function         avrc_send_next_vendor_cmd
-**
-** Description      Dequeue and send next vendor command for given handle
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_send_next_vendor_cmd
+ *
+ * Description      Dequeue and send next vendor command for given handle
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 void avrc_send_next_vendor_cmd(uint8_t handle)
 {
     BT_HDR *p_next_cmd;
@@ -192,14 +192,14 @@ void avrc_send_next_vendor_cmd(uint8_t handle)
 }
 
 /******************************************************************************
-**
-** Function         avrc_start_cmd_timer
-**
-** Description      Start timer for waiting for responses
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_start_cmd_timer
+ *
+ * Description      Start timer for waiting for responses
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 void avrc_start_cmd_timer(uint8_t handle, uint8_t label, uint8_t msg_mask)
 {
     tAVRC_PARAM *param = static_cast<tAVRC_PARAM *>(osi_malloc(sizeof(tAVRC_PARAM)));
@@ -216,29 +216,29 @@ void avrc_start_cmd_timer(uint8_t handle, uint8_t label, uint8_t msg_mask)
 }
 
 /******************************************************************************
-**
-** Function         avrc_get_data_ptr
-**
-** Description      Gets a pointer to the data payload in the packet.
-**
-** Returns          A pointer to the data payload.
-**
-******************************************************************************/
+ *
+ * Function         avrc_get_data_ptr
+ *
+ * Description      Gets a pointer to the data payload in the packet.
+ *
+ * Returns          A pointer to the data payload.
+ *
+ *****************************************************************************/
 static uint8_t * avrc_get_data_ptr(BT_HDR *p_pkt)
 {
     return (uint8_t *)(p_pkt + 1) + p_pkt->offset;
 }
 
 /******************************************************************************
-**
-** Function         avrc_copy_packet
-**
-** Description      Copies an AVRC packet to a new buffer. In the new buffer,
-**                  the payload offset is at least AVCT_MSG_OFFSET octets.
-**
-** Returns          The buffer with the copied data.
-**
-******************************************************************************/
+ *
+ * Function         avrc_copy_packet
+ *
+ * Description      Copies an AVRC packet to a new buffer. In the new buffer,
+ *                  the payload offset is at least AVCT_MSG_OFFSET octets.
+ *
+ * Returns          The buffer with the copied data.
+ *
+ *****************************************************************************/
 static BT_HDR * avrc_copy_packet(BT_HDR *p_pkt, int rsp_pkt_len)
 {
     const int offset = MAX(AVCT_MSG_OFFSET, p_pkt->offset);
@@ -257,14 +257,14 @@ static BT_HDR * avrc_copy_packet(BT_HDR *p_pkt, int rsp_pkt_len)
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
 /******************************************************************************
-**
-** Function         avrc_prep_end_frag
-**
-** Description      This function prepares an end response fragment
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_prep_end_frag
+ *
+ * Description      This function prepares an end response fragment
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 static void avrc_prep_end_frag(uint8_t handle)
 {
     tAVRC_FRAG_CB   *p_fcb;
@@ -297,15 +297,15 @@ static void avrc_prep_end_frag(uint8_t handle)
 }
 
 /******************************************************************************
-**
-** Function         avrc_send_continue_frag
-**
-** Description      This function sends a continue response fragment
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         avrc_send_continue_frag
+ *
+ * Description      This function sends a continue response fragment
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 static uint16_t avrc_send_continue_frag(uint8_t handle, uint8_t label)
 {
     tAVRC_FRAG_CB   *p_fcb;
@@ -347,14 +347,14 @@ static uint16_t avrc_send_continue_frag(uint8_t handle, uint8_t label)
 }
 
 /******************************************************************************
-**
-** Function         avrc_proc_vendor_command
-**
-** Description      This function processes received vendor command.
-**
-** Returns          if not NULL, the response to send right away.
-**
-******************************************************************************/
+ *
+ * Function         avrc_proc_vendor_command
+ *
+ * Description      This function processes received vendor command.
+ *
+ * Returns          if not NULL, the response to send right away.
+ *
+ *****************************************************************************/
 static BT_HDR * avrc_proc_vendor_command(uint8_t handle, uint8_t label,
                                BT_HDR *p_pkt, tAVRC_MSG_VENDOR *p_msg)
 {
@@ -456,15 +456,15 @@ static BT_HDR * avrc_proc_vendor_command(uint8_t handle, uint8_t label,
 }
 
 /******************************************************************************
-**
-** Function         avrc_proc_far_msg
-**
-** Description      This function processes metadata fragmenation
-**                  and reassembly
-**
-** Returns          0, to report the message with msg_cback .
-**
-******************************************************************************/
+ *
+ * Function         avrc_proc_far_msg
+ *
+ * Description      This function processes metadata fragmenation
+ *                  and reassembly
+ *
+ * Returns          0, to report the message with msg_cback .
+ *
+ *****************************************************************************/
 static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR **pp_pkt,
     tAVRC_MSG_VENDOR *p_msg)
 {
@@ -638,15 +638,15 @@ static uint8_t avrc_proc_far_msg(uint8_t handle, uint8_t label, uint8_t cr, BT_H
 #endif /* (AVRC_METADATA_INCLUDED == TRUE) */
 
 /******************************************************************************
-**
-** Function         avrc_msg_cback
-**
-** Description      This is the callback function used by AVCTP to report
-**                  received AV control messages.
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_msg_cback
+ *
+ * Description      This is the callback function used by AVCTP to report
+ *                  received AV control messages.
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 static void avrc_msg_cback(uint8_t handle, uint8_t label, uint8_t cr,
                                BT_HDR *p_pkt)
 {
@@ -990,21 +990,21 @@ static uint16_t AVRC_HandleContinueRsp(uint8_t handle, uint8_t label, BT_HDR *p_
 
 
 /******************************************************************************
-**
-** Function         avrc_pass_msg
-**
-** Description      Compose a PASS THROUGH command according to p_msg
-**
-**                  Input Parameters:
-**                      p_msg: Pointer to PASS THROUGH message structure.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          pointer to a valid GKI buffer if successful.
-**                  NULL if p_msg is NULL.
-**
-******************************************************************************/
+ *
+ * Function         avrc_pass_msg
+ *
+ * Description      Compose a PASS THROUGH command according to p_msg
+ *
+ *                  Input Parameters:
+ *                      p_msg: Pointer to PASS THROUGH message structure.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          pointer to a valid GKI buffer if successful.
+ *                  NULL if p_msg is NULL.
+ *
+ *****************************************************************************/
 static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
 {
     assert(p_msg != NULL);
@@ -1039,50 +1039,50 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
 }
 
 /******************************************************************************
-**
-** Function         AVRC_Open
-**
-** Description      This function is called to open a connection to AVCTP.
-**                  The connection can be either an initiator or acceptor, as
-**                  determined by the p_ccb->stream parameter.
-**                  The connection can be a target, a controller or for both role,
-**                  as determined by the p_ccb->control parameter.
-**                  By definition, a target connection is an acceptor connection
-**                  that waits for an incoming AVCTP connection from the peer.
-**                  The connection remains available to the application until
-**                  the application closes it by calling AVRC_Close().  The
-**                  application does not need to reopen the connection after an
-**                  AVRC_CLOSE_IND_EVT is received.
-**
-**                  Input Parameters:
-**                      p_ccb->company_id: Company Identifier.
-**
-**                      p_ccb->p_ctrl_cback:  Pointer to control callback function.
-**
-**                      p_ccb->p_msg_cback:  Pointer to message callback function.
-**
-**                      p_ccb->conn: AVCTP connection role.  This is set to
-**                      AVCTP_INT for initiator connections and AVCTP_ACP
-**                      for acceptor connections.
-**
-**                      p_ccb->control: Control role.  This is set to
-**                      AVRC_CT_TARGET for target connections, AVRC_CT_CONTROL
-**                      for control connections or (AVRC_CT_TARGET|AVRC_CT_CONTROL)
-**                      for connections that support both roles.
-**
-**                      peer_addr: BD address of peer device.  This value is
-**                      only used for initiator connections; for acceptor
-**                      connections it can be set to NULL.
-**
-**                  Output Parameters:
-**                      p_handle: Pointer to handle.  This parameter is only
-**                                valid if AVRC_SUCCESS is returned.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_NO_RESOURCES if there are not enough resources to open
-**                  the connection.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_Open
+ *
+ * Description      This function is called to open a connection to AVCTP.
+ *                  The connection can be either an initiator or acceptor, as
+ *                  determined by the p_ccb->stream parameter.
+ *                  The connection can be a target, a controller or for both role,
+ *                  as determined by the p_ccb->control parameter.
+ *                  By definition, a target connection is an acceptor connection
+ *                  that waits for an incoming AVCTP connection from the peer.
+ *                  The connection remains available to the application until
+ *                  the application closes it by calling AVRC_Close().  The
+ *                  application does not need to reopen the connection after an
+ *                  AVRC_CLOSE_IND_EVT is received.
+ *
+ *                  Input Parameters:
+ *                      p_ccb->company_id: Company Identifier.
+ *
+ *                      p_ccb->p_ctrl_cback:  Pointer to control callback function.
+ *
+ *                      p_ccb->p_msg_cback:  Pointer to message callback function.
+ *
+ *                      p_ccb->conn: AVCTP connection role.  This is set to
+ *                      AVCTP_INT for initiator connections and AVCTP_ACP
+ *                      for acceptor connections.
+ *
+ *                      p_ccb->control: Control role.  This is set to
+ *                      AVRC_CT_TARGET for target connections, AVRC_CT_CONTROL
+ *                      for control connections or (AVRC_CT_TARGET|AVRC_CT_CONTROL)
+ *                      for connections that support both roles.
+ *
+ *                      peer_addr: BD address of peer device.  This value is
+ *                      only used for initiator connections; for acceptor
+ *                      connections it can be set to NULL.
+ *
+ *                  Output Parameters:
+ *                      p_handle: Pointer to handle.  This parameter is only
+ *                                valid if AVRC_SUCCESS is returned.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_NO_RESOURCES if there are not enough resources to open
+ *                  the connection.
+ *
+ *****************************************************************************/
 uint16_t AVRC_Open(uint8_t *p_handle, tAVRC_CONN_CB *p_ccb, BD_ADDR_PTR peer_addr)
 {
     uint16_t    status;
@@ -1113,23 +1113,23 @@ uint16_t AVRC_Open(uint8_t *p_handle, tAVRC_CONN_CB *p_ccb, BD_ADDR_PTR peer_add
 }
 
 /******************************************************************************
-**
-** Function         AVRC_Close
-**
-** Description      Close a connection opened with AVRC_Open().
-**                  This function is called when the
-**                  application is no longer using a connection.
-**
-**                  Input Parameters:
-**                      handle: Handle of this connection.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_Close
+ *
+ * Description      Close a connection opened with AVRC_Open().
+ *                  This function is called when the
+ *                  application is no longer using a connection.
+ *
+ *                  Input Parameters:
+ *                      handle: Handle of this connection.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_Close(uint8_t handle)
 {
     AVRC_TRACE_DEBUG("%s handle:%d", __func__, handle);
@@ -1137,57 +1137,57 @@ uint16_t AVRC_Close(uint8_t handle)
 }
 
 /******************************************************************************
-**
-** Function         AVRC_OpenBrowse
-**
-** Description      This function is called to open a browsing connection to AVCTP.
-**                  The connection can be either an initiator or acceptor, as
-**                  determined by the p_conn_role.
-**                  The handle is returned by a previous call to AVRC_Open.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_NO_RESOURCES if there are not enough resources to open
-**                  the connection.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_OpenBrowse
+ *
+ * Description      This function is called to open a browsing connection to AVCTP.
+ *                  The connection can be either an initiator or acceptor, as
+ *                  determined by the p_conn_role.
+ *                  The handle is returned by a previous call to AVRC_Open.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_NO_RESOURCES if there are not enough resources to open
+ *                  the connection.
+ *
+ *****************************************************************************/
 uint16_t AVRC_OpenBrowse(uint8_t handle, uint8_t conn_role)
 {
     return AVCT_CreateBrowse(handle, conn_role);
 }
 
 /******************************************************************************
-**
-** Function         AVRC_CloseBrowse
-**
-** Description      Close a connection opened with AVRC_OpenBrowse().
-**                  This function is called when the
-**                  application is no longer using a connection.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_CloseBrowse
+ *
+ * Description      Close a connection opened with AVRC_OpenBrowse().
+ *                  This function is called when the
+ *                  application is no longer using a connection.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_CloseBrowse(uint8_t handle)
 {
     return AVCT_RemoveBrowse(handle);
 }
 
 /******************************************************************************
-**
-** Function         AVRC_MsgReq
-**
-** Description      This function is used to send the AVRCP byte stream in p_pkt
-**                  down to AVCTP.
-**
-**                  It is expected that p_pkt->offset is at least AVCT_MSG_OFFSET
-**                  p_pkt->layer_specific is AVCT_DATA_CTRL or AVCT_DATA_BROWSE
-**                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
-**                  The above BT_HDR settings are set by the AVRC_Bld* functions.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_MsgReq
+ *
+ * Description      This function is used to send the AVRCP byte stream in p_pkt
+ *                  down to AVCTP.
+ *
+ *                  It is expected that p_pkt->offset is at least AVCT_MSG_OFFSET
+ *                  p_pkt->layer_specific is AVCT_DATA_CTRL or AVCT_DATA_BROWSE
+ *                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
+ *                  The above BT_HDR settings are set by the AVRC_Bld* functions.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_MsgReq (uint8_t handle, uint8_t label, uint8_t ctype, BT_HDR *p_pkt)
 {
 #if (AVRC_METADATA_INCLUDED == TRUE)
@@ -1364,28 +1364,28 @@ uint16_t AVRC_MsgReq (uint8_t handle, uint8_t label, uint8_t ctype, BT_HDR *p_pk
 
 
 /******************************************************************************
-**
-** Function         AVRC_PassCmd
-**
-** Description      Send a PASS THROUGH command to the peer device.  This
-**                  function can only be called for controller role connections.
-**                  Any response message from the peer is passed back through
-**                  the tAVRC_MSG_CBACK callback function.
-**
-**                  Input Parameters:
-**                      handle: Handle of this connection.
-**
-**                      label: Transaction label.
-**
-**                      p_msg: Pointer to PASS THROUGH message structure.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_PassCmd
+ *
+ * Description      Send a PASS THROUGH command to the peer device.  This
+ *                  function can only be called for controller role connections.
+ *                  Any response message from the peer is passed back through
+ *                  the tAVRC_MSG_CBACK callback function.
+ *
+ *                  Input Parameters:
+ *                      handle: Handle of this connection.
+ *
+ *                      label: Transaction label.
+ *
+ *                      p_msg: Pointer to PASS THROUGH message structure.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_PassCmd(uint8_t handle, uint8_t label, tAVRC_MSG_PASS *p_msg)
 {
     BT_HDR *p_buf;
@@ -1408,30 +1408,30 @@ uint16_t AVRC_PassCmd(uint8_t handle, uint8_t label, tAVRC_MSG_PASS *p_msg)
 }
 
 /******************************************************************************
-**
-** Function         AVRC_PassRsp
-**
-** Description      Send a PASS THROUGH response to the peer device.  This
-**                  function can only be called for target role connections.
-**                  This function must be called when a PASS THROUGH command
-**                  message is received from the peer through the
-**                  tAVRC_MSG_CBACK callback function.
-**
-**                  Input Parameters:
-**                      handle: Handle of this connection.
-**
-**                      label: Transaction label.  Must be the same value as
-**                      passed with the command message in the callback function.
-**
-**                      p_msg: Pointer to PASS THROUGH message structure.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_PassRsp
+ *
+ * Description      Send a PASS THROUGH response to the peer device.  This
+ *                  function can only be called for target role connections.
+ *                  This function must be called when a PASS THROUGH command
+ *                  message is received from the peer through the
+ *                  tAVRC_MSG_CBACK callback function.
+ *
+ *                  Input Parameters:
+ *                      handle: Handle of this connection.
+ *
+ *                      label: Transaction label.  Must be the same value as
+ *                      passed with the command message in the callback function.
+ *
+ *                      p_msg: Pointer to PASS THROUGH message structure.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_PassRsp(uint8_t handle, uint8_t label, tAVRC_MSG_PASS *p_msg)
 {
     BT_HDR *p_buf;

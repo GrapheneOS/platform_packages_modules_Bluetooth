@@ -23,21 +23,21 @@
 #include "avrc_int.h"
 
 /*****************************************************************************
-**  Global data
-*****************************************************************************/
+ *  Global data
+ ****************************************************************************/
 
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         avrc_bld_next_cmd
-**
-** Description      This function builds the Request Continue or Abort command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_next_cmd
+ *
+ * Description      This function builds the Request Continue or Abort command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_next_cmd (tAVRC_NEXT_CMD *p_cmd, BT_HDR *p_pkt)
 {
     uint8_t *p_data, *p_start;
@@ -57,20 +57,20 @@ static tAVRC_STS avrc_bld_next_cmd (tAVRC_NEXT_CMD *p_cmd, BT_HDR *p_pkt)
 }
 
 /*****************************************************************************
-**  the following commands are introduced in AVRCP 1.4
-*****************************************************************************/
+ *  the following commands are introduced in AVRCP 1.4
+ ****************************************************************************/
 
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         avrc_bld_set_abs_volume_cmd
-**
-** Description      This function builds the Set Absolute Volume command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_set_abs_volume_cmd
+ *
+ * Description      This function builds the Set Absolute Volume command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_set_abs_volume_cmd (tAVRC_SET_VOLUME_CMD *p_cmd, BT_HDR *p_pkt)
 {
     uint8_t *p_data, *p_start;
@@ -87,15 +87,15 @@ static tAVRC_STS avrc_bld_set_abs_volume_cmd (tAVRC_SET_VOLUME_CMD *p_cmd, BT_HD
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_register_notifn
-**
-** Description      This function builds the register notification.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_register_notifn
+ *
+ * Description      This function builds the register notification.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_register_notifn(BT_HDR * p_pkt, uint8_t event_id, uint32_t event_param)
 {
     uint8_t *p_data, *p_start;
@@ -115,15 +115,15 @@ static tAVRC_STS avrc_bld_register_notifn(BT_HDR * p_pkt, uint8_t event_id, uint
 #endif
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_capability_cmd
-**
-** Description      This function builds the get capability command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_capability_cmd
+ *
+ * Description      This function builds the get capability command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_capability_cmd(BT_HDR * p_pkt, uint8_t cap_id)
 {
     AVRC_TRACE_API("avrc_bld_get_capability_cmd");
@@ -137,15 +137,15 @@ static tAVRC_STS avrc_bld_get_capability_cmd(BT_HDR * p_pkt, uint8_t cap_id)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_list_player_app_attr_cmd
-**
-** Description      This function builds the list player app attrib command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_list_player_app_attr_cmd
+ *
+ * Description      This function builds the list player app attrib command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_list_player_app_attr_cmd(BT_HDR * p_pkt)
 {
     AVRC_TRACE_API("avrc_bld_list_player_app_attr_cmd");
@@ -158,15 +158,15 @@ static tAVRC_STS avrc_bld_list_player_app_attr_cmd(BT_HDR * p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_list_player_app_values_cmd
-**
-** Description      This function builds the list player app values command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_list_player_app_values_cmd
+ *
+ * Description      This function builds the list player app values command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_list_player_app_values_cmd(BT_HDR * p_pkt, uint8_t attrib_id)
 {
     AVRC_TRACE_API("avrc_bld_list_player_app_values_cmd");
@@ -180,15 +180,15 @@ static tAVRC_STS avrc_bld_list_player_app_values_cmd(BT_HDR * p_pkt, uint8_t att
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_current_player_app_values_cmd
-**
-** Description      This function builds the get current player app setting values command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_current_player_app_values_cmd
+ *
+ * Description      This function builds the get current player app setting values command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_current_player_app_values_cmd(
     BT_HDR * p_pkt, uint8_t num_attrib_id, uint8_t* attrib_ids)
 {
@@ -208,15 +208,15 @@ static tAVRC_STS avrc_bld_get_current_player_app_values_cmd(
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_set_current_player_app_values_cmd
-**
-** Description      This function builds the set current player app setting values command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_set_current_player_app_values_cmd
+ *
+ * Description      This function builds the set current player app setting values command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_set_current_player_app_values_cmd(BT_HDR * p_pkt, uint8_t num_attrib_id, tAVRC_APP_SETTING* p_val)
 {
     AVRC_TRACE_API("avrc_bld_set_current_player_app_values_cmd");
@@ -239,15 +239,15 @@ static tAVRC_STS avrc_bld_set_current_player_app_values_cmd(BT_HDR * p_pkt, uint
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_player_app_setting_attr_text_cmd
-**
-** Description      This function builds the get player app setting attribute text command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_player_app_setting_attr_text_cmd
+ *
+ * Description      This function builds the get player app setting attribute text command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_player_app_setting_attr_text_cmd (BT_HDR * p_pkt, tAVRC_GET_APP_ATTR_TXT_CMD *p_cmd)
 {
     AVRC_TRACE_API("%s", __func__);
@@ -268,15 +268,15 @@ static tAVRC_STS avrc_bld_get_player_app_setting_attr_text_cmd (BT_HDR * p_pkt, 
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_player_app_setting_value_text_cmd
-**
-** Description      This function builds the get player app setting value text command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_player_app_setting_value_text_cmd
+ *
+ * Description      This function builds the get player app setting value text command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_player_app_setting_value_text_cmd (BT_HDR * p_pkt, tAVRC_GET_APP_VAL_TXT_CMD *p_cmd)
 {
     AVRC_TRACE_API("%s", __func__);
@@ -297,15 +297,15 @@ static tAVRC_STS avrc_bld_get_player_app_setting_value_text_cmd (BT_HDR * p_pkt,
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_element_attr_cmd
-**
-** Description      This function builds the get element attribute command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_element_attr_cmd
+ *
+ * Description      This function builds the get element attribute command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_element_attr_cmd(BT_HDR * p_pkt, uint8_t num_attrib, uint32_t* attrib_ids)
 {
     AVRC_TRACE_API("avrc_bld_get_element_attr_cmd");
@@ -330,15 +330,15 @@ static tAVRC_STS avrc_bld_get_element_attr_cmd(BT_HDR * p_pkt, uint8_t num_attri
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_play_item_cmd
-**
-** Description      This function builds the play item cmd
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_play_item_cmd
+ *
+ * Description      This function builds the play item cmd
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_play_item_cmd(
     BT_HDR * p_pkt, uint8_t scope, uint8_t *uid, uint16_t uid_counter)
 {
@@ -358,15 +358,15 @@ static tAVRC_STS avrc_bld_play_item_cmd(
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_play_status_cmd
-**
-** Description      This function builds the get play status command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_play_status_cmd
+ *
+ * Description      This function builds the get play status command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_play_status_cmd(BT_HDR * p_pkt)
 {
     AVRC_TRACE_API("avrc_bld_list_player_app_attr_cmd");
@@ -379,15 +379,15 @@ static tAVRC_STS avrc_bld_get_play_status_cmd(BT_HDR * p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_folder_items_cmd
-**
-** Description      This function builds the get folder items cmd.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_folder_items_cmd
+ *
+ * Description      This function builds the get folder items cmd.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_folder_items_cmd(BT_HDR *p_pkt, const tAVRC_GET_ITEMS_CMD *cmd)
 {
     AVRC_TRACE_API("avrc_bld_get_folder_items_cmd scope %d, start_item %d, end_item %d",
@@ -410,15 +410,15 @@ static tAVRC_STS avrc_bld_get_folder_items_cmd(BT_HDR *p_pkt, const tAVRC_GET_IT
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_change_folder_cmd
-**
-** Description      This function builds the change folder command
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_change_folder_cmd
+ *
+ * Description      This function builds the change folder command
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_change_folder_cmd(BT_HDR *p_pkt, const tAVRC_CHG_PATH_CMD *cmd)
 {
     AVRC_TRACE_API("avrc_bld_change_folder_cmd");
@@ -439,15 +439,15 @@ static tAVRC_STS avrc_bld_change_folder_cmd(BT_HDR *p_pkt, const tAVRC_CHG_PATH_
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_set_browsed_player_cmd
-**
-** Description      This function builds the set browsed player cmd.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_set_browsed_player_cmd
+ *
+ * Description      This function builds the set browsed player cmd.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_set_browsed_player_cmd(BT_HDR *p_pkt, const tAVRC_SET_BR_PLAYER_CMD *cmd)
 {
     AVRC_TRACE_API("%s", __func__);
@@ -466,15 +466,15 @@ static tAVRC_STS avrc_bld_set_browsed_player_cmd(BT_HDR *p_pkt, const tAVRC_SET_
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_set_addressed_player_cmd
-**
-** Description      This function builds the set addressed player cmd.
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_set_addressed_player_cmd
+ *
+ * Description      This function builds the set addressed player cmd.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_set_addressed_player_cmd(
     BT_HDR *p_pkt, const tAVRC_SET_ADDR_PLAYER_CMD *cmd)
 {
@@ -493,15 +493,15 @@ static tAVRC_STS avrc_bld_set_addressed_player_cmd(
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_init_cmd_buffer
-**
-** Description      This function initializes the command buffer based on PDU
-**
-** Returns          NULL, if no GKI buffer or failure to build the message.
-**                  Otherwise, the GKI buffer that contains the initialized message.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_init_cmd_buffer
+ *
+ * Description      This function initializes the command buffer based on PDU
+ *
+ * Returns          NULL, if no GKI buffer or failure to build the message.
+ *                  Otherwise, the GKI buffer that contains the initialized message.
+ *
+ ******************************************************************************/
 static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)
 {
     uint16_t chnl = AVCT_DATA_CTRL;
@@ -556,16 +556,16 @@ static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_BldCommand
-**
-** Description      This function builds the given AVRCP command to the given
-**                  GKI buffer
-**
-** Returns          AVRC_STS_NO_ERROR, if the command is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_BldCommand
+ *
+ * Description      This function builds the given AVRCP command to the given
+ *                  GKI buffer
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
 {
     tAVRC_STS status = AVRC_STS_BAD_PARAM;

@@ -284,7 +284,7 @@ patches.
 
 `git log --oneline path_to_files/filename_or_* | grep clang-format | head -n 5`
 
-***15ce1bd** subtree: Apply **clang-format** for the first time*
+ **15ce1bd** subtree: Apply **clang-format** for the first time*
 
 ##### Revert the formatting patch
 
@@ -338,7 +338,7 @@ and remove their changes
 
 `git log --oneline | head -n 1`
 
-***dc5f0e2** Unformatted but vital patch*
+ **dc5f0e2** Unformatted but vital patch*
 
 (**Remember the HASH from this step**)
 
@@ -348,7 +348,7 @@ and remove their changes
 
 `git log --oneline | head -n 1`
 
-***15ce1bd** First Unrelated patch*
+ **15ce1bd** First Unrelated patch*
 
 ##### Reformat the code
 

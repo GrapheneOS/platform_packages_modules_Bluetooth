@@ -42,8 +42,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-** constants
-*****************************************************************************/
+ * constants
+ ****************************************************************************/
 
 /* channel types */
 enum {
@@ -80,12 +80,12 @@ enum {
 #define AVDT_CCB_MKR            0x80
 
 /* offset where AVDTP signaling message content starts;
-** use the size of a start header since it's the largest possible
-** layout of signaling message in a buffer is:
-**
-** |  BT_HDR  | SCB handles | L2CAP + HCI header | AVDTP header | data ... |
-**
-** Note that we "hide" the scb handles at the top of the message buffer.
+ * use the size of a start header since it's the largest possible
+ * layout of signaling message in a buffer is:
+ *
+ * |  BT_HDR  | SCB handles | L2CAP + HCI header | AVDTP header | data ... |
+ *
+ * Note that we "hide" the scb handles at the top of the message buffer.
 */
 #define AVDT_MSG_OFFSET         (L2CAP_MIN_OFFSET + AVDT_NUM_SEPS + AVDT_LEN_TYPE_START)
 
@@ -186,7 +186,7 @@ enum {
 
 
 /* scb state machine states; these state values are private to this module so
-** the scb state cannot be read or set by actions functions
+ * the scb state cannot be read or set by actions functions
 */
 enum {
     AVDT_SCB_IDLE_ST,
@@ -354,8 +354,8 @@ enum {
 #define AVDT_AD_CONGESTED    L2CAP_DW_CONGESTED     /* 2 */
 
 /*****************************************************************************
-** data types
-*****************************************************************************/
+ * data types
+ ****************************************************************************/
 
 /* msg union of all message parameter types */
 typedef union {
@@ -530,8 +530,8 @@ typedef struct {
 
 
 /*****************************************************************************
-** function declarations
-*****************************************************************************/
+ * function declarations
+ ****************************************************************************/
 
 /* CCB function declarations */
 extern void avdt_ccb_init(void);
@@ -681,11 +681,11 @@ extern void avdt_ccb_rsp_ccb_timer_timeout(void *data);
 extern void avdt_scb_transport_channel_timer_timeout(void *data);
 
 /*****************************************************************************
-** macros
-*****************************************************************************/
+ * macros
+ ****************************************************************************/
 
 /* we store the scb and the label in the layer_specific field of the
-** current cmd
+ * current cmd
 */
 #define AVDT_BLD_LAYERSPEC(ls, msg, label) \
             ls = (((label) << 4) | (msg))
@@ -695,12 +695,12 @@ extern void avdt_scb_transport_channel_timer_timeout(void *data);
 #define AVDT_LAYERSPEC_MSG(ls)      ((uint8_t)((ls) & 0x000F))
 
 /*****************************************************************************
-** global data
-*****************************************************************************/
+ * global data
+ ****************************************************************************/
 
 /******************************************************************************
-** Main Control Block
-*******************************************************************************/
+ * Main Control Block
+ ******************************************************************************/
 extern tAVDT_CB avdt_cb;
 
 /* L2CAP callback registration structure */

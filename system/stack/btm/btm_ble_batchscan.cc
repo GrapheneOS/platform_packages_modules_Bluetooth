@@ -42,20 +42,20 @@ tBTM_BLE_ADV_TRACK_CB ble_advtrack_cb;
 #define BTM_BLE_BATCH_SCAN_SUBCODE_MASK      0x0F
 
 /*******************************************************************************
-**  Local functions
-*******************************************************************************/
+ *  Local functions
+ ******************************************************************************/
 void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params);
 void btm_ble_batchscan_cleanup(void);
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_filter_track_adv_vse_cback
-**
-** Description      VSE callback for batch scan, filter, and tracking events.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_filter_track_adv_vse_cback
+ *
+ * Description      VSE callback for batch scan, filter, and tracking events.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_filter_track_adv_vse_cback(uint8_t len, uint8_t *p)
 {
     tBTM_BLE_TRACK_ADV_DATA adv_data;
@@ -133,15 +133,15 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(uint8_t len, uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_enq_op_q
-**
-** Description      enqueue a batchscan operation in q to check command complete
-**                  status
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_enq_op_q
+ *
+ * Description      enqueue a batchscan operation in q to check command complete
+ *                  status
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_enq_op_q(uint8_t opcode, tBTM_BLE_BATCH_SCAN_STATE cur_state,
                                           uint8_t cb_evt, tBTM_BLE_REF_VALUE ref_value)
 {
@@ -157,15 +157,15 @@ void btm_ble_batchscan_enq_op_q(uint8_t opcode, tBTM_BLE_BATCH_SCAN_STATE cur_st
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_enq_rep_q
-**
-** Description      enqueue a batchscan report operation in q to check command complete
-**                  status
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_enq_rep_q
+ *
+ * Description      enqueue a batchscan report operation in q to check command complete
+ *                  status
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_batchscan_enq_rep_q(uint8_t report_format, tBTM_BLE_REF_VALUE ref_value)
 {
     int i = 0;
@@ -189,14 +189,14 @@ tBTM_STATUS btm_ble_batchscan_enq_rep_q(uint8_t report_format, tBTM_BLE_REF_VALU
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_enq_rep_data
-**
-** Description      setup the data in the main report queue
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_enq_rep_data
+ *
+ * Description      setup the data in the main report queue
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_enq_rep_data(uint8_t report_format, uint8_t num_records, uint8_t *p_data,
                                     uint8_t data_len)
 {
@@ -239,15 +239,15 @@ void btm_ble_batchscan_enq_rep_data(uint8_t report_format, uint8_t num_records, 
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_deq_rep_q
-**
-** Description      dequeue a batchscan report  in q when command complete
-**                  is received
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_deq_rep_q
+ *
+ * Description      dequeue a batchscan report  in q when command complete
+ *                  is received
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_deq_rep_data(uint8_t report_format, tBTM_BLE_REF_VALUE *p_ref_value,
                                  uint8_t *p_num_records, uint8_t **p_data, uint16_t *p_data_len)
 {
@@ -284,15 +284,15 @@ void btm_ble_batchscan_deq_rep_data(uint8_t report_format, tBTM_BLE_REF_VALUE *p
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_deq_op_q
-**
-** Description      dequeue a batch scan operation from q when command complete
-**                  is received
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_deq_op_q
+ *
+ * Description      dequeue a batch scan operation from q when command complete
+ *                  is received
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_deq_op_q(uint8_t *p_opcode,tBTM_BLE_BATCH_SCAN_STATE *cur_state,
                                           uint8_t *p_cb_evt, tBTM_BLE_REF_VALUE *p_ref)
 {
@@ -306,15 +306,15 @@ void btm_ble_batchscan_deq_op_q(uint8_t *p_opcode,tBTM_BLE_BATCH_SCAN_STATE *cur
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_read_batchscan_reports
-**
-** Description      This function reads the reports from controller
-**
-** Parameters       scan_mode - The mode for which the reports are to be read out from the controller
-**                  ref_value - Reference value
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_read_batchscan_reports
+ *
+ * Description      This function reads the reports from controller
+ *
+ * Parameters       scan_mode - The mode for which the reports are to be read out from the controller
+ *                  ref_value - Reference value
+ *
+ ******************************************************************************/
 void btm_ble_read_batchscan_reports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                                           tBTM_BLE_REF_VALUE ref_value)
 {
@@ -335,16 +335,16 @@ void btm_ble_read_batchscan_reports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_vsc_cmpl_cback
-**
-** Description      Batch scan VSC complete callback
-**
-** Parameters       p_params - VSC completed callback parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_vsc_cmpl_cback
+ *
+ * Description      Batch scan VSC complete callback
+ *
+ * Parameters       p_params - VSC completed callback parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
 {
     uint8_t *p = p_params->p_param_buf;
@@ -469,16 +469,16 @@ void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_set_storage_config
-**
-** Description      This function writes the storage configuration in controller
-**
-** Parameters       batch_scan_full_max -Max storage space (in %) allocated to full scanning
-**                  batch_scan_trunc_max -Max storage space (in %) allocated to truncated scanning
-**                  batch_scan_notify_threshold - Setup notification level based on total space
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_set_storage_config
+ *
+ * Description      This function writes the storage configuration in controller
+ *
+ * Parameters       batch_scan_full_max -Max storage space (in %) allocated to full scanning
+ *                  batch_scan_trunc_max -Max storage space (in %) allocated to truncated scanning
+ *                  batch_scan_notify_threshold - Setup notification level based on total space
+ *
+ ******************************************************************************/
 void btm_ble_set_storage_config(uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
                                        uint8_t batch_scan_notify_threshold)
 {
@@ -498,18 +498,18 @@ void btm_ble_set_storage_config(uint8_t batch_scan_full_max, uint8_t batch_scan_
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_set_batchscan_param
-**
-** Description      This function writes the batch scan params in controller
-**
-** Parameters       scan_mode -Batch scan mode
-**                  scan_interval - Scan interval
-**                  scan_window  - Scan window
-**                  discard_rule -Discard rules
-**                  addr_type - Address type
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_set_batchscan_param
+ *
+ * Description      This function writes the batch scan params in controller
+ *
+ * Parameters       scan_mode -Batch scan mode
+ *                  scan_interval - Scan interval
+ *                  scan_window  - Scan window
+ *                  discard_rule -Discard rules
+ *                  addr_type - Address type
+ *
+ ******************************************************************************/
 void btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                      uint32_t scan_interval, uint32_t scan_window, tBLE_ADDR_TYPE addr_type,
                      tBTM_BLE_DISCARD_RULE discard_rule)
@@ -536,14 +536,14 @@ void btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_enable_disable_batchscan
-**
-** Description      This function enables the customer specific feature in controller
-**
-** Parameters       enable_disable: true - enable, false - disable
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_enable_disable_batchscan
+ *
+ * Description      This function enables the customer specific feature in controller
+ *
+ * Parameters       enable_disable: true - enable, false - disable
+ *
+ ******************************************************************************/
 void btm_ble_enable_disable_batchscan(bool    should_enable)
 {
     uint8_t shld_enable = 0x01;
@@ -576,22 +576,22 @@ void btm_ble_enable_disable_batchscan(bool    should_enable)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleSetStorageConfig
-**
-** Description      This function is called to write storage config params.
-**
-** Parameters:      batch_scan_full_max - Max storage space (in %) allocated to full style
-**                  batch_scan_trunc_max - Max storage space (in %) allocated to trunc style
-**                  batch_scan_notify_threshold - Setup notification level based on total space
-**                  p_setup_cback - Setup callback pointer
-**                  p_thres_cback - Threshold callback pointer
-**                  p_rep_cback - Reports callback pointer
-**                  ref_value - Reference value
-**
-** Returns          tBTM_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleSetStorageConfig
+ *
+ * Description      This function is called to write storage config params.
+ *
+ * Parameters:      batch_scan_full_max - Max storage space (in %) allocated to full style
+ *                  batch_scan_trunc_max - Max storage space (in %) allocated to trunc style
+ *                  batch_scan_notify_threshold - Setup notification level based on total space
+ *                  p_setup_cback - Setup callback pointer
+ *                  p_thres_cback - Threshold callback pointer
+ *                  p_rep_cback - Reports callback pointer
+ *                  ref_value - Reference value
+ *
+ * Returns          tBTM_STATUS
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleSetStorageConfig(uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
                                         uint8_t batch_scan_notify_threshold,
                                         tBTM_BLE_SCAN_SETUP_CBACK *p_setup_cback,
@@ -650,20 +650,20 @@ tBTM_STATUS BTM_BleSetStorageConfig(uint8_t batch_scan_full_max, uint8_t batch_s
 
 
 /*******************************************************************************
-**
-** Function         BTM_BleEnableBatchScan
-**
-** Description      This function is called to configure and enable batch scanning
-**
-** Parameters:      scan_mode -Batch scan mode
-**                  scan_interval - Scan interval value
-**                  scan_window - Scan window value
-**                  discard_rule - Data discard rule
-**                  ref_value - Reference value
-**
-** Returns          tBTM_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleEnableBatchScan
+ *
+ * Description      This function is called to configure and enable batch scanning
+ *
+ * Parameters:      scan_mode -Batch scan mode
+ *                  scan_interval - Scan interval value
+ *                  scan_window - Scan window value
+ *                  discard_rule - Data discard rule
+ *                  ref_value - Reference value
+ *
+ * Returns          tBTM_STATUS
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
             uint32_t scan_interval, uint32_t scan_window, tBLE_ADDR_TYPE addr_type,
             tBTM_BLE_DISCARD_RULE discard_rule, tBTM_BLE_REF_VALUE ref_value)
@@ -726,14 +726,14 @@ tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleDisableBatchScan
-**
-** Description      This function is called to disable batch scanning
-**
-** Parameters:      ref_value - Reference value
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleDisableBatchScan
+ *
+ * Description      This function is called to disable batch scanning
+ *
+ * Parameters:      ref_value - Reference value
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value)
 {
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
@@ -759,17 +759,17 @@ tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleReadScanReports
-**
-** Description      This function is called to start reading batch scan reports
-**
-** Parameters:      scan_mode - Batch scan mode
-**                  ref_value - Reference value
-**
-** Returns          tBTM_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleReadScanReports
+ *
+ * Description      This function is called to start reading batch scan reports
+ *
+ * Parameters:      scan_mode - Batch scan mode
+ *                  ref_value - Reference value
+ *
+ * Returns          tBTM_STATUS
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                                              tBTM_BLE_REF_VALUE ref_value)
 {
@@ -817,17 +817,17 @@ tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 
 
 /*******************************************************************************
-**
-** Function         BTM_BleTrackAdvertiser
-**
-** Description      This function is called to setup the callback for tracking advertisers
-**
-** Parameters:      p_track_cback - Tracking callback pointer
-**                  ref_value - Reference value
-**
-** Returns          tBTM_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleTrackAdvertiser
+ *
+ * Description      This function is called to setup the callback for tracking advertisers
+ *
+ * Parameters:      p_track_cback - Tracking callback pointer
+ *                  ref_value - Reference value
+ *
+ * Returns          tBTM_STATUS
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
                                         tBTM_BLE_REF_VALUE ref_value)
 {
@@ -850,16 +850,16 @@ tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_init
-**
-** Description      This function initialize the batch scan control block.
-**
-** Parameters       None
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_init
+ *
+ * Description      This function initialize the batch scan control block.
+ *
+ * Parameters       None
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_init(void)
 {
     BTM_TRACE_EVENT (" btm_ble_batchscan_init");
@@ -869,16 +869,16 @@ void btm_ble_batchscan_init(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_batchscan_cleanup
-**
-** Description      This function cleans the batch scan control block.
-**
-** Parameters       None
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_batchscan_cleanup
+ *
+ * Description      This function cleans the batch scan control block.
+ *
+ * Parameters       None
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_batchscan_cleanup(void)
 {
     int index = 0;

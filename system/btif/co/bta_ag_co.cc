@@ -144,7 +144,7 @@ void bta_ag_co_data_close(uint16_t handle) {
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_ag_co_tx_write(uint16_t handle, UNUSED_ATTR uint8_t* p_data,
                         uint16_t len) {
   BTIF_TRACE_DEBUG("bta_ag_co_tx_write: handle: %d, len: %d", handle, len);

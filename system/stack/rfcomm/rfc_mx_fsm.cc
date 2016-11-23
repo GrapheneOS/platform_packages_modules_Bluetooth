@@ -38,9 +38,9 @@
 #define L2CAP_ERROR     1
 
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 static void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 static void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
@@ -57,15 +57,15 @@ static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg);
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_execute
-**
-** Description      This function sends multiplexor events through the state
-**                  machine.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_execute
+ *
+ * Description      This function sends multiplexor events through the state
+ *                  machine.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_execute (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 {
     switch (p_mcb->state)
@@ -103,16 +103,16 @@ void rfc_mx_sm_execute (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_state_idle
-**
-** Description      This function handles events when the multiplexer is in
-**                  IDLE state. This state exists when connection is being
-**                  initially established.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_state_idle
+ *
+ * Description      This function handles events when the multiplexer is in
+ *                  IDLE state. This state exists when connection is being
+ *                  initially established.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 {
     RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_idle - evt:%d", event);
@@ -175,15 +175,15 @@ void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_state_wait_conn_cnf
-**
-** Description      This function handles events when the multiplexer is
-**                  waiting for Connection Confirm from L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_state_wait_conn_cnf
+ *
+ * Description      This function handles events when the multiplexer is
+ *                  waiting for Connection Confirm from L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 {
     RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_wait_conn_cnf - evt:%d", event);
@@ -260,15 +260,15 @@ void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, uint16_t event, void *p_dat
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_state_configure
-**
-** Description      This function handles events when the multiplexer in the
-**                  configuration state.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_state_configure
+ *
+ * Description      This function handles events when the multiplexer in the
+ *                  configuration state.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 {
     RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_configure - evt:%d", event);
@@ -305,15 +305,15 @@ void rfc_mx_sm_state_configure (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_sabme_wait_ua
-**
-** Description      This function handles events when the multiplexer sent
-**                  SABME and is waiting for UA reply.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_sabme_wait_ua
+ *
+ * Description      This function handles events when the multiplexer sent
+ *                  SABME and is waiting for UA reply.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, uint16_t event,
 			      UNUSED_ATTR void *p_data)
 {
@@ -367,15 +367,15 @@ void rfc_mx_sm_sabme_wait_ua (tRFC_MCB *p_mcb, uint16_t event,
 }
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_state_wait_sabme
-**
-** Description      This function handles events when the multiplexer is
-**                  waiting for SABME on the acceptor side after configuration
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_state_wait_sabme
+ *
+ * Description      This function handles events when the multiplexer is
+ *                  waiting for SABME on the acceptor side after configuration
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 {
     RFCOMM_TRACE_EVENT ("rfc_mx_sm_state_wait_sabme - evt:%d", event);
@@ -435,15 +435,15 @@ void rfc_mx_sm_state_wait_sabme (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_state_connected
-**
-** Description      This function handles events when the multiplexer is
-**                  in the CONNECTED state
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_state_connected
+ *
+ * Description      This function handles events when the multiplexer is
+ *                  in the CONNECTED state
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, uint16_t event,
                                 UNUSED_ATTR void *p_data)
 {
@@ -480,15 +480,15 @@ void rfc_mx_sm_state_connected (tRFC_MCB *p_mcb, uint16_t event,
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_sm_state_disc_wait_ua
-**
-** Description      This function handles events when the multiplexer sent
-**                  DISC and is waiting for UA reply.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_sm_state_disc_wait_ua
+ *
+ * Description      This function handles events when the multiplexer sent
+ *                  DISC and is waiting for UA reply.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, uint16_t event, void *p_data)
 {
     BT_HDR *p_buf;
@@ -561,13 +561,13 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, uint16_t event, void *p_data
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_send_config_req
-**
-** Description      This function handles L2CA_ConnectInd message from the
-**                  L2CAP.  Accept connection.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_send_config_req
+ *
+ * Description      This function handles L2CA_ConnectInd message from the
+ *                  L2CAP.  Accept connection.
+ *
+ ******************************************************************************/
 static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
 {
     tL2CAP_CFG_INFO cfg;
@@ -592,15 +592,15 @@ static void rfc_mx_send_config_req (tRFC_MCB *p_mcb)
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_conf_cnf
-**
-** Description      This function handles L2CA_ConfigCnf message from the
-**                  L2CAP.  If result is not success tell upper layer that
-**                  start has not been accepted.  If initiator send SABME
-**                  on DLCI 0.  T1 is still running.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_conf_cnf
+ *
+ * Description      This function handles L2CA_ConfigCnf message from the
+ *                  L2CAP.  If result is not success tell upper layer that
+ *                  start has not been accepted.  If initiator send SABME
+ *                  on DLCI 0.  T1 is still running.
+ *
+ ******************************************************************************/
 static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
 {
     RFCOMM_TRACE_EVENT ("rfc_mx_conf_cnf p_cfg:%08x res:%d ", p_cfg, (p_cfg) ? p_cfg->result : 0);
@@ -637,13 +637,13 @@ static void rfc_mx_conf_cnf (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         rfc_mx_conf_ind
-**
-** Description      This function handles L2CA_ConfigInd message from the
-**                  L2CAP.  Send the L2CA_ConfigRsp message.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_mx_conf_ind
+ *
+ * Description      This function handles L2CA_ConfigInd message from the
+ *                  L2CAP.  Send the L2CA_ConfigRsp message.
+ *
+ ******************************************************************************/
 static void rfc_mx_conf_ind (tRFC_MCB *p_mcb, tL2CAP_CFG_INFO *p_cfg)
 {
     /* Save peer L2CAP MTU if present */

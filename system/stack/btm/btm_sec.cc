@@ -50,9 +50,9 @@ extern fixed_queue_t *btu_general_alarm_queue;
 bool    (APPL_AUTH_WRITE_EXCEPTION)(BD_ADDR bd_addr);
 #endif
 
-/********************************************************************************
-**              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
-*********************************************************************************/
+/*******************************************************************************
+ *              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
+ ******************************************************************************/
 tBTM_SEC_SERV_REC *btm_sec_find_first_serv (bool    is_originator, uint16_t psm);
 static tBTM_SEC_SERV_REC *btm_sec_find_next_serv (tBTM_SEC_SERV_REC *p_cur);
 static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (uint8_t is_originator, uint16_t psm,
@@ -121,14 +121,14 @@ static const bool    btm_sec_io_map [BTM_IO_CAP_MAX][BTM_IO_CAP_MAX] =
 /*  BTM_IO_CAP_NONE     3   NoInputNoOutput */
 
 /*******************************************************************************
-**
-** Function         btm_dev_authenticated
-**
-** Description      check device is authenticated
-**
-** Returns          bool    true or false
-**
-*******************************************************************************/
+ *
+ * Function         btm_dev_authenticated
+ *
+ * Description      check device is authenticated
+ *
+ * Returns          bool    true or false
+ *
+ ******************************************************************************/
 static bool    btm_dev_authenticated (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     if(p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED)
@@ -139,14 +139,14 @@ static bool    btm_dev_authenticated (tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_dev_encrypted
-**
-** Description      check device is encrypted
-**
-** Returns          bool    true or false
-**
-*******************************************************************************/
+ *
+ * Function         btm_dev_encrypted
+ *
+ * Description      check device is encrypted
+ *
+ * Returns          bool    true or false
+ *
+ ******************************************************************************/
 static bool    btm_dev_encrypted (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     if(p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED)
@@ -157,14 +157,14 @@ static bool    btm_dev_encrypted (tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_dev_authorized
-**
-** Description      check device is authorized
-**
-** Returns          bool    true or false
-**
-*******************************************************************************/
+ *
+ * Function         btm_dev_authorized
+ *
+ * Description      check device is authorized
+ *
+ * Returns          bool    true or false
+ *
+ ******************************************************************************/
 static bool    btm_dev_authorized (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     if(p_dev_rec->sec_flags & BTM_SEC_AUTHORIZED)
@@ -175,14 +175,14 @@ static bool    btm_dev_authorized (tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_dev_16_digit_authenticated
-**
-** Description      check device is authenticated by using 16 digit pin or MITM
-**
-** Returns          bool    true or false
-**
-*******************************************************************************/
+ *
+ * Function         btm_dev_16_digit_authenticated
+ *
+ * Description      check device is authenticated by using 16 digit pin or MITM
+ *
+ * Returns          bool    true or false
+ *
+ ******************************************************************************/
 static bool    btm_dev_16_digit_authenticated(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     // BTM_SEC_16_DIGIT_PIN_AUTHED is set if MITM or 16 digit pin is used
@@ -194,14 +194,14 @@ static bool    btm_dev_16_digit_authenticated(tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_serv_trusted
-**
-** Description      check service is trusted
-**
-** Returns          bool    true or false
-**
-*******************************************************************************/
+ *
+ * Function         btm_serv_trusted
+ *
+ * Description      check service is trusted
+ *
+ * Returns          bool    true or false
+ *
+ ******************************************************************************/
 static bool    btm_serv_trusted(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_SEC_SERV_REC *p_serv_rec)
 {
     if(BTM_SEC_IS_SERVICE_TRUSTED(p_dev_rec->trusted_mask, p_serv_rec->service_id))
@@ -212,16 +212,16 @@ static bool    btm_serv_trusted(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_SEC_SERV_REC *
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecRegister
-**
-** Description      Application manager calls this function to register for
-**                  security services.  There can be one and only one application
-**                  saving link keys.  BTM allows only first registration.
-**
-** Returns          true if registered OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecRegister
+ *
+ * Description      Application manager calls this function to register for
+ *                  security services.  There can be one and only one application
+ *                  saving link keys.  BTM allows only first registration.
+ *
+ * Returns          true if registered OK, else false
+ *
+ ******************************************************************************/
 bool    BTM_SecRegister(tBTM_APPL_INFO *p_cb_info)
 {
     BT_OCTET16      temp_value = {0};
@@ -251,16 +251,16 @@ bool    BTM_SecRegister(tBTM_APPL_INFO *p_cb_info)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecRegisterLinkKeyNotificationCallback
-**
-** Description      Application manager calls this function to register for
-**                  link key notification.  When there is nobody registered
-**                  we should avoid changing link key
-**
-** Returns          true if registered OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecRegisterLinkKeyNotificationCallback
+ *
+ * Description      Application manager calls this function to register for
+ *                  link key notification.  When there is nobody registered
+ *                  we should avoid changing link key
+ *
+ * Returns          true if registered OK, else false
+ *
+ ******************************************************************************/
 bool    BTM_SecRegisterLinkKeyNotificationCallback (tBTM_LINK_KEY_CALLBACK *p_callback)
 {
     btm_cb.api.p_link_key_callback = p_callback;
@@ -268,15 +268,15 @@ bool    BTM_SecRegisterLinkKeyNotificationCallback (tBTM_LINK_KEY_CALLBACK *p_ca
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecAddRmtNameNotifyCallback
-**
-** Description      Any profile can register to be notified when name of the
-**                  remote device is resolved.
-**
-** Returns          true if registered OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecAddRmtNameNotifyCallback
+ *
+ * Description      Any profile can register to be notified when name of the
+ *                  remote device is resolved.
+ *
+ * Returns          true if registered OK, else false
+ *
+ ******************************************************************************/
 bool     BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback)
 {
     int i;
@@ -294,15 +294,15 @@ bool     BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecDeleteRmtNameNotifyCallback
-**
-** Description      Any profile can deregister notification when a new Link Key
-**                  is generated per connection.
-**
-** Returns          true if OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecDeleteRmtNameNotifyCallback
+ *
+ * Description      Any profile can deregister notification when a new Link Key
+ *                  is generated per connection.
+ *
+ * Returns          true if OK, else false
+ *
+ ******************************************************************************/
 bool     BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback)
 {
     int i;
@@ -320,14 +320,14 @@ bool     BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_GetSecurityFlags
-**
-** Description      Get security flags for the device
-**
-** Returns          bool    true or false is device found
-**
-*******************************************************************************/
+ *
+ * Function         BTM_GetSecurityFlags
+ *
+ * Description      Get security flags for the device
+ *
+ * Returns          bool    true or false is device found
+ *
+ ******************************************************************************/
 bool    BTM_GetSecurityFlags (BD_ADDR bd_addr, uint8_t * p_sec_flags)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -343,14 +343,14 @@ bool    BTM_GetSecurityFlags (BD_ADDR bd_addr, uint8_t * p_sec_flags)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_GetSecurityFlagsByTransport
-**
-** Description      Get security flags for the device on a particular transport
-**
-** Returns          bool    true or false is device found
-**
-*******************************************************************************/
+ *
+ * Function         BTM_GetSecurityFlagsByTransport
+ *
+ * Description      Get security flags for the device on a particular transport
+ *
+ * Returns          bool    true or false is device found
+ *
+ ******************************************************************************/
 bool    BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr, uint8_t * p_sec_flags,
                                                 tBT_TRANSPORT transport)
 {
@@ -371,14 +371,14 @@ bool    BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr, uint8_t * p_sec_flags,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetPinType
-**
-** Description      Set PIN type for the device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetPinType
+ *
+ * Description      Set PIN type for the device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_SetPinType (uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len)
 {
     BTM_TRACE_API ("BTM_SetPinType: pin type %d [variable-0, fixed-1], code %s, length %d",
@@ -397,19 +397,19 @@ void BTM_SetPinType (uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetPairableMode
-**
-** Description      Enable or disable pairing
-**
-** Parameters       allow_pairing - (true or false) whether or not the device
-**                      allows pairing.
-**                  connect_only_paired - (true or false) whether or not to
-**                      only allow paired devices to connect.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetPairableMode
+ *
+ * Description      Enable or disable pairing
+ *
+ * Parameters       allow_pairing - (true or false) whether or not the device
+ *                      allows pairing.
+ *                  connect_only_paired - (true or false) whether or not to
+ *                      only allow paired devices to connect.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_SetPairableMode (bool    allow_pairing, bool    connect_only_paired)
 {
     BTM_TRACE_API ("BTM_SetPairableMode()  allow_pairing: %u   connect_only_paired: %u", allow_pairing, connect_only_paired);
@@ -419,20 +419,20 @@ void BTM_SetPairableMode (bool    allow_pairing, bool    connect_only_paired)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetSecureConnectionsOnly
-**
-** Description      Enable or disable default treatment for Mode 4 Level 0 services
-**
-** Parameter        secure_connections_only_mode - (true or false) whether or not the device
-**                  true means that the device should treat Mode 4 Level 0 services as
-**                  services of other levels. (Secure_connections_only_mode)
-**                  false means that the device should provide default treatment for
-**                  Mode 4 Level 0 services.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetSecureConnectionsOnly
+ *
+ * Description      Enable or disable default treatment for Mode 4 Level 0 services
+ *
+ * Parameter        secure_connections_only_mode - (true or false) whether or not the device
+ *                  true means that the device should treat Mode 4 Level 0 services as
+ *                  services of other levels. (Secure_connections_only_mode)
+ *                  false means that the device should provide default treatment for
+ *                  Mode 4 Level 0 services.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_SetSecureConnectionsOnly (bool    secure_connections_only_mode)
 {
     BTM_TRACE_API("%s: Mode : %u", __func__,
@@ -444,24 +444,24 @@ void BTM_SetSecureConnectionsOnly (bool    secure_connections_only_mode)
 #define BTM_NO_AVAIL_SEC_SERVICES   ((uint16_t) 0xffff)
 
 /*******************************************************************************
-**
-** Function         BTM_SetSecurityLevel
-**
-** Description      Register service security level with Security Manager
-**
-** Parameters:      is_originator - true if originating the connection, false if not
-**                  p_name      - Name of the service relevant only if
-**                                authorization will show this name to user. ignored
-**                                if BTM_SEC_SERVICE_NAME_LEN is 0.
-**                  service_id  - service ID for the service passed to authorization callback
-**                  sec_level   - bit mask of the security features
-**                  psm         - L2CAP PSM
-**                  mx_proto_id - protocol ID of multiplexing proto below
-**                  mx_chan_id  - channel ID of multiplexing proto below
-**
-** Returns          true if registered OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetSecurityLevel
+ *
+ * Description      Register service security level with Security Manager
+ *
+ * Parameters:      is_originator - true if originating the connection, false if not
+ *                  p_name      - Name of the service relevant only if
+ *                                authorization will show this name to user. ignored
+ *                                if BTM_SEC_SERVICE_NAME_LEN is 0.
+ *                  service_id  - service ID for the service passed to authorization callback
+ *                  sec_level   - bit mask of the security features
+ *                  psm         - L2CAP PSM
+ *                  mx_proto_id - protocol ID of multiplexing proto below
+ *                  mx_chan_id  - channel ID of multiplexing proto below
+ *
+ * Returns          true if registered OK, else false
+ *
+ ******************************************************************************/
 bool    BTM_SetSecurityLevel (bool    is_originator, const char *p_name, uint8_t service_id,
                               uint16_t sec_level, uint16_t psm, uint32_t mx_proto_id,
                               uint32_t mx_chan_id)
@@ -483,24 +483,24 @@ bool    BTM_SetSecurityLevel (bool    is_originator, const char *p_name, uint8_t
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_set_security_level
-**
-** Description      Register service security level with Security Manager
-**
-** Parameters:      conn_type   - true if originating the connection, false if not
-**                  p_name      - Name of the service relevant only if
-**                                authorization will show this name to user. ignored
-**                                if BTM_SEC_SERVICE_NAME_LEN is 0.
-**                  service_id  - service ID for the service passed to authorization callback
-**                  sec_level   - bit mask of the security features
-**                  psm         - L2CAP PSM
-**                  mx_proto_id - protocol ID of multiplexing proto below
-**                  mx_chan_id  - channel ID of multiplexing proto below
-**
-** Returns          true if registered OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_set_security_level
+ *
+ * Description      Register service security level with Security Manager
+ *
+ * Parameters:      conn_type   - true if originating the connection, false if not
+ *                  p_name      - Name of the service relevant only if
+ *                                authorization will show this name to user. ignored
+ *                                if BTM_SEC_SERVICE_NAME_LEN is 0.
+ *                  service_id  - service ID for the service passed to authorization callback
+ *                  sec_level   - bit mask of the security features
+ *                  psm         - L2CAP PSM
+ *                  mx_proto_id - protocol ID of multiplexing proto below
+ *                  mx_chan_id  - channel ID of multiplexing proto below
+ *
+ * Returns          true if registered OK, else false
+ *
+ ******************************************************************************/
 static bool    btm_sec_set_security_level (CONNECTION_TYPE conn_type, const char *p_name,
                                            uint8_t service_id, uint16_t sec_level, uint16_t psm,
                                            uint32_t mx_proto_id, uint32_t mx_chan_id)
@@ -713,23 +713,23 @@ static bool    btm_sec_set_security_level (CONNECTION_TYPE conn_type, const char
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecClrService
-**
-** Description      Removes specified service record(s) from the security database.
-**                  All service records with the specified name are removed.
-**                  Typically used only by devices with limited RAM so that it can
-**                  reuse an old security service record.
-**
-**                  Note: Unpredictable results may occur if a service is cleared
-**                      that is still in use by an application/profile.
-**
-** Parameters       Service ID - Id of the service to remove. ('0' removes all service
-**                          records (except SDP).
-**
-** Returns          Number of records that were freed.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecClrService
+ *
+ * Description      Removes specified service record(s) from the security database.
+ *                  All service records with the specified name are removed.
+ *                  Typically used only by devices with limited RAM so that it can
+ *                  reuse an old security service record.
+ *
+ *                  Note: Unpredictable results may occur if a service is cleared
+ *                      that is still in use by an application/profile.
+ *
+ * Parameters       Service ID - Id of the service to remove. ('0' removes all service
+ *                          records (except SDP).
+ *
+ * Returns          Number of records that were freed.
+ *
+ ******************************************************************************/
 uint8_t BTM_SecClrService (uint8_t service_id)
 {
     tBTM_SEC_SERV_REC   *p_srec = &btm_cb.sec_serv_rec[0];
@@ -755,21 +755,21 @@ uint8_t BTM_SecClrService (uint8_t service_id)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_clr_service_by_psm
-**
-** Description      Removes specified service record from the security database.
-**                  All service records with the specified psm are removed.
-**                  Typically used by L2CAP to free up the service record used
-**                  by dynamic PSM clients when the channel is closed.
-**                  The given psm must be a virtual psm.
-**
-** Parameters       Service ID - Id of the service to remove. ('0' removes all service
-**                          records (except SDP).
-**
-** Returns          Number of records that were freed.
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_clr_service_by_psm
+ *
+ * Description      Removes specified service record from the security database.
+ *                  All service records with the specified psm are removed.
+ *                  Typically used by L2CAP to free up the service record used
+ *                  by dynamic PSM clients when the channel is closed.
+ *                  The given psm must be a virtual psm.
+ *
+ * Parameters       Service ID - Id of the service to remove. ('0' removes all service
+ *                          records (except SDP).
+ *
+ * Returns          Number of records that were freed.
+ *
+ ******************************************************************************/
 uint8_t btm_sec_clr_service_by_psm (uint16_t psm)
 {
     tBTM_SEC_SERV_REC   *p_srec = &btm_cb.sec_serv_rec[0];
@@ -792,17 +792,17 @@ uint8_t btm_sec_clr_service_by_psm (uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_clr_temp_auth_service
-**
-** Description      Removes specified device record's temporary authorization
-**                  flag from the security database.
-**
-** Parameters       Device address to be cleared
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_clr_temp_auth_service
+ *
+ * Description      Removes specified device record's temporary authorization
+ *                  flag from the security database.
+ *
+ * Parameters       Device address to be cleared
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void btm_sec_clr_temp_auth_service (BD_ADDR bda)
 {
     tBTM_SEC_DEV_REC   *p_dev_rec;
@@ -825,19 +825,19 @@ void btm_sec_clr_temp_auth_service (BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_PINCodeReply
-**
-** Description      This function is called after Security Manager submitted
-**                  PIN code request to the UI.
-**
-** Parameters:      bd_addr      - Address of the device for which PIN was requested
-**                  res          - result of the operation BTM_SUCCESS if success
-**                  pin_len      - length in bytes of the PIN Code
-**                  p_pin        - pointer to array with the PIN Code
-**                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
-**
-*******************************************************************************/
+ *
+ * Function         BTM_PINCodeReply
+ *
+ * Description      This function is called after Security Manager submitted
+ *                  PIN code request to the UI.
+ *
+ * Parameters:      bd_addr      - Address of the device for which PIN was requested
+ *                  res          - result of the operation BTM_SUCCESS if success
+ *                  pin_len      - length in bytes of the PIN Code
+ *                  p_pin        - pointer to array with the PIN Code
+ *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *
+ ******************************************************************************/
 void BTM_PINCodeReply (BD_ADDR bd_addr, uint8_t res, uint8_t pin_len, uint8_t *p_pin, uint32_t trusted_mask[])
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -946,18 +946,18 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, uint8_t res, uint8_t pin_len, uint8_t *p
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_bond_by_transport
-**
-** Description      this is the bond function that will start either SSP or SMP.
-**
-** Parameters:      bd_addr      - Address of the device to bond
-**                  pin_len      - length in bytes of the PIN Code
-**                  p_pin        - pointer to array with the PIN Code
-**                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
-**
-**  Note: After 2.1 parameters are not used and preserved here not to change API
-*******************************************************************************/
+ *
+ * Function         btm_sec_bond_by_transport
+ *
+ * Description      this is the bond function that will start either SSP or SMP.
+ *
+ * Parameters:      bd_addr      - Address of the device to bond
+ *                  pin_len      - length in bytes of the PIN Code
+ *                  p_pin        - pointer to array with the PIN Code
+ *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *
+ *  Note: After 2.1 parameters are not used and preserved here not to change API
+ ******************************************************************************/
 tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
                                        uint8_t pin_len, uint8_t *p_pin, uint32_t trusted_mask[])
 {
@@ -1128,21 +1128,21 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecBondByTransport
-**
-** Description      This function is called to perform bonding with peer device.
-**                  If the connection is already up, but not secure, pairing
-**                  is attempted.  If already paired BTM_SUCCESS is returned.
-**
-** Parameters:      bd_addr      - Address of the device to bond
-**                  transport    - doing SSP over BR/EDR or SMP over LE
-**                  pin_len      - length in bytes of the PIN Code
-**                  p_pin        - pointer to array with the PIN Code
-**                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
-**
-**  Note: After 2.1 parameters are not used and preserved here not to change API
-*******************************************************************************/
+ *
+ * Function         BTM_SecBondByTransport
+ *
+ * Description      This function is called to perform bonding with peer device.
+ *                  If the connection is already up, but not secure, pairing
+ *                  is attempted.  If already paired BTM_SUCCESS is returned.
+ *
+ * Parameters:      bd_addr      - Address of the device to bond
+ *                  transport    - doing SSP over BR/EDR or SMP over LE
+ *                  pin_len      - length in bytes of the PIN Code
+ *                  p_pin        - pointer to array with the PIN Code
+ *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *
+ *  Note: After 2.1 parameters are not used and preserved here not to change API
+ ******************************************************************************/
 tBTM_STATUS BTM_SecBondByTransport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
                                     uint8_t pin_len, uint8_t *p_pin, uint32_t trusted_mask[])
 {
@@ -1160,20 +1160,20 @@ tBTM_STATUS BTM_SecBondByTransport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecBond
-**
-** Description      This function is called to perform bonding with peer device.
-**                  If the connection is already up, but not secure, pairing
-**                  is attempted.  If already paired BTM_SUCCESS is returned.
-**
-** Parameters:      bd_addr      - Address of the device to bond
-**                  pin_len      - length in bytes of the PIN Code
-**                  p_pin        - pointer to array with the PIN Code
-**                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
-**
-**  Note: After 2.1 parameters are not used and preserved here not to change API
-*******************************************************************************/
+ *
+ * Function         BTM_SecBond
+ *
+ * Description      This function is called to perform bonding with peer device.
+ *                  If the connection is already up, but not secure, pairing
+ *                  is attempted.  If already paired BTM_SUCCESS is returned.
+ *
+ * Parameters:      bd_addr      - Address of the device to bond
+ *                  pin_len      - length in bytes of the PIN Code
+ *                  p_pin        - pointer to array with the PIN Code
+ *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *
+ *  Note: After 2.1 parameters are not used and preserved here not to change API
+ ******************************************************************************/
 tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, uint8_t pin_len, uint8_t *p_pin, uint32_t trusted_mask[])
 {
     tBT_TRANSPORT   transport = BT_TRANSPORT_BR_EDR;
@@ -1182,16 +1182,16 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, uint8_t pin_len, uint8_t *p_pin, uint3
     return btm_sec_bond_by_transport(bd_addr, transport, pin_len, p_pin, trusted_mask);
 }
 /*******************************************************************************
-**
-** Function         BTM_SecBondCancel
-**
-** Description      This function is called to cancel ongoing bonding process
-**                  with peer device.
-**
-** Parameters:      bd_addr      - Address of the peer device
-**                         transport    - false for BR/EDR link; true for LE link
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecBondCancel
+ *
+ * Description      This function is called to cancel ongoing bonding process
+ *                  with peer device.
+ *
+ * Parameters:      bd_addr      - Address of the peer device
+ *                         transport    - false for BR/EDR link; true for LE link
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -1267,18 +1267,18 @@ tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecGetDeviceLinkKey
-**
-** Description      This function is called to obtain link key for the device
-**                  it returns BTM_SUCCESS if link key is available, or
-**                  BTM_UNKNOWN_ADDR if Security Manager does not know about
-**                  the device or device record does not contain link key info
-**
-** Parameters:      bd_addr      - Address of the device
-**                  link_key     - Link Key is copied into this array
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecGetDeviceLinkKey
+ *
+ * Description      This function is called to obtain link key for the device
+ *                  it returns BTM_SUCCESS if link key is available, or
+ *                  BTM_UNKNOWN_ADDR if Security Manager does not know about
+ *                  the device or device record does not contain link key info
+ *
+ * Parameters:      bd_addr      - Address of the device
+ *                  link_key     - Link Key is copied into this array
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SecGetDeviceLinkKey (BD_ADDR bd_addr, LINK_KEY link_key)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -1293,19 +1293,19 @@ tBTM_STATUS BTM_SecGetDeviceLinkKey (BD_ADDR bd_addr, LINK_KEY link_key)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SecGetDeviceLinkKeyType
-**
-** Description      This function is called to obtain link key type for the
-**                  device.
-**                  it returns BTM_SUCCESS if link key is available, or
-**                  BTM_UNKNOWN_ADDR if Security Manager does not know about
-**                  the device or device record does not contain link key info
-**
-** Returns          BTM_LKEY_TYPE_IGNORE if link key is unknown, link type
-**                  otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SecGetDeviceLinkKeyType
+ *
+ * Description      This function is called to obtain link key type for the
+ *                  device.
+ *                  it returns BTM_SUCCESS if link key is available, or
+ *                  BTM_UNKNOWN_ADDR if Security Manager does not know about
+ *                  the device or device record does not contain link key info
+ *
+ * Returns          BTM_LKEY_TYPE_IGNORE if link key is unknown, link type
+ *                  otherwise.
+ *
+ ******************************************************************************/
 tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bd_addr);
@@ -1318,32 +1318,32 @@ tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetEncryption
-**
-** Description      This function is called to ensure that connection is
-**                  encrypted.  Should be called only on an open connection.
-**                  Typically only needed for connections that first want to
-**                  bring up unencrypted links, then later encrypt them.
-**
-** Parameters:      bd_addr       - Address of the peer device
-**                  transport     - Link transport
-**                  p_callback    - Pointer to callback function called if
-**                                  this function returns PENDING after required
-**                                  procedures are completed.  Can be set to NULL
-**                                  if status is not desired.
-**                  p_ref_data    - pointer to any data the caller wishes to receive
-**                                  in the callback function upon completion.
-**                                  can be set to NULL if not used.
-**                  sec_act       - LE security action, unused for BR/EDR
-**
-** Returns          BTM_SUCCESS   - already encrypted
-**                  BTM_PENDING   - command will be returned in the callback
-**                  BTM_WRONG_MODE- connection not up.
-**                  BTM_BUSY      - security procedures are currently active
-**                  BTM_MODE_UNSUPPORTED - if security manager not linked in.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetEncryption
+ *
+ * Description      This function is called to ensure that connection is
+ *                  encrypted.  Should be called only on an open connection.
+ *                  Typically only needed for connections that first want to
+ *                  bring up unencrypted links, then later encrypt them.
+ *
+ * Parameters:      bd_addr       - Address of the peer device
+ *                  transport     - Link transport
+ *                  p_callback    - Pointer to callback function called if
+ *                                  this function returns PENDING after required
+ *                                  procedures are completed.  Can be set to NULL
+ *                                  if status is not desired.
+ *                  p_ref_data    - pointer to any data the caller wishes to receive
+ *                                  in the callback function upon completion.
+ *                                  can be set to NULL if not used.
+ *                  sec_act       - LE security action, unused for BR/EDR
+ *
+ * Returns          BTM_SUCCESS   - already encrypted
+ *                  BTM_PENDING   - command will be returned in the callback
+ *                  BTM_WRONG_MODE- connection not up.
+ *                  BTM_BUSY      - security procedures are currently active
+ *                  BTM_MODE_UNSUPPORTED - if security manager not linked in.
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SEC_CBACK *p_callback,
                                void *p_ref_data, tBTM_BLE_SEC_ACT sec_act)
 {
@@ -1432,7 +1432,7 @@ tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SE
 
 /*******************************************************************************
  * disconnect the ACL link, if it's not done yet.
-*******************************************************************************/
+ ******************************************************************************/
 static tBTM_STATUS btm_sec_send_hci_disconnect (tBTM_SEC_DEV_REC *p_dev_rec, uint8_t reason, uint16_t conn_handle)
 {
     uint8_t     old_state = p_dev_rec->sec_state;
@@ -1485,16 +1485,16 @@ static tBTM_STATUS btm_sec_send_hci_disconnect (tBTM_SEC_DEV_REC *p_dev_rec, uin
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ConfirmReqReply
-**
-** Description      This function is called to confirm the numeric value for
-**                  Simple Pairing in response to BTM_SP_CFM_REQ_EVT
-**
-** Parameters:      res           - result of the operation BTM_SUCCESS if success
-**                  bd_addr       - Address of the peer device
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ConfirmReqReply
+ *
+ * Description      This function is called to confirm the numeric value for
+ *                  Simple Pairing in response to BTM_SP_CFM_REQ_EVT
+ *
+ * Parameters:      res           - result of the operation BTM_SUCCESS if success
+ *                  bd_addr       - Address of the peer device
+ *
+ ******************************************************************************/
 void BTM_ConfirmReqReply(tBTM_STATUS res, BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -1533,18 +1533,18 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_PasskeyReqReply
-**
-** Description      This function is called to provide the passkey for
-**                  Simple Pairing in response to BTM_SP_KEY_REQ_EVT
-**
-** Parameters:      res     - result of the operation BTM_SUCCESS if success
-**                  bd_addr - Address of the peer device
-**                  passkey - numeric value in the range of
-**                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
-**
-*******************************************************************************/
+ *
+ * Function         BTM_PasskeyReqReply
+ *
+ * Description      This function is called to provide the passkey for
+ *                  Simple Pairing in response to BTM_SP_KEY_REQ_EVT
+ *
+ * Parameters:      res     - result of the operation BTM_SUCCESS if success
+ *                  bd_addr - Address of the peer device
+ *                  passkey - numeric value in the range of
+ *                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
+ *
+ ******************************************************************************/
 #if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
 void BTM_PasskeyReqReply(tBTM_STATUS res, BD_ADDR bd_addr, uint32_t passkey)
 {
@@ -1597,19 +1597,19 @@ void BTM_PasskeyReqReply(tBTM_STATUS res, BD_ADDR bd_addr, uint32_t passkey)
 #endif
 
 /*******************************************************************************
-**
-** Function         BTM_SendKeypressNotif
-**
-** Description      This function is used during the passkey entry model
-**                  by a device with KeyboardOnly IO capabilities
-**                  (very likely to be a HID Device).
-**                  It is called by a HID Device to inform the remote device when
-**                  a key has been entered or erased.
-**
-** Parameters:      bd_addr - Address of the peer device
-**                  type - notification type
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SendKeypressNotif
+ *
+ * Description      This function is used during the passkey entry model
+ *                  by a device with KeyboardOnly IO capabilities
+ *                  (very likely to be a HID Device).
+ *                  It is called by a HID Device to inform the remote device when
+ *                  a key has been entered or erased.
+ *
+ * Parameters:      bd_addr - Address of the peer device
+ *                  type - notification type
+ *
+ ******************************************************************************/
 #if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
 void BTM_SendKeypressNotif(BD_ADDR bd_addr, tBTM_SP_KEY_TYPE type)
 {
@@ -1620,20 +1620,20 @@ void BTM_SendKeypressNotif(BD_ADDR bd_addr, tBTM_SP_KEY_TYPE type)
 #endif
 
 /*******************************************************************************
-**
-** Function         BTM_IoCapRsp
-**
-** Description      This function is called in response to BTM_SP_IO_REQ_EVT
-**                  When the event data io_req.oob_data is set to BTM_OOB_UNKNOWN
-**                  by the tBTM_SP_CALLBACK implementation, this function is
-**                  called to provide the actual response
-**
-** Parameters:      bd_addr - Address of the peer device
-**                  io_cap  - The IO capability of local device.
-**                  oob     - BTM_OOB_NONE or BTM_OOB_PRESENT.
-**                  auth_req- MITM protection required or not.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_IoCapRsp
+ *
+ * Description      This function is called in response to BTM_SP_IO_REQ_EVT
+ *                  When the event data io_req.oob_data is set to BTM_OOB_UNKNOWN
+ *                  by the tBTM_SP_CALLBACK implementation, this function is
+ *                  called to provide the actual response
+ *
+ * Parameters:      bd_addr - Address of the peer device
+ *                  io_cap  - The IO capability of local device.
+ *                  oob     - BTM_OOB_NONE or BTM_OOB_PRESENT.
+ *                  auth_req- MITM protection required or not.
+ *
+ ******************************************************************************/
 void BTM_IoCapRsp(BD_ADDR bd_addr, tBTM_IO_CAP io_cap, tBTM_OOB_DATA oob, tBTM_AUTH_REQ auth_req)
 {
     BTM_TRACE_EVENT ("BTM_IoCapRsp: state: %s  oob: %d io_cap: %d",
@@ -1656,30 +1656,30 @@ void BTM_IoCapRsp(BD_ADDR bd_addr, tBTM_IO_CAP io_cap, tBTM_OOB_DATA oob, tBTM_A
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadLocalOobData
-**
-** Description      This function is called to read the local OOB data from
-**                  LM
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadLocalOobData
+ *
+ * Description      This function is called to read the local OOB data from
+ *                  LM
+ *
+ ******************************************************************************/
 void BTM_ReadLocalOobData(void)
 {
     btsnd_hcic_read_local_oob_data();
 }
 
 /*******************************************************************************
-**
-** Function         BTM_RemoteOobDataReply
-**
-** Description      This function is called to provide the remote OOB data for
-**                  Simple Pairing in response to BTM_SP_RMT_OOB_EVT
-**
-** Parameters:      bd_addr     - Address of the peer device
-**                  c           - simple pairing Hash C.
-**                  r           - simple pairing Randomizer  C.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_RemoteOobDataReply
+ *
+ * Description      This function is called to provide the remote OOB data for
+ *                  Simple Pairing in response to BTM_SP_RMT_OOB_EVT
+ *
+ * Parameters:      bd_addr     - Address of the peer device
+ *                  c           - simple pairing Hash C.
+ *                  r           - simple pairing Randomizer  C.
+ *
+ ******************************************************************************/
 void BTM_RemoteOobDataReply(tBTM_STATUS res, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16 r)
 {
     BTM_TRACE_EVENT ("%s() - State: %s res: %d", __func__,
@@ -1703,23 +1703,23 @@ void BTM_RemoteOobDataReply(tBTM_STATUS res, BD_ADDR bd_addr, BT_OCTET16 c, BT_O
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BuildOobData
-**
-** Description      This function is called to build the OOB data payload to
-**                  be sent over OOB (non-Bluetooth) link
-**
-** Parameters:      p_data  - the location for OOB data
-**                  max_len - p_data size.
-**                  c       - simple pairing Hash C.
-**                  r       - simple pairing Randomizer  C.
-**                  name_len- 0, local device name would not be included.
-**                            otherwise, the local device name is included for
-**                            up to this specified length
-**
-** Returns          Number of bytes in p_data.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BuildOobData
+ *
+ * Description      This function is called to build the OOB data payload to
+ *                  be sent over OOB (non-Bluetooth) link
+ *
+ * Parameters:      p_data  - the location for OOB data
+ *                  max_len - p_data size.
+ *                  c       - simple pairing Hash C.
+ *                  r       - simple pairing Randomizer  C.
+ *                  name_len- 0, local device name would not be included.
+ *                            otherwise, the local device name is included for
+ *                            up to this specified length
+ *
+ * Returns          Number of bytes in p_data.
+ *
+ ******************************************************************************/
 uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c,
                         BT_OCTET16 r, uint8_t name_len)
 {
@@ -1794,19 +1794,19 @@ uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BothEndsSupportSecureConnections
-**
-** Description      This function is called to check if both the local device and the peer device
-**                  specified by bd_addr support BR/EDR Secure Connections.
-**
-** Parameters:      bd_addr - address of the peer
-**
-** Returns          true if BR/EDR Secure Connections are supported by both local
-**                  and the remote device.
-**                  else false.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BothEndsSupportSecureConnections
+ *
+ * Description      This function is called to check if both the local device and the peer device
+ *                  specified by bd_addr support BR/EDR Secure Connections.
+ *
+ * Parameters:      bd_addr - address of the peer
+ *
+ * Returns          true if BR/EDR Secure Connections are supported by both local
+ *                  and the remote device.
+ *                  else false.
+ *
+ ******************************************************************************/
 bool    BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr)
 {
     return ((controller_get_interface()->supports_secure_connections()) &&
@@ -1814,18 +1814,18 @@ bool    BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_PeerSupportsSecureConnections
-**
-** Description      This function is called to check if the peer supports
-**                  BR/EDR Secure Connections.
-**
-** Parameters:      bd_addr - address of the peer
-**
-** Returns          true if BR/EDR Secure Connections are supported by the peer,
-**                  else false.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_PeerSupportsSecureConnections
+ *
+ * Description      This function is called to check if the peer supports
+ *                  BR/EDR Secure Connections.
+ *
+ * Parameters:      bd_addr - address of the peer
+ *
+ * Returns          true if BR/EDR Secure Connections are supported by the peer,
+ *                  else false.
+ *
+ ******************************************************************************/
 bool    BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec;
@@ -1843,20 +1843,20 @@ bool    BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadOobData
-**
-** Description      This function is called to parse the OOB data payload
-**                  received over OOB (non-Bluetooth) link
-**
-** Parameters:      p_data  - the location for OOB data
-**                  eir_tag - The associated EIR tag to read the data.
-**                  *p_len(output) - the length of the data with the given tag.
-**
-** Returns          the beginning of the data with the given tag.
-**                  NULL, if the tag is not found.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadOobData
+ *
+ * Description      This function is called to parse the OOB data payload
+ *                  received over OOB (non-Bluetooth) link
+ *
+ * Parameters:      p_data  - the location for OOB data
+ *                  eir_tag - The associated EIR tag to read the data.
+ *                  *p_len(output) - the length of the data with the given tag.
+ *
+ * Returns          the beginning of the data with the given tag.
+ *                  NULL, if the tag is not found.
+ *
+ ******************************************************************************/
 uint8_t * BTM_ReadOobData(uint8_t *p_data, uint8_t eir_tag, uint8_t *p_len)
 {
     uint8_t *p = p_data;
@@ -1912,19 +1912,19 @@ uint8_t * BTM_ReadOobData(uint8_t *p_data, uint8_t eir_tag, uint8_t *p_len)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetOutService
-**
-** Description      This function is called to set the service for
-**                  outgoing connections.
-**
-**                  If the profile/application calls BTM_SetSecurityLevel
-**                  before initiating a connection, this function does not
-**                  need to be called.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetOutService
+ *
+ * Description      This function is called to set the service for
+ *                  outgoing connections.
+ *
+ *                  If the profile/application calls BTM_SetSecurityLevel
+ *                  before initiating a connection, this function does not
+ *                  need to be called.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_SetOutService(BD_ADDR bd_addr, uint8_t service_id, uint32_t mx_chan_id)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -1950,18 +1950,18 @@ void BTM_SetOutService(BD_ADDR bd_addr, uint8_t service_id, uint32_t mx_chan_id)
 }
 
 /************************************************************************
-**              I N T E R N A L     F U N C T I O N S
-*************************************************************************/
+ *              I N T E R N A L     F U N C T I O N S
+ ************************************************************************/
 /*******************************************************************************
-**
-** Function         btm_sec_is_upgrade_possible
-**
-** Description      This function returns true if the existing link key
-**                  can be upgraded or if the link key does not exist.
-**
-** Returns          bool
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_is_upgrade_possible
+ *
+ * Description      This function returns true if the existing link key
+ *                  can be upgraded or if the link key does not exist.
+ *
+ * Returns          bool
+ *
+ ******************************************************************************/
 static bool    btm_sec_is_upgrade_possible(tBTM_SEC_DEV_REC  *p_dev_rec, bool    is_originator)
 {
     uint16_t            mtm_check = is_originator ? BTM_SEC_OUT_MITM : BTM_SEC_IN_MITM;
@@ -2005,15 +2005,15 @@ static bool    btm_sec_is_upgrade_possible(tBTM_SEC_DEV_REC  *p_dev_rec, bool   
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_check_upgrade
-**
-** Description      This function is called to check if the existing link key
-**                  needs to be upgraded.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_check_upgrade
+ *
+ * Description      This function is called to check if the existing link key
+ *                  needs to be upgraded.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_sec_check_upgrade(tBTM_SEC_DEV_REC  *p_dev_rec, bool    is_originator)
 {
 
@@ -2050,23 +2050,23 @@ static void btm_sec_check_upgrade(tBTM_SEC_DEV_REC  *p_dev_rec, bool    is_origi
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_l2cap_access_req
-**
-** Description      This function is called by the L2CAP to grant permission to
-**                  establish L2CAP connection to or from the peer device.
-**
-** Parameters:      bd_addr       - Address of the peer device
-**                  psm           - L2CAP PSM
-**                  is_originator - true if protocol above L2CAP originates
-**                                  connection
-**                  p_callback    - Pointer to callback function called if
-**                                  this function returns PENDING after required
-**                                  procedures are complete. MUST NOT BE NULL.
-**
-** Returns          tBTM_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_l2cap_access_req
+ *
+ * Description      This function is called by the L2CAP to grant permission to
+ *                  establish L2CAP connection to or from the peer device.
+ *
+ * Parameters:      bd_addr       - Address of the peer device
+ *                  psm           - L2CAP PSM
+ *                  is_originator - true if protocol above L2CAP originates
+ *                                  connection
+ *                  p_callback    - Pointer to callback function called if
+ *                                  this function returns PENDING after required
+ *                                  procedures are complete. MUST NOT BE NULL.
+ *
+ * Returns          tBTM_STATUS
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, uint16_t psm, uint16_t handle,
                                       CONNECTION_TYPE conn_type,
                                       tBTM_SEC_CALLBACK *p_callback,
@@ -2434,28 +2434,28 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, uint16_t psm, uint16_t ha
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_mx_access_request
-**
-** Description      This function is called by all Multiplexing Protocols during
-**                  establishing connection to or from peer device to grant
-**                  permission to establish application connection.
-**
-** Parameters:      bd_addr       - Address of the peer device
-**                  psm           - L2CAP PSM
-**                  is_originator - true if protocol above L2CAP originates
-**                                  connection
-**                  mx_proto_id   - protocol ID of the multiplexer
-**                  mx_chan_id    - multiplexer channel to reach application
-**                  p_callback    - Pointer to callback function called if
-**                                  this function returns PENDING after required
-**                                  procedures are completed
-**                  p_ref_data    - Pointer to any reference data needed by the
-**                                  the callback function.
-**
-** Returns          BTM_CMD_STARTED
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_mx_access_request
+ *
+ * Description      This function is called by all Multiplexing Protocols during
+ *                  establishing connection to or from peer device to grant
+ *                  permission to establish application connection.
+ *
+ * Parameters:      bd_addr       - Address of the peer device
+ *                  psm           - L2CAP PSM
+ *                  is_originator - true if protocol above L2CAP originates
+ *                                  connection
+ *                  mx_proto_id   - protocol ID of the multiplexer
+ *                  mx_chan_id    - multiplexer channel to reach application
+ *                  p_callback    - Pointer to callback function called if
+ *                                  this function returns PENDING after required
+ *                                  procedures are completed
+ *                  p_ref_data    - Pointer to any reference data needed by the
+ *                                  the callback function.
+ *
+ * Returns          BTM_CMD_STARTED
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, uint16_t psm, bool    is_originator,
                                        uint32_t mx_proto_id, uint32_t mx_chan_id,
                                        tBTM_SEC_CALLBACK *p_callback, void *p_ref_data)
@@ -2664,15 +2664,15 @@ tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, uint16_t psm, bool    is
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_conn_req
-**
-** Description      This function is when the peer device is requesting
-**                  connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_conn_req
+ *
+ * Description      This function is when the peer device is requesting
+ *                  connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_conn_req (uint8_t *bda, uint8_t *dc)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (bda);
@@ -2743,15 +2743,15 @@ void btm_sec_conn_req (uint8_t *bda, uint8_t *dc)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_bond_cancel_complete
-**
-** Description      This function is called to report bond cancel complete
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_bond_cancel_complete
+ *
+ * Description      This function is called to report bond cancel complete
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_sec_bond_cancel_complete (void)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -2780,16 +2780,16 @@ static void btm_sec_bond_cancel_complete (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_create_conn_cancel_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the create connection cancel
-**                  command.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_create_conn_cancel_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the create connection cancel
+ *                  command.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_create_conn_cancel_complete (uint8_t *p)
 {
     uint8_t     status;
@@ -2817,15 +2817,15 @@ void btm_create_conn_cancel_complete (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_check_pending_reqs
-**
-** Description      This function is called at the end of the security procedure
-**                  to let L2CAP and RFCOMM know to re-submit any pending requests
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_check_pending_reqs
+ *
+ * Description      This function is called at the end of the security procedure
+ *                  to let L2CAP and RFCOMM know to re-submit any pending requests
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_check_pending_reqs (void)
 {
     if (btm_cb.pairing_state == BTM_PAIR_STATE_IDLE)
@@ -2872,14 +2872,14 @@ void btm_sec_check_pending_reqs (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_init
-**
-** Description      This function is on the SEC startup
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_init
+ *
+ * Description      This function is on the SEC startup
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_init (uint8_t sec_mode)
 {
     btm_cb.security_mode = sec_mode;
@@ -2888,15 +2888,15 @@ void btm_sec_init (uint8_t sec_mode)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_device_down
-**
-** Description      This function should be called when device is disabled or
-**                  turned off
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_device_down
+ *
+ * Description      This function should be called when device is disabled or
+ *                  turned off
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_device_down (void)
 {
     BTM_TRACE_EVENT ("%s() State: %s", __func__, btm_pair_state_descr(btm_cb.pairing_state));
@@ -2904,14 +2904,14 @@ void btm_sec_device_down (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_dev_reset
-**
-** Description      This function should be called after device reset
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_dev_reset
+ *
+ * Description      This function should be called after device reset
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_dev_reset (void)
 {
     if (controller_get_interface()->supports_simple_pairing())
@@ -2931,17 +2931,17 @@ void btm_sec_dev_reset (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_abort_access_req
-**
-** Description      This function is called by the L2CAP or RFCOMM to abort
-**                  the pending operation.
-**
-** Parameters:      bd_addr       - Address of the peer device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_abort_access_req
+ *
+ * Description      This function is called by the L2CAP or RFCOMM to abort
+ *                  the pending operation.
+ *
+ * Parameters:      bd_addr       - Address of the peer device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_abort_access_req (BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (bd_addr);
@@ -2958,15 +2958,15 @@ void btm_sec_abort_access_req (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_dd_create_conn
-**
-** Description      This function is called to create the ACL connection for
-**                  the dedicated boding process
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_dd_create_conn
+ *
+ * Description      This function is called to create the ACL connection for
+ *                  the dedicated boding process
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static tBTM_STATUS btm_sec_dd_create_conn (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR);
@@ -3023,15 +3023,15 @@ bool is_state_getting_name(void *data, void *context)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_rmt_name_request_complete
+ *
+ * Function         btm_sec_rmt_name_request_complete
 *
-** Description      This function is called when remote name was obtained from
-**                  the peer device
-**
-** Returns          void
-**
-*******************************************************************************/
+ * Description      This function is called when remote name was obtained from
+ *                  the peer device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_rmt_name_request_complete (uint8_t *p_bd_addr, uint8_t *p_bd_name, uint8_t status)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -3267,15 +3267,15 @@ void btm_sec_rmt_name_request_complete (uint8_t *p_bd_addr, uint8_t *p_bd_name, 
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_rmt_host_support_feat_evt
-**
-** Description      This function is called when the
-**                  HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT is received
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_rmt_host_support_feat_evt
+ *
+ * Description      This function is called when the
+ *                  HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT is received
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_rmt_host_support_feat_evt (uint8_t *p)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -3300,16 +3300,16 @@ void btm_sec_rmt_host_support_feat_evt (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_io_capabilities_req
-**
-** Description      This function is called when LM request for the IO
-**                  capability of the local device and
-**                  if the OOB data is present for the device in the event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_io_capabilities_req
+ *
+ * Description      This function is called when LM request for the IO
+ *                  capability of the local device and
+ *                  if the OOB data is present for the device in the event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_io_capabilities_req (uint8_t *p)
 {
     tBTM_SP_IO_REQ  evt_data;
@@ -3507,15 +3507,15 @@ False-positive: False-positive: evt_data.bd_addr is set at the beginning with:  
 }
 
 /*******************************************************************************
-**
-** Function         btm_io_capabilities_rsp
-**
-** Description      This function is called when the IO capability of the
-**                  specified device is received
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_io_capabilities_rsp
+ *
+ * Description      This function is called when the IO capability of the
+ *                  specified device is received
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_io_capabilities_rsp (uint8_t *p)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -3571,17 +3571,17 @@ FALSE-POSITIVE error from Coverity test-tool. evt_data.bd_addr is set at the beg
 }
 
 /*******************************************************************************
-**
-** Function         btm_proc_sp_req_evt
-**
-** Description      This function is called to process/report
-**                  HCI_USER_CONFIRMATION_REQUEST_EVT
-**                  or HCI_USER_PASSKEY_REQUEST_EVT
-**                  or HCI_USER_PASSKEY_NOTIFY_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_proc_sp_req_evt
+ *
+ * Description      This function is called to process/report
+ *                  HCI_USER_CONFIRMATION_REQUEST_EVT
+ *                  or HCI_USER_PASSKEY_REQUEST_EVT
+ *                  or HCI_USER_PASSKEY_NOTIFY_EVT
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_proc_sp_req_evt (tBTM_SP_EVT event, uint8_t *p)
 {
     tBTM_STATUS status = BTM_ERR_PROCESSING;
@@ -3712,15 +3712,15 @@ void btm_proc_sp_req_evt (tBTM_SP_EVT event, uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_keypress_notif_evt
-**
-** Description      This function is called when a key press notification is
-**                  received
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_keypress_notif_evt
+ *
+ * Description      This function is called when a key press notification is
+ *                  received
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void  btm_keypress_notif_evt (uint8_t *p)
 {
     tBTM_SP_KEYPRESS    evt_data;
@@ -3739,15 +3739,15 @@ void  btm_keypress_notif_evt (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_simple_pair_complete
-**
-** Description      This function is called when simple pairing process is
-**                  complete
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_simple_pair_complete
+ *
+ * Description      This function is called when simple pairing process is
+ *                  complete
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_simple_pair_complete (uint8_t *p)
 {
     tBTM_SP_COMPLT  evt_data;
@@ -3822,15 +3822,15 @@ void btm_simple_pair_complete (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_rem_oob_req
-**
-** Description      This function is called to process/report
-**                  HCI_REMOTE_OOB_DATA_REQUEST_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_rem_oob_req
+ *
+ * Description      This function is called to process/report
+ *                  HCI_REMOTE_OOB_DATA_REQUEST_EVT
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_rem_oob_req (uint8_t *p)
 {
     uint8_t *p_bda;
@@ -3867,15 +3867,15 @@ void btm_rem_oob_req (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_local_oob_complete
-**
-** Description      This function is called when read local oob data is
-**                  completed by the LM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_local_oob_complete
+ *
+ * Description      This function is called when read local oob data is
+ *                  completed by the LM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_local_oob_complete (uint8_t *p)
 {
     tBTM_SP_LOC_OOB evt_data;
@@ -3896,15 +3896,15 @@ void btm_read_local_oob_complete (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_auth_collision
-**
-** Description      This function is called when authentication or encryption
-**                  needs to be retried at a later time.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_auth_collision
+ *
+ * Description      This function is called when authentication or encryption
+ *                  needs to be retried at a later time.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_sec_auth_collision (uint16_t handle)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -3939,15 +3939,15 @@ static void btm_sec_auth_collision (uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_auth_complete
-**
-** Description      This function is when authentication of the connection is
-**                  completed by the LM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_auth_complete
+ *
+ * Description      This function is when authentication of the connection is
+ *                  completed by the LM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_auth_complete (uint16_t handle, uint8_t status)
 {
     uint8_t          old_sm4;
@@ -4143,15 +4143,15 @@ void btm_sec_auth_complete (uint16_t handle, uint8_t status)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_encrypt_change
-**
-** Description      This function is when encryption of the connection is
-**                  completed by the LM
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_encrypt_change
+ *
+ * Description      This function is when encryption of the connection is
+ *                  completed by the LM
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enable)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev_by_handle (handle);
@@ -4309,15 +4309,15 @@ void btm_sec_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_connect_after_reject_timeout
-**
-** Description      Connection for bonding could not start because of the collision
-**                  Initiate outgoing connection
-**
-** Returns          Pointer to the TLE struct
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_connect_after_reject_timeout
+ *
+ * Description      Connection for bonding could not start because of the collision
+ *                  Initiate outgoing connection
+ *
+ * Returns          Pointer to the TLE struct
+ *
+ ******************************************************************************/
 static void btm_sec_connect_after_reject_timeout(UNUSED_ATTR void *data)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_cb.p_collided_dev_rec;
@@ -4339,15 +4339,15 @@ static void btm_sec_connect_after_reject_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_connected
-**
-** Description      This function is when a connection to the peer device is
-**                  establsihed
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_connected
+ *
+ * Description      This function is when a connection to the peer device is
+ *                  establsihed
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_connected (uint8_t *bda, uint16_t handle, uint8_t status, uint8_t enc_mode)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bda);
@@ -4649,14 +4649,14 @@ void btm_sec_connected (uint8_t *bda, uint16_t handle, uint8_t status, uint8_t e
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_disconnect
-**
-** Description      This function is called to disconnect HCI link
-**
-** Returns          btm status
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_disconnect
+ *
+ * Description      This function is called to disconnect HCI link
+ *
+ * Returns          btm status
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_sec_disconnect (uint16_t handle, uint8_t reason)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev_by_handle (handle);
@@ -4682,15 +4682,15 @@ tBTM_STATUS btm_sec_disconnect (uint16_t handle, uint8_t reason)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_disconnected
-**
-** Description      This function is when a connection to the peer device is
-**                  dropped
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_disconnected
+ *
+ * Description      This function is when a connection to the peer device is
+ *                  dropped
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_disconnected (uint16_t handle, uint8_t reason)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev_by_handle (handle);
@@ -4790,15 +4790,15 @@ void btm_sec_disconnected (uint16_t handle, uint8_t reason)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_link_key_notification
-**
-** Description      This function is called when a new connection link key is
-**                  generated
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_link_key_notification
+ *
+ * Description      This function is called when a new connection link key is
+ *                  generated
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 void btm_sec_link_key_notification (uint8_t *p_bda, uint8_t *p_link_key, uint8_t key_type)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_or_alloc_dev (p_bda);
@@ -4926,14 +4926,14 @@ void btm_sec_link_key_notification (uint8_t *p_bda, uint8_t *p_link_key, uint8_t
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_link_key_request
-**
-** Description      This function is called when controller requests link key
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_link_key_request
+ *
+ * Description      This function is called when controller requests link key
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 void btm_sec_link_key_request (uint8_t *p_bda)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_or_alloc_dev (p_bda);
@@ -4965,15 +4965,15 @@ void btm_sec_link_key_request (uint8_t *p_bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_pairing_timeout
-**
-** Description      This function is called when host does not provide PIN
-**                  within requested time
-**
-** Returns          Pointer to the TLE struct
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_pairing_timeout
+ *
+ * Description      This function is called when host does not provide PIN
+ *                  within requested time
+ *
+ * Returns          Pointer to the TLE struct
+ *
+ ******************************************************************************/
 static void btm_sec_pairing_timeout(UNUSED_ATTR void *data)
 {
     tBTM_CB *p_cb = &btm_cb;
@@ -5090,14 +5090,14 @@ static void btm_sec_pairing_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_pin_code_request
-**
-** Description      This function is called when controller requests PIN code
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_pin_code_request
+ *
+ * Description      This function is called when controller requests PIN code
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 void btm_sec_pin_code_request (uint8_t *p_bda)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -5226,14 +5226,14 @@ void btm_sec_pin_code_request (uint8_t *p_bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_update_clock_offset
-**
-** Description      This function is called to update clock offset
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_update_clock_offset
+ *
+ * Description      This function is called to update clock offset
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_update_clock_offset (uint16_t handle, uint16_t clock_offset)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec;
@@ -5253,24 +5253,24 @@ void btm_sec_update_clock_offset (uint16_t handle, uint16_t clock_offset)
 }
 
 /******************************************************************
-** S T A T I C     F U N C T I O N S
-*******************************************************************/
+ * S T A T I C     F U N C T I O N S
+ ******************************************************************/
 
 /*******************************************************************************
-**
-** Function         btm_sec_execute_procedure
-**
-** Description      This function is called to start required security
-**                  procedure.  There is a case when multiplexing protocol
-**                  calls this function on the originating side, connection to
-**                  the peer will not be established.  This function in this
-**                  case performs only authorization.
-**
-** Returns          BTM_SUCCESS     - permission is granted
-**                  BTM_CMD_STARTED - in process
-**                  BTM_NO_RESOURCES  - permission declined
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_execute_procedure
+ *
+ * Description      This function is called to start required security
+ *                  procedure.  There is a case when multiplexing protocol
+ *                  calls this function on the originating side, connection to
+ *                  the peer will not be established.  This function in this
+ *                  case performs only authorization.
+ *
+ * Returns          BTM_SUCCESS     - permission is granted
+ *                  BTM_CMD_STARTED - in process
+ *                  BTM_NO_RESOURCES  - permission declined
+ *
+ ******************************************************************************/
 static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     BTM_TRACE_EVENT ("btm_sec_execute_procedure: Required:0x%x Flags:0x%x State:%d",
@@ -5401,14 +5401,14 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_start_get_name
-**
-** Description      This function is called to start get name procedure
-**
-** Returns          true if started
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_start_get_name
+ *
+ * Description      This function is called to start get name procedure
+ *
+ * Returns          true if started
+ *
+ ******************************************************************************/
 static bool    btm_sec_start_get_name (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     uint8_t tempstate = p_dev_rec->sec_state;
@@ -5428,12 +5428,12 @@ static bool    btm_sec_start_get_name (tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_start_authentication
-**
-** Description      This function is called to start authentication
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_start_authentication
+ *
+ * Description      This function is called to start authentication
+ *
+ ******************************************************************************/
 static void btm_sec_start_authentication(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
@@ -5441,12 +5441,12 @@ static void btm_sec_start_authentication(tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_start_encryption
-**
-** Description      This function is called to start encryption
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_start_encryption
+ *
+ * Description      This function is called to start encryption
+ *
+ ******************************************************************************/
 static void btm_sec_start_encryption(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     btsnd_hcic_set_conn_encrypt(p_dev_rec->hci_handle, true);
@@ -5454,14 +5454,14 @@ static void btm_sec_start_encryption(tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_start_authorization
-**
-** Description      This function is called to start authorization
-**
-** Returns          true if started
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_start_authorization
+ *
+ * Description      This function is called to start authorization
+ *
+ * Returns          true if started
+ *
+ ******************************************************************************/
 static uint8_t btm_sec_start_authorization (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     uint8_t  result;
@@ -5523,14 +5523,14 @@ static uint8_t btm_sec_start_authorization (tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_are_all_trusted
-**
-** Description      This function is called check if all services are trusted
-**
-** Returns          true if all are trusted, otherwise false
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_are_all_trusted
+ *
+ * Description      This function is called check if all services are trusted
+ *
+ * Returns          true if all are trusted, otherwise false
+ *
+ ******************************************************************************/
 bool    btm_sec_are_all_trusted(uint32_t p_mask[])
 {
     uint32_t trusted_inx;
@@ -5544,15 +5544,15 @@ bool    btm_sec_are_all_trusted(uint32_t p_mask[])
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_find_first_serv
-**
-** Description      Look for the first record in the service database
-**                  with specified PSM
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_find_first_serv
+ *
+ * Description      Look for the first record in the service database
+ *                  with specified PSM
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 tBTM_SEC_SERV_REC *btm_sec_find_first_serv (CONNECTION_TYPE conn_type, uint16_t psm)
 {
     tBTM_SEC_SERV_REC *p_serv_rec = &btm_cb.sec_serv_rec[0];
@@ -5586,15 +5586,15 @@ tBTM_SEC_SERV_REC *btm_sec_find_first_serv (CONNECTION_TYPE conn_type, uint16_t 
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_find_next_serv
-**
-** Description      Look for the next record in the service database
-**                  with specified PSM
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_find_next_serv
+ *
+ * Description      Look for the next record in the service database
+ *                  with specified PSM
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 static tBTM_SEC_SERV_REC *btm_sec_find_next_serv (tBTM_SEC_SERV_REC *p_cur)
 {
     tBTM_SEC_SERV_REC *p_serv_rec   = &btm_cb.sec_serv_rec[0];
@@ -5615,15 +5615,15 @@ static tBTM_SEC_SERV_REC *btm_sec_find_next_serv (tBTM_SEC_SERV_REC *p_cur)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_find_mx_serv
-**
-** Description      Look for the record in the service database with specified
-**                  PSM and multiplexor channel information
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_find_mx_serv
+ *
+ * Description      Look for the record in the service database with specified
+ *                  PSM and multiplexor channel information
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (uint8_t is_originator, uint16_t psm,
                                                 uint32_t mx_proto_id, uint32_t mx_chan_id)
 {
@@ -5657,15 +5657,15 @@ static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (uint8_t is_originator, uint16_t 
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_collision_timeout
-**
-** Description      Encryption could not start because of the collision
-**                  try to do it again
-**
-** Returns          Pointer to the TLE struct
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_collision_timeout
+ *
+ * Description      Encryption could not start because of the collision
+ *                  try to do it again
+ *
+ * Returns          Pointer to the TLE struct
+ *
+ ******************************************************************************/
 static void btm_sec_collision_timeout(UNUSED_ATTR void *data)
 {
     BTM_TRACE_EVENT ("%s()", __func__);
@@ -5681,14 +5681,14 @@ static void btm_sec_collision_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_link_key_request
-**
-** Description      This function is called when controller requests link key
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_link_key_request
+ *
+ * Description      This function is called when controller requests link key
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 static void btm_send_link_key_notif (tBTM_SEC_DEV_REC *p_dev_rec)
 {
     if (btm_cb.api.p_link_key_callback)
@@ -5698,17 +5698,17 @@ static void btm_send_link_key_notif (tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadTrustedMask
-**
-** Description      Get trusted mask for the peer device
-**
-** Parameters:      bd_addr   - Address of the device
-**
-** Returns          NULL, if the device record is not found.
-**                  otherwise, the trusted mask
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadTrustedMask
+ *
+ * Description      Get trusted mask for the peer device
+ *
+ * Parameters:      bd_addr   - Address of the device
+ *
+ * Returns          NULL, if the device record is not found.
+ *                  otherwise, the trusted mask
+ *
+ ******************************************************************************/
 uint32_t * BTM_ReadTrustedMask (BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bd_addr);
@@ -5718,16 +5718,16 @@ uint32_t * BTM_ReadTrustedMask (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         btm_restore_mode
-**
-** Description      This function returns the security mode to previous setting
-**                  if it was changed during bonding.
-**
-**
-** Parameters:      void
-**
-*******************************************************************************/
+ *
+ * Function         btm_restore_mode
+ *
+ * Description      This function returns the security mode to previous setting
+ *                  if it was changed during bonding.
+ *
+ *
+ * Parameters:      void
+ *
+ ******************************************************************************/
 static void btm_restore_mode(void)
 {
     if (btm_cb.security_mode_changed)
@@ -5757,15 +5757,15 @@ bool is_sec_state_equal(void *data, void *context)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_find_dev_by_sec_state
-**
-** Description      Look for the record in the device database for the device
-**                  which is being authenticated or encrypted
-**
-** Returns          Pointer to the record or NULL
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_find_dev_by_sec_state
+ *
+ * Description      Look for the record in the device database for the device
+ *                  which is being authenticated or encrypted
+ *
+ * Returns          Pointer to the record or NULL
+ *
+ ******************************************************************************/
 tBTM_SEC_DEV_REC *btm_sec_find_dev_by_sec_state (uint8_t state)
 {
     list_node_t *n = list_foreach(btm_cb.sec_dev_rec, is_sec_state_equal, &state);
@@ -5776,12 +5776,12 @@ tBTM_SEC_DEV_REC *btm_sec_find_dev_by_sec_state (uint8_t state)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_change_pairing_state
-**
-** Description      This function is called to change pairing state
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_change_pairing_state
+ *
+ * Description      This function is called to change pairing state
+ *
+ ******************************************************************************/
 static void btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state)
 {
     tBTM_PAIRING_STATE  old_state = btm_cb.pairing_state;
@@ -5822,12 +5822,12 @@ static void btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state)
 }
 
 /*******************************************************************************
-**
-** Function         btm_pair_state_descr
-**
-** Description      Return state description for tracing
-**
-*******************************************************************************/
+ *
+ * Function         btm_pair_state_descr
+ *
+ * Description      Return state description for tracing
+ *
+ ******************************************************************************/
 static const char *btm_pair_state_descr (tBTM_PAIRING_STATE state)
 {
     switch (state)
@@ -5849,15 +5849,15 @@ static const char *btm_pair_state_descr (tBTM_PAIRING_STATE state)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_dev_rec_cback_event
-**
-** Description      This function calls the callback function with the given
-**                  result and clear the callback function.
-**
-** Parameters:      void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_dev_rec_cback_event
+ *
+ * Description      This function calls the callback function with the given
+ *                  result and clear the callback function.
+ *
+ * Parameters:      void
+ *
+ ******************************************************************************/
 void btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, uint8_t res, bool    is_le_transport)
 {
     tBTM_SEC_CALLBACK   *p_callback = p_dev_rec->p_callback;
@@ -5876,12 +5876,12 @@ void btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, uint8_t res, bool
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_queue_mx_request
-**
-** Description      Return state description for tracing
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_queue_mx_request
+ *
+ * Description      Return state description for tracing
+ *
+ ******************************************************************************/
 static bool    btm_sec_queue_mx_request (BD_ADDR bd_addr,  uint16_t psm,  bool    is_orig,
                                          uint32_t mx_proto_id, uint32_t mx_chan_id,
                                          tBTM_SEC_CALLBACK *p_callback, void *p_ref_data)
@@ -5959,16 +5959,16 @@ static bool    btm_sec_check_prefetch_pin (tBTM_SEC_DEV_REC  *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_auth_payload_tout
-**
-** Description      Processes the HCI Autheniticated Payload Timeout Event
-**                  indicating that a packet containing a valid MIC on the
-**                  connection handle was not received within the programmed
-**                  timeout value. (Spec Default is 30 secs, but can be
-**                  changed via the BTM_SecSetAuthPayloadTimeout() function.
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_auth_payload_tout
+ *
+ * Description      Processes the HCI Autheniticated Payload Timeout Event
+ *                  indicating that a packet containing a valid MIC on the
+ *                  connection handle was not received within the programmed
+ *                  timeout value. (Spec Default is 30 secs, but can be
+ *                  changed via the BTM_SecSetAuthPayloadTimeout() function.
+ *
+ ******************************************************************************/
 void btm_sec_auth_payload_tout (uint8_t *p, uint16_t hci_evt_len)
 {
     uint16_t handle;
@@ -5981,13 +5981,13 @@ void btm_sec_auth_payload_tout (uint8_t *p, uint16_t hci_evt_len)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_queue_encrypt_request
-**
-** Description      encqueue encryption request when device has active security
-**                  process pending.
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_queue_encrypt_request
+ *
+ * Description      encqueue encryption request when device has active security
+ *                  process pending.
+ *
+ ******************************************************************************/
 static bool    btm_sec_queue_encrypt_request (BD_ADDR bd_addr, tBT_TRANSPORT transport,
                                          tBTM_SEC_CALLBACK *p_callback, void *p_ref_data,
                                          tBTM_BLE_SEC_ACT sec_act)
@@ -6007,15 +6007,15 @@ static bool    btm_sec_queue_encrypt_request (BD_ADDR bd_addr, tBT_TRANSPORT tra
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_set_peer_sec_caps
-**
-** Description      This function is called to set sm4 and rmt_sec_caps fields
-**                  based on the available peer device features.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_set_peer_sec_caps
+ *
+ * Description      This function is called to set sm4 and rmt_sec_caps fields
+ *                  based on the available peer device features.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_set_peer_sec_caps(tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec)
 {
     BD_ADDR     rem_bd_addr;
@@ -6052,15 +6052,15 @@ void btm_sec_set_peer_sec_caps(tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_is_serv_level0
-**
-** Description      This function is called to check if the service corresponding
-**                  to PSM is security mode 4 level 0 service.
-**
-** Returns          true if the service is security mode 4 level 0 service
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_is_serv_level0
+ *
+ * Description      This function is called to check if the service corresponding
+ *                  to PSM is security mode 4 level 0 service.
+ *
+ * Returns          true if the service is security mode 4 level 0 service
+ *
+ ******************************************************************************/
 static bool    btm_sec_is_serv_level0(uint16_t psm)
 {
     if (psm == BT_PSM_SDP)
@@ -6072,15 +6072,15 @@ static bool    btm_sec_is_serv_level0(uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_check_pending_enc_req
-**
-** Description      This function is called to send pending encryption callback if
-**                  waiting
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_check_pending_enc_req
+ *
+ * Description      This function is called to send pending encryption callback if
+ *                  waiting
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRANSPORT transport,
                                             uint8_t encr_enable)
 {
@@ -6111,15 +6111,15 @@ static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRA
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_set_serv_level4_flags
-**
-** Description      This function is called to set security mode 4 level 4 flags.
-**
-** Returns          service security requirements updated to include secure
-**                  connections only mode.
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_set_serv_level4_flags
+ *
+ * Description      This function is called to set security mode 4 level 4 flags.
+ *
+ * Returns          service security requirements updated to include secure
+ *                  connections only mode.
+ *
+ ******************************************************************************/
 static uint16_t btm_sec_set_serv_level4_flags(uint16_t cur_security, bool    is_originator)
 {
     uint16_t sec_level4_flags = is_originator ? BTM_SEC_OUT_LEVEL4_FLAGS : BTM_SEC_IN_LEVEL4_FLAGS;
@@ -6128,16 +6128,16 @@ static uint16_t btm_sec_set_serv_level4_flags(uint16_t cur_security, bool    is_
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_clear_ble_keys
-**
-** Description      This function is called to clear out the BLE keys.
-**                  Typically when devices are removed in BTM_SecDeleteDevice,
-**                  or when a new BT Link key is generated.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_clear_ble_keys
+ *
+ * Description      This function is called to clear out the BLE keys.
+ *                  Typically when devices are removed in BTM_SecDeleteDevice,
+ *                  or when a new BT Link key is generated.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec)
 {
 
@@ -6151,14 +6151,14 @@ void btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_is_a_bonded_dev
-**
-** Description       Is the specified device is a bonded device
-**
-** Returns          true - dev is bonded
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_is_a_bonded_dev
+ *
+ * Description       Is the specified device is a bonded device
+ *
+ * Returns          true - dev is bonded
+ *
+ ******************************************************************************/
 bool    btm_sec_is_a_bonded_dev (BD_ADDR bda)
 {
 
@@ -6176,14 +6176,14 @@ bool    btm_sec_is_a_bonded_dev (BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_is_le_capable_dev
-**
-** Description       Is the specified device is dual mode or LE only device
-**
-** Returns          true - dev is a dual mode
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_is_le_capable_dev
+ *
+ * Description       Is the specified device is dual mode or LE only device
+ *
+ * Returns          true - dev is a dual mode
+ *
+ ******************************************************************************/
 bool    btm_sec_is_le_capable_dev (BD_ADDR bda)
 {
     tBTM_SEC_DEV_REC *p_dev_rec= btm_find_dev (bda);
@@ -6195,19 +6195,19 @@ bool    btm_sec_is_le_capable_dev (BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_use_smp_br_chnl
-**
-** Description      The function checks if SMP BR connection can be used with
-**                  the peer.
-**                  Is called when authentication for dedicated bonding is
-**                  successfully completed.
-**
-** Returns          true - if SMP BR connection can be used (the link key is
-**                         generated from P-256 and the peer supports Security
-**                         Manager over BR).
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_use_smp_br_chnl
+ *
+ * Description      The function checks if SMP BR connection can be used with
+ *                  the peer.
+ *                  Is called when authentication for dedicated bonding is
+ *                  successfully completed.
+ *
+ * Returns          true - if SMP BR connection can be used (the link key is
+ *                         generated from P-256 and the peer supports Security
+ *                         Manager over BR).
+ *
+ ******************************************************************************/
 static bool    btm_sec_use_smp_br_chnl(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     uint32_t ext_feat;
@@ -6230,15 +6230,15 @@ static bool    btm_sec_use_smp_br_chnl(tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_sec_is_master
-**
-** Description      The function checks if the device is BR/EDR master after
-**                  pairing is completed.
-**
-** Returns          true - if the device is master.
-**
-*******************************************************************************/
+ *
+ * Function         btm_sec_is_master
+ *
+ * Description      The function checks if the device is BR/EDR master after
+ *                  pairing is completed.
+ *
+ * Returns          true - if the device is master.
+ *
+ ******************************************************************************/
 static bool    btm_sec_is_master(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     tACL_CONN *p= btm_bda_to_acl(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR);

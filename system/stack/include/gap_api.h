@@ -28,8 +28,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 /*** GAP Error and Status Codes ***/
 #define GAP_UNSUPPORTED     (GAP_ERR_GRP + 0x01)    /* Unsupported call */
 #define GAP_EOINQDB         (GAP_ERR_GRP + 0x02)    /* End of inquiry database marker */
@@ -90,16 +90,16 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Type Definitions
-*****************************************************************************/
+ *  Type Definitions
+ ****************************************************************************/
 /*
-** Callback function for connection services
+ * Callback function for connection services
 */
 typedef void (tGAP_CONN_CALLBACK) (uint16_t gap_handle, uint16_t event);
 
 /*
-** Define the callback function prototypes.  Parameters are specific
-** to each event and are described below
+ * Define the callback function prototypes.  Parameters are specific
+ * to each event and are described below
 */
 typedef void (tGAP_CALLBACK) (uint16_t event, void *p_data);
 
@@ -134,20 +134,20 @@ typedef void (tGAP_BLE_CMPL_CBACK)(bool    status, BD_ADDR addr, uint16_t length
 
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /*** Functions for L2CAP connection interface ***/
 
 /*******************************************************************************
-**
-** Function         GAP_ConnOpen
-**
-** Description      This function is called to open a generic L2CAP connection.
-**
-** Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnOpen
+ *
+ * Description      This function is called to open a generic L2CAP connection.
+ *
+ * Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnOpen(const char *p_serv_name, uint8_t service_id, bool is_server,
                                     BD_ADDR p_rem_bda, uint16_t psm, tL2CAP_CFG_INFO *p_cfg,
                                     tL2CAP_ERTM_INFO *ertm_info,
@@ -155,228 +155,228 @@ extern uint16_t GAP_ConnOpen(const char *p_serv_name, uint8_t service_id, bool i
                                     tGAP_CONN_CALLBACK *p_cb, tBT_TRANSPORT transport);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnClose
-**
-** Description      This function is called to close a connection.
-**
-** Returns          BT_PASS             - closed OK
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnClose
+ *
+ * Description      This function is called to close a connection.
+ *
+ * Returns          BT_PASS             - closed OK
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnClose (uint16_t gap_handle);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnReadData
-**
-** Description      GKI buffer unaware application will call this function
-**                  after receiving GAP_EVT_RXDATA event. A data copy is made
-**                  into the receive buffer parameter.
-**
-** Returns          BT_PASS             - data read
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**                  GAP_NO_DATA_AVAIL   - no data available
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnReadData
+ *
+ * Description      GKI buffer unaware application will call this function
+ *                  after receiving GAP_EVT_RXDATA event. A data copy is made
+ *                  into the receive buffer parameter.
+ *
+ * Returns          BT_PASS             - data read
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *                  GAP_NO_DATA_AVAIL   - no data available
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnReadData (uint16_t gap_handle, uint8_t *p_data,
                                         uint16_t max_len, uint16_t *p_len);
 
 /*******************************************************************************
-**
-** Function         GAP_GetRxQueueCnt
-**
-** Description      This function return number of bytes on the rx queue.
-**
-** Parameters:      handle     - Handle returned in the GAP_ConnOpen
-**                  p_rx_queue_count - Pointer to return queue count in.
-**
-**
-*******************************************************************************/
+ *
+ * Function         GAP_GetRxQueueCnt
+ *
+ * Description      This function return number of bytes on the rx queue.
+ *
+ * Parameters:      handle     - Handle returned in the GAP_ConnOpen
+ *                  p_rx_queue_count - Pointer to return queue count in.
+ *
+ *
+ ******************************************************************************/
 extern int GAP_GetRxQueueCnt (uint16_t handle, uint32_t *p_rx_queue_count);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnBTRead
-**
-** Description      GKI buffer aware applications will call this function after
-**                  receiving an GAP_EVT_RXDATA event to process the incoming
-**                  data buffer.
-**
-** Returns          BT_PASS             - data read
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**                  GAP_NO_DATA_AVAIL   - no data available
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnBTRead
+ *
+ * Description      GKI buffer aware applications will call this function after
+ *                  receiving an GAP_EVT_RXDATA event to process the incoming
+ *                  data buffer.
+ *
+ * Returns          BT_PASS             - data read
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *                  GAP_NO_DATA_AVAIL   - no data available
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnBTRead (uint16_t gap_handle, BT_HDR **pp_buf);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnWriteData
-**
-** Description      GKI buffer unaware application will call this function
-**                  to send data to the connection. A data copy is made into a GKI
-**                  buffer.
-**
-** Returns          BT_PASS                 - data read
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**                  GAP_ERR_BAD_STATE       - connection not established
-**                  GAP_CONGESTION          - system is congested
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnWriteData
+ *
+ * Description      GKI buffer unaware application will call this function
+ *                  to send data to the connection. A data copy is made into a GKI
+ *                  buffer.
+ *
+ * Returns          BT_PASS                 - data read
+ *                  GAP_ERR_BAD_HANDLE      - invalid handle
+ *                  GAP_ERR_BAD_STATE       - connection not established
+ *                  GAP_CONGESTION          - system is congested
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data,
                                          uint16_t max_len, uint16_t *p_len);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnReconfig
-**
-** Description      Applications can call this function to reconfigure the connection.
-**
-** Returns          BT_PASS                 - config process started
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnReconfig
+ *
+ * Description      Applications can call this function to reconfigure the connection.
+ *
+ * Returns          BT_PASS                 - config process started
+ *                  GAP_ERR_BAD_HANDLE      - invalid handle
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnReconfig (uint16_t gap_handle, tL2CAP_CFG_INFO *p_cfg);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnSetIdleTimeout
-**
-** Description      Higher layers call this function to set the idle timeout for
-**                  a connection, or for all future connections. The "idle timeout"
-**                  is the amount of time that a connection can remain up with
-**                  no L2CAP channels on it. A timeout of zero means that the
-**                  connection will be torn down immediately when the last channel
-**                  is removed. A timeout of 0xFFFF means no timeout. Values are
-**                  in seconds.
-**
-** Returns          BT_PASS                 - config process started
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnSetIdleTimeout
+ *
+ * Description      Higher layers call this function to set the idle timeout for
+ *                  a connection, or for all future connections. The "idle timeout"
+ *                  is the amount of time that a connection can remain up with
+ *                  no L2CAP channels on it. A timeout of zero means that the
+ *                  connection will be torn down immediately when the last channel
+ *                  is removed. A timeout of 0xFFFF means no timeout. Values are
+ *                  in seconds.
+ *
+ * Returns          BT_PASS                 - config process started
+ *                  GAP_ERR_BAD_HANDLE      - invalid handle
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnSetIdleTimeout (uint16_t gap_handle, uint16_t timeout);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnGetRemoteAddr
-**
-** Description      This function is called to get the remote BD address
-**                  of a connection.
-**
-** Returns          BT_PASS             - closed OK
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnGetRemoteAddr
+ *
+ * Description      This function is called to get the remote BD address
+ *                  of a connection.
+ *
+ * Returns          BT_PASS             - closed OK
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *
+ ******************************************************************************/
 extern uint8_t *GAP_ConnGetRemoteAddr (uint16_t gap_handle);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnGetRemMtuSize
-**
-** Description      Returns the remote device's MTU size.
-**
-** Returns          uint16_t - maximum size buffer that can be transmitted to the peer
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnGetRemMtuSize
+ *
+ * Description      Returns the remote device's MTU size.
+ *
+ * Returns          uint16_t - maximum size buffer that can be transmitted to the peer
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnGetRemMtuSize (uint16_t gap_handle);
 
 /*******************************************************************************
-**
-** Function         GAP_ConnGetL2CAPCid
-**
-** Description      Returns the L2CAP channel id
-**
-** Parameters:      handle      - Handle of the connection
-**
-** Returns          uint16_t    - The L2CAP channel id
-**                  0, if error
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnGetL2CAPCid
+ *
+ * Description      Returns the L2CAP channel id
+ *
+ * Parameters:      handle      - Handle of the connection
+ *
+ * Returns          uint16_t    - The L2CAP channel id
+ *                  0, if error
+ *
+ ******************************************************************************/
 extern uint16_t GAP_ConnGetL2CAPCid (uint16_t gap_handle);
 
 /*******************************************************************************
-**
-** Function         GAP_SetTraceLevel
-**
-** Description      This function sets the trace level for GAP.  If called with
-**                  a value of 0xFF, it simply returns the current trace level.
-**
-** Returns          The new or current trace level
-**
-*******************************************************************************/
+ *
+ * Function         GAP_SetTraceLevel
+ *
+ * Description      This function sets the trace level for GAP.  If called with
+ *                  a value of 0xFF, it simply returns the current trace level.
+ *
+ * Returns          The new or current trace level
+ *
+ ******************************************************************************/
 extern uint8_t GAP_SetTraceLevel (uint8_t new_level);
 
 /*******************************************************************************
-**
-** Function         GAP_Init
-**
-** Description      Initializes the control blocks used by GAP.
-**                  This routine should not be called except once per
-**                      stack invocation.
-**
-** Returns          Nothing
-**
-*******************************************************************************/
+ *
+ * Function         GAP_Init
+ *
+ * Description      Initializes the control blocks used by GAP.
+ *                  This routine should not be called except once per
+ *                      stack invocation.
+ *
+ * Returns          Nothing
+ *
+ ******************************************************************************/
 extern void GAP_Init(void);
 
 /*******************************************************************************
-**
-** Function         GAP_BleAttrDBUpdate
-**
-** Description      update GAP local BLE attribute database.
-**
-** Returns          Nothing
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleAttrDBUpdate
+ *
+ * Description      update GAP local BLE attribute database.
+ *
+ * Returns          Nothing
+ *
+ ******************************************************************************/
 extern void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE *p_value);
 
 
 /*******************************************************************************
-**
-** Function         GAP_BleReadPeerPrefConnParams
-**
-** Description      Start a process to read a connected peripheral's preferred
-**                  connection parameters
-**
-** Returns          true if read started, else false if GAP is busy
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleReadPeerPrefConnParams
+ *
+ * Description      Start a process to read a connected peripheral's preferred
+ *                  connection parameters
+ *
+ * Returns          true if read started, else false if GAP is busy
+ *
+ ******************************************************************************/
 extern bool    GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
 
 /*******************************************************************************
-**
-** Function         GAP_BleReadPeerDevName
-**
-** Description      Start a process to read a connected peripheral's device name.
-**
-** Returns          true if request accepted
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleReadPeerDevName
+ *
+ * Description      Start a process to read a connected peripheral's device name.
+ *
+ * Returns          true if request accepted
+ *
+ ******************************************************************************/
 extern bool    GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback);
 
 
 /*******************************************************************************
-**
-** Function         GAP_BleReadPeerAddressResolutionCap
-**
-** Description      Start a process to read peer address resolution capability
-**
-** Returns          true if request accepted
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleReadPeerAddressResolutionCap
+ *
+ * Description      Start a process to read peer address resolution capability
+ *
+ * Returns          true if request accepted
+ *
+ ******************************************************************************/
 extern bool    GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda,
                                                     tGAP_BLE_CMPL_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         GAP_BleCancelReadPeerDevName
-**
-** Description      Cancel reading a peripheral's device name.
-**
-** Returns          true if request accepted
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleCancelReadPeerDevName
+ *
+ * Description      Cancel reading a peripheral's device name.
+ *
+ * Returns          true if request accepted
+ *
+ ******************************************************************************/
 extern bool    GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
 
 #ifdef __cplusplus

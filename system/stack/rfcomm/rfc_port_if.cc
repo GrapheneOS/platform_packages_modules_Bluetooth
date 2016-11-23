@@ -37,15 +37,15 @@
 tRFC_CB rfc_cb;
 
 /*******************************************************************************
-**
-** Function         RFCOMM_StartReq
-**
-** Description      This function handles Start Request from the upper layer.
-**                  If RFCOMM multiplexer channel can not be allocated
-**                  send start not accepted confirmation.  Otherwise dispatch
-**                  start event to the state machine.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_StartReq
+ *
+ * Description      This function handles Start Request from the upper layer.
+ *                  If RFCOMM multiplexer channel can not be allocated
+ *                  send start not accepted confirmation.  Otherwise dispatch
+ *                  start event to the state machine.
+ *
+ ******************************************************************************/
 void RFCOMM_StartReq (tRFC_MCB *p_mcb)
 {
     rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_START_REQ, NULL);
@@ -53,14 +53,14 @@ void RFCOMM_StartReq (tRFC_MCB *p_mcb)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_StartRsp
-**
-** Description      This function handles Start Response from the upper layer.
-**                  Save upper layer handle and result of the Start Indication
-**                  in the control block and dispatch event to the FSM.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_StartRsp
+ *
+ * Description      This function handles Start Response from the upper layer.
+ *                  Save upper layer handle and result of the Start Indication
+ *                  in the control block and dispatch event to the FSM.
+ *
+ ******************************************************************************/
 void RFCOMM_StartRsp (tRFC_MCB *p_mcb, uint16_t result)
 {
     rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_START_RSP, &result);
@@ -68,16 +68,16 @@ void RFCOMM_StartRsp (tRFC_MCB *p_mcb, uint16_t result)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_DlcEstablishReq
-**
-** Description      This function is called by the user app to establish
-**                  connection with the specific dlci on a specific bd device.
-**                  It will allocate RFCOMM connection control block if not
-**                  allocated before and dispatch open event to the state
-**                  machine.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_DlcEstablishReq
+ *
+ * Description      This function is called by the user app to establish
+ *                  connection with the specific dlci on a specific bd device.
+ *                  It will allocate RFCOMM connection control block if not
+ *                  allocated before and dispatch open event to the state
+ *                  machine.
+ *
+ ******************************************************************************/
 void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci,
                              UNUSED_ATTR uint16_t mtu)
 {
@@ -99,13 +99,13 @@ void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci,
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_DlcEstablishRsp
-**
-** Description      This function is called by the port emulation entity
-**                  acks Establish Indication.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_DlcEstablishRsp
+ *
+ * Description      This function is called by the port emulation entity
+ *                  acks Establish Indication.
+ *
+ ******************************************************************************/
 void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, uint8_t dlci,
                              UNUSED_ATTR uint16_t mtu, uint16_t result)
 {
@@ -126,16 +126,16 @@ void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, uint8_t dlci,
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_ParNegReq
-**
-** Description      This function is called by the user app to start
-**                  DLC parameter negotiation.  Port emulation can send this
-**                  request before actually establishing the DLC.  In this
-**                  case the function will allocate RFCOMM connection control
-**                  block.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_ParNegReq
+ *
+ * Description      This function is called by the user app to start
+ *                  DLC parameter negotiation.  Port emulation can send this
+ *                  request before actually establishing the DLC.  In this
+ *                  case the function will allocate RFCOMM connection control
+ *                  block.
+ *
+ ******************************************************************************/
 void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
 {
     uint8_t flow;
@@ -183,13 +183,13 @@ void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_ParNegRsp
-**
-** Description      This function is called by the user app to acknowledge
-**                  DLC parameter negotiation.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_ParNegRsp
+ *
+ * Description      This function is called by the user app to acknowledge
+ *                  DLC parameter negotiation.
+ *
+ ******************************************************************************/
 void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k)
 {
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
@@ -201,16 +201,16 @@ void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, 
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_PortNegReq
-**
-** Description      This function is called by the user app to start
-**                  Remote Port parameter negotiation.  Port emulation can
-**                  send this request before actually establishing the DLC.
-**                  In this case the function will allocate RFCOMM connection
-**                  control block.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_PortNegReq
+ *
+ * Description      This function is called by the user app to start
+ *                  Remote Port parameter negotiation.  Port emulation can
+ *                  send this request before actually establishing the DLC.
+ *                  In this case the function will allocate RFCOMM connection
+ *                  control block.
+ *
+ ******************************************************************************/
 void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars)
 {
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
@@ -239,13 +239,13 @@ void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_PortNegRsp
-**
-** Description      This function is called by the user app to acknowledge
-**                  Port parameters negotiation.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_PortNegRsp
+ *
+ * Description      This function is called by the user app to acknowledge
+ *                  Port parameters negotiation.
+ *
+ ******************************************************************************/
 void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
                         uint16_t param_mask)
 {
@@ -257,13 +257,13 @@ void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_ControlReq
-**
-** Description      This function is called by the port entity to send control
-**                  parameters to remote port emulation entity.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_ControlReq
+ *
+ * Description      This function is called by the port entity to send control
+ *                  parameters to remote port emulation entity.
+ *
+ ******************************************************************************/
 void RFCOMM_ControlReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
 {
     tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
@@ -288,14 +288,14 @@ void RFCOMM_ControlReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_FlowReq
-**
-** Description      This function is called by the port entity when flow
-**                  control state has changed.  Enable flag passed shows if
-**                  port can accept more data.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_FlowReq
+ *
+ * Description      This function is called by the port entity when flow
+ *                  control state has changed.  Enable flag passed shows if
+ *                  port can accept more data.
+ *
+ ******************************************************************************/
 void RFCOMM_FlowReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t enable)
 {
     tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
@@ -320,13 +320,13 @@ void RFCOMM_FlowReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t enable)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_LineStatusReq
-**
-** Description      This function is called by the port entity when line
-**                  status should be delivered to the peer.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_LineStatusReq
+ *
+ * Description      This function is called by the port entity when line
+ *                  status should be delivered to the peer.
+ *
+ ******************************************************************************/
 void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t status)
 {
     tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
@@ -348,12 +348,12 @@ void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t status)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_DlcReleaseReq
-**
-** Description      This function is called by the PORT unit to close DLC
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_DlcReleaseReq
+ *
+ * Description      This function is called by the PORT unit to close DLC
+ *
+ ******************************************************************************/
 void RFCOMM_DlcReleaseReq (tRFC_MCB *p_mcb, uint8_t dlci)
 {
     rfc_port_sm_execute(port_find_mcb_dlci_port (p_mcb, dlci), RFC_EVENT_CLOSE, 0);
@@ -361,12 +361,12 @@ void RFCOMM_DlcReleaseReq (tRFC_MCB *p_mcb, uint8_t dlci)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_DataReq
-**
-** Description      This function is called by the user app to send data buffer
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_DataReq
+ *
+ * Description      This function is called by the user app to send data buffer
+ *
+ ******************************************************************************/
 void RFCOMM_DataReq (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
 {
     rfc_port_sm_execute(port_find_mcb_dlci_port (p_mcb, dlci), RFC_EVENT_DATA, p_buf);

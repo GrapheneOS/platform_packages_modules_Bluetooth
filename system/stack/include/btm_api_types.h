@@ -69,8 +69,8 @@ typedef enum
 
 
 /*************************
-**  Device Control Types
-**************************/
+ *  Device Control Types
+ *************************/
 #define BTM_DEVICE_ROLE_BR      0x01
 #define BTM_DEVICE_ROLE_DUAL    0x02
 #define BTM_MAX_DEVICE_ROLE     BTM_DEVICE_ROLE_DUAL
@@ -99,12 +99,12 @@ typedef struct
 
 #define  BTM_VSC_CMPL_DATA_SIZE  (BTM_MAX_VENDOR_SPECIFIC_LEN + sizeof(tBTM_VSC_CMPL))
 /**************************************************
-**  Device Control and General Callback Functions
-***************************************************/
+ *  Device Control and General Callback Functions
+ **************************************************/
 /* Callback function for when device status changes. Appl must poll for
-** what the new state is (BTM_IsDeviceUp). The event occurs whenever the stack
-** has detected that the controller status has changed. This asynchronous event
-** is enabled/disabled by calling BTM_RegisterForDeviceStatusNotif().
+ * what the new state is (BTM_IsDeviceUp). The event occurs whenever the stack
+ * has detected that the controller status has changed. This asynchronous event
+ * is enabled/disabled by calling BTM_RegisterForDeviceStatusNotif().
 */
 enum
 {
@@ -120,34 +120,34 @@ typedef void (tBTM_DEV_STATUS_CB) (tBTM_DEV_STATUS status);
 
 
 /* Callback function for when a vendor specific event occurs. The length and
-** array of returned parameter bytes are included. This asynchronous event
-** is enabled/disabled by calling BTM_RegisterForVSEvents().
+ * array of returned parameter bytes are included. This asynchronous event
+ * is enabled/disabled by calling BTM_RegisterForVSEvents().
 */
 typedef void (tBTM_VS_EVT_CB) (uint8_t len, uint8_t *p);
 
 
 /* General callback function for notifying an application that a synchronous
-** BTM function is complete. The pointer contains the address of any returned data.
+ * BTM function is complete. The pointer contains the address of any returned data.
 */
 typedef void (tBTM_CMPL_CB) (void *p1);
 
 /* VSC callback function for notifying an application that a synchronous
-** BTM function is complete. The pointer contains the address of any returned data.
+ * BTM function is complete. The pointer contains the address of any returned data.
 */
 typedef void (tBTM_VSC_CMPL_CB) (tBTM_VSC_CMPL *p1);
 
 /* Callback for apps to check connection and inquiry filters.
-** Parameters are the BD Address of remote and the Dev Class of remote.
-** If the app returns none zero, the connection or inquiry result will be dropped.
+ * Parameters are the BD Address of remote and the Dev Class of remote.
+ * If the app returns none zero, the connection or inquiry result will be dropped.
 */
 typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 
 /*****************************************************************************
-**  DEVICE DISCOVERY - Inquiry, Remote Name, Discovery, Class of Device
-*****************************************************************************/
+ *  DEVICE DISCOVERY - Inquiry, Remote Name, Discovery, Class of Device
+ ****************************************************************************/
 /*******************************
-**  Device Discovery Constants
-********************************/
+ *  Device Discovery Constants
+ *******************************/
 /* Discoverable modes */
 #define BTM_NON_DISCOVERABLE        0
 #define BTM_LIMITED_DISCOVERABLE    1
@@ -217,10 +217,10 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_FILTER_COND_BD_ADDR         HCI_FILTER_COND_BD_ADDR /* Filter on device addr */
 
 /* State of the remote name retrieval during inquiry operations.
-** Used in the tBTM_INQ_INFO structure, and returned in the
-** BTM_InqDbRead, BTM_InqDbFirst, and BTM_InqDbNext functions.
-** The name field is valid when the state returned is
-** BTM_INQ_RMT_NAME_DONE */
+ * Used in the tBTM_INQ_INFO structure, and returned in the
+ * BTM_InqDbRead, BTM_InqDbFirst, and BTM_InqDbNext functions.
+ * The name field is valid when the state returned is
+ * BTM_INQ_RMT_NAME_DONE */
 #define BTM_INQ_RMT_NAME_EMPTY      0
 #define BTM_INQ_RMT_NAME_PENDING    1
 #define BTM_INQ_RMT_NAME_DONE       2
@@ -232,8 +232,8 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_FORMAT_TYPE_1   0x00
 
 /****************************
-** minor device class field
-*****************************/
+ * minor device class field
+ ****************************/
 
 /* 0x00 is used as unclassified for all minor device classes */
 #define BTM_COD_MINOR_UNCLASSIFIED          0x00
@@ -347,8 +347,8 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 
 
 /***************************
-** major device class field
-****************************/
+ * major device class field
+ ***************************/
 #define BTM_COD_MAJOR_MISCELLANEOUS         0x00
 #define BTM_COD_MAJOR_COMPUTER              0x01
 #define BTM_COD_MAJOR_PHONE                 0x02
@@ -362,8 +362,8 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_COD_MAJOR_UNCLASSIFIED          0x1F
 
 /***************************
-** service class fields
-****************************/
+ * service class fields
+ ***************************/
 #define BTM_COD_SERVICE_LMTD_DISCOVER       0x0020
 #define BTM_COD_SERVICE_POSITIONING         0x0100
 #define BTM_COD_SERVICE_NETWORKING          0x0200
@@ -394,7 +394,7 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 
 
 /* BTM service definitions
-** Used for storing EIR data to bit mask
+ * Used for storing EIR data to bit mask
 */
 enum
 {
@@ -511,9 +511,9 @@ typedef uint8_t tBTM_EIR_SEARCH_RESULT;
 #define BTM_BLE_SEC_ENCRYPT_MITM        3
 typedef uint8_t tBTM_BLE_SEC_ACT;
 
-/************************************************************************************************
-** BTM Services MACROS handle array of uint32_t bits for more than 32 services
-*************************************************************************************************/
+/*******************************************************************************
+ * BTM Services MACROS handle array of uint32_t bits for more than 32 services
+ ******************************************************************************/
 /* Determine the number of uint32_t's necessary for services */
 #define BTM_EIR_ARRAY_BITS          32          /* Number of bits in each array element */
 #define BTM_EIR_SERVICE_ARRAY_SIZE  (((uint32_t)BTM_EIR_MAX_SERVICES / BTM_EIR_ARRAY_BITS) + \
@@ -536,10 +536,10 @@ typedef uint8_t tBTM_BLE_SEC_ACT;
 #define BTM_HCI_EIR_OFFSET          (BT_HDR_SIZE + 4)
 
 /***************************
-**  Device Discovery Types
-****************************/
+ *  Device Discovery Types
+ ***************************/
 /* Definitions of the parameters passed to BTM_StartInquiry and
-** BTM_SetPeriodicInquiryMode.
+ * BTM_SetPeriodicInquiryMode.
 */
 typedef struct              /* contains the two device class condition fields */
 {
@@ -579,7 +579,7 @@ typedef struct              /* contains the parameters passed to the inquiry fun
 typedef uint8_t tBTM_BLE_EVT_TYPE;
 
 /* These are the fields returned in each device's response to the inquiry.  It
-** is returned in the results callback if registered.
+ * is returned in the results callback if registered.
 */
 typedef struct
 {
@@ -601,7 +601,7 @@ typedef struct
 
 
 /* This is the inquiry response information held in its database by BTM, and available
-** to applications via BTM_InqDbRead, BTM_InqDbFirst, and BTM_InqDbNext.
+ * to applications via BTM_InqDbRead, BTM_InqDbFirst, and BTM_InqDbNext.
 */
 typedef struct
 {
@@ -646,25 +646,25 @@ typedef struct
 }tBTM_SCO_PCM_PARAM;
 
 /****************************************
-**  Device Discovery Callback Functions
-*****************************************/
+ *  Device Discovery Callback Functions
+ ****************************************/
 /* Callback function for asynchronous notifications when the BTM inquiry DB
-** changes. First param is inquiry database, second is if added to or removed
-** from the inquiry database.
+ * changes. First param is inquiry database, second is if added to or removed
+ * from the inquiry database.
 */
 typedef void (tBTM_INQ_DB_CHANGE_CB) (void *p1, bool    is_new);
 
 /* Callback function for notifications when the BTM gets inquiry response.
-** First param is inquiry results database, second is pointer of EIR.
+ * First param is inquiry results database, second is pointer of EIR.
 */
 typedef void (tBTM_INQ_RESULTS_CB) (tBTM_INQ_RESULTS *p_inq_results, uint8_t *p_eir);
 
 /*****************************************************************************
-**  ACL CHANNEL MANAGEMENT
-*****************************************************************************/
+ *  ACL CHANNEL MANAGEMENT
+ ****************************************************************************/
 /******************
-**  ACL Constants
-*******************/
+ *  ACL Constants
+ ******************/
 
 /* ACL modes */
 #define BTM_ACL_MODE_NORMAL     HCI_MODE_ACTIVE
@@ -692,11 +692,11 @@ typedef void (tBTM_INQ_RESULTS_CB) (tBTM_INQ_RESULTS *p_inq_results, uint8_t *p_
 #define BTM_ACL_PKT_TYPES_MASK_NO_3_DH5 HCI_PKT_TYPES_MASK_NO_3_DH5
 
 /***************
-**  ACL Types
-****************/
+ *  ACL Types
+ ***************/
 
 /* Structure returned with Role Switch information (in tBTM_CMPL_CB callback function)
-** in response to BTM_SwitchRole call.
+ * in response to BTM_SwitchRole call.
 */
 typedef struct
 {
@@ -706,7 +706,7 @@ typedef struct
 } tBTM_ROLE_SWITCH_CMPL;
 
 /* Structure returned with QoS information (in tBTM_CMPL_CB callback function)
-** in response to BTM_SetQoS call.
+ * in response to BTM_SetQoS call.
 */
 typedef struct
 {
@@ -717,7 +717,7 @@ typedef struct
 
 
 /* Structure returned with read RSSI event (in tBTM_CMPL_CB callback function)
-** in response to BTM_ReadRSSI call.
+ * in response to BTM_ReadRSSI call.
 */
 typedef struct
 {
@@ -728,7 +728,7 @@ typedef struct
 } tBTM_RSSI_RESULTS;
 
 /* Structure returned with read current TX power event (in tBTM_CMPL_CB callback function)
-** in response to BTM_ReadTxPower call.
+ * in response to BTM_ReadTxPower call.
 */
 typedef struct
 {
@@ -739,7 +739,7 @@ typedef struct
 } tBTM_TX_POWER_RESULTS;
 
 /* Structure returned with read link quality event (in tBTM_CMPL_CB callback function)
-** in response to BTM_ReadLinkQuality call.
+ * in response to BTM_ReadLinkQuality call.
 */
 typedef struct
 {
@@ -750,7 +750,7 @@ typedef struct
 } tBTM_LINK_QUALITY_RESULTS;
 
 /* Structure returned with read inq tx power quality event (in tBTM_CMPL_CB callback function)
-** in response to BTM_ReadInquiryRspTxPower call.
+ * in response to BTM_ReadInquiryRspTxPower call.
 */
 typedef struct
 {
@@ -836,27 +836,27 @@ typedef union
 } tBTM_BL_EVENT_DATA;
 
 /* Callback function for notifications when the BTM busy level
-** changes.
+ * changes.
 */
 typedef void (tBTM_BL_CHANGE_CB) (tBTM_BL_EVENT_DATA *p_data);
 
 /***************************
-**  ACL Callback Functions
-****************************/
+ *  ACL Callback Functions
+ ***************************/
 /* Callback function for notifications when the BTM ACL connection DB
-** changes. First param is BD address, second is if added or removed.
-** Registered through BTM_AclRegisterForChanges call.
+ * changes. First param is BD address, second is if added or removed.
+ * Registered through BTM_AclRegisterForChanges call.
 */
 typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
                                       BD_NAME p_bdn, uint8_t *features,
                                       bool    is_new, uint16_t handle,
                                       tBT_TRANSPORT transport);
 /*****************************************************************************
-**  SCO CHANNEL MANAGEMENT
-*****************************************************************************/
+ *  SCO CHANNEL MANAGEMENT
+ ****************************************************************************/
 /******************
-**  SCO Constants
-*******************/
+ *  SCO Constants
+ ******************/
 
 /* Define an invalid SCO index and an invalid HCI handle */
 #define BTM_INVALID_SCO_INDEX       0xFFFF
@@ -897,24 +897,24 @@ typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
 #define BTM_IGNORE_SCO_PKT_TYPE     0
 
 /***************
-**  SCO Types
-****************/
+ *  SCO Types
+ ***************/
 #define BTM_LINK_TYPE_SCO           HCI_LINK_TYPE_SCO
 #define BTM_LINK_TYPE_ESCO          HCI_LINK_TYPE_ESCO
 typedef uint8_t tBTM_SCO_TYPE;
 
 
 /*******************
-** SCO Routing Path
-********************/
+ * SCO Routing Path
+ *******************/
 #define BTM_SCO_ROUTE_PCM           HCI_BRCM_SCO_ROUTE_PCM
 #define BTM_SCO_ROUTE_HCI           HCI_BRCM_SCO_ROUTE_HCI
 typedef uint8_t tBTM_SCO_ROUTE_TYPE;
 
 
 /*******************
-** SCO Codec Types
-********************/
+ * SCO Codec Types
+ *******************/
 // TODO(google) This should use common definitions
 // in hci/include/hci_audio.h
 #define BTM_SCO_CODEC_NONE          0x0000
@@ -925,8 +925,8 @@ typedef uint16_t tBTM_SCO_CODEC_TYPE;
 
 
 /*******************
-** SCO Air Mode Types
-********************/
+ * SCO Air Mode Types
+ *******************/
 #define BTM_SCO_AIR_MODE_U_LAW          0
 #define BTM_SCO_AIR_MODE_A_LAW          1
 #define BTM_SCO_AIR_MODE_CVSD           2
@@ -934,8 +934,8 @@ typedef uint16_t tBTM_SCO_CODEC_TYPE;
 typedef uint8_t tBTM_SCO_AIR_MODE_TYPE;
 
 /*******************
-** SCO Voice Settings
-********************/
+ * SCO Voice Settings
+ *******************/
 #define BTM_VOICE_SETTING_CVSD  ((uint16_t)  (HCI_INP_CODING_LINEAR          |   \
                                             HCI_INP_DATA_FMT_2S_COMPLEMENT |   \
                                             HCI_INP_SAMPLE_SIZE_16BIT      |   \
@@ -947,8 +947,8 @@ typedef uint8_t tBTM_SCO_AIR_MODE_TYPE;
                                             HCI_AIR_CODING_FORMAT_TRANSPNT))
 
 /*******************
-** SCO Data Status
-********************/
+ * SCO Data Status
+ *******************/
 enum
 {
     BTM_SCO_DATA_CORRECT,
@@ -959,14 +959,14 @@ enum
 typedef uint8_t tBTM_SCO_DATA_FLAG;
 
 /***************************
-**  SCO Callback Functions
-****************************/
+ *  SCO Callback Functions
+ ***************************/
 typedef void (tBTM_SCO_CB) (uint16_t sco_inx);
 typedef void (tBTM_SCO_DATA_CB) (uint16_t sco_inx, BT_HDR *p_data, tBTM_SCO_DATA_FLAG status);
 
 /******************
-**  eSCO Constants
-*******************/
+ *  eSCO Constants
+ ******************/
 #define BTM_64KBITS_RATE            0x00001f40  /* 64 kbits/sec data rate */
 
 /* Retransmission effort */
@@ -979,8 +979,8 @@ typedef void (tBTM_SCO_DATA_CB) (uint16_t sco_inx, BT_HDR *p_data, tBTM_SCO_DATA
 #define BTM_ESCO_MAX_LAT_DONTCARE   0xffff
 
 /***************
-**  eSCO Types
-****************/
+ *  eSCO Types
+ ***************/
 /* tBTM_ESCO_CBACK event types */
 #define BTM_ESCO_CHG_EVT        1
 #define BTM_ESCO_CONN_REQ_EVT   2
@@ -1042,17 +1042,17 @@ typedef union
 } tBTM_ESCO_EVT_DATA;
 
 /***************************
-**  eSCO Callback Functions
-****************************/
+ *  eSCO Callback Functions
+ ***************************/
 typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data);
 
 
 /*****************************************************************************
-**  SECURITY MANAGEMENT
-*****************************************************************************/
+ *  SECURITY MANAGEMENT
+ ****************************************************************************/
 /*******************************
-**  Security Manager Constants
-********************************/
+ *  Security Manager Constants
+ *******************************/
 
 /* Security Mode (BTM_SetSecurityMode) */
 #define BTM_SEC_MODE_UNDEFINED      0
@@ -1067,7 +1067,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_MODES_MAX           7
 
 /* Security Service Levels [bit mask] (BTM_SetSecurityLevel)
-** Encryption should not be used without authentication
+ * Encryption should not be used without authentication
 */
 #define BTM_SEC_NONE               0x0000 /* Nothing required */
 #define BTM_SEC_IN_AUTHORIZE       0x0001 /* Inbound call requires authorization */
@@ -1098,7 +1098,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_PIN_TYPE_FIXED          HCI_PIN_TYPE_FIXED
 
 /* Link Key types used to generate the new link key.
-** returned in link key notification callback function
+ * returned in link key notification callback function
 */
 #define BTM_LKEY_TYPE_COMBINATION   HCI_LKEY_TYPE_COMBINATION
 #define BTM_LKEY_TYPE_LOCAL_UNIT    HCI_LKEY_TYPE_LOCAL_UNIT
@@ -1134,7 +1134,7 @@ typedef uint8_t tBTM_LINK_KEY_TYPE;
                                     (((uint32_t)BTM_SEC_MAX_SERVICES % BTM_SEC_ARRAY_BITS) ? 1 : 0))
 
 /* Security service definitions (BTM_SetSecurityLevel)
-** Used for Authorization APIs
+ * Used for Authorization APIs
 */
 #define BTM_SEC_SERVICE_SDP_SERVER      0
 #define BTM_SEC_SERVICE_SERIAL_PORT     1
@@ -1196,9 +1196,9 @@ typedef uint8_t tBTM_LINK_KEY_TYPE;
 #define BTM_SEC_MAX_SERVICES            75
 #endif
 
-/************************************************************************************************
-** Security Services MACROS handle array of uint32_t bits for more than 32 trusted services
-*************************************************************************************************/
+/*******************************************************************************
+ * Security Services MACROS handle array of uint32_t bits for more than 32 trusted services
+ ******************************************************************************/
 /* MACRO to set the security service bit mask in a bit stream */
 #define BTM_SEC_SET_SERVICE(p, service)  (((uint32_t *)(p))[(((uint32_t)(service)) / BTM_SEC_ARRAY_BITS)] |=  \
                                     ((uint32_t)1 << (((uint32_t)(service)) % BTM_SEC_ARRAY_BITS)))
@@ -1278,35 +1278,35 @@ typedef uint8_t tBTM_LINK_KEY_TYPE;
 #define BTM_SEC_TRUST_ALL               0xFFFFFFFF  /* for each array element */
 
 /****************************************
-**  Security Manager Callback Functions
-*****************************************/
+ *  Security Manager Callback Functions
+ ****************************************/
 /* Authorize device for service.  Parameters are
-**              BD Address of remote
-**              Device Class of remote
-**              BD Name of remote
-**              Service name
-**              Service Id (NULL - unknown service or unused
-**                                 [BTM_SEC_SERVICE_NAME_LEN set to 0])
-**              Is originator of the connection
-**              Result of the operation
+ *              BD Address of remote
+ *              Device Class of remote
+ *              BD Name of remote
+ *              Service name
+ *              Service Id (NULL - unknown service or unused
+ *                                 [BTM_SEC_SERVICE_NAME_LEN set to 0])
+ *              Is originator of the connection
+ *              Result of the operation
 */
 typedef uint8_t (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                          tBTM_BD_NAME bd_name, uint8_t *service_name,
                                          uint8_t service_id, bool    is_originator);
 
 /* Get PIN for the connection.  Parameters are
-**              BD Address of remote
-**              Device Class of remote
-**              BD Name of remote
-**              Flag indicating the minimum pin code length to be 16 digits
+ *              BD Address of remote
+ *              Device Class of remote
+ *              BD Name of remote
+ *              Flag indicating the minimum pin code length to be 16 digits
 */
 typedef uint8_t (tBTM_PIN_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                    tBTM_BD_NAME bd_name, bool    min_16_digit);
 
 /* New Link Key for the connection.  Parameters are
-**              BD Address of remote
-**              Link Key
-**              Key Type: Combination, Local Unit, or Remote Unit
+ *              BD Address of remote
+ *              Link Key
+ *              Key Type: Combination, Local Unit, or Remote Unit
 */
 typedef uint8_t (tBTM_LINK_KEY_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                         tBTM_BD_NAME bd_name, uint8_t *key,
@@ -1314,18 +1314,18 @@ typedef uint8_t (tBTM_LINK_KEY_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
 
 
 /* Remote Name Resolved.  Parameters are
-**              BD Address of remote
-**              BD Name of remote
+ *              BD Address of remote
+ *              BD Name of remote
 */
 typedef void (tBTM_RMT_NAME_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dc,
                                        tBTM_BD_NAME bd_name);
 
 
 /* Authentication complete for the connection.  Parameters are
-**              BD Address of remote
-**              Device Class of remote
-**              BD Name of remote
-**
+ *              BD Address of remote
+ *              Device Class of remote
+ *              BD Name of remote
+ *
 */
 typedef uint8_t (tBTM_AUTH_COMPLETE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                              tBTM_BD_NAME bd_name, int result);
@@ -1504,7 +1504,7 @@ typedef union
 } tBTM_SP_EVT_DATA;
 
 /* Simple Pairing Events.  Called by the stack when Simple Pairing related
-** events occur.
+ * events occur.
 */
 typedef uint8_t (tBTM_SP_CALLBACK) (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data);
 
@@ -1512,17 +1512,17 @@ typedef uint8_t (tBTM_SP_CALLBACK) (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 typedef void (tBTM_MKEY_CALLBACK) (BD_ADDR bd_addr, uint8_t status, uint8_t key_flag) ;
 
 /* Encryption enabled/disabled complete: Optionally passed with BTM_SetEncryption.
-** Parameters are
-**              BD Address of remote
-**              optional data passed in by BTM_SetEncryption
-**              tBTM_STATUS - result of the operation
+ * Parameters are
+ *              BD Address of remote
+ *              optional data passed in by BTM_SetEncryption
+ *              tBTM_STATUS - result of the operation
 */
 typedef void (tBTM_SEC_CBACK) (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
                                 void *p_ref_data, tBTM_STATUS result);
 
 /* Bond Cancel complete. Parameters are
-**              Result of the cancel operation
-**
+ *              Result of the cancel operation
+ *
 */
 typedef void (tBTM_BOND_CANCEL_CMPL_CALLBACK) (tBTM_STATUS result);
 
@@ -1666,7 +1666,7 @@ typedef union
 } tBTM_LE_EVT_DATA;
 
 /* Simple Pairing Events.  Called by the stack when Simple Pairing related
-** events occur.
+ * events occur.
 */
 typedef uint8_t (tBTM_LE_CALLBACK) (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_DATA *p_data);
 
@@ -1695,8 +1695,8 @@ typedef void (tBTM_LE_KEY_CALLBACK) (uint8_t key_type, tBTM_BLE_LOCAL_KEYS *p_ke
 
 
 /***************************
-**  Security Manager Types
-****************************/
+ *  Security Manager Types
+ ***************************/
 /* Structure that applications use to register with BTM_SecRegister */
 typedef struct
 {
@@ -1711,16 +1711,16 @@ typedef struct
 } tBTM_APPL_INFO;
 
 /* Callback function for when a link supervision timeout event occurs.
-** This asynchronous event is enabled/disabled by calling BTM_RegForLstoEvt().
+ * This asynchronous event is enabled/disabled by calling BTM_RegForLstoEvt().
 */
 typedef void (tBTM_LSTO_CBACK) (BD_ADDR remote_bda, uint16_t timeout);
 
 /*****************************************************************************
-**  POWER MANAGEMENT
-*****************************************************************************/
+ *  POWER MANAGEMENT
+ ****************************************************************************/
 /****************************
-**  Power Manager Constants
-*****************************/
+ *  Power Manager Constants
+ ****************************/
 /* BTM Power manager status codes */
 enum
 {
@@ -1753,8 +1753,8 @@ typedef uint8_t tBTM_PM_MODE;
 #define BTM_PM_DEREG        4 /* The module does not want to involve with PM anymore */
 
 /************************
-**  Power Manager Types
-*************************/
+ *  Power Manager Types
+ ************************/
 typedef struct
 {
     uint16_t        max;
@@ -1765,15 +1765,15 @@ typedef struct
 } tBTM_PM_PWR_MD;
 
 /*************************************
-**  Power Manager Callback Functions
-**************************************/
+ *  Power Manager Callback Functions
+ *************************************/
 typedef void (tBTM_PM_STATUS_CBACK) (BD_ADDR p_bda, tBTM_PM_STATUS status,
                                      uint16_t value, uint8_t hci_status);
 
 
 /************************
-**  Stored Linkkey Types
-*************************/
+ *  Stored Linkkey Types
+ ************************/
 #define BTM_CB_EVT_DELETE_STORED_LINK_KEYS  4
 
 typedef struct

@@ -43,26 +43,26 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len);
 
-/********************************************************************************/
+/******************************************************************************/
 /*                 G L O B A L      L 2 C A P       D A T A                     */
-/********************************************************************************/
+/******************************************************************************/
 tL2C_CB l2cb;
 
 /*******************************************************************************
-**
-** Function         l2c_rcv_acl_data
-**
-** Description      This function is called from the HCI Interface when an ACL
-**                  data packet is received.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_rcv_acl_data
+ *
+ * Description      This function is called from the HCI Interface when an ACL
+ *                  data packet is received.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_rcv_acl_data (BT_HDR *p_msg)
 {
     uint8_t     *p = (uint8_t *)(p_msg + 1) + p_msg->offset;
@@ -256,15 +256,15 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         process_l2cap_cmd
-**
-** Description      This function is called when a packet is received on the
-**                  L2CAP signalling CID
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         process_l2cap_cmd
+ *
+ * Description      This function is called when a packet is received on the
+ *                  L2CAP signalling CID
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
 {
     uint8_t         *p_pkt_end, *p_next_cmd, *p_cfg_end, *p_cfg_start;
@@ -750,16 +750,16 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_process_held_packets
-**
-** Description      This function processes any L2CAP packets that arrived before
-**                  the HCI connection complete arrived. It is a work around for
-**                  badly behaved controllers.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_process_held_packets
+ *
+ * Description      This function processes any L2CAP packets that arrived before
+ *                  the HCI connection complete arrived. It is a work around for
+ *                  badly behaved controllers.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_process_held_packets(bool    timed_out) {
     if (list_is_empty(l2cb.rcv_pending_q))
         return;
@@ -791,15 +791,15 @@ void l2c_process_held_packets(bool    timed_out) {
 }
 
 /*******************************************************************************
-**
-** Function         l2c_init
-**
-** Description      This function is called once at startup to initialize
-**                  all the L2CAP structures
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_init
+ *
+ * Description      This function is called once at startup to initialize
+ *                  all the L2CAP structures
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_init (void)
 {
     int16_t xx;
@@ -889,16 +889,16 @@ void l2c_lcb_timer_timeout(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_data_write
-**
-** Description      API functions call this function to write data.
-**
-** Returns          L2CAP_DW_SUCCESS, if data accepted, else false
-**                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
-**                  L2CAP_DW_FAILED, if error
-**
-*******************************************************************************/
+ *
+ * Function         l2c_data_write
+ *
+ * Description      API functions call this function to write data.
+ *
+ * Returns          L2CAP_DW_SUCCESS, if data accepted, else false
+ *                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
+ *                  L2CAP_DW_FAILED, if error
+ *
+ ******************************************************************************/
 uint8_t l2c_data_write (uint16_t cid, BT_HDR *p_data, uint16_t flags)
 {
     tL2C_CCB        *p_ccb;

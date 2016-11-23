@@ -38,19 +38,19 @@
 
 
 /*******************************************************************************
-**
-** Function         PAN_Register
-**
-** Description      This function is called by the application to register
-**                  its callbacks with PAN profile. The application then
-**                  should set the PAN role explicitly.
-**
-** Parameters:      p_register - contains all callback function pointers
-**
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         PAN_Register
+ *
+ * Description      This function is called by the application to register
+ *                  its callbacks with PAN profile. The application then
+ *                  should set the PAN role explicitly.
+ *
+ * Parameters:      p_register - contains all callback function pointers
+ *
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void PAN_Register (tPAN_REGISTER *p_register)
 {
     BTM_SetDiscoverability (BTM_GENERAL_DISCOVERABLE, 0, 0);
@@ -75,20 +75,20 @@ void PAN_Register (tPAN_REGISTER *p_register)
 
 
 /*******************************************************************************
-**
-** Function         PAN_Deregister
-**
-** Description      This function is called by the application to de-register
-**                  its callbacks with PAN profile. This will make the PAN to
-**                  become inactive. This will deregister PAN services from SDP
-**                  and close all active connections
-**
-** Parameters:      none
-**
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         PAN_Deregister
+ *
+ * Description      This function is called by the application to de-register
+ *                  its callbacks with PAN profile. This will make the PAN to
+ *                  become inactive. This will deregister PAN services from SDP
+ *                  and close all active connections
+ *
+ * Parameters:      none
+ *
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void PAN_Deregister (void)
 {
     pan_cb.pan_bridge_req_cb    = NULL;
@@ -108,29 +108,29 @@ void PAN_Deregister (void)
 
 
 /*******************************************************************************
-**
-** Function         PAN_SetRole
-**
-** Description      This function is called by the application to set the PAN
-**                  profile role. This should be called after PAN_Register.
-**                  This can be called any time to change the PAN role
-**
-** Parameters:      role        - is bit map of roles to be active
-**                                      PAN_ROLE_CLIENT is for PANU role
-**                                      PAN_ROLE_GN_SERVER is for GN role
-**                                      PAN_ROLE_NAP_SERVER is for NAP role
-**                  sec_mask    - Security mask for different roles
-**                                      It is array of uint8_t. The byte represent the
-**                                      security for roles PANU, GN and NAP in order
-**                  p_user_name - Service name for PANU role
-**                  p_gn_name   - Service name for GN role
-**                  p_nap_name  - Service name for NAP role
-**                                      Can be NULL if user wants it to be default
-**
-** Returns          PAN_SUCCESS     - if the role is set successfully
-**                  PAN_FAILURE     - if the role is not valid
-**
-*******************************************************************************/
+ *
+ * Function         PAN_SetRole
+ *
+ * Description      This function is called by the application to set the PAN
+ *                  profile role. This should be called after PAN_Register.
+ *                  This can be called any time to change the PAN role
+ *
+ * Parameters:      role        - is bit map of roles to be active
+ *                                      PAN_ROLE_CLIENT is for PANU role
+ *                                      PAN_ROLE_GN_SERVER is for GN role
+ *                                      PAN_ROLE_NAP_SERVER is for NAP role
+ *                  sec_mask    - Security mask for different roles
+ *                                      It is array of uint8_t. The byte represent the
+ *                                      security for roles PANU, GN and NAP in order
+ *                  p_user_name - Service name for PANU role
+ *                  p_gn_name   - Service name for GN role
+ *                  p_nap_name  - Service name for NAP role
+ *                                      Can be NULL if user wants it to be default
+ *
+ * Returns          PAN_SUCCESS     - if the role is set successfully
+ *                  PAN_FAILURE     - if the role is not valid
+ *
+ ******************************************************************************/
 tPAN_RESULT PAN_SetRole (uint8_t role,
                          uint8_t *sec_mask,
                          const char *p_user_name,
@@ -260,28 +260,28 @@ tPAN_RESULT PAN_SetRole (uint8_t role,
 
 
 /*******************************************************************************
-**
-** Function         PAN_Connect
-**
-** Description      This function is called by the application to initiate a
-**                  connection to the remote device
-**
-** Parameters:      rem_bda     - BD Addr of the remote device
-**                  src_role    - Role of the local device for the connection
-**                  dst_role    - Role of the remote device for the connection
-**                                      PAN_ROLE_CLIENT is for PANU role
-**                                      PAN_ROLE_GN_SERVER is for GN role
-**                                      PAN_ROLE_NAP_SERVER is for NAP role
-**                  *handle     - Pointer for returning Handle to the connection
-**
-** Returns          PAN_SUCCESS      - if the connection is initiated successfully
-**                  PAN_NO_RESOURCES - resources are not sufficent
-**                  PAN_FAILURE      - if the connection cannot be initiated
-**                                           this can be because of the combination of
-**                                           src and dst roles may not be valid or
-**                                           allowed at that point of time
-**
-*******************************************************************************/
+ *
+ * Function         PAN_Connect
+ *
+ * Description      This function is called by the application to initiate a
+ *                  connection to the remote device
+ *
+ * Parameters:      rem_bda     - BD Addr of the remote device
+ *                  src_role    - Role of the local device for the connection
+ *                  dst_role    - Role of the remote device for the connection
+ *                                      PAN_ROLE_CLIENT is for PANU role
+ *                                      PAN_ROLE_GN_SERVER is for GN role
+ *                                      PAN_ROLE_NAP_SERVER is for NAP role
+ *                  *handle     - Pointer for returning Handle to the connection
+ *
+ * Returns          PAN_SUCCESS      - if the connection is initiated successfully
+ *                  PAN_NO_RESOURCES - resources are not sufficent
+ *                  PAN_FAILURE      - if the connection cannot be initiated
+ *                                           this can be because of the combination of
+ *                                           src and dst roles may not be valid or
+ *                                           allowed at that point of time
+ *
+ ******************************************************************************/
 tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, uint8_t src_role, uint8_t dst_role, uint16_t *handle)
 {
     tPAN_CONN       *pcb;
@@ -422,18 +422,18 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, uint8_t src_role, uint8_t dst_role, ui
 
 
 /*******************************************************************************
-**
-** Function         PAN_Disconnect
-**
-** Description      This is used to disconnect the connection
-**
-** Parameters:      handle           - handle for the connection
-**
-** Returns          PAN_SUCCESS      - if the connection is closed successfully
-**                  PAN_FAILURE      - if the connection is not found or
-**                                           there is an error in disconnecting
-**
-*******************************************************************************/
+ *
+ * Function         PAN_Disconnect
+ *
+ * Description      This is used to disconnect the connection
+ *
+ * Parameters:      handle           - handle for the connection
+ *
+ * Returns          PAN_SUCCESS      - if the connection is closed successfully
+ *                  PAN_FAILURE      - if the connection is not found or
+ *                                           there is an error in disconnecting
+ *
+ ******************************************************************************/
 tPAN_RESULT PAN_Disconnect (uint16_t handle)
 {
     tPAN_CONN       *pcb;
@@ -468,27 +468,27 @@ tPAN_RESULT PAN_Disconnect (uint16_t handle)
 
 
 /*******************************************************************************
-**
-** Function         PAN_Write
-**
-** Description      This sends data over the PAN connections. If this is called
-**                  on GN or NAP side and the packet is multicast or broadcast
-**                  it will be sent on all the links. Otherwise the correct link
-**                  is found based on the destination address and forwarded on it.
-**
-** Parameters:      handle   - handle for the connection
-**                  dst      - MAC or BD Addr of the destination device
-**                  src      - MAC or BD Addr of the source who sent this packet
-**                  protocol - protocol of the ethernet packet like IP or ARP
-**                  p_data   - pointer to the data
-**                  len      - length of the data
-**                  ext      - to indicate that extension headers present
-**
-** Returns          PAN_SUCCESS       - if the data is sent successfully
-**                  PAN_FAILURE       - if the connection is not found or
-**                                           there is an error in sending data
-**
-*******************************************************************************/
+ *
+ * Function         PAN_Write
+ *
+ * Description      This sends data over the PAN connections. If this is called
+ *                  on GN or NAP side and the packet is multicast or broadcast
+ *                  it will be sent on all the links. Otherwise the correct link
+ *                  is found based on the destination address and forwarded on it.
+ *
+ * Parameters:      handle   - handle for the connection
+ *                  dst      - MAC or BD Addr of the destination device
+ *                  src      - MAC or BD Addr of the source who sent this packet
+ *                  protocol - protocol of the ethernet packet like IP or ARP
+ *                  p_data   - pointer to the data
+ *                  len      - length of the data
+ *                  ext      - to indicate that extension headers present
+ *
+ * Returns          PAN_SUCCESS       - if the data is sent successfully
+ *                  PAN_FAILURE       - if the connection is not found or
+ *                                           there is an error in sending data
+ *
+ ******************************************************************************/
 tPAN_RESULT PAN_Write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol, uint8_t *p_data, uint16_t len, bool    ext)
 {
     if (pan_cb.role == PAN_ROLE_INACTIVE || !pan_cb.num_conns) {
@@ -519,28 +519,28 @@ tPAN_RESULT PAN_Write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protoc
 
 
 /*******************************************************************************
-**
-** Function         PAN_WriteBuf
-**
-** Description      This sends data over the PAN connections. If this is called
-**                  on GN or NAP side and the packet is multicast or broadcast
-**                  it will be sent on all the links. Otherwise the correct link
-**                  is found based on the destination address and forwarded on it
-**                  If the return value is not PAN_SUCCESS the application should
-**                  take care of releasing the message buffer
-**
-** Parameters:      handle   - handle for the connection
-**                  dst      - MAC or BD Addr of the destination device
-**                  src      - MAC or BD Addr of the source who sent this packet
-**                  protocol - protocol of the ethernet packet like IP or ARP
-**                  p_buf    - pointer to the data buffer
-**                  ext      - to indicate that extension headers present
-**
-** Returns          PAN_SUCCESS       - if the data is sent successfully
-**                  PAN_FAILURE       - if the connection is not found or
-**                                           there is an error in sending data
-**
-*******************************************************************************/
+ *
+ * Function         PAN_WriteBuf
+ *
+ * Description      This sends data over the PAN connections. If this is called
+ *                  on GN or NAP side and the packet is multicast or broadcast
+ *                  it will be sent on all the links. Otherwise the correct link
+ *                  is found based on the destination address and forwarded on it
+ *                  If the return value is not PAN_SUCCESS the application should
+ *                  take care of releasing the message buffer
+ *
+ * Parameters:      handle   - handle for the connection
+ *                  dst      - MAC or BD Addr of the destination device
+ *                  src      - MAC or BD Addr of the source who sent this packet
+ *                  protocol - protocol of the ethernet packet like IP or ARP
+ *                  p_buf    - pointer to the data buffer
+ *                  ext      - to indicate that extension headers present
+ *
+ * Returns          PAN_SUCCESS       - if the data is sent successfully
+ *                  PAN_FAILURE       - if the connection is not found or
+ *                                           there is an error in sending data
+ *
+ ******************************************************************************/
 tPAN_RESULT PAN_WriteBuf (uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol, BT_HDR *p_buf, bool    ext)
 {
     tPAN_CONN       *pcb;
@@ -634,21 +634,21 @@ tPAN_RESULT PAN_WriteBuf (uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t pr
 
 
 /*******************************************************************************
-**
-** Function         PAN_SetProtocolFilters
-**
-** Description      This function is used to set protocol filters on the peer
-**
-** Parameters:      handle      - handle for the connection
-**                  num_filters - number of protocol filter ranges
-**                  start       - array of starting protocol numbers
-**                  end         - array of ending protocol numbers
-**
-**
-** Returns          PAN_SUCCESS        if protocol filters are set successfully
-**                  PAN_FAILURE        if connection not found or error in setting
-**
-*******************************************************************************/
+ *
+ * Function         PAN_SetProtocolFilters
+ *
+ * Description      This function is used to set protocol filters on the peer
+ *
+ * Parameters:      handle      - handle for the connection
+ *                  num_filters - number of protocol filter ranges
+ *                  start       - array of starting protocol numbers
+ *                  end         - array of ending protocol numbers
+ *
+ *
+ * Returns          PAN_SUCCESS        if protocol filters are set successfully
+ *                  PAN_FAILURE        if connection not found or error in setting
+ *
+ ******************************************************************************/
 tPAN_RESULT PAN_SetProtocolFilters (uint16_t handle,
                                     uint16_t num_filters,
                                     uint16_t *p_start_array,
@@ -679,21 +679,21 @@ tPAN_RESULT PAN_SetProtocolFilters (uint16_t handle,
 
 
 /*******************************************************************************
-**
-** Function         PAN_SetMulticastFilters
-**
-** Description      This function is used to set multicast filters on the peer
-**
-** Parameters:      handle      - handle for the connection
-**                  num_filters - number of multicast filter ranges
-**                  start       - array of starting multicast filter addresses
-**                  end         - array of ending multicast filter addresses
-**
-**
-** Returns          PAN_SUCCESS        if multicast filters are set successfully
-**                  PAN_FAILURE        if connection not found or error in setting
-**
-*******************************************************************************/
+ *
+ * Function         PAN_SetMulticastFilters
+ *
+ * Description      This function is used to set multicast filters on the peer
+ *
+ * Parameters:      handle      - handle for the connection
+ *                  num_filters - number of multicast filter ranges
+ *                  start       - array of starting multicast filter addresses
+ *                  end         - array of ending multicast filter addresses
+ *
+ *
+ * Returns          PAN_SUCCESS        if multicast filters are set successfully
+ *                  PAN_FAILURE        if connection not found or error in setting
+ *
+ ******************************************************************************/
 tBNEP_RESULT PAN_SetMulticastFilters (uint16_t handle,
                                       uint16_t num_mcast_filters,
                                       uint8_t *p_start_array,
@@ -724,15 +724,15 @@ tBNEP_RESULT PAN_SetMulticastFilters (uint16_t handle,
 
 
 /*******************************************************************************
-**
-** Function         PAN_SetTraceLevel
-**
-** Description      This function sets the trace level for PAN. If called with
-**                  a value of 0xFF, it simply reads the current trace level.
-**
-** Returns          the new (current) trace level
-**
-*******************************************************************************/
+ *
+ * Function         PAN_SetTraceLevel
+ *
+ * Description      This function sets the trace level for PAN. If called with
+ *                  a value of 0xFF, it simply reads the current trace level.
+ *
+ * Returns          the new (current) trace level
+ *
+ ******************************************************************************/
 uint8_t PAN_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
@@ -744,16 +744,16 @@ uint8_t PAN_SetTraceLevel (uint8_t new_level)
 }
 
 /*******************************************************************************
-**
-** Function         PAN_Init
-**
-** Description      This function initializes the PAN module variables
-**
-** Parameters:      none
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         PAN_Init
+ *
+ * Description      This function initializes the PAN module variables
+ *
+ * Parameters:      none
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void PAN_Init (void)
 {
     memset (&pan_cb, 0, sizeof (tPAN_CB));

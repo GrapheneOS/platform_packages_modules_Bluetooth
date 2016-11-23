@@ -46,12 +46,12 @@ extern "C" {
 extern tBTM_CB btm_cb;
 
 /* Internal functions provided by btm_main.cc
-********************************************
+ *******************************************
 */
 extern void         btm_init (void);
 
 /* Internal functions provided by btm_inq.cc
-*******************************************
+ ******************************************
 */
 extern tBTM_STATUS  btm_initiate_rem_name(BD_ADDR remote_bda,
                                           tBTM_INQ_INFO *p_cur,
@@ -78,7 +78,7 @@ extern bool         btm_inq_find_bdaddr (BD_ADDR p_bda);
 extern bool    btm_lookup_eir(BD_ADDR_PTR p_rem_addr);
 
 /* Internal functions provided by btm_acl.cc
-********************************************
+ *******************************************
 */
 extern void         btm_acl_init (void);
 extern void         btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
@@ -142,7 +142,7 @@ extern void btm_qos_setup_complete(uint8_t status, uint16_t handle,
 
 
 /* Internal functions provided by btm_sco.cc
-********************************************
+ *******************************************
 */
 extern void btm_sco_init (void);
 extern void btm_sco_connected (uint8_t hci_status, BD_ADDR bda, uint16_t hci_handle,
@@ -163,7 +163,7 @@ extern uint16_t btm_find_scb_by_handle (uint16_t handle);
 extern void btm_sco_flush_sco_data(uint16_t sco_inx);
 
 /* Internal functions provided by btm_devctl.cc
-**********************************************
+ *********************************************
 */
 extern void btm_dev_init(void);
 extern void btm_read_local_name_timeout(void *data);
@@ -187,7 +187,7 @@ extern void btm_report_device_status (tBTM_DEV_STATUS status);
 
 
 /* Internal functions provided by btm_dev.cc
-**********************************************
+ *********************************************
 */
 extern bool    btm_dev_support_switch (BD_ADDR bd_addr);
 
@@ -202,7 +202,7 @@ extern bool               btm_set_bond_type_dev(BD_ADDR bd_addr,
                                                 tBTM_BOND_TYPE bond_type);
 
 /* Internal functions provided by btm_sec.cc
-**********************************************
+ *********************************************
 */
 extern bool    btm_dev_support_switch (BD_ADDR bd_addr);
 extern tBTM_STATUS  btm_sec_l2cap_access_req (BD_ADDR bd_addr, uint16_t psm,

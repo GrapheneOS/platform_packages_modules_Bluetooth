@@ -64,17 +64,17 @@ void print128(BT_OCTET16 x, const uint8_t *key_name)
 }
 
 /*******************************************************************************
-**
-** Function         padding
-**
-** Description      utility function to padding the given text to be a 128 bits
-**                  data. The parameter dest is input and output parameter, it
-**                  must point to a BT_OCTET16_LEN memory space; where include
-**                  length bytes valid data.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         padding
+ *
+ * Description      utility function to padding the given text to be a 128 bits
+ *                  data. The parameter dest is input and output parameter, it
+ *                  must point to a BT_OCTET16_LEN memory space; where include
+ *                  length bytes valid data.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void padding ( BT_OCTET16 dest, uint8_t length )
 {
     uint8_t i, *p = dest;
@@ -83,14 +83,14 @@ static void padding ( BT_OCTET16 dest, uint8_t length )
         p[BT_OCTET16_LEN - i - 1] = ( i == length ) ? 0x80 : 0;
 }
 /*******************************************************************************
-**
-** Function         leftshift_onebit
-**
-** Description      utility function to left shift one bit for a 128 bits value.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         leftshift_onebit
+ *
+ * Description      utility function to left shift one bit for a 128 bits value.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void leftshift_onebit(uint8_t *input, uint8_t *output)
 {
     uint8_t i, overflow = 0 , next_overflow = 0;
@@ -105,14 +105,14 @@ static void leftshift_onebit(uint8_t *input, uint8_t *output)
     return;
 }
 /*******************************************************************************
-**
-** Function         cmac_aes_cleanup
-**
-** Description      clean up function for AES_CMAC algorithm.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         cmac_aes_cleanup
+ *
+ * Description      clean up function for AES_CMAC algorithm.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void cmac_aes_cleanup(void)
 {
     osi_free(cmac_cb.text);
@@ -120,14 +120,14 @@ static void cmac_aes_cleanup(void)
 }
 
 /*******************************************************************************
-**
-** Function         cmac_aes_k_calculate
-**
-** Description      This function is the calculation of block cipher using AES-128.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         cmac_aes_k_calculate
+ *
+ * Description      This function is the calculation of block cipher using AES-128.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static bool    cmac_aes_k_calculate(BT_OCTET16 key, uint8_t *p_signature, uint16_t tlen)
 {
     tSMP_ENC output;
@@ -169,15 +169,15 @@ static bool    cmac_aes_k_calculate(BT_OCTET16 key, uint8_t *p_signature, uint16
         return false;
 }
 /*******************************************************************************
-**
-** Function         cmac_prepare_last_block
-**
-** Description      This function proceeed to prepare the last block of message
-**                  Mn depending on the size of the message.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         cmac_prepare_last_block
+ *
+ * Description      This function proceeed to prepare the last block of message
+ *                  Mn depending on the size of the message.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
 {
 //    uint8_t     x[16] = {0};
@@ -201,14 +201,14 @@ static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
     }
 }
 /*******************************************************************************
-**
-** Function         cmac_subkey_cont
-**
-** Description      This is the callback function when CIPHk(0[128]) is completed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         cmac_subkey_cont
+ *
+ * Description      This is the callback function when CIPHk(0[128]) is completed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void cmac_subkey_cont(tSMP_ENC *p)
 {
     uint8_t k1[BT_OCTET16_LEN], k2[BT_OCTET16_LEN];
@@ -246,16 +246,16 @@ static void cmac_subkey_cont(tSMP_ENC *p)
     cmac_prepare_last_block (k1, k2);
 }
 /*******************************************************************************
-**
-** Function         cmac_generate_subkey
-**
-** Description      This is the function to generate the two subkeys.
-**
-** Parameters       key - CMAC key, expect SRK when used by SMP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         cmac_generate_subkey
+ *
+ * Description      This is the function to generate the two subkeys.
+ *
+ * Parameters       key - CMAC key, expect SRK when used by SMP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static bool    cmac_generate_subkey(BT_OCTET16 key)
 {
     BT_OCTET16 z = {0};
@@ -273,20 +273,20 @@ static bool    cmac_generate_subkey(BT_OCTET16 key)
     return ret;
 }
 /*******************************************************************************
-**
-** Function         aes_cipher_msg_auth_code
-**
-** Description      This is the AES-CMAC Generation Function with tlen implemented.
-**
-** Parameters       key - CMAC key in little endian order, expect SRK when used by SMP.
-**                  input - text to be signed in little endian byte order.
-**                  length - length of the input in byte.
-**                  tlen - lenth of mac desired
-**                  p_signature - data pointer to where signed data to be stored, tlen long.
-**
-** Returns          false if out of resources, true in other cases.
-**
-*******************************************************************************/
+ *
+ * Function         aes_cipher_msg_auth_code
+ *
+ * Description      This is the AES-CMAC Generation Function with tlen implemented.
+ *
+ * Parameters       key - CMAC key in little endian order, expect SRK when used by SMP.
+ *                  input - text to be signed in little endian byte order.
+ *                  length - length of the input in byte.
+ *                  tlen - lenth of mac desired
+ *                  p_signature - data pointer to where signed data to be stored, tlen long.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ ******************************************************************************/
 bool    aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t length,
                                  uint16_t tlen, uint8_t *p_signature)
 {

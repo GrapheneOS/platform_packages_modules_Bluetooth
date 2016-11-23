@@ -48,14 +48,14 @@ extern "C" {
 #define PORT_EVENT_FLOW_CONTROL (9  | BT_EVT_TO_BTU_SP_EVT)
 
 /*
-** Flow control configuration values for the mux
+ * Flow control configuration values for the mux
 */
 #define PORT_FC_UNDEFINED       0   /* mux flow control mechanism not defined yet */
 #define PORT_FC_TS710           1   /* use TS 07.10 flow control  */
 #define PORT_FC_CREDIT          2   /* use RFCOMM credit based flow control */
 
 /*
-** Define Port Data Transfere control block
+ * Define Port Data Transfere control block
 */
 typedef struct
 {
@@ -67,7 +67,7 @@ typedef struct
 } tPORT_DATA;
 
 /*
-** Port control structure used to pass modem info
+ * Port control structure used to pass modem info
 */
 typedef struct
 {
@@ -92,7 +92,7 @@ typedef struct
 
 
 /*
-** RFCOMM multiplexer Control Block
+ * RFCOMM multiplexer Control Block
 */
 typedef struct
 {
@@ -118,7 +118,7 @@ typedef struct
 
 
 /*
-** RFCOMM Port Connection Control Block
+ * RFCOMM Port Connection Control Block
 */
 typedef struct {
 #define RFC_PORT_STATE_IDLE          0
@@ -144,7 +144,7 @@ typedef struct {
 
 
 /*
-** Define control block containing information about PORT connection
+ * Define control block containing information about PORT connection
 */
 typedef struct
 {
@@ -220,7 +220,7 @@ typedef struct
 } tPORT_CB;
 
 /*
-** Functions provided by the port_utils.cc
+ * Functions provided by the port_utils.cc
 */
 extern tPORT    *port_allocate_port (uint8_t dlci, BD_ADDR bd_addr);
 extern void     port_set_defaults (tPORT *p_port);
@@ -235,7 +235,7 @@ extern uint32_t port_flow_control_user (tPORT *p_port);
 extern void     port_flow_control_peer(tPORT *p_port, bool    enable, uint16_t count);
 
 /*
-** Functions provided by the port_rfc.cc
+ * Functions provided by the port_rfc.cc
 */
 extern int  port_open_continue (tPORT *p_port);
 extern void port_start_port_open (tPORT *p_port);

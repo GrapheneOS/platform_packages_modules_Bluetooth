@@ -22,14 +22,14 @@
 #include "gap_int.h"
 
 /*******************************************************************************
-**
-** Function         gap_allocate_cb
-**
-** Description      Look through the GAP Control Blocks for a free one.
-**
-** Returns          Pointer to the control block or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         gap_allocate_cb
+ *
+ * Description      Look through the GAP Control Blocks for a free one.
+ *
+ * Returns          Pointer to the control block or NULL if not found
+ *
+ ******************************************************************************/
 tGAP_INFO *gap_allocate_cb (void)
 {
     tGAP_INFO     *p_cb = &gap_cb.blk[0];
@@ -54,14 +54,14 @@ tGAP_INFO *gap_allocate_cb (void)
 
 
 /*******************************************************************************
-**
-** Function         gap_free_cb
-**
-** Description      Release GAP control block.
-**
-** Returns          Pointer to the control block or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         gap_free_cb
+ *
+ * Description      Release GAP control block.
+ *
+ * Returns          Pointer to the control block or NULL if not found
+ *
+ ******************************************************************************/
 void gap_free_cb (tGAP_INFO *p_cb)
 {
     if (p_cb)
@@ -73,17 +73,17 @@ void gap_free_cb (tGAP_INFO *p_cb)
 
 
 /*******************************************************************************
-**
-** Function         gap_is_service_busy
-**
-** Description      Look through the GAP Control Blocks that are in use
-**                  and check to see if the event waiting for is the command
-**                  requested.
-**
-** Returns          true if already in use
-**                  false if not busy
-**
-*******************************************************************************/
+ *
+ * Function         gap_is_service_busy
+ *
+ * Description      Look through the GAP Control Blocks that are in use
+ *                  and check to see if the event waiting for is the command
+ *                  requested.
+ *
+ * Returns          true if already in use
+ *                  false if not busy
+ *
+ ******************************************************************************/
 bool    gap_is_service_busy (uint16_t request)
 {
     tGAP_INFO   *p_cb = &gap_cb.blk[0];
@@ -101,15 +101,15 @@ bool    gap_is_service_busy (uint16_t request)
 
 
 /*******************************************************************************
-**
-** Function         gap_convert_btm_status
-**
-** Description      Converts a BTM error status into a GAP error status
-**
-**
-** Returns          GAP_UNKNOWN_BTM_STATUS is returned if not recognized
-**
-*******************************************************************************/
+ *
+ * Function         gap_convert_btm_status
+ *
+ * Description      Converts a BTM error status into a GAP error status
+ *
+ *
+ * Returns          GAP_UNKNOWN_BTM_STATUS is returned if not recognized
+ *
+ ******************************************************************************/
 uint16_t gap_convert_btm_status (tBTM_STATUS btm_status)
 {
     switch (btm_status)

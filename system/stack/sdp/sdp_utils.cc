@@ -44,15 +44,15 @@ static const uint8_t sdp_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10
                                         0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 
 /*******************************************************************************
-**
-** Function         sdpu_find_ccb_by_cid
-**
-** Description      This function searches the CCB table for an entry with the
-**                  passed CID.
-**
-** Returns          the CCB address, or NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_find_ccb_by_cid
+ *
+ * Description      This function searches the CCB table for an entry with the
+ *                  passed CID.
+ *
+ * Returns          the CCB address, or NULL if not found.
+ *
+ ******************************************************************************/
 tCONN_CB *sdpu_find_ccb_by_cid (uint16_t cid)
 {
     uint16_t     xx;
@@ -71,15 +71,15 @@ tCONN_CB *sdpu_find_ccb_by_cid (uint16_t cid)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_find_ccb_by_db
-**
-** Description      This function searches the CCB table for an entry with the
-**                  passed discovery db.
-**
-** Returns          the CCB address, or NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_find_ccb_by_db
+ *
+ * Description      This function searches the CCB table for an entry with the
+ *                  passed discovery db.
+ *
+ * Returns          the CCB address, or NULL if not found.
+ *
+ ******************************************************************************/
 tCONN_CB *sdpu_find_ccb_by_db (tSDP_DISCOVERY_DB *p_db)
 {
 #if (SDP_CLIENT_ENABLED == TRUE)
@@ -102,14 +102,14 @@ tCONN_CB *sdpu_find_ccb_by_db (tSDP_DISCOVERY_DB *p_db)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_allocate_ccb
-**
-** Description      This function allocates a new CCB.
-**
-** Returns          CCB address, or NULL if none available.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_allocate_ccb
+ *
+ * Description      This function allocates a new CCB.
+ *
+ * Returns          CCB address, or NULL if none available.
+ *
+ ******************************************************************************/
 tCONN_CB *sdpu_allocate_ccb (void)
 {
     uint16_t     xx;
@@ -132,14 +132,14 @@ tCONN_CB *sdpu_allocate_ccb (void)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_release_ccb
-**
-** Description      This function releases a CCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_release_ccb
+ *
+ * Description      This function releases a CCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdpu_release_ccb (tCONN_CB *p_ccb)
 {
     /* Ensure timer is stopped */
@@ -160,16 +160,16 @@ void sdpu_release_ccb (tCONN_CB *p_ccb)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_build_attrib_seq
-**
-** Description      This function builds an attribute sequence from the list of
-**                  passed attributes. It is also passed the address of the output
-**                  buffer.
-**
-** Returns          Pointer to next byte in the output buffer.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_build_attrib_seq
+ *
+ * Description      This function builds an attribute sequence from the list of
+ *                  passed attributes. It is also passed the address of the output
+ *                  buffer.
+ *
+ * Returns          Pointer to next byte in the output buffer.
+ *
+ ******************************************************************************/
 uint8_t *sdpu_build_attrib_seq (uint8_t *p_out, uint16_t *p_attr, uint16_t num_attrs)
 {
     uint16_t xx;
@@ -214,16 +214,16 @@ uint8_t *sdpu_build_attrib_seq (uint8_t *p_out, uint16_t *p_attr, uint16_t num_a
 
 
 /*******************************************************************************
-**
-** Function         sdpu_build_attrib_entry
-**
-** Description      This function builds an attribute entry from the passed
-**                  attribute record. It is also passed the address of the output
-**                  buffer.
-**
-** Returns          Pointer to next byte in the output buffer.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_build_attrib_entry
+ *
+ * Description      This function builds an attribute entry from the passed
+ *                  attribute record. It is also passed the address of the output
+ *                  buffer.
+ *
+ * Returns          Pointer to next byte in the output buffer.
+ *
+ ******************************************************************************/
 uint8_t *sdpu_build_attrib_entry (uint8_t *p_out, tSDP_ATTRIBUTE *p_attr)
 {
     /* First, store the attribute ID. Goes as a UINT */
@@ -301,14 +301,14 @@ uint8_t *sdpu_build_attrib_entry (uint8_t *p_out, tSDP_ATTRIBUTE *p_attr)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_build_n_send_error
-**
-** Description      This function builds and sends an error packet.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_build_n_send_error
+ *
+ * Description      This function builds and sends an error packet.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdpu_build_n_send_error (tCONN_CB *p_ccb, uint16_t trans_num, uint16_t error_code, char *p_error_text)
 {
     uint8_t         *p_rsp, *p_rsp_start, *p_rsp_param_len;
@@ -350,15 +350,15 @@ void sdpu_build_n_send_error (tCONN_CB *p_ccb, uint16_t trans_num, uint16_t erro
 
 
 /*******************************************************************************
-**
-** Function         sdpu_extract_uid_seq
-**
-** Description      This function extracts a UUID sequence from the passed input
-**                  buffer, and puts it into the passed output list.
-**
-** Returns          Pointer to next byte in the input buffer after the sequence.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_extract_uid_seq
+ *
+ * Description      This function extracts a UUID sequence from the passed input
+ *                  buffer, and puts it into the passed output list.
+ *
+ * Returns          Pointer to next byte in the input buffer after the sequence.
+ *
+ ******************************************************************************/
 uint8_t *sdpu_extract_uid_seq (uint8_t *p, uint16_t param_len, tSDP_UUID_SEQ *p_seq)
 {
     uint8_t *p_seq_end;
@@ -464,15 +464,15 @@ uint8_t *sdpu_extract_uid_seq (uint8_t *p, uint16_t param_len, tSDP_UUID_SEQ *p_
 
 
 /*******************************************************************************
-**
-** Function         sdpu_extract_attr_seq
-**
-** Description      This function extracts an attribute sequence from the passed
-**                  input buffer, and puts it into the passed output list.
-**
-** Returns          Pointer to next byte in the input buffer after the sequence.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_extract_attr_seq
+ *
+ * Description      This function extracts an attribute sequence from the passed
+ *                  input buffer, and puts it into the passed output list.
+ *
+ * Returns          Pointer to next byte in the input buffer after the sequence.
+ *
+ ******************************************************************************/
 uint8_t *sdpu_extract_attr_seq (uint8_t *p, uint16_t param_len, tSDP_ATTR_SEQ *p_seq)
 {
     uint8_t *p_end_list;
@@ -569,14 +569,14 @@ uint8_t *sdpu_extract_attr_seq (uint8_t *p, uint16_t param_len, tSDP_ATTR_SEQ *p
 
 
 /*******************************************************************************
-**
-** Function         sdpu_get_len_from_type
-**
-** Description      This function gets the length
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_get_len_from_type
+ *
+ * Description      This function gets the length
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint8_t *sdpu_get_len_from_type (uint8_t *p, uint8_t type, uint32_t *p_len)
 {
     uint8_t u8;
@@ -619,15 +619,15 @@ uint8_t *sdpu_get_len_from_type (uint8_t *p, uint8_t type, uint32_t *p_len)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_is_base_uuid
-**
-** Description      This function checks a 128-bit UUID with the base to see if
-**                  it matches. Only the last 12 bytes are compared.
-**
-** Returns          true if matched, else false
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_is_base_uuid
+ *
+ * Description      This function checks a 128-bit UUID with the base to see if
+ *                  it matches. Only the last 12 bytes are compared.
+ *
+ * Returns          true if matched, else false
+ *
+ ******************************************************************************/
 bool    sdpu_is_base_uuid (uint8_t *p_uuid)
 {
     uint16_t  xx;
@@ -642,17 +642,17 @@ bool    sdpu_is_base_uuid (uint8_t *p_uuid)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_compare_uuid_arrays
-**
-** Description      This function compares 2 BE UUIDs. If needed, they are expanded
-**                  to 128-bit UUIDs, then compared.
-**
-** NOTE             it is assumed that the arrays are in Big Endian format
-**
-** Returns          true if matched, else false
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_compare_uuid_arrays
+ *
+ * Description      This function compares 2 BE UUIDs. If needed, they are expanded
+ *                  to 128-bit UUIDs, then compared.
+ *
+ * NOTE             it is assumed that the arrays are in Big Endian format
+ *
+ * Returns          true if matched, else false
+ *
+ ******************************************************************************/
 bool    sdpu_compare_uuid_arrays (uint8_t *p_uuid1, uint32_t len1, uint8_t *p_uuid2, uint16_t len2)
 {
     uint8_t     nu1[MAX_UUID_SIZE];
@@ -725,17 +725,17 @@ bool    sdpu_compare_uuid_arrays (uint8_t *p_uuid1, uint32_t len1, uint8_t *p_uu
 
 
 /*******************************************************************************
-**
-** Function         sdpu_compare_bt_uuids
-**
-** Description      This function compares 2 BT UUID structures.
-**
-** NOTE             it is assumed that BT UUID structures are compressed to the
-**                  smallest possible UUIDs (by removing the base SDP UUID)
-**
-** Returns          true if matched, else false
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_compare_bt_uuids
+ *
+ * Description      This function compares 2 BT UUID structures.
+ *
+ * NOTE             it is assumed that BT UUID structures are compressed to the
+ *                  smallest possible UUIDs (by removing the base SDP UUID)
+ *
+ * Returns          true if matched, else false
+ *
+ ******************************************************************************/
 bool    sdpu_compare_bt_uuids (tBT_UUID *p_uuid1, tBT_UUID *p_uuid2)
 {
     /* Lengths must match for BT UUIDs to match */
@@ -754,21 +754,21 @@ bool    sdpu_compare_bt_uuids (tBT_UUID *p_uuid1, tBT_UUID *p_uuid2)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_compare_uuid_with_attr
-**
-** Description      This function compares a BT UUID structure with the UUID in an
-**                  SDP attribute record. If needed, they are expanded to 128-bit
-**                  UUIDs, then compared.
-**
-** NOTE           - it is assumed that BT UUID structures are compressed to the
-**                  smallest possible UUIDs (by removing the base SDP UUID).
-**                - it is also assumed that the discovery atribute is compressed
-**                  to the smallest possible
-**
-** Returns          true if matched, else false
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_compare_uuid_with_attr
+ *
+ * Description      This function compares a BT UUID structure with the UUID in an
+ *                  SDP attribute record. If needed, they are expanded to 128-bit
+ *                  UUIDs, then compared.
+ *
+ * NOTE           - it is assumed that BT UUID structures are compressed to the
+ *                  smallest possible UUIDs (by removing the base SDP UUID).
+ *                - it is also assumed that the discovery atribute is compressed
+ *                  to the smallest possible
+ *
+ * Returns          true if matched, else false
+ *
+ ******************************************************************************/
 bool    sdpu_compare_uuid_with_attr (tBT_UUID *p_btuuid, tSDP_DISC_ATTR *p_attr)
 {
     uint16_t    attr_len = SDP_DISC_ATTR_LEN (p_attr->attr_len_type);
@@ -796,15 +796,15 @@ bool    sdpu_compare_uuid_with_attr (tBT_UUID *p_btuuid, tSDP_DISC_ATTR *p_attr)
 }
 
 /*******************************************************************************
-**
-** Function         sdpu_sort_attr_list
-**
-** Description      sorts a list of attributes in numeric order from lowest to
-**                  highest to conform to SDP specification
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_sort_attr_list
+ *
+ * Description      sorts a list of attributes in numeric order from lowest to
+ *                  highest to conform to SDP specification
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdpu_sort_attr_list( uint16_t num_attr, tSDP_DISCOVERY_DB *p_db )
 {
     uint16_t i;
@@ -839,15 +839,15 @@ void sdpu_sort_attr_list( uint16_t num_attr, tSDP_DISCOVERY_DB *p_db )
 
 
 /*******************************************************************************
-**
-** Function         sdpu_get_list_len
-**
-** Description      gets the total list length in the sdp database for a given
-**                  uid sequence and attr sequence
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_get_list_len
+ *
+ * Description      gets the total list length in the sdp database for a given
+ *                  uid sequence and attr sequence
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint16_t sdpu_get_list_len(tSDP_UUID_SEQ *uid_seq, tSDP_ATTR_SEQ *attr_seq)
 {
     tSDP_RECORD    *p_rec;
@@ -869,15 +869,15 @@ uint16_t sdpu_get_list_len(tSDP_UUID_SEQ *uid_seq, tSDP_ATTR_SEQ *attr_seq)
 }
 
 /*******************************************************************************
-**
-** Function         sdpu_get_attrib_seq_len
-**
-** Description      gets the length of the specific attributes in a given
-**                  sdp record
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_get_attrib_seq_len
+ *
+ * Description      gets the length of the specific attributes in a given
+ *                  sdp record
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint16_t sdpu_get_attrib_seq_len(tSDP_RECORD *p_rec, tSDP_ATTR_SEQ *attr_seq)
 {
     tSDP_ATTRIBUTE *p_attr;
@@ -918,14 +918,14 @@ uint16_t sdpu_get_attrib_seq_len(tSDP_RECORD *p_rec, tSDP_ATTR_SEQ *attr_seq)
 }
 
 /*******************************************************************************
-**
-** Function         sdpu_get_attrib_entry_len
-**
-** Description      gets the length of a specific attribute
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_get_attrib_entry_len
+ *
+ * Description      gets the length of a specific attribute
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint16_t sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE *p_attr)
 {
     uint16_t len = 3;
@@ -982,21 +982,21 @@ uint16_t sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE *p_attr)
 
 
 /*******************************************************************************
-**
-** Function         sdpu_build_partial_attrib_entry
-**
-** Description      This function fills a buffer with partial attribute. It is
-**                  assumed that the maximum size of any attribute is 256 bytes.
-**
-**                  p_out: output buffer
-**                  p_attr: attribute to be copied partially into p_out
-**                  rem_len: num bytes to copy into p_out
-**                  offset: current start offset within the attr that needs to be copied
-**
-** Returns          Pointer to next byte in the output buffer.
-**                  offset is also updated
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_build_partial_attrib_entry
+ *
+ * Description      This function fills a buffer with partial attribute. It is
+ *                  assumed that the maximum size of any attribute is 256 bytes.
+ *
+ *                  p_out: output buffer
+ *                  p_attr: attribute to be copied partially into p_out
+ *                  rem_len: num bytes to copy into p_out
+ *                  offset: current start offset within the attr that needs to be copied
+ *
+ * Returns          Pointer to next byte in the output buffer.
+ *                  offset is also updated
+ *
+ ******************************************************************************/
 uint8_t *sdpu_build_partial_attrib_entry (uint8_t *p_out, tSDP_ATTRIBUTE *p_attr, uint16_t len, uint16_t *offset)
 {
     uint8_t *p_attr_buff = (uint8_t *)osi_malloc(sizeof(uint8_t) * SDP_MAX_ATTR_LEN);
@@ -1021,17 +1021,17 @@ uint8_t *sdpu_build_partial_attrib_entry (uint8_t *p_out, tSDP_ATTRIBUTE *p_attr
 }
 
 /*******************************************************************************
-**
-** Function         sdpu_uuid16_to_uuid128
-**
-** Description      This function converts UUID-16 to UUID-128 by including the base UUID
-**
-**                  uuid16: 2-byte UUID
-**                  p_uuid128: Expanded 128-bit UUID
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_uuid16_to_uuid128
+ *
+ * Description      This function converts UUID-16 to UUID-128 by including the base UUID
+ *
+ *                  uuid16: 2-byte UUID
+ *                  p_uuid128: Expanded 128-bit UUID
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void sdpu_uuid16_to_uuid128(uint16_t uuid16, uint8_t* p_uuid128)
 {
     uint16_t uuid16_bo;

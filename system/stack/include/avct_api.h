@@ -33,8 +33,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* API function return value result codes. */
 #define AVCT_SUCCESS                0       /* Function successful */
@@ -62,7 +62,7 @@ extern "C" {
 #define AVCT_MIN_BROWSE_MTU         335 /* Per the AVRC spec, minimum MTU for the browsing channel */
 
 /* Message offset.  The number of bytes needed by the protocol stack for the
-** protocol headers of an AVCTP message packet.
+ * protocol headers of an AVCTP message packet.
 */
 #define AVCT_MSG_OFFSET             15
 #define AVCT_BROWSE_OFFSET          17 /* the default offset for browsing channel */
@@ -100,8 +100,8 @@ extern "C" {
 #define AVCT_RESULT_FAIL            5
 
 /*****************************************************************************
-**  Type Definitions
-*****************************************************************************/
+ *  Type Definitions
+ ****************************************************************************/
 
 /* Control callback function. */
 typedef void (tAVCT_CTRL_CBACK)(uint8_t handle, uint8_t event, uint16_t result,
@@ -122,153 +122,153 @@ typedef struct {
 } tAVCT_CC;
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         AVCT_Register
-**
-** Description      This is the system level registration function for the
-**                  AVCTP protocol.  This function initializes AVCTP and
-**                  prepares the protocol stack for its use.  This function
-**                  must be called once by the system or platform using AVCTP
-**                  before the other functions of the API an be used.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_Register
+ *
+ * Description      This is the system level registration function for the
+ *                  AVCTP protocol.  This function initializes AVCTP and
+ *                  prepares the protocol stack for its use.  This function
+ *                  must be called once by the system or platform using AVCTP
+ *                  before the other functions of the API an be used.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVCT_Register(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask);
 
 /*******************************************************************************
-**
-** Function         AVCT_Deregister
-**
-** Description      This function is called to deregister use AVCTP protocol.
-**                  It is called when AVCTP is no longer being used by any
-**                  application in the system.  Before this function can be
-**                  called, all connections must be removed with
-**                  AVCT_RemoveConn().
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_Deregister
+ *
+ * Description      This function is called to deregister use AVCTP protocol.
+ *                  It is called when AVCTP is no longer being used by any
+ *                  application in the system.  Before this function can be
+ *                  called, all connections must be removed with
+ *                  AVCT_RemoveConn().
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVCT_Deregister(void);
 
 /*******************************************************************************
-**
-** Function         AVCT_CreateConn
-**
-** Description      Create an AVCTP connection.  There are two types of
-**                  connections, initiator and acceptor, as determined by
-**                  the p_cc->role parameter.  When this function is called to
-**                  create an initiator connection, an AVCTP connection to
-**                  the peer device is initiated if one does not already exist.
-**                  If an acceptor connection is created, the connection waits
-**                  passively for an incoming AVCTP connection from a peer device.
-**
-**
-** Returns          AVCT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_CreateConn
+ *
+ * Description      Create an AVCTP connection.  There are two types of
+ *                  connections, initiator and acceptor, as determined by
+ *                  the p_cc->role parameter.  When this function is called to
+ *                  create an initiator connection, an AVCTP connection to
+ *                  the peer device is initiated if one does not already exist.
+ *                  If an acceptor connection is created, the connection waits
+ *                  passively for an incoming AVCTP connection from a peer device.
+ *
+ *
+ * Returns          AVCT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 extern uint16_t AVCT_CreateConn(uint8_t *p_handle, tAVCT_CC *p_cc,
                               BD_ADDR peer_addr);
 
 /*******************************************************************************
-**
-** Function         AVCT_RemoveConn
-**
-** Description      Remove an AVCTP connection.  This function is called when
-**                  the application is no longer using a connection.  If this
-**                  is the last connection to a peer the L2CAP channel for AVCTP
-**                  will be closed.
-**
-**
-** Returns          AVCT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_RemoveConn
+ *
+ * Description      Remove an AVCTP connection.  This function is called when
+ *                  the application is no longer using a connection.  If this
+ *                  is the last connection to a peer the L2CAP channel for AVCTP
+ *                  will be closed.
+ *
+ *
+ * Returns          AVCT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 extern uint16_t AVCT_RemoveConn(uint8_t handle);
 
 /*******************************************************************************
-**
-** Function         AVCT_CreateBrowse
-**
-** Description      Create an AVCTP connection.  There are two types of
-**                  connections, initiator and acceptor, as determined by
-**                  the p_cc->role parameter.  When this function is called to
-**                  create an initiator connection, an AVCTP connection to
-**                  the peer device is initiated if one does not already exist.
-**                  If an acceptor connection is created, the connection waits
-**                  passively for an incoming AVCTP connection from a peer device.
-**
-**
-** Returns          AVCT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_CreateBrowse
+ *
+ * Description      Create an AVCTP connection.  There are two types of
+ *                  connections, initiator and acceptor, as determined by
+ *                  the p_cc->role parameter.  When this function is called to
+ *                  create an initiator connection, an AVCTP connection to
+ *                  the peer device is initiated if one does not already exist.
+ *                  If an acceptor connection is created, the connection waits
+ *                  passively for an incoming AVCTP connection from a peer device.
+ *
+ *
+ * Returns          AVCT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 extern uint16_t AVCT_CreateBrowse(uint8_t handle, uint8_t role);
 
 /*******************************************************************************
-**
-** Function         AVCT_RemoveBrowse
-**
-** Description      Remove an AVCTP connection.  This function is called when
-**                  the application is no longer using a connection.  If this
-**                  is the last connection to a peer the L2CAP channel for AVCTP
-**                  will be closed.
-**
-**
-** Returns          AVCT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_RemoveBrowse
+ *
+ * Description      Remove an AVCTP connection.  This function is called when
+ *                  the application is no longer using a connection.  If this
+ *                  is the last connection to a peer the L2CAP channel for AVCTP
+ *                  will be closed.
+ *
+ *
+ * Returns          AVCT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 extern uint16_t AVCT_RemoveBrowse(uint8_t handle);
 
 /*******************************************************************************
-**
-** Function         AVCT_GetBrowseMtu
-**
-** Description      Get the peer_mtu for the AVCTP Browse channel of the given
-**                  connection.
-**
-** Returns          the peer browsing channel MTU.
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_GetBrowseMtu
+ *
+ * Description      Get the peer_mtu for the AVCTP Browse channel of the given
+ *                  connection.
+ *
+ * Returns          the peer browsing channel MTU.
+ *
+ ******************************************************************************/
 extern uint16_t AVCT_GetBrowseMtu (uint8_t handle);
 
 /*******************************************************************************
-**
-** Function         AVCT_GetPeerMtu
-**
-** Description      Get the peer_mtu for the AVCTP channel of the given
-**                  connection.
-**
-** Returns          the peer MTU size.
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_GetPeerMtu
+ *
+ * Description      Get the peer_mtu for the AVCTP channel of the given
+ *                  connection.
+ *
+ * Returns          the peer MTU size.
+ *
+ ******************************************************************************/
 extern uint16_t AVCT_GetPeerMtu (uint8_t handle);
 
 /*******************************************************************************
-**
-** Function         AVCT_MsgReq
-**
-** Description      Send an AVCTP message to a peer device.  In calling
-**                  AVCT_MsgReq(), the application should keep track of the
-**                  congestion state of AVCTP as communicated with events
-**                  AVCT_CONG_IND_EVT and AVCT_UNCONG_IND_EVT.   If the
-**                  application calls AVCT_MsgReq() when AVCTP is congested
-**                  the message may be discarded.  The application may make its
-**                  first call to AVCT_MsgReq() after it receives an
-**                  AVCT_CONNECT_CFM_EVT or AVCT_CONNECT_IND_EVT on control channel or
-**                  AVCT_BROWSE_CONN_CFM_EVT or AVCT_BROWSE_CONN_IND_EVT on browsing channel.
-**
-**                  p_msg->layer_specific must be set to
-**                  AVCT_DATA_CTRL for control channel traffic;
-**                  AVCT_DATA_BROWSE for for browse channel traffic.
-**
-** Returns          AVCT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVCT_MsgReq
+ *
+ * Description      Send an AVCTP message to a peer device.  In calling
+ *                  AVCT_MsgReq(), the application should keep track of the
+ *                  congestion state of AVCTP as communicated with events
+ *                  AVCT_CONG_IND_EVT and AVCT_UNCONG_IND_EVT.   If the
+ *                  application calls AVCT_MsgReq() when AVCTP is congested
+ *                  the message may be discarded.  The application may make its
+ *                  first call to AVCT_MsgReq() after it receives an
+ *                  AVCT_CONNECT_CFM_EVT or AVCT_CONNECT_IND_EVT on control channel or
+ *                  AVCT_BROWSE_CONN_CFM_EVT or AVCT_BROWSE_CONN_IND_EVT on browsing channel.
+ *
+ *                  p_msg->layer_specific must be set to
+ *                  AVCT_DATA_CTRL for control channel traffic;
+ *                  AVCT_DATA_BROWSE for for browse channel traffic.
+ *
+ * Returns          AVCT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 extern uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg);
 
 #ifdef __cplusplus

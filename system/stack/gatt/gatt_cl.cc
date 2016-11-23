@@ -42,9 +42,9 @@
 #define GATT_MTU_RSP_MIN_LEN    2
 #define GATT_READ_BY_TYPE_RSP_MIN_LEN    1
 
-/********************************************************************************
-**                       G L O B A L      G A T T       D A T A                 *
-*********************************************************************************/
+/*******************************************************************************
+ *                       G L O B A L      G A T T       D A T A                 *
+ ******************************************************************************/
 void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb);
 
 uint8_t disc_type_to_att_opcode[GATT_DISC_MAX] =
@@ -69,14 +69,14 @@ uint16_t disc_type_to_uuid[GATT_DISC_MAX] =
 
 
 /*******************************************************************************
-**
-** Function         gatt_act_discovery
-**
-** Description      GATT discovery operation.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_act_discovery
+ *
+ * Description      GATT discovery operation.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_act_discovery(tGATT_CLCB *p_clcb)
 {
     uint8_t     op_code = disc_type_to_att_opcode[p_clcb->op_subtype];
@@ -125,14 +125,14 @@ void gatt_act_discovery(tGATT_CLCB *p_clcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_act_read
-**
-** Description      GATT read operation.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_act_read
+ *
+ * Description      GATT read operation.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_act_read (tGATT_CLCB *p_clcb, uint16_t offset)
 {
     tGATT_TCB  *p_tcb = p_clcb->p_tcb;
@@ -213,14 +213,14 @@ void gatt_act_read (tGATT_CLCB *p_clcb, uint16_t offset)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_act_write
-**
-** Description      GATT write operation.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_act_write
+ *
+ * Description      GATT write operation.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_act_write (tGATT_CLCB *p_clcb, uint8_t sec_act)
 {
     tGATT_TCB           *p_tcb = p_clcb->p_tcb;
@@ -286,14 +286,14 @@ void gatt_act_write (tGATT_CLCB *p_clcb, uint8_t sec_act)
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_send_queue_write_cancel
-**
-** Description      send queue write cancel
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_send_queue_write_cancel
+ *
+ * Description      send queue write cancel
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_send_queue_write_cancel (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, tGATT_EXEC_FLAG flag)
 {
     uint8_t     rt ;
@@ -308,14 +308,14 @@ void gatt_send_queue_write_cancel (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, tGATT_E
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_check_write_long_terminate
-**
-** Description      To terminate write long or not.
-**
-** Returns          true: write long is terminated; false keep sending.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_check_write_long_terminate
+ *
+ * Description      To terminate write long or not.
+ *
+ * Returns          true: write long is terminated; false keep sending.
+ *
+ ******************************************************************************/
 bool    gatt_check_write_long_terminate(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb, tGATT_VALUE *p_rsp_value)
 {
     tGATT_VALUE         *p_attr = (tGATT_VALUE *)p_clcb->p_attr_buf;
@@ -351,14 +351,14 @@ bool    gatt_check_write_long_terminate(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb, t
     return false;
 }
 /*******************************************************************************
-**
-** Function         gatt_send_prepare_write
-**
-** Description      Send prepare write.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_send_prepare_write
+ *
+ * Description      Send prepare write.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
 {
     tGATT_VALUE  *p_attr = (tGATT_VALUE *)p_clcb->p_attr_buf;
@@ -401,15 +401,15 @@ void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
 
 
 /*******************************************************************************
-**
-** Function         gatt_process_find_type_value_rsp
-**
-** Description      This function is called to handle find by type value response.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_find_type_value_rsp
+ *
+ * Description      This function is called to handle find by type value response.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_find_type_value_rsp (UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,
 				       uint16_t len, uint8_t *p_data)
 {
@@ -444,16 +444,16 @@ void gatt_process_find_type_value_rsp (UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB 
     gatt_act_discovery(p_clcb) ;
 }
 /*******************************************************************************
-**
-** Function         gatt_process_read_info_rsp
-**
-** Description      This function is called to handle the read information
-**                  response.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_read_info_rsp
+ *
+ * Description      This function is called to handle the read information
+ *                  response.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_read_info_rsp(UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UNUSED_ATTR uint8_t op_code,
                                 uint16_t len, uint8_t *p_data)
 {
@@ -501,15 +501,15 @@ void gatt_process_read_info_rsp(UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb
     gatt_act_discovery(p_clcb) ;
 }
 /*******************************************************************************
-**
-** Function         gatt_proc_disc_error_rsp
-**
-** Description      This function process the read by type response and send another
-**                  request if needed.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_proc_disc_error_rsp
+ *
+ * Description      This function process the read by type response and send another
+ *                  request if needed.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_proc_disc_error_rsp(UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,
                               uint8_t opcode,
                               UNUSED_ATTR uint16_t handle, uint8_t reason)
@@ -539,15 +539,15 @@ void gatt_proc_disc_error_rsp(UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_process_error_rsp
-**
-** Description      This function is called to handle the error response
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_error_rsp
+ *
+ * Description      This function is called to handle the error response
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UNUSED_ATTR uint8_t op_code,
                             UNUSED_ATTR uint16_t len, uint8_t *p_data)
 {
@@ -589,15 +589,15 @@ void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UNUSED_ATTR ui
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_process_prep_write_rsp
-**
-** Description      This function is called to handle the read response
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_prep_write_rsp
+ *
+ * Description      This function is called to handle the read response
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_prep_write_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t op_code,
                                   uint16_t len, uint8_t *p_data)
 {
@@ -640,16 +640,16 @@ void gatt_process_prep_write_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t 
 
 }
 /*******************************************************************************
-**
-** Function         gatt_process_notification
-**
-** Description      This function is called to handle the handle value indication
-**                  or handle value notification.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_notification
+ *
+ * Description      This function is called to handle the handle value indication
+ *                  or handle value notification.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_notification(tGATT_TCB *p_tcb, uint8_t op_code,
                                uint16_t len, uint8_t *p_data)
 {
@@ -727,16 +727,16 @@ void gatt_process_notification(tGATT_TCB *p_tcb, uint8_t op_code,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_process_read_by_type_rsp
-**
-** Description      This function is called to handle the read by type response.
-**                  read by type can be used for discovery, or read by type or
-**                  read characteristic value.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_read_by_type_rsp
+ *
+ * Description      This function is called to handle the read by type response.
+ *                  read by type can be used for discovery, or read by type or
+ *                  read characteristic value.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t op_code,
                                     uint16_t len, uint8_t *p_data)
 {
@@ -929,15 +929,15 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_
 }
 
 /*******************************************************************************
-**
-** Function         gatt_process_read_rsp
-**
-** Description      This function is called to handle the read BLOB response
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_read_rsp
+ *
+ * Description      This function is called to handle the read BLOB response
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  UNUSED_ATTR uint8_t op_code,
                            uint16_t len, uint8_t *p_data)
 {
@@ -1016,29 +1016,29 @@ void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  UNUSED_ATTR ui
 
 
 /*******************************************************************************
-**
-** Function         gatt_process_handle_rsp
-**
-** Description      This function is called to handle the write response
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_handle_rsp
+ *
+ * Description      This function is called to handle the write response
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_handle_rsp(tGATT_CLCB *p_clcb)
 {
     gatt_end_operation(p_clcb, GATT_SUCCESS, NULL);
 }
 /*******************************************************************************
-**
-** Function         gatt_process_mtu_rsp
-**
-** Description      This function is called to process the configure MTU response.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_mtu_rsp
+ *
+ * Description      This function is called to process the configure MTU response.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_mtu_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint16_t len, uint8_t *p_data)
 {
     uint16_t mtu;
@@ -1061,15 +1061,15 @@ void gatt_process_mtu_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint16_t len, ui
     gatt_end_operation(p_clcb, status, NULL);
 }
 /*******************************************************************************
-**
-** Function         gatt_cmd_to_rsp_code
-**
-** Description      The function convert a ATT command op code into the corresponding
-**                  response code assume no error occurs.
-**
-** Returns          response code.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cmd_to_rsp_code
+ *
+ * Description      The function convert a ATT command op code into the corresponding
+ *                  response code assume no error occurs.
+ *
+ * Returns          response code.
+ *
+ ******************************************************************************/
 uint8_t gatt_cmd_to_rsp_code (uint8_t cmd_code)
 {
     uint8_t rsp_code  = 0;
@@ -1081,14 +1081,14 @@ uint8_t gatt_cmd_to_rsp_code (uint8_t cmd_code)
     return rsp_code;
 }
 /*******************************************************************************
-**
-** Function         gatt_cl_send_next_cmd_inq
-**
-** Description      Find next command in queue and sent to server
-**
-** Returns          true if command sent, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cl_send_next_cmd_inq
+ *
+ * Description      Find next command in queue and sent to server
+ *
+ * Returns          true if command sent, otherwise false.
+ *
+ ******************************************************************************/
 bool    gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb)
 {
     tGATT_CMD_Q  *p_cmd = &p_tcb->cl_cmd_q[p_tcb->pending_cl_req];
@@ -1141,16 +1141,16 @@ bool    gatt_cl_send_next_cmd_inq(tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_client_handle_server_rsp
-**
-** Description      This function is called to handle the server response to
-**                  client.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_client_handle_server_rsp
+ *
+ * Description      This function is called to handle the server response to
+ *                  client.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, uint8_t op_code,
                                     uint16_t len, uint8_t *p_data)
 {

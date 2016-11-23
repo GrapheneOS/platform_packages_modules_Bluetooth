@@ -43,14 +43,14 @@ extern fixed_queue_t *btu_bta_alarm_queue;
 static bool    l2c_ucd_connect ( BD_ADDR rem_bda );
 
 /*******************************************************************************
-**
-** Function         l2c_ucd_discover_cback
-**
-** Description      UCD Discover callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_ucd_discover_cback
+ *
+ * Description      UCD Discover callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_ucd_discover_cback (BD_ADDR rem_bda, uint8_t info_type, uint32_t data)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
@@ -82,14 +82,14 @@ static void l2c_ucd_discover_cback (BD_ADDR rem_bda, uint8_t info_type, uint32_t
 }
 
 /*******************************************************************************
-**
-** Function         l2c_ucd_data_ind_cback
-**
-** Description      UCD Data callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_ucd_data_ind_cback
+ *
+ * Description      UCD Data callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_ucd_data_ind_cback (BD_ADDR rem_bda, BT_HDR *p_buf)
 {
     uint8_t *p;
@@ -117,14 +117,14 @@ static void l2c_ucd_data_ind_cback (BD_ADDR rem_bda, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_ucd_congestion_status_cback
-**
-** Description      UCD Congestion Status callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_ucd_congestion_status_cback
+ *
+ * Description      UCD Congestion Status callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_ucd_congestion_status_cback (BD_ADDR rem_bda, bool    is_congested)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
@@ -151,58 +151,58 @@ static void l2c_ucd_congestion_status_cback (BD_ADDR rem_bda, bool    is_congest
 }
 
 /*******************************************************************************
-**
-** Function         l2c_ucd_disconnect_ind_cback
-**
-** Description      UCD disconnect callback (This prevent to access null pointer)
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_ucd_disconnect_ind_cback
+ *
+ * Description      UCD disconnect callback (This prevent to access null pointer)
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_ucd_disconnect_ind_cback (uint16_t cid, bool    result)
 {
     /* do nothing */
 }
 
 /*******************************************************************************
-**
-** Function         l2c_ucd_config_ind_cback
-**
-** Description      UCD config callback (This prevent to access null pointer)
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_ucd_config_ind_cback
+ *
+ * Description      UCD config callback (This prevent to access null pointer)
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_ucd_config_ind_cback (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
 {
     /* do nothing */
 }
 
 /*******************************************************************************
-**
-** Function         l2c_ucd_config_cfm_cback
-**
-** Description      UCD config callback (This prevent to access null pointer)
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_ucd_config_cfm_cback
+ *
+ * Description      UCD config callback (This prevent to access null pointer)
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_ucd_config_cfm_cback (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
 {
     /* do nothing */
 }
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdRegister
-**
-**  Description     Register PSM on UCD.
-**
-**  Parameters:     tL2CAP_UCD_CB_INFO
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdRegister
+ *
+ *  Description     Register PSM on UCD.
+ *
+ *  Parameters:     tL2CAP_UCD_CB_INFO
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 bool    L2CA_UcdRegister ( uint16_t psm, tL2CAP_UCD_CB_INFO *p_cb_info )
 {
     tL2C_RCB             *p_rcb;
@@ -259,16 +259,16 @@ bool    L2CA_UcdRegister ( uint16_t psm, tL2CAP_UCD_CB_INFO *p_cb_info )
 }
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdDeregister
-**
-**  Description     Deregister PSM on UCD.
-**
-**  Parameters:     PSM
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdDeregister
+ *
+ *  Description     Deregister PSM on UCD.
+ *
+ *  Parameters:     PSM
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 bool    L2CA_UcdDeregister ( uint16_t psm )
 {
     tL2C_CCB    *p_ccb;
@@ -318,20 +318,20 @@ bool    L2CA_UcdDeregister ( uint16_t psm )
 }
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdDiscover
-**
-**  Description     Discover UCD of remote device.
-**
-**  Parameters:     PSM
-**                  BD_ADDR of remote device
-**                  info_type : L2CAP_UCD_INFO_TYPE_RECEPTION
-**                              L2CAP_UCD_INFO_TYPE_MTU
-**
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdDiscover
+ *
+ *  Description     Discover UCD of remote device.
+ *
+ *  Parameters:     PSM
+ *                  BD_ADDR of remote device
+ *                  info_type : L2CAP_UCD_INFO_TYPE_RECEPTION
+ *                              L2CAP_UCD_INFO_TYPE_MTU
+ *
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 bool    L2CA_UcdDiscover ( uint16_t psm, BD_ADDR rem_bda, uint8_t info_type )
 {
     tL2C_LCB        *p_lcb;
@@ -382,22 +382,22 @@ bool    L2CA_UcdDiscover ( uint16_t psm, BD_ADDR rem_bda, uint8_t info_type )
 }
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdDataWrite
-**
-**  Description     Send UCD to remote device
-**
-**  Parameters:     PSM
-**                  BD Address of remote
-**                  Pointer to buffer of type BT_HDR
-**                  flags : L2CAP_FLUSHABLE_CH_BASED
-**                          L2CAP_FLUSHABLE_PKT
-**                          L2CAP_NON_FLUSHABLE_PKT
-**
-** Return value     L2CAP_DW_SUCCESS, if data accepted
-**                  L2CAP_DW_FAILED,  if error
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdDataWrite
+ *
+ *  Description     Send UCD to remote device
+ *
+ *  Parameters:     PSM
+ *                  BD Address of remote
+ *                  Pointer to buffer of type BT_HDR
+ *                  flags : L2CAP_FLUSHABLE_CH_BASED
+ *                          L2CAP_FLUSHABLE_PKT
+ *                          L2CAP_NON_FLUSHABLE_PKT
+ *
+ * Return value     L2CAP_DW_SUCCESS, if data accepted
+ *                  L2CAP_DW_FAILED,  if error
+ *
+ ******************************************************************************/
 uint16_t L2CA_UcdDataWrite (uint16_t psm, BD_ADDR rem_bda, BT_HDR *p_buf, uint16_t flags)
 {
     tL2C_LCB        *p_lcb;
@@ -478,17 +478,17 @@ uint16_t L2CA_UcdDataWrite (uint16_t psm, BD_ADDR rem_bda, BT_HDR *p_buf, uint16
 }
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdSetIdleTimeout
-**
-**  Description     Set UCD Idle timeout.
-**
-**  Parameters:     BD Addr
-**                  Timeout in second
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdSetIdleTimeout
+ *
+ *  Description     Set UCD Idle timeout.
+ *
+ *  Parameters:     BD Addr
+ *                  Timeout in second
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 bool    L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, uint16_t timeout )
 {
     tL2C_LCB        *p_lcb;
@@ -514,14 +514,14 @@ bool    L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, uint16_t timeout )
 }
 
 /*******************************************************************************
-**
-** Function         L2CA_UCDSetTxPriority
-**
-** Description      Sets the transmission priority for a connectionless channel.
-**
-** Returns          true if a valid channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_UCDSetTxPriority
+ *
+ * Description      Sets the transmission priority for a connectionless channel.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
 bool    L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
 {
     tL2C_LCB        *p_lcb;
@@ -553,16 +553,16 @@ bool    L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_connect
-**
-**  Description     Connect UCD to remote device.
-**
-**  Parameters:     BD_ADDR of remote device
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_connect
+ *
+ *  Description     Connect UCD to remote device.
+ *
+ *  Parameters:     BD_ADDR of remote device
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 static bool    l2c_ucd_connect ( BD_ADDR rem_bda )
 {
     tL2C_LCB        *p_lcb;
@@ -645,14 +645,14 @@ static bool    l2c_ucd_connect ( BD_ADDR rem_bda )
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_delete_sec_pending_q
-**
-** Description      discard all of UCD packets in security pending queue
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_delete_sec_pending_q
+ *
+ * Description      discard all of UCD packets in security pending queue
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void l2c_ucd_delete_sec_pending_q(tL2C_LCB  *p_lcb)
 {
     /* clean up any security pending UCD */
@@ -668,14 +668,14 @@ void l2c_ucd_delete_sec_pending_q(tL2C_LCB  *p_lcb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_check_pending_info_req
-**
-** Description      check if any application is waiting for UCD information
-**
-**  Return          true if any pending UCD info request
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_check_pending_info_req
+ *
+ * Description      check if any application is waiting for UCD information
+ *
+ *  Return          true if any pending UCD info request
+ *
+ ******************************************************************************/
 bool    l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
@@ -745,15 +745,15 @@ bool    l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_enqueue_pending_out_sec_q
-**
-**  Description     enqueue outgoing UCD packet into security pending queue
-**                  and check congestion
-**
-**  Return          None
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_enqueue_pending_out_sec_q
+ *
+ *  Description     enqueue outgoing UCD packet into security pending queue
+ *                  and check congestion
+ *
+ *  Return          None
+ *
+ ******************************************************************************/
 void l2c_ucd_enqueue_pending_out_sec_q(tL2C_CCB  *p_ccb, void *p_data)
 {
     fixed_queue_enqueue(p_ccb->p_lcb->ucd_out_sec_pending_q, p_data);
@@ -761,14 +761,14 @@ void l2c_ucd_enqueue_pending_out_sec_q(tL2C_CCB  *p_ccb, void *p_data)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_check_pending_out_sec_q
-**
-**  Description     check outgoing security
-**
-**  Return          true if any UCD packet for security
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_check_pending_out_sec_q
+ *
+ *  Description     check outgoing security
+ *
+ *  Return          true if any UCD packet for security
+ *
+ ******************************************************************************/
 bool    l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_peek_first(p_ccb->p_lcb->ucd_out_sec_pending_q);
@@ -790,15 +790,15 @@ bool    l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_send_pending_out_sec_q
-**
-**  Description     dequeue UCD packet from security pending queue and
-**                  enqueue it into CCB
-**
-**  Return          None
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_send_pending_out_sec_q
+ *
+ *  Description     dequeue UCD packet from security pending queue and
+ *                  enqueue it into CCB
+ *
+ *  Return          None
+ *
+ ******************************************************************************/
 void l2c_ucd_send_pending_out_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_out_sec_pending_q);
@@ -811,15 +811,15 @@ void l2c_ucd_send_pending_out_sec_q(tL2C_CCB  *p_ccb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_discard_pending_out_sec_q
-**
-**  Description     dequeue UCD packet from security pending queue and
-**                  discard it.
-**
-**  Return          None
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_discard_pending_out_sec_q
+ *
+ *  Description     dequeue UCD packet from security pending queue and
+ *                  discard it.
+ *
+ *  Return          None
+ *
+ ******************************************************************************/
 void l2c_ucd_discard_pending_out_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_out_sec_pending_q);
@@ -829,14 +829,14 @@ void l2c_ucd_discard_pending_out_sec_q(tL2C_CCB  *p_ccb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_check_pending_in_sec_q
-**
-**  Description     check incoming security
-**
-**  Return          true if any UCD packet for security
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_check_pending_in_sec_q
+ *
+ *  Description     check incoming security
+ *
+ *  Return          true if any UCD packet for security
+ *
+ ******************************************************************************/
 bool    l2c_ucd_check_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q);
@@ -857,15 +857,15 @@ bool    l2c_ucd_check_pending_in_sec_q(tL2C_CCB  *p_ccb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_send_pending_in_sec_q
-**
-**  Description     dequeue UCD packet from security pending queue and
-**                  send it to application
-**
-**  Return          None
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_send_pending_in_sec_q
+ *
+ *  Description     dequeue UCD packet from security pending queue and
+ *                  send it to application
+ *
+ *  Return          None
+ *
+ ******************************************************************************/
 void l2c_ucd_send_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q)
@@ -877,15 +877,15 @@ void l2c_ucd_send_pending_in_sec_q(tL2C_CCB  *p_ccb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_discard_pending_in_sec_q
-**
-**  Description     dequeue UCD packet from security pending queue and
-**                  discard it.
-**
-**  Return          None
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_discard_pending_in_sec_q
+ *
+ *  Description     dequeue UCD packet from security pending queue and
+ *                  discard it.
+ *
+ *  Return          None
+ *
+ ******************************************************************************/
 void l2c_ucd_discard_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q);
@@ -893,15 +893,15 @@ void l2c_ucd_discard_pending_in_sec_q(tL2C_CCB  *p_ccb)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_check_rx_pkts
-**
-**  Description     Check if UCD reception is registered.
-**                  Process received UCD packet if application is expecting.
-**
-**  Return          true if UCD reception is registered
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_check_rx_pkts
+ *
+ *  Description     Check if UCD reception is registered.
+ *                  Process received UCD packet if application is expecting.
+ *
+ *  Return          true if UCD reception is registered
+ *
+ ******************************************************************************/
 bool    l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
 {
     tL2C_CCB   *p_ccb;
@@ -946,16 +946,16 @@ bool    l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
 }
 
 /*******************************************************************************
-**
-**  Function        l2c_ucd_process_event
-**
-**  Description     This is called from main state machine when LCID is connectionless
-**                  Process the event if it is for UCD.
-**
-**  Return          true if the event is consumed by UCD
-**                  false if the event needs to be processed by main state machine
-**
-*******************************************************************************/
+ *
+ *  Function        l2c_ucd_process_event
+ *
+ *  Description     This is called from main state machine when LCID is connectionless
+ *                  Process the event if it is for UCD.
+ *
+ *  Return          true if the event is consumed by UCD
+ *                  false if the event needs to be processed by main state machine
+ *
+ ******************************************************************************/
 bool    l2c_ucd_process_event(tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 {
     /* if the event is not processed by this function, this variable will be set to false */

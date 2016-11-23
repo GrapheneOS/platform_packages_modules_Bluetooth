@@ -62,9 +62,9 @@ struct AdvertisingInstance {
   }
 };
 
-/************************************************************************************
-**  Externs
-************************************************************************************/
+/*******************************************************************************
+ *  Externs
+ ******************************************************************************/
 extern fixed_queue_t *btu_general_alarm_queue;
 
 void DoNothing(uint8_t) {}
@@ -454,16 +454,16 @@ void btm_ble_adv_raddr_timer_timeout(void *data) {
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_multi_adv_init
-**
-** Description      This function initialize the multi adv control block.
-**
-** Parameters       None
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_multi_adv_init
+ *
+ * Description      This function initialize the multi adv control block.
+ *
+ * Parameters       None
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_multi_adv_init() {
   BleAdvertiserHciInterface::Initialize();
   BleAdvertisingManager::Initialize(BleAdvertiserHciInterface::Get());
@@ -472,15 +472,15 @@ void btm_ble_multi_adv_init() {
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_multi_adv_cleanup
-**
-** Description      This function cleans up multi adv control block.
-**
-** Parameters
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_multi_adv_cleanup
+ *
+ * Description      This function cleans up multi adv control block.
+ *
+ * Parameters
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_multi_adv_cleanup(void) {
   BleAdvertisingManager::CleanUp();
   BleAdvertiserHciInterface::CleanUp();

@@ -30,15 +30,15 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /*******************************************************************************
-**
-** Function         BNEP_Init
-**
-** Description      This function initializes the BNEP unit. It should be called
-**                  before accessing any other APIs to initialize the control block
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_Init
+ *
+ * Description      This function initializes the BNEP unit. It should be called
+ *                  before accessing any other APIs to initialize the control block
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BNEP_Init (void)
 {
     memset (&bnep_cb, 0, sizeof (tBNEP_CB));
@@ -52,19 +52,19 @@ void BNEP_Init (void)
 
 
 /*******************************************************************************
-**
-** Function         BNEP_Register
-**
-** Description      This function is called by the upper layer to register
-**                  its callbacks with BNEP
-**
-** Parameters:      p_reg_info - contains all callback function pointers
-**
-**
-** Returns          BNEP_SUCCESS        if registered successfully
-**                  BNEP_FAILURE        if connection state callback is missing
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_Register
+ *
+ * Description      This function is called by the upper layer to register
+ *                  its callbacks with BNEP
+ *
+ * Parameters:      p_reg_info - contains all callback function pointers
+ *
+ *
+ * Returns          BNEP_SUCCESS        if registered successfully
+ *                  BNEP_FAILURE        if connection state callback is missing
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
 {
     /* There should be connection state call back registered */
@@ -88,18 +88,18 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
 
 
 /*******************************************************************************
-**
-** Function         BNEP_Deregister
-**
-** Description      This function is called by the upper layer to de-register
-**                  its callbacks.
-**
-** Parameters:      void
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_Deregister
+ *
+ * Description      This function is called by the upper layer to de-register
+ *                  its callbacks.
+ *
+ * Parameters:      void
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BNEP_Deregister (void)
 {
     /* Clear all the call backs registered */
@@ -116,21 +116,21 @@ void BNEP_Deregister (void)
 
 
 /*******************************************************************************
-**
-** Function         BNEP_Connect
-**
-** Description      This function creates a BNEP connection to a remote
-**                  device.
-**
-** Parameters:      p_rem_addr  - BD_ADDR of the peer
-**                  src_uuid    - source uuid for the connection
-**                  dst_uuid    - destination uuid for the connection
-**                  p_handle    - pointer to return the handle for the connection
-**
-** Returns          BNEP_SUCCESS                if connection started
-**                  BNEP_NO_RESOURCES           if no resources
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_Connect
+ *
+ * Description      This function creates a BNEP connection to a remote
+ *                  device.
+ *
+ * Parameters:      p_rem_addr  - BD_ADDR of the peer
+ *                  src_uuid    - source uuid for the connection
+ *                  dst_uuid    - destination uuid for the connection
+ *                  p_handle    - pointer to return the handle for the connection
+ *
+ * Returns          BNEP_SUCCESS                if connection started
+ *                  BNEP_NO_RESOURCES           if no resources
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
                            tBT_UUID *src_uuid,
                            tBT_UUID *dst_uuid,
@@ -221,20 +221,20 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 
 
 /*******************************************************************************
-**
-** Function         BNEP_ConnectResp
-**
-** Description      This function is called in responce to connection indication
-**
-**
-** Parameters:      handle  - handle given in the connection indication
-**                  resp    - responce for the connection indication
-**
-** Returns          BNEP_SUCCESS                if connection started
-**                  BNEP_WRONG_HANDLE           if the connection is not found
-**                  BNEP_WRONG_STATE            if the responce is not expected
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_ConnectResp
+ *
+ * Description      This function is called in responce to connection indication
+ *
+ *
+ * Parameters:      handle  - handle given in the connection indication
+ *                  resp    - responce for the connection indication
+ *
+ * Returns          BNEP_SUCCESS                if connection started
+ *                  BNEP_WRONG_HANDLE           if the connection is not found
+ *                  BNEP_WRONG_STATE            if the responce is not expected
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_ConnectResp (uint16_t handle, tBNEP_RESULT resp)
 {
     tBNEP_CONN      *p_bcb;
@@ -301,17 +301,17 @@ tBNEP_RESULT BNEP_ConnectResp (uint16_t handle, tBNEP_RESULT resp)
 
 
 /*******************************************************************************
-**
-** Function         BNEP_Disconnect
-**
-** Description      This function is called to close the specified connection.
-**
-** Parameters:      handle   - handle of the connection
-**
-** Returns          BNEP_SUCCESS                if connection is disconnected
-**                  BNEP_WRONG_HANDLE           if no connection is not found
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_Disconnect
+ *
+ * Description      This function is called to close the specified connection.
+ *
+ * Parameters:      handle   - handle of the connection
+ *
+ * Returns          BNEP_SUCCESS                if connection is disconnected
+ *                  BNEP_WRONG_HANDLE           if no connection is not found
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_Disconnect (uint16_t handle)
 {
     tBNEP_CONN      *p_bcb;
@@ -335,26 +335,26 @@ tBNEP_RESULT BNEP_Disconnect (uint16_t handle)
 
 
 /*******************************************************************************
-**
-** Function         BNEP_WriteBuf
-**
-** Description      This function sends data in a GKI buffer on BNEP connection
-**
-** Parameters:      handle       - handle of the connection to write
-**                  p_dest_addr  - BD_ADDR/Ethernet addr of the destination
-**                  p_buf        - pointer to address of buffer with data
-**                  protocol     - protocol type of the packet
-**                  p_src_addr   - (optional) BD_ADDR/ethernet address of the source
-**                                 (should be NULL if it is local BD Addr)
-**                  fw_ext_present - forwarded extensions present
-**
-** Returns:         BNEP_WRONG_HANDLE       - if passed handle is not valid
-**                  BNEP_MTU_EXCEDED        - If the data length is greater than MTU
-**                  BNEP_IGNORE_CMD         - If the packet is filtered out
-**                  BNEP_Q_SIZE_EXCEEDED    - If the Tx Q is full
-**                  BNEP_SUCCESS            - If written successfully
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_WriteBuf
+ *
+ * Description      This function sends data in a GKI buffer on BNEP connection
+ *
+ * Parameters:      handle       - handle of the connection to write
+ *                  p_dest_addr  - BD_ADDR/Ethernet addr of the destination
+ *                  p_buf        - pointer to address of buffer with data
+ *                  protocol     - protocol type of the packet
+ *                  p_src_addr   - (optional) BD_ADDR/ethernet address of the source
+ *                                 (should be NULL if it is local BD Addr)
+ *                  fw_ext_present - forwarded extensions present
+ *
+ * Returns:         BNEP_WRONG_HANDLE       - if passed handle is not valid
+ *                  BNEP_MTU_EXCEDED        - If the data length is greater than MTU
+ *                  BNEP_IGNORE_CMD         - If the packet is filtered out
+ *                  BNEP_Q_SIZE_EXCEEDED    - If the Tx Q is full
+ *                  BNEP_SUCCESS            - If written successfully
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_WriteBuf (uint16_t handle,
                             uint8_t *p_dest_addr,
                             BT_HDR *p_buf,
@@ -446,27 +446,27 @@ tBNEP_RESULT BNEP_WriteBuf (uint16_t handle,
 
 
 /*******************************************************************************
-**
-** Function         BNEP_Write
-**
-** Description      This function sends data over a BNEP connection
-**
-** Parameters:      handle       - handle of the connection to write
-**                  p_dest_addr  - BD_ADDR/Ethernet addr of the destination
-**                  p_data       - pointer to data start
-**                  protocol     - protocol type of the packet
-**                  p_src_addr   - (optional) BD_ADDR/ethernet address of the source
-**                                 (should be NULL if it is local BD Addr)
-**                  fw_ext_present - forwarded extensions present
-**
-** Returns:         BNEP_WRONG_HANDLE       - if passed handle is not valid
-**                  BNEP_MTU_EXCEDED        - If the data length is greater than MTU
-**                  BNEP_IGNORE_CMD         - If the packet is filtered out
-**                  BNEP_Q_SIZE_EXCEEDED    - If the Tx Q is full
-**                  BNEP_NO_RESOURCES       - If not able to allocate a buffer
-**                  BNEP_SUCCESS            - If written successfully
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_Write
+ *
+ * Description      This function sends data over a BNEP connection
+ *
+ * Parameters:      handle       - handle of the connection to write
+ *                  p_dest_addr  - BD_ADDR/Ethernet addr of the destination
+ *                  p_data       - pointer to data start
+ *                  protocol     - protocol type of the packet
+ *                  p_src_addr   - (optional) BD_ADDR/ethernet address of the source
+ *                                 (should be NULL if it is local BD Addr)
+ *                  fw_ext_present - forwarded extensions present
+ *
+ * Returns:         BNEP_WRONG_HANDLE       - if passed handle is not valid
+ *                  BNEP_MTU_EXCEDED        - If the data length is greater than MTU
+ *                  BNEP_IGNORE_CMD         - If the packet is filtered out
+ *                  BNEP_Q_SIZE_EXCEEDED    - If the Tx Q is full
+ *                  BNEP_NO_RESOURCES       - If not able to allocate a buffer
+ *                  BNEP_SUCCESS            - If written successfully
+ *
+ ******************************************************************************/
 tBNEP_RESULT  BNEP_Write (uint16_t handle,
                           uint8_t *p_dest_addr,
                           uint8_t *p_data,
@@ -557,22 +557,22 @@ tBNEP_RESULT  BNEP_Write (uint16_t handle,
 
 
 /*******************************************************************************
-**
-** Function         BNEP_SetProtocolFilters
-**
-** Description      This function sets the protocol filters on peer device
-**
-** Parameters:      handle        - Handle for the connection
-**                  num_filters   - total number of filter ranges
-**                  p_start_array - Array of beginings of all protocol ranges
-**                  p_end_array   - Array of ends of all protocol ranges
-**
-** Returns          BNEP_WRONG_HANDLE           - if the connection handle is not valid
-**                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong state
-**                  BNEP_TOO_MANY_FILTERS       - if too many filters
-**                  BNEP_SUCCESS                - if request sent successfully
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_SetProtocolFilters
+ *
+ * Description      This function sets the protocol filters on peer device
+ *
+ * Parameters:      handle        - Handle for the connection
+ *                  num_filters   - total number of filter ranges
+ *                  p_start_array - Array of beginings of all protocol ranges
+ *                  p_end_array   - Array of ends of all protocol ranges
+ *
+ * Returns          BNEP_WRONG_HANDLE           - if the connection handle is not valid
+ *                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong state
+ *                  BNEP_TOO_MANY_FILTERS       - if too many filters
+ *                  BNEP_SUCCESS                - if request sent successfully
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_SetProtocolFilters (uint16_t handle,
                                       uint16_t num_filters,
                                       uint16_t *p_start_array,
@@ -614,24 +614,24 @@ tBNEP_RESULT BNEP_SetProtocolFilters (uint16_t handle,
 
 
 /*******************************************************************************
-**
-** Function         BNEP_SetMulticastFilters
-**
-** Description      This function sets the filters for multicast addresses for BNEP.
-**
-** Parameters:      handle        - Handle for the connection
-**                  num_filters   - total number of filter ranges
-**                  p_start_array - Pointer to sequence of beginings of all
-**                                         multicast address ranges
-**                  p_end_array   - Pointer to sequence of ends of all
-**                                         multicast address ranges
-**
-** Returns          BNEP_WRONG_HANDLE           - if the connection handle is not valid
-**                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong state
-**                  BNEP_TOO_MANY_FILTERS       - if too many filters
-**                  BNEP_SUCCESS                - if request sent successfully
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_SetMulticastFilters
+ *
+ * Description      This function sets the filters for multicast addresses for BNEP.
+ *
+ * Parameters:      handle        - Handle for the connection
+ *                  num_filters   - total number of filter ranges
+ *                  p_start_array - Pointer to sequence of beginings of all
+ *                                         multicast address ranges
+ *                  p_end_array   - Pointer to sequence of ends of all
+ *                                         multicast address ranges
+ *
+ * Returns          BNEP_WRONG_HANDLE           - if the connection handle is not valid
+ *                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong state
+ *                  BNEP_TOO_MANY_FILTERS       - if too many filters
+ *                  BNEP_SUCCESS                - if request sent successfully
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_SetMulticastFilters (uint16_t handle,
                                        uint16_t num_filters,
                                        uint8_t *p_start_array,
@@ -675,15 +675,15 @@ tBNEP_RESULT BNEP_SetMulticastFilters (uint16_t handle,
 }
 
 /*******************************************************************************
-**
-** Function         BNEP_SetTraceLevel
-**
-** Description      This function sets the trace level for BNEP. If called with
-**                  a value of 0xFF, it simply reads the current trace level.
-**
-** Returns          the new (current) trace level
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_SetTraceLevel
+ *
+ * Description      This function sets the trace level for BNEP. If called with
+ *                  a value of 0xFF, it simply reads the current trace level.
+ *
+ * Returns          the new (current) trace level
+ *
+ ******************************************************************************/
 uint8_t BNEP_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
@@ -694,17 +694,17 @@ uint8_t BNEP_SetTraceLevel (uint8_t new_level)
 
 
 /*******************************************************************************
-**
-** Function         BNEP_GetStatus
-**
-** Description      This function gets the status information for BNEP connection
-**
-** Returns          BNEP_SUCCESS            - if the status is available
-**                  BNEP_NO_RESOURCES       - if no structure is passed for output
-**                  BNEP_WRONG_HANDLE       - if the handle is invalid
-**                  BNEP_WRONG_STATE        - if not in connected state
-**
-*******************************************************************************/
+ *
+ * Function         BNEP_GetStatus
+ *
+ * Description      This function gets the status information for BNEP connection
+ *
+ * Returns          BNEP_SUCCESS            - if the status is available
+ *                  BNEP_NO_RESOURCES       - if no structure is passed for output
+ *                  BNEP_WRONG_HANDLE       - if the handle is invalid
+ *                  BNEP_WRONG_STATE        - if not in connected state
+ *
+ ******************************************************************************/
 tBNEP_RESULT BNEP_GetStatus (uint16_t handle, tBNEP_STATUS *p_status)
 {
 #if (BNEP_SUPPORTS_STATUS_API == TRUE)

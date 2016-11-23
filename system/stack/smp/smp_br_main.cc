@@ -259,9 +259,9 @@ static const tSMP_BR_ENTRY_TBL smp_br_entry_table[] =
 #define SMP_BR_ALL_TABLE_MASK  0x80
 
 /*******************************************************************************
-** Function     smp_set_br_state
-** Returns      None
-*******************************************************************************/
+ * Function     smp_set_br_state
+ * Returns      None
+ ******************************************************************************/
 void smp_set_br_state(tSMP_BR_STATE br_state)
 {
     if (br_state < SMP_BR_STATE_MAX)
@@ -278,18 +278,18 @@ void smp_set_br_state(tSMP_BR_STATE br_state)
 }
 
 /*******************************************************************************
-** Function     smp_get_br_state
-** Returns      The smp_br state
-*******************************************************************************/
+ * Function     smp_get_br_state
+ * Returns      The smp_br state
+ ******************************************************************************/
 tSMP_BR_STATE smp_get_br_state(void)
 {
     return smp_cb.br_state;
 }
 
 /*******************************************************************************
-** Function     smp_get_br_state_name
-** Returns      The smp_br state name.
-*******************************************************************************/
+ * Function     smp_get_br_state_name
+ * Returns      The smp_br state name.
+ ******************************************************************************/
 const char *smp_get_br_state_name(tSMP_BR_STATE br_state)
 {
     const char *p_str = smp_br_state_name[SMP_BR_STATE_MAX];
@@ -300,9 +300,9 @@ const char *smp_get_br_state_name(tSMP_BR_STATE br_state)
     return p_str;
 }
 /*******************************************************************************
-** Function     smp_get_br_event_name
-** Returns      The smp_br event name.
-*******************************************************************************/
+ * Function     smp_get_br_event_name
+ * Returns      The smp_br event name.
+ ******************************************************************************/
 const char * smp_get_br_event_name(tSMP_BR_EVENT event)
 {
     const char * p_str = smp_br_event_name[SMP_BR_MAX_EVT - 1];
@@ -315,19 +315,19 @@ const char * smp_get_br_event_name(tSMP_BR_EVENT event)
 }
 
 /*******************************************************************************
-**
-** Function     smp_br_state_machine_event
-**
-** Description  Handle events to the state machine. It looks up the entry
-**              in the smp_br_entry_table array.
-**              If it is a valid entry, it gets the state table.Set the next state,
-**              if not NULL state. Execute the action function according to the
-**              state table. If the state returned by action function is not NULL
-**              state, adjust the new state to the returned state.
-**
-** Returns      void.
-**
-*******************************************************************************/
+ *
+ * Function     smp_br_state_machine_event
+ *
+ * Description  Handle events to the state machine. It looks up the entry
+ *              in the smp_br_entry_table array.
+ *              If it is a valid entry, it gets the state table.Set the next state,
+ *              if not NULL state. Execute the action function according to the
+ *              state table. If the state returned by action function is not NULL
+ *              state, adjust the new state to the returned state.
+ *
+ * Returns      void.
+ *
+ ******************************************************************************/
 void smp_br_state_machine_event(tSMP_CB *p_cb, tSMP_BR_EVENT event, void *p_data)
 {
     tSMP_BR_STATE       curr_state = p_cb->br_state;
