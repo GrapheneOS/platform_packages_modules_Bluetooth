@@ -39,8 +39,6 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include <hardware/bt_gatt.h>
 
 #include "bta_api.h"
@@ -561,5 +559,3 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_conn_parameter_update,
     btif_gattc_test_command,
     btif_gattc_get_gatt_db};
-
-#endif

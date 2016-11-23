@@ -33,11 +33,7 @@
 const bt_event_mask_t BLE_EVENT_MASK = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x7f}};
 
-#if (BLE_INCLUDED)
 const bt_event_mask_t CLASSIC_EVENT_MASK = {HCI_DUMO_EVENT_MASK_EXT};
-#else
-const bt_event_mask_t CLASSIC_EVENT_MASK = {HCI_LISBON_EVENT_MASK_EXT};
-#endif
 
 // TODO(zachoverflow): factor out into common module
 const uint8_t SCO_HOST_BUFFER_SIZE = 0xff;
@@ -140,7 +136,6 @@ static future_t* start_up(void) {
     packet_parser->parse_generic_command_complete(response);
   }
 
-#if (BLE_INCLUDED == TRUE)
   if (HCI_LE_SPT_SUPPORTED(features_classic[0].as_array)) {
     uint8_t simultaneous_le_host =
         HCI_SIMUL_LE_BREDR_SUPPORTED(features_classic[0].as_array)
@@ -155,7 +150,6 @@ static future_t* start_up(void) {
     if (last_features_classic_page_index < 1)
       last_features_classic_page_index = 1;
   }
-#endif
 
   // Done telling the controller about what page 0 features we support
   // Request the remaining feature pages
@@ -181,7 +175,6 @@ static future_t* start_up(void) {
   }
 #endif
 
-#if (BLE_INCLUDED == TRUE)
   ble_supported = last_features_classic_page_index >= 1 &&
                   HCI_LE_HOST_SUPPORTED(features_classic[1].as_array);
   if (ble_supported) {
@@ -228,7 +221,6 @@ static future_t* start_up(void) {
         AWAIT_COMMAND(packet_factory->make_ble_set_event_mask(&BLE_EVENT_MASK));
     packet_parser->parse_generic_command_complete(response);
   }
-#endif
 
   if (simple_pairing_supported) {
     response =

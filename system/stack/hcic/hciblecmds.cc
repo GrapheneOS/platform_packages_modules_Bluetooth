@@ -33,8 +33,6 @@
 #include <stddef.h>
 #include <string.h>
 
-#if (BLE_INCLUDED == TRUE)
-
 void btsnd_hcic_ble_set_local_used_feat (uint8_t feat_set[8])
 {
     BT_HDR *p = (BT_HDR *)osi_malloc(HCI_CMD_BUF_SIZE);
@@ -728,6 +726,3 @@ void btsnd_hcic_ble_set_data_length(uint16_t conn_handle, uint16_t tx_octets, ui
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
-
-#endif
-

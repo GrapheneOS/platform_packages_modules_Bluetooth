@@ -18,7 +18,7 @@
 
 #include "bta_api.h"
 
-#if (BLE_INCLUDED == TRUE) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include <stdlib.h>
 #include <string.h>
@@ -147,4 +147,4 @@ bool bta_gatts_co_load_handle_range(UNUSED_ATTR uint8_t index,
   return false;
 }
 
-#endif  // BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#endif  // BTA_GATT_INCLUDED == TRUE

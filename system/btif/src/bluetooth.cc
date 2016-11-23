@@ -94,10 +94,8 @@ extern bthl_interface_t* btif_hl_get_interface();
 extern btpan_interface_t* btif_pan_get_interface();
 /*map client*/
 extern btmce_interface_t* btif_mce_get_interface();
-#if (BLE_INCLUDED == TRUE)
 /* gatt */
 extern const btgatt_interface_t* btif_gatt_get_interface();
-#endif
 /* avrc target */
 extern btrc_interface_t* btif_rc_get_interface();
 /* avrc controller */
@@ -348,7 +346,7 @@ static const void* get_profile_interface(const char* profile_id) {
   if (is_profile(profile_id, BT_PROFILE_SDP_CLIENT_ID))
     return btif_sdp_get_interface();
 
-#if (BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   if (is_profile(profile_id, BT_PROFILE_GATT_ID))
     return btif_gatt_get_interface();
 #endif
@@ -380,7 +378,6 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len) {
   return btif_dut_mode_send(opcode, buf, len);
 }
 
-#if (BLE_INCLUDED == TRUE)
 int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len) {
   LOG_INFO(LOG_TAG, "le_test_mode");
 
@@ -389,7 +386,6 @@ int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len) {
 
   return btif_le_test_mode(opcode, buf, len);
 }
-#endif
 
 int config_hci_snoop_log(uint8_t enable) {
   LOG_INFO(LOG_TAG, "config_hci_snoop_log");
@@ -436,11 +432,7 @@ static const bt_interface_t bluetoothInterface = {
     get_profile_interface,
     dut_mode_configure,
     dut_mode_send,
-#if (BLE_INCLUDED == TRUE)
     le_test_mode,
-#else
-    NULL,
-#endif
     config_hci_snoop_log,
     set_os_callouts,
     read_energy_info,

@@ -25,7 +25,6 @@
 #include "bta_sys.h"
 #include "btif_dm.h"
 #include "osi/include/osi.h"
-#if (BLE_INCLUDED == TRUE)
 #include "bte_appl.h"
 
 tBTE_APPL_CFG bte_appl_cfg = {
@@ -36,7 +35,6 @@ tBTE_APPL_CFG bte_appl_cfg = {
 #endif
     BTM_LOCAL_IO_CAPS_BLE, BTM_BLE_INITIATOR_KEY_SIZE,
     BTM_BLE_RESPONDER_KEY_SIZE, BTM_BLE_MAX_KEY_SIZE};
-#endif
 
 /*******************************************************************************
  *
@@ -306,7 +304,6 @@ void bta_dm_sco_co_out_data(BT_HDR** p_buf) { btui_sco_codec_readbuf(p_buf); }
 
 #endif /* (BTM_SCO_HCI_INCLUDED == TRUE) && (BTM_SCO_INCLUDED == TRUE)*/
 
-#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
  *
  * Function         bta_dm_co_le_io_key_req
@@ -416,4 +413,3 @@ void bta_dm_co_ble_io_req(UNUSED_ATTR BD_ADDR bd_addr, tBTA_IO_CAP* p_io_cap,
     *p_max_key_size = bte_appl_cfg.ble_max_key_size;
 }
 
-#endif

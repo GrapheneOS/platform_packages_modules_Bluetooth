@@ -38,7 +38,7 @@
 
 const char* dev_path = "/dev/uhid";
 
-#if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
 #include "btif_config.h"
 #define BTA_HH_NV_LOAD_MAX 16
 static tBTA_HH_RPT_CACHE_ENTRY sReportCache[BTA_HH_NV_LOAD_MAX];
@@ -503,7 +503,7 @@ void bta_hh_co_send_hid_info(btif_hh_device_t* p_dev, const char* dev_name,
   }
 }
 
-#if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
 /*******************************************************************************
  *
  * Function         bta_hh_le_co_rpt_info
@@ -606,4 +606,4 @@ void bta_hh_le_co_reset_rpt_cache(BD_ADDR remote_bda,
   BTIF_TRACE_DEBUG("%s() - Reset cache for bda %s", __func__, bdstr);
 }
 
-#endif  // (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE)
+#endif  // (BTA_HH_LE_INCLUDED == TRUE)

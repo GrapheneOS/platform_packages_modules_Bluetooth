@@ -1163,7 +1163,6 @@ extern bool    L2CA_GetCurrentConfig (uint16_t lcid,
 *******************************************************************************/
 extern bool    L2CA_GetConnectionConfig(uint16_t lcid, uint16_t *mtu, uint16_t *rcid, uint16_t *handle);
 
-#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 **  Function        L2CA_CancelBleConnectReq
@@ -1229,8 +1228,6 @@ extern uint8_t L2CA_GetBleConnRole (BD_ADDR bd_addr);
 **
 *******************************************************************************/
 extern uint16_t L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport);
-
-#endif /* (BLE_INCLUDED == TRUE) */
 
 #ifdef __cplusplus
 }
