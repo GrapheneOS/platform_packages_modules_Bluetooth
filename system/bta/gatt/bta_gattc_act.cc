@@ -42,7 +42,7 @@
 #include "bta_hh_int.h"
 #endif
 
-#if (BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 /*****************************************************************************
  *  Constants
@@ -760,9 +760,7 @@ void bta_gattc_disc_close(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
 void bta_gattc_set_discover_st(tBTA_GATTC_SERV* p_srcb) {
   uint8_t i;
 
-#if (BLE_INCLUDED == TRUE)
   L2CA_EnableUpdateBleConnParams(p_srcb->server_bda, false);
-#endif
   for (i = 0; i < BTA_GATTC_CLCB_MAX; i++) {
     if (bta_gattc_cb.clcb[i].p_srcb == p_srcb) {
       bta_gattc_cb.clcb[i].status = BTA_GATT_OK;
@@ -884,10 +882,8 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB* p_clcb,
 
   APPL_TRACE_DEBUG("bta_gattc_disc_cmpl conn_id=%d", p_clcb->bta_conn_id);
 
-#if (BLE_INCLUDED == TRUE)
   if (p_clcb->transport == BTA_TRANSPORT_LE)
     L2CA_EnableUpdateBleConnParams(p_clcb->p_srcb->server_bda, true);
-#endif
   p_clcb->p_srcb->state = BTA_GATTC_SERV_IDLE;
   p_clcb->disc_active = false;
 
@@ -1708,4 +1704,4 @@ static void bta_gattc_cong_cback(uint16_t conn_id, bool congested) {
     }
   }
 }
-#endif  // BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == TRUE
+#endif  // BTA_GATT_INCLUDED == TRUE

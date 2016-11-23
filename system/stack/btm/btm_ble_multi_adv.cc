@@ -27,7 +27,6 @@
 #include "device/include/controller.h"
 #include "osi/include/alarm.h"
 
-#if (BLE_INCLUDED == TRUE)
 #include "ble_advertiser.h"
 #include "ble_advertiser_hci_interface.h"
 #include "btm_int_types.h"
@@ -488,5 +487,3 @@ void btm_ble_multi_adv_cleanup(void) {
   BleAdvertisingManager::CleanUp();
   BleAdvertiserHciInterface::CleanUp();
 }
-
-#endif

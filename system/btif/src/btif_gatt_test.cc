@@ -29,8 +29,6 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include "bta_gatt_api.h"
 #include "bte_appl.h"
 #include "btif_dm.h"
@@ -289,5 +287,3 @@ bt_status_t btif_gattc_test_command_impl(int command,
   }
   return (bt_status_t)0;
 }
-
-#endif

@@ -32,8 +32,6 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include <hardware/bt_gatt.h>
 
 #include "bta_api.h"
@@ -664,5 +662,3 @@ const btgatt_scanner_interface_t btgattScannerInterface = {
     btif_gattc_dis_batch_scan,
     btif_gattc_read_batch_scan_reports,
 };
-
-#endif

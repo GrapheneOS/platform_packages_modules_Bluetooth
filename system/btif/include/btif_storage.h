@@ -207,7 +207,6 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t* remote_bd_addr);
  ******************************************************************************/
 bool btif_storage_is_restricted_device(const bt_bdaddr_t* remote_bd_addr);
 
-#if (BLE_INCLUDED == TRUE)
 bt_status_t btif_storage_add_ble_bonding_key(bt_bdaddr_t* remote_bd_addr,
                                              char* key, uint8_t key_type,
                                              uint8_t key_length);
@@ -228,7 +227,6 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t* remote_bd_addr,
 bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t* remote_bd_addr,
                                               uint8_t addr_type);
 
-#endif
 /******************************************************************************
  * Exported for unit tests
  *****************************************************************************/

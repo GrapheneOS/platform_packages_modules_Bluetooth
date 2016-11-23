@@ -25,8 +25,6 @@
 #include "btcore/include/uuid.h"
 #include "osi/include/osi.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #define BA_MAX_CHAR_NUM          1
 #define BA_MAX_ATTR_NUM          (BA_MAX_CHAR_NUM * 5 + 1) /* max 3 descriptors, 1 desclration and 1 value */
 
@@ -396,4 +394,3 @@ bool    Battery_ReadBatteryLevel(UNUSED_ATTR BD_ADDR peer_bda)
     /* to be implemented */
     return true;
 }
-#endif  /* BLE_INCLUDED */

@@ -115,15 +115,9 @@ tBTA_DM_CFG* p_bta_dm_cfg = (tBTA_DM_CFG*)&bta_dm_cfg;
 
 tBTA_DM_RM* p_bta_dm_rm_cfg = (tBTA_DM_RM*)&bta_dm_rm_cfg;
 
-#if (BLE_INCLUDED == TRUE)
 #define BTA_DM_NUM_PM_ENTRY \
   23 /* number of entries in bta_dm_pm_cfg except the first */
 #define BTA_DM_NUM_PM_SPEC 15 /* number of entries in bta_dm_pm_spec */
-#else
-#define BTA_DM_NUM_PM_ENTRY \
-  21 /* number of entries in bta_dm_pm_cfg except the first */
-#define BTA_DM_NUM_PM_SPEC 13 /* number of entries in bta_dm_pm_spec */
-#endif
 
 tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG
     bta_dm_pm_cfg[BTA_DM_NUM_PM_ENTRY + 1] = {
@@ -151,13 +145,9 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG
         {BTA_ID_HL, BTA_ALL_APP_ID, 8},    /* reuse fts spec table */
         {BTA_ID_PAN, BTUI_PAN_ID_PANU, 9}, /* PANU spec table */
         {BTA_ID_PAN, BTUI_PAN_ID_NAP, 10}, /* NAP spec table */
-        {BTA_ID_HS, BTA_ALL_APP_ID, 11}    /* HS spec table */
-#if (BLE_INCLUDED == TRUE)
-        ,
-        {BTA_ID_GATTC, BTA_ALL_APP_ID, 13} /* gattc spec table */
-        ,
+        {BTA_ID_HS, BTA_ALL_APP_ID, 11},   /* HS spec table */
+        {BTA_ID_GATTC, BTA_ALL_APP_ID, 13}, /* gattc spec table */
         {BTA_ID_GATTS, BTA_ALL_APP_ID, 14} /* gatts spec table */
-#endif
 };
 
 tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC bta_dm_pm_spec[BTA_DM_NUM_PM_SPEC] = {
@@ -427,7 +417,6 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC bta_dm_pm_spec[BTA_DM_NUM_PM_SPEC] = {
           {BTA_DM_PM_NO_ACTION, 0}} /* mode change retry */
      }}
 
-#if (BLE_INCLUDED == TRUE)
     /* GATTC : 13 */
     ,
     {(BTA_DM_PM_SNIFF | BTA_DM_PM_PARK), /* allow park & sniff */
@@ -473,8 +462,6 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC bta_dm_pm_spec[BTA_DM_NUM_PM_SPEC] = {
          {{BTA_DM_PM_RETRY, 5000},
           {BTA_DM_PM_NO_ACTION, 0}} /* mode change retry */
      }}
-
-#endif
 
 #ifdef BTE_SIM_APP /* For Insight builds only */
     /* Entries at the end of the pm_spec table are user-defined (runtime

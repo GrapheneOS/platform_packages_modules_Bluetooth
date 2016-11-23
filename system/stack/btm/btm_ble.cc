@@ -27,8 +27,6 @@
 
 #include "bt_target.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include <string.h>
 
 #include "bt_types.h"
@@ -291,7 +289,6 @@ void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr, tBLE_A
 *******************************************************************************/
 bool    BTM_IsBleConnection (uint16_t conn_handle)
 {
-#if (BLE_INCLUDED == TRUE)
     uint8_t              xx;
     tACL_CONN            *p;
 
@@ -304,9 +301,6 @@ bool    BTM_IsBleConnection (uint16_t conn_handle)
     p = &btm_cb.acl_db[xx];
 
     return (p->transport == BT_TRANSPORT_LE);
-#else
-    return false;
-#endif
 }
 
 /*******************************************************************************
@@ -2276,15 +2270,13 @@ bool    BTM_BleVerifySignature (BD_ADDR bd_addr, uint8_t *p_orig, uint16_t len, 
 *******************************************************************************/
 bool    BTM_GetLeSecurityState (BD_ADDR bd_addr, uint8_t *p_le_dev_sec_flags, uint8_t *p_le_key_size)
 {
-#if (BLE_INCLUDED == TRUE)
     tBTM_SEC_DEV_REC *p_dev_rec;
     uint16_t dev_rec_sec_flags;
-#endif
 
     *p_le_dev_sec_flags = 0;
     *p_le_key_size = 0;
 
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
     if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
     {
         BTM_TRACE_ERROR ("%s fails", __func__);
@@ -2339,7 +2331,6 @@ bool    BTM_GetLeSecurityState (BD_ADDR bd_addr, uint8_t *p_le_dev_sec_flags, ui
 *******************************************************************************/
 bool    BTM_BleSecurityProcedureIsRunning(BD_ADDR bd_addr)
 {
-#if (BLE_INCLUDED == TRUE)
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bd_addr);
 
     if (p_dev_rec == NULL)
@@ -2352,9 +2343,6 @@ bool    BTM_BleSecurityProcedureIsRunning(BD_ADDR bd_addr)
 
     return (p_dev_rec->sec_state == BTM_SEC_STATE_ENCRYPTING ||
             p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING);
-#else
-    return false;
-#endif
 }
 
 /*******************************************************************************
@@ -2370,7 +2358,7 @@ bool    BTM_BleSecurityProcedureIsRunning(BD_ADDR bd_addr)
 *******************************************************************************/
 extern uint8_t BTM_BleGetSupportedKeySize (BD_ADDR bd_addr)
 {
-#if (BLE_INCLUDED == TRUE && L2CAP_LE_COC_INCLUDED == TRUE)
+#if (L2CAP_LE_COC_INCLUDED == TRUE)
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (bd_addr);
     tBTM_LE_IO_REQ dev_io_cfg;
     uint8_t callback_rc;
@@ -2751,5 +2739,3 @@ void btm_ble_set_keep_rfu_in_auth_req(bool    keep_rfu)
 }
 
 #endif /* BTM_BLE_CONFORMANCE_TESTING */
-
-#endif /* BLE_INCLUDED */

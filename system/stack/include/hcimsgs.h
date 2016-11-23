@@ -638,7 +638,6 @@ extern void btsnd_hcic_vendor_spec_cmd (void *buffer, uint16_t opcode,
                                         uint8_t len, uint8_t *p_data,
                                         void *p_cmd_cplt_cback);
 
-#if (BLE_INCLUDED == TRUE)
 /********************************************************************************
 ** BLE Commands
 **      Note: "local_controller_id" is for transport, not counted in HCI message size
@@ -799,8 +798,6 @@ extern void btsnd_hcic_ble_read_resolvable_addr_local (uint8_t addr_type_peer,
 extern void btsnd_hcic_ble_set_addr_resolution_enable (uint8_t addr_resolution_enable);
 
 extern void btsnd_hcic_ble_set_rand_priv_addr_timeout (uint16_t rpa_timout);
-
-#endif /* BLE_INCLUDED */
 
 extern void btsnd_hcic_read_authenticated_payload_tout(uint16_t handle);
 

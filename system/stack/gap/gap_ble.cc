@@ -17,8 +17,6 @@
  ******************************************************************************/
 #include "bt_target.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include "bt_utils.h"
 #include <string.h>
 #include "gap_int.h"
@@ -786,10 +784,4 @@ bool    GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
 
     return(true);
 }
-
-#endif  /* BLE_INCLUDED */
-
-
-
-
 
