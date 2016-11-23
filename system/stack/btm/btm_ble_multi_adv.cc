@@ -173,7 +173,7 @@ class BleAdvertisingManagerImpl
     }
 
     LOG(INFO) << "no free advertiser instance";
-    cb.Run(0xFF, BTM_BLE_MULTI_ADV_FAILURE);
+    cb.Run(0xFF, ADVERTISE_FAILED_TOO_MANY_ADVERTISERS);
   }
 
   void StartAdvertising(uint8_t advertiser_id, MultiAdvCb cb,

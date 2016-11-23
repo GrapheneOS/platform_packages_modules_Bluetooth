@@ -155,7 +155,7 @@ TEST_F(BleAdvertisingManagerTest, test_registration) {
   // This call should return an error - no more advertisers left.
   BleAdvertisingManager::Get()->RegisterAdvertiser(base::Bind(
       &BleAdvertisingManagerTest::RegistrationCb, base::Unretained(this)));
-  EXPECT_EQ(BTM_BLE_MULTI_ADV_FAILURE, reg_status);
+  EXPECT_EQ(ADVERTISE_FAILED_TOO_MANY_ADVERTISERS, reg_status);
   // Don't bother checking inst_id, it doesn't matter
 
   // This will currently trigger a mock message about a call to Enable(). This
