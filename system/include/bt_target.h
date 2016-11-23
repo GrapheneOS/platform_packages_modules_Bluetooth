@@ -775,10 +775,6 @@
  * SMP
  *
  *****************************************************************************/
-#ifndef SMP_INCLUDED
-#define SMP_INCLUDED TRUE
-#endif
-
 #ifndef SMP_DEBUG
 #define SMP_DEBUG FALSE
 #endif

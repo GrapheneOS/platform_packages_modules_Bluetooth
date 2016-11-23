@@ -26,8 +26,6 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-#if (SMP_INCLUDED == TRUE)
-
 #define SMP_KEY_DIST_TYPE_MAX       4
 const tSMP_ACT smp_distribute_act [] =
 {
@@ -2187,5 +2185,3 @@ void smp_br_pairing_complete(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         smp_proc_pairing_cmpl(p_cb);
     }
 }
-
-#endif
