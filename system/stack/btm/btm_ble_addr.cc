@@ -90,7 +90,6 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 *******************************************************************************/
 void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
 {
-#if (SMP_INCLUDED == TRUE)
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tSMP_ENC    output;
 
@@ -114,7 +113,6 @@ void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
             btm_gen_resolve_paddr_cmpl(&output);
         }
     }
-#endif
 }
 /*******************************************************************************
 **
@@ -195,7 +193,6 @@ void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
     btsnd_hcic_ble_rand((void *)btm_gen_non_resolve_paddr_cmpl);
 }
 
-#if (SMP_INCLUDED == TRUE)
 /*******************************************************************************
 **  Utility functions for Random address resolving
 *******************************************************************************/
@@ -311,7 +308,6 @@ bool    btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
 *******************************************************************************/
 static bool    btm_ble_match_random_bda(void *data, void *context)
 {
-#if (SMP_INCLUDED == TRUE)
     /* use the 3 MSB of bd address as prand */
 
     tBTM_LE_RANDOM_CB *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -337,7 +333,6 @@ static bool    btm_ble_match_random_bda(void *data, void *context)
                 &rand[0], 3, &output);
     // if it was match, finish iteration, otherwise continue
     return !btm_ble_proc_resolve_x(&output);
-#endif
 }
 
 /*******************************************************************************
@@ -375,7 +370,6 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
         (*p_cback)(NULL, p);
     }
 }
-#endif
 
 /*******************************************************************************
 **  address mapping between pseudo address and real connection address

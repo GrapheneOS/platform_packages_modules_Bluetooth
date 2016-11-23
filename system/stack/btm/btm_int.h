@@ -35,13 +35,9 @@
 #include "osi/include/fixed_queue.h"
 
 #include "btm_api.h"
-
 #include "btm_ble_int.h"
-#if (SMP_INCLUDED == TRUE)
-#include "smp_api.h"
-#endif
-
 #include "btm_int_types.h"
+#include "smp_api.h"
 
 #ifdef __cplusplus
 extern "C" {

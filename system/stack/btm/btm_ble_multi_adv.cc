@@ -105,7 +105,6 @@ class BleAdvertisingManagerImpl
   }
 
   void OnRpaGenerationComplete(uint8_t inst_id, tBTM_RAND_ENC *p) {
-#if (SMP_INCLUDED == TRUE)
     LOG(INFO) << "inst_id = " << +inst_id;
 
     AdvertisingInstance *p_inst = &adv_inst[inst_id];
@@ -133,7 +132,6 @@ class BleAdvertisingManagerImpl
     /* set it to controller */
     GetHciInterface()->SetRandomAddress(p_inst->rpa, p_inst->inst_id,
                                         Bind(DoNothing));
-#endif
   }
 
   void ConfigureRpa(uint8_t inst_id) {
