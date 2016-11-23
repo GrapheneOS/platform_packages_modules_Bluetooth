@@ -573,6 +573,12 @@ static void btif_a2dp_sink_set_focus_state_event(
   if (!btif_av_is_connected()) return;
   APPL_TRACE_DEBUG("%s: setting focus state to %d", __func__, state);
   btif_a2dp_sink_cb.rx_focus_state = state;
+  if (btif_a2dp_sink_cb.rx_focus_state == BTIF_A2DP_SINK_FOCUS_NOT_GRANTED) {
+    fixed_queue_flush(btif_a2dp_sink_cb.rx_audio_queue, osi_free);
+    btif_a2dp_sink_cb.rx_flush = true;
+  } else if (btif_a2dp_sink_cb.rx_focus_state == BTIF_A2DP_SINK_FOCUS_GRANTED) {
+    btif_a2dp_sink_cb.rx_flush = false;
+  }
 }
 
 void btif_a2dp_sink_set_audio_track_gain(float gain) {
