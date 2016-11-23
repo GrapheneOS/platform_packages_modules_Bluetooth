@@ -1190,8 +1190,6 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "onAdvertiserStarted() - advertiserId=" + advertiserId +
             ", status=" + status);
 
-        mAdvertiseManager.callbackDone(advertiserId, status);
-
         AdvertiserMap.App app = mAdvertiserMap.getById(advertiserId);
         if (app != null) {
             if (status == 0) {
@@ -1209,9 +1207,6 @@ public class GattService extends ProfileService {
                                     boolean enable) throws RemoteException {
         if (DBG) Log.d(TAG, "onAdvertiseInstanceEnabled() - "
                 + "advertiserId=" + advertiserId + ", status=" + status + ", enable=" + enable);
-
-        if (enable)
-            mAdvertiseManager.callbackDone(advertiserId, status);
 
         AdvertiserMap.App app = mAdvertiserMap.getById(advertiserId);
         if (app != null) {
