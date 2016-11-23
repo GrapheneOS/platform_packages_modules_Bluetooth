@@ -732,17 +732,16 @@ void handle_rc_disconnect(tBTA_AV_RC_CLOSE* p_rc_close) {
  *
  ***************************************************************************/
 void handle_rc_passthrough_cmd(tBTA_AV_REMOTE_CMD* p_remote_cmd) {
-  btif_rc_device_cb_t* p_dev =
-      btif_rc_get_device_by_handle(p_remote_cmd->rc_handle);
-
-  if (p_dev == NULL) {
-    BTIF_TRACE_ERROR("%s: Got passthrough command from invalid rc handle",
-                     __func__);
+  if (p_remote_cmd == NULL) {
+    BTIF_TRACE_ERROR("%s: No remote command!", __func__);
     return;
   }
 
-  if (p_remote_cmd == NULL) {
-    BTIF_TRACE_ERROR("%s: No remote command!", __func__);
+  btif_rc_device_cb_t* p_dev =
+      btif_rc_get_device_by_handle(p_remote_cmd->rc_handle);
+  if (p_dev == NULL) {
+    BTIF_TRACE_ERROR("%s: Got passthrough command from invalid rc handle",
+                     __func__);
     return;
   }
 
