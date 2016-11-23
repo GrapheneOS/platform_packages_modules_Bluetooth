@@ -395,11 +395,9 @@ bool    l2c_link_hci_disc_comp (uint16_t handle, uint8_t reason)
         /* Just in case app decides to try again in the callback context */
         p_lcb->link_state = LST_DISCONNECTING;
 
-#if (BLE_INCLUDED == TRUE)
         /* Check for BLE and handle that differently */
         if (p_lcb->transport == BT_TRANSPORT_LE)
             btm_ble_update_link_topology_mask(p_lcb->link_role, false);
-#endif
         /* Link is disconnected. For all channels, send the event through */
         /* their FSMs. The CCBs should remove themselves from the LCB     */
         for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; )
@@ -420,9 +418,7 @@ bool    l2c_link_hci_disc_comp (uint16_t handle, uint8_t reason)
         }
 
 #if (BTM_SCO_INCLUDED == TRUE)
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
-#endif
             /* Tell SCO management to drop any SCOs on this ACL */
             btm_sco_acl_removed (p_lcb->remote_bd_addr);
 #endif
@@ -435,7 +431,6 @@ bool    l2c_link_hci_disc_comp (uint16_t handle, uint8_t reason)
         {
             L2CAP_TRACE_DEBUG("l2c_link_hci_disc_comp: Restarting pending ACL request");
             transport = p_lcb->transport;
-#if (BLE_INCLUDED == TRUE)
             /* for LE link, always drop and re-open to ensure to get LE remote feature */
             if (p_lcb->transport == BT_TRANSPORT_LE)
             {
@@ -451,7 +446,6 @@ bool    l2c_link_hci_disc_comp (uint16_t handle, uint8_t reason)
                 }
             }
             else
-#endif
        {
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
           /* If we are going to re-use the LCB without dropping it, release all fixed channels
@@ -461,13 +455,8 @@ bool    l2c_link_hci_disc_comp (uint16_t handle, uint8_t reason)
           {
               if (p_lcb->p_fixed_ccbs[xx] && p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb)
               {
-#if (BLE_INCLUDED == TRUE)
                   (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
                           p_lcb->remote_bd_addr, false, p_lcb->disc_reason, p_lcb->transport);
-#else
-                  (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
-                          p_lcb->remote_bd_addr, false, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
-#endif
                     if (p_lcb->p_fixed_ccbs[xx] == NULL) {
                       bdstr_t bd_addr_str = {0};
                       L2CAP_TRACE_ERROR("%s: unexpected p_fixed_ccbs[%d] is NULL remote_bd_addr = %s p_lcb = %p in_use = %d link_state = %d handle = %d link_role = %d is_bonding = %d disc_reason = %d transport = %d",
@@ -579,13 +568,11 @@ void l2c_link_timeout (tL2C_LCB *p_lcb)
 
             p_ccb = pn;
         }
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->link_state == LST_CONNECTING &&
             l2cb.is_ble_connecting == true)
         {
             L2CA_CancelBleConnectReq(l2cb.ble_connecting_bda);
         }
-#endif
         /* Release the LCB */
         l2cu_release_lcb (p_lcb);
     }
@@ -1081,11 +1068,9 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
         if (p_lcb->link_xmit_quota == 0)
         {
-#if (BLE_INCLUDED == TRUE)
             if (p_lcb->transport == BT_TRANSPORT_LE)
                 l2cb.ble_check_round_robin = true;
             else
-#endif
                 l2cb.check_round_robin = true;
         }
     }
@@ -1112,15 +1097,11 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
             /* If controller window is full, nothing to do */
             if (((l2cb.controller_xmit_window == 0 ||
                   (l2cb.round_robin_unacked >= l2cb.round_robin_quota))
-#if (BLE_INCLUDED == TRUE)
                 && (p_lcb->transport == BT_TRANSPORT_BR_EDR)
                 )
               || (p_lcb->transport == BT_TRANSPORT_LE &&
                  (l2cb.ble_round_robin_unacked >= l2cb.ble_round_robin_quota ||
                   l2cb.controller_le_xmit_window == 0 )))
-#else
-                ))
-#endif
             break;
 
 
@@ -1154,20 +1135,15 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         }
 
         /* If we finished without using up our quota, no need for a safety check */
-        if ( (l2cb.controller_xmit_window > 0)
-          && (l2cb.round_robin_unacked < l2cb.round_robin_quota)
-#if (BLE_INCLUDED == TRUE)
-          && (p_lcb->transport == BT_TRANSPORT_BR_EDR)
-#endif
-          )
+        if ((l2cb.controller_xmit_window > 0) &&
+            (l2cb.round_robin_unacked < l2cb.round_robin_quota) &&
+            (p_lcb->transport == BT_TRANSPORT_BR_EDR))
             l2cb.check_round_robin = false;
 
-#if (BLE_INCLUDED == TRUE)
-        if ( (l2cb.controller_le_xmit_window > 0)
-          && (l2cb.ble_round_robin_unacked < l2cb.ble_round_robin_quota)
-          && (p_lcb->transport == BT_TRANSPORT_LE))
+        if ((l2cb.controller_le_xmit_window > 0) &&
+            (l2cb.ble_round_robin_unacked < l2cb.ble_round_robin_quota) &&
+            (p_lcb->transport == BT_TRANSPORT_LE))
             l2cb.ble_check_round_robin = false;
-#endif
     }
     else /* if this is not round-robin service */
     {
@@ -1178,14 +1154,9 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
             return;
 
         /* See if we can send anything from the link queue */
-#if (BLE_INCLUDED == TRUE)
         while ( ((l2cb.controller_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_BR_EDR)) ||
                  (l2cb.controller_le_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_LE)))
              && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
-#else
-        while ( (l2cb.controller_xmit_window != 0)
-             && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
-#endif
         {
             if (list_is_empty(p_lcb->link_xmit_data_q))
                 break;
@@ -1199,13 +1170,9 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         if (!single_write)
         {
             /* See if we can send anything for any channel */
-#if (BLE_INCLUDED == TRUE)
             while ( ((l2cb.controller_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_BR_EDR)) ||
                     (l2cb.controller_le_xmit_window != 0 && (p_lcb->transport == BT_TRANSPORT_LE)))
                     && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
-#else
-            while ((l2cb.controller_xmit_window != 0) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
-#endif
             {
                 if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb)) == NULL)
                     break;
@@ -1243,34 +1210,25 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
     const controller_t *controller = controller_get_interface();
 
     if ((p_buf->len <= controller->get_acl_packet_size_classic()
-#if (BLE_INCLUDED == TRUE)
         && (p_lcb->transport == BT_TRANSPORT_BR_EDR)) ||
-        ((p_lcb->transport == BT_TRANSPORT_LE) && (p_buf->len <= controller->get_acl_packet_size_ble()))
-#else
-        )
-#endif
-        )
+        ((p_lcb->transport == BT_TRANSPORT_LE) && (p_buf->len <= controller->get_acl_packet_size_ble())))
     {
         if (p_lcb->link_xmit_quota == 0)
         {
-#if (BLE_INCLUDED == TRUE)
             if (p_lcb->transport == BT_TRANSPORT_LE)
                 l2cb.ble_round_robin_unacked++;
             else
-#endif
                 l2cb.round_robin_unacked++;
         }
         p_lcb->sent_not_acked++;
         p_buf->layer_specific = 0;
 
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             l2cb.controller_le_xmit_window--;
             bte_main_hci_send(p_buf, (uint16_t)(BT_EVT_TO_LM_HCI_ACL|LOCAL_BLE_CONTROLLER_ID));
         }
         else
-#endif
         {
             l2cb.controller_xmit_window--;
             bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
@@ -1278,7 +1236,6 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
     }
     else
     {
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             acl_data_size = controller->get_acl_data_size_ble();
@@ -1286,7 +1243,6 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
 
         }
         else
-#endif
         {
             acl_data_size = controller->get_acl_data_size_classic();
             xmit_window = l2cb.controller_xmit_window;
@@ -1317,7 +1273,6 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
         }
 
         p_buf->layer_specific        = num_segs;
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             l2cb.controller_le_xmit_window -= num_segs;
@@ -1325,7 +1280,6 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
                 l2cb.ble_round_robin_unacked += num_segs;
         }
         else
-#endif
         {
             l2cb.controller_xmit_window -= num_segs;
 
@@ -1334,20 +1288,17 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
         }
 
         p_lcb->sent_not_acked += num_segs;
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             bte_main_hci_send(p_buf, (uint16_t)(BT_EVT_TO_LM_HCI_ACL|LOCAL_BLE_CONTROLLER_ID));
         }
         else
-#endif
         {
             bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
         }
     }
 
 #if (L2CAP_HCI_FLOW_CONTROL_DEBUG == TRUE)
-#if (BLE_INCLUDED == TRUE)
     if (p_lcb->transport == BT_TRANSPORT_LE)
     {
         L2CAP_TRACE_DEBUG ("TotalWin=%d,Hndl=0x%x,Quota=%d,Unack=%d,RRQuota=%d,RRUnack=%d",
@@ -1357,7 +1308,6 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
                 l2cb.ble_round_robin_quota, l2cb.ble_round_robin_unacked);
     }
     else
-#endif
     {
         L2CAP_TRACE_DEBUG ("TotalWin=%d,Hndl=0x%x,Quota=%d,Unack=%d,RRQuota=%d,RRUnack=%d",
                 l2cb.controller_xmit_window,
@@ -1407,11 +1357,9 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
 
         if (p_lcb)
         {
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb && (p_lcb->transport == BT_TRANSPORT_LE))
             l2cb.controller_le_xmit_window += num_sent;
         else
-#endif
             {
                 /* Maintain the total window to the controller */
                 l2cb.controller_xmit_window += num_sent;
@@ -1419,7 +1367,6 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
             /* If doing round-robin, adjust communal counts */
             if (p_lcb->link_xmit_quota == 0)
             {
-#if (BLE_INCLUDED == TRUE)
                 if (p_lcb->transport == BT_TRANSPORT_LE)
                 {
                    /* Don't go negative */
@@ -1429,7 +1376,6 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
                         l2cb.ble_round_robin_unacked = 0;
                 }
                 else
-#endif
                 {
                     /* Don't go negative */
                     if (l2cb.round_robin_unacked > num_sent)
@@ -1454,7 +1400,6 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
             {
               l2c_link_check_send_pkts (NULL, NULL, NULL);
             }
-#if (BLE_INCLUDED == TRUE)
             if ((p_lcb->transport == BT_TRANSPORT_LE)
                 && (p_lcb->acl_priority == L2CAP_PRIORITY_HIGH)
                 && ((l2cb.ble_check_round_robin)
@@ -1462,13 +1407,11 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
             {
               l2c_link_check_send_pkts (NULL, NULL, NULL);
             }
-#endif
         }
 
 #if (L2CAP_HCI_FLOW_CONTROL_DEBUG == TRUE)
         if (p_lcb)
         {
-#if (BLE_INCLUDED == TRUE)
             if (p_lcb->transport == BT_TRANSPORT_LE)
             {
                 L2CAP_TRACE_DEBUG ("TotalWin=%d,LinkUnack(0x%x)=%d,RRCheck=%d,RRUnack=%d",
@@ -1477,7 +1420,6 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
                     l2cb.ble_check_round_robin, l2cb.ble_round_robin_unacked);
             }
             else
-#endif
             {
                 L2CAP_TRACE_DEBUG ("TotalWin=%d,LinkUnack(0x%x)=%d,RRCheck=%d,RRUnack=%d",
                     l2cb.controller_xmit_window,
@@ -1488,18 +1430,11 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
         }
         else
         {
-#if (BLE_INCLUDED == TRUE)
             L2CAP_TRACE_DEBUG ("TotalWin=%d  LE_Win: %d, Handle=0x%x, RRCheck=%d, RRUnack=%d",
                 l2cb.controller_xmit_window,
                 l2cb.controller_le_xmit_window,
                 handle,
                 l2cb.ble_check_round_robin, l2cb.ble_round_robin_unacked);
-#else
-            L2CAP_TRACE_DEBUG ("TotalWin=%d  Handle=0x%x  RRCheck=%d  RRUnack=%d",
-                l2cb.controller_xmit_window,
-                handle,
-                l2cb.check_round_robin, l2cb.round_robin_unacked);
-#endif
         }
 #endif
     }

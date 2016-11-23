@@ -28,8 +28,6 @@
 #include "device/include/controller.h"
 #include "hcimsgs.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 tBTM_BLE_BATCH_SCAN_CB ble_batchscan_cb;
 tBTM_BLE_ADV_TRACK_CB ble_advtrack_cb;
 
@@ -893,4 +891,3 @@ void btm_ble_batchscan_cleanup(void)
     memset(&ble_advtrack_cb, 0, sizeof(tBTM_BLE_ADV_TRACK_CB));
 }
 
-#endif

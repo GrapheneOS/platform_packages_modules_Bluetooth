@@ -38,8 +38,6 @@
 #include "hcimsgs.h"
 #include "osi/include/osi.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include "btm_ble_int.h"
 #include "gatt_int.h"
 #include "gattdefs.h"
@@ -2880,5 +2878,3 @@ bool    btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
     }
     return rt;
 }
-
-#endif  /* BLE_INCLUDED */

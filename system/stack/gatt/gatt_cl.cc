@@ -24,8 +24,6 @@
 
 #include "bt_target.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include <string.h>
 #include "bt_utils.h"
 #include "bt_common.h"
@@ -1248,5 +1246,3 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, uint8_t op_code,
 
     return;
 }
-
-#endif  /* BLE_INCLUDED */

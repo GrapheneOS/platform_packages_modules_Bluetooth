@@ -96,15 +96,12 @@ typedef struct
 #define BTM_ACL_ENCRYPT_STATE_ENCRYPT_ON        3   /* encryption turning on */
     uint8_t         encrypt_state;                  /* overall BTM encryption state */
 
-#if (BLE_INCLUDED == TRUE)
     tBT_TRANSPORT   transport;
     BD_ADDR         conn_addr;              /* local device address used for this connection */
     uint8_t         conn_addr_type;         /* local device address type for this connection */
     BD_ADDR         active_remote_addr;     /* remote address used on this connection */
     uint8_t         active_remote_addr_type;         /* local device address type for this connection */
     BD_FEATURES     peer_le_features;       /* Peer LE Used features mask for the device */
-
-#endif
 
 } tACL_CONN;
 
@@ -144,8 +141,6 @@ typedef struct
 
     DEV_CLASS            dev_class;         /* Local device class                   */
 
-#if (BLE_INCLUDED == TRUE)
-
     tBTM_CMPL_CB        *p_le_test_cmd_cmpl_cb;   /* Callback function to be called when
                                                   LE test mode command has been sent successfully */
 
@@ -164,8 +159,6 @@ BT_OCTET16 ble_encryption_key_value; /* BLE encryption key */
     bool                    enable_test_local_sign_cntr;
     uint32_t                test_local_sign_cntr;
 #endif
-
-#endif  /* BLE_INCLUDED */
 
     tBTM_IO_CAP          loc_io_caps;       /* IO capability of the local device */
     tBTM_AUTH_REQ        loc_auth_req;      /* the auth_req flag  */
@@ -208,10 +201,7 @@ typedef struct
                                         /* the same device.                                         */
     tBTM_INQ_INFO   inq_info;
     bool            in_use;
-
-#if (BLE_INCLUDED == TRUE)
     bool            scan_rsp;
-#endif
 } tINQ_DB_ENT;
 
 
@@ -429,7 +419,6 @@ typedef struct
 #endif
 } tBTM_SEC_SERV_REC;
 
-#if (BLE_INCLUDED == TRUE)
 /* LE Security information of device in Slave Role */
 typedef struct
 {
@@ -477,9 +466,6 @@ typedef struct
     tBTM_SEC_BLE_KEYS   keys;           /* LE device security info in slave rode */
 #endif
 } tBTM_SEC_BLE;
-
-
-#endif  /* BLE_INCLUDED */
 
 /* Peering bond type */
 enum
@@ -586,10 +572,8 @@ typedef struct
                                 /* SC BR/EDR->SC LE doesn't happen */
     tBTM_BOND_TYPE bond_type;   /* peering bond type */
 
-#if (BLE_INCLUDED == TRUE)
     tBTM_SEC_BLE        ble;
     tBTM_LE_CONN_PRAMS  conn_params;
-#endif
 
 #if (BTM_DISC_DURING_RS == TRUE)
 #define BTM_SEC_RS_NOT_PENDING          0           /* Role Switch not in progress */
@@ -794,7 +778,6 @@ typedef struct
     /*****************************************************
     **      BLE Device controllers
     *****************************************************/
-#if (BLE_INCLUDED == TRUE)
     tBTM_BLE_CB             ble_ctr_cb;
 
     uint16_t                enc_handle;
@@ -802,7 +785,6 @@ typedef struct
     uint16_t                ediv;       /* received ediv value from LTK request */
     uint8_t                 key_size;
     tBTM_BLE_VSC_CB         cmn_ble_vsc_cb;
-#endif
 
                                             /* Packet types supported by the local device */
     uint16_t    btm_acl_pkt_types_supported;

@@ -75,7 +75,6 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, bool    is_bonding, tBT_TRANSPOR
             p_lcb->idle_timeout    = l2cb.idle_timeout;
             p_lcb->id              = 1;                     /* spec does not allow '0' */
             p_lcb->is_bonding      = is_bonding;
-#if (BLE_INCLUDED == TRUE)
             p_lcb->transport       = transport;
             p_lcb->tx_data_len     = controller_get_interface()->get_ble_default_data_packet_length();
             p_lcb->le_sec_pending_q = fixed_queue_new(SIZE_MAX);
@@ -86,7 +85,6 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, bool    is_bonding, tBT_TRANSPOR
                 l2c_ble_link_adjust_allocation();
             }
             else
-#endif
             {
                 l2cb.num_links_active++;
                 l2c_link_adjust_allocation();
@@ -154,16 +152,13 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     osi_free_and_reset((void **)&p_lcb->p_hcit_rcv_acl);
 
 #if (BTM_SCO_INCLUDED == TRUE)
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
-#endif
         /* Release all SCO links */
         btm_remove_sco_links(p_lcb->remote_bd_addr);
 #endif
 
     if (p_lcb->sent_not_acked > 0)
     {
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             l2cb.controller_le_xmit_window += p_lcb->sent_not_acked;
@@ -173,7 +168,6 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
             }
         }
         else
-#endif
         {
             l2cb.controller_xmit_window += p_lcb->sent_not_acked;
             if (l2cb.controller_xmit_window > l2cb.num_lm_acl_bufs)
@@ -183,11 +177,9 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         }
     }
 
-#if (BLE_INCLUDED == TRUE)
     // Reset BLE connecting flag only if the address matches
     if (!memcmp(l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN))
         l2cb.is_ble_connecting = false;
-#endif
 
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
     l2cu_process_fixed_disc_cback(p_lcb);
@@ -201,11 +193,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
 
     /* Tell BTM Acl management the link was removed */
     if ((p_lcb->link_state == LST_CONNECTED) || (p_lcb->link_state == LST_DISCONNECTING))
-#if (BLE_INCLUDED == TRUE)
         btm_acl_removed (p_lcb->remote_bd_addr, p_lcb->transport);
-#else
-        btm_acl_removed (p_lcb->remote_bd_addr, BT_TRANSPORT_BR_EDR);
-#endif
 
     /* Release any held buffers */
     if (p_lcb->link_xmit_data_q)
@@ -225,7 +213,6 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     l2c_ucd_delete_sec_pending_q(p_lcb);
 #endif
 
-#if (BLE_INCLUDED == TRUE)
     /* Re-adjust flow control windows make sure it does not go negative */
     if (p_lcb->transport == BT_TRANSPORT_LE)
     {
@@ -235,7 +222,6 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         l2c_ble_link_adjust_allocation();
     }
     else
-#endif
     {
         if (l2cb.num_links_active >= 1)
             l2cb.num_links_active--;
@@ -288,9 +274,7 @@ tL2C_LCB  *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr, tBT_TRANSPORT transport)
     for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_lcb++)
     {
         if ((p_lcb->in_use) &&
-#if (BLE_INCLUDED == TRUE)
             p_lcb->transport == transport &&
-#endif
             (!memcmp (p_lcb->remote_bd_addr, p_bd_addr, BD_ADDR_LEN)))
         {
             return (p_lcb);
@@ -370,13 +354,11 @@ BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, uint16_t len, uint8_t cmd, uint8_t i
     p = (uint8_t *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET;
 
     /* Put in HCI header - handle + pkt boundary */
-#if (BLE_INCLUDED == TRUE)
     if (p_lcb->transport == BT_TRANSPORT_LE)
     {
         UINT16_TO_STREAM (p, (p_lcb->handle | (L2CAP_PKT_START_NON_FLUSHABLE << L2CAP_PKT_TYPE_SHIFT)));
     }
     else
-#endif
     {
 #if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
         UINT16_TO_STREAM (p, p_lcb->handle | l2cb.non_flushable_pbf);
@@ -388,14 +370,12 @@ BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, uint16_t len, uint8_t cmd, uint8_t i
     UINT16_TO_STREAM (p, len + L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD);
     UINT16_TO_STREAM (p, len + L2CAP_CMD_OVERHEAD);
 
-#if (BLE_INCLUDED == TRUE)
     if (p_lcb->transport == BT_TRANSPORT_LE)
     {
 
         UINT16_TO_STREAM (p, L2CAP_BLE_SIGNALLING_CID);
     }
     else
-#endif
     {
         UINT16_TO_STREAM (p, L2CAP_SIGNALLING_CID);
     }
@@ -1185,14 +1165,12 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, uint8_t remote_id, uint16_t info_
 #endif
     {
         UINT16_TO_STREAM (p, L2CAP_INFO_RESP_RESULT_SUCCESS);
-#if (BLE_INCLUDED == TRUE)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             /* optional data are not added for now */
             UINT32_TO_STREAM (p, L2CAP_BLE_EXTFEA_MASK);
         }
         else
-#endif
         {
 #if (L2CAP_CONFORMANCE_TESTING == TRUE)
         UINT32_TO_STREAM (p, l2cb.test_info_resp);
@@ -2261,9 +2239,7 @@ void l2cu_device_reset (void)
             l2c_link_hci_disc_comp (p_lcb->handle, (uint8_t) -1);
         }
     }
-#if (BLE_INCLUDED == TRUE)
     l2cb.is_ble_connecting = false;
-#endif
 }
 
 /*******************************************************************************
@@ -2283,7 +2259,6 @@ bool    l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
     bool            is_sco_active;
 #endif
 
-#if (BLE_INCLUDED == TRUE)
     tBT_DEVICE_TYPE     dev_type;
     tBLE_ADDR_TYPE      addr_type;
 
@@ -2300,7 +2275,6 @@ bool    l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
 
         return (l2cble_create_conn(p_lcb));
     }
-#endif
 
     /* If there is a connection where we perform as a slave, try to switch roles
        for this connection */
@@ -2872,7 +2846,6 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 *******************************************************************************/
 void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 {
-#if (BLE_INCLUDED == TRUE)
      if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
      {
          /* ignore all not assigned BR/EDR channels */
@@ -2882,18 +2855,15 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
      }
      else
          p_lcb->peer_chnl_mask[0] = l2cb.l2c_ble_fixed_chnls_mask;
-#endif
 
     /* Tell all registered fixed channels about the connection */
     for (int xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
     {
-#if (BLE_INCLUDED == TRUE)
         /* skip sending LE fix channel callbacks on BR/EDR links */
         if (p_lcb->transport == BT_TRANSPORT_BR_EDR &&
             xx + L2CAP_FIRST_FIXED_CHNL >= L2CAP_ATT_CID &&
             xx + L2CAP_FIRST_FIXED_CHNL <= L2CAP_SMP_CID)
             continue;
-#endif
         if (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL)
         {
             if (p_lcb->peer_chnl_mask[(xx + L2CAP_FIRST_FIXED_CHNL) / 8]
@@ -2901,23 +2871,13 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
             {
                 if (p_lcb->p_fixed_ccbs[xx])
                     p_lcb->p_fixed_ccbs[xx]->chnl_state = CST_OPEN;
-#if (BLE_INCLUDED == TRUE)
                 (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
                         p_lcb->remote_bd_addr, true, 0, p_lcb->transport);
-#else
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
-                        p_lcb->remote_bd_addr, true, 0, BT_TRANSPORT_BR_EDR);
-#endif
             }
             else
             {
-#if (BLE_INCLUDED == TRUE)
                 (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
                         p_lcb->remote_bd_addr, false, p_lcb->disc_reason, p_lcb->transport);
-#else
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
-                        p_lcb->remote_bd_addr, false, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
-#endif
 
                 if (p_lcb->p_fixed_ccbs[xx])
                 {
@@ -2962,29 +2922,18 @@ void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
                 p_l2c_chnl_ctrl_block = p_lcb->p_fixed_ccbs[xx];
                 p_lcb->p_fixed_ccbs[xx] = NULL;
                 l2cu_release_ccb(p_l2c_chnl_ctrl_block);
-#if (BLE_INCLUDED == TRUE)
             (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
                     p_lcb->remote_bd_addr, false, p_lcb->disc_reason, p_lcb->transport);
-#else
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
-                    p_lcb->remote_bd_addr, false, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
-#endif
            }
         }
         else if ( (peer_channel_mask & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
                && (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL) )
-#if (BLE_INCLUDED == TRUE)
             (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
                     p_lcb->remote_bd_addr, false, p_lcb->disc_reason, p_lcb->transport);
-#else
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
-                    p_lcb->remote_bd_addr, false, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
-#endif
     }
 #endif
 }
 
-#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         l2cu_send_peer_ble_par_req
@@ -3261,7 +3210,6 @@ void l2cu_send_peer_ble_credit_based_disconn_req(tL2C_CCB *p_ccb)
 
     l2c_link_check_send_pkts (p_lcb, NULL, p_buf);
 }
-#endif /* BLE_INCLUDED == TRUE */
 
 
 /*******************************************************************************
@@ -3653,7 +3601,6 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
     /* Set the pointer to the beginning of the data minus 4 bytes for the packet header */
     p = (uint8_t *)(p_buf + 1) + p_buf->offset - HCI_DATA_PREAMBLE_SIZE;
 
-#if (BLE_INCLUDED == TRUE)
     if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
     {
         UINT16_TO_STREAM (p, p_ccb->p_lcb->handle | (L2CAP_PKT_START_NON_FLUSHABLE << L2CAP_PKT_TYPE_SHIFT));
@@ -3668,9 +3615,8 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
         {
             UINT16_TO_STREAM (p, p_buf->len);
         }
-    } /* (BLE_INCLUDED == TRUE) */
+    }
     else
-#endif
     {
 #if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
         if ( (((p_buf->layer_specific & L2CAP_FLUSHABLE_MASK) == L2CAP_FLUSHABLE_CH_BASED) && (p_ccb->is_flushable))

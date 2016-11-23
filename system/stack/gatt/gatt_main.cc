@@ -24,8 +24,6 @@
 
 #include "bt_target.h"
 
-#if (BLE_INCLUDED == TRUE)
-
 #include "bt_common.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
@@ -1229,5 +1227,3 @@ tGATT_CH_STATE gatt_get_ch_state(tGATT_TCB *p_tcb)
     }
     return ch_state;
 }
-
-#endif /* BLE_INCLUDED */

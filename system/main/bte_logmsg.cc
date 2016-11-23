@@ -54,10 +54,8 @@
 #if (PAN_INCLUDED == TRUE)
 #include "pan_api.h"
 #endif
-#if (BLE_INCLUDED == TRUE)
 #include "gatt_api.h"
 #include "smp_api.h"
-#endif
 
 #ifndef DEFAULT_CONF_TRACE_LEVEL
 #define DEFAULT_CONF_TRACE_LEVEL BT_TRACE_LEVEL_WARNING
@@ -151,10 +149,8 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
   {BTTRC_ID_STK_PAN, BTTRC_ID_STK_PAN, PAN_SetTraceLevel, "TRC_PAN", DEFAULT_CONF_TRACE_LEVEL},
 #endif
   {BTTRC_ID_STK_SDP, BTTRC_ID_STK_SDP, SDP_SetTraceLevel, "TRC_SDP", DEFAULT_CONF_TRACE_LEVEL},
-#if (BLE_INCLUDED == TRUE)
   {BTTRC_ID_STK_GATT, BTTRC_ID_STK_GATT, GATT_SetTraceLevel, "TRC_GATT", DEFAULT_CONF_TRACE_LEVEL},
   {BTTRC_ID_STK_SMP, BTTRC_ID_STK_SMP, SMP_SetTraceLevel, "TRC_SMP", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 
   /* LayerIDs for BTA, currently everything maps onto appl_trace_level.
    */

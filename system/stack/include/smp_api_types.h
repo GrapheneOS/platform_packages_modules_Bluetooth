@@ -28,7 +28,7 @@ extern "C" {
 #define SMP_PIN_CODE_LEN_MAX    PIN_CODE_LEN
 #define SMP_PIN_CODE_LEN_MIN    6
 
-#if (BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE)
+#if (SMP_INCLUDED == TRUE)
 /* SMP command code */
 #define SMP_OPCODE_PAIRING_REQ            0x01
 #define SMP_OPCODE_PAIRING_RSP            0x02

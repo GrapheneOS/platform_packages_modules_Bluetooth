@@ -101,7 +101,6 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr);
 static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status);
 static void bta_dm_disable_search_and_disc(void);
 
-#if (BLE_INCLUDED == TRUE)
 #if (SMP_INCLUDED == TRUE)
 static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, BD_ADDR bda,
                                     tBTM_LE_EVT_DATA* p_data);
@@ -123,7 +122,6 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 #ifndef BTA_DM_BLE_ADV_CHNL_MAP
 #define BTA_DM_BLE_ADV_CHNL_MAP \
   (BTM_BLE_ADV_CHNL_37 | BTM_BLE_ADV_CHNL_38 | BTM_BLE_ADV_CHNL_39)
-#endif
 #endif
 
 /* Disable timer interval (in milliseconds) */
@@ -183,7 +181,7 @@ const uint16_t bta_service_id_to_uuid_lkup_tbl[BTA_MAX_SERVICE_ID] = {
     UUID_SERVCLASS_MESSAGE_NOTIFICATION,  /* BTA_MN_SERVICE_ID */
     UUID_SERVCLASS_HDP_PROFILE,           /* BTA_HDP_SERVICE_ID */
     UUID_SERVCLASS_PBAP_PCE               /* BTA_PCE_SERVICE_ID */
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
     ,
     UUID_PROTOCOL_ATT /* BTA_GATT_SERVICE_ID */
 #endif
@@ -229,7 +227,7 @@ const uint32_t bta_service_id_to_btm_srv_id_lkup_tbl[BTA_MAX_SERVICE_ID] = {
     BTM_SEC_SERVICE_MAP,           /* BTA_MN_SERVICE_ID */
     BTM_SEC_SERVICE_HDP_SNK,       /* BTA_HDP_SERVICE_ID */
     BTM_SEC_SERVICE_PBAP           /* BTA_PCE_SERVICE_ID */
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
     ,
     BTM_SEC_SERVICE_ATT /* BTA_GATT_SERVICE_ID */
 #endif
@@ -245,16 +243,12 @@ const tBTM_APPL_INFO bta_security = {
 #else
     NULL
 #endif
-#if (BLE_INCLUDED == TRUE)
 #if (SMP_INCLUDED == TRUE)
     ,
     &bta_dm_ble_smp_cback
 #endif
     ,
-    &bta_dm_ble_id_key_cback
-#endif
-
-};
+    &bta_dm_ble_id_key_cback};
 
 #define MAX_DISC_RAW_DATA_BUF (4096)
 uint8_t g_disc_raw_data_buf[MAX_DISC_RAW_DATA_BUF];
@@ -366,11 +360,9 @@ void bta_dm_deinit_cb(void) {
 static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status) {
   DEV_CLASS dev_class;
   tBTA_DM_SEC_CBACK* temp_cback;
-#if (BLE_INCLUDED == TRUE)
   uint8_t key_mask = 0;
   BT_OCTET16 er;
   tBTA_BLE_LOCAL_ID_KEYS id_key;
-#endif
 
   APPL_TRACE_DEBUG("%s with event: %i", __func__, status);
 
@@ -430,7 +422,6 @@ static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status) {
     memcpy(dev_class, p_bta_dm_cfg->dev_class, sizeof(dev_class));
     BTM_SetDeviceClass(dev_class);
 
-#if (BLE_INCLUDED == TRUE)
     /* load BLE local information: ID keys, ER if available */
     bta_dm_co_ble_load_local_keys(&key_mask, er, &id_key);
 
@@ -445,7 +436,6 @@ static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status) {
 #if (BTA_GATT_INCLUDED == TRUE)
     bta_dm_search_cb.conn_id = BTA_GATT_INVALID_CONN_ID;
 #endif  // (defined(BTA_GATT_INCLUDED) && BTA_GATT_INCLUDED)
-#endif  // (defined(BLE_INCLUDED) && (BLE_INCLUDED == true))
 
     BTM_SecRegister((tBTM_APPL_INFO*)&bta_security);
     BTM_SetDefaultLinkSuperTout(p_bta_dm_cfg->link_timeout);
@@ -479,7 +469,7 @@ static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status) {
 
     bta_sys_policy_register((tBTA_SYS_CONN_CBACK*)bta_dm_policy_cback);
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
     bta_dm_gattc_register();
 #endif
 
@@ -513,7 +503,7 @@ void bta_dm_disable(UNUSED_ATTR tBTA_DM_MSG* p_data) {
   bta_dm_disable_search_and_disc();
   bta_dm_cb.disabling = true;
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   BTM_BleClearBgConnDev();
 #endif
 
@@ -560,9 +550,7 @@ static void bta_dm_disable_timer_cback(void* data) {
 
   if (BTM_GetNumAclLinks() && (param == 0)) {
     for (i = 0; i < bta_dm_cb.device_list.count; i++) {
-#if (BLE_INCLUDED == TRUE)
       transport = bta_dm_cb.device_list.peer_device[i].transport;
-#endif
       btm_remove_acl(bta_dm_cb.device_list.peer_device[i].peer_bdaddr,
                      transport);
       trigger_disc = true;
@@ -684,14 +672,14 @@ void bta_dm_set_visibility(tBTA_DM_MSG* p_data) {
  ***
  ******************************************************************************/
 void bta_dm_process_remove_device(BD_ADDR bd_addr) {
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   /* need to remove all pending background connection before unpair */
   BTA_GATTC_CancelOpen(0, bd_addr, false);
 #endif
 
   BTM_SecDeleteDevice(bd_addr);
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   /* remove all cached GATT information */
   BTA_GATTC_Refresh(bd_addr);
 #endif
@@ -880,7 +868,7 @@ void bta_dm_close_acl(tBTA_DM_MSG* p_data) {
     if (!BTM_SecDeleteDevice(p_remove_acl->bd_addr)) {
       APPL_TRACE_ERROR("delete device from security database failed.");
     }
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
     /* need to remove all pending background connection if any */
     BTA_GATTC_CancelOpen(0, p_remove_acl->bd_addr, false);
     /* remove all cached GATT information */
@@ -907,9 +895,7 @@ void bta_dm_remove_all_acl(tBTA_DM_MSG* p_data) {
   for (uint8_t i = 0; i < bta_dm_cb.device_list.count; i++) {
     BD_ADDR addr = {0};
     bdcpy(addr, bta_dm_cb.device_list.peer_device[i].peer_bdaddr);
-#if (BLE_INCLUDED == TRUE)
     transport = bta_dm_cb.device_list.peer_device[i].transport;
-#endif
     if ((link_type == BTA_DM_LINK_TYPE_ALL) ||
         ((link_type == BTA_DM_LINK_TYPE_LE) &&
          (transport == BT_TRANSPORT_LE)) ||
@@ -1156,7 +1142,7 @@ void bta_dm_ci_rmt_oob_act(tBTA_DM_MSG* p_data) {
 void bta_dm_search_start(tBTA_DM_MSG* p_data) {
   tBTM_INQUIRY_CMPL result;
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   size_t len = sizeof(tBT_UUID) * p_data->search.num_uuid;
   bta_dm_gattc_register();
 #endif
@@ -1176,7 +1162,7 @@ void bta_dm_search_start(tBTA_DM_MSG* p_data) {
   bta_dm_search_cb.p_search_cback = p_data->search.p_cback;
   bta_dm_search_cb.services = p_data->search.services;
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   osi_free_and_reset((void**)&bta_dm_search_cb.p_srvc_uuid);
 
   if ((bta_dm_search_cb.num_uuid = p_data->search.num_uuid) != 0 &&
@@ -1237,7 +1223,7 @@ void bta_dm_search_cancel(UNUSED_ATTR tBTA_DM_MSG* p_data) {
     bta_sys_sendmsg(p_msg);
   }
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   if (bta_dm_search_cb.gatt_disc_active) {
     bta_dm_cancel_gatt_discovery(bta_dm_search_cb.peer_bdaddr);
   }
@@ -1255,7 +1241,7 @@ void bta_dm_search_cancel(UNUSED_ATTR tBTA_DM_MSG* p_data) {
  *
  ******************************************************************************/
 void bta_dm_discover(tBTA_DM_MSG* p_data) {
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   size_t len = sizeof(tBT_UUID) * p_data->discover.num_uuid;
 #endif
   APPL_TRACE_EVENT("%s services_to_search=0x%04X, sdp_search=%d", __func__,
@@ -1264,7 +1250,7 @@ void bta_dm_discover(tBTA_DM_MSG* p_data) {
   /* save the search condition */
   bta_dm_search_cb.services = p_data->discover.services;
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   bta_dm_gattc_register();
   osi_free_and_reset((void**)&bta_dm_search_cb.p_srvc_uuid);
   if ((bta_dm_search_cb.num_uuid = p_data->discover.num_uuid) != 0 &&
@@ -1541,7 +1527,7 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
   uint16_t service = 0xFFFF;
   tSDP_PROTOCOL_ELEM pe;
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   tBT_UUID* p_uuid = bta_dm_search_cb.p_srvc_uuid;
   tBTA_DM_SEARCH result;
   tBT_UUID service_uuid;
@@ -1571,7 +1557,7 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
         p_sdp_rec =
             SDP_FindServiceInDb(bta_dm_search_cb.p_sdp_db, service, p_sdp_rec);
       }
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
       /* finished with BR/EDR services, now we check the result for GATT based
        * service UUID */
       if (bta_dm_search_cb.service_index == BTA_MAX_SERVICE_ID) {
@@ -1627,7 +1613,7 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
 
       if (bta_dm_search_cb.services == BTA_ALL_SERVICE_MASK &&
           bta_dm_search_cb.services_to_search == 0) {
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
         if (bta_dm_search_cb.service_index == BTA_BLE_SERVICE_ID &&
             bta_dm_search_cb.uuid_to_search > 0)
           bta_dm_search_cb.uuid_to_search--;
@@ -1769,7 +1755,7 @@ void bta_dm_sdp_result(tBTA_DM_MSG* p_data) {
 void bta_dm_search_cmpl(tBTA_DM_MSG* p_data) {
   APPL_TRACE_EVENT("%s", __func__);
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   osi_free_and_reset((void**)&bta_dm_search_cb.p_srvc_uuid);
 #endif
 
@@ -1792,7 +1778,7 @@ void bta_dm_search_cmpl(tBTA_DM_MSG* p_data) {
 void bta_dm_disc_result(tBTA_DM_MSG* p_data) {
   APPL_TRACE_EVENT("%s", __func__);
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   /* if any BR/EDR service discovery has been done, report the event */
   if ((bta_dm_search_cb.services &
        ((BTA_ALL_SERVICE_MASK | BTA_USER_SERVICE_MASK) &
@@ -1968,7 +1954,7 @@ void bta_dm_search_cancel_notify(UNUSED_ATTR tBTA_DM_MSG* p_data) {
   if (!bta_dm_search_cb.name_discover_done) {
     BTM_CancelRemoteDeviceName();
   }
-#if (BLE_INCLUDED == TRUE) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   if (bta_dm_search_cb.gatt_disc_active) {
     bta_dm_cancel_gatt_discovery(bta_dm_search_cb.peer_bdaddr);
   }
@@ -2009,7 +1995,7 @@ static void bta_dm_find_services(BD_ADDR bd_addr) {
           bta_dm_search_cb.services_to_search = 0;
         }
       } else {
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
         /* for LE only profile */
         if (bta_dm_search_cb.service_index == BTA_BLE_SERVICE_ID) {
           if (bta_dm_search_cb.uuid_to_search > 0 &&
@@ -2068,7 +2054,7 @@ static void bta_dm_find_services(BD_ADDR bd_addr) {
         bta_dm_search_cb.service_index = BTA_MAX_SERVICE_ID;
 
       } else {
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
         if ((bta_dm_search_cb.service_index == BTA_BLE_SERVICE_ID &&
              bta_dm_search_cb.uuid_to_search == 0) ||
             bta_dm_search_cb.service_index != BTA_BLE_SERVICE_ID)
@@ -2139,7 +2125,6 @@ static void bta_dm_discover_next_device(void) {
  ******************************************************************************/
 static void bta_dm_discover_device(BD_ADDR remote_bd_addr) {
   tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
-#if (BLE_INCLUDED == TRUE)
   if (bta_dm_search_cb.transport == BTA_TRANSPORT_UNKNOWN) {
     tBT_DEVICE_TYPE dev_type;
     tBLE_ADDR_TYPE addr_type;
@@ -2150,7 +2135,6 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr) {
   } else {
     transport = bta_dm_search_cb.transport;
   }
-#endif
 
   /* Reset transport state for next discovery */
   bta_dm_search_cb.transport = BTA_TRANSPORT_UNKNOWN;
@@ -2170,7 +2154,6 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr) {
     APPL_TRACE_DEBUG("%s appl_knows_rem_name %d", __func__,
                      bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name);
   }
-#if (BLE_INCLUDED == TRUE)
   if ((bta_dm_search_cb.p_btm_inq_info) &&
       (bta_dm_search_cb.p_btm_inq_info->results.device_type ==
        BT_DEVICE_TYPE_BLE) &&
@@ -2178,7 +2161,6 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr) {
     /* Do not perform RNR for LE devices at inquiry complete*/
     bta_dm_search_cb.name_discover_done = true;
   }
-#endif
   /* if name discovery is not done and application needs remote name */
   if ((!bta_dm_search_cb.name_discover_done) &&
       ((bta_dm_search_cb.p_btm_inq_info == NULL) ||
@@ -2198,7 +2180,7 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr) {
     bta_dm_search_cb.service_index = 0;
     bta_dm_search_cb.services_found = 0;
     bta_dm_search_cb.services_to_search = bta_dm_search_cb.services;
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
     bta_dm_search_cb.uuid_to_search = bta_dm_search_cb.num_uuid;
 #endif
     if ((bta_dm_search_cb.p_btm_inq_info != NULL) &&
@@ -2221,7 +2203,7 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr) {
       else
         bta_dm_search_cb.wait_disc = true;
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
       if (bta_dm_search_cb.p_btm_inq_info) {
         APPL_TRACE_DEBUG(
             "%s p_btm_inq_info 0x%x results.device_type 0x%x "
@@ -2309,12 +2291,10 @@ static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir) {
       (service_class & BTM_COD_SERVICE_LMTD_DISCOVER) ? true : false;
   result.inq_res.rssi = p_inq->rssi;
 
-#if (BLE_INCLUDED == TRUE)
   result.inq_res.ble_addr_type = p_inq->ble_addr_type;
   result.inq_res.inq_result_type = p_inq->inq_result_type;
   result.inq_res.device_type = p_inq->device_type;
   result.inq_res.flag = p_inq->flag;
-#endif
 
   /* application will parse EIR to find out remote device name */
   result.inq_res.p_eir = p_eir;
@@ -2436,11 +2416,9 @@ static void bta_dm_remname_cback(tBTM_REMOTE_DEV_NAME* p_remote_name) {
 
   BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
 
-#if (BLE_INCLUDED == TRUE)
   if (bta_dm_search_cb.transport == BT_TRANSPORT_LE) {
     GAP_BleReadPeerPrefConnParams(bta_dm_search_cb.peer_bdaddr);
   }
-#endif
 
   tBTA_DM_REM_NAME* p_msg =
       (tBTA_DM_REM_NAME*)osi_malloc(sizeof(tBTA_DM_REM_NAME));
@@ -2633,11 +2611,9 @@ static uint8_t bta_dm_new_link_key_cback(BD_ADDR bd_addr,
     memcpy(p_auth_cmpl->key, key, LINK_KEY_LEN);
     sec_event.auth_cmpl.fail_reason = HCI_SUCCESS;
 
-#if (BLE_INCLUDED == TRUE)
     // Report the BR link key based on the BR/EDR address and type
     BTM_ReadDevInfo(bd_addr, &sec_event.auth_cmpl.dev_type,
                     &sec_event.auth_cmpl.addr_type);
-#endif
     if (bta_dm_cb.p_sec_cback) bta_dm_cb.p_sec_cback(event, &sec_event);
 
     // Setting remove_dev_pending flag to false, where it will avoid deleting
@@ -2674,11 +2650,9 @@ static uint8_t bta_dm_authentication_complete_cback(
     memcpy(sec_event.auth_cmpl.bd_name, bd_name, (BD_NAME_LEN - 1));
     sec_event.auth_cmpl.bd_name[BD_NAME_LEN - 1] = 0;
 
-#if (BLE_INCLUDED == TRUE)
     // Report the BR link key based on the BR/EDR address and type
     BTM_ReadDevInfo(bd_addr, &sec_event.auth_cmpl.dev_type,
                     &sec_event.auth_cmpl.addr_type);
-#endif
     sec_event.auth_cmpl.fail_reason = (uint8_t)result;
 
     if (bta_dm_cb.p_sec_cback)
@@ -2894,17 +2868,13 @@ static void bta_dm_bl_change_cback(tBTM_BL_EVENT_DATA* p_data) {
     case BTM_BL_CONN_EVT:
       p_msg->is_new = true;
       bdcpy(p_msg->bd_addr, p_data->conn.p_bda);
-#if (BLE_INCLUDED == TRUE)
       p_msg->transport = p_data->conn.transport;
       p_msg->handle = p_data->conn.handle;
-#endif
       break;
     case BTM_BL_DISCN_EVT:
       bdcpy(p_msg->bd_addr, p_data->discn.p_bda);
-#if (BLE_INCLUDED == TRUE)
       p_msg->transport = p_data->discn.transport;
       p_msg->handle = p_data->discn.handle;
-#endif
       break;
     case BTM_BL_UPDATE_EVT:
       p_msg->busy_level = p_data->update.busy_level;
@@ -3079,13 +3049,9 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
 
   if (is_new) {
     for (i = 0; i < bta_dm_cb.device_list.count; i++) {
-      if (!bdcmp(bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_bda)
-#if (BLE_INCLUDED == TRUE)
-          &&
+      if (!bdcmp(bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_bda) &&
           bta_dm_cb.device_list.peer_device[i].conn_handle ==
-              p_data->acl_change.handle
-#endif
-          )
+              p_data->acl_change.handle)
         break;
     }
 
@@ -3097,12 +3063,10 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
         bta_dm_cb.device_list.peer_device[bta_dm_cb.device_list.count]
             .link_policy = bta_dm_cb.cur_policy;
         bta_dm_cb.device_list.count++;
-#if (BLE_INCLUDED == TRUE)
         bta_dm_cb.device_list.peer_device[i].conn_handle =
             p_data->acl_change.handle;
         if (p_data->acl_change.transport == BT_TRANSPORT_LE)
           bta_dm_cb.device_list.le_count++;
-#endif
       } else {
         APPL_TRACE_ERROR("%s max active connection reached, no resources",
                          __func__);
@@ -3114,11 +3078,9 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
     bta_dm_cb.device_list.peer_device[i].pref_role = BTA_ANY_ROLE;
     bdcpy(conn.link_up.bd_addr, p_bda);
     bta_dm_cb.device_list.peer_device[i].info = BTA_DM_DI_NONE;
-#if (BLE_INCLUDED == TRUE)
     conn.link_up.link_type = p_data->acl_change.transport;
     bta_dm_cb.device_list.peer_device[i].transport =
         p_data->acl_change.transport;
-#endif
 
     if (((NULL != (p = BTM_ReadLocalFeatures())) &&
          HCI_SNIFF_SUB_RATE_SUPPORTED(p)) &&
@@ -3134,13 +3096,9 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
       bta_dm_cb.p_sec_cback(BTA_DM_LINK_UP_EVT, (tBTA_DM_SEC*)&conn);
   } else {
     for (i = 0; i < bta_dm_cb.device_list.count; i++) {
-      if (bdcmp(bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_bda)
-#if (BLE_INCLUDED == TRUE)
-          ||
+      if (bdcmp(bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_bda) ||
           bta_dm_cb.device_list.peer_device[i].transport !=
-              p_data->acl_change.transport
-#endif
-          )
+              p_data->acl_change.transport)
         continue;
 
       if (bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_UNPAIRING) {
@@ -3163,12 +3121,10 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
       break;
     }
     if (bta_dm_cb.device_list.count) bta_dm_cb.device_list.count--;
-#if (BLE_INCLUDED == TRUE)
     if ((p_data->acl_change.transport == BT_TRANSPORT_LE) &&
         (bta_dm_cb.device_list.le_count))
       bta_dm_cb.device_list.le_count--;
     conn.link_down.link_type = p_data->acl_change.transport;
-#endif
 
     if (bta_dm_search_cb.wait_disc &&
         !bdcmp(bta_dm_search_cb.peer_bdaddr, p_bda)) {
@@ -3194,7 +3150,7 @@ void bta_dm_acl_change(tBTA_DM_MSG* p_data) {
     }
     if (conn.link_down.is_removed) {
       BTM_SecDeleteDevice(p_bda);
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
       /* need to remove all pending background connection */
       BTA_GATTC_CancelOpen(0, p_bda, false);
       /* remove all cached GATT information */
@@ -3369,7 +3325,7 @@ static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr) {
     }
   } else {
     BTM_SecDeleteDevice(remote_bd_addr);
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
     /* need to remove all pending background connection */
     BTA_GATTC_CancelOpen(0, remote_bd_addr, false);
     /* remove all cached GATT information */
@@ -3391,12 +3347,8 @@ static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr) {
 static void bta_dm_adjust_roles(bool delay_role_switch) {
   uint8_t i;
   bool set_master_role = false;
-#if (BLE_INCLUDED == TRUE)
   uint8_t br_count =
       bta_dm_cb.device_list.count - bta_dm_cb.device_list.le_count;
-#else
-  uint8_t br_count = bta_dm_cb.device_list.count;
-#endif
   if (br_count) {
     /* the configuration is no scatternet
      * or AV connection exists and there are more than one ACL link */
@@ -3407,12 +3359,9 @@ static void bta_dm_adjust_roles(bool delay_role_switch) {
     }
 
     for (i = 0; i < bta_dm_cb.device_list.count; i++) {
-      if (bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_CONNECTED
-#if (BLE_INCLUDED == TRUE)
-          &&
-          bta_dm_cb.device_list.peer_device[i].transport == BT_TRANSPORT_BR_EDR
-#endif
-          ) {
+      if (bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_CONNECTED &&
+          bta_dm_cb.device_list.peer_device[i].transport ==
+              BT_TRANSPORT_BR_EDR) {
         if (!set_master_role &&
             (bta_dm_cb.device_list.peer_device[i].pref_role != BTA_ANY_ROLE) &&
             (p_bta_dm_rm_cfg[0].cfg == BTA_DM_PARTIAL_SCATTERNET)) {
@@ -3802,7 +3751,7 @@ static void bta_dm_eir_search_services(tBTM_INQ_RESULTS* p_result,
 
   APPL_TRACE_DEBUG("    with services_to_search=0x%08X", *p_services_to_search);
 
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
   /* always do GATT based service discovery by SDP instead of from EIR    */
   /* if GATT based service is also to be put in EIR, need to modify this  */
   while (service_index < (BTA_MAX_SERVICE_ID - 1))
@@ -4021,7 +3970,6 @@ void bta_dm_set_encryption(tBTA_DM_MSG* p_data) {
   }
 }
 
-#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
  *
  * Function         bta_dm_observe_results_cb
@@ -4173,10 +4121,8 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, BD_ADDR bda,
 
     case BTM_LE_COMPLT_EVT:
       bdcpy(sec_event.auth_cmpl.bd_addr, bda);
-#if (BLE_INCLUDED == TRUE)
       BTM_ReadDevInfo(bda, &sec_event.auth_cmpl.dev_type,
                       &sec_event.auth_cmpl.addr_type);
-#endif
       p_name = BTM_SecReadDevName(bda);
       if (p_name != NULL)
         strlcpy((char*)sec_event.auth_cmpl.bd_name, p_name, (BD_NAME_LEN));
@@ -5198,5 +5144,3 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result) {
   }
 }
 #endif /* BLE_VND_INCLUDED */
-
-#endif /* BLE_INCLUDED */

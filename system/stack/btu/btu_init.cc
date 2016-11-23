@@ -26,6 +26,8 @@
 #include "btm_int.h"
 #include "btu.h"
 #include "device/include/controller.h"
+#include "gatt_api.h"
+#include "gatt_int.h"
 #include "l2c_int.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
@@ -33,12 +35,8 @@
 #include "osi/include/thread.h"
 #include "sdpint.h"
 
-#if (BLE_INCLUDED == TRUE)
-#include "gatt_api.h"
-#include "gatt_int.h"
 #if (SMP_INCLUDED == TRUE)
 #include "smp_int.h"
-#endif
 #endif
 
 // Increase BTU task thread priority to avoid pre-emption
@@ -88,13 +86,11 @@ void btu_init_core(void)
 
     sdp_init();
 
-#if (BLE_INCLUDED == TRUE)
     gatt_init();
 #if (SMP_INCLUDED == TRUE)
     SMP_Init();
 #endif
     btm_ble_init();
-#endif
 }
 
 /*****************************************************************************
@@ -112,9 +108,7 @@ void btu_free_core(void)
       /* Free the mandatory core stack components */
       l2c_free();
 
-#if (BLE_INCLUDED == TRUE)
       gatt_free();
-#endif
 }
 
 /*****************************************************************************
