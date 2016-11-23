@@ -25,6 +25,7 @@
 
 #define BTM_BLE_MULTI_ADV_SUCCESS 0
 #define BTM_BLE_MULTI_ADV_FAILURE 1
+#define ADVERTISE_FAILED_TOO_MANY_ADVERTISERS 0x02
 
 using MultiAdvCb = base::Callback<void(uint8_t /* status */)>;
 
