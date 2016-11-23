@@ -75,10 +75,7 @@ extern void avdt_rcv_sync_info (BT_HDR *p_buf); /* this is for hci_test */
 #include "bta_sys.h"
 #include "btm_ble_int.h"
 #include "gatt_int.h"
-
-#if (SMP_INCLUDED == TRUE)
 #include "smp_int.h"
-#endif
 
 
 

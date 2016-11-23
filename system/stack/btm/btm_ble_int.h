@@ -31,11 +31,7 @@
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 #include "btm_int.h"
-
-#if (SMP_INCLUDED == TRUE)
 #include "smp_api.h"
-#endif
-
 #include "btm_ble_int_types.h"
 
 #ifdef __cplusplus
@@ -73,7 +69,6 @@ extern tBTM_STATUS btm_ble_start_scan(void);
 extern void btm_ble_create_ll_conn_complete (uint8_t status);
 
 /* LE security function from btm_sec.cc */
-#if (SMP_INCLUDED == TRUE)
 extern void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE_SEC_REQ_ACT *p_sec_req_act);
 extern void btm_ble_ltk_request_reply(BD_ADDR bda,  bool    use_stk, BT_OCTET16 stk);
 extern uint8_t btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data);
@@ -81,7 +76,6 @@ extern tBTM_STATUS btm_ble_set_encryption (BD_ADDR bd_addr, tBTM_BLE_SEC_ACT sec
 extern void btm_ble_ltk_request(uint16_t handle, uint8_t rand[8], uint16_t ediv);
 extern tBTM_STATUS btm_ble_start_encrypt(BD_ADDR bda, bool    use_stk, BT_OCTET16 stk);
 extern void btm_ble_link_encrypted(BD_ADDR bd_addr, uint8_t encr_enable);
-#endif
 
 /* LE device management functions */
 extern void btm_ble_reset_id( void );

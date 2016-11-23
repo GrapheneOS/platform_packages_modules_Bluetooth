@@ -24,13 +24,12 @@
 
 #include "bt_target.h"
 
-#if (SMP_INCLUDED == TRUE)
-    #include <stdio.h>
-    #include <string.h>
+#include <stdio.h>
+#include <string.h>
 
-    #include "btm_ble_api.h"
-    #include "smp_int.h"
-    #include "hcimsgs.h"
+#include "btm_ble_api.h"
+#include "smp_int.h"
+#include "hcimsgs.h"
 
 typedef struct
 {
@@ -323,6 +322,3 @@ bool    aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t length
 
     return ret;
 }
-
-#endif
-

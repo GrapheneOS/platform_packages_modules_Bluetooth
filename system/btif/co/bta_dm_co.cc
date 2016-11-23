@@ -28,11 +28,7 @@
 #include "bte_appl.h"
 
 tBTE_APPL_CFG bte_appl_cfg = {
-#if (SMP_INCLUDED == TRUE)
     BTA_LE_AUTH_REQ_SC_MITM_BOND,  // Authentication requirements
-#else
-    BTM_AUTH_SPGB_YES,  // Authentication requirements
-#endif
     BTM_LOCAL_IO_CAPS_BLE, BTM_BLE_INITIATOR_KEY_SIZE,
     BTM_BLE_RESPONDER_KEY_SIZE, BTM_BLE_MAX_KEY_SIZE};
 
