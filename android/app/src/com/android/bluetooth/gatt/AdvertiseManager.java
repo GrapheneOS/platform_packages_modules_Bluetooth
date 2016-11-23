@@ -201,11 +201,6 @@ class AdvertiseManager {
                 return;
             }
 
-            if (mAdvertiseClients.size() >= maxAdvertiseInstances()) {
-                postCallback(advertiserId,
-                        AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS);
-                return;
-            }
             if (!mAdvertiseNative.startAdverising(client)) {
                 postCallback(advertiserId, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
                 return;
@@ -229,11 +224,6 @@ class AdvertiseManager {
             if (mAdvertiseClients.contains(client)) {
                 mAdvertiseClients.remove(client);
             }
-        }
-
-        // Returns maximum advertise instances supported by controller.
-        int maxAdvertiseInstances() {
-            return mAdapterService.getNumOfAdvertisementInstancesSupported();
         }
     }
 
