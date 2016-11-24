@@ -62,7 +62,7 @@ const uint8_t codec_info_sbc_sink[AVDT_CODEC_SIZE] = {
   0x02 | 0x01,          // Allocation Method: A2DP_SBC_IE_ALLOC_MD_S |
                         // A2DP_SBC_IE_ALLOC_MD_L
   2,                    // MinimumBitpool Value: A2DP_SBC_IE_MIN_BITPOOL
-  250,                  // Maximum Bitpool Value: A2DP_SBC_IE_MAX_BITPOOL
+  53,                   // Maximum Bitpool Value: A2DP_SBC_MAX_BITPOOL
   7,                    // Dummy
   8,                    // Dummy
   9                     // Dummy
@@ -509,7 +509,7 @@ TEST(StackA2dpTest, test_a2dp_get_min_bitpool) {
 
 TEST(StackA2dpTest, test_a2dp_get_max_bitpool) {
   EXPECT_EQ(A2DP_GetMaxBitpool(codec_info_sbc), 53);
-  EXPECT_EQ(A2DP_GetMaxBitpool(codec_info_sbc_sink), 250);
+  EXPECT_EQ(A2DP_GetMaxBitpool(codec_info_sbc_sink), 53);
   EXPECT_EQ(A2DP_GetMaxBitpool(codec_info_non_a2dp), -1);
 }
 
