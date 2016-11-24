@@ -41,8 +41,6 @@
 #include "btif_util.h"
 #include "osi/include/osi.h"
 
-#if (BTA_GATT_INCLUDED == TRUE)
-
 #define GATTC_READ_VALUE_TYPE_VALUE 0x0000 /* Attribute value itself */
 #define GATTC_READ_VALUE_TYPE_AGG_FORMAT \
   0x2905 /* Characteristic Aggregate Format*/
@@ -251,8 +249,6 @@ void btif_gatt_check_encrypted_link(UNUSED_ATTR BD_ADDR bd_addr,
                                     UNUSED_ATTR tBTA_GATT_TRANSPORT transport_link) {
 }
 #endif
-
-#endif  // BTA_GATT_INCLUDED
 
 void btif_gatt_move_track_adv_data(btgatt_track_adv_info_t* p_dest,
                                    btgatt_track_adv_info_t* p_src) {

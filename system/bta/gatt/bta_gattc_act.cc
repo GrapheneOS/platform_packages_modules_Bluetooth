@@ -42,8 +42,6 @@
 #include "bta_hh_int.h"
 #endif
 
-#if (BTA_GATT_INCLUDED == TRUE)
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -1704,4 +1702,3 @@ static void bta_gattc_cong_cback(uint16_t conn_id, bool congested) {
     }
   }
 }
-#endif  // BTA_GATT_INCLUDED == TRUE

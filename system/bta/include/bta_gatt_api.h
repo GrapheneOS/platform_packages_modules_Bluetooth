@@ -34,11 +34,6 @@
 
 using std::vector;
 
-#ifndef BTA_GATT_INCLUDED
-#warning BTA_GATT_INCLUDED not defined
-#define BTA_GATT_INCLUDED false
-#endif
-
 #ifndef BTA_GATT_DEBUG
 #define BTA_GATT_DEBUG false
 #endif
