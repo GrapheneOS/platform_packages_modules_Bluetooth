@@ -23,9 +23,6 @@
  ******************************************************************************/
 #include "bt_target.h"
 
-
-#if (BTA_GATT_INCLUDED == TRUE)
-
 #include "bt_common.h"
 #include <stdio.h>
 #include <string.h>
@@ -1439,6 +1436,3 @@ bool    GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, uint16_t *p
     GATT_TRACE_API ("GATT_GetConnIdIfConnected status=%d", status);
     return status;
 }
-
-#endif
-

@@ -27,9 +27,7 @@
 #include "bt_target.h"
 #include "bta_sys.h"
 
-#if (BTA_GATT_INCLUDED == TRUE)
 #include "bta_gatt_api.h"
-#endif
 
 /*****************************************************************************
  *  Constants and data types
@@ -163,10 +161,8 @@ typedef struct {
   tBTA_SERVICE_MASK services;
   tBTA_DM_SEARCH_CBACK* p_cback;
   tBTA_DM_RS_RES rs_res;
-#if (BTA_GATT_INCLUDED == TRUE)
   uint8_t num_uuid;
   tBT_UUID* p_uuid;
-#endif
 } tBTA_DM_API_SEARCH;
 
 /* data type for BTA_DM_API_DISCOVER_EVT */
@@ -177,10 +173,8 @@ typedef struct {
   tBTA_DM_SEARCH_CBACK* p_cback;
   bool sdp_search;
   tBTA_TRANSPORT transport;
-#if (BTA_GATT_INCLUDED == TRUE)
   uint8_t num_uuid;
   tBT_UUID* p_uuid;
-#endif
   tSDP_UUID uuid;
 } tBTA_DM_API_DISCOVER;
 
@@ -783,7 +777,6 @@ typedef struct {
   bool cancel_pending; /* inquiry cancel is pending */
   tBTA_TRANSPORT transport;
   tBTA_DM_SEARCH_CBACK* p_scan_cback;
-#if (BTA_GATT_INCLUDED == TRUE)
   tBTA_GATTC_IF client_if;
   uint8_t num_uuid;
   tBT_UUID* p_srvc_uuid;
@@ -795,7 +788,6 @@ typedef struct {
   uint32_t ble_raw_used;
   alarm_t* gatt_close_timer; /* GATT channel close delay timer */
   BD_ADDR pending_close_bda; /* pending GATT channel remote device address */
-#endif
 
 } tBTA_DM_SEARCH_CB;
 
