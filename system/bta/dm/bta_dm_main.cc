@@ -124,8 +124,8 @@ enum {
   BTA_DM_SEARCH_CANCEL_TRANSAC_CMPL, /* 15 bta_dm_search_cancel_transac_cmpl */
   BTA_DM_DISC_RMT_NAME,              /* 16 bta_dm_disc_rmt_name */
   BTA_DM_API_DI_DISCOVER,            /* 17 bta_dm_di_disc */
-  BTA_DM_CLOSE_GATT_CONN, /* 18 bta_dm_close_gatt_conn */
-  BTA_DM_SEARCH_NUM_ACTIONS /* 19 */
+  BTA_DM_CLOSE_GATT_CONN,            /* 18 bta_dm_close_gatt_conn */
+  BTA_DM_SEARCH_NUM_ACTIONS          /* 19 */
 };
 
 /* action function list */
@@ -150,8 +150,7 @@ const tBTA_DM_ACTION bta_dm_search_action[] = {
                                           */
     bta_dm_disc_rmt_name,              /* 16 BTA_DM_DISC_RMT_NAME */
     bta_dm_di_disc,                    /* 17 BTA_DM_API_DI_DISCOVER */
-    bta_dm_close_gatt_conn
-};
+    bta_dm_close_gatt_conn};
 
 #define BTA_DM_SEARCH_IGNORE BTA_DM_SEARCH_NUM_ACTIONS
 /* state table information */
@@ -183,8 +182,7 @@ const uint8_t bta_dm_search_idle_st_table[][BTA_DM_SEARCH_NUM_COLS] = {
     /* API_DI_DISCOVER_EVT */ {BTA_DM_API_DI_DISCOVER, BTA_DM_SEARCH_IGNORE,
                                BTA_DM_SEARCH_ACTIVE},
     /* DISC_CLOSE_TOUT_EVT */
-    {BTA_DM_CLOSE_GATT_CONN, BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IDLE}
-};
+    {BTA_DM_CLOSE_GATT_CONN, BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IDLE}};
 const uint8_t bta_dm_search_search_active_st_table[][BTA_DM_SEARCH_NUM_COLS] = {
 
     /* Event                        Action 1
@@ -237,8 +235,7 @@ const uint8_t
         /* API_DI_DISCOVER_EVT */ {BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IGNORE,
                                    BTA_DM_SEARCH_CANCELLING},
         /* DISC_CLOSE_TOUT_EVT */
-        {BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_CANCELLING}
-};
+        {BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_CANCELLING}};
 
 const uint8_t bta_dm_search_disc_active_st_table[][BTA_DM_SEARCH_NUM_COLS] = {
 
@@ -263,8 +260,7 @@ const uint8_t bta_dm_search_disc_active_st_table[][BTA_DM_SEARCH_NUM_COLS] = {
     /* API_DI_DISCOVER_EVT */ {BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IGNORE,
                                BTA_DM_DISCOVER_ACTIVE},
     /* DISC_CLOSE_TOUT_EVT */
-    {BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IGNORE, BTA_DM_DISCOVER_ACTIVE}
-};
+    {BTA_DM_SEARCH_IGNORE, BTA_DM_SEARCH_IGNORE, BTA_DM_DISCOVER_ACTIVE}};
 
 typedef const uint8_t (*tBTA_DM_ST_TBL)[BTA_DM_SEARCH_NUM_COLS];
 

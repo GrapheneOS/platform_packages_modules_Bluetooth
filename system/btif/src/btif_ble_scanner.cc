@@ -51,14 +51,15 @@ using std::vector;
 extern bt_status_t do_in_jni_thread(const base::Closure& task);
 extern const btgatt_callbacks_t* bt_gatt_callbacks;
 
-#define  SCAN_CBACK_IN_JNI(P_CBACK, ...)                                       \
-  do {                                                                         \
-    if (bt_gatt_callbacks && bt_gatt_callbacks->scanner->P_CBACK) {            \
-      BTIF_TRACE_API("HAL bt_gatt_callbacks->client->%s", #P_CBACK);           \
-      do_in_jni_thread(Bind(bt_gatt_callbacks->scanner->P_CBACK, __VA_ARGS__)); \
-    } else {                                                                   \
-      ASSERTC(0, "Callback is NULL", 0);                                       \
-    }                                                                          \
+#define SCAN_CBACK_IN_JNI(P_CBACK, ...)                              \
+  do {                                                               \
+    if (bt_gatt_callbacks && bt_gatt_callbacks->scanner->P_CBACK) {  \
+      BTIF_TRACE_API("HAL bt_gatt_callbacks->client->%s", #P_CBACK); \
+      do_in_jni_thread(                                              \
+          Bind(bt_gatt_callbacks->scanner->P_CBACK, __VA_ARGS__));   \
+    } else {                                                         \
+      ASSERTC(0, "Callback is NULL", 0);                             \
+    }                                                                \
   } while (0)
 
 #define CHECK_BTGATT_INIT()                                      \
@@ -197,7 +198,7 @@ void bta_gatts_cback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
 
 void bta_scan_param_setup_cb(tGATT_IF client_if, tBTM_STATUS status) {
   SCAN_CBACK_IN_JNI(scan_parameter_setup_completed_cb, client_if,
-                   btif_gattc_translate_btm_status(status));
+                    btif_gattc_translate_btm_status(status));
 }
 
 void bta_scan_filt_cfg_cb(tBTA_DM_BLE_PF_ACTION action,
@@ -205,7 +206,7 @@ void bta_scan_filt_cfg_cb(tBTA_DM_BLE_PF_ACTION action,
                           tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
                           tBTA_STATUS status, tBTA_DM_BLE_REF_VALUE ref_value) {
   SCAN_CBACK_IN_JNI(scan_filter_cfg_cb, action, ref_value, status, cfg_op,
-                   avbl_space);
+                    avbl_space);
 }
 
 void bta_scan_filt_param_setup_cb(uint8_t action_type,
@@ -213,7 +214,7 @@ void bta_scan_filt_param_setup_cb(uint8_t action_type,
                                   tBTA_DM_BLE_REF_VALUE ref_value,
                                   tBTA_STATUS status) {
   SCAN_CBACK_IN_JNI(scan_filter_param_cb, action_type, ref_value, status,
-                   avbl_space);
+                    avbl_space);
 }
 
 void bta_scan_filt_status_cb(uint8_t action, tBTA_STATUS status,
@@ -245,7 +246,7 @@ void bta_batch_scan_setup_cb(tBTA_BLE_BATCH_SCAN_EVT evt,
 
     case BTA_BLE_BATCH_SCAN_DATA_EVT: {
       SCAN_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, 0, 0,
-                       vector<uint8_t>());
+                        vector<uint8_t>());
       return;
     }
 
@@ -275,10 +276,10 @@ void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value,
     osi_free(p_rep_data);
 
     SCAN_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
-                     num_records, std::move(data));
+                      num_records, std::move(data));
   } else {
     SCAN_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
-                     num_records, vector<uint8_t>());
+                      num_records, vector<uint8_t>());
   }
 }
 
@@ -368,7 +369,6 @@ void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
   SCAN_CBACK_IN_JNI(track_adv_event_cb, Owned(btif_scan_track_cb));
 }
 
-
 void btif_gattc_register_scanner_impl(tBT_UUID uuid) {
   BTA_GATTC_AppRegister(&uuid, bta_gatts_cback);
 }
@@ -387,7 +387,8 @@ void btif_gattc_unregister_scanner_impl(int client_if) {
 
 bt_status_t btif_gattc_unregister_scanner(int scanner_id) {
   CHECK_BTGATT_INIT();
-  return do_in_jni_thread(Bind(&btif_gattc_unregister_scanner_impl, scanner_id));
+  return do_in_jni_thread(
+      Bind(&btif_gattc_unregister_scanner_impl, scanner_id));
 }
 
 bt_status_t btif_gattc_scan(bool start) {
@@ -507,8 +508,7 @@ bt_status_t btif_gattc_scan_filter_add_remove(
     return BT_STATUS_PARM_INVALID;
 
   switch (filt_type) {
-    case BTA_DM_BLE_PF_ADDR_FILTER:
-    {
+    case BTA_DM_BLE_PF_ADDR_FILTER: {
       tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
       memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
@@ -524,8 +524,7 @@ bt_status_t btif_gattc_scan_filter_add_remove(
                                    filt_type, filt_index, nullptr,
                                    &bta_scan_filt_cfg_cb, client_if));
 
-    case BTA_DM_BLE_PF_SRVC_UUID:
-    {
+    case BTA_DM_BLE_PF_SRVC_UUID: {
       tBT_UUID bt_uuid;
       btif_to_bta_uuid(&bt_uuid, p_uuid);
 
@@ -542,8 +541,7 @@ bt_status_t btif_gattc_scan_filter_add_remove(
                                    filt_index, client_if));
     }
 
-    case BTA_DM_BLE_PF_SRVC_SOL_UUID:
-    {
+    case BTA_DM_BLE_PF_SRVC_SOL_UUID: {
       tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
       memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
@@ -556,23 +554,20 @@ bt_status_t btif_gattc_scan_filter_add_remove(
                                    &bta_scan_filt_cfg_cb, client_if));
     }
 
-    case BTA_DM_BLE_PF_LOCAL_NAME:
-    {
+    case BTA_DM_BLE_PF_LOCAL_NAME: {
       return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_local_name,
                                    std::move(data), action, filt_type,
                                    filt_index, client_if));
     }
 
-    case BTA_DM_BLE_PF_MANU_DATA:
-    {
+    case BTA_DM_BLE_PF_MANU_DATA: {
       return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_manu_data,
                                    company_id, company_id_mask, std::move(data),
                                    std::move(mask), action, filt_type,
                                    filt_index, client_if));
     }
 
-    case BTA_DM_BLE_PF_SRVC_DATA_PATTERN:
-    {
+    case BTA_DM_BLE_PF_SRVC_DATA_PATTERN: {
       return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_data_pattern,
                                    std::move(data), std::move(mask), action,
                                    filt_type, filt_index, client_if));
@@ -613,7 +608,6 @@ bt_status_t btif_gattc_set_scan_parameters(int client_if, int scan_interval,
            (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb));
 }
 
-
 bt_status_t btif_gattc_cfg_storage(int client_if, int batch_scan_full_max,
                                    int batch_scan_trunc_max,
                                    int batch_scan_notify_threshold) {
@@ -646,7 +640,7 @@ bt_status_t btif_gattc_read_batch_scan_reports(int client_if, int scan_mode) {
   return do_in_jni_thread(Bind(BTA_DmBleReadScanReports, scan_mode, client_if));
 }
 
-} //namespace
+}  // namespace
 
 const btgatt_scanner_interface_t btgattScannerInterface = {
     btif_gattc_register_scanner,

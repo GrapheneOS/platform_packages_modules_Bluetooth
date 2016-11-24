@@ -87,7 +87,8 @@ void bte_get_startup_options(
  * collisions! */
 #define BT_EVT_TO_HCISU_USERIAL_OP (0x0080 | BT_EVT_HCISU)
 /* operation for above hcisu event */
-#define BT_HCISU_USERIAL_OPEN (0)  /* open serial port calling USERIAL_Open() \
+#define BT_HCISU_USERIAL_OPEN                                                 \
+  (0)                              /* open serial port calling USERIAL_Open() \
                                       */
 #define BT_HCISU_USERIAL_CLOSE (1) /* close userial port */
 /* options associated with close op */

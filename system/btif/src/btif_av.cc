@@ -554,8 +554,8 @@ static bool btif_av_state_opening_handler(btif_sm_event_t event, void* p_data) {
     case BTIF_AV_CONNECT_REQ_EVT:
       // Check for device, if same device which moved to opening then ignore
       // callback
-      if (memcmp(((btif_av_connect_req_t *)p_data)->target_bda, &(btif_av_cb.peer_bda),
-                 sizeof(btif_av_cb.peer_bda)) == 0) {
+      if (memcmp(((btif_av_connect_req_t*)p_data)->target_bda,
+                 &(btif_av_cb.peer_bda), sizeof(btif_av_cb.peer_bda)) == 0) {
         BTIF_TRACE_DEBUG(
             "%s: Same device moved to Opening state,ignore Connect Req",
             __func__);
@@ -564,8 +564,9 @@ static bool btif_av_state_opening_handler(btif_sm_event_t event, void* p_data) {
       } else {
         BTIF_TRACE_DEBUG("%s: Moved from idle by Incoming Connection request",
                          __func__);
-        btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
-                                     ((btif_av_connect_req_t *)p_data)->target_bda);
+        btif_report_connection_state(
+            BTAV_CONNECTION_STATE_DISCONNECTED,
+            ((btif_av_connect_req_t*)p_data)->target_bda);
         btif_queue_advance();
         break;
       }
@@ -1641,18 +1642,19 @@ bool btif_av_peer_supports_3mbps(void) {
 ** Returns          Void
 **
 *******************************************************************************/
-void btif_av_move_idle(bt_bdaddr_t bd_addr)
-{
-    /* inform the application that ACL is disconnected and move to idle state */
-    btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
-    BTIF_TRACE_DEBUG("%s: ACL Disconnected state %d  is same device %d", __func__,
-            state, memcmp (&bd_addr, &(btif_av_cb.peer_bda), sizeof(bd_addr)));
-    if (state == BTIF_AV_STATE_OPENING &&
-            (memcmp (&bd_addr, &(btif_av_cb.peer_bda), sizeof(bd_addr)) == 0))
-    {
-        BTIF_TRACE_DEBUG("%s: Moving State from Opening to Idle due to ACL disconnect", __func__);
-        btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
-                &(btif_av_cb.peer_bda));
-        btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
-    }
+void btif_av_move_idle(bt_bdaddr_t bd_addr) {
+  /* inform the application that ACL is disconnected and move to idle state */
+  btif_sm_state_t state = btif_sm_get_state(btif_av_cb.sm_handle);
+  BTIF_TRACE_DEBUG("%s: ACL Disconnected state %d  is same device %d", __func__,
+                   state,
+                   memcmp(&bd_addr, &(btif_av_cb.peer_bda), sizeof(bd_addr)));
+  if (state == BTIF_AV_STATE_OPENING &&
+      (memcmp(&bd_addr, &(btif_av_cb.peer_bda), sizeof(bd_addr)) == 0)) {
+    BTIF_TRACE_DEBUG(
+        "%s: Moving State from Opening to Idle due to ACL disconnect",
+        __func__);
+    btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
+                                 &(btif_av_cb.peer_bda));
+    btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+  }
 }
