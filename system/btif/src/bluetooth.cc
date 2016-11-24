@@ -446,7 +446,7 @@ const bt_interface_t* bluetooth__get_bluetooth_interface() {
   return &bluetoothInterface;
 }
 
-static int close_bluetooth_stack(UNUSED_ATTR struct hw_device_t *device) {
+static int close_bluetooth_stack(UNUSED_ATTR struct hw_device_t* device) {
   cleanup();
   return 0;
 }

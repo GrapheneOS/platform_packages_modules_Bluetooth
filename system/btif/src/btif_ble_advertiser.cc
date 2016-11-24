@@ -113,28 +113,26 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     params->adv_filter_policy = 0;
     params->tx_power = ble_map_adv_tx_power(tx_power);
 
-    do_in_bta_thread(
-        FROM_HERE,
-        Bind(&BleAdvertisingManager::SetParameters,
-             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
-             base::Owned(params),
-             Bind(&BleAdvertiserInterfaceImpl::SetParametersCb,
-                  base::Unretained(this), cb)));
+    do_in_bta_thread(FROM_HERE,
+                     Bind(&BleAdvertisingManager::SetParameters,
+                          base::Unretained(BleAdvertisingManager::Get()),
+                          advertiser_id, base::Owned(params),
+                          Bind(&BleAdvertiserInterfaceImpl::SetParametersCb,
+                               base::Unretained(this), cb)));
   }
 
-  void SetDataCb(Callback cb, uint8_t advertiser_id,
-                             uint8_t status) {
+  void SetDataCb(Callback cb, uint8_t advertiser_id, uint8_t status) {
     do_in_jni_thread(Bind(cb, status));
   }
 
   void SetData(int advertiser_id, bool set_scan_rsp, vector<uint8_t> data,
                Callback cb) override {
-    do_in_bta_thread(
-        FROM_HERE, Bind(&BleAdvertisingManager::SetData,
-                        base::Unretained(BleAdvertisingManager::Get()),
-                        advertiser_id, set_scan_rsp, std::move(data),
-                        Bind(&BleAdvertiserInterfaceImpl::SetDataCb,
-                             base::Unretained(this), cb, advertiser_id)));
+    do_in_bta_thread(FROM_HERE,
+                     Bind(&BleAdvertisingManager::SetData,
+                          base::Unretained(BleAdvertisingManager::Get()),
+                          advertiser_id, set_scan_rsp, std::move(data),
+                          Bind(&BleAdvertiserInterfaceImpl::SetDataCb,
+                               base::Unretained(this), cb, advertiser_id)));
   }
 
   void EnableTimeoutCb(Callback cb, uint8_t status) {
@@ -145,8 +143,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     do_in_jni_thread(Bind(cb, status));
   }
 
-  void Enable(uint8_t advertiser_id, bool enable, Callback cb,
-              int timeout_s, Callback timeout_cb) override {
+  void Enable(uint8_t advertiser_id, bool enable, Callback cb, int timeout_s,
+              Callback timeout_cb) override {
     VLOG(1) << __func__ << " advertiser_id: " << +advertiser_id
             << " ,enable: " << enable;
 
@@ -156,9 +154,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
              enable, Bind(&BleAdvertiserInterfaceImpl::EnableCb,
                           base::Unretained(this), cb),
-             timeout_s,
-             Bind(&BleAdvertiserInterfaceImpl::EnableTimeoutCb,
-                  base::Unretained(this), timeout_cb)));
+             timeout_s, Bind(&BleAdvertiserInterfaceImpl::EnableTimeoutCb,
+                             base::Unretained(this), timeout_cb)));
   }
 
   void StartAdvertising(uint8_t advertiser_id, Callback cb,

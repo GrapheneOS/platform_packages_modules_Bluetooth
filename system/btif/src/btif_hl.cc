@@ -55,19 +55,19 @@
 #include "btu.h"
 #include "mca_api.h"
 #include "osi/include/list.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 #define MAX_DATATYPE_SUPPORTED 8
 
 extern int btif_hl_update_maxfd(int max_org_s);
 extern void btif_hl_select_monitor_callback(fd_set* p_cur_set,
-                                            UNUSED_ATTR fd_set *p_org_set);
+                                            UNUSED_ATTR fd_set* p_org_set);
 extern void btif_hl_select_wakeup_callback(fd_set* p_org_set,
                                            int wakeup_signal);
 extern int btif_hl_update_maxfd(int max_org_s);
 extern void btif_hl_select_monitor_callback(fd_set* p_cur_set,
-                                            UNUSED_ATTR fd_set *p_org_set);
+                                            UNUSED_ATTR fd_set* p_org_set);
 extern void btif_hl_select_wakeup_callback(fd_set* p_org_set,
                                            int wakeup_signal);
 extern void btif_hl_soc_thread_init(void);
@@ -2929,7 +2929,7 @@ static void btif_hl_proc_dch_cong_ind(tBTA_HL* p_data)
  ******************************************************************************/
 static void btif_hl_proc_reg_request(uint8_t app_idx, uint8_t app_id,
                                      tBTA_HL_REG_PARAM* p_reg_param,
-                                     UNUSED_ATTR tBTA_HL_CBACK *p_cback) {
+                                     UNUSED_ATTR tBTA_HL_CBACK* p_cback) {
   BTIF_TRACE_DEBUG("%s app_idx=%d app_id=%d", __func__, app_idx, app_id);
 
   if (reg_counter > 1) {
@@ -4394,7 +4394,7 @@ void btif_hl_select_wakeup_callback(fd_set* p_org_set, int wakeup_signal) {
  *
  ******************************************************************************/
 void btif_hl_select_monitor_callback(fd_set* p_cur_set,
-                                     UNUSED_ATTR fd_set *p_org_set) {
+                                     UNUSED_ATTR fd_set* p_org_set) {
   BTIF_TRACE_DEBUG("entering %s", __func__);
 
   for (const list_node_t* node = list_begin(soc_queue);
@@ -4596,7 +4596,7 @@ static void btif_hl_thread_cleanup() {
  * Returns void
  *
  ******************************************************************************/
-static void* btif_hl_select_thread(UNUSED_ATTR void *arg) {
+static void* btif_hl_select_thread(UNUSED_ATTR void* arg) {
   fd_set org_set, curr_set;
   int r, max_curr_s, max_org_s;
 

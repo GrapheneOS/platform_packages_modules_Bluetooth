@@ -59,10 +59,10 @@ const uint8_t bta_av_co_cp_scmst[AVDT_CP_INFO_LEN] = {0x02, 0x02, 0x00};
  *  Local data
  ****************************************************************************/
 typedef struct {
-  uint8_t sep_info_idx;                /* local SEP index (in BTA tables) */
-  uint8_t seid;                        /* peer SEP index (in peer tables) */
-  uint8_t codec_caps[AVDT_CODEC_SIZE]; /* peer SEP codec capabilities */
-  uint8_t num_protect;                 /* peer SEP number of CP elements */
+  uint8_t sep_info_idx;                   /* local SEP index (in BTA tables) */
+  uint8_t seid;                           /* peer SEP index (in peer tables) */
+  uint8_t codec_caps[AVDT_CODEC_SIZE];    /* peer SEP codec capabilities */
+  uint8_t num_protect;                    /* peer SEP number of CP elements */
   uint8_t protect_info[AVDT_CP_INFO_LEN]; /* peer SEP content protection info */
 } tBTA_AV_CO_SINK;
 
@@ -78,15 +78,15 @@ typedef struct {
   uint8_t num_rx_srcs;   /* number of received srcs */
   uint8_t num_sup_sinks; /* number of supported sinks in the sinks array */
   uint8_t num_sup_srcs;  /* number of supported srcs in the srcs array */
-  const tBTA_AV_CO_SINK* p_sink;      /* currently selected sink */
-  const tBTA_AV_CO_SINK* p_src;       /* currently selected src */
+  const tBTA_AV_CO_SINK* p_sink;         /* currently selected sink */
+  const tBTA_AV_CO_SINK* p_src;          /* currently selected src */
   uint8_t codec_config[AVDT_CODEC_SIZE]; /* current codec configuration */
-  bool cp_active;                     /* current CP configuration */
-  bool acp;                           /* acceptor */
-  bool reconfig_needed;               /* reconfiguration is needed */
-  bool opened;                        /* opened */
-  uint16_t mtu;                       /* maximum transmit unit size */
-  uint16_t uuid_to_connect;           /* uuid of peer device */
+  bool cp_active;                        /* current CP configuration */
+  bool acp;                              /* acceptor */
+  bool reconfig_needed;                  /* reconfiguration is needed */
+  bool opened;                           /* opened */
+  uint16_t mtu;                          /* maximum transmit unit size */
+  uint16_t uuid_to_connect;              /* uuid of peer device */
 } tBTA_AV_CO_PEER;
 
 typedef struct {
@@ -437,7 +437,7 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
     for (int i = A2DP_CODEC_SEP_INDEX_SOURCE_MAX - 1;
          i >= A2DP_CODEC_SEP_INDEX_SOURCE_MIN; i--) {
       tA2DP_CODEC_SEP_INDEX source_codec_sep_index =
-        static_cast<tA2DP_CODEC_SEP_INDEX>(i);
+          static_cast<tA2DP_CODEC_SEP_INDEX>(i);
       APPL_TRACE_DEBUG("%s: trying codec %s with sep_index %d", __func__,
                        A2DP_CodecSepIndexStr(source_codec_sep_index), i);
       tAVDT_CFG avdt_cfg;
@@ -446,10 +446,9 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
                          A2DP_CodecSepIndexStr(source_codec_sep_index));
         continue;
       }
-      p_sink = bta_av_co_find_peer_sink_supports_codec(avdt_cfg.codec_info,
-                                                       p_peer);
-      if (p_sink == NULL)
-        continue;
+      p_sink =
+          bta_av_co_find_peer_sink_supports_codec(avdt_cfg.codec_info, p_peer);
+      if (p_sink == NULL) continue;
       // Found a preferred codec
       APPL_TRACE_DEBUG("%s: selected codec %s", __func__,
                        A2DP_CodecName(avdt_cfg.codec_info));
@@ -604,7 +603,8 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
       } else if ((num_protect == 1) && (!bta_av_co_cb.cp.active)) {
         reconfig_needed = true;
       }
-      memcpy(bta_av_co_cb.codec_config_setconfig, p_codec_info, AVDT_CODEC_SIZE);
+      memcpy(bta_av_co_cb.codec_config_setconfig, p_codec_info,
+             AVDT_CODEC_SIZE);
       if (t_local_sep == AVDT_TSEP_SNK) {
         /*
          * If Peer is SRC, and our config subset matches with what is
@@ -903,8 +903,7 @@ static const tBTA_AV_CO_SINK* bta_av_co_find_peer_sink_supports_codec(
     if (A2DP_CodecConfigMatchesCapabilities(codec_config,
                                             p_peer->sinks[index].codec_caps)) {
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)
-      if (!bta_av_co_audio_sink_has_scmst(&p_peer->sinks[index]))
-          continue;
+      if (!bta_av_co_audio_sink_has_scmst(&p_peer->sinks[index])) continue;
 #endif
       return &p_peer->sinks[index];
     }
@@ -958,7 +957,7 @@ bool bta_av_co_audio_set_codec(const tA2DP_FEEDING_PARAMS* p_feeding_params) {
   for (int i = A2DP_CODEC_SEP_INDEX_SOURCE_MAX - 1;
        i >= A2DP_CODEC_SEP_INDEX_SOURCE_MIN; i--) {
     tA2DP_CODEC_SEP_INDEX source_codec_sep_index =
-      static_cast<tA2DP_CODEC_SEP_INDEX>(i);
+        static_cast<tA2DP_CODEC_SEP_INDEX>(i);
     APPL_TRACE_DEBUG("%s: trying codec %s with sep_index %d", __func__,
                      A2DP_CodecSepIndexStr(source_codec_sep_index), i);
     if (!A2DP_SetSourceCodec(source_codec_sep_index, p_feeding_params,
@@ -996,7 +995,7 @@ static bool bta_av_co_audio_codec_selected(const uint8_t* codec_config) {
     if (!p_peer->opened) continue;
 
     const tBTA_AV_CO_SINK* p_sink =
-      bta_av_co_find_peer_sink_supports_codec(codec_config, p_peer);
+        bta_av_co_find_peer_sink_supports_codec(codec_config, p_peer);
     if (p_sink == NULL) {
       APPL_TRACE_DEBUG("%s: index %d doesn't support codec", __func__, index);
       continue;

@@ -667,7 +667,6 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t* bd_addr,
     }
     if (btif_storage_get_remote_addr_type(bd_addr, &addr_type) !=
         BT_STATUS_SUCCESS) {
-
       // Try to read address type. OOB pairing might have set it earlier, but
       // didn't store it, it defaults to BLE_ADDR_PUBLIC
       uint8_t tmp_dev_type;
@@ -686,8 +685,7 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t* bd_addr,
     BTA_DmAddBleDevice(bd_addr->address, addr_type, device_type);
   }
 
-  if (is_hid && (device_type & BT_DEVICE_TYPE_BLE) == 0)
-  {
+  if (is_hid && (device_type & BT_DEVICE_TYPE_BLE) == 0) {
     bt_status_t status;
     status = (bt_status_t)btif_hh_connect(bd_addr);
     if (status != BT_STATUS_SUCCESS)
@@ -1125,7 +1123,6 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
       }
       if (!is_crosskey ||
           !(stack_config_get_interface()->get_pts_crosskey_sdp_disable())) {
-
         // Ensure inquiry is stopped before attempting service discovery
         btif_dm_cancel_discovery();
 
@@ -1300,7 +1297,7 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
                                    BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod),
                                    &cod);
         num_properties++;
-/* DEV_TYPE */
+        /* DEV_TYPE */
         /* FixMe: Assumption is that bluetooth.h and BTE enums match */
 
         /* Verify if the device is dual mode in NVRAM */
@@ -2267,7 +2264,8 @@ bt_status_t btif_dm_create_bond_out_of_band(
     if (address_type == BLE_ADDR_PUBLIC || address_type == BLE_ADDR_RANDOM) {
       // bd_addr->address is already reversed, so use it instead of
       // oob_data->le_bt_dev_addr
-      BTM_SecAddBleDevice(bd_addr->address, NULL, BT_DEVICE_TYPE_BLE, address_type);
+      BTM_SecAddBleDevice(bd_addr->address, NULL, BT_DEVICE_TYPE_BLE,
+                          address_type);
     }
   }
 
@@ -2573,9 +2571,10 @@ void btif_dm_execute_service_request(uint16_t event, char* p_param) {
   return;
 }
 
-void btif_dm_proc_io_req(UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBTA_IO_CAP *p_io_cap,
-                         UNUSED_ATTR tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ* p_auth_req,
-                         bool is_orig) {
+void btif_dm_proc_io_req(UNUSED_ATTR BD_ADDR bd_addr,
+                         UNUSED_ATTR tBTA_IO_CAP* p_io_cap,
+                         UNUSED_ATTR tBTA_OOB_DATA* p_oob_data,
+                         tBTA_AUTH_REQ* p_auth_req, bool is_orig) {
   uint8_t yes_no_bit = BTA_AUTH_SP_YES & *p_auth_req;
   /* if local initiated:
   **      1. set DD + MITM
@@ -2610,7 +2609,8 @@ void btif_dm_proc_io_req(UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBTA_IO_CAP *p
 }
 
 void btif_dm_proc_io_rsp(UNUSED_ATTR BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
-                         UNUSED_ATTR tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req) {
+                         UNUSED_ATTR tBTA_OOB_DATA oob_data,
+                         tBTA_AUTH_REQ auth_req) {
   if (auth_req & BTA_AUTH_BONDS) {
     BTIF_TRACE_DEBUG("%s auth_req:%d", __func__, auth_req);
     pairing_cb.auth_req = auth_req;
@@ -3249,9 +3249,7 @@ void btif_dm_on_disable() {
  * Returns         void
  *
  ******************************************************************************/
-void btif_dm_read_energy_info() {
-  BTA_DmBleGetEnergyInfo(bta_energy_info_cb);
-}
+void btif_dm_read_energy_info() { BTA_DmBleGetEnergyInfo(bta_energy_info_cb); }
 
 static char* btif_get_default_local_name() {
   if (btif_default_local_name[0] == '\0') {
