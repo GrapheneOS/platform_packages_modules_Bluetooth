@@ -17,9 +17,7 @@
 #include "service/hal/bluetooth_gatt_interface.h"
 
 #include <mutex>
-#define _LIBCPP_BUILDING_SHARED_MUTEX
 #include <shared_mutex>
-#undef _LIBCPP_BUILDING_SHARED_MUTEX
 
 #include <base/logging.h>
 #include <base/observer_list.h>
@@ -31,7 +29,11 @@ using std::lock_guard;
 using std::unique_lock;
 using std::shared_lock;
 using std::mutex;
-using std::shared_timed_mutex;
+#if defined(OS_GENERIC) && defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION < 3500)
+using shared_mutex_impl = std::shared_mutex;
+#else
+using shared_mutex_impl = std::shared_timed_mutex;
+#endif
 
 namespace bluetooth {
 namespace hal {
@@ -45,7 +47,7 @@ BluetoothGattInterface* g_interface = nullptr;
 // use unique_lock. If only accessing |g_interface| use shared lock.
 //TODO(jpawlowski): this should be just shared_mutex, as we currently don't use
 // timed methods. Change to shared_mutex when we upgrade to C++14
-shared_timed_mutex g_instance_lock;
+shared_mutex_impl g_instance_lock;
 
 // Helper for obtaining the observer lists. This is forward declared here
 // and defined below since it depends on BluetoothInterfaceImpl.
@@ -77,7 +79,7 @@ base::ObserverList<BluetoothGattInterface::ServerObserver>*
   } while (0)
 
 void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(app_uuid);
@@ -87,7 +89,7 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
 }
 
 void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t* app_uuid) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " scanner_id: " << scanner_id;
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(app_uuid);
@@ -97,7 +99,7 @@ void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t* app_uuid) {
 }
 
 void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) {  // NOLINT(pass-by-value)
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
@@ -108,7 +110,7 @@ void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) { 
 }
 
 void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
@@ -123,7 +125,7 @@ void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
 
 void DisconnectCallback(int conn_id, int status, int client_if,
                         bt_bdaddr_t* bda) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
@@ -136,7 +138,7 @@ void DisconnectCallback(int conn_id, int status, int client_if,
 }
 
 void SearchCompleteCallback(int conn_id, int status) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id
@@ -146,7 +148,7 @@ void SearchCompleteCallback(int conn_id, int status) {
 }
 
 void RegisterForNotificationCallback(int conn_id, int registered, int status, uint16_t handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   LOG(INFO) << __func__ << " - conn_id: " << conn_id
@@ -158,7 +160,7 @@ void RegisterForNotificationCallback(int conn_id, int registered, int status, ui
 }
 
 void NotifyCallback(int conn_id, btgatt_notify_params_t *p_data) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id
@@ -172,7 +174,7 @@ void NotifyCallback(int conn_id, btgatt_notify_params_t *p_data) {
 }
 
 void WriteCharacteristicCallback(int conn_id, int status, uint16_t handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id
@@ -184,7 +186,7 @@ void WriteCharacteristicCallback(int conn_id, int status, uint16_t handle) {
 
 void WriteDescriptorCallback(int conn_id, int status,
       uint16_t handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id
@@ -195,7 +197,7 @@ void WriteDescriptorCallback(int conn_id, int status,
 }
 
 void MtuChangedCallback(int conn_id, int status, int mtu) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id
@@ -206,7 +208,7 @@ void MtuChangedCallback(int conn_id, int status, int mtu) {
 }
 
 void GetGattDbCallback(int conn_id, btgatt_db_element_t *db, int size) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " size: " << size;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -215,7 +217,7 @@ void GetGattDbCallback(int conn_id, btgatt_db_element_t *db, int size) {
 }
 
 void ServicesRemovedCallback(int conn_id, uint16_t start_handle, uint16_t end_handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id
           << " start_handle: " << start_handle
           << " end_handle: " << end_handle;
@@ -226,7 +228,7 @@ void ServicesRemovedCallback(int conn_id, uint16_t start_handle, uint16_t end_ha
 }
 
 void ServicesAddedCallback(int conn_id, btgatt_db_element_t *added, int added_count) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id
           << " added_count: " << added_count;
   VERIFY_INTERFACE_OR_RETURN();
@@ -236,7 +238,7 @@ void ServicesAddedCallback(int conn_id, btgatt_db_element_t *added, int added_co
 }
 
 void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if;
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(app_uuid);
@@ -247,7 +249,7 @@ void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
 
 void ConnectionCallback(int conn_id, int server_if, int connected,
                         bt_bdaddr_t* bda) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id
           << " server_if: " << server_if << " connected: " << connected;
   VERIFY_INTERFACE_OR_RETURN();
@@ -261,7 +263,7 @@ void ServiceAddedCallback(
     int status,
     int server_if,
     vector<btgatt_db_element_t> service) {  // NOLINT(pass-by-value)
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " count: " << service.size();
   VERIFY_INTERFACE_OR_RETURN();
@@ -272,7 +274,7 @@ void ServiceAddedCallback(
 }
 
 void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " handle: " << srvc_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -282,7 +284,7 @@ void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
 }
 
 void ServiceDeletedCallback(int status, int server_if, int srvc_handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " handle: " << srvc_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -293,7 +295,7 @@ void ServiceDeletedCallback(int status, int server_if, int srvc_handle) {
 
 void RequestReadCharacteristicCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
                          int attr_handle, int offset, bool is_long) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
           << " is_long: " << is_long;
@@ -306,7 +308,7 @@ void RequestReadCharacteristicCallback(int conn_id, int trans_id, bt_bdaddr_t* b
 
 void RequestReadDescriptorCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
                          int attr_handle, int offset, bool is_long) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
           << " is_long: " << is_long;
@@ -322,7 +324,7 @@ void RequestWriteCharacteristicCallback(int conn_id, int trans_id,
                           int attr_handle, int offset,
                           bool need_rsp, bool is_prep,
                           vector<uint8_t> value) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
           << " length: " << value.size() << " need_rsp: " << need_rsp
@@ -340,7 +342,7 @@ void RequestWriteDescriptorCallback(int conn_id, int trans_id,
                           int attr_handle, int offset,
                           bool need_rsp, bool is_prep,
                           vector<uint8_t> value) {  // NOLINT(pass-by-value)
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
           << " length: " << value.size() << " need_rsp: " << need_rsp
@@ -355,7 +357,7 @@ void RequestWriteDescriptorCallback(int conn_id, int trans_id,
 
 void RequestExecWriteCallback(int conn_id, int trans_id,
                               bt_bdaddr_t* bda, int exec_write) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " exec_write: " << exec_write;
   VERIFY_INTERFACE_OR_RETURN();
@@ -366,7 +368,7 @@ void RequestExecWriteCallback(int conn_id, int trans_id,
 }
 
 void ResponseConfirmationCallback(int status, int handle) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " handle: " << handle;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -375,7 +377,7 @@ void ResponseConfirmationCallback(int status, int handle) {
 }
 
 void IndicationSentCallback(int conn_id, int status) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " status: " << status;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -384,7 +386,7 @@ void IndicationSentCallback(int conn_id, int status) {
 }
 
 void MtuChangedCallback(int conn_id, int mtu) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " mtu: " << mtu;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -820,7 +822,7 @@ void BluetoothGattInterface::ServerObserver::MtuChangedCallback(
 
 // static
 bool BluetoothGattInterface::Initialize() {
-  unique_lock<shared_timed_mutex> lock(g_instance_lock);
+  unique_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(!g_interface);
 
   std::unique_ptr<BluetoothGattInterfaceImpl> impl(
@@ -837,7 +839,7 @@ bool BluetoothGattInterface::Initialize() {
 
 // static
 void BluetoothGattInterface::CleanUp() {
-  unique_lock<shared_timed_mutex> lock(g_instance_lock);
+  unique_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(g_interface);
 
   delete g_interface;
@@ -846,14 +848,14 @@ void BluetoothGattInterface::CleanUp() {
 
 // static
 bool BluetoothGattInterface::IsInitialized() {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
 
   return g_interface != nullptr;
 }
 
 // static
 BluetoothGattInterface* BluetoothGattInterface::Get() {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(g_interface);
   return g_interface;
 }
@@ -861,7 +863,7 @@ BluetoothGattInterface* BluetoothGattInterface::Get() {
 // static
 void BluetoothGattInterface::InitializeForTesting(
     BluetoothGattInterface* test_instance) {
-  unique_lock<shared_timed_mutex> lock(g_instance_lock);
+  unique_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(test_instance);
   CHECK(!g_interface);
 

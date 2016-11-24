@@ -17,9 +17,7 @@
 #include "service/hal/bluetooth_interface.h"
 
 #include <mutex>
-#define _LIBCPP_BUILDING_SHARED_MUTEX
 #include <shared_mutex>
-#undef _LIBCPP_BUILDING_SHARED_MUTEX
 
 #include <base/logging.h>
 #include <base/observer_list.h>
@@ -32,7 +30,11 @@ using std::lock_guard;
 using std::unique_lock;
 using std::shared_lock;
 using std::mutex;
-using std::shared_timed_mutex;
+#if defined(OS_GENERIC) && defined(_LIBCPP_VERSION) && (_LIBCPP_VERSION < 3500)
+using shared_mutex_impl = std::shared_mutex;
+#else
+using shared_mutex_impl = std::shared_timed_mutex;
+#endif
 
 namespace bluetooth {
 namespace hal {
@@ -46,7 +48,7 @@ BluetoothInterface* g_bluetooth_interface = nullptr;
 // use unique_lock. If only accessing |g_interface| use shared lock.
 //TODO(jpawlowski): this should be just shared_mutex, as we currently don't use
 // timed methods. Change to shared_mutex when we upgrade to C++14
-shared_timed_mutex g_instance_lock;
+shared_mutex_impl g_instance_lock;
 
 // Helper for obtaining the observer list. This is forward declared here and
 // defined below since it depends on BluetoothInterfaceImpl.
@@ -64,7 +66,7 @@ base::ObserverList<BluetoothInterface::Observer>* GetObservers();
   } while (0)
 
 void AdapterStateChangedCallback(bt_state_t state) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(1) << "Adapter state changed: " << BtStateText(state);
   FOR_EACH_BLUETOOTH_OBSERVER(AdapterStateChangedCallback(state));
@@ -73,7 +75,7 @@ void AdapterStateChangedCallback(bt_state_t state) {
 void AdapterPropertiesCallback(bt_status_t status,
                                int num_properties,
                                bt_property_t* properties) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(1) << "Adapter properties changed - status: " << BtStatusText(status)
           << ", num_properties: " << num_properties;
@@ -85,7 +87,7 @@ void RemoteDevicePropertiesCallback(bt_status_t status,
                                bt_bdaddr_t *remote_bd_addr,
                                int num_properties,
                                bt_property_t* properties) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(1) << " Remote device properties changed - status: " << BtStatusText(status)
           << " - BD_ADDR: " << BtAddrString(remote_bd_addr)
@@ -96,7 +98,7 @@ void RemoteDevicePropertiesCallback(bt_status_t status,
 }
 
 void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(1) << "Discovery state changed - state: " << BtDiscoveryStateText(state);
   FOR_EACH_BLUETOOTH_OBSERVER(DiscoveryStateChangedCallback(state));
@@ -104,7 +106,7 @@ void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
 
 void PinRequestCallback(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *bd_name,
     uint32_t cod, bool min_16_digit) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(2) << __func__
           << " - remote_bd_addr: " << remote_bd_addr
@@ -116,7 +118,7 @@ void PinRequestCallback(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *bd_name,
 
 void SSPRequestCallback(bt_bdaddr_t *remote_bd_addr,
     bt_bdname_t *bd_name, uint32_t cod, bt_ssp_variant_t pairing_variant, uint32_t pass_key) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(2) << __func__
           << " - remote_bd_addr: " << remote_bd_addr
@@ -131,7 +133,7 @@ void BondStateChangedCallback(
     bt_status_t status,
     bt_bdaddr_t *remote_bd_addr,
     bt_bond_state_t state) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(2) << __func__
           << " - remote_bd_addr: " << BtAddrString(remote_bd_addr)
@@ -143,7 +145,7 @@ void BondStateChangedCallback(
 void AclStateChangedCallback(bt_status_t status,
                              bt_bdaddr_t *remote_bd_addr,
                              bt_acl_state_t state) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(remote_bd_addr);
   VLOG(1) << "Remote device ACL state changed - status: "
@@ -232,12 +234,12 @@ class BluetoothInterfaceImpl : public BluetoothInterface {
 
   // BluetoothInterface overrides.
   void AddObserver(Observer* observer) override {
-    shared_lock<shared_timed_mutex> lock(g_instance_lock);
+    shared_lock<shared_mutex_impl> lock(g_instance_lock);
     observers_.AddObserver(observer);
   }
 
   void RemoveObserver(Observer* observer) override {
-    shared_lock<shared_timed_mutex> lock(g_instance_lock);
+    shared_lock<shared_mutex_impl> lock(g_instance_lock);
     observers_.RemoveObserver(observer);
   }
 
@@ -381,7 +383,7 @@ void BluetoothInterface::Observer::AclStateChangedCallback(
 
 // static
 bool BluetoothInterface::Initialize() {
-  unique_lock<shared_timed_mutex> lock(g_instance_lock);
+  unique_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(!g_bluetooth_interface);
 
   std::unique_ptr<BluetoothInterfaceImpl> impl(new BluetoothInterfaceImpl());
@@ -397,7 +399,7 @@ bool BluetoothInterface::Initialize() {
 
 // static
 void BluetoothInterface::CleanUp() {
-  unique_lock<shared_timed_mutex> lock(g_instance_lock);
+  unique_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(g_bluetooth_interface);
 
   delete g_bluetooth_interface;
@@ -406,14 +408,14 @@ void BluetoothInterface::CleanUp() {
 
 // static
 bool BluetoothInterface::IsInitialized() {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
 
   return g_bluetooth_interface != nullptr;
 }
 
 // static
 BluetoothInterface* BluetoothInterface::Get() {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  shared_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(g_bluetooth_interface);
   return g_bluetooth_interface;
 }
@@ -421,7 +423,7 @@ BluetoothInterface* BluetoothInterface::Get() {
 // static
 void BluetoothInterface::InitializeForTesting(
     BluetoothInterface* test_instance) {
-  unique_lock<shared_timed_mutex> lock(g_instance_lock);
+  unique_lock<shared_mutex_impl> lock(g_instance_lock);
   CHECK(test_instance);
   CHECK(!g_bluetooth_interface);
 
