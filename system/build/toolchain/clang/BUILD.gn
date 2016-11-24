@@ -16,6 +16,18 @@
 clang = "clang"
 clangxx = "clang++"
 
+config("clang_config") {
+  include_dirs = [
+    "/usr/include/libcxxabi",
+  ]
+  cflags_cc = [
+    "-stdlib=libc++",
+  ]
+  ldflags = [
+    "-stdlib=libc++",
+  ]
+}
+
 toolchain("clang") {
   tool("cc") {
     depfile = "{{output}}.d"
