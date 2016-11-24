@@ -610,7 +610,6 @@ void bta_dmexecutecallback(tBTA_DM_EXEC_CBACK* p_callback, void* p_param) {
  ******************************************************************************/
 void BTA_DmAddBleKey(BD_ADDR bd_addr, tBTA_LE_KEY_VALUE* p_le_key,
                      tBTA_LE_KEY_TYPE key_type) {
-
   tBTA_DM_API_ADD_BLEKEY* p_msg =
       (tBTA_DM_API_ADD_BLEKEY*)osi_calloc(sizeof(tBTA_DM_API_ADD_BLEKEY));
 
@@ -842,7 +841,6 @@ void BTA_DmSetBleAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
 
   do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_ble_set_adv_params,
                                          adv_int_min, adv_int_max, nullptr));
-
 }
 
 /*******************************************************************************
@@ -1523,7 +1521,6 @@ void BTA_DmBleSetDataLength(BD_ADDR remote_device, uint16_t tx_data_length) {
   bta_sys_sendmsg(p_msg);
 }
 
-
 /*******************************************************************************
  *
  * Function         BTA_DmSetEncryption
@@ -1659,4 +1656,3 @@ void BTA_VendorCleanup(void) {
 
   if (cmn_ble_vsc_cb.adv_inst_max > 0) btm_ble_multi_adv_cleanup();
 }
-
