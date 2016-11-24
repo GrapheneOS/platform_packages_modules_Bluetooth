@@ -89,17 +89,12 @@ typedef uint8_t tBTA_STATUS;
 #define BTA_HDP_SERVICE_ID 27        /* Health Device Profile */
 #define BTA_PCE_SERVICE_ID 28        /* PhoneBook Access Client*/
 #define BTA_SDP_SERVICE_ID 29        /* SDP Search*/
-#if (BTA_GATT_INCLUDED == TRUE)
+
 /* BLE profile service ID */
-#define BTA_BLE_SERVICE_ID 30 /* GATT profile */
-
+#define BTA_BLE_SERVICE_ID 30  /* GATT profile */
 #define BTA_USER_SERVICE_ID 31 /* User requested UUID */
-
 #define BTA_MAX_SERVICE_ID 32
-#else
-#define BTA_USER_SERVICE_ID 30 /* User requested UUID */
-#define BTA_MAX_SERVICE_ID 31
-#endif
+
 /* service IDs (BTM_SEC_SERVICE_FIRST_EMPTY + 1) to (BTM_SEC_MAX_SERVICES - 1)
  * are used by BTA JV */
 #define BTA_FIRST_JV_SERVICE_ID (BTM_SEC_SERVICE_FIRST_EMPTY + 1)
@@ -138,18 +133,9 @@ typedef uint8_t tBTA_SERVICE_ID;
 #define BTA_HL_SERVICE_MASK 0x08000000     /* Health Device Profile */
 #define BTA_PCE_SERVICE_MASK 0x10000000    /* Phone Book Client */
 
-#if (BTA_GATT_INCLUDED == TRUE)
 #define BTA_BLE_SERVICE_MASK 0x20000000  /* GATT based service */
+#define BTA_ALL_SERVICE_MASK 0x3FFFFFFF  /* All services supported by BTA. */
 #define BTA_USER_SERVICE_MASK 0x40000000 /* Message Notification Profile */
-#else
-#define BTA_USER_SERVICE_MASK 0x20000000 /* Message Notification Profile */
-#endif
-
-#if (BTA_GATT_INCLUDED == TRUE)
-#define BTA_ALL_SERVICE_MASK 0x3FFFFFFF /* All services supported by BTA. */
-#else
-#define BTA_ALL_SERVICE_MASK 0x1FFFFFFF /* All services supported by BTA. */
-#endif
 
 typedef uint32_t tBTA_SERVICE_MASK;
 

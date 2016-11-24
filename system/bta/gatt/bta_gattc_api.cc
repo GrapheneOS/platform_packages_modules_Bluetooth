@@ -24,8 +24,6 @@
 
 #include "bt_target.h"
 
-#if (BTA_GATT_INCLUDED == TRUE)
-
 #include <string.h>
 
 #include <base/callback.h>
@@ -703,5 +701,3 @@ void BTA_GATTC_Refresh(const BD_ADDR remote_bda) {
 
   bta_sys_sendmsg(p_buf);
 }
-
-#endif /* BTA_GATT_INCLUDED */

@@ -346,10 +346,8 @@ static const void* get_profile_interface(const char* profile_id) {
   if (is_profile(profile_id, BT_PROFILE_SDP_CLIENT_ID))
     return btif_sdp_get_interface();
 
-#if (BTA_GATT_INCLUDED == TRUE)
   if (is_profile(profile_id, BT_PROFILE_GATT_ID))
     return btif_gatt_get_interface();
-#endif
 
   if (is_profile(profile_id, BT_PROFILE_AV_RC_ID))
     return btif_rc_get_interface();
@@ -448,7 +446,7 @@ const bt_interface_t* bluetooth__get_bluetooth_interface() {
   return &bluetoothInterface;
 }
 
-static int close_bluetooth_stack(UNUSED_ATTR struct hw_device_t *device) {
+static int close_bluetooth_stack(UNUSED_ATTR struct hw_device_t* device) {
   cleanup();
   return 0;
 }

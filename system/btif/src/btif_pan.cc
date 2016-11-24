@@ -407,8 +407,8 @@ int btpan_tap_open() {
 }
 
 int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst,
-                   uint16_t proto, const char* buf, uint16_t len, UNUSED_ATTR bool ext,
-                   UNUSED_ATTR bool forward) {
+                   uint16_t proto, const char* buf, uint16_t len,
+                   UNUSED_ATTR bool ext, UNUSED_ATTR bool forward) {
   if (tap_fd != INVALID_FD) {
     tETH_HDR eth_hdr;
     memcpy(&eth_hdr.h_dest, dst, ETH_ADDR_LEN);
