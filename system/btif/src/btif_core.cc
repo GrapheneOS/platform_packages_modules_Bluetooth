@@ -572,8 +572,8 @@ bt_status_t btif_disable_bluetooth(void) {
   BTIF_TRACE_DEBUG("BTIF DISABLE BLUETOOTH");
 
   btm_ble_multi_adv_cleanup();
-// TODO(jpawlowski): this should do whole BTA_VendorCleanup(), but it would kill
-// the stack now.
+  // TODO(jpawlowski): this should do whole BTA_VendorCleanup(), but it would
+  // kill the stack now.
 
   btif_dm_on_disable();
   /* cleanup rfcomm & l2cap api */
@@ -655,7 +655,7 @@ bt_status_t btif_cleanup_bluetooth(void) {
  * Returns          None
  *
  ******************************************************************************/
-static void btif_dut_mode_cback(UNUSED_ATTR tBTM_VSC_CMPL *p) {
+static void btif_dut_mode_cback(UNUSED_ATTR tBTM_VSC_CMPL* p) {
   /* For now nothing to be done. */
 }
 

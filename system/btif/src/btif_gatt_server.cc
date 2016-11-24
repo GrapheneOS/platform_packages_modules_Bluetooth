@@ -421,4 +421,3 @@ const btgatt_server_interface_t btgattServerInterface = {
     btif_gatts_add_service,    btif_gatts_stop_service,
     btif_gatts_delete_service, btif_gatts_send_indication,
     btif_gatts_send_response};
-
