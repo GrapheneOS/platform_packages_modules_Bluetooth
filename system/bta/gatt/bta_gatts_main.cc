@@ -24,8 +24,6 @@
 
 #include "bt_target.h"
 
-#if (BTA_GATT_INCLUDED == TRUE)
-
 #include <string.h>
 
 #include "bt_common.h"
@@ -115,5 +113,3 @@ bool bta_gatts_hdl_event(BT_HDR* p_msg) {
 
   return (true);
 }
-
-#endif /* BTA_GATT_INCLUDED */

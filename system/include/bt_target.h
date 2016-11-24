@@ -75,10 +75,6 @@
 #define BTA_AR_INCLUDED TRUE
 #endif
 
-#ifndef BTA_GATT_INCLUDED
-#define BTA_GATT_INCLUDED TRUE
-#endif
-
 #ifndef BTA_AV_SINK_INCLUDED
 #define BTA_AV_SINK_INCLUDED FALSE
 #endif
@@ -716,10 +712,6 @@
  * ATT/GATT Protocol/Profile Settings
  *
  *****************************************************************************/
-#ifndef BTA_GATT_INCLUDED
-#define BTA_GATT_INCLUDED TRUE
-#endif
-
 #ifndef BLE_LLT_INCLUDED
 #define BLE_LLT_INCLUDED TRUE
 #endif
