@@ -173,8 +173,8 @@ void bta_pan_co_tx_path(uint16_t handle, uint8_t app_id) {
 
   do {
     /* read next data buffer from pan */
-    if ((p_buf =
-             bta_pan_ci_readbuf(handle, src, dst, &protocol, &ext, &forward))) {
+    p_buf = bta_pan_ci_readbuf(handle, src, dst, &protocol, &ext, &forward);
+    if (p_buf) {
       bdstr_t bdstr;
       BTIF_TRACE_DEBUG(
           "%s, calling btapp_tap_send, "

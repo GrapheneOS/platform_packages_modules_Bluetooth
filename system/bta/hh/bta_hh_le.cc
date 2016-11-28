@@ -1459,10 +1459,10 @@ static void read_report_ref_desc_cb(uint16_t conn_id, tGATT_STATUS status,
       BTA_GATTC_GetDescriptor(conn_id, handle);
 
   tBTA_HH_LE_RPT* p_rpt;
-  if ((p_rpt = bta_hh_le_find_report_entry(
-           p_dev_cb, p_desc->characteristic->service->handle,
-           GATT_UUID_HID_REPORT, p_desc->characteristic->handle)))
-    bta_hh_le_save_report_ref(p_dev_cb, p_rpt, status, value, len);
+  p_rpt = bta_hh_le_find_report_entry(
+      p_dev_cb, p_desc->characteristic->service->handle, GATT_UUID_HID_REPORT,
+      p_desc->characteristic->handle);
+  if (p_rpt) bta_hh_le_save_report_ref(p_dev_cb, p_rpt, status, value, len);
 }
 
 void read_pref_conn_params_cb(uint16_t conn_id, tGATT_STATUS status,
@@ -2270,7 +2270,8 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id) {
   uint8_t index = BTA_HH_IDX_INVALID;
 
   index = bta_hh_find_cb(bd_addr);
-  if ((index = bta_hh_find_cb(bd_addr)) == BTA_HH_IDX_INVALID) {
+  index = bta_hh_find_cb(bd_addr);
+  if (index == BTA_HH_IDX_INVALID) {
     APPL_TRACE_ERROR("%s: unknown device", __func__);
     return;
   }

@@ -104,7 +104,8 @@ static void l2c_ucd_data_ind_cback (BD_ADDR rem_bda, BT_HDR *p_buf)
     p_buf->offset += L2CAP_UCD_OVERHEAD;
     p_buf->len    -= L2CAP_UCD_OVERHEAD;
 
-    if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
+    p_rcb = l2cu_find_rcb_by_psm(psm);
+    if (p_rcb == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CAP - no RCB for l2c_ucd_data_ind_cback, PSM: 0x%04x", psm);
         osi_free(p_buf);
@@ -215,7 +216,8 @@ bool    L2CA_UcdRegister ( uint16_t psm, tL2CAP_UCD_CB_INFO *p_cb_info )
         return (false);
     }
 
-    if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
+    p_rcb = l2cu_find_rcb_by_psm(psm);
+    if (p_rcb == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CAP - no RCB for L2CA_UcdRegister, PSM: 0x%04x", psm);
         return (false);
@@ -225,9 +227,11 @@ bool    L2CA_UcdRegister ( uint16_t psm, tL2CAP_UCD_CB_INFO *p_cb_info )
     p_rcb->ucd.cb_info = *p_cb_info;
 
     /* check if master rcb is created for UCD */
-    if ((p_rcb = l2cu_find_rcb_by_psm (L2C_UCD_RCB_ID)) == NULL)
+    p_rcb = l2cu_find_rcb_by_psm(L2C_UCD_RCB_ID);
+    if (p_rcb == NULL)
     {
-        if ((p_rcb = l2cu_allocate_rcb (L2C_UCD_RCB_ID)) == NULL)
+        p_rcb = l2cu_allocate_rcb(L2C_UCD_RCB_ID);
+        if (p_rcb == NULL)
         {
             L2CAP_TRACE_ERROR ("L2CAP - no RCB available for L2CA_UcdRegister");
             return (false);
@@ -273,7 +277,8 @@ bool    L2CA_UcdDeregister ( uint16_t psm )
 
     L2CAP_TRACE_API  ("L2CA_UcdDeregister()  PSM: 0x%04x", psm);
 
-    if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
+    p_rcb = l2cu_find_rcb_by_psm(psm);
+    if (p_rcb == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CAP - no RCB for L2CA_UcdDeregister, PSM: 0x%04x", psm);
         return (false);
@@ -291,7 +296,8 @@ bool    L2CA_UcdDeregister ( uint16_t psm )
     }
 
     /* delete master rcb for UCD */
-    if ((p_rcb = l2cu_find_rcb_by_psm (L2C_UCD_RCB_ID)) != NULL)
+    p_rcb = l2cu_find_rcb_by_psm(L2C_UCD_RCB_ID);
+    if (p_rcb != NULL)
     {
         l2cu_release_rcb (p_rcb);
     }
@@ -525,14 +531,16 @@ bool    L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority )
                       (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                       (rem_bda[4]<<8)+rem_bda[5]);
 
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_UCDSetTxPriority");
         return (false);
     }
 
     /* Find the channel control block */
-    if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, L2CAP_CONNECTIONLESS_CID)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(p_lcb, L2CAP_CONNECTIONLESS_CID);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_UCDSetTxPriority");
         return (false);
@@ -573,7 +581,8 @@ static bool    l2c_ucd_connect ( BD_ADDR rem_bda )
     }
 
     /* First, see if we already have a link to the remote */
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         /* No link. Get an LCB and start link establishment */
         if ( ((p_lcb = l2cu_allocate_lcb (rem_bda, false, BT_TRANSPORT_BR_EDR)) == NULL)
@@ -593,10 +602,12 @@ static bool    l2c_ucd_connect ( BD_ADDR rem_bda )
     }
 
     /* Find the channel control block. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, L2CAP_CONNECTIONLESS_CID)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(p_lcb, L2CAP_CONNECTIONLESS_CID);
+    if (p_ccb == NULL)
     {
         /* Allocate a channel control block */
-        if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
+        p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+        if (p_ccb == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - no CCB for l2c_ucd_connect");
             return (false);
@@ -613,7 +624,8 @@ static bool    l2c_ucd_connect ( BD_ADDR rem_bda )
             /* Set the default channel priority value to use */
             l2cu_change_pri_ccb (p_ccb, L2CAP_UCD_CH_PRIORITY);
 
-            if ((p_rcb = l2cu_find_rcb_by_psm (L2C_UCD_RCB_ID)) == NULL)
+            p_rcb = l2cu_find_rcb_by_psm(L2C_UCD_RCB_ID);
+            if (p_rcb == NULL)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - no UCD registered, l2c_ucd_connect");
                 return (false);
@@ -901,7 +913,8 @@ bool    l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
         if (p_ccb == NULL)
         {
             /* Allocate a channel control block */
-            if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
+            p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+            if (p_ccb == NULL)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - no CCB for UCD reception");
                 osi_free(p_msg);

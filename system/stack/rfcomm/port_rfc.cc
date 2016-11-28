@@ -62,7 +62,8 @@ int port_open_continue (tPORT *p_port)
     RFCOMM_TRACE_EVENT ("port_open_continue, p_port:%p", p_port);
 
     /* Check if multiplexer channel has already been established */
-    if ((p_mcb = rfc_alloc_multiplexer_channel (p_port->bd_addr, true)) == NULL)
+    p_mcb = rfc_alloc_multiplexer_channel(p_port->bd_addr, true);
+    if (p_mcb == NULL)
     {
         RFCOMM_TRACE_WARNING ("port_open_continue no mx channel");
         port_release_port (p_port);
@@ -942,7 +943,8 @@ void PORT_FlowInd (tRFC_MCB *p_mcb, uint8_t dlci, bool    enable_data)
     }
     else
     {
-        if ((p_port = port_find_mcb_dlci_port (p_mcb, dlci)) == NULL)
+        p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+        if (p_port == NULL)
             return;
 
         p_port->tx.peer_fc = !enable_data;
@@ -1002,7 +1004,8 @@ uint32_t port_rfc_send_tx_data (tPORT *p_port)
             /* get data from tx queue and send it */
             mutex_global_lock();
 
-            if ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
+            p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue);
+            if (p_buf != NULL)
             {
                 p_port->tx.queue_size -= p_buf->len;
 

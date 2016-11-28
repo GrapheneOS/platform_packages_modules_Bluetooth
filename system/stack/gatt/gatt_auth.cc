@@ -165,7 +165,8 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
     bool        status = false;
 
     GATT_TRACE_DEBUG("gatt_enc_cmpl_cback");
-    if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, transport)) != NULL)
+    p_tcb = gatt_find_tcb_by_addr(bd_addr, transport);
+    if (p_tcb != NULL)
     {
         if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENC_PENDING)
             return;
@@ -232,7 +233,8 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
     tGATT_TCB   *p_tcb;
     uint8_t      i = 0;
 
-    if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE)) != NULL)
+    p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
+    if (p_tcb != NULL)
     {
         for (i = 0; i < GATT_MAX_APPS; i++)
         {

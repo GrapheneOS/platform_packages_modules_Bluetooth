@@ -77,9 +77,11 @@ void hidh_get_str_attr( tSDP_DISC_REC *p_rec, uint16_t attr_id, uint16_t max_len
     tSDP_DISC_ATTR          *p_attr;
     uint16_t                name_len;
 
-    if ((p_attr = SDP_FindAttributeInRec(p_rec, attr_id)) != NULL)
+    p_attr = SDP_FindAttributeInRec(p_rec, attr_id);
+    if (p_attr != NULL)
     {
-        if((name_len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type)) < max_len )
+        name_len = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
+        if(name_len < max_len)
         {
             memcpy( str, (char *) p_attr->attr_value.v.array, name_len );
             str[name_len] = '\0';
@@ -115,7 +117,8 @@ static void hidh_search_callback (uint16_t sdp_result)
         return;
     }
 
-    if ((p_rec = SDP_FindServiceUUIDInDb (p_db, &hid_uuid, NULL)) == NULL)
+    p_rec = SDP_FindServiceUUIDInDb(p_db, &hid_uuid, NULL);
+    if (p_rec == NULL)
     {
         hh_cb.sdp_cback(HID_SDP_NO_SERV_UUID, 0, NULL);
         return;
@@ -136,7 +139,8 @@ static void hidh_search_callback (uint16_t sdp_result)
         return;
     }
 
-    if ((p_nvi->dscp_info.dl_len = SDP_DISC_ATTR_LEN(p_repdesc->attr_len_type)) != 0)
+    p_nvi->dscp_info.dl_len = SDP_DISC_ATTR_LEN(p_repdesc->attr_len_type);
+    if (p_nvi->dscp_info.dl_len != 0)
         p_nvi->dscp_info.dsc_list = (uint8_t *) &p_repdesc->attr_value;
 
     if (((p_attr = SDP_FindAttributeInRec (p_rec, ATTR_ID_HID_VIRTUAL_CABLE)) != NULL) &&
@@ -289,7 +293,8 @@ tHID_STATUS HID_HostRegister (tHID_HOST_DEV_CALLBACK *dev_cback)
         return HID_ERR_INVALID_PARAM;
 
     /* Register with L2CAP */
-    if( (st = hidh_conn_reg()) != HID_SUCCESS )
+    st = hidh_conn_reg();
+    if(st != HID_SUCCESS)
     {
         return st;
     }

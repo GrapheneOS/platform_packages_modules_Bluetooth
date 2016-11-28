@@ -171,7 +171,8 @@ static void bnep_connect_cfm (uint16_t l2cap_cid, uint16_t result)
     tBNEP_CONN    *p_bcb;
 
     /* Find CCB based on CID */
-    if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
+    p_bcb = bnepu_find_bcb_by_cid(l2cap_cid);
+    if (p_bcb == NULL)
     {
         BNEP_TRACE_WARNING ("BNEP - Rcvd conn cnf for unknown CID 0x%x", l2cap_cid);
         return;
@@ -224,7 +225,8 @@ static void bnep_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     uint16_t      result, mtu = 0;
 
     /* Find CCB based on CID */
-    if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
+    p_bcb = bnepu_find_bcb_by_cid(l2cap_cid);
+    if (p_bcb == NULL)
     {
         BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
         return;
@@ -301,7 +303,8 @@ static void bnep_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     BNEP_TRACE_EVENT ("BNEP - Rcvd cfg cfm, CID: 0x%x  Result: %d", l2cap_cid, p_cfg->result);
 
     /* Find CCB based on CID */
-    if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
+    p_bcb = bnepu_find_bcb_by_cid(l2cap_cid);
+    if (p_bcb == NULL)
     {
         BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
         return;
@@ -363,7 +366,8 @@ static void bnep_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
         L2CA_DisconnectRsp (l2cap_cid);
 
     /* Find CCB based on CID */
-    if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
+    p_bcb = bnepu_find_bcb_by_cid(l2cap_cid);
+    if (p_bcb == NULL)
     {
         BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP disc, unknown CID: 0x%x", l2cap_cid);
         return;
@@ -418,7 +422,8 @@ static void bnep_congestion_ind (uint16_t l2cap_cid, bool    is_congested)
     tBNEP_CONN    *p_bcb;
 
     /* Find BCB based on CID */
-    if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
+    p_bcb = bnepu_find_bcb_by_cid(l2cap_cid);
+    if (p_bcb == NULL)
     {
         BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP cong, unknown CID: 0x%x", l2cap_cid);
         return;
@@ -483,7 +488,8 @@ static void bnep_data_ind (uint16_t l2cap_cid, BT_HDR *p_buf)
 
 
     /* Find CCB based on CID */
-    if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
+    p_bcb = bnepu_find_bcb_by_cid(l2cap_cid);
+    if (p_bcb == NULL)
     {
         BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP data, unknown CID: 0x%x", l2cap_cid);
         osi_free(p_buf);

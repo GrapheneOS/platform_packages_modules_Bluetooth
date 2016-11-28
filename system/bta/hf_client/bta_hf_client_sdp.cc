@@ -220,9 +220,9 @@ bool bta_hf_client_sdp_find_attr(void) {
   /* loop through all records we found */
   while (true) {
     /* get next record; if none found, we're done */
-    if ((p_rec = SDP_FindServiceInDb(bta_hf_client_cb.scb.p_disc_db,
-                                     UUID_SERVCLASS_AG_HANDSFREE, p_rec)) ==
-        NULL) {
+    p_rec = SDP_FindServiceInDb(bta_hf_client_cb.scb.p_disc_db,
+                                UUID_SERVCLASS_AG_HANDSFREE, p_rec);
+    if (p_rec == NULL) {
       break;
     }
 
@@ -240,8 +240,8 @@ bool bta_hf_client_sdp_find_attr(void) {
                                 &bta_hf_client_cb.scb.peer_version);
 
     /* get features */
-    if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES)) !=
-        NULL) {
+    p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES);
+    if (p_attr != NULL) {
       /* Found attribute. Get value. */
       /* There might be race condition between SDP and BRSF.  */
       /* Do not update if we already received BRSF.           */
@@ -255,7 +255,8 @@ bool bta_hf_client_sdp_find_attr(void) {
         }
 
         /* get network for ability to reject calls */
-        if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_NETWORK)) != NULL) {
+        p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_NETWORK);
+        if (p_attr != NULL) {
           if (p_attr->attr_value.v.u16 == 0x01) {
             bta_hf_client_cb.scb.peer_features |= BTA_HF_CLIENT_PEER_REJECT;
           }

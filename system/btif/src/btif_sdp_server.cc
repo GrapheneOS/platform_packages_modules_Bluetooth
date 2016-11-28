@@ -385,7 +385,8 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec) {
   APPL_TRACE_DEBUG("  msg_types: 0x%02x, feature_bits: 0x%08x",
                    rec->supported_message_types, rec->supported_features);
 
-  if ((sdp_handle = SDP_CreateRecord()) == 0) {
+  sdp_handle = SDP_CreateRecord();
+  if (sdp_handle == 0) {
     APPL_TRACE_ERROR("%s() - Unable to register MAPS Service", __func__);
     return sdp_handle;
   }
@@ -470,7 +471,8 @@ static int add_mapc_sdp(const bluetooth_sdp_mns_record* rec) {
 
   APPL_TRACE_DEBUG("  feature_bits: 0x%08x", rec->supported_features);
 
-  if ((sdp_handle = SDP_CreateRecord()) == 0) {
+  sdp_handle = SDP_CreateRecord();
+  if (sdp_handle == 0) {
     APPL_TRACE_ERROR("%s(): Unable to register MAP Notification Service",
                      __func__);
     return sdp_handle;
@@ -547,7 +549,8 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec) {
   APPL_TRACE_DEBUG("  supported_repositories: 0x%08x, feature_bits: 0x%08x",
                    rec->supported_repositories, rec->supported_features);
 
-  if ((sdp_handle = SDP_CreateRecord()) == 0) {
+  sdp_handle = SDP_CreateRecord();
+  if (sdp_handle == 0) {
     APPL_TRACE_ERROR("%s(): Unable to register PBAP Server Service", __func__);
     return sdp_handle;
   }
@@ -633,7 +636,8 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec) {
   APPL_TRACE_DEBUG("  supported formats count: %d",
                    rec->supported_formats_list_len);
 
-  if ((sdp_handle = SDP_CreateRecord()) == 0) {
+  sdp_handle = SDP_CreateRecord();
+  if (sdp_handle == 0) {
     APPL_TRACE_ERROR("%s(): Unable to register Object Push Server Service",
                      __func__);
     return sdp_handle;
@@ -715,7 +719,8 @@ static int add_saps_sdp(const bluetooth_sdp_sap_record* rec) {
   APPL_TRACE_DEBUG("%s(): scn 0x%02x, service name %s", __func__,
                    rec->hdr.rfcomm_channel_number, rec->hdr.service_name);
 
-  if ((sdp_handle = SDP_CreateRecord()) == 0) {
+  sdp_handle = SDP_CreateRecord();
+  if (sdp_handle == 0) {
     APPL_TRACE_ERROR("%s(): Unable to register SAPS Service", __func__);
     return sdp_handle;
   }

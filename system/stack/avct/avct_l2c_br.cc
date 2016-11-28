@@ -124,7 +124,8 @@ void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
     memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
     cfg.mtu_present = true;
 
-    if ((p_lcb = avct_lcb_by_bd(bd_addr)) != NULL)
+    p_lcb = avct_lcb_by_bd(bd_addr);
+    if (p_lcb != NULL)
     {
         /* control channel exists */
         p_bcb = avct_bcb_by_lcb(p_lcb);

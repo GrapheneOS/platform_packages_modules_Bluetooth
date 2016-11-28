@@ -79,7 +79,8 @@ static void bta_ag_port_cback(UNUSED_ATTR uint32_t code, uint16_t port_handle,
                               uint16_t handle) {
   tBTA_AG_SCB* p_scb;
 
-  if ((p_scb = bta_ag_scb_by_idx(handle)) != NULL) {
+  p_scb = bta_ag_scb_by_idx(handle);
+  if (p_scb != NULL) {
     /* ignore port events for port handles other than connected handle */
     if (port_handle != p_scb->conn_handle) {
       APPL_TRACE_DEBUG(
@@ -115,7 +116,8 @@ static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle,
   APPL_TRACE_DEBUG("ag_mgmt_cback : code = %d, port_handle = %d, handle = %d",
                    code, port_handle, handle);
 
-  if ((p_scb = bta_ag_scb_by_idx(handle)) != NULL) {
+  p_scb = bta_ag_scb_by_idx(handle);
+  if (p_scb != NULL) {
     /* ignore close event for port handles other than connected handle */
     if ((code != PORT_SUCCESS) && (port_handle != p_scb->conn_handle)) {
       APPL_TRACE_DEBUG("ag_mgmt_cback ignoring handle:%d", port_handle);

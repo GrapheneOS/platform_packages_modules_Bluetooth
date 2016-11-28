@@ -155,7 +155,8 @@ int RFCOMM_CreateConnection (uint16_t uuid, uint8_t scn, bool    is_server,
         }
     }
 
-    if ((p_port = port_allocate_port (dlci, bd_addr)) == NULL)
+    p_port = port_allocate_port(dlci, bd_addr);
+    if (p_port == NULL)
     {
         RFCOMM_TRACE_WARNING ("RFCOMM_CreateConnection - no resources");
         return (PORT_NO_RESOURCES);

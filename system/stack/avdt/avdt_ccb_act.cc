@@ -313,7 +313,8 @@ void avdt_ccb_hdl_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     /* little trick here; length of current command equals number of streams */
     for (i = 0; i < p_ccb->p_curr_cmd->len; i++)
     {
-        if ((p_scb = avdt_scb_by_hdl(p[i])) != NULL)
+        p_scb = avdt_scb_by_hdl(p[i]);
+        if (p_scb != NULL)
         {
             avdt_scb_event(p_scb, event, (tAVDT_SCB_EVT *) &p_data->msg);
         }
@@ -387,7 +388,8 @@ void avdt_ccb_hdl_suspend_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     /* little trick here; length of current command equals number of streams */
     for (i = 0; i < p_ccb->p_curr_cmd->len; i++)
     {
-        if ((p_scb = avdt_scb_by_hdl(p[i])) != NULL)
+        p_scb = avdt_scb_by_hdl(p[i]);
+        if (p_scb != NULL)
         {
             avdt_scb_event(p_scb, event, (tAVDT_SCB_EVT *) &p_data->msg);
         }
@@ -517,8 +519,8 @@ void avdt_ccb_snd_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     memcpy(seid_list, p_data->msg.multi.seid_list, p_data->msg.multi.num_seps);
 
     /* verify all streams in the right state */
-    if ((avdt_msg.hdr.err_param = avdt_scb_verify(p_ccb, AVDT_VERIFY_OPEN, p_data->msg.multi.seid_list,
-                                         p_data->msg.multi.num_seps, &avdt_msg.hdr.err_code)) == 0)
+    avdt_msg.hdr.err_param = avdt_scb_verify(p_ccb, AVDT_VERIFY_OPEN, p_data->msg.multi.seid_list, p_data->msg.multi.num_seps, &avdt_msg.hdr.err_code);
+    if (avdt_msg.hdr.err_param == 0)
     {
         /* set peer seid list in messsage */
         avdt_scb_peer_seid_list(&p_data->msg.multi);
@@ -531,7 +533,8 @@ void avdt_ccb_snd_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         /* failed; send ourselves a reject for each stream */
         for (i = 0; i < p_data->msg.multi.num_seps; i++)
         {
-            if ((p_scb = avdt_scb_by_hdl(seid_list[i])) != NULL)
+            p_scb = avdt_scb_by_hdl(seid_list[i]);
+            if (p_scb != NULL)
             {
                 avdt_scb_event(p_scb, AVDT_SCB_MSG_START_REJ_EVT, (tAVDT_SCB_EVT *) &avdt_msg.hdr);
             }
@@ -563,7 +566,8 @@ void avdt_ccb_snd_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     /* send start event to each scb */
     for (i = 0; i < p_data->msg.multi.num_seps; i++)
     {
-        if ((p_scb = avdt_scb_by_hdl(p_data->msg.multi.seid_list[i])) != NULL)
+        p_scb = avdt_scb_by_hdl(p_data->msg.multi.seid_list[i]);
+        if (p_scb != NULL)
         {
             avdt_scb_event(p_scb, AVDT_SCB_MSG_START_CMD_EVT, NULL);
         }
@@ -595,8 +599,8 @@ void avdt_ccb_snd_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     memcpy(seid_list, p_data->msg.multi.seid_list, p_data->msg.multi.num_seps);
 
     /* verify all streams in the right state */
-    if ((avdt_msg.hdr.err_param = avdt_scb_verify(p_ccb, AVDT_VERIFY_STREAMING, p_data->msg.multi.seid_list,
-                                         p_data->msg.multi.num_seps, &avdt_msg.hdr.err_code)) == 0)
+    avdt_msg.hdr.err_param = avdt_scb_verify(p_ccb, AVDT_VERIFY_STREAMING, p_data->msg.multi.seid_list, p_data->msg.multi.num_seps, &avdt_msg.hdr.err_code);
+    if (avdt_msg.hdr.err_param == 0)
     {
         /* set peer seid list in messsage */
         avdt_scb_peer_seid_list(&p_data->msg.multi);
@@ -609,7 +613,8 @@ void avdt_ccb_snd_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         /* failed; send ourselves a reject for each stream */
         for (i = 0; i < p_data->msg.multi.num_seps; i++)
         {
-            if ((p_scb = avdt_scb_by_hdl(seid_list[i])) != NULL)
+            p_scb = avdt_scb_by_hdl(seid_list[i]);
+            if (p_scb != NULL)
             {
                 avdt_scb_event(p_scb, AVDT_SCB_MSG_SUSPEND_REJ_EVT, (tAVDT_SCB_EVT *) &avdt_msg.hdr);
             }
@@ -641,7 +646,8 @@ void avdt_ccb_snd_suspend_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     /* send start event to each scb */
     for (i = 0; i < p_data->msg.multi.num_seps; i++)
     {
-        if ((p_scb = avdt_scb_by_hdl(p_data->msg.multi.seid_list[i])) != NULL)
+        p_scb = avdt_scb_by_hdl(p_data->msg.multi.seid_list[i]);
+        if (p_scb != NULL)
         {
             avdt_scb_event(p_scb, AVDT_SCB_MSG_SUSPEND_CMD_EVT, NULL);
         }
@@ -845,7 +851,8 @@ void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb,
     */
     if ((!p_ccb->cong) && (p_ccb->p_curr_msg == NULL) && (p_ccb->p_curr_cmd == NULL))
     {
-        if ((p_msg = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->cmd_q)) != NULL)
+        p_msg = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->cmd_q);
+        if (p_msg != NULL)
         {
             /* make a copy of buffer in p_curr_cmd */
             p_ccb->p_curr_cmd = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);

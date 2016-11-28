@@ -423,8 +423,8 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 ** Returns          Status of the operation.
 **
 *******************************************************************************/
-uint16_t gatts_add_included_service (tGATT_SVC_DB *p_db, uint16_t s_handle, uint16_t e_handle,
-                                   tBT_UUID service)
+uint16_t gatts_add_included_service (tGATT_SVC_DB *p_db, uint16_t s_handle,
+                                     uint16_t e_handle, tBT_UUID service)
 {
     tGATT_ATTR      *p_attr;
     tBT_UUID         uuid = {LEN_UUID_16, {GATT_UUID_INCLUDE_SERVICE}};
@@ -438,7 +438,8 @@ uint16_t gatts_add_included_service (tGATT_SVC_DB *p_db, uint16_t s_handle, uint
         return 0;
     }
 
-    if ((p_attr = (tGATT_ATTR *) allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
+    p_attr = (tGATT_ATTR *)allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ);
+    if (p_attr != NULL)
     {
         if (copy_extra_byte_in_db(p_db, (void **)&p_attr->p_value, sizeof(tGATT_INCL_SRVC)))
         {
@@ -481,7 +482,8 @@ uint16_t gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 
     GATT_TRACE_DEBUG("%s: perm=0x%0x property=0x%0x", __func__, perm, property);
 
-    if ((p_char_decl = (tGATT_ATTR *)allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
+    p_char_decl = (tGATT_ATTR *)allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ);
+    if (p_char_decl != NULL)
     {
         if (!copy_extra_byte_in_db(p_db, (void **)&p_char_decl->p_value, sizeof(tGATT_CHAR_DECL)))
         {
@@ -575,10 +577,8 @@ uint16_t gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
     GATT_TRACE_DEBUG("gatts_add_char_descr uuid=0x%04x", p_descr_uuid->uu.uuid16);
 
     /* Add characteristic descriptors */
-    if ((p_char_dscptr = (tGATT_ATTR *)allocate_attr_in_db(p_db,
-                                                             p_descr_uuid,
-                                                             perm))
-        == NULL)
+    p_char_dscptr = (tGATT_ATTR *)allocate_attr_in_db(p_db, p_descr_uuid, perm);
+    if (p_char_dscptr == NULL)
     {
         GATT_TRACE_DEBUG("gatts_add_char_descr Fail for adding char descriptors.");
         return 0;
@@ -1157,7 +1157,8 @@ static bool gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_ser
         uuid.uu.uuid16 = GATT_UUID_SEC_SERVICE;
 
     /* add service declration record */
-    if ((p_attr = (tGATT_ATTR *)(allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ))) != NULL)
+    p_attr = (tGATT_ATTR *)(allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ));
+    if (p_attr != NULL)
     {
         if (copy_extra_byte_in_db (p_db, (void **)&p_attr->p_value, sizeof(tBT_UUID)))
         {
