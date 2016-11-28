@@ -110,10 +110,12 @@ void avct_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
     tL2CAP_CFG_INFO cfg;
 
     /* do we already have a channel for this peer? */
-    if ((p_lcb = avct_lcb_by_bd(bd_addr)) == NULL)
+    p_lcb = avct_lcb_by_bd(bd_addr);
+    if (p_lcb == NULL)
     {
         /* no, allocate lcb */
-        if ((p_lcb = avct_lcb_alloc(bd_addr)) == NULL)
+        p_lcb = avct_lcb_alloc(bd_addr);
+        if (p_lcb == NULL)
         {
             /* no ccb available, reject L2CAP connection */
             result = L2CAP_CONN_NO_RESOURCES;
@@ -180,7 +182,8 @@ void avct_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
     tL2CAP_CFG_INFO cfg;
 
     /* look up lcb for this channel */
-    if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
+    p_lcb = avct_lcb_by_lcid(lcid);
+    if (p_lcb != NULL)
     {
         AVCT_TRACE_DEBUG("avct_l2c_connect_cfm_cback lcid:0x%x result: %d ch_state: %d, conflict_lcid:0x%x",
             lcid, result, p_lcb->ch_state, p_lcb->conflict_lcid);
@@ -240,7 +243,8 @@ void avct_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
     tAVCT_LCB       *p_lcb;
 
     /* look up lcb for this channel */
-    if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
+    p_lcb = avct_lcb_by_lcid(lcid);
+    if (p_lcb != NULL)
     {
         AVCT_TRACE_DEBUG("avct_l2c_config_cfm_cback: 0x%x, ch_state: %d, res: %d",
             lcid, p_lcb->ch_state, p_cfg->result);
@@ -290,7 +294,8 @@ void avct_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
     tAVCT_LCB       *p_lcb;
 
     /* look up lcb for this channel */
-    if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
+    p_lcb = avct_lcb_by_lcid(lcid);
+    if (p_lcb != NULL)
     {
         AVCT_TRACE_DEBUG("avct_l2c_config_ind_cback: 0x%x, ch_state: %d", lcid, p_lcb->ch_state);
         /* store the mtu in tbl */
@@ -341,7 +346,8 @@ void avct_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed)
     uint16_t        result = AVCT_RESULT_FAIL;
 
     /* look up lcb for this channel */
-    if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
+    p_lcb = avct_lcb_by_lcid(lcid);
+    if (p_lcb != NULL)
     {
         AVCT_TRACE_DEBUG("avct_l2c_disconnect_ind_cback: 0x%x, ch_state: %d", lcid, p_lcb->ch_state);
         if (ack_needed)
@@ -371,7 +377,8 @@ void avct_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
     uint16_t        res;
 
     /* look up lcb for this channel */
-    if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
+    p_lcb = avct_lcb_by_lcid(lcid);
+    if (p_lcb != NULL)
     {
         AVCT_TRACE_DEBUG("avct_l2c_disconnect_cfm_cback: 0x%x, ch_state: %d, res: %d",
             lcid, p_lcb->ch_state, result);
@@ -400,7 +407,8 @@ void avct_l2c_congestion_ind_cback(uint16_t lcid, bool is_congested)
 
     AVCT_TRACE_DEBUG("avct_l2c_congestion_ind_cback: 0x%x", lcid);
     /* look up lcb for this channel */
-    if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
+    p_lcb = avct_lcb_by_lcid(lcid);
+    if (p_lcb != NULL)
     {
         avct_lcb_event(p_lcb, AVCT_LCB_LL_CONG_EVT, (tAVCT_LCB_EVT *) &is_congested);
     }
@@ -422,7 +430,8 @@ void avct_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 
     AVCT_TRACE_DEBUG("avct_l2c_data_ind_cback: 0x%x", lcid);
     /* look up lcb for this channel */
-    if ((p_lcb = avct_lcb_by_lcid(lcid)) != NULL)
+    p_lcb = avct_lcb_by_lcid(lcid);
+    if (p_lcb != NULL)
     {
         avct_lcb_event(p_lcb, AVCT_LCB_LL_MSG_EVT, (tAVCT_LCB_EVT *) &p_buf);
     }

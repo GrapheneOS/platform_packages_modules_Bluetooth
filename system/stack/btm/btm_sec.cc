@@ -332,7 +332,8 @@ bool    BTM_GetSecurityFlags (BD_ADDR bd_addr, uint8_t * p_sec_flags)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
 
-    if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec != NULL)
     {
         *p_sec_flags = (uint8_t) p_dev_rec->sec_flags;
         return(true);
@@ -355,7 +356,8 @@ bool    BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr, uint8_t * p_sec_flags,
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
 
-    if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec != NULL)
     {
         if (transport == BT_TRANSPORT_BR_EDR)
             *p_sec_flags = (uint8_t) p_dev_rec->sec_flags;
@@ -805,7 +807,8 @@ void btm_sec_clr_temp_auth_service (BD_ADDR bda)
 {
     tBTM_SEC_DEV_REC   *p_dev_rec;
 
-    if ((p_dev_rec = btm_find_dev (bda)) == NULL)
+    p_dev_rec = btm_find_dev(bda);
+    if (p_dev_rec == NULL)
     {
         BTM_TRACE_WARNING ("btm_sec_clr_temp_auth_service() - no dev CB");
         return;
@@ -855,7 +858,8 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, uint8_t res, uint8_t pin_len, uint8_t *p
         return;
     }
 
-    if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec == NULL)
     {
         BTM_TRACE_ERROR ("BTM_PINCodeReply() - no dev CB");
         return;
@@ -974,7 +978,8 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
         return(BTM_WRONG_MODE);
     }
 
-    if ((p_dev_rec = btm_find_or_alloc_dev (bd_addr)) == NULL)
+    p_dev_rec = btm_find_or_alloc_dev(bd_addr);
+    if (p_dev_rec == NULL)
     {
         return(BTM_NO_RESOURCES);
     }
@@ -1510,7 +1515,8 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, BD_ADDR bd_addr)
 
         if (res == BTM_SUCCESS)
         {
-            if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL) {
+            p_dev_rec = btm_find_dev(bd_addr);
+            if (p_dev_rec != NULL) {
                 p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_AUTHED;
                 p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
             }
@@ -1824,7 +1830,8 @@ bool    BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec;
 
-    if ((p_dev_rec = btm_find_dev(bd_addr)) == NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec == NULL)
     {
         BTM_TRACE_WARNING("%s: unknown BDA: %08x%04x", __func__,
             (bd_addr[0]<<24) + (bd_addr[1]<<16) + (bd_addr[2]<<8) + bd_addr[3],
@@ -2416,7 +2423,8 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, uint16_t psm, uint16_t ha
            __func__, psm, handle, p_dev_rec->sec_state, p_dev_rec->sec_flags,
            p_dev_rec->security_required, p_dev_rec->p_cur_service->service_id);
 
-    if ((rc = btm_sec_execute_procedure (p_dev_rec)) != BTM_CMD_STARTED)
+    rc = btm_sec_execute_procedure(p_dev_rec);
+    if (rc != BTM_CMD_STARTED)
     {
         p_dev_rec->p_callback = NULL;
         (*p_callback) (bd_addr, transport, p_dev_rec->p_ref_data, (uint8_t)rc);
@@ -2642,7 +2650,8 @@ tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, uint16_t psm, bool    is
                       __func__, mx_proto_id, mx_chan_id, p_dev_rec->sec_state, p_dev_rec->sec_flags,
                       p_dev_rec->security_required, p_dev_rec->p_cur_service->service_id);
 
-    if ((rc = btm_sec_execute_procedure (p_dev_rec)) != BTM_CMD_STARTED)
+    rc = btm_sec_execute_procedure(p_dev_rec);
+    if (rc != BTM_CMD_STARTED)
     {
         if (p_callback)
         {
@@ -2759,7 +2768,8 @@ static void btm_sec_bond_cancel_complete (void)
          * However, this function may clean out the security related flags and btm_sec_connected would not know
          * this function also needs to do proper clean up.
          */
-        if ((p_dev_rec = btm_find_dev (btm_cb.pairing_bda)) != NULL)
+        p_dev_rec = btm_find_dev(btm_cb.pairing_bda);
+        if (p_dev_rec != NULL)
             p_dev_rec->security_required = BTM_SEC_NONE;
         btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
 
@@ -3748,7 +3758,8 @@ void btm_simple_pair_complete (uint8_t *p)
     status = *p++;
     STREAM_TO_BDADDR (evt_data.bd_addr, p);
 
-    if ((p_dev_rec = btm_find_dev (evt_data.bd_addr)) == NULL)
+    p_dev_rec = btm_find_dev(evt_data.bd_addr);
+    if (p_dev_rec == NULL)
     {
         BTM_TRACE_ERROR ("btm_simple_pair_complete() with unknown BDA: %08x%04x",
                           (evt_data.bd_addr[0]<<24) + (evt_data.bd_addr[1]<<16) + (evt_data.bd_addr[2]<<8) + evt_data.bd_addr[3],
@@ -3905,7 +3916,8 @@ static void btm_sec_auth_collision (uint16_t handle)
     {
         if (handle == BTM_SEC_INVALID_HANDLE)
         {
-            if ((p_dev_rec = btm_sec_find_dev_by_sec_state (BTM_SEC_STATE_AUTHENTICATING)) == NULL)
+            p_dev_rec = btm_sec_find_dev_by_sec_state(BTM_SEC_STATE_AUTHENTICATING);
+            if (p_dev_rec == NULL)
                 p_dev_rec = btm_sec_find_dev_by_sec_state (BTM_SEC_STATE_ENCRYPTING);
         }
         else
@@ -4629,7 +4641,8 @@ void btm_sec_connected (uint8_t *bda, uint16_t handle, uint8_t status, uint8_t e
     BTM_TRACE_DEBUG ("is_originator:%d ", p_dev_rec->is_originator);
     if (!(p_dev_rec->sec_flags & BTM_SEC_NAME_KNOWN) || p_dev_rec->is_originator)
     {
-        if ((res = btm_sec_execute_procedure (p_dev_rec)) != BTM_CMD_STARTED)
+        res = btm_sec_execute_procedure(p_dev_rec);
+        if (res != BTM_CMD_STARTED)
             btm_sec_dev_rec_cback_event (p_dev_rec, res, false);
     }
     return;
@@ -5226,12 +5239,14 @@ void btm_sec_update_clock_offset (uint16_t handle, uint16_t clock_offset)
     tBTM_SEC_DEV_REC  *p_dev_rec;
     tBTM_INQ_INFO     *p_inq_info;
 
-    if ((p_dev_rec = btm_find_dev_by_handle (handle)) == NULL)
+    p_dev_rec = btm_find_dev_by_handle(handle);
+    if (p_dev_rec == NULL)
         return;
 
     p_dev_rec->clock_offset = clock_offset | BTM_CLOCK_OFFSET_VALID;
 
-    if ((p_inq_info = BTM_InqDbRead(p_dev_rec->bd_addr)) == NULL)
+    p_inq_info = BTM_InqDbRead(p_dev_rec->bd_addr);
+    if (p_inq_info == NULL)
         return;
 
     p_inq_info->results.clock_offset = clock_offset | BTM_CLOCK_OFFSET_VALID;

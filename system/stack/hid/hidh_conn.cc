@@ -390,7 +390,8 @@ static void hidh_l2cif_connect_cfm (uint16_t l2cap_cid, uint16_t result)
     tHID_HOST_DEV_CTB *p_dev = NULL;
 
     /* Find CCB based on CID, and verify we are in a state to accept this message */
-    if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
+    dhandle = find_conn_by_cid(l2cap_cid);
+    if(dhandle < HID_HOST_MAX_DEVICES)
     {
         p_dev = &hh_cb.devices[dhandle];
         p_hcon = &hh_cb.devices[dhandle].conn;
@@ -470,7 +471,8 @@ static void hidh_l2cif_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     uint32_t reason;
 
     /* Find CCB based on CID */
-    if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
+    dhandle = find_conn_by_cid(l2cap_cid);
+    if(dhandle < HID_HOST_MAX_DEVICES)
     {
         p_hcon = &hh_cb.devices[dhandle].conn;
     }
@@ -504,7 +506,8 @@ static void hidh_l2cif_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
         {
             /* Connect interrupt channel */
             p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;	/* Reset initial reason for CLOSE_EVT: Connection Attempt was made but failed */
-            if ((p_hcon->intr_cid = L2CA_ConnectReq (HID_PSM_INTERRUPT, hh_cb.devices[dhandle].addr)) == 0)
+            p_hcon->intr_cid = L2CA_ConnectReq(HID_PSM_INTERRUPT, hh_cb.devices[dhandle].addr);
+            if (p_hcon->intr_cid == 0)
             {
                 HIDH_TRACE_WARNING ("HID-Host INTR Originate failed");
                 reason = HID_L2CAP_REQ_FAIL ;
@@ -556,7 +559,8 @@ static void hidh_l2cif_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     HIDH_TRACE_EVENT ("HID-Host Rcvd cfg cfm, CID: 0x%x  Result: %d", l2cap_cid, p_cfg->result);
 
     /* Find CCB based on CID */
-    if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
+    dhandle = find_conn_by_cid(l2cap_cid);
+    if(dhandle < HID_HOST_MAX_DEVICES )
         p_hcon = &hh_cb.devices[dhandle].conn;
 
     if (p_hcon == NULL)
@@ -582,7 +586,8 @@ static void hidh_l2cif_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
         {
             /* Connect interrupt channel */
             p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;  /* Reset initial reason for CLOSE_EVT: Connection Attempt was made but failed */
-            if ((p_hcon->intr_cid = L2CA_ConnectReq (HID_PSM_INTERRUPT, hh_cb.devices[dhandle].addr)) == 0)
+            p_hcon->intr_cid = L2CA_ConnectReq(HID_PSM_INTERRUPT, hh_cb.devices[dhandle].addr);
+            if (p_hcon->intr_cid == 0)
             {
                 HIDH_TRACE_WARNING ("HID-Host INTR Originate failed");
                 reason = HID_L2CAP_REQ_FAIL ;
@@ -633,7 +638,8 @@ static void hidh_l2cif_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
     uint16_t hid_close_evt_reason;
 
     /* Find CCB based on CID */
-    if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
+    dhandle = find_conn_by_cid(l2cap_cid);
+    if(dhandle < HID_HOST_MAX_DEVICES )
         p_hcon = &hh_cb.devices[dhandle].conn;
 
     if (p_hcon == NULL)
@@ -715,7 +721,8 @@ static void hidh_l2cif_disconnect_cfm (uint16_t l2cap_cid,
     tHID_CONN    *p_hcon = NULL;
 
     /* Find CCB based on CID */
-    if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
+    dhandle = find_conn_by_cid(l2cap_cid);
+    if(dhandle < HID_HOST_MAX_DEVICES )
         p_hcon = &hh_cb.devices[dhandle].conn;
 
     if (p_hcon == NULL)
@@ -762,7 +769,8 @@ static void hidh_l2cif_cong_ind (uint16_t l2cap_cid, bool    congested)
     tHID_CONN    *p_hcon = NULL;
 
     /* Find CCB based on CID */
-    if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
+    dhandle = find_conn_by_cid(l2cap_cid);
+    if(dhandle < HID_HOST_MAX_DEVICES )
         p_hcon = &hh_cb.devices[dhandle].conn;
 
     if (p_hcon == NULL)
@@ -808,7 +816,8 @@ static void hidh_l2cif_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
     HIDH_TRACE_DEBUG ("HID-Host hidh_l2cif_data_ind [l2cap_cid=0x%04x]", l2cap_cid);
 
     /* Find CCB based on CID */
-     if ((dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES)
+     dhandle = find_conn_by_cid(l2cap_cid);
+     if (dhandle < HID_HOST_MAX_DEVICES)
         p_hcon = &hh_cb.devices[dhandle].conn;
 
     if (p_hcon == NULL)
@@ -1039,7 +1048,8 @@ tHID_STATUS hidh_conn_initiate (uint8_t dhandle)
     BTM_SetOutService (p_dev->addr, service_id, mx_chan_id);
 
     /* Check if L2CAP started the connection process */
-    if ((p_dev->conn.ctrl_cid = L2CA_ConnectReq (HID_PSM_CONTROL, p_dev->addr)) == 0)
+    p_dev->conn.ctrl_cid = L2CA_ConnectReq(HID_PSM_CONTROL, p_dev->addr);
+    if (p_dev->conn.ctrl_cid == 0)
     {
         HIDH_TRACE_WARNING ("HID-Host Originate failed");
         hh_cb.callback( dhandle,  hh_cb.devices[dhandle].addr, HID_HDEV_EVT_CLOSE,

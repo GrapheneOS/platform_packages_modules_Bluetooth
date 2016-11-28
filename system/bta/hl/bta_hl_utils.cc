@@ -262,14 +262,14 @@ bool bta_hl_find_service_in_db(uint8_t app_idx, uint8_t mcl_idx,
   switch (service_uuid) {
     case UUID_SERVCLASS_HDP_SINK:
     case UUID_SERVCLASS_HDP_SOURCE:
-      if ((*pp_rec = SDP_FindServiceInDb(p_mcb->p_db, service_uuid, *pp_rec)) ==
-          NULL) {
+      *pp_rec = SDP_FindServiceInDb(p_mcb->p_db, service_uuid, *pp_rec);
+      if (*pp_rec == NULL) {
         found = false;
       }
       break;
     default:
-      if ((*pp_rec = bta_hl_find_sink_or_src_srv_class_in_db(
-               p_mcb->p_db, *pp_rec)) == NULL) {
+      *pp_rec = bta_hl_find_sink_or_src_srv_class_in_db(p_mcb->p_db, *pp_rec);
+      if (*pp_rec == NULL) {
         found = false;
       }
       break;
@@ -2036,8 +2036,9 @@ tBTA_HL_STATUS bta_hl_app_registration(uint8_t app_idx) {
   reg.sec_mask = p_acb->sec_mask;
   reg.rsp_tout = BTA_HL_MCAP_RSP_TOUT;
 
-  if ((p_acb->app_handle = (tBTA_HL_APP_HANDLE)MCA_Register(
-           &reg, bta_hl_mcap_ctrl_cback)) != 0) {
+  p_acb->app_handle =
+      (tBTA_HL_APP_HANDLE)MCA_Register(&reg, bta_hl_mcap_ctrl_cback);
+  if (p_acb->app_handle != 0) {
     mca_cs.type = MCA_TDEP_ECHO;
     mca_cs.max_mdl = BTA_HL_NUM_MDLS_PER_MDEP;
     mca_cs.p_data_cback = bta_hl_mcap_data_cback;

@@ -135,7 +135,8 @@ uint16_t GAP_ConnOpen(const char *p_serv_name, uint8_t service_id, bool is_serve
     GAP_TRACE_EVENT ("GAP_CONN - Open Request");
 
     /* Allocate a new CCB. Return if none available. */
-    if ((p_ccb = gap_allocate_ccb()) == NULL)
+    p_ccb = gap_allocate_ccb();
+    if (p_ccb == NULL)
         return (GAP_INVALID_HANDLE);
 
     /* update the transport */
@@ -599,7 +600,8 @@ uint16_t GAP_ConnSetIdleTimeout (uint16_t gap_handle, uint16_t timeout)
 {
     tGAP_CCB    *p_ccb;
 
-    if ((p_ccb = gap_find_ccb_by_handle (gap_handle)) == NULL)
+    p_ccb = gap_find_ccb_by_handle(gap_handle);
+    if (p_ccb == NULL)
         return (GAP_ERR_BAD_HANDLE);
 
     if (L2CA_SetIdleTimeout (p_ccb->connection_id, timeout, false))
@@ -659,7 +661,8 @@ uint16_t GAP_ConnGetRemMtuSize (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb;
 
-    if ((p_ccb = gap_find_ccb_by_handle (gap_handle)) == NULL)
+    p_ccb = gap_find_ccb_by_handle(gap_handle);
+    if (p_ccb == NULL)
         return (0);
 
     return (p_ccb->rem_mtu_size);
@@ -681,7 +684,8 @@ uint16_t GAP_ConnGetL2CAPCid (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb;
 
-    if ((p_ccb = gap_find_ccb_by_handle (gap_handle)) == NULL)
+    p_ccb = gap_find_ccb_by_handle(gap_handle);
+    if (p_ccb == NULL)
         return (0);
 
     return (p_ccb->connection_id);
@@ -850,7 +854,8 @@ static void gap_connect_cfm (uint16_t l2cap_cid, uint16_t result)
     tGAP_CCB    *p_ccb;
 
     /* Find CCB based on CID */
-    if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = gap_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
         return;
 
     /* initiate security process, if needed */
@@ -911,7 +916,8 @@ static void gap_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     uint16_t    local_mtu_size;
 
     /* Find CCB based on CID */
-    if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = gap_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
         return;
 
     /* Remember the remote MTU size */
@@ -960,7 +966,8 @@ static void gap_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     tGAP_CCB    *p_ccb;
 
     /* Find CCB based on CID */
-    if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = gap_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
         return;
 
     if (p_cfg->result == L2CAP_CFG_OK)
@@ -1000,7 +1007,8 @@ static void gap_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
     GAP_TRACE_EVENT ("GAP_CONN - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
 
     /* Find CCB based on CID */
-    if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = gap_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
         return;
 
     if (ack_needed)
@@ -1025,7 +1033,8 @@ static void gap_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
     tGAP_CCB    *p_ccb;
 
     /* Find CCB based on CID */
-    if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = gap_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
     {
         osi_free(p_msg);
         return;
@@ -1069,7 +1078,8 @@ static void gap_congestion_ind (uint16_t lcid, bool    is_congested)
                       is_congested, lcid);
 
     /* Find CCB based on CID */
-    if ((p_ccb = gap_find_ccb_by_cid (lcid)) == NULL)
+    p_ccb = gap_find_ccb_by_cid(lcid);
+    if (p_ccb == NULL)
         return;
 
     p_ccb->is_congested = is_congested;

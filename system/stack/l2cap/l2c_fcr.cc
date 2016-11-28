@@ -841,7 +841,8 @@ void l2c_lcc_proc_pdu(tL2C_CCB *p_ccb, BT_HDR *p_buf)
         }
 
 
-        if ((p_data = (BT_HDR *) osi_malloc(L2CAP_MAX_BUF_SIZE)) == NULL)
+        p_data = (BT_HDR *)osi_malloc(L2CAP_MAX_BUF_SIZE);
+        if (p_data == NULL)
         {
             osi_free(p_buf);
             return;

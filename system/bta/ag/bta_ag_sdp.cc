@@ -72,7 +72,8 @@ static void bta_ag_sdp_cback(uint16_t status, uint8_t idx) {
 
   APPL_TRACE_DEBUG("%s status:0x%x", __func__, status);
 
-  if ((p_scb = bta_ag_scb_by_idx(idx)) != NULL) {
+  p_scb = bta_ag_scb_by_idx(idx);
+  if (p_scb != NULL) {
     /* set event according to int/acp */
     if (p_scb->role == BTA_AG_ACP) {
       event = BTA_AG_DISC_ACP_RES_EVT;
@@ -303,12 +304,13 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
   /* loop through all records we found */
   while (true) {
     /* get next record; if none found, we're done */
-    if ((p_rec = SDP_FindServiceInDb(p_scb->p_disc_db, uuid, p_rec)) == NULL) {
+    p_rec = SDP_FindServiceInDb(p_scb->p_disc_db, uuid, p_rec);
+    if (p_rec == NULL) {
       if (uuid == UUID_SERVCLASS_HEADSET_HS) {
         /* Search again in case the peer device is HSP v1.0 */
         uuid = UUID_SERVCLASS_HEADSET;
-        if ((p_rec = SDP_FindServiceInDb(p_scb->p_disc_db, uuid, p_rec)) ==
-            NULL) {
+        p_rec = SDP_FindServiceInDb(p_scb->p_disc_db, uuid, p_rec);
+        if (p_rec == NULL) {
           break;
         }
       } else
@@ -329,8 +331,8 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
 
     /* get features if HFP */
     if (service & BTA_HFP_SERVICE_MASK) {
-      if ((p_attr = SDP_FindAttributeInRec(
-               p_rec, ATTR_ID_SUPPORTED_FEATURES)) != NULL) {
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FEATURES);
+      if (p_attr != NULL) {
         /* Found attribute. Get value. */
         /* There might be race condition between SDP and BRSF.  */
         /* Do not update if we already received BRSF.           */
@@ -339,8 +341,9 @@ bool bta_ag_sdp_find_attr(tBTA_AG_SCB* p_scb, tBTA_SERVICE_MASK service) {
       }
     } else /* HSP */
     {
-      if ((p_attr = SDP_FindAttributeInRec(
-               p_rec, ATTR_ID_REMOTE_AUDIO_VOLUME_CONTROL)) != NULL) {
+      p_attr =
+          SDP_FindAttributeInRec(p_rec, ATTR_ID_REMOTE_AUDIO_VOLUME_CONTROL);
+      if (p_attr != NULL) {
         /* Remote volume control of HSP */
         if (p_attr->attr_value.v.u8)
           p_scb->peer_features |= BTA_AG_PEER_FEAT_VOL;

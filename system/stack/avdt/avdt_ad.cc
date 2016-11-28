@@ -540,7 +540,8 @@ void avdt_ad_open_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, uint8_t 
     tAVDT_TC_TBL    *p_tbl;
     uint16_t        lcid;
 
-    if((p_tbl = avdt_ad_tc_tbl_alloc(p_ccb)) == NULL)
+    p_tbl = avdt_ad_tc_tbl_alloc(p_ccb);
+    if(p_tbl == NULL)
     {
         AVDT_TRACE_ERROR("avdt_ad_open_req: Cannot allocate p_tbl");
         return;
@@ -581,7 +582,8 @@ void avdt_ad_open_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, uint8_t 
         p_tbl->state = AVDT_AD_ST_CONN;
 
         /* call l2cap connect req */
-        if ((lcid = L2CA_ConnectReq(AVDT_PSM, p_ccb->peer_addr)) != 0)
+        lcid = L2CA_ConnectReq(AVDT_PSM, p_ccb->peer_addr);
+        if (lcid != 0)
         {
             /* if connect req ok, store tcid in lcid table  */
             avdt_cb.ad.lcid_tbl[lcid - L2CAP_BASE_APPL_CID] = avdt_ad_tc_tbl_to_idx(p_tbl);

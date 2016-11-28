@@ -87,23 +87,20 @@ static void bta_mce_search_cback(uint16_t result, void* user_data) {
 
       evt_data.mas[found].scn = pe.params[0];
 
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) ==
-          NULL)
-        continue;
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+      if (p_attr == NULL) continue;
 
       evt_data.mas[found].p_srv_name = (char*)p_attr->attr_value.v.array;
       evt_data.mas[found].srv_name_len =
           SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
 
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAS_INSTANCE_ID)) ==
-          NULL)
-        break;
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAS_INSTANCE_ID);
+      if (p_attr == NULL) break;
 
       evt_data.mas[found].instance_id = p_attr->attr_value.v.u8;
 
-      if ((p_attr = SDP_FindAttributeInRec(p_rec,
-                                           ATTR_ID_SUPPORTED_MSG_TYPE)) == NULL)
-        break;
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_MSG_TYPE);
+      if (p_attr == NULL) break;
 
       evt_data.mas[found].msg_type = p_attr->attr_value.v.u8;
 

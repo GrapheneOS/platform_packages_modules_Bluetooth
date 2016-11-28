@@ -152,7 +152,8 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 
     if (!p_bcb)
     {
-        if ((p_bcb = bnepu_allocate_bcb (p_rem_bda)) == NULL)
+        p_bcb = bnepu_allocate_bcb(p_rem_bda);
+        if (p_bcb == NULL)
             return (BNEP_NO_RESOURCES);
     }
     else if (p_bcb->con_state != BNEP_STATE_CONNECTED)
@@ -193,7 +194,8 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
         /* Transition to the next appropriate state, waiting for connection confirm. */
         p_bcb->con_state = BNEP_STATE_CONN_START;
 
-        if ((cid = L2CA_ConnectReq (BT_PSM_BNEP, p_bcb->rem_bda)) != 0)
+        cid = L2CA_ConnectReq(BT_PSM_BNEP, p_bcb->rem_bda);
+        if (cid != 0)
         {
             p_bcb->l2cap_cid = cid;
 

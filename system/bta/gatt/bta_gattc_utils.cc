@@ -212,7 +212,8 @@ tBTA_GATTC_CLCB* bta_gattc_clcb_alloc(tBTA_GATTC_IF client_if,
 
       p_clcb->p_rcb = bta_gattc_cl_get_regcb(client_if);
 
-      if ((p_clcb->p_srcb = bta_gattc_find_srcb(remote_bda)) == NULL)
+      p_clcb->p_srcb = bta_gattc_find_srcb(remote_bda);
+      if (p_clcb->p_srcb == NULL)
         p_clcb->p_srcb = bta_gattc_srcb_alloc(remote_bda);
 
       if (p_clcb->p_rcb != NULL && p_clcb->p_srcb != NULL) {
@@ -242,8 +243,8 @@ tBTA_GATTC_CLCB* bta_gattc_find_alloc_clcb(tBTA_GATTC_IF client_if,
                                            tBTA_TRANSPORT transport) {
   tBTA_GATTC_CLCB* p_clcb;
 
-  if ((p_clcb = bta_gattc_find_clcb_by_cif(client_if, remote_bda, transport)) ==
-      NULL) {
+  p_clcb = bta_gattc_find_clcb_by_cif(client_if, remote_bda, transport);
+  if (p_clcb == NULL) {
     p_clcb = bta_gattc_clcb_alloc(client_if, remote_bda, transport);
   }
   return p_clcb;
@@ -443,7 +444,8 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV* p_srcb,
   uint16_t handle;
 
   if (GATT_GetConnectionInfor(conn_id, &gatt_if, remote_bda, &transport)) {
-    if ((p_clrcb = bta_gattc_cl_get_regcb(gatt_if)) != NULL) {
+    p_clrcb = bta_gattc_cl_get_regcb(gatt_if);
+    if (p_clrcb != NULL) {
       for (i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
         if (p_clrcb->notif_reg[i].in_use &&
             !bdcmp(p_clrcb->notif_reg[i].remote_bda, remote_bda)) {
@@ -691,9 +693,10 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA* p_msg) {
     bta_gattc_conn_find_alloc(p_msg->int_conn.remote_bda);
 
   /* try to locate a logic channel */
-  if ((p_clcb = bta_gattc_find_clcb_by_cif(
-           p_msg->int_conn.client_if, p_msg->int_conn.remote_bda,
-           p_msg->int_conn.transport)) == NULL) {
+  p_clcb = bta_gattc_find_clcb_by_cif(p_msg->int_conn.client_if,
+                                      p_msg->int_conn.remote_bda,
+                                      p_msg->int_conn.transport);
+  if (p_clcb == NULL) {
     /* for a background connection or listening connection */
     if (/*p_msg->int_conn.role == HCI_ROLE_SLAVE ||  */
         bta_gattc_check_bg_conn(p_msg->int_conn.client_if,
@@ -722,8 +725,8 @@ tBTA_GATTC_CLCB* bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA* p_msg) {
   tBTA_GATTC_CLCB* p_clcb = NULL;
 
   bta_gattc_conn_dealloc(p_msg->int_conn.remote_bda);
-  if ((p_clcb = bta_gattc_find_clcb_by_conn_id(
-           p_msg->int_conn.hdr.layer_specific)) == NULL) {
+  p_clcb = bta_gattc_find_clcb_by_conn_id(p_msg->int_conn.hdr.layer_specific);
+  if (p_clcb == NULL) {
     /* connection attempt failed, send connection callback event */
     p_clcb = bta_gattc_find_clcb_by_cif(p_msg->int_conn.client_if,
                                         p_msg->int_conn.remote_bda,

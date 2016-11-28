@@ -178,13 +178,16 @@ uint16_t AVDT_CreateStream(uint8_t *p_handle, tAVDT_CS *p_cs)
         result = AVDT_BAD_PARAMS;
     }
     /* Allocate scb; if no scbs, return failure */
-    else if ((p_scb = avdt_scb_alloc(p_cs)) == NULL)
-    {
-        result = AVDT_NO_RESOURCES;
-    }
-    else
-    {
-        *p_handle = avdt_scb_to_hdl(p_scb);
+    else {
+        p_scb = avdt_scb_alloc(p_cs);
+        if (p_scb == NULL)
+        {
+            result = AVDT_NO_RESOURCES;
+        }
+        else
+        {
+            *p_handle = avdt_scb_to_hdl(p_scb);
+        }
     }
     return result;
 }
@@ -209,7 +212,8 @@ uint16_t AVDT_RemoveStream(uint8_t handle)
     tAVDT_SCB   *p_scb;
 
     /* look up scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -255,9 +259,11 @@ uint16_t AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
     tAVDT_CCB_EVT   evt;
 
     /* find channel control block for this bd addr; if none, allocate one */
-    if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
+    p_ccb = avdt_ccb_by_bd(bd_addr);
+    if (p_ccb == NULL)
     {
-        if ((p_ccb = avdt_ccb_alloc(bd_addr)) == NULL)
+        p_ccb = avdt_ccb_alloc(bd_addr);
+        if (p_ccb == NULL)
         {
             /* could not allocate channel control block */
             result = AVDT_NO_RESOURCES;
@@ -305,12 +311,16 @@ static uint16_t avdt_get_cap_req(BD_ADDR bd_addr, tAVDT_CCB_API_GETCAP *p_evt)
         result = AVDT_BAD_PARAMS;
     }
     /* find channel control block for this bd addr; if none, allocate one */
-    else if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
-    {
-        if ((p_ccb = avdt_ccb_alloc(bd_addr)) == NULL)
+    else {
+        p_ccb = avdt_ccb_by_bd(bd_addr);
+        if (p_ccb == NULL)
         {
+            p_ccb = avdt_ccb_alloc(bd_addr);
+            if (p_ccb == NULL)
+            {
             /* could not allocate channel control block */
-            result = AVDT_NO_RESOURCES;
+                result = AVDT_NO_RESOURCES;
+            }
         }
     }
 
@@ -418,7 +428,8 @@ uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay)
     tAVDT_SCB_EVT   evt;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -459,17 +470,24 @@ uint16_t AVDT_OpenReq(uint8_t handle, BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *
         result = AVDT_BAD_PARAMS;
     }
     /* map handle to scb */
-    else if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    /* find channel control block for this bd addr; if none, allocate one */
-    else if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
-    {
-        if ((p_ccb = avdt_ccb_alloc(bd_addr)) == NULL)
+    else {
+        p_scb = avdt_scb_by_hdl(handle);
+        if (p_scb == NULL)
         {
+            result = AVDT_BAD_HANDLE;
+        }
+    /* find channel control block for this bd addr; if none, allocate one */
+        else {
+            p_ccb = avdt_ccb_by_bd(bd_addr);
+            if (p_ccb == NULL)
+            {
+                p_ccb = avdt_ccb_alloc(bd_addr);
+                if (p_ccb == NULL)
+                {
             /* could not allocate channel control block */
-            result = AVDT_NO_RESOURCES;
+                    result = AVDT_NO_RESOURCES;
+                }
+            }
         }
     }
 
@@ -505,7 +523,8 @@ uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8
     uint8_t         event_code;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -566,7 +585,8 @@ uint16_t AVDT_StartReq(uint8_t *p_handles, uint8_t num_handles)
         /* verify handles */
         for (i = 0; i < num_handles; i++)
         {
-            if ((p_scb = avdt_scb_by_hdl(p_handles[i])) == NULL)
+            p_scb = avdt_scb_by_hdl(p_handles[i]);
+            if (p_scb == NULL)
             {
                 result = AVDT_BAD_HANDLE;
                 break;
@@ -622,7 +642,8 @@ uint16_t AVDT_SuspendReq(uint8_t *p_handles, uint8_t num_handles)
         /* verify handles */
         for (i = 0; i < num_handles; i++)
         {
-            if ((p_scb = avdt_scb_by_hdl(p_handles[i])) == NULL)
+            p_scb = avdt_scb_by_hdl(p_handles[i]);
+            if (p_scb == NULL)
             {
                 result = AVDT_BAD_HANDLE;
                 break;
@@ -668,7 +689,8 @@ uint16_t AVDT_CloseReq(uint8_t handle)
     uint16_t        result = AVDT_SUCCESS;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -704,7 +726,8 @@ uint16_t AVDT_ReconfigReq(uint8_t handle, tAVDT_CFG *p_cfg)
     tAVDT_SCB_EVT   evt;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -739,7 +762,8 @@ uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uin
     uint16_t        result = AVDT_SUCCESS;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -776,7 +800,8 @@ uint16_t AVDT_SecurityReq(uint8_t handle, uint8_t *p_data, uint16_t len)
     tAVDT_SCB_EVT   evt;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -812,7 +837,8 @@ uint16_t AVDT_SecurityRsp(uint8_t handle, uint8_t label, uint8_t error_code,
     tAVDT_SCB_EVT   evt;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -871,7 +897,8 @@ uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, ui
     uint16_t        result = AVDT_SUCCESS;
 
     /* map handle to scb */
-    if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL)
     {
         result = AVDT_BAD_HANDLE;
     }
@@ -947,9 +974,11 @@ uint16_t AVDT_ConnectReq(BD_ADDR bd_addr, uint8_t sec_mask, tAVDT_CTRL_CBACK *p_
     tAVDT_CCB_EVT   evt;
 
     /* find channel control block for this bd addr; if none, allocate one */
-    if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
+    p_ccb = avdt_ccb_by_bd(bd_addr);
+    if (p_ccb == NULL)
     {
-        if ((p_ccb = avdt_ccb_alloc(bd_addr)) == NULL)
+        p_ccb = avdt_ccb_alloc(bd_addr);
+        if (p_ccb == NULL)
         {
             /* could not allocate channel control block */
             result = AVDT_NO_RESOURCES;
@@ -992,7 +1021,8 @@ uint16_t AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback)
     tAVDT_CCB_EVT   evt;
 
     /* find channel control block for this bd addr; if none, error */
-    if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
+    p_ccb = avdt_ccb_by_bd(bd_addr);
+    if (p_ccb == NULL)
     {
         result = AVDT_BAD_PARAMS;
     }
@@ -1057,9 +1087,12 @@ uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr)
     {
         lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
     }
-    else if ((p_ccb = avdt_ccb_by_bd(bd_addr)) != NULL)
-    {
-        lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
+    else {
+        p_ccb = avdt_ccb_by_bd(bd_addr);
+        if (p_ccb != NULL)
+        {
+            lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
+        }
     }
 
     return (lcid);

@@ -293,7 +293,8 @@ bool     smp_send_msg_to_L2CAP(BD_ADDR rem_bda, BT_HDR *p_toL2CAP)
     SMP_TRACE_EVENT("%s", __func__);
     smp_cb.total_tx_unacked += 1;
 
-    if ((l2cap_ret = L2CA_SendFixedChnlData (fixed_cid, rem_bda, p_toL2CAP)) == L2CAP_DW_FAILED)
+    l2cap_ret = L2CA_SendFixedChnlData(fixed_cid, rem_bda, p_toL2CAP);
+    if (l2cap_ret == L2CAP_DW_FAILED)
     {
         smp_cb.total_tx_unacked -= 1;
         SMP_TRACE_ERROR("SMP   failed to pass msg:0x%0x to L2CAP",

@@ -270,10 +270,11 @@ void  btm_route_sco_data(BT_HDR *p_msg)
 
     STREAM_TO_UINT8 (pkt_size, p);
 
-    if ((sco_inx = btm_find_scb_by_handle(handle)) != BTM_MAX_SCO_LINKS )
+    sco_inx = btm_find_scb_by_handle(handle);
+    if (sco_inx != BTM_MAX_SCO_LINKS)
     {
         /* send data callback */
-        if (!btm_cb.sco_cb.p_data_cb )
+        if (!btm_cb.sco_cb.p_data_cb)
             /* if no data callback registered,  just free the buffer  */
             osi_free(p_msg);
         else
@@ -406,7 +407,8 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
         /* Finally, remove EDR eSCO if the remote device doesn't support it */
         /* UPF25:  Only SCO was brought up in this case */
         btm_handle_to_acl_index(acl_handle);
-        if ((xx = btm_handle_to_acl_index(acl_handle)) < MAX_L2CAP_LINKS)
+        xx = btm_handle_to_acl_index(acl_handle);
+        if (xx < MAX_L2CAP_LINKS)
         {
             p_acl = &btm_cb.acl_db[xx];
             if (!HCI_EDR_ESCO_2MPS_SUPPORTED(p_acl->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))

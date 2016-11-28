@@ -705,9 +705,12 @@ void bta_jv_get_channel_id(tBTA_JV_MSG* p_data) {
           APPL_TRACE_ERROR("rfc channel:%d already in use or invalid", channel);
           channel = 0;
         }
-      } else if ((channel = BTM_AllocateSCN()) == 0) {
-        APPL_TRACE_ERROR("run out of rfc channels");
-        channel = 0;
+      } else {
+        channel = BTM_AllocateSCN();
+        if (channel == 0) {
+          APPL_TRACE_ERROR("run out of rfc channels");
+          channel = 0;
+        }
       }
       if (channel != 0) {
         bta_jv_cb.scn[channel - 1] = true;
@@ -879,7 +882,8 @@ void bta_jv_start_discovery(tBTA_JV_MSG* p_data) {
   bta_jv_cb.sdp_active = BTA_JV_SDP_ACT_YES;
   if (!SDP_ServiceSearchAttributeRequest2(
           p_data->start_discovery.bd_addr, p_bta_jv_cfg->p_sdp_db,
-          bta_jv_start_discovery_cback, UINT_TO_PTR(p_data->start_discovery.rfcomm_slot_id))) {
+          bta_jv_start_discovery_cback,
+          UINT_TO_PTR(p_data->start_discovery.rfcomm_slot_id))) {
     bta_jv_cb.sdp_active = BTA_JV_SDP_ACT_NONE;
     /* failed to start SDP. report the failure right away */
     if (bta_jv_cb.p_dm_cback)
@@ -1038,10 +1042,10 @@ void bta_jv_l2cap_connect(tBTA_JV_MSG* p_data) {
     if ((cc->type != BTA_JV_CONN_TYPE_L2CAP) ||
         (bta_jv_check_psm(cc->remote_psm))) /* allowed */
     {
-      if ((handle = GAP_ConnOpen("", sec_id, 0, cc->peer_bd_addr,
-                                 cc->remote_psm, &cfg, ertm_info, cc->sec_mask,
-                                 chan_mode_mask, bta_jv_l2cap_client_cback,
-                                 cc->type)) != GAP_INVALID_HANDLE) {
+      handle = GAP_ConnOpen("", sec_id, 0, cc->peer_bd_addr, cc->remote_psm,
+                            &cfg, ertm_info, cc->sec_mask, chan_mode_mask,
+                            bta_jv_l2cap_client_cback, cc->type);
+      if (handle != GAP_INVALID_HANDLE) {
         evt_data.status = BTA_JV_SUCCESS;
       }
     }
