@@ -1400,7 +1400,8 @@ void bta_dm_inq_cmpl(tBTA_DM_MSG* p_data) {
   data.inq_cmpl.num_resps = p_data->inq_cmpl.num;
   bta_dm_search_cb.p_search_cback(BTA_DM_INQ_CMPL_EVT, &data);
 
-  if ((bta_dm_search_cb.p_btm_inq_info = BTM_InqDbFirst()) != NULL) {
+  bta_dm_search_cb.p_btm_inq_info = BTM_InqDbFirst();
+  if (bta_dm_search_cb.p_btm_inq_info != NULL) {
     /* start name and service discovery from the first device on inquiry result
      */
     bta_dm_search_cb.name_discover_done = false;
@@ -2030,8 +2031,9 @@ static void bta_dm_discover_next_device(void) {
   APPL_TRACE_DEBUG("bta_dm_discover_next_device");
 
   /* searching next device on inquiry result */
-  if ((bta_dm_search_cb.p_btm_inq_info =
-           BTM_InqDbNext(bta_dm_search_cb.p_btm_inq_info)) != NULL) {
+  bta_dm_search_cb.p_btm_inq_info =
+      BTM_InqDbNext(bta_dm_search_cb.p_btm_inq_info);
+  if (bta_dm_search_cb.p_btm_inq_info != NULL) {
     bta_dm_search_cb.name_discover_done = false;
     bta_dm_search_cb.peer_name[0] = 0;
     bta_dm_discover_device(
@@ -2229,7 +2231,8 @@ static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir) {
   /* application will parse EIR to find out remote device name */
   result.inq_res.p_eir = p_eir;
 
-  if ((p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr)) != NULL) {
+  p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
+  if (p_inq_info != NULL) {
     /* initialize remt_name_not_required to false so that we get the name by
      * default */
     result.inq_res.remt_name_not_required = false;
@@ -3344,9 +3347,10 @@ static char* bta_dm_get_remname(void) {
   char* p_temp;
 
   /* If the name isn't already stored, try retrieving from BTM */
-  if (*p_name == '\0')
-    if ((p_temp = BTM_SecReadDevName(bta_dm_search_cb.peer_bdaddr)) != NULL)
-      p_name = p_temp;
+  if (*p_name == '\0') {
+    p_temp = BTM_SecReadDevName(bta_dm_search_cb.peer_bdaddr);
+    if (p_temp != NULL) p_name = p_temp;
+  }
 
   return p_name;
 }
@@ -3917,7 +3921,8 @@ static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir) {
   /* application will parse EIR to find out remote device name */
   result.inq_res.p_eir = p_eir;
 
-  if ((p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr)) != NULL) {
+  p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
+  if (p_inq_info != NULL) {
     /* initialize remt_name_not_required to false so that we get the name by
      * default */
     result.inq_res.remt_name_not_required = false;
@@ -4320,9 +4325,9 @@ void bta_dm_ble_observe(tBTA_DM_MSG* p_data) {
   if (p_data->ble_observe.start) {
     /*Save the  callback to be called when a scan results are available */
     bta_dm_search_cb.p_scan_cback = p_data->ble_observe.p_cback;
-    if ((status = BTM_BleObserve(true, p_data->ble_observe.duration,
-                                 bta_dm_observe_results_cb,
-                                 bta_dm_observe_cmpl_cb)) != BTM_CMD_STARTED) {
+    status = BTM_BleObserve(true, p_data->ble_observe.duration,
+                            bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb);
+    if (status != BTM_CMD_STARTED) {
       tBTA_DM_SEARCH data;
       APPL_TRACE_WARNING(" %s BTM_BleObserve  failed. status %d", __func__,
                          status);
@@ -4591,13 +4596,13 @@ void bta_dm_cfg_filter_cond(tBTA_DM_MSG* p_data) {
   APPL_TRACE_DEBUG("bta_dm_cfg_filter_cond");
   BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
   if (0 != cmn_vsc_cb.filter_support) {
-    if ((st = BTM_BleCfgFilterCondition(
-             p_data->ble_cfg_filter_cond.action,
-             p_data->ble_cfg_filter_cond.cond_type,
-             (tBTM_BLE_PF_FILT_INDEX)p_data->ble_cfg_filter_cond.filt_index,
-             (tBTM_BLE_PF_COND_PARAM*)p_data->ble_cfg_filter_cond.p_cond_param,
-             bta_ble_scan_cfg_cmpl, p_data->ble_cfg_filter_cond.ref_value)) ==
-        BTM_CMD_STARTED) {
+    st = BTM_BleCfgFilterCondition(
+        p_data->ble_cfg_filter_cond.action,
+        p_data->ble_cfg_filter_cond.cond_type,
+        (tBTM_BLE_PF_FILT_INDEX)p_data->ble_cfg_filter_cond.filt_index,
+        (tBTM_BLE_PF_COND_PARAM*)p_data->ble_cfg_filter_cond.p_cond_param,
+        bta_ble_scan_cfg_cmpl, p_data->ble_cfg_filter_cond.ref_value);
+    if (st == BTM_CMD_STARTED) {
       bta_dm_cb.p_scan_filt_cfg_cback =
           p_data->ble_cfg_filter_cond.p_filt_cfg_cback;
       return;
@@ -4629,11 +4634,11 @@ void bta_dm_enable_scan_filter(tBTA_DM_MSG* p_data) {
   BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
 
   if (0 != cmn_vsc_cb.filter_support) {
-    if ((st = BTM_BleEnableDisableFilterFeature(
-             p_data->ble_enable_scan_filt.action,
-             p_data->ble_enable_scan_filt.p_filt_status_cback,
-             (tBTM_BLE_REF_VALUE)p_data->ble_enable_scan_filt.ref_value)) ==
-        BTM_CMD_STARTED)
+    st = BTM_BleEnableDisableFilterFeature(
+        p_data->ble_enable_scan_filt.action,
+        p_data->ble_enable_scan_filt.p_filt_status_cback,
+        (tBTM_BLE_REF_VALUE)p_data->ble_enable_scan_filt.ref_value);
+    if (st == BTM_CMD_STARTED)
       bta_dm_cb.p_scan_filt_status_cback =
           p_data->ble_enable_scan_filt.p_filt_status_cback;
     return;
@@ -4663,14 +4668,15 @@ void bta_dm_scan_filter_param_setup(tBTA_DM_MSG* p_data) {
   APPL_TRACE_DEBUG("bta_dm_scan_filter_param_setup");
   BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
   if (0 != cmn_vsc_cb.filter_support) {
-    if ((st = BTM_BleAdvFilterParamSetup(
-             p_data->ble_scan_filt_param_setup.action,
-             p_data->ble_scan_filt_param_setup.filt_index,
-             (tBTM_BLE_PF_FILT_PARAMS*)&p_data->ble_scan_filt_param_setup
-                 .filt_params,
-             p_data->ble_scan_filt_param_setup.p_target,
-             p_data->ble_scan_filt_param_setup.p_filt_param_cback,
-             p_data->ble_scan_filt_param_setup.ref_value)) == BTM_CMD_STARTED) {
+    st = BTM_BleAdvFilterParamSetup(
+        p_data->ble_scan_filt_param_setup.action,
+        p_data->ble_scan_filt_param_setup.filt_index,
+        (tBTM_BLE_PF_FILT_PARAMS*)&p_data->ble_scan_filt_param_setup
+            .filt_params,
+        p_data->ble_scan_filt_param_setup.p_target,
+        p_data->ble_scan_filt_param_setup.p_filt_param_cback,
+        p_data->ble_scan_filt_param_setup.ref_value);
+    if (st == BTM_CMD_STARTED) {
       bta_dm_cb.p_scan_filt_param_cback =
           p_data->ble_scan_filt_param_setup.p_filt_param_cback;
       return;

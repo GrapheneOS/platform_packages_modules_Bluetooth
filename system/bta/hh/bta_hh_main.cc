@@ -333,7 +333,8 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB* p_cb, uint16_t event,
 
     p_cb->state = state_table[event][BTA_HH_NEXT_STATE];
 
-    if ((action = state_table[event][BTA_HH_ACTION]) != BTA_HH_IGNORE) {
+    action = state_table[event][BTA_HH_ACTION];
+    if (action != BTA_HH_IGNORE) {
       (*bta_hh_action[action])(p_cb, p_data);
     }
 

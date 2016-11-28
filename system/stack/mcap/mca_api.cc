@@ -128,7 +128,8 @@ tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback)
 
     MCA_TRACE_API ("MCA_Register: ctrl_psm:0x%x, data_psm:0x%x", p_reg->ctrl_psm, p_reg->data_psm);
 
-    if ( (p_rcb = mca_rcb_alloc (p_reg)) != NULL)
+    p_rcb = mca_rcb_alloc(p_reg);
+    if (p_rcb != NULL)
     {
         if (p_reg->ctrl_psm)
         {
@@ -338,7 +339,8 @@ tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
     tMCA_TC_TBL *p_tbl;
 
     MCA_TRACE_API ("MCA_ConnectReq: %d psm:0x%x", handle, ctrl_psm);
-    if ((p_ccb = mca_ccb_by_bd(handle, bd_addr)) == NULL)
+    p_ccb = mca_ccb_by_bd(handle, bd_addr);
+    if (p_ccb == NULL)
         p_ccb = mca_ccb_alloc(handle, bd_addr);
     else
     {

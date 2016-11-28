@@ -147,8 +147,7 @@ bool BTA_JvIsEncrypted(BD_ADDR bd_addr) {
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, uint32_t id,
-                                  int32_t channel) {
+tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, uint32_t id, int32_t channel) {
   tBTA_JV_API_ALLOC_CHANNEL* p_msg =
       (tBTA_JV_API_ALLOC_CHANNEL*)osi_malloc(sizeof(tBTA_JV_API_ALLOC_CHANNEL));
 
@@ -158,13 +157,13 @@ tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, uint32_t id,
   p_msg->type = conn_type;
   p_msg->channel = channel;
   if (conn_type == BTA_JV_CONN_TYPE_RFCOMM) {
-     p_msg->rfcomm_slot_id = id;
+    p_msg->rfcomm_slot_id = id;
   } else if (conn_type == BTA_JV_CONN_TYPE_L2CAP ||
              conn_type == BTA_JV_CONN_TYPE_L2CAP_LE) {
-     p_msg->l2cap_socket_id = id;
+    p_msg->l2cap_socket_id = id;
   } else {
-     APPL_TRACE_ERROR("%s: Invalid connection type");
-     return BTA_JV_FAILURE;
+    APPL_TRACE_ERROR("%s: Invalid connection type");
+    return BTA_JV_FAILURE;
   }
 
   bta_sys_sendmsg(p_msg);
@@ -215,7 +214,8 @@ tBTA_JV_STATUS BTA_JvFreeChannel(uint16_t channel, int conn_type) {
  *
  ******************************************************************************/
 tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, uint16_t num_uuid,
-                                    tSDP_UUID* p_uuid_list, uint32_t rfcomm_slot_id) {
+                                    tSDP_UUID* p_uuid_list,
+                                    uint32_t rfcomm_slot_id) {
   tBTA_JV_API_START_DISCOVERY* p_msg = (tBTA_JV_API_START_DISCOVERY*)osi_malloc(
       sizeof(tBTA_JV_API_START_DISCOVERY));
 

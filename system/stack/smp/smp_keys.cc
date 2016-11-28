@@ -1911,7 +1911,8 @@ bool    smp_calculate_link_key_from_long_term_key(tSMP_CB *p_cb)
         return false;
     }
 
-    if ((p_dev_rec = btm_find_dev (p_cb->pairing_bda)) == NULL)
+    p_dev_rec = btm_find_dev(p_cb->pairing_bda);
+    if (p_dev_rec == NULL)
     {
         SMP_TRACE_ERROR("%s failed to find Security Record", __func__);
         return false;
@@ -1997,15 +1998,16 @@ bool    smp_calculate_long_term_key_from_link_key(tSMP_CB *p_cb)
 
     SMP_TRACE_DEBUG ("%s", __func__);
 
-    if ((p_dev_rec = btm_find_dev (p_cb->pairing_bda)) == NULL)
+    p_dev_rec = btm_find_dev(p_cb->pairing_bda);
+    if (p_dev_rec == NULL)
     {
         SMP_TRACE_ERROR("%s failed to find Security Record",__func__);
         return false;
     }
 
     uint8_t br_link_key_type;
-    if ((br_link_key_type = BTM_SecGetDeviceLinkKeyType (p_cb->pairing_bda))
-        == BTM_LKEY_TYPE_IGNORE)
+    br_link_key_type = BTM_SecGetDeviceLinkKeyType(p_cb->pairing_bda);
+    if (br_link_key_type == BTM_LKEY_TYPE_IGNORE)
     {
         SMP_TRACE_ERROR("%s failed to retrieve BR link type",__func__);
         return false;

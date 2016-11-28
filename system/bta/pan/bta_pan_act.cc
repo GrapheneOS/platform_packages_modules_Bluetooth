@@ -92,7 +92,8 @@ static void bta_pan_conn_state_cback(uint16_t handle, BD_ADDR bd_addr,
 
   if ((state == PAN_SUCCESS) && !is_role_change) {
     p_buf->hdr.event = BTA_PAN_CONN_OPEN_EVT;
-    if ((p_scb = bta_pan_scb_by_handle(handle)) == NULL) {
+    p_scb = bta_pan_scb_by_handle(handle);
+    if (p_scb == NULL) {
       /* allocate an scb */
       p_scb = bta_pan_scb_alloc();
     }
@@ -140,7 +141,8 @@ static void bta_pan_conn_state_cback(uint16_t handle, BD_ADDR bd_addr,
 static void bta_pan_data_flow_cb(uint16_t handle, tPAN_RESULT result) {
   tBTA_PAN_SCB* p_scb;
 
-  if ((p_scb = bta_pan_scb_by_handle(handle)) == NULL) return;
+  p_scb = bta_pan_scb_by_handle(handle);
+  if (p_scb == NULL) return;
 
   if (result == PAN_TX_FLOW_ON) {
     BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
@@ -188,7 +190,8 @@ static void bta_pan_data_buf_ind_cback(uint16_t handle, BD_ADDR src,
   ((tBTA_PAN_DATA_PARAMS*)p_new_buf)->ext = ext;
   ((tBTA_PAN_DATA_PARAMS*)p_new_buf)->forward = forward;
 
-  if ((p_scb = bta_pan_scb_by_handle(handle)) == NULL) {
+  p_scb = bta_pan_scb_by_handle(handle);
+  if (p_scb == NULL) {
     osi_free(p_new_buf);
     return;
   }
@@ -613,8 +616,8 @@ void bta_pan_tx_path(tBTA_PAN_SCB* p_scb, UNUSED_ATTR tBTA_PAN_DATA* p_data) {
       BT_HDR* p_buf;
 
       /* read data from the queue */
-      if ((p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_scb->data_queue)) !=
-          NULL) {
+      p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_scb->data_queue);
+      if (p_buf != NULL) {
         /* send data to application */
         bta_pan_co_tx_writebuf(p_scb->handle, p_scb->app_id,
                                ((tBTA_PAN_DATA_PARAMS*)p_buf)->src,

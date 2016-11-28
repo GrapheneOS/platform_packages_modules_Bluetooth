@@ -325,7 +325,8 @@ bool bta_gattc_sm_execute(tBTA_GATTC_CLCB* p_clcb, uint16_t event,
 
   /* execute action functions */
   for (i = 0; i < BTA_GATTC_ACTIONS; i++) {
-    if ((action = state_table[event][i]) != BTA_GATTC_IGNORE) {
+    action = state_table[event][i];
+    if (action != BTA_GATTC_IGNORE) {
       (*bta_gattc_action[action])(p_clcb, p_data);
       if (p_clcb->p_q_cmd == p_data) {
         /* buffer is queued, don't free in the bta dispatcher.

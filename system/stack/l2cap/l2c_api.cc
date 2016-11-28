@@ -91,7 +91,8 @@ uint16_t L2CA_Register (uint16_t psm, tL2CAP_APPL_INFO *p_cb_info)
     {
         for (vpsm = 0x1002; vpsm < 0x8000; vpsm += 2)
         {
-            if ((p_rcb = l2cu_find_rcb_by_psm (vpsm)) == NULL)
+            p_rcb = l2cu_find_rcb_by_psm(vpsm);
+            if (p_rcb == NULL)
                 break;
         }
 
@@ -99,9 +100,11 @@ uint16_t L2CA_Register (uint16_t psm, tL2CAP_APPL_INFO *p_cb_info)
     }
 
     /* If registration block already there, just overwrite it */
-    if ((p_rcb = l2cu_find_rcb_by_psm (vpsm)) == NULL)
+    p_rcb = l2cu_find_rcb_by_psm(vpsm);
+    if (p_rcb == NULL)
     {
-        if ((p_rcb = l2cu_allocate_rcb (vpsm)) == NULL)
+        p_rcb = l2cu_allocate_rcb(vpsm);
+        if (p_rcb == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - no RCB available, PSM: 0x%04x  vPSM: 0x%04x", psm, vpsm);
             return (0);
@@ -133,7 +136,8 @@ void L2CA_Deregister (uint16_t psm)
 
     L2CAP_TRACE_API ("L2CAP - L2CA_Deregister() called for PSM: 0x%04x", psm);
 
-    if ((p_rcb = l2cu_find_rcb_by_psm (psm)) != NULL)
+    p_rcb = l2cu_find_rcb_by_psm(psm);
+    if (p_rcb != NULL)
     {
         p_lcb = &l2cb.lcb_pool[0];
         for (ii = 0; ii < MAX_L2CAP_LINKS; ii++, p_lcb++)
@@ -255,7 +259,8 @@ uint16_t L2CA_ErtmConnectReq (uint16_t psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO 
         return (0);
     }
     /* Fail if the PSM is not registered */
-    if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
+    p_rcb = l2cu_find_rcb_by_psm(psm);
+    if (p_rcb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no RCB for L2CA_conn_req, PSM: 0x%04x", psm);
         return (0);
@@ -263,7 +268,8 @@ uint16_t L2CA_ErtmConnectReq (uint16_t psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO 
 
     /* First, see if we already have a link to the remote */
     /* assume all ERTM l2cap connection is going over BR/EDR for now */
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         /* No link. Get an LCB and start link establishment */
         if ( ((p_lcb = l2cu_allocate_lcb (p_bd_addr, false, BT_TRANSPORT_BR_EDR)) == NULL)
@@ -276,7 +282,8 @@ uint16_t L2CA_ErtmConnectReq (uint16_t psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO 
     }
 
     /* Allocate a channel control block */
-    if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
+    p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_conn_req, PSM: 0x%04x", psm);
         return (0);
@@ -709,7 +716,8 @@ bool    L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid, uint1
                       (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info);
 
     /* First, find the link control block */
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         /* No link. Get an LCB and start link establishment */
         L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_conn_rsp");
@@ -717,7 +725,8 @@ bool    L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid, uint1
     }
 
     /* Now, find the channel control block */
-    if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_conn_rsp");
         return (false);
@@ -790,7 +799,8 @@ bool    L2CA_ConfigReq (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
         cid, p_cfg->fcr_present, p_cfg->fcr.mode, p_cfg->mtu_present, p_cfg->mtu);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_cfg_req, CID: %d", cid);
         return (false);
@@ -840,7 +850,8 @@ bool    L2CA_ConfigRsp (uint16_t cid, tL2CAP_CFG_INFO *p_cfg)
         cid, p_cfg->result, p_cfg->mtu_present, p_cfg->flush_to_present, p_cfg->fcr_present, p_cfg->fcs_present);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_cfg_rsp, CID: %d", cid);
         return (false);
@@ -882,7 +893,8 @@ bool    L2CA_DisconnectReq (uint16_t cid)
     L2CAP_TRACE_API ("L2CA_DisconnectReq()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_disc_req, CID: %d", cid);
         return (false);
@@ -910,7 +922,8 @@ bool    L2CA_DisconnectRsp (uint16_t cid)
     L2CAP_TRACE_API ("L2CA_DisconnectRsp()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_disc_rsp, CID: %d", cid);
         return (false);
@@ -942,10 +955,12 @@ bool     L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_callback)
         return (false);
 
     /* First, see if we already have a link to the remote */
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         /* No link. Get an LCB and start link establishment */
-        if ((p_lcb = l2cu_allocate_lcb (p_bd_addr, false, BT_TRANSPORT_BR_EDR)) == NULL)
+        p_lcb = l2cu_allocate_lcb(p_bd_addr, false, BT_TRANSPORT_BR_EDR);
+        if (p_lcb == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_ping");
             return (false);
@@ -1021,7 +1036,8 @@ bool     L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_cal
     }
 
     /* We assume the upper layer will call this function only when the link is established. */
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CA_Echo ERROR : link not established");
         return false;
@@ -1089,7 +1105,8 @@ bool    L2CA_SetIdleTimeout (uint16_t cid, uint16_t timeout, bool    is_global)
     else
     {
         /* Find the channel control block. We don't know the link it is on. */
-        if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+        p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+        if (p_ccb == NULL)
         {
             L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetIdleTimeout, CID: %d", cid);
             return (false);
@@ -1245,13 +1262,15 @@ uint16_t L2CA_LocalLoopbackReq (uint16_t psm, uint16_t handle, BD_ADDR p_bd_addr
     }
 
     /* Fail if the PSM is not registered */
-    if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
+    p_rcb = l2cu_find_rcb_by_psm(psm);
+    if (p_rcb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no RCB for L2CA_conn_req, PSM: %d", psm);
         return (0);
     }
 
-    if ((p_lcb = l2cu_allocate_lcb (p_bd_addr, false, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_allocate_lcb(p_bd_addr, false, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no LCB for L2CA_conn_req");
         return (0);
@@ -1261,7 +1280,8 @@ uint16_t L2CA_LocalLoopbackReq (uint16_t psm, uint16_t handle, BD_ADDR p_bd_addr
     p_lcb->handle     = handle;
 
     /* Allocate a channel control block */
-    if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
+    p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_conn_req");
         return (0);
@@ -1316,7 +1336,8 @@ bool    L2CA_FlowControl (uint16_t cid, bool    data_enabled)
     L2CAP_TRACE_API ("L2CA_FlowControl(%d)  CID: 0x%04x", on_off, cid);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_FlowControl, CID: 0x%04x  data_enabled: %d", cid, data_enabled);
         return (false);
@@ -1359,7 +1380,8 @@ bool    L2CA_SendTestSFrame (uint16_t cid, uint8_t sup_type, uint8_t back_track)
     L2CAP_TRACE_API ("L2CA_SendTestSFrame()  CID: 0x%04x  Type: 0x%02x  back_track: %u", cid, sup_type, back_track);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SendTestSFrame, CID: %d", cid);
         return (false);
@@ -1391,7 +1413,8 @@ bool    L2CA_SetTxPriority (uint16_t cid, tL2CAP_CHNL_PRIORITY priority)
     L2CAP_TRACE_API ("L2CA_SetTxPriority()  CID: 0x%04x, priority:%d", cid, priority);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetTxPriority, CID: %d", cid);
         return (false);
@@ -1419,7 +1442,8 @@ bool    L2CA_SetChnlDataRate (uint16_t cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHN
     L2CAP_TRACE_API ("L2CA_SetChnlDataRate()  CID: 0x%04x, tx:%d, rx:%d", cid, tx, rx);
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetChnlDataRate, CID: %d", cid);
         return (false);
@@ -1563,7 +1587,8 @@ bool    L2CA_GetPeerFeatures (BD_ADDR bd_addr, uint32_t *p_ext_feat, uint8_t *p_
     tL2C_LCB        *p_lcb;
 
     /* We must already have a link to the remote */
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p_lcb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CA_GetPeerFeatures() No BDA: %08x%04x",
                               (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3],
@@ -1701,7 +1726,8 @@ bool    L2CA_ConnectFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
     tL2C_BLE_FIXED_CHNLS_MASK peer_channel_mask;
 
     // If we already have a link to the remote, check if it supports that CID
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, transport)) != NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, transport);
+    if (p_lcb != NULL)
     {
         // Fixed channels are mandatory on LE transports so ignore the received
         // channel mask and use the locally cached LE channel mask.
@@ -1743,7 +1769,8 @@ bool    L2CA_ConnectFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda)
     }
 
     // No link. Get an LCB and start link establishment
-    if ((p_lcb = l2cu_allocate_lcb (rem_bda, false, transport)) == NULL)
+    p_lcb = l2cu_allocate_lcb(rem_bda, false, transport);
+    if (p_lcb == NULL)
     {
         L2CAP_TRACE_WARNING ("%s(0x%04x) - no LCB", __func__, fixed_cid);
         return false;
@@ -2132,7 +2159,8 @@ bool    L2CA_SetChnlFlushability (uint16_t cid, bool    is_flushable)
     tL2C_CCB        *p_ccb;
 
     /* Find the channel control block. We don't know the link it is on. */
-    if ((p_ccb = l2cu_find_ccb_by_cid (NULL, cid)) == NULL)
+    p_ccb = l2cu_find_ccb_by_cid(NULL, cid);
+    if (p_ccb == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - no CCB for L2CA_SetChnlFlushability, CID: %d", cid);
         return (false);

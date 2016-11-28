@@ -663,7 +663,8 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     p_data->p_buf->layer_specific = AVCT_DATA_CTRL;
 
     /* reassemble message; if no message available (we received a fragment) return */
-    if ((p_data->p_buf = avct_lcb_msg_asmbl(p_lcb, p_data->p_buf)) == NULL)
+    p_data->p_buf = avct_lcb_msg_asmbl(p_lcb, p_data->p_buf);
+    if (p_data->p_buf == NULL)
     {
         return;
     }

@@ -1779,8 +1779,8 @@ uint8_t btm_ble_is_discoverable(BD_ADDR bda, uint8_t evt_type,
 
     if (p_le_inq_cb->adv_len != 0)
     {
-        if ((p_flag = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache,
-            BTM_BLE_AD_TYPE_FLAG, &data_len)) != NULL)
+        p_flag = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache, BTM_BLE_AD_TYPE_FLAG, &data_len);
+        if (p_flag != NULL)
         {
             flag = * p_flag;
 
@@ -1993,7 +1993,8 @@ bool    btm_ble_update_inq_result(tINQ_DB_ENT *p_i, uint8_t addr_type, uint8_t e
 
     if (p_le_inq_cb->adv_len != 0)
     {
-        if ((p_flag = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache, BTM_BLE_AD_TYPE_FLAG, &len)) != NULL)
+        p_flag = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache, BTM_BLE_AD_TYPE_FLAG, &len);
+        if (p_flag != NULL)
             p_cur->flag = * p_flag;
     }
 
@@ -2010,8 +2011,8 @@ bool    btm_ble_update_inq_result(tINQ_DB_ENT *p_i, uint8_t addr_type, uint8_t e
         }
         else
         {
-            if ((p_uuid16 = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache,
-                                             BTM_BLE_AD_TYPE_16SRV_CMPL, &len)) != NULL)
+            p_uuid16 = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache, BTM_BLE_AD_TYPE_16SRV_CMPL, &len);
+            if (p_uuid16 != NULL)
             {
                 uint8_t i;
                 for (i = 0; i + 2 <= len; i = i + 2)
@@ -2226,7 +2227,8 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type, uint8_t
     /* If existing entry, use that, else get  a new one (possibly reusing the oldest) */
     if (p_i == NULL)
     {
-        if ((p_i = btm_inq_db_new (bda)) != NULL)
+        p_i = btm_inq_db_new(bda);
+        if (p_i != NULL)
         {
             p_inq->inq_cmpl_info.num_resp++;
         }
@@ -2241,7 +2243,8 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type, uint8_t
     if (!btm_ble_update_inq_result(p_i, addr_type, evt_type, p))
         return;
 
-    if ((result = btm_ble_is_discoverable(bda, evt_type, p)) == 0)
+    result = btm_ble_is_discoverable(bda, evt_type, p);
+    if (result == 0)
     {
       LOG_WARN(LOG_TAG, "%s device is no longer discoverable so discarding advertising packet pkt",
           __func__);

@@ -380,7 +380,8 @@ int btpan_tap_open() {
 
   /* open the clone device */
 
-  if ((fd = open(clonedev, O_RDWR)) < 0) {
+  fd = open(clonedev, O_RDWR);
+  if (fd < 0) {
     BTIF_TRACE_DEBUG("could not open %s, err:%d", clonedev, errno);
     return fd;
   }
@@ -391,7 +392,8 @@ int btpan_tap_open() {
   strncpy(ifr.ifr_name, TAP_IF_NAME, IFNAMSIZ);
 
   /* try to create the device */
-  if ((err = ioctl(fd, TUNSETIFF, (void*)&ifr)) < 0) {
+  err = ioctl(fd, TUNSETIFF, (void *)&ifr);
+  if (err < 0) {
     BTIF_TRACE_DEBUG("ioctl error:%d, errno:%s", err, strerror(errno));
     close(fd);
     return err;

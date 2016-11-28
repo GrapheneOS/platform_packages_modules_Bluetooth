@@ -580,7 +580,8 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
 
     if (*pp_pkt == NULL)
     {
-        if ((*pp_pkt = avrc_bld_init_cmd_buffer(p_cmd)) == NULL)
+        *pp_pkt = avrc_bld_init_cmd_buffer(p_cmd);
+        if (*pp_pkt == NULL)
         {
             AVRC_TRACE_API("AVRC_BldCommand: Failed to initialize command buffer");
             return AVRC_STS_INTERNAL_ERR;

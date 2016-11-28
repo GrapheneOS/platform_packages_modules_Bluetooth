@@ -271,9 +271,9 @@ static void bta_hh_di_sdp_cback(uint16_t result) {
       bta_hh_update_di_info(p_cb, BTA_HH_VENDOR_ID_INVALID, 0, 0, 0);
     }
 
-    if ((ret = HID_HostGetSDPRecord(p_cb->addr, bta_hh_cb.p_disc_db,
-                                    p_bta_hh_cfg->sdp_db_size,
-                                    bta_hh_sdp_cback)) == HID_SUCCESS) {
+    ret = HID_HostGetSDPRecord(p_cb->addr, bta_hh_cb.p_disc_db,
+                               p_bta_hh_cfg->sdp_db_size, bta_hh_sdp_cback);
+    if (ret == HID_SUCCESS) {
       status = BTA_HH_OK;
     } else {
 #if (BTA_HH_DEBUG == TRUE)
@@ -648,9 +648,8 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB* p_cb, tBTA_HH_DATA* p_data) {
     case BTA_HH_GET_IDLE_EVT:
       hs_data.handle = p_cb->hid_handle;
       /* if handshake gives an OK code for these transaction, fill in UNSUPT */
-      if ((hs_data.status = bta_hh_get_trans_status(p_data->hid_cback.data)) ==
-          BTA_HH_OK)
-        hs_data.status = BTA_HH_HS_TRANS_NOT_SPT;
+      hs_data.status = bta_hh_get_trans_status(p_data->hid_cback.data);
+      if (hs_data.status == BTA_HH_OK) hs_data.status = BTA_HH_HS_TRANS_NOT_SPT;
 
       (*bta_hh_cb.p_cback)(p_cb->w4_evt, (tBTA_HH*)&hs_data);
       p_cb->w4_evt = 0;

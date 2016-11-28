@@ -543,7 +543,8 @@ tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, uint8_t *p_role)
 {
     tACL_CONN   *p;
     BTM_TRACE_DEBUG ("BTM_GetRole");
-    if ((p = btm_bda_to_acl(remote_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
+    p = btm_bda_to_acl(remote_bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p == NULL)
     {
         *p_role = BTM_ROLE_UNDEFINED;
         return(BTM_UNKNOWN_ADDR);
@@ -600,7 +601,8 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, uint8_t new_role, tBTM_CMPL_
         return(BTM_BUSY);
     }
 
-    if ((p = btm_bda_to_acl(remote_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
+    p = btm_bda_to_acl(remote_bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p == NULL)
         return(BTM_UNKNOWN_ADDR);
 
     /* Finished if already in desired role */
@@ -623,7 +625,8 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, uint8_t new_role, tBTM_CMPL_
         return(BTM_BUSY);
     }
 
-    if ((status = BTM_ReadPowerMode(p->remote_addr, &pwr_mode)) != BTM_SUCCESS)
+    status = BTM_ReadPowerMode(p->remote_addr, &pwr_mode);
+    if (status != BTM_SUCCESS)
         return(status);
 
     /* Wake up the link if in sniff or park before attempting switch */
@@ -724,8 +727,8 @@ void btm_acl_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
 
         btsnd_hcic_switch_role(p->remote_addr, (uint8_t)!p->link_role);
 #if (BTM_DISC_DURING_RS == TRUE)
-        if ((p_dev_rec = btm_find_dev (p->remote_addr)) != NULL)
-            p_dev_rec->rs_disc_pending = BTM_SEC_RS_PENDING;
+        p_dev_rec = btm_find_dev(p->remote_addr);
+        if (p_dev_rec != NULL) p_dev_rec->rs_disc_pending = BTM_SEC_RS_PENDING;
 #endif
 
     }
@@ -751,7 +754,8 @@ void btm_acl_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
 
 #if (BTM_DISC_DURING_RS == TRUE)
         /* If a disconnect is pending, issue it now that role switch has completed */
-        if ((p_dev_rec = btm_find_dev (p->remote_addr)) != NULL)
+        p_dev_rec = btm_find_dev(p->remote_addr);
+        if (p_dev_rec != NULL)
         {
             if (p_dev_rec->rs_disc_pending == BTM_SEC_DISC_PENDING)
             {
@@ -806,7 +810,8 @@ tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda, uint16_t *settings)
         }
     }
 
-    if ((p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR)) != NULL) {
+    p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
+    if (p != NULL) {
         btsnd_hcic_write_policy_set(p->hci_handle, *settings);
         return BTM_CMD_STARTED;
     }
@@ -1010,7 +1015,8 @@ void btm_read_remote_features (uint16_t handle)
 
     BTM_TRACE_DEBUG("btm_read_remote_features() handle: %d", handle);
 
-    if ((acl_idx = btm_handle_to_acl_index(handle)) >= MAX_L2CAP_LINKS)
+    acl_idx = btm_handle_to_acl_index(handle);
+    if (acl_idx >= MAX_L2CAP_LINKS)
     {
         BTM_TRACE_ERROR("btm_read_remote_features handle=%d invalid", handle);
         return;
@@ -1071,7 +1077,8 @@ void btm_read_remote_features_complete (uint8_t *p)
 
         STREAM_TO_UINT16 (handle, p);
 
-    if ((acl_idx = btm_handle_to_acl_index(handle)) >= MAX_L2CAP_LINKS)
+    acl_idx = btm_handle_to_acl_index(handle);
+    if (acl_idx >= MAX_L2CAP_LINKS)
         {
         BTM_TRACE_ERROR("btm_read_remote_features_complete handle=%d invalid", handle);
         return;
@@ -1127,7 +1134,8 @@ void btm_read_remote_ext_features_complete (uint8_t *p)
     STREAM_TO_UINT8  (max_page, p);
 
     /* Validate parameters */
-    if ((acl_idx = btm_handle_to_acl_index(handle)) >= MAX_L2CAP_LINKS)
+    acl_idx = btm_handle_to_acl_index(handle);
+    if (acl_idx >= MAX_L2CAP_LINKS)
     {
         BTM_TRACE_ERROR("btm_read_remote_ext_features_complete handle=%d invalid", handle);
         return;
@@ -1182,7 +1190,8 @@ void btm_read_remote_ext_features_failed (uint8_t status, uint16_t handle)
     BTM_TRACE_WARNING ("btm_read_remote_ext_features_failed (status 0x%02x) for handle %d",
                          status, handle);
 
-    if ((acl_idx = btm_handle_to_acl_index(handle)) >= MAX_L2CAP_LINKS)
+    acl_idx = btm_handle_to_acl_index(handle);
+    if (acl_idx >= MAX_L2CAP_LINKS)
     {
         BTM_TRACE_ERROR("btm_read_remote_ext_features_failed handle=%d invalid", handle);
         return;
@@ -1425,7 +1434,8 @@ void btm_process_clk_off_comp_evt (uint16_t hci_handle, uint16_t clock_offset)
     uint8_t    xx;
     BTM_TRACE_DEBUG ("btm_process_clk_off_comp_evt");
     /* Look up the connection by handle and set the current mode */
-    if ((xx = btm_handle_to_acl_index(hci_handle)) < MAX_L2CAP_LINKS)
+    xx = btm_handle_to_acl_index(hci_handle);
+    if (xx < MAX_L2CAP_LINKS)
         btm_cb.acl_db[xx].clock_offset = clock_offset;
 }
 
@@ -1521,7 +1531,8 @@ void btm_acl_role_changed (uint8_t hci_status, BD_ADDR bd_addr, uint8_t new_role
 
 #if (BTM_DISC_DURING_RS == TRUE)
     /* If a disconnect is pending, issue it now that role switch has completed */
-    if ((p_dev_rec = btm_find_dev (p_bda)) != NULL)
+    p_dev_rec = btm_find_dev(p_bda);
+    if (p_dev_rec != NULL)
     {
         if (p_dev_rec->rs_disc_pending == BTM_SEC_DISC_PENDING)
         {
@@ -1866,7 +1877,8 @@ tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
     if (btm_cb.devcb.p_qos_setup_cmpl_cb)
         return(BTM_BUSY);
 
-    if ( (p = btm_bda_to_acl(bd, BT_TRANSPORT_BR_EDR)) != NULL)
+    p = btm_bda_to_acl(bd, BT_TRANSPORT_BR_EDR);
+    if (p != NULL)
     {
         btm_cb.devcb.p_qos_setup_cmpl_cb = p_cb;
         alarm_set_on_queue(btm_cb.devcb.qos_setup_timer,
@@ -2416,7 +2428,8 @@ void btm_acl_resubmit_page (void)
     BD_ADDR bda;
     BTM_TRACE_DEBUG ("btm_acl_resubmit_page");
     /* If there were other page request schedule can start the next one */
-    if ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(btm_cb.page_queue)) != NULL)
+    p_buf = (BT_HDR *)fixed_queue_try_dequeue(btm_cb.page_queue);
+    if (p_buf != NULL)
     {
         /* skip 3 (2 bytes opcode and 1 byte len) to get to the bd_addr
          * for both create_conn and rmt_name */

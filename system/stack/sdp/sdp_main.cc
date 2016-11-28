@@ -177,7 +177,8 @@ static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
     tCONN_CB    *p_ccb;
 
     /* Allocate a new CCB. Return if none available. */
-    if ((p_ccb = sdpu_allocate_ccb()) == NULL)
+    p_ccb = sdpu_allocate_ccb();
+    if (p_ccb == NULL)
         return;
 
     /* Transition to the next appropriate state, waiting for config setup. */
@@ -234,7 +235,8 @@ static void sdp_connect_cfm (uint16_t l2cap_cid, uint16_t result)
     tL2CAP_CFG_INFO cfg;
 
     /* Find CCB based on CID */
-    if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = sdpu_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
     {
         SDP_TRACE_WARNING ("SDP - Rcvd conn cnf for unknown CID 0x%x", l2cap_cid);
         return;
@@ -311,7 +313,8 @@ static void sdp_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     tCONN_CB    *p_ccb;
 
     /* Find CCB based on CID */
-    if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = sdpu_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
     {
         SDP_TRACE_WARNING ("SDP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
         return;
@@ -408,7 +411,8 @@ static void sdp_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
     SDP_TRACE_EVENT ("SDP - Rcvd cfg cfm, CID: 0x%x  Result: %d", l2cap_cid, p_cfg->result);
 
     /* Find CCB based on CID */
-    if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = sdpu_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
     {
         SDP_TRACE_WARNING ("SDP - Rcvd L2CAP cfg ind, unknown CID: 0x%x", l2cap_cid);
         return;
@@ -467,7 +471,8 @@ static void sdp_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
     tCONN_CB    *p_ccb;
 
     /* Find CCB based on CID */
-    if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = sdpu_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
     {
         SDP_TRACE_WARNING ("SDP - Rcvd L2CAP disc, unknown CID: 0x%x", l2cap_cid);
         return;
@@ -510,7 +515,8 @@ static void sdp_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
     tCONN_CB    *p_ccb;
 
     /* Find CCB based on CID */
-    if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) != NULL)
+    p_ccb = sdpu_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb != NULL)
     {
         if (p_ccb->con_state == SDP_STATE_CONNECTED)
         {
@@ -551,7 +557,8 @@ tCONN_CB* sdp_conn_originate (uint8_t *p_bd_addr)
     uint16_t              cid;
 
     /* Allocate a new CCB. Return if none available. */
-    if ((p_ccb = sdpu_allocate_ccb()) == NULL)
+    p_ccb = sdpu_allocate_ccb();
+    if (p_ccb == NULL)
     {
         SDP_TRACE_WARNING ("SDP - no spare CCB for orig");
         return (NULL);
@@ -675,7 +682,8 @@ static void sdp_disconnect_cfm (uint16_t l2cap_cid,
     tCONN_CB    *p_ccb;
 
     /* Find CCB based on CID */
-    if ((p_ccb = sdpu_find_ccb_by_cid (l2cap_cid)) == NULL)
+    p_ccb = sdpu_find_ccb_by_cid(l2cap_cid);
+    if (p_ccb == NULL)
     {
         SDP_TRACE_WARNING ("SDP - Rcvd L2CAP disc cfm, unknown CID: 0x%x", l2cap_cid);
         return;

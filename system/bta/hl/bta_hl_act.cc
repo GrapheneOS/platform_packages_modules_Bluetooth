@@ -382,8 +382,8 @@ void bta_hl_dch_ci_get_tx_data(uint8_t app_idx, uint8_t mcl_idx,
       close_dch = true;
     }
   } else {
-    if ((result = MCA_WriteReq((tMCA_DL)p_dcb->mdl_handle, p_dcb->p_tx_pkt)) !=
-        MCA_SUCCESS) {
+    result = MCA_WriteReq((tMCA_DL)p_dcb->mdl_handle, p_dcb->p_tx_pkt);
+    if (result != MCA_SUCCESS) {
       if (result == MCA_BUSY) {
         status = BTA_HL_STATUS_DCH_BUSY;
       } else {
@@ -432,8 +432,8 @@ void bta_hl_dch_send_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
     // p_dcb->chnl_cfg.fcs may be BTA_HL_MCA_USE_FCS (0x11) or BTA_HL_MCA_NO_FCS
     // (0x10) or BTA_HL_DEFAULT_SOURCE_FCS (1)
     bool fcs_use = (bool)(p_dcb->chnl_cfg.fcs & BTA_HL_MCA_FCS_USE_MASK);
-    if ((p_dcb->p_tx_pkt =
-             bta_hl_get_buf(p_data->api_send_data.pkt_size, fcs_use)) != NULL) {
+    p_dcb->p_tx_pkt = bta_hl_get_buf(p_data->api_send_data.pkt_size, fcs_use);
+    if (p_dcb->p_tx_pkt != NULL) {
       bta_hl_co_get_tx_data(
           p_acb->app_id, p_dcb->mdl_handle, p_data->api_send_data.pkt_size,
           BTA_HL_GET_BUF_PTR(p_dcb->p_tx_pkt), BTA_HL_CI_GET_TX_DATA_EVT);
@@ -978,7 +978,8 @@ void bta_hl_dch_mca_abort(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
 
   p_dcb->abort_oper &= ~BTA_HL_ABORT_PENDING_MASK;
 
-  if ((mca_result = MCA_Abort((tMCA_CL)p_mcb->mcl_handle)) != MCA_SUCCESS) {
+  mca_result = MCA_Abort((tMCA_CL)p_mcb->mcl_handle);
+  if (mca_result != MCA_SUCCESS) {
     if (mca_result == MCA_NO_RESOURCES) {
       p_dcb->abort_oper |= BTA_HL_ABORT_PENDING_MASK;
     } else {
@@ -1344,10 +1345,10 @@ void bta_hl_dch_mca_create(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
       bta_hl_validate_peer_cfg(app_idx, mcl_idx, mdl_idx, p_dcb->peer_mdep_id,
                                p_dcb->peer_mdep_role, sdp_idx)) {
     p_mcb->data_psm = p_mcb->sdp.sdp_rec[sdp_idx].data_psm;
-    if ((result =
-             MCA_CreateMdl((tMCA_CL)p_mcb->mcl_handle, p_dcb->local_mdep_id,
+    result = MCA_CreateMdl((tMCA_CL)p_mcb->mcl_handle, p_dcb->local_mdep_id,
                            p_mcb->data_psm, p_dcb->mdl_id, p_dcb->peer_mdep_id,
-                           p_dcb->local_cfg, NULL)) != MCA_SUCCESS) {
+                           p_dcb->local_cfg, NULL);
+    if (result != MCA_SUCCESS) {
       APPL_TRACE_ERROR("MCA_CreateMdl FAIL mca_result=%d", result);
       bta_hl_dch_sm_execute(app_idx, mcl_idx, mdl_idx,
                             BTA_HL_DCH_CLOSE_CMPL_EVT, p_data);
@@ -1442,8 +1443,8 @@ static void bta_hl_sdp_cback(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
       }
 
       p_hdp_rec->srv_name[0] = '\0';
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) !=
-          NULL) {
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+      if (p_attr != NULL) {
         if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) < BT_MAX_SERVICE_NAME_LEN)
           name_len = (uint16_t)SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         else
@@ -1452,8 +1453,8 @@ static void bta_hl_sdp_cback(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
       }
 
       p_hdp_rec->srv_desp[0] = '\0';
-      if ((p_attr = SDP_FindAttributeInRec(
-               p_rec, ATTR_ID_SERVICE_DESCRIPTION)) != NULL) {
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_DESCRIPTION);
+      if (p_attr != NULL) {
         if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) < BT_MAX_SERVICE_NAME_LEN)
           name_len = (uint16_t)SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         else
@@ -1462,8 +1463,8 @@ static void bta_hl_sdp_cback(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
       }
 
       p_hdp_rec->provider_name[0] = '\0';
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_PROVIDER_NAME)) !=
-          NULL) {
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_PROVIDER_NAME);
+      if (p_attr != NULL) {
         if (SDP_DISC_ATTR_LEN(p_attr->attr_len_type) < BT_MAX_SERVICE_NAME_LEN)
           name_len = (uint16_t)SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         else
@@ -1471,16 +1472,16 @@ static void bta_hl_sdp_cback(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
         memcpy(p_hdp_rec->provider_name, p_attr->attr_value.v.array, name_len);
       }
 
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HDP_MCAP_SUP_PROC)) !=
-          NULL) {
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HDP_MCAP_SUP_PROC);
+      if (p_attr != NULL) {
         p_hdp_rec->mcap_sup_proc = p_attr->attr_value.v.u8;
       } else {
         APPL_TRACE_WARNING("MCAP SUP PROC not found");
         break;
       }
 
-      if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HDP_SUP_FEAT_LIST)) !=
-          NULL) {
+      p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_HDP_SUP_FEAT_LIST);
+      if (p_attr != NULL) {
         if (bta_hl_fill_sup_feature_list(p_attr, &sup_feature)) {
           p_hdp_rec->num_mdeps = (uint8_t)sup_feature.num_elems;
           APPL_TRACE_WARNING("bta_hl_sdp_cback num_mdeps %d",
@@ -1819,8 +1820,9 @@ tBTA_HL_STATUS bta_hl_init_sdp(tBTA_HL_SDP_OPER sdp_oper, uint8_t app_idx,
       "bta_hl_init_sdp sdp_oper=%d app_idx=%d mcl_idx=%d, mdl_idx=%d", sdp_oper,
       app_idx, mcl_idx, mdl_idx);
 #endif
-  if ((p_cb->sdp_cback = bta_hl_allocate_spd_cback(
-           sdp_oper, app_idx, mcl_idx, mdl_idx, &sdp_cback_idx)) != NULL) {
+  p_cb->sdp_cback = bta_hl_allocate_spd_cback(sdp_oper, app_idx, mcl_idx,
+                                              mdl_idx, &sdp_cback_idx);
+  if (p_cb->sdp_cback != NULL) {
     if (p_cb->p_db == NULL)
       (p_cb->p_db = (tSDP_DISCOVERY_DB*)osi_malloc(BTA_HL_DISC_SIZE));
     attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;

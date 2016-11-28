@@ -290,7 +290,8 @@ void bta_hh_parse_keybd_rpt(tBTA_HH_BOOT_RPT* p_kb_data, uint8_t* p_report,
 #if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("this_char = %02x", this_report[xx]);
 #endif
-    if ((this_char = this_report[xx]) == 0) continue;
+    this_char = this_report[xx];
+    if (this_char == 0) continue;
     /* take the key code as the report data */
     if (this_report[xx] == BTA_HH_KB_CAPS_LOCK)
       p_kb->caps_lock = p_kb->caps_lock ? false : true;

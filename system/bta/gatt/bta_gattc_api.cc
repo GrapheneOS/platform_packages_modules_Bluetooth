@@ -597,7 +597,8 @@ tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications(tBTA_GATTC_IF client_if,
     return status;
   }
 
-  if ((p_clreg = bta_gattc_cl_get_regcb(client_if)) != NULL) {
+  p_clreg = bta_gattc_cl_get_regcb(client_if);
+  if (p_clreg != NULL) {
     for (i = 0; i < BTA_GATTC_NOTIF_REG_MAX; i++) {
       if (p_clreg->notif_reg[i].in_use &&
           !memcmp(p_clreg->notif_reg[i].remote_bda, bda, BD_ADDR_LEN) &&

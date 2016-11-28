@@ -237,7 +237,8 @@ void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, uint16_t event, void *p_dat
             /* update direction bit */
             for (i = 0; i < RFCOMM_MAX_DLCI; i += 2)
             {
-                if ((idx = p_mcb->port_inx[i]) != 0)
+                idx = p_mcb->port_inx[i];
+                if (idx != 0)
                 {
                     p_mcb->port_inx[i] = 0;
                     p_mcb->port_inx[i+1] = idx;

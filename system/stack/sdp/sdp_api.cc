@@ -830,7 +830,8 @@ bool    SDP_FindAddProtoListsElemInRec (tSDP_DISC_REC *p_rec, uint16_t layer_uui
                 /* Safety check - each entry should itself be a sequence */
                 if (SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == DATA_ELE_SEQ_DESC_TYPE)
                 {
-                    if ( (ret = sdp_fill_proto_elem(p_sattr, layer_uuid, p_elem)) == true)
+                    ret = sdp_fill_proto_elem(p_sattr, layer_uuid, p_elem);
+                    if (ret == true)
                         break;
                 }
             }
@@ -1135,7 +1136,8 @@ uint16_t SDP_SetLocalDiRecord( tSDP_DI_RECORD *p_device_info, uint32_t *p_handle
         handle = sdp_cb.server_db.di_primary_handle;
     else
     {
-        if ( (handle = SDP_CreateRecord()) == 0 )
+        handle = SDP_CreateRecord();
+        if (handle == 0)
             return SDP_NO_RESOURCES;
     }
 

@@ -817,7 +817,8 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
 
     case L2CEVT_L2CAP_CONFIG_REQ:                  /* Peer config request   */
 
-        if ((cfg_result = l2cu_process_peer_cfg_req (p_ccb, p_cfg)) == L2CAP_PEER_CFG_OK)
+        cfg_result = l2cu_process_peer_cfg_req(p_ccb, p_cfg);
+        if (cfg_result == L2CAP_PEER_CFG_OK)
         {
             L2CAP_TRACE_EVENT ("L2CAP - Calling Config_Req_Cb(), CID: 0x%04x, C-bit %d",
                                 p_ccb->local_cid, (p_cfg->flags & L2CAP_CFG_FLAGS_MASK_CONT));
@@ -1097,7 +1098,8 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, uint16_t event, void *p_data)
                            l2c_ccb_timer_timeout, p_ccb,
                            btu_general_alarm_queue);
 
-        if ((cfg_result = l2cu_process_peer_cfg_req (p_ccb, p_cfg)) == L2CAP_PEER_CFG_OK)
+        cfg_result = l2cu_process_peer_cfg_req(p_ccb, p_cfg);
+        if (cfg_result == L2CAP_PEER_CFG_OK)
         {
             (*p_ccb->p_rcb->api.pL2CA_ConfigInd_Cb)(p_ccb->local_cid, p_cfg);
         }

@@ -506,7 +506,8 @@ tBTM_STATUS BTM_SetPeriodicInquiryMode (tBTM_INQ_PARMS *p_inqparms, uint16_t max
         p_inq->state = BTM_INQ_SET_FILT_STATE;
 
     /* Before beginning the inquiry the current filter must be cleared, so initiate the command */
-    if ((status = btm_set_inq_event_filter (p_inqparms->filter_cond_type, &p_inqparms->filter_cond)) != BTM_CMD_STARTED)
+    status = btm_set_inq_event_filter(p_inqparms->filter_cond_type, &p_inqparms->filter_cond);
+    if (status != BTM_CMD_STARTED)
     {
         /* If set filter command is not succesful reset the state */
         p_inq->p_inq_results_cb = NULL;
@@ -892,11 +893,13 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
             status = BTM_ILLEGAL_VALUE;
         }
         /* BLE for now does not support filter condition for inquiry */
-        else if ((status = btm_ble_start_inquiry((uint8_t)(p_inqparms->mode & BTM_BLE_INQUIRY_MASK),
-                                            p_inqparms->duration)) != BTM_CMD_STARTED)
-        {
-            BTM_TRACE_ERROR("Err Starting LE Inquiry.");
-            p_inq->inqparms.mode &= ~ BTM_BLE_INQUIRY_MASK;
+        else {
+            status = btm_ble_start_inquiry((uint8_t)(p_inqparms->mode & BTM_BLE_INQUIRY_MASK), p_inqparms->duration);
+            if (status != BTM_CMD_STARTED)
+            {
+                BTM_TRACE_ERROR("Err Starting LE Inquiry.");
+                p_inq->inqparms.mode &= ~ BTM_BLE_INQUIRY_MASK;
+            }
         }
 #if (BTA_HOST_INTERLEAVE_SEARCH == FALSE)
         p_inqparms->mode &= ~BTM_BLE_INQUIRY_MASK;
@@ -960,8 +963,8 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
     }
 
     /* Before beginning the inquiry the current filter must be cleared, so initiate the command */
-    if ((status = btm_set_inq_event_filter (p_inqparms->filter_cond_type,
-                                            &p_inqparms->filter_cond)) != BTM_CMD_STARTED)
+    status = btm_set_inq_event_filter(p_inqparms->filter_cond_type, &p_inqparms->filter_cond);
+    if (status != BTM_CMD_STARTED)
         p_inq->state = BTM_INQ_INACTIVE_STATE;
 
 #if (BTA_HOST_INTERLEAVE_SEARCH == TRUE)
@@ -1022,7 +1025,8 @@ tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb
                remote_bda[3], remote_bda[4], remote_bda[5]);
 
     /* Use the remote device's clock offset if it is in the local inquiry database */
-    if ((p_i = btm_inq_db_find (remote_bda)) != NULL)
+    p_i = btm_inq_db_find(remote_bda);
+    if (p_i != NULL)
     {
         p_cur = &p_i->inq_info;
         if ((p_cur->results.ble_evt_type == BTM_BLE_EVT_NON_CONN_ADV) &&
@@ -1694,7 +1698,8 @@ void btm_event_filter_complete (uint8_t *p)
             /* Check to see if a new filter needs to be set up */
             if (p_inq->state == BTM_INQ_CLR_FILT_STATE)
             {
-                if ((status = btm_set_inq_event_filter (p_inq->inqparms.filter_cond_type, &p_inq->inqparms.filter_cond)) == BTM_CMD_STARTED)
+                status = btm_set_inq_event_filter(p_inq->inqparms.filter_cond_type, &p_inq->inqparms.filter_cond);
+                if (status == BTM_CMD_STARTED)
                 {
                     p_inq->state = BTM_INQ_SET_FILT_STATE;
                 }

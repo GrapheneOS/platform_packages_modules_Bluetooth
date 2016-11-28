@@ -451,7 +451,8 @@ void bta_hl_cch_sm_execute(uint8_t app_idx, uint8_t mcl_idx, uint16_t event,
   p_cb->cch_state = state_table[event][BTA_HL_CCH_NEXT_STATE];
 
   for (i = 0; i < BTA_HL_CCH_ACTIONS; i++) {
-    if ((action = state_table[event][i]) != BTA_HL_CCH_IGNORE) {
+    action = state_table[event][i];
+    if (action != BTA_HL_CCH_IGNORE) {
       (*bta_hl_cch_action[action])(app_idx, mcl_idx, p_data);
     } else {
       /* discard HDP data */
@@ -501,7 +502,8 @@ void bta_hl_dch_sm_execute(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
   p_cb->dch_state = state_table[event][BTA_HL_DCH_NEXT_STATE];
 
   for (i = 0; i < BTA_HL_DCH_ACTIONS; i++) {
-    if ((action = state_table[event][i]) != BTA_HL_DCH_IGNORE) {
+    action = state_table[event][i];
+    if (action != BTA_HL_DCH_IGNORE) {
       (*bta_hl_dch_action[action])(app_idx, mcl_idx, mdl_idx, p_data);
     } else {
       /* discard mas data */
@@ -925,9 +927,9 @@ static void bta_hl_api_dch_open(UNUSED_ATTR tBTA_HL_CB* p_cb,
             p_data->api_dch_open.local_cfg = BTA_HL_DCH_CFG_NO_PREF;
           }
 
-          if ((status = bta_hl_chk_local_cfg(app_idx, mcl_idx, mdep_cfg_idx,
-                                             p_data->api_dch_open.local_cfg)) ==
-              BTA_HL_STATUS_OK) {
+          status = bta_hl_chk_local_cfg(app_idx, mcl_idx, mdep_cfg_idx,
+                                        p_data->api_dch_open.local_cfg);
+          if (status == BTA_HL_STATUS_OK) {
             if (p_data->api_dch_open.local_mdep_id !=
                 BTA_HL_ECHO_TEST_MDEP_ID) {
               if (bta_hl_set_ctrl_psm_for_dch(app_idx, mcl_idx, mdl_idx,
@@ -1224,8 +1226,9 @@ static void bta_hl_api_dch_echo_test(UNUSED_ATTR tBTA_HL_CB* p_cb,
                BTA_HL_DCH_CFG_STREAMING)) {
             bool fcs_use =
                 (bool)(p_dcb->chnl_cfg.fcs & BTA_HL_MCA_FCS_USE_MASK);
-            if ((p_dcb->p_echo_tx_pkt = bta_hl_get_buf(
-                     p_data->api_dch_echo_test.pkt_size, fcs_use)) != NULL) {
+            p_dcb->p_echo_tx_pkt =
+                bta_hl_get_buf(p_data->api_dch_echo_test.pkt_size, fcs_use);
+            if (p_dcb->p_echo_tx_pkt != NULL) {
               if (bta_hl_set_ctrl_psm_for_dch(app_idx, mcl_idx, mdl_idx,
                                               p_data->api_dch_open.ctrl_psm)) {
                 p_dcb->in_use = true;
