@@ -41,9 +41,6 @@ class AdvertiseManager {
     private static final boolean DBG = GattServiceConfig.DBG;
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "AdvertiseManager";
 
-    // Timeout for each controller operation.
-    private static final int OPERATION_TIME_OUT_MILLIS = 500;
-
     // Message for advertising operations.
     private static final int MSG_START_ADVERTISING = 0;
     private static final int MSG_STOP_ADVERTISING = 1;
@@ -55,9 +52,6 @@ class AdvertiseManager {
 
     // Handles advertise operations.
     private ClientHandler mHandler;
-
-    // CountDownLatch for blocking advertise operations.
-    private CountDownLatch mLatch;
 
     /**
      * Constructor of {@link AdvertiseManager}.
@@ -131,22 +125,6 @@ class AdvertiseManager {
         mHandler.sendMessage(message);
     }
 
-    /**
-     * Signals the callback is received.
-     *
-     * @param advertiserId Identifier for the client.
-     * @param status Status of the callback.
-     */
-    void callbackDone(int advertiserId, int status) {
-        if (status == AdvertiseCallback.ADVERTISE_SUCCESS) {
-            mLatch.countDown();
-        } else {
-            // Note in failure case we'll wait for the latch to timeout(which takes 100ms) and
-            // the mClientHandler thread will be blocked till timeout.
-            postCallback(advertiserId, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
-        }
-    }
-
     // Post callback status to app process.
     private void postCallback(int advertiserId, int status) {
         try {
@@ -201,11 +179,7 @@ class AdvertiseManager {
                 return;
             }
 
-            if (!mAdvertiseNative.startAdverising(client)) {
-                postCallback(advertiserId, AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR);
-                return;
-            }
-
+            mAdvertiseNative.startAdverising(client);
             mAdvertiseClients.add(client);
         }
 
@@ -241,7 +215,7 @@ class AdvertiseManager {
         private static final int ADVERTISING_CHANNEL_ALL =
             ADVERTISING_CHANNEL_37 | ADVERTISING_CHANNEL_38 | ADVERTISING_CHANNEL_39;
 
-        boolean startAdverising(AdvertiseClient client) {
+        void startAdverising(AdvertiseClient client) {
             logd("starting advertising");
 
             int advertiserId = client.advertiserId;
@@ -258,37 +232,16 @@ class AdvertiseManager {
             int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
                     client.settings.getTimeout());
 
-            resetCountDownLatch();
-
             startAdvertiserNative(advertiserId, minAdvertiseUnit, maxAdvertiseUnit,
                     advertiseEventType, ADVERTISING_CHANNEL_ALL, txPowerLevel, adv_data,
                     scan_resp_data, advertiseTimeoutSeconds);
-            if (!waitForCallback()) {
-                return false;
-            }
-
-            return true;
         }
 
         void stopAdvertising(AdvertiseClient client) {
             gattClientEnableAdvNative(client.advertiserId, false, 0);
         }
 
-        private void resetCountDownLatch() {
-            mLatch = new CountDownLatch(1);
-        }
-
-        // Returns true if mLatch reaches 0, false if timeout or interrupted.
-        private boolean waitForCallback() {
-            try {
-                return mLatch.await(OPERATION_TIME_OUT_MILLIS, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                return false;
-            }
-        }
-
         // Native functions
-
         private native void registerAdvertiserNative(long app_uuid_lsb,
                                                      long app_uuid_msb);
 
