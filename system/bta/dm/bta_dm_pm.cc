@@ -578,8 +578,8 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
     for (i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
       if (bta_dm_cb.pm_timer[i].in_use &&
           bdcmp(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr) == 0) {
-        if ((timer_idx = bta_pm_action_to_timer_idx(pm_action)) !=
-            BTA_DM_PM_MODE_TIMER_MAX) {
+        timer_idx = bta_pm_action_to_timer_idx(pm_action);
+        if (timer_idx != BTA_DM_PM_MODE_TIMER_MAX) {
           remaining_ms =
               alarm_get_remaining_ms(bta_dm_cb.pm_timer[i].timer[timer_idx]);
           if (remaining_ms < timeout_ms) {
@@ -607,8 +607,8 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
     if (!timer_started) {
       if (available_timer != BTA_DM_PM_MODE_TIMER_MAX) {
         bdcpy(bta_dm_cb.pm_timer[available_timer].peer_bdaddr, peer_addr);
-        if ((timer_idx = bta_pm_action_to_timer_idx(pm_action)) !=
-            BTA_DM_PM_MODE_TIMER_MAX) {
+        timer_idx = bta_pm_action_to_timer_idx(pm_action);
+        if (timer_idx != BTA_DM_PM_MODE_TIMER_MAX) {
           bta_dm_pm_start_timer(&bta_dm_cb.pm_timer[available_timer], timer_idx,
                                 timeout_ms, p_srvcs->id, pm_action);
           timer_started = true;

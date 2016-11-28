@@ -1603,7 +1603,8 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     uint8_t     scb_hdl;
 
     /* reassemble message; if no message available (we received a fragment) return */
-    if ((p_buf = avdt_msg_asmbl(p_ccb, p_buf)) == NULL)
+    p_buf = avdt_msg_asmbl(p_ccb, p_buf);
+    if (p_buf == NULL)
     {
         return;
     }

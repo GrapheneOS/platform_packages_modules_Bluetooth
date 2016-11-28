@@ -163,10 +163,12 @@ void mca_l2c_cconn_ind_cback(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8
     MCA_TRACE_EVENT ("mca_l2c_cconn_ind_cback: lcid:x%x psm:x%x id:x%x", lcid, psm, id);
 
     /* do we already have a control channel for this peer? */
-    if ((p_ccb = mca_ccb_by_bd(handle, bd_addr)) == NULL)
+    p_ccb = mca_ccb_by_bd(handle, bd_addr);
+    if (p_ccb == NULL)
     {
         /* no, allocate ccb */
-        if ((p_ccb = mca_ccb_alloc(handle, bd_addr)) != NULL)
+        p_ccb = mca_ccb_alloc(handle, bd_addr);
+        if (p_ccb != NULL)
         {
             /* allocate and set up entry */
             p_ccb->lcid     = lcid;
@@ -302,7 +304,8 @@ void mca_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
     MCA_TRACE_DEBUG("mca_l2c_connect_cfm_cback lcid: x%x, result: %d",
                      lcid, result);
     /* look up info for this channel */
-    if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
+    p_tbl = mca_tc_tbl_by_lcid(lcid);
+    if (p_tbl != NULL)
     {
         MCA_TRACE_DEBUG("p_tbl state: %d, tcid: %d", p_tbl->state, p_tbl->tcid);
         /* if in correct state */
@@ -368,7 +371,8 @@ void mca_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
     tMCA_TC_TBL    *p_tbl;
 
     /* look up info for this channel */
-    if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
+    p_tbl = mca_tc_tbl_by_lcid(lcid);
+    if (p_tbl != NULL)
     {
         /* if in correct state */
         if (p_tbl->state == MCA_TC_ST_CFG)
@@ -411,7 +415,8 @@ void mca_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
     uint16_t        result = L2CAP_CFG_OK;
 
     /* look up info for this channel */
-    if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
+    p_tbl = mca_tc_tbl_by_lcid(lcid);
+    if (p_tbl != NULL)
     {
         /* store the mtu in tbl */
         if (p_cfg->mtu_present)
@@ -466,7 +471,8 @@ void mca_l2c_disconnect_ind_cback(uint16_t lcid, bool    ack_needed)
     MCA_TRACE_DEBUG("mca_l2c_disconnect_ind_cback lcid: %d, ack_needed: %d",
                      lcid, ack_needed);
     /* look up info for this channel */
-    if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
+    p_tbl = mca_tc_tbl_by_lcid(lcid);
+    if (p_tbl != NULL)
     {
         if (ack_needed)
         {
@@ -498,7 +504,8 @@ void mca_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
     MCA_TRACE_DEBUG("mca_l2c_disconnect_cfm_cback lcid: x%x, result: %d",
                      lcid, result);
     /* look up info for this channel */
-    if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
+    p_tbl = mca_tc_tbl_by_lcid(lcid);
+    if (p_tbl != NULL)
     {
         p_tbl->cfg_flags = MCA_L2C_CFG_DISCN_INT;
         mca_tc_close_ind(p_tbl, result);
@@ -521,7 +528,8 @@ void mca_l2c_congestion_ind_cback(uint16_t lcid, bool    is_congested)
     tMCA_TC_TBL    *p_tbl;
 
     /* look up info for this channel */
-    if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
+    p_tbl = mca_tc_tbl_by_lcid(lcid);
+    if (p_tbl != NULL)
     {
         mca_tc_cong_ind(p_tbl, is_congested);
     }
@@ -542,7 +550,8 @@ void mca_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
     tMCA_TC_TBL    *p_tbl;
 
     /* look up info for this channel */
-    if ((p_tbl = mca_tc_tbl_by_lcid(lcid)) != NULL)
+    p_tbl = mca_tc_tbl_by_lcid(lcid);
+    if (p_tbl != NULL)
     {
         mca_tc_data_ind(p_tbl, p_buf);
     }

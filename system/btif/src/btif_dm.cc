@@ -2740,27 +2740,32 @@ bool btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg) {
   strncpy(conf, recv, 64);
   conf[63] = 0;  // null terminate
 
-  if ((pch = strtok(conf, ",")) != NULL)
+  pch = strtok(conf, ",");
+  if (pch != NULL)
     p_cfg->ble_auth_req = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  if ((pch = strtok(NULL, ",")) != NULL)
+  pch = strtok(NULL, ",");
+  if (pch != NULL)
     p_cfg->ble_io_cap = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  if ((pch = strtok(NULL, ",")) != NULL)
+  pch = strtok(NULL, ",");
+  if (pch != NULL)
     p_cfg->ble_init_key = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  if ((pch = strtok(NULL, ",")) != NULL)
+  pch = strtok(NULL, ",");
+  if (pch != NULL)
     p_cfg->ble_resp_key = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;
 
-  if ((pch = strtok(NULL, ",")) != NULL)
+  pch = strtok(NULL, ",");
+  if (pch != NULL)
     p_cfg->ble_max_key_size = (uint8_t)strtoul(pch, &endptr, 16);
   else
     return false;

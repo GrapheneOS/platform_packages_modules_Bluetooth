@@ -105,12 +105,13 @@ static void bta_create_mns_sdp_record(bluetooth_sdp_record* record,
   record->mns.hdr.profile_version = 0;
   record->mns.supported_features = 0x0000001F;  // default value if not found
 
-  if ((p_attr = SDP_FindAttributeInRec(
-           p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES);
+  if (p_attr != NULL) {
     record->mns.supported_features = p_attr->attr_value.v.u32;
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+  if (p_attr != NULL) {
     record->mns.hdr.service_name_length =
         SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
     record->mns.hdr.service_name = (char*)p_attr->attr_value.v.array;
@@ -125,8 +126,8 @@ static void bta_create_mns_sdp_record(bluetooth_sdp_record* record,
     record->mns.hdr.rfcomm_channel_number = pe.params[0];
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) !=
-      NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM);
+  if (p_attr != NULL) {
     record->mns.hdr.l2cap_psm = p_attr->attr_value.v.u16;
   }
 }
@@ -147,22 +148,23 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record* record,
   record->mas.supported_features = 0x0000001F;
   record->mas.supported_message_types = 0;
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAS_INSTANCE_ID)) !=
-      NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAS_INSTANCE_ID);
+  if (p_attr != NULL) {
     record->mas.mas_instance_id = p_attr->attr_value.v.u8;
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_MSG_TYPE)) !=
-      NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_MSG_TYPE);
+  if (p_attr != NULL) {
     record->mas.supported_message_types = p_attr->attr_value.v.u8;
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(
-           p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES);
+  if (p_attr != NULL) {
     record->mas.supported_features = p_attr->attr_value.v.u32;
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+  if (p_attr != NULL) {
     record->mas.hdr.service_name_length =
         SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
     record->mas.hdr.service_name = (char*)p_attr->attr_value.v.array;
@@ -177,8 +179,8 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record* record,
     record->mas.hdr.rfcomm_channel_number = pe.params[0];
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) !=
-      NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM);
+  if (p_attr != NULL) {
     record->mas.hdr.l2cap_psm = p_attr->attr_value.v.u16;
   }
 }
@@ -198,16 +200,17 @@ static void bta_create_pse_sdp_record(bluetooth_sdp_record* record,
   record->pse.supported_features = 0x00000003;
   record->pse.supported_repositories = 0;
 
-  if ((p_attr = SDP_FindAttributeInRec(
-           p_rec, ATTR_ID_SUPPORTED_REPOSITORIES)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_REPOSITORIES);
+  if (p_attr != NULL) {
     record->pse.supported_repositories = p_attr->attr_value.v.u8;
   }
-  if ((p_attr = SDP_FindAttributeInRec(
-           p_rec, ATTR_ID_PBAP_SUPPORTED_FEATURES)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_PBAP_SUPPORTED_FEATURES);
+  if (p_attr != NULL) {
     record->pse.supported_features = p_attr->attr_value.v.u32;
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+  if (p_attr != NULL) {
     record->pse.hdr.service_name_length =
         SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
     record->pse.hdr.service_name = (char*)p_attr->attr_value.v.array;
@@ -222,8 +225,8 @@ static void bta_create_pse_sdp_record(bluetooth_sdp_record* record,
     record->pse.hdr.rfcomm_channel_number = pe.params[0];
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) !=
-      NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM);
+  if (p_attr != NULL) {
     record->pse.hdr.l2cap_psm = p_attr->attr_value.v.u16;
   }
 }
@@ -242,7 +245,8 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
   record->ops.hdr.profile_version = 0;
   record->ops.supported_formats_list_len = 0;
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+  if (p_attr != NULL) {
     record->ops.hdr.service_name_length =
         SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
     record->ops.hdr.service_name = (char*)p_attr->attr_value.v.array;
@@ -257,12 +261,12 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record* record,
     record->ops.hdr.rfcomm_channel_number = pe.params[0];
   }
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) !=
-      NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM);
+  if (p_attr != NULL) {
     record->ops.hdr.l2cap_psm = p_attr->attr_value.v.u16;
   }
-  if ((p_attr = SDP_FindAttributeInRec(
-           p_rec, ATTR_ID_SUPPORTED_FORMATS_LIST)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FORMATS_LIST);
+  if (p_attr != NULL) {
     /* Safety check - each entry should itself be a sequence */
     if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) != DATA_ELE_SEQ_DESC_TYPE) {
       record->ops.supported_formats_list_len = 0;
@@ -325,7 +329,8 @@ static void bta_create_sap_sdp_record(bluetooth_sdp_record* record,
   record->sap.hdr.l2cap_psm = -1;
   record->sap.hdr.profile_version = 0;
 
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+  if (p_attr != NULL) {
     record->sap.hdr.service_name_length =
         SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
     record->sap.hdr.service_name = (char*)p_attr->attr_value.v.array;
@@ -353,7 +358,8 @@ static void bta_create_raw_sdp_record(bluetooth_sdp_record* record,
   record->hdr.profile_version = -1;
 
   /* Try to extract a service name */
-  if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL) {
+  p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME);
+  if (p_attr != NULL) {
     record->pse.hdr.service_name_length =
         SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
     record->pse.hdr.service_name = (char*)p_attr->attr_value.v.array;

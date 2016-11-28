@@ -177,7 +177,8 @@ void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t result)
             /* update direction bit */
             for (i = 0; i < RFCOMM_MAX_DLCI; i += 2)
             {
-                if ((idx = p_mcb->port_inx[i]) != 0)
+                idx = p_mcb->port_inx[i];
+                if (idx != 0)
                 {
                     p_mcb->port_inx[i] = 0;
                     p_mcb->port_inx[i+1] = idx;
@@ -355,7 +356,8 @@ void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf)
             return;
         }
 
-        if ((p_port = port_find_dlci_port (rfc_cb.rfc.rx_frame.dlci)) == NULL)
+        p_port = port_find_dlci_port(rfc_cb.rfc.rx_frame.dlci);
+        if (p_port == NULL)
         {
             rfc_send_dm (p_mcb, rfc_cb.rfc.rx_frame.dlci, true);
             osi_free(p_buf);
@@ -424,7 +426,8 @@ tRFC_MCB *rfc_find_lcid_mcb (uint16_t lcid)
     }
     else
     {
-        if ((p_mcb = rfc_cb.rfc.p_rfc_lcid_mcb[lcid - L2CAP_BASE_APPL_CID]) != NULL)
+        p_mcb = rfc_cb.rfc.p_rfc_lcid_mcb[lcid - L2CAP_BASE_APPL_CID];
+        if (p_mcb != NULL)
         {
             if (p_mcb->lcid != lcid)
             {

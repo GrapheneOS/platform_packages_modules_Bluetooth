@@ -1120,7 +1120,8 @@ void bta_av_sm_execute(tBTA_AV_CB* p_cb, uint16_t event, tBTA_AV_DATA* p_data) {
   APPL_TRACE_EVENT("next state=%d event offset:%d", p_cb->state, event);
 
   /* execute action functions */
-  if ((action = state_table[event][BTA_AV_ACTION_COL]) != BTA_AV_IGNORE) {
+  action = state_table[event][BTA_AV_ACTION_COL];
+  if (action != BTA_AV_IGNORE) {
     APPL_TRACE_EVENT("%s action executed %d", __func__, action);
     (*bta_av_action[action])(p_cb, p_data);
   }

@@ -794,18 +794,17 @@ bool    BTM_UseLeLink (BD_ADDR bd_addr)
     tBLE_ADDR_TYPE      addr_type;
     bool                use_le = false;
 
-    if ((p = btm_bda_to_acl(bd_addr, BT_TRANSPORT_BR_EDR)) != NULL)
-    {
+    p = btm_bda_to_acl(bd_addr, BT_TRANSPORT_BR_EDR);
+    if (p != NULL) {
         return use_le;
-    }
-    else if ((p = btm_bda_to_acl(bd_addr, BT_TRANSPORT_LE)) != NULL)
-    {
-        use_le = true;
-    }
-    else
-    {
-        BTM_ReadDevInfo(bd_addr, &dev_type, &addr_type);
-        use_le = (dev_type == BT_DEVICE_TYPE_BLE);
+    } else {
+        p = btm_bda_to_acl(bd_addr, BT_TRANSPORT_LE);
+        if (p != NULL) {
+            use_le = true;
+        } else {
+            BTM_ReadDevInfo(bd_addr, &dev_type, &addr_type);
+            use_le = (dev_type == BT_DEVICE_TYPE_BLE);
+        }
     }
     return use_le;
 }
@@ -1074,7 +1073,8 @@ void btm_ble_increment_sign_ctr(BD_ADDR bd_addr, bool    is_local )
 
     BTM_TRACE_DEBUG ("btm_ble_increment_sign_ctr is_local=%d", is_local);
 
-    if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec != NULL)
     {
         if (is_local)
             p_dev_rec->ble.keys.local_counter++;
@@ -1103,7 +1103,8 @@ bool    btm_ble_get_enc_key_type(BD_ADDR bd_addr, uint8_t *p_key_types)
 
     BTM_TRACE_DEBUG ("btm_ble_get_enc_key_type");
 
-    if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec != NULL)
     {
         *p_key_types = p_dev_rec->ble.key_type;
         return true;
@@ -1305,7 +1306,8 @@ void btm_ble_update_sec_key_size(BD_ADDR bd_addr, uint8_t enc_key_size)
 
     BTM_TRACE_DEBUG("btm_ble_update_sec_key_size enc_key_size = %d", enc_key_size);
 
-    if ((p_rec = btm_find_dev (bd_addr)) != NULL )
+    p_rec = btm_find_dev(bd_addr);
+    if (p_rec != NULL )
     {
         p_rec->enc_key_size = enc_key_size;
     }
@@ -1324,7 +1326,8 @@ uint8_t btm_ble_read_sec_key_size(BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC *p_rec;
 
-    if ((p_rec = btm_find_dev (bd_addr)) != NULL )
+    p_rec = btm_find_dev(bd_addr);
+    if (p_rec != NULL )
     {
         return p_rec->enc_key_size;
     }
@@ -1861,7 +1864,8 @@ void btm_ble_connected (uint8_t *bda, uint16_t handle, uint8_t enc_mode, uint8_t
     if (!p_dev_rec)
     {
         /* There is no device record for new connection.  Allocate one */
-        if ((p_dev_rec = btm_sec_alloc_dev (bda)) == NULL)
+        p_dev_rec = btm_sec_alloc_dev(bda);
+        if (p_dev_rec == NULL)
             return;
     }
     else    /* Update the timestamp for this device */
@@ -2171,8 +2175,8 @@ bool    BTM_BleDataSignature (BD_ADDR bd_addr, uint8_t *p_text, uint16_t len,
         UINT32_TO_STREAM(pp, p_rec->ble.keys.local_counter);
         UINT32_TO_STREAM(p_mac, p_rec->ble.keys.local_counter);
 
-        if ((ret = aes_cipher_msg_auth_code(p_rec->ble.keys.lcsrk, p_buf, (uint16_t)(len + 4),
-                                            BTM_CMAC_TLEN_SIZE, p_mac)) == true) {
+        ret = aes_cipher_msg_auth_code(p_rec->ble.keys.lcsrk, p_buf, (uint16_t)(len + 4), BTM_CMAC_TLEN_SIZE, p_mac);
+        if (ret == true) {
             btm_ble_increment_sign_ctr(bd_addr, true);
         }
 
@@ -2255,7 +2259,8 @@ bool    BTM_GetLeSecurityState (BD_ADDR bd_addr, uint8_t *p_le_dev_sec_flags, ui
     *p_le_dev_sec_flags = 0;
     *p_le_key_size = 0;
 
-    if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
+    p_dev_rec = btm_find_dev(bd_addr);
+    if (p_dev_rec == NULL)
     {
         BTM_TRACE_ERROR ("%s fails", __func__);
         return (false);

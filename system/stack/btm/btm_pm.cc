@@ -286,7 +286,8 @@ tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda, tBTM_PM_MODE *p_mode)
 {
     int acl_ind;
 
-    if( (acl_ind = btm_pm_find_acl_ind(remote_bda)) == MAX_L2CAP_LINKS)
+    acl_ind = btm_pm_find_acl_ind(remote_bda);
+    if(acl_ind == MAX_L2CAP_LINKS)
         return (BTM_UNKNOWN_ADDR);
 
     *p_mode = btm_cb.pm_mode_db[acl_ind].state;
@@ -350,7 +351,8 @@ tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, uint16_t max_lat,
     int acl_ind;
     tBTM_PM_MCB *p_cb;
 
-    if( (acl_ind = btm_pm_find_acl_ind(remote_bda)) == MAX_L2CAP_LINKS)
+    acl_ind = btm_pm_find_acl_ind(remote_bda);
+    if(acl_ind == MAX_L2CAP_LINKS)
         return (BTM_UNKNOWN_ADDR);
 
     if(BTM_PM_STS_ACTIVE == btm_cb.pm_mode_db[acl_ind].state ||
@@ -805,7 +807,8 @@ void btm_pm_proc_mode_change (uint8_t hci_status, uint16_t hci_handle, uint8_t m
     tL2C_LCB        *p_lcb;
 
     /* get the index to acl_db */
-    if ((xx = btm_handle_to_acl_index(hci_handle)) >= MAX_L2CAP_LINKS)
+    xx = btm_handle_to_acl_index(hci_handle);
+    if (xx >= MAX_L2CAP_LINKS)
         return;
 
     p = &btm_cb.acl_db[xx];
@@ -819,7 +822,8 @@ void btm_pm_proc_mode_change (uint8_t hci_status, uint16_t hci_handle, uint8_t m
     BTM_TRACE_DEBUG("%s switched from %s to %s.", __func__,
                     mode_to_string(old_state), mode_to_string(p_cb->state));
 
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr(p->remote_addr, BT_TRANSPORT_BR_EDR)) != NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(p->remote_addr, BT_TRANSPORT_BR_EDR);
+    if (p_lcb != NULL)
     {
         if ((p_cb->state == BTM_PM_ST_ACTIVE) || (p_cb->state == BTM_PM_ST_SNIFF))
         {
@@ -903,7 +907,8 @@ void btm_pm_proc_ssr_evt (uint8_t *p,
 
     STREAM_TO_UINT16 (handle, p);
     /* get the index to acl_db */
-    if ((xx = btm_handle_to_acl_index(handle)) >= MAX_L2CAP_LINKS)
+    xx = btm_handle_to_acl_index(handle);
+    if (xx >= MAX_L2CAP_LINKS)
         return;
 
     p += 2;

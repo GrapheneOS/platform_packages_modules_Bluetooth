@@ -418,17 +418,15 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t le
     {
         STREAM_TO_UINT16(handle, p);
 
-        if ((i_rcb = gatt_sr_find_i_rcb_by_handle(handle)) < GATT_MAX_SR_PROFILES)
+        i_rcb = gatt_sr_find_i_rcb_by_handle(handle);
+        if (i_rcb < GATT_MAX_SR_PROFILES)
         {
             p_tcb->sr_cmd.multi_req.handles[p_tcb->sr_cmd.multi_req.num_handles++] = handle;
 
             /* check read permission */
-            if ((err = gatts_read_attr_perm_check(   gatt_cb.sr_reg[i_rcb].p_db,
-                                                     false,
-                                                     handle,
-                                                     sec_flag,
-                                                     key_size))
-                != GATT_SUCCESS)
+            err = gatts_read_attr_perm_check(gatt_cb.sr_reg[i_rcb].p_db,
+                                             false, handle, sec_flag, key_size);
+            if (err != GATT_SUCCESS)
             {
                 GATT_TRACE_DEBUG("read permission denied : 0x%02x", err);
                 break;
@@ -453,7 +451,8 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t le
 
     if (err == GATT_SUCCESS)
     {
-        if ((trans_id = gatt_sr_enqueue_cmd (p_tcb, op_code, p_tcb->sr_cmd.multi_req.handles[0])) != 0)
+        trans_id = gatt_sr_enqueue_cmd(p_tcb, op_code, p_tcb->sr_cmd.multi_req.handles[0]);
+        if (trans_id != 0)
         {
             gatt_sr_reset_cback_cnt(p_tcb); /* read multiple use multi_rsp_q's count*/
 
@@ -526,7 +525,8 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
             p_rcb->s_hdl <= e_hdl &&
             p_rcb->type == GATT_UUID_PRI_SERVICE)
         {
-            if ((p_uuid = gatts_get_service_uuid (p_rcb->p_db)) != NULL)
+            p_uuid = gatts_get_service_uuid(p_rcb->p_db);
+            if (p_uuid != NULL)
             {
                 if (op_code == GATT_REQ_READ_BY_GRP_TYPE)
                     handle_len = 4 + p_uuid->len;
@@ -899,7 +899,9 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, uint16_t len, uint8_t *p_da
 
         l2cble_set_fixed_channel_tx_data_length(p_tcb->peer_bda, L2CAP_ATT_CID, p_tcb->payload_size);
 
-        if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_MTU, (tGATT_SR_MSG *) &p_tcb->payload_size)) != NULL)
+        p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_MTU,
+                                  (tGATT_SR_MSG *)&p_tcb->payload_size);
+        if (p_buf != NULL)
         {
             attp_send_sr_msg (p_tcb, p_buf);
 
@@ -1095,7 +1097,8 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, uint8_t i_rcb, uint16_t handle,
 
     if (status == GATT_SUCCESS)
     {
-        if ((trans_id = gatt_sr_enqueue_cmd(p_tcb, op_code, handle)) != 0)
+        trans_id = gatt_sr_enqueue_cmd(p_tcb, op_code, handle);
+        if (trans_id != 0)
         {
             p_sreg = &gatt_cb.sr_reg[i_rcb];
             conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_sreg->gatt_if);
@@ -1291,7 +1294,8 @@ static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
 
     GATT_TRACE_DEBUG("gatts_proc_srv_chg_ind_ack");
 
-    if ((p_buf = gatt_is_bda_in_the_srv_chg_clt_list(p_tcb->peer_bda)) != NULL)
+    p_buf = gatt_is_bda_in_the_srv_chg_clt_list(p_tcb->peer_bda);
+    if (p_buf != NULL)
     {
         GATT_TRACE_DEBUG("NV update set srv chg = false");
         p_buf->srv_changed = false;

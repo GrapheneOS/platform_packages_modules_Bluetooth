@@ -287,9 +287,10 @@ void bta_gattc_process_api_open(tBTA_GATTC_DATA* p_msg) {
 
   if (p_clreg != NULL) {
     if (p_msg->api_conn.is_direct) {
-      if ((p_clcb = bta_gattc_find_alloc_clcb(
-               p_msg->api_conn.client_if, p_msg->api_conn.remote_bda,
-               p_msg->api_conn.transport)) != NULL) {
+      p_clcb = bta_gattc_find_alloc_clcb(p_msg->api_conn.client_if,
+                                         p_msg->api_conn.remote_bda,
+                                         p_msg->api_conn.transport);
+      if (p_clcb != NULL) {
         bta_gattc_sm_execute(p_clcb, event, p_msg);
       } else {
         APPL_TRACE_ERROR("No resources to open a new connection.");
@@ -322,9 +323,10 @@ void bta_gattc_process_api_open_cancel(tBTA_GATTC_DATA* p_msg) {
   tBTA_GATTC cb_data;
 
   if (p_msg->api_cancel_conn.is_direct) {
-    if ((p_clcb = bta_gattc_find_clcb_by_cif(p_msg->api_cancel_conn.client_if,
-                                             p_msg->api_cancel_conn.remote_bda,
-                                             BTA_GATT_TRANSPORT_LE)) != NULL) {
+    p_clcb = bta_gattc_find_clcb_by_cif(p_msg->api_cancel_conn.client_if,
+                                        p_msg->api_cancel_conn.remote_bda,
+                                        BTA_GATT_TRANSPORT_LE);
+    if (p_clcb != NULL) {
       bta_gattc_sm_execute(p_clcb, event, p_msg);
     } else {
       APPL_TRACE_ERROR("No such connection need to be cancelled");
@@ -481,9 +483,9 @@ void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN* p_data,
       /* if is a connected remote device */
       if (GATT_GetConnIdIfConnected(p_data->client_if, p_data->remote_bda,
                                     &conn_id, p_data->transport)) {
-        if ((p_clcb = bta_gattc_find_alloc_clcb(
-                 p_data->client_if, p_data->remote_bda,
-                 BTA_GATT_TRANSPORT_LE)) != NULL) {
+        p_clcb = bta_gattc_find_alloc_clcb(
+            p_data->client_if, p_data->remote_bda, BTA_GATT_TRANSPORT_LE);
+        if (p_clcb != NULL) {
           gattc_data.hdr.layer_specific = p_clcb->bta_conn_id = conn_id;
 
           /* open connection */
@@ -843,8 +845,8 @@ void bta_gattc_start_discover(tBTA_GATTC_CLCB* p_clcb,
       /* set all srcb related clcb into discovery ST */
       bta_gattc_set_discover_st(p_clcb->p_srcb);
 
-      if ((p_clcb->status = bta_gattc_init_cache(p_clcb->p_srcb)) ==
-          BTA_GATT_OK) {
+      p_clcb->status = bta_gattc_init_cache(p_clcb->p_srcb);
+      if (p_clcb->status == BTA_GATT_OK) {
         p_clcb->status = bta_gattc_discover_pri_service(
             p_clcb->bta_conn_id, p_clcb->p_srcb, GATT_DISC_SRVC_ALL);
       }
@@ -1567,14 +1569,16 @@ void bta_gattc_process_indicate(uint16_t conn_id, tGATTC_OPTYPE op,
     return;
   }
 
-  if ((p_clrcb = bta_gattc_cl_get_regcb(gatt_if)) == NULL) {
+  p_clrcb = bta_gattc_cl_get_regcb(gatt_if);
+  if (p_clrcb == NULL) {
     APPL_TRACE_ERROR("%s indication/notif for unregistered app", __func__);
     if (op == GATTC_OPTYPE_INDICATION)
       GATTC_SendHandleValueConfirm(conn_id, handle);
     return;
   }
 
-  if ((p_srcb = bta_gattc_find_srcb(remote_bda)) == NULL) {
+  p_srcb = bta_gattc_find_srcb(remote_bda);
+  if (p_srcb == NULL) {
     APPL_TRACE_ERROR("%s indication/notif for unknown device, ignore",
                      __func__);
     if (op == GATTC_OPTYPE_INDICATION)
@@ -1637,10 +1641,13 @@ static void bta_gattc_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
     return;
   }
   /* for all other operation, not expected if w/o connection */
-  else if ((p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id)) == NULL) {
-    APPL_TRACE_ERROR("bta_gattc_cmpl_cback unknown conn_id =  %d, ignore data",
-                     conn_id);
-    return;
+  else {
+    p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
+    if (p_clcb == NULL) {
+      APPL_TRACE_ERROR(
+          "bta_gattc_cmpl_cback unknown conn_id =  %d, ignore data", conn_id);
+      return;
+    }
   }
 
   /* if over BR_EDR, inform PM for mode change */
@@ -1693,7 +1700,8 @@ static void bta_gattc_cong_cback(uint16_t conn_id, bool congested) {
   tBTA_GATTC_CLCB* p_clcb;
   tBTA_GATTC cb_data;
 
-  if ((p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id)) != NULL) {
+  p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
+  if (p_clcb != NULL) {
     if (p_clcb->p_rcb->p_cback) {
       cb_data.congest.conn_id = conn_id;
       cb_data.congest.congested = congested;

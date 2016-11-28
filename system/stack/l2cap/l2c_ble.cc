@@ -202,7 +202,8 @@ uint8_t L2CA_GetBleConnRole (BD_ADDR bd_addr)
 
     tL2C_LCB *p_lcb;
 
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (bd_addr, BT_TRANSPORT_LE)) != NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_LE);
+    if (p_lcb != NULL)
         role = p_lcb->link_role;
 
     return role;
@@ -221,7 +222,8 @@ uint16_t L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport)
     tL2C_LCB            *p_lcb;
     uint16_t            reason = 0;
 
-    if ((p_lcb = l2cu_find_lcb_by_bd_addr (remote_bda, transport)) != NULL)
+    p_lcb = l2cu_find_lcb_by_bd_addr(remote_bda, transport);
+    if (p_lcb != NULL)
         reason = p_lcb->disc_reason;
 
     L2CAP_TRACE_DEBUG ("L2CA_GetDisconnectReason=%d ",reason);
@@ -671,7 +673,8 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
                     "mps = %d, "
                     "initial credit = %d", mtu, mps, initial_credit);
 
-            if ((p_rcb = l2cu_find_ble_rcb_by_psm (con_info.psm)) == NULL)
+            p_rcb = l2cu_find_ble_rcb_by_psm(con_info.psm);
+            if (p_rcb == NULL)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - rcvd conn req for unknown PSM: 0x%04x", con_info.psm);
                 l2cu_reject_ble_connection (p_lcb, id, L2CAP_LE_NO_PSM);
@@ -688,7 +691,8 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
             }
 
             /* Allocate a ccb for this.*/
-            if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
+            p_ccb = l2cu_allocate_ccb(p_lcb, 0);
+            if (p_ccb == NULL)
             {
                 L2CAP_TRACE_ERROR ("L2CAP - unable to allocate CCB");
                 l2cu_reject_ble_connection (p_lcb, id, L2CAP_CONN_NO_RESOURCES);
@@ -781,7 +785,8 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
 
         case L2CAP_CMD_BLE_FLOW_CTRL_CREDIT:
             STREAM_TO_UINT16(lcid, p);
-            if((p_ccb = l2cu_find_ccb_by_remote_cid(p_lcb, lcid)) == NULL)
+            p_ccb = l2cu_find_ccb_by_remote_cid(p_lcb, lcid);
+            if(p_ccb == NULL)
             {
                 L2CAP_TRACE_DEBUG ("%s Credit received for unknown channel id %d", __func__, lcid);
                 break;
@@ -796,7 +801,8 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
             STREAM_TO_UINT16 (lcid, p);
             STREAM_TO_UINT16 (rcid, p);
 
-            if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) != NULL)
+            p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+            if (p_ccb != NULL)
             {
                 if (p_ccb->remote_cid == rcid)
                 {
@@ -813,7 +819,8 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
             STREAM_TO_UINT16 (rcid, p);
             STREAM_TO_UINT16 (lcid, p);
 
-            if ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, lcid)) != NULL)
+            p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+            if (p_ccb != NULL)
             {
                 if ((p_ccb->remote_cid == rcid) && (p_ccb->local_id == id))
                     l2c_csm_execute (p_ccb, L2CEVT_L2CAP_DISCONNECT_RSP, NULL);
