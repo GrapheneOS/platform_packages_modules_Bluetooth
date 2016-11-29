@@ -49,19 +49,19 @@ class GattServer : public BluetoothInstance,
     // ID |characteristic_id| from a remote device with address
     // |device_address|. |request_id| can be used to respond to this request by
     // calling SendResponse below.
-    virtual void OnCharacteristicReadRequest(
-        GattServer* gatt_server,
-        const std::string& device_address,
-        int request_id, int offset, bool is_long, uint16_t handle) = 0;
+    virtual void OnCharacteristicReadRequest(GattServer* gatt_server,
+                                             const std::string& device_address,
+                                             int request_id, int offset,
+                                             bool is_long, uint16_t handle) = 0;
 
     // Called when there is an incoming read request for the descriptor with
     // ID |descriptor_id| from a remote device with address |device_address|.
     // |request_id| can be used to respond to this request by
     // calling SendResponse below.
-    virtual void OnDescriptorReadRequest(
-        GattServer* gatt_server,
-        const std::string& device_address,
-        int request_id, int offset, bool is_long, uint16_t handle) = 0;
+    virtual void OnDescriptorReadRequest(GattServer* gatt_server,
+                                         const std::string& device_address,
+                                         int request_id, int offset,
+                                         bool is_long, uint16_t handle) = 0;
 
     // Called when there is an incoming write request for the characteristic
     // with ID |characteristic_id| from a remote device with address
@@ -73,8 +73,7 @@ class GattServer : public BluetoothInstance,
     // should hold on to the value and either discard it or complete the write
     // when it receives the OnExecuteWriteRequest event.
     virtual void OnCharacteristicWriteRequest(
-        GattServer* gatt_server,
-        const std::string& device_address,
+        GattServer* gatt_server, const std::string& device_address,
         int request_id, int offset, bool is_prepare_write, bool need_response,
         const std::vector<uint8_t>& value, uint16_t handle) = 0;
 
@@ -88,8 +87,7 @@ class GattServer : public BluetoothInstance,
     // should hold on to the value and either discard it or complete the write
     // when it receives the OnExecuteWriteRequest event.
     virtual void OnDescriptorWriteRequest(
-        GattServer* gatt_server,
-        const std::string& device_address,
+        GattServer* gatt_server, const std::string& device_address,
         int request_id, int offset, bool is_prepare_write, bool need_response,
         const std::vector<uint8_t>& value, uint16_t handle) = 0;
 
@@ -97,15 +95,13 @@ class GattServer : public BluetoothInstance,
     // is true, then the Delegate should commit all previously prepared writes.
     // Otherwise, all prepared writes should be aborted. The Delegate should
     // call "SendResponse" to complete the procedure.
-    virtual void OnExecuteWriteRequest(
-        GattServer* gatt_server,
-        const std::string& device_address,
-        int request_id, bool is_execute) = 0;
+    virtual void OnExecuteWriteRequest(GattServer* gatt_server,
+                                       const std::string& device_address,
+                                       int request_id, bool is_execute) = 0;
 
-    virtual void OnConnectionStateChanged(
-        GattServer* gatt_server,
-        const std::string& device_addres,
-        bool connected) = 0;
+    virtual void OnConnectionStateChanged(GattServer* gatt_server,
+                                          const std::string& device_addres,
+                                          bool connected) = 0;
 
    private:
     DISALLOW_COPY_AND_ASSIGN(Delegate);
@@ -139,7 +135,6 @@ class GattServer : public BluetoothInstance,
   // we in a stuck-state where the service declaration hasn't ended?
   bool AddService(const bluetooth::Service&, const ResultCallback& callback);
 
-
   // Sends a response for a pending notification. |request_id| and
   // |device_address| should match those that were received through one of the
   // Delegate callbacks. |value| and |offset| are used for read requests and
@@ -162,8 +157,8 @@ class GattServer : public BluetoothInstance,
   // sends a ATT Handle-Value Confirmation packet. Otherwise, it will be run as
   // soon as the notification has been sent out.
   bool SendNotification(const std::string& device_address,
-                        const uint16_t handle,
-                        bool confirm, const std::vector<uint8_t>& value,
+                        const uint16_t handle, bool confirm,
+                        const std::vector<uint8_t>& value,
                         const GattCallback& callback);
 
  private:
@@ -175,9 +170,7 @@ class GattServer : public BluetoothInstance,
   struct Connection {
     Connection(int conn_id, const bt_bdaddr_t& bdaddr)
         : conn_id(conn_id), bdaddr(bdaddr) {}
-    Connection() : conn_id(-1) {
-      memset(&bdaddr, 0, sizeof(bdaddr));
-    }
+    Connection() : conn_id(-1) { memset(&bdaddr, 0, sizeof(bdaddr)); }
 
     int conn_id;
     std::unordered_map<int, int> request_id_to_handle;
@@ -198,52 +191,39 @@ class GattServer : public BluetoothInstance,
   GattServer(const UUID& uuid, int server_id);
 
   // hal::BluetoothGattInterface::ServerObserver overrides:
-  void ConnectionCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int server_id,
-      int connected,
-      const bt_bdaddr_t& bda) override;
-  void ServiceAddedCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_if,
-      vector<btgatt_db_element_t>) override;
-  void ServiceStoppedCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_id,
-      int service_handle) override;
+  void ConnectionCallback(hal::BluetoothGattInterface* gatt_iface, int conn_id,
+                          int server_id, int connected,
+                          const bt_bdaddr_t& bda) override;
+  void ServiceAddedCallback(hal::BluetoothGattInterface* gatt_iface, int status,
+                            int server_if,
+                            vector<btgatt_db_element_t>) override;
+  void ServiceStoppedCallback(hal::BluetoothGattInterface* gatt_iface,
+                              int status, int server_id,
+                              int service_handle) override;
   void RequestReadCharacteristicCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int trans_id,
-      const bt_bdaddr_t& bda,
-      int attribute_handle, int offset,
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int trans_id,
+      const bt_bdaddr_t& bda, int attribute_handle, int offset,
       bool is_long) override;
-  void RequestReadDescriptorCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int trans_id,
-      const bt_bdaddr_t& bda,
-      int attribute_handle, int offset,
-      bool is_long) override;
+  void RequestReadDescriptorCallback(hal::BluetoothGattInterface* gatt_iface,
+                                     int conn_id, int trans_id,
+                                     const bt_bdaddr_t& bda,
+                                     int attribute_handle, int offset,
+                                     bool is_long) override;
   void RequestWriteCharacteristicCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int trans_id,
-      const bt_bdaddr_t& bda,
-      int attr_handle, int offset,
-      bool need_rsp, bool is_prep,
-      vector<uint8_t> value) override;
-  void RequestWriteDescriptorCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int trans_id,
-      const bt_bdaddr_t& bda,
-      int attr_handle, int offset,
-      bool need_rsp, bool is_prep,
-      vector<uint8_t> value) override;
-  void RequestExecWriteCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int trans_id,
-      const bt_bdaddr_t& bda, int exec_write) override;
-  void IndicationSentCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int status) override;
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int trans_id,
+      const bt_bdaddr_t& bda, int attr_handle, int offset, bool need_rsp,
+      bool is_prep, vector<uint8_t> value) override;
+  void RequestWriteDescriptorCallback(hal::BluetoothGattInterface* gatt_iface,
+                                      int conn_id, int trans_id,
+                                      const bt_bdaddr_t& bda, int attr_handle,
+                                      int offset, bool need_rsp, bool is_prep,
+                                      vector<uint8_t> value) override;
+  void RequestExecWriteCallback(hal::BluetoothGattInterface* gatt_iface,
+                                int conn_id, int trans_id,
+                                const bt_bdaddr_t& bda,
+                                int exec_write) override;
+  void IndicationSentCallback(hal::BluetoothGattInterface* gatt_iface,
+                              int conn_id, int status) override;
 
   // Helper function that notifies and clears the pending callback.
   void CleanUpPendingData();
@@ -302,10 +282,9 @@ class GattServerFactory : public BluetoothInstanceFactory,
 
  private:
   // hal::BluetoothGattInterface::ServerObserver override:
-  void RegisterServerCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_id,
-      const bt_uuid_t& app_uuid) override;
+  void RegisterServerCallback(hal::BluetoothGattInterface* gatt_iface,
+                              int status, int server_id,
+                              const bt_uuid_t& app_uuid) override;
 
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;

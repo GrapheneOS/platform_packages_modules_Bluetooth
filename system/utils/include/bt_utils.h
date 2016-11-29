@@ -30,9 +30,9 @@ static const char BT_UTILS_MODULE[] = "bt_utils_module";
  ******************************************************************************/
 
 typedef enum {
-    TASK_HIGH_MEDIA = 0,
-    TASK_UIPC_READ,
-    TASK_HIGH_MAX
+  TASK_HIGH_MEDIA = 0,
+  TASK_UIPC_READ,
+  TASK_HIGH_MAX
 } tHIGH_PRIORITY_TASK;
 
 /*******************************************************************************

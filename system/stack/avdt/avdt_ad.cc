@@ -25,16 +25,15 @@
 #include <assert.h>
 #include <string.h>
 
-#include "bt_types.h"
-#include "bt_target.h"
-#include "bt_utils.h"
 #include "avdt_api.h"
-#include "avdtc_api.h"
 #include "avdt_int.h"
+#include "avdtc_api.h"
+#include "bt_target.h"
+#include "bt_types.h"
+#include "bt_utils.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "osi/include/osi.h"
-
 
 /*******************************************************************************
  *
@@ -46,22 +45,19 @@
  * Returns          TCID value.
  *
  ******************************************************************************/
-uint8_t avdt_ad_type_to_tcid(uint8_t type, tAVDT_SCB *p_scb)
-{
-    uint8_t scb_idx;
+uint8_t avdt_ad_type_to_tcid(uint8_t type, tAVDT_SCB* p_scb) {
+  uint8_t scb_idx;
 
-    if (type == AVDT_CHAN_SIG)
-    {
-        return 0;
-    }
-    else
-    {
-        scb_idx = avdt_scb_to_hdl(p_scb) - 1;
-        /*
-        AVDT_TRACE_DEBUG("type: %d, tcid: %d", type, ((scb_idx * (AVDT_CHAN_NUM_TYPES - 1)) + type));
-        */
-        return ((scb_idx * (AVDT_CHAN_NUM_TYPES - 1)) + type);
-    }
+  if (type == AVDT_CHAN_SIG) {
+    return 0;
+  } else {
+    scb_idx = avdt_scb_to_hdl(p_scb) - 1;
+    /*
+    AVDT_TRACE_DEBUG("type: %d, tcid: %d", type, ((scb_idx *
+    (AVDT_CHAN_NUM_TYPES - 1)) + type));
+    */
+    return ((scb_idx * (AVDT_CHAN_NUM_TYPES - 1)) + type);
+  }
 }
 
 /*******************************************************************************
@@ -74,27 +70,22 @@ uint8_t avdt_ad_type_to_tcid(uint8_t type, tAVDT_SCB *p_scb)
  * Returns          Channel type value.
  *
  ******************************************************************************/
-static uint8_t avdt_ad_tcid_to_type(uint8_t tcid)
-{
-    uint8_t type;
+static uint8_t avdt_ad_tcid_to_type(uint8_t tcid) {
+  uint8_t type;
 
-    if (tcid == 0)
-    {
-        type = AVDT_CHAN_SIG;
-    }
-    else
-    {
-        /* tcid translates to type based on number of channels, as follows:
-        ** only media channel   :  tcid=1,2,3,4,5,6...  type=1,1,1,1,1,1...
-        ** media and report     :  tcid=1,2,3,4,5,6...  type=1,2,1,2,1,2...
-        ** media, report, recov :  tcid=1,2,3,4,5,6...  type=1,2,3,1,2,3...
-        */
-        type = ((tcid + AVDT_CHAN_NUM_TYPES - 2) % (AVDT_CHAN_NUM_TYPES - 1)) + 1;
-    }
-    AVDT_TRACE_DEBUG("tcid: %d, type: %d", tcid, type);
-    return type;
+  if (tcid == 0) {
+    type = AVDT_CHAN_SIG;
+  } else {
+    /* tcid translates to type based on number of channels, as follows:
+    ** only media channel   :  tcid=1,2,3,4,5,6...  type=1,1,1,1,1,1...
+    ** media and report     :  tcid=1,2,3,4,5,6...  type=1,2,1,2,1,2...
+    ** media, report, recov :  tcid=1,2,3,4,5,6...  type=1,2,3,1,2,3...
+    */
+    type = ((tcid + AVDT_CHAN_NUM_TYPES - 2) % (AVDT_CHAN_NUM_TYPES - 1)) + 1;
+  }
+  AVDT_TRACE_DEBUG("tcid: %d, type: %d", tcid, type);
+  return type;
 }
-
 
 /*******************************************************************************
  *
@@ -106,19 +97,16 @@ static uint8_t avdt_ad_tcid_to_type(uint8_t tcid)
  * Returns          Nothing.
  *
  ******************************************************************************/
-void avdt_ad_init(void)
-{
-    int             i;
-    tAVDT_TC_TBL    *p_tbl = avdt_cb.ad.tc_tbl;
-    memset(&avdt_cb.ad, 0, sizeof(tAVDT_AD));
+void avdt_ad_init(void) {
+  int i;
+  tAVDT_TC_TBL* p_tbl = avdt_cb.ad.tc_tbl;
+  memset(&avdt_cb.ad, 0, sizeof(tAVDT_AD));
 
-    /* make sure the peer_mtu is a valid value */
-    for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++)
-    {
-        p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
-    }
+  /* make sure the peer_mtu is a valid value */
+  for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++) {
+    p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
+  }
 }
-
 
 /*******************************************************************************
  *
@@ -133,63 +121,47 @@ void avdt_ad_init(void)
  *                  first matching entry (there could be more than one).
  *
  ******************************************************************************/
-tAVDT_TC_TBL *avdt_ad_tc_tbl_by_st(uint8_t type, tAVDT_CCB *p_ccb, uint8_t state)
-{
-    int             i;
-    tAVDT_TC_TBL    *p_tbl = avdt_cb.ad.tc_tbl;
-    uint8_t         ccb_idx;
+tAVDT_TC_TBL* avdt_ad_tc_tbl_by_st(uint8_t type, tAVDT_CCB* p_ccb,
+                                   uint8_t state) {
+  int i;
+  tAVDT_TC_TBL* p_tbl = avdt_cb.ad.tc_tbl;
+  uint8_t ccb_idx;
 
-    if (p_ccb == NULL)
-    {
-        /* resending security req */
-        for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++)
-        {
-            /* must be AVDT_CHAN_SIG - tcid always zero */
-            if ((p_tbl->tcid == 0) &&
-                (p_tbl->state == state))
-            {
-                break;
-            }
+  if (p_ccb == NULL) {
+    /* resending security req */
+    for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++) {
+      /* must be AVDT_CHAN_SIG - tcid always zero */
+      if ((p_tbl->tcid == 0) && (p_tbl->state == state)) {
+        break;
+      }
+    }
+  } else {
+    ccb_idx = avdt_ccb_to_idx(p_ccb);
+
+    for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++) {
+      if (type == AVDT_CHAN_SIG) {
+        /* if control channel, tcid always zero */
+        if ((p_tbl->tcid == 0) && (p_tbl->ccb_idx == ccb_idx) &&
+            (p_tbl->state == state)) {
+          break;
         }
-    }
-    else
-    {
-        ccb_idx = avdt_ccb_to_idx(p_ccb);
-
-        for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++)
-        {
-            if (type == AVDT_CHAN_SIG)
-            {
-                /* if control channel, tcid always zero */
-                if ((p_tbl->tcid == 0) &&
-                    (p_tbl->ccb_idx == ccb_idx) &&
-                    (p_tbl->state == state))
-                {
-                    break;
-                }
-            }
-            else
-            {
-                /* if other channel, tcid is always > zero */
-                if ((p_tbl->tcid > 0) &&
-                    (p_tbl->ccb_idx == ccb_idx) &&
-                    (p_tbl->state == state))
-                {
-                    break;
-                }
-            }
+      } else {
+        /* if other channel, tcid is always > zero */
+        if ((p_tbl->tcid > 0) && (p_tbl->ccb_idx == ccb_idx) &&
+            (p_tbl->state == state)) {
+          break;
         }
+      }
     }
+  }
 
-    /* if nothing found return null */
-    if (i == AVDT_NUM_TC_TBL)
-    {
-        p_tbl = NULL;
-    }
+  /* if nothing found return null */
+  if (i == AVDT_NUM_TC_TBL) {
+    p_tbl = NULL;
+  }
 
-    return p_tbl;
+  return p_tbl;
 }
-
 
 /*******************************************************************************
  *
@@ -201,22 +173,17 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_st(uint8_t type, tAVDT_CCB *p_ccb, uint8_t state
  * Returns          Pointer to entry.
  *
  ******************************************************************************/
-tAVDT_TC_TBL *avdt_ad_tc_tbl_by_lcid(uint16_t lcid)
-{
-    uint8_t idx;
+tAVDT_TC_TBL* avdt_ad_tc_tbl_by_lcid(uint16_t lcid) {
+  uint8_t idx;
 
-    idx = avdt_cb.ad.lcid_tbl[lcid - L2CAP_BASE_APPL_CID];
+  idx = avdt_cb.ad.lcid_tbl[lcid - L2CAP_BASE_APPL_CID];
 
-    if (idx < AVDT_NUM_TC_TBL)
-    {
-        return &avdt_cb.ad.tc_tbl[idx];
-    }
-    else
-    {
-        return NULL;
-    }
+  if (idx < AVDT_NUM_TC_TBL) {
+    return &avdt_cb.ad.tc_tbl[idx];
+  } else {
+    return NULL;
+  }
 }
-
 
 /*******************************************************************************
  *
@@ -229,29 +196,26 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_lcid(uint16_t lcid)
  * Returns          Pointer to transport channel table entry.
  *
  ******************************************************************************/
-tAVDT_TC_TBL *avdt_ad_tc_tbl_by_type(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
-{
-    uint8_t         tcid;
-    int             i;
-    tAVDT_TC_TBL    *p_tbl = avdt_cb.ad.tc_tbl;
-    uint8_t         ccb_idx = avdt_ccb_to_idx(p_ccb);
+tAVDT_TC_TBL* avdt_ad_tc_tbl_by_type(uint8_t type, tAVDT_CCB* p_ccb,
+                                     tAVDT_SCB* p_scb) {
+  uint8_t tcid;
+  int i;
+  tAVDT_TC_TBL* p_tbl = avdt_cb.ad.tc_tbl;
+  uint8_t ccb_idx = avdt_ccb_to_idx(p_ccb);
 
-    /* get tcid from type, scb */
-    tcid = avdt_ad_type_to_tcid(type, p_scb);
+  /* get tcid from type, scb */
+  tcid = avdt_ad_type_to_tcid(type, p_scb);
 
-    for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++)
-    {
-        if ((p_tbl->tcid == tcid) && (p_tbl->ccb_idx == ccb_idx))
-        {
-            break;
-        }
+  for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++) {
+    if ((p_tbl->tcid == tcid) && (p_tbl->ccb_idx == ccb_idx)) {
+      break;
     }
+  }
 
-    assert(i != AVDT_NUM_TC_TBL);
+  assert(i != AVDT_NUM_TC_TBL);
 
-    return p_tbl;
+  return p_tbl;
 }
-
 
 /*******************************************************************************
  *
@@ -263,31 +227,26 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_type(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *
  * Returns          Pointer to entry.
  *
  ******************************************************************************/
-tAVDT_TC_TBL *avdt_ad_tc_tbl_alloc(tAVDT_CCB *p_ccb)
-{
-    int             i;
-    tAVDT_TC_TBL    *p_tbl = avdt_cb.ad.tc_tbl;
+tAVDT_TC_TBL* avdt_ad_tc_tbl_alloc(tAVDT_CCB* p_ccb) {
+  int i;
+  tAVDT_TC_TBL* p_tbl = avdt_cb.ad.tc_tbl;
 
-    /* find next free entry in tc table */
-    for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++)
-    {
-        if (p_tbl->state == AVDT_AD_ST_UNUSED)
-        {
-            break;
-        }
+  /* find next free entry in tc table */
+  for (i = 0; i < AVDT_NUM_TC_TBL; i++, p_tbl++) {
+    if (p_tbl->state == AVDT_AD_ST_UNUSED) {
+      break;
     }
+  }
 
-    /* sanity check */
-    assert(i != AVDT_NUM_TC_TBL);
+  /* sanity check */
+  assert(i != AVDT_NUM_TC_TBL);
 
-
-    /* initialize entry */
-    p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
-    p_tbl->cfg_flags = 0;
-    p_tbl->ccb_idx = avdt_ccb_to_idx(p_ccb);
-    p_tbl->state = AVDT_AD_ST_IDLE;
-    return p_tbl;
-
+  /* initialize entry */
+  p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
+  p_tbl->cfg_flags = 0;
+  p_tbl->ccb_idx = avdt_ccb_to_idx(p_ccb);
+  p_tbl->state = AVDT_AD_ST_IDLE;
+  return p_tbl;
 }
 
 /*******************************************************************************
@@ -300,11 +259,10 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_alloc(tAVDT_CCB *p_ccb)
  * Returns          Index value.
  *
  ******************************************************************************/
-uint8_t avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
-{
-    AVDT_TRACE_DEBUG("avdt_ad_tc_tbl_to_idx: %d", (p_tbl - avdt_cb.ad.tc_tbl));
-    /* use array arithmetic to determine index */
-    return (uint8_t) (p_tbl - avdt_cb.ad.tc_tbl);
+uint8_t avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL* p_tbl) {
+  AVDT_TRACE_DEBUG("avdt_ad_tc_tbl_to_idx: %d", (p_tbl - avdt_cb.ad.tc_tbl));
+  /* use array arithmetic to determine index */
+  return (uint8_t)(p_tbl - avdt_cb.ad.tc_tbl);
 }
 
 /*******************************************************************************
@@ -321,39 +279,35 @@ uint8_t avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
  * Returns          Nothing.
  *
  ******************************************************************************/
-void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl,
-                          UNUSED_ATTR uint16_t reason)
-{
-    tAVDT_CCB   *p_ccb;
-    tAVDT_SCB   *p_scb;
-    tAVDT_SCB_TC_CLOSE  close;
+void avdt_ad_tc_close_ind(tAVDT_TC_TBL* p_tbl, UNUSED_ATTR uint16_t reason) {
+  tAVDT_CCB* p_ccb;
+  tAVDT_SCB* p_scb;
+  tAVDT_SCB_TC_CLOSE close;
 
-    close.old_tc_state = p_tbl->state;
-    /* clear avdt_ad_tc_tbl entry */
-    p_tbl->state = AVDT_AD_ST_UNUSED;
-    p_tbl->cfg_flags = 0;
-    p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
+  close.old_tc_state = p_tbl->state;
+  /* clear avdt_ad_tc_tbl entry */
+  p_tbl->state = AVDT_AD_ST_UNUSED;
+  p_tbl->cfg_flags = 0;
+  p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
 
-    AVDT_TRACE_DEBUG("avdt_ad_tc_close_ind tcid: %d, old: %d",
-        p_tbl->tcid, close.old_tc_state);
-    /* if signaling channel, notify ccb that channel open */
-    if (p_tbl->tcid == 0)
-    {
-        p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
-        avdt_ccb_event(p_ccb, AVDT_CCB_LL_CLOSE_EVT, NULL);
+  AVDT_TRACE_DEBUG("avdt_ad_tc_close_ind tcid: %d, old: %d", p_tbl->tcid,
+                   close.old_tc_state);
+  /* if signaling channel, notify ccb that channel open */
+  if (p_tbl->tcid == 0) {
+    p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
+    avdt_ccb_event(p_ccb, AVDT_CCB_LL_CLOSE_EVT, NULL);
+  }
+  /* if media or other channel, notify scb that channel close */
+  else {
+    /* look up scb in stream routing table by ccb, tcid */
+    p_scb =
+        avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
+    if (p_scb != NULL) {
+      close.tcid = p_tbl->tcid;
+      close.type = avdt_ad_tcid_to_type(p_tbl->tcid);
+      avdt_scb_event(p_scb, AVDT_SCB_TC_CLOSE_EVT, (tAVDT_SCB_EVT*)&close);
     }
-    /* if media or other channel, notify scb that channel close */
-    else
-    {
-        /* look up scb in stream routing table by ccb, tcid */
-        p_scb = avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
-        if (p_scb != NULL)
-        {
-            close.tcid = p_tbl->tcid;
-            close.type = avdt_ad_tcid_to_type(p_tbl->tcid);
-            avdt_scb_event(p_scb, AVDT_SCB_TC_CLOSE_EVT, (tAVDT_SCB_EVT *)&close);
-        }
-    }
+  }
 }
 
 /*******************************************************************************
@@ -368,48 +322,44 @@ void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl,
  * Returns          Nothing.
  *
  ******************************************************************************/
-void avdt_ad_tc_open_ind(tAVDT_TC_TBL *p_tbl)
-{
-    tAVDT_CCB   *p_ccb;
-    tAVDT_SCB   *p_scb;
-    tAVDT_OPEN  open;
-    tAVDT_EVT_HDR evt;
+void avdt_ad_tc_open_ind(tAVDT_TC_TBL* p_tbl) {
+  tAVDT_CCB* p_ccb;
+  tAVDT_SCB* p_scb;
+  tAVDT_OPEN open;
+  tAVDT_EVT_HDR evt;
 
-    p_tbl->state = AVDT_AD_ST_OPEN;
+  p_tbl->state = AVDT_AD_ST_OPEN;
 
-    /* if signaling channel, notify ccb that channel open */
-    if (p_tbl->tcid == 0)
-    {
-        /* set the signal channel to use high priority within the ACL link */
-        L2CA_SetTxPriority(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][AVDT_CHAN_SIG].lcid, L2CAP_CHNL_PRIORITY_HIGH);
+  /* if signaling channel, notify ccb that channel open */
+  if (p_tbl->tcid == 0) {
+    /* set the signal channel to use high priority within the ACL link */
+    L2CA_SetTxPriority(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][AVDT_CHAN_SIG].lcid,
+                       L2CAP_CHNL_PRIORITY_HIGH);
 
-        p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
-        /* use err_param to indicate the role of connection.
-         * AVDT_ACP, if ACP */
-        evt.err_param = AVDT_INT;
-        if(p_tbl->cfg_flags & AVDT_L2C_CFG_CONN_ACP)
-        {
-            evt.err_param = AVDT_ACP;
-        }
-        avdt_ccb_event(p_ccb, AVDT_CCB_LL_OPEN_EVT, (tAVDT_CCB_EVT *)&evt);
+    p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
+    /* use err_param to indicate the role of connection.
+     * AVDT_ACP, if ACP */
+    evt.err_param = AVDT_INT;
+    if (p_tbl->cfg_flags & AVDT_L2C_CFG_CONN_ACP) {
+      evt.err_param = AVDT_ACP;
     }
-    /* if media or other channel, notify scb that channel open */
-    else
-    {
-        /* look up scb in stream routing table by ccb, tcid */
-        p_scb = avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
+    avdt_ccb_event(p_ccb, AVDT_CCB_LL_OPEN_EVT, (tAVDT_CCB_EVT*)&evt);
+  }
+  /* if media or other channel, notify scb that channel open */
+  else {
+    /* look up scb in stream routing table by ccb, tcid */
+    p_scb =
+        avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
 
-        /* put lcid in event data */
-        if (p_scb != NULL)
-        {
-            open.peer_mtu = p_tbl->peer_mtu;
-            open.lcid = avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].lcid;
-            open.hdr.err_code = avdt_ad_tcid_to_type(p_tbl->tcid);
-            avdt_scb_event(p_scb, AVDT_SCB_TC_OPEN_EVT, (tAVDT_SCB_EVT *) &open);
-        }
+    /* put lcid in event data */
+    if (p_scb != NULL) {
+      open.peer_mtu = p_tbl->peer_mtu;
+      open.lcid = avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].lcid;
+      open.hdr.err_code = avdt_ad_tcid_to_type(p_tbl->tcid);
+      avdt_scb_event(p_scb, AVDT_SCB_TC_OPEN_EVT, (tAVDT_SCB_EVT*)&open);
     }
+  }
 }
-
 
 /*******************************************************************************
  *
@@ -425,29 +375,26 @@ void avdt_ad_tc_open_ind(tAVDT_TC_TBL *p_tbl)
  * Returns          Nothing.
  *
  ******************************************************************************/
-void avdt_ad_tc_cong_ind(tAVDT_TC_TBL *p_tbl, bool    is_congested)
-{
-    tAVDT_CCB   *p_ccb;
-    tAVDT_SCB   *p_scb;
+void avdt_ad_tc_cong_ind(tAVDT_TC_TBL* p_tbl, bool is_congested) {
+  tAVDT_CCB* p_ccb;
+  tAVDT_SCB* p_scb;
 
-    /* if signaling channel, notify ccb of congestion */
-    if (p_tbl->tcid == 0)
-    {
-        p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
-        avdt_ccb_event(p_ccb, AVDT_CCB_LL_CONG_EVT, (tAVDT_CCB_EVT *) &is_congested);
+  /* if signaling channel, notify ccb of congestion */
+  if (p_tbl->tcid == 0) {
+    p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
+    avdt_ccb_event(p_ccb, AVDT_CCB_LL_CONG_EVT, (tAVDT_CCB_EVT*)&is_congested);
+  }
+  /* if media or other channel, notify scb that channel open */
+  else {
+    /* look up scb in stream routing table by ccb, tcid */
+    p_scb =
+        avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
+    if (p_scb != NULL) {
+      avdt_scb_event(p_scb, AVDT_SCB_TC_CONG_EVT,
+                     (tAVDT_SCB_EVT*)&is_congested);
     }
-    /* if media or other channel, notify scb that channel open */
-    else
-    {
-        /* look up scb in stream routing table by ccb, tcid */
-        p_scb = avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
-        if (p_scb != NULL)
-        {
-            avdt_scb_event(p_scb, AVDT_SCB_TC_CONG_EVT, (tAVDT_SCB_EVT *) &is_congested);
-        }
-    }
+  }
 }
-
 
 /*******************************************************************************
  *
@@ -461,35 +408,29 @@ void avdt_ad_tc_cong_ind(tAVDT_TC_TBL *p_tbl, bool    is_congested)
  * Returns          Nothing.
  *
  ******************************************************************************/
-void avdt_ad_tc_data_ind(tAVDT_TC_TBL *p_tbl, BT_HDR *p_buf)
-{
-    tAVDT_CCB   *p_ccb;
-    tAVDT_SCB   *p_scb;
+void avdt_ad_tc_data_ind(tAVDT_TC_TBL* p_tbl, BT_HDR* p_buf) {
+  tAVDT_CCB* p_ccb;
+  tAVDT_SCB* p_scb;
 
-    /* store type (media, recovery, reporting) */
-    p_buf->layer_specific = avdt_ad_tcid_to_type(p_tbl->tcid);
+  /* store type (media, recovery, reporting) */
+  p_buf->layer_specific = avdt_ad_tcid_to_type(p_tbl->tcid);
 
-
-    /* if signaling channel, handle control message */
-    if (p_tbl->tcid == 0)
-    {
-        p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
-        avdt_msg_ind(p_ccb, p_buf);
+  /* if signaling channel, handle control message */
+  if (p_tbl->tcid == 0) {
+    p_ccb = avdt_ccb_by_idx(p_tbl->ccb_idx);
+    avdt_msg_ind(p_ccb, p_buf);
+  }
+  /* if media or other channel, send event to scb */
+  else {
+    p_scb =
+        avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
+    if (p_scb != NULL) {
+      avdt_scb_event(p_scb, AVDT_SCB_TC_DATA_EVT, (tAVDT_SCB_EVT*)&p_buf);
+    } else {
+      osi_free(p_buf);
+      AVDT_TRACE_ERROR(" avdt_ad_tc_data_ind buffer freed");
     }
-    /* if media or other channel, send event to scb */
-    else
-    {
-        p_scb = avdt_scb_by_hdl(avdt_cb.ad.rt_tbl[p_tbl->ccb_idx][p_tbl->tcid].scb_hdl);
-        if (p_scb != NULL)
-        {
-            avdt_scb_event(p_scb, AVDT_SCB_TC_DATA_EVT, (tAVDT_SCB_EVT *) &p_buf);
-        }
-        else
-        {
-            osi_free(p_buf);
-            AVDT_TRACE_ERROR(" avdt_ad_tc_data_ind buffer freed");
-        }
-    }
+  }
 }
 
 /*******************************************************************************
@@ -508,17 +449,16 @@ void avdt_ad_tc_data_ind(tAVDT_TC_TBL *p_tbl, BT_HDR *p_buf)
  *                  AVDT_AD_FAILED, if error
  *
  ******************************************************************************/
-uint8_t avdt_ad_write_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, BT_HDR *p_buf)
-{
-    uint8_t tcid;
+uint8_t avdt_ad_write_req(uint8_t type, tAVDT_CCB* p_ccb, tAVDT_SCB* p_scb,
+                          BT_HDR* p_buf) {
+  uint8_t tcid;
 
-    /* get tcid from type, scb */
-    tcid = avdt_ad_type_to_tcid(type, p_scb);
+  /* get tcid from type, scb */
+  tcid = avdt_ad_type_to_tcid(type, p_scb);
 
-
-    return L2CA_DataWrite(avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid, p_buf);
+  return L2CA_DataWrite(avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid,
+                        p_buf);
 }
-
 
 /*******************************************************************************
  *
@@ -536,72 +476,64 @@ uint8_t avdt_ad_write_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, BT_H
  * Returns          Nothing.
  *
  ******************************************************************************/
-void avdt_ad_open_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, uint8_t role)
-{
-    tAVDT_TC_TBL    *p_tbl;
-    uint16_t        lcid;
+void avdt_ad_open_req(uint8_t type, tAVDT_CCB* p_ccb, tAVDT_SCB* p_scb,
+                      uint8_t role) {
+  tAVDT_TC_TBL* p_tbl;
+  uint16_t lcid;
 
-    p_tbl = avdt_ad_tc_tbl_alloc(p_ccb);
-    if(p_tbl == NULL)
-    {
-        AVDT_TRACE_ERROR("avdt_ad_open_req: Cannot allocate p_tbl");
-        return;
+  p_tbl = avdt_ad_tc_tbl_alloc(p_ccb);
+  if (p_tbl == NULL) {
+    AVDT_TRACE_ERROR("avdt_ad_open_req: Cannot allocate p_tbl");
+    return;
+  }
+
+  p_tbl->tcid = avdt_ad_type_to_tcid(type, p_scb);
+  AVDT_TRACE_DEBUG("avdt_ad_open_req: type: %d, role: %d, tcid:%d", type, role,
+                   p_tbl->tcid);
+
+  if (type == AVDT_CHAN_SIG) {
+    /* if signaling, get mtu from registration control block */
+    p_tbl->my_mtu = avdt_cb.rcb.ctrl_mtu;
+    p_tbl->my_flush_to = L2CAP_DEFAULT_FLUSH_TO;
+  } else {
+    /* otherwise get mtu from scb */
+    p_tbl->my_mtu = p_scb->cs.mtu;
+    p_tbl->my_flush_to = p_scb->cs.flush_to;
+
+    /* also set scb_hdl in rt_tbl */
+    avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][p_tbl->tcid].scb_hdl =
+        avdt_scb_to_hdl(p_scb);
+    AVDT_TRACE_DEBUG("avdt_cb.ad.rt_tbl[%d][%d].scb_hdl = %d",
+                     avdt_ccb_to_idx(p_ccb), p_tbl->tcid,
+                     avdt_scb_to_hdl(p_scb));
+  }
+
+  /* if we're acceptor, we're done; just sit back and listen */
+  if (role == AVDT_ACP) {
+    p_tbl->state = AVDT_AD_ST_ACP;
+  }
+  /* else we're inititator, start the L2CAP connection */
+  else {
+    p_tbl->state = AVDT_AD_ST_CONN;
+
+    /* call l2cap connect req */
+    lcid = L2CA_ConnectReq(AVDT_PSM, p_ccb->peer_addr);
+    if (lcid != 0) {
+      /* if connect req ok, store tcid in lcid table  */
+      avdt_cb.ad.lcid_tbl[lcid - L2CAP_BASE_APPL_CID] =
+          avdt_ad_tc_tbl_to_idx(p_tbl);
+      AVDT_TRACE_DEBUG("avdt_cb.ad.lcid_tbl[%d] = %d",
+                       (lcid - L2CAP_BASE_APPL_CID),
+                       avdt_ad_tc_tbl_to_idx(p_tbl));
+
+      avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][p_tbl->tcid].lcid = lcid;
+      AVDT_TRACE_DEBUG("avdt_cb.ad.rt_tbl[%d][%d].lcid = 0x%x",
+                       avdt_ccb_to_idx(p_ccb), p_tbl->tcid, lcid);
+    } else {
+      /* if connect req failed, call avdt_ad_tc_close_ind() */
+      avdt_ad_tc_close_ind(p_tbl, 0);
     }
-
-
-    p_tbl->tcid = avdt_ad_type_to_tcid(type, p_scb);
-    AVDT_TRACE_DEBUG("avdt_ad_open_req: type: %d, role: %d, tcid:%d",
-        type, role, p_tbl->tcid);
-
-    if (type == AVDT_CHAN_SIG)
-    {
-        /* if signaling, get mtu from registration control block */
-        p_tbl->my_mtu = avdt_cb.rcb.ctrl_mtu;
-        p_tbl->my_flush_to = L2CAP_DEFAULT_FLUSH_TO;
-    }
-    else
-    {
-        /* otherwise get mtu from scb */
-        p_tbl->my_mtu = p_scb->cs.mtu;
-        p_tbl->my_flush_to = p_scb->cs.flush_to;
-
-        /* also set scb_hdl in rt_tbl */
-        avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][p_tbl->tcid].scb_hdl = avdt_scb_to_hdl(p_scb);
-        AVDT_TRACE_DEBUG("avdt_cb.ad.rt_tbl[%d][%d].scb_hdl = %d",
-            avdt_ccb_to_idx(p_ccb), p_tbl->tcid,
-            avdt_scb_to_hdl(p_scb));
-    }
-
-    /* if we're acceptor, we're done; just sit back and listen */
-    if (role == AVDT_ACP)
-    {
-        p_tbl->state = AVDT_AD_ST_ACP;
-    }
-    /* else we're inititator, start the L2CAP connection */
-    else
-    {
-        p_tbl->state = AVDT_AD_ST_CONN;
-
-        /* call l2cap connect req */
-        lcid = L2CA_ConnectReq(AVDT_PSM, p_ccb->peer_addr);
-        if (lcid != 0)
-        {
-            /* if connect req ok, store tcid in lcid table  */
-            avdt_cb.ad.lcid_tbl[lcid - L2CAP_BASE_APPL_CID] = avdt_ad_tc_tbl_to_idx(p_tbl);
-            AVDT_TRACE_DEBUG("avdt_cb.ad.lcid_tbl[%d] = %d",
-                (lcid - L2CAP_BASE_APPL_CID), avdt_ad_tc_tbl_to_idx(p_tbl));
-
-            avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][p_tbl->tcid].lcid = lcid;
-            AVDT_TRACE_DEBUG("avdt_cb.ad.rt_tbl[%d][%d].lcid = 0x%x",
-                avdt_ccb_to_idx(p_ccb), p_tbl->tcid,
-                lcid);
-        }
-        else
-        {
-            /* if connect req failed, call avdt_ad_tc_close_ind() */
-            avdt_ad_tc_close_ind(p_tbl, 0);
-        }
-    }
+  }
 }
 
 /*******************************************************************************
@@ -616,29 +548,26 @@ void avdt_ad_open_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, uint8_t 
  * Returns          Nothing.
  *
  ******************************************************************************/
-void avdt_ad_close_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
-{
-    uint8_t         tcid;
-    tAVDT_TC_TBL    *p_tbl;
+void avdt_ad_close_req(uint8_t type, tAVDT_CCB* p_ccb, tAVDT_SCB* p_scb) {
+  uint8_t tcid;
+  tAVDT_TC_TBL* p_tbl;
 
-    p_tbl = avdt_ad_tc_tbl_by_type(type, p_ccb, p_scb);
-    AVDT_TRACE_DEBUG("avdt_ad_close_req state: %d", p_tbl->state);
+  p_tbl = avdt_ad_tc_tbl_by_type(type, p_ccb, p_scb);
+  AVDT_TRACE_DEBUG("avdt_ad_close_req state: %d", p_tbl->state);
 
-    switch(p_tbl->state)
-    {
+  switch (p_tbl->state) {
     case AVDT_AD_ST_UNUSED:
-        /* probably for reporting */
-        break;
+      /* probably for reporting */
+      break;
     case AVDT_AD_ST_ACP:
-        /* if we're listening on this channel, send ourselves a close ind */
-        avdt_ad_tc_close_ind(p_tbl, 0);
-        break;
+      /* if we're listening on this channel, send ourselves a close ind */
+      avdt_ad_tc_close_ind(p_tbl, 0);
+      break;
     default:
-        /* get tcid from type, scb */
-        tcid = avdt_ad_type_to_tcid(type, p_scb);
+      /* get tcid from type, scb */
+      tcid = avdt_ad_type_to_tcid(type, p_scb);
 
-        /* call l2cap disconnect req */
-        L2CA_DisconnectReq(avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid);
-    }
+      /* call l2cap disconnect req */
+      L2CA_DisconnectReq(avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid);
+  }
 }
-

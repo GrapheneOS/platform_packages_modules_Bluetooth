@@ -32,13 +32,12 @@ namespace bluetooth {
 // LowEnergyClient implementation
 // ========================================================
 
-LowEnergyClient::LowEnergyClient(
-    Adapter& adapter, const UUID& uuid, int client_id)
+LowEnergyClient::LowEnergyClient(Adapter& adapter, const UUID& uuid,
+                                 int client_id)
     : adapter_(adapter),
       app_identifier_(uuid),
       client_id_(client_id),
-      delegate_(nullptr) {
-}
+      delegate_(nullptr) {}
 
 LowEnergyClient::~LowEnergyClient() {
   // Automatically unregister the client.
@@ -47,8 +46,9 @@ LowEnergyClient::~LowEnergyClient() {
   // Unregister as observer so we no longer receive any callbacks.
   hal::BluetoothGattInterface::Get()->RemoveClientObserver(this);
 
-  hal::BluetoothGattInterface::Get()->
-      GetClientHALInterface()->unregister_client(client_id_);
+  hal::BluetoothGattInterface::Get()
+      ->GetClientHALInterface()
+      ->unregister_client(client_id_);
 }
 
 bool LowEnergyClient::Connect(const std::string& address, bool is_direct) {
@@ -57,9 +57,9 @@ bool LowEnergyClient::Connect(const std::string& address, bool is_direct) {
   bt_bdaddr_t bda;
   util::BdAddrFromString(address, &bda);
 
-  bt_status_t status = hal::BluetoothGattInterface::Get()->
-      GetClientHALInterface()->connect(client_id_, &bda, is_direct,
-                                       BT_TRANSPORT_LE);
+  bt_status_t status =
+      hal::BluetoothGattInterface::Get()->GetClientHALInterface()->connect(
+          client_id_, &bda, is_direct, BT_TRANSPORT_LE);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "HAL call to connect failed";
     return false;
@@ -84,8 +84,9 @@ bool LowEnergyClient::Disconnect(const std::string& address) {
     }
   }
 
-  bt_status_t status = hal::BluetoothGattInterface::Get()->
-      GetClientHALInterface()->disconnect(client_id_, &bda, conn_id->second);
+  bt_status_t status =
+      hal::BluetoothGattInterface::Get()->GetClientHALInterface()->disconnect(
+          client_id_, &bda, conn_id->second);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "HAL call to disconnect failed";
     return false;
@@ -95,8 +96,7 @@ bool LowEnergyClient::Disconnect(const std::string& address) {
 }
 
 bool LowEnergyClient::SetMtu(const std::string& address, int mtu) {
-  VLOG(2) << __func__ << "Address: " << address
-          << " MTU: " << mtu;
+  VLOG(2) << __func__ << "Address: " << address << " MTU: " << mtu;
 
   bt_bdaddr_t bda;
   util::BdAddrFromString(address, &bda);
@@ -111,8 +111,9 @@ bool LowEnergyClient::SetMtu(const std::string& address, int mtu) {
     }
   }
 
-  bt_status_t status = hal::BluetoothGattInterface::Get()->
-      GetClientHALInterface()->configure_mtu(conn_id->second, mtu);
+  bt_status_t status = hal::BluetoothGattInterface::Get()
+                           ->GetClientHALInterface()
+                           ->configure_mtu(conn_id->second, mtu);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "HAL call to set MTU failed";
     return false;
@@ -130,15 +131,12 @@ const UUID& LowEnergyClient::GetAppIdentifier() const {
   return app_identifier_;
 }
 
-int LowEnergyClient::GetInstanceId() const {
-  return client_id_;
-}
+int LowEnergyClient::GetInstanceId() const { return client_id_; }
 
-void LowEnergyClient::ConnectCallback(
-      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
-      int client_id, const bt_bdaddr_t& bda) {
-  if (client_id != client_id_)
-    return;
+void LowEnergyClient::ConnectCallback(hal::BluetoothGattInterface* gatt_iface,
+                                      int conn_id, int status, int client_id,
+                                      const bt_bdaddr_t& bda) {
+  if (client_id != client_id_) return;
 
   VLOG(1) << __func__ << "client_id: " << client_id << " status: " << status;
 
@@ -156,10 +154,9 @@ void LowEnergyClient::ConnectCallback(
 }
 
 void LowEnergyClient::DisconnectCallback(
-      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
-      int client_id, const bt_bdaddr_t& bda) {
-  if (client_id != client_id_)
-    return;
+    hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
+    int client_id, const bt_bdaddr_t& bda) {
+  if (client_id != client_id_) return;
 
   VLOG(1) << __func__ << " client_id: " << client_id << " status: " << status;
   {
@@ -175,15 +172,14 @@ void LowEnergyClient::DisconnectCallback(
 }
 
 void LowEnergyClient::MtuChangedCallback(
-      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
-      int mtu) {
+    hal::BluetoothGattInterface* gatt_iface, int conn_id, int status, int mtu) {
   VLOG(1) << __func__ << " conn_id: " << conn_id << " status: " << status
           << " mtu: " << mtu;
 
-  const bt_bdaddr_t *bda = nullptr;
+  const bt_bdaddr_t* bda = nullptr;
   {
     lock_guard<mutex> lock(connection_fields_lock_);
-    for (auto& connection: connection_ids_) {
+    for (auto& connection : connection_ids_) {
       if (connection.second == conn_id) {
         bda = &connection.first;
         break;
@@ -191,12 +187,10 @@ void LowEnergyClient::MtuChangedCallback(
     }
   }
 
-  if (!bda)
-    return;
+  if (!bda) return;
 
-  const char *addr = BtAddrString(bda).c_str();
-  if (delegate_)
-    delegate_->OnMtuChanged(this, status, addr, mtu);
+  const char* addr = BtAddrString(bda).c_str();
+  if (delegate_) delegate_->OnMtuChanged(this, status, addr, mtu);
 }
 
 // LowEnergyClientFactory implementation
@@ -212,8 +206,7 @@ LowEnergyClientFactory::~LowEnergyClientFactory() {
 }
 
 bool LowEnergyClientFactory::RegisterInstance(
-    const UUID& uuid,
-    const RegisterCallback& callback) {
+    const UUID& uuid, const RegisterCallback& callback) {
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
   lock_guard<mutex> lock(pending_calls_lock_);
 
@@ -227,8 +220,7 @@ bool LowEnergyClientFactory::RegisterInstance(
       hal::BluetoothGattInterface::Get()->GetClientHALInterface();
   bt_uuid_t app_uuid = uuid.GetBlueDroid();
 
-  if (hal_iface->register_client(&app_uuid) != BT_STATUS_SUCCESS)
-    return false;
+  if (hal_iface->register_client(&app_uuid) != BT_STATUS_SUCCESS) return false;
 
   pending_calls_[uuid] = callback;
 
@@ -236,8 +228,7 @@ bool LowEnergyClientFactory::RegisterInstance(
 }
 
 void LowEnergyClientFactory::RegisterClientCallback(
-    hal::BluetoothGattInterface* gatt_iface,
-    int status, int client_id,
+    hal::BluetoothGattInterface* gatt_iface, int status, int client_id,
     const bt_uuid_t& app_uuid) {
   UUID uuid(app_uuid);
 

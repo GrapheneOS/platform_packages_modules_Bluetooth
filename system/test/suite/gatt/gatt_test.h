@@ -58,25 +58,25 @@ class GattTest : public BluetoothTest,
 
   // bluetooth::hal::BluetoothGattInterface::ClientObserver overrides
   void RegisterClientCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int clientIf, const bt_uuid_t& app_uuid) override;
-  void ScanResultCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) override;
+      bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+      int clientIf, const bt_uuid_t& app_uuid) override;
+  void ScanResultCallback(bluetooth::hal::BluetoothGattInterface* /* unused */,
+                          const bt_bdaddr_t& bda, int rssi,
+                          vector<uint8_t> adv_data) override;
 
   // bluetooth::hal::BluetoothGattInterface::ServerObserver overrides
   void RegisterServerCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, const bt_uuid_t& uuid) override;
+      bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+      int server_if, const bt_uuid_t& uuid) override;
   void ServiceAddedCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, vector<btgatt_db_element_t> service) override;
+      bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+      int server_if, vector<btgatt_db_element_t> service) override;
   void ServiceStoppedCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, int srvc_handle) override;
+      bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+      int server_if, int srvc_handle) override;
   void ServiceDeletedCallback(
-      bluetooth::hal::BluetoothGattInterface* /* unused */,
-      int status, int server_if, int srvc_handle) override;
+      bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+      int server_if, int srvc_handle) override;
 
   // Semaphores used to wait for specific callback execution. Each callback
   // has its own semaphore associated with it
@@ -93,7 +93,8 @@ class GattTest : public BluetoothTest,
   semaphore_t* service_deleted_callback_sem_;
 
  private:
-  // The btgatt_scanner_interface_t that all the tests use to interact with the HAL
+  // The btgatt_scanner_interface_t that all the tests use to interact with the
+  // HAL
   const btgatt_scanner_interface_t* gatt_scanner_interface_;
 
   // The gatt_client_interface that all the tests use to interact with the HAL

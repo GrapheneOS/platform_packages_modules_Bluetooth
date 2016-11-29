@@ -22,11 +22,11 @@
 extern "C" {
 #endif
 
-#define UIPC_CH_ID_AV_CTRL  0
+#define UIPC_CH_ID_AV_CTRL 0
 #define UIPC_CH_ID_AV_AUDIO 1
-#define UIPC_CH_NUM         2
+#define UIPC_CH_NUM 2
 
-#define UIPC_CH_ID_ALL      3   /* used to address all the ch id at once */
+#define UIPC_CH_ID_ALL 3 /* used to address all the ch id at once */
 
 #define DEFAULT_READ_POLL_TMO_MS 100
 
@@ -34,23 +34,28 @@ typedef uint8_t tUIPC_CH_ID;
 
 /* Events generated */
 typedef enum {
-    UIPC_OPEN_EVT           = 0x0001,
-    UIPC_CLOSE_EVT          = 0x0002,
-    UIPC_RX_DATA_EVT        = 0x0004,
-    UIPC_RX_DATA_READY_EVT  = 0x0008,
-    UIPC_TX_DATA_READY_EVT  = 0x0010
+  UIPC_OPEN_EVT = 0x0001,
+  UIPC_CLOSE_EVT = 0x0002,
+  UIPC_RX_DATA_EVT = 0x0004,
+  UIPC_RX_DATA_READY_EVT = 0x0008,
+  UIPC_TX_DATA_READY_EVT = 0x0010
 } tUIPC_EVENT;
 
 /*
  * UIPC IOCTL Requests
  */
 
-#define UIPC_REQ_RX_FLUSH               1
-#define UIPC_REG_CBACK                  2
-#define UIPC_REG_REMOVE_ACTIVE_READSET  3
-#define UIPC_SET_READ_POLL_TMO          4
+#define UIPC_REQ_RX_FLUSH 1
+#define UIPC_REG_CBACK 2
+#define UIPC_REG_REMOVE_ACTIVE_READSET 3
+#define UIPC_SET_READ_POLL_TMO 4
 
-typedef void (tUIPC_RCV_CBACK)(tUIPC_CH_ID ch_id, tUIPC_EVENT event); /* points to BT_HDR which describes event type and length of data; len contains the number of bytes of entire message (sizeof(BT_HDR) + offset + size of data) */
+typedef void(tUIPC_RCV_CBACK)(
+    tUIPC_CH_ID ch_id,
+    tUIPC_EVENT event); /* points to BT_HDR which describes event type and
+                           length of data; len contains the number of bytes of
+                           entire message (sizeof(BT_HDR) + offset + size of
+                           data) */
 
 const char* dump_uipc_event(tUIPC_EVENT event);
 
@@ -63,7 +68,7 @@ const char* dump_uipc_event(tUIPC_EVENT event);
  * Returns          void
  *
  ******************************************************************************/
-void UIPC_Init(void *);
+void UIPC_Init(void*);
 
 /*******************************************************************************
  *
@@ -74,7 +79,7 @@ void UIPC_Init(void *);
  * Returns          void
  *
  ******************************************************************************/
-bool    UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback);
+bool UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK* p_cback);
 
 /*******************************************************************************
  *
@@ -96,7 +101,8 @@ void UIPC_Close(tUIPC_CH_ID ch_id);
  * Returns          void
  *
  ******************************************************************************/
-bool    UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t *p_buf, uint16_t msglen);
+bool UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t* p_buf,
+               uint16_t msglen);
 
 /*******************************************************************************
  *
@@ -107,7 +113,8 @@ bool    UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t *p_buf, uint16_t 
  * Returns          void
  *
  ******************************************************************************/
-uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t *p_msg_evt, uint8_t *p_buf, uint32_t len);
+uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t* p_msg_evt, uint8_t* p_buf,
+                   uint32_t len);
 
 /*******************************************************************************
  *
@@ -118,10 +125,10 @@ uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t *p_msg_evt, uint8_t *p_buf, uint3
  * Returns          void
  *
  ******************************************************************************/
-bool    UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void *param);
+bool UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void* param);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* UIPC_H */
+#endif /* UIPC_H */

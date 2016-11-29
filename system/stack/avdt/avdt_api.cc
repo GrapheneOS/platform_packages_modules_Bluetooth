@@ -23,53 +23,48 @@
  *
  ******************************************************************************/
 
-#include <string.h>
-#include "bt_types.h"
-#include "bt_target.h"
 #include "avdt_api.h"
-#include "avdtc_api.h"
+#include <string.h>
 #include "avdt_int.h"
-#include "l2c_api.h"
+#include "avdtc_api.h"
+#include "bt_target.h"
+#include "bt_types.h"
 #include "btm_api.h"
 #include "btu.h"
-
+#include "l2c_api.h"
 
 /* Control block for AVDT */
 tAVDT_CB avdt_cb;
 
-void avdt_ccb_idle_ccb_timer_timeout(void *data)
-{
-    tAVDT_CCB *p_ccb = (tAVDT_CCB *)data;
-    uint8_t avdt_event = AVDT_CCB_IDLE_TOUT_EVT;
-    uint8_t err_code = AVDT_ERR_TIMEOUT;
+void avdt_ccb_idle_ccb_timer_timeout(void* data) {
+  tAVDT_CCB* p_ccb = (tAVDT_CCB*)data;
+  uint8_t avdt_event = AVDT_CCB_IDLE_TOUT_EVT;
+  uint8_t err_code = AVDT_ERR_TIMEOUT;
 
-    avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT *)&err_code);
+  avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT*)&err_code);
 }
 
-void avdt_ccb_ret_ccb_timer_timeout(void *data)
-{
-    tAVDT_CCB *p_ccb = (tAVDT_CCB *)data;
-    uint8_t avdt_event = AVDT_CCB_RET_TOUT_EVT;
-    uint8_t err_code = AVDT_ERR_TIMEOUT;
+void avdt_ccb_ret_ccb_timer_timeout(void* data) {
+  tAVDT_CCB* p_ccb = (tAVDT_CCB*)data;
+  uint8_t avdt_event = AVDT_CCB_RET_TOUT_EVT;
+  uint8_t err_code = AVDT_ERR_TIMEOUT;
 
-    avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT *)&err_code);
+  avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT*)&err_code);
 }
 
-void avdt_ccb_rsp_ccb_timer_timeout(void *data)
-{
-    tAVDT_CCB *p_ccb = (tAVDT_CCB *)data;
-    uint8_t avdt_event = AVDT_CCB_RSP_TOUT_EVT;
-    uint8_t err_code = AVDT_ERR_TIMEOUT;
+void avdt_ccb_rsp_ccb_timer_timeout(void* data) {
+  tAVDT_CCB* p_ccb = (tAVDT_CCB*)data;
+  uint8_t avdt_event = AVDT_CCB_RSP_TOUT_EVT;
+  uint8_t err_code = AVDT_ERR_TIMEOUT;
 
-    avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT *)&err_code);
+  avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT*)&err_code);
 }
 
-void avdt_scb_transport_channel_timer_timeout(void *data)
-{
-    tAVDT_SCB *p_scb = (tAVDT_SCB *)data;
-    uint8_t avdt_event = AVDT_SCB_TC_TOUT_EVT;
+void avdt_scb_transport_channel_timer_timeout(void* data) {
+  tAVDT_SCB* p_scb = (tAVDT_SCB*)data;
+  uint8_t avdt_event = AVDT_SCB_TC_TOUT_EVT;
 
-    avdt_scb_event(p_scb, avdt_event, NULL);
+  avdt_scb_event(p_scb, avdt_event, NULL);
 }
 
 /*******************************************************************************
@@ -86,39 +81,38 @@ void avdt_scb_transport_channel_timer_timeout(void *data)
  * Returns          void
  *
  ******************************************************************************/
-void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
-{
-    /* register PSM with L2CAP */
-    L2CA_Register(AVDT_PSM, (tL2CAP_APPL_INFO *) &avdt_l2c_appl);
+void AVDT_Register(tAVDT_REG* p_reg, tAVDT_CTRL_CBACK* p_cback) {
+  /* register PSM with L2CAP */
+  L2CA_Register(AVDT_PSM, (tL2CAP_APPL_INFO*)&avdt_l2c_appl);
 
-    /* set security level */
-    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVDTP, p_reg->sec_mask,
-        AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_SIG);
-    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVDTP, p_reg->sec_mask,
-        AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_SIG);
+  /* set security level */
+  BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVDTP, p_reg->sec_mask,
+                       AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_SIG);
+  BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVDTP, p_reg->sec_mask,
+                       AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_SIG);
 
-    /* do not use security on the media channel */
-    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
-        AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_MEDIA);
-    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
-        AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_MEDIA);
+  /* do not use security on the media channel */
+  BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
+                       AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_MEDIA);
+  BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
+                       AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_MEDIA);
 
 #if (AVDT_REPORTING == TRUE)
-    /* do not use security on the reporting channel */
-    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
-        AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_REPORT);
-    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
-        AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_REPORT);
+  /* do not use security on the reporting channel */
+  BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
+                       AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_REPORT);
+  BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVDTP_NOSEC, BTM_SEC_NONE,
+                       AVDT_PSM, BTM_SEC_PROTO_AVDT, AVDT_CHAN_REPORT);
 #endif
 
-    /* initialize AVDTP data structures */
-    avdt_scb_init();
-    avdt_ccb_init();
-    avdt_ad_init();
+  /* initialize AVDTP data structures */
+  avdt_scb_init();
+  avdt_ccb_init();
+  avdt_ad_init();
 
-    /* copy registration struct */
-    memcpy(&avdt_cb.rcb, p_reg, sizeof(tAVDT_REG));
-    avdt_cb.p_conn_cback = p_cback;
+  /* copy registration struct */
+  memcpy(&avdt_cb.rcb, p_reg, sizeof(tAVDT_REG));
+  avdt_cb.p_conn_cback = p_cback;
 }
 
 /*******************************************************************************
@@ -135,23 +129,20 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
  * Returns          void
  *
  ******************************************************************************/
-void AVDT_Deregister(void)
-{
-    /* deregister PSM with L2CAP */
-    L2CA_Deregister(AVDT_PSM);
+void AVDT_Deregister(void) {
+  /* deregister PSM with L2CAP */
+  L2CA_Deregister(AVDT_PSM);
 }
 
-void AVDT_AbortReq(uint8_t handle)
-{
-    AVDT_TRACE_ERROR("%s", __func__);
+void AVDT_AbortReq(uint8_t handle) {
+  AVDT_TRACE_ERROR("%s", __func__);
 
-    tAVDT_SCB *p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb != NULL)
-    {
-        avdt_scb_event(p_scb, AVDT_SCB_API_ABORT_REQ_EVT, NULL);
-    } else {
-        AVDT_TRACE_ERROR("%s Improper SCB, can not abort the stream", __func__);
-    }
+  tAVDT_SCB* p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb != NULL) {
+    avdt_scb_event(p_scb, AVDT_SCB_API_ABORT_REQ_EVT, NULL);
+  } else {
+    AVDT_TRACE_ERROR("%s Improper SCB, can not abort the stream", __func__);
+  }
 }
 
 /*******************************************************************************
@@ -168,29 +159,25 @@ void AVDT_AbortReq(uint8_t handle)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_CreateStream(uint8_t *p_handle, tAVDT_CS *p_cs)
-{
-    uint16_t    result = AVDT_SUCCESS;
-    tAVDT_SCB   *p_scb;
+uint16_t AVDT_CreateStream(uint8_t* p_handle, tAVDT_CS* p_cs) {
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_SCB* p_scb;
 
-    /* Verify parameters; if invalid, return failure */
-    if (((p_cs->cfg.psc_mask & (~AVDT_PSC)) != 0) || (p_cs->p_ctrl_cback == NULL))
-    {
-        result = AVDT_BAD_PARAMS;
+  /* Verify parameters; if invalid, return failure */
+  if (((p_cs->cfg.psc_mask & (~AVDT_PSC)) != 0) ||
+      (p_cs->p_ctrl_cback == NULL)) {
+    result = AVDT_BAD_PARAMS;
+  }
+  /* Allocate scb; if no scbs, return failure */
+  else {
+    p_scb = avdt_scb_alloc(p_cs);
+    if (p_scb == NULL) {
+      result = AVDT_NO_RESOURCES;
+    } else {
+      *p_handle = avdt_scb_to_hdl(p_scb);
     }
-    /* Allocate scb; if no scbs, return failure */
-    else {
-        p_scb = avdt_scb_alloc(p_cs);
-        if (p_scb == NULL)
-        {
-            result = AVDT_NO_RESOURCES;
-        }
-        else
-        {
-            *p_handle = avdt_scb_to_hdl(p_scb);
-        }
-    }
-    return result;
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -207,23 +194,19 @@ uint16_t AVDT_CreateStream(uint8_t *p_handle, tAVDT_CS *p_cs)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_RemoveStream(uint8_t handle)
-{
-    uint16_t    result = AVDT_SUCCESS;
-    tAVDT_SCB   *p_scb;
+uint16_t AVDT_RemoveStream(uint8_t handle) {
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_SCB* p_scb;
 
-    /* look up scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    else
-    {
-        /* send remove event to scb */
-        avdt_scb_event(p_scb, AVDT_SCB_API_REMOVE_EVT, NULL);
-    }
-    return result;
+  /* look up scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  } else {
+    /* send remove event to scb */
+    avdt_scb_event(p_scb, AVDT_SCB_API_REMOVE_EVT, NULL);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -252,42 +235,36 @@ uint16_t AVDT_RemoveStream(uint8_t handle)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
-                        uint8_t max_seps, tAVDT_CTRL_CBACK *p_cback)
-{
-    tAVDT_CCB       *p_ccb;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_CCB_EVT   evt;
+uint16_t AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO* p_sep_info,
+                          uint8_t max_seps, tAVDT_CTRL_CBACK* p_cback) {
+  tAVDT_CCB* p_ccb;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_CCB_EVT evt;
 
-    /* find channel control block for this bd addr; if none, allocate one */
-    p_ccb = avdt_ccb_by_bd(bd_addr);
-    if (p_ccb == NULL)
-    {
-        p_ccb = avdt_ccb_alloc(bd_addr);
-        if (p_ccb == NULL)
-        {
-            /* could not allocate channel control block */
-            result = AVDT_NO_RESOURCES;
-        }
+  /* find channel control block for this bd addr; if none, allocate one */
+  p_ccb = avdt_ccb_by_bd(bd_addr);
+  if (p_ccb == NULL) {
+    p_ccb = avdt_ccb_alloc(bd_addr);
+    if (p_ccb == NULL) {
+      /* could not allocate channel control block */
+      result = AVDT_NO_RESOURCES;
     }
+  }
 
-    if (result == AVDT_SUCCESS)
-    {
-        /* make sure no discovery or get capabilities req already in progress */
-        if (p_ccb->proc_busy)
-        {
-            result = AVDT_BUSY;
-        }
-        /* send event to ccb */
-        else
-        {
-            evt.discover.p_sep_info = p_sep_info;
-            evt.discover.num_seps = max_seps;
-            evt.discover.p_cback = p_cback;
-            avdt_ccb_event(p_ccb, AVDT_CCB_API_DISCOVER_REQ_EVT, &evt);
-        }
+  if (result == AVDT_SUCCESS) {
+    /* make sure no discovery or get capabilities req already in progress */
+    if (p_ccb->proc_busy) {
+      result = AVDT_BUSY;
     }
-    return result;
+    /* send event to ccb */
+    else {
+      evt.discover.p_sep_info = p_sep_info;
+      evt.discover.num_seps = max_seps;
+      evt.discover.p_cback = p_cback;
+      avdt_ccb_event(p_ccb, AVDT_CCB_API_DISCOVER_REQ_EVT, &evt);
+    }
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -300,45 +277,39 @@ uint16_t AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-static uint16_t avdt_get_cap_req(BD_ADDR bd_addr, tAVDT_CCB_API_GETCAP *p_evt)
-{
-    tAVDT_CCB       *p_ccb = NULL;
-    uint16_t        result = AVDT_SUCCESS;
+static uint16_t avdt_get_cap_req(BD_ADDR bd_addr, tAVDT_CCB_API_GETCAP* p_evt) {
+  tAVDT_CCB* p_ccb = NULL;
+  uint16_t result = AVDT_SUCCESS;
 
-    /* verify SEID */
-    if ((p_evt->single.seid < AVDT_SEID_MIN) || (p_evt->single.seid > AVDT_SEID_MAX))
-    {
-        AVDT_TRACE_ERROR("seid: %d", p_evt->single.seid);
-        result = AVDT_BAD_PARAMS;
+  /* verify SEID */
+  if ((p_evt->single.seid < AVDT_SEID_MIN) ||
+      (p_evt->single.seid > AVDT_SEID_MAX)) {
+    AVDT_TRACE_ERROR("seid: %d", p_evt->single.seid);
+    result = AVDT_BAD_PARAMS;
+  }
+  /* find channel control block for this bd addr; if none, allocate one */
+  else {
+    p_ccb = avdt_ccb_by_bd(bd_addr);
+    if (p_ccb == NULL) {
+      p_ccb = avdt_ccb_alloc(bd_addr);
+      if (p_ccb == NULL) {
+        /* could not allocate channel control block */
+        result = AVDT_NO_RESOURCES;
+      }
     }
-    /* find channel control block for this bd addr; if none, allocate one */
+  }
+
+  if (result == AVDT_SUCCESS) {
+    /* make sure no discovery or get capabilities req already in progress */
+    if (p_ccb->proc_busy) {
+      result = AVDT_BUSY;
+    }
+    /* send event to ccb */
     else {
-        p_ccb = avdt_ccb_by_bd(bd_addr);
-        if (p_ccb == NULL)
-        {
-            p_ccb = avdt_ccb_alloc(bd_addr);
-            if (p_ccb == NULL)
-            {
-            /* could not allocate channel control block */
-                result = AVDT_NO_RESOURCES;
-            }
-        }
+      avdt_ccb_event(p_ccb, AVDT_CCB_API_GETCAP_REQ_EVT, (tAVDT_CCB_EVT*)p_evt);
     }
-
-    if (result == AVDT_SUCCESS)
-    {
-        /* make sure no discovery or get capabilities req already in progress */
-        if (p_ccb->proc_busy)
-        {
-            result = AVDT_BUSY;
-        }
-        /* send event to ccb */
-        else
-        {
-            avdt_ccb_event(p_ccb, AVDT_CCB_API_GETCAP_REQ_EVT, (tAVDT_CCB_EVT *)p_evt);
-        }
-    }
-    return result;
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -365,15 +336,15 @@ static uint16_t avdt_get_cap_req(BD_ADDR bd_addr, tAVDT_CCB_API_GETCAP *p_evt)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_GetCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVDT_CTRL_CBACK *p_cback)
-{
-    tAVDT_CCB_API_GETCAP    getcap;
+uint16_t AVDT_GetCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG* p_cfg,
+                        tAVDT_CTRL_CBACK* p_cback) {
+  tAVDT_CCB_API_GETCAP getcap;
 
-    getcap.single.seid = seid;
-    getcap.single.sig_id = AVDT_SIG_GETCAP;
-    getcap.p_cfg = p_cfg;
-    getcap.p_cback = p_cback;
-    return avdt_get_cap_req (bd_addr, &getcap);
+  getcap.single.seid = seid;
+  getcap.single.sig_id = AVDT_SIG_GETCAP;
+  getcap.p_cfg = p_cfg;
+  getcap.p_cback = p_cback;
+  return avdt_get_cap_req(bd_addr, &getcap);
 }
 
 /*******************************************************************************
@@ -400,15 +371,15 @@ uint16_t AVDT_GetCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVDT_C
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_GetAllCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVDT_CTRL_CBACK *p_cback)
-{
-    tAVDT_CCB_API_GETCAP    getcap;
+uint16_t AVDT_GetAllCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG* p_cfg,
+                           tAVDT_CTRL_CBACK* p_cback) {
+  tAVDT_CCB_API_GETCAP getcap;
 
-    getcap.single.seid = seid;
-    getcap.single.sig_id = AVDT_SIG_GET_ALLCAP;
-    getcap.p_cfg = p_cfg;
-    getcap.p_cback = p_cback;
-    return avdt_get_cap_req (bd_addr, &getcap);
+  getcap.single.seid = seid;
+  getcap.single.sig_id = AVDT_SIG_GET_ALLCAP;
+  getcap.p_cfg = p_cfg;
+  getcap.p_cback = p_cback;
+  return avdt_get_cap_req(bd_addr, &getcap);
 }
 
 /*******************************************************************************
@@ -422,27 +393,24 @@ uint16_t AVDT_GetAllCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVD
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay)
-{
-    tAVDT_SCB       *p_scb;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_SCB_EVT   evt;
+uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay) {
+  tAVDT_SCB* p_scb;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_SCB_EVT evt;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    else
-    /* send event to scb */
-    {
-        evt.apidelay.hdr.seid   = seid;
-        evt.apidelay.delay      = delay;
-        avdt_scb_event(p_scb, AVDT_SCB_API_DELAY_RPT_REQ_EVT, &evt);
-    }
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  } else
+  /* send event to scb */
+  {
+    evt.apidelay.hdr.seid = seid;
+    evt.apidelay.delay = delay;
+    avdt_scb_event(p_scb, AVDT_SCB_API_DELAY_RPT_REQ_EVT, &evt);
+  }
 
-    return result;
+  return result;
 }
 
 /*******************************************************************************
@@ -459,50 +427,45 @@ uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_OpenReq(uint8_t handle, BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg)
-{
-    tAVDT_CCB       *p_ccb = NULL;
-    tAVDT_SCB       *p_scb = NULL;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_SCB_EVT   evt;
+uint16_t AVDT_OpenReq(uint8_t handle, BD_ADDR bd_addr, uint8_t seid,
+                      tAVDT_CFG* p_cfg) {
+  tAVDT_CCB* p_ccb = NULL;
+  tAVDT_SCB* p_scb = NULL;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_SCB_EVT evt;
 
-    /* verify SEID */
-    if ((seid < AVDT_SEID_MIN) || (seid > AVDT_SEID_MAX))
-    {
-        result = AVDT_BAD_PARAMS;
+  /* verify SEID */
+  if ((seid < AVDT_SEID_MIN) || (seid > AVDT_SEID_MAX)) {
+    result = AVDT_BAD_PARAMS;
+  }
+  /* map handle to scb */
+  else {
+    p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb == NULL) {
+      result = AVDT_BAD_HANDLE;
     }
-    /* map handle to scb */
-    else {
-        p_scb = avdt_scb_by_hdl(handle);
-        if (p_scb == NULL)
-        {
-            result = AVDT_BAD_HANDLE;
-        }
     /* find channel control block for this bd addr; if none, allocate one */
-        else {
-            p_ccb = avdt_ccb_by_bd(bd_addr);
-            if (p_ccb == NULL)
-            {
-                p_ccb = avdt_ccb_alloc(bd_addr);
-                if (p_ccb == NULL)
-                {
-            /* could not allocate channel control block */
-                    result = AVDT_NO_RESOURCES;
-                }
-            }
+    else {
+      p_ccb = avdt_ccb_by_bd(bd_addr);
+      if (p_ccb == NULL) {
+        p_ccb = avdt_ccb_alloc(bd_addr);
+        if (p_ccb == NULL) {
+          /* could not allocate channel control block */
+          result = AVDT_NO_RESOURCES;
         }
+      }
     }
+  }
 
-    /* send event to scb */
-    if (result == AVDT_SUCCESS)
-    {
-        evt.msg.config_cmd.hdr.seid = seid;
-        evt.msg.config_cmd.hdr.ccb_idx = avdt_ccb_to_idx(p_ccb);
-        evt.msg.config_cmd.int_seid = handle;
-        evt.msg.config_cmd.p_cfg = p_cfg;
-        avdt_scb_event(p_scb, AVDT_SCB_API_SETCONFIG_REQ_EVT, &evt);
-    }
-    return result;
+  /* send event to scb */
+  if (result == AVDT_SUCCESS) {
+    evt.msg.config_cmd.hdr.seid = seid;
+    evt.msg.config_cmd.hdr.ccb_idx = avdt_ccb_to_idx(p_ccb);
+    evt.msg.config_cmd.int_seid = handle;
+    evt.msg.config_cmd.p_cfg = p_cfg;
+    avdt_scb_event(p_scb, AVDT_SCB_API_SETCONFIG_REQ_EVT, &evt);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -517,44 +480,38 @@ uint16_t AVDT_OpenReq(uint8_t handle, BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8_t category)
-{
-    tAVDT_SCB       *p_scb;
-    tAVDT_SCB_EVT   evt;
-    uint16_t        result = AVDT_SUCCESS;
-    uint8_t         event_code;
+uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code,
+                        uint8_t category) {
+  tAVDT_SCB* p_scb;
+  tAVDT_SCB_EVT evt;
+  uint16_t result = AVDT_SUCCESS;
+  uint8_t event_code;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  }
+  /* handle special case when this function is called but peer has not send
+  ** a configuration cmd; ignore and return error result
+  */
+  else if (!p_scb->in_use) {
+    result = AVDT_BAD_HANDLE;
+  }
+  /* send event to scb */
+  else {
+    evt.msg.hdr.err_code = error_code;
+    evt.msg.hdr.err_param = category;
+    evt.msg.hdr.label = label;
+    if (error_code == 0) {
+      event_code = AVDT_SCB_API_SETCONFIG_RSP_EVT;
+    } else {
+      event_code = AVDT_SCB_API_SETCONFIG_REJ_EVT;
     }
-    /* handle special case when this function is called but peer has not send
-    ** a configuration cmd; ignore and return error result
-    */
-    else if (!p_scb->in_use)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    /* send event to scb */
-    else
-    {
-        evt.msg.hdr.err_code = error_code;
-        evt.msg.hdr.err_param = category;
-        evt.msg.hdr.label = label;
-        if (error_code == 0)
-        {
-            event_code = AVDT_SCB_API_SETCONFIG_RSP_EVT;
-        }
-        else
-        {
-            event_code = AVDT_SCB_API_SETCONFIG_REJ_EVT;
-        }
-        avdt_scb_event(p_scb, event_code, &evt);
-    }
+    avdt_scb_event(p_scb, event_code, &evt);
+  }
 
-    return result;
+  return result;
 }
 
 /*******************************************************************************
@@ -572,46 +529,36 @@ uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_StartReq(uint8_t *p_handles, uint8_t num_handles)
-{
-    tAVDT_SCB       *p_scb = NULL;
-    tAVDT_CCB_EVT   evt;
-    uint16_t        result = AVDT_SUCCESS;
-    int             i;
+uint16_t AVDT_StartReq(uint8_t* p_handles, uint8_t num_handles) {
+  tAVDT_SCB* p_scb = NULL;
+  tAVDT_CCB_EVT evt;
+  uint16_t result = AVDT_SUCCESS;
+  int i;
 
-    if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS))
-    {
-        result = AVDT_BAD_PARAMS;
+  if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS)) {
+    result = AVDT_BAD_PARAMS;
+  } else {
+    /* verify handles */
+    for (i = 0; i < num_handles; i++) {
+      p_scb = avdt_scb_by_hdl(p_handles[i]);
+      if (p_scb == NULL) {
+        result = AVDT_BAD_HANDLE;
+        break;
+      }
     }
-    else
-    {
-        /* verify handles */
-        for (i = 0; i < num_handles; i++)
-        {
-            p_scb = avdt_scb_by_hdl(p_handles[i]);
-            if (p_scb == NULL)
-            {
-                result = AVDT_BAD_HANDLE;
-                break;
-            }
-        }
-    }
+  }
 
-    if (result == AVDT_SUCCESS)
-    {
-        if (p_scb->p_ccb == NULL)
-        {
-            result = AVDT_BAD_HANDLE;
-        }
-        else
-        {
-            /* send event to ccb */
-            memcpy(evt.msg.multi.seid_list, p_handles, num_handles);
-            evt.msg.multi.num_seps = num_handles;
-            avdt_ccb_event(p_scb->p_ccb, AVDT_CCB_API_START_REQ_EVT, &evt);
-        }
+  if (result == AVDT_SUCCESS) {
+    if (p_scb->p_ccb == NULL) {
+      result = AVDT_BAD_HANDLE;
+    } else {
+      /* send event to ccb */
+      memcpy(evt.msg.multi.seid_list, p_handles, num_handles);
+      evt.msg.multi.num_seps = num_handles;
+      avdt_ccb_event(p_scb->p_ccb, AVDT_CCB_API_START_REQ_EVT, &evt);
     }
-    return result;
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -629,47 +576,37 @@ uint16_t AVDT_StartReq(uint8_t *p_handles, uint8_t num_handles)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_SuspendReq(uint8_t *p_handles, uint8_t num_handles)
-{
-    tAVDT_SCB       *p_scb = NULL;
-    tAVDT_CCB_EVT   evt;
-    uint16_t        result = AVDT_SUCCESS;
-    int             i;
+uint16_t AVDT_SuspendReq(uint8_t* p_handles, uint8_t num_handles) {
+  tAVDT_SCB* p_scb = NULL;
+  tAVDT_CCB_EVT evt;
+  uint16_t result = AVDT_SUCCESS;
+  int i;
 
-    if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS))
-    {
-        result = AVDT_BAD_PARAMS;
+  if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS)) {
+    result = AVDT_BAD_PARAMS;
+  } else {
+    /* verify handles */
+    for (i = 0; i < num_handles; i++) {
+      p_scb = avdt_scb_by_hdl(p_handles[i]);
+      if (p_scb == NULL) {
+        result = AVDT_BAD_HANDLE;
+        break;
+      }
     }
-    else
-    {
-        /* verify handles */
-        for (i = 0; i < num_handles; i++)
-        {
-            p_scb = avdt_scb_by_hdl(p_handles[i]);
-            if (p_scb == NULL)
-            {
-                result = AVDT_BAD_HANDLE;
-                break;
-            }
-        }
-    }
+  }
 
-    if (result == AVDT_SUCCESS)
-    {
-        if (p_scb->p_ccb == NULL)
-        {
-            result = AVDT_BAD_HANDLE;
-        }
-        else
-        {
-            /* send event to ccb */
-            memcpy(evt.msg.multi.seid_list, p_handles, num_handles);
-            evt.msg.multi.num_seps = num_handles;
-            avdt_ccb_event(p_scb->p_ccb, AVDT_CCB_API_SUSPEND_REQ_EVT, &evt);
-        }
+  if (result == AVDT_SUCCESS) {
+    if (p_scb->p_ccb == NULL) {
+      result = AVDT_BAD_HANDLE;
+    } else {
+      /* send event to ccb */
+      memcpy(evt.msg.multi.seid_list, p_handles, num_handles);
+      evt.msg.multi.num_seps = num_handles;
+      avdt_ccb_event(p_scb->p_ccb, AVDT_CCB_API_SUSPEND_REQ_EVT, &evt);
     }
+  }
 
-    return result;
+  return result;
 }
 
 /*******************************************************************************
@@ -686,24 +623,21 @@ uint16_t AVDT_SuspendReq(uint8_t *p_handles, uint8_t num_handles)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_CloseReq(uint8_t handle)
-{
-    tAVDT_SCB       *p_scb;
-    uint16_t        result = AVDT_SUCCESS;
+uint16_t AVDT_CloseReq(uint8_t handle) {
+  tAVDT_SCB* p_scb;
+  uint16_t result = AVDT_SUCCESS;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    else
-    /* send event to scb */
-    {
-        avdt_scb_event(p_scb, AVDT_SCB_API_CLOSE_REQ_EVT, NULL);
-    }
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  } else
+  /* send event to scb */
+  {
+    avdt_scb_event(p_scb, AVDT_SCB_API_CLOSE_REQ_EVT, NULL);
+  }
 
-    return result;
+  return result;
 }
 
 /*******************************************************************************
@@ -723,28 +657,25 @@ uint16_t AVDT_CloseReq(uint8_t handle)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_ReconfigReq(uint8_t handle, tAVDT_CFG *p_cfg)
-{
-    tAVDT_SCB       *p_scb;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_SCB_EVT   evt;
+uint16_t AVDT_ReconfigReq(uint8_t handle, tAVDT_CFG* p_cfg) {
+  tAVDT_SCB* p_scb;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_SCB_EVT evt;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    /* send event to scb */
-    else
-    {
-        /* force psc_mask to zero */
-        p_cfg->psc_mask = 0;
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  }
+  /* send event to scb */
+  else {
+    /* force psc_mask to zero */
+    p_cfg->psc_mask = 0;
 
-        evt.msg.reconfig_cmd.p_cfg = p_cfg;
-        avdt_scb_event(p_scb, AVDT_SCB_API_RECONFIG_REQ_EVT, &evt);
-    }
-    return result;
+    evt.msg.reconfig_cmd.p_cfg = p_cfg;
+    avdt_scb_event(p_scb, AVDT_SCB_API_RECONFIG_REQ_EVT, &evt);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -759,28 +690,26 @@ uint16_t AVDT_ReconfigReq(uint8_t handle, tAVDT_CFG *p_cfg)
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8_t category)
-{
-    tAVDT_SCB       *p_scb;
-    tAVDT_SCB_EVT   evt;
-    uint16_t        result = AVDT_SUCCESS;
+uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_code,
+                          uint8_t category) {
+  tAVDT_SCB* p_scb;
+  tAVDT_SCB_EVT evt;
+  uint16_t result = AVDT_SUCCESS;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    /* send event to scb */
-    else
-    {
-        evt.msg.hdr.err_code = error_code;
-        evt.msg.hdr.err_param = category;
-        evt.msg.hdr.label = label;
-        avdt_scb_event(p_scb, AVDT_SCB_API_RECONFIG_RSP_EVT, &evt);
-    }
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  }
+  /* send event to scb */
+  else {
+    evt.msg.hdr.err_code = error_code;
+    evt.msg.hdr.err_param = category;
+    evt.msg.hdr.label = label;
+    avdt_scb_event(p_scb, AVDT_SCB_API_RECONFIG_RSP_EVT, &evt);
+  }
 
-    return result;
+  return result;
 }
 
 /*******************************************************************************
@@ -797,26 +726,23 @@ uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uin
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_SecurityReq(uint8_t handle, uint8_t *p_data, uint16_t len)
-{
-    tAVDT_SCB       *p_scb;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_SCB_EVT   evt;
+uint16_t AVDT_SecurityReq(uint8_t handle, uint8_t* p_data, uint16_t len) {
+  tAVDT_SCB* p_scb;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_SCB_EVT evt;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    /* send event to scb */
-    else
-    {
-        evt.msg.security_rsp.p_data = p_data;
-        evt.msg.security_rsp.len = len;
-        avdt_scb_event(p_scb, AVDT_SCB_API_SECURITY_REQ_EVT, &evt);
-    }
-    return result;
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  }
+  /* send event to scb */
+  else {
+    evt.msg.security_rsp.p_data = p_data;
+    evt.msg.security_rsp.len = len;
+    avdt_scb_event(p_scb, AVDT_SCB_API_SECURITY_REQ_EVT, &evt);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -834,28 +760,25 @@ uint16_t AVDT_SecurityReq(uint8_t handle, uint8_t *p_data, uint16_t len)
  *
  ******************************************************************************/
 uint16_t AVDT_SecurityRsp(uint8_t handle, uint8_t label, uint8_t error_code,
-                        uint8_t *p_data, uint16_t len)
-{
-    tAVDT_SCB       *p_scb;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_SCB_EVT   evt;
+                          uint8_t* p_data, uint16_t len) {
+  tAVDT_SCB* p_scb;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_SCB_EVT evt;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    /* send event to scb */
-    else
-    {
-        evt.msg.security_rsp.hdr.err_code = error_code;
-        evt.msg.security_rsp.hdr.label = label;
-        evt.msg.security_rsp.p_data = p_data;
-        evt.msg.security_rsp.len = len;
-        avdt_scb_event(p_scb, AVDT_SCB_API_SECURITY_RSP_EVT, &evt);
-    }
-    return result;
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  }
+  /* send event to scb */
+  else {
+    evt.msg.security_rsp.hdr.err_code = error_code;
+    evt.msg.security_rsp.hdr.label = label;
+    evt.msg.security_rsp.p_data = p_data;
+    evt.msg.security_rsp.len = len;
+    avdt_scb_event(p_scb, AVDT_SCB_API_SECURITY_RSP_EVT, &evt);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -895,28 +818,25 @@ uint16_t AVDT_SecurityRsp(uint8_t handle, uint8_t label, uint8_t error_code,
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8_t m_pt, tAVDT_DATA_OPT_MASK opt)
-{
-    tAVDT_SCB       *p_scb;
-    tAVDT_SCB_EVT   evt;
-    uint16_t        result = AVDT_SUCCESS;
+uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR* p_pkt, uint32_t time_stamp,
+                          uint8_t m_pt, tAVDT_DATA_OPT_MASK opt) {
+  tAVDT_SCB* p_scb;
+  tAVDT_SCB_EVT evt;
+  uint16_t result = AVDT_SUCCESS;
 
-    /* map handle to scb */
-    p_scb = avdt_scb_by_hdl(handle);
-    if (p_scb == NULL)
-    {
-        result = AVDT_BAD_HANDLE;
-    }
-    else
-    {
-        evt.apiwrite.p_buf = p_pkt;
-        evt.apiwrite.time_stamp = time_stamp;
-        evt.apiwrite.m_pt = m_pt;
-        evt.apiwrite.opt = opt;
-        avdt_scb_event(p_scb, AVDT_SCB_API_WRITE_REQ_EVT, &evt);
-    }
+  /* map handle to scb */
+  p_scb = avdt_scb_by_hdl(handle);
+  if (p_scb == NULL) {
+    result = AVDT_BAD_HANDLE;
+  } else {
+    evt.apiwrite.p_buf = p_pkt;
+    evt.apiwrite.time_stamp = time_stamp;
+    evt.apiwrite.m_pt = m_pt;
+    evt.apiwrite.opt = opt;
+    avdt_scb_event(p_scb, AVDT_SCB_API_WRITE_REQ_EVT, &evt);
+  }
 
-    return result;
+  return result;
 }
 
 /*******************************************************************************
@@ -953,9 +873,9 @@ uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, ui
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_WriteReq(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8_t m_pt)
-{
-    return AVDT_WriteReqOpt(handle, p_pkt, time_stamp, m_pt, AVDT_DATA_OPT_NONE);
+uint16_t AVDT_WriteReq(uint8_t handle, BT_HDR* p_pkt, uint32_t time_stamp,
+                       uint8_t m_pt) {
+  return AVDT_WriteReqOpt(handle, p_pkt, time_stamp, m_pt, AVDT_DATA_OPT_NONE);
 }
 
 /*******************************************************************************
@@ -973,39 +893,34 @@ uint16_t AVDT_WriteReq(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_ConnectReq(BD_ADDR bd_addr, uint8_t sec_mask, tAVDT_CTRL_CBACK *p_cback)
-{
-    tAVDT_CCB       *p_ccb = NULL;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_CCB_EVT   evt;
+uint16_t AVDT_ConnectReq(BD_ADDR bd_addr, uint8_t sec_mask,
+                         tAVDT_CTRL_CBACK* p_cback) {
+  tAVDT_CCB* p_ccb = NULL;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_CCB_EVT evt;
 
-    /* find channel control block for this bd addr; if none, allocate one */
-    p_ccb = avdt_ccb_by_bd(bd_addr);
-    if (p_ccb == NULL)
-    {
-        p_ccb = avdt_ccb_alloc(bd_addr);
-        if (p_ccb == NULL)
-        {
-            /* could not allocate channel control block */
-            result = AVDT_NO_RESOURCES;
-        }
+  /* find channel control block for this bd addr; if none, allocate one */
+  p_ccb = avdt_ccb_by_bd(bd_addr);
+  if (p_ccb == NULL) {
+    p_ccb = avdt_ccb_alloc(bd_addr);
+    if (p_ccb == NULL) {
+      /* could not allocate channel control block */
+      result = AVDT_NO_RESOURCES;
     }
-    else if (p_ccb->ll_opened == false)
-    {
-        AVDT_TRACE_WARNING("AVDT_ConnectReq: CCB LL is in the middle of opening");
+  } else if (p_ccb->ll_opened == false) {
+    AVDT_TRACE_WARNING("AVDT_ConnectReq: CCB LL is in the middle of opening");
 
-        /* ccb was already allocated for the incoming signalling. */
-        result = AVDT_BUSY;
-    }
+    /* ccb was already allocated for the incoming signalling. */
+    result = AVDT_BUSY;
+  }
 
-    if (result == AVDT_SUCCESS)
-    {
-        /* send event to ccb */
-        evt.connect.p_cback = p_cback;
-        evt.connect.sec_mask = sec_mask;
-        avdt_ccb_event(p_ccb, AVDT_CCB_API_CONNECT_REQ_EVT, &evt);
-    }
-    return result;
+  if (result == AVDT_SUCCESS) {
+    /* send event to ccb */
+    evt.connect.p_cback = p_cback;
+    evt.connect.sec_mask = sec_mask;
+    avdt_ccb_event(p_ccb, AVDT_CCB_API_CONNECT_REQ_EVT, &evt);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -1020,26 +935,23 @@ uint16_t AVDT_ConnectReq(BD_ADDR bd_addr, uint8_t sec_mask, tAVDT_CTRL_CBACK *p_
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback)
-{
-    tAVDT_CCB       *p_ccb = NULL;
-    uint16_t        result = AVDT_SUCCESS;
-    tAVDT_CCB_EVT   evt;
+uint16_t AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK* p_cback) {
+  tAVDT_CCB* p_ccb = NULL;
+  uint16_t result = AVDT_SUCCESS;
+  tAVDT_CCB_EVT evt;
 
-    /* find channel control block for this bd addr; if none, error */
-    p_ccb = avdt_ccb_by_bd(bd_addr);
-    if (p_ccb == NULL)
-    {
-        result = AVDT_BAD_PARAMS;
-    }
+  /* find channel control block for this bd addr; if none, error */
+  p_ccb = avdt_ccb_by_bd(bd_addr);
+  if (p_ccb == NULL) {
+    result = AVDT_BAD_PARAMS;
+  }
 
-    if (result == AVDT_SUCCESS)
-    {
-        /* send event to ccb */
-        evt.disconnect.p_cback = p_cback;
-        avdt_ccb_event(p_ccb, AVDT_CCB_API_DISCONNECT_REQ_EVT, &evt);
-    }
-    return result;
+  if (result == AVDT_SUCCESS) {
+    /* send event to ccb */
+    evt.disconnect.p_cback = p_cback;
+    avdt_ccb_event(p_ccb, AVDT_CCB_API_DISCONNECT_REQ_EVT, &evt);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -1051,24 +963,22 @@ uint16_t AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback)
  * Returns          CID if successful, otherwise 0.
  *
  ******************************************************************************/
-uint16_t AVDT_GetL2CapChannel(uint8_t handle)
-{
-    tAVDT_SCB       *p_scb;
-    tAVDT_CCB       *p_ccb;
-    uint8_t         tcid;
-    uint16_t        lcid = 0;
+uint16_t AVDT_GetL2CapChannel(uint8_t handle) {
+  tAVDT_SCB* p_scb;
+  tAVDT_CCB* p_ccb;
+  uint8_t tcid;
+  uint16_t lcid = 0;
 
-    /* map handle to scb */
-    if (((p_scb = avdt_scb_by_hdl(handle)) != NULL)
-     && ((p_ccb = p_scb->p_ccb) != NULL))
-    {
-        /* get tcid from type, scb */
-        tcid = avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb);
+  /* map handle to scb */
+  if (((p_scb = avdt_scb_by_hdl(handle)) != NULL) &&
+      ((p_ccb = p_scb->p_ccb) != NULL)) {
+    /* get tcid from type, scb */
+    tcid = avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb);
 
-        lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
-    }
+    lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
+  }
 
-    return (lcid);
+  return (lcid);
 }
 
 /*******************************************************************************
@@ -1081,28 +991,24 @@ uint16_t AVDT_GetL2CapChannel(uint8_t handle)
  * Returns          CID if successful, otherwise 0.
  *
  ******************************************************************************/
-uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr)
-{
-    tAVDT_SCB       *p_scb;
-    tAVDT_CCB       *p_ccb;
-    uint8_t         tcid = 0; /* tcid is always 0 for signal channel */
-    uint16_t        lcid = 0;
+uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr) {
+  tAVDT_SCB* p_scb;
+  tAVDT_CCB* p_ccb;
+  uint8_t tcid = 0; /* tcid is always 0 for signal channel */
+  uint16_t lcid = 0;
 
-    /* map handle to scb */
-    if (((p_scb = avdt_scb_by_hdl(handle)) != NULL)
-     && ((p_ccb = p_scb->p_ccb) != NULL))
-    {
-        lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
+  /* map handle to scb */
+  if (((p_scb = avdt_scb_by_hdl(handle)) != NULL) &&
+      ((p_ccb = p_scb->p_ccb) != NULL)) {
+    lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
+  } else {
+    p_ccb = avdt_ccb_by_bd(bd_addr);
+    if (p_ccb != NULL) {
+      lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
     }
-    else {
-        p_ccb = avdt_ccb_by_bd(bd_addr);
-        if (p_ccb != NULL)
-        {
-            lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
-        }
-    }
+  }
 
-    return (lcid);
+  return (lcid);
 }
 
 #if (AVDT_REPORTING == TRUE)
@@ -1118,86 +1024,82 @@ uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr)
  *
  ******************************************************************************/
 uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
-                       tAVDT_REPORT_DATA *p_data)
-{
-    tAVDT_SCB       *p_scb;
-    uint16_t        result = AVDT_BAD_PARAMS;
-    tAVDT_TC_TBL    *p_tbl;
-    uint8_t         *p, *plen, *pm1, *p_end;
-    uint32_t ssrc;
-    uint16_t len;
+                         tAVDT_REPORT_DATA* p_data) {
+  tAVDT_SCB* p_scb;
+  uint16_t result = AVDT_BAD_PARAMS;
+  tAVDT_TC_TBL* p_tbl;
+  uint8_t *p, *plen, *pm1, *p_end;
+  uint32_t ssrc;
+  uint16_t len;
 
-    /* map handle to scb && verify parameters */
-    if (((p_scb = avdt_scb_by_hdl(handle)) != NULL)
-     && (p_scb->p_ccb != NULL)
-     && (((type == AVDT_RTCP_PT_SR) && (p_scb->cs.tsep == AVDT_TSEP_SRC)) ||
-        ((type == AVDT_RTCP_PT_RR) && (p_scb->cs.tsep == AVDT_TSEP_SNK)) ||
-        (type == AVDT_RTCP_PT_SDES)) )
-    {
-        result = AVDT_NO_RESOURCES;
+  /* map handle to scb && verify parameters */
+  if (((p_scb = avdt_scb_by_hdl(handle)) != NULL) && (p_scb->p_ccb != NULL) &&
+      (((type == AVDT_RTCP_PT_SR) && (p_scb->cs.tsep == AVDT_TSEP_SRC)) ||
+       ((type == AVDT_RTCP_PT_RR) && (p_scb->cs.tsep == AVDT_TSEP_SNK)) ||
+       (type == AVDT_RTCP_PT_SDES))) {
+    result = AVDT_NO_RESOURCES;
 
-        /* build SR - assume fit in one packet */
-        p_tbl = avdt_ad_tc_tbl_by_type(AVDT_CHAN_REPORT, p_scb->p_ccb, p_scb);
-        if (p_tbl->state == AVDT_AD_ST_OPEN) {
-            BT_HDR *p_pkt = (BT_HDR *)osi_malloc(p_tbl->peer_mtu);
+    /* build SR - assume fit in one packet */
+    p_tbl = avdt_ad_tc_tbl_by_type(AVDT_CHAN_REPORT, p_scb->p_ccb, p_scb);
+    if (p_tbl->state == AVDT_AD_ST_OPEN) {
+      BT_HDR* p_pkt = (BT_HDR*)osi_malloc(p_tbl->peer_mtu);
 
-            p_pkt->offset = L2CAP_MIN_OFFSET;
-            p = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
-            pm1 = p;
-            *p++ = AVDT_MEDIA_OCTET1 | 1;
-            *p++ = type;
-            /* save the location for length */
-            plen = p;
-            p+= 2;
-            ssrc = avdt_scb_gen_ssrc(p_scb);
-            UINT32_TO_BE_STREAM(p, ssrc);
+      p_pkt->offset = L2CAP_MIN_OFFSET;
+      p = (uint8_t*)(p_pkt + 1) + p_pkt->offset;
+      pm1 = p;
+      *p++ = AVDT_MEDIA_OCTET1 | 1;
+      *p++ = type;
+      /* save the location for length */
+      plen = p;
+      p += 2;
+      ssrc = avdt_scb_gen_ssrc(p_scb);
+      UINT32_TO_BE_STREAM(p, ssrc);
 
-            switch(type)
-            {
-            case AVDT_RTCP_PT_SR:   /* Sender Report */
-                *pm1 = AVDT_MEDIA_OCTET1;
-                UINT32_TO_BE_STREAM(p, p_data->sr.ntp_sec);
-                UINT32_TO_BE_STREAM(p, p_data->sr.ntp_frac);
-                UINT32_TO_BE_STREAM(p, p_data->sr.rtp_time);
-                UINT32_TO_BE_STREAM(p, p_data->sr.pkt_count);
-                UINT32_TO_BE_STREAM(p, p_data->sr.octet_count);
-                break;
+      switch (type) {
+        case AVDT_RTCP_PT_SR: /* Sender Report */
+          *pm1 = AVDT_MEDIA_OCTET1;
+          UINT32_TO_BE_STREAM(p, p_data->sr.ntp_sec);
+          UINT32_TO_BE_STREAM(p, p_data->sr.ntp_frac);
+          UINT32_TO_BE_STREAM(p, p_data->sr.rtp_time);
+          UINT32_TO_BE_STREAM(p, p_data->sr.pkt_count);
+          UINT32_TO_BE_STREAM(p, p_data->sr.octet_count);
+          break;
 
-            case AVDT_RTCP_PT_RR:   /* Receiver Report */
-                *p++ = p_data->rr.frag_lost;
-                AVDT_TRACE_API("packet_lost: %d", p_data->rr.packet_lost);
-                p_data->rr.packet_lost &= 0xFFFFFF;
-                AVDT_TRACE_API("packet_lost: %d", p_data->rr.packet_lost);
-                UINT24_TO_BE_STREAM(p, p_data->rr.packet_lost);
-                UINT32_TO_BE_STREAM(p, p_data->rr.seq_num_rcvd);
-                UINT32_TO_BE_STREAM(p, p_data->rr.jitter);
-                UINT32_TO_BE_STREAM(p, p_data->rr.lsr);
-                UINT32_TO_BE_STREAM(p, p_data->rr.dlsr);
-                break;
+        case AVDT_RTCP_PT_RR: /* Receiver Report */
+          *p++ = p_data->rr.frag_lost;
+          AVDT_TRACE_API("packet_lost: %d", p_data->rr.packet_lost);
+          p_data->rr.packet_lost &= 0xFFFFFF;
+          AVDT_TRACE_API("packet_lost: %d", p_data->rr.packet_lost);
+          UINT24_TO_BE_STREAM(p, p_data->rr.packet_lost);
+          UINT32_TO_BE_STREAM(p, p_data->rr.seq_num_rcvd);
+          UINT32_TO_BE_STREAM(p, p_data->rr.jitter);
+          UINT32_TO_BE_STREAM(p, p_data->rr.lsr);
+          UINT32_TO_BE_STREAM(p, p_data->rr.dlsr);
+          break;
 
-            case AVDT_RTCP_PT_SDES: /* Source Description */
-                *p++ = AVDT_RTCP_SDES_CNAME;
-                len = strlen((char *)p_data->cname);
-                if(len > AVDT_MAX_CNAME_SIZE)
-                    len = AVDT_MAX_CNAME_SIZE;
-                *p++ = (uint8_t)len;
-                strlcpy((char *)p, (char *)p_data->cname, len+1);
-                p += len;
-                break;
-            }
-            p_end = p;
-            len = p - pm1 - 1;
-            UINT16_TO_BE_STREAM(plen, len);
+        case AVDT_RTCP_PT_SDES: /* Source Description */
+          *p++ = AVDT_RTCP_SDES_CNAME;
+          len = strlen((char*)p_data->cname);
+          if (len > AVDT_MAX_CNAME_SIZE) len = AVDT_MAX_CNAME_SIZE;
+          *p++ = (uint8_t)len;
+          strlcpy((char*)p, (char*)p_data->cname, len + 1);
+          p += len;
+          break;
+      }
+      p_end = p;
+      len = p - pm1 - 1;
+      UINT16_TO_BE_STREAM(plen, len);
 
-            /* set the actual payload length */
-            p_pkt->len = p_end - p;
-            /* send the packet */
-            if(L2CAP_DW_FAILED != avdt_ad_write_req(AVDT_CHAN_REPORT, p_scb->p_ccb, p_scb, p_pkt))
-                result = AVDT_SUCCESS;
-        }
+      /* set the actual payload length */
+      p_pkt->len = p_end - p;
+      /* send the packet */
+      if (L2CAP_DW_FAILED !=
+          avdt_ad_write_req(AVDT_CHAN_REPORT, p_scb->p_ccb, p_scb, p_pkt))
+        result = AVDT_SUCCESS;
     }
+  }
 
-    return result;
+  return result;
 }
 #endif
 
@@ -1222,10 +1124,8 @@ uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
  *                  the input parameter is 0xff.
  *
  *****************************************************************************/
-uint8_t AVDT_SetTraceLevel (uint8_t new_level)
-{
-    if (new_level != 0xFF)
-        avdt_cb.trace_level = new_level;
+uint8_t AVDT_SetTraceLevel(uint8_t new_level) {
+  if (new_level != 0xFF) avdt_cb.trace_level = new_level;
 
-    return (avdt_cb.trace_level);
+  return (avdt_cb.trace_level);
 }

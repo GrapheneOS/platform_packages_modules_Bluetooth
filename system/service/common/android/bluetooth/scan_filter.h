@@ -32,7 +32,7 @@ class ScanFilter : public Parcelable, public ::bluetooth::ScanFilter {
  public:
   ScanFilter() = default;
   // NOLINT, implicit converter
-  ScanFilter(const ::bluetooth::ScanFilter& scan_filter) // NOLINT
+  ScanFilter(const ::bluetooth::ScanFilter& scan_filter)  // NOLINT
       : ::bluetooth::ScanFilter(scan_filter){};
   ~ScanFilter() = default;
 

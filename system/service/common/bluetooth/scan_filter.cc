@@ -24,8 +24,7 @@ ScanFilter::ScanFilter(const ScanFilter& other) {
   device_name_ = other.device_name_;
   device_address_ = other.device_address_;
 
-  if (other.service_uuid_)
-    service_uuid_.reset(new UUID(*other.service_uuid_));
+  if (other.service_uuid_) service_uuid_.reset(new UUID(*other.service_uuid_));
 
   if (other.service_uuid_mask_)
     service_uuid_mask_.reset(new UUID(*other.service_uuid_mask_));
@@ -49,8 +48,7 @@ ScanFilter& ScanFilter::operator=(const ScanFilter& other) {
 }
 
 bool ScanFilter::SetDeviceAddress(const std::string& device_address) {
-  if (!util::IsAddressValid(device_address))
-    return false;
+  if (!util::IsAddressValid(device_address)) return false;
 
   device_address_ = device_address;
   return true;
@@ -68,16 +66,13 @@ void ScanFilter::SetServiceUuidWithMask(const UUID& service_uuid,
 }
 
 bool ScanFilter::operator==(const ScanFilter& rhs) const {
-  if (device_name_ != rhs.device_name_)
-    return false;
+  if (device_name_ != rhs.device_name_) return false;
 
-  if (device_address_ != rhs.device_address_)
-    return false;
+  if (device_address_ != rhs.device_address_) return false;
 
   // Both must be either NULL or non-NULL. If only one of them is NULL, then
   // return false.
-  if (!!service_uuid_ != !!rhs.service_uuid_)
-    return false;
+  if (!!service_uuid_ != !!rhs.service_uuid_) return false;
 
   if (service_uuid_ && rhs.service_uuid_ &&
       *service_uuid_ != *rhs.service_uuid_)
@@ -85,8 +80,7 @@ bool ScanFilter::operator==(const ScanFilter& rhs) const {
 
   // Both must be either NULL or non-NULL. If only one of them is NULL, then
   // return false.
-  if (!!service_uuid_mask_ != !!rhs.service_uuid_mask_)
-    return false;
+  if (!!service_uuid_mask_ != !!rhs.service_uuid_mask_) return false;
 
   if (service_uuid_mask_ && rhs.service_uuid_mask_ &&
       *service_uuid_mask_ != *rhs.service_uuid_mask_)

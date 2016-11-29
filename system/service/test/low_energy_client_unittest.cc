@@ -37,13 +37,13 @@ namespace {
 class MockGattHandler
     : public hal::FakeBluetoothGattInterface::TestClientHandler {
  public:
-  MockGattHandler() {};
+  MockGattHandler(){};
   ~MockGattHandler() override = default;
 
   MOCK_METHOD1(RegisterClient, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterClient, bt_status_t(int));
-  MOCK_METHOD4(Connect, bt_status_t(int , const bt_bdaddr_t *, bool, int));
-  MOCK_METHOD3(Disconnect, bt_status_t(int , const bt_bdaddr_t *, int));
+  MOCK_METHOD4(Connect, bt_status_t(int, const bt_bdaddr_t*, bool, int));
+  MOCK_METHOD3(Disconnect, bt_status_t(int, const bt_bdaddr_t*, int));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
@@ -51,15 +51,14 @@ class MockGattHandler
 
 class TestDelegate : public LowEnergyClient::Delegate {
  public:
-  TestDelegate() : connection_state_count_(0), last_mtu_(0) {
-  }
+  TestDelegate() : connection_state_count_(0), last_mtu_(0) {}
 
   ~TestDelegate() override = default;
 
   int connection_state_count() const { return connection_state_count_; }
 
   void OnConnectionState(LowEnergyClient* client, int status,
-                         const char* address, bool connected)  {
+                         const char* address, bool connected) {
     ASSERT_TRUE(client);
     connection_state_count_++;
   }
@@ -85,11 +84,9 @@ class LowEnergyClientTest : public ::testing::Test {
 
   void SetUp() override {
     // Only set |mock_handler_| if a test hasn't set it.
-    if (!mock_handler_)
-        mock_handler_.reset(new MockGattHandler());
+    if (!mock_handler_) mock_handler_.reset(new MockGattHandler());
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
-        nullptr,
-        nullptr,
+        nullptr, nullptr,
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestClientHandler>(mock_handler_),
         nullptr);
@@ -115,8 +112,7 @@ class LowEnergyClientTest : public ::testing::Test {
 // Used for tests that operate on a pre-registered client.
 class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
  public:
-  LowEnergyClientPostRegisterTest() : next_client_id_(0) {
-  }
+  LowEnergyClientPostRegisterTest() : next_client_id_(0) {}
   ~LowEnergyClientPostRegisterTest() override = default;
 
   void SetUp() override {
@@ -140,7 +136,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
           callback) {
     UUID uuid = UUID::GetRandom();
     auto api_callback = [&](BLEStatus status, const UUID& in_uuid,
-                        std::unique_ptr<BluetoothInstance> in_client) {
+                            std::unique_ptr<BluetoothInstance> in_client) {
       CHECK(in_uuid == uuid);
       CHECK(in_client.get());
       CHECK(status == BLE_STATUS_SUCCESS);
@@ -156,8 +152,8 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     ble_factory_->RegisterInstance(uuid, api_callback);
 
     bt_uuid_t hal_uuid = uuid.GetBlueDroid();
-    fake_hal_gatt_iface_->NotifyRegisterClientCallback(
-        0, next_client_id_++, hal_uuid);
+    fake_hal_gatt_iface_->NotifyRegisterClientCallback(0, next_client_id_++,
+                                                       hal_uuid);
     ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
   }
 
@@ -185,12 +181,12 @@ TEST_F(LowEnergyClientTest, RegisterInstance) {
 
   auto callback = [&](BLEStatus in_status, const UUID& uuid,
                       std::unique_ptr<BluetoothInstance> in_client) {
-        status = in_status;
-        cb_uuid = uuid;
-        client = std::unique_ptr<LowEnergyClient>(
-            static_cast<LowEnergyClient*>(in_client.release()));
-        callback_count++;
-      };
+    status = in_status;
+    cb_uuid = uuid;
+    client = std::unique_ptr<LowEnergyClient>(
+        static_cast<LowEnergyClient*>(in_client.release()));
+    callback_count++;
+  };
 
   UUID uuid0 = UUID::GetRandom();
 
@@ -224,8 +220,8 @@ TEST_F(LowEnergyClientTest, RegisterInstance) {
   // |uuid0| succeeds.
   int client_if0 = 2;  // Pick something that's not 0.
   hal_uuid = uuid0.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterClientCallback(
-      BT_STATUS_SUCCESS, client_if0, hal_uuid);
+  fake_hal_gatt_iface_->NotifyRegisterClientCallback(BT_STATUS_SUCCESS,
+                                                     client_if0, hal_uuid);
 
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(client.get() != nullptr);  // Assert to terminate in case of error
@@ -244,8 +240,8 @@ TEST_F(LowEnergyClientTest, RegisterInstance) {
   // |uuid1| fails.
   int client_if1 = 3;
   hal_uuid = uuid1.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterClientCallback(
-      BT_STATUS_FAIL, client_if1, hal_uuid);
+  fake_hal_gatt_iface_->NotifyRegisterClientCallback(BT_STATUS_FAIL, client_if1,
+                                                     hal_uuid);
 
   EXPECT_EQ(2, callback_count);
   ASSERT_TRUE(client.get() == nullptr);  // Assert to terminate in case of error
@@ -260,9 +256,7 @@ MATCHER_P(BitEq, x, std::string(negation ? "isn't" : "is") +
 }
 
 TEST_F(LowEnergyClientPostRegisterTest, Connect) {
-  const bt_bdaddr_t kTestAddress = {
-    { 0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C }
-  };
+  const bt_bdaddr_t kTestAddress = {{0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C}};
   const char kTestAddressStr[] = "01:02:03:0A:0B:0C";
   const bool kTestDirect = false;
   const int connId = 12;
@@ -273,16 +267,16 @@ TEST_F(LowEnergyClientPostRegisterTest, Connect) {
   // TODO(jpawlowski): NotifyConnectCallback should be called after returning
   // success, fix it when it becomes important.
   // These should succeed and result in a HAL call
-  EXPECT_CALL(*mock_handler_, Connect(le_client_->GetInstanceId(),
-          Pointee(BitEq(kTestAddress)), kTestDirect, BT_TRANSPORT_LE))
+  EXPECT_CALL(*mock_handler_,
+              Connect(le_client_->GetInstanceId(), Pointee(BitEq(kTestAddress)),
+                      kTestDirect, BT_TRANSPORT_LE))
       .Times(1)
-      .WillOnce(DoAll(
-        Invoke([&](int client_id, const bt_bdaddr_t *bd_addr, bool is_direct,
-                   int transport){
-          fake_hal_gatt_iface_->NotifyConnectCallback(connId, BT_STATUS_SUCCESS,
-                                                      client_id, *bd_addr);
-        }),
-        Return(BT_STATUS_SUCCESS)));
+      .WillOnce(DoAll(Invoke([&](int client_id, const bt_bdaddr_t* bd_addr,
+                                 bool is_direct, int transport) {
+                        fake_hal_gatt_iface_->NotifyConnectCallback(
+                            connId, BT_STATUS_SUCCESS, client_id, *bd_addr);
+                      }),
+                      Return(BT_STATUS_SUCCESS)));
 
   EXPECT_TRUE(le_client_->Connect(kTestAddressStr, kTestDirect));
   EXPECT_EQ(1, delegate.connection_state_count());
@@ -290,15 +284,14 @@ TEST_F(LowEnergyClientPostRegisterTest, Connect) {
   // TODO(jpawlowski): same as above
   // These should succeed and result in a HAL call
   EXPECT_CALL(*mock_handler_, Disconnect(le_client_->GetInstanceId(),
-        Pointee(BitEq(kTestAddress)), connId))
+                                         Pointee(BitEq(kTestAddress)), connId))
       .Times(1)
       .WillOnce(DoAll(
-        Invoke([&](int client_id, const bt_bdaddr_t *bd_addr, int connId){
-          fake_hal_gatt_iface_->NotifyDisconnectCallback(connId,
-                                                         BT_STATUS_SUCCESS,
-                                                         client_id, *bd_addr);
-        }),
-        Return(BT_STATUS_SUCCESS)));
+          Invoke([&](int client_id, const bt_bdaddr_t* bd_addr, int connId) {
+            fake_hal_gatt_iface_->NotifyDisconnectCallback(
+                connId, BT_STATUS_SUCCESS, client_id, *bd_addr);
+          }),
+          Return(BT_STATUS_SUCCESS)));
 
   EXPECT_TRUE(le_client_->Disconnect(kTestAddressStr));
   EXPECT_EQ(2, delegate.connection_state_count());
@@ -306,7 +299,6 @@ TEST_F(LowEnergyClientPostRegisterTest, Connect) {
   le_client_->SetDelegate(nullptr);
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 }
-
 
 }  // namespace
 }  // namespace bluetooth

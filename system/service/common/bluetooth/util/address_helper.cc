@@ -31,25 +31,21 @@ bool IsAddressValid(const std::string& address) {
 bool BdAddrFromString(const std::string& address, bt_bdaddr_t* out_addr) {
   CHECK(out_addr);
 
-  if (address.length() != 17)
-    return false;
+  if (address.length() != 17) return false;
 
   std::vector<std::string> byte_tokens = base::SplitString(
       address, ":", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
-  if (byte_tokens.size() != 6)
-    return false;
+  if (byte_tokens.size() != 6) return false;
 
   for (int i = 0; i < 6; i++) {
     const auto& token = byte_tokens[i];
 
-    if (token.length() != 2)
-      return false;
+    if (token.length() != 2) return false;
 
     char* temp = nullptr;
     out_addr->address[i] = strtol(token.c_str(), &temp, 16);
-    if (*temp != '\0')
-      return false;
+    if (*temp != '\0') return false;
   }
 
   return true;

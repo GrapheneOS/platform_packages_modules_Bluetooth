@@ -21,22 +21,20 @@
 
 #include "btcore/include/uuid.h"
 
-static const char *UUID_EMPTY = "00000000-0000-0000-0000-000000000000";
-static const char *UUID_ONES = "11111111-1111-1111-1111-111111111111";
-static const char *UUID_SEQUENTIAL = "01234567-89ab-cdef-ABCD-EF0123456789";
-static const char *UUID_BASE = "00000000-0000-1000-8000-00805f9b34fb";
+static const char* UUID_EMPTY = "00000000-0000-0000-0000-000000000000";
+static const char* UUID_ONES = "11111111-1111-1111-1111-111111111111";
+static const char* UUID_SEQUENTIAL = "01234567-89ab-cdef-ABCD-EF0123456789";
+static const char* UUID_BASE = "00000000-0000-1000-8000-00805f9b34fb";
 
 class UuidTest : public AllocationTestHarness {
-  protected:
-    virtual void SetUp() {
-    }
+ protected:
+  virtual void SetUp() {}
 
-    virtual void TearDown() {
-    }
+  virtual void TearDown() {}
 };
 
 TEST_F(UuidTest, new_from_string) {
-  bt_uuid_t *uuid;
+  bt_uuid_t* uuid;
 
   uuid = uuid_new("incorrect length");
   EXPECT_EQ(NULL, uuid);
@@ -91,7 +89,7 @@ TEST_F(UuidTest, new_from_string) {
 }
 
 TEST_F(UuidTest, uuid_is_empty) {
-  bt_uuid_t *uuid = NULL;
+  bt_uuid_t* uuid = NULL;
 
   uuid = uuid_new(UUID_EMPTY);
   ASSERT_TRUE(uuid != NULL);
@@ -105,7 +103,7 @@ TEST_F(UuidTest, uuid_is_empty) {
 }
 
 TEST_F(UuidTest, uuid_128_to_16) {
-  bt_uuid_t *uuid = NULL;
+  bt_uuid_t* uuid = NULL;
   uint16_t uuid16 = 0xffff;
 
   uuid = uuid_new(UUID_ONES);
@@ -121,7 +119,7 @@ TEST_F(UuidTest, uuid_128_to_16) {
 }
 
 TEST_F(UuidTest, uuid_128_to_32) {
-  bt_uuid_t *uuid = NULL;
+  bt_uuid_t* uuid = NULL;
   uint32_t uuid32 = 0xffffffff;
 
   uuid = uuid_new(UUID_ONES);
@@ -137,9 +135,9 @@ TEST_F(UuidTest, uuid_128_to_32) {
 }
 
 TEST_F(UuidTest, uuid_to_string) {
-  bt_uuid_t *uuid = NULL;
+  bt_uuid_t* uuid = NULL;
 
-  uuid_string_t *uuid_string = uuid_string_new();
+  uuid_string_t* uuid_string = uuid_string_new();
   EXPECT_TRUE(uuid_string != NULL);
 
   uuid = uuid_new(UUID_BASE);
@@ -155,8 +153,8 @@ TEST_F(UuidTest, uuid_to_string) {
   uuid_to_string(uuid, uuid_string);
   uuid_free(uuid);
 
-  char lower_case_buf[36+1];
-  for (int i = 0; i < 36+1; i++) {
+  char lower_case_buf[36 + 1];
+  for (int i = 0; i < 36 + 1; i++) {
     lower_case_buf[i] = tolower(UUID_SEQUENTIAL[i]);
   }
   EXPECT_TRUE(!strcmp(lower_case_buf, uuid_string_data(uuid_string)));

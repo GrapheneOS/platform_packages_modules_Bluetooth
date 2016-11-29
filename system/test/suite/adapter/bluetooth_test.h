@@ -78,17 +78,14 @@ class BluetoothTest : public ::testing::Test,
   void TearDown() override;
 
   // A callback that is called when a property changes
-  void AdapterPropertiesCallback(
-      bt_status_t status,
-      int num_properties,
-      bt_property_t *properties) override;
+  void AdapterPropertiesCallback(bt_status_t status, int num_properties,
+                                 bt_property_t* properties) override;
 
   // A callback that is called when the remote device's property changes
-  void RemoteDevicePropertiesCallback(
-      bt_status_t status,
-      bt_bdaddr_t *remote_bd_addr,
-      int num_properties,
-      bt_property_t *properties) override;
+  void RemoteDevicePropertiesCallback(bt_status_t status,
+                                      bt_bdaddr_t* remote_bd_addr,
+                                      int num_properties,
+                                      bt_property_t* properties) override;
 
   // A callback that is called when the adapter state changes
   void AdapterStateChangedCallback(bt_state_t state) override;
@@ -109,10 +106,10 @@ class BluetoothTest : public ::testing::Test,
 
   bt_state_t state_;
   int properties_changed_count_;
-  bt_property_t *last_changed_properties_;
+  bt_property_t* last_changed_properties_;
   bt_bdaddr_t curr_remote_device_;
   int remote_device_properties_changed_count_;
-  bt_property_t *remote_device_last_changed_properties_;
+  bt_property_t* remote_device_last_changed_properties_;
   bt_discovery_state_t discovery_state_;
   bt_acl_state_t acl_state_;
   bt_bond_state_t bond_state_;

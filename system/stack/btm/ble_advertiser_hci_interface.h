@@ -31,7 +31,7 @@ class BleAdvertiserHciInterface {
   using status_cb = base::Callback<void(uint8_t /* status */)>;
 
   static void Initialize();
-  static BleAdvertiserHciInterface *Get();
+  static BleAdvertiserHciInterface* Get();
   static void CleanUp();
 
   virtual ~BleAdvertiserHciInterface() = default;
@@ -44,19 +44,21 @@ class BleAdvertiserHciInterface {
                                            uint16_t connection_handle) = 0;
   };
 
-  virtual void SetAdvertisingEventObserver(AdvertisingEventObserver *observer) = 0;
-  virtual void ReadInstanceCount(base::Callback<void(uint8_t /* inst_cnt*/)> cb) = 0;
+  virtual void SetAdvertisingEventObserver(
+      AdvertisingEventObserver* observer) = 0;
+  virtual void ReadInstanceCount(
+      base::Callback<void(uint8_t /* inst_cnt*/)> cb) = 0;
   virtual void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
                              uint8_t advertising_type, uint8_t own_address_type,
                              BD_ADDR own_address, uint8_t direct_address_type,
                              BD_ADDR direct_address, uint8_t channel_map,
                              uint8_t filter_policy, uint8_t inst_id,
                              uint8_t tx_power, status_cb command_complete) = 0;
-  virtual void SetAdvertisingData(uint8_t data_length, uint8_t *data,
+  virtual void SetAdvertisingData(uint8_t data_length, uint8_t* data,
                                   uint8_t inst_id,
                                   status_cb command_complete) = 0;
   virtual void SetScanResponseData(uint8_t scan_response_data_length,
-                                   uint8_t *scan_response_data, uint8_t inst_id,
+                                   uint8_t* scan_response_data, uint8_t inst_id,
                                    status_cb command_complete) = 0;
   virtual void SetRandomAddress(BD_ADDR random_address, uint8_t inst_id,
                                 status_cb command_complete) = 0;

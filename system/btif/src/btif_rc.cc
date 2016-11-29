@@ -1413,32 +1413,33 @@ static uint8_t fill_attribute_id_array(
   uint8_t out_attribute_number = 0;
   if (cmd_attribute_number == 0) {
     /* All attributes */
-    out_attribute_number =
-        out_array_size < AVRC_MAX_NUM_MEDIA_ATTR_ID ?
-            out_array_size : AVRC_MAX_NUM_MEDIA_ATTR_ID;
+    out_attribute_number = out_array_size < AVRC_MAX_NUM_MEDIA_ATTR_ID
+                               ? out_array_size
+                               : AVRC_MAX_NUM_MEDIA_ATTR_ID;
     for (int i = 0; i < out_attribute_number; i++) {
-      out_attribute_id_array[i] = (btrc_media_attr_t) (i + 1);
+      out_attribute_id_array[i] = (btrc_media_attr_t)(i + 1);
     }
   } else if (cmd_attribute_number != 0xFF) {
     /* Attribute List */
     out_attribute_number = 0;
     int filled_id_count = 0;
-    for (int i = 0; (i < cmd_attribute_number)
-            && (out_attribute_number < out_array_size)
-            && (out_attribute_number < AVRC_MAX_NUM_MEDIA_ATTR_ID); i++) {
+    for (int i = 0; (i < cmd_attribute_number) &&
+                    (out_attribute_number < out_array_size) &&
+                    (out_attribute_number < AVRC_MAX_NUM_MEDIA_ATTR_ID);
+         i++) {
       /* Fill only valid entries */
       if (AVRC_IS_VALID_MEDIA_ATTRIBUTE(cmd_attribute_id_array[i])) {
         /* Skip the duplicate entries */
         for (filled_id_count = 0; filled_id_count < out_attribute_number;
-            filled_id_count++) {
-          if (out_attribute_id_array[filled_id_count]
-              == cmd_attribute_id_array[i])
+             filled_id_count++) {
+          if (out_attribute_id_array[filled_id_count] ==
+              cmd_attribute_id_array[i])
             break;
         }
         /* New ID */
         if (filled_id_count == out_attribute_number) {
           out_attribute_id_array[out_attribute_number] =
-              (btrc_media_attr_t) cmd_attribute_id_array[i];
+              (btrc_media_attr_t)cmd_attribute_id_array[i];
           out_attribute_number++;
         }
       }

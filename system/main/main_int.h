@@ -26,10 +26,10 @@ extern "C" {
 #endif
 
 /* Initiates the logging for C++ */
-void init_cpp_logging(config_t *config);
+void init_cpp_logging(config_t* config);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // MAIN_INT_H
+#endif  // MAIN_INT_H

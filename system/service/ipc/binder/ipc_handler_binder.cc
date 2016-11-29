@@ -35,14 +35,11 @@ namespace ipc {
 
 std::string kServiceName = "bluetooth-service";
 
-IPCHandlerBinder::IPCHandlerBinder(
-    bluetooth::Adapter* adapter,
-    IPCManager::Delegate* delegate)
-    : IPCHandler(adapter, delegate) {
-}
+IPCHandlerBinder::IPCHandlerBinder(bluetooth::Adapter* adapter,
+                                   IPCManager::Delegate* delegate)
+    : IPCHandler(adapter, delegate) {}
 
-IPCHandlerBinder::~IPCHandlerBinder() {
-}
+IPCHandlerBinder::~IPCHandlerBinder() {}
 
 bool IPCHandlerBinder::Run() {
   CHECK(adapter());
@@ -51,8 +48,7 @@ bool IPCHandlerBinder::Run() {
   android::sp<binder::BluetoothBinderServer> bt_server =
       new binder::BluetoothBinderServer(adapter());
   status_t status = defaultServiceManager()->addService(
-      String16(String8(kServiceName.c_str())),
-      bt_server);
+      String16(String8(kServiceName.c_str())), bt_server);
   if (status != android::NO_ERROR) {
     LOG(ERROR) << "Failed to register Bluetooth service with ServiceManager";
     return false;
@@ -61,8 +57,7 @@ bool IPCHandlerBinder::Run() {
   // Notify the delegate. We do this in the message loop to avoid reentrancy.
   if (delegate()) {
     base::MessageLoop::current()->task_runner()->PostTask(
-        FROM_HERE,
-        base::Bind(&IPCHandlerBinder::NotifyStarted, this));
+        FROM_HERE, base::Bind(&IPCHandlerBinder::NotifyStarted, this));
   }
 
   android::ProcessState::self()->startThreadPool();
@@ -78,8 +73,7 @@ void IPCHandlerBinder::Stop() {
 }
 
 void IPCHandlerBinder::NotifyStarted() {
-  if (delegate())
-    delegate()->OnIPCHandlerStarted(IPCManager::TYPE_BINDER);
+  if (delegate()) delegate()->OnIPCHandlerStarted(IPCManager::TYPE_BINDER);
 }
 
 }  // namespace ipc

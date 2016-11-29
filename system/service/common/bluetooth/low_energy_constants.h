@@ -55,11 +55,7 @@ enum GATTError {
   GATT_ERROR_OUT_OF_RANGE = 0xFF
 };
 
-enum Transport {
-  TRANSPORT_AUTO = 0,
-  TRANSPORT_BREDR = 1,
-  TRANSPORT_LE = 2
-};
+enum Transport { TRANSPORT_AUTO = 0, TRANSPORT_BREDR = 1, TRANSPORT_LE = 2 };
 
 // Android attribute permission values
 const uint16_t kAttributePermissionNone = 0x0;

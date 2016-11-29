@@ -20,28 +20,21 @@
 
 #include "service/common/bluetooth/util/address_helper.h"
 
-
 namespace bluetooth {
 
 ScanResult::ScanResult(const std::string& device_address,
-                       const std::vector<uint8_t>& scan_record,
-                       int rssi)
-    : device_address_(device_address),
-      scan_record_(scan_record),
-      rssi_(rssi) {
+                       const std::vector<uint8_t>& scan_record, int rssi)
+    : device_address_(device_address), scan_record_(scan_record), rssi_(rssi) {
   CHECK(util::IsAddressValid(device_address)) << "Invalid BD_ADDR given: "
                                               << device_address;
 }
 
 bool ScanResult::operator==(const ScanResult& rhs) const {
-  if (device_address_ != rhs.device_address_)
-    return false;
+  if (device_address_ != rhs.device_address_) return false;
 
-  if (scan_record_ != rhs.scan_record_)
-    return false;
+  if (scan_record_ != rhs.scan_record_) return false;
 
-  if (rssi_ != rhs.rssi_)
-    return false;
+  if (rssi_ != rhs.rssi_) return false;
 
   return true;
 }

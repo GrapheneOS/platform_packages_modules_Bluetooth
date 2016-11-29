@@ -372,8 +372,7 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t* bd_addr,
     memcpy(sdp_uuid.uu.uuid128, service_uuid, sizeof(sdp_uuid.uu.uuid128));
 
     if (!is_requesting_sdp()) {
-      BTA_JvStartDiscovery((uint8_t*)bd_addr->address, 1, &sdp_uuid,
-                           slot->id);
+      BTA_JvStartDiscovery((uint8_t*)bd_addr->address, 1, &sdp_uuid, slot->id);
       slot->f.pending_sdp_request = false;
       slot->f.doing_sdp_request = true;
     } else {

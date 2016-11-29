@@ -54,8 +54,7 @@ size_t GetScanRecordLength(vector<uint8_t> bytes) {
     // If the field length is zero and we haven't reached the maximum length,
     // then we have found the length, as the stack will pad the data with zeros
     // accordingly.
-    if (field_len == 0)
-      return i;
+    if (field_len == 0) return i;
   }
 
   // We have reached the end.
@@ -82,12 +81,12 @@ LowEnergyScanner::~LowEnergyScanner() {
   // Unregister as observer so we no longer receive any callbacks.
   hal::BluetoothGattInterface::Get()->RemoveScannerObserver(this);
 
-  hal::BluetoothGattInterface::Get()->
-      GetScannerHALInterface()->unregister_scanner(scanner_id_);
+  hal::BluetoothGattInterface::Get()
+      ->GetScannerHALInterface()
+      ->unregister_scanner(scanner_id_);
 
   // Stop any scans started by this client.
-  if (scan_started_.load())
-    StopScan();
+  if (scan_started_.load()) StopScan();
 }
 
 void LowEnergyScanner::SetDelegate(Delegate* delegate) {
@@ -96,7 +95,7 @@ void LowEnergyScanner::SetDelegate(Delegate* delegate) {
 }
 
 bool LowEnergyScanner::StartScan(const ScanSettings& settings,
-                                const std::vector<ScanFilter>& filters) {
+                                 const std::vector<ScanFilter>& filters) {
   VLOG(2) << __func__;
 
   // Cannot start a scan if the adapter is not enabled.
@@ -106,8 +105,8 @@ bool LowEnergyScanner::StartScan(const ScanSettings& settings,
   }
 
   // TODO(jpawlowski): Push settings and filtering logic below the HAL.
-  bt_status_t status = hal::BluetoothGattInterface::Get()->
-      StartScan(scanner_id_);
+  bt_status_t status =
+      hal::BluetoothGattInterface::Get()->StartScan(scanner_id_);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to initiate scanning for client: " << scanner_id_;
     return false;
@@ -123,8 +122,8 @@ bool LowEnergyScanner::StopScan() {
   // TODO(armansito): We don't support batch scanning yet so call
   // StopRegularScanForClient directly. In the future we will need to
   // conditionally call a batch scan API here.
-  bt_status_t status = hal::BluetoothGattInterface::Get()->
-      StopScan(scanner_id_);
+  bt_status_t status =
+      hal::BluetoothGattInterface::Get()->StopScan(scanner_id_);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to stop scan for client: " << scanner_id_;
     return false;
@@ -138,25 +137,22 @@ const UUID& LowEnergyScanner::GetAppIdentifier() const {
   return app_identifier_;
 }
 
-int LowEnergyScanner::GetInstanceId() const {
-  return scanner_id_;
-}
+int LowEnergyScanner::GetInstanceId() const { return scanner_id_; }
 
 void LowEnergyScanner::ScanResultCallback(
-    hal::BluetoothGattInterface* gatt_iface,
-    const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
+    hal::BluetoothGattInterface* gatt_iface, const bt_bdaddr_t& bda, int rssi,
+    vector<uint8_t> adv_data) {
   // Ignore scan results if this client didn't start a scan.
-  if (!scan_started_.load())
-    return;
+  if (!scan_started_.load()) return;
 
   lock_guard<mutex> lock(delegate_mutex_);
-  if (!delegate_)
-    return;
+  if (!delegate_) return;
 
   // TODO(armansito): Apply software filters here.
 
   size_t record_len = GetScanRecordLength(adv_data);
-  std::vector<uint8_t> scan_record(adv_data.begin(), adv_data.begin() + record_len);
+  std::vector<uint8_t> scan_record(adv_data.begin(),
+                                   adv_data.begin() + record_len);
 
   ScanResult result(BtAddrString(&bda), scan_record, rssi);
 
@@ -166,7 +162,8 @@ void LowEnergyScanner::ScanResultCallback(
 // LowEnergyScannerFactory implementation
 // ========================================================
 
-LowEnergyScannerFactory::LowEnergyScannerFactory(Adapter& adapter) : adapter_(adapter) {
+LowEnergyScannerFactory::LowEnergyScannerFactory(Adapter& adapter)
+    : adapter_(adapter) {
   hal::BluetoothGattInterface::Get()->AddScannerObserver(this);
 }
 
@@ -175,8 +172,7 @@ LowEnergyScannerFactory::~LowEnergyScannerFactory() {
 }
 
 bool LowEnergyScannerFactory::RegisterInstance(
-    const UUID& uuid,
-    const RegisterCallback& callback) {
+    const UUID& uuid, const RegisterCallback& callback) {
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
   lock_guard<mutex> lock(pending_calls_lock_);
 
@@ -190,8 +186,7 @@ bool LowEnergyScannerFactory::RegisterInstance(
       hal::BluetoothGattInterface::Get()->GetScannerHALInterface();
   bt_uuid_t app_uuid = uuid.GetBlueDroid();
 
-  if (hal_iface->register_scanner(&app_uuid) != BT_STATUS_SUCCESS)
-    return false;
+  if (hal_iface->register_scanner(&app_uuid) != BT_STATUS_SUCCESS) return false;
 
   pending_calls_[uuid] = callback;
 
@@ -199,8 +194,7 @@ bool LowEnergyScannerFactory::RegisterInstance(
 }
 
 void LowEnergyScannerFactory::RegisterScannerCallback(
-    hal::BluetoothGattInterface* gatt_iface,
-    int status, int scanner_id,
+    hal::BluetoothGattInterface* gatt_iface, int status, int scanner_id,
     const bt_uuid_t& app_uuid) {
   UUID uuid(app_uuid);
 
@@ -229,6 +223,5 @@ void LowEnergyScannerFactory::RegisterScannerCallback(
 
   pending_calls_.erase(iter);
 }
-
 
 }  // namespace bluetooth
