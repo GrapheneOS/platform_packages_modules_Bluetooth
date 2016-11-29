@@ -78,7 +78,8 @@ typedef enum {
     AUDIO_A2DP_STATE_STARTED,
     AUDIO_A2DP_STATE_STOPPING,
     AUDIO_A2DP_STATE_STOPPED,
-    AUDIO_A2DP_STATE_SUSPENDED, /* need explicit set param call to resume (suspend=false) */
+    /* need explicit set param call to resume (suspend=false) */
+    AUDIO_A2DP_STATE_SUSPENDED,
     AUDIO_A2DP_STATE_STANDBY    /* allows write to autoresume */
 } a2dp_state_t;
 
@@ -1294,8 +1295,8 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     }
 
     DEBUG("success");
-    /* Delay to ensure Headset is in proper state when START is initiated
-       from DUT immediately after the connection due to ongoing music playback. */
+    /* Delay to ensure Headset is in proper state when START is initiated from
+     * DUT immediately after the connection due to ongoing music playback. */
     usleep(250000);
     return 0;
 

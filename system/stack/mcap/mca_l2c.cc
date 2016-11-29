@@ -564,7 +564,8 @@ void mca_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
  *
  * Function         mca_l2c_open_req
  *
- * Description      This function calls L2CA_ConnectReq() to initiate a L2CAP channel.
+ * Description      This function calls L2CA_ConnectReq() to initiate a L2CAP
+ *                  channel.
  *
  * Returns          void.
  *

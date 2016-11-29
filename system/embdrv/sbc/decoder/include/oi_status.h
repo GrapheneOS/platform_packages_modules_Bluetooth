@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -36,7 +37,7 @@ extern "C" {
    /** test it **/
 
 /**
- * OI_STATUS must fit in 16 bits, so status codes can range from 0 to 66535, inclusive.
+ * OI_STATUS is 16 bits, so status codes can range from 0 to 66535, inclusive.
  */
 
 typedef enum {

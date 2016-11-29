@@ -56,17 +56,23 @@ enum {
 typedef void (tHID_HOST_SDP_CALLBACK) (uint16_t result, uint16_t attr_mask,
                                        tHID_DEV_SDP_INFO *sdp_rec );
 
-/* HID-HOST returns the events in the following table to the application via tHID_HOST_DEV_CALLBACK
-HID_HDEV_EVT_OPEN   Connected to device with Interrupt and Control Channels in OPEN state.
-                                                        Data = NA
-HID_HDEV_EVT_CLOSE  Connection with device is closed.   Data=reason code.
-HID_HDEV_EVT_RETRYING   Lost connection is being re-connected.
-                                                        Data=Retrial number
-HID_HDEV_EVT_IN_REPORT  Device sent an input report     Data=Report Type pdata= pointer to BT_HDR
-                                                        (GKI buffer having report data.)
-HID_HDEV_EVT_HANDSHAKE  Device sent SET_REPORT          Data=Result-code pdata=NA.
-HID_HDEV_EVT_VC_UNPLUG  Device sent Virtual Unplug      Data=NA. pdata=NA.
-*/
+/* HID-HOST returns the events in the following table to the application via
+ * tHID_HOST_DEV_CALLBACK
+ * HID_HDEV_EVT_OPEN  Connected to device with Interrupt and Control Channels
+ *                    in OPEN state.
+ *                                                      Data = NA
+ * HID_HDEV_EVT_CLOSE Connection with device is closed. Data = reason code.
+ * HID_HDEV_EVT_RETRYING   Lost connection is being re-connected.
+ *                                                      Data = Retrial number
+ * HID_HDEV_EVT_IN_REPORT  Device sent an input report  Data = Report Type
+ *                                                      pdata = pointer to
+ *                                                              BT_HDR
+ *                                                      (GKI buffer with report
+ *                                                       data.)
+ * HID_HDEV_EVT_HANDSHAKE  Device sent SET_REPORT       Data = Result-code
+ *                                                      pdata = NA.
+ * HID_HDEV_EVT_VC_UNPLUG  Device sent Virtual Unplug   Data = NA. pdata = NA.
+ */
 
 enum
 {
@@ -143,7 +149,8 @@ extern tHID_STATUS HID_HostAddDev (BD_ADDR addr, uint16_t attr_mask,
  *
  * Function         HID_HostRemoveDev
  *
- * Description      This removes the device from list devices that host has to manage.
+ * Description      Removes the device from the list of devices that the host
+ *                  has to manage.
  *
  * Returns          tHID_STATUS
  *
@@ -189,7 +196,7 @@ extern tHID_STATUS HID_HostCloseDev(uint8_t dev_handle );
 /*******************************************************************************
  * Function         HID_HostInit
  *
- * Description      This function initializes the control block and trace variable
+ * Description      Initialize the control block and trace variable
  *
  * Returns          void
  ******************************************************************************/
@@ -221,8 +228,8 @@ bool    hid_known_hid_device (BD_ADDR bd_addr);
  *
  * Function         HID_HostSetTraceLevel
  *
- * Description      This function sets the trace level for HID Host. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
+ * Description      Set the trace level for HID Host. If called with the value
+ *                  0xFF, it simply reads the current trace level.
  *
  * Returns          the new (current) trace level
  *

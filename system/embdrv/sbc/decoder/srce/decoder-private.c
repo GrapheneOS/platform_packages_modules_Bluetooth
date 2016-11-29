@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -82,8 +83,9 @@ INLINE OI_STATUS internal_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT *context,
 
 
 /**
- * Read the SBC header up to but not including the joint stereo mask.  The syncword has already been
- * examined, and the enhanced mode flag set, by FindSyncword.
+ * Read the SBC header up to but not including the joint stereo mask. The
+ * syncword has already been examined, and the enhanced mode flag set, by
+ * FindSyncword.
  */
 INLINE void OI_SBC_ReadHeader(OI_CODEC_SBC_COMMON_CONTEXT *common, const OI_BYTE *data)
 {

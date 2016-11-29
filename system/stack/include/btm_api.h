@@ -53,9 +53,9 @@ extern "C" {
  *
  * Function         BTM_DeviceReset
  *
- * Description      This function is called to reset the controller.The Callback function
- *                  if provided is called when startup of the device has
- *                  completed.
+ * Description      This function is called to reset the controller.  The
+ *                  Callback function if provided is called when startup of the
+ *                  device has completed.
  *
  * Returns          void
  *
@@ -155,8 +155,8 @@ extern uint8_t *BTM_ReadLocalFeatures (void);
  * Description      This function is called to register for device status
  *                  change notifications.
  *
- * Returns          pointer to previous caller's callback function or NULL if first
- *                  registration.
+ * Returns          pointer to previous caller's callback function or NULL if
+ *                  first registration.
  *
  ******************************************************************************/
 extern tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb);
@@ -170,7 +170,7 @@ extern tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB 
  *                  specific HCI events.
  *
  *                  If is_register=true, then the function will be registered;
- *                  if is_register=false, then the function will be deregistered.
+ *                  otherwise the function will be deregistered.
  *
  * Returns          BTM_SUCCESS if successful,
  *                  BTM_BUSY if maximum number of callbacks have already been
@@ -279,9 +279,9 @@ extern void BTM_WriteVoiceSettings(uint16_t settings);
 extern tBTM_STATUS BTM_EnableTestMode(void);
 
 
-/*****************************************************************************
- *  DEVICE DISCOVERY FUNCTIONS - Inquiry, Remote Name, Discovery, Class of Device
- ****************************************************************************/
+/*******************************************************************************
+ * DEVICE DISCOVERY FUNCTIONS - Inquiry, Remote Name, Discovery, Class of Device
+ ******************************************************************************/
 
 /*******************************************************************************
  *
@@ -289,8 +289,8 @@ extern tBTM_STATUS BTM_EnableTestMode(void);
  *
  * Description      This function is called to set the device into or out of
  *                  discoverable mode. Discoverable mode means inquiry
- *                  scans are enabled.  If a value of '0' is entered for window or
- *                  interval, the default values are used.
+ *                  scans are enabled.  If a value of '0' is entered for window
+ *                  or interval, the default values are used.
  *
  * Returns          BTM_SUCCESS if successful
  *                  BTM_BUSY if a setting of the filter is already in progress
@@ -325,20 +325,28 @@ extern uint16_t     BTM_ReadDiscoverability (uint16_t *p_window,
  *
  * Function         BTM_SetPeriodicInquiryMode
  *
- * Description      This function is called to set the device periodic inquiry mode.
- *                  If the duration is zero, the periodic inquiry mode is cancelled.
+ * Description      This function is called to set the device periodic inquiry
+ *                  mode. If the duration is zero, the periodic inquiry mode is
+ *                  cancelled.
  *
  * Parameters:      p_inqparms - pointer to the inquiry information
  *                      mode - GENERAL or LIMITED inquiry
- *                      duration - length in 1.28 sec intervals (If '0', the inquiry is CANCELLED)
- *                      max_resps - maximum amount of devices to search for before ending the inquiry
- *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER, BTM_FILTER_COND_DEVICE_CLASS, or
+ *                      duration - length in 1.28 sec intervals (If '0', the
+ *                                 inquiry is CANCELLED)
+ *                      max_resps - maximum amount of devices to search for
+ *                                  before ending the inquiry
+ *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER,
+ *                                         BTM_FILTER_COND_DEVICE_CLASS, or
  *                                         BTM_FILTER_COND_BD_ADDR
- *                      filter_cond - value for the filter (based on filter_cond_type)
+ *                      filter_cond - value for the filter (based on
+ *                                                          filter_cond_type)
  *
- *                  max_delay - maximum amount of time between successive inquiries
- *                  min_delay - minimum amount of time between successive inquiries
- *                  p_results_cb - callback returning pointer to results (tBTM_INQ_RESULTS)
+ *                  max_delay - maximum amount of time between successive
+ *                              inquiries
+ *                  min_delay - minimum amount of time between successive
+ *                              inquiries
+ *                  p_results_cb - callback returning pointer to results
+ *                              (tBTM_INQ_RESULTS)
  *
  * Returns          BTM_CMD_STARTED if successfully started
  *                  BTM_ILLEGAL_VALUE if a bad parameter is detected
@@ -361,24 +369,31 @@ extern tBTM_STATUS  BTM_SetPeriodicInquiryMode (tBTM_INQ_PARMS *p_inqparms,
  *
  * Parameters:      p_inqparms - pointer to the inquiry information
  *                      mode - GENERAL or LIMITED inquiry
- *                      duration - length in 1.28 sec intervals (If '0', the inquiry is CANCELLED)
- *                      max_resps - maximum amount of devices to search for before ending the inquiry
- *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER, BTM_FILTER_COND_DEVICE_CLASS, or
+ *                      duration - length in 1.28 sec intervals (If '0', the
+ *                                 inquiry is CANCELLED)
+ *                      max_resps - maximum amount of devices to search for
+ *                                  before ending the inquiry
+ *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER,
+ *                                         BTM_FILTER_COND_DEVICE_CLASS, or
  *                                         BTM_FILTER_COND_BD_ADDR
- *                      filter_cond - value for the filter (based on filter_cond_type)
+ *                      filter_cond - value for the filter (based on
+ *                                                          filter_cond_type)
  *
- *                  p_results_cb   - Pointer to the callback routine which gets called
- *                                upon receipt of an inquiry result. If this field is
- *                                NULL, the application is not notified.
+ *                  p_results_cb  - Pointer to the callback routine which gets
+ *                                called upon receipt of an inquiry result. If
+ *                                this field is NULL, the application is not
+ *                                notified.
  *
- *                  p_cmpl_cb   - Pointer to the callback routine which gets called
- *                                upon completion.  If this field is NULL, the
- *                                application is not notified when completed.
+ *                  p_cmpl_cb   - Pointer to the callback routine which gets
+ *                                called upon completion.  If this field is
+ *                                NULL, the application is not notified when
+ *                                completed.
  * Returns          tBTM_STATUS
  *                  BTM_CMD_STARTED if successfully initiated
  *                  BTM_BUSY if already in progress
  *                  BTM_ILLEGAL_VALUE if parameter(s) are out of range
- *                  BTM_NO_RESOURCES if could not allocate resources to start the command
+ *                  BTM_NO_RESOURCES if could not allocate resources to start
+ *                                   the command
  *                  BTM_WRONG_MODE if the device is not up.
  *
  ******************************************************************************/
@@ -391,7 +406,7 @@ extern tBTM_STATUS  BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms,
  *
  * Function         BTM_IsInquiryActive
  *
- * Description      This function returns a bit mask of the current inquiry state
+ * Description      Return a bit mask of the current inquiry state
  *
  * Returns          BTM_INQUIRY_INACTIVE if inactive (0)
  *                  BTM_LIMITED_INQUIRY_ACTIVE if a limted inquiry is active
@@ -436,7 +451,8 @@ extern tBTM_STATUS BTM_CancelPeriodicInquiry(void);
  * Function         BTM_SetConnectability
  *
  * Description      This function is called to set the device into or out of
- *                  connectable mode. Discoverable mode means page scans enabled.
+ *                  connectable mode. Discoverable mode means page scans are
+ *                  enabled.
  *
  * Returns          BTM_SUCCESS if successful
  *                  BTM_ILLEGAL_VALUE if a bad parameter is detected
@@ -519,20 +535,22 @@ extern tBTM_STATUS BTM_SetPageScanType (uint16_t scan_type);
  * Function         BTM_ReadRemoteDeviceName
  *
  * Description      This function initiates a remote device HCI command to the
- *                  controller and calls the callback when the process has completed.
+ *                  controller and calls the callback when the process has
+ *                  completed.
  *
  * Input Params:    remote_bda      - device address of name to retrieve
- *                  p_cb            - callback function called when BTM_CMD_STARTED
- *                                    is returned.
- *                                    A pointer to tBTM_REMOTE_DEV_NAME is passed to the
- *                                    callback.
+ *                  p_cb            - callback function called when
+ *                                    BTM_CMD_STARTED is returned.
+ *                                    A pointer to tBTM_REMOTE_DEV_NAME is
+ *                                    passed to the callback.
  *
  * Returns
- *                  BTM_CMD_STARTED is returned if the request was successfully sent
- *                                  to HCI.
+ *                  BTM_CMD_STARTED is returned if the request was successfully
+ *                                  sent to HCI.
  *                  BTM_BUSY if already in progress
  *                  BTM_UNKNOWN_ADDR if device address is bad
- *                  BTM_NO_RESOURCES if could not allocate resources to start the command
+ *                  BTM_NO_RESOURCES if resources could not be allocated to
+ *                                   start the command
  *                  BTM_WRONG_MODE if the device is not up.
  *
  ******************************************************************************/
@@ -551,10 +569,11 @@ extern tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda,
  * Input Params:    None
  *
  * Returns
- *                  BTM_CMD_STARTED is returned if the request was successfully sent
- *                                  to HCI.
- *                  BTM_NO_RESOURCES if could not allocate resources to start the command
- *                  BTM_WRONG_MODE if there is not an active remote name request.
+ *                  BTM_CMD_STARTED is returned if the request was successfully
+ *                                  sent to HCI.
+ *                  BTM_NO_RESOURCES if resources could not be allocated to
+ *                                   start the command
+ *                  BTM_WRONG_MODE if there is no active remote name request.
  *
  ******************************************************************************/
 extern tBTM_STATUS  BTM_CancelRemoteDeviceName (void);
@@ -611,8 +630,8 @@ extern uint8_t *BTM_ReadRemoteExtendedFeatures (BD_ADDR addr, uint8_t page_numbe
  *
  * Function         BTM_ReadNumberRemoteFeaturesPages
  *
- * Description      This function is called to retrieve the number of feature pages
- *                  read from the remote device
+ * Description      This function is called to retrieve the number of feature
+ *                  pages read from the remote device
  *
  * Returns          number of features pages read from the remote device
  *
@@ -623,13 +642,13 @@ extern uint8_t BTM_ReadNumberRemoteFeaturesPages (BD_ADDR addr);
  *
  * Function         BTM_ReadAllRemoteFeatures
  *
- * Description      This function is called to read all features of the remote device
+ * Description      Read all the features of the remote device
  *
  * Returns          pointer to the byte[0] of the page[0] of the remote device
  *                  feature mask.
  *
  * Note:            the function returns the pointer to the array of the size
- *                  BTM_FEATURE_BYTES_PER_PAGE * (BTM_EXT_FEATURES_PAGE_MAX + 1).
+ *                  BTM_FEATURE_BYTES_PER_PAGE * (BTM_EXT_FEATURES_PAGE_MAX + 1)
  *
  ******************************************************************************/
 extern uint8_t *BTM_ReadAllRemoteFeatures (BD_ADDR addr);
@@ -640,7 +659,8 @@ extern uint8_t *BTM_ReadAllRemoteFeatures (BD_ADDR addr);
  *
  * Description      This function looks through the inquiry database for a match
  *                  based on Bluetooth Device Address. This is the application's
- *                  interface to get the inquiry details of a specific BD address.
+ *                  interface to get the inquiry details of a specific BD
+ *                  address.
  *
  * Returns          pointer to entry, or NULL if not found
  *
@@ -652,10 +672,10 @@ extern tBTM_INQ_INFO *BTM_InqDbRead (const BD_ADDR p_bda);
  *
  * Function         BTM_InqDbFirst
  *
- * Description      This function looks through the inquiry database for the first
- *                  used entry, and returns that. This is used in conjunction with
- *                  BTM_InqDbNext by applications as a way to walk through the
- *                  inquiry database.
+ * Description      This function looks through the inquiry database for the
+ *                  first used entry, and returns that. This is used in
+ *                  conjunction with BTM_InqDbNext by applications as a way to
+ *                  walk through the inquiry database.
  *
  * Returns          pointer to first in-use entry, or NULL if DB is empty
  *
@@ -667,9 +687,9 @@ extern tBTM_INQ_INFO *BTM_InqDbFirst (void);
  *
  * Function         BTM_InqDbNext
  *
- * Description      This function looks through the inquiry database for the next
- *                  used entry, and returns that.  If the input parameter is NULL,
- *                  the first entry is returned.
+ * Description      This function looks through the inquiry database for the
+ *                  next used entry, and returns that.  If the input parameter
+ *                  is NULL, the first entry is returned.
  *
  * Returns          pointer to next in-use entry, or NULL if no more found.
  *
@@ -699,7 +719,8 @@ extern tBTM_STATUS  BTM_ClearInqDb (BD_ADDR p_bda);
  *
  * Description      This command will read the inquiry Transmit Power level used
  *                  to transmit the FHS and EIR data packets.
- *                  This can be used directly in the Tx Power Level EIR data type.
+ *                  This can be used directly in the Tx Power Level EIR data
+ *                  type.
  *
  * Returns          BTM_SUCCESS if successful
  *
@@ -759,9 +780,9 @@ extern tSDP_DISC_REC *BTM_FindService (uint16_t service_uuid,
  *
  * Function         BTM_SetDiscoveryParams
  *
- * Description      This function is called to set the BTM default discovery parameters.
- *                  These UUID and attribute filters are used during the call to
- *                  BTM_StartDiscovery.
+ * Description      This function is called to set the BTM default discovery
+ *                  parameters. These UUID and attribute filters are used during
+ *                  the call to BTM_StartDiscovery.
  *
  * Returns          void
  *
@@ -802,8 +823,8 @@ extern void BTM_SetDefaultLinkPolicy (uint16_t settings);
  *
  * Function         BTM_SetDefaultLinkSuperTout
  *
- * Description      Set the default value for HCI "Write Link Supervision Timeout"
- *                  command to use when an ACL link is created.
+ * Description      Set the default value for HCI "Write Link Supervision
+ *                  Timeout" command to use when an ACL link is created.
  *
  * Returns          void
  *
@@ -873,9 +894,11 @@ extern tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, uint8_t *p_role);
  *
  * Returns          BTM_SUCCESS if already in specified role.
  *                  BTM_CMD_STARTED if command issued to controller.
- *                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
+ *                  BTM_NO_RESOURCES if memory couldn't be allocated to issue
+ *                                   the command
  *                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
- *                  BTM_MODE_UNSUPPORTED if local device does not support role switching
+ *                  BTM_MODE_UNSUPPORTED if the local device does not support
+ *                                       role switching
  *
  ******************************************************************************/
 extern tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr,
@@ -887,11 +910,12 @@ extern tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr,
  * Function         BTM_ReadRSSI
  *
  * Description      This function is called to read the link policy settings.
- *                  The address of link policy results are returned in the callback.
- *                  (tBTM_RSSI_RESULTS)
+ *                  The address of link policy results are returned in the
+ *                  callback. (tBTM_RSSI_RESULTS)
  *
  * Returns          BTM_CMD_STARTED if command issued to controller.
- *                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
+ *                  BTM_NO_RESOURCES if memory couldn't be allocated to issue
+ *                                   the command
  *                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
  *                  BTM_BUSY if command is already in progress
  *
@@ -909,7 +933,8 @@ extern tBTM_STATUS BTM_ReadRSSI (const BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb);
  *                  (tBTM_RSSI_RESULTS)
  *
  * Returns          BTM_CMD_STARTED if command issued to controller.
- *                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
+ *                  BTM_NO_RESOURCES if memory couldn't be allocated to issue
+ *                                   the command
  *                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
  *                  BTM_BUSY if command is already in progress
  *
@@ -926,7 +951,8 @@ extern tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda,
  *                  (tBTM_LINK_QUALITY_RESULTS)
  *
  * Returns          BTM_CMD_STARTED if command issued to controller.
- *                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
+ *                  BTM_NO_RESOURCES if memory couldn't be allocated to issue
+ *                                   the command
  *                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
  *                  BTM_BUSY if command is already in progress
  *
@@ -1082,8 +1108,7 @@ extern uint16_t BTM_ReadDeviceScoPacketTypes (void);
  *
  * Function         BTM_ReadScoHandle
  *
- * Description      This function is used to read the HCI handle used for a specific
- *                  SCO connection,
+ * Description      Reead the HCI handle used for a specific SCO connection,
  *
  * Returns          handle for the connection, or 0xFFFF if invalid SCO index.
  *
@@ -1168,15 +1193,15 @@ extern tBTM_STATUS BTM_RegForEScoEvts (uint16_t sco_inx,
  * Function         BTM_ReadEScoLinkParms
  *
  * Description      This function returns the current eSCO link parameters for
- *                  the specified handle.  This can be called anytime a connection
- *                  is active, but is typically called after receiving the SCO
- *                  opened callback.
+ *                  the specified handle.  This can be called anytime a
+ *                  connection is active, but is typically called after
+ *                  receiving the SCO opened callback.
  *
  *                  Note: If called over a 1.1 controller, only the packet types
  *                        field has meaning.
  *                  Note: If the upper layer doesn't know the current sco index,
- *                  BTM_FIRST_ACTIVE_SCO_INDEX can be used as the first parameter to
- *                  find the first active SCO index
+ *                  BTM_FIRST_ACTIVE_SCO_INDEX can be used as the first
+ *                  parameter to find the first active SCO index
  *
  * Returns          BTM_SUCCESS if returned data is valid connection.
  *                  BTM_ILLEGAL_VALUE if no connection for specified sco_inx.
@@ -1249,8 +1274,9 @@ extern uint8_t BTM_GetNumScoLinks (void);
  * Function         BTM_SecRegister
  *
  * Description      Application manager calls this function to register for
- *                  security services.  There can be one and only one application
- *                  saving link keys.  BTM allows only first registration.
+ *                  security services.  There can be one and only one
+ *                  application saving link keys.  BTM allows only first
+ *                  registration.
  *
  * Returns          true if registered OK, else false
  *
@@ -1275,7 +1301,8 @@ extern bool    BTM_SecRegisterLinkKeyNotificationCallback(
  * Function         BTM_SecAddRmtNameNotifyCallback
  *
  * Description      Profiles can register to be notified when name of the
- *                  remote device is resolved (up to BTM_SEC_MAX_RMT_NAME_CALLBACKS).
+ *                  remote device is resolved (up to
+ *                  BTM_SEC_MAX_RMT_NAME_CALLBACKS).
  *
  * Returns          true if registered OK, else false
  *
@@ -1313,8 +1340,10 @@ extern bool    BTM_GetSecurityFlags (BD_ADDR bd_addr, uint8_t * p_sec_flags);
  * Description      Get security flags for the device on a particular transport
  *
  * Parameters      bd_addr: BD address of remote device
- *                  p_sec_flags : Out parameter to be filled with security flags for the connection
- *                  transport :  Physical transport of the connection (BR/EDR or LE)
+ *                  p_sec_flags : Out parameter to be filled with security
+ *                                flags for the connection
+ *                  transport :  Physical transport of the connection
+ *                               (BR/EDR or LE)
  *
  * Returns          bool    true or false is device found
  *
@@ -1366,13 +1395,14 @@ extern void BTM_SetPairableMode (bool    allow_pairing, bool    connect_only_pai
  *
  * Function         BTM_SetSecureConnectionsOnly
  *
- * Description      Enable or disable default treatment for Mode 4 Level 0 services
+ * Description      Enable or disable default treatment for Mode 4 Level 0
+ *                  services
  *
  * Parameter        secure_connections_only_mode - (true or false)
- *                  true means that the device should treat Mode 4 Level 0 services as
- *                  services of other levels.
- *                  false means that the device should provide default treatment for
- *                  Mode 4 Level 0 services.
+ *                  true means that the device should treat Mode 4 Level 0
+ *                  services as services of other levels.
+ *                  false means that the device should provide default
+ *                  treatment for Mode 4 Level 0 services.
  *
  * Returns          void
  *
@@ -1385,8 +1415,8 @@ extern void BTM_SetSecureConnectionsOnly (bool    secure_connections_only_mode);
  *
  * Description      Register service security level with Security Manager.  Each
  *                  service must register its requirements regardless of the
- *                  security level that is used.  This API is called once for originators
- *                  nad again for acceptors of connections.
+ *                  security level that is used.  This API is called once for
+ *                  originators and again for acceptors of connections.
  *
  * Returns          true if registered OK, else false
  *
@@ -1412,11 +1442,10 @@ extern void BTM_SetOutService(BD_ADDR bd_addr, uint8_t service_id, uint32_t mx_c
  *
  * Function         BTM_SecClrService
  *
- * Description      Removes specified service record(s) from the security database.
- *                  All service records with the specified name are removed.
- *                  Typically used only by devices with limited RAM so that it can
- *                  reuse an old security service record.
- *                          records (except SDP).
+ * Description      Removes specified service record(s) from the security
+ *                  database. All service records with the specified name are
+ *                  removed. Typically used only by devices with limited RAM
+ *                  so that it can reuse an old security service record.
  *
  * Returns          Number of records that were freed.
  *
@@ -1430,7 +1459,8 @@ extern uint8_t BTM_SecClrService (uint8_t service_id);
  * Description      Add/modify device.  This function will be normally called
  *                  during host startup to restore all required information
  *                  stored in the NVRAM.
- *                  dev_class, bd_name, link_key, and features are NULL if unknown
+ *                  dev_class, bd_name, link_key, and features are NULL if
+ *                  unknown
  *
  * Returns          true if added OK, else false
  *
@@ -1502,11 +1532,14 @@ extern tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr);
  * Description      This function is called after Security Manager submitted
  *                  PIN code request to the UI.
  *
- * Parameters:      bd_addr      - Address of the device for which PIN was requested
- *                  res          - result of the operation BTM_SUCCESS if success
+ * Parameters:      bd_addr      - Address of the device for which PIN was
+ *                                 requested
+ *                  res          - result of the operation BTM_SUCCESS if
+ *                                 success
  *                  pin_len      - length in bytes of the PIN Code
  *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *                  trusted_mask - bitwise OR of trusted services
+ *                                 (array of uint32_t)
  *
  * Returns          void
  *
@@ -1524,8 +1557,8 @@ extern void BTM_PINCodeReply (BD_ADDR bd_addr, uint8_t res, uint8_t pin_len,
  * Parameters:      bd_addr      - Address of the device to bond
  *                  pin_len      - length in bytes of the PIN Code
  *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
-
+ *                  trusted_mask - bitwise OR of trusted services
+ *                                 (array of uint32_t)
  * Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
  *
  ******************************************************************************/
@@ -1537,13 +1570,15 @@ extern tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr,
  *
  * Function         BTM_SecBondByTransport
  *
- * Description      This function is called to perform bonding by designated transport
+ * Description      Perform bonding by designated transport
  *
  * Parameters:      bd_addr      - Address of the device to bond
  *                  pin_len      - length in bytes of the PIN Code
  *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
- *                  transport :  Physical transport to use for bonding (BR/EDR or LE)
+ *                  trusted_mask - bitwise OR of trusted services
+ *                                 (array of uint32_t)
+ *                  transport :  Physical transport to use for bonding
+ *                               (BR/EDR or LE)
  *
  * Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
  *
@@ -1578,10 +1613,11 @@ extern tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr);
  *                  transport     - Link transport
  *                  p_callback    - Pointer to callback function called if
  *                                  this function returns PENDING after required
- *                                  procedures are completed.  Can be set to NULL
- *                                  if status is not desired.
- *                  p_ref_data    - pointer to any data the caller wishes to receive
- *                                  in the callback function upon completion.
+ *                                  procedures are completed.  Can be set to
+ *                                  NULL if status is not desired.
+ *                  p_ref_data    - pointer to any data the caller wishes to
+ *                                  receive in the callback function upon
+ *                                  completion.
  *                                  can be set to NULL if not used.
  *                  sec_act       - LE security action, unused for BR/EDR
  *
@@ -1603,7 +1639,8 @@ extern tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport,
  * Description      This function is called to confirm the numeric value for
  *                  Simple Pairing in response to BTM_SP_CFM_REQ_EVT
  *
- * Parameters:      res           - result of the operation BTM_SUCCESS if success
+ * Parameters:      res           - result of the operation BTM_SUCCESS if
+ *                                  success
  *                  bd_addr       - Address of the peer device
  *
  ******************************************************************************/
@@ -1616,9 +1653,11 @@ extern void BTM_ConfirmReqReply(tBTM_STATUS res, BD_ADDR bd_addr);
  * Description      This function is called to provide the passkey for
  *                  Simple Pairing in response to BTM_SP_KEY_REQ_EVT
  *
- * Parameters:      res           - result of the operation BTM_SUCCESS if success
+ * Parameters:      res           - result of the operation BTM_SUCCESS if
+ *                                  success
  *                  bd_addr       - Address of the peer device
- *                  passkey       - numeric value in the range of 0 - 999999(0xF423F).
+ *                  passkey       - numeric value in the range of
+ *                                  0 - 999999(0xF423F).
  *
  ******************************************************************************/
 extern void BTM_PasskeyReqReply(tBTM_STATUS res, BD_ADDR bd_addr, uint32_t passkey);
@@ -1630,8 +1669,8 @@ extern void BTM_PasskeyReqReply(tBTM_STATUS res, BD_ADDR bd_addr, uint32_t passk
  * Description      This function is used during the passkey entry model
  *                  by a device with KeyboardOnly IO capabilities
  *                  (very likely to be a HID Device).
- *                  It is called by a HID Device to inform the remote device when
- *                  a key has been entered or erased.
+ *                  It is called by a HID Device to inform the remote device
+ *                  when a key has been entered or erased.
  *
  * Parameters:      bd_addr - Address of the peer device
  *                  type - notification type
@@ -1644,9 +1683,9 @@ extern void BTM_SendKeypressNotif(BD_ADDR bd_addr, tBTM_SP_KEY_TYPE type);
  * Function         BTM_IoCapRsp
  *
  * Description      This function is called in response to BTM_SP_IO_REQ_EVT
- *                  When the event data io_req.oob_data is set to BTM_OOB_UNKNOWN
- *                  by the tBTM_SP_CALLBACK implementation, this function is
- *                  called to provide the actual response
+ *                  When the event data io_req.oob_data is set to
+ *                  BTM_OOB_UNKNOWN by the tBTM_SP_CALLBACK implementation, this
+ *                  function is called to provide the actual response
  *
  * Parameters:      bd_addr - Address of the peer device
  *                  io_cap  - The IO capability of local device.
@@ -1707,13 +1746,14 @@ extern uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c
  *
  * Function         BTM_BothEndsSupportSecureConnections
  *
- * Description      This function is called to check if both the local device and the peer device
- *                   specified by bd_addr support BR/EDR Secure Connections.
+ * Description      This function is called to check if both the local device
+ *                  and the peer device specified by bd_addr support BR/EDR
+ *                  Secure Connections.
  *
  * Parameters:      bd_addr - address of the peer
  *
- * Returns          true if BR/EDR Secure Connections are supported by both local
- *                  and the remote device.
+ * Returns          true if BR/EDR Secure Connections are supported by both
+ *                  local and the remote device.
  *                  else false.
  *
  ******************************************************************************/
@@ -1845,8 +1885,8 @@ extern tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, uint16_t max_lat,
  *
  * Function         BTM_GetHCIConnHandle
  *
- * Description      This function is called to get the handle for an ACL connection
- *                  to a specific remote BD Address.
+ * Description      This function is called to get the handle for an ACL
+ *                  connection to a specific remote BD Address.
  *
  * Returns          the handle of the connection, or 0xFFFF if none.
  *
@@ -1858,8 +1898,8 @@ extern uint16_t BTM_GetHCIConnHandle (const BD_ADDR remote_bda, tBT_TRANSPORT tr
  * Function         BTM_DeleteStoredLinkKey
  *
  * Description      This function is called to delete link key for the specified
- *                  device addresses from the NVRAM storage attached to the Bluetooth
- *                  controller.
+ *                  device addresses from the NVRAM storage attached to the
+ *                  Bluetooth controller.
  *
  * Parameters:      bd_addr      - Addresses of the devices
  *                  p_cb         - Call back function to be called to return
@@ -1887,7 +1927,7 @@ extern tBTM_STATUS BTM_WriteEIR( BT_HDR * p_buff );
  *
  * Function         BTM_CheckEirData
  *
- * Description      This function is called to get EIR data from significant part.
+ * Description      Get EIR data from the significant part.
  *
  * Parameters       p_eir - pointer of EIR significant part
  *                  type   - finding EIR data type
@@ -1917,13 +1957,13 @@ extern bool    BTM_HasEirService( uint32_t *p_eir_uuid, uint16_t uuid16 );
  *
  * Function         BTM_HasInquiryEirService
  *
- * Description      This function is called to know if UUID in bit map of UUID list.
+ * Description      Return if a UUID is in the bit map of a UUID list.
  *
  * Parameters       p_results - inquiry results
  *                  uuid16 - UUID 16-bit
  *
  * Returns          BTM_EIR_FOUND - if found
- *                  BTM_EIR_NOT_FOUND - if not found and it is complete list
+ *                  BTM_EIR_NOT_FOUND - if not found and it is a complete list
  *                  BTM_EIR_UNKNOWN - if not found and it is not complete list
  *
  ******************************************************************************/
@@ -1934,7 +1974,8 @@ extern tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService( tBTM_INQ_RESULTS *p_resu
  *
  * Function         BTM_AddEirService
  *
- * Description      This function is called to add a service in bit map of UUID list.
+ * Description      This function is called to add a service in the bit map UUID
+ *                  list.
  *
  * Parameters       p_eir_uuid - bit mask of UUID list for EIR
  *                  uuid16 - UUID 16-bit
@@ -1948,7 +1989,8 @@ extern void BTM_AddEirService( uint32_t *p_eir_uuid, uint16_t uuid16 );
  *
  * Function         BTM_RemoveEirService
  *
- * Description      This function is called to remove a service in bit map of UUID list.
+ * Description      This function is called to remove a service from the bit map
+ *                  UUID list.
  *
  * Parameters       p_eir_uuid - bit mask of UUID list for EIR
  *                  uuid16 - UUID 16-bit
@@ -1962,7 +2004,8 @@ extern void BTM_RemoveEirService( uint32_t *p_eir_uuid, uint16_t uuid16 );
  *
  * Function         BTM_GetEirSupportedServices
  *
- * Description      This function is called to get UUID list from bit map of UUID list.
+ * Description      This function is called to get UUID list from bit map UUID
+ *                  list.
  *
  * Parameters       p_eir_uuid - bit mask of UUID list for EIR
  *                  p - reference of current pointer of EIR
@@ -2013,17 +2056,18 @@ extern uint8_t BTM_GetEirUuidList( uint8_t *p_eir, uint8_t uuid_size, uint8_t *p
  * Parameter        path: SCO or HCI
  *                  p_sco_data_cb: callback function or SCO data if path is set
  *                                 to transport.
- *                  p_pcm_param: pointer to the PCM interface parameter. If a NULL
- *                               pointer is used, PCM parameter maintained in
- *                               the control block will be used; otherwise update
- *                               control block value.
- *                  err_data_rpt: Lisbon feature to enable the erronous data report
- *                                or not.
+ *                  p_pcm_param: pointer to the PCM interface parameter. If a
+ *                               NULL pointer is used, the PCM parameter
+ *                               maintained in the control block will be used;
+ *                               otherwise update the control block value.
+ *                  err_data_rpt: Lisbon feature to enable the erronous data
+ *                                report or not.
  *
  * Returns          BTM_SUCCESS if the successful.
  *                  BTM_NO_RESOURCES: no rsource to start the command.
  *                  BTM_ILLEGAL_VALUE: invalid callback function pointer.
- *                  BTM_CMD_STARTED :Command sent. Waiting for command cmpl event.
+ *                  BTM_CMD_STARTED : Command sent. Waiting for command
+ *                                    complete event.
  *
  *
  ******************************************************************************/
@@ -2036,20 +2080,20 @@ extern tBTM_STATUS BTM_ConfigScoPath (tBTM_SCO_ROUTE_TYPE path,
  *
  * Function         BTM_WriteScoData
  *
- * Description      This function write SCO data to a specified instance. The data
- *                  to be written p_buf needs to carry an offset of
+ * Description      This function write SCO data to a specified instance. The
+ *                  data to be written p_buf needs to carry an offset of
  *                  HCI_SCO_PREAMBLE_SIZE bytes, and the data length can not
- *                  exceed BTM_SCO_DATA_SIZE_MAX bytes, whose default value is set
- *                  to 60 and is configurable. Data longer than the maximum bytes
- *                  will be truncated.
+ *                  exceed BTM_SCO_DATA_SIZE_MAX bytes, whose default value is
+ *                  set to 60 and is configurable. Data longer than the maximum
+ *                  bytes will be truncated.
  *
  * Returns          BTM_SUCCESS: data write is successful
  *                  BTM_ILLEGAL_VALUE: SCO data contains illegal offset value.
- *                  BTM_SCO_BAD_LENGTH: SCO data length exceeds the max SCO packet
- *                                      size.
+ *                  BTM_SCO_BAD_LENGTH: SCO data length exceeds the max SCO
+ *                                      packet size.
  *                  BTM_NO_RESOURCES: no resources.
- *                  BTM_UNKNOWN_ADDR: unknown SCO connection handle, or SCO is not
- *                                    routed via HCI.
+ *                  BTM_UNKNOWN_ADDR: unknown SCO connection handle, or SCO is
+ *                                    not routed via HCI.
  *
  *
  ******************************************************************************/
@@ -2085,7 +2129,8 @@ extern void BTM_PCM2Setup_Write (bool    clk_master, tBTM_VSC_CMPL_CB *p_arc_cb)
  *
  * Description      This function is called to obtain the controller state
  *
- * Returns          Controller state (BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and BTM_CONTRL_IDLE)
+ * Returns          Controller state (BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and
+ *                                    BTM_CONTRL_IDLE)
  *
  ******************************************************************************/
 extern tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void);

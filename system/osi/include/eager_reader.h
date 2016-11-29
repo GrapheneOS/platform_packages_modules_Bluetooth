@@ -37,10 +37,9 @@ typedef void (*eager_reader_cb)(eager_reader_t* reader, void* context);
 // Creates a new eager reader object, which pulls data from |fd_to_read| into
 // buffers of size |buffer_size| allocated using |allocator|, and has an
 // internal read thread named |thread_name|. The returned object must be freed
-// using
-// |eager_reader_free|. |fd_to_read| must be valid, |buffer_size| and
-// |max_buffer_count|
-// must be greater than zero. |allocator| and |thread_name| may not be NULL.
+// using |eager_reader_free|. |fd_to_read| must be valid, |buffer_size| and
+// |max_buffer_count| must be greater than zero. |allocator| and |thread_name|
+// may not be NULL.
 eager_reader_t* eager_reader_new(int fd_to_read, const allocator_t* allocator,
                                  size_t buffer_size, size_t max_buffer_count,
                                  const char* thread_name);
@@ -58,8 +57,7 @@ void eager_reader_register(eager_reader_t* reader, reactor_t* reactor,
                            eager_reader_cb read_cb, void* context);
 
 // Unregisters |reader| from whichever reactor it is registered with, if any.
-// This
-// function is idempotent.
+// This function is idempotent.
 void eager_reader_unregister(eager_reader_t* reader);
 
 // Reads up to |max_size| bytes into |buffer| from currently available bytes.

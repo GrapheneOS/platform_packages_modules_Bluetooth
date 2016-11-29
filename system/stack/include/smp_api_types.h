@@ -55,11 +55,12 @@ extern "C" {
 #define SMP_OOB_REQ_EVT         5       /* OOB request event */
 #define SMP_NC_REQ_EVT          6       /* Numeric Comparison request event */
 #define SMP_COMPLT_EVT          7       /* SMP complete event */
-#define SMP_PEER_KEYPR_NOT_EVT  8       /* Peer keypress notification received event */
-#define SMP_SC_OOB_REQ_EVT      9       /* SC OOB request event (both local and peer OOB data */
-                                        /* can be expected in response) */
-#define SMP_SC_LOC_OOB_DATA_UP_EVT  10  /* SC OOB local data set is created */
-                                        /* (as result of SMP_CrLocScOobData(...)) */
+#define SMP_PEER_KEYPR_NOT_EVT  8       /* Peer keypress notification */
+
+/* SC OOB request event (both local and peer OOB data can be expected in response) */
+#define SMP_SC_OOB_REQ_EVT      9
+/* SC OOB local data set is created (as result of SMP_CrLocScOobData(...)) */
+#define SMP_SC_LOC_OOB_DATA_UP_EVT  10
 #define SMP_BR_KEYS_REQ_EVT     12      /* SMP over BR keys request event */
 typedef uint8_t tSMP_EVT;
 
@@ -157,7 +158,8 @@ typedef uint8_t tSMP_OOB_DATA_TYPE;
 /* No MITM, General Bonding, Encryption only */
 #define SMP_AUTH_GB_ENC_ONLY    (SMP_AUTH_GEN_BOND )
 
-/* MITM, General Bonding, Use IO Capability to determine authentication procedure */
+/* MITM, General Bonding, Use IO Capability to determine authentication
+ * procedure */
 #define SMP_AUTH_GB_IOCAP       (SMP_AUTH_GEN_BOND | SMP_AUTH_YN_BIT)
 
 /* Secure Connections, no MITM, no Bonding */
@@ -283,7 +285,8 @@ typedef struct
     uint8_t  param_buf[BT_OCTET16_LEN];
 } tSMP_ENC;
 
-/* Security Manager events - Called by the stack when Security Manager related events occur.*/
+/* Security Manager events - Called by the stack when Security Manager related
+ * events occur.*/
 typedef uint8_t (tSMP_CALLBACK) (tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data);
 
 /* callback function for CMAC algorithm

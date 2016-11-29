@@ -52,7 +52,7 @@ static uint8_t find_conn_by_cid (uint16_t cid);
 static void hidh_conn_retry (uint8_t dhandle);
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
                                     uint16_t psm, uint8_t l2cap_id);
@@ -797,7 +797,8 @@ static void hidh_l2cif_cong_ind (uint16_t l2cap_cid, bool    congested)
  *
  * Description      This function is called when data is received from L2CAP.
  *                  if we are the originator of the connection, we are the SDP
- *                  client, and the received message is queued up for the client.
+ *                  client, and the received message is queued up for the
+ *                  client.
  *
  *                  If we are the destination of the connection, we are the SDP
  *                  server, so the message is passed to the server processing
@@ -1018,7 +1019,8 @@ tHID_STATUS hidh_conn_snd_data (uint8_t dhandle, uint8_t trans_type, uint8_t par
  *
  * Function         hidh_conn_initiate
  *
- * Description      This function is called by the management to create a connection.
+ * Description      This function is called by the management to create a
+ *                  connection.
  *
  * Returns          void
  *

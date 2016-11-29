@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -97,7 +98,8 @@ void OI_Time_Now(OI_TIME *now);
  * OI_Sleep. The use of OI_Sleep is limited to applications and
  * platform-specific code.
  *
- * If your port and applications never use OI_Sleep, this function can be left unimplemented.
+ * If your port and applications never use OI_Sleep, this function can be left
+ * unimplemented.
  *
  * @param milliseconds  Number of milliseconds to sleep
  */
@@ -136,8 +138,8 @@ void OI_SetMsgCode(uint8_t code);
 void OI_Print(OI_CHAR const *str);
 
 /**
- *  In cases where OI_Print() is sending output to a logfile in addition to console,
- *  it is desirable to also put console input into the logfile.
+ *  In cases where OI_Print() is sending output to a logfile in addition to
+ *  console, it is desirable to also put console input into the logfile.
  *  This function can be called by the console input process.
  *
  *  @note This is an optional API which is strictly

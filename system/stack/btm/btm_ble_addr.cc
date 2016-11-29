@@ -255,7 +255,8 @@ bool    btm_ble_init_pseudo_addr (tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR new_pseud
  *
  * Function         btm_ble_addr_resolvable
  *
- * Description      This function checks if a RPA is resolvable by the device key.
+ * Description      This function checks if a RPA is resolvable by the device
+ *                  key.
  *
  * Returns          true is resolvable; false otherwise.
  *
@@ -299,9 +300,10 @@ bool    btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
  *
  * Function         btm_ble_match_random_bda
  *
- * Description      This function match the random address to the appointed device
- *                  record, starting from calculating IRK. If record index exceed
- *                  the maximum record number, matching failed and send callback.
+ * Description      This function match the random address to the appointed
+ *                  device record, starting from calculating IRK. If the record
+ *                  index exceeds the maximum record number, matching failed and
+ *                  send a callback.
  *
  * Returns          None.
  *
@@ -407,8 +409,8 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(BD_ADDR bd_addr, uint8_t addr_ty
  *
  * Function         btm_identity_addr_to_random_pseudo
  *
- * Description      This function map a static BD address to a pseudo random address
- *                  in security database.
+ * Description      This function map a static BD address to a pseudo random
+ *                  address in security database.
  *
  ******************************************************************************/
 bool    btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, uint8_t *p_addr_type, bool    refresh)
@@ -439,8 +441,8 @@ bool    btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, uint8_t *p_addr_type
  *
  * Function         btm_random_pseudo_to_identity_addr
  *
- * Description      This function map a random pseudo address to a public address
- *                  random_pseudo is input and output parameter
+ * Description      This function map a random pseudo address to a public
+ *                  address. random_pseudo is input and output parameter
  *
  ******************************************************************************/
 bool    btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, uint8_t *p_static_addr_type)
@@ -467,8 +469,9 @@ bool    btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, uint8_t *p_sta
  *
  * Function         btm_ble_refresh_peer_resolvable_private_addr
  *
- * Description      This function refresh the currently used resolvable remote private address into security
- *                  database and set active connection address.
+ * Description      This function refresh the currently used resolvable remote
+ *                  private address into security database and set active
+ *                  connection address.
  *
  ******************************************************************************/
 void btm_ble_refresh_peer_resolvable_private_addr(BD_ADDR pseudo_bda, BD_ADDR rpa,
@@ -542,8 +545,8 @@ void btm_ble_refresh_peer_resolvable_private_addr(BD_ADDR pseudo_bda, BD_ADDR rp
  *
  * Function         btm_ble_refresh_local_resolvable_private_addr
  *
- * Description      This function refresh the currently used resolvable private address for the
- *                  active link to the remote device
+ * Description      This function refresh the currently used resolvable private
+ *                  address for the active link to the remote device
  *
  ******************************************************************************/
 void btm_ble_refresh_local_resolvable_private_addr(BD_ADDR pseudo_addr,

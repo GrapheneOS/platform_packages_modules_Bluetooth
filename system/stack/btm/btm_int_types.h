@@ -276,7 +276,7 @@ typedef struct
 #endif
 } tBTM_INQUIRY_VAR_ST;
 
-/* The MSB of the clock offset field indicates that the offset is valid if true */
+/* The MSB of the clock offset field indicates whether the offset is valid. */
 #define BTM_CLOCK_OFFSET_VALID      0x8000
 
 /* Define the structures needed by security management

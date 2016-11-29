@@ -562,7 +562,8 @@ void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             p_scb->peer_seid = p_data->msg.config_cmd.int_seid;
             memcpy(&p_scb->req_cfg, p_cfg, sizeof(tAVDT_CFG));
             /* call app callback */
-            (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb), /* handle of scb- which is same as sep handle of bta_av_cb.p_scb*/
+            /* handle of scb- which is same as sep handle of bta_av_cb.p_scb*/
+            (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb),
                                       p_scb->p_ccb ? p_scb->p_ccb->peer_addr : NULL,
                                       AVDT_CONFIG_IND_EVT,
                                       (tAVDT_CTRL *) &p_data->msg.config_cmd);
@@ -586,7 +587,8 @@ void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
  * Function         avdt_scb_hdl_setconfig_rej
  *
  * Description      This function marks the SCB as not in use and calls the
- *                  application callback with an open confirm indicating failure.
+ *                  application callback with an open confirm indicating
+ *                  failure.
  *
  * Returns          Nothing.
  *
@@ -715,8 +717,9 @@ void avdt_scb_hdl_suspend_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
  *                  initializes certain SCB parameters.  It then sends
  *                  an AVDT_CCB_UL_CLOSE_EVT to the CCB if the SCB
  *                  initiated the close.  It then checks to see if the SCB
- *                  is to be removed.  If it is it deallocates the SCB.  Finally,
- *                  it calls the application callback with a close indication.
+ *                  is to be removed.  If it is it deallocates the SCB.
+ *                  Finally, it calls the application callback with a close
+ *                  indication.
  *
  * Returns          Nothing.
  *

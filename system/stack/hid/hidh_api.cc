@@ -234,7 +234,8 @@ static void hidh_search_callback (uint16_t sdp_result)
  *
  * Function         HID_HostInit
  *
- * Description      This function initializes the control block and trace variable
+ * Description      This function initializes the control block and trace
+ *                  variable
  *
  * Returns          void
  *
@@ -259,8 +260,8 @@ void HID_HostInit (void)
  *
  * Function         HID_HostSetTraceLevel
  *
- * Description      This function sets the trace level for HID Host. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
+ * Description      This function sets the trace level for HID Host. If called
+ *                  with 0xFF, it simply reads the current trace level.
  *
  * Returns          the new (current) trace level
  *
@@ -388,7 +389,8 @@ tHID_STATUS HID_HostAddDev ( BD_ADDR addr, uint16_t attr_mask, uint8_t *handle )
  *
  * Function         HID_HostRemoveDev
  *
- * Description      This removes the device from list devices that host has to manage.
+ * Description      This removes the device from the list of devices that the
+ *                  host has to manage.
  *
  * Returns          tHID_STATUS
  *
@@ -440,8 +442,8 @@ tHID_STATUS HID_HostOpenDev ( uint8_t dev_handle )
  *
  * Description      This function is called when the host has a report to send.
  *
- *                  report_id: is only used on GET_REPORT transaction if is specified.
- *                              only valid when it's a non-zero value.
+ *                  report_id: is only used on GET_REPORT transaction if is
+ *                              specified. only valid when it is non-zero.
  *
  * Returns          void
  *

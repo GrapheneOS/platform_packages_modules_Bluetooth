@@ -50,47 +50,76 @@
 */
 #define BT_EVT_MASK                 0xFF00
 #define BT_SUB_EVT_MASK             0x00FF
-                                                /* To Bluetooth Upper Layers        */
-                                                /************************************/
-#define BT_EVT_TO_BTU_L2C_EVT       0x0900      /* L2CAP event */
-#define BT_EVT_TO_BTU_HCI_EVT       0x1000      /* HCI Event                        */
-#define BT_EVT_TO_BTU_HCI_BR_EDR_EVT (0x0000 | BT_EVT_TO_BTU_HCI_EVT)      /* event from BR/EDR controller */
-#define BT_EVT_TO_BTU_HCI_AMP1_EVT   (0x0001 | BT_EVT_TO_BTU_HCI_EVT)      /* event from local AMP 1 controller */
-#define BT_EVT_TO_BTU_HCI_AMP2_EVT   (0x0002 | BT_EVT_TO_BTU_HCI_EVT)      /* event from local AMP 2 controller */
-#define BT_EVT_TO_BTU_HCI_AMP3_EVT   (0x0003 | BT_EVT_TO_BTU_HCI_EVT)      /* event from local AMP 3 controller */
+/* To Bluetooth Upper Layers        */
+/************************************/
+/* L2CAP event */
+#define BT_EVT_TO_BTU_L2C_EVT       0x0900
+/* HCI Event                        */
+#define BT_EVT_TO_BTU_HCI_EVT       0x1000
+/* event from BR/EDR controller */
+#define BT_EVT_TO_BTU_HCI_BR_EDR_EVT (0x0000 | BT_EVT_TO_BTU_HCI_EVT)
+/* event from local AMP 1 controller */
+#define BT_EVT_TO_BTU_HCI_AMP1_EVT   (0x0001 | BT_EVT_TO_BTU_HCI_EVT)
+/* event from local AMP 2 controller */
+#define BT_EVT_TO_BTU_HCI_AMP2_EVT   (0x0002 | BT_EVT_TO_BTU_HCI_EVT)
+/* event from local AMP 3 controller */
+#define BT_EVT_TO_BTU_HCI_AMP3_EVT   (0x0003 | BT_EVT_TO_BTU_HCI_EVT)
 
-#define BT_EVT_TO_BTU_HCI_ACL       0x1100      /* ACL Data from HCI                */
-#define BT_EVT_TO_BTU_HCI_SCO       0x1200      /* SCO Data from HCI                */
-#define BT_EVT_TO_BTU_HCIT_ERR      0x1300      /* HCI Transport Error              */
+/* ACL Data from HCI                */
+#define BT_EVT_TO_BTU_HCI_ACL       0x1100
+/* SCO Data from HCI                */
+#define BT_EVT_TO_BTU_HCI_SCO       0x1200
+/* HCI Transport Error              */
+#define BT_EVT_TO_BTU_HCIT_ERR      0x1300
 
-#define BT_EVT_TO_BTU_SP_EVT        0x1400      /* Serial Port Event                */
-#define BT_EVT_TO_BTU_SP_DATA       0x1500      /* Serial Port Data                 */
+/* Serial Port Event                */
+#define BT_EVT_TO_BTU_SP_EVT        0x1400
+/* Serial Port Data                 */
+#define BT_EVT_TO_BTU_SP_DATA       0x1500
 
-#define BT_EVT_TO_BTU_HCI_CMD       0x1600      /* HCI command from upper layer     */
+/* HCI command from upper layer     */
+#define BT_EVT_TO_BTU_HCI_CMD       0x1600
 
 
-#define BT_EVT_TO_BTU_L2C_SEG_XMIT  0x1900      /* L2CAP segment(s) transmitted     */
+/* L2CAP segment(s) transmitted     */
+#define BT_EVT_TO_BTU_L2C_SEG_XMIT  0x1900
 
-#define BT_EVT_PROXY_INCOMING_MSG   0x1A00      /* BlueStackTester event: incoming message from target */
+/* BlueStackTester event: incoming message from target */
+#define BT_EVT_PROXY_INCOMING_MSG   0x1A00
 
-#define BT_EVT_BTSIM                0x1B00      /* Insight BTSIM event */
-#define BT_EVT_BTISE                0x1C00      /* Insight Script Engine event */
+/* Insight BTSIM event */
+#define BT_EVT_BTSIM                0x1B00
+/* Insight Script Engine event */
+#define BT_EVT_BTISE                0x1C00
 
-                                                /* To LM                            */
-                                                /************************************/
-#define BT_EVT_TO_LM_HCI_CMD        0x2000      /* HCI Command                      */
-#define BT_EVT_TO_LM_HCI_ACL        0x2100      /* HCI ACL Data                     */
-#define BT_EVT_TO_LM_HCI_SCO        0x2200      /* HCI SCO Data                     */
-#define BT_EVT_TO_LM_HCIT_ERR       0x2300      /* HCI Transport Error              */
-#define BT_EVT_TO_LM_LC_EVT         0x2400      /* LC event                         */
-#define BT_EVT_TO_LM_LC_LMP         0x2500      /* LC Received LMP command frame    */
-#define BT_EVT_TO_LM_LC_ACL         0x2600      /* LC Received ACL data             */
-#define BT_EVT_TO_LM_LC_SCO         0x2700      /* LC Received SCO data  (not used) */
-#define BT_EVT_TO_LM_LC_ACL_TX      0x2800      /* LMP data transmit complete       */
-#define BT_EVT_TO_LM_LC_LMPC_TX     0x2900      /* LMP Command transmit complete    */
-#define BT_EVT_TO_LM_LOCAL_ACL_LB   0x2a00      /* Data to be locally loopbacked    */
-#define BT_EVT_TO_LM_HCI_ACL_ACK    0x2b00      /* HCI ACL Data ack      (not used) */
-#define BT_EVT_TO_LM_DIAG           0x2c00      /* LM Diagnostics commands          */
+/* To LM                            */
+/************************************/
+/* HCI Command                      */
+#define BT_EVT_TO_LM_HCI_CMD        0x2000
+/* HCI ACL Data                     */
+#define BT_EVT_TO_LM_HCI_ACL        0x2100
+/* HCI SCO Data                     */
+#define BT_EVT_TO_LM_HCI_SCO        0x2200
+/* HCI Transport Error              */
+#define BT_EVT_TO_LM_HCIT_ERR       0x2300
+/* LC event                         */
+#define BT_EVT_TO_LM_LC_EVT         0x2400
+/* LC Received LMP command frame    */
+#define BT_EVT_TO_LM_LC_LMP         0x2500
+/* LC Received ACL data             */
+#define BT_EVT_TO_LM_LC_ACL         0x2600
+/* LC Received SCO data  (not used) */
+#define BT_EVT_TO_LM_LC_SCO         0x2700
+/* LMP data transmit complete       */
+#define BT_EVT_TO_LM_LC_ACL_TX      0x2800
+/* LMP Command transmit complete    */
+#define BT_EVT_TO_LM_LC_LMPC_TX     0x2900
+/* Data to be locally loopbacked    */
+#define BT_EVT_TO_LM_LOCAL_ACL_LB   0x2a00
+/* HCI ACL Data ack      (not used) */
+#define BT_EVT_TO_LM_HCI_ACL_ACK    0x2b00
+/* LM Diagnostics commands          */
+#define BT_EVT_TO_LM_DIAG           0x2c00
 
 
 #define BT_EVT_TO_BTM_CMDS          0x2f00
@@ -104,7 +133,8 @@
 #define BT_EVT_TO_FTP_SRVR_CMDS     0x3600
 #define BT_EVT_TO_FTP_CLNT_CMDS     0x3700
 
-#define BT_EVT_TO_BTU_SAP           0x3800       /* SIM Access Profile events */
+/* SIM Access Profile events */
+#define BT_EVT_TO_BTU_SAP           0x3800
 
 /* opp events */
 #define BT_EVT_TO_OPP_SRVR_CMDS     0x3900
@@ -114,13 +144,18 @@
 #define BT_EVT_TO_GAP_MSG           0x3b00
 
 /* for NFC                          */
-                                                /************************************/
-#define BT_EVT_TO_NFC_NCI           0x4000      /* NCI Command, Notification or Data*/
-#define BT_EVT_TO_NFC_INIT          0x4100      /* Initialization message */
-#define BT_EVT_TO_NCI_LP            0x4200      /* Low power */
-#define BT_EVT_TO_NFC_ERR           0x4300      /* Error notification to NFC Task */
+/************************************/
+/* NCI Command, Notification or Data*/
+#define BT_EVT_TO_NFC_NCI           0x4000
+/* Initialization message */
+#define BT_EVT_TO_NFC_INIT          0x4100
+/* Low power */
+#define BT_EVT_TO_NCI_LP            0x4200
+/* Error notification to NFC Task */
+#define BT_EVT_TO_NFC_ERR           0x4300
 
-#define BT_EVT_TO_NFCCSIM_NCI       0x4a00      /* events to NFCC simulation (NCI packets) */
+/* events to NFCC simulation (NCI packets) */
+#define BT_EVT_TO_NFCCSIM_NCI       0x4a00
 
 /* HCISU Events */
 
@@ -442,8 +477,8 @@ typedef struct
 
 /* Broadcom proprietary UUIDs and reserved PSMs
  *
- * The lowest 4 bytes byte of the UUID or GUID depends on the feature. Typically,
- * the value of those bytes will be the PSM or SCN, but it is up to the features.
+ * The lowest 4 bytes byte of the UUID or GUID depend on the feature. Typically,
+ * the value of those bytes will be the PSM or SCN.
 */
 #define BRCM_PROPRIETARY_UUID_BASE  0xDA, 0x23, 0x41, 0x02, 0xA3, 0xBB, 0xC1, 0x71, 0xBA, 0x09, 0x6f, 0x21
 #define BRCM_PROPRIETARY_GUID_BASE  0xda23, 0x4102, 0xa3, 0xbb, 0xc1, 0x71, 0xba, 0x09, 0x6f, 0x21

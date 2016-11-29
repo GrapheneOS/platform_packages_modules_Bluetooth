@@ -168,7 +168,8 @@ bool    AVRC_IsValidPlayerAttr(uint8_t attr)
  * Description      This function parses the pass thru commands defined by
  *                  Bluetooth SIG
  *
- * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed
+ *                                     successfully.
  *                  Otherwise, the error code defined by AVRCP 1.4
  *
  ******************************************************************************/

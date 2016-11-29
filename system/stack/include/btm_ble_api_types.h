@@ -29,14 +29,16 @@ extern "C" {
 typedef uint8_t tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
 /* 0x00-0x04 only used for set advertising parameter command */
-#define BTM_BLE_CONNECT_EVT     0x00   /* 0x00-0x04 only used for set advertising
-                                            parameter command */
-#define BTM_BLE_CONNECT_DIR_EVT 0x01   /* Connectable directed advertising */
-#define BTM_BLE_DISCOVER_EVT    0x02  /* Scannable undirected advertising */
-#define BTM_BLE_NON_CONNECT_EVT 0x03  /* Non connectable undirected advertising */
-#define BTM_BLE_CONNECT_LO_DUTY_DIR_EVT 0x04        /* Connectable low duty
-                                                       cycle directed advertising  */
-    /* 0x00 - 0x05 can be received on adv event type */
+#define BTM_BLE_CONNECT_EVT     0x00
+/* Connectable directed advertising */
+#define BTM_BLE_CONNECT_DIR_EVT 0x01
+/* Scannable undirected advertising */
+#define BTM_BLE_DISCOVER_EVT    0x02
+/* Non connectable undirected advertising */
+#define BTM_BLE_NON_CONNECT_EVT 0x03
+/* Connectable low duty cycle directed advertising  */
+#define BTM_BLE_CONNECT_LO_DUTY_DIR_EVT 0x04
+/* 0x00 - 0x05 can be received on adv event type */
 #define BTM_BLE_SCAN_RSP_EVT    0x04
 #define BTM_BLE_SCAN_REQ_EVT    0x05
 #define BTM_BLE_UNKNOWN_EVT     0xff
@@ -85,15 +87,19 @@ typedef uint8_t tBTM_BLE_AFP;
 #endif
 
 /* scanning filter policy */
-#define SP_ADV_ALL     0x00     /* 0: accept adv packet from all, directed adv pkt not directed */
-                                /* to local device is ignored */
-#define SP_ADV_WL      0x01     /* 1: accept adv packet from device in white list, directed adv */
-                                /* packet not directed to local device is ignored */
-#define SP_ADV_ALL_RPA_DIR_ADV 0x02  /* 2: accept adv packet from all, directed adv pkt */
-                                     /* not directed to me is ignored except direct adv with RPA */
-#define SP_ADV_WL_RPA_DIR_ADV  0x03  /* 3: accept adv packet from device in white list, directed */
-                                     /* adv pkt not directed to me is ignored except direct adv */
-                                     /* with RPA */
+/* 0: accept adv packet from all, directed adv pkt not directed */
+/*    to local device is ignored */
+#define SP_ADV_ALL     0x00
+/* 1: accept adv packet from device in white list, directed adv */
+/*    packet not directed to local device is ignored */
+#define SP_ADV_WL      0x01
+/* 2: accept adv packet from all, directed adv pkt */
+/*    not directed to me is ignored except direct adv with RPA */
+#define SP_ADV_ALL_RPA_DIR_ADV 0x02
+/* 3: accept adv packet from device in white list, directed */
+/*    adv pkt not directed to me is ignored except direct adv with RPA */
+#define SP_ADV_WL_RPA_DIR_ADV  0x03
+
 typedef uint8_t tBTM_BLE_SFP;
 
 #ifndef BTM_BLE_DEFAULT_SFP
@@ -128,15 +134,18 @@ typedef uint8_t tBTM_BLE_SFP;
 #define BTM_BLE_CONN_LATENCY_MAX        500
 #define BTM_BLE_CONN_SUP_TOUT_MIN       0x000A
 #define BTM_BLE_CONN_SUP_TOUT_MAX       0x0C80
-#define BTM_BLE_CONN_PARAM_UNDEF        0xffff      /* use this value when a specific value not to be overwritten */
+/* use this value when a specific value not to be overwritten */
+#define BTM_BLE_CONN_PARAM_UNDEF        0xffff
 #define BTM_BLE_SCAN_PARAM_UNDEF        0xffffffff
 
-/* default connection parameters if not configured, use GAP recommend value for auto/selective connection */
+/* default connection parameters if not configured, use GAP recommended value
+ * for auto/selective connection */
 /* default scan interval */
 #ifndef BTM_BLE_SCAN_FAST_INT
 #define BTM_BLE_SCAN_FAST_INT    96    /* 30 ~ 60 ms (use 60)  = 96 *0.625 */
 #endif
-/* default scan window for background connection, applicable for auto connection or selective conenction */
+/* default scan window for background connection, applicable for auto connection
+ * or selective connection */
 #ifndef BTM_BLE_SCAN_FAST_WIN
 #define BTM_BLE_SCAN_FAST_WIN   48      /* 30 ms = 48 *0.625 */
 #endif
@@ -159,12 +168,14 @@ typedef uint8_t tBTM_BLE_SFP;
 
 /* default connection interval min */
 #ifndef BTM_BLE_CONN_INT_MIN_DEF
-#define BTM_BLE_CONN_INT_MIN_DEF     24      /* recommended min: 30ms  = 24 * 1.25 */
+/* recommended min: 30ms  = 24 * 1.25 */
+#define BTM_BLE_CONN_INT_MIN_DEF     24
 #endif
 
 /* default connectino interval max */
 #ifndef BTM_BLE_CONN_INT_MAX_DEF
-#define BTM_BLE_CONN_INT_MAX_DEF     40      /* recommended max: 50 ms = 56 * 1.25 */
+/* recommended max: 50 ms = 56 * 1.25 */
+#define BTM_BLE_CONN_INT_MAX_DEF     40
 #endif
 
 /* default slave latency */
@@ -268,7 +279,8 @@ typedef struct
 } tBTM_RAND_ENC;
 
 /* General callback function for notifying an application that a synchronous
- * BTM function is complete. The pointer contains the address of any returned data.
+ * BTM function is complete. The pointer contains the address of any returned
+ * data.
 */
 typedef void (tBTM_RAND_ENC_CB) (tBTM_RAND_ENC *p1);
 
@@ -424,7 +436,8 @@ typedef struct
 #define BTM_BLE_PF_LOCAL_NAME           4
 #define BTM_BLE_PF_MANU_DATA            5
 #define BTM_BLE_PF_SRVC_DATA_PATTERN    6
-#define BTM_BLE_PF_TYPE_ALL             7  /* when passed in payload filter type all, only clear action is applicable */
+/* when passed in payload filter type all, only clear action is applicable */
+#define BTM_BLE_PF_TYPE_ALL             7
 #define BTM_BLE_PF_TYPE_MAX             8
 
 /* max number of filter spot for different filter type */
@@ -588,7 +601,8 @@ typedef struct
     uint8_t next_idx;
 }tBTM_BLE_ADV_FILTER_ADV_OPQ;
 
-#define BTM_BLE_MAX_FILTER_COUNTER  (BTM_BLE_MAX_ADDR_FILTER + 1) /* per device filter + one generic filter indexed by 0 */
+/* per device filter + one generic filter indexed by 0 */
+#define BTM_BLE_MAX_FILTER_COUNTER  (BTM_BLE_MAX_ADDR_FILTER + 1)
 
 #ifndef BTM_CS_IRK_LIST_MAX
 #define BTM_CS_IRK_LIST_MAX 0x20
@@ -685,7 +699,8 @@ typedef struct
 typedef bool    (tBTM_BLE_SEL_CBACK)(BD_ADDR random_bda,     uint8_t *p_remote_name);
 typedef void (tBTM_BLE_CTRL_FEATURES_CBACK)(tBTM_STATUS status);
 
-/* callback function for SMP signing algorithm, signed data in little endian order with tlen bits long */
+/* callback function for SMP signing algorithm, signed data in little endian
+ * order with tlen bits long */
 typedef void (tBTM_BLE_SIGN_CBACK)(void *p_ref_data, uint8_t *p_signing_data);
 typedef void (tBTM_BLE_VERIFY_CBACK)(void *p_ref_data, bool    match);
 /* random address set complete callback */

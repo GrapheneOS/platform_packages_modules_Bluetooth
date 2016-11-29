@@ -144,9 +144,10 @@ void avct_bcb_unbind_disc(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
  * Function         avct_bcb_open_ind
  *
  * Description      Handle an LL_OPEN event.
- *                  For the allocated ccb already bound to the bcb, send a connect event.
- *                  For the unbound ccb with a new PID, bind that ccb to the bcb with the
- *                  same bd_addr and send a connect event.
+ *                  For the allocated ccb already bound to the bcb, send a
+ *                  connect event. For the unbound ccb with a new PID, bind that
+ *                  ccb to the bcb with the same bd_addr and send a connect
+ *                  event.
  *
  *
  * Returns          Nothing.
@@ -286,7 +287,8 @@ void avct_bcb_close_cfm(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB           *p_ccb = &avct_cb.ccb[0];
     uint8_t               event = 0;
-    bool             ch_close = p_bcb->ch_close;    /* Whether BCB initiated channel close */
+    /* Whether BCB initiated channel close */
+    bool             ch_close = p_bcb->ch_close;
     tAVCT_CTRL_CBACK    *p_cback;
 
     p_bcb->ch_close = false;

@@ -33,15 +33,17 @@
 extern "C" {
 #endif
 
-#define SMP_MODEL_ENCRYPTION_ONLY  0   /* Legacy mode, Just Works model */
-#define SMP_MODEL_PASSKEY       1   /* Legacy mode, Passkey Entry model, this side inputs the key */
-#define SMP_MODEL_OOB           2   /* Legacy mode, OOB model */
-#define SMP_MODEL_KEY_NOTIF     3   /* Legacy mode, Passkey Entry model, this side displays the key */
-#define SMP_MODEL_SEC_CONN_JUSTWORKS  4  /* Secure Connections mode, Just Works model */
-#define SMP_MODEL_SEC_CONN_NUM_COMP   5  /* Secure Connections mode, Numeric Comparison model */
-#define SMP_MODEL_SEC_CONN_PASSKEY_ENT 6 /* Secure Connections mode, Passkey Entry model, */
+/* Legacy mode */
+#define SMP_MODEL_ENCRYPTION_ONLY  0   /* Just Works model */
+#define SMP_MODEL_PASSKEY       1   /* Passkey Entry model, input the key */
+#define SMP_MODEL_OOB           2   /* OOB model */
+#define SMP_MODEL_KEY_NOTIF     3   /* Passkey Entry model, display the key */
+/* Secure connections mode */
+#define SMP_MODEL_SEC_CONN_JUSTWORKS  4  /* Just Works model */
+#define SMP_MODEL_SEC_CONN_NUM_COMP   5  /* Numeric Comparison model */
+#define SMP_MODEL_SEC_CONN_PASSKEY_ENT 6 /* Passkey Entry model, */
                                     /* this side inputs the key */
-#define SMP_MODEL_SEC_CONN_PASSKEY_DISP 7   /* Secure Connections mode, Passkey Entry model, */
+#define SMP_MODEL_SEC_CONN_PASSKEY_DISP 7   /* Passkey Entry model, */
                                     /* this side displays the key */
 #define SMP_MODEL_SEC_CONN_OOB  8   /* Secure Connections mode, OOB model */
 #define SMP_MODEL_OUT_OF_RANGE  9
@@ -90,49 +92,53 @@ typedef uint8_t tSMP_ASSO_MODEL;
 
 #define SMP_PAIR_DHKEY_CHCK_EVT         SMP_OPCODE_PAIR_DHKEY_CHECK
 
-#define SMP_PUBL_KEY_EXCH_REQ_EVT       (SMP_SELF_DEF_EVT + 11) /* request to start public */
-                                                                /* key exchange */
+/* request to start public  key exchange */
+#define SMP_PUBL_KEY_EXCH_REQ_EVT       (SMP_SELF_DEF_EVT + 11)
 
-#define SMP_LOC_PUBL_KEY_CRTD_EVT       (SMP_SELF_DEF_EVT + 12) /* local public key created */
+/* local public key created */
+#define SMP_LOC_PUBL_KEY_CRTD_EVT       (SMP_SELF_DEF_EVT + 12)
 
-#define SMP_BOTH_PUBL_KEYS_RCVD_EVT     (SMP_SELF_DEF_EVT + 13) /* both local and peer public */
-                                                                /* keys are saved in cb */
+/* both local and peer public keys are saved in cb */
+#define SMP_BOTH_PUBL_KEYS_RCVD_EVT     (SMP_SELF_DEF_EVT + 13)
 
-#define SMP_SC_DHKEY_CMPLT_EVT          (SMP_SELF_DEF_EVT + 14) /* DHKey computation is completed,*/
-                                                                /* time to start SC phase1 */
+/* DHKey computation is completed, time to start SC phase1 */
+#define SMP_SC_DHKEY_CMPLT_EVT          (SMP_SELF_DEF_EVT + 14)
 
-#define SMP_HAVE_LOC_NONCE_EVT          (SMP_SELF_DEF_EVT + 15) /* new local nonce is generated */
-                                                                /*and saved in p_cb->rand */
+/* new local nonce is generated and saved in p_cb->rand */
+#define SMP_HAVE_LOC_NONCE_EVT          (SMP_SELF_DEF_EVT + 15)
 
-#define SMP_SC_PHASE1_CMPLT_EVT         (SMP_SELF_DEF_EVT + 16) /* time to start SC phase2 */
+/* time to start SC phase2 */
+#define SMP_SC_PHASE1_CMPLT_EVT         (SMP_SELF_DEF_EVT + 16)
 
-#define SMP_SC_CALC_NC_EVT              (SMP_SELF_DEF_EVT + 17) /* request to calculate number */
-                                                             /* for user check. Used only in the */
-                                                             /* numeric compare protocol */
+/* request to calculate number for user check. Used only in the numeric compare protocol */
+#define SMP_SC_CALC_NC_EVT              (SMP_SELF_DEF_EVT + 17)
 
 /* Request to display the number for user check to the user.*/
 /* Used only in the numeric compare protocol */
 #define SMP_SC_DSPL_NC_EVT              (SMP_SELF_DEF_EVT + 18)
 
-#define SMP_SC_NC_OK_EVT                (SMP_SELF_DEF_EVT + 19) /* user confirms 'OK' numeric */
-                                                                /*comparison request */
+/* user confirms 'OK' numeric comparison request */
+#define SMP_SC_NC_OK_EVT                (SMP_SELF_DEF_EVT + 19)
 
-/* both local and peer DHKey Checks are already present - it is used on slave to prevent race condition */
+/* both local and peer DHKey Checks are already present - it is used on slave to
+ * prevent a race condition */
 #define SMP_SC_2_DHCK_CHKS_PRES_EVT     (SMP_SELF_DEF_EVT + 20)
 
-/* same meaning as SMP_KEY_READY_EVT to separate between SC and legacy actions */
+/* same meaning as SMP_KEY_READY_EVT to separate between SC and legacy actions
+ */
 #define SMP_SC_KEY_READY_EVT            (SMP_SELF_DEF_EVT + 21)
 #define SMP_KEYPRESS_NOTIFICATION_EVENT (SMP_SELF_DEF_EVT + 22)
 
-#define SMP_SC_OOB_DATA_EVT             (SMP_SELF_DEF_EVT + 23) /* SC OOB data from some */
-                                                                /* repository is provided */
+/* SC OOB data from some repository is provided */
+#define SMP_SC_OOB_DATA_EVT             (SMP_SELF_DEF_EVT + 23)
 
 #define SMP_CR_LOC_SC_OOB_DATA_EVT      (SMP_SELF_DEF_EVT + 24)
 #define SMP_MAX_EVT                      SMP_CR_LOC_SC_OOB_DATA_EVT
 
 typedef uint8_t tSMP_EVENT;
 
-/* Assumption it's only using the low 8 bits, if bigger than that, need to expand it to 16 bits */
+/* Assumption it's only using the low 8 bits, if bigger than that, need to
+ * expand it to 16 bits */
 #define SMP_SEC_KEY_MASK                    0x00ff
 
 /* SMP pairing state */
@@ -162,18 +168,18 @@ typedef uint8_t tSMP_STATE;
 /* SMP over BR/EDR events */
 #define SMP_BR_PAIRING_REQ_EVT              SMP_OPCODE_PAIRING_REQ
 #define SMP_BR_PAIRING_RSP_EVT              SMP_OPCODE_PAIRING_RSP
-#define SMP_BR_CONFIRM_EVT                  SMP_OPCODE_CONFIRM    /* not expected over BR/EDR */
-#define SMP_BR_RAND_EVT                     SMP_OPCODE_RAND       /* not expected over BR/EDR */
+#define SMP_BR_CONFIRM_EVT                  SMP_OPCODE_CONFIRM    /* not over BR/EDR */
+#define SMP_BR_RAND_EVT                     SMP_OPCODE_RAND       /* not over BR/EDR */
 #define SMP_BR_PAIRING_FAILED_EVT           SMP_OPCODE_PAIRING_FAILED
-#define SMP_BR_ENCRPTION_INFO_EVT           SMP_OPCODE_ENCRYPT_INFO /* not expected over BR/EDR */
-#define SMP_BR_MASTER_ID_EVT                SMP_OPCODE_MASTER_ID    /* not expected over BR/EDR */
+#define SMP_BR_ENCRPTION_INFO_EVT           SMP_OPCODE_ENCRYPT_INFO /* not over BR/EDR */
+#define SMP_BR_MASTER_ID_EVT                SMP_OPCODE_MASTER_ID    /* not over BR/EDR */
 #define SMP_BR_ID_INFO_EVT                  SMP_OPCODE_IDENTITY_INFO
 #define SMP_BR_ID_ADDR_EVT                  SMP_OPCODE_ID_ADDR
 #define SMP_BR_SIGN_INFO_EVT                SMP_OPCODE_SIGN_INFO
-#define SMP_BR_SECURITY_REQ_EVT          SMP_OPCODE_SEC_REQ          /* not expected over BR/EDR */
-#define SMP_BR_PAIR_PUBLIC_KEY_EVT       SMP_OPCODE_PAIR_PUBLIC_KEY  /* not expected over BR/EDR */
-#define SMP_BR_PAIR_DHKEY_CHCK_EVT       SMP_OPCODE_PAIR_DHKEY_CHECK /* not expected over BR/EDR */
-#define SMP_BR_PAIR_KEYPR_NOTIF_EVT      SMP_OPCODE_PAIR_KEYPR_NOTIF /* not expected over BR/EDR */
+#define SMP_BR_SECURITY_REQ_EVT          SMP_OPCODE_SEC_REQ          /* not over BR/EDR */
+#define SMP_BR_PAIR_PUBLIC_KEY_EVT       SMP_OPCODE_PAIR_PUBLIC_KEY  /* not over BR/EDR */
+#define SMP_BR_PAIR_DHKEY_CHCK_EVT       SMP_OPCODE_PAIR_DHKEY_CHECK /* not over BR/EDR */
+#define SMP_BR_PAIR_KEYPR_NOTIF_EVT      SMP_OPCODE_PAIR_KEYPR_NOTIF /* not over BR/EDR */
 #define SMP_BR_SELF_DEF_EVT              SMP_BR_PAIR_KEYPR_NOTIF_EVT
 #define SMP_BR_KEY_READY_EVT                (SMP_BR_SELF_DEF_EVT + 1)
 #define SMP_BR_ENCRYPTED_EVT                (SMP_BR_SELF_DEF_EVT + 2)

@@ -36,17 +36,28 @@ extern "C" {
 /* start AVDTC events here to distinguish from AVDT events */
 #define AVDTC_EVT_BEGIN             0x80
 
-#define AVDTC_DISCOVER_IND_EVT      (0 + AVDTC_EVT_BEGIN)   /* Discover indication */
-#define AVDTC_GETCAP_IND_EVT        (1 + AVDTC_EVT_BEGIN)   /* Get capabilities indication */
-#define AVDTC_SETCONFIG_CFM_EVT     (2 + AVDTC_EVT_BEGIN)   /* Set configuration confirm */
-#define AVDTC_GETCONFIG_IND_EVT     (3 + AVDTC_EVT_BEGIN)   /* Get configuration indication */
-#define AVDTC_GETCONFIG_CFM_EVT     (4 + AVDTC_EVT_BEGIN)   /* Get configuration confirm */
-#define AVDTC_OPEN_IND_EVT          (5 + AVDTC_EVT_BEGIN)   /* Open indication */
-#define AVDTC_START_IND_EVT         (6 + AVDTC_EVT_BEGIN)   /* Start indication */
-#define AVDTC_CLOSE_IND_EVT         (7 + AVDTC_EVT_BEGIN)   /* Close indication */
-#define AVDTC_SUSPEND_IND_EVT       (8 + AVDTC_EVT_BEGIN)   /* Suspend indication */
-#define AVDTC_ABORT_IND_EVT         (9 + AVDTC_EVT_BEGIN)   /* Abort indication */
-#define AVDTC_ABORT_CFM_EVT         (10 + AVDTC_EVT_BEGIN)  /* Abort confirm */
+/* Discover indication */
+#define AVDTC_DISCOVER_IND_EVT      (0 + AVDTC_EVT_BEGIN)
+/* Get capabilities indication */
+#define AVDTC_GETCAP_IND_EVT        (1 + AVDTC_EVT_BEGIN)
+/* Set configuration confirm */
+#define AVDTC_SETCONFIG_CFM_EVT     (2 + AVDTC_EVT_BEGIN)
+/* Get configuration indication */
+#define AVDTC_GETCONFIG_IND_EVT     (3 + AVDTC_EVT_BEGIN)
+/* Get configuration confirm */
+#define AVDTC_GETCONFIG_CFM_EVT     (4 + AVDTC_EVT_BEGIN)
+/* Open indication */
+#define AVDTC_OPEN_IND_EVT          (5 + AVDTC_EVT_BEGIN)
+/* Start indication */
+#define AVDTC_START_IND_EVT         (6 + AVDTC_EVT_BEGIN)
+/* Close indication */
+#define AVDTC_CLOSE_IND_EVT         (7 + AVDTC_EVT_BEGIN)
+/* Suspend indication */
+#define AVDTC_SUSPEND_IND_EVT       (8 + AVDTC_EVT_BEGIN)
+/* Abort indication */
+#define AVDTC_ABORT_IND_EVT         (9 + AVDTC_EVT_BEGIN)
+/* Abort confirm */
+#define AVDTC_ABORT_CFM_EVT         (10 + AVDTC_EVT_BEGIN)
 
 typedef struct {
     tAVDT_EVT_HDR   hdr;                        /* Event header */

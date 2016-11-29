@@ -47,10 +47,12 @@
  *
  * Parameters:      bd_addr          - BD address of the peer
  *                  dev_class        - Device Class
- *                  bd_name          - Name of the peer device.  NULL if unknown.
- *                  features         - Remote device's features (up to 3 pages). NULL if not known
+ *                  bd_name          - Name of the peer device. NULL if unknown.
+ *                  features         - Remote device's features (up to 3 pages).
+ *                                     NULL if not known
  *                  trusted_mask     - Bitwise OR of services that do not
- *                                     require authorization. (array of uint32_t)
+ *                                     require authorization.
+ *                                     (array of uint32_t)
  *                  link_key         - Connection link key. NULL if unknown.
  *
  * Returns          true if added OK, else false

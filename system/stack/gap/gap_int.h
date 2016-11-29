@@ -37,11 +37,12 @@ typedef struct
     bool           in_use;      /* True when structure is allocated */
 } tGAP_INFO;
 
-/* Define the control block for the FindAddrByName operation (Only 1 active at a time) */
+/* The control block for FindAddrByName (Only 1 active at a time) */
 typedef struct
 {
     tGAP_CALLBACK           *p_cback;
-    tBTM_INQ_INFO           *p_cur_inq; /* Pointer to the current inquiry database entry */
+    /* Pointer to the current inquiry database entry */
+    tBTM_INQ_INFO           *p_cur_inq;
     tGAP_FINDADDR_RESULTS    results;
     bool                     in_use;
 } tGAP_FINDADDR_CB;
@@ -65,24 +66,24 @@ typedef struct
 #define GAP_CCB_FLAGS_CONN_DONE         0x0E
     uint8_t           con_flags;
 
-    uint8_t           service_id;           /* Used by BTM                          */
-    uint16_t          gap_handle;           /* GAP handle                           */
-    uint16_t          connection_id;        /* L2CAP CID                            */
+    uint8_t           service_id;           /* Used by BTM */
+    uint16_t          gap_handle;           /* GAP handle */
+    uint16_t          connection_id;        /* L2CAP CID */
     bool              rem_addr_specified;
-    uint8_t           chan_mode_mask;       /* Supported channel modes (FCR)        */
+    uint8_t           chan_mode_mask;       /* Supported channel modes (FCR) */
     BD_ADDR           rem_dev_address;
     uint16_t          psm;
     uint16_t          rem_mtu_size;
 
     bool              is_congested;
-    fixed_queue_t     *tx_queue;            /* Queue of buffers waiting to be sent  */
-    fixed_queue_t     *rx_queue;            /* Queue of buffers waiting to be read  */
+    fixed_queue_t     *tx_queue;            /* Queue of buffers waiting to be sent */
+    fixed_queue_t     *rx_queue;            /* Queue of buffers waiting to be read */
 
-    uint32_t          rx_queue_size;        /* Total data count in rx_queue         */
+    uint32_t          rx_queue_size;        /* Total data count in rx_queue */
 
-    tGAP_CONN_CALLBACK *p_callback;         /* Users callback function              */
+    tGAP_CONN_CALLBACK *p_callback;         /* Users callback function */
 
-    tL2CAP_CFG_INFO   cfg;                  /* Configuration                        */
+    tL2CAP_CFG_INFO   cfg;                  /* Configuration */
     tL2CAP_ERTM_INFO  ertm_info;            /* Pools and modes for ertm */
     tBT_TRANSPORT     transport;            /* Transport channel BR/EDR or BLE */
     tL2CAP_LE_CFG_INFO local_coc_cfg;       /* local configuration for LE Coc */

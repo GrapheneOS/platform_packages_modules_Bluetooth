@@ -183,7 +183,8 @@ static tAVRC_STS avrc_bld_list_player_app_values_cmd(BT_HDR * p_pkt, uint8_t att
  *
  * Function         avrc_bld_get_current_player_app_values_cmd
  *
- * Description      This function builds the get current player app setting values command.
+ * Description      This function builds the get current player app setting
+ *                  values command.
  *
  * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
  *                  Otherwise, the error code.
@@ -211,7 +212,8 @@ static tAVRC_STS avrc_bld_get_current_player_app_values_cmd(
  *
  * Function         avrc_bld_set_current_player_app_values_cmd
  *
- * Description      This function builds the set current player app setting values command.
+ * Description      This function builds the set current player app setting
+ *                  values command.
  *
  * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
  *                  Otherwise, the error code.
@@ -242,7 +244,8 @@ static tAVRC_STS avrc_bld_set_current_player_app_values_cmd(BT_HDR * p_pkt, uint
  *
  * Function         avrc_bld_get_player_app_setting_attr_text_cmd
  *
- * Description      This function builds the get player app setting attribute text command.
+ * Description      This function builds the get player app setting attribute
+ *                  text command.
  *
  * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
  *                  Otherwise, the error code.
@@ -271,7 +274,8 @@ static tAVRC_STS avrc_bld_get_player_app_setting_attr_text_cmd (BT_HDR * p_pkt, 
  *
  * Function         avrc_bld_get_player_app_setting_value_text_cmd
  *
- * Description      This function builds the get player app setting value text command.
+ * Description      This function builds the get player app setting value
+ *                  text command.
  *
  * Returns          AVRC_STS_NO_ERROR, if the command is built successfully
  *                  Otherwise, the error code.
@@ -499,7 +503,8 @@ static tAVRC_STS avrc_bld_set_addressed_player_cmd(
  * Description      This function initializes the command buffer based on PDU
  *
  * Returns          NULL, if no GKI buffer or failure to build the message.
- *                  Otherwise, the GKI buffer that contains the initialized message.
+ *                  Otherwise, the GKI buffer that contains the initialized
+ *                  message.
  *
  ******************************************************************************/
 static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)

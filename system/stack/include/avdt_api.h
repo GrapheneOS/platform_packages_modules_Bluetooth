@@ -91,10 +91,10 @@ extern "C" {
 #define AVDT_MEDIA_TYPE_VIDEO   1       /* Video SEP */
 #define AVDT_MEDIA_TYPE_MULTI   2       /* Multimedia SEP */
 
-/* for reporting packets */
-#define AVDT_RTCP_PT_SR         200     /* the packet type - SR (Sender Report) */
-#define AVDT_RTCP_PT_RR         201     /* the packet type - RR (Receiver Report) */
-#define AVDT_RTCP_PT_SDES       202     /* the packet type - SDES (Source Description) */
+/* for reporting packets (packet types) */
+#define AVDT_RTCP_PT_SR         200     /* SR (Sender Report) */
+#define AVDT_RTCP_PT_RR         201     /* RR (Receiver Report) */
+#define AVDT_RTCP_PT_SDES       202     /* SDES (Source Description) */
 typedef uint8_t AVDT_REPORT_TYPE;
 
 #define AVDT_RTCP_SDES_CNAME    1       /* SDES item CNAME */
@@ -152,32 +152,58 @@ typedef uint8_t AVDT_REPORT_TYPE;
  * These error codes are unrelated to the result values returned by the
  * AVDTP API functions.
 */
-#define AVDT_ERR_HEADER             0x01    /* Bad packet header format */
-#define AVDT_ERR_LENGTH             0x11    /* Bad packet length */
-#define AVDT_ERR_SEID               0x12    /* Invalid SEID */
-#define AVDT_ERR_IN_USE             0x13    /* The SEP is in use */
-#define AVDT_ERR_NOT_IN_USE         0x14    /* The SEP is not in use */
-#define AVDT_ERR_CATEGORY           0x17    /* Bad service category */
-#define AVDT_ERR_PAYLOAD            0x18    /* Bad payload format */
-#define AVDT_ERR_NSC                0x19    /* Requested command not supported */
-#define AVDT_ERR_INVALID_CAP        0x1A    /* Reconfigure attempted invalid capabilities */
-#define AVDT_ERR_RECOV_TYPE         0x22    /* Requested recovery type not defined */
-#define AVDT_ERR_MEDIA_TRANS        0x23    /* Media transport capability not correct */
-#define AVDT_ERR_RECOV_FMT          0x25    /* Recovery service capability not correct */
-#define AVDT_ERR_ROHC_FMT           0x26    /* Header compression service capability not correct */
-#define AVDT_ERR_CP_FMT             0x27    /* Content protection service capability not correct */
-#define AVDT_ERR_MUX_FMT            0x28    /* Multiplexing service capability not correct */
-#define AVDT_ERR_UNSUP_CFG          0x29    /* Configuration not supported */
-#define AVDT_ERR_BAD_STATE          0x31    /* Message cannot be processed in this state */
-#define AVDT_ERR_REPORT_FMT         0x65    /* Report service capability not correct */
-#define AVDT_ERR_SERVICE            0x80    /* Invalid service category */
-#define AVDT_ERR_RESOURCE           0x81    /* Insufficient resources */
-#define AVDT_ERR_INVALID_MCT        0xC1    /* Invalid Media Codec Type */
-#define AVDT_ERR_UNSUP_MCT          0xC2    /* Unsupported Media Codec Type */
-#define AVDT_ERR_INVALID_LEVEL      0xC3    /* Invalid Level */
-#define AVDT_ERR_UNSUP_LEVEL        0xC4    /* Unsupported Level */
-#define AVDT_ERR_INVALID_CP         0xE0    /* Invalid Content Protection Type */
-#define AVDT_ERR_INVALID_FORMAT     0xE1    /* Invalid Content Protection format */
+/* Bad packet header format */
+#define AVDT_ERR_HEADER             0x01
+/* Bad packet length */
+#define AVDT_ERR_LENGTH             0x11
+/* Invalid SEID */
+#define AVDT_ERR_SEID               0x12
+/* The SEP is in use */
+#define AVDT_ERR_IN_USE             0x13
+/* The SEP is not in use */
+#define AVDT_ERR_NOT_IN_USE         0x14
+/* Bad service category */
+#define AVDT_ERR_CATEGORY           0x17
+/* Bad payload format */
+#define AVDT_ERR_PAYLOAD            0x18
+/* Requested command not supported */
+#define AVDT_ERR_NSC                0x19
+/* Reconfigure attempted invalid capabilities */
+#define AVDT_ERR_INVALID_CAP        0x1A
+/* Requested recovery type not defined */
+#define AVDT_ERR_RECOV_TYPE         0x22
+/* Media transport capability not correct */
+#define AVDT_ERR_MEDIA_TRANS        0x23
+/* Recovery service capability not correct */
+#define AVDT_ERR_RECOV_FMT          0x25
+/* Header compression service capability not correct */
+#define AVDT_ERR_ROHC_FMT           0x26
+/* Content protection service capability not correct */
+#define AVDT_ERR_CP_FMT             0x27
+/* Multiplexing service capability not correct */
+#define AVDT_ERR_MUX_FMT            0x28
+/* Configuration not supported */
+#define AVDT_ERR_UNSUP_CFG          0x29
+/* Message cannot be processed in this state */
+#define AVDT_ERR_BAD_STATE          0x31
+/* Report service capability not correct */
+#define AVDT_ERR_REPORT_FMT         0x65
+/* Invalid service category */
+#define AVDT_ERR_SERVICE            0x80
+/* Insufficient resources */
+#define AVDT_ERR_RESOURCE           0x81
+/* Invalid Media Codec Type */
+#define AVDT_ERR_INVALID_MCT        0xC1
+/* Unsupported Media Codec Type */
+#define AVDT_ERR_UNSUP_MCT          0xC2
+/* Invalid Level */
+#define AVDT_ERR_INVALID_LEVEL      0xC3
+/* Unsupported Level */
+#define AVDT_ERR_UNSUP_LEVEL        0xC4
+/* Invalid Content Protection Type */
+#define AVDT_ERR_INVALID_CP         0xE0
+/* Invalid Content Protection format */
+#define AVDT_ERR_INVALID_FORMAT     0xE1
 
 /* Additional error codes.  This indicates error codes used by AVDTP
  * in addition to the ones defined in the specifications.
@@ -307,7 +333,8 @@ typedef struct {
     uint8_t         int_seid;           /* Stream endpoint ID of stream initiating the operation */
 } tAVDT_SETCONFIG;
 
-/* This data structure is associated with the AVDT_OPEN_IND_EVT and AVDT_OPEN_CFM_EVT. */
+/* This data structure is associated with the AVDT_OPEN_IND_EVT and
+ * AVDT_OPEN_CFM_EVT. */
 typedef struct {
     tAVDT_EVT_HDR   hdr;                /* Event header */
     uint16_t        peer_mtu;           /* Transport channel L2CAP MTU of the peer */
@@ -373,9 +400,9 @@ typedef void (tAVDT_SINK_DATA_CBACK)(uint8_t handle, BT_HDR *p_pkt,
                                      uint32_t time_stamp, uint8_t m_pt);
 
 #if (AVDT_REPORTING == TRUE)
-/* This is the report callback function.  It is executed when AVDTP has a reporting
- * packet ready for the application.  This function is required for streams
- * created with AVDT_PSC_REPORT.
+/* This is the report callback function.  It is executed when AVDTP has a
+ * reporting packet ready for the application.  This function is required for
+ * streams created with AVDT_PSC_REPORT.
 */
 typedef void (tAVDT_REPORT_CBACK)(uint8_t handle, AVDT_REPORT_TYPE type,
                                 tAVDT_REPORT_DATA *p_data);
@@ -435,8 +462,7 @@ extern void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback);
  * Description      This function is called to deregister use AVDTP protocol.
  *                  It is called when AVDTP is no longer being used by any
  *                  application in the system.  Before this function can be
- *                  called, all streams must be removed with AVDT_RemoveStream().
- *
+ *                  called, all streams must be removed with AVDT_RemoveStream.
  *
  * Returns          void
  *
@@ -495,8 +521,8 @@ extern uint16_t AVDT_RemoveStream(uint8_t handle);
  *                  on the peer device, if not already present, and discovers
  *                  the stream endpoints on the peer device.  (Please note
  *                  that AVDTP discovery is unrelated to SDP discovery).
- *                  This function can be called at any time regardless of whether
- *                  there is an AVDTP connection to the peer device.
+ *                  This function can be called at any time regardless of
+ *                  whether there is an AVDTP connection to the peer device.
  *
  *                  When discovery is complete, an AVDT_DISCOVER_CFM_EVT
  *                  is sent to the application via its callback function.
@@ -592,7 +618,8 @@ extern uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay);
  *                  on the peer device, if not already present, and connects
  *                  to a stream endpoint on a peer device.  When the connection
  *                  is completed, an AVDT_OPEN_CFM_EVT is sent to the
- *                  application via the control callback function for this handle.
+ *                  application via the control callback function for this
+ *                  handle.
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
@@ -624,7 +651,8 @@ extern uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code
  *                  transfer of media packets for the streams.  All stream
  *                  endpoints must previously be opened.  When the streams
  *                  are started, an AVDT_START_CFM_EVT is sent to the
- *                  application via the control callback function for each stream.
+ *                  application via the control callback function for each
+ *                  stream.
  *
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
@@ -675,7 +703,8 @@ extern uint16_t AVDT_CloseReq(uint8_t handle);
  *                  can only be called if the stream is opened but not started
  *                  or if the stream has been suspended.  When the procedure
  *                  is completed, an AVDT_RECONFIG_CFM_EVT is sent to the
- *                  application via the control callback function for this handle.
+ *                  application via the control callback function for this
+ *                  handle.
  *
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
@@ -705,8 +734,8 @@ extern uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_co
  * Description      Send a security request to the peer device.  When the
  *                  security procedure is completed, an AVDT_SECURITY_CFM_EVT
  *                  is sent to the application via the control callback function
- *                  for this handle.  (Please note that AVDTP security procedures
- *                  are unrelated to Bluetooth link level security.)
+ *                  for this handle.  (Please note that AVDTP security
+ *                  procedures are unrelated to Bluetooth link level security.)
  *
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
@@ -749,7 +778,8 @@ extern uint16_t AVDT_SecurityRsp(uint8_t handle, uint8_t label, uint8_t error_co
  *                  to AVDT_WriteReq() after it receives an AVDT_START_CFM_EVT
  *                  or AVDT_START_IND_EVT.
  *
- *                  The application passes the packet using the BT_HDR structure.
+ *                  The application passes the packet using the BT_HDR
+ *                  structure.
  *                  This structure is described in section 2.1.  The offset
  *                  field must be equal to or greater than AVDT_MEDIA_OFFSET.
  *                  This allows enough space in the buffer for the L2CAP and
@@ -852,7 +882,8 @@ extern uint16_t AVDT_GetL2CapChannel(uint8_t handle);
  *
  * Function         AVDT_GetSignalChannel
  *
- * Description      Get the L2CAP CID used by the signal channel of the given handle.
+ * Description      Get the L2CAP CID used by the signal channel of the given
+ *                  handle.
  *
  * Returns          CID if successful, otherwise 0.
  *

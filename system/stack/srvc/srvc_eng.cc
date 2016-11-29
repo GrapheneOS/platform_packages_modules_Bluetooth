@@ -154,9 +154,10 @@ uint8_t srvc_eng_find_clcb_idx_by_conn_id(uint16_t conn_id)
  *
  * Function         srvc_eng_clcb_alloc
  *
- * Description      The function allocates a GATT profile  connection link control block
+ * Description      Allocate a GATT profile connection link control block
  *
- * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ * Returns          NULL if not found. Otherwise pointer to the connection link
+ *                  block.
  *
  ******************************************************************************/
 tSRVC_CLCB *srvc_eng_clcb_alloc (uint16_t conn_id, BD_ADDR bda)
@@ -181,9 +182,9 @@ tSRVC_CLCB *srvc_eng_clcb_alloc (uint16_t conn_id, BD_ADDR bda)
  *
  * Function         srvc_eng_clcb_dealloc
  *
- * Description      The function deallocates a GATT profile  connection link control block
+ * Description      De-allocate a GATT profile connection link control block
  *
- * Returns           True the deallocation is successful
+ * Returns          True the deallocation is successful
  *
  ******************************************************************************/
 bool    srvc_eng_clcb_dealloc (uint16_t conn_id)

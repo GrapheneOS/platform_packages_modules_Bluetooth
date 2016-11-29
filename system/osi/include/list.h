@@ -40,15 +40,11 @@ typedef void (*list_free_cb)(void* data);
 typedef bool (*list_iter_cb)(void* data, void* context);
 
 // Returns a new, empty list. Returns NULL if not enough memory could be
-// allocated
-// for the list structure. The returned list must be freed with |list_free|. The
-// |callback| specifies a function to be called whenever a list element is
-// removed
-// from the list. It can be used to release resources held by the list element,
-// e.g.
-// memory or file descriptor. |callback| may be NULL if no cleanup is necessary
-// on
-// element removal.
+// allocated for the list structure. The returned list must be freed with
+// |list_free|. The |callback| specifies a function to be called whenever a
+// list element is removed from the list. It can be used to release resources
+// held by the list element, e.g. memory or file descriptor. |callback| may
+// be NULL if no cleanup is necessary on element removal.
 list_t* list_new(list_free_cb callback);
 
 // Frees the list. This function accepts NULL as an argument, in which case it
@@ -103,12 +99,9 @@ bool list_append(list_t* list, void* data);
 // Removes |data| from the list. Neither |list| nor |data| may be NULL. If
 // |data|
 // is inserted multiple times in the list, this function will only remove the
-// first
-// instance. If a free function was specified in |list_new|, it will be called
-// back
-// with |data|. This function returns true if |data| was found in the list and
-// removed,
-// false otherwise.
+// first instance. If a free function was specified in |list_new|, it will be
+// called back with |data|. This function returns true if |data| was found in
+// the list and removed, false otherwise.
 bool list_remove(list_t* list, void* data);
 
 // Removes all elements in the list. Calling this function will return the list
@@ -117,25 +110,20 @@ bool list_remove(list_t* list, void* data);
 void list_clear(list_t* list);
 
 // Iterates through the |list| and calls |callback| for each data element.
-// Iteration
-// continues until |callback| returns false. The function returns the pointer to
-// last
-// processed element, or NULL if the list is empty, or all calls to |callback|
-// returned
-// true. |context| is passed to |callback| on each iteration.
+// Iteration continues until |callback| returns false. The function returns the
+// pointer to last processed element, or NULL if the list is empty, or all calls
+// to |callback| returned true. |context| is passed to |callback| on each
+// iteration.
 // If the list is empty, |callback| will never be called. It is safe to mutate
-// the
-// list inside the callback. If an element is added before the node being
-// visited,
-// there will be no callback for the newly-inserted node. Neither |list| nor
-// |callback| may be NULL.
+// the list inside the callback. If an element is added before the node being
+// visited, there will be no callback for the newly-inserted node. Neither
+// |list| nor |callback| may be NULL.
 list_node_t* list_foreach(const list_t* list, list_iter_cb callback,
                           void* context);
 
 // Returns an iterator to the first element in |list|. |list| may not be NULL.
 // The returned iterator is valid as long as it does not equal the value
-// returned
-// by |list_end|.
+// returned by |list_end|.
 list_node_t* list_begin(const list_t* list);
 
 // Returns an iterator that points past the end of the list. In other words,

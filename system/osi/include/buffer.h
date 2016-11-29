@@ -36,8 +36,7 @@ buffer_t* buffer_new(size_t size);
 // from the original: writes to the original will be reflected in the reference
 // and vice versa. In other words, this function creates an alias to |buf|. The
 // caller must release the returned buffer with |buffer_free|. Note that
-// releasing
-// the returned buffer does not release |buf|. |buf| must not be NULL.
+// releasing the returned buffer does not release |buf|. |buf| must not be NULL.
 buffer_t* buffer_new_ref(const buffer_t* buf);
 
 // Creates a new reference to the last |slice_size| bytes of |buf|. See
