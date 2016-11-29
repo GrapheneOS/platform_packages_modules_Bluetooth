@@ -23,6 +23,7 @@
 #include <utility>
 #include "btm_api.h"
 #include "btm_ble_api.h"
+#include "device/include/controller.h"
 
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN 8
 #define BTM_BLE_MULTI_ADV_ENB_LEN 3
@@ -330,6 +331,146 @@ class BleAdvertiserLegacyHciInterfaceImpl : public BleAdvertiserHciInterface {
   }
 };
 
+class BleAdvertiserHciExtendedImpl : public BleAdvertiserHciInterface {
+  void SendAdvCmd(uint16_t opcode, uint8_t* param_buf, uint8_t param_buf_len,
+                  status_cb command_complete) {
+    btu_hcif_send_cmd_with_cb(opcode, param_buf, param_buf_len,
+                              adv_cmd_cmpl_cback);
+
+    legacy_pending_ops->push(std::make_pair(opcode, command_complete));
+  }
+
+  void ReadInstanceCount(
+      base::Callback<void(uint8_t /* inst_cnt*/)> cb) override {
+    cb.Run(controller_get_interface()
+               ->get_ble_number_of_supported_advertising_sets());
+  }
+
+  void SetAdvertisingEventObserver(
+      AdvertisingEventObserver* observer) override {}
+
+  void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
+                     uint8_t advertising_type, uint8_t own_address_type,
+                     BD_ADDR own_address, uint8_t direct_address_type,
+                     BD_ADDR direct_address, uint8_t channel_map,
+                     uint8_t filter_policy, uint8_t advertising_handle,
+                     uint8_t tx_power, status_cb command_complete) override {
+    VLOG(1) << __func__;
+    const uint16_t HCI_LE_SET_EXT_ADVERTISING_PARAM_LEN = 25;
+    uint8_t param[HCI_LE_SET_EXT_ADVERTISING_PARAM_LEN];
+    memset(param, 0, HCI_LE_SET_EXT_ADVERTISING_PARAM_LEN);
+
+    uint8_t* pp = param;
+    UINT8_TO_STREAM(pp, advertising_handle);
+
+    if (advertising_type == 0x00) {  // ADV_IND
+      UINT16_TO_STREAM(pp, 0x13);
+    } else if (advertising_type == 0x02) {  // ADV_SCAN_IND
+      UINT16_TO_STREAM(pp, 0x12);
+    } else if (advertising_type == 0x03) {  // ADV_NONCONN_IND
+      UINT16_TO_STREAM(pp, 0x10);
+    } else {
+      LOG_ASSERT("Unsupported advertisement type selected!");
+    }
+
+    UINT24_TO_STREAM(pp, (uint32_t)adv_int_min);
+    UINT24_TO_STREAM(pp, (uint32_t)adv_int_max);
+    UINT8_TO_STREAM(pp, channel_map);
+
+    UINT8_TO_STREAM(pp, own_address_type);
+    UINT8_TO_STREAM(pp, direct_address_type);
+    BDADDR_TO_STREAM(pp, direct_address);
+    UINT8_TO_STREAM(pp, filter_policy);
+
+    INT8_TO_STREAM(pp, tx_power);
+
+    UINT8_TO_STREAM(pp, 0x01);  // primary advertising phy
+    UINT8_TO_STREAM(pp, 0x01);  // secondary advertising max skip
+    UINT8_TO_STREAM(pp, 0x01);  // secondary advertising phy
+    UINT8_TO_STREAM(pp, 0x00);  // advertising SID
+    UINT8_TO_STREAM(pp, 0x00);  // scan req notification
+
+    SendAdvCmd(HCI_LE_SET_EXT_ADVERTISING_PARAM, param,
+               HCI_LE_SET_EXT_ADVERTISING_PARAM_LEN, command_complete);
+  }
+
+  void SetAdvertisingData(uint8_t data_length, uint8_t* data, uint8_t inst_id,
+                          status_cb command_complete) override {
+    VLOG(1) << __func__;
+
+    const uint16_t cmd_length = 4 + data_length;
+    uint8_t param[cmd_length];
+    memset(param, 0, cmd_length);
+
+    uint8_t* pp = param;
+    UINT8_TO_STREAM(pp, inst_id);
+    UINT8_TO_STREAM(pp, 0x03);  // complete advertising data
+    UINT8_TO_STREAM(pp, 0x01);  // don't fragment
+    UINT8_TO_STREAM(pp, data_length);
+    ARRAY_TO_STREAM(pp, data, data_length);
+
+    SendAdvCmd(HCI_LE_SET_EXT_ADVERTISING_DATA, param, cmd_length,
+               command_complete);
+  }
+
+  void SetScanResponseData(uint8_t scan_response_data_length,
+                           uint8_t* scan_response_data, uint8_t inst_id,
+                           status_cb command_complete) override {
+    VLOG(1) << __func__;
+
+    const uint16_t cmd_length = 4 + scan_response_data_length;
+    uint8_t param[cmd_length];
+    memset(param, 0, cmd_length);
+
+    uint8_t* pp = param;
+    UINT8_TO_STREAM(pp, inst_id);
+    UINT8_TO_STREAM(pp, 0x03);  // complete advertising data
+    UINT8_TO_STREAM(pp, 0x01);  // don't fragment
+    UINT8_TO_STREAM(pp, scan_response_data_length);
+    ARRAY_TO_STREAM(pp, scan_response_data, scan_response_data_length);
+
+    SendAdvCmd(HCI_LE_SET_EXT_ADVERTISING_SCAN_RESP, param, cmd_length,
+               command_complete);
+  }
+
+  void SetRandomAddress(uint8_t random_address[6], uint8_t advertising_handle,
+                        status_cb command_complete) override {
+    VLOG(1) << __func__;
+    const int LE_SET_ADVERTISING_SET_RANDOM_ADDRESS_LEN = 7;
+
+    uint8_t param[LE_SET_ADVERTISING_SET_RANDOM_ADDRESS_LEN];
+    memset(param, 0, LE_SET_ADVERTISING_SET_RANDOM_ADDRESS_LEN);
+
+    uint8_t* pp = param;
+    UINT8_TO_STREAM(pp, advertising_handle);
+    BDADDR_TO_STREAM(pp, random_address);
+
+    SendAdvCmd(HCI_LE_SET_EXT_ADVERTISING_RANDOM_ADDRESS, param,
+               LE_SET_ADVERTISING_SET_RANDOM_ADDRESS_LEN, command_complete);
+  }
+
+  void Enable(uint8_t advertising_enable, uint8_t inst_id,
+              status_cb command_complete) override {
+    VLOG(1) << __func__;
+
+    /* cmd_length = header_size + num_of_of_advertiser * size_per_advertiser */
+    const uint16_t cmd_length = 2 + 1 * 4;
+    uint8_t param[cmd_length];
+    memset(param, 0, cmd_length);
+
+    uint8_t* pp = param;
+    UINT8_TO_STREAM(pp, 0x01);  // enable
+    UINT8_TO_STREAM(pp, 0x01);  // just one set
+
+    UINT8_TO_STREAM(pp, inst_id);  // set_id
+    UINT16_TO_STREAM(pp, 0x0000);  // duration
+    UINT8_TO_STREAM(pp, 0x00);     // max extended advertising events
+
+    SendAdvCmd(HCI_LE_SET_EXT_ADVERTISING_ENABLE, param, cmd_length,
+               command_complete);
+  }
+};
+
 }  // namespace
 
 void BleAdvertiserHciInterface::Initialize() {
@@ -338,7 +479,9 @@ void BleAdvertiserHciInterface::Initialize() {
   pending_ops = new std::queue<std::pair<uint8_t, status_cb>>();
   legacy_pending_ops = new std::queue<std::pair<uint16_t, status_cb>>();
 
-  if (BTM_BleMaxMultiAdvInstanceCount()) {
+  if (controller_get_interface()->supports_ble_extended_advertising()) {
+    instance = new BleAdvertiserHciExtendedImpl();
+  } else if (BTM_BleMaxMultiAdvInstanceCount()) {
     instance = new BleAdvertiserVscHciInterfaceImpl();
     BTM_RegisterForVSEvents(
         BleAdvertiserVscHciInterfaceImpl::VendorSpecificEventCback, true);
