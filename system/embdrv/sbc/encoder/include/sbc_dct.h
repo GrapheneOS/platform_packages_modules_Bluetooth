@@ -25,6 +25,8 @@
 #ifndef SBC_DCT_H
 #define SBC_DCT_H
 
+#include "sbc_enc_func_declare.h"
+
 #if (SBC_ARM_ASM_OPT == TRUE)
 #define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1, s32OutLow)					\
 {																			    \
