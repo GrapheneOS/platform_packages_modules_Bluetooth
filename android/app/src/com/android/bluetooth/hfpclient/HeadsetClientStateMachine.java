@@ -343,7 +343,7 @@ final class HeadsetClientStateMachine extends StateMachine {
             Log.d(TAG, "queryCallsStart");
         }
         clearPendingAction();
-        queryCurrentCallsNative();
+        queryCurrentCallsNative(getByteAddress(mCurrentDevice));
         addQueuedAction(QUERY_CURRENT_CALLS, 0);
         return true;
     }
@@ -606,7 +606,7 @@ final class HeadsetClientStateMachine extends StateMachine {
             mAudioManager.setParameters("hfp_enable=true");
         }
 
-        if (handleCallActionNative(action, 0)) {
+        if (handleCallActionNative(getByteAddress(mCurrentDevice), action, 0)) {
             addQueuedAction(ACCEPT_CALL, action);
         } else {
             Log.e(TAG, "ERROR: Couldn't accept a call, action:" + action);
@@ -653,7 +653,7 @@ final class HeadsetClientStateMachine extends StateMachine {
         if (DBG) {
             Log.d(TAG, "Reject call action " + action);
         }
-        if (handleCallActionNative(action, 0)) {
+        if (handleCallActionNative(getByteAddress(mCurrentDevice), action, 0)) {
             addQueuedAction(REJECT_CALL, action);
         } else {
             Log.e(TAG, "ERROR: Couldn't reject a call, action:" + action);
@@ -684,7 +684,7 @@ final class HeadsetClientStateMachine extends StateMachine {
         Log.d(TAG,"hfp_enable=false");
         mAudioManager.setParameters("hfp_enable=false");
 
-        if (handleCallActionNative(action, 0)) {
+        if (handleCallActionNative(getByteAddress(mCurrentDevice), action, 0)) {
             addQueuedAction(HOLD_CALL, action);
         } else {
             Log.e(TAG, "ERROR: Couldn't hold a call, action:" + action);
@@ -703,7 +703,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                 BluetoothHeadsetClientCall.CALL_STATE_ALERTING,
                 BluetoothHeadsetClientCall.CALL_STATE_ACTIVE);
         if (c != null) {
-            if (handleCallActionNative(action, 0)) {
+            if (handleCallActionNative(getByteAddress(mCurrentDevice), action, 0)) {
                 addQueuedAction(TERMINATE_CALL, action);
             } else {
                 Log.e(TAG, "ERROR: Couldn't terminate outgoing call");
@@ -730,7 +730,8 @@ final class HeadsetClientStateMachine extends StateMachine {
             return;
         }
 
-        if (handleCallActionNative(HeadsetClientHalConstants.CALL_ACTION_CHLD_2x, idx)) {
+        if (handleCallActionNative(getByteAddress(mCurrentDevice),
+                HeadsetClientHalConstants.CALL_ACTION_CHLD_2x, idx)) {
             addQueuedAction(ENTER_PRIVATE_MODE, c);
         } else {
             Log.e(TAG, "ERROR: Couldn't enter private " + " id:" + idx);
@@ -747,7 +748,8 @@ final class HeadsetClientStateMachine extends StateMachine {
             return;
         }
 
-        if (handleCallActionNative(HeadsetClientHalConstants.CALL_ACTION_CHLD_4, -1)) {
+        if (handleCallActionNative(getByteAddress(mCurrentDevice),
+              HeadsetClientHalConstants.CALL_ACTION_CHLD_4, -1)) {
             addQueuedAction(EXPLICIT_CALL_TRANSFER);
         } else {
             Log.e(TAG, "ERROR: Couldn't transfer call");
@@ -1145,8 +1147,9 @@ final class HeadsetClientStateMachine extends StateMachine {
                     if (HeadsetClientHalConstants.HANDSFREECLIENT_NREC_SUPPORTED &&
                             ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_ECNR) ==
                                     HeadsetClientHalConstants.PEER_FEAT_ECNR)) {
-                        if (sendATCmdNative(HeadsetClientHalConstants.HANDSFREECLIENT_AT_CMD_NREC,
-                            1 , 0, null)) {
+                        if (sendATCmdNative(getByteAddress(mCurrentDevice),
+                              HeadsetClientHalConstants.HANDSFREECLIENT_AT_CMD_NREC,
+                              1 , 0, null)) {
                             addQueuedAction(DISABLE_NREC);
                         } else {
                             Log.e(TAG, "Failed to send NREC");
@@ -1271,7 +1274,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     break;
                 case VOICE_RECOGNITION_START:
                     if (mVoiceRecognitionActive == HeadsetClientHalConstants.VR_STATE_STOPPED) {
-                        if (startVoiceRecognitionNative()) {
+                        if (startVoiceRecognitionNative(getByteAddress(mCurrentDevice))) {
                             addQueuedAction(VOICE_RECOGNITION_START);
                         } else {
                             Log.e(TAG, "ERROR: Couldn't start voice recognition");
@@ -1280,7 +1283,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     break;
                 case VOICE_RECOGNITION_STOP:
                     if (mVoiceRecognitionActive == HeadsetClientHalConstants.VR_STATE_STARTED) {
-                        if (stopVoiceRecognitionNative()) {
+                        if (stopVoiceRecognitionNative(getByteAddress(mCurrentDevice))) {
                             addQueuedAction(VOICE_RECOGNITION_STOP);
                         } else {
                             Log.e(TAG, "ERROR: Couldn't stop voice recognition");
@@ -1293,7 +1296,10 @@ final class HeadsetClientStateMachine extends StateMachine {
                         mVgmFromStack = false;
                         break;
                     }
-                    if (setVolumeNative(HeadsetClientHalConstants.VOLUME_TYPE_MIC, message.arg1)) {
+                    if (setVolumeNative(
+                            getByteAddress(mCurrentDevice),
+                            HeadsetClientHalConstants.VOLUME_TYPE_MIC,
+                            message.arg1)) {
                         addQueuedAction(SET_MIC_VOLUME);
                     }
                     break;
@@ -1307,7 +1313,8 @@ final class HeadsetClientStateMachine extends StateMachine {
                         mVgsFromStack = false;
                         break;
                     }
-                    if (setVolumeNative(HeadsetClientHalConstants.VOLUME_TYPE_SPK, hfVol)) {
+                    if (setVolumeNative(getByteAddress(mCurrentDevice),
+                          HeadsetClientHalConstants.VOLUME_TYPE_SPK, hfVol)) {
                         addQueuedAction(SET_SPEAKER_VOLUME);
                     }
                     break;
@@ -1316,7 +1323,7 @@ final class HeadsetClientStateMachine extends StateMachine {
                     BluetoothHeadsetClientCall c = (BluetoothHeadsetClientCall) message.obj;
                     mCalls.put(HF_ORIGINATED_CALL_ID, c);
 
-                    if (dialNative(c.getNumber())) {
+                    if (dialNative(getByteAddress(mCurrentDevice), c.getNumber())) {
                         addQueuedAction(DIAL_NUMBER, c.getNumber());
                         // Start looping on calling current calls.
                         sendMessage(QUERY_CURRENT_CALLS);
@@ -1347,21 +1354,21 @@ final class HeadsetClientStateMachine extends StateMachine {
                     explicitCallTransfer();
                     break;
                 case SEND_DTMF:
-                    if (sendDtmfNative((byte) message.arg1)) {
+                    if (sendDtmfNative(getByteAddress(mCurrentDevice), (byte) message.arg1)) {
                         addQueuedAction(SEND_DTMF);
                     } else {
                         Log.e(TAG, "ERROR: Couldn't send DTMF");
                     }
                     break;
                 case SUBSCRIBER_INFO:
-                    if (retrieveSubscriberInfoNative()) {
+                    if (retrieveSubscriberInfoNative(getByteAddress(mCurrentDevice))) {
                         addQueuedAction(SUBSCRIBER_INFO);
                     } else {
                         Log.e(TAG, "ERROR: Couldn't retrieve subscriber info");
                     }
                     break;
                 case LAST_VTAG_NUMBER:
-                    if (requestLastVoiceTagNumberNative()) {
+                    if (requestLastVoiceTagNumberNative(getByteAddress(mCurrentDevice))) {
                         addQueuedAction(LAST_VTAG_NUMBER);
                     } else {
                         Log.e(TAG, "ERROR: Couldn't get last VTAG number");
@@ -1426,7 +1433,7 @@ final class HeadsetClientStateMachine extends StateMachine {
 
                             if (mIndicatorNetworkState ==
                                     HeadsetClientHalConstants.NETWORK_STATE_AVAILABLE) {
-                                if (queryCurrentOperatorNameNative()) {
+                                if (queryCurrentOperatorNameNative(getByteAddress(mCurrentDevice))) {
                                     addQueuedAction(QUERY_OPERATOR_NAME);
                                 } else {
                                     Log.e(TAG, "ERROR: Couldn't querry operator name");
@@ -2428,29 +2435,29 @@ final class HeadsetClientStateMachine extends StateMachine {
 
     private native boolean disconnectAudioNative(byte[] address);
 
-    private native boolean startVoiceRecognitionNative();
+    private native boolean startVoiceRecognitionNative(byte[] address);
 
-    private native boolean stopVoiceRecognitionNative();
+    private native boolean stopVoiceRecognitionNative(byte[] address);
 
-    private native boolean setVolumeNative(int volumeType, int volume);
+    private native boolean setVolumeNative(byte[] address, int volumeType, int volume);
 
-    private native boolean dialNative(String number);
+    private native boolean dialNative(byte[] address, String number);
 
-    private native boolean dialMemoryNative(int location);
+    private native boolean dialMemoryNative(byte[] address, int location);
 
-    private native boolean handleCallActionNative(int action, int index);
+    private native boolean handleCallActionNative(byte[] address, int action, int index);
 
-    private native boolean queryCurrentCallsNative();
+    private native boolean queryCurrentCallsNative(byte[] address);
 
-    private native boolean queryCurrentOperatorNameNative();
+    private native boolean queryCurrentOperatorNameNative(byte[] address);
 
-    private native boolean retrieveSubscriberInfoNative();
+    private native boolean retrieveSubscriberInfoNative(byte[] address);
 
-    private native boolean sendDtmfNative(byte code);
+    private native boolean sendDtmfNative(byte[] address, byte code);
 
-    private native boolean requestLastVoiceTagNumberNative();
+    private native boolean requestLastVoiceTagNumberNative(byte[] address);
 
-    private native boolean sendATCmdNative(int ATCmd, int val1,
+    private native boolean sendATCmdNative(byte[] address, int atCmd, int val1,
             int val2, String arg);
 
     public List<BluetoothHeadsetClientCall> getCurrentCalls() {
