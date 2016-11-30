@@ -15,6 +15,7 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+#include <assert.h>
 #include <string.h>
 
 #include "bt_common.h"
@@ -442,6 +443,111 @@ static tAVRC_STS avrc_bld_inform_battery_status_rsp (UNUSED_ATTR tAVRC_RSP *p_rs
 {
     /* nothing to be added. */
     AVRC_TRACE_API("%s", __func__);
+    return AVRC_STS_NO_ERROR;
+}
+
+static void avrc_build_attribute_entries(int num_attrs,
+                                         tAVRC_ATTR_ENTRY* p_attrs,
+                                         int remaining_buffer_capacity,
+                                         uint8_t** pp_data,
+                                         uint8_t* p_attribute_count) {
+    AVRC_TRACE_DEBUG("%s num_attrs: %d, remaining_buffer_capacity: %d",
+                     __func__, num_attrs, remaining_buffer_capacity);
+    uint8_t* p_data = *pp_data;
+    /* Fill in the Attribute ID, Character Set, Length and Values */
+    for (int index = 0; index < num_attrs; index++) {
+        AVRC_TRACE_DEBUG("%s attr id[%d]: %d",
+                         __func__, index, p_attrs[index].attr_id);
+        assert(AVRC_IS_VALID_MEDIA_ATTRIBUTE(p_attrs[index].attr_id));
+        if (!p_attrs[index].name.p_str) {
+            p_attrs[index].name.str_len = 0;
+        }
+        /* 8 is the size of attr_id, char set and str_len */
+        remaining_buffer_capacity -= 8;
+        if (remaining_buffer_capacity < 0) {
+            AVRC_TRACE_WARNING(
+                    "%s not enough buffer space for attr_id[%d]: %d,"
+                    " skipping %d attributes",
+                    __func__, index, p_attrs[index].attr_id, num_attrs - index);
+            break;
+        }
+        if (remaining_buffer_capacity < p_attrs[index].name.str_len) {
+            AVRC_TRACE_WARNING("%s not enough buffer space for attr_id[%d]: %d,"
+                               " truncating attribute",
+                               __func__, index, p_attrs[index].attr_id);
+            p_attrs[index].name.str_len = remaining_buffer_capacity;
+            remaining_buffer_capacity = 0;
+        }
+        remaining_buffer_capacity -= p_attrs[index].name.str_len;
+        UINT32_TO_BE_STREAM(p_data, p_attrs[index].attr_id);
+        UINT16_TO_BE_STREAM(p_data, p_attrs[index].name.charset_id);
+        UINT16_TO_BE_STREAM(p_data, p_attrs[index].name.str_len);
+        ARRAY_TO_BE_STREAM(p_data, p_attrs[index].name.p_str,
+                           p_attrs[index].name.str_len);
+        (*p_attribute_count)++;
+    }
+    *pp_data = p_data;
+    AVRC_TRACE_DEBUG("%s filled attributes, remaining_buffer_capacity: %d",
+                     __func__, num_attrs, remaining_buffer_capacity);
+}
+
+/*******************************************************************************
+**
+** Function         avrc_bld_get_elem_attrs_rsp
+**
+** Description      This function builds the Get Element Attributes
+**                  response.
+**
+** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+**                  Otherwise, the error code.
+**
+*******************************************************************************/
+static tAVRC_STS avrc_bld_get_elem_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp,
+                                              BT_HDR *p_pkt) {
+    AVRC_TRACE_API("%s", __func__);
+    if (!p_rsp->p_attrs) {
+        AVRC_TRACE_ERROR("%s NULL p_attrs", __func__);
+        return AVRC_STS_BAD_PARAM;
+    }
+    /* Figure out how much we have left in current buffer */
+    int remaining_buffer_capacity = BT_DEFAULT_BUFFER_SIZE
+                                    - BT_HDR_SIZE - p_pkt->offset;
+    if (remaining_buffer_capacity < 5) {
+      AVRC_TRACE_ERROR("%s not enough buffer for packet header",
+        remaining_buffer_capacity);
+      return AVRC_STS_INTERNAL_ERR;
+    }
+    /* Get to the beginning of PDU */
+    uint8_t *p_pdu_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
+    /* Skip PDU ID and Reserved byte to get pointer to Parameter Length */
+    uint8_t *p_data, *p_parameter_len;
+    p_data = p_parameter_len = p_pdu_start + 2;
+    /* Parse parameter length */
+    uint16_t parameter_len;
+    BE_STREAM_TO_UINT16(parameter_len, p_data);
+    /* Get pointer to Attribute Count */
+    uint8_t *p_attribute_count = p_data;
+    /* Initialize field values when Parameter Length is 0 */
+    if (parameter_len == 0) {
+        *p_attribute_count = 0;
+        p_data++;
+    } else {
+        // TODO: Why do we need this case?
+        p_data = p_pdu_start + p_pkt->len;
+    }
+    remaining_buffer_capacity -= p_data - p_pdu_start;;
+    if (remaining_buffer_capacity < 0) {
+         AVRC_TRACE_ERROR("%s not enough buffer capacity for response");
+         return AVRC_STS_BAD_PARAM;
+    }
+    /* Fill in the Attribute ID, Character Set, Length and Values */
+    avrc_build_attribute_entries(p_rsp->num_attrs,
+                               p_rsp->p_attrs,
+                               remaining_buffer_capacity,
+                               &p_data, p_attribute_count);
+    parameter_len = p_data - p_attribute_count;
+    UINT16_TO_BE_STREAM(p_parameter_len, parameter_len);
+    p_pkt->len = (p_data - p_pdu_start);
     return AVRC_STS_NO_ERROR;
 }
 
@@ -1093,10 +1199,9 @@ static tAVRC_STS avrc_bld_change_path_rsp (tAVRC_CHG_PATH_RSP *p_rsp, BT_HDR *p_
 
 /*******************************************************************************
 **
-** Function         avrc_bld_get_attrs_rsp
+** Function         avrc_bld_get_item_attrs_rsp
 **
-** Description      This function builds the Get Item Attributes or
-**                  Get Element Attributes response,
+** Description      This function builds the GetItemAttributes response,
 **
 **                  The Get Item Attributes message goes through the
 **                  Browsing channel (already specified in the |p_pkt|)
@@ -1106,93 +1211,66 @@ static tAVRC_STS avrc_bld_change_path_rsp (tAVRC_CHG_PATH_RSP *p_rsp, BT_HDR *p_
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-static tAVRC_STS avrc_bld_get_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp, BT_HDR *p_pkt)
-{
-    uint8_t   *p_data, *p_start;
-    uint8_t   *p_len;
-    uint16_t  len_left;
-    uint8_t   *p_num;
-    uint16_t  mtu;
-
+static tAVRC_STS avrc_bld_get_item_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp,
+                                              BT_HDR *p_pkt) {
     AVRC_TRACE_API("%s", __func__);
-    /* calculate the buffer size needed and validate the parameters */
-    if (!p_rsp || !p_rsp->p_attrs)
-    {
-        AVRC_TRACE_ERROR("NULL p_attrs");
+    if (!p_rsp->p_attrs) {
+        AVRC_TRACE_ERROR("%s NULL p_attrs", __func__);
         return AVRC_STS_BAD_PARAM;
     }
-
-    /* check the length before adding the attr to the message */
-    uint16_t len = 2;
-    for (uint8_t xx = 0; xx < p_rsp->num_attrs; xx++)
-    {
-        if(p_rsp->p_attrs[xx].name.p_str == 0 ||
-            !AVRC_IS_VALID_MEDIA_ATTRIBUTE(p_rsp->p_attrs[xx].attr_id))
-        {
-            AVRC_TRACE_ERROR("[%d] NULL p_attrs str or bad attr_id:%d", xx,
-                p_rsp->p_attrs[xx].attr_id);
-            return AVRC_STS_BAD_PARAM;
+    /* Figure out how much we have left in current buffer */
+    int remaining_buffer_capacity = BT_DEFAULT_BUFFER_SIZE - BT_HDR_SIZE
+                                    - p_pkt->offset;
+    /* Get to the beginning of data section in buffer */
+    uint8_t *p_data = (uint8_t *)(p_pkt + 1);
+    /* Get the MTU size that is filled in earlier */
+    uint16_t mtu;
+    BE_STREAM_TO_UINT16(mtu, p_data);
+    if (remaining_buffer_capacity > mtu) {
+        remaining_buffer_capacity = mtu;
+    }
+    AVRC_TRACE_DEBUG("%s remaining_buffer_capacity:%d, mtu:%d",
+                     remaining_buffer_capacity, mtu);
+    if (remaining_buffer_capacity < 5) {
+      AVRC_TRACE_ERROR("%s not enough buffer for packet header",
+                       remaining_buffer_capacity);
+      return AVRC_STS_INTERNAL_ERR;
+    }
+    /* Get to the beginning of PDU */
+    uint8_t *p_pdu_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
+    /* Skip PDU ID to get pointer to Parameter length */
+    uint8_t *p_parameter_len;
+    p_data = p_parameter_len = p_pdu_start + 1;
+    /* Parse existing parameter length */
+    uint16_t parameter_len;
+    BE_STREAM_TO_UINT16(parameter_len, p_data);
+    /* Skip one byte to Number of Attributes */
+    uint8_t *p_status = p_data++;
+    uint8_t *p_attribute_count = p_data++;
+    if (parameter_len == 0) {
+        /* First time, initialize the status byte */
+        *p_status = p_rsp->status;
+        if (p_rsp->status != AVRC_STS_NO_ERROR) {
+            // TODO(siyuanh): This is a hack
+            parameter_len = 1;
+            UINT16_TO_BE_STREAM(p_parameter_len, parameter_len);
+            p_pkt->len = p_status - p_pdu_start;
+            return AVRC_STS_NO_ERROR;
         }
-        len += (p_rsp->p_attrs[xx].name.str_len + 8);
+        *p_attribute_count = 0;
+    } else {
+        // TODO(siyuanh): Why do wee need this case?
+        p_data = p_pdu_start + p_pkt->len;
     }
-    len_left = BT_DEFAULT_BUFFER_SIZE - BT_HDR_SIZE;
-    p_data = (uint8_t *)(p_pkt + 1);
-    BE_STREAM_TO_UINT16 (mtu, p_data);
-    if (len_left > mtu)
-    {
-        len_left = mtu;
-    }
-    len_left = len_left - p_pkt->offset - p_pkt->len;
-
-    AVRC_TRACE_DEBUG("len_left:%d, mtu:%d len needed:%d", len_left, mtu, len);
-    if (len_left < 11) /* 11 is 4/attr_id + 2/charset_id + 2/str_len + 3/1st timer/attr cnt & len */
-    {
-        return AVRC_STS_INTERNAL_ERR;
-    }
-    if (len > len_left)
-    {
-        AVRC_TRACE_ERROR("The buffer does not have enough room to hold the given data.");
-    }
-
-    /* get the existing length, if any, and also the num attributes */
-    p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
-    p_data = p_len = p_start + 1; /* pdu */
-
-    /* the existing len */
-    BE_STREAM_TO_UINT16(len, p_data);
-    p_num = p_data + 1;
-    if (len == 0)
-    {
-        /* first time initialize the attribute count */
-        UINT8_TO_BE_STREAM(p_data, p_rsp->status);
-        *p_num = 0;
-        p_data++;
-        len = 2;
-        len_left -= 3;
-    }
-    else
-    {
-        p_data = p_start + p_pkt->len;
-    }
-
-
-    for (uint8_t xx = 0; (xx < p_rsp->num_attrs) && (len_left > 9); xx++)
-    {
-        (*p_num)++;
-        UINT32_TO_BE_STREAM(p_data, p_rsp->p_attrs[xx].attr_id);
-        UINT16_TO_BE_STREAM(p_data, p_rsp->p_attrs[xx].name.charset_id);
-        UINT16_TO_BE_STREAM(p_data, p_rsp->p_attrs[xx].name.str_len);
-        len_left -= 8;
-        if (p_rsp->p_attrs[xx].name.str_len > len_left)
-            p_rsp->p_attrs[xx].name.str_len = len_left;
-        ARRAY_TO_BE_STREAM(p_data, p_rsp->p_attrs[xx].name.p_str,
-            p_rsp->p_attrs[xx].name.str_len);
-        len_left -= p_rsp->p_attrs[xx].name.str_len;
-        len += (p_rsp->p_attrs[xx].name.str_len + 8);
-    }
-
-    UINT16_TO_BE_STREAM(p_len, len);
-    p_pkt->len = (p_data - p_start);
+    remaining_buffer_capacity -= p_data - p_pdu_start;
+    /* Fill in the Attribute ID, Character Set, Length and Values */
+    avrc_build_attribute_entries(p_rsp->num_attrs,
+                               p_rsp->p_attrs,
+                               remaining_buffer_capacity,
+                               &p_data, p_attribute_count);
+    parameter_len = p_data - p_status;
+    UINT16_TO_BE_STREAM(p_parameter_len, parameter_len);
+    p_pkt->len = p_data - p_pdu_start;
     return AVRC_STS_NO_ERROR;
 }
 
@@ -1469,8 +1547,7 @@ tAVRC_STS AVRC_BldResponse( uint8_t handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_p
         break;
 
     case AVRC_PDU_GET_ELEMENT_ATTR:
-    case AVRC_PDU_GET_ITEM_ATTRIBUTES:
-        status = avrc_bld_get_attrs_rsp(&p_rsp->get_attrs, p_pkt);
+        status = avrc_bld_get_elem_attrs_rsp(&p_rsp->get_attrs, p_pkt);
         break;
 
     case AVRC_PDU_GET_PLAY_STATUS:
@@ -1517,11 +1594,15 @@ tAVRC_STS AVRC_BldResponse( uint8_t handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_p
         status = avrc_bld_change_path_rsp(&p_rsp->chg_path, p_pkt);
         break;
 
+    case AVRC_PDU_GET_ITEM_ATTRIBUTES:
+        status = avrc_bld_get_item_attrs_rsp(&p_rsp->get_attrs, p_pkt);
+        break;
+
     case AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS:
         status = avrc_bld_get_num_of_item_rsp(&p_rsp->get_num_of_items, p_pkt);
         break;
 
-    case AVRC_PDU_SEARCH:                      /* 0x80 */
+    case AVRC_PDU_SEARCH:
        status = avrc_bld_search_rsp(&p_rsp->search, p_pkt);
        break;
     }

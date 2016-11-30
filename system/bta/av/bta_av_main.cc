@@ -1138,34 +1138,34 @@ void bta_av_sm_execute(tBTA_AV_CB* p_cb, uint16_t event, tBTA_AV_DATA* p_data) {
  *
  ******************************************************************************/
 bool bta_av_hdl_event(BT_HDR* p_msg) {
-  uint16_t event = p_msg->event;
-  uint16_t first_event = BTA_AV_FIRST_NSM_EVT;
-
-  if (event > BTA_AV_LAST_EVT) {
+  if (p_msg->event > BTA_AV_LAST_EVT) {
     return true; /* to free p_msg */
   }
-
-  if (event >= first_event) {
+  if (p_msg->event >= BTA_AV_FIRST_NSM_EVT) {
 #if (BTA_AV_DEBUG == TRUE)
-    APPL_TRACE_VERBOSE("AV nsm event=0x%x(%s)", event, bta_av_evt_code(event));
+    APPL_TRACE_VERBOSE("AV nsm event=0x%x(%s)", p_msg->event,
+                       bta_av_evt_code(p_msg->event));
 #else
-    APPL_TRACE_VERBOSE("AV nsm event=0x%x", event);
+    APPL_TRACE_VERBOSE("AV nsm event=0x%x", p_msg->event);
 #endif
     /* non state machine events */
-    (*bta_av_nsm_act[event - BTA_AV_FIRST_NSM_EVT])((tBTA_AV_DATA*)p_msg);
-  } else if (event >= BTA_AV_FIRST_SM_EVT && event <= BTA_AV_LAST_SM_EVT) {
+    (*bta_av_nsm_act[p_msg->event - BTA_AV_FIRST_NSM_EVT])(
+        (tBTA_AV_DATA*) p_msg);
+  } else if (p_msg->event >= BTA_AV_FIRST_SM_EVT
+      && p_msg->event <= BTA_AV_LAST_SM_EVT) {
 #if (BTA_AV_DEBUG == TRUE)
-    APPL_TRACE_VERBOSE("AV sm event=0x%x(%s)", event, bta_av_evt_code(event));
+    APPL_TRACE_VERBOSE("AV sm event=0x%x(%s)", p_msg->event,
+                       bta_av_evt_code(p_msg->event));
 #else
-    APPL_TRACE_VERBOSE("AV sm event=0x%x", event);
+    APPL_TRACE_VERBOSE("AV sm event=0x%x", p_msg->event);
 #endif
     /* state machine events */
-    bta_av_sm_execute(&bta_av_cb, p_msg->event, (tBTA_AV_DATA*)p_msg);
+    bta_av_sm_execute(&bta_av_cb, p_msg->event, (tBTA_AV_DATA*) p_msg);
   } else {
     APPL_TRACE_VERBOSE("handle=0x%x", p_msg->layer_specific);
     /* stream state machine events */
     bta_av_ssm_execute(bta_av_hndl_to_scb(p_msg->layer_specific), p_msg->event,
-                       (tBTA_AV_DATA*)p_msg);
+                       (tBTA_AV_DATA*) p_msg);
   }
   return true;
 }
