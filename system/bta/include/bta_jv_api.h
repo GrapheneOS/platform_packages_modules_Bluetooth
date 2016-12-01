@@ -372,8 +372,7 @@ typedef union {
 } tBTA_JV;
 
 /* JAVA DM Interface callback */
-typedef void(tBTA_JV_DM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
-                               uint32_t id);
+typedef void(tBTA_JV_DM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id);
 
 /* JAVA RFCOMM interface callback */
 typedef void*(tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
@@ -381,7 +380,7 @@ typedef void*(tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
 
 /* JAVA L2CAP interface callback */
 typedef void(tBTA_JV_L2CAP_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
-                                  void* user_Data);
+                                  uint32_t l2cap_socket_id);
 
 /* JV configuration structure */
 typedef struct {
@@ -451,8 +450,7 @@ bool BTA_JvIsEncrypted(BD_ADDR bd_addr);
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, uint32_t id,
-                                  int32_t channel);
+tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, uint32_t id, int32_t channel);
 
 /*******************************************************************************
  *
@@ -529,7 +527,7 @@ tBTA_JV_STATUS BTA_JvL2capConnectLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                     uint16_t remote_chan, uint16_t rx_mtu,
                                     tL2CAP_CFG_INFO* cfg, BD_ADDR peer_bd_addr,
                                     tBTA_JV_L2CAP_CBACK* p_cback,
-                                    void* user_data);
+                                    uint32_t l2cap_socket_id);
 
 /*******************************************************************************
  *
@@ -552,7 +550,7 @@ tBTA_JV_STATUS BTA_JvL2capConnect(int conn_type, tBTA_SEC sec_mask,
                                   uint16_t remote_psm, uint16_t rx_mtu,
                                   tL2CAP_CFG_INFO* cfg, BD_ADDR peer_bd_addr,
                                   tBTA_JV_L2CAP_CBACK* p_cback,
-                                  void* user_data);
+                                  uint32_t l2cap_socket_id);
 
 /*******************************************************************************
  *
@@ -594,10 +592,13 @@ tBTA_JV_STATUS BTA_JvL2capCloseLE(uint32_t handle);
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvL2capStartServer(
-    int conn_type, tBTA_SEC sec_mask, tBTA_JV_ROLE role,
-    const tL2CAP_ERTM_INFO* ertm_info, uint16_t local_psm, uint16_t rx_mtu,
-    tL2CAP_CFG_INFO* cfg, tBTA_JV_L2CAP_CBACK* p_cback, void* user_data);
+tBTA_JV_STATUS BTA_JvL2capStartServer(int conn_type, tBTA_SEC sec_mask,
+                                      tBTA_JV_ROLE role,
+                                      const tL2CAP_ERTM_INFO* ertm_info,
+                                      uint16_t local_psm, uint16_t rx_mtu,
+                                      tL2CAP_CFG_INFO* cfg,
+                                      tBTA_JV_L2CAP_CBACK* p_cback,
+                                      uint32_t l2cap_socket_id);
 
 /*******************************************************************************
  *
@@ -619,7 +620,7 @@ tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                         uint16_t local_chan, uint16_t rx_mtu,
                                         tL2CAP_CFG_INFO* cfg,
                                         tBTA_JV_L2CAP_CBACK* p_cback,
-                                        void* user_data);
+                                        uint32_t l2cap_socket_id);
 
 /*******************************************************************************
  *
@@ -632,20 +633,22 @@ tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvL2capStopServerLE(uint16_t local_chan, void* user_data);
+tBTA_JV_STATUS BTA_JvL2capStopServerLE(uint16_t local_chan,
+                                       uint32_t l2cap_socket_id);
 
 /*******************************************************************************
  *
- * Function         BTA_JvL2capStopServerLE
+ * Function         BTA_JvL2capStopServer
  *
- * Description      This function stops the LE L2CAP server. If the server has
+ * Description      This function stops the L2CAP server. If the server has
  *                  an active connection, it would be closed.
  *
  * Returns          BTA_JV_SUCCESS, if the request is being processed.
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvL2capStopServer(uint16_t local_psm, void* user_data);
+tBTA_JV_STATUS BTA_JvL2capStopServer(uint16_t local_psm,
+                                     uint32_t l2cap_socket_id);
 
 /*******************************************************************************
  *
@@ -689,7 +692,8 @@ tBTA_JV_STATUS BTA_JvL2capReady(uint32_t handle, uint32_t* p_data_size);
  *
  ******************************************************************************/
 tBTA_JV_STATUS BTA_JvL2capWrite(uint32_t handle, uint32_t req_id,
-                                uint8_t* p_data, uint16_t len, void* user_data);
+                                uint8_t* p_data, uint16_t len,
+                                uint32_t user_id);
 
 /*******************************************************************************
  *
@@ -708,7 +712,7 @@ tBTA_JV_STATUS BTA_JvL2capWriteFixed(uint16_t channel, BD_ADDR* addr,
                                      uint32_t req_id,
                                      tBTA_JV_L2CAP_CBACK* p_cback,
                                      uint8_t* p_data, uint16_t len,
-                                     void* user_data);
+                                     uint32_t user_id);
 
 /*******************************************************************************
  *
