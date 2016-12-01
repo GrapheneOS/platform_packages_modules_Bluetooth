@@ -120,7 +120,7 @@ typedef struct {
   uint32_t handle; /* the handle reported to java app (same as gap handle) */
   bool cong;       /* true, if congested */
   tBTA_JV_PM_CB* p_pm_cb; /* ptr to pm control block, NULL: unused */
-  void* user_data;        /* user data for callback from higher layers */
+  uint32_t l2cap_socket_id;
 } tBTA_JV_L2C_CB;
 
 #define BTA_JV_RFC_HDL_MASK 0xFF
@@ -169,7 +169,7 @@ typedef struct {
   int32_t has_ertm_info;
   tL2CAP_ERTM_INFO ertm_info;
   tBTA_JV_L2CAP_CBACK* p_cback;
-  void* user_data;
+  uint32_t l2cap_socket_id;
 } tBTA_JV_API_L2CAP_CONNECT;
 
 /* data type for BTA_JV_API_L2CAP_SERVER_EVT */
@@ -188,7 +188,7 @@ typedef struct {
   int32_t has_ertm_info;
   tL2CAP_ERTM_INFO ertm_info;
   tBTA_JV_L2CAP_CBACK* p_cback;
-  void* user_data;
+  uint32_t l2cap_socket_id;
 } tBTA_JV_API_L2CAP_SERVER;
 
 /* data type for BTA_JV_API_L2CAP_CLOSE_EVT */
@@ -206,7 +206,7 @@ typedef struct {
   tBTA_JV_L2CAP_CBACK* p_cback;
   uint8_t* p_data;
   uint16_t len;
-  void* user_data;
+  uint32_t l2cap_socket_id;
 } tBTA_JV_API_L2CAP_READ;
 
 /* data type for BTA_JV_API_L2CAP_WRITE_EVT */
@@ -217,7 +217,7 @@ typedef struct {
   tBTA_JV_L2C_CB* p_cb;
   uint8_t* p_data;
   uint16_t len;
-  void* user_data;
+  uint32_t user_id;
 } tBTA_JV_API_L2CAP_WRITE;
 
 /* data type for BTA_JV_API_L2CAP_WRITE_FIXED_EVT */
@@ -229,7 +229,7 @@ typedef struct {
   tBTA_JV_L2CAP_CBACK* p_cback;
   uint8_t* p_data;
   uint16_t len;
-  void* user_data;
+  uint32_t user_id;
 } tBTA_JV_API_L2CAP_WRITE_FIXED;
 
 /* data type for BTA_JV_API_RFCOMM_CONNECT_EVT */
