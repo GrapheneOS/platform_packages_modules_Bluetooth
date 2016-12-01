@@ -817,7 +817,7 @@ tBTA_JV_STATUS BTA_JvRfcommWrite(uint32_t handle, uint32_t req_id);
  *                                  calls automatically
  *              BTA_JV_CONN_CLOSE to remove in case of connection close!
  *
- *******************************************************************************/
+ ******************************************************************************/
 tBTA_JV_STATUS BTA_JvSetPmProfile(uint32_t handle, tBTA_JV_PM_ID app_id,
                                   tBTA_JV_CONN_STATE init_st);
 

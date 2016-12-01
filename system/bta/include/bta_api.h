@@ -1569,7 +1569,7 @@ extern void bta_dmexecutecallback(tBTA_DM_EXEC_CBACK* p_callback,
 extern void BTA_DmPcmInitSamples(uint32_t src_sps, uint32_t bits,
                                  uint32_t n_channels);
 
-/**************************************************************************************
+/*******************************************************************************
  * Function         BTA_DmPcmResample
  *
  * Description      Down sampling utility to convert higher sampling rate into
@@ -1585,7 +1585,7 @@ extern void BTA_DmPcmInitSamples(uint32_t src_sps, uint32_t bits,
  *
  * Returns          int32_t: number of samples converted.
  *
- *************************************************************************************/
+ ******************************************************************************/
 extern int32_t BTA_DmPcmResample(void* p_src, uint32_t in_bytes, void* p_dst);
 #endif
 

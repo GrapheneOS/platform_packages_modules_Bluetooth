@@ -39,9 +39,9 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /* This table is used to lookup the callback event that matches a particular
-** state machine API request event.  Note that state machine API request
-** events are at the beginning of the event list starting at zero, thus
-** allowing for this table.
+ * state machine API request event.  Note that state machine API request
+ * events are at the beginning of the event list starting at zero, thus
+ * allowing for this table.
 */
 const uint8_t avdt_scb_cback_evt[] = {
     0,                          /* API_REMOVE_EVT (no event) */
@@ -57,14 +57,14 @@ const uint8_t avdt_scb_cback_evt[] = {
 };
 
 /*******************************************************************************
-**
-** Function         avdt_scb_gen_ssrc
-**
-** Description      This function generates a SSRC number unique to the stream.
-**
-** Returns          SSRC value.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_gen_ssrc
+ *
+ * Description      This function generates a SSRC number unique to the stream.
+ *
+ * Returns          SSRC value.
+ *
+ ******************************************************************************/
 uint32_t avdt_scb_gen_ssrc(tAVDT_SCB *p_scb)
 {
     /* combine the value of the media type and codec type of the SCB */
@@ -72,15 +72,15 @@ uint32_t avdt_scb_gen_ssrc(tAVDT_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_abort_cmd
-**
-** Description      This function sends the SCB an AVDT_SCB_API_ABORT_RSP_EVT
-**                  to initiate sending of an abort response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_abort_cmd
+ *
+ * Description      This function sends the SCB an AVDT_SCB_API_ABORT_RSP_EVT
+ *                  to initiate sending of an abort response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_abort_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_scb->role = AVDT_CLOSE_ACP;
@@ -88,15 +88,15 @@ void avdt_scb_hdl_abort_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_abort_rsp
-**
-** Description      This function is an empty function; it serves as a
-**                  placeholder for a conformance API action function.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_abort_rsp
+ *
+ * Description      This function is an empty function; it serves as a
+ *                  placeholder for a conformance API action function.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_abort_rsp(UNUSED_ATTR tAVDT_SCB *p_scb,
                             UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -104,15 +104,15 @@ void avdt_scb_hdl_abort_rsp(UNUSED_ATTR tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_close_cmd
-**
-** Description      This function sends the SCB an AVDT_SCB_API_CLOSE_RSP_EVT
-**                  to initiate sending of a close response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_close_cmd
+ *
+ * Description      This function sends the SCB an AVDT_SCB_API_CLOSE_RSP_EVT
+ *                  to initiate sending of a close response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_close_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_scb->role = AVDT_CLOSE_ACP;
@@ -120,31 +120,31 @@ void avdt_scb_hdl_close_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_close_rsp
-**
-** Description      This function sets the close_code variable to the error
-**                  code returned in the close response.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_close_rsp
+ *
+ * Description      This function sets the close_code variable to the error
+ *                  code returned in the close response.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_close_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_scb->close_code = p_data->msg.hdr.err_code;
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_getconfig_cmd
-**
-** Description      This function retrieves the configuration parameters of
-**                  the SCB and sends the SCB an AVDT_SCB_API_GETCONFIG_RSP_EVT
-**                  to initiate sending of a get configuration response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_getconfig_cmd
+ *
+ * Description      This function retrieves the configuration parameters of
+ *                  the SCB and sends the SCB an AVDT_SCB_API_GETCONFIG_RSP_EVT
+ *                  to initiate sending of a get configuration response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_getconfig_cmd(tAVDT_SCB *p_scb,tAVDT_SCB_EVT *p_data)
 {
     p_data->msg.svccap.p_cfg = &p_scb->curr_cfg;
@@ -153,15 +153,15 @@ void avdt_scb_hdl_getconfig_cmd(tAVDT_SCB *p_scb,tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_getconfig_rsp
-**
-** Description      This function is an empty function; it serves as a
-**                  placeholder for a conformance API action function.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_getconfig_rsp
+ *
+ * Description      This function is an empty function; it serves as a
+ *                  placeholder for a conformance API action function.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_getconfig_rsp(UNUSED_ATTR tAVDT_SCB *p_scb,
                                 UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -169,32 +169,32 @@ void avdt_scb_hdl_getconfig_rsp(UNUSED_ATTR tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_open_cmd
-**
-** Description      This function sends the SCB an AVDT_SCB_API_OPEN_RSP_EVT
-**                  to initiate sending of an open response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_open_cmd
+ *
+ * Description      This function sends the SCB an AVDT_SCB_API_OPEN_RSP_EVT
+ *                  to initiate sending of an open response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_open_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     avdt_scb_event(p_scb, AVDT_SCB_API_OPEN_RSP_EVT, p_data);
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_open_rej
-**
-** Description      This function calls the application callback function
-**                  indicating the open request has failed.  It initializes
-**                  certain SCB variables and sends a AVDT_CCB_UL_CLOSE_EVT
-**                  to the CCB.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_open_rej
+ *
+ * Description      This function calls the application callback function
+ *                  indicating the open request has failed.  It initializes
+ *                  certain SCB variables and sends a AVDT_CCB_UL_CLOSE_EVT
+ *                  to the CCB.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_open_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     /* do exactly same as setconfig reject */
@@ -202,15 +202,15 @@ void avdt_scb_hdl_open_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_open_rsp
-**
-** Description      This function calls avdt_ad_open_req() to initiate
-**                  connection of the transport channel for this stream.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_open_rsp
+ *
+ * Description      This function calls avdt_ad_open_req() to initiate
+ *                  connection of the transport channel for this stream.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_open_rsp(tAVDT_SCB *p_scb, UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
     /* initiate opening of trans channels for this SEID */
@@ -225,14 +225,14 @@ void avdt_scb_hdl_open_rsp(tAVDT_SCB *p_scb, UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_pkt_no_frag
-**
-** Description
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_pkt_no_frag
+ *
+ * Description
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     uint8_t *p, *p_start;
@@ -303,14 +303,14 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
 #if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_report
-**
-** Description
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_report
+ *
+ * Description
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 uint8_t * avdt_scb_hdl_report(tAVDT_SCB *p_scb, uint8_t *p, uint16_t len)
 {
     uint16_t result = AVDT_SUCCESS;
@@ -378,14 +378,14 @@ uint8_t * avdt_scb_hdl_report(tAVDT_SCB *p_scb, uint8_t *p, uint16_t len)
 #endif
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_pkt
-**
-** Description
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_pkt
+ *
+ * Description
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
 #if (AVDT_REPORTING == TRUE)
@@ -401,15 +401,15 @@ void avdt_scb_hdl_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_drop_pkt
-**
-** Description      Drop an incoming media packet.  This function is called if
-**                  a media packet is received in any state besides streaming.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_drop_pkt
+ *
+ * Description      Drop an incoming media packet.  This function is called if
+ *                  a media packet is received in any state besides streaming.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_drop_pkt(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     AVDT_TRACE_ERROR("%s dropped incoming media packet", __func__);
@@ -417,15 +417,15 @@ void avdt_scb_drop_pkt(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_reconfig_cmd
-**
-** Description      This function calls the application callback function
-**                  with a reconfiguration indication.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_reconfig_cmd
+ *
+ * Description      This function calls the application callback function
+ *                  with a reconfiguration indication.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_reconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     /* if command not supported */
@@ -450,15 +450,15 @@ void avdt_scb_hdl_reconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_reconfig_rsp
-**
-** Description      This function calls the application callback function
-**                  with a reconfiguration confirm.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_reconfig_rsp
+ *
+ * Description      This function calls the application callback function
+ *                  with a reconfiguration confirm.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_reconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     if (p_data->msg.hdr.err_code == 0)
@@ -486,15 +486,15 @@ void avdt_scb_hdl_reconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_security_cmd
-**
-** Description      This function calls the application callback with a
-**                  security indication.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_security_cmd
+ *
+ * Description      This function calls the application callback with a
+ *                  security indication.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_security_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     /* if command not supported */
@@ -515,15 +515,15 @@ void avdt_scb_hdl_security_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_security_rsp
-**
-** Description      This function calls the application callback with a
-**                  security confirm.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_security_rsp
+ *
+ * Description      This function calls the application callback with a
+ *                  security confirm.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_security_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     /* call application callback */
@@ -534,16 +534,16 @@ void avdt_scb_hdl_security_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_setconfig_cmd
-**
-** Description      This function marks the SCB as in use and copies the
-**                  configuration and peer SEID to the SCB.  It then calls
-**                  the application callback with a configuration indication.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_setconfig_cmd
+ *
+ * Description      This function marks the SCB as in use and copies the
+ *                  configuration and peer SEID to the SCB.  It then calls
+ *                  the application callback with a configuration indication.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CFG *p_cfg;
@@ -582,15 +582,15 @@ void avdt_scb_hdl_setconfig_cmd(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_setconfig_rej
-**
-** Description      This function marks the SCB as not in use and calls the
-**                  application callback with an open confirm indicating failure.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_setconfig_rej
+ *
+ * Description      This function marks the SCB as not in use and calls the
+ *                  application callback with an open confirm indicating failure.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_setconfig_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     /* clear scb variables */
@@ -607,15 +607,15 @@ void avdt_scb_hdl_setconfig_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_setconfig_rsp
-**
-** Description      This function sends the SCB an AVDT_SCB_API_OPEN_REQ_EVT
-**                  to initiate sending of an open command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_setconfig_rsp
+ *
+ * Description      This function sends the SCB an AVDT_SCB_API_OPEN_REQ_EVT
+ *                  to initiate sending of an open command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_setconfig_rsp(tAVDT_SCB *p_scb,
                                 UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -633,15 +633,15 @@ void avdt_scb_hdl_setconfig_rsp(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_start_cmd
-**
-** Description      This function calls the application callback with a
-**                  start indication.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_start_cmd
+ *
+ * Description      This function calls the application callback with a
+ *                  start indication.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_start_cmd(tAVDT_SCB *p_scb,
 			    UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -652,15 +652,15 @@ void avdt_scb_hdl_start_cmd(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_start_rsp
-**
-** Description      This function calls the application callback with a
-**                  start confirm.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_start_rsp
+ *
+ * Description      This function calls the application callback with a
+ *                  start confirm.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_start_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb),
@@ -670,15 +670,15 @@ void avdt_scb_hdl_start_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_suspend_cmd
-**
-** Description      This function calls the application callback with a suspend
-**                  indication.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_suspend_cmd
+ *
+ * Description      This function calls the application callback with a suspend
+ *                  indication.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_suspend_cmd(tAVDT_SCB *p_scb,
 			      UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -689,15 +689,15 @@ void avdt_scb_hdl_suspend_cmd(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_suspend_rsp
-**
-** Description      This function calls the application callback with a suspend
-**                  confirm.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_suspend_rsp
+ *
+ * Description      This function calls the application callback with a suspend
+ *                  confirm.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_suspend_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb),
@@ -707,20 +707,20 @@ void avdt_scb_hdl_suspend_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_tc_close
-**
-** Description      This function is called when the transport channel is
-**                  closed.  It marks the SCB as not in use and
-**                  initializes certain SCB parameters.  It then sends
-**                  an AVDT_CCB_UL_CLOSE_EVT to the CCB if the SCB
-**                  initiated the close.  It then checks to see if the SCB
-**                  is to be removed.  If it is it deallocates the SCB.  Finally,
-**                  it calls the application callback with a close indication.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_tc_close
+ *
+ * Description      This function is called when the transport channel is
+ *                  closed.  It marks the SCB as not in use and
+ *                  initializes certain SCB parameters.  It then sends
+ *                  an AVDT_CCB_UL_CLOSE_EVT to the CCB if the SCB
+ *                  initiated the close.  It then checks to see if the SCB
+ *                  is to be removed.  If it is it deallocates the SCB.  Finally,
+ *                  it calls the application callback with a close indication.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     uint8_t             hdl = avdt_scb_to_hdl(p_scb);
@@ -764,30 +764,30 @@ void avdt_scb_hdl_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_delay_rpt_req
-**
-** Description      This function calls the application callback with a delay
-**                  report.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_delay_rpt_req
+ *
+ * Description      This function calls the application callback with a delay
+ *                  report.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_delay_rpt_req (tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     avdt_msg_send_cmd(p_scb->p_ccb, p_scb, AVDT_SIG_DELAY_RPT, (tAVDT_MSG *) &p_data->apidelay);
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_delay_rpt_cmd
-**
-** Description      This function calls the application callback with a delay
-**                  report.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_delay_rpt_cmd
+ *
+ * Description      This function calls the application callback with a delay
+ *                  report.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_delay_rpt_cmd (tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb),
@@ -802,15 +802,15 @@ void avdt_scb_hdl_delay_rpt_cmd (tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_delay_rpt_rsp
-**
-** Description      This function calls the application callback with a delay
-**                  report.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_delay_rpt_rsp
+ *
+ * Description      This function calls the application callback with a delay
+ *                  report.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_delay_rpt_rsp (tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb),
@@ -821,15 +821,15 @@ void avdt_scb_hdl_delay_rpt_rsp (tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
 #if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_tc_close_sto
-**
-** Description      This function is called when a channel is closed in OPEN
-**                  state.  Check the channel type and process accordingly.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_tc_close_sto
+ *
+ * Description      This function is called when a channel is closed in OPEN
+ *                  state.  Check the channel type and process accordingly.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_tc_close_sto(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CTRL          avdt_ctrl;
@@ -858,17 +858,17 @@ void avdt_scb_hdl_tc_close_sto(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #endif
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_tc_open
-**
-** Description      This function is called when the transport channel is
-**                  opened while in the opening state.  It calls the
-**                  application callback with an open indication or open
-**                  confirm depending on who initiated the open procedure.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_tc_open
+ *
+ * Description      This function is called when the transport channel is
+ *                  opened while in the opening state.  It calls the
+ *                  application callback with an open indication or open
+ *                  confirm depending on who initiated the open procedure.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_tc_open(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     uint8_t event;
@@ -901,17 +901,17 @@ void avdt_scb_hdl_tc_open(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
 #if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_tc_open_sto
-**
-** Description      This function is called when the transport channel is
-**                  opened while in the opening state.  It calls the
-**                  application callback with an open indication or open
-**                  confirm depending on who initiated the open procedure.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_tc_open_sto
+ *
+ * Description      This function is called when the transport channel is
+ *                  opened while in the opening state.  It calls the
+ *                  application callback with an open indication or open
+ *                  confirm depending on who initiated the open procedure.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_tc_open_sto(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CTRL          avdt_ctrl;
@@ -930,16 +930,16 @@ void avdt_scb_hdl_tc_open_sto(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #endif
 
 /*******************************************************************************
-**
-** Function         avdt_scb_hdl_write_req
-**
-** Description      This function frees the media packet currently stored in
-**                  the SCB, if any.  Then it builds a new media packet from
-**                  with the passed in buffer and stores it in the SCB.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_hdl_write_req
+ *
+ * Description      This function frees the media packet currently stored in
+ *                  the SCB, if any.  Then it builds a new media packet from
+ *                  with the passed in buffer and stores it in the SCB.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_hdl_write_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     uint8_t *p;
@@ -981,14 +981,14 @@ void avdt_scb_hdl_write_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_abort_req
-**
-** Description      This function sends an abort command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_abort_req
+ *
+ * Description      This function sends an abort command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_abort_req(tAVDT_SCB *p_scb,
                             UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1005,14 +1005,14 @@ void avdt_scb_snd_abort_req(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_abort_rsp
-**
-** Description      This function sends an abort response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_abort_rsp
+ *
+ * Description      This function sends an abort response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_abort_rsp(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     avdt_msg_send_rsp(avdt_ccb_by_idx(p_data->msg.hdr.ccb_idx), AVDT_SIG_ABORT,
@@ -1020,14 +1020,14 @@ void avdt_scb_snd_abort_rsp(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_close_req
-**
-** Description      This function sends a close command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_close_req
+ *
+ * Description      This function sends a close command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_close_req(tAVDT_SCB *p_scb,
                             UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1041,14 +1041,14 @@ void avdt_scb_snd_close_req(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_stream_close
-**
-** Description      This function sends a close command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_stream_close
+ *
+ * Description      This function sends a close command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     osi_free_and_reset((void **)&p_scb->p_pkt);
@@ -1056,28 +1056,28 @@ void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_close_rsp
-**
-** Description      This function sends a close response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_close_rsp
+ *
+ * Description      This function sends a close response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_close_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     avdt_msg_send_rsp(p_scb->p_ccb, AVDT_SIG_CLOSE, &p_data->msg);
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_getconfig_req
-**
-** Description      This function sends a get configuration command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_getconfig_req
+ *
+ * Description      This function sends a get configuration command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_getconfig_req(tAVDT_SCB *p_scb,
                                 UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1089,28 +1089,28 @@ void avdt_scb_snd_getconfig_req(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_getconfig_rsp
-**
-** Description      This function sends a get configuration response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_getconfig_rsp
+ *
+ * Description      This function sends a get configuration response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_getconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     avdt_msg_send_rsp(p_scb->p_ccb, AVDT_SIG_GETCONFIG, &p_data->msg);
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_open_req
-**
-** Description      This function sends an open command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_open_req
+ *
+ * Description      This function sends an open command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_open_req(tAVDT_SCB *p_scb,
                            UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1122,16 +1122,16 @@ void avdt_scb_snd_open_req(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_open_rsp
-**
-** Description      This function sends an open response message.  It also
-**                  calls avdt_ad_open_req() to accept a transport channel
-**                  connection.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_open_rsp
+ *
+ * Description      This function sends an open response message.  It also
+ *                  calls avdt_ad_open_req() to accept a transport channel
+ *                  connection.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     /* notify adaption that we're waiting for transport channel open */
@@ -1148,15 +1148,15 @@ void avdt_scb_snd_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_reconfig_req
-**
-** Description      This function stores the configuration parameters in the
-**                  SCB and sends a reconfiguration command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_reconfig_req
+ *
+ * Description      This function stores the configuration parameters in the
+ *                  SCB and sends a reconfiguration command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_reconfig_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     memcpy(&p_scb->req_cfg, p_data->msg.config_cmd.p_cfg, sizeof(tAVDT_CFG));
@@ -1165,15 +1165,15 @@ void avdt_scb_snd_reconfig_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_reconfig_rsp
-**
-** Description      This function stores the configuration parameters in the
-**                  SCB and sends a reconfiguration response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_reconfig_rsp
+ *
+ * Description      This function stores the configuration parameters in the
+ *                  SCB and sends a reconfiguration response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_reconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     if (p_data->msg.hdr.err_code == 0)
@@ -1201,14 +1201,14 @@ void avdt_scb_snd_reconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_security_req
-**
-** Description      This function sends a security command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_security_req
+ *
+ * Description      This function sends a security command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_security_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_data->msg.hdr.seid = p_scb->peer_seid;
@@ -1216,14 +1216,14 @@ void avdt_scb_snd_security_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_security_rsp
-**
-** Description      This function sends a security response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_security_rsp
+ *
+ * Description      This function sends a security response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_security_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     if (p_data->msg.hdr.err_code == 0)
@@ -1237,15 +1237,15 @@ void avdt_scb_snd_security_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_setconfig_rej
-**
-** Description      This function marks the SCB as not in use and sends a
-**                  set configuration reject message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_setconfig_rej
+ *
+ * Description      This function marks the SCB as not in use and sends a
+ *                  set configuration reject message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_setconfig_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     if (p_scb->p_ccb != NULL)
@@ -1258,17 +1258,17 @@ void avdt_scb_snd_setconfig_rej(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_setconfig_req
-**
-** Description      This function marks the SCB as in use and copies the
-**                  configuration parameters to the SCB.  Then the function
-**                  sends a set configuration command message and initiates
-**                  opening of the signaling channel.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_setconfig_req
+ *
+ * Description      This function marks the SCB as in use and copies the
+ *                  configuration parameters to the SCB.  Then the function
+ *                  sends a set configuration command message and initiates
+ *                  opening of the signaling channel.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_setconfig_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CFG *p_req, *p_cfg;
@@ -1288,16 +1288,16 @@ void avdt_scb_snd_setconfig_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_setconfig_rsp
-**
-** Description      This function copies the requested configuration into the
-**                  current configuration and sends a set configuration
-**                  response message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_setconfig_rsp
+ *
+ * Description      This function copies the requested configuration into the
+ *                  current configuration and sends a set configuration
+ *                  response message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_setconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     if (p_scb->p_ccb != NULL)
@@ -1309,15 +1309,15 @@ void avdt_scb_snd_setconfig_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_snd_tc_close
-**
-** Description      This function calls avdt_ad_close_req() to close the
-**                  transport channel for this SCB.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_snd_tc_close
+ *
+ * Description      This function calls avdt_ad_close_req() to close the
+ *                  transport channel for this SCB.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_snd_tc_close(tAVDT_SCB *p_scb,
                            UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1329,15 +1329,15 @@ void avdt_scb_snd_tc_close(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_cb_err
-**
-** Description      This function calls the application callback function
-**                  indicating an error.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_cb_err
+ *
+ * Description      This function calls the application callback function
+ *                  indicating an error.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_cb_err(tAVDT_SCB *p_scb,
 		     UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1355,30 +1355,30 @@ void avdt_scb_cb_err(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_cong_state
-**
-** Description      This function sets the congestion state of the SCB media
-**                  transport channel.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_cong_state
+ *
+ * Description      This function sets the congestion state of the SCB media
+ *                  transport channel.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_cong_state(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_scb->cong = p_data->llcong;
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_rej_state
-**
-** Description      This function sends a reject message to the peer indicating
-**                  incorrect state for the received command message.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_rej_state
+ *
+ * Description      This function sends a reject message to the peer indicating
+ *                  incorrect state for the received command message.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_rej_state(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_data->msg.hdr.err_code = AVDT_ERR_BAD_STATE;
@@ -1388,15 +1388,15 @@ void avdt_scb_rej_state(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_rej_in_use
-**
-** Description      This function sends a reject message to the peer indicating
-**                  the stream is in use.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_rej_in_use
+ *
+ * Description      This function sends a reject message to the peer indicating
+ *                  the stream is in use.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_rej_in_use(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_data->msg.hdr.err_code = AVDT_ERR_IN_USE;
@@ -1406,15 +1406,15 @@ void avdt_scb_rej_in_use(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_rej_not_in_use
-**
-** Description      This function sends a reject message to the peer indicating
-**                  the stream is in use.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_rej_not_in_use
+ *
+ * Description      This function sends a reject message to the peer indicating
+ *                  the stream is in use.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_rej_not_in_use(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     p_data->msg.hdr.err_code = AVDT_ERR_NOT_IN_USE;
@@ -1424,14 +1424,14 @@ void avdt_scb_rej_not_in_use(UNUSED_ATTR tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_set_remove
-**
-** Description      This function marks an SCB to be removed.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_set_remove
+ *
+ * Description      This function marks an SCB to be removed.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_set_remove(tAVDT_SCB *p_scb,
                          UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1439,14 +1439,14 @@ void avdt_scb_set_remove(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_free_pkt
-**
-** Description      This function frees the media packet passed in.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_free_pkt
+ *
+ * Description      This function frees the media packet passed in.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CTRL      avdt_ctrl;
@@ -1465,14 +1465,14 @@ void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_clr_pkt
-**
-** Description      This function frees the media packet stored in the SCB.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_clr_pkt
+ *
+ * Description      This function frees the media packet stored in the SCB.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_clr_pkt(tAVDT_SCB *p_scb,
                       UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1509,17 +1509,17 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb,
 
 
 /*******************************************************************************
-**
-** Function         avdt_scb_chk_snd_pkt
-**
-** Description      This function checks if the SCB is congested, and if not
-**                  congested it sends a stored media packet, if any.  After it
-**                  sends the packet it calls the application callback function
-**                  with a write confirm.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_chk_snd_pkt
+ *
+ * Description      This function checks if the SCB is congested, and if not
+ *                  congested it sends a stored media packet, if any.  After it
+ *                  sends the packet it calls the application callback function
+ *                  with a write confirm.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb,
                           UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1542,16 +1542,16 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_transport_channel_timer
-**
-** Description      This function is called to start a timer when the peer
-**                  initiates closing of the stream.  The timer verifies that
-**                  the peer disconnects the transport channel.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_transport_channel_timer
+ *
+ * Description      This function is called to start a timer when the peer
+ *                  initiates closing of the stream.  The timer verifies that
+ *                  the peer disconnects the transport channel.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_transport_channel_timer(tAVDT_SCB *p_scb,
 				      UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -1562,14 +1562,14 @@ void avdt_scb_transport_channel_timer(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_clr_vars
-**
-** Description      This function initializes certain SCB variables.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_clr_vars
+ *
+ * Description      This function initializes certain SCB variables.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_clr_vars(tAVDT_SCB *p_scb,
                        UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {

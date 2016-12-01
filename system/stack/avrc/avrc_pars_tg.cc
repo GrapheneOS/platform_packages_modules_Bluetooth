@@ -23,21 +23,21 @@
 #include "avrc_int.h"
 
 /*****************************************************************************
-**  Global data
-*****************************************************************************/
+ *  Global data
+ ****************************************************************************/
 #if (AVRC_METADATA_INCLUDED == TRUE)
 
 /*******************************************************************************
-**
-** Function         avrc_ctrl_pars_vendor_cmd
-**
-** Description      This function parses the vendor specific commands defined by
-**                  Bluetooth SIG for AVRCP Conroller.
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         avrc_ctrl_pars_vendor_cmd
+ *
+ * Description      This function parses the vendor specific commands defined by
+ *                  Bluetooth SIG for AVRCP Conroller.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_result)
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
@@ -87,16 +87,16 @@ static tAVRC_STS avrc_ctrl_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAN
 }
 
 /*******************************************************************************
-**
-** Function         avrc_pars_vendor_cmd
-**
-** Description      This function parses the vendor specific commands defined by
-**                  Bluetooth SIG
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         avrc_pars_vendor_cmd
+ *
+ * Description      This function parses the vendor specific commands defined by
+ *                  Bluetooth SIG
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_result,
                                       uint8_t *p_buf, uint16_t buf_len)
 {
@@ -374,16 +374,16 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_Ctrl_ParsCommand
-**
-** Description      This function is used to parse cmds received for CTRL
-**                  Currently it is for SetAbsVolume and Volume Change Notification..
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_Ctrl_ParsCommand
+ *
+ * Description      This function is used to parse cmds received for CTRL
+ *                  Currently it is for SetAbsVolume and Volume Change Notification..
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result)
 {
     tAVRC_STS  status = AVRC_STS_INTERNAL_ERR;
@@ -408,16 +408,16 @@ tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_pars_browsing_cmd
-**
-** Description      This function parses the commands that go through the
-**                  browsing channel
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP+1
-**
-*******************************************************************************/
+ *
+ * Function         avrc_pars_browsing_cmd
+ *
+ * Description      This function parses the commands that go through the
+ *                  browsing channel
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP+1
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_pars_browsing_cmd(tAVRC_MSG_BROWSE *p_msg, tAVRC_COMMAND *p_result,
                                                 uint8_t *p_buf, uint16_t buf_len)
 {
@@ -542,15 +542,15 @@ static tAVRC_STS avrc_pars_browsing_cmd(tAVRC_MSG_BROWSE *p_msg, tAVRC_COMMAND *
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_ParsCommand
-**
-** Description      This function is a superset of AVRC_ParsMetadata to parse the command.
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_ParsCommand
+ *
+ * Description      This function is a superset of AVRC_ParsMetadata to parse the command.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result,
                                      uint8_t *p_buf, uint16_t buf_len)
 {

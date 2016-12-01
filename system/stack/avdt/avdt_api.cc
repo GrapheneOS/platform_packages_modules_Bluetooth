@@ -73,19 +73,19 @@ void avdt_scb_transport_channel_timer_timeout(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_Register
-**
-** Description      This is the system level registration function for the
-**                  AVDTP protocol.  This function initializes AVDTP and
-**                  prepares the protocol stack for its use.  This function
-**                  must be called once by the system or platform using AVDTP
-**                  before the other functions of the API an be used.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_Register
+ *
+ * Description      This is the system level registration function for the
+ *                  AVDTP protocol.  This function initializes AVDTP and
+ *                  prepares the protocol stack for its use.  This function
+ *                  must be called once by the system or platform using AVDTP
+ *                  before the other functions of the API an be used.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
 {
     /* register PSM with L2CAP */
@@ -122,18 +122,18 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_Deregister
-**
-** Description      This function is called to deregister use AVDTP protocol.
-**                  It is called when AVDTP is no longer being used by any
-**                  application in the system.  Before this function can be
-**                  called, all streams must be removed with AVDT_RemoveStream().
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_Deregister
+ *
+ * Description      This function is called to deregister use AVDTP protocol.
+ *                  It is called when AVDTP is no longer being used by any
+ *                  application in the system.  Before this function can be
+ *                  called, all streams must be removed with AVDT_RemoveStream().
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void AVDT_Deregister(void)
 {
     /* deregister PSM with L2CAP */
@@ -154,19 +154,19 @@ void AVDT_AbortReq(uint8_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_CreateStream
-**
-** Description      Create a stream endpoint.  After a stream endpoint is
-**                  created an application can initiate a connection between
-**                  this endpoint and an endpoint on a peer device.  In
-**                  addition, a peer device can discover, get the capabilities,
-**                  and connect to this endpoint.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_CreateStream
+ *
+ * Description      Create a stream endpoint.  After a stream endpoint is
+ *                  created an application can initiate a connection between
+ *                  this endpoint and an endpoint on a peer device.  In
+ *                  addition, a peer device can discover, get the capabilities,
+ *                  and connect to this endpoint.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_CreateStream(uint8_t *p_handle, tAVDT_CS *p_cs)
 {
     uint16_t    result = AVDT_SUCCESS;
@@ -193,19 +193,19 @@ uint16_t AVDT_CreateStream(uint8_t *p_handle, tAVDT_CS *p_cs)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_RemoveStream
-**
-** Description      Remove a stream endpoint.  This function is called when
-**                  the application is no longer using a stream endpoint.
-**                  If this function is called when the endpoint is connected
-**                  the connection is closed and then the stream endpoint
-**                  is removed.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_RemoveStream
+ *
+ * Description      Remove a stream endpoint.  This function is called when
+ *                  the application is no longer using a stream endpoint.
+ *                  If this function is called when the endpoint is connected
+ *                  the connection is closed and then the stream endpoint
+ *                  is removed.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_RemoveStream(uint8_t handle)
 {
     uint16_t    result = AVDT_SUCCESS;
@@ -226,31 +226,31 @@ uint16_t AVDT_RemoveStream(uint8_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_DiscoverReq
-**
-** Description      This function initiates a connection to the AVDTP service
-**                  on the peer device, if not already present, and discovers
-**                  the stream endpoints on the peer device.  (Please note
-**                  that AVDTP discovery is unrelated to SDP discovery).
-**                  This function can be called at any time regardless of whether
-**                  there is an AVDTP connection to the peer device.
-**
-**                  When discovery is complete, an AVDT_DISCOVER_CFM_EVT
-**                  is sent to the application via its callback function.
-**                  The application must not call AVDT_GetCapReq() or
-**                  AVDT_DiscoverReq() again to the same device until
-**                  discovery is complete.
-**
-**                  The memory addressed by sep_info is allocated by the
-**                  application.  This memory is written to by AVDTP as part
-**                  of the discovery procedure.  This memory must remain
-**                  accessible until the application receives the
-**                  AVDT_DISCOVER_CFM_EVT.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_DiscoverReq
+ *
+ * Description      This function initiates a connection to the AVDTP service
+ *                  on the peer device, if not already present, and discovers
+ *                  the stream endpoints on the peer device.  (Please note
+ *                  that AVDTP discovery is unrelated to SDP discovery).
+ *                  This function can be called at any time regardless of whether
+ *                  there is an AVDTP connection to the peer device.
+ *
+ *                  When discovery is complete, an AVDT_DISCOVER_CFM_EVT
+ *                  is sent to the application via its callback function.
+ *                  The application must not call AVDT_GetCapReq() or
+ *                  AVDT_DiscoverReq() again to the same device until
+ *                  discovery is complete.
+ *
+ *                  The memory addressed by sep_info is allocated by the
+ *                  application.  This memory is written to by AVDTP as part
+ *                  of the discovery procedure.  This memory must remain
+ *                  accessible until the application receives the
+ *                  AVDT_DISCOVER_CFM_EVT.
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
                         uint8_t max_seps, tAVDT_CTRL_CBACK *p_cback)
 {
@@ -290,15 +290,15 @@ uint16_t AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_get_cap_req
-**
-** Description      internal function to serve both AVDT_GetCapReq and
-**                  AVDT_GetAllCapReq
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_get_cap_req
+ *
+ * Description      internal function to serve both AVDT_GetCapReq and
+ *                  AVDT_GetAllCapReq
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 static uint16_t avdt_get_cap_req(BD_ADDR bd_addr, tAVDT_CCB_API_GETCAP *p_evt)
 {
     tAVDT_CCB       *p_ccb = NULL;
@@ -341,29 +341,29 @@ static uint16_t avdt_get_cap_req(BD_ADDR bd_addr, tAVDT_CCB_API_GETCAP *p_evt)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_GetCapReq
-**
-** Description      This function initiates a connection to the AVDTP service
-**                  on the peer device, if not already present, and gets the
-**                  capabilities of a stream endpoint on the peer device.
-**                  This function can be called at any time regardless of
-**                  whether there is an AVDTP connection to the peer device.
-**
-**                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
-**                  sent to the application via its callback function.  The
-**                  application must not call AVDT_GetCapReq() or
-**                  AVDT_DiscoverReq() again until the procedure is complete.
-**
-**                  The memory pointed to by p_cfg is allocated by the
-**                  application.  This memory is written to by AVDTP as part
-**                  of the get capabilities procedure.  This memory must
-**                  remain accessible until the application receives
-**                  the AVDT_GETCAP_CFM_EVT.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_GetCapReq
+ *
+ * Description      This function initiates a connection to the AVDTP service
+ *                  on the peer device, if not already present, and gets the
+ *                  capabilities of a stream endpoint on the peer device.
+ *                  This function can be called at any time regardless of
+ *                  whether there is an AVDTP connection to the peer device.
+ *
+ *                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
+ *                  sent to the application via its callback function.  The
+ *                  application must not call AVDT_GetCapReq() or
+ *                  AVDT_DiscoverReq() again until the procedure is complete.
+ *
+ *                  The memory pointed to by p_cfg is allocated by the
+ *                  application.  This memory is written to by AVDTP as part
+ *                  of the get capabilities procedure.  This memory must
+ *                  remain accessible until the application receives
+ *                  the AVDT_GETCAP_CFM_EVT.
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_GetCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVDT_CTRL_CBACK *p_cback)
 {
     tAVDT_CCB_API_GETCAP    getcap;
@@ -376,29 +376,29 @@ uint16_t AVDT_GetCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVDT_C
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_GetAllCapReq
-**
-** Description      This function initiates a connection to the AVDTP service
-**                  on the peer device, if not already present, and gets the
-**                  capabilities of a stream endpoint on the peer device.
-**                  This function can be called at any time regardless of
-**                  whether there is an AVDTP connection to the peer device.
-**
-**                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
-**                  sent to the application via its callback function.  The
-**                  application must not call AVDT_GetCapReq() or
-**                  AVDT_DiscoverReq() again until the procedure is complete.
-**
-**                  The memory pointed to by p_cfg is allocated by the
-**                  application.  This memory is written to by AVDTP as part
-**                  of the get capabilities procedure.  This memory must
-**                  remain accessible until the application receives
-**                  the AVDT_GETCAP_CFM_EVT.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_GetAllCapReq
+ *
+ * Description      This function initiates a connection to the AVDTP service
+ *                  on the peer device, if not already present, and gets the
+ *                  capabilities of a stream endpoint on the peer device.
+ *                  This function can be called at any time regardless of
+ *                  whether there is an AVDTP connection to the peer device.
+ *
+ *                  When the procedure is complete, an AVDT_GETCAP_CFM_EVT is
+ *                  sent to the application via its callback function.  The
+ *                  application must not call AVDT_GetCapReq() or
+ *                  AVDT_DiscoverReq() again until the procedure is complete.
+ *
+ *                  The memory pointed to by p_cfg is allocated by the
+ *                  application.  This memory is written to by AVDTP as part
+ *                  of the get capabilities procedure.  This memory must
+ *                  remain accessible until the application receives
+ *                  the AVDT_GETCAP_CFM_EVT.
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_GetAllCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVDT_CTRL_CBACK *p_cback)
 {
     tAVDT_CCB_API_GETCAP    getcap;
@@ -411,16 +411,16 @@ uint16_t AVDT_GetAllCapReq(BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg, tAVD
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_DelayReport
-**
-** Description      This functions sends a Delay Report to the peer device
-**                  that is associated with a particular SEID.
-**                  This function is called by SNK device.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_DelayReport
+ *
+ * Description      This functions sends a Delay Report to the peer device
+ *                  that is associated with a particular SEID.
+ *                  This function is called by SNK device.
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay)
 {
     tAVDT_SCB       *p_scb;
@@ -445,18 +445,18 @@ uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_OpenReq
-**
-** Description      This function initiates a connection to the AVDTP service
-**                  on the peer device, if not already present, and connects
-**                  to a stream endpoint on a peer device.  When the connection
-**                  is completed, an AVDT_OPEN_CFM_EVT is sent to the
-**                  application via the control callback function for this handle.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_OpenReq
+ *
+ * Description      This function initiates a connection to the AVDTP service
+ *                  on the peer device, if not already present, and connects
+ *                  to a stream endpoint on a peer device.  When the connection
+ *                  is completed, an AVDT_OPEN_CFM_EVT is sent to the
+ *                  application via the control callback function for this handle.
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_OpenReq(uint8_t handle, BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *p_cfg)
 {
     tAVDT_CCB       *p_ccb = NULL;
@@ -504,17 +504,17 @@ uint16_t AVDT_OpenReq(uint8_t handle, BD_ADDR bd_addr, uint8_t seid, tAVDT_CFG *
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_ConfigRsp
-**
-** Description      Respond to a configure request from the peer device.  This
-**                  function must be called if the application receives an
-**                  AVDT_CONFIG_IND_EVT through its control callback.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_ConfigRsp
+ *
+ * Description      Respond to a configure request from the peer device.  This
+ *                  function must be called if the application receives an
+ *                  AVDT_CONFIG_IND_EVT through its control callback.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8_t category)
 {
     tAVDT_SCB       *p_scb;
@@ -556,19 +556,19 @@ uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_StartReq
-**
-** Description      Start one or more stream endpoints.  This initiates the
-**                  transfer of media packets for the streams.  All stream
-**                  endpoints must previously be opened.  When the streams
-**                  are started, an AVDT_START_CFM_EVT is sent to the
-**                  application via the control callback function for each stream.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_StartReq
+ *
+ * Description      Start one or more stream endpoints.  This initiates the
+ *                  transfer of media packets for the streams.  All stream
+ *                  endpoints must previously be opened.  When the streams
+ *                  are started, an AVDT_START_CFM_EVT is sent to the
+ *                  application via the control callback function for each stream.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_StartReq(uint8_t *p_handles, uint8_t num_handles)
 {
     tAVDT_SCB       *p_scb = NULL;
@@ -612,20 +612,20 @@ uint16_t AVDT_StartReq(uint8_t *p_handles, uint8_t num_handles)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_SuspendReq
-**
-** Description      Suspend one or more stream endpoints. This suspends the
-**                  transfer of media packets for the streams.  All stream
-**                  endpoints must previously be open and started.  When the
-**                  streams are suspended, an AVDT_SUSPEND_CFM_EVT is sent to
-**                  the application via the control callback function for
-**                  each stream.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_SuspendReq
+ *
+ * Description      Suspend one or more stream endpoints. This suspends the
+ *                  transfer of media packets for the streams.  All stream
+ *                  endpoints must previously be open and started.  When the
+ *                  streams are suspended, an AVDT_SUSPEND_CFM_EVT is sent to
+ *                  the application via the control callback function for
+ *                  each stream.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_SuspendReq(uint8_t *p_handles, uint8_t num_handles)
 {
     tAVDT_SCB       *p_scb = NULL;
@@ -670,19 +670,19 @@ uint16_t AVDT_SuspendReq(uint8_t *p_handles, uint8_t num_handles)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_CloseReq
-**
-** Description      Close a stream endpoint.  This stops the transfer of media
-**                  packets and closes the transport channel associated with
-**                  this stream endpoint.  When the stream is closed, an
-**                  AVDT_CLOSE_CFM_EVT is sent to the application via the
-**                  control callback function for this handle.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_CloseReq
+ *
+ * Description      Close a stream endpoint.  This stops the transfer of media
+ *                  packets and closes the transport channel associated with
+ *                  this stream endpoint.  When the stream is closed, an
+ *                  AVDT_CLOSE_CFM_EVT is sent to the application via the
+ *                  control callback function for this handle.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_CloseReq(uint8_t handle)
 {
     tAVDT_SCB       *p_scb;
@@ -704,21 +704,21 @@ uint16_t AVDT_CloseReq(uint8_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_ReconfigReq
-**
-** Description      Reconfigure a stream endpoint.  This allows the application
-**                  to change the codec or content protection capabilities of
-**                  a stream endpoint after it has been opened.  This function
-**                  can only be called if the stream is opened but not started
-**                  or if the stream has been suspended.  When the procedure
-**                  is completed, an AVDT_RECONFIG_CFM_EVT is sent to the
-**                  application via the control callback function for this handle.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_ReconfigReq
+ *
+ * Description      Reconfigure a stream endpoint.  This allows the application
+ *                  to change the codec or content protection capabilities of
+ *                  a stream endpoint after it has been opened.  This function
+ *                  can only be called if the stream is opened but not started
+ *                  or if the stream has been suspended.  When the procedure
+ *                  is completed, an AVDT_RECONFIG_CFM_EVT is sent to the
+ *                  application via the control callback function for this handle.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_ReconfigReq(uint8_t handle, tAVDT_CFG *p_cfg)
 {
     tAVDT_SCB       *p_scb;
@@ -744,17 +744,17 @@ uint16_t AVDT_ReconfigReq(uint8_t handle, tAVDT_CFG *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_ReconfigRsp
-**
-** Description      Respond to a reconfigure request from the peer device.
-**                  This function must be called if the application receives
-**                  an AVDT_RECONFIG_IND_EVT through its control callback.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_ReconfigRsp
+ *
+ * Description      Respond to a reconfigure request from the peer device.
+ *                  This function must be called if the application receives
+ *                  an AVDT_RECONFIG_IND_EVT through its control callback.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8_t category)
 {
     tAVDT_SCB       *p_scb;
@@ -780,19 +780,19 @@ uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uin
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_SecurityReq
-**
-** Description      Send a security request to the peer device.  When the
-**                  security procedure is completed, an AVDT_SECURITY_CFM_EVT
-**                  is sent to the application via the control callback function
-**                  for this handle.  (Please note that AVDTP security procedures
-**                  are unrelated to Bluetooth link level security.)
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_SecurityReq
+ *
+ * Description      Send a security request to the peer device.  When the
+ *                  security procedure is completed, an AVDT_SECURITY_CFM_EVT
+ *                  is sent to the application via the control callback function
+ *                  for this handle.  (Please note that AVDTP security procedures
+ *                  are unrelated to Bluetooth link level security.)
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_SecurityReq(uint8_t handle, uint8_t *p_data, uint16_t len)
 {
     tAVDT_SCB       *p_scb;
@@ -816,19 +816,19 @@ uint16_t AVDT_SecurityReq(uint8_t handle, uint8_t *p_data, uint16_t len)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_SecurityRsp
-**
-** Description      Respond to a security request from the peer device.
-**                  This function must be called if the application receives
-**                  an AVDT_SECURITY_IND_EVT through its control callback.
-**                  (Please note that AVDTP security procedures are unrelated
-**                  to Bluetooth link level security.)
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_SecurityRsp
+ *
+ * Description      Respond to a security request from the peer device.
+ *                  This function must be called if the application receives
+ *                  an AVDT_SECURITY_IND_EVT through its control callback.
+ *                  (Please note that AVDTP security procedures are unrelated
+ *                  to Bluetooth link level security.)
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_SecurityRsp(uint8_t handle, uint8_t label, uint8_t error_code,
                         uint8_t *p_data, uint16_t len)
 {
@@ -855,41 +855,41 @@ uint16_t AVDT_SecurityRsp(uint8_t handle, uint8_t label, uint8_t error_code,
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_WriteReqOpt
-**
-** Description      Send a media packet to the peer device.  The stream must
-**                  be started before this function is called.  Also, this
-**                  function can only be called if the stream is a SRC.
-**
-**                  When AVDTP has sent the media packet and is ready for the
-**                  next packet, an AVDT_WRITE_CFM_EVT is sent to the
-**                  application via the control callback.  The application must
-**                  wait for the AVDT_WRITE_CFM_EVT before it makes the next
-**                  call to AVDT_WriteReq().  If the applications calls
-**                  AVDT_WriteReq() before it receives the event the packet
-**                  will not be sent.  The application may make its first call
-**                  to AVDT_WriteReq() after it receives an AVDT_START_CFM_EVT
-**                  or AVDT_START_IND_EVT.
-**
-**                  The application passes the packet using the BT_HDR structure.
-**                  This structure is described in section 2.1.  The offset
-**                  field must be equal to or greater than AVDT_MEDIA_OFFSET
-**                  (if NO_RTP is specified, L2CAP_MIN_OFFSET can be used).
-**                  This allows enough space in the buffer for the L2CAP and
-**                  AVDTP headers.
-**
-**                  The memory pointed to by p_pkt must be a GKI buffer
-**                  allocated by the application.  This buffer will be freed
-**                  by the protocol stack; the application must not free
-**                  this buffer.
-**
-**                  The opt parameter allows passing specific options like:
-**                  - NO_RTP : do not add the RTP header to buffer
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_WriteReqOpt
+ *
+ * Description      Send a media packet to the peer device.  The stream must
+ *                  be started before this function is called.  Also, this
+ *                  function can only be called if the stream is a SRC.
+ *
+ *                  When AVDTP has sent the media packet and is ready for the
+ *                  next packet, an AVDT_WRITE_CFM_EVT is sent to the
+ *                  application via the control callback.  The application must
+ *                  wait for the AVDT_WRITE_CFM_EVT before it makes the next
+ *                  call to AVDT_WriteReq().  If the applications calls
+ *                  AVDT_WriteReq() before it receives the event the packet
+ *                  will not be sent.  The application may make its first call
+ *                  to AVDT_WriteReq() after it receives an AVDT_START_CFM_EVT
+ *                  or AVDT_START_IND_EVT.
+ *
+ *                  The application passes the packet using the BT_HDR structure.
+ *                  This structure is described in section 2.1.  The offset
+ *                  field must be equal to or greater than AVDT_MEDIA_OFFSET
+ *                  (if NO_RTP is specified, L2CAP_MIN_OFFSET can be used).
+ *                  This allows enough space in the buffer for the L2CAP and
+ *                  AVDTP headers.
+ *
+ *                  The memory pointed to by p_pkt must be a GKI buffer
+ *                  allocated by the application.  This buffer will be freed
+ *                  by the protocol stack; the application must not free
+ *                  this buffer.
+ *
+ *                  The opt parameter allows passing specific options like:
+ *                  - NO_RTP : do not add the RTP header to buffer
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8_t m_pt, tAVDT_DATA_OPT_MASK opt)
 {
     tAVDT_SCB       *p_scb;
@@ -915,58 +915,58 @@ uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, ui
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_WriteReq
-**
-** Description      Send a media packet to the peer device.  The stream must
-**                  be started before this function is called.  Also, this
-**                  function can only be called if the stream is a SRC.
-**
-**                  When AVDTP has sent the media packet and is ready for the
-**                  next packet, an AVDT_WRITE_CFM_EVT is sent to the
-**                  application via the control callback.  The application must
-**                  wait for the AVDT_WRITE_CFM_EVT before it makes the next
-**                  call to AVDT_WriteReq().  If the applications calls
-**                  AVDT_WriteReq() before it receives the event the packet
-**                  will not be sent.  The application may make its first call
-**                  to AVDT_WriteReq() after it receives an AVDT_START_CFM_EVT
-**                  or AVDT_START_IND_EVT.
-**
-**                  The application passes the packet using the BT_HDR structure.
-**                  This structure is described in section 2.1.  The offset
-**                  field must be equal to or greater than AVDT_MEDIA_OFFSET.
-**                  This allows enough space in the buffer for the L2CAP and
-**                  AVDTP headers.
-**
-**                  The memory pointed to by p_pkt must be a GKI buffer
-**                  allocated by the application.  This buffer will be freed
-**                  by the protocol stack; the application must not free
-**                  this buffer.
-**
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_WriteReq
+ *
+ * Description      Send a media packet to the peer device.  The stream must
+ *                  be started before this function is called.  Also, this
+ *                  function can only be called if the stream is a SRC.
+ *
+ *                  When AVDTP has sent the media packet and is ready for the
+ *                  next packet, an AVDT_WRITE_CFM_EVT is sent to the
+ *                  application via the control callback.  The application must
+ *                  wait for the AVDT_WRITE_CFM_EVT before it makes the next
+ *                  call to AVDT_WriteReq().  If the applications calls
+ *                  AVDT_WriteReq() before it receives the event the packet
+ *                  will not be sent.  The application may make its first call
+ *                  to AVDT_WriteReq() after it receives an AVDT_START_CFM_EVT
+ *                  or AVDT_START_IND_EVT.
+ *
+ *                  The application passes the packet using the BT_HDR structure.
+ *                  This structure is described in section 2.1.  The offset
+ *                  field must be equal to or greater than AVDT_MEDIA_OFFSET.
+ *                  This allows enough space in the buffer for the L2CAP and
+ *                  AVDTP headers.
+ *
+ *                  The memory pointed to by p_pkt must be a GKI buffer
+ *                  allocated by the application.  This buffer will be freed
+ *                  by the protocol stack; the application must not free
+ *                  this buffer.
+ *
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_WriteReq(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, uint8_t m_pt)
 {
     return AVDT_WriteReqOpt(handle, p_pkt, time_stamp, m_pt, AVDT_DATA_OPT_NONE);
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_ConnectReq
-**
-** Description      This function initiates an AVDTP signaling connection
-**                  to the peer device.  When the connection is completed, an
-**                  AVDT_CONNECT_IND_EVT is sent to the application via its
-**                  control callback function.  If the connection attempt fails
-**                  an AVDT_DISCONNECT_IND_EVT is sent.  The security mask
-**                  parameter overrides the outgoing security mask set in
-**                  AVDT_Register().
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_ConnectReq
+ *
+ * Description      This function initiates an AVDTP signaling connection
+ *                  to the peer device.  When the connection is completed, an
+ *                  AVDT_CONNECT_IND_EVT is sent to the application via its
+ *                  control callback function.  If the connection attempt fails
+ *                  an AVDT_DISCONNECT_IND_EVT is sent.  The security mask
+ *                  parameter overrides the outgoing security mask set in
+ *                  AVDT_Register().
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_ConnectReq(BD_ADDR bd_addr, uint8_t sec_mask, tAVDT_CTRL_CBACK *p_cback)
 {
     tAVDT_CCB       *p_ccb = NULL;
@@ -1003,17 +1003,17 @@ uint16_t AVDT_ConnectReq(BD_ADDR bd_addr, uint8_t sec_mask, tAVDT_CTRL_CBACK *p_
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_DisconnectReq
-**
-** Description      This function disconnect an AVDTP signaling connection
-**                  to the peer device.  When disconnected an
-**                  AVDT_DISCONNECT_IND_EVT is sent to the application via its
-**                  control callback function.
-**
-** Returns          AVDT_SUCCESS if successful, otherwise error.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_DisconnectReq
+ *
+ * Description      This function disconnect an AVDTP signaling connection
+ *                  to the peer device.  When disconnected an
+ *                  AVDT_DISCONNECT_IND_EVT is sent to the application via its
+ *                  control callback function.
+ *
+ * Returns          AVDT_SUCCESS if successful, otherwise error.
+ *
+ ******************************************************************************/
 uint16_t AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback)
 {
     tAVDT_CCB       *p_ccb = NULL;
@@ -1037,14 +1037,14 @@ uint16_t AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_GetL2CapChannel
-**
-** Description      Get the L2CAP CID used by the handle.
-**
-** Returns          CID if successful, otherwise 0.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_GetL2CapChannel
+ *
+ * Description      Get the L2CAP CID used by the handle.
+ *
+ * Returns          CID if successful, otherwise 0.
+ *
+ ******************************************************************************/
 uint16_t AVDT_GetL2CapChannel(uint8_t handle)
 {
     tAVDT_SCB       *p_scb;
@@ -1066,14 +1066,14 @@ uint16_t AVDT_GetL2CapChannel(uint8_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         AVDT_GetSignalChannel
-**
-** Description      Get the L2CAP CID used by the signal channel of the given handle.
-**
-** Returns          CID if successful, otherwise 0.
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_GetSignalChannel
+ *
+ * Description      Get the L2CAP CID used by the signal channel of the given handle.
+ *
+ * Returns          CID if successful, otherwise 0.
+ *
+ ******************************************************************************/
 uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr)
 {
     tAVDT_SCB       *p_scb;
@@ -1100,16 +1100,16 @@ uint16_t AVDT_GetSignalChannel(uint8_t handle, BD_ADDR bd_addr)
 
 #if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
-**
-** Function         AVDT_SendReport
-**
-** Description
-**
-**
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         AVDT_SendReport
+ *
+ * Description
+ *
+ *
+ *
+ * Returns
+ *
+ ******************************************************************************/
 uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
                        tAVDT_REPORT_DATA *p_data)
 {
@@ -1195,26 +1195,26 @@ uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
 #endif
 
 /******************************************************************************
-**
-** Function         AVDT_SetTraceLevel
-**
-** Description      Sets the trace level for AVDT. If 0xff is passed, the
-**                  current trace level is returned.
-**
-**                  Input Parameters:
-**                      new_level:  The level to set the AVDT tracing to:
-**                      0xff-returns the current setting.
-**                      0-turns off tracing.
-**                      >= 1-Errors.
-**                      >= 2-Warnings.
-**                      >= 3-APIs.
-**                      >= 4-Events.
-**                      >= 5-Debug.
-**
-** Returns          The new trace level or current trace level if
-**                  the input parameter is 0xff.
-**
-******************************************************************************/
+ *
+ * Function         AVDT_SetTraceLevel
+ *
+ * Description      Sets the trace level for AVDT. If 0xff is passed, the
+ *                  current trace level is returned.
+ *
+ *                  Input Parameters:
+ *                      new_level:  The level to set the AVDT tracing to:
+ *                      0xff-returns the current setting.
+ *                      0-turns off tracing.
+ *                      >= 1-Errors.
+ *                      >= 2-Warnings.
+ *                      >= 3-APIs.
+ *                      >= 4-Events.
+ *                      >= 5-Debug.
+ *
+ * Returns          The new trace level or current trace level if
+ *                  the input parameter is 0xff.
+ *
+ *****************************************************************************/
 uint8_t AVDT_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)

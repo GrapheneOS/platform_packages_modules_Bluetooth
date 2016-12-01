@@ -48,20 +48,20 @@
 #define BTM_BLE_META_ADD_WL_ATTR_LEN    9
 
 /*******************************************************************************
-**         Functions implemented controller based privacy using Resolving List
-*******************************************************************************/
+ *         Functions implemented controller based privacy using Resolving List
+ ******************************************************************************/
 /*******************************************************************************
-**
-** Function         btm_ble_enq_resolving_list_pending
-**
-** Description      add target address into resolving pending operation queue
-**
-** Parameters       target_bda: target device address
-**                  add_entry: true for add entry, false for remove entry
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_enq_resolving_list_pending
+ *
+ * Description      add target address into resolving pending operation queue
+ *
+ * Parameters       target_bda: target device address
+ *                  add_entry: true for add entry, false for remove entry
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_enq_resolving_list_pending(BD_ADDR pseudo_bda, uint8_t op_code)
 {
     tBTM_BLE_RESOLVE_Q *p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
@@ -73,17 +73,17 @@ void btm_ble_enq_resolving_list_pending(BD_ADDR pseudo_bda, uint8_t op_code)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_brcm_find_resolving_pending_entry
-**
-** Description      check to see if the action is in pending list
-**
-** Parameters       true: action pending;
-**                  false: new action
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_brcm_find_resolving_pending_entry
+ *
+ * Description      check to see if the action is in pending list
+ *
+ * Parameters       true: action pending;
+ *                  false: new action
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    btm_ble_brcm_find_resolving_pending_entry(BD_ADDR pseudo_addr, uint8_t action)
 {
     tBTM_BLE_RESOLVE_Q *p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
@@ -101,16 +101,16 @@ bool    btm_ble_brcm_find_resolving_pending_entry(BD_ADDR pseudo_addr, uint8_t a
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_deq_resolving_pending
-**
-** Description      dequeue target address from resolving pending operation queue
-**
-** Parameters       pseudo_addr: pseudo_addr device address
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_deq_resolving_pending
+ *
+ * Description      dequeue target address from resolving pending operation queue
+ *
+ * Parameters       pseudo_addr: pseudo_addr device address
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    btm_ble_deq_resolving_pending(BD_ADDR pseudo_addr)
 {
     tBTM_BLE_RESOLVE_Q *p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
@@ -128,14 +128,14 @@ bool    btm_ble_deq_resolving_pending(BD_ADDR pseudo_addr)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_clear_irk_index
-**
-** Description      clear IRK list index mask for availability
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_clear_irk_index
+ *
+ * Description      clear IRK list index mask for availability
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void btm_ble_clear_irk_index(uint8_t index)
 {
     uint8_t byte;
@@ -150,14 +150,14 @@ void btm_ble_clear_irk_index(uint8_t index)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_find_irk_index
-**
-** Description      find the first available IRK list index
-**
-** Returns          index from 0 ~ max (127 default)
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_find_irk_index
+ *
+ * Description      find the first available IRK list index
+ *
+ * Returns          index from 0 ~ max (127 default)
+ *
+ ******************************************************************************/
 uint8_t btm_ble_find_irk_index(void)
 {
     uint8_t i = 0;
@@ -182,14 +182,14 @@ uint8_t btm_ble_find_irk_index(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_resolving_list
-**
-** Description      update resolving list entry in host maintained record
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_resolving_list
+ *
+ * Description      update resolving list entry in host maintained record
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_update_resolving_list(BD_ADDR pseudo_bda, bool    add)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(pseudo_bda);
@@ -222,15 +222,15 @@ bool clear_resolving_list_bit(void *data, void *context)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_clear_resolving_list_complete
-**
-** Description      This function is called when command complete for
-**                  clear resolving list
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_clear_resolving_list_complete
+ *
+ * Description      This function is called when command complete for
+ *                  clear resolving list
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_clear_resolving_list_complete(uint8_t *p, uint16_t evt_len)
 {
     uint8_t status = 0;
@@ -268,15 +268,15 @@ void btm_ble_clear_resolving_list_complete(uint8_t *p, uint16_t evt_len)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_add_resolving_list_entry_complete
-**
-** Description      This function is called when command complete for
-**                  add resolving list entry
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_add_resolving_list_entry_complete
+ *
+ * Description      This function is called when command complete for
+ *                  add resolving list entry
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_add_resolving_list_entry_complete(uint8_t *p, uint16_t evt_len)
 {
     uint8_t status;
@@ -311,15 +311,15 @@ void btm_ble_add_resolving_list_entry_complete(uint8_t *p, uint16_t evt_len)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_remove_resolving_list_entry_complete
-**
-** Description      This function is called when command complete for
-**                  remove resolving list entry
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_remove_resolving_list_entry_complete
+ *
+ * Description      This function is called when command complete for
+ *                  remove resolving list entry
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_remove_resolving_list_entry_complete(uint8_t *p, uint16_t evt_len)
 {
     BD_ADDR pseudo_bda;
@@ -349,15 +349,15 @@ void btm_ble_remove_resolving_list_entry_complete(uint8_t *p, uint16_t evt_len)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_read_resolving_list_entry_complete
-**
-** Description      This function is called when command complete for
-**                  remove resolving list entry
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_read_resolving_list_entry_complete
+ *
+ * Description      This function is called when command complete for
+ *                  remove resolving list entry
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_read_resolving_list_entry_complete(uint8_t *p, uint16_t evt_len)
 {
     uint8_t         status, rra_type = BTM_BLE_ADDR_PSEUDO;
@@ -393,18 +393,18 @@ void btm_ble_read_resolving_list_entry_complete(uint8_t *p, uint16_t evt_len)
 }
 /*******************************************************************************
                 VSC that implement controller based privacy
-********************************************************************************/
+ ******************************************************************************/
 /*******************************************************************************
-**
-** Function         btm_ble_resolving_list_vsc_op_cmpl
-**
-** Description      IRK operation VSC complete handler
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolving_list_vsc_op_cmpl
+ *
+ * Description      IRK operation VSC complete handler
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_resolving_list_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 {
     uint8_t *p = p_params->p_param_buf, op_subcode;
@@ -437,17 +437,17 @@ void btm_ble_resolving_list_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_remove_resolving_list_entry
-**
-** Description      This function to remove an IRK entry from the list
-**
-** Parameters       ble_addr_type: address type
-**                  ble_addr: LE adddress
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_remove_resolving_list_entry
+ *
+ * Description      This function to remove an IRK entry from the list
+ *
+ * Parameters       ble_addr_type: address type
+ *                  ble_addr: LE adddress
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     /* if controller does not support RPA offloading or privacy 1.2, skip */
@@ -479,14 +479,14 @@ tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_clear_resolving_list
-**
-** Description      This function clears the resolving  list
-**
-** Parameters       None.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_clear_resolving_list
+ *
+ * Description      This function clears the resolving  list
+ *
+ * Parameters       None.
+ *
+ ******************************************************************************/
 void btm_ble_clear_resolving_list(void)
 {
 
@@ -508,16 +508,16 @@ void btm_ble_clear_resolving_list(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_read_resolving_list_entry
-**
-** Description      This function read an IRK entry by index
-**
-** Parameters       entry index.
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_read_resolving_list_entry
+ *
+ * Description      This function read an IRK entry by index
+ *
+ * Parameters       entry index.
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     if (!(p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT))
@@ -550,18 +550,18 @@ tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 
 
 /*******************************************************************************
-**
-** Function         btm_ble_suspend_resolving_list_activity
-**
-** Description      This function suspends all resolving list activity, including
-**                  scan, initiating, and advertising, if resolving list is being
-**                  enabled.
-**
-** Parameters
-**
-** Returns          true if suspended; false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_suspend_resolving_list_activity
+ *
+ * Description      This function suspends all resolving list activity, including
+ *                  scan, initiating, and advertising, if resolving list is being
+ *                  enabled.
+ *
+ * Parameters
+ *
+ * Returns          true if suspended; false otherwise
+ *
+ ******************************************************************************/
 bool    btm_ble_suspend_resolving_list_activity(void)
 {
     tBTM_BLE_CB *p_ble_cb = &btm_cb.ble_ctr_cb;
@@ -600,16 +600,16 @@ bool    btm_ble_suspend_resolving_list_activity(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_resume_resolving_list_activity
-**
-** Description      This function resumes the resolving list activity, including
-**                  scanning, initiating, and advertising, if any of these
-**                  activities has been suspended earlier.
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resume_resolving_list_activity
+ *
+ * Description      This function resumes the resolving list activity, including
+ *                  scanning, initiating, and advertising, if any of these
+ *                  activities has been suspended earlier.
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void btm_ble_resume_resolving_list_activity(void)
 {
     tBTM_BLE_CB *p_ble_cb = &btm_cb.ble_ctr_cb;
@@ -627,15 +627,15 @@ void btm_ble_resume_resolving_list_activity(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_vendor_enable_irk_feature
-**
-** Description      This function is called to enable or disable the RRA
-**                  offloading feature.
-**
-** Parameters       enable: enable or disable the RRA offloading feature
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_vendor_enable_irk_feature
+ *
+ * Description      This function is called to enable or disable the RRA
+ *                  offloading feature.
+ *
+ * Parameters       enable: enable or disable the RRA offloading feature
+ *
+ ******************************************************************************/
 void btm_ble_vendor_enable_irk_feature(bool enable)
 {
     uint8_t         param[20], *p;
@@ -652,14 +652,14 @@ void btm_ble_vendor_enable_irk_feature(bool enable)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_exe_disable_resolving_list
-**
-** Description      execute resolving list disable
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_exe_disable_resolving_list
+ *
+ * Description      execute resolving list disable
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 bool    btm_ble_exe_disable_resolving_list(void)
 {
     if (!btm_ble_suspend_resolving_list_activity())
@@ -674,14 +674,14 @@ bool    btm_ble_exe_disable_resolving_list(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_exe_enable_resolving_list
-**
-** Description      enable LE resolve address list
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_exe_enable_resolving_list
+ *
+ * Description      enable LE resolve address list
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void btm_ble_exe_enable_resolving_list(void)
 {
     if (!btm_ble_suspend_resolving_list_activity())
@@ -694,14 +694,14 @@ void btm_ble_exe_enable_resolving_list(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_disable_resolving_list
-**
-** Description      Disable LE Address resolution
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_disable_resolving_list
+ *
+ * Description      Disable LE Address resolution
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 bool    btm_ble_disable_resolving_list(uint8_t rl_mask, bool    to_resume )
 {
     uint8_t rl_state = btm_cb.ble_ctr_cb.rl_state;
@@ -729,16 +729,16 @@ bool    btm_ble_disable_resolving_list(uint8_t rl_mask, bool    to_resume )
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_resolving_list_load_dev
-**
-** Description      This function add a device which is using RPA into white list
-**
-** Parameters       pointer to device security record
-**
-** Returns          true if device added, otherwise falase.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolving_list_load_dev
+ *
+ * Description      This function add a device which is using RPA into white list
+ *
+ * Parameters       pointer to device security record
+ *
+ * Returns          true if device added, otherwise falase.
+ *
+ ******************************************************************************/
 bool    btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     bool    rt = false;
@@ -830,16 +830,16 @@ bool    btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_resolving_list_remove_dev
-**
-** Description      This function removes the device from resolving list
-**
-** Parameters
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolving_list_remove_dev
+ *
+ * Description      This function removes the device from resolving list
+ *
+ * Parameters
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     uint8_t rl_mask = btm_cb.ble_ctr_cb.rl_state;
@@ -869,14 +869,14 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_enable_resolving_list
-**
-** Description      enable LE resolve address list
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_enable_resolving_list
+ *
+ * Description      enable LE resolve address list
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void btm_ble_enable_resolving_list(uint8_t rl_mask)
 {
     uint8_t rl_state = btm_cb.ble_ctr_cb.rl_state;
@@ -892,14 +892,14 @@ void btm_ble_enable_resolving_list(uint8_t rl_mask)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_resolving_list_empty
-**
-** Description      check to see if resoving list is empty or not
-**
-** Returns          true: empty; false non-empty
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolving_list_empty
+ *
+ * Description      check to see if resoving list is empty or not
+ *
+ * Returns          true: empty; false non-empty
+ *
+ ******************************************************************************/
 bool    btm_ble_resolving_list_empty(void)
 {
     return (controller_get_interface()->get_ble_resolving_list_max_size() ==
@@ -919,16 +919,16 @@ bool is_on_resolving_list(void *data, void *context)
 
 
 /*******************************************************************************
-**
-** Function         btm_ble_enable_resolving_list_for_platform
-**
-** Description      enable/disable resolving list feature depending on if any
-**                  resolving list is empty and whitelist is involoved in the
-**                  operation.
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_enable_resolving_list_for_platform
+ *
+ * Description      enable/disable resolving list feature depending on if any
+ *                  resolving list is empty and whitelist is involoved in the
+ *                  operation.
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void btm_ble_enable_resolving_list_for_platform (uint8_t rl_mask)
 {
     /* if controller does not support, skip */
@@ -953,16 +953,16 @@ void btm_ble_enable_resolving_list_for_platform (uint8_t rl_mask)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_resolving_list_init
-**
-** Description      Initialize resolving list in host stack
-**
-** Parameters       Max resolving list size
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolving_list_init
+ *
+ * Description      Initialize resolving list in host stack
+ *
+ * Parameters       Max resolving list size
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_resolving_list_init(uint8_t max_irk_list_sz)
 {
     tBTM_BLE_RESOLVE_Q *p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
@@ -987,16 +987,16 @@ void btm_ble_resolving_list_init(uint8_t max_irk_list_sz)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_resolving_list_cleanup
-**
-** Description      Cleanup resolving list dynamic memory
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolving_list_cleanup
+ *
+ * Description      Cleanup resolving list dynamic memory
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_resolving_list_cleanup(void)
 {
     tBTM_BLE_RESOLVE_Q *p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;

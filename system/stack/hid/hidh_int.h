@@ -77,8 +77,8 @@ extern void hidh_process_repage_timer_timeout(void *data);
 extern void hidh_try_repage(uint8_t dhandle);
 
 /******************************************************************************
-** Main Control Block
-*******************************************************************************/
+ * Main Control Block
+ ******************************************************************************/
 extern tHID_HOST_CTB  hh_cb;
 
 #ifdef __cplusplus

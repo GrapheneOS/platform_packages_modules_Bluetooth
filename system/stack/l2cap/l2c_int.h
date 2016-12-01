@@ -69,8 +69,8 @@ extern "C" {
 #define L2CAP_FCR_ACK_TIMEOUT_MS                  200   /* 200 milliseconds */
 
 /* Define the possible L2CAP channel states. The names of
-** the states may seem a bit strange, but they are taken from
-** the Bluetooth specification.
+ * the states may seem a bit strange, but they are taken from
+ * the Bluetooth specification.
 */
 typedef enum
 {
@@ -100,8 +100,8 @@ typedef enum
 
 
 /* Define input events to the L2CAP link and channel state machines. The names
-** of the events may seem a bit strange, but they are taken from
-** the Bluetooth specification.
+ * of the events may seem a bit strange, but they are taken from
+ * the Bluetooth specification.
 */
 #define L2CEVT_LP_CONNECT_CFM          0          /* Lower layer connect confirm          */
 #define L2CEVT_LP_CONNECT_CFM_NEG      1          /* Lower layer connect confirm (failed) */
@@ -223,7 +223,7 @@ typedef struct
 
 
 /* Define a registration control block. Every application (e.g. RFCOMM, SDP,
-** TCS etc) that registers with L2CAP is assigned one of these.
+ * TCS etc) that registers with L2CAP is assigned one of these.
 */
 #if (L2CAP_UCD_INCLUDED == TRUE)
 #define L2C_UCD_RCB_ID              0x00
@@ -270,9 +270,9 @@ typedef struct
 }tL2CAP_SEC_DATA;
 
 /* Define a channel control block (CCB). There may be many channel control blocks
-** between the same two Bluetooth devices (i.e. on the same link).
-** Each CCB has unique local and remote CIDs. All channel control blocks on
-** the same physical link and are chained together.
+ * between the same two Bluetooth devices (i.e. on the same link).
+ * Each CCB has unique local and remote CIDs. All channel control blocks on
+ * the same physical link and are chained together.
 */
 typedef struct t_l2c_ccb
 {
@@ -345,7 +345,7 @@ typedef struct t_l2c_ccb
 } tL2C_CCB;
 
 /***********************************************************************
-** Define a queue of linked CCBs.
+ * Define a queue of linked CCBs.
 */
 typedef struct
 {
@@ -376,7 +376,7 @@ typedef struct
 #endif /* (L2CAP_ROUND_ROBIN_CHANNEL_SERVICE == TRUE) */
 
 /* Define a link control block. There is one link control block between
-** this device and any other device (i.e. BD ADDR).
+ * this device and any other device (i.e. BD ADDR).
 */
 typedef struct t_l2c_linkcb
 {
@@ -521,8 +521,8 @@ typedef struct
 
 
 /* Define a structure that contains the information about a connection.
-** This structure is used to pass between functions, and not all the
-** fields will always be filled in.
+ * This structure is used to pass between functions, and not all the
+ * fields will always be filled in.
 */
 typedef struct
 {
@@ -551,13 +551,13 @@ typedef void (tL2C_FCR_MGMT_EVT_HDLR) (uint8_t, tL2C_CCB *);
 #endif
 
 /* L2CAP global data
-************************************
+ ***********************************
 */
 extern tL2C_CB  l2cb;
 
 
 /* Functions provided by l2c_main.cc
-************************************
+ ***********************************
 */
 void l2c_init(void);
 void l2c_free(void);
@@ -571,7 +571,7 @@ extern void     l2c_rcv_acl_data (BT_HDR *p_msg);
 extern void     l2c_process_held_packets (bool    timed_out);
 
 /* Functions provided by l2c_utils.cc
-************************************
+ ***********************************
 */
 extern tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, bool    is_bonding, tBT_TRANSPORT transport);
 extern bool     l2cu_start_post_bond_timer (uint16_t handle);
@@ -630,7 +630,7 @@ extern void    l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb);
 extern bool    l2cu_is_ccb_active (tL2C_CCB *p_ccb);
 
 /* Functions provided by l2c_ucd.cc
-************************************
+ ***********************************
 */
 #if (L2CAP_UCD_INCLUDED == TRUE)
 void l2c_ucd_delete_sec_pending_q(tL2C_LCB  *p_lcb);
@@ -647,7 +647,7 @@ bool    l2c_ucd_process_event(tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 #endif
 
 /* Functions provided for Broadcom Aware
-****************************************
+ ***************************************
 */
 extern bool     l2cu_check_feature_req (tL2C_LCB *p_lcb, uint8_t id, uint8_t *p_data, uint16_t data_len);
 extern void     l2cu_check_feature_rsp (tL2C_LCB *p_lcb, uint8_t id, uint8_t *p_data, uint16_t data_len);
@@ -676,7 +676,7 @@ extern void    l2cu_initialize_amp_ccb (tL2C_LCB *p_lcb);
 extern void    l2cu_adjust_out_mps (tL2C_CCB *p_ccb);
 
 /* Functions provided by l2c_link.cc
-************************************
+ ***********************************
 */
 extern bool     l2c_link_hci_conn_req (BD_ADDR bd_addr);
 extern bool     l2c_link_hci_conn_comp (uint8_t status, uint16_t handle, BD_ADDR p_bda);
@@ -711,7 +711,7 @@ extern void l2cu_set_info_rsp_mask (uint32_t mask);
 #endif
 
 /* Functions provided by l2c_csm.cc
-************************************
+ ***********************************
 */
 extern void l2c_csm_execute (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 
@@ -719,7 +719,7 @@ extern void l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf);
 
 
 /* Functions provided by l2c_fcr.cc
-************************************
+ ***********************************
 */
 extern void     l2c_fcr_cleanup (tL2C_CCB *p_ccb);
 extern void     l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf);
@@ -743,7 +743,7 @@ extern void     l2c_fcr_adj_monitor_retran_timeout (tL2C_CCB *p_ccb);
 extern void     l2c_fcr_stop_timer (tL2C_CCB *p_ccb);
 
 /* Functions provided by l2c_ble.cc
-************************************
+ ***********************************
 */
 extern bool    l2cble_create_conn (tL2C_LCB *p_lcb);
 extern void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len);

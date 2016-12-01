@@ -46,14 +46,14 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-/********************************************************************************/
+/******************************************************************************/
 /*                       G L O B A L      S D P       D A T A                   */
-/********************************************************************************/
+/******************************************************************************/
 tSDP_CB  sdp_cb;
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, UNUSED_ATTR uint16_t psm,
                              uint8_t l2cap_id);
 static void sdp_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
@@ -71,14 +71,14 @@ static void sdp_disconnect_cfm (uint16_t l2cap_cid, uint16_t result);
 
 
 /*******************************************************************************
-**
-** Function         sdp_init
-**
-** Description      This function initializes the SDP unit.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_init
+ *
+ * Description      This function initializes the SDP unit.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdp_init (void)
 {
     /* Clears all structures and local SDP database (if Server is enabled) */
@@ -140,14 +140,14 @@ void sdp_init (void)
 
 #if (SDP_DEBUG == TRUE)
 /*******************************************************************************
-**
-** Function         sdp_set_max_attr_list_size
-**
-** Description      This function sets the max attribute list size to use
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_set_max_attr_list_size
+ *
+ * Description      This function sets the max attribute list size to use
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint16_t sdp_set_max_attr_list_size (uint16_t max_size)
 {
     if (max_size > (sdp_cb.l2cap_my_cfg.mtu - 16) )
@@ -160,16 +160,16 @@ uint16_t sdp_set_max_attr_list_size (uint16_t max_size)
 #endif
 
 /*******************************************************************************
-**
-** Function         sdp_connect_ind
-**
-** Description      This function handles an inbound connection indication
-**                  from L2CAP. This is the case where we are acting as a
-**                  server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_connect_ind
+ *
+ * Description      This function handles an inbound connection indication
+ *                  from L2CAP. This is the case where we are acting as a
+ *                  server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
                              UNUSED_ATTR uint16_t psm, uint8_t l2cap_id)
 {
@@ -219,16 +219,16 @@ static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
 
 #if (SDP_CLIENT_ENABLED == TRUE)
 /*******************************************************************************
-**
-** Function         sdp_connect_cfm
-**
-** Description      This function handles the connect confirm events
-**                  from L2CAP. This is the case when we are acting as a
-**                  client and have sent a connect request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_connect_cfm
+ *
+ * Description      This function handles the connect confirm events
+ *                  from L2CAP. This is the case when we are acting as a
+ *                  client and have sent a connect request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     tCONN_CB    *p_ccb;
@@ -299,15 +299,15 @@ static void sdp_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 
 
 /*******************************************************************************
-**
-** Function         sdp_config_ind
-**
-** Description      This function processes the L2CAP configuration indication
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_config_ind
+ *
+ * Description      This function processes the L2CAP configuration indication
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tCONN_CB    *p_ccb;
@@ -395,15 +395,15 @@ static void sdp_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         sdp_config_cfm
-**
-** Description      This function processes the L2CAP configuration confirmation
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_config_cfm
+ *
+ * Description      This function processes the L2CAP configuration confirmation
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tCONN_CB    *p_ccb;
@@ -457,15 +457,15 @@ static void sdp_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         sdp_disconnect_ind
-**
-** Description      This function handles a disconnect event from L2CAP. If
-**                  requested to, we ack the disconnect before dropping the CCB
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_disconnect_ind
+ *
+ * Description      This function handles a disconnect event from L2CAP. If
+ *                  requested to, we ack the disconnect before dropping the CCB
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 {
     tCONN_CB    *p_ccb;
@@ -496,20 +496,20 @@ static void sdp_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 }
 
 /*******************************************************************************
-**
-** Function         sdp_data_ind
-**
-** Description      This function is called when data is received from L2CAP.
-**                  if we are the originator of the connection, we are the SDP
-**                  client, and the received message is queued up for the client.
-**
-**                  If we are the destination of the connection, we are the SDP
-**                  server, so the message is passed to the server processing
-**                  function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_data_ind
+ *
+ * Description      This function is called when data is received from L2CAP.
+ *                  if we are the originator of the connection, we are the SDP
+ *                  client, and the received message is queued up for the client.
+ *
+ *                  If we are the destination of the connection, we are the SDP
+ *                  server, so the message is passed to the server processing
+ *                  function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 {
     tCONN_CB    *p_ccb;
@@ -542,15 +542,15 @@ static void sdp_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 
 #if (SDP_CLIENT_ENABLED == TRUE)
 /*******************************************************************************
-**
-** Function         sdp_conn_originate
-**
-** Description      This function is called from the API to originate a
-**                  connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_conn_originate
+ *
+ * Description      This function is called from the API to originate a
+ *                  connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tCONN_CB* sdp_conn_originate (uint8_t *p_bd_addr)
 {
     tCONN_CB              *p_ccb;
@@ -593,14 +593,14 @@ tCONN_CB* sdp_conn_originate (uint8_t *p_bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         sdp_disconnect
-**
-** Description      This function disconnects a connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_disconnect
+ *
+ * Description      This function disconnects a connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdp_disconnect (tCONN_CB*p_ccb, uint16_t reason)
 {
 #if (SDP_BROWSE_PLUS == TRUE)
@@ -668,14 +668,14 @@ void sdp_disconnect (tCONN_CB*p_ccb, uint16_t reason)
 }
 
 /*******************************************************************************
-**
-** Function         sdp_disconnect_cfm
-**
-** Description      This function handles a disconnect confirm event from L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_disconnect_cfm
+ *
+ * Description      This function handles a disconnect confirm event from L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_disconnect_cfm (uint16_t l2cap_cid,
                                 UNUSED_ATTR uint16_t result)
 {
@@ -704,15 +704,15 @@ static void sdp_disconnect_cfm (uint16_t l2cap_cid,
 #endif  /* SDP_CLIENT_ENABLED == TRUE */
 
 /*******************************************************************************
-**
-** Function         sdp_conn_timer_timeout
-**
-** Description      This function processes a timeout. Currently, we simply send
-**                  a disconnect request to L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_conn_timer_timeout
+ *
+ * Description      This function processes a timeout. Currently, we simply send
+ *                  a disconnect request to L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdp_conn_timer_timeout(void *data)
 {
     tCONN_CB *p_ccb = (tCONN_CB *)data;

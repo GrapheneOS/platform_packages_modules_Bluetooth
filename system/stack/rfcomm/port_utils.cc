@@ -51,17 +51,17 @@ static const tPORT_STATE default_port_pars =
 
 
 /*******************************************************************************
-**
-** Function         port_allocate_port
-**
-** Description      Look through the Port Control Blocks for a free one.  Note
-**                  that one server can open several ports with the same SCN
-**                  if it can support simulteneous requests from different
-**                  clients.
-**
-** Returns          Pointer to the PORT or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         port_allocate_port
+ *
+ * Description      Look through the Port Control Blocks for a free one.  Note
+ *                  that one server can open several ports with the same SCN
+ *                  if it can support simulteneous requests from different
+ *                  clients.
+ *
+ * Returns          Pointer to the PORT or NULL if not found
+ *
+ ******************************************************************************/
 tPORT *port_allocate_port (uint8_t dlci, BD_ADDR bd_addr)
 {
     tPORT  *p_port = &rfc_cb.port.port[0];
@@ -102,13 +102,13 @@ tPORT *port_allocate_port (uint8_t dlci, BD_ADDR bd_addr)
 
 
 /*******************************************************************************
-**
-** Function         port_set_defaults
-**
-** Description      Set defualt port parameters
-**
-**
-*******************************************************************************/
+ *
+ * Function         port_set_defaults
+ *
+ * Description      Set defualt port parameters
+ *
+ *
+ ******************************************************************************/
 void port_set_defaults (tPORT *p_port)
 {
     p_port->ev_mask        = 0;
@@ -135,16 +135,16 @@ void port_set_defaults (tPORT *p_port)
 }
 
 /*******************************************************************************
-**
-** Function         port_select_mtu
-**
-** Description      Select MTU which will best serve connection from our
-**                  point of view.
-**                  If our device is 1.2 or lower we calculate how many DH5s
-**                  fit into 1 RFCOMM buffer.
-**
-**
-*******************************************************************************/
+ *
+ * Function         port_select_mtu
+ *
+ * Description      Select MTU which will best serve connection from our
+ *                  point of view.
+ *                  If our device is 1.2 or lower we calculate how many DH5s
+ *                  fit into 1 RFCOMM buffer.
+ *
+ *
+ ******************************************************************************/
 void port_select_mtu (tPORT *p_port)
 {
     uint16_t packet_size;
@@ -200,14 +200,14 @@ void port_select_mtu (tPORT *p_port)
 }
 
 /*******************************************************************************
-**
-** Function         port_release_port
-**
-** Description      Release port control block.
-**
-** Returns          Pointer to the PORT or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         port_release_port
+ *
+ * Description      Release port control block.
+ *
+ * Returns          Pointer to the PORT or NULL if not found
+ *
+ ******************************************************************************/
 void port_release_port(tPORT *p_port)
 {
     RFCOMM_TRACE_DEBUG("%s p_port: %p state: %d keep_handle: %d", __func__,
@@ -277,13 +277,13 @@ void port_release_port(tPORT *p_port)
 }
 
 /*******************************************************************************
-**
-** Function         port_find_mcb
-**
-** Description      This function checks if connection exists to device with
-**                  the BD_ADDR.
-**
-*******************************************************************************/
+ *
+ * Function         port_find_mcb
+ *
+ * Description      This function checks if connection exists to device with
+ *                  the BD_ADDR.
+ *
+ ******************************************************************************/
 tRFC_MCB *port_find_mcb (BD_ADDR bd_addr)
 {
     int      i;
@@ -308,17 +308,17 @@ tRFC_MCB *port_find_mcb (BD_ADDR bd_addr)
 
 
 /*******************************************************************************
-**
-** Function         port_find_mcb_dlci_port
-**
-** Description      Find port on the multiplexer channel based on DLCI.  If
-**                  this port with DLCI not found try to use even DLCI.  This
-**                  is for the case when client is establishing connection on
-**                  none-initiator MCB.
-**
-** Returns          Pointer to the PORT or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         port_find_mcb_dlci_port
+ *
+ * Description      Find port on the multiplexer channel based on DLCI.  If
+ *                  this port with DLCI not found try to use even DLCI.  This
+ *                  is for the case when client is establishing connection on
+ *                  none-initiator MCB.
+ *
+ * Returns          Pointer to the PORT or NULL if not found
+ *
+ ******************************************************************************/
 tPORT *port_find_mcb_dlci_port (tRFC_MCB *p_mcb, uint8_t dlci)
 {
     uint8_t inx;
@@ -341,14 +341,14 @@ tPORT *port_find_mcb_dlci_port (tRFC_MCB *p_mcb, uint8_t dlci)
 
 
 /*******************************************************************************
-**
-** Function         port_find_dlci_port
-**
-** Description      Find port with DLCI not assigned to multiplexer channel
-**
-** Returns          Pointer to the PORT or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         port_find_dlci_port
+ *
+ * Description      Find port with DLCI not assigned to multiplexer channel
+ *
+ * Returns          Pointer to the PORT or NULL if not found
+ *
+ ******************************************************************************/
 tPORT *port_find_dlci_port (uint8_t dlci)
 {
     uint16_t i;
@@ -376,14 +376,14 @@ tPORT *port_find_dlci_port (uint8_t dlci)
 
 
 /*******************************************************************************
-**
-** Function         port_find_port
-**
-** Description      Find port with DLCI, BD_ADDR
-**
-** Returns          Pointer to the PORT or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         port_find_port
+ *
+ * Description      Find port with DLCI, BD_ADDR
+ *
+ * Returns          Pointer to the PORT or NULL if not found
+ *
+ ******************************************************************************/
 tPORT *port_find_port (uint8_t dlci, BD_ADDR bd_addr)
 {
     uint16_t i;
@@ -404,16 +404,16 @@ tPORT *port_find_port (uint8_t dlci, BD_ADDR bd_addr)
 
 
 /*******************************************************************************
-**
-** Function         port_flow_control_user
-**
-** Description      Check the current user flow control and if necessary return
-**                  events to be send to the user based on the user's specified
-**                  flow control type.
-**
-** Returns          event mask to be returned to the application
-**
-*******************************************************************************/
+ *
+ * Function         port_flow_control_user
+ *
+ * Description      Check the current user flow control and if necessary return
+ *                  events to be send to the user based on the user's specified
+ *                  flow control type.
+ *
+ * Returns          event mask to be returned to the application
+ *
+ ******************************************************************************/
 uint32_t port_flow_control_user (tPORT *p_port)
 {
     uint32_t event = 0;
@@ -442,14 +442,14 @@ uint32_t port_flow_control_user (tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         port_get_signal_changes
-**
-** Description      Check modem signals that has been changed
-**
-** Returns          event mask to be returned to the application
-**
-*******************************************************************************/
+ *
+ * Function         port_get_signal_changes
+ *
+ * Description      Check modem signals that has been changed
+ *
+ * Returns          event mask to be returned to the application
+ *
+ ******************************************************************************/
 uint32_t port_get_signal_changes (tPORT *p_port, uint8_t old_signals, uint8_t signal)
 {
     uint8_t changed_signals = (signal ^ old_signals);
@@ -486,16 +486,16 @@ uint32_t port_get_signal_changes (tPORT *p_port, uint8_t old_signals, uint8_t si
 }
 
 /*******************************************************************************
-**
-** Function         port_flow_control_peer
-**
-** Description      Send flow control messages to the peer for both enabling
-**                  and disabling flow control, for both credit-based and
-**                  TS 07.10 flow control mechanisms.
-**
-** Returns          nothing
-**
-*******************************************************************************/
+ *
+ * Function         port_flow_control_peer
+ *
+ * Description      Send flow control messages to the peer for both enabling
+ *                  and disabling flow control, for both credit-based and
+ *                  TS 07.10 flow control mechanisms.
+ *
+ * Returns          nothing
+ *
+ ******************************************************************************/
 void port_flow_control_peer(tPORT *p_port, bool    enable, uint16_t count)
 {
     if (!p_port->rfc.p_mcb)

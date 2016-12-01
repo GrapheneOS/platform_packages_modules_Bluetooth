@@ -1015,8 +1015,8 @@ void btsnd_hcic_write_cur_iac_lap (uint8_t num_cur_iac, LAP * const iac_lap)
 }
 
 /******************************************
-**    Lisbon Features
-*******************************************/
+ *    Lisbon Features
+ ******************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
 
 void btsnd_hcic_sniff_sub_rate(uint16_t handle, uint16_t max_lat,
@@ -1254,8 +1254,8 @@ void btsnd_hcic_enhanced_flush (uint16_t handle, uint8_t packet_type)
 #endif
 
 /*************************
-** End of Lisbon Commands
-**************************/
+ * End of Lisbon Commands
+ *************************/
 
 void btsnd_hcic_get_link_quality (uint16_t handle)
 {

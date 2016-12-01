@@ -30,16 +30,16 @@
 tBTM_BLE_ENERGY_INFO_CB ble_energy_info_cb;
 
 /*******************************************************************************
-**
-** Function         btm_ble_cont_energy_cmpl_cback
-**
-** Description      Controller VSC complete callback
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_cont_energy_cmpl_cback
+ *
+ * Description      Controller VSC complete callback
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_cont_energy_cmpl_cback (tBTM_VSC_CMPL *p_params)
 {
     uint8_t *p = p_params->p_param_buf;
@@ -70,16 +70,16 @@ void btm_ble_cont_energy_cmpl_cback (tBTM_VSC_CMPL *p_params)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleGetEnergyInfo
-**
-** Description      This function obtains the energy info
-**
-** Parameters      p_ener_cback - Callback pointer
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleGetEnergyInfo
+ *
+ * Description      This function obtains the energy info
+ *
+ * Parameters      p_ener_cback - Callback pointer
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback)
 {
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;

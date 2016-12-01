@@ -40,14 +40,14 @@ tHID_HOST_CTB hh_cb;
 static void hidh_search_callback (uint16_t sdp_result);
 
 /*******************************************************************************
-**
-** Function         HID_HostGetSDPRecord
-**
-** Description      This function reads the device SDP record
-**
-** Returns          tHID_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostGetSDPRecord
+ *
+ * Description      This function reads the device SDP record
+ *
+ * Returns          tHID_STATUS
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostGetSDPRecord ( BD_ADDR addr, tSDP_DISCOVERY_DB *p_db, uint32_t db_len,
                                    tHID_HOST_SDP_CALLBACK *sdp_cback )
 {
@@ -231,14 +231,14 @@ static void hidh_search_callback (uint16_t sdp_result)
 
 
 /*******************************************************************************
-**
-** Function         HID_HostInit
-**
-** Description      This function initializes the control block and trace variable
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostInit
+ *
+ * Description      This function initializes the control block and trace variable
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void HID_HostInit (void)
 {
     memset(&hh_cb, 0, sizeof(tHID_HOST_CTB));
@@ -256,15 +256,15 @@ void HID_HostInit (void)
 }
 
 /*******************************************************************************
-**
-** Function         HID_HostSetTraceLevel
-**
-** Description      This function sets the trace level for HID Host. If called with
-**                  a value of 0xFF, it simply reads the current trace level.
-**
-** Returns          the new (current) trace level
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostSetTraceLevel
+ *
+ * Description      This function sets the trace level for HID Host. If called with
+ *                  a value of 0xFF, it simply reads the current trace level.
+ *
+ * Returns          the new (current) trace level
+ *
+ ******************************************************************************/
 uint8_t HID_HostSetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
@@ -274,14 +274,14 @@ uint8_t HID_HostSetTraceLevel (uint8_t new_level)
 }
 
 /*******************************************************************************
-**
-** Function         HID_HostRegister
-**
-** Description      This function registers HID-Host with lower layers
-**
-** Returns          tHID_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostRegister
+ *
+ * Description      This function registers HID-Host with lower layers
+ *
+ * Returns          tHID_STATUS
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostRegister (tHID_HOST_DEV_CALLBACK *dev_cback)
 {
     tHID_STATUS st;
@@ -306,14 +306,14 @@ tHID_STATUS HID_HostRegister (tHID_HOST_DEV_CALLBACK *dev_cback)
 }
 
 /*******************************************************************************
-**
-** Function         HID_HostDeregister
-**
-** Description      This function is called when the host is about power down.
-**
-** Returns          tHID_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostDeregister
+ *
+ * Description      This function is called when the host is about power down.
+ *
+ * Returns          tHID_STATUS
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostDeregister(void)
 {
     uint8_t i;
@@ -333,14 +333,14 @@ tHID_STATUS HID_HostDeregister(void)
 }
 
 /*******************************************************************************
-**
-** Function         HID_HostAddDev
-**
-** Description      This is called so HID-host may manage this device.
-**
-** Returns          tHID_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostAddDev
+ *
+ * Description      This is called so HID-host may manage this device.
+ *
+ * Returns          tHID_STATUS
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostAddDev ( BD_ADDR addr, uint16_t attr_mask, uint8_t *handle )
 {
     int i;
@@ -385,14 +385,14 @@ tHID_STATUS HID_HostAddDev ( BD_ADDR addr, uint16_t attr_mask, uint8_t *handle )
 
 
 /*******************************************************************************
-**
-** Function         HID_HostRemoveDev
-**
-** Description      This removes the device from list devices that host has to manage.
-**
-** Returns          tHID_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostRemoveDev
+ *
+ * Description      This removes the device from list devices that host has to manage.
+ *
+ * Returns          tHID_STATUS
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostRemoveDev ( uint8_t dev_handle )
 {
     if( !hh_cb.reg_flag )
@@ -410,15 +410,15 @@ tHID_STATUS HID_HostRemoveDev ( uint8_t dev_handle )
 }
 
 /*******************************************************************************
-**
-** Function         HID_HostOpenDev
-**
-** Description      This function is called when the user wants to initiate a
-**                  connection attempt to a device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostOpenDev
+ *
+ * Description      This function is called when the user wants to initiate a
+ *                  connection attempt to a device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostOpenDev ( uint8_t dev_handle )
 {
     if( !hh_cb.reg_flag )
@@ -435,17 +435,17 @@ tHID_STATUS HID_HostOpenDev ( uint8_t dev_handle )
 }
 
 /*******************************************************************************
-**
-** Function         HID_HostWriteDev
-**
-** Description      This function is called when the host has a report to send.
-**
-**                  report_id: is only used on GET_REPORT transaction if is specified.
-**                              only valid when it's a non-zero value.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostWriteDev
+ *
+ * Description      This function is called when the host has a report to send.
+ *
+ *                  report_id: is only used on GET_REPORT transaction if is specified.
+ *                              only valid when it's a non-zero value.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostWriteDev( uint8_t dev_handle, uint8_t t_type,
                               uint8_t param, uint16_t data, uint8_t report_id, BT_HDR *pbuf  )
 {
@@ -478,14 +478,14 @@ tHID_STATUS HID_HostWriteDev( uint8_t dev_handle, uint8_t t_type,
 }
 
 /*******************************************************************************
-**
-** Function         HID_HostCloseDev
-**
-** Description      This function disconnects the device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         HID_HostCloseDev
+ *
+ * Description      This function disconnects the device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tHID_STATUS HID_HostCloseDev( uint8_t dev_handle )
 {
     if( !hh_cb.reg_flag )
@@ -550,14 +550,14 @@ tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], uint8_t sec_lvl )
 }
 
 /******************************************************************************
-**
-** Function         hid_known_hid_device
-**
-** Description      check if this device is  of type HID Device
-**
-** Returns          true if device is HID Device else false
-**
-*******************************************************************************/
+ *
+ * Function         hid_known_hid_device
+ *
+ * Description      check if this device is  of type HID Device
+ *
+ * Returns          true if device is HID Device else false
+ *
+ ******************************************************************************/
 bool    hid_known_hid_device (BD_ADDR bd_addr)
 {
     uint8_t i;

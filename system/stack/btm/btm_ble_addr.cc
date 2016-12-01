@@ -38,15 +38,15 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /*******************************************************************************
-**
-** Function         btm_gen_resolve_paddr_cmpl
-**
-** Description      This is callback functioin when resolvable private address
-**                  generation is complete.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_gen_resolve_paddr_cmpl
+ *
+ * Description      This is callback functioin when resolvable private address
+ *                  generation is complete.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
 {
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -79,15 +79,15 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC *p)
     }
 }
 /*******************************************************************************
-**
-** Function         btm_gen_resolve_paddr_low
-**
-** Description      This function is called when random address has generate the
-**                  random number base for low 3 byte bd address.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_gen_resolve_paddr_low
+ *
+ * Description      This function is called when random address has generate the
+ *                  random number base for low 3 byte bd address.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
 {
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -115,14 +115,14 @@ void btm_gen_resolve_paddr_low(tBTM_RAND_ENC *p)
     }
 }
 /*******************************************************************************
-**
-** Function         btm_gen_resolvable_private_addr
-**
-** Description      This function generate a resolvable private address.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_gen_resolvable_private_addr
+ *
+ * Description      This function generate a resolvable private address.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_gen_resolvable_private_addr(void *p_cmd_cplt_cback)
 {
     BTM_TRACE_EVENT ("%s", __func__);
@@ -130,15 +130,15 @@ void btm_gen_resolvable_private_addr(void *p_cmd_cplt_cback)
     btsnd_hcic_ble_rand(p_cmd_cplt_cback);
 }
 /*******************************************************************************
-**
-** Function         btm_gen_non_resolve_paddr_cmpl
-**
-** Description      This is the callback function when non-resolvable private
-**                  function is generated and write to controller.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_gen_non_resolve_paddr_cmpl
+ *
+ * Description      This is the callback function when non-resolvable private
+ *                  function is generated and write to controller.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
 {
     tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -170,15 +170,15 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC *p)
     }
 }
 /*******************************************************************************
-**
-** Function         btm_gen_non_resolvable_private_addr
-**
-** Description      This function generate a non-resolvable private address.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_gen_non_resolvable_private_addr
+ *
+ * Description      This function generate a non-resolvable private address.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
 {
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -194,18 +194,18 @@ void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
 }
 
 /*******************************************************************************
-**  Utility functions for Random address resolving
-*******************************************************************************/
+ *  Utility functions for Random address resolving
+ ******************************************************************************/
 /*******************************************************************************
-**
-** Function         btm_ble_proc_resolve_x
-**
-** Description      This function compares the X with random address 3 MSO bytes
-**                  to find a match.
-**
-** Returns          true on match, false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_proc_resolve_x
+ *
+ * Description      This function compares the X with random address 3 MSO bytes
+ *                  to find a match.
+ *
+ * Returns          true on match, false otherwise
+ *
+ ******************************************************************************/
 static bool    btm_ble_proc_resolve_x(tSMP_ENC *p)
 {
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -229,15 +229,15 @@ static bool    btm_ble_proc_resolve_x(tSMP_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_init_pseudo_addr
-**
-** Description      This function is used to initialize pseudo address.
-**                  If pseudo address is not available, use dummy address
-**
-** Returns          true is updated; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_init_pseudo_addr
+ *
+ * Description      This function is used to initialize pseudo address.
+ *                  If pseudo address is not available, use dummy address
+ *
+ * Returns          true is updated; false otherwise.
+ *
+ ******************************************************************************/
 bool    btm_ble_init_pseudo_addr (tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR new_pseudo_addr)
 {
     BD_ADDR dummy_bda = {0};
@@ -252,14 +252,14 @@ bool    btm_ble_init_pseudo_addr (tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR new_pseud
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_addr_resolvable
-**
-** Description      This function checks if a RPA is resolvable by the device key.
-**
-** Returns          true is resolvable; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_addr_resolvable
+ *
+ * Description      This function checks if a RPA is resolvable by the device key.
+ *
+ * Returns          true is resolvable; false otherwise.
+ *
+ ******************************************************************************/
 bool    btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
 {
     bool    rt = false;
@@ -296,16 +296,16 @@ bool    btm_ble_addr_resolvable (BD_ADDR rpa, tBTM_SEC_DEV_REC *p_dev_rec)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_match_random_bda
-**
-** Description      This function match the random address to the appointed device
-**                  record, starting from calculating IRK. If record index exceed
-**                  the maximum record number, matching failed and send callback.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_match_random_bda
+ *
+ * Description      This function match the random address to the appointed device
+ *                  record, starting from calculating IRK. If record index exceed
+ *                  the maximum record number, matching failed and send callback.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 static bool    btm_ble_match_random_bda(void *data, void *context)
 {
     /* use the 3 MSB of bd address as prand */
@@ -336,15 +336,15 @@ static bool    btm_ble_match_random_bda(void *data, void *context)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_resolve_random_addr
-**
-** Description      This function is called to resolve a random address.
-**
-** Returns          pointer to the security record of the device whom a random
-**                  address is matched to.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolve_random_addr
+ *
+ * Description      This function is called to resolve a random address.
+ *
+ * Returns          pointer to the security record of the device whom a random
+ *                  address is matched to.
+ *
+ ******************************************************************************/
 void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_cback, void *p)
 {
     tBTM_LE_RANDOM_CB   *p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -372,15 +372,15 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
 }
 
 /*******************************************************************************
-**  address mapping between pseudo address and real connection address
-*******************************************************************************/
+ *  address mapping between pseudo address and real connection address
+ ******************************************************************************/
 /*******************************************************************************
-**
-** Function         btm_find_dev_by_identity_addr
-**
-** Description      find the security record whose LE static address is matching
-**
-*******************************************************************************/
+ *
+ * Function         btm_find_dev_by_identity_addr
+ *
+ * Description      find the security record whose LE static address is matching
+ *
+ ******************************************************************************/
 tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(BD_ADDR bd_addr, uint8_t addr_type)
 {
 #if (BLE_PRIVACY_SPT == TRUE)
@@ -404,13 +404,13 @@ tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(BD_ADDR bd_addr, uint8_t addr_ty
 }
 
 /*******************************************************************************
-**
-** Function         btm_identity_addr_to_random_pseudo
-**
-** Description      This function map a static BD address to a pseudo random address
-**                  in security database.
-**
-*******************************************************************************/
+ *
+ * Function         btm_identity_addr_to_random_pseudo
+ *
+ * Description      This function map a static BD address to a pseudo random address
+ *                  in security database.
+ *
+ ******************************************************************************/
 bool    btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, uint8_t *p_addr_type, bool    refresh)
 {
 #if (BLE_PRIVACY_SPT == TRUE)
@@ -436,13 +436,13 @@ bool    btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, uint8_t *p_addr_type
 }
 
 /*******************************************************************************
-**
-** Function         btm_random_pseudo_to_identity_addr
-**
-** Description      This function map a random pseudo address to a public address
-**                  random_pseudo is input and output parameter
-**
-*******************************************************************************/
+ *
+ * Function         btm_random_pseudo_to_identity_addr
+ *
+ * Description      This function map a random pseudo address to a public address
+ *                  random_pseudo is input and output parameter
+ *
+ ******************************************************************************/
 bool    btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, uint8_t *p_static_addr_type)
 {
 #if (BLE_PRIVACY_SPT == TRUE)
@@ -464,13 +464,13 @@ bool    btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, uint8_t *p_sta
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_refresh_peer_resolvable_private_addr
-**
-** Description      This function refresh the currently used resolvable remote private address into security
-**                  database and set active connection address.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_refresh_peer_resolvable_private_addr
+ *
+ * Description      This function refresh the currently used resolvable remote private address into security
+ *                  database and set active connection address.
+ *
+ ******************************************************************************/
 void btm_ble_refresh_peer_resolvable_private_addr(BD_ADDR pseudo_bda, BD_ADDR rpa,
                                                   uint8_t rra_type)
 {
@@ -539,13 +539,13 @@ void btm_ble_refresh_peer_resolvable_private_addr(BD_ADDR pseudo_bda, BD_ADDR rp
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_refresh_local_resolvable_private_addr
-**
-** Description      This function refresh the currently used resolvable private address for the
-**                  active link to the remote device
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_refresh_local_resolvable_private_addr
+ *
+ * Description      This function refresh the currently used resolvable private address for the
+ *                  active link to the remote device
+ *
+ ******************************************************************************/
 void btm_ble_refresh_local_resolvable_private_addr(BD_ADDR pseudo_addr,
                                                    BD_ADDR local_rpa)
 {

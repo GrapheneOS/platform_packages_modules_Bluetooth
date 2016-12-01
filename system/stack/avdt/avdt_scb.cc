@@ -35,8 +35,8 @@
 #include "osi/include/osi.h"
 
 /*****************************************************************************
-** state machine constants and types
-*****************************************************************************/
+ * state machine constants and types
+ ****************************************************************************/
 #if (AVDT_DEBUG == TRUE)
 
 /* verbose state strings for trace */
@@ -514,15 +514,15 @@ const tAVDT_SCB_ST_TBL avdt_scb_st_tbl[] = {
 
 
 /*******************************************************************************
-**
-** Function         avdt_scb_event
-**
-** Description      State machine event handling function for scb
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_event
+ *
+ * Description      State machine event handling function for scb
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_event(tAVDT_SCB *p_scb, uint8_t event, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_SCB_ST_TBL    state_table;
@@ -560,15 +560,15 @@ void avdt_scb_event(tAVDT_SCB *p_scb, uint8_t event, tAVDT_SCB_EVT *p_data)
 
 
 /*******************************************************************************
-**
-** Function         avdt_scb_init
-**
-** Description      Initialize stream control block module.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_init
+ *
+ * Description      Initialize stream control block module.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_init(void)
 {
     memset(&avdt_cb.scb[0], 0, sizeof(tAVDT_SCB) * AVDT_NUM_SEPS);
@@ -577,15 +577,15 @@ void avdt_scb_init(void)
 
 
 /*******************************************************************************
-**
-** Function         avdt_scb_alloc
-**
-** Description      Allocate a stream control block.
-**
-**
-** Returns          pointer to the scb, or NULL if none could be allocated.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_alloc
+ *
+ * Description      Allocate a stream control block.
+ *
+ *
+ * Returns          pointer to the scb, or NULL if none could be allocated.
+ *
+ ******************************************************************************/
 tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
 {
     tAVDT_SCB   *p_scb = &avdt_cb.scb[0];
@@ -620,15 +620,15 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_dealloc
-**
-** Description      Deallocate a stream control block.
-**
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_dealloc
+ *
+ * Description      Deallocate a stream control block.
+ *
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void avdt_scb_dealloc(tAVDT_SCB *p_scb,
                       UNUSED_ATTR tAVDT_SCB_EVT *p_data)
 {
@@ -638,31 +638,31 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_to_hdl
-**
-** Description      Given a pointer to an scb, return its handle (or seid).
-**
-**
-** Returns          Index of scb.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_to_hdl
+ *
+ * Description      Given a pointer to an scb, return its handle (or seid).
+ *
+ *
+ * Returns          Index of scb.
+ *
+ ******************************************************************************/
 uint8_t avdt_scb_to_hdl(tAVDT_SCB *p_scb)
 {
     return (uint8_t) (p_scb - avdt_cb.scb + 1);
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_by_hdl
-**
-** Description      Given an scb handle (or seid), return a pointer to the scb.
-**
-**
-** Returns          Pointer to scb or NULL if index is out of range or scb
-**                  is not allocated.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_by_hdl
+ *
+ * Description      Given an scb handle (or seid), return a pointer to the scb.
+ *
+ *
+ * Returns          Pointer to scb or NULL if index is out of range or scb
+ *                  is not allocated.
+ *
+ ******************************************************************************/
 tAVDT_SCB *avdt_scb_by_hdl(uint8_t hdl)
 {
     tAVDT_SCB   *p_scb;
@@ -688,15 +688,15 @@ tAVDT_SCB *avdt_scb_by_hdl(uint8_t hdl)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_verify
-**
-** Description      Verify the condition of a list of scbs.
-**
-**
-** Returns          SEID that failed, or 0 if success.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_verify
+ *
+ * Description      Verify the condition of a list of scbs.
+ *
+ *
+ * Returns          SEID that failed, or 0 if success.
+ *
+ ******************************************************************************/
 uint8_t avdt_scb_verify(tAVDT_CCB *p_ccb, uint8_t state, uint8_t *p_seid, uint16_t num_seid, uint8_t *p_err_code)
 {
     int         i;
@@ -746,16 +746,16 @@ uint8_t avdt_scb_verify(tAVDT_CCB *p_ccb, uint8_t state, uint8_t *p_seid, uint16
 }
 
 /*******************************************************************************
-**
-** Function         avdt_scb_peer_seid_list
-**
-** Description      Given a list of SCB handles, return a list of peer SEIDs
-**                  for the handles, copied in place into the struct passed in.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_scb_peer_seid_list
+ *
+ * Description      Given a list of SCB handles, return a list of peer SEIDs
+ *                  for the handles, copied in place into the struct passed in.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_scb_peer_seid_list(tAVDT_MULTI *p_multi)
 {
     int         i;

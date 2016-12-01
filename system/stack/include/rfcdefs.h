@@ -28,12 +28,12 @@
 #define PORT_MAX_RFC_PORTS              31
 
 /*
-**  If nothing is negotiated MTU should be 127
+ *  If nothing is negotiated MTU should be 127
 */
 #define RFCOMM_DEFAULT_MTU              127
 
 /*
-** Define used by RFCOMM TS frame types
+ * Define used by RFCOMM TS frame types
 */
 #define RFCOMM_SABME                    0x2F
 #define RFCOMM_UA                       0x63
@@ -42,7 +42,7 @@
 #define RFCOMM_UIH                      0xEF
 
 /*
-** Defenitions for the TS control frames
+ * Defenitions for the TS control frames
 */
 #define RFCOMM_CTRL_FRAME_LEN           3
 #define RFCOMM_MIN_OFFSET               5 /* ctrl 2 , len 1 or 2 bytes, credit 1 byte */
@@ -216,7 +216,7 @@
 #define RFCOMM_MX_DLCI                  0
 
 /*
-** Define RFCOMM Multiplexer message types
+ * Define RFCOMM Multiplexer message types
 */
 #define RFCOMM_MX_PN                    0x80
 #define RFCOMM_MX_PN_LEN                8

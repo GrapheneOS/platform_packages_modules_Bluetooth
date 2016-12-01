@@ -29,16 +29,16 @@
 
 
 /*******************************************************************************
-**
-** Function         SBC_FastIDCT8
-**
-** Description      implementation of fast DCT algorithm by Feig and Winograd
-**
-**
-** Returns          y = dct(pInVect)
-**
-**
-*******************************************************************************/
+ *
+ * Function         SBC_FastIDCT8
+ *
+ * Description      implementation of fast DCT algorithm by Feig and Winograd
+ *
+ *
+ * Returns          y = dct(pInVect)
+ *
+ *
+ ******************************************************************************/
 
 #if (SBC_IS_64_MULT_IN_IDCT == FALSE)
 #define SBC_COS_PI_SUR_4            (0x00005a82)  /* ((0x8000) * 0.7071)     = cos(pi/4) */
@@ -178,16 +178,16 @@ void SBC_FastIDCT8(int32_t *pInVect, int32_t *pOutVect)
 }
 
 /*******************************************************************************
-**
-** Function         SBC_FastIDCT4
-**
-** Description      implementation of fast DCT algorithm by Feig and Winograd
-**
-**
-** Returns          y = dct(x0)
-**
-**
-*******************************************************************************/
+ *
+ * Function         SBC_FastIDCT4
+ *
+ * Description      implementation of fast DCT algorithm by Feig and Winograd
+ *
+ *
+ * Returns          y = dct(x0)
+ *
+ *
+ ******************************************************************************/
 void SBC_FastIDCT4(int32_t *pInVect, int32_t *pOutVect)
 {
 #if (SBC_FAST_DCT == TRUE)

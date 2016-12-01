@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 /*
-** This role is used to shutdown the profile. Used internally
-** Applications should call PAN_Deregister to shutdown the profile
+ * This role is used to shutdown the profile. Used internally
+ * Applications should call PAN_Deregister to shutdown the profile
 */
 #define PAN_ROLE_INACTIVE      0
 
@@ -100,7 +100,7 @@ typedef struct
 */
 extern tPAN_CB pan_cb;
 
-/*******************************************************************************/
+/******************************************************************************/
 extern void pan_register_with_bnep (void);
 extern void pan_conn_ind_cb (uint16_t handle,
                              BD_ADDR p_bda,
@@ -142,7 +142,7 @@ extern void pan_close_all_connections (void);
 extern void pan_release_pcb (tPAN_CONN *p_pcb);
 extern void pan_dump_status (void);
 
-/********************************************************************************/
+/******************************************************************************/
 
 #ifdef __cplusplus
 }

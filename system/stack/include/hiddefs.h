@@ -27,7 +27,7 @@
 
 #include "sdp_api.h"
 /*
-** tHID_STATUS: HID result codes, returned by HID and device and host functions.
+ * tHID_STATUS: HID result codes, returned by HID and device and host functions.
 */
 enum
 {

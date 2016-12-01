@@ -38,17 +38,17 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /*****************************************************************************
-** constants
-*****************************************************************************/
+ * constants
+ ****************************************************************************/
 /*******************************************************************************
-**
-** Function         mca_ccb_rsp_tout
-**
-** Description      This function processes the response timeout.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_rsp_tout
+ *
+ * Description      This function processes the response timeout.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_rsp_tout(tMCA_CCB *p_ccb,
                       UNUSED_ATTR tMCA_CCB_EVT *p_data)
 {
@@ -58,14 +58,14 @@ void mca_ccb_rsp_tout(tMCA_CCB *p_ccb,
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_report_event
-**
-** Description      This function reports the given event.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_report_event
+ *
+ * Description      This function reports the given event.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_report_event(tMCA_CCB *p_ccb, uint8_t event, tMCA_CTRL *p_data)
 {
     if (p_ccb && p_ccb->p_rcb && p_ccb->p_rcb->p_cback)
@@ -73,28 +73,28 @@ void mca_ccb_report_event(tMCA_CCB *p_ccb, uint8_t event, tMCA_CTRL *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_free_msg
-**
-** Description      This function frees the received message.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_free_msg
+ *
+ * Description      This function frees the received message.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_free_msg(UNUSED_ATTR tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     osi_free(p_data);
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_snd_req
-**
-** Description      This function builds a request and sends it to the peer.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_snd_req
+ *
+ * Description      This function builds a request and sends it to the peer.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     tMCA_CCB_MSG *p_msg = (tMCA_CCB_MSG *)p_data;
@@ -150,15 +150,15 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_snd_rsp
-**
-** Description      This function builds a response and sends it to
-**                  the peer.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_snd_rsp
+ *
+ * Description      This function builds a response and sends it to
+ *                  the peer.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     tMCA_CCB_MSG *p_msg = (tMCA_CCB_MSG *)p_data;
@@ -201,14 +201,14 @@ void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_do_disconn
-**
-** Description      This function closes a control channel.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_do_disconn
+ *
+ * Description      This function closes a control channel.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_do_disconn (tMCA_CCB *p_ccb,
                          UNUSED_ATTR tMCA_CCB_EVT *p_data)
 {
@@ -217,14 +217,14 @@ void mca_ccb_do_disconn (tMCA_CCB *p_ccb,
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_cong
-**
-** Description      This function sets the congestion state for the CCB.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_cong
+ *
+ * Description      This function sets the congestion state for the CCB.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_cong(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     MCA_TRACE_DEBUG ("mca_ccb_cong cong=%d/%d", p_ccb->cong, p_data->llcong);
@@ -242,16 +242,16 @@ void mca_ccb_cong(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_hdl_req
-**
-** Description      This function is called when a MCAP request is received from
-**                  the peer. It calls the application callback function to
-**                  report the event.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_hdl_req
+ *
+ * Description      This function is called when a MCAP request is received from
+ *                  the peer. It calls the application callback function to
+ *                  report the event.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     BT_HDR  *p_pkt = &p_data->hdr;
@@ -438,16 +438,16 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_hdl_rsp
-**
-** Description      This function is called when a MCAP response is received from
-**                  the peer.  It calls the application callback function with
-**                  the results.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_hdl_rsp
+ *
+ * Description      This function is called when a MCAP response is received from
+ *                  the peer.  It calls the application callback function with
+ *                  the results.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     BT_HDR  *p_pkt = &p_data->hdr;
@@ -540,15 +540,15 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_ll_open
-**
-** Description      This function is called to report MCA_CONNECT_IND_EVT event.
-**                  It also clears the congestion flag (ccb.cong).
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_ll_open
+ *
+ * Description      This function is called to report MCA_CONNECT_IND_EVT event.
+ *                  It also clears the congestion flag (ccb.cong).
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_ll_open (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     tMCA_CTRL    evt_data;
@@ -559,15 +559,15 @@ void mca_ccb_ll_open (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_dl_open
-**
-** Description      This function is called when data channel is open.
-**                  It clears p_tx_req to allow other message exchage on this CL.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_dl_open
+ *
+ * Description      This function is called when data channel is open.
+ *                  It clears p_tx_req to allow other message exchage on this CL.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_dl_open (tMCA_CCB *p_ccb,
                       UNUSED_ATTR tMCA_CCB_EVT *p_data)
 {

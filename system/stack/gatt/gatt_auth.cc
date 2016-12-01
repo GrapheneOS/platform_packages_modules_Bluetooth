@@ -33,14 +33,14 @@
 #include "osi/include/osi.h"
 
 /*******************************************************************************
-**
-** Function         gatt_sign_data
-**
-** Description      This function sign the data for write command.
-**
-** Returns          true if encrypted, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sign_data
+ *
+ * Description      This function sign the data for write command.
+ *
+ * Returns          true if encrypted, otherwise false.
+ *
+ ******************************************************************************/
 static bool    gatt_sign_data (tGATT_CLCB *p_clcb)
 {
     tGATT_VALUE         *p_attr = (tGATT_VALUE *)p_clcb->p_attr_buf;
@@ -81,15 +81,15 @@ static bool    gatt_sign_data (tGATT_CLCB *p_clcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_verify_signature
-**
-** Description      This function start to verify the sign data when receiving
-**                  the data from peer device.
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         gatt_verify_signature
+ *
+ * Description      This function start to verify the sign data when receiving
+ *                  the data from peer device.
+ *
+ * Returns
+ *
+ ******************************************************************************/
 void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
 {
     uint16_t cmd_len;
@@ -120,14 +120,14 @@ void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
     return;
 }
 /*******************************************************************************
-**
-** Function         gatt_sec_check_complete
-**
-** Description      security check complete and proceed to data sending action.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sec_check_complete
+ *
+ * Description      security check complete and proceed to data sending action.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_sec_check_complete(bool    sec_check_ok, tGATT_CLCB   *p_clcb, uint8_t sec_act)
 {
     if (p_clcb && p_clcb->p_tcb &&
@@ -149,14 +149,14 @@ void gatt_sec_check_complete(bool    sec_check_ok, tGATT_CLCB   *p_clcb, uint8_t
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_enc_cmpl_cback
-**
-** Description      link encryption complete callback.
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         gatt_enc_cmpl_cback
+ *
+ * Description      link encryption complete callback.
+ *
+ * Returns
+ *
+ ******************************************************************************/
 void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
                          UNUSED_ATTR void *p_ref_data, tBTM_STATUS result)
 {
@@ -219,15 +219,15 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_notify_enc_cmpl
-**
-** Description      link encryption complete notification for all encryption process
-**                  initiated outside GATT.
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         gatt_notify_enc_cmpl
+ *
+ * Description      link encryption complete notification for all encryption process
+ *                  initiated outside GATT.
+ *
+ * Returns
+ *
+ ******************************************************************************/
 void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
 {
     tGATT_TCB   *p_tcb;
@@ -270,14 +270,14 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
     return;
 }
 /*******************************************************************************
-**
-** Function         gatt_set_sec_act
-**
-** Description      This function set the sec_act in clcb
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         gatt_set_sec_act
+ *
+ * Description      This function set the sec_act in clcb
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void gatt_set_sec_act(tGATT_TCB *p_tcb, tGATT_SEC_ACTION sec_act)
 {
     if (p_tcb)
@@ -286,14 +286,14 @@ void gatt_set_sec_act(tGATT_TCB *p_tcb, tGATT_SEC_ACTION sec_act)
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_get_sec_act
-**
-** Description      This function get the sec_act in clcb
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         gatt_get_sec_act
+ *
+ * Description      This function get the sec_act in clcb
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 tGATT_SEC_ACTION gatt_get_sec_act(tGATT_TCB *p_tcb)
 {
     tGATT_SEC_ACTION sec_act = GATT_SEC_NONE;
@@ -304,15 +304,15 @@ tGATT_SEC_ACTION gatt_get_sec_act(tGATT_TCB *p_tcb)
     return sec_act;
 }
 /*******************************************************************************
-**
-** Function         gatt_determine_sec_act
-**
-** Description      This routine determine the security action based on auth_request and
-**                  current link status
-**
-** Returns          tGATT_SEC_ACTION security action
-**
-*******************************************************************************/
+ *
+ * Function         gatt_determine_sec_act
+ *
+ * Description      This routine determine the security action based on auth_request and
+ *                  current link status
+ *
+ * Returns          tGATT_SEC_ACTION security action
+ *
+ ******************************************************************************/
 tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
 {
     tGATT_SEC_ACTION    act = GATT_SEC_OK;
@@ -408,15 +408,15 @@ tGATT_SEC_ACTION gatt_determine_sec_act(tGATT_CLCB *p_clcb )
 
 
 /*******************************************************************************
-**
-** Function         gatt_get_link_encrypt_status
-**
-** Description      This routine get the encryption status of the specified link
-**
-**
-** Returns          tGATT_STATUS link encryption status
-**
-*******************************************************************************/
+ *
+ * Function         gatt_get_link_encrypt_status
+ *
+ * Description      This routine get the encryption status of the specified link
+ *
+ *
+ * Returns          tGATT_STATUS link encryption status
+ *
+ ******************************************************************************/
 tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
 {
     tGATT_STATUS    encrypt_status = GATT_NOT_ENCRYPTED;
@@ -437,14 +437,14 @@ tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
 
 
 /*******************************************************************************
-**
-** Function          gatt_convert_sec_action
-**
-** Description      Convert GATT security action enum into equivalent BTM BLE security action enum
-**
-** Returns          bool    true - conversation is successful
-**
-*******************************************************************************/
+ *
+ * Function          gatt_convert_sec_action
+ *
+ * Description      Convert GATT security action enum into equivalent BTM BLE security action enum
+ *
+ * Returns          bool    true - conversation is successful
+ *
+ ******************************************************************************/
 static bool    gatt_convert_sec_action(tGATT_SEC_ACTION gatt_sec_act, tBTM_BLE_SEC_ACT *p_btm_sec_act )
 {
     bool    status = true;
@@ -467,14 +467,14 @@ static bool    gatt_convert_sec_action(tGATT_SEC_ACTION gatt_sec_act, tBTM_BLE_S
     return status;
 }
 /*******************************************************************************
-**
-** Function         gatt_check_enc_req
-**
-** Description      check link security.
-**
-** Returns          true if encrypted, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_check_enc_req
+ *
+ * Description      check link security.
+ *
+ * Returns          true if encrypted, otherwise false.
+ *
+ ******************************************************************************/
 bool    gatt_security_check_start(tGATT_CLCB *p_clcb)
 {
     tGATT_TCB           *p_tcb = p_clcb->p_tcb;
