@@ -52,8 +52,6 @@ import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.os.ServiceManager;
 import android.os.SystemClock;
-import android.os.UserHandle;
-import android.os.UserManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -207,7 +205,6 @@ public class AdapterService extends Service {
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
     private String mWakeLockName;
-    private UserManager mUserManager;
 
     private ProfileObserver mProfileObserver;
 
@@ -539,7 +536,6 @@ public class AdapterService extends Service {
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
         mBatteryStats = IBatteryStats.Stub.asInterface(ServiceManager.getService(
                 BatteryStats.SERVICE_NAME));
 
@@ -1500,12 +1496,6 @@ public class AdapterService extends Service {
 
      public synchronized boolean enable(boolean quietMode) {
          enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
-
-         // Enforce the user restriction for disallowing Bluetooth if it was set.
-         if (mUserManager.hasUserRestriction(UserManager.DISALLOW_BLUETOOTH, UserHandle.SYSTEM)) {
-            debugLog("enable() called when Bluetooth was disallowed");
-            return false;
-         }
 
          debugLog("enable() - Enable called with quiet mode status =  " + mQuietmode);
          mQuietmode = quietMode;
