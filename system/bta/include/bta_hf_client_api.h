@@ -168,7 +168,7 @@ typedef uint8_t tBTA_HF_CLIENT_AT_CMD_TYPE;
 
 /* data associated with BTA_HF_CLIENT_REGISTER_EVT */
 typedef struct {
-  uint16_t handle;
+  BD_ADDR bd_addr;
   tBTA_HF_CLIENT_STATUS status;
 } tBTA_HF_CLIENT_REGISTER;
 
@@ -180,12 +180,14 @@ typedef struct {
 
 /* data associated with BTA_HF_CLIENT_CONN_EVT */
 typedef struct {
+  BD_ADDR bd_addr;
   tBTA_HF_CLIENT_PEER_FEAT peer_feat;
   tBTA_HF_CLIENT_CHLD_FEAT chld_feat;
 } tBTA_HF_CLIENT_CONN;
 
 /* data associated with BTA_HF_CLIENT_IND_EVT event */
 typedef struct {
+  BD_ADDR bd_addr;
   tBTA_HF_CLIENT_IND_TYPE type;
   uint16_t value;
 } tBTA_HF_CLIENT_IND;
@@ -193,23 +195,27 @@ typedef struct {
 /* data associated with BTA_HF_CLIENT_OPERATOR_NAME_EVT */
 #define BTA_HF_CLIENT_OPERATOR_NAME_LEN 16
 typedef struct {
+  BD_ADDR bd_addr;
   char name[BTA_HF_CLIENT_OPERATOR_NAME_LEN + 1];
 } tBTA_HF_CLIENT_OPERATOR_NAME;
 
 /* data associated with BTA_HF_CLIENT_CLIP_EVT  and BTA_HF_CLIENT_CCWA_EVT*/
 #define BTA_HF_CLIENT_NUMBER_LEN 32
 typedef struct {
+  BD_ADDR bd_addr;
   char number[BTA_HF_CLIENT_NUMBER_LEN + 1];
 } tBTA_HF_CLIENT_NUMBER;
 
 /* data associated with BTA_HF_CLIENT_AT_RESULT_EVT event */
 typedef struct {
+  BD_ADDR bd_addr;
   tBTA_HF_CLIENT_AT_RESULT_TYPE type;
   uint16_t cme;
 } tBTA_HF_CLIENT_AT_RESULT;
 
 /* data associated with BTA_HF_CLIENT_CLCC_EVT event */
 typedef struct {
+  BD_ADDR bd_addr;
   uint32_t idx;
   bool inc;
   uint8_t status;
@@ -220,12 +226,16 @@ typedef struct {
 
 /* data associated with BTA_HF_CLIENT_CNUM_EVT event */
 typedef struct {
+  BD_ADDR bd_addr;
   uint16_t service;
   char number[BTA_HF_CLIENT_NUMBER_LEN + 1];
 } tBTA_HF_CLIENT_CNUM;
 
 /* data associated with other events */
-typedef struct { uint16_t value; } tBTA_HF_CLIENT_VAL;
+typedef struct {
+  BD_ADDR bd_addr;
+  uint16_t value;
+} tBTA_HF_CLIENT_VAL;
 
 /* union of data associated with AG callback */
 typedef union {
@@ -264,14 +274,15 @@ typedef void(tBTA_HF_CLIENT_CBACK)(tBTA_HF_CLIENT_EVT event,
  * Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
  *
  ******************************************************************************/
-tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback);
+tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback, tBTA_SEC sec_mask,
+                               tBTA_HF_CLIENT_FEAT features,
+                               const char* p_service_name);
 
 /*******************************************************************************
  *
  * Function         BTA_HfClientDisable
  *
- * Description      Disable the HF Client service
- *
+ * Description      Disable the HF Client service.
  *
  * Returns          void
  *
@@ -280,43 +291,20 @@ void BTA_HfClientDisable(void);
 
 /*******************************************************************************
  *
- * Function         BTA_HfClientRegister
- *
- * Description      Register an HF Client service.
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
-                          const char* p_service_name);
-
-/*******************************************************************************
- *
- * Function         BTA_HfClientDeregister
- *
- * Description      Deregister an HF Client service.
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTA_HfClientDeregister(uint16_t handle);
-
-/*******************************************************************************
- *
  * Function         BTA_HfClientOpen
  *
  * Description      Opens a connection to an audio gateway.
  *                  When connection is open callback function is called
  *                  with a BTA_HF_CLIENT_OPEN_EVT. Only the data connection is
- *                  opened. The audio connection is not opened.
+ *                  opened. The audio connection is not opened. The handle
+ *                  is stored in p_handle and should be used for subsequent
+ *                  calls to do any AT operations
  *
  *
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask);
+void BTA_HfClientOpen(BD_ADDR bd_addr, tBTA_SEC sec_mask, uint16_t* p_handle);
 
 /*******************************************************************************
  *
