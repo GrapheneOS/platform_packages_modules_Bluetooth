@@ -25,7 +25,7 @@
 #ifndef SBC_FUNCDECLARE_H
 #define SBC_FUNCDECLARE_H
 
-/*#include "sbc_encoder.h"*/
+#include "sbc_encoder.h"
 /* Global data */
 #if (SBC_IS_64_MULT_IN_WINDOW_ACCU == FALSE)
 extern const int16_t gas32CoeffFor4SBs[];
