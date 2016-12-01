@@ -32,25 +32,25 @@
 #include "btm_int.h"
 
 /*******************************************************************************
-**
-** Function         GATT_SetTraceLevel
-**
-** Description      This function sets the trace level.  If called with
-**                  a value of 0xFF, it simply returns the current trace level.
-**
-**                  Input Parameters:
-**                      level:  The level to set the GATT tracing to:
-**                      0xff-returns the current setting.
-**                      0-turns off tracing.
-**                      >= 1-Errors.
-**                      >= 2-Warnings.
-**                      >= 3-APIs.
-**                      >= 4-Events.
-**                      >= 5-Debug.
-**
-** Returns          The new or current trace level
-**
-*******************************************************************************/
+ *
+ * Function         GATT_SetTraceLevel
+ *
+ * Description      This function sets the trace level.  If called with
+ *                  a value of 0xFF, it simply returns the current trace level.
+ *
+ *                  Input Parameters:
+ *                      level:  The level to set the GATT tracing to:
+ *                      0xff-returns the current setting.
+ *                      0-turns off tracing.
+ *                      >= 1-Errors.
+ *                      >= 2-Warnings.
+ *                      >= 3-APIs.
+ *                      >= 4-Events.
+ *                      >= 5-Debug.
+ *
+ * Returns          The new or current trace level
+ *
+ ******************************************************************************/
 uint8_t GATT_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
@@ -60,22 +60,22 @@ uint8_t GATT_SetTraceLevel (uint8_t new_level)
 }
 
 /*****************************************************************************
-**
-**                  GATT SERVER API
-**
-******************************************************************************/
+ *
+ *                  GATT SERVER API
+ *
+ *****************************************************************************/
 /*******************************************************************************
-**
-** Function         GATTS_AddHandleRange
-**
-** Description      This function add the allocated handles range for the specifed
-**                  application UUID, service UUID and service instance
-**
-** Parameter        p_hndl_range:   pointer to allocated handles information
-**
-** Returns          true if handle range is added sucessfully; otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         GATTS_AddHandleRange
+ *
+ * Description      This function add the allocated handles range for the specifed
+ *                  application UUID, service UUID and service instance
+ *
+ * Parameter        p_hndl_range:   pointer to allocated handles information
+ *
+ * Returns          true if handle range is added sucessfully; otherwise false.
+ *
+ ******************************************************************************/
 
 bool    GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range)
 {
@@ -93,18 +93,18 @@ bool    GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range)
 
 
 /*******************************************************************************
-**
-** Function         GATTS_NVRegister
-**
-** Description      Application manager calls this function to register for
-**                  NV save callback function.  There can be one and only one
-**                  NV save callback function.
-**
-** Parameter        p_cb_info : callback informaiton
-**
-** Returns          true if registered OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         GATTS_NVRegister
+ *
+ * Description      Application manager calls this function to register for
+ *                  NV save callback function.  There can be one and only one
+ *                  NV save callback function.
+ *
+ * Parameter        p_cb_info : callback informaiton
+ *
+ * Returns          true if registered OK, else false
+ *
+ ******************************************************************************/
 bool     GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info)
 {
     bool    status= false;
@@ -133,7 +133,7 @@ static int uuidType(unsigned char* p_uuid)
 
 /*******************************************************************************
  * BTIF -> BTA conversion functions
- *******************************************************************************/
+ ******************************************************************************/
 
 static void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
 {
@@ -190,20 +190,20 @@ static uint16_t compute_service_size(btgatt_db_element_t *service, int count) {
     return db_size;
 }
 /*******************************************************************************
-**
-** Function         GATTS_AddService
-**
-** Description      This function is called to add GATT service.
-**
-** Parameter        gatt_if : application if
-**                  service : pseudo-representation of service and it's content
-**                  count   : size of service
-**
-** Returns          on success GATT_SERVICE_STARTED is returned, and
-**                  attribute_handle field inside service elements are filled.
-**                  on error error status is returned.
-**
-*******************************************************************************/
+ *
+ * Function         GATTS_AddService
+ *
+ * Description      This function is called to add GATT service.
+ *
+ * Parameter        gatt_if : application if
+ *                  service : pseudo-representation of service and it's content
+ *                  count   : size of service
+ *
+ * Returns          on success GATT_SERVICE_STARTED is returned, and
+ *                  attribute_handle field inside service elements are filled.
+ *                  on error error status is returned.
+ *
+ ******************************************************************************/
 uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int count) {
     tGATT_HDL_LIST_INFO     *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM     *p_list=NULL;
@@ -359,18 +359,18 @@ uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int co
 }
 
 /*******************************************************************************
-**
-** Function         GATTS_DeleteService
-**
-** Description      This function is called to delete a service.
-**
-** Parameter        gatt_if       : application interface
-**                  p_svc_uuid    : service UUID
-**                  start_handle  : start handle of the service
-**
-** Returns          true if operation succeed, false if handle block was not found.
-**
-*******************************************************************************/
+ *
+ * Function         GATTS_DeleteService
+ *
+ * Description      This function is called to delete a service.
+ *
+ * Parameter        gatt_if       : application interface
+ *                  p_svc_uuid    : service UUID
+ *                  start_handle  : start handle of the service
+ *
+ * Returns          true if operation succeed, false if handle block was not found.
+ *
+ ******************************************************************************/
 bool    GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, uint16_t svc_inst)
 {
 
@@ -418,16 +418,16 @@ bool    GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, uint16_t sv
 }
 
 /*******************************************************************************
-**
-** Function         GATTS_StopService
-**
-** Description      This function is called to stop a service
-**
-** Parameter         service_handle : this is the start handle of a service
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         GATTS_StopService
+ *
+ * Description      This function is called to stop a service
+ *
+ * Parameter         service_handle : this is the start handle of a service
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void GATTS_StopService (uint16_t service_handle)
 {
     uint8_t         ii = gatt_sr_find_i_rcb_by_handle(service_handle);
@@ -451,19 +451,19 @@ void GATTS_StopService (uint16_t service_handle)
     }
 }
 /*******************************************************************************
-**
-** Function         GATTs_HandleValueIndication
-**
-** Description      This function sends a handle value indication to a client.
-**
-** Parameter        conn_id: connection identifier.
-**                  attr_handle: Attribute handle of this handle value indication.
-**                  val_len: Length of the indicated attribute value.
-**                  p_val: Pointer to the indicated attribute value data.
-**
-** Returns          GATT_SUCCESS if sucessfully sent or queued; otherwise error code.
-**
-*******************************************************************************/
+ *
+ * Function         GATTs_HandleValueIndication
+ *
+ * Description      This function sends a handle value indication to a client.
+ *
+ * Parameter        conn_id: connection identifier.
+ *                  attr_handle: Attribute handle of this handle value indication.
+ *                  val_len: Length of the indicated attribute value.
+ *                  p_val: Pointer to the indicated attribute value data.
+ *
+ * Returns          GATT_SUCCESS if sucessfully sent or queued; otherwise error code.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTS_HandleValueIndication (uint16_t conn_id,  uint16_t attr_handle, uint16_t val_len, uint8_t *p_val)
 {
     tGATT_STATUS    cmd_status = GATT_NO_RESOURCES;
@@ -525,19 +525,19 @@ tGATT_STATUS GATTS_HandleValueIndication (uint16_t conn_id,  uint16_t attr_handl
 }
 
 /*******************************************************************************
-**
-** Function         GATTS_HandleValueNotification
-**
-** Description      This function sends a handle value notification to a client.
-**
-** Parameter        conn_id: connection identifier.
-**                  attr_handle: Attribute handle of this handle value indication.
-**                  val_len: Length of the indicated attribute value.
-**                  p_val: Pointer to the indicated attribute value data.
-**
-** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
-**
-*******************************************************************************/
+ *
+ * Function         GATTS_HandleValueNotification
+ *
+ * Description      This function sends a handle value notification to a client.
+ *
+ * Parameter        conn_id: connection identifier.
+ *                  attr_handle: Attribute handle of this handle value indication.
+ *                  val_len: Length of the indicated attribute value.
+ *                  p_val: Pointer to the indicated attribute value data.
+ *
+ * Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTS_HandleValueNotification (uint16_t conn_id, uint16_t attr_handle,
                                             uint16_t val_len, uint8_t *p_val)
 {
@@ -576,19 +576,19 @@ tGATT_STATUS GATTS_HandleValueNotification (uint16_t conn_id, uint16_t attr_hand
 }
 
 /*******************************************************************************
-**
-** Function         GATTS_SendRsp
-**
-** Description      This function sends the server response to client.
-**
-** Parameter        conn_id: connection identifier.
-**                  trans_id: transaction id
-**                  status: response status
-**                  p_msg: pointer to message parameters structure.
-**
-** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
-**
-*******************************************************************************/
+ *
+ * Function         GATTS_SendRsp
+ *
+ * Description      This function sends the server response to client.
+ *
+ * Parameter        conn_id: connection identifier.
+ *                  trans_id: transaction id
+ *                  status: response status
+ *                  p_msg: pointer to message parameters structure.
+ *
+ * Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTS_SendRsp (uint16_t conn_id,  uint32_t trans_id,
                             tGATT_STATUS status, tGATTS_RSP *p_msg)
 {
@@ -620,29 +620,29 @@ tGATT_STATUS GATTS_SendRsp (uint16_t conn_id,  uint32_t trans_id,
     return cmd_sent;
 }
 
-/*******************************************************************************/
+/******************************************************************************/
 /* GATT Profile Srvr Functions */
-/*******************************************************************************/
+/******************************************************************************/
 
-/*******************************************************************************/
+/******************************************************************************/
 /*                                                                             */
 /*                   GATT CLIENT APIs                                          */
 /*                                                                             */
-/*******************************************************************************/
+/******************************************************************************/
 
 
 /*******************************************************************************
-**
-** Function         GATTC_ConfigureMTU
-**
-** Description      This function is called to configure the ATT MTU size.
-**
-** Parameters       conn_id: connection identifier.
-**                  mtu    - attribute MTU size..
-**
-** Returns          GATT_SUCCESS if command started successfully.
-**
-*******************************************************************************/
+ *
+ * Function         GATTC_ConfigureMTU
+ *
+ * Description      This function is called to configure the ATT MTU size.
+ *
+ * Parameters       conn_id: connection identifier.
+ *                  mtu    - attribute MTU size..
+ *
+ * Returns          GATT_SUCCESS if command started successfully.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu)
 {
     uint8_t         ret = GATT_NO_RESOURCES;
@@ -685,18 +685,18 @@ tGATT_STATUS GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu)
 }
 
 /*******************************************************************************
-**
-** Function         GATTC_Discover
-**
-** Description      This function is called to do a discovery procedure on ATT server.
-**
-** Parameters       conn_id: connection identifier.
-**                  disc_type:discovery type.
-**                  p_param: parameters of discovery requirement.
-**
-** Returns          GATT_SUCCESS if command received/sent successfully.
-**
-*******************************************************************************/
+ *
+ * Function         GATTC_Discover
+ *
+ * Description      This function is called to do a discovery procedure on ATT server.
+ *
+ * Parameters       conn_id: connection identifier.
+ *                  disc_type:discovery type.
+ *                  p_param: parameters of discovery requirement.
+ *
+ * Returns          GATT_SUCCESS if command received/sent successfully.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTC_Discover (uint16_t conn_id, tGATT_DISC_TYPE disc_type,
                              tGATT_DISC_PARAM *p_param)
 {
@@ -754,19 +754,19 @@ tGATT_STATUS GATTC_Discover (uint16_t conn_id, tGATT_DISC_TYPE disc_type,
 }
 
 /*******************************************************************************
-**
-** Function         GATTC_Read
-**
-** Description      This function is called to read the value of an attribute from
-**                  the server.
-**
-** Parameters       conn_id: connection identifier.
-**                  type    - attribute read type.
-**                  p_read  - read operation parameters.
-**
-** Returns          GATT_SUCCESS if command started successfully.
-**
-*******************************************************************************/
+ *
+ * Function         GATTC_Read
+ *
+ * Description      This function is called to read the value of an attribute from
+ *                  the server.
+ *
+ * Parameters       conn_id: connection identifier.
+ *                  type    - attribute read type.
+ *                  p_read  - read operation parameters.
+ *
+ * Returns          GATT_SUCCESS if command started successfully.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTC_Read (uint16_t conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM *p_read)
 {
     tGATT_STATUS status = GATT_SUCCESS;
@@ -846,19 +846,19 @@ tGATT_STATUS GATTC_Read (uint16_t conn_id, tGATT_READ_TYPE type, tGATT_READ_PARA
 }
 
 /*******************************************************************************
-**
-** Function         GATTC_Write
-**
-** Description      This function is called to write the value of an attribute to
-**                  the server.
-**
-** Parameters       conn_id: connection identifier.
-**                  type    - attribute write type.
-**                  p_write  - write operation parameters.
-**
-** Returns          GATT_SUCCESS if command started successfully.
-**
-*******************************************************************************/
+ *
+ * Function         GATTC_Write
+ *
+ * Description      This function is called to write the value of an attribute to
+ *                  the server.
+ *
+ * Parameters       conn_id: connection identifier.
+ *                  type    - attribute write type.
+ *                  p_write  - write operation parameters.
+ *
+ * Returns          GATT_SUCCESS if command started successfully.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTC_Write (uint16_t conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_write)
 {
     tGATT_STATUS status = GATT_SUCCESS;
@@ -912,18 +912,18 @@ tGATT_STATUS GATTC_Write (uint16_t conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *
 
 
 /*******************************************************************************
-**
-** Function         GATTC_ExecuteWrite
-**
-** Description      This function is called to send an Execute write request to
-**                  the server.
-**
-** Parameters       conn_id: connection identifier.
-**                  is_execute - to execute or cancel the prepare write requet(s)
-**
-** Returns          GATT_SUCCESS if command started successfully.
-**
-*******************************************************************************/
+ *
+ * Function         GATTC_ExecuteWrite
+ *
+ * Description      This function is called to send an Execute write request to
+ *                  the server.
+ *
+ * Parameters       conn_id: connection identifier.
+ *                  is_execute - to execute or cancel the prepare write requet(s)
+ *
+ * Returns          GATT_SUCCESS if command started successfully.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTC_ExecuteWrite (uint16_t conn_id, bool    is_execute)
 {
     tGATT_STATUS status = GATT_SUCCESS;
@@ -964,18 +964,18 @@ tGATT_STATUS GATTC_ExecuteWrite (uint16_t conn_id, bool    is_execute)
 }
 
 /*******************************************************************************
-**
-** Function         GATTC_SendHandleValueConfirm
-**
-** Description      This function is called to send a handle value confirmation
-**                  as response to a handle value notification from server.
-**
-** Parameters       conn_id: connection identifier.
-**                  handle: the handle of the attribute confirmation.
-**
-** Returns          GATT_SUCCESS if command started successfully.
-**
-*******************************************************************************/
+ *
+ * Function         GATTC_SendHandleValueConfirm
+ *
+ * Description      This function is called to send a handle value confirmation
+ *                  as response to a handle value notification from server.
+ *
+ * Parameters       conn_id: connection identifier.
+ *                  handle: the handle of the attribute confirmation.
+ *
+ * Returns          GATT_SUCCESS if command started successfully.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATTC_SendHandleValueConfirm (uint16_t conn_id, uint16_t handle)
 {
     tGATT_STATUS    ret = GATT_ILLEGAL_PARAMETER;
@@ -1010,24 +1010,24 @@ tGATT_STATUS GATTC_SendHandleValueConfirm (uint16_t conn_id, uint16_t handle)
 }
 
 
-/*******************************************************************************/
+/******************************************************************************/
 /*                                                                             */
 /*                   GATT  APIs                                                */
 /*                                                                             */
-/*******************************************************************************/
+/******************************************************************************/
 /*******************************************************************************
-**
-** Function         GATT_SetIdleTimeout
-**
-** Description      This function (common to both client and server) sets the idle
-**                  timeout for a tansport connection
-**
-** Parameter        bd_addr:   target device bd address.
-**                  idle_tout: timeout value in seconds.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         GATT_SetIdleTimeout
+ *
+ * Description      This function (common to both client and server) sets the idle
+ *                  timeout for a tansport connection
+ *
+ * Parameter        bd_addr:   target device bd address.
+ *                  idle_tout: timeout value in seconds.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void GATT_SetIdleTimeout (BD_ADDR bd_addr, uint16_t idle_tout, tBT_TRANSPORT transport)
 {
     tGATT_TCB       *p_tcb;
@@ -1056,18 +1056,18 @@ void GATT_SetIdleTimeout (BD_ADDR bd_addr, uint16_t idle_tout, tBT_TRANSPORT tra
 
 
 /*******************************************************************************
-**
-** Function         GATT_Register
-**
-** Description      This function is called to register an  application
-**                  with GATT
-**
-** Parameter        p_app_uuid128: Application UUID
-**                  p_cb_info: callback functions.
-**
-** Returns          0 for error, otherwise the index of the client registered with GATT
-**
-*******************************************************************************/
+ *
+ * Function         GATT_Register
+ *
+ * Description      This function is called to register an  application
+ *                  with GATT
+ *
+ * Parameter        p_app_uuid128: Application UUID
+ *                  p_cb_info: callback functions.
+ *
+ * Returns          0 for error, otherwise the index of the client registered with GATT
+ *
+ ******************************************************************************/
 tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
 {
     tGATT_REG    *p_reg;
@@ -1110,16 +1110,16 @@ tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
 
 
 /*******************************************************************************
-**
-** Function         GATT_Deregister
-**
-** Description      This function deregistered the application from GATT.
-**
-** Parameters       gatt_if: applicaiton interface.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         GATT_Deregister
+ *
+ * Description      This function deregistered the application from GATT.
+ *
+ * Parameters       gatt_if: applicaiton interface.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void GATT_Deregister (tGATT_IF gatt_if)
 {
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
@@ -1184,18 +1184,18 @@ void GATT_Deregister (tGATT_IF gatt_if)
 
 
 /*******************************************************************************
-**
-** Function         GATT_StartIf
-**
-** Description      This function is called after registration to start receiving
-**                  callbacks for registered interface.  Function may call back
-**                  with connection status and queued notifications
-**
-** Parameter        gatt_if: applicaiton interface.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         GATT_StartIf
+ *
+ * Description      This function is called after registration to start receiving
+ *                  callbacks for registered interface.  Function may call back
+ *                  with connection status and queued notifications
+ *
+ * Parameter        gatt_if: applicaiton interface.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void GATT_StartIf (tGATT_IF gatt_if)
 {
     tGATT_REG   *p_reg;
@@ -1225,19 +1225,19 @@ void GATT_StartIf (tGATT_IF gatt_if)
 
 
 /*******************************************************************************
-**
-** Function         GATT_Connect
-**
-** Description      This function initiate a connecttion to a remote device on GATT
-**                  channel.
-**
-** Parameters       gatt_if: applicaiton interface
-**                  bd_addr: peer device address.
-**                  is_direct: is a direct conenection or a background auto connection
-**
-** Returns          true if connection started; false if connection start failure.
-**
-*******************************************************************************/
+ *
+ * Function         GATT_Connect
+ *
+ * Description      This function initiate a connecttion to a remote device on GATT
+ *                  channel.
+ *
+ * Parameters       gatt_if: applicaiton interface
+ *                  bd_addr: peer device address.
+ *                  is_direct: is a direct conenection or a background auto connection
+ *
+ * Returns          true if connection started; false if connection start failure.
+ *
+ ******************************************************************************/
 bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
                       tBT_TRANSPORT transport, bool opportunistic)
 {
@@ -1271,19 +1271,19 @@ bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
 }
 
 /*******************************************************************************
-**
-** Function         GATT_CancelConnect
-**
-** Description      This function terminate the connection initaition to a remote
-**                  device on GATT channel.
-**
-** Parameters       gatt_if: client interface. If 0 used as unconditionally disconnect,
-**                          typically used for direct connection cancellation.
-**                  bd_addr: peer device address.
-**
-** Returns          true if connection started; false if connection start failure.
-**
-*******************************************************************************/
+ *
+ * Function         GATT_CancelConnect
+ *
+ * Description      This function terminate the connection initaition to a remote
+ *                  device on GATT channel.
+ *
+ * Parameters       gatt_if: client interface. If 0 used as unconditionally disconnect,
+ *                          typically used for direct connection cancellation.
+ *                  bd_addr: peer device address.
+ *
+ * Returns          true if connection started; false if connection start failure.
+ *
+ ******************************************************************************/
 bool    GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool    is_direct){
     tGATT_REG     *p_reg;
     tGATT_TCB     *p_tcb;
@@ -1351,17 +1351,17 @@ bool    GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr, bool    is_direct
 }
 
 /*******************************************************************************
-**
-** Function         GATT_Disconnect
-**
-** Description      This function disconnect the GATT channel for this registered
-**                  application.
-**
-** Parameters       conn_id: connection identifier.
-**
-** Returns          GATT_SUCCESS if disconnected.
-**
-*******************************************************************************/
+ *
+ * Function         GATT_Disconnect
+ *
+ * Description      This function disconnect the GATT channel for this registered
+ *                  application.
+ *
+ * Parameters       conn_id: connection identifier.
+ *
+ * Returns          GATT_SUCCESS if disconnected.
+ *
+ ******************************************************************************/
 tGATT_STATUS GATT_Disconnect (uint16_t conn_id)
 {
     tGATT_STATUS    ret = GATT_ILLEGAL_PARAMETER;
@@ -1383,19 +1383,19 @@ tGATT_STATUS GATT_Disconnect (uint16_t conn_id)
 
 
 /*******************************************************************************
-**
-** Function         GATT_GetConnectionInfor
-**
-** Description      This function use conn_id to find its associated BD address and applciation
-**                  interface
-**
-** Parameters        conn_id: connection id  (input)
-**                   p_gatt_if: applicaiton interface (output)
-**                   bd_addr: peer device address. (output)
-**
-** Returns          true the ligical link information is found for conn_id
-**
-*******************************************************************************/
+ *
+ * Function         GATT_GetConnectionInfor
+ *
+ * Description      This function use conn_id to find its associated BD address and applciation
+ *                  interface
+ *
+ * Parameters        conn_id: connection id  (input)
+ *                   p_gatt_if: applicaiton interface (output)
+ *                   bd_addr: peer device address. (output)
+ *
+ * Returns          true the ligical link information is found for conn_id
+ *
+ ******************************************************************************/
 bool    GATT_GetConnectionInfor(uint16_t conn_id, tGATT_IF *p_gatt_if, BD_ADDR bd_addr,
                                 tBT_TRANSPORT *p_transport)
 {
@@ -1420,20 +1420,20 @@ bool    GATT_GetConnectionInfor(uint16_t conn_id, tGATT_IF *p_gatt_if, BD_ADDR b
 
 
 /*******************************************************************************
-**
-** Function         GATT_GetConnIdIfConnected
-**
-** Description      This function find the conn_id if the logical link for BD address
-**                  and applciation interface is connected
-**
-** Parameters        gatt_if: applicaiton interface (input)
-**                   bd_addr: peer device address. (input)
-**                   p_conn_id: connection id  (output)
-**                   transport: transport option
-**
-** Returns          true the logical link is connected
-**
-*******************************************************************************/
+ *
+ * Function         GATT_GetConnIdIfConnected
+ *
+ * Description      This function find the conn_id if the logical link for BD address
+ *                  and applciation interface is connected
+ *
+ * Parameters        gatt_if: applicaiton interface (input)
+ *                   bd_addr: peer device address. (input)
+ *                   p_conn_id: connection id  (output)
+ *                   transport: transport option
+ *
+ * Returns          true the logical link is connected
+ *
+ ******************************************************************************/
 bool    GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, uint16_t *p_conn_id,
                                   tBT_TRANSPORT transport)
 {

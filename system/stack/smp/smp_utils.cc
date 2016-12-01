@@ -14,7 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  *
-******************************************************************************/
+ *****************************************************************************/
 
 /******************************************************************************
  *
@@ -274,12 +274,12 @@ static tSMP_ASSO_MODEL smp_select_legacy_association_model(tSMP_CB *p_cb);
 static tSMP_ASSO_MODEL smp_select_association_model_secure_connections(tSMP_CB *p_cb);
 
 /*******************************************************************************
-**
-** Function         smp_send_msg_to_L2CAP
-**
-** Description      Send message to L2CAP.
-**
-*******************************************************************************/
+ *
+ * Function         smp_send_msg_to_L2CAP
+ *
+ * Description      Send message to L2CAP.
+ *
+ ******************************************************************************/
 bool     smp_send_msg_to_L2CAP(BD_ADDR rem_bda, BT_HDR *p_toL2CAP)
 {
     uint16_t l2cap_ret;
@@ -306,12 +306,12 @@ bool     smp_send_msg_to_L2CAP(BD_ADDR rem_bda, BT_HDR *p_toL2CAP)
 }
 
 /*******************************************************************************
-**
-** Function         smp_send_cmd
-**
-** Description      send a SMP command on L2CAP channel.
-**
-*******************************************************************************/
+ *
+ * Function         smp_send_cmd
+ *
+ * Description      send a SMP command on L2CAP channel.
+ *
+ ******************************************************************************/
 bool    smp_send_cmd(uint8_t cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR *p_buf;
@@ -348,14 +348,14 @@ bool    smp_send_cmd(uint8_t cmd_code, tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_rsp_timeout
-**
-** Description      Called when SMP wait for SMP command response timer expires
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_rsp_timeout
+ *
+ * Description      Called when SMP wait for SMP command response timer expires
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_rsp_timeout(UNUSED_ATTR void *data)
 {
     tSMP_CB   *p_cb = &smp_cb;
@@ -374,15 +374,15 @@ void smp_rsp_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_delayed_auth_complete_timeout
-**
-** Description      Called when no pairing failed command received within timeout
-**                  period.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_delayed_auth_complete_timeout
+ *
+ * Description      Called when no pairing failed command received within timeout
+ *                  period.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_delayed_auth_complete_timeout(UNUSED_ATTR void *data)
 {
     /*
@@ -398,12 +398,12 @@ void smp_delayed_auth_complete_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_pairing_req_cmd
-**
-** Description      Build pairing request command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_pairing_req_cmd
+ *
+ * Description      Build pairing request command.
+ *
+ ******************************************************************************/
 BT_HDR * smp_build_pairing_cmd(uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -429,12 +429,12 @@ BT_HDR * smp_build_pairing_cmd(uint8_t cmd_code, tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_confirm_cmd
-**
-** Description      Build confirm request command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_confirm_cmd
+ *
+ * Description      Build confirm request command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_confirm_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -455,12 +455,12 @@ static BT_HDR * smp_build_confirm_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_c
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_rand_cmd
-**
-** Description      Build Random command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_rand_cmd
+ *
+ * Description      Build Random command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_rand_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -480,12 +480,12 @@ static BT_HDR * smp_build_rand_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_encrypt_info_cmd
-**
-** Description      Build security information command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_encrypt_info_cmd
+ *
+ * Description      Build security information command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_encrypt_info_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -505,12 +505,12 @@ static BT_HDR * smp_build_encrypt_info_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_master_id_cmd
-**
-** Description      Build security information command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_master_id_cmd
+ *
+ * Description      Build security information command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_master_id_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -531,12 +531,12 @@ static BT_HDR * smp_build_master_id_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_identity_info_cmd
-**
-** Description      Build identity information command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_identity_info_cmd
+ *
+ * Description      Build identity information command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_identity_info_cmd(UNUSED_ATTR uint8_t cmd_code,
                                             UNUSED_ATTR tSMP_CB *p_cb)
 {
@@ -561,12 +561,12 @@ static BT_HDR * smp_build_identity_info_cmd(UNUSED_ATTR uint8_t cmd_code,
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_id_addr_cmd
-**
-** Description      Build identity address information command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_id_addr_cmd
+ *
+ * Description      Build identity address information command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_id_addr_cmd(UNUSED_ATTR uint8_t cmd_code,
                                       UNUSED_ATTR tSMP_CB *p_cb)
 {
@@ -588,12 +588,12 @@ static BT_HDR * smp_build_id_addr_cmd(UNUSED_ATTR uint8_t cmd_code,
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_signing_info_cmd
-**
-** Description      Build signing information command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_signing_info_cmd
+ *
+ * Description      Build signing information command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_signing_info_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -613,12 +613,12 @@ static BT_HDR * smp_build_signing_info_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_pairing_fail
-**
-** Description      Build Pairing Fail command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_pairing_fail
+ *
+ * Description      Build Pairing Fail command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_pairing_fail(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -638,12 +638,12 @@ static BT_HDR * smp_build_pairing_fail(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_security_request
-**
-** Description      Build security request command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_security_request
+ *
+ * Description      Build security request command.
+ *
+ ******************************************************************************/
 static BT_HDR *smp_build_security_request(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -665,12 +665,12 @@ static BT_HDR *smp_build_security_request(UNUSED_ATTR uint8_t cmd_code, tSMP_CB 
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_pair_public_key_cmd
-**
-** Description      Build pairing public key command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_pair_public_key_cmd
+ *
+ * Description      Build pairing public key command.
+ *
+ ******************************************************************************/
 static BT_HDR *smp_build_pair_public_key_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -695,12 +695,12 @@ static BT_HDR *smp_build_pair_public_key_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_pairing_commitment_cmd
-**
-** Description      Build pairing commitment command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_pairing_commitment_cmd
+ *
+ * Description      Build pairing commitment command.
+ *
+ ******************************************************************************/
 static BT_HDR *smp_build_pairing_commitment_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -720,12 +720,12 @@ static BT_HDR *smp_build_pairing_commitment_cmd(UNUSED_ATTR uint8_t cmd_code, tS
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_pair_dhkey_check_cmd
-**
-** Description      Build pairing DHKey check command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_pair_dhkey_check_cmd
+ *
+ * Description      Build pairing DHKey check command.
+ *
+ ******************************************************************************/
 static BT_HDR *smp_build_pair_dhkey_check_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t *p;
@@ -745,12 +745,12 @@ static BT_HDR *smp_build_pair_dhkey_check_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP
 }
 
 /*******************************************************************************
-**
-** Function         smp_build_pairing_keypress_notification_cmd
-**
-** Description      Build keypress notification command.
-**
-*******************************************************************************/
+ *
+ * Function         smp_build_pairing_keypress_notification_cmd
+ *
+ * Description      Build keypress notification command.
+ *
+ ******************************************************************************/
 static BT_HDR * smp_build_pairing_keypress_notification_cmd(UNUSED_ATTR uint8_t cmd_code, tSMP_CB *p_cb)
 {
     uint8_t     *p;
@@ -770,16 +770,16 @@ static BT_HDR * smp_build_pairing_keypress_notification_cmd(UNUSED_ATTR uint8_t 
 }
 
 /*******************************************************************************
-**
-** Function         smp_convert_string_to_tk
-**
-** Description      This function is called to convert a 6 to 16 digits numeric
-**                  character string into SMP TK.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_convert_string_to_tk
+ *
+ * Description      This function is called to convert a 6 to 16 digits numeric
+ *                  character string into SMP TK.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_convert_string_to_tk(BT_OCTET16 tk, uint32_t passkey)
 {
     uint8_t *p = tk;
@@ -794,16 +794,16 @@ void smp_convert_string_to_tk(BT_OCTET16 tk, uint32_t passkey)
 }
 
 /*******************************************************************************
-**
-** Function         smp_mask_enc_key
-**
-** Description      This function is called to mask off the encryption key based
-**                  on the maximum encryption key size.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_mask_enc_key
+ *
+ * Description      This function is called to mask off the encryption key based
+ *                  on the maximum encryption key size.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_mask_enc_key(uint8_t loc_enc_size, uint8_t * p_data)
 {
     SMP_TRACE_EVENT("smp_mask_enc_key");
@@ -816,15 +816,15 @@ void smp_mask_enc_key(uint8_t loc_enc_size, uint8_t * p_data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_xor_128
-**
-** Description      utility function to do an biteise exclusive-OR of two bit
-**                  strings of the length of BT_OCTET16_LEN.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_xor_128
+ *
+ * Description      utility function to do an biteise exclusive-OR of two bit
+ *                  strings of the length of BT_OCTET16_LEN.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_xor_128(BT_OCTET16 a, BT_OCTET16 b)
 {
     uint8_t i, *aa = a, *bb = b;
@@ -837,14 +837,14 @@ void smp_xor_128(BT_OCTET16 a, BT_OCTET16 b)
 }
 
 /*******************************************************************************
-**
-** Function         smp_cb_cleanup
-**
-** Description      Clean up SMP control block
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_cb_cleanup
+ *
+ * Description      Clean up SMP control block
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_cb_cleanup(tSMP_CB   *p_cb)
 {
     tSMP_CALLBACK   *p_callback = p_cb->p_callback;
@@ -862,14 +862,14 @@ void smp_cb_cleanup(tSMP_CB   *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_remove_fixed_channel
-**
-** Description      This function is called to remove the fixed channel
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_remove_fixed_channel
+ *
+ * Description      This function is called to remove the fixed channel
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_remove_fixed_channel(tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -881,16 +881,16 @@ void smp_remove_fixed_channel(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_reset_control_value
-**
-** Description      This function is called to reset the control block value when
-**                  pairing procedure finished.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_reset_control_value
+ *
+ * Description      This function is called to reset the control block value when
+ *                  pairing procedure finished.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_reset_control_value(tSMP_CB *p_cb)
 {
     SMP_TRACE_EVENT("%s", __func__);
@@ -909,15 +909,15 @@ void smp_reset_control_value(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_proc_pairing_cmpl
-**
-** Description      This function is called to process pairing complete
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_proc_pairing_cmpl
+ *
+ * Description      This function is called to process pairing complete
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_proc_pairing_cmpl(tSMP_CB *p_cb)
 {
     tSMP_EVT_DATA   evt_data = {0};
@@ -951,17 +951,17 @@ void smp_proc_pairing_cmpl(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_command_has_invalid_parameters
-**
-** Description      Checks if the received SMP command has invalid parameters i.e.
-**                  if the command length is valid and the command parameters are
-**                  inside specified range.
-**                  It returns true if the command has invalid parameters.
-**
-** Returns          true if the command has invalid parameters, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         smp_command_has_invalid_parameters
+ *
+ * Description      Checks if the received SMP command has invalid parameters i.e.
+ *                  if the command length is valid and the command parameters are
+ *                  inside specified range.
+ *                  It returns true if the command has invalid parameters.
+ *
+ * Returns          true if the command has invalid parameters, false otherwise.
+ *
+ ******************************************************************************/
 bool    smp_command_has_invalid_parameters(tSMP_CB *p_cb)
 {
     uint8_t cmd_code = p_cb->rcvd_cmd_code;
@@ -985,16 +985,16 @@ bool    smp_command_has_invalid_parameters(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_command_has_valid_fixed_length
-**
-** Description      Checks if the received command size is equal to the size
-**                  according to specs.
-**
-** Returns          true if the command size is as expected, false otherwise.
-**
-** Note             The command is expected to have fixed length.
-*******************************************************************************/
+ *
+ * Function         smp_command_has_valid_fixed_length
+ *
+ * Description      Checks if the received command size is equal to the size
+ *                  according to specs.
+ *
+ * Returns          true if the command size is as expected, false otherwise.
+ *
+ * Note             The command is expected to have fixed length.
+ ******************************************************************************/
 bool    smp_command_has_valid_fixed_length(tSMP_CB *p_cb)
 {
     uint8_t cmd_code = p_cb->rcvd_cmd_code;
@@ -1013,19 +1013,19 @@ bool    smp_command_has_valid_fixed_length(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_pairing_request_response_parameters_are_valid
-**
-** Description      Validates parameter ranges in the received SMP command
-**                  pairing request or pairing response.
-**                  The parameters to validate:
-**                  IO capability,
-**                  OOB data flag,
-**                  Bonding_flags in AuthReq
-**                  Maximum encryption key size.
-**                  Returns false if at least one of these parameters is out of range.
-**
-*******************************************************************************/
+ *
+ * Function         smp_pairing_request_response_parameters_are_valid
+ *
+ * Description      Validates parameter ranges in the received SMP command
+ *                  pairing request or pairing response.
+ *                  The parameters to validate:
+ *                  IO capability,
+ *                  OOB data flag,
+ *                  Bonding_flags in AuthReq
+ *                  Maximum encryption key size.
+ *                  Returns false if at least one of these parameters is out of range.
+ *
+ ******************************************************************************/
 bool    smp_pairing_request_response_parameters_are_valid(tSMP_CB *p_cb)
 {
     uint8_t io_caps = p_cb->peer_io_caps;
@@ -1071,14 +1071,14 @@ bool    smp_pairing_request_response_parameters_are_valid(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_pairing_keypress_notification_is_valid
-**
-** Description      Validates Notification Type parameter range in the received SMP command
-**                  pairing keypress notification.
-**                  Returns false if this parameter is out of range.
-**
-*******************************************************************************/
+ *
+ * Function         smp_pairing_keypress_notification_is_valid
+ *
+ * Description      Validates Notification Type parameter range in the received SMP command
+ *                  pairing keypress notification.
+ *                  Returns false if this parameter is out of range.
+ *
+ ******************************************************************************/
 bool    smp_pairing_keypress_notification_is_valid(tSMP_CB *p_cb)
 {
     tBTM_SP_KEY_TYPE keypress_notification = p_cb->peer_keypress_notification;
@@ -1097,39 +1097,39 @@ bool    smp_pairing_keypress_notification_is_valid(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_parameter_unconditionally_valid
-**
-** Description      Always returns true.
-**
-*******************************************************************************/
+ *
+ * Function         smp_parameter_unconditionally_valid
+ *
+ * Description      Always returns true.
+ *
+ ******************************************************************************/
 bool    smp_parameter_unconditionally_valid(UNUSED_ATTR tSMP_CB *p_cb)
 {
     return true;
 }
 
 /*******************************************************************************
-**
-** Function         smp_parameter_unconditionally_invalid
-**
-** Description      Always returns false.
-**
-*******************************************************************************/
+ *
+ * Function         smp_parameter_unconditionally_invalid
+ *
+ * Description      Always returns false.
+ *
+ ******************************************************************************/
 bool    smp_parameter_unconditionally_invalid(UNUSED_ATTR tSMP_CB *p_cb)
 {
     return false;
 }
 
 /*******************************************************************************
-**
-** Function         smp_reject_unexpected_pairing_command
-**
-** Description      send pairing failure to an unexpected pairing command during
-**                  an active pairing process.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_reject_unexpected_pairing_command
+ *
+ * Description      send pairing failure to an unexpected pairing command during
+ *                  an active pairing process.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_reject_unexpected_pairing_command(BD_ADDR bd_addr)
 {
     uint8_t *p;
@@ -1149,21 +1149,21 @@ void smp_reject_unexpected_pairing_command(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-** Function         smp_select_association_model
-**
-** Description      This function selects association model to use for STK
-**                  generation. Selection is based on both sides' io capability,
-**                  oob data flag and authentication request.
-**
-** Note             If Secure Connections Only mode is required locally then we
-**                  come to this point only if both sides support Secure Connections
-**                  mode, i.e. if p_cb->secure_connections_only_mode_required = true then we come
-**                  to this point only if
-**                      (p_cb->peer_auth_req & SMP_SC_SUPPORT_BIT) ==
-**                      (p_cb->loc_auth_req & SMP_SC_SUPPORT_BIT) ==
-**                      SMP_SC_SUPPORT_BIT
-**
-*******************************************************************************/
+ * Function         smp_select_association_model
+ *
+ * Description      This function selects association model to use for STK
+ *                  generation. Selection is based on both sides' io capability,
+ *                  oob data flag and authentication request.
+ *
+ * Note             If Secure Connections Only mode is required locally then we
+ *                  come to this point only if both sides support Secure Connections
+ *                  mode, i.e. if p_cb->secure_connections_only_mode_required = true then we come
+ *                  to this point only if
+ *                      (p_cb->peer_auth_req & SMP_SC_SUPPORT_BIT) ==
+ *                      (p_cb->loc_auth_req & SMP_SC_SUPPORT_BIT) ==
+ *                      SMP_SC_SUPPORT_BIT
+ *
+ ******************************************************************************/
 tSMP_ASSO_MODEL smp_select_association_model(tSMP_CB *p_cb)
 {
     tSMP_ASSO_MODEL model = SMP_MODEL_OUT_OF_RANGE;
@@ -1199,12 +1199,12 @@ tSMP_ASSO_MODEL smp_select_association_model(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_select_legacy_association_model
-**
-** Description      This function is called to select association mode if at least
-**                  one side doesn't support secure connections.
-**
-*******************************************************************************/
+ * Function         smp_select_legacy_association_model
+ *
+ * Description      This function is called to select association mode if at least
+ *                  one side doesn't support secure connections.
+ *
+ ******************************************************************************/
 tSMP_ASSO_MODEL smp_select_legacy_association_model(tSMP_CB *p_cb)
 {
     tSMP_ASSO_MODEL model = SMP_MODEL_OUT_OF_RANGE;
@@ -1237,12 +1237,12 @@ tSMP_ASSO_MODEL smp_select_legacy_association_model(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_select_association_model_secure_connections
-**
-** Description      This function is called to select association mode if both
-**                  sides support secure connections.
-**
-*******************************************************************************/
+ * Function         smp_select_association_model_secure_connections
+ *
+ * Description      This function is called to select association mode if both
+ *                  sides support secure connections.
+ *
+ ******************************************************************************/
 tSMP_ASSO_MODEL smp_select_association_model_secure_connections(tSMP_CB *p_cb)
 {
     tSMP_ASSO_MODEL model = SMP_MODEL_OUT_OF_RANGE;
@@ -1275,11 +1275,11 @@ tSMP_ASSO_MODEL smp_select_association_model_secure_connections(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_reverse_array
-**
-** Description      This function reverses array bytes
-**
-*******************************************************************************/
+ * Function         smp_reverse_array
+ *
+ * Description      This function reverses array bytes
+ *
+ ******************************************************************************/
 void smp_reverse_array(uint8_t *arr, uint8_t len)
 {
     uint8_t i =0, tmp;
@@ -1295,16 +1295,16 @@ void smp_reverse_array(uint8_t *arr, uint8_t len)
 }
 
 /*******************************************************************************
-** Function         smp_calculate_random_input
-**
-** Description      This function returns random input value to be used in commitment
-**                  calculation for SC passkey entry association mode
-**                  (if bit["round"] in "random" array == 1 then returns 0x81
-**                   else returns 0x80).
-**
-** Returns          ri value
-**
-*******************************************************************************/
+ * Function         smp_calculate_random_input
+ *
+ * Description      This function returns random input value to be used in commitment
+ *                  calculation for SC passkey entry association mode
+ *                  (if bit["round"] in "random" array == 1 then returns 0x81
+ *                   else returns 0x80).
+ *
+ * Returns          ri value
+ *
+ ******************************************************************************/
 uint8_t smp_calculate_random_input(uint8_t *random, uint8_t round)
 {
     uint8_t i = round/8;
@@ -1318,14 +1318,14 @@ uint8_t smp_calculate_random_input(uint8_t *random, uint8_t round)
 }
 
 /*******************************************************************************
-** Function         smp_collect_local_io_capabilities
-**
-** Description      This function puts into IOcap array local device
-**                  IOCapability, OOB data, AuthReq.
-**
-** Returns          void
-**
-*******************************************************************************/
+ * Function         smp_collect_local_io_capabilities
+ *
+ * Description      This function puts into IOcap array local device
+ *                  IOCapability, OOB data, AuthReq.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_collect_local_io_capabilities(uint8_t *iocap, tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1336,14 +1336,14 @@ void smp_collect_local_io_capabilities(uint8_t *iocap, tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_collect_peer_io_capabilities
-**
-** Description      This function puts into IOcap array peer device
-**                  IOCapability, OOB data, AuthReq.
-**
-** Returns          void
-**
-*******************************************************************************/
+ * Function         smp_collect_peer_io_capabilities
+ *
+ * Description      This function puts into IOcap array peer device
+ *                  IOCapability, OOB data, AuthReq.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_collect_peer_io_capabilities(uint8_t *iocap, tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1354,15 +1354,15 @@ void smp_collect_peer_io_capabilities(uint8_t *iocap, tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_collect_local_ble_address
-**
-** Description      This function puts into le_addr array local device le address:
-**                  le_addr[0-5] = local BD ADDR,
-**                  le_addr[6] = local le address type (PUBLIC/RANDOM).
-**
-** Returns          void
-**
-*******************************************************************************/
+ * Function         smp_collect_local_ble_address
+ *
+ * Description      This function puts into le_addr array local device le address:
+ *                  le_addr[0-5] = local BD ADDR,
+ *                  le_addr[6] = local le address type (PUBLIC/RANDOM).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_collect_local_ble_address(uint8_t *le_addr, tSMP_CB *p_cb)
 {
     tBLE_ADDR_TYPE  addr_type = 0;
@@ -1377,15 +1377,15 @@ void smp_collect_local_ble_address(uint8_t *le_addr, tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_collect_peer_ble_address
-**
-** Description      This function puts into le_addr array peer device le address:
-**                  le_addr[0-5] = peer BD ADDR,
-**                  le_addr[6] = peer le address type (PUBLIC/RANDOM).
-**
-** Returns          void
-**
-*******************************************************************************/
+ * Function         smp_collect_peer_ble_address
+ *
+ * Description      This function puts into le_addr array peer device le address:
+ *                  le_addr[0-5] = peer BD ADDR,
+ *                  le_addr[6] = peer le address type (PUBLIC/RANDOM).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_collect_peer_ble_address(uint8_t *le_addr, tSMP_CB *p_cb)
 {
     tBLE_ADDR_TYPE  addr_type = 0;
@@ -1405,16 +1405,16 @@ void smp_collect_peer_ble_address(uint8_t *le_addr, tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_check_commitment
-**
-** Description      This function compares peer commitment values:
-**                  - expected (i.e. calculated locally),
-**                  - received from the peer.
-**
-** Returns          true  if the values are the same
-**                  false otherwise
-**
-*******************************************************************************/
+ * Function         smp_check_commitment
+ *
+ * Description      This function compares peer commitment values:
+ *                  - expected (i.e. calculated locally),
+ *                  - received from the peer.
+ *
+ * Returns          true  if the values are the same
+ *                  false otherwise
+ *
+ ******************************************************************************/
 bool    smp_check_commitment(tSMP_CB *p_cb)
 {
     BT_OCTET16 expected;
@@ -1436,15 +1436,15 @@ bool    smp_check_commitment(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_save_secure_connections_long_term_key
-**
-** Description      The function saves SC LTK as BLE key for future use as local
-**                  and/or peer key.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_save_secure_connections_long_term_key
+ *
+ * Description      The function saves SC LTK as BLE key for future use as local
+ *                  and/or peer key.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_save_secure_connections_long_term_key(tSMP_CB *p_cb)
 {
     tBTM_LE_LENC_KEYS   lle_key;
@@ -1467,17 +1467,17 @@ void smp_save_secure_connections_long_term_key(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_f5_mackey_and_long_term_key
-**
-** Description      The function calculates MacKey and LTK and saves them in CB.
-**                  To calculate MacKey and LTK it calls smp_calc_f5(...).
-**                  MacKey is used in dhkey calculation, LTK is used to encrypt
-**                  the link.
-**
-** Returns          false if out of resources, true otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_f5_mackey_and_long_term_key
+ *
+ * Description      The function calculates MacKey and LTK and saves them in CB.
+ *                  To calculate MacKey and LTK it calls smp_calc_f5(...).
+ *                  MacKey is used in dhkey calculation, LTK is used to encrypt
+ *                  the link.
+ *
+ * Returns          false if out of resources, true otherwise.
+ *
+ ******************************************************************************/
 bool    smp_calculate_f5_mackey_and_long_term_key(tSMP_CB *p_cb)
 {
     uint8_t a[7];
@@ -1513,15 +1513,15 @@ bool    smp_calculate_f5_mackey_and_long_term_key(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_request_oob_data
-**
-** Description      Requests application to provide OOB data.
-**
-** Returns          true - OOB data has to be provided by application
-**                  false - otherwise (unexpected)
-**
-*******************************************************************************/
+ *
+ * Function         smp_request_oob_data
+ *
+ * Description      Requests application to provide OOB data.
+ *
+ * Returns          true - OOB data has to be provided by application
+ *                  false - otherwise (unexpected)
+ *
+ ******************************************************************************/
 bool    smp_request_oob_data(tSMP_CB *p_cb)
 {
     tSMP_OOB_DATA_TYPE req_oob_type = SMP_OOB_INVALID_TYPE;

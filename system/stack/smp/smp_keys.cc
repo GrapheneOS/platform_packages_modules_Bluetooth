@@ -109,16 +109,16 @@ void smp_debug_print_nbyte_big_endian (uint8_t *p, const uint8_t *key_name, uint
 }
 
 /*******************************************************************************
-**
-** Function         smp_encrypt_data
-**
-** Description      This function is called to encrypt data.
-**                  It uses AES-128 encryption algorithm.
-**                  Plain_text is encrypted using key, the result is at p_out.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_encrypt_data
+ *
+ * Description      This function is called to encrypt data.
+ *                  It uses AES-128 encryption algorithm.
+ *                  Plain_text is encrypted using key, the result is at p_out.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    smp_encrypt_data (uint8_t *key, uint8_t key_len,
                           uint8_t *plain_text, uint8_t pt_len,
                           tSMP_ENC *p_out)
@@ -173,14 +173,14 @@ bool    smp_encrypt_data (uint8_t *key, uint8_t key_len,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_passkey
-**
-** Description      This function is called to generate passkey.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_passkey
+ *
+ * Description      This function is called to generate passkey.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_generate_passkey(tSMP_CB *p_cb,
                           UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -192,14 +192,14 @@ void smp_generate_passkey(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_proc_passkey
-**
-** Description      This function is called to process a passkey.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_proc_passkey
+ *
+ * Description      This function is called to process a passkey.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
 {
     uint8_t *tt = p_cb->tk;
@@ -238,16 +238,16 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_stk
-**
-** Description      This function is called to generate STK calculated by running
-**                  AES with the TK value as key and a concatenation of the random
-**                  values.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_stk
+ *
+ * Description      This function is called to generate STK calculated by running
+ *                  AES with the TK value as key and a concatenation of the random
+ *                  values.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_generate_stk(tSMP_CB *p_cb,
                       UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -276,16 +276,16 @@ void smp_generate_stk(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_srand_mrand_confirm
-**
-** Description      This function is called to start the second pairing phase by
-**                  start generating random number.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_srand_mrand_confirm
+ *
+ * Description      This function is called to start the second pairing phase by
+ *                  start generating random number.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb,
                                       UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -296,15 +296,15 @@ void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_rand_cont
-**
-** Description      This function is called to generate another 64 bits random for
-**                  MRand or Srand.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_rand_cont
+ *
+ * Description      This function is called to generate another 64 bits random for
+ *                  MRand or Srand.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_generate_rand_cont(tSMP_CB *p_cb,
                             UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -315,20 +315,20 @@ void smp_generate_rand_cont(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_ltk
-**
-** Description      This function is called:
-**                  - in legacy pairing - to calculate LTK, starting with DIV
-**                    generation;
-**                  - in LE Secure Connections pairing over LE transport - to process LTK
-**                    already generated to encrypt LE link;
-**                  - in LE Secure Connections pairing over BR/EDR transport - to start
-**                    BR/EDR Link Key processing.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_ltk
+ *
+ * Description      This function is called:
+ *                  - in legacy pairing - to calculate LTK, starting with DIV
+ *                    generation;
+ *                  - in LE Secure Connections pairing over LE transport - to process LTK
+ *                    already generated to encrypt LE link;
+ *                  - in LE Secure Connections pairing over BR/EDR transport - to start
+ *                    BR/EDR Link Key processing.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_generate_ltk(tSMP_CB *p_cb,
                       UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -362,15 +362,15 @@ void smp_generate_ltk(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_compute_csrk
-**
-** Description      This function is called to calculate CSRK
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_compute_csrk
+ *
+ * Description      This function is called to calculate CSRK
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_compute_csrk(tSMP_CB *p_cb,
                       UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -408,16 +408,16 @@ void smp_compute_csrk(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_csrk
-**
-** Description      This function is called to calculate CSRK, starting with DIV
-**                  generation.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_csrk
+ *
+ * Description      This function is called to calculate CSRK, starting with DIV
+ *                  generation.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_generate_csrk(tSMP_CB *p_cb,
                        UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -440,9 +440,9 @@ void smp_generate_csrk(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-** Function         smp_concatenate_peer
-**                  add pairing command sent from local device into p1.
-*******************************************************************************/
+ * Function         smp_concatenate_peer
+ *                  add pairing command sent from local device into p1.
+ ******************************************************************************/
 void smp_concatenate_local( tSMP_CB *p_cb, uint8_t **p_data, uint8_t op_code)
 {
     uint8_t *p = *p_data;
@@ -460,9 +460,9 @@ void smp_concatenate_local( tSMP_CB *p_cb, uint8_t **p_data, uint8_t op_code)
 }
 
 /*******************************************************************************
-** Function         smp_concatenate_peer
-**                  add pairing command received from peer device into p1.
-*******************************************************************************/
+ * Function         smp_concatenate_peer
+ *                  add pairing command received from peer device into p1.
+ ******************************************************************************/
 void smp_concatenate_peer( tSMP_CB *p_cb, uint8_t **p_data, uint8_t op_code)
 {
     uint8_t *p = *p_data;
@@ -480,15 +480,15 @@ void smp_concatenate_peer( tSMP_CB *p_cb, uint8_t **p_data, uint8_t op_code)
 }
 
 /*******************************************************************************
-**
-** Function         smp_gen_p1_4_confirm
-**
-** Description      Generate Confirm/Compare Step1:
-**                  p1 = pres || preq || rat' || iat'
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_gen_p1_4_confirm
+ *
+ * Description      Generate Confirm/Compare Step1:
+ *                  p1 = pres || preq || rat' || iat'
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
 {
     uint8_t *p = (uint8_t *)p1;
@@ -534,15 +534,15 @@ void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
 }
 
 /*******************************************************************************
-**
-** Function         smp_gen_p2_4_confirm
-**
-** Description      Generate Confirm/Compare Step2:
-**                  p2 = padding || ia || ra
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_gen_p2_4_confirm
+ *
+ * Description      Generate Confirm/Compare Step2:
+ *                  p2 = padding || ia || ra
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
 {
     uint8_t     *p = (uint8_t *)p2;
@@ -580,14 +580,14 @@ void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_comfirm
-**
-** Description      This function is called to calculate Confirm value.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_comfirm
+ *
+ * Description      This function is called to calculate Confirm value.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand,
                             UNUSED_ATTR BD_ADDR bda)
 {
@@ -618,15 +618,15 @@ void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand,
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_comfirm_cont
-**
-** Description      This function is called when SConfirm/MConfirm is generated
-**                  proceed to send the Confirm request/response to peer device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_comfirm_cont
+ *
+ * Description      This function is called when SConfirm/MConfirm is generated
+ *                  proceed to send the Confirm request/response to peer device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
 {
     BT_OCTET16    p2;
@@ -667,15 +667,15 @@ static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_confirm
-**
-** Description      This function is called when a 48 bits random number is generated
-**                  as SRand or MRand, continue to calculate Sconfirm or MConfirm.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_confirm
+ *
+ * Description      This function is called when a 48 bits random number is generated
+ *                  as SRand or MRand, continue to calculate Sconfirm or MConfirm.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_generate_confirm(tSMP_CB *p_cb,
                                  UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -686,16 +686,16 @@ static void smp_generate_confirm(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_compare
-**
-** Description      This function is called to generate SConfirm for Slave device,
-**                  or MSlave for Master device. This function can be also used for
-**                  generating Compare number for confirm value check.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_compare
+ *
+ * Description      This function is called to generate SConfirm for Slave device,
+ *                  or MSlave for Master device. This function can be also used for
+ *                  generating Compare number for confirm value check.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_generate_compare (tSMP_CB *p_cb,
                            UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -706,15 +706,15 @@ void smp_generate_compare (tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_process_confirm
-**
-** Description      This function is called when SConfirm/MConfirm is generated
-**                  proceed to send the Confirm request/response to peer device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_process_confirm
+ *
+ * Description      This function is called when SConfirm/MConfirm is generated
+ *                  proceed to send the Confirm request/response to peer device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p)
 {
     tSMP_KEY    key;
@@ -733,15 +733,15 @@ static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         smp_process_compare
-**
-** Description      This function is called when Compare is generated using the
-**                  RRand and local BDA, TK information.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_process_compare
+ *
+ * Description      This function is called when Compare is generated using the
+ *                  RRand and local BDA, TK information.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_process_compare(tSMP_CB *p_cb, tSMP_ENC *p)
 {
     tSMP_KEY    key;
@@ -758,15 +758,15 @@ static void smp_process_compare(tSMP_CB *p_cb, tSMP_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         smp_process_stk
-**
-** Description      This function is called when STK is generated
-**                  proceed to send the encrypt the link using STK.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_process_stk
+ *
+ * Description      This function is called when STK is generated
+ *                  proceed to send the encrypt the link using STK.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p)
 {
     tSMP_KEY    key;
@@ -784,14 +784,14 @@ static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_ltk_cont
-**
-** Description      This function is to calculate LTK = d1(ER, DIV, 0)= e(ER, DIV)
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_ltk_cont
+ *
+ * Description      This function is to calculate LTK = d1(ER, DIV, 0)= e(ER, DIV)
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_generate_ltk_cont(tSMP_CB *p_cb,
                                   UNUSED_ATTR tSMP_INT_DATA *p_data)
 {
@@ -820,14 +820,14 @@ static void smp_generate_ltk_cont(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_y
-**
-** Description      This function is to proceed generate Y = E(DHK, Rand)
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_y
+ *
+ * Description      This function is to proceed generate Y = E(DHK, Rand)
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_generate_y(tSMP_CB *p_cb,
                            UNUSED_ATTR tSMP_INT_DATA *p)
 {
@@ -853,15 +853,15 @@ static void smp_generate_y(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_generate_rand_vector
-**
-** Description      This function is called when LTK is generated, send state machine
-**                  event to SMP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_generate_rand_vector
+ *
+ * Description      This function is called when LTK is generated, send state machine
+ *                  event to SMP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_generate_rand_vector (tSMP_CB *p_cb,
                                       UNUSED_ATTR tSMP_INT_DATA *p)
 {
@@ -873,14 +873,14 @@ static void smp_generate_rand_vector (tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_process_ediv
-**
-** Description      This function is to calculate EDIV = Y xor DIV
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_process_ediv
+ *
+ * Description      This function is to calculate EDIV = Y xor DIV
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_process_ediv(tSMP_CB *p_cb, tSMP_ENC *p)
 {
     tSMP_KEY    key;
@@ -901,14 +901,14 @@ static void smp_process_ediv(tSMP_CB *p_cb, tSMP_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_legacy_short_term_key
-**
-** Description      The function calculates legacy STK.
-**
-** Returns          false if out of resources, true in other cases.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_legacy_short_term_key
+ *
+ * Description      The function calculates legacy STK.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ ******************************************************************************/
 bool    smp_calculate_legacy_short_term_key(tSMP_CB *p_cb, tSMP_ENC *output)
 {
     BT_OCTET16 ptext;
@@ -938,17 +938,17 @@ bool    smp_calculate_legacy_short_term_key(tSMP_CB *p_cb, tSMP_ENC *output)
 }
 
 /*******************************************************************************
-**
-** Function         smp_create_private_key
-**
-** Description      This function is called to create private key used to
-**                  calculate public key and DHKey.
-**                  The function starts private key creation requesting controller
-**                  to generate [0-7] octets of private key.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_create_private_key
+ *
+ * Description      This function is called to create private key used to
+ *                  calculate public key and DHKey.
+ *                  The function starts private key creation requesting controller
+ *                  to generate [0-7] octets of private key.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_create_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG ("%s",__func__);
@@ -957,21 +957,21 @@ void smp_create_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_use_oob_private_key
-**
-** Description      This function is called
-**                  - to save the secret key used to calculate the public key used
-**                    in calculations of commitment sent OOB to a peer
-**                  - to use this secret key to recalculate the public key and
-**                    start the process of sending this public key to the peer
-**                  if secret/public keys have to be reused.
-**                  If the keys aren't supposed to be reused, continue from the
-**                  point from which request for OOB data was issued.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_use_oob_private_key
+ *
+ * Description      This function is called
+ *                  - to save the secret key used to calculate the public key used
+ *                    in calculations of commitment sent OOB to a peer
+ *                  - to use this secret key to recalculate the public key and
+ *                    start the process of sending this public key to the peer
+ *                  if secret/public keys have to be reused.
+ *                  If the keys aren't supposed to be reused, continue from the
+ *                  point from which request for OOB data was issued.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_use_oob_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG ("%s req_oob_type: %d, role: %d",
@@ -994,14 +994,14 @@ void smp_use_oob_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_continue_private_key_creation
-**
-** Description      This function is used to continue private key creation.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_continue_private_key_creation
+ *
+ * Description      This function is used to continue private key creation.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_continue_private_key_creation (tSMP_CB *p_cb, tBTM_RAND_ENC *p)
 {
     uint8_t state = p_cb->rand_enc_proc_state & ~0x80;
@@ -1040,16 +1040,16 @@ void smp_continue_private_key_creation (tSMP_CB *p_cb, tBTM_RAND_ENC *p)
 }
 
 /*******************************************************************************
-**
-** Function         smp_process_private_key
-**
-** Description      This function processes private key.
-**                  It calculates public key and notifies SM that private key /
-**                  public key pair is created.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_process_private_key
+ *
+ * Description      This function processes private key.
+ *                  It calculates public key and notifies SM that private key /
+ *                  public key pair is created.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_process_private_key(tSMP_CB *p_cb)
 {
     Point       public_key;
@@ -1073,17 +1073,17 @@ void smp_process_private_key(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_compute_dhkey
-**
-** Description      The function:
-**                  - calculates a new public key using as input local private
-**                    key and peer public key;
-**                  - saves the new public key x-coordinate as DHKey.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_compute_dhkey
+ *
+ * Description      The function:
+ *                  - calculates a new public key using as input local private
+ *                    key and peer public key;
+ *                  - saves the new public key x-coordinate as DHKey.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_compute_dhkey (tSMP_CB *p_cb)
 {
     Point       peer_publ_key, new_publ_key;
@@ -1113,14 +1113,14 @@ void smp_compute_dhkey (tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_local_commitment
-**
-** Description      The function calculates and saves local commmitment in CB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_local_commitment
+ *
+ * Description      The function calculates and saves local commmitment in CB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_calculate_local_commitment(tSMP_CB *p_cb)
 {
     uint8_t random_input;
@@ -1158,15 +1158,15 @@ void smp_calculate_local_commitment(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_peer_commitment
-**
-** Description      The function calculates and saves peer commmitment at the
-**                  provided output buffer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_peer_commitment
+ *
+ * Description      The function calculates and saves peer commmitment at the
+ *                  provided output buffer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_calculate_peer_commitment(tSMP_CB *p_cb, BT_OCTET16 output_buf)
 {
     uint8_t ri;
@@ -1203,25 +1203,25 @@ void smp_calculate_peer_commitment(tSMP_CB *p_cb, BT_OCTET16 output_buf)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_f4
-**
-** Description      The function calculates
-**                  C = f4(U, V, X, Z) = AES-CMAC (U||V||Z)
-**                                               X
-**                  where
-**                  input:  U is 256 bit,
-**                          V is 256 bit,
-**                          X is 128 bit,
-**                          Z is 8 bit,
-**                  output: C is 128 bit.
-**
-** Returns          void
-**
-** Note             The LSB is the first octet, the MSB is the last octet of
-**                  the AES-CMAC input/output stream.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_f4
+ *
+ * Description      The function calculates
+ *                  C = f4(U, V, X, Z) = AES-CMAC (U||V||Z)
+ *                                               X
+ *                  where
+ *                  input:  U is 256 bit,
+ *                          V is 256 bit,
+ *                          X is 128 bit,
+ *                          Z is 8 bit,
+ *                  output: C is 128 bit.
+ *
+ * Returns          void
+ *
+ * Note             The LSB is the first octet, the MSB is the last octet of
+ *                  the AES-CMAC input/output stream.
+ *
+ ******************************************************************************/
 void smp_calculate_f4(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t z, uint8_t *c)
 {
     uint8_t msg_len = BT_OCTET32_LEN /* U size */ + BT_OCTET32_LEN /* V size */ + 1 /* Z size */;
@@ -1273,15 +1273,15 @@ void smp_calculate_f4(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t z, uint8_t *c)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_numeric_comparison_display_number
-**
-** Description      The function calculates and saves number to display in numeric
-**                  comparison association mode.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_numeric_comparison_display_number
+ *
+ * Description      The function calculates and saves number to display in numeric
+ *                  comparison association mode.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_calculate_numeric_comparison_display_number(tSMP_CB *p_cb,
                                                      tSMP_INT_DATA *p_data)
 {
@@ -1315,28 +1315,28 @@ void smp_calculate_numeric_comparison_display_number(tSMP_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_g2
-**
-** Description      The function calculates
-**                  g2(U, V, X, Y) = AES-CMAC (U||V||Y) mod 2**32 mod 10**6
-**                                           X
-**                  and
-**                  Vres = g2(U, V, X, Y) mod 10**6
-**                  where
-**                  input:  U     is 256 bit,
-**                          V     is 256 bit,
-**                          X     is 128 bit,
-**                          Y     is 128 bit,
-**
-** Returns          Vres.
-**                  Expected value has to be in the range [0 - 999999] i.e. [0 - 0xF423F].
-**                  Vres = 1000000 means that the calculation fails.
-**
-** Note             The LSB is the first octet, the MSB is the last octet of
-**                  the AES-CMAC input/output stream.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_g2
+ *
+ * Description      The function calculates
+ *                  g2(U, V, X, Y) = AES-CMAC (U||V||Y) mod 2**32 mod 10**6
+ *                                           X
+ *                  and
+ *                  Vres = g2(U, V, X, Y) mod 10**6
+ *                  where
+ *                  input:  U     is 256 bit,
+ *                          V     is 256 bit,
+ *                          X     is 128 bit,
+ *                          Y     is 128 bit,
+ *
+ * Returns          Vres.
+ *                  Expected value has to be in the range [0 - 999999] i.e. [0 - 0xF423F].
+ *                  Vres = 1000000 means that the calculation fails.
+ *
+ * Note             The LSB is the first octet, the MSB is the last octet of
+ *                  the AES-CMAC input/output stream.
+ *
+ ******************************************************************************/
 uint32_t smp_calculate_g2(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t *y)
 {
     uint8_t msg_len = BT_OCTET32_LEN /* U size */ + BT_OCTET32_LEN /* V size */
@@ -1405,60 +1405,60 @@ uint32_t smp_calculate_g2(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t *y)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_f5
-**
-** Description      The function provides two AES-CMAC that are supposed to be used as
-**                  - MacKey (MacKey is used in pairing DHKey check calculation);
-**                  - LTK (LTK is used to ecrypt the link after completion of Phase 2
-**                    and on reconnection, to derive BR/EDR LK).
-**                  The function inputs are W, N1, N2, A1, A2.
-**                  F5 rules:
-**                  - the value used as key in MacKey/LTK (T) is calculated
-**                    (function smp_calculate_f5_key(...));
-**                    The formula is:
-**                          T = AES-CMAC    (W)
-**                                      salt
-**                    where salt is internal parameter of smp_calculate_f5_key(...).
-**                  - MacKey and LTK are calculated as AES-MAC values received with the
-**                    key T calculated in the previous step and the plaintext message
-**                    built from the external parameters N1, N2, A1, A2 and the internal
-**                    parameters counter, keyID, length.
-**                    The function smp_calculate_f5_mackey_or_long_term_key(...) is used in the
-**                    calculations.
-**                    The same formula is used in calculation of MacKey and LTK and the
-**                    same parameter values except the value of the internal parameter
-**                    counter:
-**                    - in MacKey calculations the value is 0;
-**                    - in LTK calculations the value is 1.
-**                      MacKey  = AES-CMAC (Counter=0||keyID||N1||N2||A1||A2||Length=256)
-**                                        T
-**                      LTK     = AES-CMAC (Counter=1||keyID||N1||N2||A1||A2||Length=256)
-**                                        T
-**                  The parameters are
-**                  input:
-**                          W       is 256 bits,
-**                          N1      is 128 bits,
-**                          N2      is 128 bits,
-**                          A1 is 56 bit,
-**                          A2 is 56 bit.
-**                  internal:
-**                          Counter is 8 bits,  its value is 0 for MacKey,
-**                                                          1 for LTK;
-**                          KeyId   is 32 bits, its value is
-**                                              0x62746c65 (MSB~LSB);
-**                          Length  is 16 bits, its value is 0x0100
-**                                              (MSB~LSB).
-**                  output:
-**                          MacKey  is 128 bits;
-**                          LTK     is 128 bits
-**
-** Returns          false if out of resources, true in other cases.
-**
-** Note             The LSB is the first octet, the MSB is the last octet of
-**                  the AES-CMAC input/output stream.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_f5
+ *
+ * Description      The function provides two AES-CMAC that are supposed to be used as
+ *                  - MacKey (MacKey is used in pairing DHKey check calculation);
+ *                  - LTK (LTK is used to ecrypt the link after completion of Phase 2
+ *                    and on reconnection, to derive BR/EDR LK).
+ *                  The function inputs are W, N1, N2, A1, A2.
+ *                  F5 rules:
+ *                  - the value used as key in MacKey/LTK (T) is calculated
+ *                    (function smp_calculate_f5_key(...));
+ *                    The formula is:
+ *                          T = AES-CMAC    (W)
+ *                                      salt
+ *                    where salt is internal parameter of smp_calculate_f5_key(...).
+ *                  - MacKey and LTK are calculated as AES-MAC values received with the
+ *                    key T calculated in the previous step and the plaintext message
+ *                    built from the external parameters N1, N2, A1, A2 and the internal
+ *                    parameters counter, keyID, length.
+ *                    The function smp_calculate_f5_mackey_or_long_term_key(...) is used in the
+ *                    calculations.
+ *                    The same formula is used in calculation of MacKey and LTK and the
+ *                    same parameter values except the value of the internal parameter
+ *                    counter:
+ *                    - in MacKey calculations the value is 0;
+ *                    - in LTK calculations the value is 1.
+ *                      MacKey  = AES-CMAC (Counter=0||keyID||N1||N2||A1||A2||Length=256)
+ *                                        T
+ *                      LTK     = AES-CMAC (Counter=1||keyID||N1||N2||A1||A2||Length=256)
+ *                                        T
+ *                  The parameters are
+ *                  input:
+ *                          W       is 256 bits,
+ *                          N1      is 128 bits,
+ *                          N2      is 128 bits,
+ *                          A1 is 56 bit,
+ *                          A2 is 56 bit.
+ *                  internal:
+ *                          Counter is 8 bits,  its value is 0 for MacKey,
+ *                                                          1 for LTK;
+ *                          KeyId   is 32 bits, its value is
+ *                                              0x62746c65 (MSB~LSB);
+ *                          Length  is 16 bits, its value is 0x0100
+ *                                              (MSB~LSB).
+ *                  output:
+ *                          MacKey  is 128 bits;
+ *                          LTK     is 128 bits
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ * Note             The LSB is the first octet, the MSB is the last octet of
+ *                  the AES-CMAC input/output stream.
+ *
+ ******************************************************************************/
 bool    smp_calculate_f5(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *a1, uint8_t *a2,
                          uint8_t *mac_key, uint8_t *ltk)
 {
@@ -1534,37 +1534,37 @@ bool    smp_calculate_f5(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *a1, uint
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_f5_mackey_or_long_term_key
-**
-** Description      The function calculates the value of MacKey or LTK by the rules
-**                  defined for f5 function.
-**                  At the moment exactly the same formula is used to calculate
-**                  LTK and MacKey.
-**                  The difference is the value of input parameter Counter:
-**                  - in MacKey calculations the value is 0;
-**                  - in LTK calculations the value is 1.
-**                  The formula:
-**                  mac = AES-CMAC (Counter||keyID||N1||N2||A1||A2||Length)
-**                                T
-**                  where
-**                  input:      T       is 256 bits;
-**                              Counter is 8 bits, its value is 0 for MacKey,
-**                                                              1 for LTK;
-**                              keyID   is 32 bits, its value is 0x62746c65;
-**                              N1      is 128 bits;
-**                              N2      is 128 bits;
-**                              A1      is 56 bits;
-**                              A2      is 56 bits;
-**                              Length  is 16 bits, its value is 0x0100
-**                  output:     LTK     is 128 bit.
-**
-** Returns          false if out of resources, true in other cases.
-**
-** Note             The LSB is the first octet, the MSB is the last octet of
-**                  the AES-CMAC input/output stream.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_f5_mackey_or_long_term_key
+ *
+ * Description      The function calculates the value of MacKey or LTK by the rules
+ *                  defined for f5 function.
+ *                  At the moment exactly the same formula is used to calculate
+ *                  LTK and MacKey.
+ *                  The difference is the value of input parameter Counter:
+ *                  - in MacKey calculations the value is 0;
+ *                  - in LTK calculations the value is 1.
+ *                  The formula:
+ *                  mac = AES-CMAC (Counter||keyID||N1||N2||A1||A2||Length)
+ *                                T
+ *                  where
+ *                  input:      T       is 256 bits;
+ *                              Counter is 8 bits, its value is 0 for MacKey,
+ *                                                              1 for LTK;
+ *                              keyID   is 32 bits, its value is 0x62746c65;
+ *                              N1      is 128 bits;
+ *                              N2      is 128 bits;
+ *                              A1      is 56 bits;
+ *                              A2      is 56 bits;
+ *                              Length  is 16 bits, its value is 0x0100
+ *                  output:     LTK     is 128 bit.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ * Note             The LSB is the first octet, the MSB is the last octet of
+ *                  the AES-CMAC input/output stream.
+ *
+ ******************************************************************************/
 bool    smp_calculate_f5_mackey_or_long_term_key(uint8_t *t, uint8_t *counter,
                                   uint8_t *key_id, uint8_t *n1, uint8_t *n2, uint8_t *a1, uint8_t *a2,
                                   uint8_t *length, uint8_t *mac)
@@ -1637,24 +1637,24 @@ bool    smp_calculate_f5_mackey_or_long_term_key(uint8_t *t, uint8_t *counter,
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_f5_key
-**
-** Description      The function calculates key T used in calculation of
-**                  MacKey and LTK (f5 output is defined as MacKey || LTK).
-**                  T = AES-CMAC    (W)
-**                              salt
-**                  where
-**                  Internal:   salt    is 128 bit.
-**                  input:      W       is 256 bit.
-**                  Output:     T       is 128 bit.
-**
-** Returns          false if out of resources, true in other cases.
-**
-** Note             The LSB is the first octet, the MSB is the last octet of
-**                  the AES-CMAC input/output stream.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_f5_key
+ *
+ * Description      The function calculates key T used in calculation of
+ *                  MacKey and LTK (f5 output is defined as MacKey || LTK).
+ *                  T = AES-CMAC    (W)
+ *                              salt
+ *                  where
+ *                  Internal:   salt    is 128 bit.
+ *                  input:      W       is 256 bit.
+ *                  Output:     T       is 128 bit.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ * Note             The LSB is the first octet, the MSB is the last octet of
+ *                  the AES-CMAC input/output stream.
+ *
+ ******************************************************************************/
 bool    smp_calculate_f5_key(uint8_t *w, uint8_t *t)
 {
     uint8_t *p = NULL;
@@ -1711,18 +1711,18 @@ bool    smp_calculate_f5_key(uint8_t *w, uint8_t *t)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_local_dhkey_check
-**
-** Description      The function calculates and saves local device DHKey check
-**                  value in CB.
-**                  Before doing this it calls smp_calculate_f5_mackey_and_long_term_key(...).
-**                  to calculate MacKey and LTK.
-**                  MacKey is used in dhkey calculation.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_local_dhkey_check
+ *
+ * Description      The function calculates and saves local device DHKey check
+ *                  value in CB.
+ *                  Before doing this it calls smp_calculate_f5_mackey_and_long_term_key(...).
+ *                  to calculate MacKey and LTK.
+ *                  MacKey is used in dhkey calculation.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_calculate_local_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t iocap[3], a[7], b[7];
@@ -1742,14 +1742,14 @@ void smp_calculate_local_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_peer_dhkey_check
-**
-** Description      The function calculates peer device DHKey check value.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_peer_dhkey_check
+ *
+ * Description      The function calculates peer device DHKey check value.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_calculate_peer_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t     iocap[3], a[7], b[7];
@@ -1786,28 +1786,28 @@ void smp_calculate_peer_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_f6
-**
-** Description      The function calculates
-**                  C = f6(W, N1, N2, R, IOcap, A1, A2) = AES-CMAC (N1||N2||R||IOcap||A1||A2)
-**                                                                W
-**                  where
-**                  input:  W is 128 bit,
-**                          N1 is 128 bit,
-**                          N2 is 128 bit,
-**                          R is 128 bit,
-**                          IOcap is 24 bit,
-**                          A1 is 56 bit,
-**                          A2 is 56 bit,
-**                  output: C is 128 bit.
-**
-** Returns          false if out of resources, true in other cases.
-**
-** Note             The LSB is the first octet, the MSB is the last octet of
-**                  the AES-CMAC input/output stream.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_f6
+ *
+ * Description      The function calculates
+ *                  C = f6(W, N1, N2, R, IOcap, A1, A2) = AES-CMAC (N1||N2||R||IOcap||A1||A2)
+ *                                                                W
+ *                  where
+ *                  input:  W is 128 bit,
+ *                          N1 is 128 bit,
+ *                          N2 is 128 bit,
+ *                          R is 128 bit,
+ *                          IOcap is 24 bit,
+ *                          A1 is 56 bit,
+ *                          A2 is 56 bit,
+ *                  output: C is 128 bit.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ * Note             The LSB is the first octet, the MSB is the last octet of
+ *                  the AES-CMAC input/output stream.
+ *
+ ******************************************************************************/
 bool    smp_calculate_f6(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *r, uint8_t *iocap, uint8_t *a1,
                          uint8_t *a2, uint8_t *c)
 {
@@ -1878,15 +1878,15 @@ bool    smp_calculate_f6(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *r, uint8
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_link_key_from_long_term_key
-**
-** Description      The function calculates and saves BR/EDR link key derived from
-**                  LE SC LTK.
-**
-** Returns          false if out of resources, true in other cases.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_link_key_from_long_term_key
+ *
+ * Description      The function calculates and saves BR/EDR link key derived from
+ *                  LE SC LTK.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ ******************************************************************************/
 bool    smp_calculate_link_key_from_long_term_key(tSMP_CB *p_cb)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -1981,15 +1981,15 @@ bool    smp_calculate_link_key_from_long_term_key(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_long_term_key_from_link_key
-**
-** Description      The function calculates and saves SC LTK derived from BR/EDR
-**                  link key.
-**
-** Returns          false if out of resources, true in other cases.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_long_term_key_from_link_key
+ *
+ * Description      The function calculates and saves SC LTK derived from BR/EDR
+ *                  link key.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ ******************************************************************************/
 bool    smp_calculate_long_term_key_from_link_key(tSMP_CB *p_cb)
 {
     bool    ret = true;
@@ -2057,23 +2057,23 @@ bool    smp_calculate_long_term_key_from_link_key(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_calculate_h6
-**
-** Description      The function calculates
-**                  C = h6(W, KeyID) = AES-CMAC (KeyID)
-**                                             W
-**                  where
-**                  input:  W is 128 bit,
-**                          KeyId is 32 bit,
-**                  output: C is 128 bit.
-**
-** Returns          false if out of resources, true in other cases.
-**
-** Note             The LSB is the first octet, the MSB is the last octet of
-**                  the AES-CMAC input/output stream.
-**
-*******************************************************************************/
+ *
+ * Function         smp_calculate_h6
+ *
+ * Description      The function calculates
+ *                  C = h6(W, KeyID) = AES-CMAC (KeyID)
+ *                                             W
+ *                  where
+ *                  input:  W is 128 bit,
+ *                          KeyId is 32 bit,
+ *                  output: C is 128 bit.
+ *
+ * Returns          false if out of resources, true in other cases.
+ *
+ * Note             The LSB is the first octet, the MSB is the last octet of
+ *                  the AES-CMAC input/output stream.
+ *
+ ******************************************************************************/
 bool    smp_calculate_h6(uint8_t *w, uint8_t *keyid, uint8_t *c)
 {
 #if (SMP_DEBUG == TRUE)
@@ -2129,14 +2129,14 @@ bool    smp_calculate_h6(uint8_t *w, uint8_t *keyid, uint8_t *c)
 }
 
 /*******************************************************************************
-**
-** Function         smp_start_nonce_generation
-**
-** Description      This function starts nonce generation.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_start_nonce_generation
+ *
+ * Description      This function starts nonce generation.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_start_nonce_generation(tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -2145,14 +2145,14 @@ void smp_start_nonce_generation(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_finish_nonce_generation
-**
-** Description      This function finishes nonce generation.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_finish_nonce_generation
+ *
+ * Description      This function finishes nonce generation.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_finish_nonce_generation(tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -2161,14 +2161,14 @@ void smp_finish_nonce_generation(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_process_new_nonce
-**
-** Description      This function notifies SM that it has new nonce.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_process_new_nonce
+ *
+ * Description      This function notifies SM that it has new nonce.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_process_new_nonce(tSMP_CB *p_cb)
 {
     SMP_TRACE_DEBUG ("%s round %d", __func__, p_cb->round);
@@ -2176,15 +2176,15 @@ void smp_process_new_nonce(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         smp_rand_back
-**
-** Description      This function is to process the rand command finished,
-**                  process the random/encrypted number for further action.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_rand_back
+ *
+ * Description      This function is to process the rand command finished,
+ *                  process the random/encrypted number for further action.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_rand_back(tBTM_RAND_ENC *p)
 {
     tSMP_CB *p_cb = &smp_cb;

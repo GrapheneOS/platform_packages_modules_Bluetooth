@@ -268,7 +268,7 @@ typedef struct
 } tBTM_RAND_ENC;
 
 /* General callback function for notifying an application that a synchronous
-** BTM function is complete. The pointer contains the address of any returned data.
+ * BTM function is complete. The pointer contains the address of any returned data.
 */
 typedef void (tBTM_RAND_ENC_CB) (tBTM_RAND_ENC *p1);
 

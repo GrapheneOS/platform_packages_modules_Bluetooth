@@ -29,21 +29,21 @@
 #include "avrc_int.h"
 
 /******************************************************************************
-**
-** Function         avrc_vendor_msg
-**
-** Description      Compose a VENDOR DEPENDENT command according to p_msg
-**
-**                  Input Parameters:
-**                      p_msg: Pointer to VENDOR DEPENDENT message structure.
-**
-**                  Output Parameters:
+ *
+ * Function         avrc_vendor_msg
+ *
+ * Description      Compose a VENDOR DEPENDENT command according to p_msg
+ *
+ *                  Input Parameters:
+ *                      p_msg: Pointer to VENDOR DEPENDENT message structure.
+ *
+ *                  Output Parameters:
 *                      None.
-**
-** Returns          pointer to a valid GKI buffer if successful.
-**                  NULL if p_msg is NULL.
-**
-******************************************************************************/
+ *
+ * Returns          pointer to a valid GKI buffer if successful.
+ *                  NULL if p_msg is NULL.
+ *
+ *****************************************************************************/
 static BT_HDR  * avrc_vendor_msg(tAVRC_MSG_VENDOR *p_msg)
 {
     BT_HDR  *p_cmd;
@@ -74,26 +74,26 @@ static BT_HDR  * avrc_vendor_msg(tAVRC_MSG_VENDOR *p_msg)
 }
 
 /******************************************************************************
-**
-** Function         AVRC_UnitCmd
-**
-** Description      Send a UNIT INFO command to the peer device.  This
-**                  function can only be called for controller role connections.
-**                  Any response message from the peer is passed back through
-**                  the tAVRC_MSG_CBACK callback function.
-**
-**                  Input Parameters:
-**                      handle: Handle of this connection.
-**
-**                      label: Transaction label.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_UnitCmd
+ *
+ * Description      Send a UNIT INFO command to the peer device.  This
+ *                  function can only be called for controller role connections.
+ *                  Any response message from the peer is passed back through
+ *                  the tAVRC_MSG_CBACK callback function.
+ *
+ *                  Input Parameters:
+ *                      handle: Handle of this connection.
+ *
+ *                      label: Transaction label.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_UnitCmd(uint8_t handle, uint8_t label)
 {
     BT_HDR  *p_cmd = (BT_HDR *)osi_malloc(AVRC_CMD_BUF_SIZE);
@@ -113,30 +113,30 @@ uint16_t AVRC_UnitCmd(uint8_t handle, uint8_t label)
 }
 
 /******************************************************************************
-**
-** Function         AVRC_SubCmd
-**
-** Description      Send a SUBUNIT INFO command to the peer device.  This
-**                  function can only be called for controller role connections.
-**                  Any response message from the peer is passed back through
-**                  the tAVRC_MSG_CBACK callback function.
-**
-**                  Input Parameters:
-**                      handle: Handle of this connection.
-**
-**                      label: Transaction label.
-**
-**                      page: Specifies which part of the subunit type table
-**                      is requested.  For AVRCP it is typically zero.
-**                      Value range is 0-7.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_SubCmd
+ *
+ * Description      Send a SUBUNIT INFO command to the peer device.  This
+ *                  function can only be called for controller role connections.
+ *                  Any response message from the peer is passed back through
+ *                  the tAVRC_MSG_CBACK callback function.
+ *
+ *                  Input Parameters:
+ *                      handle: Handle of this connection.
+ *
+ *                      label: Transaction label.
+ *
+ *                      page: Specifies which part of the subunit type table
+ *                      is requested.  For AVRCP it is typically zero.
+ *                      Value range is 0-7.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_SubCmd(uint8_t handle, uint8_t label, uint8_t page)
 {
     BT_HDR  *p_cmd = (BT_HDR *)osi_malloc(AVRC_CMD_BUF_SIZE);
@@ -157,28 +157,28 @@ uint16_t AVRC_SubCmd(uint8_t handle, uint8_t label, uint8_t page)
 }
 
 /******************************************************************************
-**
-** Function         AVRC_VendorCmd
-**
-** Description      Send a VENDOR DEPENDENT command to the peer device.  This
-**                  function can only be called for controller role connections.
-**                  Any response message from the peer is passed back through
-**                  the tAVRC_MSG_CBACK callback function.
-**
-**                  Input Parameters:
-**                      handle: Handle of this connection.
-**
-**                      label: Transaction label.
-**
-**                      p_msg: Pointer to VENDOR DEPENDENT message structure.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_VendorCmd
+ *
+ * Description      Send a VENDOR DEPENDENT command to the peer device.  This
+ *                  function can only be called for controller role connections.
+ *                  Any response message from the peer is passed back through
+ *                  the tAVRC_MSG_CBACK callback function.
+ *
+ *                  Input Parameters:
+ *                      handle: Handle of this connection.
+ *
+ *                      label: Transaction label.
+ *
+ *                      p_msg: Pointer to VENDOR DEPENDENT message structure.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_VendorCmd(uint8_t handle, uint8_t label, tAVRC_MSG_VENDOR *p_msg)
 {
     BT_HDR *p_buf = avrc_vendor_msg(p_msg);
@@ -190,30 +190,30 @@ uint16_t AVRC_VendorCmd(uint8_t handle, uint8_t label, tAVRC_MSG_VENDOR *p_msg)
 
 
 /******************************************************************************
-**
-** Function         AVRC_VendorRsp
-**
-** Description      Send a VENDOR DEPENDENT response to the peer device.  This
-**                  function can only be called for target role connections.
-**                  This function must be called when a VENDOR DEPENDENT
-**                  command message is received from the peer through the
-**                  tAVRC_MSG_CBACK callback function.
-**
-**                  Input Parameters:
-**                      handle: Handle of this connection.
-**
-**                      label: Transaction label.  Must be the same value as
-**                      passed with the command message in the callback function.
-**
-**                      p_msg: Pointer to VENDOR DEPENDENT message structure.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_HANDLE if handle is invalid.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_VendorRsp
+ *
+ * Description      Send a VENDOR DEPENDENT response to the peer device.  This
+ *                  function can only be called for target role connections.
+ *                  This function must be called when a VENDOR DEPENDENT
+ *                  command message is received from the peer through the
+ *                  tAVRC_MSG_CBACK callback function.
+ *
+ *                  Input Parameters:
+ *                      handle: Handle of this connection.
+ *
+ *                      label: Transaction label.  Must be the same value as
+ *                      passed with the command message in the callback function.
+ *
+ *                      p_msg: Pointer to VENDOR DEPENDENT message structure.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_HANDLE if handle is invalid.
+ *
+ *****************************************************************************/
 uint16_t AVRC_VendorRsp(uint8_t handle, uint8_t label, tAVRC_MSG_VENDOR *p_msg)
 {
     BT_HDR *p_buf = avrc_vendor_msg(p_msg);

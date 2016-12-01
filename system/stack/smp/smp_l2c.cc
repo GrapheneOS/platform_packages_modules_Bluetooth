@@ -44,13 +44,13 @@ static void smp_br_connect_callback(uint16_t channel, BD_ADDR bd_addr, bool    c
 static void smp_br_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf);
 
 /*******************************************************************************
-**
-** Function         smp_l2cap_if_init
-**
-** Description      This function is called during the SMP task startup
-**                  to register interface functions with L2CAP.
-**
-*******************************************************************************/
+ *
+ * Function         smp_l2cap_if_init
+ *
+ * Description      This function is called during the SMP task startup
+ *                  to register interface functions with L2CAP.
+ *
+ ******************************************************************************/
 void smp_l2cap_if_init (void)
 {
     tL2CAP_FIXED_CHNL_REG  fixed_reg;
@@ -78,14 +78,14 @@ void smp_l2cap_if_init (void)
 }
 
 /*******************************************************************************
-**
-** Function         smp_connect_callback
-**
-** Description      This callback function is called by L2CAP to indicate that
-**                  SMP channel is
-**                      connected (conn = true)/disconnected (conn = false).
-**
-*******************************************************************************/
+ *
+ * Function         smp_connect_callback
+ *
+ * Description      This callback function is called by L2CAP to indicate that
+ *                  SMP channel is
+ *                      connected (conn = true)/disconnected (conn = false).
+ *
+ ******************************************************************************/
 static void smp_connect_callback (uint16_t channel, BD_ADDR bd_addr, bool    connected, uint16_t reason,
                                   tBT_TRANSPORT transport)
 {
@@ -131,16 +131,16 @@ static void smp_connect_callback (uint16_t channel, BD_ADDR bd_addr, bool    con
 }
 
 /*******************************************************************************
-**
-** Function         smp_data_received
-**
-** Description      This function is called when data is received from L2CAP on
-**                  SMP channel.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_data_received
+ *
+ * Description      This function is called when data is received from L2CAP on
+ *                  SMP channel.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tSMP_CB *p_cb = &smp_cb;
@@ -204,12 +204,12 @@ static void smp_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         smp_tx_complete_callback
-**
-** Description      SMP channel tx complete callback
-**
-*******************************************************************************/
+ *
+ * Function         smp_tx_complete_callback
+ *
+ * Description      SMP channel tx complete callback
+ *
+ ******************************************************************************/
 static void smp_tx_complete_callback (uint16_t cid, uint16_t num_pkt)
 {
     tSMP_CB *p_cb = &smp_cb;
@@ -230,14 +230,14 @@ static void smp_tx_complete_callback (uint16_t cid, uint16_t num_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         smp_br_connect_callback
-**
-** Description      This callback function is called by L2CAP to indicate that
-**                  SMP BR channel is
-**                      connected (conn = true)/disconnected (conn = false).
-**
-*******************************************************************************/
+ *
+ * Function         smp_br_connect_callback
+ *
+ * Description      This callback function is called by L2CAP to indicate that
+ *                  SMP BR channel is
+ *                      connected (conn = true)/disconnected (conn = false).
+ *
+ ******************************************************************************/
 static void smp_br_connect_callback(uint16_t channel, BD_ADDR bd_addr, bool    connected,
                                     uint16_t reason, tBT_TRANSPORT transport)
 {
@@ -283,15 +283,15 @@ static void smp_br_connect_callback(uint16_t channel, BD_ADDR bd_addr, bool    c
 }
 
 /*******************************************************************************
-**
-** Function         smp_br_data_received
-**
-** Description      This function is called when data is received from L2CAP on
-**                  SMP BR channel.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_br_data_received
+ *
+ * Description      This function is called when data is received from L2CAP on
+ *                  SMP BR channel.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void smp_br_data_received(uint16_t channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tSMP_CB *p_cb = &smp_cb;

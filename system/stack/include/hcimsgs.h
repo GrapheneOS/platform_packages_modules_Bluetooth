@@ -356,8 +356,8 @@ extern void btsnd_hcic_write_def_policy_set(uint16_t settings);
                                                                     /* Write Default Policy Settings */
 
 /******************************************
-**    Lisbon Features
-*******************************************/
+ *    Lisbon Features
+ ******************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
                                                                     /* Sniff Subrating */
 extern void btsnd_hcic_sniff_sub_rate(uint16_t handle, uint16_t max_lat,
@@ -638,10 +638,10 @@ extern void btsnd_hcic_vendor_spec_cmd (void *buffer, uint16_t opcode,
                                         uint8_t len, uint8_t *p_data,
                                         void *p_cmd_cplt_cback);
 
-/********************************************************************************
-** BLE Commands
-**      Note: "local_controller_id" is for transport, not counted in HCI message size
-*********************************************************************************/
+/*******************************************************************************
+ * BLE Commands
+ *      Note: "local_controller_id" is for transport, not counted in HCI message size
+ ******************************************************************************/
 #define HCIC_BLE_RAND_DI_SIZE                   8
 #define HCIC_BLE_ENCRYT_KEY_SIZE                16
 #define HCIC_BLE_IRK_SIZE                       16

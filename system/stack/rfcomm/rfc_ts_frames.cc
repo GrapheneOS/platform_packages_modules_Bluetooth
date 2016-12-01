@@ -32,12 +32,12 @@
 #include "rfc_int.h"
 
 /*******************************************************************************
-**
-** Function         rfc_send_sabme
-**
-** Description      This function sends SABME frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_sabme
+ *
+ * Description      This function sends SABME frame.
+ *
+ ******************************************************************************/
 void rfc_send_sabme (tRFC_MCB *p_mcb, uint8_t dlci)
 {
     uint8_t *p_data;
@@ -61,12 +61,12 @@ void rfc_send_sabme (tRFC_MCB *p_mcb, uint8_t dlci)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_ua
-**
-** Description      This function sends UA frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_ua
+ *
+ * Description      This function sends UA frame.
+ *
+ ******************************************************************************/
 void rfc_send_ua (tRFC_MCB *p_mcb, uint8_t dlci)
 {
     uint8_t *p_data;
@@ -90,12 +90,12 @@ void rfc_send_ua (tRFC_MCB *p_mcb, uint8_t dlci)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_dm
-**
-** Description      This function sends DM frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_dm
+ *
+ * Description      This function sends DM frame.
+ *
+ ******************************************************************************/
 void rfc_send_dm (tRFC_MCB *p_mcb, uint8_t dlci, bool    pf)
 {
     uint8_t *p_data;
@@ -119,12 +119,12 @@ void rfc_send_dm (tRFC_MCB *p_mcb, uint8_t dlci, bool    pf)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_disc
-**
-** Description      This function sends DISC frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_disc
+ *
+ * Description      This function sends DISC frame.
+ *
+ ******************************************************************************/
 void rfc_send_disc (tRFC_MCB *p_mcb, uint8_t dlci)
 {
     uint8_t *p_data;
@@ -148,12 +148,12 @@ void rfc_send_disc (tRFC_MCB *p_mcb, uint8_t dlci)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_buf_uih
-**
-** Description      This function sends UIH frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_buf_uih
+ *
+ * Description      This function sends UIH frame.
+ *
+ ******************************************************************************/
 void rfc_send_buf_uih (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
 {
     uint8_t *p_data;
@@ -211,12 +211,12 @@ void rfc_send_buf_uih (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_pn
-**
-** Description      This function sends DLC Parameters Negotiation Frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_pn
+ *
+ * Description      This function sends DLC Parameters Negotiation Frame.
+ *
+ ******************************************************************************/
 void rfc_send_pn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint16_t mtu, uint8_t cl, uint8_t k)
 {
     uint8_t  *p_data;
@@ -253,12 +253,12 @@ void rfc_send_pn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint16_t mt
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_fcon
-**
-** Description      This function sends Flow Control On Command.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_fcon
+ *
+ * Description      This function sends Flow Control On Command.
+ *
+ ******************************************************************************/
 void rfc_send_fcon (tRFC_MCB *p_mcb, bool    is_command)
 {
     uint8_t *p_data;
@@ -278,12 +278,12 @@ void rfc_send_fcon (tRFC_MCB *p_mcb, bool    is_command)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_fcoff
-**
-** Description      This function sends Flow Control Off Command.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_fcoff
+ *
+ * Description      This function sends Flow Control Off Command.
+ *
+ ******************************************************************************/
 void rfc_send_fcoff (tRFC_MCB *p_mcb, bool    is_command)
 {
     uint8_t *p_data;
@@ -303,12 +303,12 @@ void rfc_send_fcoff (tRFC_MCB *p_mcb, bool    is_command)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_msc
-**
-** Description      This function sends Modem Status Command Frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_msc
+ *
+ * Description      This function sends Modem Status Command Frame.
+ *
+ ******************************************************************************/
 void rfc_send_msc (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
                    tPORT_CTRL *p_pars)
 {
@@ -354,12 +354,12 @@ void rfc_send_msc (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_rls
-**
-** Description      This function sends Remote Line Status Command Frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_rls
+ *
+ * Description      This function sends Remote Line Status Command Frame.
+ *
+ ******************************************************************************/
 void rfc_send_rls (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint8_t status)
 {
     uint8_t *p_data;
@@ -382,12 +382,12 @@ void rfc_send_rls (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command, uint8_t st
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_nsc
-**
-** Description      This function sends Non Supported Command Response.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_nsc
+ *
+ * Description      This function sends Non Supported Command Response.
+ *
+ ******************************************************************************/
 void rfc_send_nsc (tRFC_MCB *p_mcb)
 {
     uint8_t *p_data;
@@ -411,12 +411,12 @@ void rfc_send_nsc (tRFC_MCB *p_mcb)
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_rpn
-**
-** Description      This function sends Remote Port Negotiation Command
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_rpn
+ *
+ * Description      This function sends Remote Port Negotiation Command
+ *
+ ******************************************************************************/
 void rfc_send_rpn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
                    tPORT_STATE *p_pars, uint16_t mask)
 {
@@ -461,12 +461,12 @@ void rfc_send_rpn (tRFC_MCB *p_mcb, uint8_t dlci, bool    is_command,
 
 
 /*******************************************************************************
-**
-** Function         rfc_send_test
-**
-** Description      This function sends Test frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_test
+ *
+ * Description      This function sends Test frame.
+ *
+ ******************************************************************************/
 void rfc_send_test (tRFC_MCB *p_mcb, bool    is_command, BT_HDR *p_buf)
 {
     /* Shift buffer to give space for header */
@@ -501,12 +501,12 @@ void rfc_send_test (tRFC_MCB *p_mcb, bool    is_command, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         rfc_send_credit
-**
-** Description      This function sends a flow control credit in UIH frame.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_send_credit
+ *
+ * Description      This function sends a flow control credit in UIH frame.
+ *
+ ******************************************************************************/
 void rfc_send_credit(tRFC_MCB *p_mcb, uint8_t dlci, uint8_t credit)
 {
     uint8_t  *p_data;
@@ -529,12 +529,12 @@ void rfc_send_credit(tRFC_MCB *p_mcb, uint8_t dlci, uint8_t credit)
 
 
 /*******************************************************************************
-**
-** Function         rfc_parse_data
-**
-** Description      This function processes data packet received from L2CAP
-**
-*******************************************************************************/
+ *
+ * Function         rfc_parse_data
+ *
+ * Description      This function processes data packet received from L2CAP
+ *
+ ******************************************************************************/
 uint8_t rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
 {
     uint8_t   ead, eal, fcs;
@@ -655,13 +655,13 @@ uint8_t rfc_parse_data (tRFC_MCB *p_mcb, MX_FRAME *p_frame, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         rfc_process_mx_message
-**
-** Description      This function processes UIH frames received on the
-**                  multiplexer control channel.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_process_mx_message
+ *
+ * Description      This function processes UIH frames received on the
+ *                  multiplexer control channel.
+ *
+ ******************************************************************************/
 void rfc_process_mx_message (tRFC_MCB *p_mcb, BT_HDR *p_buf)
 {
     uint8_t     *p_data = (uint8_t *)(p_buf + 1) + p_buf->offset;

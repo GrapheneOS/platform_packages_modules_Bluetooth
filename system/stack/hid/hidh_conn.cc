@@ -51,9 +51,9 @@ extern fixed_queue_t *btu_general_alarm_queue;
 static uint8_t find_conn_by_cid (uint16_t cid);
 static void hidh_conn_retry (uint8_t dhandle);
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid,
                                     uint16_t psm, uint8_t l2cap_id);
 static void hidh_l2cif_connect_cfm (uint16_t l2cap_cid, uint16_t result);
@@ -80,14 +80,14 @@ static const tL2CAP_APPL_INFO hst_reg_info =
 };
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_reg
-**
-** Description      This function initializes the SDP unit.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_reg
+ *
+ * Description      This function initializes the SDP unit.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tHID_STATUS hidh_conn_reg (void)
 {
     int xx;
@@ -123,14 +123,14 @@ tHID_STATUS hidh_conn_reg (void)
 }
 
 /*******************************************************************************
-**
-** Function         hidh_conn_disconnect
-**
-** Description      This function disconnects a connection.
-**
-** Returns          true if disconnect started, false if already disconnected
-**
-*******************************************************************************/
+ *
+ * Function         hidh_conn_disconnect
+ *
+ * Description      This function disconnects a connection.
+ *
+ * Returns          true if disconnect started, false if already disconnected
+ *
+ ******************************************************************************/
 tHID_STATUS hidh_conn_disconnect (uint8_t dhandle)
 {
     tHID_CONN *p_hcon = &hh_cb.devices[dhandle].conn;
@@ -159,15 +159,15 @@ tHID_STATUS hidh_conn_disconnect (uint8_t dhandle)
 }
 
 /*******************************************************************************
-**
-** Function         hidh_sec_check_complete_term
-**
-** Description      HID security check complete callback function.
-**
-** Returns          Send L2CA_ConnectRsp OK if secutiry check succeed; otherwise
-**                  send security block L2C connection response.
-**
-*******************************************************************************/
+ *
+ * Function         hidh_sec_check_complete_term
+ *
+ * Description      HID security check complete callback function.
+ *
+ * Returns          Send L2CA_ConnectRsp OK if secutiry check succeed; otherwise
+ *                  send security block L2C connection response.
+ *
+ ******************************************************************************/
 void hidh_sec_check_complete_term (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
                                    uint8_t res)
 {
@@ -196,16 +196,16 @@ void hidh_sec_check_complete_term (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_
 }
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_connect_ind
-**
-** Description      This function handles an inbound connection indication
-**                  from L2CAP. This is the case where we are acting as a
-**                  server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_connect_ind
+ *
+ * Description      This function handles an inbound connection indication
+ *                  from L2CAP. This is the case where we are acting as a
+ *                  server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id)
 {
     tHID_CONN    *p_hcon;
@@ -301,14 +301,14 @@ void hidh_process_repage_timer_timeout(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         hidh_try_repage
-**
-** Description      This function processes timeout (to page device).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_try_repage
+ *
+ * Description      This function processes timeout (to page device).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void hidh_try_repage(uint8_t dhandle)
 {
     tHID_HOST_DEV_CTB *device;
@@ -323,15 +323,15 @@ void hidh_try_repage(uint8_t dhandle)
 }
 
 /*******************************************************************************
-**
-** Function         hidh_sec_check_complete_orig
-**
-** Description      This function checks to see if security procedures are being
-**                  carried out or not..
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_sec_check_complete_orig
+ *
+ * Description      This function checks to see if security procedures are being
+ *                  carried out or not..
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void hidh_sec_check_complete_orig (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
                                    uint8_t res)
 {
@@ -372,16 +372,16 @@ void hidh_sec_check_complete_orig (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_
 }
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_connect_cfm
-**
-** Description      This function handles the connect confirm events
-**                  from L2CAP. This is the case when we are acting as a
-**                  client and have sent a connect request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_connect_cfm
+ *
+ * Description      This function handles the connect confirm events
+ *                  from L2CAP. This is the case when we are acting as a
+ *                  client and have sent a connect request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     uint8_t dhandle;
@@ -455,15 +455,15 @@ static void hidh_l2cif_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_config_ind
-**
-** Description      This function processes the L2CAP configuration indication
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_config_ind
+ *
+ * Description      This function processes the L2CAP configuration indication
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     uint8_t dhandle;
@@ -541,15 +541,15 @@ static void hidh_l2cif_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_config_cfm
-**
-** Description      This function processes the L2CAP configuration confirmation
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_config_cfm
+ *
+ * Description      This function processes the L2CAP configuration confirmation
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     uint8_t dhandle;
@@ -621,15 +621,15 @@ static void hidh_l2cif_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_disconnect_ind
-**
-** Description      This function handles a disconnect event from L2CAP. If
-**                  requested to, we ack the disconnect before dropping the CCB
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_disconnect_ind
+ *
+ * Description      This function handles a disconnect event from L2CAP. If
+ *                  requested to, we ack the disconnect before dropping the CCB
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 {
     uint8_t dhandle;
@@ -706,14 +706,14 @@ static void hidh_l2cif_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_disconnect_cfm
-**
-** Description      This function handles a disconnect confirm event from L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_disconnect_cfm
+ *
+ * Description      This function handles a disconnect confirm event from L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_disconnect_cfm (uint16_t l2cap_cid,
                                        UNUSED_ATTR uint16_t result)
 {
@@ -755,14 +755,14 @@ static void hidh_l2cif_disconnect_cfm (uint16_t l2cap_cid,
 
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_cong_ind
-**
-** Description      This function handles a congestion status event from L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_cong_ind
+ *
+ * Description      This function handles a congestion status event from L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_cong_ind (uint16_t l2cap_cid, bool    congested)
 {
     uint8_t dhandle;
@@ -792,20 +792,20 @@ static void hidh_l2cif_cong_ind (uint16_t l2cap_cid, bool    congested)
 
 
 /*******************************************************************************
-**
-** Function         hidh_l2cif_data_ind
-**
-** Description      This function is called when data is received from L2CAP.
-**                  if we are the originator of the connection, we are the SDP
-**                  client, and the received message is queued up for the client.
-**
-**                  If we are the destination of the connection, we are the SDP
-**                  server, so the message is passed to the server processing
-**                  function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_l2cif_data_ind
+ *
+ * Description      This function is called when data is received from L2CAP.
+ *                  if we are the originator of the connection, we are the SDP
+ *                  client, and the received message is queued up for the client.
+ *
+ *                  If we are the destination of the connection, we are the SDP
+ *                  server, so the message is passed to the server processing
+ *                  function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_l2cif_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 {
     uint8_t         *p_data = (uint8_t *)(p_msg + 1) + p_msg->offset;
@@ -879,14 +879,14 @@ static void hidh_l2cif_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         hidh_conn_snd_data
-**
-** Description      This function is sends out data.
-**
-** Returns          tHID_STATUS
-**
-*******************************************************************************/
+ *
+ * Function         hidh_conn_snd_data
+ *
+ * Description      This function is sends out data.
+ *
+ * Returns          tHID_STATUS
+ *
+ ******************************************************************************/
 tHID_STATUS hidh_conn_snd_data (uint8_t dhandle, uint8_t trans_type, uint8_t param,
                                 uint16_t data, uint8_t report_id, BT_HDR *buf)
 {
@@ -1015,14 +1015,14 @@ tHID_STATUS hidh_conn_snd_data (uint8_t dhandle, uint8_t trans_type, uint8_t par
     return (HID_SUCCESS);
 }
 /*******************************************************************************
-**
-** Function         hidh_conn_initiate
-**
-** Description      This function is called by the management to create a connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_conn_initiate
+ *
+ * Description      This function is called by the management to create a connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tHID_STATUS hidh_conn_initiate (uint8_t dhandle)
 {
     uint8_t service_id = BTM_SEC_SERVICE_HIDH_NOSEC_CTRL;
@@ -1066,14 +1066,14 @@ tHID_STATUS hidh_conn_initiate (uint8_t dhandle)
 
 
 /*******************************************************************************
-**
-** Function         find_conn_by_cid
-**
-** Description      This function finds a connection control block based on CID
-**
-** Returns          address of control block, or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         find_conn_by_cid
+ *
+ * Description      This function finds a connection control block based on CID
+ *
+ * Returns          address of control block, or NULL if not found
+ *
+ ******************************************************************************/
 static uint8_t find_conn_by_cid (uint16_t cid)
 {
     uint8_t    xx;
@@ -1095,14 +1095,14 @@ void hidh_conn_dereg( void )
 }
 
 /*******************************************************************************
-**
-** Function         hidh_conn_retry
-**
-** Description      This function is called to retry a failed connection.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         hidh_conn_retry
+ *
+ * Description      This function is called to retry a failed connection.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void hidh_conn_retry(  uint8_t dhandle )
 {
     tHID_HOST_DEV_CTB *p_dev = &hh_cb.devices[dhandle];

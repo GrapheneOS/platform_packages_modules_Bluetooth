@@ -35,8 +35,8 @@
 #include "osi/include/osi.h"
 
 /*****************************************************************************
-** state machine constants and types
-*****************************************************************************/
+ * state machine constants and types
+ ****************************************************************************/
 #if (AVDT_DEBUG == TRUE)
 
 /* verbose state strings for trace */
@@ -271,15 +271,15 @@ const tAVDT_CCB_ST_TBL avdt_ccb_st_tbl[] = {
 };
 
 /*******************************************************************************
-**
-** Function         avdt_ccb_init
-**
-** Description      Initialize channel control block module.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ccb_init
+ *
+ * Description      Initialize channel control block module.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ccb_init(void)
 {
     memset(&avdt_cb.ccb[0], 0, sizeof(tAVDT_CCB) * AVDT_NUM_LINKS);
@@ -287,15 +287,15 @@ void avdt_ccb_init(void)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ccb_event
-**
-** Description      State machine event handling function for ccb
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ccb_event
+ *
+ * Description      State machine event handling function for ccb
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ccb_event(tAVDT_CCB *p_ccb, uint8_t event, tAVDT_CCB_EVT *p_data)
 {
     tAVDT_CCB_ST_TBL    state_table;
@@ -331,15 +331,15 @@ void avdt_ccb_event(tAVDT_CCB *p_ccb, uint8_t event, tAVDT_CCB_EVT *p_data)
 
 
 /*******************************************************************************
-**
-** Function         avdt_ccb_by_bd
-**
-** Description      This lookup function finds the ccb for a BD address.
-**
-**
-** Returns          pointer to the ccb, or NULL if none found.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ccb_by_bd
+ *
+ * Description      This lookup function finds the ccb for a BD address.
+ *
+ *
+ * Returns          pointer to the ccb, or NULL if none found.
+ *
+ ******************************************************************************/
 tAVDT_CCB *avdt_ccb_by_bd(BD_ADDR bd_addr)
 {
     tAVDT_CCB   *p_ccb = &avdt_cb.ccb[0];
@@ -366,15 +366,15 @@ tAVDT_CCB *avdt_ccb_by_bd(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ccb_alloc
-**
-** Description      Allocate a channel control block.
-**
-**
-** Returns          pointer to the ccb, or NULL if none could be allocated.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ccb_alloc
+ *
+ * Description      Allocate a channel control block.
+ *
+ *
+ * Returns          pointer to the ccb, or NULL if none could be allocated.
+ *
+ ******************************************************************************/
 tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
 {
     tAVDT_CCB   *p_ccb = &avdt_cb.ccb[0];
@@ -406,15 +406,15 @@ tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ccb_dealloc
-**
-** Description      Deallocate a stream control block.
-**
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ccb_dealloc
+ *
+ * Description      Deallocate a stream control block.
+ *
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void avdt_ccb_dealloc(tAVDT_CCB *p_ccb,
                       UNUSED_ATTR tAVDT_CCB_EVT *p_data)
 {
@@ -428,15 +428,15 @@ void avdt_ccb_dealloc(tAVDT_CCB *p_ccb,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ccb_to_idx
-**
-** Description      Given a pointer to an ccb, return its index.
-**
-**
-** Returns          Index of ccb.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ccb_to_idx
+ *
+ * Description      Given a pointer to an ccb, return its index.
+ *
+ *
+ * Returns          Index of ccb.
+ *
+ ******************************************************************************/
 uint8_t avdt_ccb_to_idx(tAVDT_CCB *p_ccb)
 {
     /* use array arithmetic to determine index */
@@ -444,15 +444,15 @@ uint8_t avdt_ccb_to_idx(tAVDT_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ccb_by_idx
-**
-** Description      Return ccb pointer based on ccb index.
-**
-**
-** Returns          pointer to the ccb, or NULL if none found.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ccb_by_idx
+ *
+ * Description      Return ccb pointer based on ccb index.
+ *
+ *
+ * Returns          pointer to the ccb, or NULL if none found.
+ *
+ ******************************************************************************/
 tAVDT_CCB *avdt_ccb_by_idx(uint8_t idx)
 {
     tAVDT_CCB   *p_ccb;

@@ -63,15 +63,15 @@ const tL2CAP_APPL_INFO avdt_l2c_appl = {
 };
 
 /*******************************************************************************
-**
-** Function         avdt_sec_check_complete_term
-**
-** Description      The function called when Security Manager finishes
-**                  verification of the service side connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_sec_check_complete_term
+ *
+ * Description      The function called when Security Manager finishes
+ *                  verification of the service side connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void avdt_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transport,
                                                  UNUSED_ATTR void *p_ref_data, uint8_t res)
 {
@@ -120,15 +120,15 @@ static void avdt_sec_check_complete_term (BD_ADDR bd_addr, tBT_TRANSPORT transpo
 }
 
 /*******************************************************************************
-**
-** Function         avdt_sec_check_complete_orig
-**
-** Description      The function called when Security Manager finishes
-**                  verification of the service side connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_sec_check_complete_orig
+ *
+ * Description      The function called when Security Manager finishes
+ *                  verification of the service side connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
                                                 UNUSED_ATTR void *p_ref_data, uint8_t res)
 {
@@ -163,15 +163,15 @@ static void avdt_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT trasnpo
     }
 }
 /*******************************************************************************
-**
-** Function         avdt_l2c_connect_ind_cback
-**
-** Description      This is the L2CAP connect indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_connect_ind_cback
+ *
+ * Description      This is the L2CAP connect indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
                                 UNUSED_ATTR uint16_t psm, uint8_t id)
 {
@@ -284,15 +284,15 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_l2c_connect_cfm_cback
-**
-** Description      This is the L2CAP connect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_connect_cfm_cback
+ *
+ * Description      This is the L2CAP connect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVDT_TC_TBL    *p_tbl;
@@ -366,15 +366,15 @@ void avdt_l2c_connect_cfm_cback(uint16_t lcid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_l2c_config_cfm_cback
-**
-** Description      This is the L2CAP config confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_config_cfm_cback
+ *
+ * Description      This is the L2CAP config confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVDT_TC_TBL    *p_tbl;
@@ -411,15 +411,15 @@ void avdt_l2c_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_l2c_config_ind_cback
-**
-** Description      This is the L2CAP config indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_config_ind_cback
+ *
+ * Description      This is the L2CAP config indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVDT_TC_TBL    *p_tbl;
@@ -460,15 +460,15 @@ void avdt_l2c_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_l2c_disconnect_ind_cback
-**
-** Description      This is the L2CAP disconnect indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_disconnect_ind_cback
+ *
+ * Description      This is the L2CAP disconnect indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed)
 {
     tAVDT_TC_TBL    *p_tbl;
@@ -490,15 +490,15 @@ void avdt_l2c_disconnect_ind_cback(uint16_t lcid, bool ack_needed)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_l2c_disconnect_cfm_cback
-**
-** Description      This is the L2CAP disconnect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_disconnect_cfm_cback
+ *
+ * Description      This is the L2CAP disconnect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVDT_TC_TBL    *p_tbl;
@@ -514,15 +514,15 @@ void avdt_l2c_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_l2c_congestion_ind_cback
-**
-** Description      This is the L2CAP congestion indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_congestion_ind_cback
+ *
+ * Description      This is the L2CAP congestion indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_congestion_ind_cback(uint16_t lcid, bool is_congested)
 {
     tAVDT_TC_TBL    *p_tbl;
@@ -536,15 +536,15 @@ void avdt_l2c_congestion_ind_cback(uint16_t lcid, bool is_congested)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_l2c_data_ind_cback
-**
-** Description      This is the L2CAP data indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avdt_l2c_data_ind_cback
+ *
+ * Description      This is the L2CAP data indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avdt_l2c_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tAVDT_TC_TBL    *p_tbl;

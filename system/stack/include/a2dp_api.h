@@ -35,8 +35,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  constants
-*****************************************************************************/
+ *  constants
+ ****************************************************************************/
 
 //
 // |MAX_PCM_FRAME_NUM_PER_TICK| controls how many buffers we can hold in
@@ -119,8 +119,8 @@ typedef uint8_t tA2DP_STATUS;
 #define A2DP_SET_MULTL_BIT 2 /* multiple bits are set */
 
 /*****************************************************************************
-**  type definitions
-*****************************************************************************/
+ *  type definitions
+ ****************************************************************************/
 
 /* This data type is used in A2DP_FindService() to initialize the SDP database
  * to hold the result service search. */
@@ -267,112 +267,112 @@ typedef struct {
 } tA2DP_ENCODER_INTERFACE;
 
 /*****************************************************************************
-**  external function declarations
-*****************************************************************************/
+ *  external function declarations
+ ****************************************************************************/
 /******************************************************************************
-**
-** Function         A2DP_AddRecord
-**
-** Description      This function is called by a server application to add
-**                  SRC or SNK information to an SDP record.  Prior to
-**                  calling this function the application must call
-**                  SDP_CreateRecord() to create an SDP record.
-**
-**                  Input Parameters:
-**                      service_uuid:  Indicates SRC or SNK.
-**
-**                      p_service_name:  Pointer to a null-terminated character
-**                      string containing the service name.
-**
-**                      p_provider_name:  Pointer to a null-terminated character
-**                      string containing the provider name.
-**
-**                      features:  Profile supported features.
-**
-**                      sdp_handle:  SDP handle returned by SDP_CreateRecord().
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          A2DP_SUCCESS if function execution succeeded,
-**                  A2DP_INVALID_PARAMS if bad parameters are given.
-**                  A2DP_FAIL if function execution failed.
-**
-******************************************************************************/
+ *
+ * Function         A2DP_AddRecord
+ *
+ * Description      This function is called by a server application to add
+ *                  SRC or SNK information to an SDP record.  Prior to
+ *                  calling this function the application must call
+ *                  SDP_CreateRecord() to create an SDP record.
+ *
+ *                  Input Parameters:
+ *                      service_uuid:  Indicates SRC or SNK.
+ *
+ *                      p_service_name:  Pointer to a null-terminated character
+ *                      string containing the service name.
+ *
+ *                      p_provider_name:  Pointer to a null-terminated character
+ *                      string containing the provider name.
+ *
+ *                      features:  Profile supported features.
+ *
+ *                      sdp_handle:  SDP handle returned by SDP_CreateRecord().
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          A2DP_SUCCESS if function execution succeeded,
+ *                  A2DP_INVALID_PARAMS if bad parameters are given.
+ *                  A2DP_FAIL if function execution failed.
+ *
+ *****************************************************************************/
 extern tA2DP_STATUS A2DP_AddRecord(uint16_t service_uuid, char* p_service_name,
                                    char* p_provider_name, uint16_t features,
                                    uint32_t sdp_handle);
 
 /******************************************************************************
-**
-** Function         A2DP_FindService
-**
-** Description      This function is called by a client application to
-**                  perform service discovery and retrieve SRC or SNK SDP
-**                  record information from a server.  Information is
-**                  returned for the first service record found on the
-**                  server that matches the service UUID.  The callback
-**                  function will be executed when service discovery is
-**                  complete.  There can only be one outstanding call to
-**                  A2DP_FindService() at a time; the application must wait
-**                  for the callback before it makes another call to
-**                  the function.
-**
-**                  Input Parameters:
-**                      service_uuid:  Indicates SRC or SNK.
-**
-**                      bd_addr:  BD address of the peer device.
-**
-**                      p_db:  Pointer to the information to initialize
-**                             the discovery database.
-**
-**                      p_cback:  Pointer to the A2DP_FindService()
-**                      callback function.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          A2DP_SUCCESS if function execution succeeded,
-**                  A2DP_INVALID_PARAMS if bad parameters are given.
-**                  A2DP_BUSY if discovery is already in progress.
-**                  A2DP_FAIL if function execution failed.
-**
-******************************************************************************/
+ *
+ * Function         A2DP_FindService
+ *
+ * Description      This function is called by a client application to
+ *                  perform service discovery and retrieve SRC or SNK SDP
+ *                  record information from a server.  Information is
+ *                  returned for the first service record found on the
+ *                  server that matches the service UUID.  The callback
+ *                  function will be executed when service discovery is
+ *                  complete.  There can only be one outstanding call to
+ *                  A2DP_FindService() at a time; the application must wait
+ *                  for the callback before it makes another call to
+ *                  the function.
+ *
+ *                  Input Parameters:
+ *                      service_uuid:  Indicates SRC or SNK.
+ *
+ *                      bd_addr:  BD address of the peer device.
+ *
+ *                      p_db:  Pointer to the information to initialize
+ *                             the discovery database.
+ *
+ *                      p_cback:  Pointer to the A2DP_FindService()
+ *                      callback function.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          A2DP_SUCCESS if function execution succeeded,
+ *                  A2DP_INVALID_PARAMS if bad parameters are given.
+ *                  A2DP_BUSY if discovery is already in progress.
+ *                  A2DP_FAIL if function execution failed.
+ *
+ *****************************************************************************/
 extern tA2DP_STATUS A2DP_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                                      tA2DP_SDP_DB_PARAMS* p_db,
                                      tA2DP_FIND_CBACK* p_cback);
 
 /******************************************************************************
-**
-** Function         A2DP_SetTraceLevel
-**
-** Description      Sets the trace level for A2D. If 0xff is passed, the
-**                  current trace level is returned.
-**
-**                  Input Parameters:
-**                      new_level:  The level to set the A2DP tracing to:
-**                      0xff-returns the current setting.
-**                      0-turns off tracing.
-**                      >= 1-Errors.
-**                      >= 2-Warnings.
-**                      >= 3-APIs.
-**                      >= 4-Events.
-**                      >= 5-Debug.
-**
-** Returns          The new trace level or current trace level if
-**                  the input parameter is 0xff.
-**
-******************************************************************************/
+ *
+ * Function         A2DP_SetTraceLevel
+ *
+ * Description      Sets the trace level for A2D. If 0xff is passed, the
+ *                  current trace level is returned.
+ *
+ *                  Input Parameters:
+ *                      new_level:  The level to set the A2DP tracing to:
+ *                      0xff-returns the current setting.
+ *                      0-turns off tracing.
+ *                      >= 1-Errors.
+ *                      >= 2-Warnings.
+ *                      >= 3-APIs.
+ *                      >= 4-Events.
+ *                      >= 5-Debug.
+ *
+ * Returns          The new trace level or current trace level if
+ *                  the input parameter is 0xff.
+ *
+ *****************************************************************************/
 extern uint8_t A2DP_SetTraceLevel(uint8_t new_level);
 
 /******************************************************************************
-** Function         A2DP_BitsSet
-**
-** Description      Check the given num for the number of bits set
-** Returns          A2DP_SET_ONE_BIT, if one and only one bit is set
-**                  A2DP_SET_ZERO_BIT, if all bits clear
-**                  A2DP_SET_MULTL_BIT, if multiple bits are set
-******************************************************************************/
+ * Function         A2DP_BitsSet
+ *
+ * Description      Check the given num for the number of bits set
+ * Returns          A2DP_SET_ONE_BIT, if one and only one bit is set
+ *                  A2DP_SET_ZERO_BIT, if all bits clear
+ *                  A2DP_SET_MULTL_BIT, if multiple bits are set
+ *****************************************************************************/
 extern uint8_t A2DP_BitsSet(uint8_t num);
 
 // Initializes the A2DP control block.

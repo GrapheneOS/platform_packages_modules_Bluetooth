@@ -127,7 +127,7 @@ static bool bta_av_co_audio_codec_selected(const uint8_t* codec_config);
  **
  ** Returns          The current flag value
  **
- *******************************************************************************/
+ ******************************************************************************/
 static uint8_t bta_av_co_cp_get_flag(void) { return bta_av_co_cb.cp.flag; }
 
 /*******************************************************************************
@@ -141,7 +141,7 @@ static uint8_t bta_av_co_cp_get_flag(void) { return bta_av_co_cb.cp.flag; }
  **
  ** Returns          true if setting the SCMS flag is supported else false
  **
- *******************************************************************************/
+ ******************************************************************************/
 static bool bta_av_co_cp_set_flag(uint8_t cp_flag) {
   APPL_TRACE_DEBUG("%s: cp_flag = %d", __func__, cp_flag);
 
@@ -163,7 +163,7 @@ static bool bta_av_co_cp_set_flag(uint8_t cp_flag) {
  **
  ** Returns          the control block
  **
- *******************************************************************************/
+ ******************************************************************************/
 static tBTA_AV_CO_PEER* bta_av_co_get_peer(tBTA_AV_HNDL hndl) {
   uint8_t index;
 
@@ -192,7 +192,7 @@ static tBTA_AV_CO_PEER* bta_av_co_get_peer(tBTA_AV_HNDL hndl) {
  **
  ** Returns          Stream codec and content protection capabilities info.
  **
- *******************************************************************************/
+ ******************************************************************************/
 bool bta_av_co_audio_init(tA2DP_CODEC_SEP_INDEX codec_sep_index,
                           tAVDT_CFG* p_cfg) {
   /* reset remote preference through setconfig */
@@ -213,7 +213,7 @@ bool bta_av_co_audio_init(tA2DP_CODEC_SEP_INDEX codec_sep_index,
  **
  ** Returns          void.
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
                               uint8_t num_sink, uint8_t num_src, BD_ADDR addr,
                               uint16_t uuid_local) {
@@ -259,7 +259,7 @@ void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
  **
  ** Returns          Pass or Fail for current getconfig.
  **
- *******************************************************************************/
+ ******************************************************************************/
 static tA2DP_STATUS bta_av_audio_sink_getconfig(
     tBTA_AV_HNDL hndl, uint8_t* p_codec_info, uint8_t* p_sep_info_idx,
     uint8_t seid, uint8_t* p_num_protect, uint8_t* p_protect_info) {
@@ -365,7 +365,7 @@ static tA2DP_STATUS bta_av_audio_sink_getconfig(
  **
  ** Returns          Stream codec and content protection configuration info.
  **
- *******************************************************************************/
+ ******************************************************************************/
 tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
                                        uint8_t* p_sep_info_idx, uint8_t seid,
                                        uint8_t* p_num_protect,
@@ -527,7 +527,7 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
                                UNUSED_ATTR uint8_t seid,
                                UNUSED_ATTR BD_ADDR addr, uint8_t num_protect,
@@ -647,7 +647,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
                           uint16_t mtu) {
   tBTA_AV_CO_PEER* p_peer;
@@ -675,7 +675,7 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_close(tBTA_AV_HNDL hndl, UNUSED_ATTR uint16_t mtu)
 
 {
@@ -707,7 +707,7 @@ void bta_av_co_audio_close(tBTA_AV_HNDL hndl, UNUSED_ATTR uint16_t mtu)
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_start(UNUSED_ATTR tBTA_AV_HNDL hndl,
                            UNUSED_ATTR uint8_t* p_codec_info,
                            UNUSED_ATTR bool* p_no_rtp_hdr) {
@@ -724,7 +724,7 @@ void bta_av_co_audio_start(UNUSED_ATTR tBTA_AV_HNDL hndl,
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_stop(UNUSED_ATTR tBTA_AV_HNDL hndl) {
   APPL_TRACE_DEBUG("%s", __func__);
 }
@@ -739,7 +739,7 @@ void bta_av_co_audio_stop(UNUSED_ATTR tBTA_AV_HNDL hndl) {
  ** Returns          Pointer to the GKI buffer to send, NULL if no buffer to
  **                  send
  **
- *******************************************************************************/
+ ******************************************************************************/
 void* bta_av_co_audio_src_data_path(const uint8_t* p_codec_info,
                                     uint32_t* p_timestamp) {
   BT_HDR* p_buf;
@@ -788,7 +788,7 @@ void* bta_av_co_audio_src_data_path(const uint8_t* p_codec_info,
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_drop(tBTA_AV_HNDL hndl) {
   APPL_TRACE_ERROR("%s: dropped audio packet on handle 0x%x", __func__, hndl);
 }
@@ -804,7 +804,7 @@ void bta_av_co_audio_drop(tBTA_AV_HNDL hndl) {
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay) {
   APPL_TRACE_ERROR("%s: handle: x%x, delay:0x%x", __func__, hndl, delay);
 }
@@ -817,7 +817,7 @@ void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay) {
  **
  ** Returns          true if this CP is SCMS-T, false otherwise
  **
- *******************************************************************************/
+ ******************************************************************************/
 static bool bta_av_co_cp_is_scmst(const uint8_t* p_protectinfo) {
   APPL_TRACE_DEBUG("%s", __func__);
 
@@ -843,7 +843,7 @@ static bool bta_av_co_cp_is_scmst(const uint8_t* p_protectinfo) {
  **
  ** Returns          true if the sink supports this CP, false otherwise
  **
- *******************************************************************************/
+ ******************************************************************************/
 static bool bta_av_co_audio_sink_has_scmst(const tBTA_AV_CO_SINK* p_sink) {
   uint8_t index;
   const uint8_t* p;
@@ -873,7 +873,7 @@ static bool bta_av_co_audio_sink_has_scmst(const tBTA_AV_CO_SINK* p_sink) {
  **
  ** Returns          true if the sink supports this CP, false otherwise
  **
- *******************************************************************************/
+ ******************************************************************************/
 static bool bta_av_co_audio_sink_supports_cp(const tBTA_AV_CO_SINK* p_sink) {
   APPL_TRACE_DEBUG("%s", __func__);
 
@@ -893,7 +893,7 @@ static bool bta_av_co_audio_sink_supports_cp(const tBTA_AV_CO_SINK* p_sink) {
  **
  ** Returns          The peer sink that supports the codec, otherwise NULL.
  **
- *******************************************************************************/
+ ******************************************************************************/
 static const tBTA_AV_CO_SINK* bta_av_co_find_peer_sink_supports_codec(
     const uint8_t* codec_config, const tBTA_AV_CO_PEER* p_peer) {
   APPL_TRACE_DEBUG("%s: peer num_sup_sinks = %d", __func__,
@@ -919,7 +919,7 @@ static const tBTA_AV_CO_SINK* bta_av_co_find_peer_sink_supports_codec(
  **
  ** Returns          The peer source that supports the codec, otherwise NULL.
  **
- *******************************************************************************/
+ ******************************************************************************/
 static const tBTA_AV_CO_SINK* bta_av_co_find_peer_src_supports_codec(
     const tBTA_AV_CO_PEER* p_peer) {
   APPL_TRACE_DEBUG("%s: peer num_sup_srcs = %d", __func__,
@@ -945,7 +945,7 @@ static const tBTA_AV_CO_SINK* bta_av_co_find_peer_src_supports_codec(
  **
  ** Returns          true if successful, false otherwise
  **
- *******************************************************************************/
+ ******************************************************************************/
 bool bta_av_co_audio_set_codec(const tA2DP_FEEDING_PARAMS* p_feeding_params) {
   uint8_t new_config[AVDT_CODEC_SIZE];
 
@@ -1049,7 +1049,7 @@ static bool bta_av_co_audio_codec_selected(const uint8_t* codec_config) {
  **
  ** Returns          void
  **
- *******************************************************************************/
+ ******************************************************************************/
 static void bta_av_co_audio_codec_reset(void) {
   APPL_TRACE_DEBUG("%s", __func__);
 
@@ -1186,7 +1186,7 @@ const tA2DP_ENCODER_INTERFACE* bta_av_co_get_encoder_interface(void) {
  **
  ** Returns          Nothing
  **
- *******************************************************************************/
+ ******************************************************************************/
 void bta_av_co_init(void) {
   APPL_TRACE_DEBUG("%s", __func__);
 

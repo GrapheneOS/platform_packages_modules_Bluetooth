@@ -30,15 +30,15 @@
 #include "avct_int.h"
 
 /*******************************************************************************
-**
-** Function         avct_ccb_alloc
-**
-** Description      Allocate a connection control block; copy parameters to ccb.
-**
-**
-** Returns          pointer to the ccb, or NULL if none could be allocated.
-**
-*******************************************************************************/
+ *
+ * Function         avct_ccb_alloc
+ *
+ * Description      Allocate a connection control block; copy parameters to ccb.
+ *
+ *
+ * Returns          pointer to the ccb, or NULL if none could be allocated.
+ *
+ ******************************************************************************/
 tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
@@ -65,16 +65,16 @@ tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc)
 }
 
 /*******************************************************************************
-**
-** Function         avct_ccb_dealloc
-**
-** Description      Deallocate a connection control block and call application
-**                  callback.
-**
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         avct_ccb_dealloc
+ *
+ * Description      Deallocate a connection control block and call application
+ *                  callback.
+ *
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void avct_ccb_dealloc(tAVCT_CCB *p_ccb, uint8_t event, uint16_t result, BD_ADDR bd_addr)
 {
     tAVCT_CTRL_CBACK    *p_cback = p_ccb->cc.p_ctrl_cback;
@@ -99,15 +99,15 @@ void avct_ccb_dealloc(tAVCT_CCB *p_ccb, uint8_t event, uint16_t result, BD_ADDR 
 }
 
 /*******************************************************************************
-**
-** Function         avct_ccb_to_idx
-**
-** Description      Given a pointer to an ccb, return its index.
-**
-**
-** Returns          Index of ccb.
-**
-*******************************************************************************/
+ *
+ * Function         avct_ccb_to_idx
+ *
+ * Description      Given a pointer to an ccb, return its index.
+ *
+ *
+ * Returns          Index of ccb.
+ *
+ ******************************************************************************/
 uint8_t avct_ccb_to_idx(tAVCT_CCB *p_ccb)
 {
     /* use array arithmetic to determine index */
@@ -115,15 +115,15 @@ uint8_t avct_ccb_to_idx(tAVCT_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         avct_ccb_by_idx
-**
-** Description      Return ccb pointer based on ccb index (or handle).
-**
-**
-** Returns          pointer to the ccb, or NULL if none found.
-**
-*******************************************************************************/
+ *
+ * Function         avct_ccb_by_idx
+ *
+ * Description      Return ccb pointer based on ccb index (or handle).
+ *
+ *
+ * Returns          pointer to the ccb, or NULL if none found.
+ *
+ ******************************************************************************/
 tAVCT_CCB *avct_ccb_by_idx(uint8_t idx)
 {
     tAVCT_CCB   *p_ccb;

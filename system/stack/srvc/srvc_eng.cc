@@ -54,14 +54,14 @@ const tSRVC_ENG_C_CMPL_ACTION srvc_eng_c_cmpl_act[SRVC_ID_MAX] =
 tSRVC_ENG_CB srvc_eng_cb;
 
 /*******************************************************************************
-**
-** Function         srvc_eng_find_conn_id_by_bd_addr
-**
-** Description      The function searches all LCB with macthing bd address
-**
-** Returns          total number of clcb found.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_find_conn_id_by_bd_addr
+ *
+ * Description      The function searches all LCB with macthing bd address
+ *
+ * Returns          total number of clcb found.
+ *
+ ******************************************************************************/
 uint16_t srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda)
 {
     uint8_t i_clcb;
@@ -79,14 +79,14 @@ uint16_t srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         srvc_eng_find_clcb_by_bd_addr
-**
-** Description      The function searches all LCBs with macthing bd address.
-**
-** Returns          Pointer to the found link conenction control block.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_find_clcb_by_bd_addr
+ *
+ * Description      The function searches all LCBs with macthing bd address.
+ *
+ * Returns          Pointer to the found link conenction control block.
+ *
+ ******************************************************************************/
 tSRVC_CLCB *srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda)
 {
     uint8_t i_clcb;
@@ -103,14 +103,14 @@ tSRVC_CLCB *srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda)
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         srvc_eng_find_clcb_by_conn_id
-**
-** Description      The function searches all LCBs with macthing connection ID.
-**
-** Returns          Pointer to the found link conenction control block.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_find_clcb_by_conn_id
+ *
+ * Description      The function searches all LCBs with macthing connection ID.
+ *
+ * Returns          Pointer to the found link conenction control block.
+ *
+ ******************************************************************************/
 tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(uint16_t conn_id)
 {
     uint8_t i_clcb;
@@ -127,14 +127,14 @@ tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(uint16_t conn_id)
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         srvc_eng_find_clcb_by_conn_id
-**
-** Description      The function searches all LCBs with macthing connection ID.
-**
-** Returns          Pointer to the found link conenction control block.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_find_clcb_by_conn_id
+ *
+ * Description      The function searches all LCBs with macthing connection ID.
+ *
+ * Returns          Pointer to the found link conenction control block.
+ *
+ ******************************************************************************/
 uint8_t srvc_eng_find_clcb_idx_by_conn_id(uint16_t conn_id)
 {
     uint8_t i_clcb;
@@ -151,14 +151,14 @@ uint8_t srvc_eng_find_clcb_idx_by_conn_id(uint16_t conn_id)
     return SRVC_MAX_APPS;
 }
 /*******************************************************************************
-**
-** Function         srvc_eng_clcb_alloc
-**
-** Description      The function allocates a GATT profile  connection link control block
-**
-** Returns           NULL if not found. Otherwise pointer to the connection link block.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_clcb_alloc
+ *
+ * Description      The function allocates a GATT profile  connection link control block
+ *
+ * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ *
+ ******************************************************************************/
 tSRVC_CLCB *srvc_eng_clcb_alloc (uint16_t conn_id, BD_ADDR bda)
 {
     uint8_t                 i_clcb = 0;
@@ -178,14 +178,14 @@ tSRVC_CLCB *srvc_eng_clcb_alloc (uint16_t conn_id, BD_ADDR bda)
     return p_clcb;
 }
 /*******************************************************************************
-**
-** Function         srvc_eng_clcb_dealloc
-**
-** Description      The function deallocates a GATT profile  connection link control block
-**
-** Returns           True the deallocation is successful
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_clcb_dealloc
+ *
+ * Description      The function deallocates a GATT profile  connection link control block
+ *
+ * Returns           True the deallocation is successful
+ *
+ ******************************************************************************/
 bool    srvc_eng_clcb_dealloc (uint16_t conn_id)
 {
     uint8_t                 i_clcb = 0;
@@ -206,8 +206,8 @@ bool    srvc_eng_clcb_dealloc (uint16_t conn_id)
     return false;
 }
 /*******************************************************************************
-**   Service Engine Server Attributes Database Read/Read Blob Request process
-*******************************************************************************/
+ *   Service Engine Server Attributes Database Read/Read Blob Request process
+ ******************************************************************************/
 uint8_t srvc_eng_process_read_req (uint8_t clcb_idx, tGATT_READ_REQ *p_data, tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
@@ -229,8 +229,8 @@ uint8_t srvc_eng_process_read_req (uint8_t clcb_idx, tGATT_READ_REQ *p_data, tGA
     return act;
 }
 /*******************************************************************************
-**   Service Engine Server Attributes Database write Request process
-*******************************************************************************/
+ *   Service Engine Server Attributes Database write Request process
+ ******************************************************************************/
 uint8_t srvc_eng_process_write_req (uint8_t clcb_idx, tGATT_WRITE_REQ *p_data,
                                     UNUSED_ATTR tGATTS_RSP *p_rsp, tGATT_STATUS *p_status)
 {
@@ -251,14 +251,14 @@ uint8_t srvc_eng_process_write_req (uint8_t clcb_idx, tGATT_WRITE_REQ *p_data,
 }
 
 /*******************************************************************************
-**
-** Function         srvc_eng_s_request_cback
-**
-** Description      GATT DIS attribute access request callback.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_s_request_cback
+ *
+ * Description      GATT DIS attribute access request callback.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 static void srvc_eng_s_request_cback (uint16_t conn_id, uint32_t trans_id, tGATTS_REQ_TYPE type,
                                         tGATTS_DATA *p_data)
 {
@@ -310,14 +310,14 @@ static void srvc_eng_s_request_cback (uint16_t conn_id, uint32_t trans_id, tGATT
 
 
 /*******************************************************************************
-**
-** Function         srvc_eng_c_cmpl_cback
-**
-** Description      Client operation complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_c_cmpl_cback
+ *
+ * Description      Client operation complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void srvc_eng_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
                                    tGATT_CL_COMPLETE *p_data)
 {
@@ -338,14 +338,14 @@ static void srvc_eng_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STA
 
 
 /*******************************************************************************
-**
-** Function         srvc_eng_connect_cback
-**
-** Description      Gatt profile connection callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_connect_cback
+ *
+ * Description      Gatt profile connection callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void srvc_eng_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
                                     uint16_t conn_id,
                                     bool connected, tGATT_DISCONN_REASON reason,
@@ -370,14 +370,14 @@ static void srvc_eng_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
 
 }
 /*******************************************************************************
-**
-** Function         srvc_eng_c_cmpl_cback
-**
-** Description      Client operation complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_c_cmpl_cback
+ *
+ * Description      Client operation complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    srvc_eng_request_channel (BD_ADDR remote_bda, uint8_t srvc_id )
 {
     bool    set = true;
@@ -394,14 +394,14 @@ bool    srvc_eng_request_channel (BD_ADDR remote_bda, uint8_t srvc_id )
     return set;
 }
 /*******************************************************************************
-**
-** Function         srvc_eng_release_channel
-**
-** Description      Client operation complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_release_channel
+ *
+ * Description      Client operation complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void srvc_eng_release_channel (uint16_t conn_id)
 {
     tSRVC_CLCB *p_clcb =  srvc_eng_find_clcb_by_conn_id(conn_id);
@@ -418,12 +418,12 @@ void srvc_eng_release_channel (uint16_t conn_id)
     GATT_Disconnect(p_clcb->conn_id);
 }
 /*******************************************************************************
-**
-** Function         srvc_eng_init
-**
-** Description      Initializa the GATT Service engine.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_init
+ *
+ * Description      Initializa the GATT Service engine.
+ *
+ ******************************************************************************/
 tGATT_STATUS srvc_eng_init (void)
 {
     tBT_UUID          app_uuid = {LEN_UUID_16, {UUID_SERVCLASS_DEVICE_INFO}};

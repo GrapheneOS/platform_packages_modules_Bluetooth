@@ -43,14 +43,14 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /*******************************************************************************
-**
-** Function         l2cu_allocate_lcb
-**
-** Description      Look for an unused LCB
-**
-** Returns          LCB address or NULL if none found
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_allocate_lcb
+ *
+ * Description      Look for an unused LCB
+ *
+ * Returns          LCB address or NULL if none found
+ *
+ ******************************************************************************/
 tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, bool    is_bonding, tBT_TRANSPORT transport)
 {
     int         xx;
@@ -103,15 +103,15 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, bool    is_bonding, tBT_TRANSPOR
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_update_lcb_4_bonding
-**
-** Description      Mark the lcb for bonding. Used when bonding takes place on
-**                  an existing ACL connection.  (Pre-Lisbon devices)
-**
-** Returns          Nothing
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_update_lcb_4_bonding
+ *
+ * Description      Mark the lcb for bonding. Used when bonding takes place on
+ *                  an existing ACL connection.  (Pre-Lisbon devices)
+ *
+ * Returns          Nothing
+ *
+ ******************************************************************************/
 void l2cu_update_lcb_4_bonding (BD_ADDR p_bd_addr, bool    is_bonding)
 {
     tL2C_LCB    *p_lcb = l2cu_find_lcb_by_bd_addr (p_bd_addr, BT_TRANSPORT_BR_EDR);
@@ -126,15 +126,15 @@ void l2cu_update_lcb_4_bonding (BD_ADDR p_bd_addr, bool    is_bonding)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_release_lcb
-**
-** Description      Release an LCB. All timers will be stopped and freed,
-**                  channels dropped, buffers returned etc.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_release_lcb
+ *
+ * Description      Release an LCB. All timers will be stopped and freed,
+ *                  channels dropped, buffers returned etc.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_release_lcb (tL2C_LCB *p_lcb)
 {
     tL2C_CCB    *p_ccb;
@@ -257,15 +257,15 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_find_lcb_by_bd_addr
-**
-** Description      Look through all active LCBs for a match based on the
-**                  remote BD address.
-**
-** Returns          pointer to matched LCB, or NULL if no match
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_find_lcb_by_bd_addr
+ *
+ * Description      Look through all active LCBs for a match based on the
+ *                  remote BD address.
+ *
+ * Returns          pointer to matched LCB, or NULL if no match
+ *
+ ******************************************************************************/
 tL2C_LCB  *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr, tBT_TRANSPORT transport)
 {
     int         xx;
@@ -286,34 +286,34 @@ tL2C_LCB  *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr, tBT_TRANSPORT transport)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_get_conn_role
-**
-** Description      Determine the desired role (master or slave) of a link.
-**                  If already got a slave link, this one must be a master. If
-**                  already got at least 1 link where we are the master, make this
-**                  also a master.
-**
-** Returns          HCI_ROLE_MASTER or HCI_ROLE_SLAVE
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_get_conn_role
+ *
+ * Description      Determine the desired role (master or slave) of a link.
+ *                  If already got a slave link, this one must be a master. If
+ *                  already got at least 1 link where we are the master, make this
+ *                  also a master.
+ *
+ * Returns          HCI_ROLE_MASTER or HCI_ROLE_SLAVE
+ *
+ ******************************************************************************/
 uint8_t l2cu_get_conn_role (tL2C_LCB *p_this_lcb)
 {
     return l2cb.desire_role;
 }
 
 /*******************************************************************************
-**
-** Function         l2c_is_cmd_rejected
-**
-** Description      Checks if cmd_code is command or response
-**                  If a command it will be rejected per spec.
-**                  This function is used when a illegal packet length is detected
-**
-** Returns          bool    - true if cmd_code is a command and it is rejected,
-**                            false if response code. (command not rejected)
-**
-*******************************************************************************/
+ *
+ * Function         l2c_is_cmd_rejected
+ *
+ * Description      Checks if cmd_code is command or response
+ *                  If a command it will be rejected per spec.
+ *                  This function is used when a illegal packet length is detected
+ *
+ * Returns          bool    - true if cmd_code is a command and it is rejected,
+ *                            false if response code. (command not rejected)
+ *
+ ******************************************************************************/
 bool    l2c_is_cmd_rejected (uint8_t cmd_code, uint8_t id, tL2C_LCB *p_lcb)
 {
     switch(cmd_code)
@@ -336,14 +336,14 @@ bool    l2c_is_cmd_rejected (uint8_t cmd_code, uint8_t id, tL2C_LCB *p_lcb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_build_header
-**
-** Description      Builds the L2CAP command packet header
-**
-** Returns          Pointer to allocated packet or NULL if no resources
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_build_header
+ *
+ * Description      Builds the L2CAP command packet header
+ *
+ * Returns          Pointer to allocated packet or NULL if no resources
+ *
+ ******************************************************************************/
 BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, uint16_t len, uint8_t cmd, uint8_t id)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(L2CAP_CMD_BUF_SIZE);
@@ -389,15 +389,15 @@ BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, uint16_t len, uint8_t cmd, uint8_t i
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_adj_id
-**
-** Description      Checks for valid ID based on specified mask
-**                  and adjusts the id if invalid.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_adj_id
+ *
+ * Description      Checks for valid ID based on specified mask
+ *                  and adjusts the id if invalid.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_adj_id (tL2C_LCB *p_lcb, uint8_t adj_mask)
 {
     if ((adj_mask & L2CAP_ADJ_ZERO_ID) && !p_lcb->id)
@@ -407,15 +407,15 @@ void l2cu_adj_id (tL2C_LCB *p_lcb, uint8_t adj_mask)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_cmd_reject
-**
-** Description      Build and send an L2CAP "command reject" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_cmd_reject
+ *
+ * Description      Build and send an L2CAP "command reject" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_cmd_reject (tL2C_LCB *p_lcb, uint16_t reason, uint8_t rem_id,
                                 uint16_t p1, uint16_t p2)
 {
@@ -454,15 +454,15 @@ void l2cu_send_peer_cmd_reject (tL2C_LCB *p_lcb, uint16_t reason, uint8_t rem_id
 
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_connect_req
-**
-** Description      Build and send an L2CAP "connection request" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_connect_req
+ *
+ * Description      Build and send an L2CAP "connection request" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_connect_req (tL2C_CCB *p_ccb)
 {
     BT_HDR  *p_buf;
@@ -493,15 +493,15 @@ void l2cu_send_peer_connect_req (tL2C_CCB *p_ccb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_connect_rsp
-**
-** Description      Build and send an L2CAP "connection response" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_connect_rsp
+ *
+ * Description      Build and send an L2CAP "connection response" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_connect_rsp (tL2C_CCB *p_ccb, uint16_t result, uint16_t status)
 {
     BT_HDR  *p_buf;
@@ -536,16 +536,16 @@ void l2cu_send_peer_connect_rsp (tL2C_CCB *p_ccb, uint16_t result, uint16_t stat
 
 
 /*******************************************************************************
-**
-** Function         l2cu_reject_connection
-**
-** Description      Build and send an L2CAP "connection response neg" message
-**                  to the peer. This function is called when there is no peer
-**                  CCB (non-existant PSM or no resources).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_reject_connection
+ *
+ * Description      Build and send an L2CAP "connection response neg" message
+ *                  to the peer. This function is called when there is no peer
+ *                  CCB (non-existant PSM or no resources).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_reject_connection (tL2C_LCB *p_lcb, uint16_t remote_cid, uint8_t rem_id, uint16_t result)
 {
     BT_HDR  *p_buf;
@@ -569,15 +569,15 @@ void l2cu_reject_connection (tL2C_LCB *p_lcb, uint16_t remote_cid, uint8_t rem_i
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_config_req
-**
-** Description      Build and send an L2CAP "configuration request" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_config_req
+ *
+ * Description      Build and send an L2CAP "configuration request" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_config_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     BT_HDR  *p_buf;
@@ -676,15 +676,15 @@ void l2cu_send_peer_config_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_config_rsp
-**
-** Description      Build and send an L2CAP "configuration response" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_config_rsp
+ *
+ * Description      Build and send an L2CAP "configuration response" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_config_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     BT_HDR  *p_buf;
@@ -769,15 +769,15 @@ void l2cu_send_peer_config_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_config_rej
-**
-** Description      Build and send an L2CAP "configuration reject" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_config_rej
+ *
+ * Description      Build and send an L2CAP "configuration reject" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_config_rej (tL2C_CCB *p_ccb, uint8_t *p_data, uint16_t data_len, uint16_t rej_len)
 {
     uint16_t len, cfg_len, buf_space, len1;
@@ -890,15 +890,15 @@ void l2cu_send_peer_config_rej (tL2C_CCB *p_ccb, uint8_t *p_data, uint16_t data_
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_disc_req
-**
-** Description      Build and send an L2CAP "disconnect request" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_disc_req
+ *
+ * Description      Build and send an L2CAP "disconnect request" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
 {
     BT_HDR  *p_buf, *p_buf2;
@@ -945,19 +945,19 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_disc_rsp
-**
-** Description      Build and send an L2CAP "disconnect response" message
-**                  to the peer.
-**
-**                  This function is passed the parameters for the disconnect
-**                  response instead of the CCB address, as it may be called
-**                  to send a disconnect response when there is no CCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_disc_rsp
+ *
+ * Description      Build and send an L2CAP "disconnect response" message
+ *                  to the peer.
+ *
+ *                  This function is passed the parameters for the disconnect
+ *                  response instead of the CCB address, as it may be called
+ *                  to send a disconnect response when there is no CCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_disc_rsp (tL2C_LCB *p_lcb, uint8_t remote_id, uint16_t local_cid,
                               uint16_t remote_cid)
 {
@@ -981,16 +981,16 @@ void l2cu_send_peer_disc_rsp (tL2C_LCB *p_lcb, uint8_t remote_id, uint16_t local
 
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_echo_req
-**
-** Description      Build and send an L2CAP "echo request" message
-**                  to the peer. Note that we do not currently allow
-**                  data in the echo request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_echo_req
+ *
+ * Description      Build and send an L2CAP "echo request" message
+ *                  to the peer. Note that we do not currently allow
+ *                  data in the echo request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_echo_req (tL2C_LCB *p_lcb, uint8_t *p_data, uint16_t data_len)
 {
     BT_HDR  *p_buf;
@@ -1018,15 +1018,15 @@ void l2cu_send_peer_echo_req (tL2C_LCB *p_lcb, uint8_t *p_data, uint16_t data_le
 
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_echo_rsp
-**
-** Description      Build and send an L2CAP "echo response" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_echo_rsp
+ *
+ * Description      Build and send an L2CAP "echo response" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, uint8_t id, uint8_t *p_data, uint16_t data_len)
 {
     BT_HDR  *p_buf;
@@ -1072,14 +1072,14 @@ void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, uint8_t id, uint8_t *p_data, uint
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_info_req
-**
-** Description      Build and send an L2CAP "info request" message
-**                  to the peer.
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_info_req
+ *
+ * Description      Build and send an L2CAP "info request" message
+ *                  to the peer.
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_info_req (tL2C_LCB *p_lcb, uint16_t info_type)
 {
     BT_HDR  *p_buf;
@@ -1113,15 +1113,15 @@ void l2cu_send_peer_info_req (tL2C_LCB *p_lcb, uint16_t info_type)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_info_rsp
-**
-** Description      Build and send an L2CAP "info response" message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_info_rsp
+ *
+ * Description      Build and send an L2CAP "info response" message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, uint8_t remote_id, uint16_t info_type)
 {
     BT_HDR  *p_buf;
@@ -1234,15 +1234,15 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, uint8_t remote_id, uint16_t info_
 }
 
 /******************************************************************************
-**
-** Function         l2cu_enqueue_ccb
-**
-** Description      queue CCB by priority. The first CCB is highest priority and
-**                  is served at first. The CCB is queued to an LLCB or an LCB.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_enqueue_ccb
+ *
+ * Description      queue CCB by priority. The first CCB is highest priority and
+ *                  is served at first. The CCB is queued to an LLCB or an LCB.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void l2cu_enqueue_ccb (tL2C_CCB *p_ccb)
 {
     tL2C_CCB        *p_ccb1;
@@ -1327,14 +1327,14 @@ void l2cu_enqueue_ccb (tL2C_CCB *p_ccb)
 }
 
 /******************************************************************************
-**
-** Function         l2cu_dequeue_ccb
-**
-** Description      dequeue CCB from a queue
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_dequeue_ccb
+ *
+ * Description      dequeue CCB from a queue
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2cu_dequeue_ccb (tL2C_CCB *p_ccb)
 {
     tL2C_CCB_Q      *p_q = NULL;
@@ -1411,14 +1411,14 @@ void l2cu_dequeue_ccb (tL2C_CCB *p_ccb)
 }
 
 /******************************************************************************
-**
-** Function         l2cu_change_pri_ccb
-**
-** Description
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_change_pri_ccb
+ *
+ * Description
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2cu_change_pri_ccb (tL2C_CCB *p_ccb, tL2CAP_CHNL_PRIORITY priority)
 {
     if (p_ccb->ccb_priority != priority)
@@ -1455,16 +1455,16 @@ void l2cu_change_pri_ccb (tL2C_CCB *p_ccb, tL2CAP_CHNL_PRIORITY priority)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_allocate_ccb
-**
-** Description      This function allocates a Channel Control Block and
-**                  attaches it to a link control block. The local CID
-**                  is also assigned.
-**
-** Returns          pointer to CCB, or NULL if none
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_allocate_ccb
+ *
+ * Description      This function allocates a Channel Control Block and
+ *                  attaches it to a link control block. The local CID
+ *                  is also assigned.
+ *
+ * Returns          pointer to CCB, or NULL if none
+ *
+ ******************************************************************************/
 tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, uint16_t cid)
 {
     tL2C_CCB    *p_ccb;
@@ -1602,18 +1602,18 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, uint16_t cid)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_start_post_bond_timer
-**
-** Description      This function starts the ACL Link inactivity timer after
-**                  dedicated bonding
-**                  This timer can be longer than the normal link inactivity
-**                  timer for some platforms.
-**
-** Returns          bool     - true if idle timer started or disconnect initiated
-**                             false if there's one or more pending CCB's exist
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_start_post_bond_timer
+ *
+ * Description      This function starts the ACL Link inactivity timer after
+ *                  dedicated bonding
+ *                  This timer can be longer than the normal link inactivity
+ *                  timer for some platforms.
+ *
+ * Returns          bool     - true if idle timer started or disconnect initiated
+ *                             false if there's one or more pending CCB's exist
+ *
+ ******************************************************************************/
 bool    l2cu_start_post_bond_timer (uint16_t handle)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_handle(handle);
@@ -1648,16 +1648,16 @@ bool    l2cu_start_post_bond_timer (uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_release_ccb
-**
-** Description      This function releases a Channel Control Block. The timer
-**                  is stopped, any attached buffers freed, and the CCB is removed
-**                  from the link control block.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_release_ccb
+ *
+ * Description      This function releases a Channel Control Block. The timer
+ *                  is stopped, any attached buffers freed, and the CCB is removed
+ *                  from the link control block.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_release_ccb (tL2C_CCB *p_ccb)
 {
     tL2C_LCB    *p_lcb = p_ccb->p_lcb;
@@ -1742,15 +1742,15 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_find_ccb_by_remote_cid
-**
-** Description      Look through all active CCBs on a link for a match based
-**                  on the remote CID.
-**
-** Returns          pointer to matched CCB, or NULL if no match
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_find_ccb_by_remote_cid
+ *
+ * Description      Look through all active CCBs on a link for a match based
+ *                  on the remote CID.
+ *
+ * Returns          pointer to matched CCB, or NULL if no match
+ *
+ ******************************************************************************/
 tL2C_CCB *l2cu_find_ccb_by_remote_cid (tL2C_LCB *p_lcb, uint16_t remote_cid)
 {
     tL2C_CCB    *p_ccb;
@@ -1772,15 +1772,15 @@ tL2C_CCB *l2cu_find_ccb_by_remote_cid (tL2C_LCB *p_lcb, uint16_t remote_cid)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_allocate_rcb
-**
-** Description      Look through the Registration Control Blocks for a free
-**                  one.
-**
-** Returns          Pointer to the RCB or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_allocate_rcb
+ *
+ * Description      Look through the Registration Control Blocks for a free
+ *                  one.
+ *
+ * Returns          Pointer to the RCB or NULL if not found
+ *
+ ******************************************************************************/
 tL2C_RCB *l2cu_allocate_rcb (uint16_t psm)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
@@ -1804,15 +1804,15 @@ tL2C_RCB *l2cu_allocate_rcb (uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_allocate_ble_rcb
-**
-** Description      Look through the BLE Registration Control Blocks for a free
-**                  one.
-**
-** Returns          Pointer to the BLE RCB or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_allocate_ble_rcb
+ *
+ * Description      Look through the BLE Registration Control Blocks for a free
+ *                  one.
+ *
+ * Returns          Pointer to the BLE RCB or NULL if not found
+ *
+ ******************************************************************************/
 tL2C_RCB *l2cu_allocate_ble_rcb (uint16_t psm)
 {
     tL2C_RCB    *p_rcb = &l2cb.ble_rcb_pool[0];
@@ -1836,14 +1836,14 @@ tL2C_RCB *l2cu_allocate_ble_rcb (uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_release_rcb
-**
-** Description      Mark an RCB as no longet in use
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_release_rcb
+ *
+ * Description      Mark an RCB as no longet in use
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_release_rcb (tL2C_RCB *p_rcb)
 {
     p_rcb->in_use = false;
@@ -1852,13 +1852,13 @@ void l2cu_release_rcb (tL2C_RCB *p_rcb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_disconnect_chnl
-**
-** Description      Disconnect a channel. Typically, this is due to either
-**                  receiving a bad configuration,  bad packet or max_retries expiring.
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_disconnect_chnl
+ *
+ * Description      Disconnect a channel. Typically, this is due to either
+ *                  receiving a bad configuration,  bad packet or max_retries expiring.
+ *
+ ******************************************************************************/
 void l2cu_disconnect_chnl (tL2C_CCB *p_ccb)
 {
     uint16_t    local_cid = p_ccb->local_cid;
@@ -1884,15 +1884,15 @@ void l2cu_disconnect_chnl (tL2C_CCB *p_ccb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_find_rcb_by_psm
-**
-** Description      Look through the Registration Control Blocks to see if
-**                  anyone registered to handle the PSM in question
-**
-** Returns          Pointer to the RCB or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_find_rcb_by_psm
+ *
+ * Description      Look through the Registration Control Blocks to see if
+ *                  anyone registered to handle the PSM in question
+ *
+ * Returns          Pointer to the RCB or NULL if not found
+ *
+ ******************************************************************************/
 tL2C_RCB *l2cu_find_rcb_by_psm (uint16_t psm)
 {
     tL2C_RCB    *p_rcb = &l2cb.rcb_pool[0];
@@ -1909,15 +1909,15 @@ tL2C_RCB *l2cu_find_rcb_by_psm (uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_find_ble_rcb_by_psm
-**
-** Description      Look through the BLE Registration Control Blocks to see if
-**                  anyone registered to handle the PSM in question
-**
-** Returns          Pointer to the BLE RCB or NULL if not found
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_find_ble_rcb_by_psm
+ *
+ * Description      Look through the BLE Registration Control Blocks to see if
+ *                  anyone registered to handle the PSM in question
+ *
+ * Returns          Pointer to the BLE RCB or NULL if not found
+ *
+ ******************************************************************************/
 tL2C_RCB *l2cu_find_ble_rcb_by_psm (uint16_t psm)
 {
     tL2C_RCB    *p_rcb = &l2cb.ble_rcb_pool[0];
@@ -1934,24 +1934,24 @@ tL2C_RCB *l2cu_find_ble_rcb_by_psm (uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_process_peer_cfg_req
-**
-** Description      This function is called when the peer sends us a "config request"
-**                  message. It extracts the configuration of interest and saves
-**                  it in the CCB.
-**
-**                  Note:  Negotiation of the FCR channel type is handled internally,
-**                         all others are passed to the upper layer.
-**
-** Returns          uint8_t - L2CAP_PEER_CFG_OK if passed to upper layer,
-**                          L2CAP_PEER_CFG_UNACCEPTABLE if automatically responded to
-**                              because parameters are unnacceptable from a specification
-**                              point of view.
-**                          L2CAP_PEER_CFG_DISCONNECT if no compatible channel modes
-**                              between the two devices, and shall be closed.
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_process_peer_cfg_req
+ *
+ * Description      This function is called when the peer sends us a "config request"
+ *                  message. It extracts the configuration of interest and saves
+ *                  it in the CCB.
+ *
+ *                  Note:  Negotiation of the FCR channel type is handled internally,
+ *                         all others are passed to the upper layer.
+ *
+ * Returns          uint8_t - L2CAP_PEER_CFG_OK if passed to upper layer,
+ *                          L2CAP_PEER_CFG_UNACCEPTABLE if automatically responded to
+ *                              because parameters are unnacceptable from a specification
+ *                              point of view.
+ *                          L2CAP_PEER_CFG_DISCONNECT if no compatible channel modes
+ *                              between the two devices, and shall be closed.
+ *
+ ******************************************************************************/
 uint8_t l2cu_process_peer_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     bool     mtu_ok      = true;
@@ -2076,16 +2076,16 @@ uint8_t l2cu_process_peer_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_process_peer_cfg_rsp
-**
-** Description      This function is called when the peer sends us a "config response"
-**                  message. It extracts the configuration of interest and saves
-**                  it in the CCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_process_peer_cfg_rsp
+ *
+ * Description      This function is called when the peer sends us a "config response"
+ *                  message. It extracts the configuration of interest and saves
+ *                  it in the CCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_process_peer_cfg_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     /* If we wanted QoS and the peer sends us a positive response with QoS, use his values */
@@ -2113,16 +2113,16 @@ void l2cu_process_peer_cfg_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_process_our_cfg_req
-**
-** Description      This function is called when we send a "config request"
-**                  message. It extracts the configuration of interest and saves
-**                  it in the CCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_process_our_cfg_req
+ *
+ * Description      This function is called when we send a "config request"
+ *                  message. It extracts the configuration of interest and saves
+ *                  it in the CCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_process_our_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_LCB    *p_lcb;
@@ -2206,16 +2206,16 @@ void l2cu_process_our_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_process_our_cfg_rsp
-**
-** Description      This function is called when we send the peer a "config response"
-**                  message. It extracts the configuration of interest and saves
-**                  it in the CCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_process_our_cfg_rsp
+ *
+ * Description      This function is called when we send the peer a "config response"
+ *                  message. It extracts the configuration of interest and saves
+ *                  it in the CCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_process_our_cfg_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     /* If peer wants QoS, we are allowed to change the values in a positive response */
@@ -2229,15 +2229,15 @@ void l2cu_process_our_cfg_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_device_reset
-**
-** Description      This function is called when reset of the device is
-**                  completed.  For all active connection simulate HCI_DISC
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_device_reset
+ *
+ * Description      This function is called when reset of the device is
+ *                  completed.  For all active connection simulate HCI_DISC
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_device_reset (void)
 {
     int         xx;
@@ -2254,14 +2254,14 @@ void l2cu_device_reset (void)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_create_conn
-**
-** Description      This function initiates an acl connection via HCI
-**
-** Returns          true if successful, false if get buffer fails.
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_create_conn
+ *
+ * Description      This function initiates an acl connection via HCI
+ *
+ * Returns          true if successful, false if get buffer fails.
+ *
+ ******************************************************************************/
 bool    l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
 {
     int             xx;
@@ -2337,14 +2337,14 @@ bool    l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_get_num_hi_priority
-**
-** Description      Gets the number of high priority channels.
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_get_num_hi_priority
+ *
+ * Description      Gets the number of high priority channels.
+ *
+ * Returns
+ *
+ ******************************************************************************/
 uint8_t l2cu_get_num_hi_priority (void)
 {
     uint8_t     no_hi = 0;
@@ -2363,15 +2363,15 @@ uint8_t l2cu_get_num_hi_priority (void)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_create_conn_after_switch
-**
-** Description      This function initiates an acl connection via HCI
-**                  If switch required to create connection it is already done.
-**
-** Returns          true if successful, false if get buffer fails.
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_create_conn_after_switch
+ *
+ * Description      This function initiates an acl connection via HCI
+ *                  If switch required to create connection it is already done.
+ *
+ * Returns          true if successful, false if get buffer fails.
+ *
+ ******************************************************************************/
 
 bool    l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
 {
@@ -2438,15 +2438,15 @@ bool    l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_find_lcb_by_state
-**
-** Description      Look through all active LCBs for a match based on the
-**                  LCB state.
-**
-** Returns          pointer to first matched LCB, or NULL if no match
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_find_lcb_by_state
+ *
+ * Description      Look through all active LCBs for a match based on the
+ *                  LCB state.
+ *
+ * Returns          pointer to first matched LCB, or NULL if no match
+ *
+ ******************************************************************************/
 tL2C_LCB *l2cu_find_lcb_by_state (tL2C_LINK_STATE state)
 {
     uint16_t    i;
@@ -2466,17 +2466,17 @@ tL2C_LCB *l2cu_find_lcb_by_state (tL2C_LINK_STATE state)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_lcb_disconnecting
-**
-** Description      On each active lcb, check if the lcb is in disconnecting
-**                  state, or if there are no ccb's on the lcb (implying
+ *
+ * Function         l2cu_lcb_disconnecting
+ *
+ * Description      On each active lcb, check if the lcb is in disconnecting
+ *                  state, or if there are no ccb's on the lcb (implying
                     idle timeout is running), or if last ccb on the link
                     is in disconnecting state.
-**
-** Returns          true if any of above conditions met, false otherwise
-**
-*******************************************************************************/
+ *
+ * Returns          true if any of above conditions met, false otherwise
+ *
+ ******************************************************************************/
 bool    l2cu_lcb_disconnecting (void)
 {
     tL2C_LCB    *p_lcb;
@@ -2516,16 +2516,16 @@ bool    l2cu_lcb_disconnecting (void)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_set_acl_priority
-**
-** Description      Sets the transmission priority for a channel.
-**                  (For initial implementation only two values are valid.
-**                  L2CAP_PRIORITY_NORMAL and L2CAP_PRIORITY_HIGH).
-**
-** Returns          true if a valid channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_set_acl_priority
+ *
+ * Description      Sets the transmission priority for a channel.
+ *                  (For initial implementation only two values are valid.
+ *                  L2CAP_PRIORITY_NORMAL and L2CAP_PRIORITY_HIGH).
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
 
 bool    l2cu_set_acl_priority (BD_ADDR bd_addr, uint8_t priority, bool    reset_after_rs)
 {
@@ -2573,14 +2573,14 @@ bool    l2cu_set_acl_priority (BD_ADDR bd_addr, uint8_t priority, bool    reset_
 
 #if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
 /******************************************************************************
-**
-** Function         l2cu_set_non_flushable_pbf
-**
-** Description      set L2CAP_PKT_START_NON_FLUSHABLE if controller supoorts
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_set_non_flushable_pbf
+ *
+ * Description      set L2CAP_PKT_START_NON_FLUSHABLE if controller supoorts
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_set_non_flushable_pbf (bool    is_supported)
 {
     if (is_supported)
@@ -2591,15 +2591,15 @@ void l2cu_set_non_flushable_pbf (bool    is_supported)
 #endif
 
 /*******************************************************************************
-**
-** Function         l2cu_resubmit_pending_sec_req
-**
-** Description      This function is called when required security procedures
-**                  are completed and any pending requests can be re-submitted.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_resubmit_pending_sec_req
+ *
+ * Description      This function is called when required security procedures
+ *                  are completed and any pending requests can be re-submitted.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_resubmit_pending_sec_req (BD_ADDR p_bda)
 {
     tL2C_LCB        *p_lcb;
@@ -2649,15 +2649,15 @@ void l2cu_resubmit_pending_sec_req (BD_ADDR p_bda)
 
 #if (L2CAP_CONFORMANCE_TESTING == TRUE)
 /*******************************************************************************
-**
-** Function         l2cu_set_info_rsp_mask
-**
-** Description      This function allows the script wrapper to change the
-**                  info resp mask for conformance testing.
-**
-** Returns          pointer to CCB, or NULL if none
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_set_info_rsp_mask
+ *
+ * Description      This function allows the script wrapper to change the
+ *                  info resp mask for conformance testing.
+ *
+ * Returns          pointer to CCB, or NULL if none
+ *
+ ******************************************************************************/
 void l2cu_set_info_rsp_mask (uint32_t mask)
 {
     l2cb.test_info_resp = mask;
@@ -2665,14 +2665,14 @@ void l2cu_set_info_rsp_mask (uint32_t mask)
 #endif  /* L2CAP_CONFORMANCE_TESTING */
 
 /*******************************************************************************
-**
-** Function         l2cu_adjust_out_mps
-**
-** Description      Sets our MPS based on current controller capabilities
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_adjust_out_mps
+ *
+ * Description      Sets our MPS based on current controller capabilities
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_adjust_out_mps (tL2C_CCB *p_ccb)
 {
     uint16_t packet_size;
@@ -2710,14 +2710,14 @@ void l2cu_adjust_out_mps (tL2C_CCB *p_ccb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_initialize_fixed_ccb
-**
-** Description      Initialize a fixed channel's CCB
-**
-** Returns          true or false
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_initialize_fixed_ccb
+ *
+ * Description      Initialize a fixed channel's CCB
+ *
+ * Returns          true or false
+ *
+ ******************************************************************************/
 bool    l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, uint16_t fixed_cid, tL2CAP_FCR_OPTS *p_fcr)
 {
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
@@ -2773,16 +2773,16 @@ bool    l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, uint16_t fixed_cid, tL2CAP_F
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_no_dynamic_ccbs
-**
-** Description      Handles the case when there are no more dynamic CCBs. If there
-**                  are any fixed CCBs, start the longest of the fixed CCB timeouts,
-**                  otherwise start the default link idle timeout or disconnect.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_no_dynamic_ccbs
+ *
+ * Description      Handles the case when there are no more dynamic CCBs. If there
+ *                  are any fixed CCBs, start the longest of the fixed CCB timeouts,
+ *                  otherwise start the default link idle timeout or disconnect.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 {
     tBTM_STATUS     rc;
@@ -2850,14 +2850,14 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
 /*******************************************************************************
-**
-** Function         l2cu_process_fixed_chnl_resp
-**
-** Description      handle a fixed channel response (or lack thereof)
-**                  if the link failed, or a fixed channel response was
-**                  not received, the bitfield is all zeros.
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_process_fixed_chnl_resp
+ *
+ * Description      handle a fixed channel response (or lack thereof)
+ *                  if the link failed, or a fixed channel response was
+ *                  not received, the bitfield is all zeros.
+ *
+ ******************************************************************************/
 void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 {
      if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
@@ -2906,15 +2906,15 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 
 
 /*******************************************************************************
-**
-** Function         l2cu_process_fixed_disc_cback
-**
-** Description      send l2cap fixed channel disconnection callback to application
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_process_fixed_disc_cback
+ *
+ * Description      send l2cap fixed channel disconnection callback to application
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
 {
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
@@ -2949,15 +2949,15 @@ void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_ble_par_req
-**
-** Description      Build and send a BLE parameter update request message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_ble_par_req
+ *
+ * Description      Build and send a BLE parameter update request message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, uint16_t min_int, uint16_t max_int,
         uint16_t latency, uint16_t timeout)
 {
@@ -2987,15 +2987,15 @@ void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, uint16_t min_int, uint16_t max
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_ble_par_rsp
-**
-** Description      Build and send a BLE parameter update response message
-**                  to the peer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_ble_par_rsp
+ *
+ * Description      Build and send a BLE parameter update response message
+ *                  to the peer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_ble_par_rsp (tL2C_LCB *p_lcb, uint16_t reason, uint8_t rem_id)
 {
     BT_HDR  *p_buf;
@@ -3017,15 +3017,15 @@ void l2cu_send_peer_ble_par_rsp (tL2C_LCB *p_lcb, uint16_t reason, uint8_t rem_i
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_ble_credit_based_conn_req
-**
-** Description      Build and send a BLE packet to establish LE connection oriented
-**                  L2CAP channel.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_ble_credit_based_conn_req
+ *
+ * Description      Build and send a BLE packet to establish LE connection oriented
+ *                  L2CAP channel.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_ble_credit_based_conn_req (tL2C_CCB *p_ccb)
 {
     BT_HDR  *p_buf;
@@ -3073,15 +3073,15 @@ void l2cu_send_peer_ble_credit_based_conn_req (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_reject_ble_connection
-**
-** Description      Build and send an L2CAP "Credit based connection res" message
-**                  to the peer. This function is called for non-success cases.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_reject_ble_connection
+ *
+ * Description      Build and send an L2CAP "Credit based connection res" message
+ *                  to the peer. This function is called for non-success cases.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_reject_ble_connection (tL2C_LCB *p_lcb, uint8_t rem_id, uint16_t result)
 {
     BT_HDR  *p_buf;
@@ -3107,15 +3107,15 @@ void l2cu_reject_ble_connection (tL2C_LCB *p_lcb, uint8_t rem_id, uint16_t resul
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_ble_credit_based_conn_res
-**
-** Description      Build and send an L2CAP "Credit based connection res" message
-**                  to the peer. This function is called in case of success.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_ble_credit_based_conn_res
+ *
+ * Description      Build and send an L2CAP "Credit based connection res" message
+ *                  to the peer. This function is called in case of success.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_ble_credit_based_conn_res (tL2C_CCB *p_ccb, uint16_t result)
 {
     BT_HDR  *p_buf;
@@ -3142,15 +3142,15 @@ void l2cu_send_peer_ble_credit_based_conn_res (tL2C_CCB *p_ccb, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_ble_flow_control_credit
-**
-** Description      Build and send a BLE packet to give credits to peer device
-**                  for LE connection oriented L2CAP channel.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_ble_flow_control_credit
+ *
+ * Description      Build and send a BLE packet to give credits to peer device
+ *                  for LE connection oriented L2CAP channel.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_ble_flow_control_credit(tL2C_CCB *p_ccb, uint16_t credit_value)
 {
     BT_HDR  *p_buf;
@@ -3184,15 +3184,15 @@ void l2cu_send_peer_ble_flow_control_credit(tL2C_CCB *p_ccb, uint16_t credit_val
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_send_peer_ble_credit_based_conn_req
-**
-** Description      Build and send a BLE packet to disconnect LE connection oriented
-**                  L2CAP channel.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_send_peer_ble_credit_based_conn_req
+ *
+ * Description      Build and send a BLE packet to disconnect LE connection oriented
+ *                  L2CAP channel.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cu_send_peer_ble_credit_based_disconn_req(tL2C_CCB *p_ccb)
 {
     BT_HDR  *p_buf;
@@ -3227,19 +3227,19 @@ void l2cu_send_peer_ble_credit_based_disconn_req(tL2C_CCB *p_ccb)
 
 
 /*******************************************************************************
-** Functions used by both Full and Light Stack
-********************************************************************************/
+ * Functions used by both Full and Light Stack
+ ******************************************************************************/
 
 /*******************************************************************************
-**
-** Function         l2cu_find_lcb_by_handle
-**
-** Description      Look through all active LCBs for a match based on the
-**                  HCI handle.
-**
-** Returns          pointer to matched LCB, or NULL if no match
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_find_lcb_by_handle
+ *
+ * Description      Look through all active LCBs for a match based on the
+ *                  HCI handle.
+ *
+ * Returns          pointer to matched LCB, or NULL if no match
+ *
+ ******************************************************************************/
 tL2C_LCB  *l2cu_find_lcb_by_handle (uint16_t handle)
 {
     int         xx;
@@ -3258,16 +3258,16 @@ tL2C_LCB  *l2cu_find_lcb_by_handle (uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_find_ccb_by_cid
-**
-** Description      Look through all active CCBs on a link for a match based
-**                  on the local CID. If passed the link pointer is NULL, all
-**                  active links are searched.
-**
-** Returns          pointer to matched CCB, or NULL if no match
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_find_ccb_by_cid
+ *
+ * Description      Look through all active CCBs on a link for a match based
+ *                  on the local CID. If passed the link pointer is NULL, all
+ *                  active links are searched.
+ *
+ * Returns          pointer to matched CCB, or NULL if no match
+ *
+ ******************************************************************************/
 tL2C_CCB *l2cu_find_ccb_by_cid (tL2C_LCB *p_lcb, uint16_t local_cid)
 {
     tL2C_CCB    *p_ccb = NULL;
@@ -3321,15 +3321,15 @@ tL2C_CCB *l2cu_find_ccb_by_cid (tL2C_LCB *p_lcb, uint16_t local_cid)
 #if (L2CAP_ROUND_ROBIN_CHANNEL_SERVICE == TRUE)
 
 /******************************************************************************
-**
-** Function         l2cu_get_next_channel_in_rr
-**
-** Description      get the next channel to send on a link. It also adjusts the
-**                  CCB queue to do a basic priority and round-robin scheduling.
-**
-** Returns          pointer to CCB or NULL
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_get_next_channel_in_rr
+ *
+ * Description      get the next channel to send on a link. It also adjusts the
+ *                  CCB queue to do a basic priority and round-robin scheduling.
+ *
+ * Returns          pointer to CCB or NULL
+ *
+ ******************************************************************************/
 static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
 {
     tL2C_CCB    *p_serve_ccb = NULL;
@@ -3435,15 +3435,15 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
 #else /* (L2CAP_ROUND_ROBIN_CHANNEL_SERVICE == TRUE) */
 
 /******************************************************************************
-**
-** Function         l2cu_get_next_channel
-**
-** Description      get the next channel to send on a link bassed on priority
-**                  scheduling.
-**
-** Returns          pointer to CCB or NULL
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_get_next_channel
+ *
+ * Description      get the next channel to send on a link bassed on priority
+ *                  scheduling.
+ *
+ * Returns          pointer to CCB or NULL
+ *
+ ******************************************************************************/
 static tL2C_CCB *l2cu_get_next_channel(tL2C_LCB *p_lcb)
 {
     tL2C_CCB    *p_ccb;
@@ -3477,15 +3477,15 @@ static tL2C_CCB *l2cu_get_next_channel(tL2C_LCB *p_lcb)
 #endif /* (L2CAP_ROUND_ROBIN_CHANNEL_SERVICE == TRUE) */
 
 /******************************************************************************
-**
-** Function         l2cu_get_next_buffer_to_send
-**
-** Description      get the next buffer to send on a link. It also adjusts the
-**                  CCB queue to do a basic priority and round-robin scheduling.
-**
-** Returns          pointer to buffer or NULL
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_get_next_buffer_to_send
+ *
+ * Description      get the next buffer to send on a link. It also adjusts the
+ *                  CCB queue to do a basic priority and round-robin scheduling.
+ *
+ * Returns          pointer to buffer or NULL
+ *
+ ******************************************************************************/
 BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
 {
     tL2C_CCB    *p_ccb;
@@ -3604,14 +3604,14 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
 }
 
 /******************************************************************************
-**
-** Function         l2cu_set_acl_hci_header
-**
-** Description      Set HCI handle for ACL packet
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_set_acl_hci_header
+ *
+ * Description      Set HCI handle for ACL packet
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
 {
     uint8_t     *p;
@@ -3666,14 +3666,14 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
 }
 
 /******************************************************************************
-**
-** Function         l2cu_check_channel_congestion
-**
-** Description      check if any change in congestion status
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_check_channel_congestion
+ *
+ * Description      check if any change in congestion status
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
 {
     size_t q_count = fixed_queue_length(p_ccb->xmit_hold_q);
@@ -3782,15 +3782,15 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cu_is_ccb_active
-**
-** Description      Check if Channel Control Block is in use or released
-**
-** Returns          bool    - true if Channel Control Block is in use
-**                            false if p_ccb is null or is released.
-**
-*******************************************************************************/
+ *
+ * Function         l2cu_is_ccb_active
+ *
+ * Description      Check if Channel Control Block is in use or released
+ *
+ * Returns          bool    - true if Channel Control Block is in use
+ *                            false if p_ccb is null or is released.
+ *
+ ******************************************************************************/
 bool    l2cu_is_ccb_active (tL2C_CCB *p_ccb)
 {
     return (p_ccb && p_ccb->in_use);

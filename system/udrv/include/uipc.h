@@ -55,69 +55,69 @@ typedef void (tUIPC_RCV_CBACK)(tUIPC_CH_ID ch_id, tUIPC_EVENT event); /* points 
 const char* dump_uipc_event(tUIPC_EVENT event);
 
 /*******************************************************************************
-**
-** Function         UIPC_Init
-**
-** Description      Initialize UIPC module
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         UIPC_Init
+ *
+ * Description      Initialize UIPC module
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void UIPC_Init(void *);
 
 /*******************************************************************************
-**
-** Function         UIPC_Open
-**
-** Description      Open UIPC interface
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         UIPC_Open
+ *
+ * Description      Open UIPC interface
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         UIPC_Close
-**
-** Description      Close UIPC interface
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         UIPC_Close
+ *
+ * Description      Close UIPC interface
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void UIPC_Close(tUIPC_CH_ID ch_id);
 
 /*******************************************************************************
-**
-** Function         UIPC_Send
-**
-** Description      Called to transmit a message over UIPC.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         UIPC_Send
+ *
+ * Description      Called to transmit a message over UIPC.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t *p_buf, uint16_t msglen);
 
 /*******************************************************************************
-**
-** Function         UIPC_Read
-**
-** Description      Called to read a message from UIPC.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         UIPC_Read
+ *
+ * Description      Called to read a message from UIPC.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t *p_msg_evt, uint8_t *p_buf, uint32_t len);
 
 /*******************************************************************************
-**
-** Function         UIPC_Ioctl
-**
-** Description      Called to control UIPC.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         UIPC_Ioctl
+ *
+ * Description      Called to control UIPC.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void *param);
 
 #ifdef __cplusplus

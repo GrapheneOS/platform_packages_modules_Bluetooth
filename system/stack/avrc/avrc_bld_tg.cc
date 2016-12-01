@@ -26,8 +26,8 @@
 #include "osi/include/osi.h"
 
 /*****************************************************************************
-**  Global data
-*****************************************************************************/
+ *  Global data
+ ****************************************************************************/
 #if (AVRC_METADATA_INCLUDED == TRUE)
 #define AVRC_ITEM_PLAYER_IS_VALID(_p_player) ((_p_player)->name.p_str && \
                ((_p_player)->major_type & AVRC_MJ_TYPE_INVALID) == 0 && \
@@ -39,15 +39,15 @@
 #define AVRC_MIN_LEN_GET_FOLDER_ITEMS_RSP   17 /* 17 = item_type(1) + item len(2) + min item (14) */
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_capability_rsp
-**
-** Description      This function builds the Get Capability response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_capability_rsp
+ *
+ * Description      This function builds the Get Capability response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_capability_rsp (tAVRC_GET_CAPS_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t *p_data, *p_start, *p_len, *p_count;
@@ -116,16 +116,16 @@ static tAVRC_STS avrc_bld_get_capability_rsp (tAVRC_GET_CAPS_RSP *p_rsp, BT_HDR 
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_list_app_settings_attr_rsp
-**
-** Description      This function builds the List Application Settings Attribute
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_list_app_settings_attr_rsp
+ *
+ * Description      This function builds the List Application Settings Attribute
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_list_app_settings_attr_rsp (tAVRC_LIST_APP_ATTR_RSP *p_rsp,
         BT_HDR *p_pkt)
 {
@@ -168,16 +168,16 @@ static tAVRC_STS avrc_bld_list_app_settings_attr_rsp (tAVRC_LIST_APP_ATTR_RSP *p
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_list_app_settings_values_rsp
-**
-** Description      This function builds the List Application Setting Values
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_list_app_settings_values_rsp
+ *
+ * Description      This function builds the List Application Setting Values
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_list_app_settings_values_rsp (tAVRC_LIST_APP_VALUES_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
@@ -218,16 +218,16 @@ static tAVRC_STS avrc_bld_list_app_settings_values_rsp (tAVRC_LIST_APP_VALUES_RS
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_cur_app_setting_value_rsp
-**
-** Description      This function builds the Get Current Application Setting Value
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_cur_app_setting_value_rsp
+ *
+ * Description      This function builds the Get Current Application Setting Value
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_cur_app_setting_value_rsp (tAVRC_GET_CUR_APP_VALUE_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
@@ -277,16 +277,16 @@ static tAVRC_STS avrc_bld_get_cur_app_setting_value_rsp (tAVRC_GET_CUR_APP_VALUE
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_set_app_setting_value_rsp
-**
-** Description      This function builds the Set Application Setting Value
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_set_app_setting_value_rsp
+ *
+ * Description      This function builds the Set Application Setting Value
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_set_app_setting_value_rsp (UNUSED_ATTR tAVRC_RSP *p_rsp,
                                                      UNUSED_ATTR BT_HDR *p_pkt)
 {
@@ -296,16 +296,16 @@ static tAVRC_STS avrc_bld_set_app_setting_value_rsp (UNUSED_ATTR tAVRC_RSP *p_rs
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_app_setting_text_rsp
-**
-** Description      This function builds the Get Application Settings Attribute Text
-**                  or Get Application Settings Value Text response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_app_setting_text_rsp
+ *
+ * Description      This function builds the Get Application Settings Attribute Text
+ *                  or Get Application Settings Value Text response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_app_setting_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
@@ -373,16 +373,16 @@ static tAVRC_STS avrc_bld_app_setting_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rs
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_app_setting_attr_text_rsp
-**
-** Description      This function builds the Get Application Setting Attribute Text
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_app_setting_attr_text_rsp
+ *
+ * Description      This function builds the Get Application Setting Attribute Text
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_app_setting_attr_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
@@ -391,16 +391,16 @@ static tAVRC_STS avrc_bld_get_app_setting_attr_text_rsp (tAVRC_GET_APP_ATTR_TXT_
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_app_setting_value_text_rsp
-**
-** Description      This function builds the Get Application Setting Value Text
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_app_setting_value_text_rsp
+ *
+ * Description      This function builds the Get Application Setting Value Text
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_app_setting_value_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
@@ -409,16 +409,16 @@ static tAVRC_STS avrc_bld_get_app_setting_value_text_rsp (tAVRC_GET_APP_ATTR_TXT
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_inform_charset_rsp
-**
-** Description      This function builds the Inform Displayable Character Set
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_inform_charset_rsp
+ *
+ * Description      This function builds the Inform Displayable Character Set
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_inform_charset_rsp (UNUSED_ATTR tAVRC_RSP *p_rsp,
                                               UNUSED_ATTR BT_HDR *p_pkt)
 {
@@ -428,16 +428,16 @@ static tAVRC_STS avrc_bld_inform_charset_rsp (UNUSED_ATTR tAVRC_RSP *p_rsp,
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_inform_battery_status_rsp
-**
-** Description      This function builds the Inform Battery Status
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_inform_battery_status_rsp
+ *
+ * Description      This function builds the Inform Battery Status
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_inform_battery_status_rsp (UNUSED_ATTR tAVRC_RSP *p_rsp,
                                                      UNUSED_ATTR BT_HDR *p_pkt)
 {
@@ -552,16 +552,16 @@ static tAVRC_STS avrc_bld_get_elem_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp,
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_play_status_rsp
-**
-** Description      This function builds the Get Play Status
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_play_status_rsp
+ *
+ * Description      This function builds the Get Play Status
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_play_status_rsp (tAVRC_GET_PLAY_STATUS_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
@@ -582,15 +582,15 @@ static tAVRC_STS avrc_bld_get_play_status_rsp (tAVRC_GET_PLAY_STATUS_RSP *p_rsp,
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_notify_rsp
-**
-** Description      This function builds the Notification response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_notify_rsp
+ *
+ * Description      This function builds the Notification response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t *p_data, *p_start;
@@ -723,16 +723,16 @@ static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_next_rsp
-**
-** Description      This function builds the Request Continue or Abort
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_next_rsp
+ *
+ * Description      This function builds the Request Continue or Abort
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_next_rsp (tAVRC_NEXT_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
@@ -746,14 +746,14 @@ static tAVRC_STS avrc_bld_next_rsp (tAVRC_NEXT_RSP *p_rsp, BT_HDR *p_pkt)
 }
 
 /*****************************************************************************
-**
-** Function      avrc_bld_set_absolute_volume_rsp
-**
-** Description   This function builds the set absolute volume response
-**
-** Returns       AVRC_STS_NO_ERROR, if the response is build successfully
-**
-******************************************************************************/
+ *
+ * Function      avrc_bld_set_absolute_volume_rsp
+ *
+ * Description   This function builds the set absolute volume response
+ *
+ * Returns       AVRC_STS_NO_ERROR, if the response is build successfully
+ *
+ *****************************************************************************/
 static tAVRC_STS avrc_bld_set_absolute_volume_rsp(uint8_t abs_vol, BT_HDR *p_pkt)
 {
     AVRC_TRACE_API("%s", __func__);
@@ -768,16 +768,16 @@ static tAVRC_STS avrc_bld_set_absolute_volume_rsp(uint8_t abs_vol, BT_HDR *p_pkt
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_group_navigation_rsp
-**
-** Description      This function builds the Group Navigation
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_group_navigation_rsp
+ *
+ * Description      This function builds the Group Navigation
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 tAVRC_STS avrc_bld_group_navigation_rsp (uint16_t navi_id, BT_HDR *p_pkt)
 {
     if (!AVRC_IS_VALID_GROUP(navi_id))
@@ -793,14 +793,14 @@ tAVRC_STS avrc_bld_group_navigation_rsp (uint16_t navi_id, BT_HDR *p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_rejected_rsp
-**
-** Description      This function builds the General Response response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_rejected_rsp
+ *
+ * Description      This function builds the General Response response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_rejected_rsp( tAVRC_RSP *p_rsp, BT_HDR *p_pkt )
 {
     uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
@@ -832,19 +832,19 @@ static tAVRC_STS avrc_bld_rejected_rsp( tAVRC_RSP *p_rsp, BT_HDR *p_pkt )
 }
 
 /*****************************************************************************
-**  the following commands are introduced in AVRCP 1.4
-*****************************************************************************/
+ *  the following commands are introduced in AVRCP 1.4
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         avrc_bld_ctrl_status_rsp
-**
-** Description      This function builds the responses with a uint8_t parameter.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_ctrl_status_rsp
+ *
+ * Description      This function builds the responses with a uint8_t parameter.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_ctrl_status_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t *p_start = (uint8_t *)(p_pkt + 1) + p_pkt->offset;
@@ -861,15 +861,15 @@ static tAVRC_STS avrc_bld_ctrl_status_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_set_addr_player_rsp
-**
-** Description      This function builds the Set Addresses Player response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_set_addr_player_rsp
+ *
+ * Description      This function builds the Set Addresses Player response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_set_addr_player_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
     AVRC_TRACE_API("%s", __func__);
@@ -877,17 +877,17 @@ static tAVRC_STS avrc_bld_set_addr_player_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_set_browsed_player_rsp
-**
-** Description      This function builds the Set Browsed Player response.
-**
-**                  This message goes through the Browsing channel
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_set_browsed_player_rsp
+ *
+ * Description      This function builds the Set Browsed Player response.
+ *
+ *                  This message goes through the Browsing channel
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_set_browsed_player_rsp (tAVRC_SET_BR_PLAYER_RSP *p_rsp,
     BT_HDR *p_pkt)
 {
@@ -950,21 +950,21 @@ static tAVRC_STS avrc_bld_set_browsed_player_rsp (tAVRC_SET_BR_PLAYER_RSP *p_rsp
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_folder_items_rsp
-**
-** Description      This function builds the Get Folder Items response.
-**                  The error code is returned in *p_status.
-**                  AVRC_STS_INTERNAL_ERR means no buffers.
-**                  Try again later or with smaller item_count
-**
-**                  This message goes through the Browsing channel
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_folder_items_rsp
+ *
+ * Description      This function builds the Get Folder Items response.
+ *                  The error code is returned in *p_status.
+ *                  AVRC_STS_INTERNAL_ERR means no buffers.
+ *                  Try again later or with smaller item_count
+ *
+ *                  This message goes through the Browsing channel
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_folder_items_rsp (tAVRC_GET_ITEMS_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t   *p_data, *p_start;
@@ -1171,17 +1171,17 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp (tAVRC_GET_ITEMS_RSP *p_rsp, BT_H
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_change_path_rsp
-**
-** Description      This function builds the Change Path response.
-**
-**                  This message goes through the Browsing channel
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_change_path_rsp
+ *
+ * Description      This function builds the Change Path response.
+ *
+ *                  This message goes through the Browsing channel
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_change_path_rsp (tAVRC_CHG_PATH_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t   *p_data, *p_start;
@@ -1198,19 +1198,19 @@ static tAVRC_STS avrc_bld_change_path_rsp (tAVRC_CHG_PATH_RSP *p_rsp, BT_HDR *p_
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_item_attrs_rsp
-**
-** Description      This function builds the GetItemAttributes response,
-**
-**                  The Get Item Attributes message goes through the
-**                  Browsing channel (already specified in the |p_pkt|)
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_attrs_rsp
+ *
+ * Description      This function builds the GetItemAttributes response,
+ *
+ *                  The Get Item Attributes message goes through the
+ *                  Browsing channel (already specified in the |p_pkt|)
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_item_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp,
                                               BT_HDR *p_pkt) {
     AVRC_TRACE_API("%s", __func__);
@@ -1275,18 +1275,18 @@ static tAVRC_STS avrc_bld_get_item_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp,
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_num_of_item_rsp
-**
-** Description      This function builds the Get Total Number of Items response.
-**
-**                  This message goes through the Browsing channel
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_num_of_item_rsp
+ *
+ * Description      This function builds the Get Total Number of Items response.
+ *
+ *                  This message goes through the Browsing channel
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_num_of_item_rsp (tAVRC_GET_NUM_OF_ITEMS_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t   *p_data, *p_start, *p_len;
@@ -1317,17 +1317,17 @@ static tAVRC_STS avrc_bld_get_num_of_item_rsp (tAVRC_GET_NUM_OF_ITEMS_RSP *p_rsp
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_search_rsp
-**
-** Description      This function builds the Search response.
-**
-**                  This message goes through the Browsing channel
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_search_rsp
+ *
+ * Description      This function builds the Search response.
+ *
+ *                  This message goes through the Browsing channel
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_search_rsp (tAVRC_SEARCH_RSP *p_rsp, BT_HDR *p_pkt)
 {
     uint8_t   *p_data, *p_start, *p_len;
@@ -1347,15 +1347,15 @@ static tAVRC_STS avrc_bld_search_rsp (tAVRC_SEARCH_RSP *p_rsp, BT_HDR *p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_play_item_rsp
-**
-** Description      This function builds the Play Item response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_play_item_rsp
+ *
+ * Description      This function builds the Play Item response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_play_item_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
     AVRC_TRACE_API("%s", __func__);
@@ -1363,15 +1363,15 @@ static tAVRC_STS avrc_bld_play_item_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_add_to_now_playing_rsp
-**
-** Description      This function builds the Add to Now Playing response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_add_to_now_playing_rsp
+ *
+ * Description      This function builds the Add to Now Playing response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_add_to_now_playing_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pkt)
 {
     AVRC_TRACE_API("%s", __func__);
@@ -1379,15 +1379,15 @@ static tAVRC_STS avrc_bld_add_to_now_playing_rsp (tAVRC_RSP *p_rsp, BT_HDR *p_pk
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_init_rsp_buffer
-**
-** Description      This function initializes the response buffer based on PDU
-**
-** Returns          NULL, if no buffer or failure to build the message.
-**                  Otherwise, the buffer that contains the initialized message.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_init_rsp_buffer
+ *
+ * Description      This function initializes the response buffer based on PDU
+ *
+ * Returns          NULL, if no buffer or failure to build the message.
+ *                  Otherwise, the buffer that contains the initialized message.
+ *
+ ******************************************************************************/
 static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 {
     uint16_t offset = 0;
@@ -1451,16 +1451,16 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_BldResponse
-**
-** Description      This function builds the given AVRCP response to the given
-**                  buffer
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_BldResponse
+ *
+ * Description      This function builds the given AVRCP response to the given
+ *                  buffer
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 tAVRC_STS AVRC_BldResponse( uint8_t handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt)
 {
     tAVRC_STS status = AVRC_STS_BAD_PARAM;

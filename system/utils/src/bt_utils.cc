@@ -16,14 +16,14 @@
  *
  ******************************************************************************/
 
-/************************************************************************************
+/*******************************************************************************
  *
  *  Filename:      bt_utils.cc
  *
  *  Description:   Miscellaneous helper functions
  *
  *
- ***********************************************************************************/
+ ******************************************************************************/
 
 #define LOG_TAG "bt_utils"
 
@@ -51,8 +51,8 @@
 #include "osi/include/properties.h"
 
 /*******************************************************************************
-**  Type definitions for callback functions
-********************************************************************************/
+ *  Type definitions for callback functions
+ ******************************************************************************/
 static pthread_once_t g_DoSchedulingGroupOnce[TASK_HIGH_MAX];
 static bool    g_DoSchedulingGroup[TASK_HIGH_MAX];
 static pthread_mutex_t         gIdxLock;
@@ -92,14 +92,14 @@ EXPORT_SYMBOL extern const module_t bt_utils_module = {
 };
 
 /*****************************************************************************
-**
-** Function        check_do_scheduling_group
-**
-** Description     check if it is ok to change schedule group
-**
-** Returns         void
-**
-*******************************************************************************/
+ *
+ * Function        check_do_scheduling_group
+ *
+ * Description     check if it is ok to change schedule group
+ *
+ * Returns         void
+ *
+ ******************************************************************************/
 static void check_do_scheduling_group(void) {
     char buf[PROPERTY_VALUE_MAX];
     int len = osi_property_get("debug.sys.noschedgroups", buf, "");
@@ -112,14 +112,14 @@ static void check_do_scheduling_group(void) {
 }
 
 /*****************************************************************************
-**
-** Function        raise_priority_a2dp
-**
-** Description     Raise task priority for A2DP streaming
-**
-** Returns         void
-**
-*******************************************************************************/
+ *
+ * Function        raise_priority_a2dp
+ *
+ * Description     Raise task priority for A2DP streaming
+ *
+ * Returns         void
+ *
+ ******************************************************************************/
 void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
     int rc = 0;
     int tid = gettid();
@@ -159,16 +159,16 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
 }
 
 /*****************************************************************************
-**
-** Function        adjust_priority_a2dp
-**
-** Description     increase the a2dp consumer task priority temporarily when start
-**                 audio playing, to avoid overflow the audio packet queue, restore
-**                 the a2dp consumer task priority when stop audio playing.
-**
-** Returns         void
-**
-*******************************************************************************/
+ *
+ * Function        adjust_priority_a2dp
+ *
+ * Description     increase the a2dp consumer task priority temporarily when start
+ *                 audio playing, to avoid overflow the audio packet queue, restore
+ *                 the a2dp consumer task priority when stop audio playing.
+ *
+ * Returns         void
+ *
+ ******************************************************************************/
 void adjust_priority_a2dp(int start) {
     int priority = start ? ANDROID_PRIORITY_URGENT_AUDIO : ANDROID_PRIORITY_AUDIO;
     int tid;

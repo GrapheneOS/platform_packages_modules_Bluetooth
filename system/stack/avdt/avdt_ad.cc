@@ -37,15 +37,15 @@
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_type_to_tcid
-**
-** Description      Derives the TCID from the channel type and SCB.
-**
-**
-** Returns          TCID value.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_type_to_tcid
+ *
+ * Description      Derives the TCID from the channel type and SCB.
+ *
+ *
+ * Returns          TCID value.
+ *
+ ******************************************************************************/
 uint8_t avdt_ad_type_to_tcid(uint8_t type, tAVDT_SCB *p_scb)
 {
     uint8_t scb_idx;
@@ -65,15 +65,15 @@ uint8_t avdt_ad_type_to_tcid(uint8_t type, tAVDT_SCB *p_scb)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tcid_to_type
-**
-** Description      Derives the channel type from the TCID.
-**
-**
-** Returns          Channel type value.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tcid_to_type
+ *
+ * Description      Derives the channel type from the TCID.
+ *
+ *
+ * Returns          Channel type value.
+ *
+ ******************************************************************************/
 static uint8_t avdt_ad_tcid_to_type(uint8_t tcid)
 {
     uint8_t type;
@@ -97,15 +97,15 @@ static uint8_t avdt_ad_tcid_to_type(uint8_t tcid)
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_init
-**
-** Description      Initialize adaption layer.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_init
+ *
+ * Description      Initialize adaption layer.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ad_init(void)
 {
     int             i;
@@ -121,18 +121,18 @@ void avdt_ad_init(void)
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_tbl_by_st
-**
-** Description      Find adaption layer transport channel table entry matching
-**                  the given state.
-**
-**
-** Returns          Pointer to matching entry.  For control channel it returns
-**                  the matching entry.  For media or other it returns the
-**                  first matching entry (there could be more than one).
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_tbl_by_st
+ *
+ * Description      Find adaption layer transport channel table entry matching
+ *                  the given state.
+ *
+ *
+ * Returns          Pointer to matching entry.  For control channel it returns
+ *                  the matching entry.  For media or other it returns the
+ *                  first matching entry (there could be more than one).
+ *
+ ******************************************************************************/
 tAVDT_TC_TBL *avdt_ad_tc_tbl_by_st(uint8_t type, tAVDT_CCB *p_ccb, uint8_t state)
 {
     int             i;
@@ -192,15 +192,15 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_st(uint8_t type, tAVDT_CCB *p_ccb, uint8_t state
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_tbl_by_lcid
-**
-** Description      Find adaption layer transport channel table entry by LCID.
-**
-**
-** Returns          Pointer to entry.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_tbl_by_lcid
+ *
+ * Description      Find adaption layer transport channel table entry by LCID.
+ *
+ *
+ * Returns          Pointer to entry.
+ *
+ ******************************************************************************/
 tAVDT_TC_TBL *avdt_ad_tc_tbl_by_lcid(uint16_t lcid)
 {
     uint8_t idx;
@@ -219,16 +219,16 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_lcid(uint16_t lcid)
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_tbl_by_type
-**
-** Description      This function retrieves the transport channel table entry
-**                  for a particular channel.
-**
-**
-** Returns          Pointer to transport channel table entry.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_tbl_by_type
+ *
+ * Description      This function retrieves the transport channel table entry
+ *                  for a particular channel.
+ *
+ *
+ * Returns          Pointer to transport channel table entry.
+ *
+ ******************************************************************************/
 tAVDT_TC_TBL *avdt_ad_tc_tbl_by_type(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
 {
     uint8_t         tcid;
@@ -254,15 +254,15 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_type(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_tbl_alloc
-**
-** Description      Allocate an entry in the traffic channel table.
-**
-**
-** Returns          Pointer to entry.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_tbl_alloc
+ *
+ * Description      Allocate an entry in the traffic channel table.
+ *
+ *
+ * Returns          Pointer to entry.
+ *
+ ******************************************************************************/
 tAVDT_TC_TBL *avdt_ad_tc_tbl_alloc(tAVDT_CCB *p_ccb)
 {
     int             i;
@@ -291,15 +291,15 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_alloc(tAVDT_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_tbl_to_idx
-**
-** Description      Convert a transport channel table entry to an index.
-**
-**
-** Returns          Index value.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_tbl_to_idx
+ *
+ * Description      Convert a transport channel table entry to an index.
+ *
+ *
+ * Returns          Index value.
+ *
+ ******************************************************************************/
 uint8_t avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
 {
     AVDT_TRACE_DEBUG("avdt_ad_tc_tbl_to_idx: %d", (p_tbl - avdt_cb.ad.tc_tbl));
@@ -308,19 +308,19 @@ uint8_t avdt_ad_tc_tbl_to_idx(tAVDT_TC_TBL *p_tbl)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_close_ind
-**
-** Description      This function is called by the L2CAP interface when the
-**                  L2CAP channel is closed.  It looks up the CCB or SCB for
-**                  the channel and sends it a close event.  The reason
-**                  parameter is the same value passed by the L2CAP
-**                  callback function.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_close_ind
+ *
+ * Description      This function is called by the L2CAP interface when the
+ *                  L2CAP channel is closed.  It looks up the CCB or SCB for
+ *                  the channel and sends it a close event.  The reason
+ *                  parameter is the same value passed by the L2CAP
+ *                  callback function.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl,
                           UNUSED_ATTR uint16_t reason)
 {
@@ -357,17 +357,17 @@ void avdt_ad_tc_close_ind(tAVDT_TC_TBL *p_tbl,
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_open_ind
-**
-** Description      This function is called by the L2CAP interface when
-**                  the L2CAP channel is opened.  It looks up the CCB or SCB
-**                  for the channel and sends it an open event.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_open_ind
+ *
+ * Description      This function is called by the L2CAP interface when
+ *                  the L2CAP channel is opened.  It looks up the CCB or SCB
+ *                  for the channel and sends it an open event.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ad_tc_open_ind(tAVDT_TC_TBL *p_tbl)
 {
     tAVDT_CCB   *p_ccb;
@@ -412,19 +412,19 @@ void avdt_ad_tc_open_ind(tAVDT_TC_TBL *p_tbl)
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_cong_ind
-**
-** Description      This function is called by the L2CAP interface layer when
-**                  L2CAP calls the congestion callback.  It looks up the CCB
-**                  or SCB for the channel and sends it a congestion event.
-**                  The is_congested parameter is the same value passed by
-**                  the L2CAP callback function.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_cong_ind
+ *
+ * Description      This function is called by the L2CAP interface layer when
+ *                  L2CAP calls the congestion callback.  It looks up the CCB
+ *                  or SCB for the channel and sends it a congestion event.
+ *                  The is_congested parameter is the same value passed by
+ *                  the L2CAP callback function.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ad_tc_cong_ind(tAVDT_TC_TBL *p_tbl, bool    is_congested)
 {
     tAVDT_CCB   *p_ccb;
@@ -450,17 +450,17 @@ void avdt_ad_tc_cong_ind(tAVDT_TC_TBL *p_tbl, bool    is_congested)
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_tc_data_ind
-**
-** Description      This function is called by the L2CAP interface layer when
-**                  incoming data is received from L2CAP.  It looks up the CCB
-**                  or SCB for the channel and routes the data accordingly.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_tc_data_ind
+ *
+ * Description      This function is called by the L2CAP interface layer when
+ *                  incoming data is received from L2CAP.  It looks up the CCB
+ *                  or SCB for the channel and routes the data accordingly.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ad_tc_data_ind(tAVDT_TC_TBL *p_tbl, BT_HDR *p_buf)
 {
     tAVDT_CCB   *p_ccb;
@@ -493,20 +493,20 @@ void avdt_ad_tc_data_ind(tAVDT_TC_TBL *p_tbl, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ad_write_req
-**
-** Description      This function is called by a CCB or SCB to send data to a
-**                  transport channel.  It looks up the LCID of the channel
-**                  based on the type, CCB, and SCB (if present).  Then it
-**                  passes the data to L2CA_DataWrite().
-**
-**
-** Returns          AVDT_AD_SUCCESS, if data accepted, else false
-**                  AVDT_AD_CONGESTED, if data accepted and the channel is congested
-**                  AVDT_AD_FAILED, if error
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_write_req
+ *
+ * Description      This function is called by a CCB or SCB to send data to a
+ *                  transport channel.  It looks up the LCID of the channel
+ *                  based on the type, CCB, and SCB (if present).  Then it
+ *                  passes the data to L2CA_DataWrite().
+ *
+ *
+ * Returns          AVDT_AD_SUCCESS, if data accepted, else false
+ *                  AVDT_AD_CONGESTED, if data accepted and the channel is congested
+ *                  AVDT_AD_FAILED, if error
+ *
+ ******************************************************************************/
 uint8_t avdt_ad_write_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, BT_HDR *p_buf)
 {
     uint8_t tcid;
@@ -520,21 +520,21 @@ uint8_t avdt_ad_write_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, BT_H
 
 
 /*******************************************************************************
-**
-** Function         avdt_ad_open_req
-**
-** Description      This function is called by a CCB or SCB to open a transport
-**                  channel.  This function allocates and initializes a
-**                  transport channel table entry.  The channel can be opened
-**                  in two roles:  as an initiator or acceptor.  When opened
-**                  as an initiator the function will start an L2CAP connection.
-**                  When opened as an acceptor the function simply configures
-**                  the table entry to listen for an incoming channel.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_open_req
+ *
+ * Description      This function is called by a CCB or SCB to open a transport
+ *                  channel.  This function allocates and initializes a
+ *                  transport channel table entry.  The channel can be opened
+ *                  in two roles:  as an initiator or acceptor.  When opened
+ *                  as an initiator the function will start an L2CAP connection.
+ *                  When opened as an acceptor the function simply configures
+ *                  the table entry to listen for an incoming channel.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ad_open_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, uint8_t role)
 {
     tAVDT_TC_TBL    *p_tbl;
@@ -604,17 +604,17 @@ void avdt_ad_open_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, uint8_t 
 }
 
 /*******************************************************************************
-**
-** Function         avdt_ad_close_req
-**
-** Description      This function is called by a CCB or SCB to close a
-**                  transport channel.  The function looks up the LCID for the
-**                  channel and calls L2CA_DisconnectReq().
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avdt_ad_close_req
+ *
+ * Description      This function is called by a CCB or SCB to close a
+ *                  transport channel.  The function looks up the LCID for the
+ *                  channel and calls L2CA_DisconnectReq().
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avdt_ad_close_req(uint8_t type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb)
 {
     uint8_t         tcid;

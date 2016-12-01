@@ -25,15 +25,15 @@
 tGAP_CB  gap_cb;
 
 /*******************************************************************************
-**
-** Function         GAP_SetTraceLevel
-**
-** Description      This function sets the trace level for GAP.  If called with
-**                  a value of 0xFF, it simply returns the current trace level.
-**
-** Returns          The new or current trace level
-**
-*******************************************************************************/
+ *
+ * Function         GAP_SetTraceLevel
+ *
+ * Description      This function sets the trace level for GAP.  If called with
+ *                  a value of 0xFF, it simply returns the current trace level.
+ *
+ * Returns          The new or current trace level
+ *
+ ******************************************************************************/
 uint8_t GAP_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
@@ -43,17 +43,17 @@ uint8_t GAP_SetTraceLevel (uint8_t new_level)
 }
 
 /*******************************************************************************
-**
-** Function         GAP_Init
-**
-** Description      Initializes the control blocks used by GAP.
-**
-**                  This routine should not be called except once per
-**                      stack invocation.
-**
-** Returns          Nothing
-**
-*******************************************************************************/
+ *
+ * Function         GAP_Init
+ *
+ * Description      Initializes the control blocks used by GAP.
+ *
+ *                  This routine should not be called except once per
+ *                      stack invocation.
+ *
+ * Returns          Nothing
+ *
+ ******************************************************************************/
 void GAP_Init(void)
 {
     memset (&gap_cb, 0, sizeof (tGAP_CB));

@@ -49,15 +49,15 @@ extern fixed_queue_t *btu_general_alarm_queue;
 static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf);
 
 /*******************************************************************************
-**
-** Function         l2c_link_hci_conn_req
-**
-** Description      This function is called when an HCI Connection Request
-**                  event is received.
-**
-** Returns          true, if accept conn
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_hci_conn_req
+ *
+ * Description      This function is called when an HCI Connection Request
+ *                  event is received.
+ *
+ * Returns          true, if accept conn
+ *
+ ******************************************************************************/
 bool    l2c_link_hci_conn_req (BD_ADDR bd_addr)
 {
     tL2C_LCB        *p_lcb;
@@ -147,15 +147,15 @@ bool    l2c_link_hci_conn_req (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_hci_conn_comp
-**
-** Description      This function is called when an HCI Connection Complete
-**                  event is received.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_hci_conn_comp
+ *
+ * Description      This function is called when an HCI Connection Complete
+ *                  event is received.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    l2c_link_hci_conn_comp (uint8_t status, uint16_t handle, BD_ADDR p_bda)
 {
     tL2C_CONN_INFO       ci;
@@ -290,15 +290,15 @@ bool    l2c_link_hci_conn_comp (uint8_t status, uint16_t handle, BD_ADDR p_bda)
 
 
 /*******************************************************************************
-**
-** Function         l2c_link_sec_comp
-**
-** Description      This function is called when required security procedures
-**                  are completed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_sec_comp
+ *
+ * Description      This function is called when required security procedures
+ *                  are completed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_sec_comp (BD_ADDR p_bda,
                         UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
                         uint8_t status)
@@ -359,15 +359,15 @@ void l2c_link_sec_comp (BD_ADDR p_bda,
 
 
 /*******************************************************************************
-**
-** Function         l2c_link_hci_disc_comp
-**
-** Description      This function is called when an HCI Disconnect Complete
-**                  event is received.
-**
-** Returns          true if the link is known about, else false
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_hci_disc_comp
+ *
+ * Description      This function is called when an HCI Disconnect Complete
+ *                  event is received.
+ *
+ * Returns          true if the link is known about, else false
+ *
+ ******************************************************************************/
 bool    l2c_link_hci_disc_comp (uint16_t handle, uint8_t reason)
 {
     tL2C_LCB    *p_lcb;
@@ -501,15 +501,15 @@ bool    l2c_link_hci_disc_comp (uint16_t handle, uint8_t reason)
 
 
 /*******************************************************************************
-**
-** Function         l2c_link_hci_qos_violation
-**
-** Description      This function is called when an HCI QOS Violation
-**                  event is received.
-**
-** Returns          true if the link is known about, else false
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_hci_qos_violation
+ *
+ * Description      This function is called when an HCI QOS Violation
+ *                  event is received.
+ *
+ * Returns          true if the link is known about, else false
+ *
+ ******************************************************************************/
 bool    l2c_link_hci_qos_violation (uint16_t handle)
 {
     tL2C_LCB        *p_lcb;
@@ -535,14 +535,14 @@ bool    l2c_link_hci_qos_violation (uint16_t handle)
 
 
 /*******************************************************************************
-**
-** Function         l2c_link_timeout
-**
-** Description      This function is called when a link timer expires
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_timeout
+ *
+ * Description      This function is called when a link timer expires
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_timeout (tL2C_LCB *p_lcb)
 {
     tL2C_CCB   *p_ccb;
@@ -663,14 +663,14 @@ void l2c_link_timeout (tL2C_LCB *p_lcb)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_info_resp_timer_timeout
-**
-** Description      This function is called when an info request times out
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_info_resp_timer_timeout
+ *
+ * Description      This function is called when an info request times out
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_info_resp_timer_timeout(void *data)
 {
     tL2C_LCB *p_lcb = (tL2C_LCB *)data;
@@ -715,20 +715,20 @@ void l2c_info_resp_timer_timeout(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_adjust_allocation
-**
-** Description      This function is called when a link is created or removed
-**                  to calculate the amount of packets each link may send to
-**                  the HCI without an ack coming back.
-**
-**                  Currently, this is a simple allocation, dividing the
-**                  number of Controller Packets by the number of links. In
-**                  the future, QOS configuration should be examined.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_adjust_allocation
+ *
+ * Description      This function is called when a link is created or removed
+ *                  to calculate the amount of packets each link may send to
+ *                  the HCI without an ack coming back.
+ *
+ *                  Currently, this is a simple allocation, dividing the
+ *                  number of Controller Packets by the number of links. In
+ *                  the future, QOS configuration should be examined.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_adjust_allocation (void)
 {
     uint16_t    qq, yy, qq_remainder;
@@ -843,19 +843,19 @@ void l2c_link_adjust_allocation (void)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_adjust_chnl_allocation
-**
-** Description      This function is called to calculate the amount of packets each
-**                  non-F&EC channel may have outstanding.
-**
-**                  Currently, this is a simple allocation, dividing the number
-**                  of packets allocated to the link by the number of channels. In
-**                  the future, QOS configuration should be examined.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_adjust_chnl_allocation
+ *
+ * Description      This function is called to calculate the amount of packets each
+ *                  non-F&EC channel may have outstanding.
+ *
+ *                  Currently, this is a simple allocation, dividing the number
+ *                  of packets allocated to the link by the number of channels. In
+ *                  the future, QOS configuration should be examined.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_adjust_chnl_allocation (void)
 {
     uint8_t     xx;
@@ -883,16 +883,16 @@ void l2c_link_adjust_chnl_allocation (void)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_processs_num_bufs
-**
-** Description      This function is called when a "controller buffer size"
-**                  event is first received from the controller. It updates
-**                  the L2CAP values.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_processs_num_bufs
+ *
+ * Description      This function is called when a "controller buffer size"
+ *                  event is first received from the controller. It updates
+ *                  the L2CAP values.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_processs_num_bufs (uint16_t num_lm_acl_bufs)
 {
     l2cb.num_lm_acl_bufs = l2cb.controller_xmit_window = num_lm_acl_bufs;
@@ -900,17 +900,17 @@ void l2c_link_processs_num_bufs (uint16_t num_lm_acl_bufs)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_pkts_rcvd
-**
-** Description      This function is called from the HCI transport when it is time
-**                  tto send a "Host ready for packets" command. This is only when
-**                  host to controller flow control is used. If fills in the arrays
-**                  of numbers of packets and handles.
-**
-** Returns          count of number of entries filled in
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_pkts_rcvd
+ *
+ * Description      This function is called from the HCI transport when it is time
+ *                  tto send a "Host ready for packets" command. This is only when
+ *                  host to controller flow control is used. If fills in the arrays
+ *                  of numbers of packets and handles.
+ *
+ * Returns          count of number of entries filled in
+ *
+ ******************************************************************************/
 uint8_t l2c_link_pkts_rcvd (UNUSED_ATTR uint16_t *num_pkts,
                             UNUSED_ATTR uint16_t *handles)
 {
@@ -920,15 +920,15 @@ uint8_t l2c_link_pkts_rcvd (UNUSED_ATTR uint16_t *num_pkts,
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_role_changed
-**
-** Description      This function is called whan a link's master/slave role change
-**                  event is received. It simply updates the link control block.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_role_changed
+ *
+ * Description      This function is called whan a link's master/slave role change
+ *                  event is received. It simply updates the link control block.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_role_changed (BD_ADDR bd_addr, uint8_t new_role, uint8_t hci_status)
 {
     tL2C_LCB *p_lcb;
@@ -960,18 +960,18 @@ void l2c_link_role_changed (BD_ADDR bd_addr, uint8_t new_role, uint8_t hci_statu
 }
 
 /*******************************************************************************
-**
-** Function         l2c_pin_code_request
-**
-** Description      This function is called whan a pin-code request is received
-**                  on a connection. If there are no channels active yet on the
-**                  link, it extends the link first connection timer.  Make sure
-**                  that inactivity timer is not extended if PIN code happens
-**                  to be after last ccb released.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_pin_code_request
+ *
+ * Description      This function is called whan a pin-code request is received
+ *                  on a connection. If there are no channels active yet on the
+ *                  link, it extends the link first connection timer.  Make sure
+ *                  that inactivity timer is not extended if PIN code happens
+ *                  to be after last ccb released.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_pin_code_request (BD_ADDR bd_addr)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr (bd_addr, BT_TRANSPORT_BR_EDR);
@@ -987,15 +987,15 @@ void l2c_pin_code_request (BD_ADDR bd_addr)
 
 #if (L2CAP_WAKE_PARKED_LINK == TRUE)
 /*******************************************************************************
-**
-** Function         l2c_link_check_power_mode
-**
-** Description      This function is called to check power mode.
-**
-** Returns          true if link is going to be active from park
-**                  false if nothing to send or not in park mode
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_check_power_mode
+ *
+ * Description      This function is called to check power mode.
+ *
+ * Returns          true if link is going to be active from park
+ *                  false if nothing to send or not in park mode
+ *
+ ******************************************************************************/
 bool    l2c_link_check_power_mode (tL2C_LCB *p_lcb)
 {
     tBTM_PM_MODE     mode;
@@ -1038,16 +1038,16 @@ bool    l2c_link_check_power_mode (tL2C_LCB *p_lcb)
 #endif /* L2CAP_WAKE_PARKED_LINK == TRUE) */
 
 /*******************************************************************************
-**
-** Function         l2c_link_check_send_pkts
-**
-** Description      This function is called to check if it can send packets
-**                  to the Host Controller. It may be passed the address of
-**                  a packet to send.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_check_send_pkts
+ *
+ * Description      This function is called to check if it can send packets
+ *                  to the Host Controller. It may be passed the address of
+ *                  a packet to send.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 {
     int         xx;
@@ -1200,14 +1200,14 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_send_to_lower
-**
-** Description      This function queues the buffer for HCI transmission
-**
-** Returns          true for success, false for fail
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_send_to_lower
+ *
+ * Description      This function queues the buffer for HCI transmission
+ *
+ * Returns          true for success, false for fail
+ *
+ ******************************************************************************/
 static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
 {
     uint16_t    num_segs;
@@ -1326,16 +1326,16 @@ static bool    l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_process_num_completed_pkts
-**
-** Description      This function is called when a "number-of-completed-packets"
-**                  event is received from the controller. It updates all the
-**                  LCB transmit counts.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_process_num_completed_pkts
+ *
+ * Description      This function is called when a "number-of-completed-packets"
+ *                  event is received from the controller. It updates all the
+ *                  LCB transmit counts.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_process_num_completed_pkts (uint8_t *p)
 {
     uint8_t     num_handles, xx;
@@ -1451,15 +1451,15 @@ void l2c_link_process_num_completed_pkts (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_segments_xmitted
-**
-** Description      This function is called from the HCI Interface when an ACL
-**                  data packet segment is transmitted.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_segments_xmitted
+ *
+ * Description      This function is called from the HCI Interface when an ACL
+ *                  data packet segment is transmitted.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_segments_xmitted (BT_HDR *p_msg)
 {
     uint8_t     *p = (uint8_t *)(p_msg + 1) + p_msg->offset;

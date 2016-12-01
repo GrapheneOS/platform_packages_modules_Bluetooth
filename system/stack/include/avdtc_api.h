@@ -65,160 +65,160 @@ typedef union {
 typedef void tAVDTC_CTRL_CBACK(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDTC_CTRL *p_data);
 
 /*******************************************************************************
-**
-** Function         AVDTC_Init
-**
-** Description      This function is called to begin using the conformance API.
-**                  It must be called after AVDT_Register() and before any
-**                  other API or conformance API functions are called.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_Init
+ *
+ * Description      This function is called to begin using the conformance API.
+ *                  It must be called after AVDT_Register() and before any
+ *                  other API or conformance API functions are called.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_Init(tAVDTC_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         AVDTC_DiscoverRsp
-**
-** Description      Send a discover response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_DiscoverRsp
+ *
+ * Description      Send a discover response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_DiscoverRsp(BD_ADDR bd_addr, uint8_t label,
                               tAVDT_SEP_INFO sep_info[], uint8_t num_seps);
 
 /*******************************************************************************
-**
-** Function         AVDTC_GetCapRsp
-**
-** Description     Send a get capabilities response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_GetCapRsp
+ *
+ * Description     Send a get capabilities response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_GetCapRsp(BD_ADDR bd_addr, uint8_t label, tAVDT_CFG *p_cap);
 
 /*******************************************************************************
-**
-** Function         AVDTC_GetAllCapRsp
-**
-** Description     Send a get all capabilities response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_GetAllCapRsp
+ *
+ * Description     Send a get all capabilities response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_GetAllCapRsp(BD_ADDR bd_addr, uint8_t label, tAVDT_CFG *p_cap);
 
 /*******************************************************************************
-**
-** Function         AVDTC_GetConfigReq
-**
-** Description      Send a get configuration request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_GetConfigReq
+ *
+ * Description      Send a get configuration request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_GetConfigReq(uint8_t handle);
 
 /*******************************************************************************
-**
-** Function         AVDTC_GetConfigRsp
-**
-** Description      Send a get configuration response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_GetConfigRsp
+ *
+ * Description      Send a get configuration response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_GetConfigRsp(uint8_t handle, uint8_t label, tAVDT_CFG *p_cfg);
 
 /*******************************************************************************
-**
-** Function         AVDTC_OpenReq
-**
-** Description      Send an open request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_OpenReq
+ *
+ * Description      Send an open request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_OpenReq(uint8_t handle);
 
 /*******************************************************************************
-**
-** Function         AVDTC_OpenRsp
-**
-** Description      Send an open response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_OpenRsp
+ *
+ * Description      Send an open response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_OpenRsp(uint8_t handle, uint8_t label);
 
 /*******************************************************************************
-**
-** Function         AVDTC_StartRsp
-**
-** Description      Send a start response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_StartRsp
+ *
+ * Description      Send a start response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_StartRsp(uint8_t *p_handles, uint8_t num_handles, uint8_t label);
 
 /*******************************************************************************
-**
-** Function         AVDTC_CloseRsp
-**
-** Description      Send a close response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_CloseRsp
+ *
+ * Description      Send a close response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_CloseRsp(uint8_t handle, uint8_t label);
 
 /*******************************************************************************
-**
-** Function         AVDTC_SuspendRsp
-**
-** Description      Send a suspend response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_SuspendRsp
+ *
+ * Description      Send a suspend response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_SuspendRsp(uint8_t *p_handles, uint8_t num_handles, uint8_t label);
 
 /*******************************************************************************
-**
-** Function         AVDTC_AbortReq
-**
-** Description      Send an abort request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_AbortReq
+ *
+ * Description      Send an abort request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_AbortReq(uint8_t handle);
 
 /*******************************************************************************
-**
-** Function         AVDTC_AbortRsp
-**
-** Description      Send an abort response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_AbortRsp
+ *
+ * Description      Send an abort response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_AbortRsp(uint8_t handle, uint8_t label);
 
 /*******************************************************************************
-**
-** Function         AVDTC_Rej
-**
-** Description      Send a reject message.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVDTC_Rej
+ *
+ * Description      Send a reject message.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void AVDTC_Rej(uint8_t handle, BD_ADDR bd_addr, uint8_t cmd, uint8_t label,
                       uint8_t err_code, uint8_t err_param);
 

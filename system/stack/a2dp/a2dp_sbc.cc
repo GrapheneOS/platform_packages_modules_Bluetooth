@@ -207,29 +207,29 @@ static tA2DP_STATUS A2DP_ParseInfoSbc(tA2DP_SBC_CIE* p_ie,
 }
 
 /******************************************************************************
-**
-** Function         A2DP_BldSbcMplHdr
-**
-** Description      This function is called by an application to parse
-**                  the SBC Media Payload header.
-**                  Input Parameters:
-**                      frag:  1, if fragmented. 0, otherwise.
-**
-**                      start:  1, if the starting packet of a fragmented frame.
-**
-**                      last:  1, if the last packet of a fragmented frame.
-**
-**                      num:  If frag is 1, this is the number of remaining
-**                            fragments (including this fragment) of this frame.
-**                            If frag is 0, this is the number of frames in
-**                            this packet.
-**
-**                  Output Parameters:
-**                      p_dst:  the resulting media payload header byte
-**                              sequence.
-**
-** Returns          void.
-******************************************************************************/
+ *
+ * Function         A2DP_BldSbcMplHdr
+ *
+ * Description      This function is called by an application to parse
+ *                  the SBC Media Payload header.
+ *                  Input Parameters:
+ *                      frag:  1, if fragmented. 0, otherwise.
+ *
+ *                      start:  1, if the starting packet of a fragmented frame.
+ *
+ *                      last:  1, if the last packet of a fragmented frame.
+ *
+ *                      num:  If frag is 1, this is the number of remaining
+ *                            fragments (including this fragment) of this frame.
+ *                            If frag is 0, this is the number of frames in
+ *                            this packet.
+ *
+ *                  Output Parameters:
+ *                      p_dst:  the resulting media payload header byte
+ *                              sequence.
+ *
+ * Returns          void.
+ *****************************************************************************/
 static void A2DP_BldSbcMplHdr(uint8_t* p_dst, bool frag, bool start, bool last,
                               uint8_t num) {
   if (p_dst == NULL) return;
@@ -242,29 +242,29 @@ static void A2DP_BldSbcMplHdr(uint8_t* p_dst, bool frag, bool start, bool last,
 }
 
 /******************************************************************************
-**
-** Function         A2DP_ParseMplHeaderSbc
-**
-** Description      This function is called by an application to parse
-**                  the SBC Media Payload header.
-**                  Input Parameters:
-**                      p_src:  the byte sequence to parse..
-**
-**                  Output Parameters:
-**                      frag:  1, if fragmented. 0, otherwise.
-**
-**                      start:  1, if the starting packet of a fragmented frame.
-**
-**                      last:  1, if the last packet of a fragmented frame.
-**
-**                      num:  If frag is 1, this is the number of remaining
-**                            fragments
-**                            (including this fragment) of this frame.
-**                            If frag is 0, this is the number of frames in
-**                            this packet.
-**
-** Returns          void.
-******************************************************************************/
+ *
+ * Function         A2DP_ParseMplHeaderSbc
+ *
+ * Description      This function is called by an application to parse
+ *                  the SBC Media Payload header.
+ *                  Input Parameters:
+ *                      p_src:  the byte sequence to parse..
+ *
+ *                  Output Parameters:
+ *                      frag:  1, if fragmented. 0, otherwise.
+ *
+ *                      start:  1, if the starting packet of a fragmented frame.
+ *
+ *                      last:  1, if the last packet of a fragmented frame.
+ *
+ *                      num:  If frag is 1, this is the number of remaining
+ *                            fragments
+ *                            (including this fragment) of this frame.
+ *                            If frag is 0, this is the number of frames in
+ *                            this packet.
+ *
+ * Returns          void.
+ *****************************************************************************/
 UNUSED_ATTR static void A2DP_ParseMplHeaderSbc(uint8_t* p_src, bool* p_frag,
                                                bool* p_start, bool* p_last,
                                                uint8_t* p_num) {

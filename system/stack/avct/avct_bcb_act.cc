@@ -23,7 +23,7 @@
 *  Description:    This module contains action functions of the browsing control
 *                  state machine.
 *
-******************************************************************************/
+ *****************************************************************************/
 
 
 #include <string.h>
@@ -56,16 +56,16 @@ const tAVCT_BCB_ACTION avct_bcb_action[] = {
 
 
 /*******************************************************************************
-**
-** Function         avct_bcb_msg_asmbl
-**
-** Description      Reassemble incoming message.
-**
-**
-** Returns          Pointer to reassembled message;  NULL if no message
-**                  available.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_msg_asmbl
+ *
+ * Description      Reassemble incoming message.
+ *
+ *
+ * Returns          Pointer to reassembled message;  NULL if no message
+ *                  available.
+ *
+ ******************************************************************************/
 static BT_HDR *avct_bcb_msg_asmbl(UNUSED_ATTR tAVCT_BCB *p_bcb, BT_HDR *p_buf)
 {
     uint8_t   *p;
@@ -86,15 +86,15 @@ static BT_HDR *avct_bcb_msg_asmbl(UNUSED_ATTR tAVCT_BCB *p_bcb, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         avct_bcb_chnl_open
-**
-** Description      Open L2CAP channel to peer
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_chnl_open
+ *
+ * Description      Open L2CAP channel to peer
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_chnl_open(tAVCT_BCB *p_bcb,
                         UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
@@ -123,15 +123,15 @@ void avct_bcb_chnl_open(tAVCT_BCB *p_bcb,
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_unbind_disc
-**
-** Description      call callback with disconnect event.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_unbind_disc
+ *
+ * Description      call callback with disconnect event.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_unbind_disc(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     p_data->p_ccb->p_bcb = NULL;
@@ -140,18 +140,18 @@ void avct_bcb_unbind_disc(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_open_ind
-**
-** Description      Handle an LL_OPEN event.
-**                  For the allocated ccb already bound to the bcb, send a connect event.
-**                  For the unbound ccb with a new PID, bind that ccb to the bcb with the
-**                  same bd_addr and send a connect event.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_open_ind
+ *
+ * Description      Handle an LL_OPEN event.
+ *                  For the allocated ccb already bound to the bcb, send a connect event.
+ *                  For the unbound ccb with a new PID, bind that ccb to the bcb with the
+ *                  same bd_addr and send a connect event.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_open_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB       *p_ccb = &avct_cb.ccb[0];
@@ -211,16 +211,16 @@ void avct_bcb_open_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_open_fail
-**
-** Description      L2CAP channel open attempt failed.  Mark the ccbs
-**                  as NULL bcb.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_open_fail
+ *
+ * Description      L2CAP channel open attempt failed.  Mark the ccbs
+ *                  as NULL bcb.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_open_fail(tAVCT_BCB *p_bcb,
                         UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
@@ -236,16 +236,16 @@ void avct_bcb_open_fail(tAVCT_BCB *p_bcb,
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_close_ind
-**
-** Description      L2CAP channel closed by peer.  Deallocate any initiator
-**                  ccbs on this lcb and send disconnect ind event.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_close_ind
+ *
+ * Description      L2CAP channel closed by peer.  Deallocate any initiator
+ *                  ccbs on this lcb and send disconnect ind event.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_close_ind(tAVCT_BCB *p_bcb,
                         UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
@@ -272,16 +272,16 @@ void avct_bcb_close_ind(tAVCT_BCB *p_bcb,
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_close_cfm
-**
-** Description      L2CAP channel closed by us.  Deallocate any initiator
-**                  ccbs on this lcb and send disconnect ind or cfm event.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_close_cfm
+ *
+ * Description      L2CAP channel closed by us.  Deallocate any initiator
+ *                  ccbs on this lcb and send disconnect ind or cfm event.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_close_cfm(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB           *p_ccb = &avct_cb.ccb[0];
@@ -316,15 +316,15 @@ void avct_bcb_close_cfm(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_bind_conn
-**
-** Description      Bind ccb to lcb and send connect cfm event.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_bind_conn
+ *
+ * Description      Bind ccb to lcb and send connect cfm event.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_bind_conn(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_LCB *p_lcb = avct_lcb_by_bcb(p_bcb);
@@ -334,17 +334,17 @@ void avct_bcb_bind_conn(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_chk_disc
-**
-** Description      A ccb wants to close; if it is the last ccb on this lcb,
-**                  close channel.  Otherwise just deallocate and call
-**                  callback.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_chk_disc
+ *
+ * Description      A ccb wants to close; if it is the last ccb on this lcb,
+ *                  close channel.  Otherwise just deallocate and call
+ *                  callback.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_chk_disc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     p_bcb->ch_close = avct_bcb_get_last_ccb_index(p_bcb, p_data->p_ccb);
@@ -358,15 +358,15 @@ void avct_bcb_chk_disc(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_chnl_disc
-**
-** Description      Disconnect L2CAP channel.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_chnl_disc
+ *
+ * Description      Disconnect L2CAP channel.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_chnl_disc(tAVCT_BCB *p_bcb,
                         UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
@@ -374,16 +374,16 @@ void avct_bcb_chnl_disc(tAVCT_BCB *p_bcb,
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_bind_fail
-**
-** Description      Deallocate ccb and call callback with connect event
-**                  with failure result.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_bind_fail
+ *
+ * Description      Deallocate ccb and call callback with connect event
+ *                  with failure result.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_bind_fail(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     p_data->p_ccb->p_bcb = NULL;
@@ -392,15 +392,15 @@ void avct_bcb_bind_fail(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_cong_ind
-**
-** Description      Handle congestion indication from L2CAP.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_cong_ind
+ *
+ * Description      Handle congestion indication from L2CAP.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_cong_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
@@ -422,15 +422,15 @@ void avct_bcb_cong_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_discard_msg
-**
-** Description      Discard a message sent in from the API.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_discard_msg
+ *
+ * Description      Discard a message sent in from the API.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_discard_msg(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     osi_free_and_reset((void **)&p_bcb->p_tx_msg);
@@ -456,15 +456,15 @@ void avct_bcb_discard_msg(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_send_msg
-**
-** Description      Build and send an AVCTP message.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_send_msg
+ *
+ * Description      Build and send an AVCTP message.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_send_msg(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     uint16_t  curr_msg_len;
@@ -505,15 +505,15 @@ void avct_bcb_send_msg(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_free_msg_ind
-**
-** Description      Discard an incoming AVCTP message.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_free_msg_ind
+ *
+ * Description      Discard an incoming AVCTP message.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_free_msg_ind(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     if (p_data)
@@ -521,15 +521,15 @@ void avct_bcb_free_msg_ind(UNUSED_ATTR tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_msg_ind
-**
-** Description      Handle an incoming AVCTP message.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_msg_ind
+ *
+ * Description      Handle an incoming AVCTP message.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_bcb_msg_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 {
     uint8_t       *p;
@@ -600,15 +600,15 @@ void avct_bcb_msg_ind(tAVCT_BCB *p_bcb, tAVCT_LCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_dealloc
-**
-** Description      Deallocate a browse control block.
-**
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_dealloc
+ *
+ * Description      Deallocate a browse control block.
+ *
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void avct_bcb_dealloc(tAVCT_BCB *p_bcb,
                       UNUSED_ATTR tAVCT_LCB_EVT *p_data)
 {
@@ -633,15 +633,15 @@ void avct_bcb_dealloc(tAVCT_BCB *p_bcb,
 }
 
 /*******************************************************************************
-**
-** Function         avct_close_bcb
-**
-** Description      this function is called right before LCB disconnects.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         avct_close_bcb
+ *
+ * Description      this function is called right before LCB disconnects.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void avct_close_bcb(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
     tAVCT_BCB   *p_bcb = avct_bcb_by_lcb(p_lcb);
@@ -653,43 +653,43 @@ void avct_close_bcb(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 
 
 /*******************************************************************************
-**
-** Function         avct_lcb_by_bcb
-**
-** Description      This lookup function finds the lcb for a bcb.
-**
-** Returns          pointer to the lcb.
-**
-*******************************************************************************/
+ *
+ * Function         avct_lcb_by_bcb
+ *
+ * Description      This lookup function finds the lcb for a bcb.
+ *
+ * Returns          pointer to the lcb.
+ *
+ ******************************************************************************/
 tAVCT_LCB *avct_lcb_by_bcb(tAVCT_BCB *p_bcb)
 {
     return &avct_cb.lcb[p_bcb->allocated - 1];
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_by_lcb
-**
-** Description      This lookup function finds the bcb for a lcb.
-**
-** Returns          pointer to the lcb.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_by_lcb
+ *
+ * Description      This lookup function finds the bcb for a lcb.
+ *
+ * Returns          pointer to the lcb.
+ *
+ ******************************************************************************/
 tAVCT_BCB *avct_bcb_by_lcb(tAVCT_LCB *p_lcb)
 {
     return &avct_cb.bcb[p_lcb->allocated - 1];
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_get_last_ccb_index
-**
-** Description      See if given ccb is only one on the bcb.
-**
-**
-** Returns          0, if ccb is last,  (ccb index + 1) otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_get_last_ccb_index
+ *
+ * Description      See if given ccb is only one on the bcb.
+ *
+ *
+ * Returns          0, if ccb is last,  (ccb index + 1) otherwise.
+ *
+ ******************************************************************************/
 uint8_t avct_bcb_get_last_ccb_index(tAVCT_BCB *p_bcb, tAVCT_CCB *p_ccb_last)
 {
     tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
@@ -708,15 +708,15 @@ uint8_t avct_bcb_get_last_ccb_index(tAVCT_BCB *p_bcb, tAVCT_CCB *p_ccb_last)
 }
 
 /*******************************************************************************
-**
-** Function         avct_bcb_by_lcid
-**
-** Description      Find the BCB associated with the L2CAP LCID
-**
-**
-** Returns          pointer to the lcb, or NULL if none found.
-**
-*******************************************************************************/
+ *
+ * Function         avct_bcb_by_lcid
+ *
+ * Description      Find the BCB associated with the L2CAP LCID
+ *
+ *
+ * Returns          pointer to the lcb, or NULL if none found.
+ *
+ ******************************************************************************/
 tAVCT_BCB *avct_bcb_by_lcid(uint16_t lcid)
 {
     tAVCT_BCB   *p_bcb = &avct_cb.bcb[0];

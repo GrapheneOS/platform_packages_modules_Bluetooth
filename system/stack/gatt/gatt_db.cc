@@ -34,9 +34,9 @@
 #include "btm_int.h"
 #include "osi/include/osi.h"
 
-/********************************************************************************
-**              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
-*********************************************************************************/
+/*******************************************************************************
+ *              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
+ ******************************************************************************/
 static bool allocate_svc_db_buf(tGATT_SVC_DB *p_db);
 static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PERM perm);
 static bool deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr);
@@ -48,17 +48,17 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, uint8_t op_cod
                                                 bt_gatt_db_attribute_type_t gatt_type);
 
 /*******************************************************************************
-**
-** Function         gatts_init_service_db
-**
-** Description      This function initialize a memory space to be a service database.
-**
-** Parameter        p_db: database pointer.
-**                  len: size of the memory space.
-**
-** Returns          Status of te operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_init_service_db
+ *
+ * Description      This function initialize a memory space to be a service database.
+ *
+ * Parameter        p_db: database pointer.
+ *                  len: size of the memory space.
+ *
+ * Returns          Status of te operation.
+ *
+ ******************************************************************************/
 bool    gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  bool    is_pri,
                                uint16_t s_hdl, uint16_t num_handle)
 {
@@ -81,17 +81,17 @@ bool    gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  bool   
 }
 
 /*******************************************************************************
-**
-** Function         gatts_init_service_db
-**
-** Description      This function initialize a memory space to be a service database.
-**
-** Parameter        p_db: database pointer.
-**                  len: size of the memory space.
-**
-** Returns          Status of te operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_init_service_db
+ *
+ * Description      This function initialize a memory space to be a service database.
+ *
+ * Parameter        p_db: database pointer.
+ *                  len: size of the memory space.
+ *
+ * Returns          Status of te operation.
+ *
+ ******************************************************************************/
 tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 {
     if (!p_db || !p_db->p_attr_list)
@@ -107,14 +107,14 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 }
 
 /*******************************************************************************
-**
-** Function         gatts_check_attr_readability
-**
-** Description      check attribute readability
-**
-** Returns          status of operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_check_attr_readability
+ *
+ * Description      check attribute readability
+ *
+ * Returns          status of operation.
+ *
+ ******************************************************************************/
 static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
                                                  UNUSED_ATTR uint16_t offset,
                                                  bool    read_long,
@@ -186,23 +186,23 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
 }
 
 /*******************************************************************************
-**
-** Function         read_attr_value
-**
-** Description      Utility function to read an attribute value.
-**
-** Parameter        p_attr: pointer to the attribute to read.
-**                  offset: read offset.
-**                  p_value: output parameter to carry out the attribute value.
-**                  p_len: output parameter to carry out the attribute length.
-**                  read_long: this is a read blob request.
-**                  mtu: MTU
-**                  sec_flag: current link security status.
-**                  key_size: encryption key size.
-**
-** Returns          status of operation.
-**
-*******************************************************************************/
+ *
+ * Function         read_attr_value
+ *
+ * Description      Utility function to read an attribute value.
+ *
+ * Parameter        p_attr: pointer to the attribute to read.
+ *                  offset: read offset.
+ *                  p_value: output parameter to carry out the attribute value.
+ *                  p_len: output parameter to carry out the attribute length.
+ *                  read_long: this is a read blob request.
+ *                  mtu: MTU
+ *                  sec_flag: current link security status.
+ *                  key_size: encryption key size.
+ *
+ * Returns          status of operation.
+ *
+ ******************************************************************************/
 static tGATT_STATUS read_attr_value (void *p_attr,
                                      uint16_t offset,
                                      uint8_t **p_data,
@@ -300,23 +300,23 @@ static tGATT_STATUS read_attr_value (void *p_attr,
 }
 
 /*******************************************************************************
-**
-** Function         gatts_db_read_attr_value_by_type
-**
-** Description      Query attribute value by attribute type.
-**
-** Parameter        p_db: pointer to the attribute database.
-**                  p_rsp: Read By type response data.
-**                  s_handle: starting handle of the range we are looking for.
-**                  e_handle: ending handle of the range we are looking for.
-**                  type: Attribute type.
-**                  mtu: MTU.
-**                  sec_flag: current link security status.
-**                  key_size: encryption key size.
-**
-** Returns          Status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_db_read_attr_value_by_type
+ *
+ * Description      Query attribute value by attribute type.
+ *
+ * Parameter        p_db: pointer to the attribute database.
+ *                  p_rsp: Read By type response data.
+ *                  s_handle: starting handle of the range we are looking for.
+ *                  e_handle: ending handle of the range we are looking for.
+ *                  type: Attribute type.
+ *                  mtu: MTU.
+ *                  sec_flag: current link security status.
+ *                  key_size: encryption key size.
+ *
+ * Returns          Status of the operation.
+ *
+ ******************************************************************************/
 tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
                                                tGATT_SVC_DB    *p_db,
                                                uint8_t      op_code,
@@ -412,17 +412,17 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 }
 
 /*******************************************************************************
-**
-** Function         gatts_add_included_service
-**
-** Description      This function adds an included service into a database.
-**
-** Parameter        p_db: database pointer.
-**                  inc_srvc_type: included service type.
-**
-** Returns          Status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_add_included_service
+ *
+ * Description      This function adds an included service into a database.
+ *
+ * Parameter        p_db: database pointer.
+ *                  inc_srvc_type: included service type.
+ *
+ * Returns          Status of the operation.
+ *
+ ******************************************************************************/
 uint16_t gatts_add_included_service (tGATT_SVC_DB *p_db, uint16_t s_handle,
                                      uint16_t e_handle, tBT_UUID service)
 {
@@ -459,20 +459,20 @@ uint16_t gatts_add_included_service (tGATT_SVC_DB *p_db, uint16_t s_handle,
 }
 
 /*******************************************************************************
-**
-** Function         gatts_add_characteristic
-**
-** Description      This function add a characteristics and its descriptor into
-**                  a servce identified by the service database pointer.
-**
-** Parameter        p_db: database pointer.
-**                  perm: permission (authentication and key size requirements)
-**                  property: property of the characteristic.
-**                  p_char: characteristic value information.
-**
-** Returns          Status of te operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_add_characteristic
+ *
+ * Description      This function add a characteristics and its descriptor into
+ *                  a servce identified by the service database pointer.
+ *
+ * Parameter        p_db: database pointer.
+ *                  perm: permission (authentication and key size requirements)
+ *                  property: property of the characteristic.
+ *                  p_char: characteristic value information.
+ *
+ * Returns          Status of te operation.
+ *
+ ******************************************************************************/
 uint16_t gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                                  tGATT_CHAR_PROP property,
                                  tBT_UUID * p_char_uuid)
@@ -512,14 +512,14 @@ uint16_t gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_convertchar_descr_type
-**
-** Description      This function convert a char descript UUID into descriptor type.
-**
-** Returns          descriptor type.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_convertchar_descr_type
+ *
+ * Description      This function convert a char descript UUID into descriptor type.
+ *
+ * Returns          descriptor type.
+ *
+ ******************************************************************************/
 uint8_t gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
 {
     tBT_UUID std_descr = {LEN_UUID_16, {GATT_UUID_CHAR_EXT_PROP}};
@@ -556,19 +556,19 @@ uint8_t gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
 }
 
 /*******************************************************************************
-**
-** Function         gatts_add_char_descr
-**
-** Description      This function add a characteristics descriptor.
-**
-** Parameter        p_db: database pointer.
-**                  perm: characteristic descriptor permission type.
-**                  char_dscp_tpye: the characteristic descriptor masks.
-**                  p_dscp_params: characteristic descriptors values.
-**
-** Returns          Status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_add_char_descr
+ *
+ * Description      This function add a characteristics descriptor.
+ *
+ * Parameter        p_db: database pointer.
+ *                  perm: characteristic descriptor permission type.
+ *                  char_dscp_tpye: the characteristic descriptor masks.
+ *                  p_dscp_params: characteristic descriptors values.
+ *
+ * Returns          Status of the operation.
+ *
+ ******************************************************************************/
 uint16_t gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                              tBT_UUID *     p_descr_uuid)
 {
@@ -590,28 +590,28 @@ uint16_t gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
     }
 }
 
-/*******************************************************************************/
+/******************************************************************************/
 /* Service Attribute Database Query Utility Functions */
-/*******************************************************************************/
+/******************************************************************************/
 /*******************************************************************************
-**
-** Function         gatts_read_attr_value_by_handle
-**
-** Description      Query attribute value by attribute handle.
-**
-** Parameter        p_db: pointer to the attribute database.
-**                  handle: Attribute handle to read.
-**                  offset: Read offset.
-**                  p_value: output parameter to carry out the attribute value.
-**                  p_len: output parameter as attribute length read.
-**                  read_long: this is a read blob request.
-**                  mtu: MTU.
-**                  sec_flag: current link security status.
-**                  key_size: encryption key size
-**
-** Returns          Status of operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_read_attr_value_by_handle
+ *
+ * Description      Query attribute value by attribute handle.
+ *
+ * Parameter        p_db: pointer to the attribute database.
+ *                  handle: Attribute handle to read.
+ *                  offset: Read offset.
+ *                  p_value: output parameter to carry out the attribute value.
+ *                  p_len: output parameter as attribute length read.
+ *                  read_long: this is a read blob request.
+ *                  mtu: MTU.
+ *                  sec_flag: current link security status.
+ *                  key_size: encryption key size
+ *
+ * Returns          Status of operation.
+ *
+ ******************************************************************************/
 tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
                                              tGATT_SVC_DB *p_db,
                                              uint8_t op_code,
@@ -653,24 +653,24 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
 }
 
 /*******************************************************************************
-**
-** Function         gatts_read_attr_perm_check
-**
-** Description      Check attribute readability.
-**
-** Parameter        p_db: pointer to the attribute database.
-**                  handle: Attribute handle to read.
-**                  offset: Read offset.
-**                  p_value: output parameter to carry out the attribute value.
-**                  p_len: output parameter as attribute length read.
-**                  read_long: this is a read blob request.
-**                  mtu: MTU.
-**                  sec_flag: current link security status.
-**                  key_size: encryption key size
-**
-** Returns          Status of operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_read_attr_perm_check
+ *
+ * Description      Check attribute readability.
+ *
+ * Parameter        p_db: pointer to the attribute database.
+ *                  handle: Attribute handle to read.
+ *                  offset: Read offset.
+ *                  p_value: output parameter to carry out the attribute value.
+ *                  p_len: output parameter as attribute length read.
+ *                  read_long: this is a read blob request.
+ *                  mtu: MTU.
+ *                  sec_flag: current link security status.
+ *                  key_size: encryption key size
+ *
+ * Returns          Status of operation.
+ *
+ ******************************************************************************/
 tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
                                         bool    is_long,
                                         uint16_t handle,
@@ -700,23 +700,23 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
     return status;
 }
 /*******************************************************************************
-**
-** Function         gatts_write_attr_perm_check
-**
-** Description      Write attribute value into database.
-**
-** Parameter        p_db: pointer to the attribute database.
-**                  op_code:op code of this write.
-**                  handle: handle of the attribute to write.
-**                  offset: Write offset if write op code is write blob.
-**                  p_data: Attribute value to write.
-**                  len: attribute data length.
-**                  sec_flag: current link security status.
-**                  key_size: encryption key size
-**
-** Returns          Status of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_write_attr_perm_check
+ *
+ * Description      Write attribute value into database.
+ *
+ * Parameter        p_db: pointer to the attribute database.
+ *                  op_code:op code of this write.
+ *                  handle: handle of the attribute to write.
+ *                  offset: Write offset if write op code is write blob.
+ *                  p_data: Attribute value to write.
+ *                  len: attribute data length.
+ *                  sec_flag: current link security status.
+ *                  key_size: encryption key size
+ *
+ * Returns          Status of the operation.
+ *
+ ******************************************************************************/
 tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, uint8_t op_code,
                                           uint16_t handle, uint16_t offset, uint8_t *p_data,
                                           uint16_t len, tGATT_SEC_FLAG sec_flag, uint8_t key_size)
@@ -903,20 +903,20 @@ static void uuid_to_str(const tBT_UUID bt_uuid, char *str_buf, size_t buf_len)
 }
 
 /*******************************************************************************
-**
-** Function         allocate_attr_in_db
-**
-** Description      Allocate a memory space for a new attribute, and link this
-**                  attribute into the database attribute list.
-**
-**
-** Parameter        p_db    : database pointer.
-**                  p_uuid:     pointer to attribute UUID
-**                  service : type of attribute to be added.
-**
-** Returns          pointer to the newly allocated attribute.
-**
-*******************************************************************************/
+ *
+ * Function         allocate_attr_in_db
+ *
+ * Description      Allocate a memory space for a new attribute, and link this
+ *                  attribute into the database attribute list.
+ *
+ *
+ * Parameter        p_db    : database pointer.
+ *                  p_uuid:     pointer to attribute UUID
+ *                  service : type of attribute to be added.
+ *
+ * Returns          pointer to the newly allocated attribute.
+ *
+ ******************************************************************************/
 static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PERM perm)
 {
     if (p_uuid == NULL) {
@@ -970,17 +970,17 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
 }
 
 /*******************************************************************************
-**
-** Function         deallocate_attr_in_db
-**
-** Description      Free an attribute within the database.
-**
-** Parameter        p_db: database pointer.
-**                  p_attr: pointer to the attribute record to be freed.
-**
-** Returns          bool   : success
-**
-*******************************************************************************/
+ *
+ * Function         deallocate_attr_in_db
+ *
+ * Description      Free an attribute within the database.
+ *
+ * Parameter        p_db: database pointer.
+ *                  p_attr: pointer to the attribute record to be freed.
+ *
+ * Returns          bool   : success
+ *
+ ******************************************************************************/
 static bool    deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
 {
     tGATT_ATTR  *p_cur, *p_next;
@@ -1014,21 +1014,21 @@ static bool    deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
 }
 
 /*******************************************************************************
-**
-** Function         copy_extra_byte_in_db
-**
-** Description      Utility function to allocate extra bytes memory in DB and copy
-**                  the value from a source place.
-**
-**
-** Parameter        p_db: database pointer.
-**                  p_dst: destination data pointer.
-**                  p_src: source data pointer.
-**                  len: data length to be copied.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         copy_extra_byte_in_db
+ *
+ * Description      Utility function to allocate extra bytes memory in DB and copy
+ *                  the value from a source place.
+ *
+ *
+ * Parameter        p_db: database pointer.
+ *                  p_dst: destination data pointer.
+ *                  p_src: source data pointer.
+ *                  len: data length to be copied.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 static bool    copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, uint16_t len)
 {
     uint8_t *p = (uint8_t *)*p_dst;
@@ -1052,14 +1052,14 @@ static bool    copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, uint16_t 
 }
 
 /*******************************************************************************
-**
-** Function         allocate_svc_db_buf
-**
-** Description      Utility function to allocate extra buffer for service database.
-**
-** Returns          true if allocation succeed, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         allocate_svc_db_buf
+ *
+ * Description      Utility function to allocate extra buffer for service database.
+ *
+ * Returns          true if allocation succeed, otherwise false.
+ *
+ ******************************************************************************/
 static bool    allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_calloc(GATT_DB_BUF_SIZE);
@@ -1076,14 +1076,14 @@ static bool    allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 }
 
 /*******************************************************************************
-**
-** Function         gatts_send_app_read_request
-**
-** Description      Send application read request callback
-**
-** Returns          status of operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_send_app_read_request
+ *
+ * Description      Send application read request callback
+ *
+ * Returns          status of operation.
+ *
+ ******************************************************************************/
 static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, uint8_t op_code,
                                                 uint16_t handle, uint16_t offset, uint32_t trans_id,
                                                 bt_gatt_db_attribute_type_t gatt_type)
@@ -1132,17 +1132,17 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, uint8_t op_cod
 }
 
 /*******************************************************************************
-**
-** Function         gatts_db_add_service_declaration
-**
-** Description      Update a service database service declaration record.
-**
-** Parameter        p_db: database pointer.
-**                  service: UUID of the service.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_db_add_service_declaration
+ *
+ * Description      Update a service database service declaration record.
+ *
+ * Parameter        p_db: database pointer.
+ *                  service: UUID of the service.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static bool gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_service, bool is_pri)
 {
     tGATT_ATTR  *p_attr;

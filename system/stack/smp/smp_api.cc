@@ -39,14 +39,14 @@
 #include "p_256_ecc_pp.h"
 
 /*******************************************************************************
-**
-** Function         SMP_Init
-**
-** Description      This function initializes the SMP unit.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         SMP_Init
+ *
+ * Description      This function initializes the SMP unit.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void SMP_Init(void)
 {
     memset(&smp_cb, 0, sizeof(tSMP_CB));
@@ -72,25 +72,25 @@ void SMP_Init(void)
 
 
 /*******************************************************************************
-**
-** Function         SMP_SetTraceLevel
-**
-** Description      This function sets the trace level for SMP.  If called with
-**                  a value of 0xFF, it simply returns the current trace level.
-**
-**                  Input Parameters:
-**                      level:  The level to set the GATT tracing to:
-**                      0xff-returns the current setting.
-**                      0-turns off tracing.
-**                      >= 1-Errors.
-**                      >= 2-Warnings.
-**                      >= 3-APIs.
-**                      >= 4-Events.
-**                      >= 5-Debug.
-**
-** Returns          The new or current trace level
-**
-*******************************************************************************/
+ *
+ * Function         SMP_SetTraceLevel
+ *
+ * Description      This function sets the trace level for SMP.  If called with
+ *                  a value of 0xFF, it simply returns the current trace level.
+ *
+ *                  Input Parameters:
+ *                      level:  The level to set the GATT tracing to:
+ *                      0xff-returns the current setting.
+ *                      0-turns off tracing.
+ *                      >= 1-Errors.
+ *                      >= 2-Warnings.
+ *                      >= 3-APIs.
+ *                      >= 4-Events.
+ *                      >= 5-Debug.
+ *
+ * Returns          The new or current trace level
+ *
+ ******************************************************************************/
 extern uint8_t SMP_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
@@ -101,14 +101,14 @@ extern uint8_t SMP_SetTraceLevel (uint8_t new_level)
 
 
 /*******************************************************************************
-**
-** Function         SMP_Register
-**
-** Description      This function register for the SMP services callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         SMP_Register
+ *
+ * Description      This function register for the SMP services callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    SMP_Register (tSMP_CALLBACK *p_cback)
 {
     SMP_TRACE_EVENT ("SMP_Register state=%d", smp_cb.state);
@@ -124,17 +124,17 @@ bool    SMP_Register (tSMP_CALLBACK *p_cback)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_Pair
-**
-** Description      This function call to perform a SMP pairing with peer device.
-**                  Device support one SMP pairing at one time.
-**
-** Parameters       bd_addr - peer device bd address.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         SMP_Pair
+ *
+ * Description      This function call to perform a SMP pairing with peer device.
+ *                  Device support one SMP pairing at one time.
+ *
+ * Parameters       bd_addr - peer device bd address.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
 {
     tSMP_CB   *p_cb = &smp_cb;
@@ -166,17 +166,17 @@ tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_BR_PairWith
-**
-** Description      This function is called to start a SMP pairing over BR/EDR.
-**                  Device support one SMP pairing at one time.
-**
-** Parameters       bd_addr - peer device bd address.
-**
-** Returns          SMP_STARTED if pairing started, otherwise reason for failure.
-**
-*******************************************************************************/
+ *
+ * Function         SMP_BR_PairWith
+ *
+ * Description      This function is called to start a SMP pairing over BR/EDR.
+ *                  Device support one SMP pairing at one time.
+ *
+ * Parameters       bd_addr - peer device bd address.
+ *
+ * Returns          SMP_STARTED if pairing started, otherwise reason for failure.
+ *
+ ******************************************************************************/
 tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr)
 {
     tSMP_CB   *p_cb = &smp_cb;
@@ -210,16 +210,16 @@ tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_PairCancel
-**
-** Description      This function call to cancel a SMP pairing with peer device.
-**
-** Parameters       bd_addr - peer device bd address.
-**
-** Returns          true - Pairining is cancelled
-**
-*******************************************************************************/
+ *
+ * Function         SMP_PairCancel
+ *
+ * Description      This function call to cancel a SMP pairing with peer device.
+ *
+ * Parameters       bd_addr - peer device bd address.
+ *
+ * Returns          true - Pairining is cancelled
+ *
+ ******************************************************************************/
 bool    SMP_PairCancel (BD_ADDR bd_addr)
 {
     tSMP_CB   *p_cb = &smp_cb;
@@ -245,18 +245,18 @@ bool    SMP_PairCancel (BD_ADDR bd_addr)
     return status;
 }
 /*******************************************************************************
-**
-** Function         SMP_SecurityGrant
-**
-** Description      This function is called to grant security process.
-**
-** Parameters       bd_addr - peer device bd address.
-**                  res     - result of the operation SMP_SUCCESS if success.
-**                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         SMP_SecurityGrant
+ *
+ * Description      This function is called to grant security process.
+ *
+ * Parameters       bd_addr - peer device bd address.
+ *                  res     - result of the operation SMP_SUCCESS if success.
+ *                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res)
 {
     SMP_TRACE_EVENT ("SMP_SecurityGrant ");
@@ -288,18 +288,18 @@ void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_PasskeyReply
-**
-** Description      This function is called after Security Manager submitted
-**                  passkey request to the application.
-**
-** Parameters:      bd_addr      - Address of the device for which passkey was requested
-**                  res          - result of the operation SMP_SUCCESS if success
-**                  passkey - numeric value in the range of
-**                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
-**
-*******************************************************************************/
+ *
+ * Function         SMP_PasskeyReply
+ *
+ * Description      This function is called after Security Manager submitted
+ *                  passkey request to the application.
+ *
+ * Parameters:      bd_addr      - Address of the device for which passkey was requested
+ *                  res          - result of the operation SMP_SUCCESS if success
+ *                  passkey - numeric value in the range of
+ *                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
+ *
+ ******************************************************************************/
 void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey)
 {
     tSMP_CB *p_cb = & smp_cb;
@@ -347,17 +347,17 @@ void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_ConfirmReply
-**
-** Description      This function is called after Security Manager submitted
-**                  numeric comparison request to the application.
-**
-** Parameters:      bd_addr      - Address of the device with which numeric
-**                                 comparison was requested
-**                  res          - comparison result SMP_SUCCESS if success
-**
-*******************************************************************************/
+ *
+ * Function         SMP_ConfirmReply
+ *
+ * Description      This function is called after Security Manager submitted
+ *                  numeric comparison request to the application.
+ *
+ * Parameters:      bd_addr      - Address of the device with which numeric
+ *                                 comparison was requested
+ *                  res          - comparison result SMP_SUCCESS if success
+ *
+ ******************************************************************************/
 void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res)
 {
     tSMP_CB *p_cb = & smp_cb;
@@ -397,17 +397,17 @@ void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_OobDataReply
-**
-** Description      This function is called to provide the OOB data for
-**                  SMP in response to SMP_OOB_REQ_EVT
-**
-** Parameters:      bd_addr     - Address of the peer device
-**                  res         - result of the operation SMP_SUCCESS if success
-**                  p_data      - simple pairing Randomizer  C.
-**
-*******************************************************************************/
+ *
+ * Function         SMP_OobDataReply
+ *
+ * Description      This function is called to provide the OOB data for
+ *                  SMP in response to SMP_OOB_REQ_EVT
+ *
+ * Parameters:      bd_addr     - Address of the peer device
+ *                  res         - result of the operation SMP_SUCCESS if success
+ *                  p_data      - simple pairing Randomizer  C.
+ *
+ ******************************************************************************/
 void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len, uint8_t *p_data)
 {
     tSMP_CB *p_cb = & smp_cb;
@@ -439,15 +439,15 @@ void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len, uint8_t *p_
 }
 
 /*******************************************************************************
-**
-** Function         SMP_SecureConnectionOobDataReply
-**
-** Description      This function is called to provide the SC OOB data for
-**                  SMP in response to SMP_SC_OOB_REQ_EVT
-**
-** Parameters:      p_data      - pointer to the data
-**
-*******************************************************************************/
+ *
+ * Function         SMP_SecureConnectionOobDataReply
+ *
+ * Description      This function is called to provide the SC OOB data for
+ *                  SMP in response to SMP_SC_OOB_REQ_EVT
+ *
+ * Parameters:      p_data      - pointer to the data
+ *
+ ******************************************************************************/
 void SMP_SecureConnectionOobDataReply(uint8_t *p_data)
 {
     tSMP_CB  *p_cb = &smp_cb;
@@ -502,21 +502,21 @@ void SMP_SecureConnectionOobDataReply(uint8_t *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_Encrypt
-**
-** Description      This function is called to encrypt the data with the specified
-**                  key
-**
-** Parameters:      key                 - Pointer to key key[0] conatins the MSB
-**                  key_len             - key length
-**                  plain_text          - Pointer to data to be encrypted
-**                                        plain_text[0] conatins the MSB
-**                  pt_len              - plain text length
-**                  p_out                - output of the encrypted texts
-**
-**  Returns         Boolean - request is successful
-*******************************************************************************/
+ *
+ * Function         SMP_Encrypt
+ *
+ * Description      This function is called to encrypt the data with the specified
+ *                  key
+ *
+ * Parameters:      key                 - Pointer to key key[0] conatins the MSB
+ *                  key_len             - key length
+ *                  plain_text          - Pointer to data to be encrypted
+ *                                        plain_text[0] conatins the MSB
+ *                  pt_len              - plain text length
+ *                  p_out                - output of the encrypted texts
+ *
+ *  Returns         Boolean - request is successful
+ ******************************************************************************/
 bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
                      uint8_t *plain_text, uint8_t pt_len,
                      tSMP_ENC *p_out)
@@ -528,15 +528,15 @@ bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
 }
 
 /*******************************************************************************
-**
-** Function         SMP_KeypressNotification
-**
-** Description      This function is called to notify Security Manager about Keypress Notification.
-**
-** Parameters:     bd_addr      Address of the device to send keypress notification to
-**                 value        Keypress notification parameter value
-**
-*******************************************************************************/
+ *
+ * Function         SMP_KeypressNotification
+ *
+ * Description      This function is called to notify Security Manager about Keypress Notification.
+ *
+ * Parameters:     bd_addr      Address of the device to send keypress notification to
+ *                 value        Keypress notification parameter value
+ *
+ ******************************************************************************/
 void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value)
 {
     tSMP_CB   *p_cb = &smp_cb;
@@ -575,16 +575,16 @@ void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value)
 }
 
 /*******************************************************************************
-**
-** Function         SMP_CreateLocalSecureConnectionsOobData
-**
-** Description      This function is called to start creation of local SC OOB
-**                  data set (tSMP_LOC_OOB_DATA).
-**
-** Parameters:      bd_addr      - Address of the device to send OOB data block to
-**
-**  Returns         Boolean - true: creation of local SC OOB data set started.
-*******************************************************************************/
+ *
+ * Function         SMP_CreateLocalSecureConnectionsOobData
+ *
+ * Description      This function is called to start creation of local SC OOB
+ *                  data set (tSMP_LOC_OOB_DATA).
+ *
+ * Parameters:      bd_addr      - Address of the device to send OOB data block to
+ *
+ *  Returns         Boolean - true: creation of local SC OOB data set started.
+ ******************************************************************************/
 bool    SMP_CreateLocalSecureConnectionsOobData (tBLE_BD_ADDR *addr_to_send_to)
 {
     tSMP_CB *p_cb = &smp_cb;

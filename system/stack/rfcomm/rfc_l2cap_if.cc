@@ -39,7 +39,7 @@
 
 
 /*
-** Define Callback functions to be called by L2CAP
+ * Define Callback functions to be called by L2CAP
 */
 static void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
 static void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t err);
@@ -52,13 +52,13 @@ static void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested);
 
 
 /*******************************************************************************
-**
-** Function         rfcomm_l2cap_if_init
-**
-** Description      This function is called during the RFCOMM task startup
-**                  to register interface functions with L2CAP.
-**
-*******************************************************************************/
+ *
+ * Function         rfcomm_l2cap_if_init
+ *
+ * Description      This function is called during the RFCOMM task startup
+ *                  to register interface functions with L2CAP.
+ *
+ ******************************************************************************/
 void rfcomm_l2cap_if_init (void)
 {
     tL2CAP_APPL_INFO *p_l2c = &rfc_cb.rfc.reg_info;
@@ -81,14 +81,14 @@ void rfcomm_l2cap_if_init (void)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_ConnectInd
-**
-** Description      This is a callback function called by L2CAP when
-**                  L2CA_ConnectInd received.  Allocate multiplexer control block
-**                  and dispatch the event to it.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_ConnectInd
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  L2CA_ConnectInd received.  Allocate multiplexer control block
+ *                  and dispatch the event to it.
+ *
+ ******************************************************************************/
 void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid,
                         UNUSED_ATTR uint16_t psm, uint8_t id)
 {
@@ -136,14 +136,14 @@ void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid,
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_ConnectCnf
-**
-** Description      This is a callback function called by L2CAP when
-**                  L2CA_ConnectCnf received.  Save L2CAP handle and dispatch
-**                  event to the FSM.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_ConnectCnf
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  L2CA_ConnectCnf received.  Save L2CAP handle and dispatch
+ *                  event to the FSM.
+ *
+ ******************************************************************************/
 void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t result)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
@@ -209,14 +209,14 @@ void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t result)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_ConfigInd
-**
-** Description      This is a callback function called by L2CAP when
-**                  L2CA_ConfigInd received.  Save parameters in the control
-**                  block and dispatch event to the FSM.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_ConfigInd
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  L2CA_ConfigInd received.  Save parameters in the control
+ *                  block and dispatch event to the FSM.
+ *
+ ******************************************************************************/
 void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
@@ -232,14 +232,14 @@ void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_ConfigCnf
-**
-** Description      This is a callback function called by L2CAP when
-**                  L2CA_ConfigCnf received.  Save L2CAP handle and dispatch
-**                  event to the FSM.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_ConfigCnf
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  L2CA_ConfigCnf received.  Save L2CAP handle and dispatch
+ *                  event to the FSM.
+ *
+ ******************************************************************************/
 void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
@@ -255,26 +255,26 @@ void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_QoSViolationInd
-**
-** Description      This is a callback function called by L2CAP when
-**                  L2CA_QoSViolationIndInd received.  Dispatch event to the FSM.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_QoSViolationInd
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  L2CA_QoSViolationIndInd received.  Dispatch event to the FSM.
+ *
+ ******************************************************************************/
 void RFCOMM_QoSViolationInd (UNUSED_ATTR BD_ADDR bd_addr)
 {
 }
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_DisconnectInd
-**
-** Description      This is a callback function called by L2CAP when
-**                  L2CA_DisconnectInd received.  Dispatch event to the FSM.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_DisconnectInd
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  L2CA_DisconnectInd received.  Dispatch event to the FSM.
+ *
+ ******************************************************************************/
 void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_conf_needed)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
@@ -295,15 +295,15 @@ void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_conf_needed)
 
 
 /*******************************************************************************
-**
-** Function         RFCOMM_BufDataInd
-**
-** Description      This is a callback function called by L2CAP when
-**                  data RFCOMM frame is received.  Parse the frames, check
-**                  the checksum and dispatch event to multiplexer or port
-**                  state machine depending on the frame destination.
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_BufDataInd
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  data RFCOMM frame is received.  Parse the frames, check
+ *                  the checksum and dispatch event to multiplexer or port
+ *                  state machine depending on the frame destination.
+ *
+ ******************************************************************************/
 void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
@@ -385,13 +385,13 @@ void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         RFCOMM_CongestionStatusInd
-**
-** Description      This is a callback function called by L2CAP when
-**                  data RFCOMM L2CAP congestion status changes
-**
-*******************************************************************************/
+ *
+ * Function         RFCOMM_CongestionStatusInd
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  data RFCOMM L2CAP congestion status changes
+ *
+ ******************************************************************************/
 void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested)
 {
     tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
@@ -409,12 +409,12 @@ void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested)
 }
 
 /*******************************************************************************
-**
-** Function         rfc_find_lcid_mcb
-**
-** Description      This function returns MCB block supporting local cid
-**
-*******************************************************************************/
+ *
+ * Function         rfc_find_lcid_mcb
+ *
+ * Description      This function returns MCB block supporting local cid
+ *
+ ******************************************************************************/
 tRFC_MCB *rfc_find_lcid_mcb (uint16_t lcid)
 {
     tRFC_MCB *p_mcb;
@@ -441,12 +441,12 @@ tRFC_MCB *rfc_find_lcid_mcb (uint16_t lcid)
 
 
 /*******************************************************************************
-**
-** Function         rfc_save_lcid_mcb
-**
-** Description      This function returns MCB block supporting local cid
-**
-*******************************************************************************/
+ *
+ * Function         rfc_save_lcid_mcb
+ *
+ * Description      This function returns MCB block supporting local cid
+ *
+ ******************************************************************************/
 void rfc_save_lcid_mcb(tRFC_MCB *p_mcb, uint16_t lcid)
 {
     if (lcid < L2CAP_BASE_APPL_CID)
