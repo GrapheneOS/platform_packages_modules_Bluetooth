@@ -65,6 +65,27 @@
 /*******************************************************************************
  *  Local type definitions
  ******************************************************************************/
+/* BTIF-HF control block to map bdaddr to BTA handle */
+typedef struct {
+  uint16_t handle;                       // Handle obtained frm the BTA
+  bt_bdaddr_t peer_bda;                  // Device corresponding to handle
+  bthf_client_connection_state_t state;  // State of current connection
+  tBTA_HF_CLIENT_PEER_FEAT peer_feat;    // HF features
+  tBTA_HF_CLIENT_CHLD_FEAT chld_feat;    // AT+CHLD=<> command features
+} btif_hf_client_cb_t;
+
+/* Max devices supported by BTIF (useful to match the value in BTA) */
+#define HF_CLIENT_MAX_DEVICES 10
+typedef struct {
+  btif_hf_client_cb_t cb[HF_CLIENT_MAX_DEVICES];
+} btif_hf_client_cb_arr_t;
+
+/******************************************************************************
+ * Local function declarations
+ ******************************************************************************/
+btif_hf_client_cb_t* btif_hf_client_get_cb_by_handle(uint16_t handle);
+btif_hf_client_cb_t* btif_hf_client_get_cb_by_bda(const uint8_t* addr);
+bool is_connected(const btif_hf_client_cb_t* cb);
 
 /*******************************************************************************
  *  Static variables
@@ -83,33 +104,21 @@ char btif_hf_client_version[PROPERTY_VALUE_MAX];
     }                                                                   \
   } while (0)
 
-#define CHECK_BTHF_CLIENT_SLC_CONNECTED()                                    \
+#define CHECK_BTHF_CLIENT_SLC_CONNECTED(cb)                                  \
   do {                                                                       \
     if (bt_hf_client_callbacks == NULL) {                                    \
       BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __func__);      \
       return BT_STATUS_NOT_READY;                                            \
-    } else if (btif_hf_client_cb.state !=                                    \
-               BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED) {                 \
+    } else if ((cb)->state != BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED) {  \
       BTIF_TRACE_WARNING("BTHF CLIENT: %s: SLC connection not up. state=%s", \
-                         __func__,                                           \
-                         dump_hf_conn_state(btif_hf_client_cb.state));       \
+                         __func__, dump_hf_conn_state((cb)->state));         \
       return BT_STATUS_NOT_READY;                                            \
     } else {                                                                 \
       BTIF_TRACE_EVENT("BTHF CLIENT: %s", __func__);                         \
     }                                                                        \
   } while (0)
 
-/* BTIF-HF control block to map bdaddr to BTA handle */
-typedef struct {
-  uint16_t handle;
-  bt_bdaddr_t connected_bda;
-  bthf_client_connection_state_t state;
-  bthf_client_vr_state_t vr_state;
-  tBTA_HF_CLIENT_PEER_FEAT peer_feat;
-  tBTA_HF_CLIENT_CHLD_FEAT chld_feat;
-} btif_hf_client_cb_t;
-
-static btif_hf_client_cb_t btif_hf_client_cb;
+static btif_hf_client_cb_arr_t btif_hf_client_cb_arr;
 
 /*******************************************************************************
  *  Static functions
@@ -126,13 +135,18 @@ static btif_hf_client_cb_t btif_hf_client_cb;
  * Returns          void
  *
  ******************************************************************************/
-static void btif_in_hf_client_generic_evt(uint16_t event,
-                                          UNUSED_ATTR char* p_param) {
+static void btif_in_hf_client_generic_evt(uint16_t event, char* p_param) {
+  BTIF_TRACE_DEBUG("%s", __func__);
+  bt_bdaddr_t* bd_addr = (bt_bdaddr_t*)p_param;
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) {
+    BTIF_TRACE_ERROR("%s: failed to find block for bda", __func__);
+  }
+
   BTIF_TRACE_EVENT("%s: event=%d", __func__, event);
   switch (event) {
     case BTIF_HF_CLIENT_CB_AUDIO_CONNECTING: {
-      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, &cb->peer_bda,
                 (bthf_client_audio_state_t)BTHF_AUDIO_STATE_CONNECTING);
     } break;
     default: {
@@ -142,30 +156,83 @@ static void btif_in_hf_client_generic_evt(uint16_t event,
 }
 
 /*******************************************************************************
- *  Externs
- ******************************************************************************/
-
-/*******************************************************************************
  *  Functions
  ******************************************************************************/
-
-static void clear_state(void) {
-  memset(&btif_hf_client_cb, 0, sizeof(btif_hf_client_cb_t));
-}
-
-static bool is_connected(const bt_bdaddr_t* bd_addr) {
-  if (((btif_hf_client_cb.state == BTHF_CLIENT_CONNECTION_STATE_CONNECTED) ||
-       (btif_hf_client_cb.state ==
-        BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED)) &&
-      ((bd_addr == NULL) ||
-       (bdcmp(bd_addr->address, btif_hf_client_cb.connected_bda.address) == 0)))
+bool is_connected(const btif_hf_client_cb_t* cb) {
+  if ((cb->state == BTHF_CLIENT_CONNECTION_STATE_CONNECTED) ||
+      (cb->state == BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED))
     return true;
+
+  BTIF_TRACE_ERROR("%s: not connected!", __func__);
   return false;
 }
 
-/*****************************************************************************
- *   Section name (Group of functions)
- ****************************************************************************/
+/*******************************************************************************
+ *
+ * Function        btif_hf_client_get_cb_by_handle
+ *
+ * Description     Get control block by handle
+ *
+ * Returns         btif_hf_client_cb_t pointer if available NULL otherwise
+ *
+ ******************************************************************************/
+btif_hf_client_cb_t* btif_hf_client_get_cb_by_handle(uint16_t handle) {
+  BTIF_TRACE_DEBUG("%s: cb by handle %d", __func__, handle);
+  for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
+    // Block is valid only if it is allocated i.e. state is not DISCONNECTED
+    if (btif_hf_client_cb_arr.cb[i].state !=
+            BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED &&
+        btif_hf_client_cb_arr.cb[i].handle == handle) {
+      return &btif_hf_client_cb_arr.cb[i];
+    }
+  }
+  BTIF_TRACE_ERROR("%s: could not find block for handle %d", __func__, handle);
+  return NULL;
+}
+
+/*******************************************************************************
+ *
+ * Function        btif_hf_client_get_cb_by_bda
+ *
+ * Description     Get control block by bda
+ *
+ * Returns         btif_hf_client_cb_t pointer if available NULL otherwise
+ *
+ ******************************************************************************/
+btif_hf_client_cb_t* btif_hf_client_get_cb_by_bda(const uint8_t* bd_addr) {
+  BTIF_TRACE_DEBUG("%s", __func__);
+  for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
+    // Block is valid only if it is allocated i.e. state is not DISCONNECTED
+    if (btif_hf_client_cb_arr.cb[i].state !=
+            BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED &&
+        !bdcmp(btif_hf_client_cb_arr.cb[i].peer_bda.address, bd_addr)) {
+      return &btif_hf_client_cb_arr.cb[i];
+    }
+  }
+  BTIF_TRACE_ERROR("%s: could not find block for bdaddr", __func__);
+  return NULL;
+}
+
+/*******************************************************************************
+ *
+ * Function        btif_hf_client_allocate_cb
+ *
+ * Description     Get control block by bda
+ *
+ * Returns         btif_hf_client_cb_t pointer if available NULL otherwise
+ *
+ ******************************************************************************/
+btif_hf_client_cb_t* btif_hf_client_allocate_cb() {
+  for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
+    btif_hf_client_cb_t* cb = &btif_hf_client_cb_arr.cb[i];
+    if (cb->state == BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED) {
+      return cb;
+    }
+  }
+  BTIF_TRACE_ERROR("%s: unable to allocate control block", __func__);
+  return NULL;
+}
+
 
 /*****************************************************************************
  *
@@ -189,7 +256,7 @@ static bt_status_t init(bthf_client_callbacks_t* callbacks) {
 
   btif_enable_service(BTA_HFP_HS_SERVICE_ID);
 
-  clear_state();
+  memset(&btif_hf_client_cb_arr, 0, sizeof(btif_hf_client_cb_arr_t));
 
   return BT_STATUS_SUCCESS;
 }
@@ -204,17 +271,22 @@ static bt_status_t init(bthf_client_callbacks_t* callbacks) {
  *
  ******************************************************************************/
 static bt_status_t connect_int(bt_bdaddr_t* bd_addr, uint16_t uuid) {
-  if (is_connected(bd_addr)) return BT_STATUS_BUSY;
+  btif_hf_client_cb_t* cb = btif_hf_client_allocate_cb();
+  if (cb == NULL) {
+    BTIF_TRACE_ERROR("%s: could not allocate block!", __func__);
+    return BT_STATUS_BUSY;
+  }
 
-  btif_hf_client_cb.state = BTHF_CLIENT_CONNECTION_STATE_CONNECTING;
-  bdcpy(btif_hf_client_cb.connected_bda.address, bd_addr->address);
+  if (is_connected(cb)) return BT_STATUS_BUSY;
+
+  cb->state = BTHF_CLIENT_CONNECTION_STATE_CONNECTING;
+  bdcpy(cb->peer_bda.address, bd_addr->address);
 
   /* Open HF connection to remote device and get the relevant handle.
    * The handle is valid until we have called BTA_HfClientClose or the LL
    * has notified us of channel close due to remote closing, error etc.
    */
-  BTA_HfClientOpen(btif_hf_client_cb.connected_bda.address,
-                   BTIF_HF_CLIENT_SECURITY, &btif_hf_client_cb.handle);
+  BTA_HfClientOpen(cb->peer_bda.address, BTIF_HF_CLIENT_SECURITY, &cb->handle);
 
   return BT_STATUS_SUCCESS;
 }
@@ -237,12 +309,13 @@ static bt_status_t connect(bt_bdaddr_t* bd_addr) {
 static bt_status_t disconnect(const bt_bdaddr_t* bd_addr) {
   CHECK_BTHF_CLIENT_INIT();
 
-  if (is_connected(bd_addr)) {
-    BTA_HfClientClose(btif_hf_client_cb.handle);
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb != NULL) {
+    BTA_HfClientClose(cb->handle);
     return BT_STATUS_SUCCESS;
+  } else {
+    return BT_STATUS_BUSY;
   }
-
-  return BT_STATUS_FAIL;
 }
 
 /*******************************************************************************
@@ -255,26 +328,24 @@ static bt_status_t disconnect(const bt_bdaddr_t* bd_addr) {
  *
  ******************************************************************************/
 static bt_status_t connect_audio(const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  if (is_connected(bd_addr)) {
-    if ((BTIF_HF_CLIENT_FEATURES & BTA_HF_CLIENT_FEAT_CODEC) &&
-        (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_CODEC)) {
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BCC, 0,
-                         0, NULL);
-    } else {
-      BTA_HfClientAudioOpen(btif_hf_client_cb.handle);
-    }
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
-    /* Inform the application that the audio connection has been initiated
-     * successfully */
-    btif_transfer_context(btif_in_hf_client_generic_evt,
-                          BTIF_HF_CLIENT_CB_AUDIO_CONNECTING, (char*)bd_addr,
-                          sizeof(bt_bdaddr_t), NULL);
-    return BT_STATUS_SUCCESS;
+  if ((BTIF_HF_CLIENT_FEATURES & BTA_HF_CLIENT_FEAT_CODEC) &&
+      (cb->peer_feat & BTA_HF_CLIENT_PEER_CODEC)) {
+    BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BCC, 0, 0, NULL);
+  } else {
+    BTA_HfClientAudioOpen(cb->handle);
   }
 
-  return BT_STATUS_FAIL;
+  /* Inform the application that the audio connection has been initiated
+   * successfully */
+  btif_transfer_context(btif_in_hf_client_generic_evt,
+                        BTIF_HF_CLIENT_CB_AUDIO_CONNECTING, (char*)bd_addr,
+                        sizeof(bt_bdaddr_t), NULL);
+  return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************
@@ -287,14 +358,13 @@ static bt_status_t connect_audio(const bt_bdaddr_t* bd_addr) {
  *
  ******************************************************************************/
 static bt_status_t disconnect_audio(const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  if (is_connected(bd_addr)) {
-    BTA_HfClientAudioClose(btif_hf_client_cb.handle);
-    return BT_STATUS_SUCCESS;
-  }
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
-  return BT_STATUS_FAIL;
+  BTA_HfClientAudioClose(cb->handle);
+  return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************
@@ -306,17 +376,16 @@ static bt_status_t disconnect_audio(const bt_bdaddr_t* bd_addr) {
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t start_voice_recognition(
-    UNUSED_ATTR const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t start_voice_recognition(const bt_bdaddr_t* bd_addr) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_FEAT_VREC) {
-    BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BVRA, 1,
-                       0, NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  if (cb->peer_feat & BTA_HF_CLIENT_PEER_FEAT_VREC) {
+    BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BVRA, 1, 0, NULL);
     return BT_STATUS_SUCCESS;
   }
-
   return BT_STATUS_UNSUPPORTED;
 }
 
@@ -329,17 +398,16 @@ static bt_status_t start_voice_recognition(
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t stop_voice_recognition(
-    UNUSED_ATTR const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t stop_voice_recognition(const bt_bdaddr_t* bd_addr) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_FEAT_VREC) {
-    BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BVRA, 0,
-                       0, NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  if (cb->peer_feat & BTA_HF_CLIENT_PEER_FEAT_VREC) {
+    BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BVRA, 0, 0, NULL);
     return BT_STATUS_SUCCESS;
   }
-
   return BT_STATUS_UNSUPPORTED;
 }
 
@@ -352,18 +420,19 @@ static bt_status_t stop_voice_recognition(
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t volume_control(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
+static bt_status_t volume_control(const bt_bdaddr_t* bd_addr,
                                   bthf_client_volume_type_t type, int volume) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
+
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
   switch (type) {
     case BTHF_CLIENT_VOLUME_TYPE_SPK:
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_VGS,
-                         volume, 0, NULL);
+      BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_VGS, volume, 0, NULL);
       break;
     case BTHF_CLIENT_VOLUME_TYPE_MIC:
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_VGM,
-                         volume, 0, NULL);
+      BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_VGM, volume, 0, NULL);
       break;
     default:
       return BT_STATUS_UNSUPPORTED;
@@ -383,16 +452,16 @@ static bt_status_t volume_control(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
  ******************************************************************************/
 static bt_status_t dial(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
                         const char* number) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
+
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
   if (number) {
-    BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_ATD, 0, 0,
-                       number);
+    BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_ATD, 0, 0, number);
   } else {
-    BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BLDN, 0,
-                       0, NULL);
+    BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BLDN, 0, 0, NULL);
   }
-
   return BT_STATUS_SUCCESS;
 }
 
@@ -405,13 +474,13 @@ static bt_status_t dial(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t dial_memory(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
-                               int location) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t dial_memory(const bt_bdaddr_t* bd_addr, int location) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_ATD,
-                     location, 0, NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_ATD, location, 0, NULL);
   return BT_STATUS_SUCCESS;
 }
 
@@ -424,88 +493,79 @@ static bt_status_t dial_memory(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t handle_call_action(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
+static bt_status_t handle_call_action(const bt_bdaddr_t* bd_addr,
                                       bthf_client_call_action_t action,
                                       int idx) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
+
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
   switch (action) {
     case BTHF_CLIENT_CALL_ACTION_CHLD_0:
-      if (btif_hf_client_cb.chld_feat & BTA_HF_CLIENT_CHLD_REL) {
-        BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHLD,
-                           0, 0, NULL);
+      if (cb->chld_feat & BTA_HF_CLIENT_CHLD_REL) {
+        BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHLD, 0, 0, NULL);
         break;
       }
       return BT_STATUS_UNSUPPORTED;
     case BTHF_CLIENT_CALL_ACTION_CHLD_1:
       // CHLD 1 is mandatory for 3 way calling
-      if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_FEAT_3WAY) {
-        BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHLD,
-                           1, 0, NULL);
+      if (cb->peer_feat & BTA_HF_CLIENT_PEER_FEAT_3WAY) {
+        BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHLD, 1, 0, NULL);
         break;
       }
       return BT_STATUS_UNSUPPORTED;
     case BTHF_CLIENT_CALL_ACTION_CHLD_2:
       // CHLD 2 is mandatory for 3 way calling
-      if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_FEAT_3WAY) {
-        BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHLD,
-                           2, 0, NULL);
+      if (cb->peer_feat & BTA_HF_CLIENT_PEER_FEAT_3WAY) {
+        BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHLD, 2, 0, NULL);
         break;
       }
       return BT_STATUS_UNSUPPORTED;
     case BTHF_CLIENT_CALL_ACTION_CHLD_3:
-      if (btif_hf_client_cb.chld_feat & BTA_HF_CLIENT_CHLD_MERGE) {
-        BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHLD,
-                           3, 0, NULL);
+      if (cb->chld_feat & BTA_HF_CLIENT_CHLD_MERGE) {
+        BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHLD, 3, 0, NULL);
         break;
       }
       return BT_STATUS_UNSUPPORTED;
     case BTHF_CLIENT_CALL_ACTION_CHLD_4:
-      if (btif_hf_client_cb.chld_feat & BTA_HF_CLIENT_CHLD_MERGE_DETACH) {
-        BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHLD,
-                           4, 0, NULL);
+      if (cb->chld_feat & BTA_HF_CLIENT_CHLD_MERGE_DETACH) {
+        BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHLD, 4, 0, NULL);
         break;
       }
       return BT_STATUS_UNSUPPORTED;
     case BTHF_CLIENT_CALL_ACTION_CHLD_1x:
-      if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_ECC) {
+      if (cb->peer_feat & BTA_HF_CLIENT_PEER_ECC) {
         if (idx < 1) {
           return BT_STATUS_FAIL;
         }
-        BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHLD,
-                           1, idx, NULL);
+        BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHLD, 1, idx, NULL);
         break;
       }
       return BT_STATUS_UNSUPPORTED;
     case BTHF_CLIENT_CALL_ACTION_CHLD_2x:
-      if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_ECC) {
+      if (cb->peer_feat & BTA_HF_CLIENT_PEER_ECC) {
         if (idx < 1) {
           return BT_STATUS_FAIL;
         }
-        BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHLD,
-                           2, idx, NULL);
+        BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHLD, 2, idx, NULL);
         break;
       }
       return BT_STATUS_UNSUPPORTED;
     case BTHF_CLIENT_CALL_ACTION_ATA:
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_ATA, 0,
-                         0, NULL);
+      BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_ATA, 0, 0, NULL);
       break;
     case BTHF_CLIENT_CALL_ACTION_CHUP:
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CHUP, 0,
-                         0, NULL);
+      BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CHUP, 0, 0, NULL);
       break;
     case BTHF_CLIENT_CALL_ACTION_BTRH_0:
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BTRH, 0,
-                         0, NULL);
+      BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BTRH, 0, 0, NULL);
       break;
     case BTHF_CLIENT_CALL_ACTION_BTRH_1:
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BTRH, 1,
-                         0, NULL);
+      BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BTRH, 1, 0, NULL);
       break;
     case BTHF_CLIENT_CALL_ACTION_BTRH_2:
-      BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BTRH, 2,
-                         0, NULL);
+      BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BTRH, 2, 0, NULL);
       break;
     default:
       return BT_STATUS_FAIL;
@@ -524,12 +584,13 @@ static bt_status_t handle_call_action(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
  *
  ******************************************************************************/
 static bt_status_t query_current_calls(UNUSED_ATTR const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_ECS) {
-    BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CLCC, 0,
-                       0, NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  if (cb->peer_feat & BTA_HF_CLIENT_PEER_ECS) {
+    BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CLCC, 0, 0, NULL);
     return BT_STATUS_SUCCESS;
   }
 
@@ -545,13 +606,13 @@ static bt_status_t query_current_calls(UNUSED_ATTR const bt_bdaddr_t* bd_addr) {
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t query_current_operator_name(
-    UNUSED_ATTR const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t query_current_operator_name(const bt_bdaddr_t* bd_addr) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_COPS, 0, 0,
-                     NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_COPS, 0, 0, NULL);
   return BT_STATUS_SUCCESS;
 }
 
@@ -564,13 +625,13 @@ static bt_status_t query_current_operator_name(
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t retrieve_subscriber_info(
-    UNUSED_ATTR const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t retrieve_subscriber_info(const bt_bdaddr_t* bd_addr) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_CNUM, 0, 0,
-                     NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_CNUM, 0, 0, NULL);
   return BT_STATUS_SUCCESS;
 }
 
@@ -583,13 +644,13 @@ static bt_status_t retrieve_subscriber_info(
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t send_dtmf(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
-                             char code) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t send_dtmf(const bt_bdaddr_t* bd_addr, char code) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_VTS, code,
-                     0, NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_VTS, code, 0, NULL);
   return BT_STATUS_SUCCESS;
 }
 
@@ -602,17 +663,16 @@ static bt_status_t send_dtmf(UNUSED_ATTR const bt_bdaddr_t* bd_addr,
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t request_last_voice_tag_number(
-    UNUSED_ATTR const bt_bdaddr_t* bd_addr) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t request_last_voice_tag_number(const bt_bdaddr_t* bd_addr) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
 
-  if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_VTAG) {
-    BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BINP, 1,
-                       0, NULL);
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
 
+  if (cb->peer_feat & BTA_HF_CLIENT_PEER_VTAG) {
+    BTA_HfClientSendAT(cb->handle, BTA_HF_CLIENT_AT_CMD_BINP, 1, 0, NULL);
     return BT_STATUS_SUCCESS;
   }
-
   return BT_STATUS_UNSUPPORTED;
 }
 
@@ -643,12 +703,16 @@ static void cleanup(void) {
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t send_at_cmd(UNUSED_ATTR const bt_bdaddr_t* bd_addr, int cmd,
-                               int val1, int val2, const char* arg) {
-  CHECK_BTHF_CLIENT_SLC_CONNECTED();
+static bt_status_t send_at_cmd(const bt_bdaddr_t* bd_addr, int cmd, int val1,
+                               int val2, const char* arg) {
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(bd_addr->address);
+  if (cb == NULL || !is_connected(cb)) return BT_STATUS_FAIL;
+
+  CHECK_BTHF_CLIENT_SLC_CONNECTED(cb);
+
   BTIF_TRACE_EVENT("%s: Cmd %d val1 %d val2 %d arg %s", __func__, cmd, val1,
                    val2, (arg != NULL) ? arg : "<null>");
-  BTA_HfClientSendAT(btif_hf_client_cb.handle, cmd, val1, val2, arg);
+  BTA_HfClientSendAT(cb->handle, cmd, val1, val2, arg);
 
   return BT_STATUS_SUCCESS;
 }
@@ -676,44 +740,44 @@ static const bthf_client_interface_t bthfClientInterface = {
 };
 
 static void process_ind_evt(tBTA_HF_CLIENT_IND* ind) {
+  BTIF_TRACE_DEBUG("%s", __func__);
+
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(ind->bd_addr);
+  if (cb == NULL || !is_connected(cb)) return;
+
   switch (ind->type) {
     case BTA_HF_CLIENT_IND_CALL:
-      HAL_CBACK(bt_hf_client_callbacks, call_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, call_cb, &cb->peer_bda,
                 (bthf_client_call_t)ind->value);
       break;
 
     case BTA_HF_CLIENT_IND_CALLSETUP:
-      HAL_CBACK(bt_hf_client_callbacks, callsetup_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, callsetup_cb, &cb->peer_bda,
                 (bthf_client_callsetup_t)ind->value);
       break;
     case BTA_HF_CLIENT_IND_CALLHELD:
-      HAL_CBACK(bt_hf_client_callbacks, callheld_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, callheld_cb, &cb->peer_bda,
                 (bthf_client_callheld_t)ind->value);
       break;
 
     case BTA_HF_CLIENT_IND_SERVICE:
-      HAL_CBACK(bt_hf_client_callbacks, network_state_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, network_state_cb, &cb->peer_bda,
                 (bthf_client_network_state_t)ind->value);
       break;
 
     case BTA_HF_CLIENT_IND_SIGNAL:
-      HAL_CBACK(bt_hf_client_callbacks, network_signal_cb,
-                &btif_hf_client_cb.connected_bda, ind->value);
+      HAL_CBACK(bt_hf_client_callbacks, network_signal_cb, &cb->peer_bda,
+                ind->value);
       break;
 
     case BTA_HF_CLIENT_IND_ROAM:
-      HAL_CBACK(bt_hf_client_callbacks, network_roaming_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, network_roaming_cb, &cb->peer_bda,
                 (bthf_client_service_type_t)ind->value);
       break;
 
     case BTA_HF_CLIENT_IND_BATTCH:
-      HAL_CBACK(bt_hf_client_callbacks, battery_level_cb,
-                &btif_hf_client_cb.connected_bda, ind->value);
+      HAL_CBACK(bt_hf_client_callbacks, battery_level_cb, &cb->peer_bda,
+                ind->value);
       break;
 
     default:
@@ -734,54 +798,51 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
   tBTA_HF_CLIENT* p_data = (tBTA_HF_CLIENT*)p_param;
   bdstr_t bdstr;
 
+  btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(p_data->bd_addr);
+  if (cb == NULL) return;
+
   BTIF_TRACE_DEBUG("%s: event=%s (%u)", __func__, dump_hf_client_event(event),
                    event);
 
   switch (event) {
     case BTA_HF_CLIENT_OPEN_EVT:
       if (p_data->open.status == BTA_HF_CLIENT_SUCCESS) {
-        bdcpy(btif_hf_client_cb.connected_bda.address, p_data->open.bd_addr);
-        btif_hf_client_cb.state = BTHF_CLIENT_CONNECTION_STATE_CONNECTED;
-        btif_hf_client_cb.peer_feat = 0;
-        btif_hf_client_cb.chld_feat = 0;
-        // clear_phone_state();
-      } else if (btif_hf_client_cb.state ==
-                 BTHF_CLIENT_CONNECTION_STATE_CONNECTING) {
-        btif_hf_client_cb.state = BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED;
+        bdcpy(cb->peer_bda.address, p_data->open.bd_addr);
+        cb->state = BTHF_CLIENT_CONNECTION_STATE_CONNECTED;
+        cb->peer_feat = 0;
+        cb->chld_feat = 0;
+      } else if (cb->state == BTHF_CLIENT_CONNECTION_STATE_CONNECTING) {
+        cb->state = BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED;
       } else {
         BTIF_TRACE_WARNING(
             "%s: HF CLient open failed, but another device connected. "
             "status=%d state=%d connected device=%s",
-            __func__, p_data->open.status, btif_hf_client_cb.state,
-            bdaddr_to_string(&btif_hf_client_cb.connected_bda, bdstr,
-                             sizeof(bdstr)));
+            __func__, p_data->open.status, cb->state,
+            bdaddr_to_string(&cb->peer_bda, bdstr, sizeof(bdstr)));
         break;
       }
 
-      HAL_CBACK(bt_hf_client_callbacks, connection_state_cb,
-                &btif_hf_client_cb.connected_bda, btif_hf_client_cb.state,
-                0, /* peer feat */
+      HAL_CBACK(bt_hf_client_callbacks, connection_state_cb, &cb->peer_bda,
+                cb->state, 0, /* peer feat */
                 0 /* AT+CHLD feat */);
 
-      if (btif_hf_client_cb.state == BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED)
-        bdsetany(btif_hf_client_cb.connected_bda.address);
+      if (cb->state == BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED)
+        bdsetany(cb->peer_bda.address);
 
       if (p_data->open.status != BTA_HF_CLIENT_SUCCESS) btif_queue_advance();
       break;
 
     case BTA_HF_CLIENT_CONN_EVT:
-      btif_hf_client_cb.peer_feat = p_data->conn.peer_feat;
-      btif_hf_client_cb.chld_feat = p_data->conn.chld_feat;
-      btif_hf_client_cb.state = BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED;
+      cb->peer_feat = p_data->conn.peer_feat;
+      cb->chld_feat = p_data->conn.chld_feat;
+      cb->state = BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED;
 
-      HAL_CBACK(bt_hf_client_callbacks, connection_state_cb,
-                &btif_hf_client_cb.connected_bda, btif_hf_client_cb.state,
-                btif_hf_client_cb.peer_feat, btif_hf_client_cb.chld_feat);
+      HAL_CBACK(bt_hf_client_callbacks, connection_state_cb, &cb->peer_bda,
+                cb->state, cb->peer_feat, cb->chld_feat);
 
       /* Inform the application about in-band ringtone */
-      if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_INBAND) {
-        HAL_CBACK(bt_hf_client_callbacks, in_band_ring_tone_cb,
-                  &btif_hf_client_cb.connected_bda,
+      if (cb->peer_feat & BTA_HF_CLIENT_PEER_INBAND) {
+        HAL_CBACK(bt_hf_client_callbacks, in_band_ring_tone_cb, &cb->peer_bda,
                   BTHF_CLIENT_IN_BAND_RINGTONE_PROVIDED);
       }
 
@@ -789,13 +850,12 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
       break;
 
     case BTA_HF_CLIENT_CLOSE_EVT:
-      btif_hf_client_cb.state = BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED;
-      HAL_CBACK(bt_hf_client_callbacks, connection_state_cb,
-                &btif_hf_client_cb.connected_bda, btif_hf_client_cb.state, 0,
-                0);
-      bdsetany(btif_hf_client_cb.connected_bda.address);
-      btif_hf_client_cb.peer_feat = 0;
-      btif_hf_client_cb.chld_feat = 0;
+      cb->state = BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED;
+      HAL_CBACK(bt_hf_client_callbacks, connection_state_cb, &cb->peer_bda,
+                cb->state, 0, 0);
+      bdsetany(cb->peer_bda.address);
+      cb->peer_feat = 0;
+      cb->chld_feat = 0;
       btif_queue_advance();
       break;
 
@@ -804,53 +864,49 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
       break;
 
     case BTA_HF_CLIENT_MIC_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, volume_change_cb,
-                &btif_hf_client_cb.connected_bda, BTHF_CLIENT_VOLUME_TYPE_MIC,
-                p_data->val.value);
+      HAL_CBACK(bt_hf_client_callbacks, volume_change_cb, &cb->peer_bda,
+                BTHF_CLIENT_VOLUME_TYPE_MIC, p_data->val.value);
       break;
 
     case BTA_HF_CLIENT_SPK_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, volume_change_cb,
-                &btif_hf_client_cb.connected_bda, BTHF_CLIENT_VOLUME_TYPE_SPK,
-                p_data->val.value);
+      HAL_CBACK(bt_hf_client_callbacks, volume_change_cb, &cb->peer_bda,
+                BTHF_CLIENT_VOLUME_TYPE_SPK, p_data->val.value);
       break;
 
     case BTA_HF_CLIENT_VOICE_REC_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, vr_cmd_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, vr_cmd_cb, &cb->peer_bda,
                 (bthf_client_vr_state_t)p_data->val.value);
       break;
 
     case BTA_HF_CLIENT_OPERATOR_NAME_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, current_operator_cb,
-                &btif_hf_client_cb.connected_bda, p_data->operator_name.name);
+      HAL_CBACK(bt_hf_client_callbacks, current_operator_cb, &cb->peer_bda,
+                p_data->operator_name.name);
       break;
 
     case BTA_HF_CLIENT_CLIP_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, clip_cb,
-                &btif_hf_client_cb.connected_bda, p_data->number.number);
+      HAL_CBACK(bt_hf_client_callbacks, clip_cb, &cb->peer_bda,
+                p_data->number.number);
       break;
 
     case BTA_HF_CLIENT_BINP_EVT:
       HAL_CBACK(bt_hf_client_callbacks, last_voice_tag_number_callback,
-                &btif_hf_client_cb.connected_bda, p_data->number.number);
+                &cb->peer_bda, p_data->number.number);
       break;
 
     case BTA_HF_CLIENT_CCWA_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, call_waiting_cb,
-                &btif_hf_client_cb.connected_bda, p_data->number.number);
+      HAL_CBACK(bt_hf_client_callbacks, call_waiting_cb, &cb->peer_bda,
+                p_data->number.number);
       break;
 
     case BTA_HF_CLIENT_AT_RESULT_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, cmd_complete_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, cmd_complete_cb, &cb->peer_bda,
                 (bthf_client_cmd_complete_t)p_data->result.type,
                 p_data->result.cme);
       break;
 
     case BTA_HF_CLIENT_CLCC_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, current_calls_cb,
-                &btif_hf_client_cb.connected_bda, p_data->clcc.idx,
+      HAL_CBACK(bt_hf_client_callbacks, current_calls_cb, &cb->peer_bda,
+                p_data->clcc.idx,
                 p_data->clcc.inc ? BTHF_CLIENT_CALL_DIRECTION_INCOMING
                                  : BTHF_CLIENT_CALL_DIRECTION_OUTGOING,
                 (bthf_client_call_state_t)p_data->clcc.status,
@@ -861,60 +917,50 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
 
     case BTA_HF_CLIENT_CNUM_EVT:
       if (p_data->cnum.service == 4) {
-        HAL_CBACK(bt_hf_client_callbacks, subscriber_info_cb,
-                  &btif_hf_client_cb.connected_bda, p_data->cnum.number,
-                  BTHF_CLIENT_SERVICE_VOICE);
+        HAL_CBACK(bt_hf_client_callbacks, subscriber_info_cb, &cb->peer_bda,
+                  p_data->cnum.number, BTHF_CLIENT_SERVICE_VOICE);
       } else if (p_data->cnum.service == 5) {
-        HAL_CBACK(bt_hf_client_callbacks, subscriber_info_cb,
-                  &btif_hf_client_cb.connected_bda, p_data->cnum.number,
-                  BTHF_CLIENT_SERVICE_FAX);
+        HAL_CBACK(bt_hf_client_callbacks, subscriber_info_cb, &cb->peer_bda,
+                  p_data->cnum.number, BTHF_CLIENT_SERVICE_FAX);
       } else {
-        HAL_CBACK(bt_hf_client_callbacks, subscriber_info_cb,
-                  &btif_hf_client_cb.connected_bda, p_data->cnum.number,
-                  BTHF_CLIENT_SERVICE_UNKNOWN);
+        HAL_CBACK(bt_hf_client_callbacks, subscriber_info_cb, &cb->peer_bda,
+                  p_data->cnum.number, BTHF_CLIENT_SERVICE_UNKNOWN);
       }
       break;
 
     case BTA_HF_CLIENT_BTRH_EVT:
       if (p_data->val.value <= BTRH_CLIENT_RESP_AND_HOLD_REJECT) {
-        HAL_CBACK(bt_hf_client_callbacks, resp_and_hold_cb,
-                  &btif_hf_client_cb.connected_bda,
+        HAL_CBACK(bt_hf_client_callbacks, resp_and_hold_cb, &cb->peer_bda,
                   (bthf_client_resp_and_hold_t)p_data->val.value);
       }
       break;
 
     case BTA_HF_CLIENT_BSIR_EVT:
       if (p_data->val.value != 0) {
-        HAL_CBACK(bt_hf_client_callbacks, in_band_ring_tone_cb,
-                  &btif_hf_client_cb.connected_bda,
+        HAL_CBACK(bt_hf_client_callbacks, in_band_ring_tone_cb, &cb->peer_bda,
                   BTHF_CLIENT_IN_BAND_RINGTONE_PROVIDED);
       } else {
-        HAL_CBACK(bt_hf_client_callbacks, in_band_ring_tone_cb,
-                  &btif_hf_client_cb.connected_bda,
+        HAL_CBACK(bt_hf_client_callbacks, in_band_ring_tone_cb, &cb->peer_bda,
                   BTHF_CLIENT_IN_BAND_RINGTONE_NOT_PROVIDED);
       }
       break;
 
     case BTA_HF_CLIENT_AUDIO_OPEN_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, &cb->peer_bda,
                 BTHF_CLIENT_AUDIO_STATE_CONNECTED);
       break;
 
     case BTA_HF_CLIENT_AUDIO_MSBC_OPEN_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, &cb->peer_bda,
                 BTHF_CLIENT_AUDIO_STATE_CONNECTED_MSBC);
       break;
 
     case BTA_HF_CLIENT_AUDIO_CLOSE_EVT:
-      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb,
-                &btif_hf_client_cb.connected_bda,
+      HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, &cb->peer_bda,
                 BTHF_CLIENT_AUDIO_STATE_DISCONNECTED);
       break;
     case BTA_HF_CLIENT_RING_INDICATION:
-      HAL_CBACK(bt_hf_client_callbacks, ring_indication_cb,
-                &btif_hf_client_cb.connected_bda);
+      HAL_CBACK(bt_hf_client_callbacks, ring_indication_cb, &cb->peer_bda);
       break;
     default:
       BTIF_TRACE_WARNING("%s: Unhandled event: %d", __func__, event);
@@ -955,11 +1001,11 @@ static void bta_hf_client_evt(tBTA_HF_CLIENT_EVT event,
  *
  ******************************************************************************/
 bt_status_t btif_hf_client_execute_service(bool b_enable) {
-  BTIF_TRACE_EVENT("%s: enable:%d", __func__, b_enable);
+  BTIF_TRACE_EVENT("%s: enable: %d", __func__, b_enable);
 
   if (b_enable) {
     /* Enable and register with BTA-HFClient */
-    BTIF_TRACE_EVENT("%s: support codec negotiation %d", __func__,
+    BTIF_TRACE_EVENT("%s: support codec negotiation %d ", __func__,
                      BTIF_HF_CLIENT_FEATURES);
     BTA_HfClientEnable(bta_hf_client_evt, BTIF_HF_CLIENT_SECURITY,
                        BTIF_HF_CLIENT_FEATURES, BTIF_HF_CLIENT_SERVICE_NAME);
