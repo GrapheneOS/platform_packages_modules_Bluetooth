@@ -1193,8 +1193,10 @@ public class GattService extends ProfileService {
         AdvertiserMap.App app = mAdvertiserMap.getById(advertiserId);
         if (app != null) {
             if (status == 0) {
+                AdvertiseClient client = mAdvertiseManager.getAdvertiseClient(advertiserId);
+                AdvertiseSettings settings = (client == null) ? null : client.settings;
                 app.callback.onMultiAdvertiseCallback(AdvertiseCallback.ADVERTISE_SUCCESS,
-                        true, null);
+                        true, settings);
             } else {
                 app.callback.onMultiAdvertiseCallback(
                         AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR, true, null);
