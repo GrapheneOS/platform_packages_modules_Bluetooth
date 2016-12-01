@@ -101,7 +101,7 @@ static uid_set_t* uid_set = NULL;
 static int pth = -1;
 
 static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV* p_data,
-                             void* user_data);
+                             uint32_t l2cap_socket_id);
 
 /* TODO: Consider to remove this buffer, as we have a buffer in l2cap as well,
  * and we risk
@@ -278,7 +278,7 @@ static void btsock_l2cap_free_l(l2cap_socket* sock) {
       if (!sock->fixed_chan) {
         APPL_TRACE_DEBUG("%s stopping L2CAP server channel %d", __func__,
                          sock->channel);
-        BTA_JvL2capStopServer(sock->channel, UINT_TO_PTR(sock->id));
+        BTA_JvL2capStopServer(sock->channel, sock->id);
       }
     }
   }
@@ -741,31 +741,29 @@ static void on_l2cap_data_ind(tBTA_JV* evt, uint32_t id) {
 }
 
 static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV* p_data,
-                             void* user_data) {
-  uint32_t sock_id = PTR_TO_UINT(user_data);
-
+                             uint32_t l2cap_socket_id) {
   switch (event) {
     case BTA_JV_L2CAP_START_EVT:
-      on_srv_l2cap_listen_started(&p_data->l2c_start, sock_id);
+      on_srv_l2cap_listen_started(&p_data->l2c_start, l2cap_socket_id);
       break;
 
     case BTA_JV_L2CAP_CL_INIT_EVT:
-      on_cl_l2cap_init(&p_data->l2c_cl_init, sock_id);
+      on_cl_l2cap_init(&p_data->l2c_cl_init, l2cap_socket_id);
       break;
 
     case BTA_JV_L2CAP_OPEN_EVT:
-      on_l2cap_connect(p_data, sock_id);
+      on_l2cap_connect(p_data, l2cap_socket_id);
       BTA_JvSetPmProfile(p_data->l2c_open.handle, BTA_JV_PM_ID_1,
                          BTA_JV_CONN_OPEN);
       break;
 
     case BTA_JV_L2CAP_CLOSE_EVT:
-      APPL_TRACE_DEBUG("BTA_JV_L2CAP_CLOSE_EVT: id: %u", sock_id);
-      on_l2cap_close(&p_data->l2c_close, sock_id);
+      APPL_TRACE_DEBUG("BTA_JV_L2CAP_CLOSE_EVT: id: %u", l2cap_socket_id);
+      on_l2cap_close(&p_data->l2c_close, l2cap_socket_id);
       break;
 
     case BTA_JV_L2CAP_DATA_IND_EVT:
-      on_l2cap_data_ind(p_data, sock_id);
+      on_l2cap_data_ind(p_data, l2cap_socket_id);
       APPL_TRACE_DEBUG("BTA_JV_L2CAP_DATA_IND_EVT");
       break;
 
@@ -774,23 +772,23 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV* p_data,
       break;
 
     case BTA_JV_L2CAP_WRITE_EVT:
-      APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_EVT: id: %u", sock_id);
+      APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_EVT: id: %u", l2cap_socket_id);
       on_l2cap_write_done(p_data->l2c_write.p_data,
-                          p_data->l2c_write.len, sock_id);
+                          p_data->l2c_write.len, l2cap_socket_id);
       break;
 
     case BTA_JV_L2CAP_WRITE_FIXED_EVT:
-      APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_FIXED_EVT: id: %u", sock_id);
+      APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_FIXED_EVT: id: %u", l2cap_socket_id);
       on_l2cap_write_fixed_done(p_data->l2c_write_fixed.p_data,
-                                p_data->l2c_write.len, sock_id);
+                                p_data->l2c_write.len, l2cap_socket_id);
       break;
 
     case BTA_JV_L2CAP_CONG_EVT:
-      on_l2cap_outgoing_congest(&p_data->l2c_cong, sock_id);
+      on_l2cap_outgoing_congest(&p_data->l2c_cong, l2cap_socket_id);
       break;
 
     default:
-      APPL_TRACE_ERROR("unhandled event %d, slot id: %u", event, sock_id);
+      APPL_TRACE_ERROR("unhandled event %d, slot id: %u", event, l2cap_socket_id);
       break;
   }
 }
@@ -847,7 +845,7 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket* sock) {
   if (sock->fixed_chan) {
     if (BTA_JvL2capStartServerLE(sock->security, 0, NULL, sock->channel,
                                  L2CAP_DEFAULT_MTU, NULL, btsock_l2cap_cbk,
-                                 UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                                 sock->id) != BTA_JV_SUCCESS)
       stat = BT_STATUS_FAIL;
 
   } else {
@@ -868,13 +866,13 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket* sock) {
         if (BTA_JvL2capStartServer(BTA_JV_CONN_TYPE_L2CAP_LE, sock->security, 0,
                                    NULL, sock->channel, L2CAP_MAX_SDU_LENGTH,
                                    &cfg, btsock_l2cap_cbk,
-                                   UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                                   sock->id) != BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       } else {
         if (BTA_JvL2capStartServer(BTA_JV_CONN_TYPE_L2CAP, sock->security, 0,
                                    &obex_l2c_etm_opt, sock->channel,
                                    L2CAP_MAX_SDU_LENGTH, &cfg, btsock_l2cap_cbk,
-                                   UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                                   sock->id) != BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       }
     }
@@ -936,7 +934,7 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char* name,
       if (BTA_JvL2capConnectLE(sock->security, 0, NULL, channel,
                                L2CAP_DEFAULT_MTU, NULL, sock->addr.address,
                                btsock_l2cap_cbk,
-                               UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                               sock->id) != BTA_JV_SUCCESS)
         stat = BT_STATUS_FAIL;
 
     } else {
@@ -944,13 +942,13 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char* name,
         if (BTA_JvL2capConnect(BTA_JV_CONN_TYPE_L2CAP_LE, sock->security, 0,
                                NULL, channel, L2CAP_MAX_SDU_LENGTH, &cfg,
                                sock->addr.address, btsock_l2cap_cbk,
-                               UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                               sock->id) != BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       } else {
         if (BTA_JvL2capConnect(BTA_JV_CONN_TYPE_L2CAP, sock->security, 0,
                                &obex_l2c_etm_opt, channel, L2CAP_MAX_SDU_LENGTH,
                                &cfg, sock->addr.address, btsock_l2cap_cbk,
-                               UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                               sock->id) != BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       }
     }
@@ -1062,13 +1060,13 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
           if (BTA_JvL2capWriteFixed(sock->channel, (BD_ADDR*)&sock->addr,
                                     PTR_TO_UINT(buffer), btsock_l2cap_cbk,
                                     buffer, count,
-                                    UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
+                                    user_id) != BTA_JV_SUCCESS) {
             // On fail, free the buffer
             on_l2cap_write_fixed_done(buffer, count, user_id);
           }
         } else {
           if (BTA_JvL2capWrite(sock->handle, PTR_TO_UINT(buffer), buffer, count,
-                               UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
+                               user_id) != BTA_JV_SUCCESS) {
             // On fail, free the buffer
             on_l2cap_write_done(buffer, count, user_id);
           }
