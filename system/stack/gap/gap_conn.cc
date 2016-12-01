@@ -29,9 +29,9 @@
 #if (GAP_CONN_INCLUDED == TRUE)
 #include "btm_int.h"
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void gap_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id);
 static void gap_connect_cfm (uint16_t l2cap_cid, uint16_t result);
 static void gap_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
@@ -48,14 +48,14 @@ static void      gap_release_ccb (tGAP_CCB *p_ccb);
 static void      gap_checks_con_flags (tGAP_CCB *p_ccb);
 
 /*******************************************************************************
-**
-** Function         gap_conn_init
-**
-** Description      This function is called to initialize GAP connection management
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_conn_init
+ *
+ * Description      This function is called to initialize GAP connection management
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gap_conn_init (void)
 {
 #if (AMP_INCLUDED == TRUE)
@@ -92,38 +92,38 @@ void gap_conn_init (void)
 
 
 /*******************************************************************************
-**
-** Function         GAP_ConnOpen
-**
-** Description      This function is called to open an L2CAP connection.
-**
-** Parameters:      is_server   - If true, the connection is not created
-**                                but put into a "listen" mode waiting for
-**                                the remote side to connect.
-**
-**                  service_id  - Unique service ID from
-**                                BTM_SEC_SERVICE_FIRST_EMPTY (6)
-**                                to BTM_SEC_MAX_SERVICE_RECORDS (32)
-**
-**                  p_rem_bda   - Pointer to remote BD Address.
-**                                If a server, and we don't care about the
-**                                remote BD Address, then NULL should be passed.
-**
-**                  psm         - the PSM used for the connection
-**
-**                  p_config    - Optional pointer to configuration structure.
-**                                If NULL, the default GAP configuration will
-**                                be used.
-**
-**                  security    - security flags
-**                  chan_mode_mask - (GAP_FCR_CHAN_OPT_BASIC, GAP_FCR_CHAN_OPT_ERTM,
-**                                    GAP_FCR_CHAN_OPT_STREAM)
-**
-**                  p_cb        - Pointer to callback function for events.
-**
-** Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnOpen
+ *
+ * Description      This function is called to open an L2CAP connection.
+ *
+ * Parameters:      is_server   - If true, the connection is not created
+ *                                but put into a "listen" mode waiting for
+ *                                the remote side to connect.
+ *
+ *                  service_id  - Unique service ID from
+ *                                BTM_SEC_SERVICE_FIRST_EMPTY (6)
+ *                                to BTM_SEC_MAX_SERVICE_RECORDS (32)
+ *
+ *                  p_rem_bda   - Pointer to remote BD Address.
+ *                                If a server, and we don't care about the
+ *                                remote BD Address, then NULL should be passed.
+ *
+ *                  psm         - the PSM used for the connection
+ *
+ *                  p_config    - Optional pointer to configuration structure.
+ *                                If NULL, the default GAP configuration will
+ *                                be used.
+ *
+ *                  security    - security flags
+ *                  chan_mode_mask - (GAP_FCR_CHAN_OPT_BASIC, GAP_FCR_CHAN_OPT_ERTM,
+ *                                    GAP_FCR_CHAN_OPT_STREAM)
+ *
+ *                  p_cb        - Pointer to callback function for events.
+ *
+ * Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnOpen(const char *p_serv_name, uint8_t service_id, bool is_server,
                      BD_ADDR p_rem_bda, uint16_t psm, tL2CAP_CFG_INFO *p_cfg,
                      tL2CAP_ERTM_INFO *ertm_info, uint16_t security, uint8_t chan_mode_mask,
@@ -293,17 +293,17 @@ uint16_t GAP_ConnOpen(const char *p_serv_name, uint8_t service_id, bool is_serve
 
 
 /*******************************************************************************
-**
-** Function         GAP_ConnClose
-**
-** Description      This function is called to close a connection.
-**
-** Parameters:      handle      - Handle of the connection returned by GAP_ConnOpen
-**
-** Returns          BT_PASS             - closed OK
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnClose
+ *
+ * Description      This function is called to close a connection.
+ *
+ * Parameters:      handle      - Handle of the connection returned by GAP_ConnOpen
+ *
+ * Returns          BT_PASS             - closed OK
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnClose (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
@@ -327,22 +327,22 @@ uint16_t GAP_ConnClose (uint16_t gap_handle)
 
 
 /*******************************************************************************
-**
-** Function         GAP_ConnReadData
-**
-** Description      Normally not GKI aware application will call this function
-**                  after receiving GAP_EVT_RXDATA event.
-**
-** Parameters:      handle      - Handle of the connection returned in the Open
-**                  p_data      - Data area
-**                  max_len     - Byte count requested
-**                  p_len       - Byte count received
-**
-** Returns          BT_PASS             - data read
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**                  GAP_NO_DATA_AVAIL   - no data available
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnReadData
+ *
+ * Description      Normally not GKI aware application will call this function
+ *                  after receiving GAP_EVT_RXDATA event.
+ *
+ * Parameters:      handle      - Handle of the connection returned in the Open
+ *                  p_data      - Data area
+ *                  max_len     - Byte count requested
+ *                  p_len       - Byte count received
+ *
+ * Returns          BT_PASS             - data read
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *                  GAP_NO_DATA_AVAIL   - no data available
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnReadData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_len, uint16_t *p_len)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
@@ -394,16 +394,16 @@ uint16_t GAP_ConnReadData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_le
 }
 
 /*******************************************************************************
-**
-** Function         GAP_GetRxQueueCnt
-**
-** Description      This function return number of bytes on the rx queue.
-**
-** Parameters:      handle     - Handle returned in the GAP_ConnOpen
-**                  p_rx_queue_count - Pointer to return queue count in.
-**
-**
-*******************************************************************************/
+ *
+ * Function         GAP_GetRxQueueCnt
+ *
+ * Description      This function return number of bytes on the rx queue.
+ *
+ * Parameters:      handle     - Handle returned in the GAP_ConnOpen
+ *                  p_rx_queue_count - Pointer to return queue count in.
+ *
+ *
+ ******************************************************************************/
 int GAP_GetRxQueueCnt (uint16_t handle, uint32_t *p_rx_queue_count)
 {
     tGAP_CCB    *p_ccb;
@@ -431,20 +431,20 @@ int GAP_GetRxQueueCnt (uint16_t handle, uint32_t *p_rx_queue_count)
 }
 
 /*******************************************************************************
-**
-** Function         GAP_ConnBTRead
-**
-** Description      Bluetooth aware applications will call this function after receiving
-**                  GAP_EVT_RXDATA event.
-**
-** Parameters:      handle      - Handle of the connection returned in the Open
-**                  pp_buf      - pointer to address of buffer with data,
-**
-** Returns          BT_PASS             - data read
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**                  GAP_NO_DATA_AVAIL   - no data available
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnBTRead
+ *
+ * Description      Bluetooth aware applications will call this function after receiving
+ *                  GAP_EVT_RXDATA event.
+ *
+ * Parameters:      handle      - Handle of the connection returned in the Open
+ *                  pp_buf      - pointer to address of buffer with data,
+ *
+ * Returns          BT_PASS             - data read
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *                  GAP_NO_DATA_AVAIL   - no data available
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnBTRead (uint16_t gap_handle, BT_HDR **pp_buf)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
@@ -470,23 +470,23 @@ uint16_t GAP_ConnBTRead (uint16_t gap_handle, BT_HDR **pp_buf)
 }
 
 /*******************************************************************************
-**
-** Function         GAP_ConnWriteData
-**
-** Description      Normally not GKI aware application will call this function
-**                  to send data to the connection.
-**
-** Parameters:      handle      - Handle of the connection returned in the Open
-**                  p_data      - Data area
-**                  max_len     - Byte count requested
-**                  p_len       - Byte count received
-**
-** Returns          BT_PASS                 - data read
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**                  GAP_ERR_BAD_STATE       - connection not established
-**                  GAP_CONGESTION          - system is congested
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnWriteData
+ *
+ * Description      Normally not GKI aware application will call this function
+ *                  to send data to the connection.
+ *
+ * Parameters:      handle      - Handle of the connection returned in the Open
+ *                  p_data      - Data area
+ *                  max_len     - Byte count requested
+ *                  p_len       - Byte count received
+ *
+ * Returns          BT_PASS                 - data read
+ *                  GAP_ERR_BAD_HANDLE      - invalid handle
+ *                  GAP_ERR_BAD_STATE       - connection not established
+ *                  GAP_CONGESTION          - system is congested
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_len, uint16_t *p_len)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
@@ -546,18 +546,18 @@ uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_l
 
 
 /*******************************************************************************
-**
-** Function         GAP_ConnReconfig
-**
-** Description      Applications can call this function to reconfigure the connection.
-**
-** Parameters:      handle      - Handle of the connection
-**                  p_cfg       - Pointer to new configuration
-**
-** Returns          BT_PASS                 - config process started
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnReconfig
+ *
+ * Description      Applications can call this function to reconfigure the connection.
+ *
+ * Parameters:      handle      - Handle of the connection
+ *                  p_cfg       - Pointer to new configuration
+ *
+ * Returns          BT_PASS                 - config process started
+ *                  GAP_ERR_BAD_HANDLE      - invalid handle
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnReconfig (uint16_t gap_handle, tL2CAP_CFG_INFO *p_cfg)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
@@ -576,26 +576,26 @@ uint16_t GAP_ConnReconfig (uint16_t gap_handle, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         GAP_ConnSetIdleTimeout
-**
-** Description      Higher layers call this function to set the idle timeout for
-**                  a connection, or for all future connections. The "idle timeout"
-**                  is the amount of time that a connection can remain up with
-**                  no L2CAP channels on it. A timeout of zero means that the
-**                  connection will be torn down immediately when the last channel
-**                  is removed. A timeout of 0xFFFF means no timeout. Values are
-**                  in seconds.
-**
-** Parameters:      handle      - Handle of the connection
-**                  timeout     - in secs
-**                                0 = immediate disconnect when last channel is removed
-**                                0xFFFF = no idle timeout
-**
-** Returns          BT_PASS                 - config process started
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnSetIdleTimeout
+ *
+ * Description      Higher layers call this function to set the idle timeout for
+ *                  a connection, or for all future connections. The "idle timeout"
+ *                  is the amount of time that a connection can remain up with
+ *                  no L2CAP channels on it. A timeout of zero means that the
+ *                  connection will be torn down immediately when the last channel
+ *                  is removed. A timeout of 0xFFFF means no timeout. Values are
+ *                  in seconds.
+ *
+ * Parameters:      handle      - Handle of the connection
+ *                  timeout     - in secs
+ *                                0 = immediate disconnect when last channel is removed
+ *                                0xFFFF = no idle timeout
+ *
+ * Returns          BT_PASS                 - config process started
+ *                  GAP_ERR_BAD_HANDLE      - invalid handle
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnSetIdleTimeout (uint16_t gap_handle, uint16_t timeout)
 {
     tGAP_CCB    *p_ccb;
@@ -613,18 +613,18 @@ uint16_t GAP_ConnSetIdleTimeout (uint16_t gap_handle, uint16_t timeout)
 
 
 /*******************************************************************************
-**
-** Function         GAP_ConnGetRemoteAddr
-**
-** Description      This function is called to get the remote BD address
-**                  of a connection.
-**
-** Parameters:      handle      - Handle of the connection returned by GAP_ConnOpen
-**
-** Returns          BT_PASS             - closed OK
-**                  GAP_ERR_BAD_HANDLE  - invalid handle
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnGetRemoteAddr
+ *
+ * Description      This function is called to get the remote BD address
+ *                  of a connection.
+ *
+ * Parameters:      handle      - Handle of the connection returned by GAP_ConnOpen
+ *
+ * Returns          BT_PASS             - closed OK
+ *                  GAP_ERR_BAD_HANDLE  - invalid handle
+ *
+ ******************************************************************************/
 uint8_t *GAP_ConnGetRemoteAddr (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
@@ -647,16 +647,16 @@ uint8_t *GAP_ConnGetRemoteAddr (uint16_t gap_handle)
 
 
 /*******************************************************************************
-**
-** Function         GAP_ConnGetRemMtuSize
-**
-** Description      Returns the remote device's MTU size
-**
-** Parameters:      handle      - Handle of the connection
-**
-** Returns          uint16_t    - maximum size buffer that can be transmitted to the peer
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnGetRemMtuSize
+ *
+ * Description      Returns the remote device's MTU size
+ *
+ * Parameters:      handle      - Handle of the connection
+ *
+ * Returns          uint16_t    - maximum size buffer that can be transmitted to the peer
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnGetRemMtuSize (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb;
@@ -669,17 +669,17 @@ uint16_t GAP_ConnGetRemMtuSize (uint16_t gap_handle)
 }
 
 /*******************************************************************************
-**
-** Function         GAP_ConnGetL2CAPCid
-**
-** Description      Returns the L2CAP channel id
-**
-** Parameters:      handle      - Handle of the connection
-**
-** Returns          uint16_t    - The L2CAP channel id
-**                  0, if error
-**
-*******************************************************************************/
+ *
+ * Function         GAP_ConnGetL2CAPCid
+ *
+ * Description      Returns the L2CAP channel id
+ *
+ * Parameters:      handle      - Handle of the connection
+ *
+ * Returns          uint16_t    - The L2CAP channel id
+ *                  0, if error
+ *
+ ******************************************************************************/
 uint16_t GAP_ConnGetL2CAPCid (uint16_t gap_handle)
 {
     tGAP_CCB    *p_ccb;
@@ -692,15 +692,15 @@ uint16_t GAP_ConnGetL2CAPCid (uint16_t gap_handle)
 }
 
 /*******************************************************************************
-**
-** Function         gap_tx_connect_ind
-**
-** Description      Sends out GAP_EVT_TX_EMPTY when transmission has been
-**                  completed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_tx_connect_ind
+ *
+ * Description      Sends out GAP_EVT_TX_EMPTY when transmission has been
+ *                  completed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gap_tx_complete_ind (uint16_t l2cap_cid, uint16_t sdu_sent)
 {
     tGAP_CCB *p_ccb = gap_find_ccb_by_cid (l2cap_cid);
@@ -715,16 +715,16 @@ void gap_tx_complete_ind (uint16_t l2cap_cid, uint16_t sdu_sent)
 }
 
 /*******************************************************************************
-**
-** Function         gap_connect_ind
-**
-** Description      This function handles an inbound connection indication
-**                  from L2CAP. This is the case where we are acting as a
-**                  server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_connect_ind
+ *
+ * Description      This function handles an inbound connection indication
+ *                  from L2CAP. This is the case where we are acting as a
+ *                  server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id)
 {
     uint16_t     xx;
@@ -785,15 +785,15 @@ static void gap_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm,
 }
 
 /*******************************************************************************
-**
-** Function         gap_checks_con_flags
-**
-** Description      This function processes the L2CAP configuration indication
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_checks_con_flags
+ *
+ * Description      This function processes the L2CAP configuration indication
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_checks_con_flags (tGAP_CCB    *p_ccb)
 {
     GAP_TRACE_EVENT ("gap_checks_con_flags conn_flags:0x%x, ", p_ccb->con_flags);
@@ -807,15 +807,15 @@ static void gap_checks_con_flags (tGAP_CCB    *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         gap_sec_check_complete
-**
-** Description      The function called when Security Manager finishes
-**                  verification of the service side connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_sec_check_complete
+ *
+ * Description      The function called when Security Manager finishes
+ *                  verification of the service side connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
                                     uint8_t res)
 {
@@ -839,16 +839,16 @@ static void gap_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT
 }
 
 /*******************************************************************************
-**
-** Function         gap_connect_cfm
-**
-** Description      This function handles the connect confirm events
-**                  from L2CAP. This is the case when we are acting as a
-**                  client and have sent a connect request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_connect_cfm
+ *
+ * Description      This function handles the connect confirm events
+ *                  from L2CAP. This is the case when we are acting as a
+ *                  client and have sent a connect request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 {
     tGAP_CCB    *p_ccb;
@@ -901,15 +901,15 @@ static void gap_connect_cfm (uint16_t l2cap_cid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         gap_config_ind
-**
-** Description      This function processes the L2CAP configuration indication
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_config_ind
+ *
+ * Description      This function processes the L2CAP configuration indication
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tGAP_CCB    *p_ccb;
@@ -952,15 +952,15 @@ static void gap_config_ind (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         gap_config_cfm
-**
-** Description      This function processes the L2CAP configuration confirmation
-**                  event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_config_cfm
+ *
+ * Description      This function processes the L2CAP configuration confirmation
+ *                  event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tGAP_CCB    *p_ccb;
@@ -991,15 +991,15 @@ static void gap_config_cfm (uint16_t l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         gap_disconnect_ind
-**
-** Description      This function handles a disconnect event from L2CAP. If
-**                  requested to, we ack the disconnect before dropping the CCB
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_disconnect_ind
+ *
+ * Description      This function handles a disconnect event from L2CAP. If
+ *                  requested to, we ack the disconnect before dropping the CCB
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 {
     tGAP_CCB    *p_ccb;
@@ -1020,14 +1020,14 @@ static void gap_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
 
 
 /*******************************************************************************
-**
-** Function         gap_data_ind
-**
-** Description      This function is called when data is received from L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_data_ind
+ *
+ * Description      This function is called when data is received from L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 {
     tGAP_CCB    *p_ccb;
@@ -1060,13 +1060,13 @@ static void gap_data_ind (uint16_t l2cap_cid, BT_HDR *p_msg)
 
 
 /*******************************************************************************
-**
-** Function         gap_congestion_ind
-**
-** Description      This is a callback function called by L2CAP when
-**                  data L2CAP congestion status changes
-**
-*******************************************************************************/
+ *
+ * Function         gap_congestion_ind
+ *
+ * Description      This is a callback function called by L2CAP when
+ *                  data L2CAP congestion status changes
+ *
+ ******************************************************************************/
 static void gap_congestion_ind (uint16_t lcid, bool    is_congested)
 {
     tGAP_CCB    *p_ccb;
@@ -1106,15 +1106,15 @@ static void gap_congestion_ind (uint16_t lcid, bool    is_congested)
 
 
 /*******************************************************************************
-**
-** Function         gap_find_ccb_by_cid
-**
-** Description      This function searches the CCB table for an entry with the
-**                  passed CID.
-**
-** Returns          the CCB address, or NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         gap_find_ccb_by_cid
+ *
+ * Description      This function searches the CCB table for an entry with the
+ *                  passed CID.
+ *
+ * Returns          the CCB address, or NULL if not found.
+ *
+ ******************************************************************************/
 static tGAP_CCB *gap_find_ccb_by_cid (uint16_t cid)
 {
     uint16_t     xx;
@@ -1133,15 +1133,15 @@ static tGAP_CCB *gap_find_ccb_by_cid (uint16_t cid)
 
 
 /*******************************************************************************
-**
-** Function         gap_find_ccb_by_handle
-**
-** Description      This function searches the CCB table for an entry with the
-**                  passed handle.
-**
-** Returns          the CCB address, or NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         gap_find_ccb_by_handle
+ *
+ * Description      This function searches the CCB table for an entry with the
+ *                  passed handle.
+ *
+ * Returns          the CCB address, or NULL if not found.
+ *
+ ******************************************************************************/
 static tGAP_CCB *gap_find_ccb_by_handle (uint16_t handle)
 {
     tGAP_CCB     *p_ccb;
@@ -1161,14 +1161,14 @@ static tGAP_CCB *gap_find_ccb_by_handle (uint16_t handle)
 
 
 /*******************************************************************************
-**
-** Function         gap_allocate_ccb
-**
-** Description      This function allocates a new CCB.
-**
-** Returns          CCB address, or NULL if none available.
-**
-*******************************************************************************/
+ *
+ * Function         gap_allocate_ccb
+ *
+ * Description      This function allocates a new CCB.
+ *
+ * Returns          CCB address, or NULL if none available.
+ *
+ ******************************************************************************/
 static tGAP_CCB *gap_allocate_ccb (void)
 {
     uint16_t     xx;
@@ -1196,14 +1196,14 @@ static tGAP_CCB *gap_allocate_ccb (void)
 
 
 /*******************************************************************************
-**
-** Function         gap_release_ccb
-**
-** Description      This function releases a CCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_release_ccb
+ *
+ * Description      This function releases a CCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_release_ccb (tGAP_CCB *p_ccb)
 {
     uint16_t     xx;

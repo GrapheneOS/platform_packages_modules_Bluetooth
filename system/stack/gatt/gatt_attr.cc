@@ -64,14 +64,14 @@ static tGATT_CBACK gatt_profile_cback =
 } ;
 
 /*******************************************************************************
-**
-** Function         gatt_profile_find_conn_id_by_bd_addr
-**
-** Description      Find the connection ID by remote address
-**
-** Returns          Connection ID
-**
-*******************************************************************************/
+ *
+ * Function         gatt_profile_find_conn_id_by_bd_addr
+ *
+ * Description      Find the connection ID by remote address
+ *
+ * Returns          Connection ID
+ *
+ ******************************************************************************/
 uint16_t gatt_profile_find_conn_id_by_bd_addr(BD_ADDR remote_bda)
 {
     uint16_t conn_id = GATT_INVALID_CONN_ID;
@@ -80,14 +80,14 @@ uint16_t gatt_profile_find_conn_id_by_bd_addr(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_profile_find_clcb_by_conn_id
-**
-** Description      find clcb by Connection ID
-**
-** Returns          Pointer to the found link conenction control block.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_profile_find_clcb_by_conn_id
+ *
+ * Description      find clcb by Connection ID
+ *
+ * Returns          Pointer to the found link conenction control block.
+ *
+ ******************************************************************************/
 static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_conn_id(uint16_t conn_id)
 {
     uint8_t i_clcb;
@@ -103,14 +103,14 @@ static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_conn_id(uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_profile_find_clcb_by_bd_addr
-**
-** Description      The function searches all LCBs with macthing bd address.
-**
-** Returns          Pointer to the found link conenction control block.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_profile_find_clcb_by_bd_addr
+ *
+ * Description      The function searches all LCBs with macthing bd address.
+ *
+ * Returns          Pointer to the found link conenction control block.
+ *
+ ******************************************************************************/
 static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     uint8_t i_clcb;
@@ -127,14 +127,14 @@ static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda, tBT_TR
 }
 
 /*******************************************************************************
-**
-** Function         gatt_profile_clcb_alloc
-**
-** Description      The function allocates a GATT profile  connection link control block
-**
-** Returns           NULL if not found. Otherwise pointer to the connection link block.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_profile_clcb_alloc
+ *
+ * Description      The function allocates a GATT profile  connection link control block
+ *
+ * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ *
+ ******************************************************************************/
 tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (uint16_t conn_id, BD_ADDR bda, tBT_TRANSPORT tranport)
 {
     uint8_t                 i_clcb = 0;
@@ -159,28 +159,28 @@ tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (uint16_t conn_id, BD_ADDR bda, tBT_
 }
 
 /*******************************************************************************
-**
-** Function         gatt_profile_clcb_dealloc
-**
-** Description      The function deallocates a GATT profile  connection link control block
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_profile_clcb_dealloc
+ *
+ * Description      The function deallocates a GATT profile  connection link control block
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_profile_clcb_dealloc (tGATT_PROFILE_CLCB *p_clcb)
 {
     memset(p_clcb, 0, sizeof(tGATT_PROFILE_CLCB));
 }
 
 /*******************************************************************************
-**
-** Function         gatt_request_cback
-**
-** Description      GATT profile attribute access request callback.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_request_cback
+ *
+ * Description      GATT profile attribute access request callback.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 static void gatt_request_cback (uint16_t conn_id, uint32_t trans_id, tGATTS_REQ_TYPE type,
                                         tGATTS_DATA *p_data)
 {
@@ -224,14 +224,14 @@ static void gatt_request_cback (uint16_t conn_id, uint32_t trans_id, tGATTS_REQ_
 }
 
 /*******************************************************************************
-**
-** Function         gatt_connect_cback
-**
-** Description      Gatt profile connection callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_connect_cback
+ *
+ * Description      Gatt profile connection callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
                                 uint16_t conn_id,
                                         bool    connected, tGATT_DISCONN_REASON reason,
@@ -261,12 +261,12 @@ static void gatt_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_profile_db_init
-**
-** Description      Initializa the GATT profile attribute database.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_profile_db_init
+ *
+ * Description      Initializa the GATT profile attribute database.
+ *
+ ******************************************************************************/
 void gatt_profile_db_init (void)
 {
     tBT_UUID          app_uuid = {LEN_UUID_128, {0}};
@@ -300,14 +300,14 @@ void gatt_profile_db_init (void)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_disc_res_cback
-**
-** Description      Gatt profile discovery result callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_disc_res_cback
+ *
+ * Description      Gatt profile discovery result callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_disc_res_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_DISC_RES *p_data)
 {
     tGATT_PROFILE_CLCB *p_clcb = gatt_profile_find_clcb_by_conn_id(conn_id);
@@ -338,14 +338,14 @@ static void gatt_disc_res_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tG
 }
 
 /*******************************************************************************
-**
-** Function         gatt_disc_cmpl_cback
-**
-** Description      Gatt profile discovery complete callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_disc_cmpl_cback
+ *
+ * Description      Gatt profile discovery complete callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_disc_cmpl_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_STATUS status)
 {
     tGATT_PROFILE_CLCB *p_clcb = gatt_profile_find_clcb_by_conn_id(conn_id);
@@ -364,14 +364,14 @@ static void gatt_disc_cmpl_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, t
 }
 
 /*******************************************************************************
-**
-** Function         gatt_cl_op_cmpl_cback
-**
-** Description      Gatt profile client operation complete callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cl_op_cmpl_cback
+ *
+ * Description      Gatt profile client operation complete callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_cl_op_cmpl_cback (UNUSED_ATTR uint16_t conn_id, UNUSED_ATTR tGATTC_OPTYPE op,
                                    UNUSED_ATTR tGATT_STATUS status,
                                    UNUSED_ATTR tGATT_CL_COMPLETE *p_data)
@@ -379,14 +379,14 @@ static void gatt_cl_op_cmpl_cback (UNUSED_ATTR uint16_t conn_id, UNUSED_ATTR tGA
 }
 
 /*******************************************************************************
-**
-** Function         gatt_cl_start_config_ccc
-**
-** Description      Gatt profile start configure service change CCC
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cl_start_config_ccc
+ *
+ * Description      Gatt profile start configure service change CCC
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB *p_clcb)
 {
     tGATT_DISC_PARAM    srvc_disc_param;
@@ -431,14 +431,14 @@ static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB *p_clcb)
 }
 
 /*******************************************************************************
-**
-** Function         GATT_ConfigServiceChangeCCC
-**
-** Description      Configure service change indication on remote device
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         GATT_ConfigServiceChangeCCC
+ *
+ * Description      Configure service change indication on remote device
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void GATT_ConfigServiceChangeCCC (BD_ADDR remote_bda, bool    enable, tBT_TRANSPORT transport)
 {
     tGATT_PROFILE_CLCB   *p_clcb = gatt_profile_find_clcb_by_bd_addr (remote_bda, transport);

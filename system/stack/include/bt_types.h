@@ -39,14 +39,14 @@
 #endif
 
 /* READ WELL !!
-**
-** This section defines global events. These are events that cross layers.
-** Any event that passes between layers MUST be one of these events. Tasks
-** can use their own events internally, but a FUNDAMENTAL design issue is
-** that global events MUST be one of these events defined below.
-**
-** The convention used is the the event name contains the layer that the
-** event is going to.
+ *
+ * This section defines global events. These are events that cross layers.
+ * Any event that passes between layers MUST be one of these events. Tasks
+ * can use their own events internally, but a FUNDAMENTAL design issue is
+ * that global events MUST be one of these events defined below.
+ *
+ * The convention used is the the event name contains the layer that the
+ * event is going to.
 */
 #define BT_EVT_MASK                 0xFF00
 #define BT_SUB_EVT_MASK             0x00FF
@@ -219,8 +219,8 @@ typedef struct
 #define HCI_GET_EVT_HDR_PARAM_LEN(p) (uint8_t)  (*((uint8_t *)((p) + 1) + (p)->offset + 1))
 
 
-/********************************************************************************
-** Macros to get and put bytes to and from a stream (Little Endian format).
+/*******************************************************************************
+ * Macros to get and put bytes to and from a stream (Little Endian format).
 */
 #define UINT64_TO_BE_STREAM(p, u64) {*(p)++ = (uint8_t)((u64) >> 56);  *(p)++ = (uint8_t)((u64) >> 48); *(p)++ = (uint8_t)((u64) >> 40); *(p)++ = (uint8_t)((u64) >> 32); \
                                      *(p)++ = (uint8_t)((u64) >> 24);  *(p)++ = (uint8_t)((u64) >> 16); *(p)++ = (uint8_t)((u64) >> 8); *(p)++ = (uint8_t)(u64); }
@@ -254,9 +254,9 @@ typedef struct
 #define STREAM_SKIP_UINT8(p)  do { (p) += 1; } while (0)
 #define STREAM_SKIP_UINT16(p) do { (p) += 2; } while (0)
 
-/********************************************************************************
-** Macros to get and put bytes to and from a field (Little Endian format).
-** These are the same as to stream, except the pointer is not incremented.
+/*******************************************************************************
+ * Macros to get and put bytes to and from a field (Little Endian format).
+ * These are the same as to stream, except the pointer is not incremented.
 */
 #define UINT32_TO_FIELD(p, u32) {*(uint8_t *)(p) = (uint8_t)(u32); *((uint8_t *)(p)+1) = (uint8_t)((u32) >> 8); *((uint8_t *)(p)+2) = (uint8_t)((u32) >> 16); *((uint8_t *)(p)+3) = (uint8_t)((u32) >> 24);}
 #define UINT24_TO_FIELD(p, u24) {*(uint8_t *)(p) = (uint8_t)(u24); *((uint8_t *)(p)+1) = (uint8_t)((u24) >> 8); *((uint8_t *)(p)+2) = (uint8_t)((u24) >> 16);}
@@ -264,8 +264,8 @@ typedef struct
 #define UINT8_TO_FIELD(p, u8)   {*(uint8_t *)(p) = (uint8_t)(u8);}
 
 
-/********************************************************************************
-** Macros to get and put bytes to and from a stream (Big Endian format)
+/*******************************************************************************
+ * Macros to get and put bytes to and from a stream (Big Endian format)
 */
 #define UINT32_TO_BE_STREAM(p, u32) {*(p)++ = (uint8_t)((u32) >> 24);  *(p)++ = (uint8_t)((u32) >> 16); *(p)++ = (uint8_t)((u32) >> 8); *(p)++ = (uint8_t)(u32); }
 #define UINT24_TO_BE_STREAM(p, u24) {*(p)++ = (uint8_t)((u24) >> 16); *(p)++ = (uint8_t)((u24) >> 8); *(p)++ = (uint8_t)(u24);}
@@ -286,9 +286,9 @@ typedef struct
 #define BE_STREAM_TO_ARRAY(p, a, len) {int ijk; for (ijk = 0; ijk < (len); ijk++) ((uint8_t *) (a))[ijk] = *(p)++;}
 
 
-/********************************************************************************
-** Macros to get and put bytes to and from a field (Big Endian format).
-** These are the same as to stream, except the pointer is not incremented.
+/*******************************************************************************
+ * Macros to get and put bytes to and from a field (Big Endian format).
+ * These are the same as to stream, except the pointer is not incremented.
 */
 #define UINT32_TO_BE_FIELD(p, u32) {*(uint8_t *)(p) = (uint8_t)((u32) >> 24);  *((uint8_t *)(p)+1) = (uint8_t)((u32) >> 16); *((uint8_t *)(p)+2) = (uint8_t)((u32) >> 8); *((uint8_t *)(p)+3) = (uint8_t)(u32); }
 #define UINT24_TO_BE_FIELD(p, u24) {*(uint8_t *)(p) = (uint8_t)((u24) >> 16); *((uint8_t *)(p)+1) = (uint8_t)((u24) >> 8); *((uint8_t *)(p)+2) = (uint8_t)(u24);}
@@ -441,9 +441,9 @@ typedef struct
 #define BT_OOB_RAND_R_SIZE         16
 
 /* Broadcom proprietary UUIDs and reserved PSMs
-**
-** The lowest 4 bytes byte of the UUID or GUID depends on the feature. Typically,
-** the value of those bytes will be the PSM or SCN, but it is up to the features.
+ *
+ * The lowest 4 bytes byte of the UUID or GUID depends on the feature. Typically,
+ * the value of those bytes will be the PSM or SCN, but it is up to the features.
 */
 #define BRCM_PROPRIETARY_UUID_BASE  0xDA, 0x23, 0x41, 0x02, 0xA3, 0xBB, 0xC1, 0x71, 0xBA, 0x09, 0x6f, 0x21
 #define BRCM_PROPRIETARY_GUID_BASE  0xda23, 0x4102, 0xa3, 0xbb, 0xc1, 0x71, 0xba, 0x09, 0x6f, 0x21
@@ -480,9 +480,9 @@ typedef struct
 
 
 /*****************************************************************************
-**                          Low Energy definitions
-**
-** Address types
+ *                          Low Energy definitions
+ *
+ * Address types
 */
 #define BLE_ADDR_PUBLIC         0x00
 #define BLE_ADDR_RANDOM         0x01
@@ -697,27 +697,27 @@ typedef uint8_t BD_ADDR[BD_ADDR_LEN];
 // From bd.c
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* global constant for "any" bd addr */
 static const BD_ADDR bd_addr_any = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 static const BD_ADDR bd_addr_null= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 /*****************************************************************************
-**  Functions
-*****************************************************************************/
+ *  Functions
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         bdcpy
-**
-** Description      Copy bd addr b to a.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bdcpy
+ *
+ * Description      Copy bd addr b to a.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static inline void bdcpy(BD_ADDR a, const BD_ADDR b)
 {
     int i;
@@ -729,15 +729,15 @@ static inline void bdcpy(BD_ADDR a, const BD_ADDR b)
 }
 
 /*******************************************************************************
-**
-** Function         bdcmp
-**
-** Description      Compare bd addr b to a.
-**
-**
-** Returns          Zero if b==a, nonzero otherwise (like memcmp).
-**
-*******************************************************************************/
+ *
+ * Function         bdcmp
+ *
+ * Description      Compare bd addr b to a.
+ *
+ *
+ * Returns          Zero if b==a, nonzero otherwise (like memcmp).
+ *
+ ******************************************************************************/
 static inline int bdcmp(const BD_ADDR a, const BD_ADDR b)
 {
     int i;
@@ -753,30 +753,30 @@ static inline int bdcmp(const BD_ADDR a, const BD_ADDR b)
 }
 
 /*******************************************************************************
-**
-** Function         bdcmpany
-**
-** Description      Compare bd addr to "any" bd addr.
-**
-**
-** Returns          Zero if a equals bd_addr_any.
-**
-*******************************************************************************/
+ *
+ * Function         bdcmpany
+ *
+ * Description      Compare bd addr to "any" bd addr.
+ *
+ *
+ * Returns          Zero if a equals bd_addr_any.
+ *
+ ******************************************************************************/
 static inline int bdcmpany(const BD_ADDR a)
 {
     return bdcmp(a, bd_addr_any);
 }
 
 /*******************************************************************************
-**
-** Function         bdsetany
-**
-** Description      Set bd addr to "any" bd addr.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bdsetany
+ *
+ * Description      Set bd addr to "any" bd addr.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static inline void bdsetany(BD_ADDR a)
 {
     bdcpy(a, bd_addr_any);

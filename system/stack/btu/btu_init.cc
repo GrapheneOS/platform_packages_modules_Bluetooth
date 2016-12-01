@@ -56,8 +56,8 @@ static const char *BT_WORKQUEUE_NAME = "bt_workqueue";
 
 extern void PLATFORM_DisableHciTransport(uint8_t bDisable);
 /*****************************************************************************
-**                          V A R I A B L E S                                *
-******************************************************************************/
+ *                          V A R I A B L E S                                *
+ *****************************************************************************/
 // TODO(cmanton) Move this out of this file
 const BD_ADDR   BT_BD_ANY = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
@@ -65,15 +65,15 @@ void btu_task_start_up(void *context);
 void btu_task_shut_down(void *context);
 
 /*****************************************************************************
-**
-** Function         btu_init_core
-**
-** Description      Initialize control block memory for each core component.
-**
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         btu_init_core
+ *
+ * Description      Initialize control block memory for each core component.
+ *
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void btu_init_core(void)
 {
     /* Initialize the mandatory core stack components */
@@ -91,15 +91,15 @@ void btu_init_core(void)
 }
 
 /*****************************************************************************
-**
-** Function         btu_free_core
-**
-** Description      Releases control block memory for each core component.
-**
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         btu_free_core
+ *
+ * Description      Releases control block memory for each core component.
+ *
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void btu_free_core(void)
 {
       /* Free the mandatory core stack components */
@@ -109,17 +109,17 @@ void btu_free_core(void)
 }
 
 /*****************************************************************************
-**
-** Function         BTU_StartUp
-**
-** Description      Initializes the BTU control block.
-**
-**                  NOTE: Must be called before creating any tasks
-**                      (RPC, BTU, HCIT, APPL, etc.)
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         BTU_StartUp
+ *
+ * Description      Initializes the BTU control block.
+ *
+ *                  NOTE: Must be called before creating any tasks
+ *                      (RPC, BTU, HCIT, APPL, etc.)
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void BTU_StartUp(void)
 {
     btu_trace_level = HCI_INITIAL_TRACE_LEVEL;

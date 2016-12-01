@@ -720,9 +720,9 @@ tSMP_CB smp_cb;
 #define SMP_ALL_TBL_MASK        0x80
 
 /*******************************************************************************
-** Function     smp_set_state
-** Returns      None
-*******************************************************************************/
+ * Function     smp_set_state
+ * Returns      None
+ ******************************************************************************/
 void smp_set_state(tSMP_STATE state)
 {
     if (state < SMP_STATE_MAX)
@@ -739,29 +739,29 @@ void smp_set_state(tSMP_STATE state)
 }
 
 /*******************************************************************************
-** Function     smp_get_state
-** Returns      The smp state
-*******************************************************************************/
+ * Function     smp_get_state
+ * Returns      The smp state
+ ******************************************************************************/
 tSMP_STATE smp_get_state(void)
 {
     return smp_cb.state;
 }
 
 /*******************************************************************************
-**
-** Function     smp_sm_event
-**
-** Description  Handle events to the state machine. It looks up the entry
-**              in the smp_entry_table array.
-**              If it is a valid entry, it gets the state table.Set the next state,
-**              if not NULL state.Execute the action function according to the
-**              state table. If the state returned by action function is not NULL
-**              state, adjust the new state to the returned state.If (api_evt != MAX),
-**              call callback function.
-**
-** Returns      void.
-**
-*******************************************************************************/
+ *
+ * Function     smp_sm_event
+ *
+ * Description  Handle events to the state machine. It looks up the entry
+ *              in the smp_entry_table array.
+ *              If it is a valid entry, it gets the state table.Set the next state,
+ *              if not NULL state.Execute the action function according to the
+ *              state table. If the state returned by action function is not NULL
+ *              state, adjust the new state to the returned state.If (api_evt != MAX),
+ *              call callback function.
+ *
+ * Returns      void.
+ *
+ ******************************************************************************/
 void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data)
 {
     uint8_t         curr_state = p_cb->state;
@@ -827,9 +827,9 @@ void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_get_state_name
-** Returns      The smp state name.
-*******************************************************************************/
+ * Function     smp_get_state_name
+ * Returns      The smp state name.
+ ******************************************************************************/
 const char * smp_get_state_name(tSMP_STATE state)
 {
     const char *p_str = smp_state_name[SMP_STATE_MAX];
@@ -842,9 +842,9 @@ const char * smp_get_state_name(tSMP_STATE state)
 }
 
 /*******************************************************************************
-** Function     smp_get_event_name
-** Returns      The smp event name.
-*******************************************************************************/
+ * Function     smp_get_event_name
+ * Returns      The smp event name.
+ ******************************************************************************/
 const char * smp_get_event_name(tSMP_EVENT event)
 {
     const char *p_str = smp_event_name[SMP_MAX_EVT];

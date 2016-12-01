@@ -29,8 +29,8 @@
 #include "mca_int.h"
 
 /*****************************************************************************
-** data channel state machine constants and types
-*****************************************************************************/
+ * data channel state machine constants and types
+ ****************************************************************************/
 enum
 {
     MCA_DCB_TC_OPEN,
@@ -122,16 +122,16 @@ const char * const mca_dcb_st_str[] = {
 };
 
 /*******************************************************************************
-**
-** Function         mca_dcb_event
-**
-** Description      This function is the DCB state machine main function.
-**                  It uses the state and action function tables to execute
-**                  action functions.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_event
+ *
+ * Description      This function is the DCB state machine main function.
+ *                  It uses the state and action function tables to execute
+ *                  action functions.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_event(tMCA_DCB *p_dcb, uint8_t event, tMCA_DCB_EVT *p_data)
 {
     tMCA_DCB_ST_TBL    state_table;
@@ -156,15 +156,15 @@ void mca_dcb_event(tMCA_DCB *p_dcb, uint8_t event, tMCA_DCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_alloc
-**
-** Description      This function is called to allocate an DCB.
-**                  It initializes the DCB with the data passed to the function.
-**
-** Returns          tMCA_DCB *
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_alloc
+ *
+ * Description      This function is called to allocate an DCB.
+ *                  It initializes the DCB with the data passed to the function.
+ *
+ * Returns          tMCA_DCB *
+ *
+ ******************************************************************************/
 tMCA_DCB *mca_dcb_alloc(tMCA_CCB*p_ccb, tMCA_DEP dep)
 {
     tMCA_DCB *p_dcb = NULL, *p_dcb_tmp;
@@ -196,15 +196,15 @@ tMCA_DCB *mca_dcb_alloc(tMCA_CCB*p_ccb, tMCA_DEP dep)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dep_free_mdl
-**
-** Description      This function is called to check the number of free mdl for
-**                  the given dep.
-**
-** Returns          the number of free mdl for the given dep
-**
-*******************************************************************************/
+ *
+ * Function         mca_dep_free_mdl
+ *
+ * Description      This function is called to check the number of free mdl for
+ *                  the given dep.
+ *
+ * Returns          the number of free mdl for the given dep
+ *
+ ******************************************************************************/
 uint8_t mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
 {
     tMCA_DCB *p_dcb;
@@ -240,14 +240,14 @@ uint8_t mca_dep_free_mdl(tMCA_CCB *p_ccb, tMCA_DEP dep)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_dealloc
-**
-** Description      This function deallocates an DCB.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_dealloc
+ *
+ * Description      This function deallocates an DCB.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_dealloc(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     tMCA_CCB *p_ccb = p_dcb->p_ccb;
@@ -272,31 +272,31 @@ void mca_dcb_dealloc(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_to_hdl
-**
-** Description      This function converts a pointer to an DCB to a handle (tMCA_DL).
-**                  It returns the handle.
-**
-** Returns          tMCA_DL.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_to_hdl
+ *
+ * Description      This function converts a pointer to an DCB to a handle (tMCA_DL).
+ *                  It returns the handle.
+ *
+ * Returns          tMCA_DL.
+ *
+ ******************************************************************************/
 tMCA_DL mca_dcb_to_hdl(tMCA_DCB *p_dcb)
 {
     return (uint8_t) (p_dcb - mca_cb.dcb + 1);
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_by_hdl
-**
-** Description      This function finds the DCB for a handle (tMCA_DL).
-**                  It returns a pointer to the DCB.
-**                  If no DCB matches the handle it returns NULL.
-**
-** Returns          tMCA_DCB *
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_by_hdl
+ *
+ * Description      This function finds the DCB for a handle (tMCA_DL).
+ *                  It returns a pointer to the DCB.
+ *                  If no DCB matches the handle it returns NULL.
+ *
+ * Returns          tMCA_DCB *
+ *
+ ******************************************************************************/
 tMCA_DCB *mca_dcb_by_hdl(tMCA_DL hdl)
 {
     tMCA_DCB * p_dcb = NULL;
@@ -306,15 +306,15 @@ tMCA_DCB *mca_dcb_by_hdl(tMCA_DL hdl)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_close_by_mdl_id
-**
-** Description      This function finds the DCB for a mdl_id and
-**                  disconnect the mdl
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_close_by_mdl_id
+ *
+ * Description      This function finds the DCB for a mdl_id and
+ *                  disconnect the mdl
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_dcb_close_by_mdl_id(tMCA_CCB*p_ccb, uint16_t mdl_id)
 {
     tMCA_DCB *p_dcb;

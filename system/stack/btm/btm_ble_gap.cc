@@ -62,8 +62,8 @@ static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
 #endif
 
 /*******************************************************************************
-**  Local functions
-*******************************************************************************/
+ *  Local functions
+ ******************************************************************************/
 static void btm_ble_update_adv_flag(uint8_t flag);
 static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type, uint8_t evt_type, uint8_t *p);
 static uint8_t btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
@@ -226,15 +226,15 @@ const uint8_t btm_le_state_combo_tbl[BTM_BLE_STATE_MAX][BTM_BLE_STATE_MAX][2] =
 #define BTM_LE_STATES_SUPPORTED(x, y, z)      ((x)[(z)] & (y))
 
 /*******************************************************************************
-**
-** Function         BTM_BleUpdateAdvFilterPolicy
-**
-** Description      This function update the filter policy of advertiser.
-**
-** Parameter        adv_policy: advertising filter policy
-**
-** Return           void
-*******************************************************************************/
+ *
+ * Function         BTM_BleUpdateAdvFilterPolicy
+ *
+ * Description      This function update the filter policy of advertiser.
+ *
+ * Parameter        adv_policy: advertising filter policy
+ *
+ * Return           void
+ ******************************************************************************/
 void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
@@ -276,18 +276,18 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_send_extended_scan_params
-**
-** Description      This function sends out the extended scan parameters command to the controller
-**
-** Parameters       scan_type - Scan type
-**                  scan_int - Scan interval
-**                  scan_win - Scan window
-**                  addr_type_own - Own address type
-**                  scan_filter_policy - Scan filter policy
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_send_extended_scan_params
+ *
+ * Description      This function sends out the extended scan parameters command to the controller
+ *
+ * Parameters       scan_type - Scan type
+ *                  scan_int - Scan interval
+ *                  scan_win - Scan window
+ *                  addr_type_own - Own address type
+ *                  scan_filter_policy - Scan filter policy
+ *
+ ******************************************************************************/
 void btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
                                           uint32_t scan_win, uint8_t addr_type_own,
                                           uint8_t scan_filter_policy)
@@ -309,18 +309,18 @@ void btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleObserve
-**
-** Description      This procedure keep the device listening for advertising
-**                  events from a broadcast device.
-**
-** Parameters       start: start or stop observe.
-**                  white_list: use white list in observer mode or not.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleObserve
+ *
+ * Description      This procedure keep the device listening for advertising
+ *                  events from a broadcast device.
+ *
+ * Parameters       start: start or stop observe.
+ *                  white_list: use white list in observer mode or not.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleObserve(bool    start, uint8_t duration,
                            tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb)
 {
@@ -407,14 +407,14 @@ tBTM_STATUS BTM_BleObserve(bool    start, uint8_t duration,
 
 #if (BLE_VND_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         btm_vsc_brcm_features_complete
-**
-** Description      Command Complete callback for HCI_BLE_VENDOR_CAP_OCF
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_vsc_brcm_features_complete
+ *
+ * Description      Command Complete callback for HCI_BLE_VENDOR_CAP_OCF
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_params)
 {
     uint8_t status = 0xFF;
@@ -485,16 +485,16 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
 #endif  /* (BLE_VND_INCLUDED == TRUE) */
 
 /*******************************************************************************
-**
-** Function         BTM_BleGetVendorCapabilities
-**
-** Description      This function reads local LE features
-**
-** Parameters       p_cmn_vsc_cb : Locala LE capability structure
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleGetVendorCapabilities
+ *
+ * Description      This function reads local LE features
+ *
+ * Parameters       p_cmn_vsc_cb : Locala LE capability structure
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 {
     BTM_TRACE_DEBUG("BTM_BleGetVendorCapabilities");
@@ -506,16 +506,16 @@ extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 }
 
 /******************************************************************************
-**
-** Function         BTM_BleReadControllerFeatures
-**
-** Description      Reads BLE specific controller features
-**
-** Parameters:      tBTM_BLE_CTRL_FEATURES_CBACK : Callback to notify when features are read
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleReadControllerFeatures
+ *
+ * Description      Reads BLE specific controller features
+ *
+ * Parameters:      tBTM_BLE_CTRL_FEATURES_CBACK : Callback to notify when features are read
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if (BLE_VND_INCLUDED == TRUE)
 extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
 {
@@ -535,17 +535,17 @@ extern void BTM_BleReadControllerFeatures(UNUSED_ATTR tBTM_BLE_CTRL_FEATURES_CBA
 #endif
 
 /*******************************************************************************
-**
-** Function         BTM_BleEnableMixedPrivacyMode
-**
-** Description      This function is called to enabled Mixed mode if privacy 1.2
-**                  is applicable in controller.
-**
-** Parameters       mixed_on:  mixed mode to be used or not.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleEnableMixedPrivacyMode
+ *
+ * Description      This function is called to enabled Mixed mode if privacy 1.2
+ *                  is applicable in controller.
+ *
+ * Parameters       mixed_on:  mixed mode to be used or not.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_BleEnableMixedPrivacyMode(bool    mixed_on)
 {
 
@@ -557,17 +557,17 @@ void BTM_BleEnableMixedPrivacyMode(bool    mixed_on)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleConfigPrivacy
-**
-** Description      This function is called to enable or disable the privacy in
-**                   LE channel of the local device.
-**
-** Parameters       privacy_mode:  privacy mode on or off.
-**
-** Returns          bool    privacy mode set success; otherwise failed.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleConfigPrivacy
+ *
+ * Description      This function is called to enable or disable the privacy in
+ *                   LE channel of the local device.
+ *
+ * Parameters       privacy_mode:  privacy mode on or off.
+ *
+ * Returns          bool    privacy mode set success; otherwise failed.
+ *
+ ******************************************************************************/
 bool    BTM_BleConfigPrivacy(bool    privacy_mode)
 {
 #if (BLE_PRIVACY_SPT == TRUE)
@@ -611,14 +611,14 @@ bool    BTM_BleConfigPrivacy(bool    privacy_mode)
 }
 
 /*******************************************************************************
-**
-** Function          BTM_BleMaxMultiAdvInstanceCount
-**
-** Description        Returns max number of multi adv instances supported by controller
-**
-** Returns          Max multi adv instance count
-**
-*******************************************************************************/
+ *
+ * Function          BTM_BleMaxMultiAdvInstanceCount
+ *
+ * Description        Returns max number of multi adv instances supported by controller
+ *
+ * Returns          Max multi adv instance count
+ *
+ ******************************************************************************/
 extern uint8_t BTM_BleMaxMultiAdvInstanceCount(void)
 {
     return btm_cb.cmn_ble_vsc_cb.adv_inst_max < BTM_BLE_MULTI_ADV_MAX ?
@@ -627,14 +627,14 @@ extern uint8_t BTM_BleMaxMultiAdvInstanceCount(void)
 
 #if (BLE_PRIVACY_SPT == TRUE)
 /*******************************************************************************
-**
-** Function         btm_ble_resolve_random_addr_on_adv
-**
-** Description      resolve random address complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_resolve_random_addr_on_adv
+ *
+ * Description      resolve random address complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_ble_resolve_random_addr_on_adv(void * p_rec, void *p)
 {
     tBTM_SEC_DEV_REC    *match_rec = (tBTM_SEC_DEV_REC *) p_rec;
@@ -671,14 +671,14 @@ static void btm_ble_resolve_random_addr_on_adv(void * p_rec, void *p)
 #endif
 
 /*******************************************************************************
-**
-** Function         BTM_BleLocalPrivacyEnabled
-**
-** Description        Checks if local device supports private address
-**
-** Returns          Return true if local privacy is enabled else false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleLocalPrivacyEnabled
+ *
+ * Description        Checks if local device supports private address
+ *
+ * Returns          Return true if local privacy is enabled else false
+ *
+ ******************************************************************************/
 bool    BTM_BleLocalPrivacyEnabled(void)
 {
 #if (BLE_PRIVACY_SPT == TRUE)
@@ -689,19 +689,19 @@ bool    BTM_BleLocalPrivacyEnabled(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleSetBgConnType
-**
-** Description      This function is called to set BLE connectable mode for a
-**                  peripheral device.
-**
-** Parameters       bg_conn_type: it can be auto connection, or selective connection.
-**                  p_select_cback: callback function when selective connection procedure
-**                              is being used.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleSetBgConnType
+ *
+ * Description      This function is called to set BLE connectable mode for a
+ *                  peripheral device.
+ *
+ * Parameters       bg_conn_type: it can be auto connection, or selective connection.
+ *                  p_select_cback: callback function when selective connection procedure
+ *                              is being used.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
                              tBTM_BLE_SEL_CBACK   *p_select_cback)
 {
@@ -752,18 +752,18 @@ bool    BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleClearBgConnDev
-**
-** Description      This function is called to clear the whitelist,
-**                  end any pending whitelist connections,
+ *
+ * Function         BTM_BleClearBgConnDev
+ *
+ * Description      This function is called to clear the whitelist,
+ *                  end any pending whitelist connections,
 *                   and reset the local bg device list.
-**
-** Parameters       void
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Parameters       void
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_BleClearBgConnDev(void)
 {
     btm_ble_start_auto_conn(false);
@@ -772,20 +772,20 @@ void BTM_BleClearBgConnDev(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleUpdateBgConnDev
-**
-** Description      This function is called to add or remove a device into/from
-**                  background connection procedure. The background connection
+ *
+ * Function         BTM_BleUpdateBgConnDev
+ *
+ * Description      This function is called to add or remove a device into/from
+ *                  background connection procedure. The background connection
 *                   procedure is decided by the background connection type, it can be
 *                   auto connection, or selective connection.
-**
-** Parameters       add_remove: true to add; false to remove.
-**                  remote_bda: device address to add/remove.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Parameters       add_remove: true to add; false to remove.
+ *                  remote_bda: device address to add/remove.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    BTM_BleUpdateBgConnDev(bool    add_remove, BD_ADDR   remote_bda)
 {
     BTM_TRACE_EVENT("%s() add=%d", __func__, add_remove);
@@ -793,20 +793,20 @@ bool    BTM_BleUpdateBgConnDev(bool    add_remove, BD_ADDR   remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleSetConnectableMode
-**
-** Description      This function is called to set BLE connectable mode for a
-**                  peripheral device.
-**
-** Parameters       conn_mode:  directed connectable mode, or non-directed.It can
-**                              be BTM_BLE_CONNECT_EVT, BTM_BLE_CONNECT_DIR_EVT or
-**                              BTM_BLE_CONNECT_LO_DUTY_DIR_EVT
-**
-** Returns          BTM_ILLEGAL_VALUE if controller does not support BLE.
-**                  BTM_SUCCESS is status set successfully; otherwise failure.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleSetConnectableMode
+ *
+ * Description      This function is called to set BLE connectable mode for a
+ *                  peripheral device.
+ *
+ * Parameters       conn_mode:  directed connectable mode, or non-directed.It can
+ *                              be BTM_BLE_CONNECT_EVT, BTM_BLE_CONNECT_DIR_EVT or
+ *                              BTM_BLE_CONNECT_LO_DUTY_DIR_EVT
+ *
+ * Returns          BTM_ILLEGAL_VALUE if controller does not support BLE.
+ *                  BTM_SUCCESS is status set successfully; otherwise failure.
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleSetConnectableMode(tBTM_BLE_CONN_MODE connectable_mode)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
@@ -832,14 +832,14 @@ static bool is_resolving_list_bit_set(void *data, void *context)
 #endif
 
 /*******************************************************************************
-**
-** Function         btm_set_conn_mode_adv_init_addr
-**
-** Description      set initator address type and local address type based on adv
-**                  mode.
-**
-**
-*******************************************************************************/
+ *
+ * Function         btm_set_conn_mode_adv_init_addr
+ *
+ * Description      set initator address type and local address type based on adv
+ *                  mode.
+ *
+ *
+ ******************************************************************************/
 static uint8_t btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                                      BD_ADDR_PTR p_peer_addr_ptr,
                                      tBLE_ADDR_TYPE *p_peer_addr_type,
@@ -925,19 +925,19 @@ static uint8_t btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleSetAdvParams
-**
-** Description      This function is called to set advertising parameters.
-**
-** Parameters       adv_int_min: minimum advertising interval
-**                  adv_int_max: maximum advertising interval
-**                  p_dir_bda: connectable direct initiator's LE device address
-**                  chnl_map: advertising channel map.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleSetAdvParams
+ *
+ * Description      This function is called to set advertising parameters.
+ *
+ * Parameters       adv_int_min: minimum advertising interval
+ *                  adv_int_max: maximum advertising interval
+ *                  p_dir_bda: connectable direct initiator's LE device address
+ *                  chnl_map: advertising channel map.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
                                 tBLE_BD_ADDR *p_dir_bda,
                                 tBTM_BLE_ADV_CHNL_MAP chnl_map)
@@ -994,20 +994,20 @@ tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleSetScanParams
-**
-** Description      This function is called to set scan parameters.
-**
-** Parameters       client_if - Client IF
-**                  scan_interval - Scan interval
-**                  scan_window - Scan window
-**                  scan_mode -    Scan mode
-**                  scan_setup_status_cback - Scan param setup status callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleSetScanParams
+ *
+ * Description      This function is called to set scan parameters.
+ *
+ * Parameters       client_if - Client IF
+ *                  scan_interval - Scan interval
+ *                  scan_window - Scan window
+ *                  scan_mode -    Scan mode
+ *                  scan_setup_status_cback - Scan param setup status callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_BleSetScanParams(tGATT_IF client_if, uint32_t scan_interval, uint32_t scan_window,
                           tBLE_SCAN_MODE scan_mode,
                           tBLE_SCAN_PARAM_SETUP_CBACK scan_setup_status_cback)
@@ -1056,16 +1056,16 @@ void BTM_BleSetScanParams(tGATT_IF client_if, uint32_t scan_interval, uint32_t s
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleWriteScanRsp
-**
-** Description      This function is called to write LE scan response.
-**
-** Parameters:      p_scan_rsp: scan response information.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleWriteScanRsp
+ *
+ * Description      This function is called to write LE scan response.
+ *
+ * Parameters:      p_scan_rsp: scan response information.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_BleWriteScanRsp(uint8_t* data, uint8_t length,
                          tBTM_BLE_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
@@ -1086,18 +1086,18 @@ void BTM_BleWriteScanRsp(uint8_t* data, uint8_t length,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_CheckAdvData
-**
-** Description      This function is called to get ADV data for a specific type.
-**
-** Parameters       p_adv - pointer of ADV data
-**                  type   - finding ADV data type
-**                  p_length - return the length of ADV data not including type
-**
-** Returns          pointer of ADV data
-**
-*******************************************************************************/
+ *
+ * Function         BTM_CheckAdvData
+ *
+ * Description      This function is called to get ADV data for a specific type.
+ *
+ * Parameters       p_adv - pointer of ADV data
+ *                  type   - finding ADV data type
+ *                  p_length - return the length of ADV data not including type
+ *
+ * Returns          pointer of ADV data
+ *
+ ******************************************************************************/
 uint8_t *BTM_CheckAdvData( uint8_t *p_adv, uint8_t type, uint8_t *p_length)
 {
     uint8_t *p = p_adv;
@@ -1126,16 +1126,16 @@ uint8_t *BTM_CheckAdvData( uint8_t *p_adv, uint8_t type, uint8_t *p_length)
 }
 
 /*******************************************************************************
-**
-** Function         BTM__BLEReadDiscoverability
-**
-** Description      This function is called to read the current LE discoverability
-**                  mode of the device.
-**
-** Returns          BTM_BLE_NON_DISCOVERABLE ,BTM_BLE_LIMITED_DISCOVERABLE or
-**                     BTM_BLE_GENRAL_DISCOVERABLE
-**
-*******************************************************************************/
+ *
+ * Function         BTM__BLEReadDiscoverability
+ *
+ * Description      This function is called to read the current LE discoverability
+ *                  mode of the device.
+ *
+ * Returns          BTM_BLE_NON_DISCOVERABLE ,BTM_BLE_LIMITED_DISCOVERABLE or
+ *                     BTM_BLE_GENRAL_DISCOVERABLE
+ *
+ ******************************************************************************/
 uint16_t BTM_BleReadDiscoverability()
 {
     BTM_TRACE_API("%s", __func__);
@@ -1144,15 +1144,15 @@ uint16_t BTM_BleReadDiscoverability()
 }
 
 /*******************************************************************************
-**
-** Function         BTM__BLEReadConnectability
-**
-** Description      This function is called to read the current LE connectibility
-**                  mode of the device.
-**
-** Returns          BTM_BLE_NON_CONNECTABLE or BTM_BLE_CONNECTABLE
-**
-*******************************************************************************/
+ *
+ * Function         BTM__BLEReadConnectability
+ *
+ * Description      This function is called to read the current LE connectibility
+ *                  mode of the device.
+ *
+ * Returns          BTM_BLE_NON_CONNECTABLE or BTM_BLE_CONNECTABLE
+ *
+ ******************************************************************************/
 uint16_t BTM_BleReadConnectability()
 {
     BTM_TRACE_API ("%s", __func__);
@@ -1161,14 +1161,14 @@ uint16_t BTM_BleReadConnectability()
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_select_adv_interval
-**
-** Description      select adv interval based on device mode
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_select_adv_interval
+ *
+ * Description      select adv interval based on device mode
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_select_adv_interval(tBTM_BLE_INQ_CB *p_cb, uint8_t evt_type, uint16_t *p_adv_int_min, uint16_t *p_adv_int_max)
 {
     if (p_cb->adv_interval_min && p_cb->adv_interval_max)
@@ -1205,20 +1205,20 @@ void btm_ble_select_adv_interval(tBTM_BLE_INQ_CB *p_cb, uint8_t evt_type, uint16
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_dmt_flag_bits
-**
-** Description      Obtain updated adv flag value based on connect and discoverability mode.
-**                  Also, setup DMT support value in the flag based on whether the controller
-**                  supports both LE and BR/EDR.
-**
-** Parameters:      flag_value (Input / Output) - flag value
-**                  connect_mode (Input) - Connect mode value
-**                  disc_mode (Input) - discoverability mode
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_dmt_flag_bits
+ *
+ * Description      Obtain updated adv flag value based on connect and discoverability mode.
+ *                  Also, setup DMT support value in the flag based on whether the controller
+ *                  supports both LE and BR/EDR.
+ *
+ * Parameters:      flag_value (Input / Output) - flag value
+ *                  connect_mode (Input) - Connect mode value
+ *                  disc_mode (Input) - discoverability mode
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_update_dmt_flag_bits(uint8_t *adv_flag_value, const uint16_t connect_mode,
                                    const uint16_t disc_mode)
 {
@@ -1237,17 +1237,17 @@ void btm_ble_update_dmt_flag_bits(uint8_t *adv_flag_value, const uint16_t connec
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_set_adv_flag
-**
-** Description      Set adv flag in adv data.
-**
-** Parameters:      connect_mode (Input)- Connect mode value
-**                  disc_mode (Input) - discoverability mode
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_set_adv_flag
+ *
+ * Description      Set adv flag in adv data.
+ *
+ * Parameters:      connect_mode (Input)- Connect mode value
+ *                  disc_mode (Input) - discoverability mode
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_set_adv_flag(uint16_t connect_mode, uint16_t disc_mode)
 {
     uint8_t flag = 0, old_flag = 0;
@@ -1281,16 +1281,16 @@ void btm_ble_set_adv_flag(uint16_t connect_mode, uint16_t disc_mode)
     }
 }
 /*******************************************************************************
-**
-** Function         btm_ble_set_discoverability
-**
-** Description      This function is called to set BLE discoverable mode.
-**
-** Parameters:      combined_mode: discoverability mode.
-**
-** Returns          BTM_SUCCESS is status set successfully; otherwise failure.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_set_discoverability
+ *
+ * Description      This function is called to set BLE discoverable mode.
+ *
+ * Parameters:      combined_mode: discoverability mode.
+ *
+ * Returns          BTM_SUCCESS is status set successfully; otherwise failure.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_set_discoverability(uint16_t combined_mode)
 {
     tBTM_LE_RANDOM_CB   *p_addr_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -1381,16 +1381,16 @@ tBTM_STATUS btm_ble_set_discoverability(uint16_t combined_mode)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_set_connectability
-**
-** Description      This function is called to set BLE connectability mode.
-**
-** Parameters:      combined_mode: connectability mode.
-**
-** Returns          BTM_SUCCESS is status set successfully; otherwise failure.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_set_connectability
+ *
+ * Description      This function is called to set BLE connectability mode.
+ *
+ * Parameters:      combined_mode: connectability mode.
+ *
+ * Returns          BTM_SUCCESS is status set successfully; otherwise failure.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode)
 {
     tBTM_LE_RANDOM_CB       *p_addr_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
@@ -1466,24 +1466,24 @@ tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_start_inquiry
-**
-** Description      This function is called to start BLE inquiry procedure.
-**                  If the duration is zero, the periodic inquiry mode is cancelled.
-**
-** Parameters:      mode - GENERAL or LIMITED inquiry
-**                  p_inq_params - pointer to the BLE inquiry parameter.
-**                  p_results_cb - callback returning pointer to results (tBTM_INQ_RESULTS)
-**                  p_cmpl_cb - callback indicating the end of an inquiry
-**
-**
-**
-** Returns          BTM_CMD_STARTED if successfully started
-**                  BTM_NO_RESOURCES if could not allocate a message buffer
-**                  BTM_BUSY - if an inquiry is already active
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_start_inquiry
+ *
+ * Description      This function is called to start BLE inquiry procedure.
+ *                  If the duration is zero, the periodic inquiry mode is cancelled.
+ *
+ * Parameters:      mode - GENERAL or LIMITED inquiry
+ *                  p_inq_params - pointer to the BLE inquiry parameter.
+ *                  p_results_cb - callback returning pointer to results (tBTM_INQ_RESULTS)
+ *                  p_cmpl_cb - callback indicating the end of an inquiry
+ *
+ *
+ *
+ * Returns          BTM_CMD_STARTED if successfully started
+ *                  BTM_NO_RESOURCES if could not allocate a message buffer
+ *                  BTM_BUSY - if an inquiry is already active
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_start_inquiry (uint8_t mode, uint8_t duration)
 {
     tBTM_STATUS status = BTM_CMD_STARTED;
@@ -1547,14 +1547,14 @@ tBTM_STATUS btm_ble_start_inquiry (uint8_t mode, uint8_t duration)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_read_remote_name_cmpl
-**
-** Description      This function is called when BLE remote name is received.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_read_remote_name_cmpl
+ *
+ * Description      This function is called when BLE remote name is received.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_read_remote_name_cmpl(bool    status, BD_ADDR bda, uint16_t length, char *p_name)
 {
     uint8_t hci_status = HCI_SUCCESS;
@@ -1577,17 +1577,17 @@ void btm_ble_read_remote_name_cmpl(bool    status, BD_ADDR bda, uint16_t length,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_read_remote_name
-**
-** Description      This function read remote LE device name using GATT read
-**                  procedure.
-**
-** Parameters:       None.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_read_remote_name
+ *
+ * Description      This function read remote LE device name using GATT read
+ *                  procedure.
+ *
+ * Parameters:       None.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, tBTM_CMPL_CB *p_cb)
 {
     tBTM_INQUIRY_VAR_ST      *p_inq = &btm_cb.btm_inq_vars;
@@ -1624,16 +1624,16 @@ tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, t
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_cancel_remote_name
-**
-** Description      This function cancel read remote LE device name.
-**
-** Parameters:       None.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_cancel_remote_name
+ *
+ * Description      This function cancel read remote LE device name.
+ *
+ * Parameters:       None.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    btm_ble_cancel_remote_name(BD_ADDR remote_bda)
 {
     tBTM_INQUIRY_VAR_ST      *p_inq = &btm_cb.btm_inq_vars;
@@ -1649,17 +1649,17 @@ bool    btm_ble_cancel_remote_name(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_adv_flag
-**
-** Description      This function update the limited discoverable flag in the adv
-**                  data.
-**
-** Parameters:       None.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_adv_flag
+ *
+ * Description      This function update the limited discoverable flag in the adv
+ *                  data.
+ *
+ * Parameters:       None.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_ble_update_adv_flag(uint8_t flag)
 {
     tBTM_BLE_LOCAL_ADV_DATA *p_adv_data = &btm_cb.ble_ctr_cb.inq_var.adv_data;
@@ -1697,14 +1697,14 @@ static void btm_ble_update_adv_flag(uint8_t flag)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_cache_adv_data
-**
-** Description      Update advertising cache data.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_cache_adv_data
+ *
+ * Description      Update advertising cache data.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_cache_adv_data(UNUSED_ATTR tBTM_INQ_RESULTS *p_cur, uint8_t data_len,
                             uint8_t *p, uint8_t evt_type)
 {
@@ -1742,17 +1742,17 @@ void btm_ble_cache_adv_data(UNUSED_ATTR tBTM_INQ_RESULTS *p_cur, uint8_t data_le
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_is_discoverable
-**
-** Description      check ADV flag to make sure device is discoverable and match
-**                  the search condition
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_is_discoverable
+ *
+ * Description      check ADV flag to make sure device is discoverable and match
+ *                  the search condition
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint8_t btm_ble_is_discoverable(BD_ADDR bda, uint8_t evt_type,
                                 UNUSED_ATTR uint8_t *p)
 {
@@ -1930,16 +1930,16 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t *dev_class)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_inq_result
-**
-** Description      Update adv packet information into inquiry result.
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_inq_result
+ *
+ * Description      Update adv packet information into inquiry result.
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    btm_ble_update_inq_result(tINQ_DB_ENT *p_i, uint8_t addr_type, uint8_t evt_type, uint8_t *p)
 {
     bool                to_report = true;
@@ -2052,15 +2052,15 @@ bool    btm_ble_update_inq_result(tINQ_DB_ENT *p_i, uint8_t addr_type, uint8_t e
 }
 
 /*******************************************************************************
-**
-** Function         btm_clear_all_pending_le_entry
-**
-** Description      This function is called to clear all LE pending entry in
-**                  inquiry database.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_clear_all_pending_le_entry
+ *
+ * Description      This function is called to clear all LE pending entry in
+ *                  inquiry database.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_clear_all_pending_le_entry(void)
 {
     uint16_t     xx;
@@ -2077,16 +2077,16 @@ void btm_clear_all_pending_le_entry(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_send_sel_conn_callback
-**
-** Description      send selection connection request callback.
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_send_sel_conn_callback
+ *
+ * Description      send selection connection request callback.
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_send_sel_conn_callback(BD_ADDR remote_bda, uint8_t evt_type, uint8_t *p_data,
                                 UNUSED_ATTR uint8_t addr_type)
 {
@@ -2120,18 +2120,18 @@ void btm_send_sel_conn_callback(BD_ADDR remote_bda, uint8_t evt_type, uint8_t *p
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_process_adv_pkt
-**
-** Description      This function is called when adv packet report events are
-**                  received from the device. It updates the inquiry database.
-**                  If the inquiry database is full, the oldest entry is discarded.
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_process_adv_pkt
+ *
+ * Description      This function is called when adv packet report events are
+ *                  received from the device. It updates the inquiry database.
+ *                  If the inquiry database is full, the oldest entry is discarded.
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_process_adv_pkt (uint8_t *p_data)
 {
     BD_ADDR             bda;
@@ -2180,17 +2180,17 @@ void btm_ble_process_adv_pkt (uint8_t *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_process_adv_pkt_cont
-**
-** Description      This function is called after random address resolution is
-**                  done, and proceed to process adv packet.
-**
-** Parameters
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_process_adv_pkt_cont
+ *
+ * Description      This function is called after random address resolution is
+ *                  done, and proceed to process adv packet.
+ *
+ * Parameters
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type, uint8_t evt_type, uint8_t *p)
 {
     tINQ_DB_ENT          *p_i;
@@ -2299,14 +2299,14 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type, uint8_t
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_start_scan
-**
-** Description      Start the BLE scan.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_start_scan
+ *
+ * Description      Start the BLE scan.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_start_scan(void)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
@@ -2323,14 +2323,14 @@ tBTM_STATUS btm_ble_start_scan(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_stop_scan
-**
-** Description      Stop the BLE scan.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_stop_scan
+ *
+ * Description      Stop the BLE scan.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_stop_scan(void)
 {
     BTM_TRACE_EVENT ("btm_ble_stop_scan ");
@@ -2346,14 +2346,14 @@ void btm_ble_stop_scan(void)
     btm_cb.ble_ctr_cb.wl_state &= ~BTM_BLE_WL_SCAN;
 }
 /*******************************************************************************
-**
-** Function         btm_ble_stop_inquiry
-**
-** Description      Stop the BLE Inquiry.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_stop_inquiry
+ *
+ * Description      Stop the BLE Inquiry.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_stop_inquiry(void)
 {
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
@@ -2382,14 +2382,14 @@ void btm_ble_stop_inquiry(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_stop_observe
-**
-** Description      Stop the BLE Observe.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_stop_observe
+ *
+ * Description      Stop the BLE Observe.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_ble_stop_observe(void)
 {
     tBTM_BLE_CB *p_ble_cb = & btm_cb.ble_ctr_cb;
@@ -2409,14 +2409,14 @@ static void btm_ble_stop_observe(void)
         (p_obs_cb)((tBTM_INQUIRY_CMPL *) &btm_cb.btm_inq_vars.inq_cmpl_info);
 }
 /*******************************************************************************
-**
-** Function         btm_ble_adv_states_operation
-**
-** Description      Set or clear adv states in topology mask
-**
-** Returns          operation status. true if sucessful, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_adv_states_operation
+ *
+ * Description      Set or clear adv states in topology mask
+ *
+ * Returns          operation status. true if sucessful, false otherwise.
+ *
+ ******************************************************************************/
 typedef bool    (BTM_TOPOLOGY_FUNC_PTR)(tBTM_BLE_STATE_MASK);
 static bool    btm_ble_adv_states_operation(BTM_TOPOLOGY_FUNC_PTR *p_handler, uint8_t adv_evt)
 {
@@ -2452,14 +2452,14 @@ static bool    btm_ble_adv_states_operation(BTM_TOPOLOGY_FUNC_PTR *p_handler, ui
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_start_adv
-**
-** Description      start the BLE advertising.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_start_adv
+ *
+ * Description      start the BLE advertising.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_start_adv(void)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
@@ -2487,14 +2487,14 @@ tBTM_STATUS btm_ble_start_adv(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_stop_adv
-**
-** Description      Stop the BLE advertising.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_stop_adv
+ *
+ * Description      Stop the BLE advertising.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_stop_adv(void)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
@@ -2520,14 +2520,14 @@ static void btm_ble_fast_adv_timer_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_start_slow_adv
-**
-** Description      Restart adv with slow adv interval
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_start_slow_adv
+ *
+ * Description      Restart adv with slow adv interval
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void btm_ble_start_slow_adv(void)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
@@ -2581,16 +2581,16 @@ void btm_ble_refresh_raddr_timer_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_read_remote_features_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the read LE remote feature supported
-**                  complete event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_read_remote_features_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the read LE remote feature supported
+ *                  complete event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_read_remote_features_complete(uint8_t *p)
 {
     tACL_CONN        *p_acl_cb = &btm_cb.acl_db[0];
@@ -2623,14 +2623,14 @@ void btm_ble_read_remote_features_complete(uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_write_adv_enable_complete
-**
-** Description      This function process the write adv enable command complete.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_write_adv_enable_complete
+ *
+ * Description      This function process the write adv enable command complete.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_write_adv_enable_complete(uint8_t * p)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
@@ -2644,14 +2644,14 @@ void btm_ble_write_adv_enable_complete(uint8_t * p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_dir_adv_tout
-**
-** Description      when directed adv time out
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_dir_adv_tout
+ *
+ * Description      when directed adv time out
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_dir_adv_tout(void)
 {
     btm_cb.ble_ctr_cb.inq_var.adv_mode = BTM_BLE_ADV_DISABLE;
@@ -2661,14 +2661,14 @@ void btm_ble_dir_adv_tout(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_set_topology_mask
-**
-** Description      set BLE topology mask
-**
-** Returns          true is request is allowed, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_set_topology_mask
+ *
+ * Description      set BLE topology mask
+ *
+ * Returns          true is request is allowed, false otherwise.
+ *
+ ******************************************************************************/
 bool    btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state_mask)
 {
     request_state_mask &= BTM_BLE_STATE_ALL_MASK;
@@ -2677,14 +2677,14 @@ bool    btm_ble_set_topology_mask(tBTM_BLE_STATE_MASK request_state_mask)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_clear_topology_mask
-**
-** Description      Clear BLE topology bit mask
-**
-** Returns          true is request is allowed, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_clear_topology_mask
+ *
+ * Description      Clear BLE topology bit mask
+ *
+ * Returns          true is request is allowed, false otherwise.
+ *
+ ******************************************************************************/
 bool    btm_ble_clear_topology_mask (tBTM_BLE_STATE_MASK request_state_mask)
 {
     request_state_mask &= BTM_BLE_STATE_ALL_MASK;
@@ -2693,14 +2693,14 @@ bool    btm_ble_clear_topology_mask (tBTM_BLE_STATE_MASK request_state_mask)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_link_topology_mask
-**
-** Description      This function update the link topology mask
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_link_topology_mask
+ *
+ * Description      This function update the link topology mask
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_update_link_topology_mask(uint8_t link_role, bool    increase)
 {
     btm_ble_clear_topology_mask (BTM_BLE_STATE_ALL_CONN_MASK);
@@ -2727,15 +2727,15 @@ void btm_ble_update_link_topology_mask(uint8_t link_role, bool    increase)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_mode_operation
-**
-** Description      This function update the GAP role operation when a link status
-**                  is updated.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_mode_operation
+ *
+ * Description      This function update the GAP role operation when a link status
+ *                  is updated.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_update_mode_operation(uint8_t link_role, BD_ADDR bd_addr, uint8_t status)
 {
     if (status == HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT)
@@ -2764,14 +2764,14 @@ void btm_ble_update_mode_operation(uint8_t link_role, BD_ADDR bd_addr, uint8_t s
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_init
-**
-** Description      Initialize the control block variable values.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_init
+ *
+ * Description      Initialize the control block variable values.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_init(void)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
@@ -2812,15 +2812,15 @@ void btm_ble_init(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_topology_check
-**
-** Description      check to see requested state is supported. One state check at
-**                  a time is supported
-**
-** Returns          true is request is allowed, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_topology_check
+ *
+ * Description      check to see requested state is supported. One state check at
+ *                  a time is supported
+ *
+ * Returns          true is request is allowed, false otherwise.
+ *
+ ******************************************************************************/
 bool    btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
 {
     bool    rt = false;

@@ -41,10 +41,10 @@ tBATTERY_CB battery_cb;
 
 
 /*******************************************************************************
-**   battery_valid_handle_range
-**
-**   validate a handle to be a DIS attribute handle or not.
-*******************************************************************************/
+ *   battery_valid_handle_range
+ *
+ *   validate a handle to be a DIS attribute handle or not.
+ ******************************************************************************/
 bool    battery_valid_handle_range(uint16_t handle)
 {
     uint8_t     i = 0;
@@ -63,10 +63,10 @@ bool    battery_valid_handle_range(uint16_t handle)
     return false;
 }
 /*******************************************************************************
-**   battery_s_write_attr_value
-**
-**   Process write DIS attribute request.
-*******************************************************************************/
+ *   battery_s_write_attr_value
+ *
+ *   Process write DIS attribute request.
+ ******************************************************************************/
 uint8_t battery_s_write_attr_value(uint8_t clcb_idx, tGATT_WRITE_REQ * p_value,
                                  tGATT_STATUS *p_status)
 {
@@ -107,8 +107,8 @@ uint8_t battery_s_write_attr_value(uint8_t clcb_idx, tGATT_WRITE_REQ * p_value,
     return act;
 }
 /*******************************************************************************
-**   BA Attributes Database Server Request callback
-*******************************************************************************/
+ *   BA Attributes Database Server Request callback
+ ******************************************************************************/
 uint8_t battery_s_read_attr_value (uint8_t clcb_idx, uint16_t handle,
                                    UNUSED_ATTR tGATT_VALUE *p_value, bool    is_long,
                                    tGATT_STATUS* p_status)
@@ -156,28 +156,28 @@ uint8_t battery_s_read_attr_value (uint8_t clcb_idx, uint16_t handle,
 
 
 /*******************************************************************************
-**
-** Function         battery_gatt_c_read_ba_req
-**
-** Description      Read remote device BA level attribute request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         battery_gatt_c_read_ba_req
+ *
+ * Description      Read remote device BA level attribute request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    battery_gatt_c_read_ba_req(UNUSED_ATTR uint16_t conn_id)
 {
     return true;
 }
 
 /*******************************************************************************
-**
-** Function         battery_c_cmpl_cback
-**
-** Description      Client operation complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         battery_c_cmpl_cback
+ *
+ * Description      Client operation complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void battery_c_cmpl_cback (UNUSED_ATTR tSRVC_CLCB *p_clcb, UNUSED_ATTR tGATTC_OPTYPE op,
                               UNUSED_ATTR tGATT_STATUS status,
                            UNUSED_ATTR tGATT_CL_COMPLETE *p_data)
@@ -186,12 +186,12 @@ void battery_c_cmpl_cback (UNUSED_ATTR tSRVC_CLCB *p_clcb, UNUSED_ATTR tGATTC_OP
 
 
 /*******************************************************************************
-**
-** Function         Battery_Instantiate
-**
-** Description      Instantiate a Battery service
-**
-*******************************************************************************/
+ *
+ * Function         Battery_Instantiate
+ *
+ * Description      Instantiate a Battery service
+ *
+ ******************************************************************************/
 uint16_t Battery_Instantiate (uint8_t app_id, tBA_REG_INFO *p_reg_info)
 {
     uint16_t            srvc_hdl = 0;
@@ -288,12 +288,12 @@ uint16_t Battery_Instantiate (uint8_t app_id, tBA_REG_INFO *p_reg_info)
     return srvc_hdl;
 }
 /*******************************************************************************
-**
-** Function         Battery_Rsp
-**
-** Description      Respond to a battery service request
-**
-*******************************************************************************/
+ *
+ * Function         Battery_Rsp
+ *
+ * Description      Respond to a battery service request
+ *
+ ******************************************************************************/
 void Battery_Rsp (uint8_t app_id, tGATT_STATUS st, uint8_t event, tBA_RSP_DATA *p_rsp)
 {
     tBA_INST *p_inst = &battery_cb.battery_inst[0];
@@ -356,12 +356,12 @@ void Battery_Rsp (uint8_t app_id, tGATT_STATUS st, uint8_t event, tBA_RSP_DATA *
     return;
 }
 /*******************************************************************************
-**
-** Function         Battery_Notify
-**
-** Description      Send battery level notification
-**
-*******************************************************************************/
+ *
+ * Function         Battery_Notify
+ *
+ * Description      Send battery level notification
+ *
+ ******************************************************************************/
 void Battery_Notify (uint8_t app_id, BD_ADDR remote_bda, uint8_t battery_level)
 {
     tBA_INST *p_inst = &battery_cb.battery_inst[0];
@@ -381,14 +381,14 @@ void Battery_Notify (uint8_t app_id, BD_ADDR remote_bda, uint8_t battery_level)
 
 }
 /*******************************************************************************
-**
-** Function         Battery_ReadBatteryLevel
-**
-** Description      Read remote device Battery Level information.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         Battery_ReadBatteryLevel
+ *
+ * Description      Read remote device Battery Level information.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    Battery_ReadBatteryLevel(UNUSED_ATTR BD_ADDR peer_bda)
 {
     /* to be implemented */

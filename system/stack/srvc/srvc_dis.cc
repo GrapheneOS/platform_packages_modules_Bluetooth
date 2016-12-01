@@ -85,10 +85,10 @@ static tDIS_ATTR_MASK dis_uuid_to_attr(uint16_t uuid)
 }
 
 /*******************************************************************************
-**   dis_valid_handle_range
-**
-**   validate a handle to be a DIS attribute handle or not.
-*******************************************************************************/
+ *   dis_valid_handle_range
+ *
+ *   validate a handle to be a DIS attribute handle or not.
+ ******************************************************************************/
 bool    dis_valid_handle_range(uint16_t handle)
 {
     if (handle >= dis_cb.service_handle && handle <= dis_cb.max_handle)
@@ -97,18 +97,18 @@ bool    dis_valid_handle_range(uint16_t handle)
         return false;
 }
 /*******************************************************************************
-**   dis_write_attr_value
-**
-**   Process write DIS attribute request.
-*******************************************************************************/
+ *   dis_write_attr_value
+ *
+ *   Process write DIS attribute request.
+ ******************************************************************************/
 uint8_t dis_write_attr_value(UNUSED_ATTR tGATT_WRITE_REQ *p_data, tGATT_STATUS *p_status)
 {
     *p_status = GATT_WRITE_NOT_PERMIT;
     return SRVC_ACT_RSP;
 }
 /*******************************************************************************
-**   DIS Attributes Database Server Request callback
-*******************************************************************************/
+ *   DIS Attributes Database Server Request callback
+ ******************************************************************************/
 uint8_t dis_read_attr_value (UNUSED_ATTR uint8_t clcb_idx, uint16_t handle,
                              tGATT_VALUE *p_value,
                            bool    is_long, tGATT_STATUS *p_status)
@@ -187,14 +187,14 @@ uint8_t dis_read_attr_value (UNUSED_ATTR uint8_t clcb_idx, uint16_t handle,
 }
 
 /*******************************************************************************
-**
-** Function         dis_gatt_c_read_dis_value_cmpl
-**
-** Description      Client read DIS database complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         dis_gatt_c_read_dis_value_cmpl
+ *
+ * Description      Client read DIS database complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void dis_gatt_c_read_dis_value_cmpl(uint16_t conn_id)
 {
     tSRVC_CLCB *p_clcb = srvc_eng_find_clcb_by_conn_id(conn_id);
@@ -214,14 +214,14 @@ static void dis_gatt_c_read_dis_value_cmpl(uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         dis_gatt_c_read_dis_req
-**
-** Description      Read remote device DIS attribute request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         dis_gatt_c_read_dis_req
+ *
+ * Description      Read remote device DIS attribute request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    dis_gatt_c_read_dis_req(uint16_t conn_id)
 {
     tGATT_READ_PARAM   param;
@@ -255,14 +255,14 @@ bool    dis_gatt_c_read_dis_req(uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         dis_c_cmpl_cback
-**
-** Description      Client operation complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         dis_c_cmpl_cback
+ *
+ * Description      Client operation complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
                               tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
 {
@@ -332,12 +332,12 @@ void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
 }
 
 /*******************************************************************************
-**
-** Function         DIS_SrInit
-**
-** Description      Initialize the Device Information Service Server.
-**
-*******************************************************************************/
+ *
+ * Function         DIS_SrInit
+ *
+ * Description      Initialize the Device Information Service Server.
+ *
+ ******************************************************************************/
 tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask)
 {
     tGATT_STATUS      status;
@@ -391,12 +391,12 @@ tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask)
     return (tDIS_STATUS) status;
 }
 /*******************************************************************************
-**
-** Function         DIS_SrUpdate
-**
-** Description      Update the DIS server attribute values
-**
-*******************************************************************************/
+ *
+ * Function         DIS_SrUpdate
+ *
+ * Description      Update the DIS server attribute values
+ *
+ ******************************************************************************/
 tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR *p_info)
 {
     uint8_t         i = 1;
@@ -439,14 +439,14 @@ Overrunning static array "dis_cb.dis_value.data_string", with 7 elements, at pos
     return st;
 }
 /*******************************************************************************
-**
-** Function         DIS_ReadDISInfo
-**
-** Description      Read remote device DIS information.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         DIS_ReadDISInfo
+ *
+ * Description      Read remote device DIS information.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback, tDIS_ATTR_MASK mask)
 {
     uint16_t           conn_id;

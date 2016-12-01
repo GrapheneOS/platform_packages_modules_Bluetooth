@@ -34,15 +34,15 @@
 
 
 /*******************************************************************************
-**
-** Function         gatt_sr_enqueue_cmd
-**
-** Description      This function enqueue the request from client which needs a
-**                  application response, and update the transaction ID.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_enqueue_cmd
+ *
+ * Description      This function enqueue the request from client which needs a
+ *                  application response, and update the transaction ID.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint32_t gatt_sr_enqueue_cmd (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t handle)
 {
     tGATT_SR_CMD   *p_cmd = &p_tcb->sr_cmd;
@@ -73,28 +73,28 @@ uint32_t gatt_sr_enqueue_cmd (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t handle
 }
 
 /*******************************************************************************
-**
-** Function         gatt_sr_cmd_empty
-**
-** Description      This function check the server command queue is empty or not.
-**
-** Returns          true if empty, false if there is pending command.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_cmd_empty
+ *
+ * Description      This function check the server command queue is empty or not.
+ *
+ * Returns          true if empty, false if there is pending command.
+ *
+ ******************************************************************************/
 bool    gatt_sr_cmd_empty (tGATT_TCB *p_tcb)
 {
     return(p_tcb->sr_cmd.op_code == 0);
 }
 
 /*******************************************************************************
-**
-** Function         gatt_dequeue_sr_cmd
-**
-** Description      This function dequeue the request from command queue.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_dequeue_sr_cmd
+ *
+ * Description      This function dequeue the request from command queue.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
 {
     /* Double check in case any buffers are queued */
@@ -110,14 +110,14 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         process_read_multi_rsp
-**
-** Description      This function check the read multiple response.
-**
-** Returns          bool    if all replies have been received
-**
-*******************************************************************************/
+ *
+ * Function         process_read_multi_rsp
+ *
+ * Description      This function check the read multiple response.
+ *
+ * Returns          bool    if all replies have been received
+ *
+ ******************************************************************************/
 static bool    process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
                                        tGATTS_RSP *p_msg, uint16_t mtu)
 {
@@ -244,15 +244,15 @@ static bool    process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_sr_process_app_rsp
-**
-** Description      This function checks whether the response message from application
-**                  match any pending request or not.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_process_app_rsp
+ *
+ * Description      This function checks whether the response message from application
+ *                  match any pending request or not.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
                                       UNUSED_ATTR uint32_t trans_id, uint8_t op_code,
                                       tGATT_STATUS status, tGATTS_RSP *p_msg)
@@ -313,15 +313,15 @@ tGATT_STATUS gatt_sr_process_app_rsp (tGATT_TCB *p_tcb, tGATT_IF gatt_if,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_process_exec_write_req
-**
-** Description      This function is called to process the execute write request
-**                  from client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_exec_write_req
+ *
+ * Description      This function is called to process the execute write request
+ *                  from client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_exec_write_req (tGATT_TCB *p_tcb, uint8_t op_code,
                                   UNUSED_ATTR uint16_t len, uint8_t *p_data)
 {
@@ -376,15 +376,15 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, uint8_t op_code,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_process_read_multi_req
-**
-** Description      This function is called to process the read multiple request
-**                  from client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_process_read_multi_req
+ *
+ * Description      This function is called to process the read multiple request
+ *                  from client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_process_read_multi_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
     uint32_t        trans_id;
@@ -491,15 +491,15 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t le
 }
 
 /*******************************************************************************
-**
-** Function         gatt_build_primary_service_rsp
-**
-** Description      Primamry service request processed internally. Theretically
-**                  only deal with ReadByTypeVAlue and ReadByGroupType.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_build_primary_service_rsp
+ *
+ * Description      Primamry service request processed internally. Theretically
+ *                  only deal with ReadByTypeVAlue and ReadByGroupType.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_tcb,
                                                     uint8_t op_code, uint16_t s_hdl,
                                                     uint16_t e_hdl,
@@ -583,16 +583,16 @@ static tGATT_STATUS gatt_build_primary_service_rsp (BT_HDR *p_msg, tGATT_TCB *p_
 }
 
 /*******************************************************************************
-**
-** Function         gatt_build_find_info_rsp
-**
-** Description      fill the find information response information in the given
-**                  buffer.
-**
-** Returns          true: if data filled sucessfully.
-**                  false: packet full, or format mismatch.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_build_find_info_rsp
+ *
+ * Description      fill the find information response information in the given
+ *                  buffer.
+ *
+ * Returns          true: if data filled sucessfully.
+ *                  false: packet full, or format mismatch.
+ *
+ ******************************************************************************/
 static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg, uint16_t *p_len,
                                              uint16_t s_hdl, uint16_t e_hdl)
 {
@@ -666,14 +666,14 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
 }
 
 /*******************************************************************************
-**
-** Function         gatts_internal_read_by_type_req
-**
-** Description      check to see if the ReadByType request can be handled internally.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_internal_read_by_type_req
+ *
+ * Description      check to see if the ReadByType request can be handled internally.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static tGATT_STATUS gatts_validate_packet_format(uint8_t op_code, uint16_t *p_len,
                                                  uint8_t **p_data, tBT_UUID *p_uuid_filter,
                                                  uint16_t *p_s_hdl, uint16_t *p_e_hdl)
@@ -729,15 +729,15 @@ static tGATT_STATUS gatts_validate_packet_format(uint8_t op_code, uint16_t *p_le
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_primary_service_req
-**
-** Description      process ReadByGroupType/ReadByTypeValue request, for discover
-**                  all primary services or discover primary service by UUID request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_primary_service_req
+ *
+ * Description      process ReadByGroupType/ReadByTypeValue request, for discover
+ *                  all primary services or discover primary service by UUID request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatts_process_primary_service_req(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
     uint8_t         reason = GATT_INVALID_PDU;
@@ -793,15 +793,15 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, uint8_t op_code, uint16
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_find_info
-**
-** Description      process find information request, for discover character
-**                  descriptors.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_find_info
+ *
+ * Description      process find information request, for discover character
+ *                  descriptors.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatts_process_find_info(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
     uint8_t         reason = GATT_INVALID_PDU, *p;
@@ -858,15 +858,15 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t 
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_mtu_req
-**
-** Description      This function is called to process excahnge MTU request.
-**                  Only used on LE.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_mtu_req
+ *
+ * Description      This function is called to process excahnge MTU request.
+ *                  Only used on LE.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatts_process_mtu_req (tGATT_TCB *p_tcb, uint16_t len, uint8_t *p_data)
 {
     uint16_t      mtu = 0;
@@ -923,20 +923,20 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, uint16_t len, uint8_t *p_da
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_read_by_type_req
-**
-** Description      process Read By type request.
-**                  This PDU can be used to perform:
-**                  - read characteristic value
-**                  - read characteristic descriptor value
-**                  - discover characteristic
-**                  - discover characteristic by UUID
-**                  - relationship discovery
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_read_by_type_req
+ *
+ * Description      process Read By type request.
+ *                  This PDU can be used to perform:
+ *                  - read characteristic value
+ *                  - read characteristic descriptor value
+ *                  - discover characteristic
+ *                  - discover characteristic by UUID
+ *                  - relationship discovery
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t len, uint8_t *p_data)
 {
     tBT_UUID            uuid;
@@ -1027,15 +1027,15 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, uint8_t op_code, uint16_t 
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_write_req
-**
-** Description      This function is called to process the write request
-**                  from client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_write_req
+ *
+ * Description      This function is called to process the write request
+ *                  from client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatts_process_write_req (tGATT_TCB *p_tcb, uint8_t i_rcb, uint16_t handle,
                               uint8_t op_code, uint16_t len, uint8_t *p_data,
                               bt_gatt_db_attribute_type_t gatt_type)
@@ -1136,15 +1136,15 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, uint8_t i_rcb, uint16_t handle,
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_read_req
-**
-** Description      This function is called to process the read request
-**                  from client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_read_req
+ *
+ * Description      This function is called to process the read request
+ *                  from client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, uint8_t op_code,
                                    uint16_t handle,
                                    UNUSED_ATTR uint16_t len, uint8_t *p_data)
@@ -1194,15 +1194,15 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, uint8_
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_attribute_req
-**
-** Description      This function is called to process the per attribute handle request
-**                  from client.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_attribute_req
+ *
+ * Description      This function is called to process the per attribute handle request
+ *                  from client.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatts_process_attribute_req (tGATT_TCB *p_tcb, uint8_t op_code,
                                   uint16_t len, uint8_t *p_data)
 {
@@ -1279,14 +1279,14 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, uint8_t op_code,
 }
 
 /*******************************************************************************
-**
-** Function         gatts_proc_srv_chg_ind_ack
-**
-** Description      This function process the service changed indicaiton ACK
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_proc_srv_chg_ind_ack
+ *
+ * Description      This function process the service changed indicaiton ACK
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
 {
     tGATTS_SRV_CHG_REQ  req;
@@ -1306,15 +1306,15 @@ static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
 }
 
 /*******************************************************************************
-**
-** Function         gatts_chk_pending_ind
-**
-** Description      This function check any pending indication needs to be sent if
-**                  there is a pending indication then sent the indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_chk_pending_ind
+ *
+ * Description      This function check any pending indication needs to be sent if
+ *                  there is a pending indication then sent the indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatts_chk_pending_ind(tGATT_TCB *p_tcb )
 {
     GATT_TRACE_DEBUG("%s", __func__);
@@ -1332,15 +1332,15 @@ static void gatts_chk_pending_ind(tGATT_TCB *p_tcb )
 }
 
 /*******************************************************************************
-**
-** Function         gatts_proc_ind_ack
-**
-** Description      This function process the Indication ack
-**
-** Returns          true continue to process the indication ack by the aaplication
-**                  if the ACk is not a Service Changed Indication Ack
-**
-*******************************************************************************/
+ *
+ * Function         gatts_proc_ind_ack
+ *
+ * Description      This function process the Indication ack
+ *
+ * Returns          true continue to process the indication ack by the aaplication
+ *                  if the ACk is not a Service Changed Indication Ack
+ *
+ ******************************************************************************/
 static bool    gatts_proc_ind_ack(tGATT_TCB *p_tcb, uint16_t ack_handle)
 {
     bool    continue_processing = true;
@@ -1359,14 +1359,14 @@ static bool    gatts_proc_ind_ack(tGATT_TCB *p_tcb, uint16_t ack_handle)
 }
 
 /*******************************************************************************
-**
-** Function         gatts_process_value_conf
-**
-** Description      This function is called to process the handle value confirmation.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatts_process_value_conf
+ *
+ * Description      This function is called to process the handle value confirmation.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatts_process_value_conf(tGATT_TCB *p_tcb, uint8_t op_code)
 {
     uint16_t        handle = p_tcb->indicate_handle;
@@ -1403,16 +1403,16 @@ void gatts_process_value_conf(tGATT_TCB *p_tcb, uint8_t op_code)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_server_handle_client_req
-**
-** Description      This function is called to handle the client requests to
-**                  server.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_server_handle_client_req
+ *
+ * Description      This function is called to handle the client requests to
+ *                  server.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_server_handle_client_req (tGATT_TCB *p_tcb, uint8_t op_code,
                                     uint16_t len, uint8_t *p_data)
 {

@@ -41,12 +41,12 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /*******************************************************************************
-**
-** Function         rfc_calc_fcs
-**
-** Description      Reversed CRC Table , 8-bit, poly=0x07
-**                  (GSM 07.10 TS 101 369 V6.3.0)
-*******************************************************************************/
+ *
+ * Function         rfc_calc_fcs
+ *
+ * Description      Reversed CRC Table , 8-bit, poly=0x07
+ *                  (GSM 07.10 TS 101 369 V6.3.0)
+ ******************************************************************************/
 static const uint8_t rfc_crctable[] =
 {
     0x00, 0x91, 0xE3, 0x72, 0x07, 0x96, 0xE4, 0x75,  0x0E, 0x9F, 0xED, 0x7C, 0x09, 0x98, 0xEA, 0x7B,
@@ -72,16 +72,16 @@ static const uint8_t rfc_crctable[] =
 
 
 /*******************************************************************************
-**
-** Function         rfc_calc_fcs
-**
-** Description      This function calculate FCS for the RFCOMM frame
-**                  (GSM 07.10 TS 101 369 V6.3.0)
-**
-** Input            len - number of bytes in the message
-**                  p   - points to message
-**
-*******************************************************************************/
+ *
+ * Function         rfc_calc_fcs
+ *
+ * Description      This function calculate FCS for the RFCOMM frame
+ *                  (GSM 07.10 TS 101 369 V6.3.0)
+ *
+ * Input            len - number of bytes in the message
+ *                  p   - points to message
+ *
+ ******************************************************************************/
 uint8_t rfc_calc_fcs (uint16_t len, uint8_t *p)
 {
     uint8_t fcs = 0xFF;
@@ -97,17 +97,17 @@ uint8_t rfc_calc_fcs (uint16_t len, uint8_t *p)
 
 
 /*******************************************************************************
-**
-** Function         rfc_check_fcs
-**
-** Description      This function checks FCS for the RFCOMM frame
-**                  (GSM 07.10 TS 101 369 V6.3.0)
-**
-** Input            len          - number of bytes in the message
-**                  p            - points to message
-**                  received_fcs - received FCS
-**
-*******************************************************************************/
+ *
+ * Function         rfc_check_fcs
+ *
+ * Description      This function checks FCS for the RFCOMM frame
+ *                  (GSM 07.10 TS 101 369 V6.3.0)
+ *
+ * Input            len          - number of bytes in the message
+ *                  p            - points to message
+ *                  received_fcs - received FCS
+ *
+ ******************************************************************************/
 bool    rfc_check_fcs (uint16_t len, uint8_t *p, uint8_t received_fcs)
 {
     uint8_t fcs = 0xFF;
@@ -126,13 +126,13 @@ bool    rfc_check_fcs (uint16_t len, uint8_t *p, uint8_t received_fcs)
 
 
 /*******************************************************************************
-**
-** Function         rfc_alloc_multiplexer_channel
-**
-** Description      This function returns existing or new control block for
-**                  the BD_ADDR.
-**
-*******************************************************************************/
+ *
+ * Function         rfc_alloc_multiplexer_channel
+ *
+ * Description      This function returns existing or new control block for
+ *                  the BD_ADDR.
+ *
+ ******************************************************************************/
 tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, bool    is_initiator)
 {
     int i, j;
@@ -196,12 +196,12 @@ tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, bool    is_initiator)
 
 
 /*******************************************************************************
-**
-** Function         rfc_release_multiplexer_channel
-**
-** Description      Release a multiplexer control block
-**
-*******************************************************************************/
+ *
+ * Function         rfc_release_multiplexer_channel
+ *
+ * Description      Release a multiplexer control block
+ *
+ ******************************************************************************/
 void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 {
     /* Remove the MCB from the mapping table */
@@ -224,12 +224,12 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 
 
 /*******************************************************************************
-**
-** Function         rfc_timer_start
-**
-** Description      Start RFC Timer
-**
-*******************************************************************************/
+ *
+ * Function         rfc_timer_start
+ *
+ * Description      Start RFC Timer
+ *
+ ******************************************************************************/
 void rfc_timer_start(tRFC_MCB *p_mcb, uint16_t timeout)
 {
     RFCOMM_TRACE_EVENT ("%s - timeout:%d seconds", __func__, timeout);
@@ -242,12 +242,12 @@ void rfc_timer_start(tRFC_MCB *p_mcb, uint16_t timeout)
 
 
 /*******************************************************************************
-**
-** Function         rfc_timer_stop
-**
-** Description      Stop RFC Timer
-**
-*******************************************************************************/
+ *
+ * Function         rfc_timer_stop
+ *
+ * Description      Stop RFC Timer
+ *
+ ******************************************************************************/
 void rfc_timer_stop(tRFC_MCB *p_mcb)
 {
     RFCOMM_TRACE_EVENT("%s", __func__);
@@ -257,12 +257,12 @@ void rfc_timer_stop(tRFC_MCB *p_mcb)
 
 
 /*******************************************************************************
-**
-** Function         rfc_port_timer_start
-**
-** Description      Start RFC Timer
-**
-*******************************************************************************/
+ *
+ * Function         rfc_port_timer_start
+ *
+ * Description      Start RFC Timer
+ *
+ ******************************************************************************/
 void rfc_port_timer_start(tPORT *p_port, uint16_t timeout)
 {
     RFCOMM_TRACE_EVENT("%s - timeout:%d seconds", __func__, timeout);
@@ -274,12 +274,12 @@ void rfc_port_timer_start(tPORT *p_port, uint16_t timeout)
 }
 
 /*******************************************************************************
-**
-** Function         rfc_port_timer_stop
-**
-** Description      Stop RFC Timer
-**
-*******************************************************************************/
+ *
+ * Function         rfc_port_timer_stop
+ *
+ * Description      Stop RFC Timer
+ *
+ ******************************************************************************/
 void rfc_port_timer_stop(tPORT *p_port)
 {
     RFCOMM_TRACE_EVENT ("%s", __func__);
@@ -289,15 +289,15 @@ void rfc_port_timer_stop(tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         rfc_check_mcb_active
-**
-** Description      Check if there are any opened ports on the MCB if not
-**                  start MCB Inact timer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_check_mcb_active
+ *
+ * Description      Check if there are any opened ports on the MCB if not
+ *                  start MCB Inact timer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_check_mcb_active (tRFC_MCB *p_mcb)
 {
     uint16_t i;
@@ -336,15 +336,15 @@ void rfcomm_mcb_timer_timeout(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         rfc_sec_check_complete
-**
-** Description      The function called when Security Manager finishes
-**                  verification of the service side connection
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_sec_check_complete
+ *
+ * Description      The function called when Security Manager finishes
+ *                  verification of the service side connection
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT transport, void *p_ref_data,
                              uint8_t res)
 {
@@ -361,16 +361,16 @@ void rfc_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSP
 
 
 /*******************************************************************************
-**
-** Function         rfc_port_closed
-**
-** Description      The function is called when port is released based on the
-**                  event received from the lower layer, typically L2CAP
-**                  connection down, DISC, or DM frame.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_port_closed
+ *
+ * Description      The function is called when port is released based on the
+ *                  event received from the lower layer, typically L2CAP
+ *                  connection down, DISC, or DM frame.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_port_closed (tPORT *p_port)
 {
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
@@ -395,16 +395,16 @@ void rfc_port_closed (tPORT *p_port)
 }
 
 /*******************************************************************************
-**
-** Function         rfc_inc_credit
-**
-** Description      The function is called when a credit is received in a UIH
-**                  frame.  It increments the TX credit count, and if data
-**                  flow had halted, it restarts it.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_inc_credit
+ *
+ * Description      The function is called when a credit is received in a UIH
+ *                  frame.  It increments the TX credit count, and if data
+ *                  flow had halted, it restarts it.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_inc_credit (tPORT *p_port, uint8_t credit)
 {
     if (p_port->rfc.p_mcb->flow == PORT_FC_CREDIT)
@@ -419,16 +419,16 @@ void rfc_inc_credit (tPORT *p_port, uint8_t credit)
 }
 
 /*******************************************************************************
-**
-** Function         rfc_dec_credit
-**
-** Description      The function is called when a UIH frame of user data is
-**                  sent.  It decrements the credit count.  If credit count
-**                  Reaches zero, peer_fc is set.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_dec_credit
+ *
+ * Description      The function is called when a UIH frame of user data is
+ *                  sent.  It decrements the credit count.  If credit count
+ *                  Reaches zero, peer_fc is set.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_dec_credit (tPORT *p_port)
 {
     if (p_port->rfc.p_mcb->flow == PORT_FC_CREDIT)
@@ -443,15 +443,15 @@ void rfc_dec_credit (tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         rfc_check_send_cmd
-**
-** Description      This function is called to send an RFCOMM command message
-**                  or to handle the RFCOMM command message queue.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         rfc_check_send_cmd
+ *
+ * Description      This function is called to send an RFCOMM command message
+ *                  or to handle the RFCOMM command message queue.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void rfc_check_send_cmd(tRFC_MCB *p_mcb, BT_HDR *p_buf)
 {
     /* if passed a buffer queue it */

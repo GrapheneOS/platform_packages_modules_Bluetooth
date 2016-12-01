@@ -22,7 +22,7 @@
  *
  *  Description:   Bluetooth remote device connection queuing
  *
- *******************************************************************************/
+ ******************************************************************************/
 
 #ifndef BTIF_PROFILE_QUEUE_H
 #define BTIF_PROFILE_QUEUE_H

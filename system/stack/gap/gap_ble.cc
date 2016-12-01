@@ -61,14 +61,14 @@ static tGATT_CBACK gap_cback =
 
 
 /*******************************************************************************
-**
-** Function         gap_find_clcb_by_bd_addr
-**
-** Description      The function searches all LCB with macthing bd address
-**
-** Returns          total number of clcb found.
-**
-*******************************************************************************/
+ *
+ * Function         gap_find_clcb_by_bd_addr
+ *
+ * Description      The function searches all LCB with macthing bd address
+ *
+ * Returns          total number of clcb found.
+ *
+ ******************************************************************************/
 tGAP_CLCB *gap_find_clcb_by_bd_addr(BD_ADDR bda)
 {
     uint8_t i_clcb;
@@ -86,14 +86,14 @@ tGAP_CLCB *gap_find_clcb_by_bd_addr(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_find_clcb_by_conn_id
-**
-** Description      The function searches all LCB with macthing connection ID
-**
-** Returns          total number of clcb found.
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_find_clcb_by_conn_id
+ *
+ * Description      The function searches all LCB with macthing connection ID
+ *
+ * Returns          total number of clcb found.
+ *
+ ******************************************************************************/
 tGAP_CLCB *gap_ble_find_clcb_by_conn_id(uint16_t conn_id)
 {
     uint8_t i_clcb;
@@ -111,14 +111,14 @@ tGAP_CLCB *gap_ble_find_clcb_by_conn_id(uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         gap_clcb_alloc
-**
-** Description      The function allocates a GAP  connection link control block
-**
-** Returns           NULL if not found. Otherwise pointer to the connection link block.
-**
-*******************************************************************************/
+ *
+ * Function         gap_clcb_alloc
+ *
+ * Description      The function allocates a GAP  connection link control block
+ *
+ * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ *
+ ******************************************************************************/
 tGAP_CLCB *gap_clcb_alloc (BD_ADDR bda)
 {
     uint8_t       i_clcb = 0;
@@ -140,14 +140,14 @@ tGAP_CLCB *gap_clcb_alloc (BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_dealloc_clcb
-**
-** Description      The function clean up the pending request queue in GAP
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_dealloc_clcb
+ *
+ * Description      The function clean up the pending request queue in GAP
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void gap_ble_dealloc_clcb(tGAP_CLCB *p_clcb)
 {
     tGAP_BLE_REQ    *p_q;
@@ -166,14 +166,14 @@ void gap_ble_dealloc_clcb(tGAP_CLCB *p_clcb)
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_enqueue_request
-**
-** Description      The function enqueue a GAP client request
-**
-** Returns           true is successul; false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_enqueue_request
+ *
+ * Description      The function enqueue a GAP client request
+ *
+ * Returns           true is successul; false otherwise
+ *
+ ******************************************************************************/
 bool    gap_ble_enqueue_request (tGAP_CLCB *p_clcb, uint16_t uuid, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     tGAP_BLE_REQ *p_q = (tGAP_BLE_REQ *)osi_malloc(sizeof(tGAP_BLE_REQ));
@@ -186,14 +186,14 @@ bool    gap_ble_enqueue_request (tGAP_CLCB *p_clcb, uint16_t uuid, tGAP_BLE_CMPL
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_dequeue_request
-**
-** Description      The function dequeue a GAP client request if any
-**
-** Returns           true is successul; false otherwise
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_dequeue_request
+ *
+ * Description      The function dequeue a GAP client request if any
+ *
+ * Returns           true is successul; false otherwise
+ *
+ ******************************************************************************/
 bool    gap_ble_dequeue_request (tGAP_CLCB *p_clcb, uint16_t * p_uuid, tGAP_BLE_CMPL_CBACK **p_cback)
 {
     tGAP_BLE_REQ *p_q = (tGAP_BLE_REQ *)fixed_queue_try_dequeue(p_clcb->pending_req_q);;
@@ -210,8 +210,8 @@ bool    gap_ble_dequeue_request (tGAP_CLCB *p_clcb, uint16_t * p_uuid, tGAP_BLE_
 }
 
 /*******************************************************************************
-**   GAP Attributes Database Request callback
-*******************************************************************************/
+ *   GAP Attributes Database Request callback
+ ******************************************************************************/
 tGATT_STATUS gap_read_attr_value (uint16_t handle, tGATT_VALUE *p_value, bool    is_long)
 {
     tGAP_ATTR   *p_db_attr = gap_cb.gatt_attr;
@@ -273,8 +273,8 @@ tGATT_STATUS gap_read_attr_value (uint16_t handle, tGATT_VALUE *p_value, bool   
 }
 
 /*******************************************************************************
-**   GAP Attributes Database Read/Read Blob Request process
-*******************************************************************************/
+ *   GAP Attributes Database Read/Read Blob Request process
+ ******************************************************************************/
 tGATT_STATUS gap_proc_read (UNUSED_ATTR tGATTS_REQ_TYPE type, tGATT_READ_REQ *p_data,
                             tGATTS_RSP *p_rsp)
 {
@@ -291,14 +291,14 @@ tGATT_STATUS gap_proc_read (UNUSED_ATTR tGATTS_REQ_TYPE type, tGATT_READ_REQ *p_
 }
 
 /******************************************************************************
-**
-** Function         gap_proc_write_req
-**
-** Description      GAP ATT server process a write request.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gap_proc_write_req
+ *
+ * Description      GAP ATT server process a write request.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 uint8_t gap_proc_write_req(UNUSED_ATTR tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_data)
 {
     tGAP_ATTR   *p_db_attr = gap_cb.gatt_attr;
@@ -316,14 +316,14 @@ uint8_t gap_proc_write_req(UNUSED_ATTR tGATTS_REQ_TYPE type, tGATT_WRITE_REQ *p_
 }
 
 /******************************************************************************
-**
-** Function         gap_ble_s_attr_request_cback
-**
-** Description      GAP ATT server attribute access request callback.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_s_attr_request_cback
+ *
+ * Description      GAP ATT server attribute access request callback.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gap_ble_s_attr_request_cback (uint16_t conn_id, uint32_t trans_id,
                                    tGATTS_REQ_TYPE type, tGATTS_DATA *p_data)
 {
@@ -370,14 +370,14 @@ void gap_ble_s_attr_request_cback (uint16_t conn_id, uint32_t trans_id,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_att_db_init
-**
-** Description      GAP ATT database initalization.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_att_db_init
+ *
+ * Description      GAP ATT database initalization.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gap_attr_db_init(void)
 {
     tBT_UUID        app_uuid = {LEN_UUID_128,{0}};
@@ -436,14 +436,14 @@ void gap_attr_db_init(void)
 }
 
 /*******************************************************************************
-**
-** Function         GAP_BleAttrDBUpdate
-**
-** Description      GAP ATT database update.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleAttrDBUpdate
+ *
+ * Description      GAP ATT database update.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
 {
     tGAP_ATTR  *p_db_attr = gap_cb.gatt_attr;
@@ -485,14 +485,14 @@ void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_send_cl_read_request
-**
-** Description      utility function to send a read request for a GAP charactersitic
-**
-** Returns          true if read started, else false if GAP is busy
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_send_cl_read_request
+ *
+ * Description      utility function to send a read request for a GAP charactersitic
+ *
+ * Returns          true if read started, else false if GAP is busy
+ *
+ ******************************************************************************/
 bool    gap_ble_send_cl_read_request(tGAP_CLCB *p_clcb)
 {
     tGATT_READ_PARAM        param;
@@ -520,14 +520,14 @@ bool    gap_ble_send_cl_read_request(tGAP_CLCB *p_clcb)
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_cl_op_cmpl
-**
-** Description      GAP client operation complete callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_cl_op_cmpl
+ *
+ * Description      GAP client operation complete callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, bool    status, uint16_t len, uint8_t *p_name)
 {
     tGAP_BLE_CMPL_CBACK *p_cback = p_clcb->p_cback;
@@ -556,14 +556,14 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, bool    status, uint16_t len, uint8_t
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_c_connect_cback
-**
-** Description      Client connection callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_c_connect_cback
+ *
+ * Description      Client connection callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_ble_c_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
                                      uint16_t conn_id,
                                      bool    connected, tGATT_DISCONN_REASON reason,
@@ -591,14 +591,14 @@ static void gap_ble_c_connect_cback (UNUSED_ATTR tGATT_IF gatt_if, BD_ADDR bda,
 }
 
 /*******************************************************************************
-**
-** Function         gap_ble_c_cmpl_cback
-**
-** Description      Client operation complete callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_c_cmpl_cback
+ *
+ * Description      Client operation complete callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_ble_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
 
 {
@@ -658,14 +658,14 @@ static void gap_ble_c_cmpl_cback (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STAT
 
 
 /*******************************************************************************
-**
-** Function         gap_ble_accept_cl_operation
-**
-** Description      Start a process to read peer address resolution capability
-**
-** Returns          true if request accepted
-**
-*******************************************************************************/
+ *
+ * Function         gap_ble_accept_cl_operation
+ *
+ * Description      Start a process to read peer address resolution capability
+ *
+ * Returns          true if request accepted
+ *
+ ******************************************************************************/
 bool    gap_ble_accept_cl_operation(BD_ADDR peer_bda, uint16_t uuid, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     tGAP_CLCB *p_clcb;
@@ -708,57 +708,57 @@ bool    gap_ble_accept_cl_operation(BD_ADDR peer_bda, uint16_t uuid, tGAP_BLE_CM
    return started;
 }
 /*******************************************************************************
-**
-** Function         GAP_BleReadPeerPrefConnParams
-**
-** Description      Start a process to read a connected peripheral's preferred
-**                  connection parameters
-**
-** Returns          true if read started, else false if GAP is busy
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleReadPeerPrefConnParams
+ *
+ * Description      Start a process to read a connected peripheral's preferred
+ *                  connection parameters
+ *
+ * Returns          true if read started, else false if GAP is busy
+ *
+ ******************************************************************************/
 bool    GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 {
     return gap_ble_accept_cl_operation (peer_bda, GATT_UUID_GAP_PREF_CONN_PARAM, NULL);
 }
 
 /*******************************************************************************
-**
-** Function         GAP_BleReadPeerDevName
-**
-** Description      Start a process to read a connected peripheral's device name.
-**
-** Returns          true if request accepted
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleReadPeerDevName
+ *
+ * Description      Start a process to read a connected peripheral's device name.
+ *
+ * Returns          true if request accepted
+ *
+ ******************************************************************************/
 bool    GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     return gap_ble_accept_cl_operation (peer_bda, GATT_UUID_GAP_DEVICE_NAME, p_cback);
 }
 
 /*******************************************************************************
-**
-** Function         GAP_BleReadPeerAddressResolutionCap
-**
-** Description      Start a process to read peer address resolution capability
-**
-** Returns          true if request accepted
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleReadPeerAddressResolutionCap
+ *
+ * Description      Start a process to read peer address resolution capability
+ *
+ * Returns          true if request accepted
+ *
+ ******************************************************************************/
 bool    GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
 {
     return gap_ble_accept_cl_operation(peer_bda, GATT_UUID_GAP_CENTRAL_ADDR_RESOL, p_cback);
 }
 
 /*******************************************************************************
-**
-** Function         GAP_BleCancelReadPeerDevName
-**
-** Description      Cancel reading a peripheral's device name.
-**
-** Returns          true if request accepted
-**
-*******************************************************************************/
+ *
+ * Function         GAP_BleCancelReadPeerDevName
+ *
+ * Description      Cancel reading a peripheral's device name.
+ *
+ * Returns          true if request accepted
+ *
+ ******************************************************************************/
 bool    GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
 {
     tGAP_CLCB *p_clcb = gap_find_clcb_by_bd_addr (peer_bda);

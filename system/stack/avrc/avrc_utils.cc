@@ -25,15 +25,15 @@
 #if (AVRC_METADATA_INCLUDED == TRUE)
 
 /**************************************************************************
-**
-** Function         AVRC_IsValidAvcType
-**
-** Description      Check if correct AVC type is specified
-**
-** Returns          returns true if it is valid
-**
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_IsValidAvcType
+ *
+ * Description      Check if correct AVC type is specified
+ *
+ * Returns          returns true if it is valid
+ *
+ *
+ ******************************************************************************/
 bool AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type)
 {
     bool result=false;
@@ -92,14 +92,14 @@ bool AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_is_valid_player_attrib_value
-**
-** Description      Check if the given attrib value is valid for its attribute
-**
-** Returns          returns true if it is valid
-**
-*******************************************************************************/
+ *
+ * Function         avrc_is_valid_player_attrib_value
+ *
+ * Description      Check if the given attrib value is valid for its attribute
+ *
+ * Returns          returns true if it is valid
+ *
+ ******************************************************************************/
 bool    avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value)
 {
     bool    result=false;
@@ -138,14 +138,14 @@ bool    avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value)
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_IsValidPlayerAttr
-**
-** Description      Check if the given attrib value is a valid one
-**
-** Returns          returns true if it is valid
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_IsValidPlayerAttr
+ *
+ * Description      Check if the given attrib value is a valid one
+ *
+ * Returns          returns true if it is valid
+ *
+ ******************************************************************************/
 bool    AVRC_IsValidPlayerAttr(uint8_t attr)
 {
     bool    result=false;
@@ -162,16 +162,16 @@ bool    AVRC_IsValidPlayerAttr(uint8_t attr)
 
 
 /*******************************************************************************
-**
-** Function         avrc_pars_pass_thru
-**
-** Description      This function parses the pass thru commands defined by
-**                  Bluetooth SIG
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         avrc_pars_pass_thru
+ *
+ * Description      This function parses the pass thru commands defined by
+ *                  Bluetooth SIG
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, uint16_t *p_vendor_unique_id)
 {
     uint8_t    *p_data;
@@ -197,14 +197,14 @@ tAVRC_STS avrc_pars_pass_thru(tAVRC_MSG_PASS *p_msg, uint16_t *p_vendor_unique_i
 }
 
 /*******************************************************************************
-**
-** Function         avrc_opcode_from_pdu
-**
-** Description      This function returns the opcode of the given pdu
-**
-** Returns          AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
-**
-*******************************************************************************/
+ *
+ * Function         avrc_opcode_from_pdu
+ *
+ * Description      This function returns the opcode of the given pdu
+ *
+ * Returns          AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
+ *
+ ******************************************************************************/
 uint8_t avrc_opcode_from_pdu(uint8_t pdu)
 {
     uint8_t opcode = 0;
@@ -235,14 +235,14 @@ uint8_t avrc_opcode_from_pdu(uint8_t pdu)
 }
 
 /*******************************************************************************
-**
-** Function         avrc_is_valid_opcode
-**
-** Description      This function returns the opcode of the given pdu
-**
-** Returns          AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
-**
-*******************************************************************************/
+ *
+ * Function         avrc_is_valid_opcode
+ *
+ * Description      This function returns the opcode of the given pdu
+ *
+ * Returns          AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
+ *
+ ******************************************************************************/
 bool    avrc_is_valid_opcode(uint8_t opcode)
 {
     bool    is_valid = false;

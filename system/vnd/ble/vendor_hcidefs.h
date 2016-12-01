@@ -17,20 +17,20 @@
  ******************************************************************************/
 
 /*****************************************************************************
-**
-**  Name        vendor_hcidefs.h
-**
-**  Function    This file contains Broadcom Specific Host Controller Interface
-**              definitions.
-**
-******************************************************************************/
+ *
+ *  Name        vendor_hcidefs.h
+ *
+ *  Function    This file contains Broadcom Specific Host Controller Interface
+ *              definitions.
+ *
+ *****************************************************************************/
 
 #ifndef VENDOR_HCIDEFS_H
 #define VENDOR_HCIDEFS_H
 
 /*****************************************************************************
-** Private address resolution VSC
-******************************************************************************/
+ * Private address resolution VSC
+ *****************************************************************************/
 
 /* VSC */
 #define HCI_VENDOR_BLE_RPA_VSC                (0x0155 | HCI_GRP_VENDOR_SPECIFIC)
@@ -44,8 +44,8 @@
 
 
 /*****************************************************************************
-** Advertising data payload filter VSC
-******************************************************************************/
+ * Advertising data payload filter VSC
+ *****************************************************************************/
 
 /* VSC */
 #define HCI_VENDOR_BLE_PCF_VSC                (0x0157 | HCI_GRP_VENDOR_SPECIFIC)

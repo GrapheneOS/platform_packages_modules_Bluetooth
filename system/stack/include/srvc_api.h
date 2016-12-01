@@ -34,8 +34,8 @@ typedef uint8_t tDIS_STATUS;
 
 
 /*****************************************************************************
-**  Data structure for DIS
-*****************************************************************************/
+ *  Data structure for DIS
+ ****************************************************************************/
 
 #define DIS_ATTR_SYS_ID_BIT         0x0001
 #define DIS_ATTR_MODEL_NUM_BIT      0x0002
@@ -88,8 +88,8 @@ typedef struct
 typedef void (tDIS_READ_CBACK)(BD_ADDR addr, tDIS_VALUE *p_dis_value);
 
 /*****************************************************************************
-**  Data structure used by Battery Service
-*****************************************************************************/
+ *  Data structure used by Battery Service
+ ****************************************************************************/
 typedef struct
 {
     BD_ADDR remote_bda;
@@ -128,84 +128,84 @@ typedef union
 }tBA_RSP_DATA;
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 /*****************************************************************************
-**  Service Engine API
-*****************************************************************************/
+ *  Service Engine API
+ ****************************************************************************/
 /*******************************************************************************
-**
-** Function         srvc_eng_init
-**
-** Description      Initializa the GATT Service engine, register a GATT application
-**                  as for a central service management.
-**
-*******************************************************************************/
+ *
+ * Function         srvc_eng_init
+ *
+ * Description      Initializa the GATT Service engine, register a GATT application
+ *                  as for a central service management.
+ *
+ ******************************************************************************/
 extern tGATT_STATUS srvc_eng_init (void);
 
 
 /*****************************************************************************
-**  DIS Server Function
-*****************************************************************************/
+ *  DIS Server Function
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         DIS_SrInit
-**
-** Description      Initializa the Device Information Service Server.
-**
-*******************************************************************************/
+ *
+ * Function         DIS_SrInit
+ *
+ * Description      Initializa the Device Information Service Server.
+ *
+ ******************************************************************************/
 extern tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask);
 /*******************************************************************************
-**
-** Function         DIS_SrUpdate
-**
-** Description      Update the DIS server attribute values
-**
-*******************************************************************************/
+ *
+ * Function         DIS_SrUpdate
+ *
+ * Description      Update the DIS server attribute values
+ *
+ ******************************************************************************/
 extern tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR *p_info);
 /*****************************************************************************
-**  DIS Client Function
-*****************************************************************************/
+ *  DIS Client Function
+ ****************************************************************************/
 /*******************************************************************************
-**
-** Function         DIS_ReadDISInfo
-**
-** Description      Read remote device DIS information.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         DIS_ReadDISInfo
+ *
+ * Description      Read remote device DIS information.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern bool    DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback,
                                tDIS_ATTR_MASK mask);
 
 /*******************************************************************************
-**      BATTERY SERVICE API
-*******************************************************************************/
+ *      BATTERY SERVICE API
+ ******************************************************************************/
 /*******************************************************************************
-**
-** Function         Battery_Instantiate
-**
-** Description      Instantiate a Battery service
-**
-*******************************************************************************/
+ *
+ * Function         Battery_Instantiate
+ *
+ * Description      Instantiate a Battery service
+ *
+ ******************************************************************************/
 extern uint16_t Battery_Instantiate (uint8_t app_id, tBA_REG_INFO *p_reg_info);
 
 /*******************************************************************************
-**
-** Function         Battery_Rsp
-**
-** Description      Respond to a battery service request
-**
-*******************************************************************************/
+ *
+ * Function         Battery_Rsp
+ *
+ * Description      Respond to a battery service request
+ *
+ ******************************************************************************/
 extern void Battery_Rsp (uint8_t app_id, tGATT_STATUS st, uint8_t event, tBA_RSP_DATA *p_rsp);
 /*******************************************************************************
-**
-** Function         Battery_Notify
-**
-** Description      Send battery level notification
-**
-*******************************************************************************/
+ *
+ * Function         Battery_Notify
+ *
+ * Description      Send battery level notification
+ *
+ ******************************************************************************/
 extern void Battery_Notify (uint8_t app_id, BD_ADDR remote_bda, uint8_t battery_level);
 
 

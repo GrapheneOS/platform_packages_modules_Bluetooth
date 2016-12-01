@@ -28,25 +28,25 @@
 #include "avrc_int.h"
 
 /*****************************************************************************
-**  Global data
-*****************************************************************************/
+ *  Global data
+ ****************************************************************************/
 tAVRC_CB avrc_cb;
 
 /******************************************************************************
-**
-** Function         avrc_sdp_cback
-**
-** Description      This is the SDP callback function used by A2DP_FindService.
-**                  This function will be executed by SDP when the service
-**                  search is completed.  If the search is successful, it
-**                  finds the first record in the database that matches the
-**                  UUID of the search.  Then retrieves various parameters
-**                  from the record.  When it is finished it calls the
-**                  application callback function.
-**
-** Returns          Nothing.
-**
-******************************************************************************/
+ *
+ * Function         avrc_sdp_cback
+ *
+ * Description      This is the SDP callback function used by A2DP_FindService.
+ *                  This function will be executed by SDP when the service
+ *                  search is completed.  If the search is successful, it
+ *                  finds the first record in the database that matches the
+ *                  UUID of the search.  Then retrieves various parameters
+ *                  from the record.  When it is finished it calls the
+ *                  application callback function.
+ *
+ * Returns          Nothing.
+ *
+ *****************************************************************************/
 static void avrc_sdp_cback(uint16_t status)
 {
     AVRC_TRACE_API("%s status: %d", __func__, status);
@@ -61,42 +61,42 @@ static void avrc_sdp_cback(uint16_t status)
 }
 
 /******************************************************************************
-**
-** Function         AVRC_FindService
-**
-** Description      This function is called by the application to perform service
-**                  discovery and retrieve AVRCP SDP record information from a
-**                  peer device.  Information is returned for the first service
-**                  record found on the server that matches the service UUID.
-**                  The callback function will be executed when service discovery
-**                  is complete.  There can only be one outstanding call to
-**                  AVRC_FindService() at a time; the application must wait for
-**                  the callback before it makes another call to the function.
-**                  The application is responsible for allocating memory for the
-**                  discovery database.  It is recommended that the size of the
-**                  discovery database be at least 300 bytes.  The application
-**                  can deallocate the memory after the callback function has
-**                  executed.
-**
-**                  Input Parameters:
-**                      service_uuid: Indicates TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
-**                                           or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
-**
-**                      bd_addr:  BD address of the peer device.
-**
-**                      p_db:  SDP discovery database parameters.
-**
-**                      p_cback:  Pointer to the callback function.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_BAD_PARAMS if discovery database parameters are invalid.
-**                  AVRC_NO_RESOURCES if there are not enough resources to
-**                                    perform the service search.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_FindService
+ *
+ * Description      This function is called by the application to perform service
+ *                  discovery and retrieve AVRCP SDP record information from a
+ *                  peer device.  Information is returned for the first service
+ *                  record found on the server that matches the service UUID.
+ *                  The callback function will be executed when service discovery
+ *                  is complete.  There can only be one outstanding call to
+ *                  AVRC_FindService() at a time; the application must wait for
+ *                  the callback before it makes another call to the function.
+ *                  The application is responsible for allocating memory for the
+ *                  discovery database.  It is recommended that the size of the
+ *                  discovery database be at least 300 bytes.  The application
+ *                  can deallocate the memory after the callback function has
+ *                  executed.
+ *
+ *                  Input Parameters:
+ *                      service_uuid: Indicates TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
+ *                                           or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
+ *
+ *                      bd_addr:  BD address of the peer device.
+ *
+ *                      p_db:  SDP discovery database parameters.
+ *
+ *                      p_cback:  Pointer to the callback function.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_BAD_PARAMS if discovery database parameters are invalid.
+ *                  AVRC_NO_RESOURCES if there are not enough resources to
+ *                                    perform the service search.
+ *
+ *****************************************************************************/
 uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                 tAVRC_SDP_DB_PARAMS *p_db, tAVRC_FIND_CBACK *p_cback)
 {
@@ -147,40 +147,40 @@ uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
 }
 
 /******************************************************************************
-**
-** Function         AVRC_AddRecord
-**
-** Description      This function is called to build an AVRCP SDP record.
-**                  Prior to calling this function the application must
-**                  call SDP_CreateRecord() to create an SDP record.
-**
-**                  Input Parameters:
-**                      service_uuid:  Indicates TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
-**                                            or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
-**
-**                      p_service_name:  Pointer to a null-terminated character
-**                      string containing the service name.
-**                      If service name is not used set this to NULL.
-**
-**                      p_provider_name:  Pointer to a null-terminated character
-**                      string containing the provider name.
-**                      If provider name is not used set this to NULL.
-**
-**                      categories:  Supported categories.
-**
-**                      sdp_handle:  SDP handle returned by SDP_CreateRecord().
-**
-**                      browse_supported:  browse support info.
-**
-**                      profile_version:  profile version of avrcp record.
-**
-**                  Output Parameters:
-**                      None.
-**
-** Returns          AVRC_SUCCESS if successful.
-**                  AVRC_NO_RESOURCES if not enough resources to build the SDP record.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_AddRecord
+ *
+ * Description      This function is called to build an AVRCP SDP record.
+ *                  Prior to calling this function the application must
+ *                  call SDP_CreateRecord() to create an SDP record.
+ *
+ *                  Input Parameters:
+ *                      service_uuid:  Indicates TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
+ *                                            or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
+ *
+ *                      p_service_name:  Pointer to a null-terminated character
+ *                      string containing the service name.
+ *                      If service name is not used set this to NULL.
+ *
+ *                      p_provider_name:  Pointer to a null-terminated character
+ *                      string containing the provider name.
+ *                      If provider name is not used set this to NULL.
+ *
+ *                      categories:  Supported categories.
+ *
+ *                      sdp_handle:  SDP handle returned by SDP_CreateRecord().
+ *
+ *                      browse_supported:  browse support info.
+ *
+ *                      profile_version:  profile version of avrcp record.
+ *
+ *                  Output Parameters:
+ *                      None.
+ *
+ * Returns          AVRC_SUCCESS if successful.
+ *                  AVRC_NO_RESOURCES if not enough resources to build the SDP record.
+ *
+ *****************************************************************************/
 uint16_t AVRC_AddRecord(uint16_t service_uuid, const char *p_service_name,
                         const char *p_provider_name, uint16_t categories,
                         uint32_t sdp_handle, bool browse_supported,
@@ -275,26 +275,26 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char *p_service_name,
 
 
 /******************************************************************************
-**
-** Function         AVRC_SetTraceLevel
-**
-** Description      Sets the trace level for AVRC. If 0xff is passed, the
-**                  current trace level is returned.
-**
-**                  Input Parameters:
-**                      new_level:  The level to set the AVRC tracing to:
-**                      0xff-returns the current setting.
-**                      0-turns off tracing.
-**                      >= 1-Errors.
-**                      >= 2-Warnings.
-**                      >= 3-APIs.
-**                      >= 4-Events.
-**                      >= 5-Debug.
-**
-** Returns          The new trace level or current trace level if
-**                  the input parameter is 0xff.
-**
-******************************************************************************/
+ *
+ * Function         AVRC_SetTraceLevel
+ *
+ * Description      Sets the trace level for AVRC. If 0xff is passed, the
+ *                  current trace level is returned.
+ *
+ *                  Input Parameters:
+ *                      new_level:  The level to set the AVRC tracing to:
+ *                      0xff-returns the current setting.
+ *                      0-turns off tracing.
+ *                      >= 1-Errors.
+ *                      >= 2-Warnings.
+ *                      >= 3-APIs.
+ *                      >= 4-Events.
+ *                      >= 5-Debug.
+ *
+ * Returns          The new trace level or current trace level if
+ *                  the input parameter is 0xff.
+ *
+ *****************************************************************************/
 uint8_t AVRC_SetTraceLevel (uint8_t new_level)
 {
     if (new_level != 0xFF)
@@ -304,16 +304,16 @@ uint8_t AVRC_SetTraceLevel (uint8_t new_level)
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_Init
-**
-** Description      This function is called at stack startup to allocate the
-**                  control block (if using dynamic memory), and initializes the
-**                  control block and tracing level.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_Init
+ *
+ * Description      This function is called at stack startup to allocate the
+ *                  control block (if using dynamic memory), and initializes the
+ *                  control block and tracing level.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void AVRC_Init(void)
 {
     memset(&avrc_cb, 0, sizeof(tAVRC_CB));

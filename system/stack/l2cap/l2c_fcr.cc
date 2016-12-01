@@ -88,7 +88,7 @@ static const unsigned short crctab[256] = {
 
 
 /*******************************************************************************
-**  Static local functions
+ *  Static local functions
 */
 static bool    process_reqseq (tL2C_CCB *p_ccb, uint16_t ctrl_word);
 static void    process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word);
@@ -103,14 +103,14 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, uint8_t num_bufs_acked);
 #endif
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_updcrc
-**
-** Description      This function computes the CRC using the look-up table.
-**
-** Returns          CRC
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_updcrc
+ *
+ * Description      This function computes the CRC using the look-up table.
+ *
+ * Returns          CRC
+ *
+ ******************************************************************************/
 static unsigned short l2c_fcr_updcrc(unsigned short icrc, unsigned char *icp, int icnt)
 {
     unsigned short crc = icrc;
@@ -127,14 +127,14 @@ static unsigned short l2c_fcr_updcrc(unsigned short icrc, unsigned char *icp, in
 
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_tx_get_fcs
-**
-** Description      This function computes the CRC for a frame to be TXed.
-**
-** Returns          CRC
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_tx_get_fcs
+ *
+ * Description      This function computes the CRC for a frame to be TXed.
+ *
+ * Returns          CRC
+ *
+ ******************************************************************************/
 static uint16_t l2c_fcr_tx_get_fcs (BT_HDR *p_buf)
 {
     uint8_t *p = ((uint8_t *) (p_buf + 1)) + p_buf->offset;
@@ -143,14 +143,14 @@ static uint16_t l2c_fcr_tx_get_fcs (BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_rx_get_fcs
-**
-** Description      This function computes the CRC for a received frame.
-**
-** Returns          CRC
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_rx_get_fcs
+ *
+ * Description      This function computes the CRC for a received frame.
+ *
+ * Returns          CRC
+ *
+ ******************************************************************************/
 static uint16_t l2c_fcr_rx_get_fcs (BT_HDR *p_buf)
 {
     uint8_t *p = ((uint8_t *) (p_buf + 1)) + p_buf->offset;
@@ -162,14 +162,14 @@ static uint16_t l2c_fcr_rx_get_fcs (BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_start_timer
-**
-** Description      This function starts the (monitor or retransmission) timer.
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_start_timer
+ *
+ * Description      This function starts the (monitor or retransmission) timer.
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_fcr_start_timer (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -194,14 +194,14 @@ void l2c_fcr_start_timer (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_stop_timer
-**
-** Description      This function stops the (monitor or transmission) timer.
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_stop_timer
+ *
+ * Description      This function stops the (monitor or transmission) timer.
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_fcr_stop_timer (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -209,14 +209,14 @@ void l2c_fcr_stop_timer (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_cleanup
-**
-** Description      This function cleans up the variable used for flow-control/retrans.
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_cleanup
+ *
+ * Description      This function cleans up the variable used for flow-control/retrans.
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -313,15 +313,15 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_clone_buf
-**
-** Description      This function allocates and copies requested part of a buffer
-**                  at a new-offset.
-**
-** Returns          pointer to new buffer
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_clone_buf
+ *
+ * Description      This function allocates and copies requested part of a buffer
+ *                  at a new-offset.
+ *
+ * Returns          pointer to new buffer
+ *
+ ******************************************************************************/
 BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, uint16_t new_offset, uint16_t no_of_bytes)
 {
     assert(p_buf != NULL);
@@ -349,14 +349,14 @@ BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, uint16_t new_offset, uint16_t no_of_byt
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_is_flow_controlled
-**
-** Description      This function checks if the CCB is flow controlled by peer.
-**
-** Returns          The control word
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_is_flow_controlled
+ *
+ * Description      This function checks if the CCB is flow controlled by peer.
+ *
+ * Returns          The control word
+ *
+ ******************************************************************************/
 bool    l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -382,16 +382,16 @@ bool    l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         prepare_I_frame
-**
-** Description      This function sets the FCR variables in an I-frame that is
-**                  about to be sent to HCI for transmission. This may be the
-**                  first time the I-frame is sent, or a retransmission
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         prepare_I_frame
+ *
+ * Description      This function sets the FCR variables in an I-frame that is
+ *                  about to be sent to HCI for transmission. This may be the
+ *                  first time the I-frame is sent, or a retransmission
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, bool    is_retransmission)
 {
     assert(p_ccb != NULL);
@@ -486,14 +486,14 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, bool    is_retransm
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_send_S_frame
-**
-** Description      This function formats and sends an S-frame for transmission.
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_send_S_frame
+ *
+ * Description      This function formats and sends an S-frame for transmission.
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, uint16_t function_code, uint16_t pf_bit)
 {
     assert(p_ccb != NULL);
@@ -577,15 +577,15 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, uint16_t function_code, uint16_t pf_
 
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_proc_pdu
-**
-** Description      This function is the entry point for processing of a
-**                  received PDU when in flow control and/or retransmission modes.
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_proc_pdu
+ *
+ * Description      This function is the entry point for processing of a
+ *                  received PDU when in flow control and/or retransmission modes.
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 {
     assert(p_ccb != NULL);
@@ -803,15 +803,15 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_lcc_proc_pdu
-**
-** Description      This function is the entry point for processing of a
-**                  received PDU when in LE Coc flow control modes.
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_lcc_proc_pdu
+ *
+ * Description      This function is the entry point for processing of a
+ *                  received PDU when in LE Coc flow control modes.
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_lcc_proc_pdu(tL2C_CCB *p_ccb, BT_HDR *p_buf)
 {
 
@@ -885,14 +885,14 @@ void l2c_lcc_proc_pdu(tL2C_CCB *p_ccb, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_proc_tout
-**
-** Description      Handle a timeout. We should be in error recovery state.
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_proc_tout
+ *
+ * Description      Handle a timeout. We should be in error recovery state.
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_fcr_proc_tout (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -924,14 +924,14 @@ void l2c_fcr_proc_tout (tL2C_CCB *p_ccb)
 
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_proc_ack_tout
-**
-** Description      Send RR/RNR if we have not acked I frame
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_proc_ack_tout
+ *
+ * Description      Send RR/RNR if we have not acked I frame
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 void l2c_fcr_proc_ack_tout (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -953,14 +953,14 @@ void l2c_fcr_proc_ack_tout (tL2C_CCB *p_ccb)
 
 
 /*******************************************************************************
-**
-** Function         process_reqseq
-**
-** Description      Handle receive sequence number
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         process_reqseq
+ *
+ * Description      Handle receive sequence number
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 static bool    process_reqseq (tL2C_CCB *p_ccb, uint16_t ctrl_word)
 {
     assert(p_ccb != NULL);
@@ -1046,14 +1046,14 @@ static bool    process_reqseq (tL2C_CCB *p_ccb, uint16_t ctrl_word)
 
 
 /*******************************************************************************
-**
-** Function         process_s_frame
-**
-** Description      Process an S frame
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         process_s_frame
+ *
+ * Description      Process an S frame
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word)
 {
     assert(p_ccb != NULL);
@@ -1132,14 +1132,14 @@ static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word)
 
 
 /*******************************************************************************
-**
-** Function         process_i_frame
-**
-** Description      Process an I frame
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         process_i_frame
+ *
+ * Description      Process an I frame
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word, bool    delay_ack)
 {
     assert(p_ccb != NULL);
@@ -1321,14 +1321,14 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word,
 
 
 /*******************************************************************************
-**
-** Function         process_stream_frame
-**
-** Description      This function processes frames in streaming mode
-**
-** Returns          -
-**
-*******************************************************************************/
+ *
+ * Function         process_stream_frame
+ *
+ * Description      This function processes frames in streaming mode
+ *
+ * Returns          -
+ *
+ ******************************************************************************/
 static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 {
     assert(p_ccb != NULL);
@@ -1403,14 +1403,14 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         do_sar_reassembly
-**
-** Description      Process SAR bits and re-assemble frame
-**
-** Returns          true if all OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         do_sar_reassembly
+ *
+ * Description      Process SAR bits and re-assemble frame
+ *
+ * Returns          true if all OK, else false
+ *
+ ******************************************************************************/
 static bool    do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_word)
 {
     assert(p_ccb != NULL);
@@ -1526,14 +1526,14 @@ static bool    do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, uint16_t ctrl_
 
 
 /*******************************************************************************
-**
-** Function         retransmit_i_frames
-**
-** Description      This function retransmits i-frames awaiting acks.
-**
-** Returns          bool    - true if retransmitted
-**
-*******************************************************************************/
+ *
+ * Function         retransmit_i_frames
+ *
+ * Description      This function retransmits i-frames awaiting acks.
+ *
+ * Returns          bool    - true if retransmitted
+ *
+ ******************************************************************************/
 static bool    retransmit_i_frames (tL2C_CCB *p_ccb, uint8_t tx_seq)
 {
     assert(p_ccb != NULL);
@@ -1647,14 +1647,14 @@ static bool    retransmit_i_frames (tL2C_CCB *p_ccb, uint8_t tx_seq)
 
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_get_next_xmit_sdu_seg
-**
-** Description      Get the next SDU segment to transmit.
-**
-** Returns          pointer to buffer with segment or NULL
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_get_next_xmit_sdu_seg
+ *
+ * Description      Get the next SDU segment to transmit.
+ *
+ * Returns          pointer to buffer with segment or NULL
+ *
+ ******************************************************************************/
 BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_length)
 {
     assert(p_ccb != NULL);
@@ -1826,14 +1826,14 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_leng
 }
 
 /*******************************************************************************
-**
-** Function         l2c_lcc_get_next_xmit_sdu_seg
-**
-** Description      Get the next SDU segment to transmit for LE connection oriented channel
-**
-** Returns          pointer to buffer with segment or NULL
-**
-*******************************************************************************/
+ *
+ * Function         l2c_lcc_get_next_xmit_sdu_seg
+ *
+ * Description      Get the next SDU segment to transmit for LE connection oriented channel
+ *
+ * Returns          pointer to buffer with segment or NULL
+ *
+ ******************************************************************************/
 BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_length)
 {
     bool        first_seg    = false;       /* The segment is the first part of data  */
@@ -1925,25 +1925,25 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_leng
 }
 
 /*******************************************************************************
-** Configuration negotiation functions
-**
-** The following functions are used in negotiating channel modes during
-** configuration
-********************************************************************************/
+ * Configuration negotiation functions
+ *
+ * The following functions are used in negotiating channel modes during
+ * configuration
+ ******************************************************************************/
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_chk_chan_modes
-**
-** Description      Validates and adjusts if necessary, the FCR options
-**                  based on remote EXT features.
-**
-**                  Note: This assumes peer EXT Features have been received.
-**                      Basic mode is used if FCR Options have not been received
-**
-** Returns          uint8_t - nonzero if can continue, '0' if no compatible channels
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_chk_chan_modes
+ *
+ * Description      Validates and adjusts if necessary, the FCR options
+ *                  based on remote EXT features.
+ *
+ *                  Note: This assumes peer EXT Features have been received.
+ *                      Basic mode is used if FCR Options have not been received
+ *
+ * Returns          uint8_t - nonzero if can continue, '0' if no compatible channels
+ *
+ ******************************************************************************/
 uint8_t l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -1965,15 +1965,15 @@ uint8_t l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_adj_our_req_options
-**
-** Description      Validates and sets up the FCR options passed in from
-**                  L2CA_ConfigReq based on remote device's features.
-**
-** Returns          true if no errors, Otherwise false
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_adj_our_req_options
+ *
+ * Description      Validates and sets up the FCR options passed in from
+ *                  L2CA_ConfigReq based on remote device's features.
+ *
+ * Returns          true if no errors, Otherwise false
+ *
+ ******************************************************************************/
 bool    l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     assert(p_ccb != NULL);
@@ -2085,14 +2085,14 @@ bool    l2c_fcr_adj_our_req_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_adj_monitor_retran_timeout
-**
-** Description      Overrides monitor/retrans timer value based on controller
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_adj_monitor_retran_timeout
+ *
+ * Description      Overrides monitor/retrans timer value based on controller
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void l2c_fcr_adj_monitor_retran_timeout (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
@@ -2122,16 +2122,16 @@ void l2c_fcr_adj_monitor_retran_timeout (tL2C_CCB *p_ccb)
     }
 }
 /*******************************************************************************
-**
-** Function         l2c_fcr_adj_our_rsp_options
-**
-** Description      Overrides any neccesary FCR options passed in from
-**                  L2CA_ConfigRsp based on our FCR options.
-**                  Only makes adjustments if channel is in ERTM mode.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_adj_our_rsp_options
+ *
+ * Description      Overrides any neccesary FCR options passed in from
+ *                  L2CA_ConfigRsp based on our FCR options.
+ *                  Only makes adjustments if channel is in ERTM mode.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     assert(p_ccb != NULL);
@@ -2163,17 +2163,17 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_renegotiate_chan
-**
-** Description      Called upon unsuccessful peer response to config request.
-**                  If the error is because of the channel mode, it will try
-**                  to resend using another supported optional channel.
-**
-** Returns          true if resent configuration, False if channel matches or
-**                  cannot match.
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_renegotiate_chan
+ *
+ * Description      Called upon unsuccessful peer response to config request.
+ *                  If the error is because of the channel mode, it will try
+ *                  to resend using another supported optional channel.
+ *
+ * Returns          true if resent configuration, False if channel matches or
+ *                  cannot match.
+ *
+ ******************************************************************************/
 bool    l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     assert(p_ccb != NULL);
@@ -2274,16 +2274,16 @@ bool    l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
 
 /*******************************************************************************
-**
-** Function         l2c_fcr_process_peer_cfg_req
-**
-** Description      This function is called to process the FCR options passed
-**                  in the peer's configuration request.
-**
-** Returns          uint8_t - L2CAP_PEER_CFG_OK, L2CAP_PEER_CFG_UNACCEPTABLE,
-**                          or L2CAP_PEER_CFG_DISCONNECT.
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_process_peer_cfg_req
+ *
+ * Description      This function is called to process the FCR options passed
+ *                  in the peer's configuration request.
+ *
+ * Returns          uint8_t - L2CAP_PEER_CFG_OK, L2CAP_PEER_CFG_UNACCEPTABLE,
+ *                          or L2CAP_PEER_CFG_DISCONNECT.
+ *
+ ******************************************************************************/
 uint8_t l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 {
     assert(p_ccb != NULL);
@@ -2406,17 +2406,17 @@ uint8_t l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
 #if (L2CAP_ERTM_STATS == TRUE)
 /*******************************************************************************
-**
-** Function         l2c_fcr_collect_ack_delay
-**
-** Description      collect throughput, delay, queue size of waiting ack
-**
-** Parameters
-**                  tL2C_CCB
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_fcr_collect_ack_delay
+ *
+ * Description      collect throughput, delay, queue size of waiting ack
+ *
+ * Parameters
+ *                  tL2C_CCB
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, uint8_t num_bufs_acked)
 {
     uint32_t index;

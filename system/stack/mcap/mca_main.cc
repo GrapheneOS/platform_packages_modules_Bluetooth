@@ -36,8 +36,8 @@
 tMCA_CB mca_cb;
 
 /*****************************************************************************
-** constants
-*****************************************************************************/
+ * constants
+ ****************************************************************************/
 
 /* table of standard opcode message size */
 const uint8_t mca_std_msg_len[MCA_NUM_STANDARD_OPCODE] = {
@@ -54,15 +54,15 @@ const uint8_t mca_std_msg_len[MCA_NUM_STANDARD_OPCODE] = {
 
 
 /*******************************************************************************
-**
-** Function         mca_handle_by_cpsm
-**
-** Description      This function returns the handle for the given control
-**                  channel PSM. 0, if not found.
-**
-** Returns          the MCA handle.
-**
-*******************************************************************************/
+ *
+ * Function         mca_handle_by_cpsm
+ *
+ * Description      This function returns the handle for the given control
+ *                  channel PSM. 0, if not found.
+ *
+ * Returns          the MCA handle.
+ *
+ ******************************************************************************/
 tMCA_HANDLE mca_handle_by_cpsm(uint16_t psm)
 {
     int     i;
@@ -81,15 +81,15 @@ tMCA_HANDLE mca_handle_by_cpsm(uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         mca_handle_by_dpsm
-**
-** Description      This function returns the handle for the given data
-**                  channel PSM. 0, if not found.
-**
-** Returns          the MCA handle.
-**
-*******************************************************************************/
+ *
+ * Function         mca_handle_by_dpsm
+ *
+ * Description      This function returns the handle for the given data
+ *                  channel PSM. 0, if not found.
+ *
+ * Returns          the MCA handle.
+ *
+ ******************************************************************************/
 tMCA_HANDLE mca_handle_by_dpsm(uint16_t psm)
 {
     int     i;
@@ -108,15 +108,15 @@ tMCA_HANDLE mca_handle_by_dpsm(uint16_t psm)
 }
 
 /*******************************************************************************
-**
-** Function         mca_tc_tbl_calloc
-**
-** Description      This function allocates a transport table for the given
-**                  control channel.
-**
-** Returns          The tranport table.
-**
-*******************************************************************************/
+ *
+ * Function         mca_tc_tbl_calloc
+ *
+ * Description      This function allocates a transport table for the given
+ *                  control channel.
+ *
+ * Returns          The tranport table.
+ *
+ ******************************************************************************/
 tMCA_TC_TBL * mca_tc_tbl_calloc(tMCA_CCB *p_ccb)
 {
     tMCA_TC_TBL *p_tbl = mca_cb.tc.tc_tbl;
@@ -149,15 +149,15 @@ tMCA_TC_TBL * mca_tc_tbl_calloc(tMCA_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         mca_tc_tbl_dalloc
-**
-** Description      This function allocates a transport table for the given
-**                  data channel.
-**
-** Returns          The tranport table.
-**
-*******************************************************************************/
+ *
+ * Function         mca_tc_tbl_dalloc
+ *
+ * Description      This function allocates a transport table for the given
+ *                  data channel.
+ *
+ * Returns          The tranport table.
+ *
+ ******************************************************************************/
 tMCA_TC_TBL * mca_tc_tbl_dalloc(tMCA_DCB *p_dcb)
 {
     tMCA_TC_TBL *p_tbl = mca_cb.tc.tc_tbl;
@@ -190,15 +190,15 @@ tMCA_TC_TBL * mca_tc_tbl_dalloc(tMCA_DCB *p_dcb)
 }
 
 /*******************************************************************************
-**
-** Function         mca_tc_tbl_by_lcid
-**
-** Description      Find the transport channel table entry by LCID.
-**
-**
-** Returns          The tranport table.
-**
-*******************************************************************************/
+ *
+ * Function         mca_tc_tbl_by_lcid
+ *
+ * Description      Find the transport channel table entry by LCID.
+ *
+ *
+ * Returns          The tranport table.
+ *
+ ******************************************************************************/
 tMCA_TC_TBL *mca_tc_tbl_by_lcid(uint16_t lcid)
 {
     uint8_t idx;
@@ -216,15 +216,15 @@ tMCA_TC_TBL *mca_tc_tbl_by_lcid(uint16_t lcid)
 }
 
 /*******************************************************************************
-**
-** Function         mca_free_tc_tbl_by_lcid
-**
-** Description      Find the  transport table entry by LCID
-**                  and free the tc_tbl
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_free_tc_tbl_by_lcid
+ *
+ * Description      Find the  transport table entry by LCID
+ *                  and free the tc_tbl
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_free_tc_tbl_by_lcid(uint16_t lcid)
 {
     uint8_t idx;
@@ -242,14 +242,14 @@ void mca_free_tc_tbl_by_lcid(uint16_t lcid)
 
 
 /*******************************************************************************
-**
-** Function         mca_set_cfg_by_tbl
-**
-** Description      Set the L2CAP configuration information
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         mca_set_cfg_by_tbl
+ *
+ * Description      Set the L2CAP configuration information
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 void mca_set_cfg_by_tbl(tL2CAP_CFG_INFO *p_cfg, tMCA_TC_TBL *p_tbl)
 {
     tMCA_DCB   *p_dcb;
@@ -282,18 +282,18 @@ void mca_set_cfg_by_tbl(tL2CAP_CFG_INFO *p_cfg, tMCA_TC_TBL *p_tbl)
 }
 
 /*******************************************************************************
-**
-** Function         mca_tc_close_ind
-**
-** Description      This function is called by the L2CAP interface when the
-**                  L2CAP channel is closed.  It looks up the CCB or DCB for
-**                  the channel and sends it a close event.  The reason
-**                  parameter is the same value passed by the L2CAP
-**                  callback function.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         mca_tc_close_ind
+ *
+ * Description      This function is called by the L2CAP interface when the
+ *                  L2CAP channel is closed.  It looks up the CCB or DCB for
+ *                  the channel and sends it a close event.  The reason
+ *                  parameter is the same value passed by the L2CAP
+ *                  callback function.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void mca_tc_close_ind(tMCA_TC_TBL *p_tbl, uint16_t reason)
 {
     tMCA_CCB   *p_ccb;
@@ -337,16 +337,16 @@ void mca_tc_close_ind(tMCA_TC_TBL *p_tbl, uint16_t reason)
 }
 
 /*******************************************************************************
-**
-** Function         mca_tc_open_ind
-**
-** Description      This function is called by the L2CAP interface when
-**                  the L2CAP channel is opened.  It looks up the CCB or DCB
-**                  for the channel and sends it an open event.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         mca_tc_open_ind
+ *
+ * Description      This function is called by the L2CAP interface when
+ *                  the L2CAP channel is opened.  It looks up the CCB or DCB
+ *                  for the channel and sends it an open event.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void mca_tc_open_ind(tMCA_TC_TBL *p_tbl)
 {
     tMCA_CCB   *p_ccb;
@@ -389,19 +389,19 @@ void mca_tc_open_ind(tMCA_TC_TBL *p_tbl)
 
 
 /*******************************************************************************
-**
-** Function         mca_tc_cong_ind
-**
-** Description      This function is called by the L2CAP interface layer when
-**                  L2CAP calls the congestion callback.  It looks up the CCB
-**                  or DCB for the channel and sends it a congestion event.
-**                  The is_congested parameter is the same value passed by
-**                  the L2CAP callback function.
-**
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         mca_tc_cong_ind
+ *
+ * Description      This function is called by the L2CAP interface layer when
+ *                  L2CAP calls the congestion callback.  It looks up the CCB
+ *                  or DCB for the channel and sends it a congestion event.
+ *                  The is_congested parameter is the same value passed by
+ *                  the L2CAP callback function.
+ *
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void mca_tc_cong_ind(tMCA_TC_TBL *p_tbl, bool    is_congested)
 {
     tMCA_CCB   *p_ccb;
@@ -429,16 +429,16 @@ void mca_tc_cong_ind(tMCA_TC_TBL *p_tbl, bool    is_congested)
 
 
 /*******************************************************************************
-**
-** Function         mca_tc_data_ind
-**
-** Description      This function is called by the L2CAP interface layer when
-**                  incoming data is received from L2CAP.  It looks up the CCB
-**                  or DCB for the channel and routes the data accordingly.
-**
-** Returns          Nothing.
-**
-*******************************************************************************/
+ *
+ * Function         mca_tc_data_ind
+ *
+ * Description      This function is called by the L2CAP interface layer when
+ *                  incoming data is received from L2CAP.  It looks up the CCB
+ *                  or DCB for the channel and routes the data accordingly.
+ *
+ * Returns          Nothing.
+ *
+ ******************************************************************************/
 void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
 {
     tMCA_CCB   *p_ccb;
@@ -504,15 +504,15 @@ void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         mca_rcb_alloc
-**
-** Description      This function allocates a registration control block.
-**                  If no free RCB is available, it returns NULL.
-**
-** Returns          tMCA_RCB *
-**
-*******************************************************************************/
+ *
+ * Function         mca_rcb_alloc
+ *
+ * Description      This function allocates a registration control block.
+ *                  If no free RCB is available, it returns NULL.
+ *
+ * Returns          tMCA_RCB *
+ *
+ ******************************************************************************/
 tMCA_RCB * mca_rcb_alloc(tMCA_REG *p_reg)
 {
     int     i;
@@ -531,14 +531,14 @@ tMCA_RCB * mca_rcb_alloc(tMCA_REG *p_reg)
 }
 
 /*******************************************************************************
-**
-** Function         mca_rcb_dealloc
-**
-** Description      This function deallocates the RCB with the given handle.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_rcb_dealloc
+ *
+ * Description      This function deallocates the RCB with the given handle.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_rcb_dealloc(tMCA_HANDLE handle)
 {
     int      i;
@@ -573,31 +573,31 @@ void mca_rcb_dealloc(tMCA_HANDLE handle)
 }
 
 /*******************************************************************************
-**
-** Function         mca_rcb_to_handle
-**
-** Description      This function converts a pointer to an RCB to
-**                  a handle (tMCA_HANDLE).  It returns the handle.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_rcb_to_handle
+ *
+ * Description      This function converts a pointer to an RCB to
+ *                  a handle (tMCA_HANDLE).  It returns the handle.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 tMCA_HANDLE mca_rcb_to_handle(tMCA_RCB *p_rcb)
 {
     return(uint8_t) (p_rcb - mca_cb.rcb + 1);
 }
 
 /*******************************************************************************
-**
-** Function         mca_rcb_by_handle
-**
-** Description      This function finds the RCB for a handle (tMCA_HANDLE).
-**                  It returns a pointer to the RCB.  If no RCB matches the
-**                  handle it returns NULL.
-**
-** Returns          tMCA_RCB *
-**
-*******************************************************************************/
+ *
+ * Function         mca_rcb_by_handle
+ *
+ * Description      This function finds the RCB for a handle (tMCA_HANDLE).
+ *                  It returns a pointer to the RCB.  If no RCB matches the
+ *                  handle it returns NULL.
+ *
+ * Returns          tMCA_RCB *
+ *
+ ******************************************************************************/
 tMCA_RCB *mca_rcb_by_handle(tMCA_HANDLE handle)
 {
     tMCA_RCB *p_rcb = NULL;
@@ -610,14 +610,14 @@ tMCA_RCB *mca_rcb_by_handle(tMCA_HANDLE handle)
 }
 
 /*******************************************************************************
-**
-** Function         mca_is_valid_dep_id
-**
-** Description      This function checks if the given dep_id is valid.
-**
-** Returns          true, if this is a valid local dep_id
-**
-*******************************************************************************/
+ *
+ * Function         mca_is_valid_dep_id
+ *
+ * Description      This function checks if the given dep_id is valid.
+ *
+ * Returns          true, if this is a valid local dep_id
+ *
+ ******************************************************************************/
 bool    mca_is_valid_dep_id(tMCA_RCB *p_rcb, tMCA_DEP dep)
 {
     bool    valid = false;

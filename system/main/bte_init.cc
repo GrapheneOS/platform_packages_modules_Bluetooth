@@ -63,32 +63,32 @@
 #include "smp_api.h"
 
 /*****************************************************************************
-**                          F U N C T I O N S                                *
-******************************************************************************/
+ *                          F U N C T I O N S                                *
+ *****************************************************************************/
 
 /*****************************************************************************
-**
-** Function         BTE_InitStack
-**
-** Description      Initialize control block memory for each component.
-**
-**                  Note: The core stack components must be called
-**                      before creating the BTU Task.  The rest of the
-**                      components can be initialized at a later time if desired
-**                      as long as the component's init function is called
-**                      before accessing any of its functions.
-**
-** Returns          void
-**
-******************************************************************************/
+ *
+ * Function         BTE_InitStack
+ *
+ * Description      Initialize control block memory for each component.
+ *
+ *                  Note: The core stack components must be called
+ *                      before creating the BTU Task.  The rest of the
+ *                      components can be initialized at a later time if desired
+ *                      as long as the component's init function is called
+ *                      before accessing any of its functions.
+ *
+ * Returns          void
+ *
+ *****************************************************************************/
 void BTE_InitStack(void)
 {
 /* Initialize the optional stack components */
     RFCOMM_Init();
 
 /**************************
-** BNEP and its profiles **
-***************************/
+ * BNEP and its profiles **
+ **************************/
 #if (BNEP_INCLUDED == TRUE)
     BNEP_Init();
 
@@ -99,8 +99,8 @@ void BTE_InitStack(void)
 
 
 /**************************
-** AVDT and its profiles **
-***************************/
+ * AVDT and its profiles **
+ **************************/
 #if (A2D_INCLUDED == TRUE)
     A2DP_Init();
 #endif  /* AADP */
@@ -110,8 +110,8 @@ void BTE_InitStack(void)
 
 
 /***********
-** Others **
-************/
+ * Others **
+ ***********/
     GAP_Init();
 
 #if (HID_HOST_INCLUDED == TRUE)

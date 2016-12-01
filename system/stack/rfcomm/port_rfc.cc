@@ -38,7 +38,7 @@
 #include "rfcdefs.h"
 
 /*
-** Local function definitions
+ * Local function definitions
 */
 uint32_t port_rfc_send_tx_data (tPORT *p_port);
 void   port_rfc_closed (tPORT *p_port, uint8_t res);
@@ -46,15 +46,15 @@ void   port_get_credits (tPORT *p_port, uint8_t k);
 
 
 /*******************************************************************************
-**
-** Function         port_open_continue
-**
-** Description      This function is called after security manager completes
-**                  required security checks.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         port_open_continue
+ *
+ * Description      This function is called after security manager completes
+ *                  required security checks.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 int port_open_continue (tPORT *p_port)
 {
     tRFC_MCB *p_mcb;
@@ -100,15 +100,15 @@ int port_open_continue (tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         port_start_control
-**
-** Description      This function is called in the BTU_TASK context to
-**                  send control information
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         port_start_control
+ *
+ * Description      This function is called in the BTU_TASK context to
+ *                  send control information
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void port_start_control (tPORT *p_port)
 {
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
@@ -121,15 +121,15 @@ void port_start_control (tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         port_start_par_neg
-**
-** Description      This function is called in the BTU_TASK context to
-**                  send configuration information
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         port_start_par_neg
+ *
+ * Description      This function is called in the BTU_TASK context to
+ *                  send configuration information
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void port_start_par_neg (tPORT *p_port)
 {
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
@@ -142,15 +142,15 @@ void port_start_par_neg (tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         port_start_close
-**
-** Description      This function is called in the BTU_TASK context to
-**                  release DLC
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         port_start_close
+ *
+ * Description      This function is called in the BTU_TASK context to
+ *                  release DLC
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void port_start_close (tPORT *p_port)
 {
     tRFC_MCB *p_mcb = p_port->rfc.p_mcb;
@@ -192,15 +192,15 @@ void port_start_close (tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         PORT_StartCnf
-**
-** Description      This function is called from the RFCOMM layer when
-**                  establishing of the multiplexer channel is completed.
-**                  Continue establishing of the connection for all ports that
-**                  are in the OPENING state
-**
-*******************************************************************************/
+ *
+ * Function         PORT_StartCnf
+ *
+ * Description      This function is called from the RFCOMM layer when
+ *                  establishing of the multiplexer channel is completed.
+ *                  Continue establishing of the connection for all ports that
+ *                  are in the OPENING state
+ *
+ ******************************************************************************/
 void PORT_StartCnf (tRFC_MCB *p_mcb, uint16_t result)
 {
     tPORT   *p_port;
@@ -253,15 +253,15 @@ void PORT_StartCnf (tRFC_MCB *p_mcb, uint16_t result)
 
 
 /*******************************************************************************
-**
-** Function         PORT_StartInd
-**
-** Description      This function is called from the RFCOMM layer when
-**                  some peer device wants to establish a multiplexer
-**                  connection.  Check if there are any ports open with this
-**                  or not assigned multiplexer.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_StartInd
+ *
+ * Description      This function is called from the RFCOMM layer when
+ *                  some peer device wants to establish a multiplexer
+ *                  connection.  Check if there are any ports open with this
+ *                  or not assigned multiplexer.
+ *
+ ******************************************************************************/
 void PORT_StartInd (tRFC_MCB *p_mcb)
 {
     tPORT *p_port;
@@ -285,15 +285,15 @@ void PORT_StartInd (tRFC_MCB *p_mcb)
 
 
 /*******************************************************************************
-**
-** Function         PORT_ParNegInd
-**
-** Description      This function is called from the RFCOMM layer to change
-**                  DLCI parameters (currently only MTU is negotiated).
-**                  If can not find the port do not accept the request.
-**                  Otherwise save the MTU size supported by the peer.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_ParNegInd
+ *
+ * Description      This function is called from the RFCOMM layer to change
+ *                  DLCI parameters (currently only MTU is negotiated).
+ *                  If can not find the port do not accept the request.
+ *                  Otherwise save the MTU size supported by the peer.
+ *
+ ******************************************************************************/
 void PORT_ParNegInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -375,16 +375,16 @@ void PORT_ParNegInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, ui
 
 
 /*******************************************************************************
-**
-** Function         PORT_ParNegCnf
-**
-** Description      This function is called from the RFCOMM layer to change
-**                  DLCI parameters (currently only MTU is negotiated).
-**                  Save the MTU size supported by the peer.
-**                  If the confirmation is received during the port opening
-**                  procedure send EstablishRequest to continue.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_ParNegCnf
+ *
+ * Description      This function is called from the RFCOMM layer to change
+ *                  DLCI parameters (currently only MTU is negotiated).
+ *                  Save the MTU size supported by the peer.
+ *                  If the confirmation is received during the port opening
+ *                  procedure send EstablishRequest to continue.
+ *
+ ******************************************************************************/
 void PORT_ParNegCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k)
 {
     tPORT   *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -434,18 +434,18 @@ void PORT_ParNegCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, ui
 
 
 /*******************************************************************************
-**
-** Function         PORT_DlcEstablishInd
-**
-** Description      This function is called from the RFCOMM layer when peer
-**                  device wants to establish a new DLC.  If this is not the
-**                  first message in the establishment procedure port_handle
-**                  has a handle to the port control block otherwise the control
-**                  block should be found based on the muliplexer channel and
-**                  dlci.  The block should be allocated allocated before
-**                  meaning that application already made open.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_DlcEstablishInd
+ *
+ * Description      This function is called from the RFCOMM layer when peer
+ *                  device wants to establish a new DLC.  If this is not the
+ *                  first message in the establishment procedure port_handle
+ *                  has a handle to the port control block otherwise the control
+ *                  block should be found based on the muliplexer channel and
+ *                  dlci.  The block should be allocated allocated before
+ *                  meaning that application already made open.
+ *
+ ******************************************************************************/
 void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
 {
     tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -489,15 +489,15 @@ void PORT_DlcEstablishInd (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
 
 
 /*******************************************************************************
-**
-** Function         PORT_DlcEstablishCnf
-**
-** Description      This function is called from the RFCOMM layer when peer
-**                  acknowledges establish procedure (SABME/UA).  Send reply
-**                  to the user and set state to OPENED if result was
-**                  successfull.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_DlcEstablishCnf
+ *
+ * Description      This function is called from the RFCOMM layer when peer
+ *                  acknowledges establish procedure (SABME/UA).  Send reply
+ *                  to the user and set state to OPENED if result was
+ *                  successfull.
+ *
+ ******************************************************************************/
 void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint16_t result)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -539,16 +539,16 @@ void PORT_DlcEstablishCnf (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint16_t
 
 
 /*******************************************************************************
-**
-** Function         PORT_PortNegInd
-**
-** Description      This function is called from the RFCOMM layer when peer
-**                  device wants to set parameters of the port.  As per the spec
-**                  this message has to be sent before the first data packet
-**                  and can be sent before establish.  The block should be
-**                  allocated before meaning that application already made open.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_PortNegInd
+ *
+ * Description      This function is called from the RFCOMM layer when peer
+ *                  device wants to set parameters of the port.  As per the spec
+ *                  this message has to be sent before the first data packet
+ *                  and can be sent before establish.  The block should be
+ *                  allocated before meaning that application already made open.
+ *
+ ******************************************************************************/
 void PORT_PortNegInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
                       uint16_t param_mask)
 {
@@ -575,13 +575,13 @@ void PORT_PortNegInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
 
 
 /*******************************************************************************
-**
-** Function         PORT_PortNegCnf
-**
-** Description      This function is called from the RFCOMM layer to change
-**                  state for the port.  Propagate change to the user.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_PortNegCnf
+ *
+ * Description      This function is called from the RFCOMM layer to change
+ *                  state for the port.  Propagate change to the user.
+ *
+ ******************************************************************************/
 void PORT_PortNegCnf (tRFC_MCB *p_mcb, uint8_t dlci,
                       UNUSED_ATTR tPORT_STATE *p_pars, uint16_t result)
 {
@@ -617,13 +617,13 @@ void PORT_PortNegCnf (tRFC_MCB *p_mcb, uint8_t dlci,
 
 
 /*******************************************************************************
-**
-** Function         PORT_ControlInd
-**
-** Description      This function is called from the RFCOMM layer on the modem
-**                  signal change.  Propagate change to the user.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_ControlInd
+ *
+ * Description      This function is called from the RFCOMM layer on the modem
+ *                  signal change.  Propagate change to the user.
+ *
+ ******************************************************************************/
 void PORT_ControlInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -676,13 +676,13 @@ void PORT_ControlInd (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
 
 
 /*******************************************************************************
-**
-** Function         PORT_ControlCnf
-**
-** Description      This function is called from the RFCOMM layer when
-**                  peer acknowleges change of the modem signals.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_ControlCnf
+ *
+ * Description      This function is called from the RFCOMM layer when
+ *                  peer acknowleges change of the modem signals.
+ *
+ ******************************************************************************/
 void PORT_ControlCnf (tRFC_MCB *p_mcb, uint8_t dlci,
                       UNUSED_ATTR tPORT_CTRL *p_pars)
 {
@@ -714,13 +714,13 @@ void PORT_ControlCnf (tRFC_MCB *p_mcb, uint8_t dlci,
 
 
 /*******************************************************************************
-**
-** Function         PORT_LineStatusInd
-**
-** Description      This function is called from the RFCOMM layer when
-**                  peer indicates change in the line status
-**
-*******************************************************************************/
+ *
+ * Function         PORT_LineStatusInd
+ *
+ * Description      This function is called from the RFCOMM layer when
+ *                  peer indicates change in the line status
+ *
+ ******************************************************************************/
 void PORT_LineStatusInd (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t line_status)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -748,13 +748,13 @@ void PORT_LineStatusInd (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t line_status)
 
 
 /*******************************************************************************
-**
-** Function         PORT_DlcReleaseInd
-**
-** Description      This function is called from the RFCOMM layer when
-**                  DLC connection is released.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_DlcReleaseInd
+ *
+ * Description      This function is called from the RFCOMM layer when
+ *                  DLC connection is released.
+ *
+ ******************************************************************************/
 void PORT_DlcReleaseInd (tRFC_MCB *p_mcb, uint8_t dlci)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -769,13 +769,13 @@ void PORT_DlcReleaseInd (tRFC_MCB *p_mcb, uint8_t dlci)
 
 
 /*******************************************************************************
-**
-** Function         PORT_CloseInd
-**
-** Description      This function is called from the RFCOMM layer when
-**                  multiplexer connection is released.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_CloseInd
+ *
+ * Description      This function is called from the RFCOMM layer when
+ *                  multiplexer connection is released.
+ *
+ ******************************************************************************/
 void PORT_CloseInd (tRFC_MCB *p_mcb)
 {
     tPORT  *p_port;
@@ -795,13 +795,13 @@ void PORT_CloseInd (tRFC_MCB *p_mcb)
 }
 
 /*******************************************************************************
-**
-** Function         Port_TimeOutCloseMux
-**
-** Description      This function is called when RFCOMM timesout on a command
-**                  as a result multiplexer connection is closed.
-**
-*******************************************************************************/
+ *
+ * Function         Port_TimeOutCloseMux
+ *
+ * Description      This function is called when RFCOMM timesout on a command
+ *                  as a result multiplexer connection is closed.
+ *
+ ******************************************************************************/
 void Port_TimeOutCloseMux (tRFC_MCB *p_mcb)
 {
     tPORT  *p_port;
@@ -821,13 +821,13 @@ void Port_TimeOutCloseMux (tRFC_MCB *p_mcb)
 
 
 /*******************************************************************************
-**
-** Function         PORT_DataInd
-**
-** Description      This function is called from the RFCOMM layer when data
-**                  buffer is received from the peer.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_DataInd
+ *
+ * Description      This function is called from the RFCOMM layer when data
+ *                  buffer is received from the peer.
+ *
+ ******************************************************************************/
 void PORT_DataInd (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
 {
     tPORT  *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
@@ -922,13 +922,13 @@ void PORT_DataInd (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         PORT_FlowInd
-**
-** Description      This function is called from the RFCOMM layer on the flow
-**                  control signal change.  Propagate change to the user.
-**
-*******************************************************************************/
+ *
+ * Function         PORT_FlowInd
+ *
+ * Description      This function is called from the RFCOMM layer on the flow
+ *                  control signal change.  Propagate change to the user.
+ *
+ ******************************************************************************/
 void PORT_FlowInd (tRFC_MCB *p_mcb, uint8_t dlci, bool    enable_data)
 {
     tPORT  *p_port = (tPORT *)NULL;
@@ -984,12 +984,12 @@ void PORT_FlowInd (tRFC_MCB *p_mcb, uint8_t dlci, bool    enable_data)
 
 
 /*******************************************************************************
-**
-** Function         port_rfc_send_tx_data
-**
-** Description      This function is when forward data can be sent to the peer
-**
-*******************************************************************************/
+ *
+ * Function         port_rfc_send_tx_data
+ *
+ * Description      This function is when forward data can be sent to the peer
+ *
+ ******************************************************************************/
 uint32_t port_rfc_send_tx_data (tPORT *p_port)
 {
     uint32_t events = 0;
@@ -1040,12 +1040,12 @@ uint32_t port_rfc_send_tx_data (tPORT *p_port)
 
 
 /*******************************************************************************
-**
-** Function         port_rfc_closed
-**
-** Description      This function when RFCOMM side of port is closed
-**
-*******************************************************************************/
+ *
+ * Function         port_rfc_closed
+ *
+ * Description      This function when RFCOMM side of port is closed
+ *
+ ******************************************************************************/
 void port_rfc_closed (tPORT *p_port, uint8_t res)
 {
     uint8_t   old_signals;
@@ -1108,15 +1108,15 @@ void port_rfc_closed (tPORT *p_port, uint8_t res)
 
 
 /*******************************************************************************
-**
-** Function         port_get_credits
-**
-** Description      Set initial values for credits.
-**                  Adjust max number of rx credits based on negotiated MTU.
-**                  Check max allowed num of bytes, max allowed num buffers,
-**                  should be less then 255
-**
-*******************************************************************************/
+ *
+ * Function         port_get_credits
+ *
+ * Description      Set initial values for credits.
+ *                  Adjust max number of rx credits based on negotiated MTU.
+ *                  Check max allowed num of bytes, max allowed num buffers,
+ *                  should be less then 255
+ *
+ ******************************************************************************/
 void port_get_credits (tPORT *p_port, uint8_t k)
 {
     p_port->credit_tx = k;

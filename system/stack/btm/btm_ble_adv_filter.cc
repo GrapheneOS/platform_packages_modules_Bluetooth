@@ -70,16 +70,16 @@ static uint8_t btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
 #define BTM_BLE_ADV_FILT_SUBCODE_MASK      0x0F
 
 /*******************************************************************************
-**
-** Function         btm_ble_obtain_vsc_details
-**
-** Description      This function obtains the VSC details
-**
-** Parameters
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_obtain_vsc_details
+ *
+ * Description      This function obtains the VSC details
+ *
+ * Parameters
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_obtain_vsc_details()
 {
     tBTM_STATUS st = BTM_SUCCESS;
@@ -98,15 +98,15 @@ tBTM_STATUS btm_ble_obtain_vsc_details()
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_advfilt_enq_op_q
-**
-** Description      enqueue an adv filter operation in q to check command complete
-**                  status
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_advfilt_enq_op_q
+ *
+ * Description      enqueue an adv filter operation in q to check command complete
+ *                  status
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_advfilt_enq_op_q(uint8_t action, uint8_t ocf, tBTM_BLE_FILT_CB_EVT cb_evt,
                               tBTM_BLE_REF_VALUE ref, tBTM_BLE_PF_CFG_CBACK *p_cmpl_cback,
                               tBTM_BLE_PF_PARAM_CBACK  *p_filt_param_cback)
@@ -125,15 +125,15 @@ void btm_ble_advfilt_enq_op_q(uint8_t action, uint8_t ocf, tBTM_BLE_FILT_CB_EVT 
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_advfilt_deq_op_q
-**
-** Description      dequeue an adv filter operation from q when command complete
-**                  is received
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_advfilt_deq_op_q
+ *
+ * Description      dequeue an adv filter operation from q when command complete
+ *                  is received
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_ble_advfilt_deq_op_q(uint8_t *p_action,uint8_t *p_ocf, tBTM_BLE_FILT_CB_EVT *p_cb_evt,
                               tBTM_BLE_REF_VALUE *p_ref, tBTM_BLE_PF_CFG_CBACK ** p_cmpl_cback,
                               tBTM_BLE_PF_PARAM_CBACK  **p_filt_param_cback)
@@ -154,14 +154,14 @@ void btm_ble_advfilt_deq_op_q(uint8_t *p_action,uint8_t *p_ocf, tBTM_BLE_FILT_CB
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_condtype_to_ocf
-**
-** Description      Convert cond_type to OCF
-**
-** Returns          Returns ocf value
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_condtype_to_ocf
+ *
+ * Description      Convert cond_type to OCF
+ *
+ * Returns          Returns ocf value
+ *
+ ******************************************************************************/
 uint8_t btm_ble_condtype_to_ocf(uint8_t cond_type)
 {
     uint8_t ocf = 0;
@@ -197,14 +197,14 @@ uint8_t btm_ble_condtype_to_ocf(uint8_t cond_type)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_ocf_to_condtype
-**
-** Description      Convert OCF to cond type
-**
-** Returns          Returns condtype value
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_ocf_to_condtype
+ *
+ * Description      Convert OCF to cond type
+ *
+ * Returns          Returns condtype value
+ *
+ ******************************************************************************/
 uint8_t btm_ble_ocf_to_condtype(uint8_t ocf)
 {
     uint8_t cond_type = 0;
@@ -243,14 +243,14 @@ uint8_t btm_ble_ocf_to_condtype(uint8_t ocf)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_scan_pf_cmpl_cback
-**
-** Description      the BTM BLE customer feature VSC complete callback for ADV PF filtering
-**
-** Returns          pointer to the counter if found; NULL otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_scan_pf_cmpl_cback
+ *
+ * Description      the BTM BLE customer feature VSC complete callback for ADV PF filtering
+ *
+ * Returns          pointer to the counter if found; NULL otherwise.
+ *
+ ******************************************************************************/
 void btm_ble_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
 {
     uint8_t status = 0;
@@ -356,14 +356,14 @@ void btm_ble_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_find_addr_filter_counter
-**
-** Description      find the per bd address ADV payload filter counter by BD_ADDR.
-**
-** Returns          pointer to the counter if found; NULL otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_find_addr_filter_counter
+ *
+ * Description      find the per bd address ADV payload filter counter by BD_ADDR.
+ *
+ * Returns          pointer to the counter if found; NULL otherwise.
+ *
+ ******************************************************************************/
 tBTM_BLE_PF_COUNT* btm_ble_find_addr_filter_counter(tBLE_BD_ADDR *p_le_bda)
 {
     uint8_t             i;
@@ -384,14 +384,14 @@ tBTM_BLE_PF_COUNT* btm_ble_find_addr_filter_counter(tBLE_BD_ADDR *p_le_bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_alloc_addr_filter_counter
-**
-** Description      allocate the per device adv payload filter counter.
-**
-** Returns          pointer to the counter if allocation succeed; NULL otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_alloc_addr_filter_counter
+ *
+ * Description      allocate the per device adv payload filter counter.
+ *
+ * Returns          pointer to the counter if allocation succeed; NULL otherwise.
+ *
+ ******************************************************************************/
 tBTM_BLE_PF_COUNT * btm_ble_alloc_addr_filter_counter(BD_ADDR bd_addr)
 {
     uint8_t             i;
@@ -409,14 +409,14 @@ tBTM_BLE_PF_COUNT * btm_ble_alloc_addr_filter_counter(BD_ADDR bd_addr)
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         btm_ble_dealloc_addr_filter_counter
-**
-** Description      de-allocate the per device adv payload filter counter.
-**
-** Returns          true if deallocation succeed; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_dealloc_addr_filter_counter
+ *
+ * Description      de-allocate the per device adv payload filter counter.
+ *
+ * Returns          true if deallocation succeed; false otherwise.
+ *
+ ******************************************************************************/
 bool    btm_ble_dealloc_addr_filter_counter(tBLE_BD_ADDR *p_bd_addr, uint8_t filter_type)
 {
     uint8_t             i;
@@ -442,16 +442,16 @@ bool    btm_ble_dealloc_addr_filter_counter(tBLE_BD_ADDR *p_bd_addr, uint8_t fil
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_pf_local_name
-**
-** Description      this function update(add,delete or clear) the adv lcoal name filtering condition.
-**
-**
-** Returns          BTM_SUCCESS if sucessful,
-**                  BTM_ILLEGAL_VALUE if paramter is not valid.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_pf_local_name
+ *
+ * Description      this function update(add,delete or clear) the adv lcoal name filtering condition.
+ *
+ *
+ * Returns          BTM_SUCCESS if sucessful,
+ *                  BTM_ILLEGAL_VALUE if paramter is not valid.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
                                          tBTM_BLE_PF_FILT_INDEX filt_index,
                                          tBTM_BLE_PF_COND_PARAM *p_cond)
@@ -491,16 +491,16 @@ tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_srvc_data_change
-**
-** Description      this function update(add/remove) service data change filter.
-**
-**
-** Returns          BTM_SUCCESS if sucessful,
-**                  BTM_ILLEGAL_VALUE if paramter is not valid.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_srvc_data_change
+ *
+ * Description      this function update(add/remove) service data change filter.
+ *
+ *
+ * Returns          BTM_SUCCESS if sucessful,
+ *                  BTM_ILLEGAL_VALUE if paramter is not valid.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_update_srvc_data_change(tBTM_BLE_SCAN_COND_OP action,
                                        tBTM_BLE_PF_FILT_INDEX filt_index,
                                        tBTM_BLE_PF_COND_PARAM *p_cond)
@@ -517,17 +517,17 @@ tBTM_STATUS btm_ble_update_srvc_data_change(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_pf_manu_data
-**
-** Description      this function update(add,delete or clear) the adv manufacturer
-**                  data filtering condition.
-**
-**
-** Returns          BTM_SUCCESS if sucessful,
-**                  BTM_ILLEGAL_VALUE if paramter is not valid.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_pf_manu_data
+ *
+ * Description      this function update(add,delete or clear) the adv manufacturer
+ *                  data filtering condition.
+ *
+ *
+ * Returns          BTM_SUCCESS if sucessful,
+ *                  BTM_ILLEGAL_VALUE if paramter is not valid.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
                                         tBTM_BLE_PF_FILT_INDEX filt_index,
                                         tBTM_BLE_PF_COND_PARAM *p_data,
@@ -632,15 +632,15 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_cs_update_pf_counter
-**
-** Description      this function is to update the adv data payload filter counter
-**
-** Returns          current number of the counter; BTM_BLE_INVALID_COUNTER if
-**                  counter update failed.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_cs_update_pf_counter
+ *
+ * Description      this function is to update the adv data payload filter counter
+ *
+ * Returns          current number of the counter; BTM_BLE_INVALID_COUNTER if
+ *                  counter update failed.
+ *
+ ******************************************************************************/
 uint8_t btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
                                   uint8_t cond_type, tBLE_BD_ADDR *p_bd_addr,
                                   uint8_t num_available)
@@ -700,16 +700,16 @@ uint8_t btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_addr_filter
-**
-** Description      this function update(add,delete or clear) the address filter of adv.
-**
-**
-** Returns          BTM_CMD_STARTED if sucessful,
-**                  BTM_ILLEGAL_VALUE if paramter is not valid.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_addr_filter
+ *
+ * Description      this function update(add,delete or clear) the address filter of adv.
+ *
+ *
+ * Returns          BTM_CMD_STARTED if sucessful,
+ *                  BTM_ILLEGAL_VALUE if paramter is not valid.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
                                        tBTM_BLE_PF_FILT_INDEX filt_index,
                                        tBTM_BLE_PF_COND_PARAM *p_cond)
@@ -745,16 +745,16 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_update_uuid_filter
-**
-** Description      this function update(add,delete or clear) service UUID filter.
-**
-**
-** Returns          BTM_CMD_STARTED if sucessful,
-**                  BTM_ILLEGAL_VALUE if paramter is not valid.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_update_uuid_filter
+ *
+ * Description      this function update(add,delete or clear) service UUID filter.
+ *
+ *
+ * Returns          BTM_CMD_STARTED if sucessful,
+ *                  BTM_ILLEGAL_VALUE if paramter is not valid.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
                                        tBTM_BLE_PF_FILT_INDEX filt_index,
                                        tBTM_BLE_PF_COND_TYPE filter_type,
@@ -884,16 +884,16 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_clear_scan_pf_filter
-**
-** Description      clear all adv payload filter by de-select all the adv pf feature bits
-**
-**
-** Returns          BTM_CMD_STARTED if sucessful,
-**                  BTM_ILLEGAL_VALUE if paramter is not valid.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_clear_scan_pf_filter
+ *
+ * Description      clear all adv payload filter by de-select all the adv pf feature bits
+ *
+ *
+ * Returns          BTM_CMD_STARTED if sucessful,
+ *                  BTM_ILLEGAL_VALUE if paramter is not valid.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
                                        tBTM_BLE_PF_FILT_INDEX filt_index,
                                        tBTM_BLE_PF_COND_PARAM *p_cond,
@@ -988,22 +988,22 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleAdvFilterParamSetup
-**
-** Description      This function is called to setup the adv data payload filter
-**                  condition.
-**
-** Parameters       action - Type of action to be performed
-**                       filt_index - Filter index
-**                       p_filt_params - Filter parameters
-**                       p_target - Target device
-**                       p_cmpl_back - Callback pointer
-**                       ref_value - reference value
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleAdvFilterParamSetup
+ *
+ * Description      This function is called to setup the adv data payload filter
+ *                  condition.
+ *
+ * Parameters       action - Type of action to be performed
+ *                       filt_index - Filter index
+ *                       p_filt_params - Filter parameters
+ *                       p_target - Target device
+ *                       p_cmpl_back - Callback pointer
+ *                       ref_value - reference value
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_index,
                                 tBTM_BLE_PF_FILT_PARAMS *p_filt_params,
                                 tBLE_BD_ADDR *p_target, tBTM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
@@ -1114,18 +1114,18 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleEnableDisableFilterFeature
-**
-** Description      This function is called to enable / disable the APCF feature
-**
-** Parameters  enable the generic scan condition.
-**                  enable: enable or disable the filter condition
-**                  p_stat_cback - Status callback pointer
-**                  ref_value   - Ref value
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleEnableDisableFilterFeature
+ *
+ * Description      This function is called to enable / disable the APCF feature
+ *
+ * Parameters  enable the generic scan condition.
+ *                  enable: enable or disable the filter condition
+ *                  p_stat_cback - Status callback pointer
+ *                  ref_value   - Ref value
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleEnableDisableFilterFeature(uint8_t enable,
                                      tBTM_BLE_PF_STATUS_CBACK *p_stat_cback,
                                      tBTM_BLE_REF_VALUE ref_value)
@@ -1155,22 +1155,22 @@ tBTM_STATUS BTM_BleEnableDisableFilterFeature(uint8_t enable,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_BleCfgFilterCondition
-**
-** Description      This function is called to configure the adv data payload filter
-**                  condition.
-**
-** Parameters       action: to read/write/clear
-**                  cond_type: filter condition type.
-**                  filt_index - Filter index
-**                  p_cond: filter condition parameter
-**                  p_cmpl_cback  - Config callback pointer
-**                  ref_value - Reference value
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_BleCfgFilterCondition
+ *
+ * Description      This function is called to configure the adv data payload filter
+ *                  condition.
+ *
+ * Parameters       action: to read/write/clear
+ *                  cond_type: filter condition type.
+ *                  filt_index - Filter index
+ *                  p_cond: filter condition parameter
+ *                  p_cmpl_cback  - Config callback pointer
+ *                  ref_value - Reference value
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
                                       tBTM_BLE_PF_COND_TYPE cond_type,
                                       tBTM_BLE_PF_FILT_INDEX filt_index,
@@ -1240,16 +1240,16 @@ tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_adv_filter_init
-**
-** Description      This function initializes the adv filter control block
-**
-** Parameters
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_adv_filter_init
+ *
+ * Description      This function initializes the adv filter control block
+ *
+ * Parameters
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 void btm_ble_adv_filter_init(void)
 {
     memset(&btm_ble_adv_filt_cb, 0, sizeof(tBTM_BLE_ADV_FILTER_CB));
@@ -1264,16 +1264,16 @@ void btm_ble_adv_filter_init(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_ble_adv_filter_cleanup
-**
-** Description      This function de-initializes the adv filter control block
-**
-** Parameters
-**
-** Returns          status
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_adv_filter_cleanup
+ *
+ * Description      This function de-initializes the adv filter control block
+ *
+ * Parameters
+ *
+ * Returns          status
+ *
+ ******************************************************************************/
 void btm_ble_adv_filter_cleanup(void)
 {
     osi_free_and_reset((void **)&btm_ble_adv_filt_cb.p_addr_filter_count);

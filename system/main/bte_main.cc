@@ -56,8 +56,8 @@
 #include "stack_config.h"
 
 /*******************************************************************************
-**  Constants & Macros
-*******************************************************************************/
+ *  Constants & Macros
+ ******************************************************************************/
 
 /* Run-time configuration file for BLE*/
 #ifndef BTE_BLE_STACK_CONF_FILE
@@ -70,32 +70,32 @@
 #endif  // BT_BLE_STACK_CONF_FILE
 
 /******************************************************************************
-**  Variables
-******************************************************************************/
+ *  Variables
+ *****************************************************************************/
 
 /*******************************************************************************
-**  Static variables
-*******************************************************************************/
+ *  Static variables
+ ******************************************************************************/
 static const hci_t *hci;
 
 /*******************************************************************************
-**  Static functions
-*******************************************************************************/
+ *  Static functions
+ ******************************************************************************/
 
 /*******************************************************************************
-**  Externs
-*******************************************************************************/
+ *  Externs
+ ******************************************************************************/
 fixed_queue_t *btu_hci_msg_queue;
 
 /******************************************************************************
-**
-** Function         bte_main_boot_entry
-**
-** Description      BTE MAIN API - Entry point for BTE chip/stack initialization
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_boot_entry
+ *
+ * Description      BTE MAIN API - Entry point for BTE chip/stack initialization
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_boot_entry(void)
 {
     module_init(get_module(INTEROP_MODULE));
@@ -117,14 +117,14 @@ void bte_main_boot_entry(void)
 }
 
 /******************************************************************************
-**
-** Function         bte_main_cleanup
-**
-** Description      BTE MAIN API - Cleanup code for BTE chip/stack
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_cleanup
+ *
+ * Description      BTE MAIN API - Cleanup code for BTE chip/stack
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_cleanup()
 {
     data_dispatcher_register_default(hci_layer_get_interface()->event_dispatcher, NULL);
@@ -139,15 +139,15 @@ void bte_main_cleanup()
 }
 
 /******************************************************************************
-**
-** Function         bte_main_enable
-**
-** Description      BTE MAIN API - Creates all the BTE tasks. Should be called
-**                  part of the Bluetooth stack enable sequence
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_enable
+ *
+ * Description      BTE MAIN API - Creates all the BTE tasks. Should be called
+ *                  part of the Bluetooth stack enable sequence
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_enable()
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -159,15 +159,15 @@ void bte_main_enable()
 }
 
 /******************************************************************************
-**
-** Function         bte_main_disable
-**
-** Description      BTE MAIN API - Destroys all the BTE tasks. Should be called
-**                  part of the Bluetooth stack disable sequence
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_disable
+ *
+ * Description      BTE MAIN API - Destroys all the BTE tasks. Should be called
+ *                  part of the Bluetooth stack disable sequence
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_disable(void)
 {
     APPL_TRACE_DEBUG("%s", __func__);
@@ -179,14 +179,14 @@ void bte_main_disable(void)
 }
 
 /******************************************************************************
-**
-** Function         bte_main_postload_cfg
-**
-** Description      BTE MAIN API - Stack postload configuration
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_postload_cfg
+ *
+ * Description      BTE MAIN API - Stack postload configuration
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_postload_cfg(void)
 {
     hci->do_postload();
@@ -194,42 +194,42 @@ void bte_main_postload_cfg(void)
 
 #if (HCILP_INCLUDED == TRUE)
 /******************************************************************************
-**
-** Function         bte_main_enable_lpm
-**
-** Description      BTE MAIN API - Enable/Disable low power mode operation
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_enable_lpm
+ *
+ * Description      BTE MAIN API - Enable/Disable low power mode operation
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_enable_lpm(bool enable)
 {
     hci->send_low_power_command(enable ? LPM_ENABLE : LPM_DISABLE);
 }
 
 /******************************************************************************
-**
-** Function         bte_main_lpm_allow_bt_device_sleep
-**
-** Description      BTE MAIN API - Allow the BT controller to go to sleep
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_lpm_allow_bt_device_sleep
+ *
+ * Description      BTE MAIN API - Allow the BT controller to go to sleep
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_lpm_allow_bt_device_sleep()
 {
     hci->send_low_power_command(LPM_WAKE_DEASSERT);
 }
 
 /******************************************************************************
-**
-** Function         bte_main_lpm_wake_bt_device
-**
-** Description      BTE MAIN API - Wake BT controller up if it is in sleep mode
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_lpm_wake_bt_device
+ *
+ * Description      BTE MAIN API - Wake BT controller up if it is in sleep mode
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_lpm_wake_bt_device()
 {
     hci->send_low_power_command(LPM_WAKE_ASSERT);
@@ -237,17 +237,17 @@ void bte_main_lpm_wake_bt_device()
 #endif  // HCILP_INCLUDED
 
 /******************************************************************************
-**
-** Function         bte_main_hci_send
-**
-** Description      BTE MAIN API - This function is called by the upper stack to
-**                  send an HCI message. The function displays a protocol trace
-**                  message (if enabled), and then calls the 'transmit' function
-**                  associated with the currently selected HCI transport
-**
-** Returns          None
-**
-******************************************************************************/
+ *
+ * Function         bte_main_hci_send
+ *
+ * Description      BTE MAIN API - This function is called by the upper stack to
+ *                  send an HCI message. The function displays a protocol trace
+ *                  message (if enabled), and then calls the 'transmit' function
+ *                  associated with the currently selected HCI transport
+ *
+ * Returns          None
+ *
+ *****************************************************************************/
 void bte_main_hci_send (BT_HDR *p_msg, uint16_t event)
 {
     uint16_t sub_event = event & BT_SUB_EVT_MASK;  /* local controller ID */

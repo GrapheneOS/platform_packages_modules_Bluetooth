@@ -84,9 +84,9 @@ static bool pts_test_send_authentication_complete_failure(tSMP_CB *p_cb)
 }
 
 /*******************************************************************************
-** Function         smp_update_key_mask
-** Description      This function updates the key mask for sending or receiving.
-*******************************************************************************/
+ * Function         smp_update_key_mask
+ * Description      This function updates the key mask for sending or receiving.
+ ******************************************************************************/
 static void smp_update_key_mask (tSMP_CB *p_cb, uint8_t key_type, bool    recv)
 {
     SMP_TRACE_DEBUG("%s before update role=%d recv=%d local_i_key = %02x, local_r_key = %02x",
@@ -122,9 +122,9 @@ static void smp_update_key_mask (tSMP_CB *p_cb, uint8_t key_type, bool    recv)
 }
 
 /*******************************************************************************
-** Function     smp_send_app_cback
-** Description  notifies application about the events the application is interested in
-*******************************************************************************/
+ * Function     smp_send_app_cback
+ * Description  notifies application about the events the application is interested in
+ ******************************************************************************/
 void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tSMP_EVT_DATA   cb_data;
@@ -248,9 +248,9 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_pair_fail
-** Description  pairing failure to peer device if needed.
-*******************************************************************************/
+ * Function     smp_send_pair_fail
+ * Description  pairing failure to peer device if needed.
+ ******************************************************************************/
 void smp_send_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     p_cb->status = *(uint8_t *)p_data;
@@ -266,9 +266,9 @@ void smp_send_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_pair_req
-** Description  actions related to sending pairing request
-*******************************************************************************/
+ * Function     smp_send_pair_req
+ * Description  actions related to sending pairing request
+ ******************************************************************************/
 void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev (p_cb->pairing_bda);
@@ -283,9 +283,9 @@ void smp_send_pair_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_pair_rsp
-** Description  actions related to sending pairing response
-*******************************************************************************/
+ * Function     smp_send_pair_rsp
+ * Description  actions related to sending pairing response
+ ******************************************************************************/
 void smp_send_pair_rsp(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -303,9 +303,9 @@ void smp_send_pair_rsp(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_confirm
-** Description  send confirmation to the peer
-*******************************************************************************/
+ * Function     smp_send_confirm
+ * Description  send confirmation to the peer
+ ******************************************************************************/
 void smp_send_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -313,9 +313,9 @@ void smp_send_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_init
-** Description  process pairing initializer to slave device
-*******************************************************************************/
+ * Function     smp_send_init
+ * Description  process pairing initializer to slave device
+ ******************************************************************************/
 void smp_send_init(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -323,9 +323,9 @@ void smp_send_init(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_rand
-** Description  send pairing random to the peer
-*******************************************************************************/
+ * Function     smp_send_rand
+ * Description  send pairing random to the peer
+ ******************************************************************************/
 void smp_send_rand(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -333,9 +333,9 @@ void smp_send_rand(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_pair_public_key
-** Description  send pairing public key command to the peer
-*******************************************************************************/
+ * Function     smp_send_pair_public_key
+ * Description  send pairing public key command to the peer
+ ******************************************************************************/
 void smp_send_pair_public_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -343,9 +343,9 @@ void smp_send_pair_public_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     SMP_SEND_COMMITMENT
-** Description send commitment command to the peer
-*******************************************************************************/
+ * Function     SMP_SEND_COMMITMENT
+ * Description send commitment command to the peer
+ ******************************************************************************/
 void smp_send_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -353,9 +353,9 @@ void smp_send_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_dhkey_check
-** Description send DHKey Check command to the peer
-*******************************************************************************/
+ * Function     smp_send_dhkey_check
+ * Description send DHKey Check command to the peer
+ ******************************************************************************/
 void smp_send_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -363,9 +363,9 @@ void smp_send_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_keypress_notification
-** Description send Keypress Notification command to the peer
-*******************************************************************************/
+ * Function     smp_send_keypress_notification
+ * Description send Keypress Notification command to the peer
+ ******************************************************************************/
 void smp_send_keypress_notification(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     p_cb->local_keypress_notification = *(uint8_t *) p_data;
@@ -373,9 +373,9 @@ void smp_send_keypress_notification(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_enc_info
-** Description  send encryption information command.
-*******************************************************************************/
+ * Function     smp_send_enc_info
+ * Description  send encryption information command.
+ ******************************************************************************/
 void smp_send_enc_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_LE_LENC_KEYS   le_key;
@@ -402,9 +402,9 @@ void smp_send_enc_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_id_info
-** Description  send ID information command.
-*******************************************************************************/
+ * Function     smp_send_id_info
+ * Description  send ID information command.
+ ******************************************************************************/
 void smp_send_id_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_LE_KEY_VALUE   le_key;
@@ -423,9 +423,9 @@ void smp_send_id_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_csrk_info
-** Description  send CSRK command.
-*******************************************************************************/
+ * Function     smp_send_csrk_info
+ * Description  send CSRK command.
+ ******************************************************************************/
 void smp_send_csrk_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_LE_LCSRK_KEYS  key;
@@ -445,9 +445,9 @@ void smp_send_csrk_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_send_ltk_reply
-** Description  send LTK reply
-*******************************************************************************/
+ * Function     smp_send_ltk_reply
+ * Description  send LTK reply
+ ******************************************************************************/
 void smp_send_ltk_reply(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -456,9 +456,9 @@ void smp_send_ltk_reply(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_sec_req
-** Description  process security request.
-*******************************************************************************/
+ * Function     smp_proc_sec_req
+ * Description  process security request.
+ ******************************************************************************/
 void smp_proc_sec_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_LE_AUTH_REQ auth_req = *(tBTM_LE_AUTH_REQ *)p_data;
@@ -511,9 +511,9 @@ void smp_proc_sec_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_sec_grant
-** Description  process security grant.
-*******************************************************************************/
+ * Function     smp_proc_sec_grant
+ * Description  process security grant.
+ ******************************************************************************/
 void smp_proc_sec_grant(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t res= *(uint8_t *)p_data;
@@ -530,9 +530,9 @@ void smp_proc_sec_grant(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_pair_fail
-** Description  process pairing failure from peer device
-*******************************************************************************/
+ * Function     smp_proc_pair_fail
+ * Description  process pairing failure from peer device
+ ******************************************************************************/
 void smp_proc_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -543,9 +543,9 @@ void smp_proc_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_pair_cmd
-** Description  Process the SMP pairing request/response from peer device
-*******************************************************************************/
+ * Function     smp_proc_pair_cmd
+ * Description  Process the SMP pairing request/response from peer device
+ ******************************************************************************/
 void smp_proc_pair_cmd(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -642,9 +642,9 @@ void smp_proc_pair_cmd(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_confirm
-** Description  process pairing confirm from peer device
-*******************************************************************************/
+ * Function     smp_proc_confirm
+ * Description  process pairing confirm from peer device
+ ******************************************************************************/
 void smp_proc_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -668,9 +668,9 @@ void smp_proc_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_init
-** Description  process pairing initializer from peer device
-*******************************************************************************/
+ * Function     smp_proc_init
+ * Description  process pairing initializer from peer device
+ ******************************************************************************/
 void smp_proc_init(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -689,9 +689,9 @@ void smp_proc_init(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_rand
-** Description  process pairing random (nonce) from peer device
-*******************************************************************************/
+ * Function     smp_proc_rand
+ * Description  process pairing random (nonce) from peer device
+ ******************************************************************************/
 void smp_proc_rand(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -710,13 +710,13 @@ void smp_proc_rand(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_pairing_public_key
-** Description  process pairing public key command from the peer device
-**              - saves the peer public key;
-**              - sets the flag indicating that the peer public key is received;
-**              - calls smp_wait_for_both_public_keys(...).
-**
-*******************************************************************************/
+ * Function     smp_process_pairing_public_key
+ * Description  process pairing public key command from the peer device
+ *              - saves the peer public key;
+ *              - sets the flag indicating that the peer public key is received;
+ *              - calls smp_wait_for_both_public_keys(...).
+ *
+ ******************************************************************************/
 void smp_process_pairing_public_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -738,9 +738,9 @@ void smp_process_pairing_public_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_pairing_commitment
-** Description  process pairing commitment from peer device
-*******************************************************************************/
+ * Function     smp_process_pairing_commitment
+ * Description  process pairing commitment from peer device
+ ******************************************************************************/
 void smp_process_pairing_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -763,9 +763,9 @@ void smp_process_pairing_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_dhkey_check
-** Description  process DHKey Check from peer device
-*******************************************************************************/
+ * Function     smp_process_dhkey_check
+ * Description  process DHKey Check from peer device
+ ******************************************************************************/
 void smp_process_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -788,9 +788,9 @@ void smp_process_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_keypress_notification
-** Description  process pairing keypress notification from peer device
-*******************************************************************************/
+ * Function     smp_process_keypress_notification
+ * Description  process pairing keypress notification from peer device
+ ******************************************************************************/
 void smp_process_keypress_notification(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -817,10 +817,10 @@ void smp_process_keypress_notification(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_br_process_pairing_command
-** Description  Process the SMP pairing request/response from peer device via
-**              BR/EDR transport.
-*******************************************************************************/
+ * Function     smp_br_process_pairing_command
+ * Description  Process the SMP pairing request/response from peer device via
+ *              BR/EDR transport.
+ ******************************************************************************/
 void smp_br_process_pairing_command(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -880,9 +880,9 @@ void smp_br_process_pairing_command(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_br_process_security_grant
-** Description  process security grant in case of pairing over BR/EDR transport.
-*******************************************************************************/
+ * Function     smp_br_process_security_grant
+ * Description  process security grant in case of pairing over BR/EDR transport.
+ ******************************************************************************/
 void smp_br_process_security_grant(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t res= *(uint8_t *)p_data;
@@ -899,10 +899,10 @@ void smp_br_process_security_grant(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_br_check_authorization_request
-** Description  sets the SMP kes to be derived/distribute over BR/EDR transport
-**              before starting the distribution/derivation
-*******************************************************************************/
+ * Function     smp_br_check_authorization_request
+ * Description  sets the SMP kes to be derived/distribute over BR/EDR transport
+ *              before starting the distribution/derivation
+ ******************************************************************************/
 void smp_br_check_authorization_request(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t reason = SMP_SUCCESS;
@@ -943,10 +943,10 @@ void smp_br_check_authorization_request(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_br_select_next_key
-** Description  selects the next key to derive/send when BR/EDR transport is
-**              used.
-*******************************************************************************/
+ * Function     smp_br_select_next_key
+ * Description  selects the next key to derive/send when BR/EDR transport is
+ *              used.
+ ******************************************************************************/
 void smp_br_select_next_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t reason = SMP_SUCCESS;
@@ -973,9 +973,9 @@ void smp_br_select_next_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_enc_info
-** Description  process encryption information from peer device
-*******************************************************************************/
+ * Function     smp_proc_enc_info
+ * Description  process encryption information from peer device
+ ******************************************************************************/
 void smp_proc_enc_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -986,9 +986,9 @@ void smp_proc_enc_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     smp_key_distribution(p_cb, NULL);
 }
 /*******************************************************************************
-** Function     smp_proc_master_id
-** Description  process master ID from slave device
-*******************************************************************************/
+ * Function     smp_proc_master_id
+ * Description  process master ID from slave device
+ ******************************************************************************/
 void smp_proc_master_id(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -1014,9 +1014,9 @@ void smp_proc_master_id(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_enc_info
-** Description  process identity information from peer device
-*******************************************************************************/
+ * Function     smp_proc_enc_info
+ * Description  process identity information from peer device
+ ******************************************************************************/
 void smp_proc_id_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -1027,9 +1027,9 @@ void smp_proc_id_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_id_addr
-** Description  process identity address from peer device
-*******************************************************************************/
+ * Function     smp_proc_id_addr
+ * Description  process identity address from peer device
+ ******************************************************************************/
 void smp_proc_id_addr(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = (uint8_t *)p_data;
@@ -1055,9 +1055,9 @@ void smp_proc_id_addr(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_srk_info
-** Description  process security information from peer device
-*******************************************************************************/
+ * Function     smp_proc_srk_info
+ * Description  process security information from peer device
+ ******************************************************************************/
 void smp_proc_srk_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_LE_PCSRK_KEYS   le_key;
@@ -1078,9 +1078,9 @@ void smp_proc_srk_info(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_compare
-** Description  process compare value
-*******************************************************************************/
+ * Function     smp_proc_compare
+ * Description  process compare value
+ ******************************************************************************/
 void smp_proc_compare(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t reason;
@@ -1112,9 +1112,9 @@ void smp_proc_compare(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_sl_key
-** Description  process key ready events.
-*******************************************************************************/
+ * Function     smp_proc_sl_key
+ * Description  process key ready events.
+ ******************************************************************************/
 void smp_proc_sl_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t key_type = p_data->key.key_type;
@@ -1134,9 +1134,9 @@ void smp_proc_sl_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_start_enc
-** Description  start encryption
-*******************************************************************************/
+ * Function     smp_start_enc
+ * Description  start encryption
+ ******************************************************************************/
 void smp_start_enc(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tBTM_STATUS cmd;
@@ -1153,9 +1153,9 @@ void smp_start_enc(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_proc_discard
-** Description   processing for discard security request
-*******************************************************************************/
+ * Function     smp_proc_discard
+ * Description   processing for discard security request
+ ******************************************************************************/
 void smp_proc_discard(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1164,9 +1164,9 @@ void smp_proc_discard(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_enc_cmpl
-** Description   encryption success
-*******************************************************************************/
+ * Function     smp_enc_cmpl
+ * Description   encryption success
+ ******************************************************************************/
 void smp_enc_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t enc_enable = *(uint8_t *)p_data;
@@ -1177,9 +1177,9 @@ void smp_enc_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_check_auth_req
-** Description  check authentication request
-*******************************************************************************/
+ * Function     smp_check_auth_req
+ * Description  check authentication request
+ ******************************************************************************/
 void smp_check_auth_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t enc_enable = *(uint8_t *)p_data;
@@ -1246,9 +1246,9 @@ void smp_check_auth_req(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_key_pick_key
-** Description  Pick a key distribution function based on the key mask.
-*******************************************************************************/
+ * Function     smp_key_pick_key
+ * Description  Pick a key distribution function based on the key mask.
+ ******************************************************************************/
 void smp_key_pick_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t key_to_dist = (p_cb->role == HCI_ROLE_SLAVE) ? p_cb->local_r_key : p_cb->local_i_key;
@@ -1269,9 +1269,9 @@ void smp_key_pick_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     }
 }
 /*******************************************************************************
-** Function     smp_key_distribution
-** Description  start key distribution if required.
-*******************************************************************************/
+ * Function     smp_key_distribution
+ * Description  start key distribution if required.
+ ******************************************************************************/
 void smp_key_distribution(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s role=%d (0-master) r_keys=0x%x i_keys=0x%x",
@@ -1316,11 +1316,11 @@ void smp_key_distribution(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function         smp_decide_association_model
-** Description      This function is called to select assoc model to be used for
-**                  STK generation and to start STK generation process.
-**
-*******************************************************************************/
+ * Function         smp_decide_association_model
+ * Description      This function is called to select assoc model to be used for
+ *                  STK generation and to start STK generation process.
+ *
+ ******************************************************************************/
 void smp_decide_association_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t failure = SMP_UNKNOWN_IO_CAP;
@@ -1409,9 +1409,9 @@ void smp_decide_association_model(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_io_response
-** Description  process IO response for a slave device.
-*******************************************************************************/
+ * Function     smp_process_io_response
+ * Description  process IO response for a slave device.
+ ******************************************************************************/
 void smp_process_io_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t reason = SMP_PAIR_AUTH_FAIL;
@@ -1452,19 +1452,19 @@ void smp_process_io_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_br_process_slave_keys_response
-** Description  process application keys response for a slave device
-**              (BR/EDR transport).
-*******************************************************************************/
+ * Function     smp_br_process_slave_keys_response
+ * Description  process application keys response for a slave device
+ *              (BR/EDR transport).
+ ******************************************************************************/
 void smp_br_process_slave_keys_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     smp_br_send_pair_response(p_cb, NULL);
 }
 
 /*******************************************************************************
-** Function     smp_br_send_pair_response
-** Description  actions related to sending pairing response over BR/EDR transport.
-*******************************************************************************/
+ * Function     smp_br_send_pair_response
+ * Description  actions related to sending pairing response over BR/EDR transport.
+ ******************************************************************************/
 void smp_br_send_pair_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1476,10 +1476,10 @@ void smp_br_send_pair_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function         smp_pairing_cmpl
-** Description      This function is called to send the pairing complete callback
-**                  and remove the connection if needed.
-*******************************************************************************/
+ * Function         smp_pairing_cmpl
+ * Description      This function is called to send the pairing complete callback
+ *                  and remove the connection if needed.
+ ******************************************************************************/
 void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     if (p_cb->total_tx_unacked == 0)
@@ -1490,10 +1490,10 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function         smp_pair_terminate
-** Description      This function is called to send the pairing complete callback
-**                  and remove the connection if needed.
-*******************************************************************************/
+ * Function         smp_pair_terminate
+ * Description      This function is called to send the pairing complete callback
+ *                  and remove the connection if needed.
+ ******************************************************************************/
 void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1502,10 +1502,10 @@ void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function         smp_idle_terminate
-** Description      This function calledin idle state to determine to send authentication
-**                  complete or not.
-*******************************************************************************/
+ * Function         smp_idle_terminate
+ * Description      This function calledin idle state to determine to send authentication
+ *                  complete or not.
+ ******************************************************************************/
 void smp_idle_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     if (p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD)
@@ -1517,9 +1517,9 @@ void smp_idle_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_fast_conn_param
-** Description  apply default connection parameter for pairing process
-*******************************************************************************/
+ * Function     smp_fast_conn_param
+ * Description  apply default connection parameter for pairing process
+ ******************************************************************************/
 void smp_fast_conn_param(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     /* Disable L2CAP connection parameter updates while bonding since
@@ -1530,14 +1530,14 @@ void smp_fast_conn_param(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_both_have_public_keys
-** Description  The function is called when both local and peer public keys are
-**              saved.
-**              Actions:
-**              - invokes DHKey computation;
-**              - on slave side invokes sending local public key to the peer.
-**              - invokes SC phase 1 process.
-*******************************************************************************/
+ * Function     smp_both_have_public_keys
+ * Description  The function is called when both local and peer public keys are
+ *              saved.
+ *              Actions:
+ *              - invokes DHKey computation;
+ *              - on slave side invokes sending local public key to the peer.
+ *              - invokes SC phase 1 process.
+ ******************************************************************************/
 void smp_both_have_public_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s",__func__);
@@ -1553,11 +1553,11 @@ void smp_both_have_public_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_start_secure_connection_phase1
-** Description  The function starts Secure Connection phase1 i.e. invokes initialization of Secure Connection
-**              phase 1 parameters and starts building/sending to the peer
-**              messages appropriate for the role and association model.
-*******************************************************************************/
+ * Function     smp_start_secure_connection_phase1
+ * Description  The function starts Secure Connection phase1 i.e. invokes initialization of Secure Connection
+ *              phase 1 parameters and starts building/sending to the peer
+ *              messages appropriate for the role and association model.
+ ******************************************************************************/
 void smp_start_secure_connection_phase1(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1602,11 +1602,11 @@ void smp_start_secure_connection_phase1(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_local_nonce
-** Description  The function processes new local nonce.
-**
-** Note         It is supposed to be called in SC phase1.
-*******************************************************************************/
+ * Function     smp_process_local_nonce
+ * Description  The function processes new local nonce.
+ *
+ * Note         It is supposed to be called in SC phase1.
+ ******************************************************************************/
 void smp_process_local_nonce(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1671,12 +1671,12 @@ void smp_process_local_nonce(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_peer_nonce
-** Description  The function processes newly received and saved in CB peer nonce.
-**              The actions depend on the selected association model and the role.
-**
-** Note         It is supposed to be called in SC phase1.
-*******************************************************************************/
+ * Function     smp_process_peer_nonce
+ * Description  The function processes newly received and saved in CB peer nonce.
+ *              The actions depend on the selected association model and the role.
+ *
+ * Note         It is supposed to be called in SC phase1.
+ ******************************************************************************/
 void smp_process_peer_nonce(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t reason;
@@ -1764,10 +1764,10 @@ void smp_process_peer_nonce(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_match_dhkey_checks
-** Description  checks if the calculated peer DHKey Check value is the same as
-**              received from the peer DHKey check value.
-*******************************************************************************/
+ * Function     smp_match_dhkey_checks
+ * Description  checks if the calculated peer DHKey Check value is the same as
+ *              received from the peer DHKey check value.
+ ******************************************************************************/
 void smp_match_dhkey_checks(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t reason = SMP_DHKEY_CHK_FAIL;
@@ -1802,12 +1802,12 @@ void smp_match_dhkey_checks(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_move_to_secure_connections_phase2
-** Description  Signal State Machine to start SC phase 2 initialization (to
-**              compute local DHKey Check value).
-**
-** Note         SM is supposed to be in the state SMP_STATE_SEC_CONN_PHS2_START.
-*******************************************************************************/
+ * Function     smp_move_to_secure_connections_phase2
+ * Description  Signal State Machine to start SC phase 2 initialization (to
+ *              compute local DHKey Check value).
+ *
+ * Note         SM is supposed to be in the state SMP_STATE_SEC_CONN_PHS2_START.
+ ******************************************************************************/
 void smp_move_to_secure_connections_phase2(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s",__func__);
@@ -1815,12 +1815,12 @@ void smp_move_to_secure_connections_phase2(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_phase_2_dhkey_checks_are_present
-** Description  generates event if dhkey check from the peer is already received.
-**
-** Note         It is supposed to be used on slave to prevent race condition.
-**              It is supposed to be called after slave dhkey check is calculated.
-*******************************************************************************/
+ * Function     smp_phase_2_dhkey_checks_are_present
+ * Description  generates event if dhkey check from the peer is already received.
+ *
+ * Note         It is supposed to be used on slave to prevent race condition.
+ *              It is supposed to be called after slave dhkey check is calculated.
+ ******************************************************************************/
 void smp_phase_2_dhkey_checks_are_present(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s",__func__);
@@ -1830,13 +1830,13 @@ void smp_phase_2_dhkey_checks_are_present(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_wait_for_both_public_keys
-** Description  generates SMP_BOTH_PUBL_KEYS_RCVD_EVT event when both local and master
-**              public keys are available.
-**
-** Note         on the slave it is used to prevent race condition.
-**
-*******************************************************************************/
+ * Function     smp_wait_for_both_public_keys
+ * Description  generates SMP_BOTH_PUBL_KEYS_RCVD_EVT event when both local and master
+ *              public keys are available.
+ *
+ * Note         on the slave it is used to prevent race condition.
+ *
+ ******************************************************************************/
 void smp_wait_for_both_public_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s",__func__);
@@ -1854,9 +1854,9 @@ void smp_wait_for_both_public_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_start_passkey_verification
-** Description  Starts SC passkey entry verification.
-*******************************************************************************/
+ * Function     smp_start_passkey_verification
+ * Description  Starts SC passkey entry verification.
+ ******************************************************************************/
 void smp_start_passkey_verification(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     uint8_t *p = NULL;
@@ -1873,9 +1873,9 @@ void smp_start_passkey_verification(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_process_secure_connection_oob_data
-** Description  Processes local/peer SC OOB data received from somewhere.
-*******************************************************************************/
+ * Function     smp_process_secure_connection_oob_data
+ * Description  Processes local/peer SC OOB data received from somewhere.
+ ******************************************************************************/
 void smp_process_secure_connection_oob_data(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1928,11 +1928,11 @@ void smp_process_secure_connection_oob_data(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
 }
 
 /*******************************************************************************
-** Function     smp_set_local_oob_keys
-** Description  Saves calculated private/public keys in sc_oob_data.loc_oob_data,
-**              starts nonce generation
-**              (to be saved in sc_oob_data.loc_oob_data.randomizer).
-*******************************************************************************/
+ * Function     smp_set_local_oob_keys
+ * Description  Saves calculated private/public keys in sc_oob_data.loc_oob_data,
+ *              starts nonce generation
+ *              (to be saved in sc_oob_data.loc_oob_data.randomizer).
+ ******************************************************************************/
 void smp_set_local_oob_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1944,10 +1944,10 @@ void smp_set_local_oob_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_set_local_oob_random_commitment
-** Description  Saves calculated randomizer and commitment in sc_oob_data.loc_oob_data,
-**              passes sc_oob_data.loc_oob_data up for safekeeping.
-*******************************************************************************/
+ * Function     smp_set_local_oob_random_commitment
+ * Description  Saves calculated randomizer and commitment in sc_oob_data.loc_oob_data,
+ *              passes sc_oob_data.loc_oob_data up for safekeeping.
+ ******************************************************************************/
 void smp_set_local_oob_random_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -1991,17 +1991,17 @@ void smp_set_local_oob_random_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_link_encrypted
-**
-** Description      This function is called when link is encrypted and notified to
-**                  slave device. Proceed to to send LTK, DIV and ER to master if
-**                  bonding the devices.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_link_encrypted
+ *
+ * Description      This function is called when link is encrypted and notified to
+ *                  slave device. Proceed to to send LTK, DIV and ER to master if
+ *                  bonding the devices.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_link_encrypted(BD_ADDR bda, uint8_t encr_enable)
 {
     tSMP_CB *p_cb = &smp_cb;
@@ -2023,15 +2023,15 @@ void smp_link_encrypted(BD_ADDR bda, uint8_t encr_enable)
 }
 
 /*******************************************************************************
-**
-** Function         smp_proc_ltk_request
-**
-** Description      This function is called when LTK request is received from
-**                  controller.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_proc_ltk_request
+ *
+ * Description      This function is called when LTK request is received from
+ *                  controller.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 bool    smp_proc_ltk_request(BD_ADDR bda)
 {
     SMP_TRACE_DEBUG("%s state = %d",  __func__, smp_cb.state);
@@ -2061,16 +2061,16 @@ bool    smp_proc_ltk_request(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         smp_process_secure_connection_long_term_key
-**
-** Description      This function is called to process SC LTK.
-**                  SC LTK is calculated and used instead of STK.
-**                  Here SC LTK is saved in BLE DB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_process_secure_connection_long_term_key
+ *
+ * Description      This function is called to process SC LTK.
+ *                  SC LTK is calculated and used instead of STK.
+ *                  Here SC LTK is saved in BLE DB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_process_secure_connection_long_term_key(void)
 {
     tSMP_CB     *p_cb = &smp_cb;
@@ -2083,16 +2083,16 @@ void smp_process_secure_connection_long_term_key(void)
 }
 
 /*******************************************************************************
-**
-** Function         smp_set_derive_link_key
-**
-** Description      This function is called to set flag that indicates that
-**                  BR/EDR LK has to be derived from LTK after all keys are
-**                  distributed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_set_derive_link_key
+ *
+ * Description      This function is called to set flag that indicates that
+ *                  BR/EDR LK has to be derived from LTK after all keys are
+ *                  distributed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_set_derive_link_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG ("%s", __func__);
@@ -2102,14 +2102,14 @@ void smp_set_derive_link_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         smp_derive_link_key_from_long_term_key
-**
-** Description      This function is called to derive BR/EDR LK from LTK.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         smp_derive_link_key_from_long_term_key
+ *
+ * Description      This function is called to derive BR/EDR LK from LTK.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_derive_link_key_from_long_term_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
@@ -2124,16 +2124,16 @@ void smp_derive_link_key_from_long_term_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
 }
 
 /*******************************************************************************
-**
-** Function         smp_br_process_link_key
-**
-** Description      This function is called to process BR/EDR LK:
-**                  - to derive SMP LTK from BR/EDR LK;
+ *
+ * Function         smp_br_process_link_key
+ *
+ * Description      This function is called to process BR/EDR LK:
+ *                  - to derive SMP LTK from BR/EDR LK;
 *8                  - to save SMP LTK.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void smp_br_process_link_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
@@ -2153,10 +2153,10 @@ void smp_br_process_link_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function     smp_key_distribution_by_transport
-** Description  depending on the transport used at the moment calls either
-**              smp_key_distribution(...) or smp_br_key_distribution(...).
-*******************************************************************************/
+ * Function     smp_key_distribution_by_transport
+ * Description  depending on the transport used at the moment calls either
+ *              smp_key_distribution(...) or smp_br_key_distribution(...).
+ ******************************************************************************/
 void smp_key_distribution_by_transport(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
@@ -2171,10 +2171,10 @@ void smp_key_distribution_by_transport(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 }
 
 /*******************************************************************************
-** Function         smp_br_pairing_complete
-** Description      This function is called to send the pairing complete callback
-**                  and remove the connection if needed.
-*******************************************************************************/
+ * Function         smp_br_pairing_complete
+ * Description      This function is called to send the pairing complete callback
+ *                  and remove the connection if needed.
+ ******************************************************************************/
 void smp_br_pairing_complete(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);

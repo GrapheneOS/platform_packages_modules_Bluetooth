@@ -211,14 +211,14 @@ void btu_task_shut_down(UNUSED_ATTR void *context) {
 
 #if (HCILP_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         btu_check_bt_sleep
-**
-** Description      This function is called to check if controller can go to sleep.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btu_check_bt_sleep
+ *
+ * Description      This function is called to check if controller can go to sleep.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btu_check_bt_sleep (void)
 {
     // TODO(zachoverflow) take pending commands into account?

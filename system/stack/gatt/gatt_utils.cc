@@ -82,14 +82,14 @@ static const uint8_t base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /*******************************************************************************
-**
-** Function         gatt_free_pending_ind
-**
-** Description    Free all pending indications
-**
-** Returns       None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_free_pending_ind
+ *
+ * Description    Free all pending indications
+ *
+ * Returns       None
+ *
+ ******************************************************************************/
 void gatt_free_pending_ind(tGATT_TCB *p_tcb)
 {
     GATT_TRACE_DEBUG("%s", __func__);
@@ -105,14 +105,14 @@ void gatt_free_pending_ind(tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_free_pending_enc_queue
-**
-** Description       Free all buffers in pending encyption queue
-**
-** Returns       None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_free_pending_enc_queue
+ *
+ * Description       Free all buffers in pending encyption queue
+ *
+ * Returns       None
+ *
+ ******************************************************************************/
 void gatt_free_pending_enc_queue(tGATT_TCB *p_tcb)
 {
     GATT_TRACE_DEBUG("%s", __func__);
@@ -128,14 +128,14 @@ void gatt_free_pending_enc_queue(tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_delete_dev_from_srv_chg_clt_list
-**
-** Description    Delete a device from the service changed client lit
-**
-** Returns       None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_delete_dev_from_srv_chg_clt_list
+ *
+ * Description    Delete a device from the service changed client lit
+ *
+ * Returns       None
+ *
+ ******************************************************************************/
 void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
 {
     GATT_TRACE_DEBUG("gatt_delete_dev_from_srv_chg_clt_list");
@@ -156,14 +156,14 @@ void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_set_srv_chg
-**
-** Description      Set the service changed flag to true
-**
-** Returns        None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_set_srv_chg
+ *
+ * Description      Set the service changed flag to true
+ *
+ * Returns        None
+ *
+ ******************************************************************************/
 void gatt_set_srv_chg(void)
 {
     GATT_TRACE_DEBUG ("gatt_set_srv_chg");
@@ -190,14 +190,14 @@ void gatt_set_srv_chg(void)
 }
 
 /*******************************************************************************
-**
-** Function     gatt_add_pending_ind
-**
-** Description  Add a pending indication
-**
-** Returns    Pointer to the current pending indication buffer, NULL no buffer available
-**
-*******************************************************************************/
+ *
+ * Function     gatt_add_pending_ind
+ *
+ * Description  Add a pending indication
+ *
+ * Returns    Pointer to the current pending indication buffer, NULL no buffer available
+ *
+ ******************************************************************************/
 tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 {
     tGATT_VALUE *p_buf = (tGATT_VALUE *)osi_malloc(sizeof(tGATT_VALUE));
@@ -212,14 +212,14 @@ tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 }
 
 /*******************************************************************************
-**
-** Function     gatt_add_srv_chg_clt
-**
-** Description  Add a service chnage client to the service change client queue
-**
-** Returns    Pointer to the service change client buffer; Null no buffer available
-**
-*******************************************************************************/
+ *
+ * Function     gatt_add_srv_chg_clt
+ *
+ * Description  Add a service chnage client to the service change client queue
+ *
+ * Returns    Pointer to the service change client buffer; Null no buffer available
+ *
+ ******************************************************************************/
 tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 {
     tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)osi_malloc(sizeof(tGATTS_SRV_CHG));
@@ -234,14 +234,14 @@ tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 }
 
 /*******************************************************************************
-**
-** Function     gatt_alloc_hdl_buffer
-**
-** Description  Allocate a handle buufer
-**
-** Returns    Pointer to the allocated buffer, NULL no buffer available
-**
-*******************************************************************************/
+ *
+ * Function     gatt_alloc_hdl_buffer
+ *
+ * Description  Allocate a handle buufer
+ *
+ * Returns    Pointer to the allocated buffer, NULL no buffer available
+ *
+ ******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_alloc_hdl_buffer(void)
 {
     uint8_t i;
@@ -263,14 +263,14 @@ tGATT_HDL_LIST_ELEM *gatt_alloc_hdl_buffer(void)
 }
 
 /*******************************************************************************
-**
-** Function     gatt_find_hdl_buffer_by_handle
-**
-** Description  Find handle range buffer by service handle.
-**
-** Returns    Pointer to the buffer, NULL no buffer available
-**
-*******************************************************************************/
+ *
+ * Function     gatt_find_hdl_buffer_by_handle
+ *
+ * Description  Find handle range buffer by service handle.
+ *
+ * Returns    Pointer to the buffer, NULL no buffer available
+ *
+ ******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(uint16_t handle)
 {
     tGATT_HDL_LIST_INFO *p_list_info= &gatt_cb.hdl_list_info;
@@ -289,14 +289,14 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(uint16_t handle)
     return NULL;
 }
 /*******************************************************************************
-**
-** Function     gatt_find_hdl_buffer_by_app_id
-**
-** Description  Find handle range buffer by app ID, service and service instance ID.
-**
-** Returns    Pointer to the buffer, NULL no buffer available
-**
-*******************************************************************************/
+ *
+ * Function     gatt_find_hdl_buffer_by_app_id
+ *
+ * Description  Find handle range buffer by app ID, service and service instance ID.
+ *
+ * Returns    Pointer to the buffer, NULL no buffer available
+ *
+ ******************************************************************************/
 tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
                                                      tBT_UUID *p_svc_uuid,
                                                      uint16_t start_handle)
@@ -320,14 +320,14 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_app_id (tBT_UUID *p_app_uuid128,
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         gatt_free_hdl_buffer
-**
-** Description     free a handle buffer
-**
-** Returns       None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_free_hdl_buffer
+ *
+ * Description     free a handle buffer
+ *
+ * Returns       None
+ *
+ ******************************************************************************/
 void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
 {
 
@@ -340,15 +340,15 @@ void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_free_srvc_db_buffer_app_id
-**
-** Description      free the service attribute database buffers by the owner of the
-**                  service app ID.
-**
-** Returns       None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_free_srvc_db_buffer_app_id
+ *
+ * Description      free the service attribute database buffers by the owner of the
+ *                  service app ID.
+ *
+ * Returns       None
+ *
+ ******************************************************************************/
 void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
 {
     tGATT_HDL_LIST_ELEM *p_elem =  &gatt_cb.hdl_list[0];
@@ -369,14 +369,14 @@ void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_is_last_attribute
-**
-** Description     Check this is the last attribute of the specified value or not
-**
-** Returns       true - yes this is the last attribute
-**
-*******************************************************************************/
+ *
+ * Function         gatt_is_last_attribute
+ *
+ * Description     Check this is the last attribute of the specified value or not
+ *
+ * Returns       true - yes this is the last attribute
+ *
+ ******************************************************************************/
 bool    gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_start, tBT_UUID value)
 {
     tGATT_SRV_LIST_ELEM *p_srv= p_start->p_next;
@@ -406,14 +406,14 @@ bool    gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 }
 
 /*******************************************************************************
-**
-** Function         gatt_update_last_pri_srv_info
-**
-** Description     Update the the last primary info for the service list info
-**
-** Returns       None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_update_last_pri_srv_info
+ *
+ * Description     Update the the last primary info for the service list info
+ *
+ * Returns       None
+ *
+ ******************************************************************************/
 void gatt_update_last_pri_srv_info(tGATT_SRV_LIST_INFO *p_list)
 {
     tGATT_SRV_LIST_ELEM *p_srv= p_list->p_first;
@@ -431,14 +431,14 @@ void gatt_update_last_pri_srv_info(tGATT_SRV_LIST_INFO *p_list)
 
 }
 /*******************************************************************************
-**
-** Function         gatts_update_srv_list_elem
-**
-** Description      update an element in the service list.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         gatts_update_srv_list_elem
+ *
+ * Description      update an element in the service list.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 void gatts_update_srv_list_elem(uint8_t i_sreg,
                                 UNUSED_ATTR uint16_t handle, bool    is_primary)
 {
@@ -450,15 +450,15 @@ void gatts_update_srv_list_elem(uint8_t i_sreg,
     return;
 }
 /*******************************************************************************
-**
-** Function  gatt_add_a_srv_to_list
-**
-** Description  add an service to the list in ascending
-**              order of the start handle
-**
-** Returns   bool    true-if add is successful
-**
-*******************************************************************************/
+ *
+ * Function  gatt_add_a_srv_to_list
+ *
+ * Description  add an service to the list in ascending
+ *              order of the start handle
+ *
+ * Returns   bool    true-if add is successful
+ *
+ ******************************************************************************/
 bool    gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_new)
 {
     tGATT_SRV_LIST_ELEM *p_old;
@@ -517,14 +517,14 @@ bool    gatt_add_a_srv_to_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM 
 }
 
 /*******************************************************************************
-**
-** Function  gatt_remove_a_srv_from_list
-**
-** Description  Remove a service from the list
-**
-** Returns   bool    true-if remove is successful
-**
-*******************************************************************************/
+ *
+ * Function  gatt_remove_a_srv_from_list
+ *
+ * Description  Remove a service from the list
+ *
+ * Returns   bool    true-if remove is successful
+ *
+ ******************************************************************************/
 bool    gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_remove)
 {
     if (!p_remove || !p_list->p_first)
@@ -556,15 +556,15 @@ bool    gatt_remove_a_srv_from_list(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_
 }
 
 /*******************************************************************************
-**
-** Function  gatt_add_an_item_to_list
-**
-** Description  add an service handle range to the list in decending
-**              order of the start handle
-**
-** Returns   bool    true-if add is successful
-**
-*******************************************************************************/
+ *
+ * Function  gatt_add_an_item_to_list
+ *
+ * Description  add an service handle range to the list in decending
+ *              order of the start handle
+ *
+ * Returns   bool    true-if add is successful
+ *
+ ******************************************************************************/
 bool    gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_new)
 {
     tGATT_HDL_LIST_ELEM *p_old;
@@ -621,14 +621,14 @@ bool    gatt_add_an_item_to_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELE
 }
 
 /*******************************************************************************
-**
-** Function  gatt_remove_an_item_from_list
-**
-** Description  Remove an service handle range from the list
-**
-** Returns   bool    true-if remove is successful
-**
-*******************************************************************************/
+ *
+ * Function  gatt_remove_an_item_from_list
+ *
+ * Description  Remove an service handle range from the list
+ *
+ * Returns   bool    true-if remove is successful
+ *
+ ******************************************************************************/
 bool    gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIST_ELEM *p_remove)
 {
     if (!p_remove || !p_list->p_first)
@@ -659,14 +659,14 @@ bool    gatt_remove_an_item_from_list(tGATT_HDL_LIST_INFO *p_list, tGATT_HDL_LIS
 }
 
 /*******************************************************************************
-**
-** Function         gatt_find_the_connected_bda
-**
-** Description      This function find the connected bda
-**
-** Returns           true if found
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_the_connected_bda
+ *
+ * Description      This function find the connected bda
+ *
+ * Returns           true if found
+ *
+ ******************************************************************************/
 bool    gatt_find_the_connected_bda(uint8_t start_idx, BD_ADDR bda, uint8_t *p_found_idx,
                                     tBT_TRANSPORT *p_transport)
 {
@@ -694,15 +694,15 @@ bool    gatt_find_the_connected_bda(uint8_t start_idx, BD_ADDR bda, uint8_t *p_f
 
 
 /*******************************************************************************
-**
-** Function         gatt_is_srv_chg_ind_pending
-**
-** Description      Check whether a service chnaged is in the indication pending queue
-**                  or waiting for an Ack already
-**
-** Returns         bool
-**
-*******************************************************************************/
+ *
+ * Function         gatt_is_srv_chg_ind_pending
+ *
+ * Description      Check whether a service chnaged is in the indication pending queue
+ *                  or waiting for an Ack already
+ *
+ * Returns         bool
+ *
+ ******************************************************************************/
 bool    gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
 {
     bool    srv_chg_ind_pending = false;
@@ -735,14 +735,14 @@ bool    gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
 
 
 /*******************************************************************************
-**
-** Function         gatt_is_bda_in_the_srv_chg_clt_list
-**
-** Description      This function check the specified bda is in the srv chg clinet list or not
-**
-** Returns         pointer to the found elemenet otherwise NULL
-**
-*******************************************************************************/
+ *
+ * Function         gatt_is_bda_in_the_srv_chg_clt_list
+ *
+ * Description      This function check the specified bda is in the srv chg clinet list or not
+ *
+ * Returns         pointer to the found elemenet otherwise NULL
+ *
+ ******************************************************************************/
 tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
 {
     tGATTS_SRV_CHG *p_buf = NULL;
@@ -769,14 +769,14 @@ tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
 
 
 /*******************************************************************************
-**
-** Function         gatt_is_bda_connected
-**
-** Description
-**
-** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_is_bda_connected
+ *
+ * Description
+ *
+ * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ *
+ ******************************************************************************/
 bool    gatt_is_bda_connected(BD_ADDR bda)
 {
     uint8_t i = 0;
@@ -795,14 +795,14 @@ bool    gatt_is_bda_connected(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_find_i_tcb_by_addr
-**
-** Description      The function searches for an empty tcb entry, and return the index.
-**
-** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_i_tcb_by_addr
+ *
+ * Description      The function searches for an empty tcb entry, and return the index.
+ *
+ * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ *
+ ******************************************************************************/
 uint8_t gatt_find_i_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     uint8_t i = 0;
@@ -820,14 +820,14 @@ uint8_t gatt_find_i_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 
 
 /*******************************************************************************
-**
-** Function         gatt_get_tcb_by_idx
-**
-** Description      The function get TCB using the TCB index
-**
-** Returns           NULL if not found. Otherwise index to the tcb.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_get_tcb_by_idx
+ *
+ * Description      The function get TCB using the TCB index
+ *
+ * Returns           NULL if not found. Otherwise index to the tcb.
+ *
+ ******************************************************************************/
 tGATT_TCB * gatt_get_tcb_by_idx(uint8_t tcb_idx)
 {
     tGATT_TCB   *p_tcb = NULL;
@@ -839,14 +839,14 @@ tGATT_TCB * gatt_get_tcb_by_idx(uint8_t tcb_idx)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_find_tcb_by_addr
-**
-** Description      The function searches for an empty tcb entry, and return pointer.
-**
-** Returns           NULL if not found. Otherwise index to the tcb.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_tcb_by_addr
+ *
+ * Description      The function searches for an empty tcb entry, and return pointer.
+ *
+ * Returns           NULL if not found. Otherwise index to the tcb.
+ *
+ ******************************************************************************/
 tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     tGATT_TCB   *p_tcb = NULL;
@@ -859,14 +859,14 @@ tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
     return p_tcb;
 }
 /*******************************************************************************
-**
-** Function         gatt_find_i_tcb_free
-**
-** Description      The function searches for an empty tcb entry, and return the index.
-**
-** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_i_tcb_free
+ *
+ * Description      The function searches for an empty tcb entry, and return the index.
+ *
+ * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ *
+ ******************************************************************************/
 uint8_t gatt_find_i_tcb_free(void)
 {
     uint8_t i = 0, j = GATT_INDEX_INVALID;
@@ -882,14 +882,14 @@ uint8_t gatt_find_i_tcb_free(void)
     return j;
 }
 /*******************************************************************************
-**
-** Function         gatt_allocate_tcb_by_bdaddr
-**
-** Description      The function locate or allocate new tcb entry for matching bda.
-**
-** Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_allocate_tcb_by_bdaddr
+ *
+ * Description      The function locate or allocate new tcb entry for matching bda.
+ *
+ * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ *
+ ******************************************************************************/
 tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
 {
     uint8_t i = 0;
@@ -925,14 +925,14 @@ tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_convert_uuid16_to_uuid128
-**
-** Description      Convert a 16 bits UUID to be an standard 128 bits one.
-**
-** Returns          true if two uuid match; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_convert_uuid16_to_uuid128
+ *
+ * Description      Convert a 16 bits UUID to be an standard 128 bits one.
+ *
+ * Returns          true if two uuid match; false otherwise.
+ *
+ ******************************************************************************/
 void gatt_convert_uuid16_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint16_t uuid_16)
 {
     uint8_t *p = &uuid_128[LEN_UUID_128 - 4];
@@ -943,14 +943,14 @@ void gatt_convert_uuid16_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint16_t uui
 }
 
 /*******************************************************************************
-**
-** Function         gatt_convert_uuid32_to_uuid128
-**
-** Description      Convert a 32 bits UUID to be an standard 128 bits one.
-**
-** Returns          true if two uuid match; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_convert_uuid32_to_uuid128
+ *
+ * Description      Convert a 32 bits UUID to be an standard 128 bits one.
+ *
+ * Returns          true if two uuid match; false otherwise.
+ *
+ ******************************************************************************/
 void gatt_convert_uuid32_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint32_t uuid_32)
 {
     uint8_t *p = &uuid_128[LEN_UUID_128 - 4];
@@ -960,14 +960,14 @@ void gatt_convert_uuid32_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint32_t uui
     UINT32_TO_STREAM(p, uuid_32);
 }
 /*******************************************************************************
-**
-** Function         gatt_uuid_compare
-**
-** Description      Compare two UUID to see if they are the same.
-**
-** Returns          true if two uuid match; false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_uuid_compare
+ *
+ * Description      Compare two UUID to see if they are the same.
+ *
+ * Returns          true if two uuid match; false otherwise.
+ *
+ ******************************************************************************/
 bool    gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
 {
     uint8_t su[LEN_UUID_128], tu[LEN_UUID_128];
@@ -1025,14 +1025,14 @@ bool    gatt_uuid_compare (tBT_UUID src, tBT_UUID tar)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_build_uuid_to_stream
-**
-** Description      Add UUID into stream.
-**
-** Returns          UUID length.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_build_uuid_to_stream
+ *
+ * Description      Add UUID into stream.
+ *
+ * Returns          UUID length.
+ *
+ ******************************************************************************/
 uint8_t gatt_build_uuid_to_stream(uint8_t **p_dst, tBT_UUID uuid)
 {
     uint8_t *p = *p_dst;
@@ -1060,14 +1060,14 @@ uint8_t gatt_build_uuid_to_stream(uint8_t **p_dst, tBT_UUID uuid)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_parse_uuid_from_cmd
-**
-** Description      Convert a 128 bits UUID into a 16 bits UUID.
-**
-** Returns          true if command sent, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_parse_uuid_from_cmd
+ *
+ * Description      Convert a 128 bits UUID into a 16 bits UUID.
+ *
+ * Returns          true if command sent, otherwise false.
+ *
+ ******************************************************************************/
 bool    gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, uint16_t uuid_size, uint8_t **p_data)
 {
     bool    is_base_uuid, ret = true;
@@ -1133,14 +1133,14 @@ bool    gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, uint16_t uuid_size, uint8
 }
 
 /*******************************************************************************
-**
-** Function         gatt_start_rsp_timer
-**
-** Description      Start a wait_for_response timer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_start_rsp_timer
+ *
+ * Description      Start a wait_for_response timer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_start_rsp_timer(uint16_t clcb_idx)
 {
     tGATT_CLCB *p_clcb = &gatt_cb.clcb[clcb_idx];
@@ -1161,14 +1161,14 @@ void gatt_start_rsp_timer(uint16_t clcb_idx)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_start_conf_timer
-**
-** Description      Start a wait_for_confirmation timer.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_start_conf_timer
+ *
+ * Description      Start a wait_for_confirmation timer.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_start_conf_timer(tGATT_TCB *p_tcb)
 {
     alarm_set_on_queue(p_tcb->conf_timer, GATT_WAIT_FOR_RSP_TIMEOUT_MS,
@@ -1177,14 +1177,14 @@ void gatt_start_conf_timer(tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_start_ind_ack_timer
-**
-** Description      start the application ack timer
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_start_ind_ack_timer
+ *
+ * Description      start the application ack timer
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 {
     /* start notification cache timer */
@@ -1193,14 +1193,14 @@ void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_rsp_timeout
-**
-** Description      Called when GATT wait for ATT command response timer expires
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_rsp_timeout
+ *
+ * Description      Called when GATT wait for ATT command response timer expires
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_rsp_timeout(void *data)
 {
     tGATT_CLCB *p_clcb = (tGATT_CLCB *)data;
@@ -1234,14 +1234,14 @@ void gatt_rsp_timeout(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_indication_confirmation_timeout
-**
-** Description      Called when the indication confirmation timer expires
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_indication_confirmation_timeout
+ *
+ * Description      Called when the indication confirmation timer expires
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_indication_confirmation_timeout(void *data)
 {
     tGATT_TCB *p_tcb = (tGATT_TCB *)data;
@@ -1251,14 +1251,14 @@ void gatt_indication_confirmation_timeout(void *data)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_ind_ack_timeout
-**
-** Description      Called when GATT wait for ATT handle confirmation timeout
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_ind_ack_timeout
+ *
+ * Description      Called when GATT wait for ATT handle confirmation timeout
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_ind_ack_timeout(void *data)
 {
     tGATT_TCB *p_tcb = (tGATT_TCB *)data;
@@ -1271,14 +1271,14 @@ void gatt_ind_ack_timeout(void *data)
     attp_send_cl_msg(p_tcb, 0, GATT_HANDLE_VALUE_CONF, NULL);
 }
 /*******************************************************************************
-**
-** Function         gatt_sr_find_i_rcb_by_handle
-**
-** Description      The function searches for a service that owns a specific handle.
-**
-** Returns          GATT_MAX_SR_PROFILES if not found. Otherwise index of th eservice.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_find_i_rcb_by_handle
+ *
+ * Description      The function searches for a service that owns a specific handle.
+ *
+ * Returns          GATT_MAX_SR_PROFILES if not found. Otherwise index of th eservice.
+ *
+ ******************************************************************************/
 uint8_t gatt_sr_find_i_rcb_by_handle(uint16_t handle)
 {
     uint8_t i_rcb = 0;
@@ -1296,14 +1296,14 @@ uint8_t gatt_sr_find_i_rcb_by_handle(uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_sr_find_i_rcb_by_handle
-**
-** Description      The function searches for a service that owns a specific handle.
-**
-** Returns          0 if not found. Otherwise index of th eservice.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_find_i_rcb_by_handle
+ *
+ * Description      The function searches for a service that owns a specific handle.
+ *
+ * Returns          0 if not found. Otherwise index of th eservice.
+ *
+ ******************************************************************************/
 uint8_t gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, uint16_t start_handle)
 {
     uint8_t         i_rcb = 0;
@@ -1331,14 +1331,14 @@ uint8_t gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uu
     return i_rcb;
 }
 /*******************************************************************************
-**
-** Function         gatt_sr_find_i_rcb_by_handle
-**
-** Description      The function searches for a service that owns a specific handle.
-**
-** Returns          0 if not found. Otherwise index of th eservice.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_find_i_rcb_by_handle
+ *
+ * Description      The function searches for a service that owns a specific handle.
+ *
+ * Returns          0 if not found. Otherwise index of th eservice.
+ *
+ ******************************************************************************/
 uint8_t gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
 {
     uint8_t ii = 0;
@@ -1368,15 +1368,15 @@ uint8_t gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
     return ii;
 }
 /*******************************************************************************
-**
-** Function         gatt_sr_get_sec_info
-**
-** Description      Get the security flag and key size information for the peer
-**                  device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_get_sec_info
+ *
+ * Description      Get the security flag and key size information for the peer
+ *                  device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, uint8_t *p_sec_flag, uint8_t *p_key_size)
 {
     uint8_t         sec_flag = 0;
@@ -1389,15 +1389,15 @@ void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, uint8_t *p_s
     *p_sec_flag = sec_flag;
 }
 /*******************************************************************************
-**
-** Function         gatt_sr_send_req_callback
-**
-** Description
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_send_req_callback
+ *
+ * Description
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_sr_send_req_callback(uint16_t conn_id,
                                uint32_t trans_id,
                                tGATTS_REQ_TYPE type, tGATTS_DATA *p_data)
@@ -1424,14 +1424,14 @@ void gatt_sr_send_req_callback(uint16_t conn_id,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_send_error_rsp
-**
-** Description      This function sends an error response.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_send_error_rsp
+ *
+ * Description      This function sends an error response.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, uint8_t err_code, uint8_t op_code,
                                   uint16_t handle, bool    deq)
 {
@@ -1459,14 +1459,14 @@ tGATT_STATUS gatt_send_error_rsp (tGATT_TCB *p_tcb, uint8_t err_code, uint8_t op
 
 
 /*******************************************************************************
-**
-** Function         gatt_add_sdp_record
-**
-** Description      This function add a SDP record for a GATT primary service
-**
-** Returns          0 if error else sdp handle for the record.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_add_sdp_record
+ *
+ * Description      This function add a SDP record for a GATT primary service
+ *
+ * Returns          0 if error else sdp handle for the record.
+ *
+ ******************************************************************************/
 uint32_t gatt_add_sdp_record (tBT_UUID *p_uuid, uint16_t start_hdl, uint16_t end_hdl)
 {
     tSDP_PROTOCOL_ELEM  proto_elem_list[2];
@@ -1528,14 +1528,14 @@ uint32_t gatt_add_sdp_record (tBT_UUID *p_uuid, uint16_t start_hdl, uint16_t end
 
     #if GATT_CONFORMANCE_TESTING == true
 /*******************************************************************************
-**
-** Function         gatt_set_err_rsp
-**
-** Description      This function is called to set the test confirm value
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_set_err_rsp
+ *
+ * Description      This function is called to set the test confirm value
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_set_err_rsp(bool    enable, uint8_t req_op_code, uint8_t err_status)
 {
     GATT_TRACE_DEBUG("gatt_set_err_rsp enable=%d op_code=%d, err_status=%d", enable, req_op_code, err_status);
@@ -1548,14 +1548,14 @@ void gatt_set_err_rsp(bool    enable, uint8_t req_op_code, uint8_t err_status)
 
 
 /*******************************************************************************
-**
-** Function         gatt_get_regcb
-**
-** Description      The function returns the registration control block.
-**
-** Returns          pointer to the registration control block or NULL
-**
-*******************************************************************************/
+ *
+ * Function         gatt_get_regcb
+ *
+ * Description      The function returns the registration control block.
+ *
+ * Returns          pointer to the registration control block or NULL
+ *
+ ******************************************************************************/
 tGATT_REG *gatt_get_regcb (tGATT_IF gatt_if)
 {
     uint8_t         ii = (uint8_t)gatt_if;
@@ -1579,14 +1579,14 @@ tGATT_REG *gatt_get_regcb (tGATT_IF gatt_if)
 
 
 /*******************************************************************************
-**
-** Function         gatt_is_clcb_allocated
-**
-** Description      The function check clcb for conn_id is allocated or not
-**
-** Returns           True already allocated
-**
-*******************************************************************************/
+ *
+ * Function         gatt_is_clcb_allocated
+ *
+ * Description      The function check clcb for conn_id is allocated or not
+ *
+ * Returns           True already allocated
+ *
+ ******************************************************************************/
 
 bool    gatt_is_clcb_allocated (uint16_t conn_id)
 {
@@ -1606,14 +1606,14 @@ bool    gatt_is_clcb_allocated (uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_clcb_alloc
-**
-** Description      The function allocates a GATT  connection link control block
-**
-** Returns           NULL if not found. Otherwise pointer to the connection link block.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_clcb_alloc
+ *
+ * Description      The function allocates a GATT  connection link control block
+ *
+ * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ *
+ ******************************************************************************/
 tGATT_CLCB *gatt_clcb_alloc (uint16_t conn_id)
 {
     uint8_t         i = 0;
@@ -1641,14 +1641,14 @@ tGATT_CLCB *gatt_clcb_alloc (uint16_t conn_id)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_clcb_dealloc
-**
-** Description      The function de allocates a GATT  connection link control block
-**
-** Returns         None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_clcb_dealloc
+ *
+ * Description      The function de allocates a GATT  connection link control block
+ *
+ * Returns         None
+ *
+ ******************************************************************************/
 void gatt_clcb_dealloc (tGATT_CLCB *p_clcb)
 {
     if (p_clcb && p_clcb->in_use)
@@ -1661,15 +1661,15 @@ void gatt_clcb_dealloc (tGATT_CLCB *p_clcb)
 
 
 /*******************************************************************************
-**
-** Function         gatt_find_tcb_by_cid
-**
-** Description      The function searches for an empty entry
-**                   in registration info table for GATT client
-**
-** Returns           NULL if not found. Otherwise pointer to the rcb.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_tcb_by_cid
+ *
+ * Description      The function searches for an empty entry
+ *                   in registration info table for GATT client
+ *
+ * Returns           NULL if not found. Otherwise pointer to the rcb.
+ *
+ ******************************************************************************/
 tGATT_TCB * gatt_find_tcb_by_cid (uint16_t lcid)
 {
     uint16_t     xx = 0;
@@ -1688,14 +1688,14 @@ tGATT_TCB * gatt_find_tcb_by_cid (uint16_t lcid)
 
 
 /*******************************************************************************
-**
-** Function         gatt_num_apps_hold_link
-**
-** Description      The function find the number of applcaitions is holding the link
-**
-** Returns          total number of applications holding this acl link.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_num_apps_hold_link
+ *
+ * Description      The function find the number of applcaitions is holding the link
+ *
+ * Returns          total number of applications holding this acl link.
+ *
+ ******************************************************************************/
 uint8_t gatt_num_apps_hold_link(tGATT_TCB *p_tcb)
 {
     uint8_t i, num = 0;
@@ -1712,14 +1712,14 @@ uint8_t gatt_num_apps_hold_link(tGATT_TCB *p_tcb)
 
 
 /*******************************************************************************
-**
-** Function         gatt_num_clcb_by_bd_addr
-**
-** Description      The function searches all LCB with macthing bd address
-**
-** Returns          total number of clcb found.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_num_clcb_by_bd_addr
+ *
+ * Description      The function searches all LCB with macthing bd address
+ *
+ * Returns          total number of clcb found.
+ *
+ ******************************************************************************/
 uint8_t gatt_num_clcb_by_bd_addr(BD_ADDR bda)
 {
     uint8_t i, num = 0;
@@ -1733,14 +1733,14 @@ uint8_t gatt_num_clcb_by_bd_addr(BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_sr_update_cback_cnt
-**
-** Description      The function searches all LCB with macthing bd address
-**
-** Returns          total number of clcb found.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_update_cback_cnt
+ *
+ * Description      The function searches all LCB with macthing bd address
+ *
+ * Returns          total number of clcb found.
+ *
+ ******************************************************************************/
 void gatt_sr_copy_prep_cnt_to_cback_cnt(tGATT_TCB *p_tcb )
 {
     uint8_t i;
@@ -1759,14 +1759,14 @@ void gatt_sr_copy_prep_cnt_to_cback_cnt(tGATT_TCB *p_tcb )
 }
 
 /*******************************************************************************
-**
-** Function         gatt_sr_is_cback_cnt_zero
-**
-** Description      The function searches all LCB with macthing bd address
-**
-** Returns          True if thetotal application callback count is zero
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_is_cback_cnt_zero
+ *
+ * Description      The function searches all LCB with macthing bd address
+ *
+ * Returns          True if thetotal application callback count is zero
+ *
+ ******************************************************************************/
 bool    gatt_sr_is_cback_cnt_zero(tGATT_TCB *p_tcb )
 {
     bool    status = true;
@@ -1791,14 +1791,14 @@ bool    gatt_sr_is_cback_cnt_zero(tGATT_TCB *p_tcb )
 }
 
 /*******************************************************************************
-**
-** Function         gatt_sr_is_prep_cnt_zero
-**
-** Description      Check the prepare write request count is zero or not
-**
-** Returns          True no prepare write request
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_is_prep_cnt_zero
+ *
+ * Description      Check the prepare write request count is zero or not
+ *
+ * Returns          True no prepare write request
+ *
+ ******************************************************************************/
 bool    gatt_sr_is_prep_cnt_zero(tGATT_TCB *p_tcb)
 {
     bool    status = true;
@@ -1824,14 +1824,14 @@ bool    gatt_sr_is_prep_cnt_zero(tGATT_TCB *p_tcb)
 
 
 /*******************************************************************************
-**
-** Function         gatt_sr_reset_cback_cnt
-**
-** Description      Reset the application callback count to zero
-**
-** Returns         None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_reset_cback_cnt
+ *
+ * Description      Reset the application callback count to zero
+ *
+ * Returns         None
+ *
+ ******************************************************************************/
 void gatt_sr_reset_cback_cnt(tGATT_TCB *p_tcb )
 {
     uint8_t i;
@@ -1846,14 +1846,14 @@ void gatt_sr_reset_cback_cnt(tGATT_TCB *p_tcb )
 }
 
 /*******************************************************************************
-**
-** Function         gatt_sr_reset_prep_cnt
-**
-** Description     Reset the prep write count to zero
-**
-** Returns        None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_reset_prep_cnt
+ *
+ * Description     Reset the prep write count to zero
+ *
+ * Returns        None
+ *
+ ******************************************************************************/
 void gatt_sr_reset_prep_cnt(tGATT_TCB *p_tcb )
 {
     uint8_t i;
@@ -1868,14 +1868,14 @@ void gatt_sr_reset_prep_cnt(tGATT_TCB *p_tcb )
 
 
 /*******************************************************************************
-**
-** Function         gatt_sr_update_cback_cnt
-**
-** Description    Update the teh applicaiton callback count
-**
-** Returns           None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_update_cback_cnt
+ *
+ * Description    Update the teh applicaiton callback count
+ *
+ * Returns           None
+ *
+ ******************************************************************************/
 void gatt_sr_update_cback_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, bool    is_inc, bool    is_reset_first)
 {
 
@@ -1903,14 +1903,14 @@ void gatt_sr_update_cback_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, bool    is_inc
 
 
 /*******************************************************************************
-**
-** Function         gatt_sr_update_prep_cnt
-**
-** Description    Update the teh prepare write request count
-**
-** Returns           None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_sr_update_prep_cnt
+ *
+ * Description    Update the teh prepare write request count
+ *
+ * Returns           None
+ *
+ ******************************************************************************/
 void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, bool    is_inc, bool    is_reset_first)
 {
     uint8_t idx = ((uint8_t) gatt_if) - 1 ;
@@ -1938,14 +1938,14 @@ void gatt_sr_update_prep_cnt(tGATT_TCB *p_tcb, tGATT_IF gatt_if, bool    is_inc,
     }
 }
 /*******************************************************************************
-**
-** Function         gatt_cancel_open
-**
-** Description      Cancel open request
-**
-** Returns         Boolean
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cancel_open
+ *
+ * Description      Cancel open request
+ *
+ * Returns         Boolean
+ *
+ ******************************************************************************/
 bool    gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
 {
     tGATT_TCB *p_tcb=NULL;
@@ -1974,14 +1974,14 @@ bool    gatt_cancel_open(tGATT_IF gatt_if, BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_find_app_hold_link
-**
-** Description      find the applicaiton that is holding the specified link
-**
-** Returns         Boolean
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_app_hold_link
+ *
+ * Description      find the applicaiton that is holding the specified link
+ *
+ * Returns         Boolean
+ *
+ ******************************************************************************/
 bool    gatt_find_app_hold_link(tGATT_TCB *p_tcb, uint8_t start_idx, uint8_t *p_found_idx, tGATT_IF *p_gatt_if)
 {
     uint8_t i;
@@ -2001,14 +2001,14 @@ bool    gatt_find_app_hold_link(tGATT_TCB *p_tcb, uint8_t start_idx, uint8_t *p_
 }
 
 /*******************************************************************************
-**
-** Function         gatt_cmd_enq
-**
-** Description      Enqueue this command.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cmd_enq
+ *
+ * Description      Enqueue this command.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 bool    gatt_cmd_enq(tGATT_TCB *p_tcb, uint16_t clcb_idx, bool    to_send, uint8_t op_code, BT_HDR *p_buf)
 {
     tGATT_CMD_Q  *p_cmd = &p_tcb->cl_cmd_q[p_tcb->next_slot_inq];
@@ -2030,14 +2030,14 @@ bool    gatt_cmd_enq(tGATT_TCB *p_tcb, uint16_t clcb_idx, bool    to_send, uint8
 }
 
 /*******************************************************************************
-**
-** Function         gatt_cmd_dequeue
-**
-** Description      dequeue the command in the client CCB command queue.
-**
-** Returns          total number of clcb found.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cmd_dequeue
+ *
+ * Description      dequeue the command in the client CCB command queue.
+ *
+ * Returns          total number of clcb found.
+ *
+ ******************************************************************************/
 tGATT_CLCB * gatt_cmd_dequeue(tGATT_TCB *p_tcb, uint8_t *p_op_code)
 {
     tGATT_CMD_Q  *p_cmd = &p_tcb->cl_cmd_q[p_tcb->pending_cl_req];
@@ -2057,14 +2057,14 @@ tGATT_CLCB * gatt_cmd_dequeue(tGATT_TCB *p_tcb, uint8_t *p_op_code)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_send_write_msg
-**
-** Description      This real function send out the ATT message for write.
-**
-** Returns          status code
-**
-*******************************************************************************/
+ *
+ * Function         gatt_send_write_msg
+ *
+ * Description      This real function send out the ATT message for write.
+ *
+ * Returns          status code
+ *
+ ******************************************************************************/
 uint8_t gatt_send_write_msg (tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t op_code,
                            uint16_t handle, uint16_t len,
                            uint16_t offset, uint8_t *p_data)
@@ -2082,15 +2082,15 @@ uint8_t gatt_send_write_msg (tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t op_cod
 }
 
 /*******************************************************************************
-**
-** Function         gatt_act_send_browse
-**
-** Description      This function ends a browse command request, including read
-**                  information request and read by type request.
-**
-** Returns          status code
-**
-*******************************************************************************/
+ *
+ * Function         gatt_act_send_browse
+ *
+ * Description      This function ends a browse command request, including read
+ *                  information request and read by type request.
+ *
+ * Returns          status code
+ *
+ ******************************************************************************/
 uint8_t gatt_act_send_browse(tGATT_TCB *p_tcb, uint16_t index, uint8_t op, uint16_t s_handle,
                            uint16_t e_handle, tBT_UUID uuid)
 {
@@ -2105,15 +2105,15 @@ uint8_t gatt_act_send_browse(tGATT_TCB *p_tcb, uint16_t index, uint8_t op, uint1
 }
 
 /*******************************************************************************
-**
-** Function         gatt_end_operation
-**
-** Description      This function ends a discovery, send callback and finalize
-**                  some control value.
-**
-** Returns          16 bits uuid.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_end_operation
+ *
+ * Description      This function ends a discovery, send callback and finalize
+ *                  some control value.
+ *
+ * Returns          16 bits uuid.
+ *
+ ******************************************************************************/
 void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 {
     tGATT_CL_COMPLETE   cb_data;
@@ -2183,15 +2183,15 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_cleanup_upon_disc
-**
-** Description      This function cleans up the control blocks when L2CAP channel
-**                  disconnect.
-**
-** Returns          16 bits uuid.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_cleanup_upon_disc
+ *
+ * Description      This function cleans up the control blocks when L2CAP channel
+ *                  disconnect.
+ *
+ * Returns          16 bits uuid.
+ *
+ ******************************************************************************/
 void gatt_cleanup_upon_disc(BD_ADDR bda, uint16_t reason, tBT_TRANSPORT transport)
 {
     tGATT_TCB       *p_tcb = NULL;
@@ -2248,14 +2248,14 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, uint16_t reason, tBT_TRANSPORT transpor
     GATT_TRACE_DEBUG ("exit gatt_cleanup_upon_disc ");
 }
 /*******************************************************************************
-**
-** Function         gatt_dbg_req_op_name
-**
-** Description      Get op code description name, for debug information.
-**
-** Returns          uint8_t *: name of the operation.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_dbg_req_op_name
+ *
+ * Description      Get op code description name, for debug information.
+ *
+ * Returns          uint8_t *: name of the operation.
+ *
+ ******************************************************************************/
 uint8_t * gatt_dbg_op_name(uint8_t op_code)
 {
     uint8_t pseduo_op_code_idx = op_code & (~GATT_WRITE_CMD_MASK);
@@ -2278,14 +2278,14 @@ uint8_t * gatt_dbg_op_name(uint8_t op_code)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_dbg_display_uuid
-**
-** Description      Disaplay the UUID
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         gatt_dbg_display_uuid
+ *
+ * Description      Disaplay the UUID
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
 {
     char str_buf[50];
@@ -2321,14 +2321,14 @@ void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
 
 
 /*******************************************************************************
-**
-** Function         gatt_is_bg_dev_for_app
-**
-** Description      find is this one of the background devices for the application
-**
-** Returns          true this is one of the background devices for the  application
-**
-*******************************************************************************/
+ *
+ * Function         gatt_is_bg_dev_for_app
+ *
+ * Description      find is this one of the background devices for the application
+ *
+ * Returns          true this is one of the background devices for the  application
+ *
+ ******************************************************************************/
 bool    gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if)
 {
     uint8_t i;
@@ -2343,14 +2343,14 @@ bool    gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if)
     return false;
 }
 /*******************************************************************************
-**
-** Function         gatt_find_bg_dev
-**
-** Description      find background connection device from the list.
-**
-** Returns          pointer to the device record
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_bg_dev
+ *
+ * Description      find background connection device from the list.
+ *
+ * Returns          pointer to the device record
+ *
+ ******************************************************************************/
 tGATT_BG_CONN_DEV * gatt_find_bg_dev(BD_ADDR remote_bda)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
@@ -2366,14 +2366,14 @@ tGATT_BG_CONN_DEV * gatt_find_bg_dev(BD_ADDR remote_bda)
     return NULL;
 }
 /*******************************************************************************
-**
-** Function         gatt_alloc_bg_dev
-**
-** Description      allocate a background connection device record
-**
-** Returns          pointer to the device record
-**
-*******************************************************************************/
+ *
+ * Function         gatt_alloc_bg_dev
+ *
+ * Description      allocate a background connection device record
+ *
+ * Returns          pointer to the device record
+ *
+ ******************************************************************************/
 tGATT_BG_CONN_DEV * gatt_alloc_bg_dev(BD_ADDR remote_bda)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
@@ -2393,14 +2393,14 @@ tGATT_BG_CONN_DEV * gatt_alloc_bg_dev(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_add_bg_dev_list
-**
-** Description      add/remove device from the back ground connection device list
-**
-** Returns          true if device added to the list; false failed
-**
-*******************************************************************************/
+ *
+ * Function         gatt_add_bg_dev_list
+ *
+ * Description      add/remove device from the back ground connection device list
+ *
+ * Returns          true if device added to the list; false failed
+ *
+ ******************************************************************************/
 bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr)
 {
     tGATT_IF gatt_if =  p_reg->gatt_if;
@@ -2443,14 +2443,14 @@ bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_remove_bg_dev_for_app
-**
-** Description      Remove the application interface for the specified background device
-**
-** Returns          Boolean
-**
-*******************************************************************************/
+ *
+ * Function         gatt_remove_bg_dev_for_app
+ *
+ * Description      Remove the application interface for the specified background device
+ *
+ * Returns          Boolean
+ *
+ ******************************************************************************/
 bool    gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
 {
     tGATT_TCB    *p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE);
@@ -2464,14 +2464,14 @@ bool    gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
 
 
 /*******************************************************************************
-**
-** Function         gatt_get_num_apps_for_bg_dev
-**
-** Description      Gte the number of applciations for the specified background device
-**
-** Returns          uint8_t total number fo applications
-**
-*******************************************************************************/
+ *
+ * Function         gatt_get_num_apps_for_bg_dev
+ *
+ * Description      Gte the number of applciations for the specified background device
+ *
+ * Returns          uint8_t total number fo applications
+ *
+ ******************************************************************************/
 uint8_t gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr)
 {
     tGATT_BG_CONN_DEV   *p_dev = NULL;
@@ -2491,14 +2491,14 @@ uint8_t gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_find_app_for_bg_dev
-**
-** Description      find the application interface for the specified background device
-**
-** Returns          Boolean
-**
-*******************************************************************************/
+ *
+ * Function         gatt_find_app_for_bg_dev
+ *
+ * Description      find the application interface for the specified background device
+ *
+ * Returns          Boolean
+ *
+ ******************************************************************************/
 bool    gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
 {
     tGATT_BG_CONN_DEV   *p_dev = NULL;
@@ -2525,15 +2525,15 @@ bool    gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
 
 
 /*******************************************************************************
-**
-** Function         gatt_remove_bg_dev_from_list
-**
-** Description      add/remove device from the back ground connection device list or
-**                  listening to advertising list.
-**
-** Returns          pointer to the device record
-**
-*******************************************************************************/
+ *
+ * Function         gatt_remove_bg_dev_from_list
+ *
+ * Description      add/remove device from the back ground connection device list or
+ *                  listening to advertising list.
+ *
+ * Returns          pointer to the device record
+ *
+ ******************************************************************************/
 bool    gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr)
 {
     tGATT_IF gatt_if = p_reg->gatt_if;
@@ -2573,14 +2573,14 @@ bool    gatt_remove_bg_dev_from_list(tGATT_REG *p_reg, BD_ADDR bd_addr)
     return ret;
 }
 /*******************************************************************************
-**
-** Function         gatt_deregister_bgdev_list
-**
-** Description      deregister all related back ground connetion device.
-**
-** Returns          pointer to the device record
-**
-*******************************************************************************/
+ *
+ * Function         gatt_deregister_bgdev_list
+ *
+ * Description      deregister all related back ground connetion device.
+ *
+ * Returns          pointer to the device record
+ *
+ ******************************************************************************/
 void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
 {
     tGATT_BG_CONN_DEV    *p_dev_list = &gatt_cb.bgconn_dev[0];
@@ -2611,33 +2611,33 @@ void gatt_deregister_bgdev_list(tGATT_IF gatt_if)
 
 
 /*******************************************************************************
-**
-** Function         gatt_reset_bgdev_list
-**
-** Description      reset bg device list
-**
-** Returns          pointer to the device record
-**
-*******************************************************************************/
+ *
+ * Function         gatt_reset_bgdev_list
+ *
+ * Description      reset bg device list
+ *
+ * Returns          pointer to the device record
+ *
+ ******************************************************************************/
 void gatt_reset_bgdev_list(void)
 {
     memset(&gatt_cb.bgconn_dev, 0 , sizeof(tGATT_BG_CONN_DEV)*GATT_MAX_BG_CONN_DEV);
 
 }
 /*******************************************************************************
-**
-** Function         gatt_update_auto_connect_dev
-**
-** Description      This function add or remove a device for background connection
-**                  procedure.
-**
-** Parameters       gatt_if: Application ID.
-**                  add: add peer device
-**                  bd_addr: peer device address.
-**
-** Returns          true if connection started; false if connection start failure.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_update_auto_connect_dev
+ *
+ * Description      This function add or remove a device for background connection
+ *                  procedure.
+ *
+ * Parameters       gatt_if: Application ID.
+ *                  add: add peer device
+ *                  bd_addr: peer device address.
+ *
+ * Returns          true if connection started; false if connection start failure.
+ *
+ ******************************************************************************/
 bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_addr)
 {
     bool            ret = false;
@@ -2673,14 +2673,14 @@ bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_
 
 
 /*******************************************************************************
-**
-** Function     gatt_add_pending_new_srv_start
-**
-** Description  Add a pending new srv start to the new service start queue
-**
-** Returns    Pointer to the new service start buffer, NULL no buffer available
-**
-*******************************************************************************/
+ *
+ * Function     gatt_add_pending_new_srv_start
+ *
+ * Description  Add a pending new srv start to the new service start queue
+ *
+ * Returns    Pointer to the new service start buffer, NULL no buffer available
+ *
+ ******************************************************************************/
 tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb)
 {
     tGATT_PENDING_ENC_CLCB *p_buf =

@@ -35,11 +35,11 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* Define the minimum offset that L2CAP needs in a buffer. This is made up of
-** HCI type(1), len(2), handle(2), L2CAP len(2) and CID(2) => 9
+ * HCI type(1), len(2), handle(2), L2CAP len(2) and CID(2) => 9
 */
 #define L2CAP_MIN_OFFSET    13     /* plus control(2), SDU length(2) */
 
@@ -123,16 +123,16 @@ typedef uint8_t tL2CAP_CHNL_DATA_RATE;
 #define L2CAP_FCR_CHAN_OPT_ALL_MASK (L2CAP_FCR_CHAN_OPT_BASIC | L2CAP_FCR_CHAN_OPT_ERTM | L2CAP_FCR_CHAN_OPT_STREAM)
 
 /* Validity check for PSM.  PSM values must be odd.  Also, all PSM values must
-** be assigned such that the least significant bit of the most sigificant
-** octet equals zero.
+ * be assigned such that the least significant bit of the most sigificant
+ * octet equals zero.
 */
 #define L2C_INVALID_PSM(psm)       (((psm) & 0x0101) != 0x0001)
 #define L2C_IS_VALID_PSM(psm)      (((psm) & 0x0101) == 0x0001)
 #define L2C_IS_VALID_LE_PSM(psm)   (((psm) > 0x0000) && ((psm) < 0x0100))
 
 /*****************************************************************************
-**  Type Definitions
-*****************************************************************************/
+ *  Type Definitions
+ ****************************************************************************/
 
 typedef struct
 {
@@ -151,8 +151,8 @@ typedef struct
 } tL2CAP_FCR_OPTS;
 
 /* Define a structure to hold the configuration parameters. Since the
-** parameters are optional, for each parameter there is a boolean to
-** use to signify its presence or absence.
+ * parameters are optional, for each parameter there is a boolean to
+ * use to signify its presence or absence.
 */
 typedef struct
 {
@@ -173,7 +173,7 @@ typedef struct
 } tL2CAP_CFG_INFO;
 
 /* Define a structure to hold the configuration parameter for LE L2CAP connection
-** oriented channels.
+ * oriented channels.
 */
 typedef struct
 {
@@ -193,76 +193,76 @@ typedef struct
 typedef uint16_t tL2CAP_CH_CFG_BITS;
 
 /*********************************
-**  Callback Functions Prototypes
-**********************************/
+ *  Callback Functions Prototypes
+ *********************************/
 
 /* Connection indication callback prototype. Parameters are
-**              BD Address of remote
-**              Local CID assigned to the connection
-**              PSM that the remote wants to connect to
-**              Identifier that the remote sent
+ *              BD Address of remote
+ *              Local CID assigned to the connection
+ *              PSM that the remote wants to connect to
+ *              Identifier that the remote sent
 */
 typedef void (tL2CA_CONNECT_IND_CB) (BD_ADDR, uint16_t, uint16_t, uint8_t);
 
 
 /* Connection confirmation callback prototype. Parameters are
-**              Local CID
-**              Result - 0 = connected, non-zero means failure reason
+ *              Local CID
+ *              Result - 0 = connected, non-zero means failure reason
 */
 typedef void (tL2CA_CONNECT_CFM_CB) (uint16_t, uint16_t);
 
 
 /* Connection pending callback prototype. Parameters are
-**              Local CID
+ *              Local CID
 */
 typedef void (tL2CA_CONNECT_PND_CB) (uint16_t);
 
 
 /* Configuration indication callback prototype. Parameters are
-**              Local CID assigned to the connection
-**              Pointer to configuration info
+ *              Local CID assigned to the connection
+ *              Pointer to configuration info
 */
 typedef void (tL2CA_CONFIG_IND_CB) (uint16_t, tL2CAP_CFG_INFO *);
 
 
 /* Configuration confirm callback prototype. Parameters are
-**              Local CID assigned to the connection
-**              Pointer to configuration info
+ *              Local CID assigned to the connection
+ *              Pointer to configuration info
 */
 typedef void (tL2CA_CONFIG_CFM_CB) (uint16_t, tL2CAP_CFG_INFO *);
 
 
 /* Disconnect indication callback prototype. Parameters are
-**              Local CID
-**              Boolean whether upper layer should ack this
+ *              Local CID
+ *              Boolean whether upper layer should ack this
 */
 typedef void (tL2CA_DISCONNECT_IND_CB) (uint16_t, bool   );
 
 
 /* Disconnect confirm callback prototype. Parameters are
-**              Local CID
-**              Result
+ *              Local CID
+ *              Result
 */
 typedef void (tL2CA_DISCONNECT_CFM_CB) (uint16_t, uint16_t);
 
 
 /* QOS Violation indication callback prototype. Parameters are
-**              BD Address of violating device
+ *              BD Address of violating device
 */
 typedef void (tL2CA_QOS_VIOLATION_IND_CB) (BD_ADDR);
 
 
 /* Data received indication callback prototype. Parameters are
-**              Local CID
-**              Address of buffer
+ *              Local CID
+ *              Address of buffer
 */
 typedef void (tL2CA_DATA_IND_CB) (uint16_t, BT_HDR *);
 
 
 /* Echo response callback prototype. Note that this is not included in the
-** registration information, but is passed to L2CAP as part of the API to
-** actually send an echo request. Parameters are
-**              Result
+ * registration information, but is passed to L2CAP as part of the API to
+ * actually send an echo request. Parameters are
+ *              Result
 */
 typedef void (tL2CA_ECHO_RSP_CB) (uint16_t);
 
@@ -273,35 +273,35 @@ typedef void (tL2CA_ECHO_DATA_CB) (BD_ADDR, uint16_t, uint8_t *);
 
 
 /* Congestion status callback protype. This callback is optional. If
-** an application tries to send data when the transmit queue is full,
-** the data will anyways be dropped. The parameter is:
-**              Local CID
-**              true if congested, false if uncongested
+ * an application tries to send data when the transmit queue is full,
+ * the data will anyways be dropped. The parameter is:
+ *              Local CID
+ *              true if congested, false if uncongested
 */
 typedef void (tL2CA_CONGESTION_STATUS_CB) (uint16_t, bool   );
 
 /* Callback prototype for number of packets completed events.
-** This callback notifies the application when Number of Completed Packets
-** event has been received.
-** This callback is originally designed for 3DG devices.
-** The parameter is:
-**          peer BD_ADDR
+ * This callback notifies the application when Number of Completed Packets
+ * event has been received.
+ * This callback is originally designed for 3DG devices.
+ * The parameter is:
+ *          peer BD_ADDR
 */
 typedef void (tL2CA_NOCP_CB) (BD_ADDR);
 
 /* Transmit complete callback protype. This callback is optional. If
-** set, L2CAP will call it when packets are sent or flushed. If the
-** count is 0xFFFF, it means all packets are sent for that CID (eRTM
-** mode only). The parameters are:
-**              Local CID
-**              Number of SDUs sent or dropped
+ * set, L2CAP will call it when packets are sent or flushed. If the
+ * count is 0xFFFF, it means all packets are sent for that CID (eRTM
+ * mode only). The parameters are:
+ *              Local CID
+ *              Number of SDUs sent or dropped
 */
 typedef void (tL2CA_TX_COMPLETE_CB) (uint16_t, uint16_t);
 
 /* Define the structure that applications use to register with
-** L2CAP. This structure includes callback functions. All functions
-** MUST be provided, with the exception of the "connect pending"
-** callback and "congestion status" callback.
+ * L2CAP. This structure includes callback functions. All functions
+ * MUST be provided, with the exception of the "connect pending"
+ * callback and "congestion status" callback.
 */
 typedef struct
 {
@@ -320,7 +320,7 @@ typedef struct
 } tL2CAP_APPL_INFO;
 
 /* Define the structure that applications use to create or accept
-** connections with enhanced retransmission mode.
+ * connections with enhanced retransmission mode.
 */
 typedef struct
 {
@@ -349,158 +349,158 @@ typedef struct
 #define L2CA_GET_PEER_COC_CONFIG(a, b)    L2CA_GetPeerLECocConfig(a, b)
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 
 /*******************************************************************************
-**
-** Function         L2CA_Register
-**
-** Description      Other layers call this function to register for L2CAP
-**                  services.
-**
-** Returns          PSM to use or zero if error. Typically, the PSM returned
-**                  is the same as was passed in, but for an outgoing-only
-**                  connection to a dynamic PSM, a "virtual" PSM is returned
-**                  and should be used in the calls to L2CA_ConnectReq() and
-**                  BTM_SetSecurityLevel().
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_Register
+ *
+ * Description      Other layers call this function to register for L2CAP
+ *                  services.
+ *
+ * Returns          PSM to use or zero if error. Typically, the PSM returned
+ *                  is the same as was passed in, but for an outgoing-only
+ *                  connection to a dynamic PSM, a "virtual" PSM is returned
+ *                  and should be used in the calls to L2CA_ConnectReq() and
+ *                  BTM_SetSecurityLevel().
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_Register (uint16_t psm, tL2CAP_APPL_INFO *p_cb_info);
 
 /*******************************************************************************
-**
-** Function         L2CA_Deregister
-**
-** Description      Other layers call this function to deregister for L2CAP
-**                  services.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_Deregister
+ *
+ * Description      Other layers call this function to deregister for L2CAP
+ *                  services.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void L2CA_Deregister (uint16_t psm);
 
 /*******************************************************************************
-**
-** Function         L2CA_AllocatePSM
-**
-** Description      Other layers call this function to find an unused PSM for L2CAP
-**                  services.
-**
-** Returns          PSM to use.
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_AllocatePSM
+ *
+ * Description      Other layers call this function to find an unused PSM for L2CAP
+ *                  services.
+ *
+ * Returns          PSM to use.
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_AllocatePSM(void);
 
 /*******************************************************************************
-**
-** Function         L2CA_ConnectReq
-**
-** Description      Higher layers call this function to create an L2CAP connection.
-**                  Note that the connection is not established at this time, but
-**                  connection establishment gets started. The callback function
-**                  will be invoked when connection establishes or fails.
-**
-** Returns          the CID of the connection, or 0 if it failed to start
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ConnectReq
+ *
+ * Description      Higher layers call this function to create an L2CAP connection.
+ *                  Note that the connection is not established at this time, but
+ *                  connection establishment gets started. The callback function
+ *                  will be invoked when connection establishes or fails.
+ *
+ * Returns          the CID of the connection, or 0 if it failed to start
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_ConnectReq (uint16_t psm, BD_ADDR p_bd_addr);
 
 /*******************************************************************************
-**
-** Function         L2CA_ConnectRsp
-**
-** Description      Higher layers call this function to accept an incoming
-**                  L2CAP connection, for which they had gotten an connect
-**                  indication callback.
-**
-** Returns          true for success, false for failure
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ConnectRsp
+ *
+ * Description      Higher layers call this function to accept an incoming
+ *                  L2CAP connection, for which they had gotten an connect
+ *                  indication callback.
+ *
+ * Returns          true for success, false for failure
+ *
+ ******************************************************************************/
 extern bool    L2CA_ConnectRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid,
                                         uint16_t result, uint16_t status);
 
 /*******************************************************************************
-**
-** Function         L2CA_ErtmConnectReq
-**
-** Description      Higher layers call this function to create an L2CAP connection
-**                  that needs to use Enhanced Retransmission Mode.
-**                  Note that the connection is not established at this time, but
-**                  connection establishment gets started. The callback function
-**                  will be invoked when connection establishes or fails.
-**
-** Returns          the CID of the connection, or 0 if it failed to start
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ErtmConnectReq
+ *
+ * Description      Higher layers call this function to create an L2CAP connection
+ *                  that needs to use Enhanced Retransmission Mode.
+ *                  Note that the connection is not established at this time, but
+ *                  connection establishment gets started. The callback function
+ *                  will be invoked when connection establishes or fails.
+ *
+ * Returns          the CID of the connection, or 0 if it failed to start
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_ErtmConnectReq (uint16_t psm, BD_ADDR p_bd_addr,
                                            tL2CAP_ERTM_INFO *p_ertm_info);
 
 /*******************************************************************************
-**
-** Function         L2CA_RegisterLECoc
-**
-** Description      Other layers call this function to register for L2CAP
-**                  Connection Oriented Channel.
-**
-** Returns          PSM to use or zero if error. Typically, the PSM returned
-**                  is the same as was passed in, but for an outgoing-only
-**                  connection to a dynamic PSM, a "virtual" PSM is returned
-**                  and should be used in the calls to L2CA_ConnectLECocReq()
-**                  and BTM_SetSecurityLevel().
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_RegisterLECoc
+ *
+ * Description      Other layers call this function to register for L2CAP
+ *                  Connection Oriented Channel.
+ *
+ * Returns          PSM to use or zero if error. Typically, the PSM returned
+ *                  is the same as was passed in, but for an outgoing-only
+ *                  connection to a dynamic PSM, a "virtual" PSM is returned
+ *                  and should be used in the calls to L2CA_ConnectLECocReq()
+ *                  and BTM_SetSecurityLevel().
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_RegisterLECoc (uint16_t psm, tL2CAP_APPL_INFO *p_cb_info);
 
 /*******************************************************************************
-**
-** Function         L2CA_DeregisterLECoc
-**
-** Description      Other layers call this function to deregister for L2CAP
-**                  Connection Oriented Channel.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_DeregisterLECoc
+ *
+ * Description      Other layers call this function to deregister for L2CAP
+ *                  Connection Oriented Channel.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void L2CA_DeregisterLECoc (uint16_t psm);
 
 /*******************************************************************************
-**
-** Function         L2CA_ConnectLECocReq
-**
-** Description      Higher layers call this function to create an L2CAP LE COC.
-**                  Note that the connection is not established at this time, but
-**                  connection establishment gets started. The callback function
-**                  will be invoked when connection establishes or fails.
-**
-** Returns          the CID of the connection, or 0 if it failed to start
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ConnectLECocReq
+ *
+ * Description      Higher layers call this function to create an L2CAP LE COC.
+ *                  Note that the connection is not established at this time, but
+ *                  connection establishment gets started. The callback function
+ *                  will be invoked when connection establishes or fails.
+ *
+ * Returns          the CID of the connection, or 0 if it failed to start
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_ConnectLECocReq (uint16_t psm, BD_ADDR p_bd_addr, tL2CAP_LE_CFG_INFO *p_cfg);
 
 /*******************************************************************************
-**
-** Function         L2CA_ConnectLECocRsp
-**
-** Description      Higher layers call this function to accept an incoming
-**                  L2CAP LE COC connection, for which they had gotten an connect
-**                  indication callback.
-**
-** Returns          true for success, false for failure
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ConnectLECocRsp
+ *
+ * Description      Higher layers call this function to accept an incoming
+ *                  L2CAP LE COC connection, for which they had gotten an connect
+ *                  indication callback.
+ *
+ * Returns          true for success, false for failure
+ *
+ ******************************************************************************/
 extern bool    L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid, uint16_t result,
                                          uint16_t status, tL2CAP_LE_CFG_INFO *p_cfg);
 
 /*******************************************************************************
-**
-**  Function         L2CA_GetPeerLECocConfig
-**
-**  Description      Get peers configuration for LE Connection Oriented Channel.
-**
-**  Return value:    true if peer is connected
-**
-*******************************************************************************/
+ *
+ *  Function         L2CA_GetPeerLECocConfig
+ *
+ *  Description      Get peers configuration for LE Connection Oriented Channel.
+ *
+ *  Return value:    true if peer is connected
+ *
+ ******************************************************************************/
 extern bool    L2CA_GetPeerLECocConfig (uint16_t lcid, tL2CAP_LE_CFG_INFO* peer_cfg);
 
 // This function sets the callback routines for the L2CAP connection referred to by
@@ -511,101 +511,101 @@ extern bool    L2CA_GetPeerLECocConfig (uint16_t lcid, tL2CAP_LE_CFG_INFO* peer_
 bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *callbacks);
 
 /*******************************************************************************
-**
-** Function         L2CA_ErtmConnectRsp
-**
-** Description      Higher layers call this function to accept an incoming
-**                  L2CAP connection, for which they had gotten an connect
-**                  indication callback, and for which the higher layer wants
-**                  to use Enhanced Retransmission Mode.
-**
-** Returns          true for success, false for failure
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ErtmConnectRsp
+ *
+ * Description      Higher layers call this function to accept an incoming
+ *                  L2CAP connection, for which they had gotten an connect
+ *                  indication callback, and for which the higher layer wants
+ *                  to use Enhanced Retransmission Mode.
+ *
+ * Returns          true for success, false for failure
+ *
+ ******************************************************************************/
 extern bool     L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid,
                                              uint16_t result, uint16_t status,
                                              tL2CAP_ERTM_INFO *p_ertm_info);
 
 /*******************************************************************************
-**
-** Function         L2CA_ConfigReq
-**
-** Description      Higher layers call this function to send configuration.
-**
-** Returns          true if configuration sent, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ConfigReq
+ *
+ * Description      Higher layers call this function to send configuration.
+ *
+ * Returns          true if configuration sent, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_ConfigReq (uint16_t cid, tL2CAP_CFG_INFO *p_cfg);
 
 /*******************************************************************************
-**
-** Function         L2CA_ConfigRsp
-**
-** Description      Higher layers call this function to send a configuration
-**                  response.
-**
-** Returns          true if configuration response sent, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_ConfigRsp
+ *
+ * Description      Higher layers call this function to send a configuration
+ *                  response.
+ *
+ * Returns          true if configuration response sent, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_ConfigRsp (uint16_t cid, tL2CAP_CFG_INFO *p_cfg);
 
 /*******************************************************************************
-**
-** Function         L2CA_DisconnectReq
-**
-** Description      Higher layers call this function to disconnect a channel.
-**
-** Returns          true if disconnect sent, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_DisconnectReq
+ *
+ * Description      Higher layers call this function to disconnect a channel.
+ *
+ * Returns          true if disconnect sent, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_DisconnectReq (uint16_t cid);
 
 /*******************************************************************************
-**
-** Function         L2CA_DisconnectRsp
-**
-** Description      Higher layers call this function to acknowledge the
-**                  disconnection of a channel.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_DisconnectRsp
+ *
+ * Description      Higher layers call this function to acknowledge the
+ *                  disconnection of a channel.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern bool    L2CA_DisconnectRsp (uint16_t cid);
 
 /*******************************************************************************
-**
-** Function         L2CA_DataWrite
-**
-** Description      Higher layers call this function to write data.
-**
-** Returns          L2CAP_DW_SUCCESS, if data accepted, else false
-**                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
-**                  L2CAP_DW_FAILED, if error
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_DataWrite
+ *
+ * Description      Higher layers call this function to write data.
+ *
+ * Returns          L2CAP_DW_SUCCESS, if data accepted, else false
+ *                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
+ *                  L2CAP_DW_FAILED, if error
+ *
+ ******************************************************************************/
 extern uint8_t L2CA_DataWrite (uint16_t cid, BT_HDR *p_data);
 
 /*******************************************************************************
-**
-** Function         L2CA_Ping
-**
-** Description      Higher layers call this function to send an echo request.
-**
-** Returns          true if echo request sent, else false.
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_Ping
+ *
+ * Description      Higher layers call this function to send an echo request.
+ *
+ * Returns          true if echo request sent, else false.
+ *
+ ******************************************************************************/
 extern bool    L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_cb);
 
 /*******************************************************************************
-**
-** Function         L2CA_Echo
-**
-** Description      Higher layers call this function to send an echo request
-**                  with application-specific data.
-**
-** Returns          true if echo request sent, else false.
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_Echo
+ *
+ * Description      Higher layers call this function to send an echo request
+ *                  with application-specific data.
+ *
+ * Returns          true if echo request sent, else false.
+ *
+ ******************************************************************************/
 extern bool     L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_callback);
 
 // Given a local channel identifier, |lcid|, this function returns the bound remote
@@ -615,283 +615,283 @@ extern bool     L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB
 bool L2CA_GetIdentifiers(uint16_t lcid, uint16_t *rcid, uint16_t *handle);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetIdleTimeout
-**
-** Description      Higher layers call this function to set the idle timeout for
-**                  a connection, or for all future connections. The "idle timeout"
-**                  is the amount of time that a connection can remain up with
-**                  no L2CAP channels on it. A timeout of zero means that the
-**                  connection will be torn down immediately when the last channel
-**                  is removed. A timeout of 0xFFFF means no timeout. Values are
-**                  in seconds.
-**
-** Returns          true if command succeeded, false if failed
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SetIdleTimeout
+ *
+ * Description      Higher layers call this function to set the idle timeout for
+ *                  a connection, or for all future connections. The "idle timeout"
+ *                  is the amount of time that a connection can remain up with
+ *                  no L2CAP channels on it. A timeout of zero means that the
+ *                  connection will be torn down immediately when the last channel
+ *                  is removed. A timeout of 0xFFFF means no timeout. Values are
+ *                  in seconds.
+ *
+ * Returns          true if command succeeded, false if failed
+ *
+ ******************************************************************************/
 extern bool    L2CA_SetIdleTimeout (uint16_t cid, uint16_t timeout,
                                             bool    is_global);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetIdleTimeoutByBdAddr
-**
-** Description      Higher layers call this function to set the idle timeout for
-**                  a connection. The "idle timeout" is the amount of time that
-**                  a connection can remain up with no L2CAP channels on it.
-**                  A timeout of zero means that the connection will be torn
-**                  down immediately when the last channel is removed.
-**                  A timeout of 0xFFFF means no timeout. Values are in seconds.
-**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
-**                  then the idle timeouts for all active l2cap links will be
-**                  changed.
-**
-** Returns          true if command succeeded, false if failed
-**
-** NOTE             This timeout applies to all logical channels active on the
-**                  ACL link.
-*******************************************************************************/
+ *
+ * Function         L2CA_SetIdleTimeoutByBdAddr
+ *
+ * Description      Higher layers call this function to set the idle timeout for
+ *                  a connection. The "idle timeout" is the amount of time that
+ *                  a connection can remain up with no L2CAP channels on it.
+ *                  A timeout of zero means that the connection will be torn
+ *                  down immediately when the last channel is removed.
+ *                  A timeout of 0xFFFF means no timeout. Values are in seconds.
+ *                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
+ *                  then the idle timeouts for all active l2cap links will be
+ *                  changed.
+ *
+ * Returns          true if command succeeded, false if failed
+ *
+ * NOTE             This timeout applies to all logical channels active on the
+ *                  ACL link.
+ ******************************************************************************/
 extern bool    L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, uint16_t timeout,
                                            tBT_TRANSPORT transport);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetTraceLevel
-**
-** Description      This function sets the trace level for L2CAP. If called with
-**                  a value of 0xFF, it simply reads the current trace level.
-**
-** Returns          the new (current) trace level
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SetTraceLevel
+ *
+ * Description      This function sets the trace level for L2CAP. If called with
+ *                  a value of 0xFF, it simply reads the current trace level.
+ *
+ * Returns          the new (current) trace level
+ *
+ ******************************************************************************/
 extern uint8_t L2CA_SetTraceLevel (uint8_t trace_level);
 
 /*******************************************************************************
-**
-** Function     L2CA_SetDesireRole
-**
-** Description  This function sets the desire role for L2CAP.
-**              If the new role is L2CAP_ROLE_ALLOW_SWITCH, allow switch on
-**              HciCreateConnection.
-**              If the new role is L2CAP_ROLE_DISALLOW_SWITCH, do not allow switch on
-**              HciCreateConnection.
-**
-**              If the new role is a valid role (HCI_ROLE_MASTER or HCI_ROLE_SLAVE),
-**              the desire role is set to the new value. Otherwise, it is not changed.
-**
-** Returns      the new (current) role
-**
-*******************************************************************************/
+ *
+ * Function     L2CA_SetDesireRole
+ *
+ * Description  This function sets the desire role for L2CAP.
+ *              If the new role is L2CAP_ROLE_ALLOW_SWITCH, allow switch on
+ *              HciCreateConnection.
+ *              If the new role is L2CAP_ROLE_DISALLOW_SWITCH, do not allow switch on
+ *              HciCreateConnection.
+ *
+ *              If the new role is a valid role (HCI_ROLE_MASTER or HCI_ROLE_SLAVE),
+ *              the desire role is set to the new value. Otherwise, it is not changed.
+ *
+ * Returns      the new (current) role
+ *
+ ******************************************************************************/
 extern uint8_t L2CA_SetDesireRole (uint8_t new_role);
 
 /*******************************************************************************
-**
-** Function     L2CA_LocalLoopbackReq
-**
-** Description  This function sets up a CID for local loopback
-**
-** Returns      CID of 0 if none.
-**
-*******************************************************************************/
+ *
+ * Function     L2CA_LocalLoopbackReq
+ *
+ * Description  This function sets up a CID for local loopback
+ *
+ * Returns      CID of 0 if none.
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_LocalLoopbackReq (uint16_t psm, uint16_t handle, BD_ADDR p_bd_addr);
 
 /*******************************************************************************
-**
-** Function     L2CA_FlushChannel
-**
-** Description  This function flushes none, some or all buffers queued up
-**              for xmission for a particular CID. If called with
-**              L2CAP_FLUSH_CHANS_GET (0), it simply returns the number
-**              of buffers queued for that CID L2CAP_FLUSH_CHANS_ALL (0xffff)
-**              flushes all buffers.  All other values specifies the maximum
-**              buffers to flush.
-**
-** Returns      Number of buffers left queued for that CID
-**
-*******************************************************************************/
+ *
+ * Function     L2CA_FlushChannel
+ *
+ * Description  This function flushes none, some or all buffers queued up
+ *              for xmission for a particular CID. If called with
+ *              L2CAP_FLUSH_CHANS_GET (0), it simply returns the number
+ *              of buffers queued for that CID L2CAP_FLUSH_CHANS_ALL (0xffff)
+ *              flushes all buffers.  All other values specifies the maximum
+ *              buffers to flush.
+ *
+ * Returns      Number of buffers left queued for that CID
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_FlushChannel (uint16_t lcid, uint16_t num_to_flush);
 
 
 /*******************************************************************************
-**
-** Function         L2CA_SetAclPriority
-**
-** Description      Sets the transmission priority for an ACL channel.
-**                  (For initial implementation only two values are valid.
-**                  L2CAP_PRIORITY_NORMAL and L2CAP_PRIORITY_HIGH).
-**
-** Returns          true if a valid channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SetAclPriority
+ *
+ * Description      Sets the transmission priority for an ACL channel.
+ *                  (For initial implementation only two values are valid.
+ *                  L2CAP_PRIORITY_NORMAL and L2CAP_PRIORITY_HIGH).
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_SetAclPriority (BD_ADDR bd_addr, uint8_t priority);
 
 /*******************************************************************************
-**
-** Function         L2CA_FlowControl
-**
-** Description      Higher layers call this function to flow control a channel.
-**
-**                  data_enabled - true data flows, false data is stopped
-**
-** Returns          true if valid channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_FlowControl
+ *
+ * Description      Higher layers call this function to flow control a channel.
+ *
+ *                  data_enabled - true data flows, false data is stopped
+ *
+ * Returns          true if valid channel, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_FlowControl (uint16_t cid, bool    data_enabled);
 
 /*******************************************************************************
-**
-** Function         L2CA_SendTestSFrame
-**
-** Description      Higher layers call this function to send a test S-frame.
-**
-** Returns          true if valid Channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SendTestSFrame
+ *
+ * Description      Higher layers call this function to send a test S-frame.
+ *
+ * Returns          true if valid Channel, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_SendTestSFrame (uint16_t cid, uint8_t sup_type,
                                             uint8_t back_track);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetTxPriority
-**
-** Description      Sets the transmission priority for a channel. (FCR Mode)
-**
-** Returns          true if a valid channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SetTxPriority
+ *
+ * Description      Sets the transmission priority for a channel. (FCR Mode)
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_SetTxPriority (uint16_t cid, tL2CAP_CHNL_PRIORITY priority);
 
 /*******************************************************************************
-**
-** Function         L2CA_RegForNoCPEvt
-**
-** Description      Register callback for Number of Completed Packets event.
-**
-** Input Param      p_cb - callback for Number of completed packets event
-**                  p_bda - BT address of remote device
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_RegForNoCPEvt
+ *
+ * Description      Register callback for Number of Completed Packets event.
+ *
+ * Input Param      p_cb - callback for Number of completed packets event
+ *                  p_bda - BT address of remote device
+ *
+ * Returns
+ *
+ ******************************************************************************/
 extern bool    L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetChnlDataRate
-**
-** Description      Sets the tx/rx data rate for a channel.
-**
-** Returns          true if a valid channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SetChnlDataRate
+ *
+ * Description      Sets the tx/rx data rate for a channel.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_SetChnlDataRate (uint16_t cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_DATA_RATE rx);
 
 typedef void (tL2CA_RESERVE_CMPL_CBACK) (void);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetFlushTimeout
-**
-** Description      This function set the automatic flush time out in Baseband
-**                  for ACL-U packets.
-**                  BdAddr : the remote BD address of ACL link. If it is BT_DB_ANY
-**                           then the flush time out will be applied to all ACL link.
-**                  FlushTimeout: flush time out in ms
-**                           0x0000 : No automatic flush
-**                           L2CAP_NO_RETRANSMISSION : No retransmission
-**                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5)
-**                                    <= HCI_MAX_AUTO_FLUSH_TOUT (in 625us slot).
-**                                    Otherwise, return false.
-**                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush
-**
-** Returns          true if command succeeded, false if failed
-**
-** NOTE             This flush timeout applies to all logical channels active on the
-**                  ACL link.
-*******************************************************************************/
+ *
+ * Function         L2CA_SetFlushTimeout
+ *
+ * Description      This function set the automatic flush time out in Baseband
+ *                  for ACL-U packets.
+ *                  BdAddr : the remote BD address of ACL link. If it is BT_DB_ANY
+ *                           then the flush time out will be applied to all ACL link.
+ *                  FlushTimeout: flush time out in ms
+ *                           0x0000 : No automatic flush
+ *                           L2CAP_NO_RETRANSMISSION : No retransmission
+ *                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5)
+ *                                    <= HCI_MAX_AUTO_FLUSH_TOUT (in 625us slot).
+ *                                    Otherwise, return false.
+ *                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush
+ *
+ * Returns          true if command succeeded, false if failed
+ *
+ * NOTE             This flush timeout applies to all logical channels active on the
+ *                  ACL link.
+ ******************************************************************************/
 extern bool    L2CA_SetFlushTimeout (BD_ADDR bd_addr, uint16_t flush_tout);
 
 /*******************************************************************************
-**
-** Function         L2CA_DataWriteEx
-**
-** Description      Higher layers call this function to write data with extended
-**                  flags.
-**                  flags : L2CAP_FLUSHABLE_CH_BASED
-**                          L2CAP_FLUSHABLE_PKT
-**                          L2CAP_NON_FLUSHABLE_PKT
-**
-** Returns          L2CAP_DW_SUCCESS, if data accepted, else false
-**                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
-**                  L2CAP_DW_FAILED, if error
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_DataWriteEx
+ *
+ * Description      Higher layers call this function to write data with extended
+ *                  flags.
+ *                  flags : L2CAP_FLUSHABLE_CH_BASED
+ *                          L2CAP_FLUSHABLE_PKT
+ *                          L2CAP_NON_FLUSHABLE_PKT
+ *
+ * Returns          L2CAP_DW_SUCCESS, if data accepted, else false
+ *                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
+ *                  L2CAP_DW_FAILED, if error
+ *
+ ******************************************************************************/
 extern uint8_t L2CA_DataWriteEx (uint16_t cid, BT_HDR *p_data, uint16_t flags);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetChnlFlushability
-**
-** Description      Higher layers call this function to set a channels
-**                  flushability flags
-**
-** Returns          true if CID found, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SetChnlFlushability
+ *
+ * Description      Higher layers call this function to set a channels
+ *                  flushability flags
+ *
+ * Returns          true if CID found, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_SetChnlFlushability (uint16_t cid, bool    is_flushable);
 
 /*******************************************************************************
-**
-**  Function         L2CA_GetPeerFeatures
-**
-**  Description      Get a peers features and fixed channel map
-**
-**  Parameters:      BD address of the peer
-**                   Pointers to features and channel mask storage area
-**
-**  Return value:    true if peer is connected
-**
-*******************************************************************************/
+ *
+ *  Function         L2CA_GetPeerFeatures
+ *
+ *  Description      Get a peers features and fixed channel map
+ *
+ *  Parameters:      BD address of the peer
+ *                   Pointers to features and channel mask storage area
+ *
+ *  Return value:    true if peer is connected
+ *
+ ******************************************************************************/
 extern bool    L2CA_GetPeerFeatures (BD_ADDR bd_addr, uint32_t *p_ext_feat, uint8_t *p_chnl_mask);
 
 /*******************************************************************************
-**
-**  Function         L2CA_GetBDAddrbyHandle
-**
-**  Description      Get BD address for the given HCI handle
-**
-**  Parameters:      HCI handle
-**                   BD address of the peer
-**
-**  Return value:    true if found lcb for the given handle, false otherwise
-**
-*******************************************************************************/
+ *
+ *  Function         L2CA_GetBDAddrbyHandle
+ *
+ *  Description      Get BD address for the given HCI handle
+ *
+ *  Parameters:      HCI handle
+ *                   BD address of the peer
+ *
+ *  Return value:    true if found lcb for the given handle, false otherwise
+ *
+ ******************************************************************************/
 extern bool    L2CA_GetBDAddrbyHandle (uint16_t handle, BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-**  Function         L2CA_GetChnlFcrMode
-**
-**  Description      Get the channel FCR mode
-**
-**  Parameters:      Local CID
-**
-**  Return value:    Channel mode
-**
-*******************************************************************************/
+ *
+ *  Function         L2CA_GetChnlFcrMode
+ *
+ *  Description      Get the channel FCR mode
+ *
+ *  Parameters:      Local CID
+ *
+ *  Return value:    Channel mode
+ *
+ ******************************************************************************/
 extern uint8_t L2CA_GetChnlFcrMode (uint16_t lcid);
 
 
 /*******************************************************************************
-**
-**                      UCD callback prototypes
-**
-*******************************************************************************/
+ *
+ *                      UCD callback prototypes
+ *
+ ******************************************************************************/
 
 /* UCD discovery. Parameters are
-**      BD Address of remote
-**      Data Type
-**      Data
+ *      BD Address of remote
+ *      Data Type
+ *      Data
 */
 #define L2CAP_UCD_INFO_TYPE_RECEPTION   0x01
 #define L2CAP_UCD_INFO_TYPE_MTU         0x02
@@ -899,16 +899,16 @@ extern uint8_t L2CA_GetChnlFcrMode (uint16_t lcid);
 typedef void (tL2CA_UCD_DISCOVER_CB) (BD_ADDR, uint8_t, uint32_t);
 
 /* UCD data received. Parameters are
-**      BD Address of remote
-**      Pointer to buffer with data
+ *      BD Address of remote
+ *      Pointer to buffer with data
 */
 typedef void (tL2CA_UCD_DATA_CB) (BD_ADDR, BT_HDR *);
 
 /* Congestion status callback protype. This callback is optional. If
-** an application tries to send data when the transmit queue is full,
-** the data will anyways be dropped. The parameter is:
-**              remote BD_ADDR
-**              true if congested, false if uncongested
+ * an application tries to send data when the transmit queue is full,
+ * the data will anyways be dropped. The parameter is:
+ *              remote BD_ADDR
+ *              true if congested, false if uncongested
 */
 typedef void (tL2CA_UCD_CONGESTION_STATUS_CB) (BD_ADDR, bool   );
 
@@ -922,120 +922,120 @@ typedef struct
 } tL2CAP_UCD_CB_INFO;
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdRegister
-**
-**  Description     Register PSM on UCD.
-**
-**  Parameters:     tL2CAP_UCD_CB_INFO
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdRegister
+ *
+ *  Description     Register PSM on UCD.
+ *
+ *  Parameters:     tL2CAP_UCD_CB_INFO
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 extern bool    L2CA_UcdRegister ( uint16_t psm, tL2CAP_UCD_CB_INFO *p_cb_info );
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdDeregister
-**
-**  Description     Deregister PSM on UCD.
-**
-**  Parameters:     PSM
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdDeregister
+ *
+ *  Description     Deregister PSM on UCD.
+ *
+ *  Parameters:     PSM
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 extern bool    L2CA_UcdDeregister ( uint16_t psm );
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdDiscover
-**
-**  Description     Discover UCD of remote device.
-**
-**  Parameters:     PSM
-**                  BD_ADDR of remote device
-**                  info_type : L2CAP_UCD_INFO_TYPE_RECEPTION
-**                              L2CAP_UCD_INFO_TYPE_MTU
-**
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdDiscover
+ *
+ *  Description     Discover UCD of remote device.
+ *
+ *  Parameters:     PSM
+ *                  BD_ADDR of remote device
+ *                  info_type : L2CAP_UCD_INFO_TYPE_RECEPTION
+ *                              L2CAP_UCD_INFO_TYPE_MTU
+ *
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 extern bool    L2CA_UcdDiscover ( uint16_t psm, BD_ADDR rem_bda, uint8_t info_type );
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdDataWrite
-**
-**  Description     Send UCD to remote device
-**
-**  Parameters:     PSM
-**                  BD Address of remote
-**                  Pointer to buffer of type BT_HDR
-**                  flags : L2CAP_FLUSHABLE_CH_BASED
-**                          L2CAP_FLUSHABLE_PKT
-**                          L2CAP_NON_FLUSHABLE_PKT
-**
-** Return value     L2CAP_DW_SUCCESS, if data accepted
-**                  L2CAP_DW_FAILED,  if error
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdDataWrite
+ *
+ *  Description     Send UCD to remote device
+ *
+ *  Parameters:     PSM
+ *                  BD Address of remote
+ *                  Pointer to buffer of type BT_HDR
+ *                  flags : L2CAP_FLUSHABLE_CH_BASED
+ *                          L2CAP_FLUSHABLE_PKT
+ *                          L2CAP_NON_FLUSHABLE_PKT
+ *
+ * Return value     L2CAP_DW_SUCCESS, if data accepted
+ *                  L2CAP_DW_FAILED,  if error
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_UcdDataWrite (uint16_t psm, BD_ADDR rem_bda, BT_HDR *p_buf, uint16_t flags);
 
 /*******************************************************************************
-**
-**  Function        L2CA_UcdSetIdleTimeout
-**
-**  Description     Set UCD Idle timeout.
-**
-**  Parameters:     BD Addr
-**                  Timeout in second
-**
-**  Return value:   true if successs
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UcdSetIdleTimeout
+ *
+ *  Description     Set UCD Idle timeout.
+ *
+ *  Parameters:     BD Addr
+ *                  Timeout in second
+ *
+ *  Return value:   true if successs
+ *
+ ******************************************************************************/
 extern bool    L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, uint16_t timeout );
 
 /*******************************************************************************
-**
-** Function         L2CA_UCDSetTxPriority
-**
-** Description      Sets the transmission priority for a connectionless channel.
-**
-** Returns          true if a valid channel, else false
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_UCDSetTxPriority
+ *
+ * Description      Sets the transmission priority for a connectionless channel.
+ *
+ * Returns          true if a valid channel, else false
+ *
+ ******************************************************************************/
 extern bool    L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority );
 
 
 /*******************************************************************************
-**
-**                      Fixed Channel callback prototypes
-**
-*******************************************************************************/
+ *
+ *                      Fixed Channel callback prototypes
+ *
+ ******************************************************************************/
 
 /* Fixed channel connected and disconnected. Parameters are
-**      channel
-**      BD Address of remote
-**      true if channel is connected, false if disconnected
-**      Reason for connection failure
-**      transport : physical transport, BR/EDR or LE
+ *      channel
+ *      BD Address of remote
+ *      true if channel is connected, false if disconnected
+ *      Reason for connection failure
+ *      transport : physical transport, BR/EDR or LE
 */
 typedef void (tL2CA_FIXED_CHNL_CB) (uint16_t, BD_ADDR, bool   , uint16_t, tBT_TRANSPORT);
 
 /* Signalling data received. Parameters are
-**      channel
-**      BD Address of remote
-**      Pointer to buffer with data
+ *      channel
+ *      BD Address of remote
+ *      Pointer to buffer with data
 */
 typedef void (tL2CA_FIXED_DATA_CB) (uint16_t, BD_ADDR, BT_HDR *);
 
 /* Congestion status callback protype. This callback is optional. If
-** an application tries to send data when the transmit queue is full,
-** the data will anyways be dropped. The parameter is:
-**      remote BD_ADDR
-**      true if congested, false if uncongested
+ * an application tries to send data when the transmit queue is full,
+ * the data will anyways be dropped. The parameter is:
+ *      remote BD_ADDR
+ *      true if congested, false if uncongested
 */
 typedef void (tL2CA_FIXED_CONGESTION_STATUS_CB) (BD_ADDR, bool   );
 
@@ -1055,178 +1055,178 @@ typedef struct
 
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
 /*******************************************************************************
-**
-**  Function        L2CA_RegisterFixedChannel
-**
-**  Description     Register a fixed channel.
-**
-**  Parameters:     Fixed Channel #
-**                  Channel Callbacks and config
-**
-**  Return value:   true if registered OK
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_RegisterFixedChannel
+ *
+ *  Description     Register a fixed channel.
+ *
+ *  Parameters:     Fixed Channel #
+ *                  Channel Callbacks and config
+ *
+ *  Return value:   true if registered OK
+ *
+ ******************************************************************************/
 extern bool     L2CA_RegisterFixedChannel (uint16_t fixed_cid, tL2CAP_FIXED_CHNL_REG *p_freg);
 
 /*******************************************************************************
-**
-**  Function        L2CA_ConnectFixedChnl
-**
-**  Description     Connect an fixed signalling channel to a remote device.
-**
-**  Parameters:     Fixed CID
-**                  BD Address of remote
-**
-**  Return value:   true if connection started
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_ConnectFixedChnl
+ *
+ *  Description     Connect an fixed signalling channel to a remote device.
+ *
+ *  Parameters:     Fixed CID
+ *                  BD Address of remote
+ *
+ *  Return value:   true if connection started
+ *
+ ******************************************************************************/
 extern bool    L2CA_ConnectFixedChnl (uint16_t fixed_cid, BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-**  Function        L2CA_SendFixedChnlData
-**
-**  Description     Write data on a fixed signalling channel.
-**
-**  Parameters:     Fixed CID
-**                  BD Address of remote
-**                  Pointer to buffer of type BT_HDR
-**
-** Return value     L2CAP_DW_SUCCESS, if data accepted
-**                  L2CAP_DW_FAILED,  if error
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_SendFixedChnlData
+ *
+ *  Description     Write data on a fixed signalling channel.
+ *
+ *  Parameters:     Fixed CID
+ *                  BD Address of remote
+ *                  Pointer to buffer of type BT_HDR
+ *
+ * Return value     L2CAP_DW_SUCCESS, if data accepted
+ *                  L2CAP_DW_FAILED,  if error
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_SendFixedChnlData (uint16_t fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf);
 
 /*******************************************************************************
-**
-**  Function        L2CA_RemoveFixedChnl
-**
-**  Description     Remove a fixed channel to a remote device.
-**
-**  Parameters:     Fixed CID
-**                  BD Address of remote
-**                  Idle timeout to use (or 0xFFFF if don't care)
-**
-**  Return value:   true if channel removed
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_RemoveFixedChnl
+ *
+ *  Description     Remove a fixed channel to a remote device.
+ *
+ *  Parameters:     Fixed CID
+ *                  BD Address of remote
+ *                  Idle timeout to use (or 0xFFFF if don't care)
+ *
+ *  Return value:   true if channel removed
+ *
+ ******************************************************************************/
 extern bool    L2CA_RemoveFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda);
 
 /*******************************************************************************
-**
-** Function         L2CA_SetFixedChannelTout
-**
-** Description      Higher layers call this function to set the idle timeout for
-**                  a fixed channel. The "idle timeout" is the amount of time that
-**                  a connection can remain up with no L2CAP channels on it.
-**                  A timeout of zero means that the connection will be torn
-**                  down immediately when the last channel is removed.
-**                  A timeout of 0xFFFF means no timeout. Values are in seconds.
-**                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
-**                  then the idle timeouts for all active l2cap links will be
-**                  changed.
-**
-** Returns          true if command succeeded, false if failed
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_SetFixedChannelTout
+ *
+ * Description      Higher layers call this function to set the idle timeout for
+ *                  a fixed channel. The "idle timeout" is the amount of time that
+ *                  a connection can remain up with no L2CAP channels on it.
+ *                  A timeout of zero means that the connection will be torn
+ *                  down immediately when the last channel is removed.
+ *                  A timeout of 0xFFFF means no timeout. Values are in seconds.
+ *                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
+ *                  then the idle timeouts for all active l2cap links will be
+ *                  changed.
+ *
+ * Returns          true if command succeeded, false if failed
+ *
+ ******************************************************************************/
 extern bool    L2CA_SetFixedChannelTout (BD_ADDR rem_bda, uint16_t fixed_cid, uint16_t idle_tout);
 
 #endif /* (L2CAP_NUM_FIXED_CHNLS > 0) */
 
 /*******************************************************************************
-**
-** Function     L2CA_GetCurrentConfig
-**
-** Description  This function returns configurations of L2CAP channel
-**              pp_our_cfg : pointer of our saved configuration options
-**              p_our_cfg_bits : valid config in bitmap
-**              pp_peer_cfg: pointer of peer's saved configuration options
-**              p_peer_cfg_bits : valid config in bitmap
-**
-** Returns      true if successful
-**
-*******************************************************************************/
+ *
+ * Function     L2CA_GetCurrentConfig
+ *
+ * Description  This function returns configurations of L2CAP channel
+ *              pp_our_cfg : pointer of our saved configuration options
+ *              p_our_cfg_bits : valid config in bitmap
+ *              pp_peer_cfg: pointer of peer's saved configuration options
+ *              p_peer_cfg_bits : valid config in bitmap
+ *
+ * Returns      true if successful
+ *
+ ******************************************************************************/
 extern bool    L2CA_GetCurrentConfig (uint16_t lcid,
                                       tL2CAP_CFG_INFO **pp_our_cfg,  tL2CAP_CH_CFG_BITS *p_our_cfg_bits,
                                       tL2CAP_CFG_INFO **pp_peer_cfg, tL2CAP_CH_CFG_BITS *p_peer_cfg_bits);
 
 /*******************************************************************************
-**
-** Function     L2CA_GetConnectionConfig
-**
-** Description  This function polulates the mtu, remote cid & lm_handle for
-**              a given local L2CAP channel
-**
-** Returns      true if successful
-**
-*******************************************************************************/
+ *
+ * Function     L2CA_GetConnectionConfig
+ *
+ * Description  This function polulates the mtu, remote cid & lm_handle for
+ *              a given local L2CAP channel
+ *
+ * Returns      true if successful
+ *
+ ******************************************************************************/
 extern bool    L2CA_GetConnectionConfig(uint16_t lcid, uint16_t *mtu, uint16_t *rcid, uint16_t *handle);
 
 /*******************************************************************************
-**
-**  Function        L2CA_CancelBleConnectReq
-**
-**  Description     Cancel a pending connection attempt to a BLE device.
-**
-**  Parameters:     BD Address of remote
-**
-**  Return value:   true if connection was cancelled
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_CancelBleConnectReq
+ *
+ *  Description     Cancel a pending connection attempt to a BLE device.
+ *
+ *  Parameters:     BD Address of remote
+ *
+ *  Return value:   true if connection was cancelled
+ *
+ ******************************************************************************/
 extern bool    L2CA_CancelBleConnectReq (BD_ADDR rem_bda);
 
 /*******************************************************************************
-**
-**  Function        L2CA_UpdateBleConnParams
-**
-**  Description     Update BLE connection parameters.
-**
-**  Parameters:     BD Address of remote
-**
-**  Return value:   true if update started
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UpdateBleConnParams
+ *
+ *  Description     Update BLE connection parameters.
+ *
+ *  Parameters:     BD Address of remote
+ *
+ *  Return value:   true if update started
+ *
+ ******************************************************************************/
 extern bool    L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, uint16_t min_int,
                                          uint16_t max_int, uint16_t latency, uint16_t timeout);
 
 /*******************************************************************************
-**
-**  Function        L2CA_EnableUpdateBleConnParams
-**
-**  Description     Update BLE connection parameters.
-**
-**  Parameters:     BD Address of remote
-**                  enable flag
-**
-**  Return value:   true if update started
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_EnableUpdateBleConnParams
+ *
+ *  Description     Update BLE connection parameters.
+ *
+ *  Parameters:     BD Address of remote
+ *                  enable flag
+ *
+ *  Return value:   true if update started
+ *
+ ******************************************************************************/
 extern bool    L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, bool    enable);
 
 /*******************************************************************************
-**
-** Function         L2CA_GetBleConnRole
-**
-** Description      This function returns the connection role.
-**
-** Returns          link role.
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_GetBleConnRole
+ *
+ * Description      This function returns the connection role.
+ *
+ * Returns          link role.
+ *
+ ******************************************************************************/
 extern uint8_t L2CA_GetBleConnRole (BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         L2CA_GetDisconnectReason
-**
-** Description      This function returns the disconnect reason code.
-**
-**  Parameters:     BD Address of remote
-**                         Physical transport for the L2CAP connection (BR/EDR or LE)
-**
-** Returns          disconnect reason
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_GetDisconnectReason
+ *
+ * Description      This function returns the disconnect reason code.
+ *
+ *  Parameters:     BD Address of remote
+ *                         Physical transport for the L2CAP connection (BR/EDR or LE)
+ *
+ * Returns          disconnect reason
+ *
+ ******************************************************************************/
 extern uint16_t L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 #ifdef __cplusplus

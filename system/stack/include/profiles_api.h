@@ -23,8 +23,8 @@
 #include "btm_api.h"
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 #define BT_PASS         0   /* Used for general successful function returns */
 
 /*** Port entity passes back 8 bit errors; will use upper byte offset ***/
@@ -53,13 +53,13 @@
 
 
 /*****************************************************************************
-**  Type Definitions
-*****************************************************************************/
+ *  Type Definitions
+ ****************************************************************************/
 
 /*
-** Security Definitions
-**      This following definitions are used to indicate the security
-**      requirements for a service.
+ * Security Definitions
+ *      This following definitions are used to indicate the security
+ *      requirements for a service.
 */
 typedef struct
 {
