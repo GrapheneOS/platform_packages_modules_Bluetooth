@@ -130,7 +130,7 @@ class BleAdvertisingManagerImpl
     p_inst->rpa[3] = output.param_buf[2];
 
     /* set it to controller */
-    GetHciInterface()->SetRandomAddress(p_inst->rpa, p_inst->inst_id,
+    GetHciInterface()->SetRandomAddress(p_inst->inst_id, p_inst->rpa,
                                         Bind(DoNothing));
   }
 
@@ -268,7 +268,7 @@ class BleAdvertisingManagerImpl
 
     if (enable && timeout_s) {
       GetHciInterface()->Enable(
-          enable, p_inst->inst_id,
+          enable, p_inst->inst_id, 0x0000, 0x00,
           Bind(&BleAdvertisingManagerImpl::EnableWithTimerCb,
                base::Unretained(this), inst_id, timeout_s, timeout_cb));
     } else {
@@ -278,7 +278,7 @@ class BleAdvertisingManagerImpl
         p_inst->timeout_timer = nullptr;
       }
 
-      GetHciInterface()->Enable(enable, p_inst->inst_id, cb);
+      GetHciInterface()->Enable(enable, p_inst->inst_id, 0x0000, 0x00, cb);
     }
   }
 
@@ -316,15 +316,15 @@ class BleAdvertisingManagerImpl
              BD_ADDR_LEN);
     }
 
-    BD_ADDR dummy = {0, 0, 0, 0, 0, 0};
-
     p_inst->adv_evt = p_params->adv_type;
     p_inst->tx_power = p_params->tx_power;
+    BD_ADDR peer_address = {0, 0, 0, 0, 0, 0};
 
     GetHciInterface()->SetParameters(
-        p_params->adv_int_min, p_params->adv_int_max, p_params->adv_type,
-        own_address_type, own_address, 0, dummy, p_params->channel_map,
-        p_params->adv_filter_policy, p_inst->inst_id, p_inst->tx_power, cb);
+        p_inst->inst_id, p_params->adv_type, p_params->adv_int_min,
+        p_params->adv_int_max, p_params->channel_map, own_address_type, 0x00,
+        peer_address, p_params->adv_filter_policy, p_inst->tx_power, 0x01, 0x01,
+        0x01, 0x00, 0x00, cb);
 
     // TODO: re-enable only if it was enabled, properly call
     // SetParamsCallback
@@ -371,11 +371,11 @@ class BleAdvertisingManagerImpl
     VLOG(1) << "data is: " << base::HexEncode(data.data(), data.size());
 
     if (is_scan_rsp) {
-      GetHciInterface()->SetScanResponseData(data.size(), data.data(), inst_id,
-                                             cb);
+      GetHciInterface()->SetScanResponseData(inst_id, 0x03, 0x01, data.size(),
+                                             data.data(), cb);
     } else {
-      GetHciInterface()->SetAdvertisingData(data.size(), data.data(), inst_id,
-                                            cb);
+      GetHciInterface()->SetAdvertisingData(inst_id, 0x03, 0x01, data.size(),
+                                            data.data(), cb);
     }
   }
 
@@ -389,22 +389,24 @@ class BleAdvertisingManagerImpl
     }
 
     // TODO(jpawlowski): only disable when enabled or enabling
-    GetHciInterface()->Enable(false, inst_id, Bind(DoNothing));
+    GetHciInterface()->Enable(false, inst_id, 0x00, 0x00, Bind(DoNothing));
 
     alarm_cancel(p_inst->adv_raddr_timer);
     p_inst->in_use = false;
   }
 
-  void OnAdvertisingStateChanged(uint8_t inst_id, uint8_t reason,
-                                 uint16_t conn_handle) override {
-    AdvertisingInstance* p_inst = &adv_inst[inst_id];
-    VLOG(1) << __func__ << " inst_id: 0x" << std::hex << +inst_id
-            << ", reason: 0x" << std::hex << +reason << ", conn_handle: 0x"
-            << std::hex << +conn_handle;
+  void OnAdvertisingSetTerminated(
+      uint8_t status, uint8_t advertising_handle, uint16_t connection_handle,
+      uint8_t num_completed_extended_adv_events) override {
+    AdvertisingInstance* p_inst = &adv_inst[advertising_handle];
+    VLOG(1) << __func__ << "status: 0x" << std::hex << +status
+            << ", advertising_handle: 0x" << std::hex << +advertising_handle
+            << ", connection_handle: 0x" << std::hex << +connection_handle;
 
 #if (BLE_PRIVACY_SPT == TRUE)
-    if (BTM_BleLocalPrivacyEnabled() && inst_id <= BTM_BLE_MULTI_ADV_MAX) {
-      btm_acl_update_conn_addr(conn_handle, p_inst->rpa);
+    if (BTM_BleLocalPrivacyEnabled() &&
+        advertising_handle <= BTM_BLE_MULTI_ADV_MAX) {
+      btm_acl_update_conn_addr(connection_handle, p_inst->rpa);
     }
 #endif
 
@@ -414,7 +416,8 @@ class BleAdvertisingManagerImpl
       // TODO(jpawlowski): we don't really allow to do directed advertising
       // right now. This should probably be removed, check with Andre.
       if (p_inst->adv_evt != BTM_BLE_CONNECT_DIR_EVT) {
-        GetHciInterface()->Enable(true, inst_id, Bind(DoNothing));
+        GetHciInterface()->Enable(true, advertising_handle, 0x00, 0x00,
+                                  Bind(DoNothing));
       } else {
         /* mark directed adv as disabled if adv has been stopped */
         p_inst->in_use = false;
