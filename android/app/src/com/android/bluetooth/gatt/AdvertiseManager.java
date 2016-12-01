@@ -137,7 +137,7 @@ class AdvertiseManager {
         }
     }
 
-    private AdvertiseClient getAdvertiseClient(int advertiserId) {
+    public AdvertiseClient getAdvertiseClient(int advertiserId) {
         for (AdvertiseClient client : mAdvertiseClients) {
             if (client.advertiserId == advertiserId) {
                 return client;
