@@ -17,19 +17,19 @@
  ******************************************************************************/
 
 /*****************************************************************************
-**
-**  Name:          btm_acl.cc
-**
-**  Description:   This file contains functions that handle ACL connections.
-**                 This includes operations such as hold and sniff modes,
-**                 supported packet types.
-**
-**                 This module contains both internal and external (API)
-**                 functions. External (API) functions are distinguishable
-**                 by their names beginning with uppercase BTM.
-**
-**
-******************************************************************************/
+ *
+ *  Name:          btm_acl.cc
+ *
+ *  Description:   This file contains functions that handle ACL connections.
+ *                 This includes operations such as hold and sniff modes,
+ *                 supported packet types.
+ *
+ *                 This module contains both internal and external (API)
+ *                 functions. External (API) functions are distinguishable
+ *                 by their names beginning with uppercase BTM.
+ *
+ *
+ *****************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -60,14 +60,14 @@ static void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, uint8_t num_re
 #define BTM_DEV_REPLY_TIMEOUT_MS (3 * 1000)
 
 /*******************************************************************************
-**
-** Function         btm_acl_init
-**
-** Description      This function is called at BTM startup to initialize
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_init
+ *
+ * Description      This function is called at BTM startup to initialize
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_init (void)
 {
     BTM_TRACE_DEBUG ("btm_acl_init");
@@ -77,18 +77,18 @@ void btm_acl_init (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_bda_to_acl
-**
-** Description      This function returns the FIRST acl_db entry for the passed BDA.
-**
-** Parameters      bda : BD address of the remote device
-**                 transport : Physical transport used for ACL connection (BR/EDR or LE)
-**
-** Returns          Returns pointer to the ACL DB for the requested BDA if found.
-**                  NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         btm_bda_to_acl
+ *
+ * Description      This function returns the FIRST acl_db entry for the passed BDA.
+ *
+ * Parameters      bda : BD address of the remote device
+ *                 transport : Physical transport used for ACL connection (BR/EDR or LE)
+ *
+ * Returns          Returns pointer to the ACL DB for the requested BDA if found.
+ *                  NULL if not found.
+ *
+ ******************************************************************************/
 tACL_CONN *btm_bda_to_acl (const BD_ADDR bda, tBT_TRANSPORT transport)
 {
     tACL_CONN   *p = &btm_cb.acl_db[0];
@@ -111,14 +111,14 @@ tACL_CONN *btm_bda_to_acl (const BD_ADDR bda, tBT_TRANSPORT transport)
 }
 
 /*******************************************************************************
-**
-** Function         btm_handle_to_acl_index
-**
-** Description      This function returns the FIRST acl_db entry for the passed hci_handle.
-**
-** Returns          index to the acl_db or MAX_L2CAP_LINKS.
-**
-*******************************************************************************/
+ *
+ * Function         btm_handle_to_acl_index
+ *
+ * Description      This function returns the FIRST acl_db entry for the passed hci_handle.
+ *
+ * Returns          index to the acl_db or MAX_L2CAP_LINKS.
+ *
+ ******************************************************************************/
 uint8_t btm_handle_to_acl_index (uint16_t hci_handle)
 {
     tACL_CONN   *p = &btm_cb.acl_db[0];
@@ -138,15 +138,15 @@ uint8_t btm_handle_to_acl_index (uint16_t hci_handle)
 
 #if (BLE_PRIVACY_SPT == TRUE)
 /*******************************************************************************
-**
-** Function         btm_ble_get_acl_remote_addr
-**
-** Description      This function reads the active remote address used for the
-**                  connection.
-**
-** Returns          success return true, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         btm_ble_get_acl_remote_addr
+ *
+ * Description      This function reads the active remote address used for the
+ *                  connection.
+ *
+ * Returns          success return true, otherwise false.
+ *
+ ******************************************************************************/
 bool    btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_addr,
                                     tBLE_ADDR_TYPE *p_addr_type)
 {
@@ -185,15 +185,15 @@ bool    btm_ble_get_acl_remote_addr(tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR conn_ad
 }
 #endif
 /*******************************************************************************
-**
-** Function         btm_acl_created
-**
-** Description      This function is called by L2CAP when an ACL connection
-**                  is created.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_created
+ *
+ * Description      This function is called by L2CAP when an ACL connection
+ *                  is created.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                       uint16_t hci_handle, uint8_t link_role, tBT_TRANSPORT transport)
 {
@@ -324,15 +324,15 @@ void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address) {
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_report_role_change
-**
-** Description      This function is called when the local device is deemed
-**                  to be down. It notifies L2CAP of the failure.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_report_role_change
+ *
+ * Description      This function is called when the local device is deemed
+ *                  to be down. It notifies L2CAP of the failure.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_report_role_change (uint8_t hci_status, BD_ADDR bda)
 {
     tBTM_ROLE_SWITCH_CMPL   ref_data;
@@ -349,16 +349,16 @@ void btm_acl_report_role_change (uint8_t hci_status, BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_removed
-**
-** Description      This function is called by L2CAP when an ACL connection
-**                  is removed. Since only L2CAP creates ACL links, we use
-**                  the L2CAP link index as our index into the control blocks.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_removed
+ *
+ * Description      This function is called by L2CAP when an ACL connection
+ *                  is removed. Since only L2CAP creates ACL links, we use
+ *                  the L2CAP link index as our index into the control blocks.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport)
 {
     tACL_CONN   *p;
@@ -436,15 +436,15 @@ void btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport)
 
 
 /*******************************************************************************
-**
-** Function         btm_acl_device_down
-**
-** Description      This function is called when the local device is deemed
-**                  to be down. It notifies L2CAP of the failure.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_device_down
+ *
+ * Description      This function is called when the local device is deemed
+ *                  to be down. It notifies L2CAP of the failure.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_device_down (void)
 {
     tACL_CONN   *p = &btm_cb.acl_db[0];
@@ -461,15 +461,15 @@ void btm_acl_device_down (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_update_busy_level
-**
-** Description      This function is called to update the busy level of the system
-**                  .
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_update_busy_level
+ *
+ * Description      This function is called to update the busy level of the system
+ *                  .
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
 {
     bool    old_inquiry_state = btm_cb.is_inquiry;
@@ -529,16 +529,16 @@ void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_GetRole
-**
-** Description      This function is called to get the role of the local device
-**                  for the ACL connection with the specified remote device
-**
-** Returns          BTM_SUCCESS if connection exists.
-**                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
-**
-*******************************************************************************/
+ *
+ * Function         BTM_GetRole
+ *
+ * Description      This function is called to get the role of the local device
+ *                  for the ACL connection with the specified remote device
+ *
+ * Returns          BTM_SUCCESS if connection exists.
+ *                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, uint8_t *p_role)
 {
     tACL_CONN   *p;
@@ -557,22 +557,22 @@ tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, uint8_t *p_role)
 
 
 /*******************************************************************************
-**
-** Function         BTM_SwitchRole
-**
-** Description      This function is called to switch role between master and
-**                  slave.  If role is already set it will do nothing.  If the
-**                  command was initiated, the callback function is called upon
-**                  completion.
-**
-** Returns          BTM_SUCCESS if already in specified role.
-**                  BTM_CMD_STARTED if command issued to controller.
-**                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
-**                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
-**                  BTM_MODE_UNSUPPORTED if local device does not support role switching
-**                  BTM_BUSY if the previous command is not completed
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SwitchRole
+ *
+ * Description      This function is called to switch role between master and
+ *                  slave.  If role is already set it will do nothing.  If the
+ *                  command was initiated, the callback function is called upon
+ *                  completion.
+ *
+ * Returns          BTM_SUCCESS if already in specified role.
+ *                  BTM_CMD_STARTED if command issued to controller.
+ *                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
+ *                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
+ *                  BTM_MODE_UNSUPPORTED if local device does not support role switching
+ *                  BTM_BUSY if the previous command is not completed
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, uint8_t new_role, tBTM_CMPL_CB *p_cb)
 {
     tACL_CONN   *p;
@@ -683,17 +683,17 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, uint8_t new_role, tBTM_CMPL_
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_encrypt_change
-**
-** Description      This function is when encryption of the connection is
-**                  completed by the LM.  Checks to see if a role switch or
-**                  change of link key was active and initiates or continues
-**                  process if needed.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_encrypt_change
+ *
+ * Description      This function is when encryption of the connection is
+ *                  completed by the LM.  Checks to see if a role switch or
+ *                  change of link key was active and initiates or continues
+ *                  process if needed.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enable)
 {
     tACL_CONN *p;
@@ -770,14 +770,14 @@ void btm_acl_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
     }
 }
 /*******************************************************************************
-**
-** Function         BTM_SetLinkPolicy
-**
-** Description      Create and send HCI "Write Policy Set" command
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetLinkPolicy
+ *
+ * Description      Create and send HCI "Write Policy Set" command
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda, uint16_t *settings)
 {
     tACL_CONN   *p;
@@ -821,15 +821,15 @@ tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda, uint16_t *settings)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetDefaultLinkPolicy
-**
-** Description      Set the default value for HCI "Write Policy Set" command
-**                  to use when an ACL link is created.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetDefaultLinkPolicy
+ *
+ * Description      Set the default value for HCI "Write Policy Set" command
+ *                  to use when an ACL link is created.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_SetDefaultLinkPolicy (uint16_t settings)
 {
     uint8_t *localFeatures = BTM_ReadLocalFeatures();
@@ -902,15 +902,15 @@ void btm_use_preferred_conn_params(BD_ADDR bda) {
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_remote_version_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the remote version info.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_remote_version_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the remote version info.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_remote_version_complete (uint8_t *p)
 {
     tACL_CONN        *p_acl_cb = &btm_cb.acl_db[0];
@@ -945,15 +945,15 @@ void btm_read_remote_version_complete (uint8_t *p)
 
 
 /*******************************************************************************
-**
-** Function         btm_process_remote_ext_features
-**
-** Description      Local function called to process all extended features pages
-**                  read from a remote device.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_process_remote_ext_features
+ *
+ * Description      Local function called to process all extended features pages
+ *                  read from a remote device.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, uint8_t num_read_pages)
 {
     uint16_t            handle = p_acl_cb->hci_handle;
@@ -999,15 +999,15 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, uint8_t num_read_page
 
 
 /*******************************************************************************
-**
-** Function         btm_read_remote_features
-**
-** Description      Local function called to send a read remote supported features/
-**                  remote extended features page[0].
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_remote_features
+ *
+ * Description      Local function called to send a read remote supported features/
+ *                  remote extended features page[0].
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_remote_features (uint16_t handle)
 {
     uint8_t     acl_idx;
@@ -1033,14 +1033,14 @@ void btm_read_remote_features (uint16_t handle)
 
 
 /*******************************************************************************
-**
-** Function         btm_read_remote_ext_features
-**
-** Description      Local function called to send a read remote extended features
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_remote_ext_features
+ *
+ * Description      Local function called to send a read remote extended features
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_remote_ext_features (uint16_t handle, uint8_t page_number)
 {
     BTM_TRACE_DEBUG("btm_read_remote_ext_features() handle: %d page: %d", handle, page_number);
@@ -1050,15 +1050,15 @@ void btm_read_remote_ext_features (uint16_t handle, uint8_t page_number)
 
 
 /*******************************************************************************
-**
-** Function         btm_read_remote_features_complete
-**
-** Description      This function is called when the remote supported features
-**                  complete event is received from the HCI.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_remote_features_complete
+ *
+ * Description      This function is called when the remote supported features
+ *                  complete event is received from the HCI.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_remote_features_complete (uint8_t *p)
 {
     tACL_CONN        *p_acl_cb;
@@ -1110,15 +1110,15 @@ void btm_read_remote_features_complete (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_remote_ext_features_complete
-**
-** Description      This function is called when the remote extended features
-**                  complete event is received from the HCI.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_remote_ext_features_complete
+ *
+ * Description      This function is called when the remote extended features
+ *                  complete event is received from the HCI.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_remote_ext_features_complete (uint8_t *p)
 {
     tACL_CONN   *p_acl_cb;
@@ -1173,15 +1173,15 @@ void btm_read_remote_ext_features_complete (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_remote_ext_features_failed
-**
-** Description      This function is called when the remote extended features
-**                  complete event returns a failed status.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_remote_ext_features_failed
+ *
+ * Description      This function is called when the remote extended features
+ *                  complete event returns a failed status.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_remote_ext_features_failed (uint8_t status, uint16_t handle)
 {
     tACL_CONN   *p_acl_cb;
@@ -1207,15 +1207,15 @@ void btm_read_remote_ext_features_failed (uint8_t status, uint16_t handle)
 }
 
 /*******************************************************************************
-**
-** Function         btm_establish_continue
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the read local link policy request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_establish_continue
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the read local link policy request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_establish_continue (tACL_CONN *p_acl_cb)
 {
         tBTM_BL_EVENT_DATA  evt_data;
@@ -1252,15 +1252,15 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
 
 
 /*******************************************************************************
-**
-** Function         BTM_SetDefaultLinkSuperTout
-**
-** Description      Set the default value for HCI "Write Link Supervision Timeout"
-**                  command to use when an ACL link is created.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetDefaultLinkSuperTout
+ *
+ * Description      Set the default value for HCI "Write Link Supervision Timeout"
+ *                  command to use when an ACL link is created.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void BTM_SetDefaultLinkSuperTout (uint16_t timeout)
 {
     BTM_TRACE_DEBUG ("BTM_SetDefaultLinkSuperTout");
@@ -1268,14 +1268,14 @@ void BTM_SetDefaultLinkSuperTout (uint16_t timeout)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_GetLinkSuperTout
-**
-** Description      Read the link supervision timeout value of the connection
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         BTM_GetLinkSuperTout
+ *
+ * Description      Read the link supervision timeout value of the connection
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_GetLinkSuperTout (BD_ADDR remote_bda, uint16_t *p_timeout)
 {
     tACL_CONN   *p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
@@ -1292,14 +1292,14 @@ tBTM_STATUS BTM_GetLinkSuperTout (BD_ADDR remote_bda, uint16_t *p_timeout)
 
 
 /*******************************************************************************
-**
-** Function         BTM_SetLinkSuperTout
-**
-** Description      Create and send HCI "Write Link Supervision Timeout" command
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetLinkSuperTout
+ *
+ * Description      Create and send HCI "Write Link Supervision Timeout" command
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda, uint16_t timeout)
 {
     tACL_CONN   *p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
@@ -1325,15 +1325,15 @@ tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda, uint16_t timeout)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_IsAclConnectionUp
-**
-** Description      This function is called to check if an ACL connection exists
-**                  to a specific remote BD Address.
-**
-** Returns          true if connection is up, else false.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_IsAclConnectionUp
+ *
+ * Description      This function is called to check if an ACL connection exists
+ *                  to a specific remote BD Address.
+ *
+ * Returns          true if connection is up, else false.
+ *
+ ******************************************************************************/
 bool    BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 {
     tACL_CONN   *p;
@@ -1353,15 +1353,15 @@ bool    BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_GetNumAclLinks
-**
-** Description      This function is called to count the number of
-**                  ACL links that are active.
-**
-** Returns          uint16_t Number of active ACL links
-**
-*******************************************************************************/
+ *
+ * Function         BTM_GetNumAclLinks
+ *
+ * Description      This function is called to count the number of
+ *                  ACL links that are active.
+ *
+ * Returns          uint16_t Number of active ACL links
+ *
+ ******************************************************************************/
 uint16_t BTM_GetNumAclLinks (void)
 {
     uint16_t num_acl = 0;
@@ -1376,15 +1376,15 @@ uint16_t BTM_GetNumAclLinks (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_get_acl_disc_reason_code
-**
-** Description      This function is called to get the disconnection reason code
-**                  returned by the HCI at disconnection complete event.
-**
-** Returns          true if connection is up, else false.
-**
-*******************************************************************************/
+ *
+ * Function         btm_get_acl_disc_reason_code
+ *
+ * Description      This function is called to get the disconnection reason code
+ *                  returned by the HCI at disconnection complete event.
+ *
+ * Returns          true if connection is up, else false.
+ *
+ ******************************************************************************/
 uint16_t btm_get_acl_disc_reason_code (void)
 {
     uint8_t res = btm_cb.acl_disc_reason;
@@ -1394,15 +1394,15 @@ uint16_t btm_get_acl_disc_reason_code (void)
 
 
 /*******************************************************************************
-**
-** Function         BTM_GetHCIConnHandle
-**
-** Description      This function is called to get the handle for an ACL connection
-**                  to a specific remote BD Address.
-**
-** Returns          the handle of the connection, or 0xFFFF if none.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_GetHCIConnHandle
+ *
+ * Description      This function is called to get the handle for an ACL connection
+ *                  to a specific remote BD Address.
+ *
+ * Returns          the handle of the connection, or 0xFFFF if none.
+ *
+ ******************************************************************************/
 uint16_t BTM_GetHCIConnHandle (const BD_ADDR remote_bda, tBT_TRANSPORT transport)
 {
     tACL_CONN   *p;
@@ -1418,17 +1418,17 @@ uint16_t BTM_GetHCIConnHandle (const BD_ADDR remote_bda, tBT_TRANSPORT transport
 }
 
 /*******************************************************************************
-**
-** Function         btm_process_clk_off_comp_evt
-**
-** Description      This function is called when clock offset command completes.
-**
-** Input Parms      hci_handle - connection handle associated with the change
-**                  clock offset
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_process_clk_off_comp_evt
+ *
+ * Description      This function is called when clock offset command completes.
+ *
+ * Input Parms      hci_handle - connection handle associated with the change
+ *                  clock offset
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_process_clk_off_comp_evt (uint16_t hci_handle, uint16_t clock_offset)
 {
     uint8_t    xx;
@@ -1440,17 +1440,17 @@ void btm_process_clk_off_comp_evt (uint16_t hci_handle, uint16_t clock_offset)
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_role_changed
-**
-** Description      This function is called whan a link's master/slave role change
-**                  event or command status event (with error) is received.
-**                  It updates the link control block, and calls
-**                  the registered callback with status and role (if registered).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_role_changed
+ *
+ * Description      This function is called whan a link's master/slave role change
+ *                  event or command status event (with error) is received.
+ *                  It updates the link control block, and calls
+ *                  the registered callback with status and role (if registered).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_acl_role_changed (uint8_t hci_status, BD_ADDR bd_addr, uint8_t new_role)
 {
     uint8_t                 *p_bda = (bd_addr) ? bd_addr :
@@ -1549,14 +1549,14 @@ void btm_acl_role_changed (uint8_t hci_status, BD_ADDR bd_addr, uint8_t new_role
 }
 
 /*******************************************************************************
-**
-** Function         BTM_AllocateSCN
-**
-** Description      Look through the Server Channel Numbers for a free one.
-**
-** Returns          Allocated SCN number or 0 if none.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_AllocateSCN
+ *
+ * Description      Look through the Server Channel Numbers for a free one.
+ *
+ * Returns          Allocated SCN number or 0 if none.
+ *
+ ******************************************************************************/
 
 uint8_t BTM_AllocateSCN(void)
 {
@@ -1577,14 +1577,14 @@ uint8_t BTM_AllocateSCN(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_TryAllocateSCN
-**
-** Description      Try to allocate a fixed server channel
-**
-** Returns          Returns true if server channel was available
-**
-*******************************************************************************/
+ *
+ * Function         BTM_TryAllocateSCN
+ *
+ * Description      Try to allocate a fixed server channel
+ *
+ * Returns          Returns true if server channel was available
+ *
+ ******************************************************************************/
 
 bool    BTM_TryAllocateSCN(uint8_t scn)
 {
@@ -1605,14 +1605,14 @@ bool    BTM_TryAllocateSCN(uint8_t scn)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_FreeSCN
-**
-** Description      Free the specified SCN.
-**
-** Returns          true or false
-**
-*******************************************************************************/
+ *
+ * Function         BTM_FreeSCN
+ *
+ * Description      Free the specified SCN.
+ *
+ * Returns          true or false
+ *
+ ******************************************************************************/
 bool    BTM_FreeSCN(uint8_t scn)
 {
     BTM_TRACE_DEBUG ("BTM_FreeSCN ");
@@ -1626,16 +1626,16 @@ bool    BTM_FreeSCN(uint8_t scn)
 }
 
 /*******************************************************************************
-**
-** Function         btm_set_packet_types
-**
-** Description      This function sets the packet types used for a specific
-**                  ACL connection. It is called internally by btm_acl_created
-**                  or by an application/profile by BTM_SetPacketTypes.
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         btm_set_packet_types
+ *
+ * Description      This function sets the packet types used for a specific
+ *                  ACL connection. It is called internally by btm_acl_created
+ *                  or by an application/profile by BTM_SetPacketTypes.
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_set_packet_types (tACL_CONN *p, uint16_t pkt_types)
 {
     uint16_t temp_pkt_types;
@@ -1660,13 +1660,13 @@ tBTM_STATUS btm_set_packet_types (tACL_CONN *p, uint16_t pkt_types)
 }
 
 /*******************************************************************************
-**
-** Function         btm_get_max_packet_size
-**
-** Returns          Returns maximum packet size that can be used for current
-**                  connection, 0 if connection is not established
-**
-*******************************************************************************/
+ *
+ * Function         btm_get_max_packet_size
+ *
+ * Returns          Returns maximum packet size that can be used for current
+ *                  connection, 0 if connection is not established
+ *
+ ******************************************************************************/
 uint16_t btm_get_max_packet_size (BD_ADDR addr)
 {
     tACL_CONN   *p = btm_bda_to_acl(addr, BT_TRANSPORT_BR_EDR);
@@ -1718,12 +1718,12 @@ uint16_t btm_get_max_packet_size (BD_ADDR addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadRemoteVersion
-**
-** Returns          If connected report peer device info
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadRemoteVersion
+ *
+ * Returns          If connected report peer device info
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_ReadRemoteVersion (BD_ADDR addr, uint8_t *lmp_version,
                                    uint16_t *manufacturer, uint16_t *lmp_sub_version)
 {
@@ -1745,12 +1745,12 @@ tBTM_STATUS BTM_ReadRemoteVersion (BD_ADDR addr, uint8_t *lmp_version,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadRemoteFeatures
-**
-** Returns          pointer to the remote supported features mask (8 bytes)
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadRemoteFeatures
+ *
+ * Returns          pointer to the remote supported features mask (8 bytes)
+ *
+ ******************************************************************************/
 uint8_t *BTM_ReadRemoteFeatures (BD_ADDR addr)
 {
     tACL_CONN        *p = btm_bda_to_acl(addr, BT_TRANSPORT_BR_EDR);
@@ -1764,13 +1764,13 @@ uint8_t *BTM_ReadRemoteFeatures (BD_ADDR addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadRemoteExtendedFeatures
-**
-** Returns          pointer to the remote extended features mask (8 bytes)
-**                  or NULL if bad page
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadRemoteExtendedFeatures
+ *
+ * Returns          pointer to the remote extended features mask (8 bytes)
+ *                  or NULL if bad page
+ *
+ ******************************************************************************/
 uint8_t *BTM_ReadRemoteExtendedFeatures (BD_ADDR addr, uint8_t page_number)
 {
     tACL_CONN        *p = btm_bda_to_acl(addr, BT_TRANSPORT_BR_EDR);
@@ -1790,12 +1790,12 @@ uint8_t *BTM_ReadRemoteExtendedFeatures (BD_ADDR addr, uint8_t page_number)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadNumberRemoteFeaturesPages
-**
-** Returns          number of features pages read from the remote device.
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadNumberRemoteFeaturesPages
+ *
+ * Returns          number of features pages read from the remote device.
+ *
+ ******************************************************************************/
 uint8_t BTM_ReadNumberRemoteFeaturesPages (BD_ADDR addr)
 {
     tACL_CONN        *p = btm_bda_to_acl(addr, BT_TRANSPORT_BR_EDR);
@@ -1809,12 +1809,12 @@ uint8_t BTM_ReadNumberRemoteFeaturesPages (BD_ADDR addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadAllRemoteFeatures
-**
-** Returns          pointer to all features of the remote (24 bytes).
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadAllRemoteFeatures
+ *
+ * Returns          pointer to all features of the remote (24 bytes).
+ *
+ ******************************************************************************/
 uint8_t *BTM_ReadAllRemoteFeatures (BD_ADDR addr)
 {
     tACL_CONN        *p = btm_bda_to_acl(addr, BT_TRANSPORT_BR_EDR);
@@ -1828,15 +1828,15 @@ uint8_t *BTM_ReadAllRemoteFeatures (BD_ADDR addr)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_RegBusyLevelNotif
-**
-** Description      This function is called to register a callback to receive
-**                  busy level change events.
-**
-** Returns          BTM_SUCCESS if successfully registered, otherwise error
-**
-*******************************************************************************/
+ *
+ * Function         BTM_RegBusyLevelNotif
+ *
+ * Description      This function is called to register a callback to receive
+ *                  busy level change events.
+ *
+ * Returns          BTM_SUCCESS if successfully registered, otherwise error
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_RegBusyLevelNotif (tBTM_BL_CHANGE_CB *p_cb, uint8_t *p_level,
                                    tBTM_BL_EVENT_MASK evt_mask)
 {
@@ -1857,14 +1857,14 @@ tBTM_STATUS BTM_RegBusyLevelNotif (tBTM_BL_CHANGE_CB *p_cb, uint8_t *p_level,
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetQoS
-**
-** Description      This function is called to setup QoS
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetQoS
+ *
+ * Description      This function is called to setup QoS
+ *
+ * Returns          status of the operation
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
 {
     tACL_CONN   *p = &btm_cb.acl_db[0];
@@ -1897,14 +1897,14 @@ tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         btm_qos_setup_timeout
-**
-** Description      Callback when QoS setup times out.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_qos_setup_timeout
+ *
+ * Description      Callback when QoS setup times out.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_qos_setup_timeout(UNUSED_ATTR void *data)
 {
     tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_qos_setup_cmpl_cb;
@@ -1914,15 +1914,15 @@ void btm_qos_setup_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_qos_setup_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the qos setup request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_qos_setup_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the qos setup request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_qos_setup_complete(uint8_t status, uint16_t handle, FLOW_SPEC *p_flow)
 {
     tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_qos_setup_cmpl_cb;
@@ -1954,16 +1954,16 @@ void btm_qos_setup_complete(uint8_t status, uint16_t handle, FLOW_SPEC *p_flow)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadRSSI
-**
-** Description      This function is called to read the link policy settings.
-**                  The address of link policy results are returned in the callback.
-**                  (tBTM_RSSI_RESULTS)
-**
-** Returns          BTM_CMD_STARTED if successfully initiated or error code
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadRSSI
+ *
+ * Description      This function is called to read the link policy settings.
+ *                  The address of link policy results are returned in the callback.
+ *                  (tBTM_RSSI_RESULTS)
+ *
+ * Returns          BTM_CMD_STARTED if successfully initiated or error code
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_ReadRSSI (const BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 {
     tACL_CONN   *p;
@@ -1999,16 +1999,16 @@ tBTM_STATUS BTM_ReadRSSI (const BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadLinkQuality
-**
-** Description      This function is called to read the link qulaity.
-**                  The value of the link quality is returned in the callback.
-**                  (tBTM_LINK_QUALITY_RESULTS)
-**
-** Returns          BTM_CMD_STARTED if successfully initiated or error code
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadLinkQuality
+ *
+ * Description      This function is called to read the link qulaity.
+ *                  The value of the link quality is returned in the callback.
+ *                  (tBTM_LINK_QUALITY_RESULTS)
+ *
+ * Returns          BTM_CMD_STARTED if successfully initiated or error code
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_ReadLinkQuality (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 {
     tACL_CONN   *p;
@@ -2039,17 +2039,17 @@ tBTM_STATUS BTM_ReadLinkQuality (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadTxPower
-**
-** Description      This function is called to read the current
-**                  TX power of the connection. The tx power level results
-**                  are returned in the callback.
-**                  (tBTM_RSSI_RESULTS)
-**
-** Returns          BTM_CMD_STARTED if successfully initiated or error code
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadTxPower
+ *
+ * Description      This function is called to read the current
+ *                  TX power of the connection. The tx power level results
+ *                  are returned in the callback.
+ *                  (tBTM_RSSI_RESULTS)
+ *
+ * Returns          BTM_CMD_STARTED if successfully initiated or error code
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_CMPL_CB *p_cb)
 {
     tACL_CONN   *p;
@@ -2091,14 +2091,14 @@ tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_C
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_tx_power_timeout
-**
-** Description      Callback when reading the tx power times out.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_tx_power_timeout
+ *
+ * Description      Callback when reading the tx power times out.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_tx_power_timeout(UNUSED_ATTR void *data)
 {
     tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_tx_power_cmpl_cb;
@@ -2108,15 +2108,15 @@ void btm_read_tx_power_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_tx_power_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the read tx power request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_tx_power_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the read tx power request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_tx_power_complete(uint8_t *p, bool    is_ble)
 {
     tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_tx_power_cmpl_cb;
@@ -2169,14 +2169,14 @@ void btm_read_tx_power_complete(uint8_t *p, bool    is_ble)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_rssi_timeout
-**
-** Description      Callback when reading the RSSI times out.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_rssi_timeout
+ *
+ * Description      Callback when reading the RSSI times out.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_rssi_timeout(UNUSED_ATTR void *data)
 {
     tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_rssi_cmpl_cb;
@@ -2186,15 +2186,15 @@ void btm_read_rssi_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_rssi_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the read rssi request.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_rssi_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the read rssi request.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_rssi_complete (uint8_t *p)
 {
     tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_rssi_cmpl_cb;
@@ -2240,14 +2240,14 @@ void btm_read_rssi_complete (uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_link_quality_timeout
-**
-** Description      Callback when reading the link quality times out.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_link_quality_timeout
+ *
+ * Description      Callback when reading the link quality times out.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_link_quality_timeout(UNUSED_ATTR void *data)
 {
     tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_link_qual_cmpl_cb;
@@ -2257,15 +2257,15 @@ void btm_read_link_quality_timeout(UNUSED_ATTR void *data)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_link_quality_complete
-**
-** Description      This function is called when the command complete message
-**                  is received from the HCI for the read link quality.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_link_quality_complete
+ *
+ * Description      This function is called when the command complete message
+ *                  is received from the HCI for the read link quality.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_read_link_quality_complete(uint8_t *p)
 {
     tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_link_qual_cmpl_cb;
@@ -2311,14 +2311,14 @@ void btm_read_link_quality_complete(uint8_t *p)
 }
 
 /*******************************************************************************
-**
-** Function         btm_remove_acl
-**
-** Description      This function is called to disconnect an ACL connection
-**
-** Returns          BTM_SUCCESS if successfully initiated, otherwise BTM_NO_RESOURCES.
-**
-*******************************************************************************/
+ *
+ * Function         btm_remove_acl
+ *
+ * Description      This function is called to disconnect an ACL connection
+ *
+ * Returns          BTM_SUCCESS if successfully initiated, otherwise BTM_NO_RESOURCES.
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_remove_acl (BD_ADDR bd_addr, tBT_TRANSPORT transport)
 {
     uint16_t hci_handle = BTM_GetHCIConnHandle(bd_addr, transport);
@@ -2350,15 +2350,15 @@ tBTM_STATUS btm_remove_acl (BD_ADDR bd_addr, tBT_TRANSPORT transport)
 
 
 /*******************************************************************************
-**
-** Function         BTM_SetTraceLevel
-**
-** Description      This function sets the trace level for BTM.  If called with
-**                  a value of 0xFF, it simply returns the current trace level.
-**
-** Returns          The new or current trace level
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetTraceLevel
+ *
+ * Description      This function sets the trace level for BTM.  If called with
+ *                  a value of 0xFF, it simply returns the current trace level.
+ *
+ * Returns          The new or current trace level
+ *
+ ******************************************************************************/
 uint8_t BTM_SetTraceLevel (uint8_t new_level)
 {
     BTM_TRACE_DEBUG ("BTM_SetTraceLevel");
@@ -2369,16 +2369,16 @@ uint8_t BTM_SetTraceLevel (uint8_t new_level)
 }
 
 /*******************************************************************************
-**
-** Function         btm_cont_rswitch
-**
-** Description      This function is called to continue processing an active
-**                  role switch. It first disables encryption if enabled and
-**                  EPR is not supported
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_cont_rswitch
+ *
+ * Description      This function is called to continue processing an active
+ *                  role switch. It first disables encryption if enabled and
+ *                  EPR is not supported
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_cont_rswitch (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
                                      uint8_t hci_status)
 {
@@ -2414,12 +2414,12 @@ void btm_cont_rswitch (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_resubmit_page
-**
-** Description      send pending page request
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_resubmit_page
+ *
+ * Description      send pending page request
+ *
+ ******************************************************************************/
 void btm_acl_resubmit_page (void)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -2449,12 +2449,12 @@ void btm_acl_resubmit_page (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_reset_paging
-**
-** Description      set paging to false and free the page queue - called at hci_reset
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_reset_paging
+ *
+ * Description      set paging to false and free the page queue - called at hci_reset
+ *
+ ******************************************************************************/
 void  btm_acl_reset_paging (void)
 {
     BT_HDR *p;
@@ -2467,12 +2467,12 @@ void  btm_acl_reset_paging (void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_paging
-**
-** Description      send a paging command or queue it in btm_cb
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_paging
+ *
+ * Description      send a paging command or queue it in btm_cb
+ *
+ ******************************************************************************/
 void  btm_acl_paging (BT_HDR *p, BD_ADDR bda)
 {
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -2518,15 +2518,15 @@ void  btm_acl_paging (BT_HDR *p, BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         btm_acl_notif_conn_collision
-**
-** Description      Send connection collision event to upper layer if registered
-**
-** Returns          true if sent out to upper layer,
-**                  false if no one needs the notification.
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_notif_conn_collision
+ *
+ * Description      Send connection collision event to upper layer if registered
+ *
+ * Returns          true if sent out to upper layer,
+ *                  false if no one needs the notification.
+ *
+ ******************************************************************************/
 bool     btm_acl_notif_conn_collision (BD_ADDR bda)
 {
     tBTM_BL_EVENT_DATA  evt_data;
@@ -2550,12 +2550,12 @@ bool     btm_acl_notif_conn_collision (BD_ADDR bda)
 
 
 /*******************************************************************************
-**
-** Function         btm_acl_chk_peer_pkt_type_support
-**
-** Description      Check if peer supports requested packets
-**
-*******************************************************************************/
+ *
+ * Function         btm_acl_chk_peer_pkt_type_support
+ *
+ * Description      Check if peer supports requested packets
+ *
+ ******************************************************************************/
 void btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, uint16_t *p_pkt_type)
 {
     /* 3 and 5 slot packets? */

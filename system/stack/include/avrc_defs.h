@@ -27,8 +27,8 @@
 #include "stack/include/bt_types.h"
 
 /*****************************************************************************
-**  constants
-*****************************************************************************/
+ *  constants
+ ****************************************************************************/
 
 /* Profile revision numbers */
 #define AVRC_REV_1_0        0x0100
@@ -179,8 +179,8 @@
 #define AVRC_KEYPRESSED_RELEASE 0x80
 
 /*****************************************************************************
-**  Metadata transfer definitions
-*****************************************************************************/
+ *  Metadata transfer definitions
+ ****************************************************************************/
 
 /* Define the Metadata Packet types
 */
@@ -357,8 +357,8 @@ typedef uint8_t tAVRC_SYSTEMSTATE;
 #define AVRC_CHARSET_ID_UTF32                  ((uint16_t) 0x03f9) /* 1017 */
 
 /*****************************************************************************
-**  Advanced Control
-*****************************************************************************/
+ *  Advanced Control
+ ****************************************************************************/
 #define AVRC_ITEM_PLAYER            0x01
 #define AVRC_ITEM_FOLDER            0x02
 #define AVRC_ITEM_MEDIA             0x03
@@ -404,8 +404,8 @@ typedef uint8_t tAVRC_SYSTEMSTATE;
 typedef uint8_t tAVRC_UID[AVRC_UID_SIZE];
 
 /*****************************************************************************
-**  player attribute - supported features
-*****************************************************************************/
+ *  player attribute - supported features
+ ****************************************************************************/
 #define AVRC_PF_SELECT_BIT_NO           0
 #define AVRC_PF_SELECT_MASK             0x01
 #define AVRC_PF_SELECT_OFF              0
@@ -759,8 +759,8 @@ typedef uint8_t tAVRC_UID[AVRC_UID_SIZE];
 #define AVRC_PF_GET_NUM_OF_ITEMS_SUPPORTED(x) ((x)[AVRC_PF_GET_NUM_OF_ITEMS_OFF] & AVRC_PF_GET_NUM_OF_ITEMS_MASK)
 
 /*****************************************************************************
-**  data type definitions
-*****************************************************************************/
+ *  data type definitions
+ ****************************************************************************/
 
 /*
 This structure contains the header parameters of an AV/C message.
@@ -869,15 +869,15 @@ typedef union
 #define AVRC_BE_STREAM_TO_CO_ID(u32, p) {(u32) = (((uint32_t)(*((p) + 2))) + (((uint32_t)(*((p) + 1))) << 8) + (((uint32_t)(*(p))) << 16)); (p) += 3;}
 
 /*****************************************************************************
-**  data type definitions
-*****************************************************************************/
+ *  data type definitions
+ ****************************************************************************/
 #define AVRC_MAX_APP_ATTR_SIZE      16
 #define AVRC_MAX_CHARSET_SIZE       16
 #define AVRC_MAX_ELEM_ATTR_SIZE     8
 
 /*****************************************************************************
-**  Metadata transfer Building/Parsing definitions
-*****************************************************************************/
+ *  Metadata transfer Building/Parsing definitions
+ ****************************************************************************/
 
 typedef struct {
     uint16_t            charset_id;

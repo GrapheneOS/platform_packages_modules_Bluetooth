@@ -32,14 +32,14 @@
 #include "osi/include/osi.h"
 
 /*******************************************************************************
-**
-** Function         mca_dcb_report_cong
-**
-** Description      This function is called to report the congestion flag.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_report_cong
+ *
+ * Description      This function is called to report the congestion flag.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_report_cong (tMCA_DCB *p_dcb)
 {
     tMCA_CTRL   evt_data;
@@ -51,16 +51,16 @@ void mca_dcb_report_cong (tMCA_DCB *p_dcb)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_tc_open
-**
-** Description      This function is called to report MCA_OPEN_IND_EVT or
-**                  MCA_OPEN_CFM_EVT event.
-**                  It also clears the congestion flag (dcb.cong).
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_tc_open
+ *
+ * Description      This function is called to report MCA_OPEN_IND_EVT or
+ *                  MCA_OPEN_CFM_EVT event.
+ *                  It also clears the congestion flag (dcb.cong).
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_tc_open (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     tMCA_CTRL   evt_data;
@@ -78,14 +78,14 @@ void mca_dcb_tc_open (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_cong
-**
-** Description      This function sets the congestion state for the DCB.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_cong
+ *
+ * Description      This function sets the congestion state for the DCB.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_cong (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     p_dcb->cong  = p_data->llcong;
@@ -93,28 +93,28 @@ void mca_dcb_cong (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_free_data
-**
-** Description      This function frees the received message.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_free_data
+ *
+ * Description      This function frees the received message.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_free_data(UNUSED_ATTR tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     osi_free(p_data);
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_do_disconn
-**
-** Description      This function closes a data channel.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_do_disconn
+ *
+ * Description      This function closes a data channel.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_do_disconn (tMCA_DCB *p_dcb,
                          UNUSED_ATTR tMCA_DCB_EVT *p_data)
 {
@@ -130,14 +130,14 @@ void mca_dcb_do_disconn (tMCA_DCB *p_dcb,
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_snd_data
-**
-** Description      This function sends the data from application to the peer device.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_snd_data
+ *
+ * Description      This function sends the data from application to the peer device.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_snd_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     uint8_t status;
@@ -152,15 +152,15 @@ void mca_dcb_snd_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_dcb_hdl_data
-**
-** Description      This function reports the received data through the data
-**                  callback function.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_dcb_hdl_data
+ *
+ * Description      This function reports the received data through the data
+ *                  callback function.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_dcb_hdl_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     (*p_dcb->p_cs->p_data_cback) (mca_dcb_to_hdl(p_dcb), (BT_HDR *)p_data);

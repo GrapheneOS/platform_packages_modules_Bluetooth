@@ -50,14 +50,14 @@ static const uint8_t pan_proto_elem_data[]   = {
 };
 
 /*******************************************************************************
-**
-** Function         pan_register_with_sdp
-**
-** Description
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         pan_register_with_sdp
+ *
+ * Description
+ *
+ * Returns
+ *
+ ******************************************************************************/
 uint32_t pan_register_with_sdp (uint16_t uuid, uint8_t sec_mask,
                                 const char *p_name, const char *p_desc)
 {
@@ -165,14 +165,14 @@ uint32_t pan_register_with_sdp (uint16_t uuid, uint8_t sec_mask,
 
 
 /*******************************************************************************
-**
-** Function         pan_allocate_pcb
-**
-** Description
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         pan_allocate_pcb
+ *
+ * Description
+ *
+ * Returns
+ *
+ ******************************************************************************/
 tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, uint16_t handle)
 {
     uint16_t    i;
@@ -206,14 +206,14 @@ tPAN_CONN *pan_allocate_pcb (BD_ADDR p_bda, uint16_t handle)
 
 
 /*******************************************************************************
-**
-** Function         pan_get_pcb_by_handle
-**
-** Description
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         pan_get_pcb_by_handle
+ *
+ * Description
+ *
+ * Returns
+ *
+ ******************************************************************************/
 tPAN_CONN *pan_get_pcb_by_handle (uint16_t handle)
 {
     uint16_t    i;
@@ -230,14 +230,14 @@ tPAN_CONN *pan_get_pcb_by_handle (uint16_t handle)
 
 
 /*******************************************************************************
-**
-** Function         pan_get_pcb_by_addr
-**
-** Description
-**
-** Returns
-**
-*******************************************************************************/
+ *
+ * Function         pan_get_pcb_by_addr
+ *
+ * Description
+ *
+ * Returns
+ *
+ ******************************************************************************/
 tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda)
 {
     uint16_t    i;
@@ -264,14 +264,14 @@ tPAN_CONN *pan_get_pcb_by_addr (BD_ADDR p_bda)
 
 
 /*******************************************************************************
-**
-** Function         pan_close_all_connections
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         pan_close_all_connections
+ *
+ * Description
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void pan_close_all_connections (void)
 {
     uint16_t    i;
@@ -292,14 +292,14 @@ void pan_close_all_connections (void)
 
 
 /*******************************************************************************
-**
-** Function         pan_release_pcb
-**
-** Description      This function releases a PCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         pan_release_pcb
+ *
+ * Description      This function releases a PCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void pan_release_pcb (tPAN_CONN *p_pcb)
 {
     /* Drop any response pointer we may be holding */
@@ -309,15 +309,15 @@ void pan_release_pcb (tPAN_CONN *p_pcb)
 
 
 /*******************************************************************************
-**
-** Function         pan_dump_status
-**
-** Description      This function dumps the pan control block and connection
-**                  blocks information
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         pan_dump_status
+ *
+ * Description      This function dumps the pan control block and connection
+ *                  blocks information
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void pan_dump_status (void)
 {
 #if (PAN_SUPPORTS_DEBUG_DUMP == TRUE)

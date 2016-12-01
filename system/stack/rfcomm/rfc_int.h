@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /*
-** Define RFCOMM result codes
+ * Define RFCOMM result codes
 */
 #define RFCOMM_SUCCESS          0
 #define RFCOMM_ERROR            1
@@ -44,7 +44,7 @@ extern "C" {
 #define RFCOMM_SECURITY_ERR     112
 
 /*
-** Define max and min RFCOMM MTU (N1)
+ * Define max and min RFCOMM MTU (N1)
 */
 #define RFCOMM_MIN_MTU          23
 #define RFCOMM_MAX_MTU          32767
@@ -77,7 +77,7 @@ extern void RFCOMM_ControlRsp (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars
 
 extern void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t line_status);
 /*
-** Define logical struct used for sending and decoding MX frames
+ * Define logical struct used for sending and decoding MX frames
 */
 typedef struct
 {
@@ -148,7 +148,7 @@ typedef struct
 #define LINE_STATUS_FAILED         0x10  /* Connection Failed       */
 
 /*
-** Define states and events for the RFC multiplexer state machine
+ * Define states and events for the RFC multiplexer state machine
 */
 #define RFC_MX_STATE_IDLE           0
 #define RFC_MX_STATE_WAIT_CONN_CNF  1
@@ -159,7 +159,7 @@ typedef struct
 #define RFC_MX_STATE_DISC_WAIT_UA   6
 
 /*
-** Define port states
+ * Define port states
 */
 #define RFC_STATE_CLOSED                0
 #define RFC_STATE_SABME_WAIT_UA         1
@@ -169,7 +169,7 @@ typedef struct
 #define RFC_STATE_DISC_WAIT_UA          5
 
 /*
-** Events that can be received by multiplexer as well as port state machines
+ * Events that can be received by multiplexer as well as port state machines
 */
 #define RFC_EVENT_SABME                 0
 #define RFC_EVENT_UA                    1
@@ -179,7 +179,7 @@ typedef struct
 #define RFC_EVENT_TIMEOUT               5
 #define RFC_EVENT_BAD_FRAME             50
 /*
-** Multiplexer events
+ * Multiplexer events
 */
 #define RFC_MX_EVENT_START_REQ          6
 #define RFC_MX_EVENT_START_RSP          7
@@ -198,7 +198,7 @@ typedef struct
 #define RFC_MX_EVENT_NSC_RSP            20
 
 /*
-** Port events
+ * Port events
 */
 #define RFC_EVENT_OPEN                  9
 #define RFC_EVENT_ESTABLISH_RSP         11
@@ -245,7 +245,7 @@ extern tRFC_CB rfc_cb;
 #define RFC_MCB_RELEASE_INACT_TIMER 2   /* in seconds */
 
 /*
-** Define RFCOMM frame processing errors
+ * Define RFCOMM frame processing errors
 */
 #define RFCOMM_ERR_BAD_SABME        1
 #define RFCOMM_ERR_BAD_UA           2
@@ -276,7 +276,7 @@ extern  uint8_t rfc_calc_fcs (uint16_t len, uint8_t *p);
 extern void rfc_mx_sm_execute (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 
 /*
-** Functions provided by the rfc_port_fsm.cc
+ * Functions provided by the rfc_port_fsm.cc
 */
 extern void rfc_port_sm_execute (tPORT *p_port, uint16_t event, void *p_data);
 
@@ -292,7 +292,7 @@ extern void rfc_process_fcoff (tRFC_MCB *p_rfc_mcb, bool    is_command);
 extern void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, bool    is_congested);
 
 /*
-** Functions provided by the rfc_utils.cc
+ * Functions provided by the rfc_utils.cc
 */
 tRFC_MCB  *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, bool    is_initiator);
 extern void      rfc_release_multiplexer_channel (tRFC_MCB *p_rfc_mcb);
@@ -313,7 +313,7 @@ extern void      rfc_dec_credit (tPORT *p_port);
 extern void      rfc_check_send_cmd(tRFC_MCB *p_mcb, BT_HDR *p_buf);
 
 /*
-** Functions provided by the rfc_ts_frames.cc
+ * Functions provided by the rfc_ts_frames.cc
 */
 extern void     rfc_send_sabme (tRFC_MCB *p_rfc_mcb, uint8_t dlci);
 extern void     rfc_send_ua (tRFC_MCB *p_rfc_mcb, uint8_t dlci);

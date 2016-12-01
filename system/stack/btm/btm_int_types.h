@@ -287,9 +287,9 @@ typedef struct
 typedef uint8_t *BTM_BD_NAME_PTR;                        /* Pointer to Device name */
 
 /* Security callback is called by this unit when security
-**   procedures are completed.  Parameters are
-**              BD Address of remote
-**              Result of the operation
+ *   procedures are completed.  Parameters are
+ *              BD Address of remote
+ *              Result of the operation
 */
 typedef tBTM_SEC_CBACK tBTM_SEC_CALLBACK;
 
@@ -391,8 +391,8 @@ extern void btm_sco_disc_chk_pend_for_modechange (uint16_t hci_handle);
 #endif  /* BTM_SCO_INCLUDED */
 
 /*
-** Define structure for Security Service Record.
-** A record exists for each service registered with the Security Manager
+ * Define structure for Security Service Record.
+ * A record exists for each service registered with the Security Manager
 */
 #define BTM_SEC_OUT_FLAGS   (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_ENCRYPT | BTM_SEC_OUT_AUTHORIZE)
 #define BTM_SEC_IN_FLAGS    (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHORIZE)
@@ -475,8 +475,8 @@ enum
 typedef uint8_t tBTM_BOND_TYPE;
 
 /*
-** Define structure for Security Device Record.
-** A record exists for each device authenticated with this device
+ * Define structure for Security Device Record.
+ * A record exists for each device authenticated with this device
 */
 typedef struct
 {
@@ -591,7 +591,7 @@ typedef struct
 #define BTM_SEC_LE_MASK    (BTM_SEC_LE_AUTHENTICATED|BTM_SEC_LE_ENCRYPTED|BTM_SEC_LE_LINK_KEY_KNOWN|BTM_SEC_LE_LINK_KEY_AUTHED)
 
 /*
-** Define device configuration structure
+ * Define device configuration structure
 */
 typedef struct
 {

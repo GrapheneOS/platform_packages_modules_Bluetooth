@@ -36,9 +36,9 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static uint8_t *bnepu_init_hdr (BT_HDR *p_buf, uint16_t hdr_len, uint8_t pkt_type);
 
 void bnepu_process_peer_multicast_filter_set (tBNEP_CONN *p_bcb, uint8_t *p_filters, uint16_t len);
@@ -46,15 +46,15 @@ void bnepu_send_peer_multicast_filter_rsp (tBNEP_CONN *p_bcb, uint16_t response_
 
 
 /*******************************************************************************
-**
-** Function         bnepu_find_bcb_by_cid
-**
-** Description      This function searches the bcb table for an entry with the
-**                  passed CID.
-**
-** Returns          the BCB address, or NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_find_bcb_by_cid
+ *
+ * Description      This function searches the bcb table for an entry with the
+ *                  passed CID.
+ *
+ * Returns          the BCB address, or NULL if not found.
+ *
+ ******************************************************************************/
 tBNEP_CONN *bnepu_find_bcb_by_cid (uint16_t cid)
 {
     uint16_t        xx;
@@ -73,15 +73,15 @@ tBNEP_CONN *bnepu_find_bcb_by_cid (uint16_t cid)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_find_bcb_by_bd_addr
-**
-** Description      This function searches the BCB table for an entry with the
-**                  passed Bluetooth Address.
-**
-** Returns          the BCB address, or NULL if not found.
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_find_bcb_by_bd_addr
+ *
+ * Description      This function searches the BCB table for an entry with the
+ *                  passed Bluetooth Address.
+ *
+ * Returns          the BCB address, or NULL if not found.
+ *
+ ******************************************************************************/
 tBNEP_CONN *bnepu_find_bcb_by_bd_addr (uint8_t *p_bda)
 {
     uint16_t        xx;
@@ -103,14 +103,14 @@ tBNEP_CONN *bnepu_find_bcb_by_bd_addr (uint8_t *p_bda)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_allocate_bcb
-**
-** Description      This function allocates a new BCB.
-**
-** Returns          BCB address, or NULL if none available.
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_allocate_bcb
+ *
+ * Description      This function allocates a new BCB.
+ *
+ * Returns          BCB address, or NULL if none available.
+ *
+ ******************************************************************************/
 tBNEP_CONN *bnepu_allocate_bcb (BD_ADDR p_rem_bda)
 {
     uint16_t        xx;
@@ -139,14 +139,14 @@ tBNEP_CONN *bnepu_allocate_bcb (BD_ADDR p_rem_bda)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_release_bcb
-**
-** Description      This function releases a BCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_release_bcb
+ *
+ * Description      This function releases a BCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_release_bcb (tBNEP_CONN *p_bcb)
 {
     /* Ensure timer is stopped */
@@ -168,14 +168,14 @@ void bnepu_release_bcb (tBNEP_CONN *p_bcb)
 
 
 /*******************************************************************************
-**
-** Function         bnep_send_conn_req
-**
-** Description      This function sends a BNEP connection request to peer
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_send_conn_req
+ *
+ * Description      This function sends a BNEP connection request to peer
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_send_conn_req (tBNEP_CONN *p_bcb)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
@@ -225,14 +225,14 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
 
 
 /*******************************************************************************
-**
-** Function         bnep_send_conn_responce
-**
-** Description      This function sends a BNEP setup response to peer
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_send_conn_responce
+ *
+ * Description      This function sends a BNEP setup response to peer
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_send_conn_responce (tBNEP_CONN *p_bcb, uint16_t resp_code)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
@@ -259,14 +259,14 @@ void bnep_send_conn_responce (tBNEP_CONN *p_bcb, uint16_t resp_code)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_send_peer_our_filters
-**
-** Description      This function sends our filters to a peer
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_send_peer_our_filters
+ *
+ * Description      This function sends our filters to a peer
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
 {
     BT_HDR      *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
@@ -305,14 +305,14 @@ void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_send_peer_our_multi_filters
-**
-** Description      This function sends our multicast filters to a peer
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_send_peer_our_multi_filters
+ *
+ * Description      This function sends our multicast filters to a peer
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
 {
     BT_HDR      *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
@@ -353,14 +353,14 @@ void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_send_peer_filter_rsp
-**
-** Description      This function sends a filter response to a peer
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_send_peer_filter_rsp
+ *
+ * Description      This function sends a filter response to a peer
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_send_peer_filter_rsp (tBNEP_CONN *p_bcb, uint16_t response_code)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
@@ -386,14 +386,14 @@ void bnepu_send_peer_filter_rsp (tBNEP_CONN *p_bcb, uint16_t response_code)
 
 
 /*******************************************************************************
-**
-** Function         bnep_send_command_not_understood
-**
-** Description      This function sends a BNEP command not understood message
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_send_command_not_understood
+ *
+ * Description      This function sends a BNEP command not understood message
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_send_command_not_understood (tBNEP_CONN *p_bcb, uint8_t cmd_code)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
@@ -420,16 +420,16 @@ void bnep_send_command_not_understood (tBNEP_CONN *p_bcb, uint8_t cmd_code)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_check_send_packet
-**
-** Description      This function tries to send a packet to L2CAP.
-**                  If L2CAP is flow controlled, it enqueues the
-**                  packet to the transmit queue
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_check_send_packet
+ *
+ * Description      This function tries to send a packet to L2CAP.
+ *                  If L2CAP is flow controlled, it enqueues the
+ *                  packet to the transmit queue
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
 {
     BNEP_TRACE_EVENT ("BNEP - bnepu_check_send_packet for CID: 0x%x", p_bcb->l2cap_cid);
@@ -454,16 +454,16 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
 
 
 /*******************************************************************************
-**
-** Function         bnepu_build_bnep_hdr
-**
-** Description      This function builds the BNEP header for a packet
-**                  Extension headers are not sent yet, so there is no
-**                  check for that.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_build_bnep_hdr
+ *
+ * Description      This function builds the BNEP header for a packet
+ *                  Extension headers are not sent yet, so there is no
+ *                  check for that.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, uint16_t protocol,
                            uint8_t *p_src_addr, uint8_t *p_dest_addr, bool    fw_ext_present)
 {
@@ -518,14 +518,14 @@ void bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, uint16_t protocol,
 
 
 /*******************************************************************************
-**
-** Function         bnepu_init_hdr
-**
-** Description      This function initializes the BNEP header
-**
-** Returns          pointer to header in buffer
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_init_hdr
+ *
+ * Description      This function initializes the BNEP header
+ *
+ * Returns          pointer to header in buffer
+ *
+ ******************************************************************************/
 static uint8_t *bnepu_init_hdr (BT_HDR *p_buf, uint16_t hdr_len, uint8_t pkt_type)
 {
     uint8_t  *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
@@ -553,16 +553,16 @@ static uint8_t *bnepu_init_hdr (BT_HDR *p_buf, uint16_t hdr_len, uint8_t pkt_typ
 
 
 /*******************************************************************************
-**
-** Function         bnep_process_setup_conn_req
-**
-** Description      This function processes a peer's setup connection request
-**                  message. The destination UUID is verified and response sent
-**                  Connection open indication will be given to PAN profile
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_process_setup_conn_req
+ *
+ * Description      This function processes a peer's setup connection request
+ *                  message. The destination UUID is verified and response sent
+ *                  Connection open indication will be given to PAN profile
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_process_setup_conn_req (tBNEP_CONN *p_bcb, uint8_t *p_setup, uint8_t len)
 {
     BNEP_TRACE_EVENT ("BNEP - bnep_process_setup_conn_req for CID: 0x%x", p_bcb->l2cap_cid);
@@ -653,16 +653,16 @@ void bnep_process_setup_conn_req (tBNEP_CONN *p_bcb, uint8_t *p_setup, uint8_t l
 
 
 /*******************************************************************************
-**
-** Function         bnep_process_setup_conn_responce
-**
-** Description      This function processes a peer's setup connection response
-**                  message. The response code is verified and
-**                  Connection open indication will be given to PAN profile
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_process_setup_conn_responce
+ *
+ * Description      This function processes a peer's setup connection response
+ *                  message. The response code is verified and
+ *                  Connection open indication will be given to PAN profile
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_process_setup_conn_responce (tBNEP_CONN *p_bcb, uint8_t *p_setup)
 {
     tBNEP_RESULT    resp;
@@ -750,16 +750,16 @@ void bnep_process_setup_conn_responce (tBNEP_CONN *p_bcb, uint8_t *p_setup)
 
 
 /*******************************************************************************
-**
-** Function         bnep_process_control_packet
-**
-** Description      This function processes a peer's setup connection request
-**                  message. The destination UUID is verified and response sent
-**                  Connection open indication will be given to PAN profile
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_process_control_packet
+ *
+ * Description      This function processes a peer's setup connection request
+ *                  message. The destination UUID is verified and response sent
+ *                  Connection open indication will be given to PAN profile
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 uint8_t *bnep_process_control_packet (tBNEP_CONN *p_bcb, uint8_t *p, uint16_t *rem_len, bool    is_ext)
 {
     uint8_t     control_type;
@@ -867,16 +867,16 @@ uint8_t *bnep_process_control_packet (tBNEP_CONN *p_bcb, uint8_t *p, uint16_t *r
 
 
 /*******************************************************************************
-**
-** Function         bnepu_process_peer_filter_set
-**
-** Description      This function processes a peer's filter control
-**                  'set' message. The filters are stored in the BCB,
-**                  and an appropriate filter response message sent.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_process_peer_filter_set
+ *
+ * Description      This function processes a peer's filter control
+ *                  'set' message. The filters are stored in the BCB,
+ *                  and an appropriate filter response message sent.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_process_peer_filter_set (tBNEP_CONN *p_bcb, uint8_t *p_filters, uint16_t len)
 {
     uint16_t    num_filters = 0;
@@ -946,15 +946,15 @@ void bnepu_process_peer_filter_set (tBNEP_CONN *p_bcb, uint8_t *p_filters, uint1
 
 
 /*******************************************************************************
-**
-** Function         bnepu_process_peer_filter_rsp
-**
-** Description      This function processes a peer's filter control
-**                  'response' message.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_process_peer_filter_rsp
+ *
+ * Description      This function processes a peer's filter control
+ *                  'response' message.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_process_peer_filter_rsp (tBNEP_CONN *p_bcb, uint8_t *p_data)
 {
     uint16_t        resp_code;
@@ -992,15 +992,15 @@ void bnepu_process_peer_filter_rsp (tBNEP_CONN *p_bcb, uint8_t *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bnepu_process_multicast_filter_rsp
-**
-** Description      This function processes multicast filter control
-**                  'response' message.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_process_multicast_filter_rsp
+ *
+ * Description      This function processes multicast filter control
+ *                  'response' message.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_process_multicast_filter_rsp (tBNEP_CONN *p_bcb, uint8_t *p_data)
 {
     uint16_t        resp_code;
@@ -1038,16 +1038,16 @@ void bnepu_process_multicast_filter_rsp (tBNEP_CONN *p_bcb, uint8_t *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         bnepu_process_peer_multicast_filter_set
-**
-** Description      This function processes a peer's filter control
-**                  'set' message. The filters are stored in the BCB,
-**                  and an appropriate filter response message sent.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_process_peer_multicast_filter_set
+ *
+ * Description      This function processes a peer's filter control
+ *                  'set' message. The filters are stored in the BCB,
+ *                  and an appropriate filter response message sent.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_process_peer_multicast_filter_set (tBNEP_CONN *p_bcb, uint8_t *p_filters, uint16_t len)
 {
     uint16_t        resp_code = BNEP_FILTER_CRL_OK;
@@ -1120,14 +1120,14 @@ void bnepu_process_peer_multicast_filter_set (tBNEP_CONN *p_bcb, uint8_t *p_filt
 
 
 /*******************************************************************************
-**
-** Function         bnepu_send_peer_multicast_filter_rsp
-**
-** Description      This function sends a filter response to a peer
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnepu_send_peer_multicast_filter_rsp
+ *
+ * Description      This function sends a filter response to a peer
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnepu_send_peer_multicast_filter_rsp (tBNEP_CONN *p_bcb, uint16_t response_code)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
@@ -1154,15 +1154,15 @@ void bnepu_send_peer_multicast_filter_rsp (tBNEP_CONN *p_bcb, uint16_t response_
 
 
 /*******************************************************************************
-**
-** Function         bnep_sec_check_complete
-**
-** Description      This function is registered with BTM and will be called
-**                  after completing the security procedures
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         bnep_sec_check_complete
+ *
+ * Description      This function is registered with BTM and will be called
+ *                  after completing the security procedures
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bnep_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANSPORT trasnport,
                                     void *p_ref_data, uint8_t result)
 {
@@ -1257,16 +1257,16 @@ void bnep_sec_check_complete (UNUSED_ATTR BD_ADDR bd_addr, UNUSED_ATTR tBT_TRANS
 
 
 /*******************************************************************************
-**
-** Function         bnep_is_packet_allowed
-**
-** Description      This function verifies whether the protocol passes through
-**                  the protocol filters set by the peer
-**
-** Returns          BNEP_SUCCESS          - if the protocol is allowed
-**                  BNEP_IGNORE_CMD       - if the protocol is filtered out
-**
-*******************************************************************************/
+ *
+ * Function         bnep_is_packet_allowed
+ *
+ * Description      This function verifies whether the protocol passes through
+ *                  the protocol filters set by the peer
+ *
+ * Returns          BNEP_SUCCESS          - if the protocol is allowed
+ *                  BNEP_IGNORE_CMD       - if the protocol is filtered out
+ *
+ ******************************************************************************/
 tBNEP_RESULT bnep_is_packet_allowed (tBNEP_CONN *p_bcb,
                                      BD_ADDR p_dest_addr,
                                      uint16_t protocol,
@@ -1346,14 +1346,14 @@ tBNEP_RESULT bnep_is_packet_allowed (tBNEP_CONN *p_bcb,
 }
 
 /*******************************************************************************
-**
-** Function         bnep_get_uuid32
-**
-** Description      This function returns the 32 bit equivalent of the given UUID
-**
-** Returns          uint32_t        - 32 bit equivalent of the UUID
-**
-*******************************************************************************/
+ *
+ * Function         bnep_get_uuid32
+ *
+ * Description      This function returns the 32 bit equivalent of the given UUID
+ *
+ * Returns          uint32_t        - 32 bit equivalent of the UUID
+ *
+ ******************************************************************************/
 uint32_t bnep_get_uuid32 (tBT_UUID *src_uuid)
 {
     uint32_t    result;

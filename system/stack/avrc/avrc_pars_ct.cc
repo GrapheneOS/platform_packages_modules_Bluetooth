@@ -25,22 +25,22 @@
 #include "osi/include/osi.h"
 
 /*****************************************************************************
-**  Global data
-*****************************************************************************/
+ *  Global data
+ ****************************************************************************/
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
 
 /*******************************************************************************
-**
-** Function         avrc_pars_vendor_rsp
-**
-** Description      This function parses the vendor specific commands defined by
-**                  Bluetooth SIG
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         avrc_pars_vendor_rsp
+ *
+ * Description      This function parses the vendor specific commands defined by
+ *                  Bluetooth SIG
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result)
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
@@ -399,16 +399,16 @@ static tAVRC_STS avrc_pars_browse_rsp(tAVRC_MSG_BROWSE *p_msg, tAVRC_RESPONSE *p
 }
 
 /*******************************************************************************
-**
-** Function         avrc_ctrl_pars_vendor_rsp
-**
-** Description      This function parses the vendor specific commands defined by
-**                  Bluetooth SIG
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         avrc_ctrl_pars_vendor_rsp
+ *
+ * Description      This function parses the vendor specific commands defined by
+ *                  Bluetooth SIG
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
     tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result, uint8_t* p_buf, uint16_t* buf_len)
 {
@@ -634,15 +634,15 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_Ctrl_ParsResponse
-**
-** Description      This function is a parse response for AVRCP Controller.
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_Ctrl_ParsResponse
+ *
+ * Description      This function is a parse response for AVRCP Controller.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, uint8_t *p_buf, uint16_t* buf_len)
 {
     tAVRC_STS  status = AVRC_STS_INTERNAL_ERR;
@@ -669,15 +669,15 @@ tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, ui
 }
 
 /*******************************************************************************
-**
-** Function         AVRC_ParsResponse
-**
-** Description      This function is a superset of AVRC_ParsMetadata to parse the response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
-**                  Otherwise, the error code defined by AVRCP 1.4
-**
-*******************************************************************************/
+ *
+ * Function         AVRC_ParsResponse
+ *
+ * Description      This function is a superset of AVRC_ParsMetadata to parse the response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+ *                  Otherwise, the error code defined by AVRCP 1.4
+ *
+ ******************************************************************************/
 tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result,
                              UNUSED_ATTR uint8_t *p_buf,
                              UNUSED_ATTR uint16_t buf_len)

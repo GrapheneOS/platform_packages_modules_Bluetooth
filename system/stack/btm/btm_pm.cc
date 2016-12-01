@@ -122,16 +122,16 @@ const char * btm_pm_action_str[] =
 /*                     P U B L I C  F U N C T I O N S                        */
 /*****************************************************************************/
 /*******************************************************************************
-**
-** Function         BTM_PmRegister
-**
-** Description      register or deregister with power manager
-**
-** Returns          BTM_SUCCESS if successful,
-**                  BTM_NO_RESOURCES if no room to hold registration
-**                  BTM_ILLEGAL_VALUE
-**
-*******************************************************************************/
+ *
+ * Function         BTM_PmRegister
+ *
+ * Description      register or deregister with power manager
+ *
+ * Returns          BTM_SUCCESS if successful,
+ *                  BTM_NO_RESOURCES if no room to hold registration
+ *                  BTM_ILLEGAL_VALUE
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_PmRegister (uint8_t mask, uint8_t *p_pm_id, tBTM_PM_STATUS_CBACK *p_cb)
 {
     int xx;
@@ -167,16 +167,16 @@ tBTM_STATUS BTM_PmRegister (uint8_t mask, uint8_t *p_pm_id, tBTM_PM_STATUS_CBACK
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetPowerMode
-**
-** Description      store the mode in control block or
-**                  alter ACL connection behavior.
-**
-** Returns          BTM_SUCCESS if successful,
-**                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetPowerMode
+ *
+ * Description      store the mode in control block or
+ *                  alter ACL connection behavior.
+ *
+ * Returns          BTM_SUCCESS if successful,
+ *                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetPowerMode (uint8_t pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p_mode)
 {
     uint8_t             *p_features;
@@ -263,25 +263,25 @@ tBTM_STATUS BTM_SetPowerMode (uint8_t pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD 
 }
 
 /*******************************************************************************
-**
-** Function         BTM_ReadPowerMode
-**
-** Description      This returns the current mode for a specific
-**                  ACL connection.
-**
-** Input Param      remote_bda - device address of desired ACL connection
-**
-** Output Param     p_mode - address where the current mode is copied into.
-**                          BTM_ACL_MODE_NORMAL
-**                          BTM_ACL_MODE_HOLD
-**                          BTM_ACL_MODE_SNIFF
-**                          BTM_ACL_MODE_PARK
-**                          (valid only if return code is BTM_SUCCESS)
-**
-** Returns          BTM_SUCCESS if successful,
-**                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
-**
-*******************************************************************************/
+ *
+ * Function         BTM_ReadPowerMode
+ *
+ * Description      This returns the current mode for a specific
+ *                  ACL connection.
+ *
+ * Input Param      remote_bda - device address of desired ACL connection
+ *
+ * Output Param     p_mode - address where the current mode is copied into.
+ *                          BTM_ACL_MODE_NORMAL
+ *                          BTM_ACL_MODE_HOLD
+ *                          BTM_ACL_MODE_SNIFF
+ *                          BTM_ACL_MODE_PARK
+ *                          (valid only if return code is BTM_SUCCESS)
+ *
+ * Returns          BTM_SUCCESS if successful,
+ *                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda, tBTM_PM_MODE *p_mode)
 {
     int acl_ind;
@@ -295,26 +295,26 @@ tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda, tBTM_PM_MODE *p_mode)
 }
 
 /*******************************************************************************
-**
-** Function         btm_read_power_mode_state
-**
-** Description      This returns the current pm state for a specific
-**                  ACL connection.
-**
-** Input Param      remote_bda - device address of desired ACL connection
-**
-** Output Param     pmState - address where the current  pm state is copied into.
-**                          BTM_PM_ST_ACTIVE
-**                          BTM_PM_ST_HOLD
-**                          BTM_PM_ST_SNIFF
-**                          BTM_PM_ST_PARK
-**                          BTM_PM_ST_PENDING
-**                          (valid only if return code is BTM_SUCCESS)
-**
-** Returns          BTM_SUCCESS if successful,
-**                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
-**
-*******************************************************************************/
+ *
+ * Function         btm_read_power_mode_state
+ *
+ * Description      This returns the current pm state for a specific
+ *                  ACL connection.
+ *
+ * Input Param      remote_bda - device address of desired ACL connection
+ *
+ * Output Param     pmState - address where the current  pm state is copied into.
+ *                          BTM_PM_ST_ACTIVE
+ *                          BTM_PM_ST_HOLD
+ *                          BTM_PM_ST_SNIFF
+ *                          BTM_PM_ST_PARK
+ *                          BTM_PM_ST_PENDING
+ *                          (valid only if return code is BTM_SUCCESS)
+ *
+ * Returns          BTM_SUCCESS if successful,
+ *                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
+ *
+ ******************************************************************************/
 tBTM_STATUS btm_read_power_mode_state (BD_ADDR remote_bda, tBTM_PM_STATE *pmState)
 {
     int acl_ind = btm_pm_find_acl_ind(remote_bda);
@@ -327,23 +327,23 @@ tBTM_STATUS btm_read_power_mode_state (BD_ADDR remote_bda, tBTM_PM_STATE *pmStat
 }
 
 /*******************************************************************************
-**
-** Function         BTM_SetSsrParams
-**
-** Description      This sends the given SSR parameters for the given ACL
-**                  connection if it is in ACTIVE mode.
-**
-** Input Param      remote_bda - device address of desired ACL connection
-**                  max_lat    - maximum latency (in 0.625ms)(0-0xFFFE)
-**                  min_rmt_to - minimum remote timeout
-**                  min_loc_to - minimum local timeout
-**
-**
-** Returns          BTM_SUCCESS if the HCI command is issued successful,
-**                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
-**                  BTM_CMD_STORED if the command is stored
-**
-*******************************************************************************/
+ *
+ * Function         BTM_SetSsrParams
+ *
+ * Description      This sends the given SSR parameters for the given ACL
+ *                  connection if it is in ACTIVE mode.
+ *
+ * Input Param      remote_bda - device address of desired ACL connection
+ *                  max_lat    - maximum latency (in 0.625ms)(0-0xFFFE)
+ *                  min_rmt_to - minimum remote timeout
+ *                  min_loc_to - minimum local timeout
+ *
+ *
+ * Returns          BTM_SUCCESS if the HCI command is issued successful,
+ *                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
+ *                  BTM_CMD_STORED if the command is stored
+ *
+ ******************************************************************************/
 tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, uint16_t max_lat,
                               uint16_t min_rmt_to, uint16_t min_loc_to)
 {
@@ -373,14 +373,14 @@ tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, uint16_t max_lat,
 }
 
 /*******************************************************************************
-**
-** Function         btm_pm_reset
-**
-** Description      as a part of the BTM reset process.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_reset
+ *
+ * Description      as a part of the BTM reset process.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_pm_reset(void)
 {
     int xx;
@@ -407,15 +407,15 @@ void btm_pm_reset(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_pm_sm_alloc
-**
-** Description      This function initializes the control block of an ACL link.
-**                  It is called when an ACL connection is created.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_sm_alloc
+ *
+ * Description      This function initializes the control block of an ACL link.
+ *                  It is called when an ACL connection is created.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void btm_pm_sm_alloc(uint8_t ind)
 {
     tBTM_PM_MCB *p_db = &btm_cb.pm_mode_db[ind];   /* per ACL link */
@@ -427,15 +427,15 @@ void btm_pm_sm_alloc(uint8_t ind)
 }
 
 /*******************************************************************************
-**
-** Function         btm_pm_find_acl_ind
-**
-** Description      This function initializes the control block of an ACL link.
-**                  It is called when an ACL connection is created.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_find_acl_ind
+ *
+ * Description      This function initializes the control block of an ACL link.
+ *                  It is called when an ACL connection is created.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static int btm_pm_find_acl_ind(BD_ADDR remote_bda)
 {
     tACL_CONN   *p = &btm_cb.acl_db[0];
@@ -456,12 +456,12 @@ static int btm_pm_find_acl_ind(BD_ADDR remote_bda)
 }
 
 /*******************************************************************************
-**
-** Function     btm_pm_compare_modes
-** Description  get the "more active" mode of the 2
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     btm_pm_compare_modes
+ * Description  get the "more active" mode of the 2
+ * Returns      void
+ *
+ ******************************************************************************/
 static tBTM_PM_PWR_MD * btm_pm_compare_modes(tBTM_PM_PWR_MD *p_md1, tBTM_PM_PWR_MD *p_md2, tBTM_PM_PWR_MD *p_res)
 {
     uint8_t res;
@@ -529,13 +529,13 @@ static tBTM_PM_PWR_MD * btm_pm_compare_modes(tBTM_PM_PWR_MD *p_md1, tBTM_PM_PWR_
 }
 
 /*******************************************************************************
-**
-** Function     btm_pm_get_set_mode
-** Description  get the resulting mode from the registered parties, then compare it
-**              with the requested mode, if the command is from an unregistered party.
-** Returns      void
-**
-*******************************************************************************/
+ *
+ * Function     btm_pm_get_set_mode
+ * Description  get the resulting mode from the registered parties, then compare it
+ *              with the requested mode, if the command is from an unregistered party.
+ * Returns      void
+ *
+ ******************************************************************************/
 static tBTM_PM_MODE btm_pm_get_set_mode(uint8_t pm_id, tBTM_PM_MCB *p_cb, tBTM_PM_PWR_MD *p_mode, tBTM_PM_PWR_MD *p_res)
 {
     int   xx, loop_max;
@@ -594,12 +594,12 @@ static tBTM_PM_MODE btm_pm_get_set_mode(uint8_t pm_id, tBTM_PM_MCB *p_cb, tBTM_P
 }
 
 /*******************************************************************************
-**
-** Function     btm_pm_snd_md_req
-** Description  get the resulting mode and send the resuest to host controller
-** Returns      tBTM_STATUS
-**, bool    *p_chg_ind
-*******************************************************************************/
+ *
+ * Function     btm_pm_snd_md_req
+ * Description  get the resulting mode and send the resuest to host controller
+ * Returns      tBTM_STATUS
+ *, bool    *p_chg_ind
+ ******************************************************************************/
 static tBTM_STATUS btm_pm_snd_md_req(uint8_t pm_id, int link_ind, tBTM_PM_PWR_MD *p_mode)
 {
     tBTM_PM_PWR_MD  md_res;
@@ -707,16 +707,16 @@ static tBTM_STATUS btm_pm_snd_md_req(uint8_t pm_id, int link_ind, tBTM_PM_PWR_MD
 }
 
 /*******************************************************************************
-**
-** Function         btm_pm_check_stored
-**
-** Description      This function is called when an HCI command status event occurs
-**                  to check if there's any PM command issued while waiting for
-**                  HCI command status.
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_check_stored
+ *
+ * Description      This function is called when an HCI command status event occurs
+ *                  to check if there's any PM command issued while waiting for
+ *                  HCI command status.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 static void btm_pm_check_stored(void)
 {
     int     xx;
@@ -733,17 +733,17 @@ static void btm_pm_check_stored(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_pm_proc_cmd_status
-**
-** Description      This function is called when an HCI command status event occurs
-**                  for power manager related commands.
-**
-** Input Parms      status - status of the event (HCI_SUCCESS if no errors)
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_proc_cmd_status
+ *
+ * Description      This function is called when an HCI command status event occurs
+ *                  for power manager related commands.
+ *
+ * Input Parms      status - status of the event (HCI_SUCCESS if no errors)
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 void btm_pm_proc_cmd_status(uint8_t status)
 {
     tBTM_PM_MCB     *p_cb;
@@ -785,19 +785,19 @@ void btm_pm_proc_cmd_status(uint8_t status)
 }
 
 /*******************************************************************************
-**
-** Function         btm_process_mode_change
-**
-** Description      This function is called when an HCI mode change event occurs.
-**
-** Input Parms      hci_status - status of the event (HCI_SUCCESS if no errors)
-**                  hci_handle - connection handle associated with the change
-**                  mode - HCI_MODE_ACTIVE, HCI_MODE_HOLD, HCI_MODE_SNIFF, or HCI_MODE_PARK
-**                  interval - number of baseband slots (meaning depends on mode)
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_process_mode_change
+ *
+ * Description      This function is called when an HCI mode change event occurs.
+ *
+ * Input Parms      hci_status - status of the event (HCI_SUCCESS if no errors)
+ *                  hci_handle - connection handle associated with the change
+ *                  mode - HCI_MODE_ACTIVE, HCI_MODE_HOLD, HCI_MODE_SNIFF, or HCI_MODE_PARK
+ *                  interval - number of baseband slots (meaning depends on mode)
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 void btm_pm_proc_mode_change (uint8_t hci_status, uint16_t hci_handle, uint8_t mode, uint16_t interval)
 {
     tACL_CONN   *p;
@@ -883,14 +883,14 @@ void btm_pm_proc_mode_change (uint8_t hci_status, uint16_t hci_handle, uint8_t m
 }
 
 /*******************************************************************************
-**
-** Function         btm_pm_proc_ssr_evt
-**
-** Description      This function is called when an HCI sniff subrating event occurs.
-**
-** Returns          none.
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_proc_ssr_evt
+ *
+ * Description      This function is called when an HCI sniff subrating event occurs.
+ *
+ * Returns          none.
+ *
+ ******************************************************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
 void btm_pm_proc_ssr_evt (uint8_t *p,
                           UNUSED_ATTR uint16_t evt_len)
@@ -937,14 +937,14 @@ void btm_pm_proc_ssr_evt (uint8_t *p,
 #endif  // BTM_SSR_INCLUDED
 
 /*******************************************************************************
-**
-** Function         btm_pm_device_in_active_or_sniff_mode
-**
-** Description      This function is called to check if in active or sniff mode
-**
-** Returns          true, if in active or sniff mode
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_device_in_active_or_sniff_mode
+ *
+ * Description      This function is called to check if in active or sniff mode
+ *
+ * Returns          true, if in active or sniff mode
+ *
+ ******************************************************************************/
 bool    btm_pm_device_in_active_or_sniff_mode(void)
 {
     /* The active state is the highest state-includes connected device and sniff mode*/
@@ -967,14 +967,14 @@ bool    btm_pm_device_in_active_or_sniff_mode(void)
 }
 
 /*******************************************************************************
-**
-** Function         btm_pm_device_in_scan_state
-**
-** Description      This function is called to check if in paging, inquiry or connecting mode
-**
-** Returns          true, if in paging, inquiry or connecting mode
-**
-*******************************************************************************/
+ *
+ * Function         btm_pm_device_in_scan_state
+ *
+ * Description      This function is called to check if in paging, inquiry or connecting mode
+ *
+ * Returns          true, if in paging, inquiry or connecting mode
+ *
+ ******************************************************************************/
 bool    btm_pm_device_in_scan_state(void)
 {
     /* Scan state-paging, inquiry, and trying to connect */
@@ -998,14 +998,14 @@ bool    btm_pm_device_in_scan_state(void)
 }
 
 /*******************************************************************************
-**
-** Function         BTM_PM_ReadControllerState
-**
-** Description      This function is called to obtain the controller state
-**
-** Returns          Controller State-BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and BTM_CONTRL_IDLE
-**
-*******************************************************************************/
+ *
+ * Function         BTM_PM_ReadControllerState
+ *
+ * Description      This function is called to obtain the controller state
+ *
+ * Returns          Controller State-BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and BTM_CONTRL_IDLE
+ *
+ ******************************************************************************/
 tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void)
 {
     if (true == btm_pm_device_in_active_or_sniff_mode())

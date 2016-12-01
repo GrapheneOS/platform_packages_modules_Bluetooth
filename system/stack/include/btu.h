@@ -60,7 +60,7 @@ extern uint8_t btu_trace_level;
 extern const BD_ADDR        BT_BD_ANY;
 
 /* Functions provided by btu_task.cc
-************************************
+ ***********************************
 */
 
 #if (HCILP_INCLUDED == TRUE)
@@ -68,13 +68,13 @@ extern void btu_check_bt_sleep (void);
 #endif
 
 /* Functions provided by btu_hcif.cc
-************************************
+ ***********************************
 */
 extern void  btu_hcif_process_event (uint8_t controller_id, BT_HDR *p_buf);
 extern void  btu_hcif_send_cmd (uint8_t controller_id, BT_HDR *p_msg);
 
 /* Functions provided by btu_init.cc
-************************************
+ ***********************************
 */
 extern void  btu_init_core(void);
 extern void  btu_free_core(void);

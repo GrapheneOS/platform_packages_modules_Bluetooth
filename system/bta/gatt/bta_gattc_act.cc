@@ -958,7 +958,7 @@ void bta_gattc_read(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
  * Description      read multiple
  *
  * Returns          None.
- ********************************************************************************/
+ ******************************************************************************/
 void bta_gattc_read_multi(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
   tBTA_GATT_STATUS status = BTA_GATT_OK;
   tGATT_READ_PARAM read_param;
@@ -1028,7 +1028,7 @@ void bta_gattc_write(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
  * Description      send execute write
  *
  * Returns          None.
- ********************************************************************************/
+ ******************************************************************************/
 void bta_gattc_execute(tBTA_GATTC_CLCB* p_clcb, tBTA_GATTC_DATA* p_data) {
   tBTA_GATT_STATUS status;
 
@@ -1695,7 +1695,7 @@ static void bta_gattc_cmpl_sendmsg(uint16_t conn_id, tGATTC_OPTYPE op,
  *
  * Returns          void
  *
- *******************************************************************************/
+ ******************************************************************************/
 static void bta_gattc_cong_cback(uint16_t conn_id, bool congested) {
   tBTA_GATTC_CLCB* p_clcb;
   tBTA_GATTC cb_data;

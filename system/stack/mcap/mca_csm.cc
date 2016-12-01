@@ -31,8 +31,8 @@
 #include  "btu.h"
 
 /*****************************************************************************
-** data channel state machine constants and types
-*****************************************************************************/
+ * data channel state machine constants and types
+ ****************************************************************************/
 enum
 {
     MCA_CCB_FREE_MSG,
@@ -152,32 +152,32 @@ static const char * const mca_ccb_st_str[] = {
 };
 
 /*******************************************************************************
-**
-** Function         mca_stop_timer
-**
-** Description      This function is stop a MCAP timer
-**
-**                  This function is for use internal to MCAP only.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         mca_stop_timer
+ *
+ * Description      This function is stop a MCAP timer
+ *
+ *                  This function is for use internal to MCAP only.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void mca_stop_timer(tMCA_CCB *p_ccb)
 {
     alarm_cancel(p_ccb->mca_ccb_timer);
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_event
-**
-** Description      This function is the CCB state machine main function.
-**                  It uses the state and action function tables to execute
-**                  action functions.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_event
+ *
+ * Description      This function is the CCB state machine main function.
+ *                  It uses the state and action function tables to execute
+ *                  action functions.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_event(tMCA_CCB *p_ccb, uint8_t event, tMCA_CCB_EVT *p_data)
 {
     tMCA_CCB_ST_TBL    state_table;
@@ -200,16 +200,16 @@ void mca_ccb_event(tMCA_CCB *p_ccb, uint8_t event, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_by_bd
-**
-** Description      This function looks up the CCB based on the BD address.
-**                  It returns a pointer to the CCB.
-**                  If no CCB is found it returns NULL.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_by_bd
+ *
+ * Description      This function looks up the CCB based on the BD address.
+ *                  It returns a pointer to the CCB.
+ *                  If no CCB is found it returns NULL.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 tMCA_CCB *mca_ccb_by_bd(tMCA_HANDLE handle, BD_ADDR bd_addr)
 {
     tMCA_CCB *p_ccb = NULL;
@@ -234,16 +234,16 @@ tMCA_CCB *mca_ccb_by_bd(tMCA_HANDLE handle, BD_ADDR bd_addr)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_alloc
-**
-** Description      This function allocates a CCB and copies the BD address to
-**                  the CCB.  It returns a pointer to the CCB.  If no CCB can
-**                  be allocated it returns NULL.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_alloc
+ *
+ * Description      This function allocates a CCB and copies the BD address to
+ *                  the CCB.  It returns a pointer to the CCB.  If no CCB can
+ *                  be allocated it returns NULL.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 tMCA_CCB *mca_ccb_alloc(tMCA_HANDLE handle, BD_ADDR bd_addr)
 {
     tMCA_CCB *p_ccb = NULL;
@@ -275,14 +275,14 @@ tMCA_CCB *mca_ccb_alloc(tMCA_HANDLE handle, BD_ADDR bd_addr)
 
 
 /*******************************************************************************
-**
-** Function         mca_ccb_dealloc
-**
-** Description      This function deallocates a CCB.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_dealloc
+ *
+ * Description      This function deallocates a CCB.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void mca_ccb_dealloc(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     tMCA_CTRL   evt_data;
@@ -314,31 +314,31 @@ void mca_ccb_dealloc(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_to_hdl
-**
-** Description      This function converts a pointer to a CCB to a tMCA_CL
-**                  and returns the value.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_to_hdl
+ *
+ * Description      This function converts a pointer to a CCB to a tMCA_CL
+ *                  and returns the value.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 tMCA_CL mca_ccb_to_hdl(tMCA_CCB *p_ccb)
 {
     return (uint8_t) (p_ccb - mca_cb.ccb + 1);
 }
 
 /*******************************************************************************
-**
-** Function         mca_ccb_by_hdl
-**
-** Description      This function converts an index value to a CCB.  It returns
-**                  a pointer to the CCB.  If no valid CCB matches the index it
-**                  returns NULL.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_by_hdl
+ *
+ * Description      This function converts an index value to a CCB.  It returns
+ *                  a pointer to the CCB.  If no valid CCB matches the index it
+ *                  returns NULL.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 tMCA_CCB *mca_ccb_by_hdl(tMCA_CL mcl)
 {
     tMCA_CCB * p_ccb = NULL;
@@ -349,14 +349,14 @@ tMCA_CCB *mca_ccb_by_hdl(tMCA_CL mcl)
 
 
 /*******************************************************************************
-**
-** Function         mca_ccb_uses_mdl_id
-**
-** Description      This function checkes if a given mdl_id is in use.
-**
-** Returns          true, if the given mdl_id is currently used in the MCL.
-**
-*******************************************************************************/
+ *
+ * Function         mca_ccb_uses_mdl_id
+ *
+ * Description      This function checkes if a given mdl_id is in use.
+ *
+ * Returns          true, if the given mdl_id is currently used in the MCL.
+ *
+ ******************************************************************************/
 bool    mca_ccb_uses_mdl_id(tMCA_CCB *p_ccb, uint16_t mdl_id)
 {
     bool    uses = false;

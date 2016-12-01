@@ -17,12 +17,12 @@
  ******************************************************************************/
 
 /*****************************************************************************
-**
-**  Name:           avct_l2c_br.cc
-**
-**  Description:    This AVCTP module interfaces to L2CAP
-**
-******************************************************************************/
+ *
+ *  Name:           avct_l2c_br.cc
+ *
+ *  Description:    This AVCTP module interfaces to L2CAP
+ *
+ *****************************************************************************/
 
 #include <string.h>
 #include "bt_target.h"
@@ -103,15 +103,15 @@ const tL2CAP_FCR_OPTS avct_l2c_br_fcr_opts_def = {
 };
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_connect_ind_cback
-**
-** Description      This is the L2CAP connect indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_connect_ind_cback
+ *
+ * Description      This is the L2CAP connect indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
                                    UNUSED_ATTR uint16_t psm, uint8_t id)
 {
@@ -172,15 +172,15 @@ void avct_l2c_br_connect_ind_cback(BD_ADDR bd_addr, uint16_t lcid,
 }
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_connect_cfm_cback
-**
-** Description      This is the L2CAP connect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_connect_cfm_cback
+ *
+ * Description      This is the L2CAP connect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_connect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVCT_BCB       *p_lcb;
@@ -215,15 +215,15 @@ void avct_l2c_br_connect_cfm_cback(uint16_t lcid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_config_cfm_cback
-**
-** Description      This is the L2CAP config confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_config_cfm_cback
+ *
+ * Description      This is the L2CAP config confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVCT_BCB   *p_lcb;
@@ -258,15 +258,15 @@ void avct_l2c_br_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_config_ind_cback
-**
-** Description      This is the L2CAP config indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_config_ind_cback
+ *
+ * Description      This is the L2CAP config indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tAVCT_BCB   *p_lcb;
@@ -337,15 +337,15 @@ void avct_l2c_br_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_disconnect_ind_cback
-**
-** Description      This is the L2CAP disconnect indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_disconnect_ind_cback
+ *
+ * Description      This is the L2CAP disconnect indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_disconnect_ind_cback(uint16_t lcid, bool ack_needed)
 {
     tAVCT_BCB   *p_lcb;
@@ -366,15 +366,15 @@ void avct_l2c_br_disconnect_ind_cback(uint16_t lcid, bool ack_needed)
 }
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_disconnect_cfm_cback
-**
-** Description      This is the L2CAP disconnect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_disconnect_cfm_cback
+ *
+ * Description      This is the L2CAP disconnect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tAVCT_BCB   *p_lcb;
@@ -393,15 +393,15 @@ void avct_l2c_br_disconnect_cfm_cback(uint16_t lcid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_congestion_ind_cback
-**
-** Description      This is the L2CAP congestion indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_congestion_ind_cback
+ *
+ * Description      This is the L2CAP congestion indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_congestion_ind_cback(uint16_t lcid, bool is_congested)
 {
     tAVCT_BCB   *p_lcb;
@@ -415,15 +415,15 @@ void avct_l2c_br_congestion_ind_cback(uint16_t lcid, bool is_congested)
 }
 
 /*******************************************************************************
-**
-** Function         avct_l2c_br_data_ind_cback
-**
-** Description      This is the L2CAP data indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         avct_l2c_br_data_ind_cback
+ *
+ * Description      This is the L2CAP data indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void avct_l2c_br_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tAVCT_BCB   *p_lcb;

@@ -32,193 +32,193 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
+ *  External Function Declarations
+ ****************************************************************************/
 /* API of SMP */
 
 /*******************************************************************************
-**
-** Function         SMP_Init
-**
-** Description      This function initializes the SMP unit.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         SMP_Init
+ *
+ * Description      This function initializes the SMP unit.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern void SMP_Init(void);
 
 /*******************************************************************************
-**
-** Function         SMP_SetTraceLevel
-**
-** Description      This function sets the trace level for SMP.  If called with
-**                  a value of 0xFF, it simply returns the current trace level.
-**
-** Returns          The new or current trace level
-**
-*******************************************************************************/
+ *
+ * Function         SMP_SetTraceLevel
+ *
+ * Description      This function sets the trace level for SMP.  If called with
+ *                  a value of 0xFF, it simply returns the current trace level.
+ *
+ * Returns          The new or current trace level
+ *
+ ******************************************************************************/
 extern uint8_t SMP_SetTraceLevel (uint8_t new_level);
 
 /*******************************************************************************
-**
-** Function         SMP_Register
-**
-** Description      This function register for the SMP service callback.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         SMP_Register
+ *
+ * Description      This function register for the SMP service callback.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 extern bool    SMP_Register (tSMP_CALLBACK *p_cback);
 
 /*******************************************************************************
-**
-** Function         SMP_Pair
-**
-** Description      This function is called to start a SMP pairing.
-**
-** Returns          SMP_STARTED if bond started, else otherwise exception.
-**
-*******************************************************************************/
+ *
+ * Function         SMP_Pair
+ *
+ * Description      This function is called to start a SMP pairing.
+ *
+ * Returns          SMP_STARTED if bond started, else otherwise exception.
+ *
+ ******************************************************************************/
 extern tSMP_STATUS SMP_Pair (BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         SMP_BR_PairWith
-**
-** Description      This function is called to start a SMP pairing over BR/EDR.
-**
-** Returns          SMP_STARTED if pairing started, otherwise reason for failure.
-**
-*******************************************************************************/
+ *
+ * Function         SMP_BR_PairWith
+ *
+ * Description      This function is called to start a SMP pairing over BR/EDR.
+ *
+ * Returns          SMP_STARTED if pairing started, otherwise reason for failure.
+ *
+ ******************************************************************************/
 extern tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         SMP_PairCancel
-**
-** Description      This function is called to cancel a SMP pairing.
-**
-** Returns          true - pairing cancelled
-**
-*******************************************************************************/
+ *
+ * Function         SMP_PairCancel
+ *
+ * Description      This function is called to cancel a SMP pairing.
+ *
+ * Returns          true - pairing cancelled
+ *
+ ******************************************************************************/
 extern  bool    SMP_PairCancel (BD_ADDR bd_addr);
 
 /*******************************************************************************
-**
-** Function         SMP_SecurityGrant
-**
-** Description      This function is called to grant security process.
-**
-** Parameters       bd_addr - peer device bd address.
-**                  res     - result of the operation SMP_SUCCESS if success.
-**                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
-**
-** Returns          None
-**
-*******************************************************************************/
+ *
+ * Function         SMP_SecurityGrant
+ *
+ * Description      This function is called to grant security process.
+ *
+ * Parameters       bd_addr - peer device bd address.
+ *                  res     - result of the operation SMP_SUCCESS if success.
+ *                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
+ *
+ * Returns          None
+ *
+ ******************************************************************************/
 extern void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res);
 
 /*******************************************************************************
-**
-** Function         SMP_PasskeyReply
-**
-** Description      This function is called after Security Manager submitted
-**                  Passkey request to the application.
-**
-** Parameters:      bd_addr      - Address of the device for which PIN was requested
-**                  res          - result of the operation SMP_SUCCESS if success
-**                  passkey      - numeric value in the range of
-**                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
-**
-*******************************************************************************/
+ *
+ * Function         SMP_PasskeyReply
+ *
+ * Description      This function is called after Security Manager submitted
+ *                  Passkey request to the application.
+ *
+ * Parameters:      bd_addr      - Address of the device for which PIN was requested
+ *                  res          - result of the operation SMP_SUCCESS if success
+ *                  passkey      - numeric value in the range of
+ *                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
+ *
+ ******************************************************************************/
 extern void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey);
 
 /*******************************************************************************
-**
-** Function         SMP_ConfirmReply
-**
-** Description      This function is called after Security Manager submitted
-**                  numeric comparison request to the application.
-**
-** Parameters:      bd_addr      - Address of the device with which numeric
-**                                 comparison was requested
-**                  res          - comparison result SMP_SUCCESS if success
-**
-*******************************************************************************/
+ *
+ * Function         SMP_ConfirmReply
+ *
+ * Description      This function is called after Security Manager submitted
+ *                  numeric comparison request to the application.
+ *
+ * Parameters:      bd_addr      - Address of the device with which numeric
+ *                                 comparison was requested
+ *                  res          - comparison result SMP_SUCCESS if success
+ *
+ ******************************************************************************/
 extern void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res);
 
 /*******************************************************************************
-**
-** Function         SMP_OobDataReply
-**
-** Description      This function is called to provide the OOB data for
-**                  SMP in response to SMP_OOB_REQ_EVT
-**
-** Parameters:      bd_addr     - Address of the peer device
-**                  res         - result of the operation SMP_SUCCESS if success
-**                  p_data      - SM Randomizer  C.
-**
-*******************************************************************************/
+ *
+ * Function         SMP_OobDataReply
+ *
+ * Description      This function is called to provide the OOB data for
+ *                  SMP in response to SMP_OOB_REQ_EVT
+ *
+ * Parameters:      bd_addr     - Address of the peer device
+ *                  res         - result of the operation SMP_SUCCESS if success
+ *                  p_data      - SM Randomizer  C.
+ *
+ ******************************************************************************/
 extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len,
                              uint8_t *p_data);
 
 /*******************************************************************************
-**
-** Function         SMP_SecureConnectionOobDataReply
-**
-** Description      This function is called to provide the SC OOB data for
-**                  SMP in response to SMP_SC_OOB_REQ_EVT
-**
-** Parameters:      p_data      - pointer to the data
-**
-*******************************************************************************/
+ *
+ * Function         SMP_SecureConnectionOobDataReply
+ *
+ * Description      This function is called to provide the SC OOB data for
+ *                  SMP in response to SMP_SC_OOB_REQ_EVT
+ *
+ * Parameters:      p_data      - pointer to the data
+ *
+ ******************************************************************************/
 extern void SMP_SecureConnectionOobDataReply(uint8_t *p_data);
 
 /*******************************************************************************
-**
-** Function         SMP_Encrypt
-**
-** Description      This function is called to encrypt the data with the specified
-**                  key
-**
-** Parameters:      key                 - Pointer to key key[0] conatins the MSB
-**                  key_len             - key length
-**                  plain_text          - Pointer to data to be encrypted
-**                                        plain_text[0] conatins the MSB
-**                  pt_len              - plain text length
-**                  p_out               - pointer to the encrypted outputs
-**
-**  Returns         Boolean - true: encryption is successful
-*******************************************************************************/
+ *
+ * Function         SMP_Encrypt
+ *
+ * Description      This function is called to encrypt the data with the specified
+ *                  key
+ *
+ * Parameters:      key                 - Pointer to key key[0] conatins the MSB
+ *                  key_len             - key length
+ *                  plain_text          - Pointer to data to be encrypted
+ *                                        plain_text[0] conatins the MSB
+ *                  pt_len              - plain text length
+ *                  p_out               - pointer to the encrypted outputs
+ *
+ *  Returns         Boolean - true: encryption is successful
+ ******************************************************************************/
 extern bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
                             uint8_t *plain_text, uint8_t pt_len,
                             tSMP_ENC *p_out);
 
 /*******************************************************************************
-**
-** Function         SMP_KeypressNotification
-**
-** Description      This function is called to notify SM about Keypress Notification.
-**
-** Parameters:      bd_addr      - Address of the device to send keypress
-**                                 notification to
-**                  value        - keypress notification parameter value
-**
-*******************************************************************************/
+ *
+ * Function         SMP_KeypressNotification
+ *
+ * Description      This function is called to notify SM about Keypress Notification.
+ *
+ * Parameters:      bd_addr      - Address of the device to send keypress
+ *                                 notification to
+ *                  value        - keypress notification parameter value
+ *
+ ******************************************************************************/
 extern void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value);
 
 /*******************************************************************************
-**
-** Function         SMP_CreateLocalSecureConnectionsOobData
-**
-** Description      This function is called to start creation of local SC OOB
-**                  data set (tSMP_LOC_OOB_DATA).
-**
-** Parameters:      bd_addr      - Address of the device to send OOB data block
-**                                 to.
-**
-**  Returns         Boolean - true: creation of local SC OOB data set started.
-*******************************************************************************/
+ *
+ * Function         SMP_CreateLocalSecureConnectionsOobData
+ *
+ * Description      This function is called to start creation of local SC OOB
+ *                  data set (tSMP_LOC_OOB_DATA).
+ *
+ * Parameters:      bd_addr      - Address of the device to send OOB data block
+ *                                 to.
+ *
+ *  Returns         Boolean - true: creation of local SC OOB data set started.
+ ******************************************************************************/
 extern bool SMP_CreateLocalSecureConnectionsOobData(tBLE_BD_ADDR *addr_to_send_to);
 
 // Called when LTK request is received from controller.

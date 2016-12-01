@@ -26,8 +26,8 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-**  Constants
-*****************************************************************************/
+ *  Constants
+ ****************************************************************************/
 
 /* Success code and error codes */
 #define  SDP_SUCCESS                        0x0000
@@ -69,8 +69,8 @@ extern "C" {
 
 
 /*****************************************************************************
-**  Type Definitions
-*****************************************************************************/
+ *  Type Definitions
+ ****************************************************************************/
 
 /* Define a callback function for when discovery is complete. */
 typedef void (tSDP_DISC_CMPL_CB) (uint16_t result);
@@ -183,14 +183,14 @@ typedef struct t_sdp_di_get_record
 /* API into the SDP layer for service discovery. */
 
 /*******************************************************************************
-**
-** Function         SDP_InitDiscoveryDb
-**
-** Description      This function is called to initialize a discovery database.
-**
-** Returns          true if successful, false if one or more parameters are bad
-**
-*******************************************************************************/
+ *
+ * Function         SDP_InitDiscoveryDb
+ *
+ * Description      This function is called to initialize a discovery database.
+ *
+ * Returns          true if successful, false if one or more parameters are bad
+ *
+ ******************************************************************************/
 bool    SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, uint32_t len,
                                     uint16_t num_uuid,
                                     tSDP_UUID *p_uuid_list,
@@ -198,61 +198,61 @@ bool    SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, uint32_t len,
                                     uint16_t *p_attr_list);
 
 /*******************************************************************************
-**
-** Function         SDP_CancelServiceSearch
-**
-** Description      This function cancels an active query to an SDP server.
-**
-** Returns          true if discovery cancelled, false if a matching activity is not found.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_CancelServiceSearch
+ *
+ * Description      This function cancels an active query to an SDP server.
+ *
+ * Returns          true if discovery cancelled, false if a matching activity is not found.
+ *
+ ******************************************************************************/
 bool    SDP_CancelServiceSearch (tSDP_DISCOVERY_DB *p_db);
 
 /*******************************************************************************
-**
-** Function         SDP_ServiceSearchRequest
-**
-** Description      This function queries an SDP server for information.
-**
-** Returns          true if discovery started, false if failed.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_ServiceSearchRequest
+ *
+ * Description      This function queries an SDP server for information.
+ *
+ * Returns          true if discovery started, false if failed.
+ *
+ ******************************************************************************/
 bool    SDP_ServiceSearchRequest (uint8_t *p_bd_addr,
                                          tSDP_DISCOVERY_DB *p_db,
                                          tSDP_DISC_CMPL_CB *p_cb);
 
 
 /*******************************************************************************
-**
-** Function         SDP_ServiceSearchAttributeRequest
-**
-** Description      This function queries an SDP server for information.
-**
-**                  The difference between this API function and the function
-**                  SDP_ServiceSearchRequest is that this one does a
-**                  combined ServiceSearchAttributeRequest SDP function.
-**
-** Returns          true if discovery started, false if failed.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_ServiceSearchAttributeRequest
+ *
+ * Description      This function queries an SDP server for information.
+ *
+ *                  The difference between this API function and the function
+ *                  SDP_ServiceSearchRequest is that this one does a
+ *                  combined ServiceSearchAttributeRequest SDP function.
+ *
+ * Returns          true if discovery started, false if failed.
+ *
+ ******************************************************************************/
 bool    SDP_ServiceSearchAttributeRequest (uint8_t *p_bd_addr,
                                                   tSDP_DISCOVERY_DB *p_db,
                                                   tSDP_DISC_CMPL_CB *p_cb);
 
 /*******************************************************************************
-**
-** Function         SDP_ServiceSearchAttributeRequest2
-**
-** Description      This function queries an SDP server for information.
-**
-**                  The difference between this API function and the function
-**                  SDP_ServiceSearchRequest is that this one does a
-**                  combined ServiceSearchAttributeRequest SDP function with the
-**                  user data piggyback
-**
-** Returns          true if discovery started, false if failed.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_ServiceSearchAttributeRequest2
+ *
+ * Description      This function queries an SDP server for information.
+ *
+ *                  The difference between this API function and the function
+ *                  SDP_ServiceSearchRequest is that this one does a
+ *                  combined ServiceSearchAttributeRequest SDP function with the
+ *                  user data piggyback
+ *
+ * Returns          true if discovery started, false if failed.
+ *
+ ******************************************************************************/
 bool    SDP_ServiceSearchAttributeRequest2 (uint8_t *p_bd_addr,
                                                    tSDP_DISCOVERY_DB *p_db,
                                                    tSDP_DISC_CMPL_CB2 *p_cb, void * user_data);
@@ -260,149 +260,149 @@ bool    SDP_ServiceSearchAttributeRequest2 (uint8_t *p_bd_addr,
 /* API of utilities to find data in the local discovery database */
 
 /*******************************************************************************
-**
-** Function         SDP_FindAttributeInDb
-**
-** Description      This function queries an SDP database for a specific attribute.
-**                  If the p_start_rec pointer is NULL, it looks from the beginning
-**                  of the database, else it continues from the next record after
-**                  p_start_rec.
-**
-** Returns          Pointer to matching record, or NULL
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindAttributeInDb
+ *
+ * Description      This function queries an SDP database for a specific attribute.
+ *                  If the p_start_rec pointer is NULL, it looks from the beginning
+ *                  of the database, else it continues from the next record after
+ *                  p_start_rec.
+ *
+ * Returns          Pointer to matching record, or NULL
+ *
+ ******************************************************************************/
 tSDP_DISC_REC *SDP_FindAttributeInDb (tSDP_DISCOVERY_DB *p_db,
                                              uint16_t attr_id,
                                              tSDP_DISC_REC *p_start_rec);
 
 
 /*******************************************************************************
-**
-** Function         SDP_FindAttributeInRec
-**
-** Description      This function searches an SDP discovery record for a
-**                  specific attribute.
-**
-** Returns          Pointer to matching attribute entry, or NULL
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindAttributeInRec
+ *
+ * Description      This function searches an SDP discovery record for a
+ *                  specific attribute.
+ *
+ * Returns          Pointer to matching attribute entry, or NULL
+ *
+ ******************************************************************************/
 tSDP_DISC_ATTR *SDP_FindAttributeInRec (tSDP_DISC_REC *p_rec,
                                                uint16_t attr_id);
 
 
 /*******************************************************************************
-**
-** Function         SDP_FindServiceInDb
-**
-** Description      This function queries an SDP database for a specific service.
-**                  If the p_start_rec pointer is NULL, it looks from the beginning
-**                  of the database, else it continues from the next record after
-**                  p_start_rec.
-**
-** Returns          Pointer to record containing service class, or NULL
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindServiceInDb
+ *
+ * Description      This function queries an SDP database for a specific service.
+ *                  If the p_start_rec pointer is NULL, it looks from the beginning
+ *                  of the database, else it continues from the next record after
+ *                  p_start_rec.
+ *
+ * Returns          Pointer to record containing service class, or NULL
+ *
+ ******************************************************************************/
 tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db,
                                            uint16_t service_uuid,
                                            tSDP_DISC_REC *p_start_rec);
 
 
 /*******************************************************************************
-**
-** Function         SDP_FindServiceUUIDInDb
-**
-** Description      This function queries an SDP database for a specific service.
-**                  If the p_start_rec pointer is NULL, it looks from the beginning
-**                  of the database, else it continues from the next record after
-**                  p_start_rec.
-**
-** NOTE             the only difference between this function and the previous
-**                  function "SDP_FindServiceInDb()" is that this function takes
-**                  a tBT_UUID input.
-**
-** Returns          Pointer to record containing service class, or NULL
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindServiceUUIDInDb
+ *
+ * Description      This function queries an SDP database for a specific service.
+ *                  If the p_start_rec pointer is NULL, it looks from the beginning
+ *                  of the database, else it continues from the next record after
+ *                  p_start_rec.
+ *
+ * NOTE             the only difference between this function and the previous
+ *                  function "SDP_FindServiceInDb()" is that this function takes
+ *                  a tBT_UUID input.
+ *
+ * Returns          Pointer to record containing service class, or NULL
+ *
+ ******************************************************************************/
 tSDP_DISC_REC *SDP_FindServiceUUIDInDb (tSDP_DISCOVERY_DB *p_db,
                                                tBT_UUID *p_uuid,
                                                tSDP_DISC_REC *p_start_rec);
 
 /*******************************************************************************
-**
-** Function         SDP_FindServiceUUIDInRec_128bit
-**
-** Description      This function is called to read the 128-bit service UUID within a record
-**                  if there is any.
-**
-** Parameters:      p_rec      - pointer to a SDP record.
-**                  p_uuid     - output parameter to save the UUID found.
-**
-** Returns          true if found, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindServiceUUIDInRec_128bit
+ *
+ * Description      This function is called to read the 128-bit service UUID within a record
+ *                  if there is any.
+ *
+ * Parameters:      p_rec      - pointer to a SDP record.
+ *                  p_uuid     - output parameter to save the UUID found.
+ *
+ * Returns          true if found, otherwise false.
+ *
+ ******************************************************************************/
 bool    SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid);
 
 /*******************************************************************************
-**
-** Function         SDP_FindServiceInDb_128bit
-**
-** Description      This function queries an SDP database for a specific service.
-**                  If the p_start_rec pointer is NULL, it looks from the beginning
-**                  of the database, else it continues from the next record after
-**                  p_start_rec.
-**
-** Returns          Pointer to record containing service class, or NULL
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindServiceInDb_128bit
+ *
+ * Description      This function queries an SDP database for a specific service.
+ *                  If the p_start_rec pointer is NULL, it looks from the beginning
+ *                  of the database, else it continues from the next record after
+ *                  p_start_rec.
+ *
+ * Returns          Pointer to record containing service class, or NULL
+ *
+ ******************************************************************************/
 tSDP_DISC_REC *SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB *p_db,
                                                  tSDP_DISC_REC *p_start_rec);
 
 /*******************************************************************************
-**
-** Function         SDP_FindProtocolListElemInRec
-**
-** Description      This function looks at a specific discovery record for a
-**                  protocol list element.
-**
-** Returns          true if found, false if not
-**                  If found, the passed protocol list element is filled in.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindProtocolListElemInRec
+ *
+ * Description      This function looks at a specific discovery record for a
+ *                  protocol list element.
+ *
+ * Returns          true if found, false if not
+ *                  If found, the passed protocol list element is filled in.
+ *
+ ******************************************************************************/
 bool    SDP_FindProtocolListElemInRec (tSDP_DISC_REC *p_rec,
                                               uint16_t layer_uuid,
                                               tSDP_PROTOCOL_ELEM *p_elem);
 
 
 /*******************************************************************************
-**
-** Function         SDP_FindAddProtoListsElemInRec
-**
-** Description      This function looks at a specific discovery record for a
-**                  protocol list element.
-**
-** Returns          true if found, false if not
-**                  If found, the passed protocol list element is filled in.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindAddProtoListsElemInRec
+ *
+ * Description      This function looks at a specific discovery record for a
+ *                  protocol list element.
+ *
+ * Returns          true if found, false if not
+ *                  If found, the passed protocol list element is filled in.
+ *
+ ******************************************************************************/
 bool    SDP_FindAddProtoListsElemInRec (tSDP_DISC_REC *p_rec,
                                                uint16_t layer_uuid,
                                                tSDP_PROTOCOL_ELEM *p_elem);
 
 
 /*******************************************************************************
-**
-** Function         SDP_FindProfileVersionInRec
-**
-** Description      This function looks at a specific discovery record for the
-**                  Profile list descriptor, and pulls out the version number.
-**                  The version number consists of an 8-bit major version and
-**                  an 8-bit minor version.
-**
-** Returns          true if found, false if not
-**                  If found, the major and minor version numbers that were passed
-**                  in are filled in.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindProfileVersionInRec
+ *
+ * Description      This function looks at a specific discovery record for the
+ *                  Profile list descriptor, and pulls out the version number.
+ *                  The version number consists of an 8-bit major version and
+ *                  an 8-bit minor version.
+ *
+ * Returns          true if found, false if not
+ *                  If found, the major and minor version numbers that were passed
+ *                  in are filled in.
+ *
+ ******************************************************************************/
 bool    SDP_FindProfileVersionInRec (tSDP_DISC_REC *p_rec,
                                             uint16_t profile_uuid,
                                             uint16_t *p_version);
@@ -411,273 +411,273 @@ bool    SDP_FindProfileVersionInRec (tSDP_DISC_REC *p_rec,
 /* API into SDP for local service database updates */
 
 /*******************************************************************************
-**
-** Function         SDP_CreateRecord
-**
-** Description      This function is called to create a record in the database.
-**                  This would be through the SDP database maintenance API. The
-**                  record is created empty, teh application should then call
-**                  "add_attribute" to add the record's attributes.
-**
-** Returns          Record handle if OK, else 0.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_CreateRecord
+ *
+ * Description      This function is called to create a record in the database.
+ *                  This would be through the SDP database maintenance API. The
+ *                  record is created empty, teh application should then call
+ *                  "add_attribute" to add the record's attributes.
+ *
+ * Returns          Record handle if OK, else 0.
+ *
+ ******************************************************************************/
 uint32_t SDP_CreateRecord (void);
 
 
 /*******************************************************************************
-**
-** Function         SDP_DeleteRecord
-**
-** Description      This function is called to add a record (or all records)
-**                  from the database. This would be through the SDP database
-**                  maintenance API.
-**
-**                  If a record handle of 0 is passed, all records are deleted.
-**
-** Returns          true if succeeded, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_DeleteRecord
+ *
+ * Description      This function is called to add a record (or all records)
+ *                  from the database. This would be through the SDP database
+ *                  maintenance API.
+ *
+ *                  If a record handle of 0 is passed, all records are deleted.
+ *
+ * Returns          true if succeeded, else false
+ *
+ ******************************************************************************/
 bool    SDP_DeleteRecord (uint32_t handle);
 
 
 /*******************************************************************************
-**
-** Function         SDP_ReadRecord
-**
-** Description      This function is called to get the raw data of the record
-**                  with the given handle from the database.
-**
-** Returns          -1, if the record is not found.
-**                  Otherwise, the offset (0 or 1) to start of data in p_data.
-**
-**                  The size of data copied into p_data is in *p_data_len.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_ReadRecord
+ *
+ * Description      This function is called to get the raw data of the record
+ *                  with the given handle from the database.
+ *
+ * Returns          -1, if the record is not found.
+ *                  Otherwise, the offset (0 or 1) to start of data in p_data.
+ *
+ *                  The size of data copied into p_data is in *p_data_len.
+ *
+ ******************************************************************************/
 int32_t SDP_ReadRecord(uint32_t handle, uint8_t *p_data, int32_t *p_data_len);
 
 /*******************************************************************************
-**
-** Function         SDP_AddAttribute
-**
-** Description      This function is called to add an attribute to a record.
-**                  This would be through the SDP database maintenance API.
-**                  If the attribute already exists in the record, it is replaced
-**                  with the new value.
-**
-** NOTE             Attribute values must be passed as a Big Endian stream.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddAttribute
+ *
+ * Description      This function is called to add an attribute to a record.
+ *                  This would be through the SDP database maintenance API.
+ *                  If the attribute already exists in the record, it is replaced
+ *                  with the new value.
+ *
+ * NOTE             Attribute values must be passed as a Big Endian stream.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddAttribute (uint32_t handle, uint16_t attr_id,
                                  uint8_t attr_type, uint32_t attr_len,
                                  uint8_t *p_val);
 
 
 /*******************************************************************************
-**
-** Function         SDP_AddSequence
-**
-** Description      This function is called to add a sequence to a record.
-**                  This would be through the SDP database maintenance API.
-**                  If the sequence already exists in the record, it is replaced
-**                  with the new sequence.
-**
-** NOTE             Element values must be passed as a Big Endian stream.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddSequence
+ *
+ * Description      This function is called to add a sequence to a record.
+ *                  This would be through the SDP database maintenance API.
+ *                  If the sequence already exists in the record, it is replaced
+ *                  with the new sequence.
+ *
+ * NOTE             Element values must be passed as a Big Endian stream.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddSequence (uint32_t handle,  uint16_t attr_id,
                                 uint16_t num_elem, uint8_t type[],
                                 uint8_t len[], uint8_t *p_val[]);
 
 
 /*******************************************************************************
-**
-** Function         SDP_AddUuidSequence
-**
-** Description      This function is called to add a UUID sequence to a record.
-**                  This would be through the SDP database maintenance API.
-**                  If the sequence already exists in the record, it is replaced
-**                  with the new sequence.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddUuidSequence
+ *
+ * Description      This function is called to add a UUID sequence to a record.
+ *                  This would be through the SDP database maintenance API.
+ *                  If the sequence already exists in the record, it is replaced
+ *                  with the new sequence.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddUuidSequence (uint32_t handle,  uint16_t attr_id,
                                     uint16_t num_uuids, uint16_t *p_uuids);
 
 
 /*******************************************************************************
-**
-** Function         SDP_AddProtocolList
-**
-** Description      This function is called to add a protocol descriptor list to
-**                  a record. This would be through the SDP database maintenance API.
-**                  If the protocol list already exists in the record, it is replaced
-**                  with the new list.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddProtocolList
+ *
+ * Description      This function is called to add a protocol descriptor list to
+ *                  a record. This would be through the SDP database maintenance API.
+ *                  If the protocol list already exists in the record, it is replaced
+ *                  with the new list.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddProtocolList (uint32_t handle, uint16_t num_elem,
                                     tSDP_PROTOCOL_ELEM *p_elem_list);
 
 
 /*******************************************************************************
-**
-** Function         SDP_AddAdditionProtoLists
-**
-** Description      This function is called to add a protocol descriptor list to
-**                  a record. This would be through the SDP database maintenance API.
-**                  If the protocol list already exists in the record, it is replaced
-**                  with the new list.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddAdditionProtoLists
+ *
+ * Description      This function is called to add a protocol descriptor list to
+ *                  a record. This would be through the SDP database maintenance API.
+ *                  If the protocol list already exists in the record, it is replaced
+ *                  with the new list.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddAdditionProtoLists (uint32_t handle, uint16_t num_elem,
                                           tSDP_PROTO_LIST_ELEM *p_proto_list);
 
 
 /*******************************************************************************
-**
-** Function         SDP_AddProfileDescriptorList
-**
-** Description      This function is called to add a profile descriptor list to
-**                  a record. This would be through the SDP database maintenance API.
-**                  If the version already exists in the record, it is replaced
-**                  with the new one.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddProfileDescriptorList
+ *
+ * Description      This function is called to add a profile descriptor list to
+ *                  a record. This would be through the SDP database maintenance API.
+ *                  If the version already exists in the record, it is replaced
+ *                  with the new one.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddProfileDescriptorList (uint32_t handle,
                                              uint16_t profile_uuid,
                                              uint16_t version);
 
 /*******************************************************************************
-**
-** Function         SDP_AddLanguageBaseAttrIDList
-**
-** Description      This function is called to add a language base attr list to
-**                  a record. This would be through the SDP database maintenance API.
-**                  If the version already exists in the record, it is replaced
-**                  with the new one.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddLanguageBaseAttrIDList
+ *
+ * Description      This function is called to add a language base attr list to
+ *                  a record. This would be through the SDP database maintenance API.
+ *                  If the version already exists in the record, it is replaced
+ *                  with the new one.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddLanguageBaseAttrIDList (uint32_t handle,
                                               uint16_t lang, uint16_t char_enc,
                                               uint16_t base_id);
 
 /*******************************************************************************
-**
-** Function         SDP_AddServiceClassIdList
-**
-** Description      This function is called to add a service list to a record.
-**                  This would be through the SDP database maintenance API.
-**                  If the service list already exists in the record, it is replaced
-**                  with the new list.
-**
-** Returns          true if added OK, else false
-**
-*******************************************************************************/
+ *
+ * Function         SDP_AddServiceClassIdList
+ *
+ * Description      This function is called to add a service list to a record.
+ *                  This would be through the SDP database maintenance API.
+ *                  If the service list already exists in the record, it is replaced
+ *                  with the new list.
+ *
+ * Returns          true if added OK, else false
+ *
+ ******************************************************************************/
 bool    SDP_AddServiceClassIdList (uint32_t handle,
                                           uint16_t num_services,
                                           uint16_t *p_service_uuids);
 
 /*******************************************************************************
-**
-** Function         SDP_DeleteAttribute
-**
-** Description      This function is called to delete an attribute from a record.
-**                  This would be through the SDP database maintenance API.
-**
-** Returns          true if deleted OK, else false if not found
-**
-*******************************************************************************/
+ *
+ * Function         SDP_DeleteAttribute
+ *
+ * Description      This function is called to delete an attribute from a record.
+ *                  This would be through the SDP database maintenance API.
+ *
+ * Returns          true if deleted OK, else false if not found
+ *
+ ******************************************************************************/
 bool    SDP_DeleteAttribute (uint32_t handle, uint16_t attr_id);
 
 /* Device Identification APIs */
 
 /*******************************************************************************
-**
-** Function         SDP_SetLocalDiRecord
-**
-** Description      This function adds a DI record to the local SDP database.
-**
-** Returns          Returns SDP_SUCCESS if record added successfully, else error
-**
-*******************************************************************************/
+ *
+ * Function         SDP_SetLocalDiRecord
+ *
+ * Description      This function adds a DI record to the local SDP database.
+ *
+ * Returns          Returns SDP_SUCCESS if record added successfully, else error
+ *
+ ******************************************************************************/
 uint16_t SDP_SetLocalDiRecord (tSDP_DI_RECORD *device_info,
                                     uint32_t *p_handle);
 
 /*******************************************************************************
-**
-** Function         SDP_DiDiscover
-**
-** Description      This function queries a remote device for DI information.
-**
-** Returns          SDP_SUCCESS if query started successfully, else error
-**
-*******************************************************************************/
+ *
+ * Function         SDP_DiDiscover
+ *
+ * Description      This function queries a remote device for DI information.
+ *
+ * Returns          SDP_SUCCESS if query started successfully, else error
+ *
+ ******************************************************************************/
 uint16_t SDP_DiDiscover (BD_ADDR remote_device,
                               tSDP_DISCOVERY_DB *p_db, uint32_t len,
                               tSDP_DISC_CMPL_CB *p_cb);
 
 /*******************************************************************************
-**
-** Function         SDP_GetNumDiRecords
-**
-** Description      Searches specified database for DI records
-**
-** Returns          number of DI records found
-**
-*******************************************************************************/
+ *
+ * Function         SDP_GetNumDiRecords
+ *
+ * Description      Searches specified database for DI records
+ *
+ * Returns          number of DI records found
+ *
+ ******************************************************************************/
 uint8_t SDP_GetNumDiRecords (tSDP_DISCOVERY_DB *p_db);
 
 /*******************************************************************************
-**
-** Function         SDP_GetDiRecord
-**
-** Description      This function retrieves a remote device's DI record from
-**                  the specified database.
-**
-** Returns          SDP_SUCCESS if record retrieved, else error
-**
-*******************************************************************************/
+ *
+ * Function         SDP_GetDiRecord
+ *
+ * Description      This function retrieves a remote device's DI record from
+ *                  the specified database.
+ *
+ * Returns          SDP_SUCCESS if record retrieved, else error
+ *
+ ******************************************************************************/
 uint16_t SDP_GetDiRecord (uint8_t getRecordIndex,
                                tSDP_DI_GET_RECORD *device_info,
                                tSDP_DISCOVERY_DB *p_db);
 
 /*******************************************************************************
-**
-** Function         SDP_SetTraceLevel
-**
-** Description      This function sets the trace level for SDP. If called with
-**                  a value of 0xFF, it simply reads the current trace level.
-**
-** Returns          the new (current) trace level
-**
-*******************************************************************************/
+ *
+ * Function         SDP_SetTraceLevel
+ *
+ * Description      This function sets the trace level for SDP. If called with
+ *                  a value of 0xFF, it simply reads the current trace level.
+ *
+ * Returns          the new (current) trace level
+ *
+ ******************************************************************************/
 uint8_t SDP_SetTraceLevel (uint8_t new_level);
 
 /*******************************************************************************
-**
-** Function         SDP_FindServiceUUIDInRec
-**
-** Description      This function is called to read the service UUID within a record
-**                  if there is any.
-**
-** Parameters:      p_rec      - pointer to a SDP record.
-**
-** Returns          true if found, otherwise false.
-**
-*******************************************************************************/
+ *
+ * Function         SDP_FindServiceUUIDInRec
+ *
+ * Description      This function is called to read the service UUID within a record
+ *                  if there is any.
+ *
+ * Parameters:      p_rec      - pointer to a SDP record.
+ *
+ * Returns          true if found, otherwise false.
+ *
+ ******************************************************************************/
 bool    SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID *p_uuid);
 
 // Converts UUID-16 to UUID-128 by including the base UUID.

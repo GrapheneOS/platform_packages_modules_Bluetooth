@@ -625,7 +625,7 @@ void BTA_DmPcmInitSamples(uint32_t src_sps, uint32_t bits,
 #endif
 }
 
-/**************************************************************************************
+/*******************************************************************************
  * Function         BTA_DmPcmResample
  *
  * Description      Down sampling utility to convert higher sampling rate into
@@ -640,7 +640,7 @@ void BTA_DmPcmInitSamples(uint32_t src_sps, uint32_t bits,
  *
  * Returns          int32_t: number of samples converted.
  *
- *************************************************************************************/
+ ******************************************************************************/
 int32_t BTA_DmPcmResample(void* p_src, uint32_t in_bytes, void* p_dst) {
   uint32_t out_sample;
 

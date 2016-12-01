@@ -1742,9 +1742,9 @@ static void btif_rc_upstreams_rsp_evt(uint16_t event,
   }
 }
 
-/************************************************************************************
+/*******************************************************************************
  *  AVRCP API Functions
- ***********************************************************************************/
+ ******************************************************************************/
 
 /*******************************************************************************
  *
@@ -3915,14 +3915,14 @@ static void handle_get_playstatus_response(tBTA_AV_META_MSG* pmeta_msg,
 }
 
 /***************************************************************************
-**
-** Function         handle_set_addressed_player_response
-**
-** Description      handles the the set addressed player response, calls
-**                  HAL callback
-** Returns          None
-**
-***************************************************************************/
+ *
+ * Function         handle_set_addressed_player_response
+ *
+ * Description      handles the the set addressed player response, calls
+ *                  HAL callback
+ * Returns          None
+ *
+ **************************************************************************/
 static void handle_set_addressed_player_response(tBTA_AV_META_MSG* pmeta_msg,
                                                  tAVRC_RSP* p_rsp) {
   bt_bdaddr_t rc_addr;
@@ -4562,15 +4562,15 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib,
 }
 
 /***************************************************************************
-**
-** Function         get_playback_state_cmd
-**
-** Description      Fetch the current playback state for the device
-**
-** Returns          BT_STATUS_SUCCESS if command issued successfully otherwise
-**                  BT_STATUS_FAIL.
-**
-***************************************************************************/
+ *
+ * Function         get_playback_state_cmd
+ *
+ * Description      Fetch the current playback state for the device
+ *
+ * Returns          BT_STATUS_SUCCESS if command issued successfully otherwise
+ *                  BT_STATUS_FAIL.
+ *
+ **************************************************************************/
 static bt_status_t get_playback_state_cmd(bt_bdaddr_t* bd_addr) {
   BTIF_TRACE_DEBUG("%s", __func__);
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(bd_addr);

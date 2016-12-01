@@ -39,16 +39,16 @@ extern fixed_queue_t *btu_general_alarm_queue;
 static void l2cble_start_conn_update (tL2C_LCB *p_lcb);
 
 /*******************************************************************************
-**
-**  Function        L2CA_CancelBleConnectReq
-**
-**  Description     Cancel a pending connection attempt to a BLE device.
-**
-**  Parameters:     BD Address of remote
-**
-**  Return value:   true if connection was cancelled
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_CancelBleConnectReq
+ *
+ *  Description     Cancel a pending connection attempt to a BLE device.
+ *
+ *  Parameters:     BD Address of remote
+ *
+ *  Return value:   true if connection was cancelled
+ *
+ ******************************************************************************/
 bool    L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
 {
     tL2C_LCB *p_lcb;
@@ -87,16 +87,16 @@ bool    L2CA_CancelBleConnectReq (BD_ADDR rem_bda)
 }
 
 /*******************************************************************************
-**
-**  Function        L2CA_UpdateBleConnParams
-**
-**  Description     Update BLE connection parameters.
-**
-**  Parameters:     BD Address of remote
-**
-**  Return value:   true if update started
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_UpdateBleConnParams
+ *
+ *  Description     Update BLE connection parameters.
+ *
+ *  Parameters:     BD Address of remote
+ *
+ *  Return value:   true if update started
+ *
+ ******************************************************************************/
 bool    L2CA_UpdateBleConnParams (BD_ADDR rem_bda, uint16_t min_int, uint16_t max_int,
                                             uint16_t latency, uint16_t timeout)
 {
@@ -136,16 +136,16 @@ bool    L2CA_UpdateBleConnParams (BD_ADDR rem_bda, uint16_t min_int, uint16_t ma
 
 
 /*******************************************************************************
-**
-**  Function        L2CA_EnableUpdateBleConnParams
-**
-**  Description     Enable or disable update based on the request from the peer
-**
-**  Parameters:     BD Address of remote
-**
-**  Return value:   true if update started
-**
-*******************************************************************************/
+ *
+ *  Function        L2CA_EnableUpdateBleConnParams
+ *
+ *  Description     Enable or disable update based on the request from the peer
+ *
+ *  Parameters:     BD Address of remote
+ *
+ *  Return value:   true if update started
+ *
+ ******************************************************************************/
 bool    L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, bool    enable)
 {
     if (stack_config_get_interface()->get_pts_conn_updates_disabled())
@@ -188,14 +188,14 @@ bool    L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, bool    enable)
 
 
 /*******************************************************************************
-**
-** Function         L2CA_GetBleConnRole
-**
-** Description      This function returns the connection role.
-**
-** Returns          link role.
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_GetBleConnRole
+ *
+ * Description      This function returns the connection role.
+ *
+ * Returns          link role.
+ *
+ ******************************************************************************/
 uint8_t L2CA_GetBleConnRole (BD_ADDR bd_addr)
 {
     uint8_t     role = HCI_ROLE_UNKNOWN;
@@ -209,14 +209,14 @@ uint8_t L2CA_GetBleConnRole (BD_ADDR bd_addr)
     return role;
 }
 /*******************************************************************************
-**
-** Function         L2CA_GetDisconnectReason
-**
-** Description      This function returns the disconnect reason code.
-**
-** Returns          disconnect reason
-**
-*******************************************************************************/
+ *
+ * Function         L2CA_GetDisconnectReason
+ *
+ * Description      This function returns the disconnect reason code.
+ *
+ * Returns          disconnect reason
+ *
+ ******************************************************************************/
 uint16_t L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 {
     tL2C_LCB            *p_lcb;
@@ -232,14 +232,14 @@ uint16_t L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 }
 
 /*******************************************************************************
-**
-** Function l2cble_notify_le_connection
-**
-** Description This function notifiy the l2cap connection to the app layer
-**
-** Returns none
-**
-*******************************************************************************/
+ *
+ * Function l2cble_notify_le_connection
+ *
+ * Description This function notifiy the l2cap connection to the app layer
+ *
+ * Returns none
+ *
+ ******************************************************************************/
 void l2cble_notify_le_connection (BD_ADDR bda)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr (bda, BT_TRANSPORT_LE);
@@ -266,15 +266,15 @@ void l2cble_notify_le_connection (BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_scanner_conn_comp
-**
-** Description      This function is called when an HCI Connection Complete
-**                  event is received while we are a scanner (so we are master).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_scanner_conn_comp
+ *
+ * Description      This function is called when an HCI Connection Complete
+ *                  event is received while we are a scanner (so we are master).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_scanner_conn_comp (uint16_t handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
                                uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout)
 {
@@ -343,15 +343,15 @@ void l2cble_scanner_conn_comp (uint16_t handle, BD_ADDR bda, tBLE_ADDR_TYPE type
 
 
 /*******************************************************************************
-**
-** Function         l2cble_advertiser_conn_comp
-**
-** Description      This function is called when an HCI Connection Complete
-**                  event is received while we are an advertiser (so we are slave).
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_advertiser_conn_comp
+ *
+ * Description      This function is called when an HCI Connection Complete
+ *                  event is received while we are an advertiser (so we are slave).
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_advertiser_conn_comp (uint16_t handle, BD_ADDR bda, UNUSED_ATTR tBLE_ADDR_TYPE type,
                                   UNUSED_ATTR uint16_t conn_interval, UNUSED_ATTR uint16_t conn_latency,
                                   UNUSED_ATTR uint16_t conn_timeout)
@@ -421,15 +421,15 @@ void l2cble_advertiser_conn_comp (uint16_t handle, BD_ADDR bda, UNUSED_ATTR tBLE
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_conn_comp
-**
-** Description      This function is called when an HCI Connection Complete
-**                  event is received.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_conn_comp
+ *
+ * Description      This function is called when an HCI Connection Complete
+ *                  event is received.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_conn_comp(uint16_t handle, uint8_t role, BD_ADDR bda, tBLE_ADDR_TYPE type,
                       uint16_t conn_interval, uint16_t conn_latency, uint16_t conn_timeout)
 {
@@ -446,16 +446,16 @@ void l2cble_conn_comp(uint16_t handle, uint8_t role, BD_ADDR bda, tBLE_ADDR_TYPE
 }
 
 /*******************************************************************************
-**
-**  Function        l2cble_start_conn_update
-**
-**  Description     start BLE connection parameter update process based on status
-**
-**  Parameters:     lcb : l2cap link control block
-**
-**  Return value:   none
-**
-*******************************************************************************/
+ *
+ *  Function        l2cble_start_conn_update
+ *
+ *  Description     start BLE connection parameter update process based on status
+ *
+ *  Parameters:     lcb : l2cap link control block
+ *
+ *  Return value:   none
+ *
+ ******************************************************************************/
 static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
 {
     uint16_t min_conn_int, max_conn_int, slave_latency, supervision_tout;
@@ -531,15 +531,15 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_process_conn_update_evt
-**
-** Description      This function enables the connection update request from remote
-**                  after a successful connection update response is received.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_process_conn_update_evt
+ *
+ * Description      This function enables the connection update request from remote
+ *                  after a successful connection update response is received.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_process_conn_update_evt (uint16_t handle, uint8_t status,
                   uint16_t interval, uint16_t latency, uint16_t timeout)
 {
@@ -566,15 +566,15 @@ void l2cble_process_conn_update_evt (uint16_t handle, uint8_t status,
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_process_sig_cmd
-**
-** Description      This function is called when a signalling packet is received
-**                  on the BLE signalling CID
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_process_sig_cmd
+ *
+ * Description      This function is called when a signalling packet is received
+ *                  on the BLE signalling CID
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
 {
     uint8_t         *p_pkt_end;
@@ -835,14 +835,14 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_init_direct_conn
-**
-** Description      This function is to initate a direct connection
-**
-** Returns          true connection initiated, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_init_direct_conn
+ *
+ * Description      This function is to initate a direct connection
+ *
+ * Returns          true connection initiated, false otherwise.
+ *
+ ******************************************************************************/
 bool    l2cble_init_direct_conn (tL2C_LCB *p_lcb)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_or_alloc_dev (p_lcb->remote_bd_addr);
@@ -922,14 +922,14 @@ bool    l2cble_init_direct_conn (tL2C_LCB *p_lcb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_create_conn
-**
-** Description      This function initiates an acl connection via HCI
-**
-** Returns          true if successful, false if connection not started.
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_create_conn
+ *
+ * Description      This function initiates an acl connection via HCI
+ *
+ * Returns          true if successful, false if connection not started.
+ *
+ ******************************************************************************/
 bool    l2cble_create_conn (tL2C_LCB *p_lcb)
 {
     tBTM_BLE_CONN_ST     conn_st = btm_ble_get_conn_st();
@@ -955,16 +955,16 @@ bool    l2cble_create_conn (tL2C_LCB *p_lcb)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_link_processs_ble_num_bufs
-**
-** Description      This function is called when a "controller buffer size"
-**                  event is first received from the controller. It updates
-**                  the L2CAP values.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_link_processs_ble_num_bufs
+ *
+ * Description      This function is called when a "controller buffer size"
+ *                  event is first received from the controller. It updates
+ *                  the L2CAP values.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_link_processs_ble_num_bufs (uint16_t num_lm_ble_bufs)
 {
     if (num_lm_ble_bufs == 0)
@@ -977,20 +977,20 @@ void l2c_link_processs_ble_num_bufs (uint16_t num_lm_ble_bufs)
 }
 
 /*******************************************************************************
-**
-** Function         l2c_ble_link_adjust_allocation
-**
-** Description      This function is called when a link is created or removed
-**                  to calculate the amount of packets each link may send to
-**                  the HCI without an ack coming back.
-**
-**                  Currently, this is a simple allocation, dividing the
-**                  number of Controller Packets by the number of links. In
-**                  the future, QOS configuration should be examined.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2c_ble_link_adjust_allocation
+ *
+ * Description      This function is called when a link is created or removed
+ *                  to calculate the amount of packets each link may send to
+ *                  the HCI without an ack coming back.
+ *
+ *                  Currently, this is a simple allocation, dividing the
+ *                  number of Controller Packets by the number of links. In
+ *                  the future, QOS configuration should be examined.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2c_ble_link_adjust_allocation (void)
 {
     uint16_t    qq, yy, qq_remainder;
@@ -1106,14 +1106,14 @@ void l2c_ble_link_adjust_allocation (void)
 
 #if (BLE_LLT_INCLUDED == TRUE)
 /*******************************************************************************
-**
-** Function         l2cble_process_rc_param_request_evt
-**
-** Description      process LE Remote Connection Parameter Request Event.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_process_rc_param_request_evt
+ *
+ * Description      process LE Remote Connection Parameter Request Event.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_process_rc_param_request_evt(uint16_t handle, uint16_t int_min, uint16_t int_max,
                                      uint16_t latency, uint16_t timeout)
 {
@@ -1147,14 +1147,14 @@ void l2cble_process_rc_param_request_evt(uint16_t handle, uint16_t int_min, uint
 #endif
 
 /*******************************************************************************
-**
-** Function         l2cble_update_data_length
-**
-** Description      This function update link tx data length if applicable
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_update_data_length
+ *
+ * Description      This function update link tx data length if applicable
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_update_data_length(tL2C_LCB *p_lcb)
 {
     uint16_t tx_mtu = 0;
@@ -1186,14 +1186,14 @@ void l2cble_update_data_length(tL2C_LCB *p_lcb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_process_data_length_change_evt
-**
-** Description      This function process the data length change event
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_process_data_length_change_evt
+ *
+ * Description      This function process the data length change event
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_process_data_length_change_event(uint16_t handle, uint16_t tx_data_len, uint16_t rx_data_len)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_handle(handle);
@@ -1209,14 +1209,14 @@ void l2cble_process_data_length_change_event(uint16_t handle, uint16_t tx_data_l
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_set_fixed_channel_tx_data_length
-**
-** Description      This function update max fixed channel tx data length if applicable
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_set_fixed_channel_tx_data_length
+ *
+ * Description      This function update max fixed channel tx data length if applicable
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_set_fixed_channel_tx_data_length(BD_ADDR remote_bda, uint16_t fix_cid, uint16_t tx_mtu)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr(remote_bda, BT_TRANSPORT_LE);
@@ -1246,15 +1246,15 @@ void l2cble_set_fixed_channel_tx_data_length(BD_ADDR remote_bda, uint16_t fix_ci
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_credit_based_conn_req
-**
-** Description      This function sends LE Credit Based Connection Request for
-**                  LE connection oriented channels.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_credit_based_conn_req
+ *
+ * Description      This function sends LE Credit Based Connection Request for
+ *                  LE connection oriented channels.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_credit_based_conn_req (tL2C_CCB *p_ccb)
 {
     if (!p_ccb)
@@ -1271,15 +1271,15 @@ void l2cble_credit_based_conn_req (tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_credit_based_conn_res
-**
-** Description      This function sends LE Credit Based Connection Response for
-**                  LE connection oriented channels.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_credit_based_conn_res
+ *
+ * Description      This function sends LE Credit Based Connection Response for
+ *                  LE connection oriented channels.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_credit_based_conn_res (tL2C_CCB *p_ccb, uint16_t result)
 {
     if (!p_ccb)
@@ -1296,15 +1296,15 @@ void l2cble_credit_based_conn_res (tL2C_CCB *p_ccb, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_send_flow_control_credit
-**
-** Description      This function sends flow control credits for
-**                  LE connection oriented channels.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_send_flow_control_credit
+ *
+ * Description      This function sends flow control credits for
+ *                  LE connection oriented channels.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_send_flow_control_credit(tL2C_CCB *p_ccb, uint16_t credit_value)
 {
     if (!p_ccb)
@@ -1322,15 +1322,15 @@ void l2cble_send_flow_control_credit(tL2C_CCB *p_ccb, uint16_t credit_value)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_send_peer_disc_req
-**
-** Description      This function sends disconnect request
-**                  to the peer LE device
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_send_peer_disc_req
+ *
+ * Description      This function sends disconnect request
+ *                  to the peer LE device
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void l2cble_send_peer_disc_req(tL2C_CCB *p_ccb)
 {
     L2CAP_TRACE_DEBUG ("%s",__func__);
@@ -1348,15 +1348,15 @@ void l2cble_send_peer_disc_req(tL2C_CCB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         l2cble_sec_comp
-**
-** Description      This function is called when security procedure for an LE COC
-**                  link is done
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         l2cble_sec_comp
+ *
+ * Description      This function is called when security procedure for an LE COC
+ *                  link is done
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void  l2cble_sec_comp(BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data, uint8_t status)
 {
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr(p_bda, BT_TRANSPORT_LE);
@@ -1432,16 +1432,16 @@ void  l2cble_sec_comp(BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data, 
 }
 
 /*******************************************************************************
-**
-** Function         l2ble_sec_access_req
-**
-** Description      This function is called by LE COC link to meet the
-**                  security requirement for the link
-**
-** Returns          true - security procedures are started
-**                  false - failure
-**
-*******************************************************************************/
+ *
+ * Function         l2ble_sec_access_req
+ *
+ * Description      This function is called by LE COC link to meet the
+ *                  security requirement for the link
+ *
+ * Returns          true - security procedures are started
+ *                  false - failure
+ *
+ ******************************************************************************/
 bool    l2ble_sec_access_req(BD_ADDR bd_addr, uint16_t psm, bool    is_originator, tL2CAP_SEC_CBACK *p_callback, void *p_ref_data)
 {
     L2CAP_TRACE_DEBUG ("%s", __func__);

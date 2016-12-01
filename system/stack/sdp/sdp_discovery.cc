@@ -41,9 +41,9 @@
 #define SDP_DEBUG_RAW       false
 #endif
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 #if (SDP_CLIENT_ENABLED == TRUE)
 static void          process_service_search_rsp (tCONN_CB *p_ccb, uint8_t *p_reply);
 static void          process_service_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply);
@@ -59,16 +59,16 @@ static uint8_t       *add_attr (uint8_t *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_R
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /*******************************************************************************
-**
-** Function         sdpu_build_uuid_seq
-**
-** Description      This function builds a UUID sequence from the list of
-**                  passed UUIDs. It is also passed the address of the output
-**                  buffer.
-**
-** Returns          Pointer to next byte in the output buffer.
-**
-*******************************************************************************/
+ *
+ * Function         sdpu_build_uuid_seq
+ *
+ * Description      This function builds a UUID sequence from the list of
+ *                  passed UUIDs. It is also passed the address of the output
+ *                  buffer.
+ *
+ * Returns          Pointer to next byte in the output buffer.
+ *
+ ******************************************************************************/
 static uint8_t *sdpu_build_uuid_seq (uint8_t *p_out, uint16_t num_uuids, tSDP_UUID *p_uuid_list)
 {
     uint16_t xx;
@@ -109,14 +109,14 @@ static uint8_t *sdpu_build_uuid_seq (uint8_t *p_out, uint16_t num_uuids, tSDP_UU
 }
 
 /*******************************************************************************
-**
-** Function         sdp_snd_service_search_req
-**
-** Description      Send a service search request to the SDP server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_snd_service_search_req
+ *
+ * Description      Send a service search request to the SDP server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void sdp_snd_service_search_req(tCONN_CB *p_ccb, uint8_t cont_len, uint8_t * p_cont)
 {
     uint8_t         *p, *p_start, *p_param_len;
@@ -178,15 +178,15 @@ static void sdp_snd_service_search_req(tCONN_CB *p_ccb, uint8_t cont_len, uint8_
 }
 
 /*******************************************************************************
-**
-** Function         sdp_disc_connected
-**
-** Description      This function is called when an SDP discovery attempt is
-**                  connected.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_disc_connected
+ *
+ * Description      This function is called when an SDP discovery attempt is
+ *                  connected.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdp_disc_connected (tCONN_CB *p_ccb)
 {
     if (p_ccb->is_attr_search)
@@ -208,15 +208,15 @@ void sdp_disc_connected (tCONN_CB *p_ccb)
 }
 
 /*******************************************************************************
-**
-** Function         sdp_disc_server_rsp
-**
-** Description      This function is called when there is a response from
-**                  the server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_disc_server_rsp
+ *
+ * Description      This function is called when there is a response from
+ *                  the server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
 {
     uint8_t         *p, rsp_pdu;
@@ -271,15 +271,15 @@ void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
 }
 
 /******************************************************************************
-**
-** Function         process_service_search_rsp
-**
-** Description      This function is called when there is a search response from
-**                  the server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         process_service_search_rsp
+ *
+ * Description      This function is called when there is a search response from
+ *                  the server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void process_service_search_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 {
     uint16_t    xx;
@@ -331,15 +331,15 @@ static void process_service_search_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 }
 
 /*******************************************************************************
-**
-** Function         sdp_copy_raw_data
-**
-** Description      copy the raw data
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         sdp_copy_raw_data
+ *
+ * Description      copy the raw data
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 #if (SDP_RAW_DATA_INCLUDED == TRUE)
 static void sdp_copy_raw_data (tCONN_CB *p_ccb, bool    offset)
 {
@@ -386,15 +386,15 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, bool    offset)
 #endif
 
 /*******************************************************************************
-**
-** Function         process_service_attr_rsp
-**
-** Description      This function is called when there is a attribute response from
-**                  the server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         process_service_attr_rsp
+ *
+ * Description      This function is called when there is a attribute response from
+ *                  the server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void process_service_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 {
     uint8_t         *p_start, *p_param_len;
@@ -532,15 +532,15 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 
 
 /*******************************************************************************
-**
-** Function         process_service_search_attr_rsp
-**
-** Description      This function is called when there is a search attribute
-**                  response from the server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         process_service_search_attr_rsp
+ *
+ * Description      This function is called when there is a search attribute
+ *                  response from the server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void process_service_search_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 {
     uint8_t         *p, *p_start, *p_end, *p_param_len;
@@ -710,15 +710,15 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, uint8_t *p_reply)
 }
 
 /*******************************************************************************
-**
-** Function         save_attr_seq
-**
-** Description      This function is called when there is a response from
-**                  the server.
-**
-** Returns          pointer to next byte or NULL if error
-**
-*******************************************************************************/
+ *
+ * Function         save_attr_seq
+ *
+ * Description      This function is called when there is a response from
+ *                  the server.
+ *
+ * Returns          pointer to next byte or NULL if error
+ *
+ ******************************************************************************/
 static uint8_t *save_attr_seq (tCONN_CB *p_ccb, uint8_t *p, uint8_t *p_msg_end)
 {
     uint32_t    seq_len, attr_len;
@@ -778,14 +778,14 @@ static uint8_t *save_attr_seq (tCONN_CB *p_ccb, uint8_t *p, uint8_t *p_msg_end)
 
 
 /*******************************************************************************
-**
-** Function         add_record
-**
-** Description      This function allocates space for a record from the DB.
-**
-** Returns          pointer to next byte in data stream
-**
-*******************************************************************************/
+ *
+ * Function         add_record
+ *
+ * Description      This function allocates space for a record from the DB.
+ *
+ * Returns          pointer to next byte in data stream
+ *
+ ******************************************************************************/
 tSDP_DISC_REC *add_record (tSDP_DISCOVERY_DB *p_db, BD_ADDR p_bda)
 {
     tSDP_DISC_REC   *p_rec;
@@ -821,15 +821,15 @@ tSDP_DISC_REC *add_record (tSDP_DISCOVERY_DB *p_db, BD_ADDR p_bda)
 
 #define SDP_ADDITIONAL_LIST_MASK        0x80
 /*******************************************************************************
-**
-** Function         add_attr
-**
-** Description      This function allocates space for an attribute from the DB
-**                  and copies the data into it.
-**
-** Returns          pointer to next byte in data stream
-**
-*******************************************************************************/
+ *
+ * Function         add_attr
+ *
+ * Description      This function allocates space for an attribute from the DB
+ *                  and copies the data into it.
+ *
+ * Returns          pointer to next byte in data stream
+ *
+ ******************************************************************************/
 static uint8_t *add_attr (uint8_t *p, tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC *p_rec,
                         uint16_t attr_id, tSDP_DISC_ATTR *p_parent_attr, uint8_t nest_level)
 {

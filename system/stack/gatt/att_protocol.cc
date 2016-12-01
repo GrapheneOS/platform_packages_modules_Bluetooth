@@ -32,17 +32,17 @@
 #define GATT_START_END_HANDLE_SIZE    4
 
 /**********************************************************************
-**   ATT protocl message building utility                              *
-***********************************************************************/
+ *   ATT protocl message building utility                              *
+ **********************************************************************/
 /*******************************************************************************
-**
-** Function         attp_build_mtu_exec_cmd
-**
-** Description      Build a exchange MTU request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_mtu_exec_cmd
+ *
+ * Description      Build a exchange MTU request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_mtu_cmd(uint8_t op_code, uint16_t rx_mtu)
 {
     uint8_t *p;
@@ -59,14 +59,14 @@ BT_HDR *attp_build_mtu_cmd(uint8_t op_code, uint16_t rx_mtu)
     return p_buf;
 }
 /*******************************************************************************
-**
-** Function         attp_build_exec_write_cmd
-**
-** Description      Build a execute write request or response.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_exec_write_cmd
+ *
+ * Description      Build a execute write request or response.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_exec_write_cmd (uint8_t op_code, uint8_t flag)
 {
     BT_HDR      *p_buf = (BT_HDR *)osi_malloc(GATT_DATA_BUF_SIZE);
@@ -89,14 +89,14 @@ BT_HDR *attp_build_exec_write_cmd (uint8_t op_code, uint8_t flag)
 }
 
 /*******************************************************************************
-**
-** Function         attp_build_err_cmd
-**
-** Description      Build a exchange MTU request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_err_cmd
+ *
+ * Description      Build a exchange MTU request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_err_cmd(uint8_t cmd_code, uint16_t err_handle, uint8_t reason)
 {
     uint8_t *p;
@@ -115,14 +115,14 @@ BT_HDR *attp_build_err_cmd(uint8_t cmd_code, uint16_t err_handle, uint8_t reason
     return p_buf;
 }
 /*******************************************************************************
-**
-** Function         attp_build_browse_cmd
-**
-** Description      Build a read information request or read by type request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_browse_cmd
+ *
+ * Description      Build a read information request or read by type request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_browse_cmd(uint8_t op_code, uint16_t s_hdl, uint16_t e_hdl, tBT_UUID uuid)
 {
     const size_t payload_size = (GATT_OP_CODE_SIZE) + (GATT_START_END_HANDLE_SIZE) + (LEN_UUID_128);
@@ -142,14 +142,14 @@ BT_HDR *attp_build_browse_cmd(uint8_t op_code, uint16_t s_hdl, uint16_t e_hdl, t
 }
 
 /*******************************************************************************
-**
-** Function         attp_build_read_handles_cmd
-**
-** Description      Build a read by type and value request.
-**
-** Returns          pointer to the command buffer.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_read_handles_cmd
+ *
+ * Description      Build a read by type and value request.
+ *
+ * Returns          pointer to the command buffer.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_read_by_type_value_cmd (uint16_t payload_size, tGATT_FIND_TYPE_VALUE *p_value_type)
 {
     uint8_t *p;
@@ -177,14 +177,14 @@ BT_HDR *attp_build_read_by_type_value_cmd (uint16_t payload_size, tGATT_FIND_TYP
 }
 
 /*******************************************************************************
-**
-** Function         attp_build_read_multi_cmd
-**
-** Description      Build a read multiple request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_read_multi_cmd
+ *
+ * Description      Build a read multiple request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_read_multi_cmd(uint16_t payload_size, uint16_t num_handle, uint16_t *p_handle)
 {
     uint8_t *p, i = 0;
@@ -205,14 +205,14 @@ BT_HDR *attp_build_read_multi_cmd(uint16_t payload_size, uint16_t num_handle, ui
     return p_buf;
 }
 /*******************************************************************************
-**
-** Function         attp_build_handle_cmd
-**
-** Description      Build a read /read blob request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_handle_cmd
+ *
+ * Description      Build a read /read blob request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_handle_cmd(uint8_t op_code, uint16_t handle, uint16_t offset)
 {
     uint8_t *p;
@@ -237,14 +237,14 @@ BT_HDR *attp_build_handle_cmd(uint8_t op_code, uint16_t handle, uint16_t offset)
 }
 
 /*******************************************************************************
-**
-** Function         attp_build_opcode_cmd
-**
-** Description      Build a  request/response with opcode only.
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_opcode_cmd
+ *
+ * Description      Build a  request/response with opcode only.
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_opcode_cmd(uint8_t op_code)
 {
     uint8_t *p;
@@ -261,14 +261,14 @@ BT_HDR *attp_build_opcode_cmd(uint8_t op_code)
 }
 
 /*******************************************************************************
-**
-** Function         attp_build_value_cmd
-**
-** Description      Build a attribute value request
-**
-** Returns          None.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_value_cmd
+ *
+ * Description      Build a attribute value request
+ *
+ * Returns          None.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_value_cmd (uint16_t payload_size, uint8_t op_code, uint16_t handle,
                               uint16_t offset, uint16_t len, uint8_t *p_data)
 {
@@ -316,12 +316,12 @@ BT_HDR *attp_build_value_cmd (uint16_t payload_size, uint8_t op_code, uint16_t h
 }
 
 /*******************************************************************************
-**
-** Function         attp_send_msg_to_l2cap
-**
-** Description      Send message to L2CAP.
-**
-*******************************************************************************/
+ *
+ * Function         attp_send_msg_to_l2cap
+ *
+ * Description      Send message to L2CAP.
+ *
+ ******************************************************************************/
 tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
 {
     uint16_t    l2cap_ret;
@@ -347,12 +347,12 @@ tGATT_STATUS attp_send_msg_to_l2cap(tGATT_TCB *p_tcb, BT_HDR *p_toL2CAP)
 }
 
 /*******************************************************************************
-**
-** Function         attp_build_sr_msg
-**
-** Description      Build ATT Server PDUs.
-**
-*******************************************************************************/
+ *
+ * Function         attp_build_sr_msg
+ *
+ * Description      Build ATT Server PDUs.
+ *
+ ******************************************************************************/
 BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, uint8_t op_code, tGATT_SR_MSG *p_msg)
 {
     BT_HDR          *p_cmd = NULL;
@@ -408,19 +408,19 @@ BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, uint8_t op_code, tGATT_SR_MSG *p_msg
 }
 
 /*******************************************************************************
-**
-** Function         attp_send_sr_msg
-**
-** Description      This function sends the server response or indication message
-**                  to client.
-**
-** Parameter        p_tcb: pointer to the connecton control block.
-**                  p_msg: pointer to message parameters structure.
-**
-** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
-**
-**
-*******************************************************************************/
+ *
+ * Function         attp_send_sr_msg
+ *
+ * Description      This function sends the server response or indication message
+ *                  to client.
+ *
+ * Parameter        p_tcb: pointer to the connecton control block.
+ *                  p_msg: pointer to message parameters structure.
+ *
+ * Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
+ *
+ *
+ ******************************************************************************/
 tGATT_STATUS attp_send_sr_msg (tGATT_TCB *p_tcb, BT_HDR *p_msg)
 {
     tGATT_STATUS     cmd_sent = GATT_NO_RESOURCES;
@@ -437,17 +437,17 @@ tGATT_STATUS attp_send_sr_msg (tGATT_TCB *p_tcb, BT_HDR *p_msg)
 }
 
 /*******************************************************************************
-**
-** Function         attp_cl_send_cmd
-**
-** Description      Send a ATT command or enqueue it.
-**
-** Returns          GATT_SUCCESS if command sent
-**                  GATT_CONGESTED if command sent but channel congested
-**                  GATT_CMD_STARTED if command queue up in GATT
-**                  GATT_ERROR if command sending failure
-**
-*******************************************************************************/
+ *
+ * Function         attp_cl_send_cmd
+ *
+ * Description      Send a ATT command or enqueue it.
+ *
+ * Returns          GATT_SUCCESS if command sent
+ *                  GATT_CONGESTED if command sent but channel congested
+ *                  GATT_CMD_STARTED if command queue up in GATT
+ *                  GATT_ERROR if command sending failure
+ *
+ ******************************************************************************/
 tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t cmd_code, BT_HDR *p_cmd)
 {
     tGATT_STATUS att_ret = GATT_SUCCESS;
@@ -485,21 +485,21 @@ tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t cmd_c
     return att_ret;
 }
 /*******************************************************************************
-**
-** Function         attp_send_cl_msg
-**
-** Description      This function sends the client request or confirmation message
-**                  to server.
-**
-** Parameter        p_tcb: pointer to the connectino control block.
-**                  clcb_idx: clcb index
-**                  op_code: message op code.
-**                  p_msg: pointer to message parameters structure.
-**
-** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
-**
-**
-*******************************************************************************/
+ *
+ * Function         attp_send_cl_msg
+ *
+ * Description      This function sends the client request or confirmation message
+ *                  to server.
+ *
+ * Parameter        p_tcb: pointer to the connectino control block.
+ *                  clcb_idx: clcb index
+ *                  op_code: message op code.
+ *                  p_msg: pointer to message parameters structure.
+ *
+ * Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
+ *
+ *
+ ******************************************************************************/
 tGATT_STATUS attp_send_cl_msg (tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t op_code, tGATT_CL_MSG *p_msg)
 {
     tGATT_STATUS     status = GATT_NO_RESOURCES;

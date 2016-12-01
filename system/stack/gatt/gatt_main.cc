@@ -40,9 +40,9 @@
 */
 #define GATT_MIN_BR_MTU_SIZE       48
 
-/********************************************************************************/
+/******************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
-/********************************************************************************/
+/******************************************************************************/
 static void gatt_le_connect_cback (uint16_t chan, BD_ADDR bd_addr, bool    connected,
         uint16_t reason, tBT_TRANSPORT transport);
 static void gatt_le_data_ind (uint16_t chan, BD_ADDR bd_addr, BT_HDR *p_buf);
@@ -77,15 +77,15 @@ static const tL2CAP_APPL_INFO dyn_info =
 tGATT_CB gatt_cb;
 
 /*******************************************************************************
-**
-** Function         gatt_init
-**
-** Description      This function is enable the GATT profile on the device.
-**                  It clears out the control blocks, and registers with L2CAP.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_init
+ *
+ * Description      This function is enable the GATT profile on the device.
+ *                  It clears out the control blocks, and registers with L2CAP.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_init (void)
 {
     tL2CAP_FIXED_CHNL_REG  fixed_reg;
@@ -136,14 +136,14 @@ void gatt_init (void)
 
 
 /*******************************************************************************
-**
-** Function         gatt_free
-**
-** Description      This function frees resources used by the GATT profile.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_free
+ *
+ * Description      This function frees resources used by the GATT profile.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_free(void)
 {
     int i;
@@ -177,16 +177,16 @@ void gatt_free(void)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_connect
-**
-** Description      This function is called to initiate a connection to a peer device.
-**
-** Parameter        rem_bda: remote device address to connect to.
-**
-** Returns          true if connection is started, otherwise return false.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_connect
+ *
+ * Description      This function is called to initiate a connection to a peer device.
+ *
+ * Parameter        rem_bda: remote device address to connect to.
+ *
+ * Returns          true if connection is started, otherwise return false.
+ *
+ ******************************************************************************/
 bool    gatt_connect (BD_ADDR rem_bda, tGATT_TCB *p_tcb, tBT_TRANSPORT transport)
 {
     bool                gatt_ret = false;
@@ -210,17 +210,17 @@ bool    gatt_connect (BD_ADDR rem_bda, tGATT_TCB *p_tcb, tBT_TRANSPORT transport
 }
 
 /*******************************************************************************
-**
-** Function         gatt_disconnect
-**
-** Description      This function is called to disconnect to an ATT device.
-**
-** Parameter        p_tcb: pointer to the TCB to disconnect.
-**
-** Returns          true: if connection found and to be disconnected; otherwise
-**                  return false.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_disconnect
+ *
+ * Description      This function is called to disconnect to an ATT device.
+ *
+ * Parameter        p_tcb: pointer to the TCB to disconnect.
+ *
+ * Returns          true: if connection found and to be disconnected; otherwise
+ *                  return false.
+ *
+ ******************************************************************************/
 bool    gatt_disconnect (tGATT_TCB *p_tcb)
 {
     bool                ret = false;
@@ -267,14 +267,14 @@ bool    gatt_disconnect (tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_update_app_hold_link_status
-**
-** Description      Update the application use link status
-**
-** Returns          true if any modifications are made, false otherwise.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_update_app_hold_link_status
+ *
+ * Description      Update the application use link status
+ *
+ * Returns          true if any modifications are made, false otherwise.
+ *
+ ******************************************************************************/
 bool    gatt_update_app_hold_link_status(tGATT_IF gatt_if, tGATT_TCB *p_tcb, bool    is_add)
 {
     for (int i=0; i<GATT_MAX_APPS; i++) {
@@ -294,15 +294,15 @@ bool    gatt_update_app_hold_link_status(tGATT_IF gatt_if, tGATT_TCB *p_tcb, boo
 }
 
 /*******************************************************************************
-**
-** Function         gatt_update_app_use_link_flag
-**
-** Description      Update the application use link flag and optional to check the acl link
-**                  if the link is up then set the idle time out accordingly
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_update_app_use_link_flag
+ *
+ * Description      Update the application use link flag and optional to check the acl link
+ *                  if the link is up then set the idle time out accordingly
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB *p_tcb, bool    is_add,
                                    bool    check_acl_link)
 {
@@ -339,14 +339,14 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB *p_tcb, bool    i
 }
 
 /*******************************************************************************
-**
-** Function         gatt_act_connect
-**
-** Description      GATT connection initiation.
-**
-** Returns          void.
-**
-*******************************************************************************/
+ *
+ * Function         gatt_act_connect
+ *
+ * Description      GATT connection initiation.
+ *
+ * Returns          void.
+ *
+ ******************************************************************************/
 bool gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr,
                           tBT_TRANSPORT transport, bool opportunistic)
 {
@@ -408,14 +408,14 @@ bool gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_le_connect_cback
-**
-** Description      This callback function is called by L2CAP to indicate that
-**                  the ATT fixed channel for LE is
-**                      connected (conn = true)/disconnected (conn = false).
-**
-*******************************************************************************/
+ *
+ * Function         gatt_le_connect_cback
+ *
+ * Description      This callback function is called by L2CAP to indicate that
+ *                  the ATT fixed channel for LE is
+ *                      connected (conn = true)/disconnected (conn = false).
+ *
+ ******************************************************************************/
 static void gatt_le_connect_cback (uint16_t chan, BD_ADDR bd_addr, bool    connected,
                                    uint16_t reason, tBT_TRANSPORT transport)
 {
@@ -493,15 +493,15 @@ static void gatt_le_connect_cback (uint16_t chan, BD_ADDR bd_addr, bool    conne
 }
 
 /*******************************************************************************
-**
-** Function         gatt_channel_congestion
-**
-** Description      This function is called to process the congestion callback
-**                  from lcb
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_channel_congestion
+ *
+ * Description      This function is called to process the congestion callback
+ *                  from lcb
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_channel_congestion(tGATT_TCB *p_tcb, bool    congested)
 {
     uint8_t i = 0;
@@ -528,15 +528,15 @@ static void gatt_channel_congestion(tGATT_TCB *p_tcb, bool    congested)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_le_cong_cback
-**
-** Description      This function is called when GATT fixed channel is congested
-**                  or uncongested.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_le_cong_cback
+ *
+ * Description      This function is called when GATT fixed channel is congested
+ *                  or uncongested.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_le_cong_cback(BD_ADDR remote_bda, bool    congested)
 {
     tGATT_TCB *p_tcb = gatt_find_tcb_by_addr(remote_bda, BT_TRANSPORT_LE);
@@ -549,20 +549,20 @@ static void gatt_le_cong_cback(BD_ADDR remote_bda, bool    congested)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_le_data_ind
-**
-** Description      This function is called when data is received from L2CAP.
-**                  if we are the originator of the connection, we are the ATT
-**                  client, and the received message is queued up for the client.
-**
-**                  If we are the destination of the connection, we are the ATT
-**                  server, so the message is passed to the server processing
-**                  function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_le_data_ind
+ *
+ * Description      This function is called when data is received from L2CAP.
+ *                  if we are the originator of the connection, we are the ATT
+ *                  client, and the received message is queued up for the client.
+ *
+ *                  If we are the destination of the connection, we are the ATT
+ *                  server, so the message is passed to the server processing
+ *                  function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_le_data_ind (uint16_t chan, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tGATT_TCB    *p_tcb;
@@ -586,16 +586,16 @@ static void gatt_le_data_ind (uint16_t chan, BD_ADDR bd_addr, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2cif_connect_ind
-**
-** Description      This function handles an inbound connection indication
-**                  from L2CAP. This is the case where we are acting as a
-**                  server.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2cif_connect_ind
+ *
+ * Description      This function handles an inbound connection indication
+ *                  from L2CAP. This is the case where we are acting as a
+ *                  server.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, uint16_t lcid,
                                           UNUSED_ATTR uint16_t psm, uint8_t id)
 {
@@ -643,15 +643,15 @@ static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, uint16_t lcid,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2c_connect_cfm_cback
-**
-** Description      This is the L2CAP connect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2c_connect_cfm_cback
+ *
+ * Description      This is the L2CAP connect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_l2cif_connect_cfm_cback(uint16_t lcid, uint16_t result)
 {
     tGATT_TCB       *p_tcb;
@@ -696,15 +696,15 @@ static void gatt_l2cif_connect_cfm_cback(uint16_t lcid, uint16_t result)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2cif_config_cfm_cback
-**
-** Description      This is the L2CAP config confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2cif_config_cfm_cback
+ *
+ * Description      This is the L2CAP config confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_l2cif_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tGATT_TCB       *p_tcb;
@@ -754,15 +754,15 @@ void gatt_l2cif_config_cfm_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2cif_config_ind_cback
-**
-** Description      This is the L2CAP config indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2cif_config_ind_cback
+ *
+ * Description      This is the L2CAP config indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_l2cif_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 {
     tGATT_TCB       *p_tcb;
@@ -812,15 +812,15 @@ void gatt_l2cif_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2cif_disconnect_ind_cback
-**
-** Description      This is the L2CAP disconnect indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2cif_disconnect_ind_cback
+ *
+ * Description      This is the L2CAP disconnect indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_l2cif_disconnect_ind_cback(uint16_t lcid, bool    ack_needed)
 {
     tGATT_TCB       *p_tcb;
@@ -851,15 +851,15 @@ void gatt_l2cif_disconnect_ind_cback(uint16_t lcid, bool    ack_needed)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2cif_disconnect_cfm_cback
-**
-** Description      This is the L2CAP disconnect confirm callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2cif_disconnect_cfm_cback
+ *
+ * Description      This is the L2CAP disconnect confirm callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_l2cif_disconnect_cfm_cback(uint16_t lcid,
                                             UNUSED_ATTR uint16_t result)
 {
@@ -888,15 +888,15 @@ static void gatt_l2cif_disconnect_cfm_cback(uint16_t lcid,
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2cif_data_ind_cback
-**
-** Description      This is the L2CAP data indication callback function.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2cif_data_ind_cback
+ *
+ * Description      This is the L2CAP data indication callback function.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_l2cif_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 {
     tGATT_TCB       *p_tcb;
@@ -913,14 +913,14 @@ static void gatt_l2cif_data_ind_cback(uint16_t lcid, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_l2cif_congest_cback
-**
-** Description      L2CAP congestion callback
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_l2cif_congest_cback
+ *
+ * Description      L2CAP congestion callback
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_l2cif_congest_cback (uint16_t lcid, bool    congested)
 {
     tGATT_TCB *p_tcb = gatt_find_tcb_by_cid(lcid);
@@ -932,15 +932,15 @@ static void gatt_l2cif_congest_cback (uint16_t lcid, bool    congested)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_send_conn_cback
-**
-** Description      Callback used to notify layer above about a connection.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_send_conn_cback
+ *
+ * Description      Callback used to notify layer above about a connection.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gatt_send_conn_cback(tGATT_TCB *p_tcb)
 {
     uint8_t             i;
@@ -976,20 +976,20 @@ static void gatt_send_conn_cback(tGATT_TCB *p_tcb)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_le_data_ind
-**
-** Description      This function is called when data is received from L2CAP.
-**                  if we are the originator of the connection, we are the ATT
-**                  client, and the received message is queued up for the client.
-**
-**                  If we are the destination of the connection, we are the ATT
-**                  server, so the message is passed to the server processing
-**                  function.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_le_data_ind
+ *
+ * Description      This function is called when data is received from L2CAP.
+ *                  if we are the originator of the connection, we are the ATT
+ *                  client, and the received message is queued up for the client.
+ *
+ *                  If we are the destination of the connection, we are the ATT
+ *                  server, so the message is passed to the server processing
+ *                  function.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
 {
     uint8_t *p = (uint8_t *)(p_buf + 1) + p_buf->offset;
@@ -1033,14 +1033,14 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_add_a_bonded_dev_for_srv_chg
-**
-** Description      Add a bonded dev to the service changed client list
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_add_a_bonded_dev_for_srv_chg
+ *
+ * Description      Add a bonded dev to the service changed client list
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_add_a_bonded_dev_for_srv_chg (BD_ADDR bda)
 {
     tGATTS_SRV_CHG_REQ req;
@@ -1058,15 +1058,15 @@ void gatt_add_a_bonded_dev_for_srv_chg (BD_ADDR bda)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_send_srv_chg_ind
-**
-** Description      This function is called to send a service chnaged indication to
-**                  the specified bd address
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_send_srv_chg_ind
+ *
+ * Description      This function is called to send a service chnaged indication to
+ *                  the specified bd address
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_send_srv_chg_ind (BD_ADDR peer_bda)
 {
     uint8_t handle_range[GATT_SIZE_OF_SRV_CHG_HNDL_RANGE];
@@ -1097,15 +1097,15 @@ void gatt_send_srv_chg_ind (BD_ADDR peer_bda)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_chk_srv_chg
-**
-** Description      Check sending service chnaged Indication is required or not
-**                  if required then send the Indication
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_chk_srv_chg
+ *
+ * Description      Check sending service chnaged Indication is required or not
+ *                  if required then send the Indication
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_chk_srv_chg(tGATTS_SRV_CHG *p_srv_chg_clt)
 {
     GATT_TRACE_DEBUG("gatt_chk_srv_chg srv_changed=%d", p_srv_chg_clt->srv_changed );
@@ -1117,15 +1117,15 @@ void gatt_chk_srv_chg(tGATTS_SRV_CHG *p_srv_chg_clt)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_init_srv_chg
-**
-** Description      This function is used to initialize the service changed
-**                  attribute value
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_init_srv_chg
+ *
+ * Description      This function is used to initialize the service changed
+ *                  attribute value
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_init_srv_chg (void)
 {
     tGATTS_SRV_CHG_REQ req;
@@ -1168,14 +1168,14 @@ void gatt_init_srv_chg (void)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_proc_srv_chg
-**
-** Description      This function is process the service changed request
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gatt_proc_srv_chg
+ *
+ * Description      This function is process the service changed request
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void gatt_proc_srv_chg (void)
 {
     uint8_t             start_idx, found_idx;
@@ -1209,14 +1209,14 @@ void gatt_proc_srv_chg (void)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_set_ch_state
-**
-** Description      This function set the ch_state in tcb
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         gatt_set_ch_state
+ *
+ * Description      This function set the ch_state in tcb
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 void gatt_set_ch_state(tGATT_TCB *p_tcb, tGATT_CH_STATE ch_state)
 {
     if (p_tcb)
@@ -1227,14 +1227,14 @@ void gatt_set_ch_state(tGATT_TCB *p_tcb, tGATT_CH_STATE ch_state)
 }
 
 /*******************************************************************************
-**
-** Function         gatt_get_ch_state
-**
-** Description      This function get the ch_state in tcb
-**
-** Returns          none
-**
-*******************************************************************************/
+ *
+ * Function         gatt_get_ch_state
+ *
+ * Description      This function get the ch_state in tcb
+ *
+ * Returns          none
+ *
+ ******************************************************************************/
 tGATT_CH_STATE gatt_get_ch_state(tGATT_TCB *p_tcb)
 {
     tGATT_CH_STATE ch_state = GATT_CH_CLOSE;

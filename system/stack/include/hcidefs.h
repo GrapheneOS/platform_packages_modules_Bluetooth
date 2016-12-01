@@ -29,7 +29,7 @@
 #define HCI_PROTO_VERSION_4_2 0x08      /* Version for BT spec 4.2          */
 
 /*
-**  Definitions for HCI groups
+ *  Definitions for HCI groups
 */
 #define HCI_GRP_LINK_CONTROL_CMDS       (0x01 << 10)            /* 0x0400 */
 #define HCI_GRP_LINK_POLICY_CMDS        (0x02 << 10)            /* 0x0800 */
@@ -45,7 +45,7 @@
 #define HCI_OCF(p)  ( 0x3FF & (p))
 
 /*
-**  Definitions for Link Control Commands
+ *  Definitions for Link Control Commands
 */
 /* Following opcode is used only in command complete event for flow control */
 #define HCI_COMMAND_NONE                0x0000
@@ -625,7 +625,7 @@
 #define HCI_LE_STATES_INIT_MASTER_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_INIT_MASTER_SLAVE_OFF] & HCI_SUPP_LE_STATES_INIT_MASTER_SLAVE_MASK)
 
 /*
-**  Definitions for HCI Events
+ *  Definitions for HCI Events
 */
 #define HCI_INQUIRY_COMP_EVT                0x01
 #define HCI_INQUIRY_RESULT_EVT              0x02
@@ -715,7 +715,7 @@
                                                  specification compliant */
 
 /*
-**  Defentions for HCI Error Codes that are past in the events
+ *  Defentions for HCI Error Codes that are past in the events
 */
 #define HCI_SUCCESS                                     0x00
 #define HCI_PENDING                                     0x00
@@ -794,7 +794,7 @@
 #define HCI_HINT_TO_RECREATE_AMP_PHYS_LINK              0xFF
 
 /*
-** Definitions for HCI enable event
+ * Definitions for HCI enable event
 */
 #define HCI_INQUIRY_COMPLETE_EV(p)          (*((uint32_t *)(p)) & 0x00000001)
 #define HCI_INQUIRY_RESULT_EV(p)            (*((uint32_t *)(p)) & 0x00000002)
@@ -900,7 +900,7 @@
 #define HCI_BLE_EVENT_MASK_DEF              "\x00\x00\x00\x00\x00\x00\x00\x7f"
 #endif
 /*
-** Definitions for packet type masks (BT1.2 and BT2.0 definitions)
+ * Definitions for packet type masks (BT1.2 and BT2.0 definitions)
 */
 #define HCI_PKT_TYPES_MASK_NO_2_DH1         0x0002
 #define HCI_PKT_TYPES_MASK_NO_3_DH1         0x0004
@@ -949,7 +949,7 @@
                                               |  HCI_PKT_TYPES_MASK_DH5)) != 0))
 
 /*
-** Definitions for eSCO packet type masks (BT1.2 and BT2.0 definitions)
+ * Definitions for eSCO packet type masks (BT1.2 and BT2.0 definitions)
 */
 #define HCI_ESCO_PKT_TYPES_MASK_HV1         0x0001
 #define HCI_ESCO_PKT_TYPES_MASK_HV2         0x0002
@@ -982,19 +982,19 @@
                                     && ((t) != 0))
 
 /*
-** Define parameters to allow role switch during create connection
+ * Define parameters to allow role switch during create connection
 */
 #define HCI_CR_CONN_NOT_ALLOW_SWITCH    0x00
 #define HCI_CR_CONN_ALLOW_SWITCH        0x01
 
 /*
-** Hold Mode command destination
+ * Hold Mode command destination
 */
 #define HOLD_MODE_DEST_LOCAL_DEVICE     0x00
 #define HOLD_MODE_DEST_RMT_DEVICE       0x01
 
 /*
-**  Definitions for different HCI parameters
+ *  Definitions for different HCI parameters
 */
 #define HCI_PER_INQ_MIN_MAX_PERIOD      0x0003
 #define HCI_PER_INQ_MAX_MAX_PERIOD      0xFFFF
@@ -1292,12 +1292,12 @@
 #define HCI_COMMAND_SIZE        255
 
 /* Define the preamble length for all HCI Commands.
-** This is 2-bytes for opcode and 1 byte for length
+ * This is 2-bytes for opcode and 1 byte for length
 */
 #define HCIC_PREAMBLE_SIZE      3
 
 /* Define the preamble length for all HCI Events
-** This is 1-byte for opcode and 1 byte for length
+ * This is 1-byte for opcode and 1 byte for length
 */
 #define HCIE_PREAMBLE_SIZE      2
 #define HCI_SCO_PREAMBLE_SIZE   3
@@ -1364,7 +1364,7 @@ typedef struct
 #define HCI_BRCM_SET_ACL_PRIORITY           (0x0057 | HCI_GRP_VENDOR_SPECIFIC)
 
 /* Define values for LMP Test Control parameters
-** Test Scenario, Hopping Mode, Power Control Mode
+ * Test Scenario, Hopping Mode, Power Control Mode
 */
 #define LMP_TESTCTL_TESTSC_PAUSE        0
 #define LMP_TESTCTL_TESTSC_TXTEST_0     1
@@ -1392,7 +1392,7 @@ typedef struct
 #define LMP_COMPID_BROADCOM             15
 
 /*
-** Define the packet types in the packet header, and a couple extra
+ * Define the packet types in the packet header, and a couple extra
 */
 #define PKT_TYPE_NULL   0x00
 #define PKT_TYPE_POLL   0x01
@@ -1418,7 +1418,7 @@ typedef struct
 #define PKT_TYPE_NONE   0x12
 
 /*
-** Define packet size
+ * Define packet size
 */
 #define HCI_DM1_PACKET_SIZE         17
 #define HCI_DH1_PACKET_SIZE         27
@@ -1449,7 +1449,7 @@ typedef struct
 #define HCI_FEATURES_KNOWN(x) (((x)[0] | (x)[1] | (x)[2] | (x)[3] | (x)[4] | (x)[5] | (x)[6] | (x)[7]) != 0)
 
 /*
-**   LMP features encoding - page 0
+ *   LMP features encoding - page 0
 */
 #define HCI_FEATURE_3_SLOT_PACKETS_MASK 0x01
 #define HCI_FEATURE_3_SLOT_PACKETS_OFF  0
@@ -1685,7 +1685,7 @@ typedef struct
 #define HCI_LMP_EXTENDED_SUPPORTED(x)   ((x)[HCI_FEATURE_EXTENDED_OFF] & HCI_FEATURE_EXTENDED_MASK)
 
 /*
-**   LMP features encoding - page 1
+ *   LMP features encoding - page 1
 */
 #define HCI_EXT_FEATURE_SSP_HOST_MASK 0x01
 #define HCI_EXT_FEATURE_SSP_HOST_OFF  0
@@ -1704,7 +1704,7 @@ typedef struct
 #define HCI_SC_HOST_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_SC_HOST_OFF] & HCI_EXT_FEATURE_SC_HOST_MASK)
 
 /*
-**   LMP features encoding - page 2
+ *   LMP features encoding - page 2
 */
 #define HCI_EXT_FEATURE_CSB_MASTER_MASK         0x01
 #define HCI_EXT_FEATURE_CSB_MASTER_OFF          0
@@ -1735,7 +1735,7 @@ typedef struct
 #define HCI_PING_SUPPORTED(x) ((x)[HCI_EXT_FEATURE_PING_OFF] & HCI_EXT_FEATURE_PING_MASK)
 
 /*
-**   LE features encoding - page 0 (the only page for now)
+ *   LE features encoding - page 0 (the only page for now)
 */
 /* LE Encryption */
 #define HCI_LE_FEATURE_LE_ENCRYPTION_MASK       0x01
@@ -1773,7 +1773,7 @@ typedef struct
 #define HCI_LE_DATA_LEN_EXT_SUPPORTED(x) ((x)[HCI_LE_FEATURE_DATA_LEN_EXT_OFF] & HCI_LE_FEATURE_DATA_LEN_EXT_MASK)
 
 /*
-**   Local Supported Commands encoding
+ *   Local Supported Commands encoding
 */
 #define HCI_NUM_SUPP_COMMANDS_BYTES           64
 
@@ -2454,11 +2454,11 @@ typedef struct
 #define HCI_SHORT_RANGE_MODE_SUPPORTED(x)   ((x)[HCI_SUPP_COMMANDS_SHORT_RANGE_MODE_OFF] & HCI_SUPP_COMMANDS_SHORT_RANGE_MODE_MASK)
 
 /* LE commands TBD
-** Supported Commands (Byte 24 continued)
-** Supported Commands (Byte 25)
-** Supported Commands (Byte 26)
-** Supported Commands (Byte 27)
-** Supported Commands (Byte 28)
+ * Supported Commands (Byte 24 continued)
+ * Supported Commands (Byte 25)
+ * Supported Commands (Byte 26)
+ * Supported Commands (Byte 27)
+ * Supported Commands (Byte 28)
 */
 
 /* Supported Commands (Byte 29) */
