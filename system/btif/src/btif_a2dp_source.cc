@@ -62,7 +62,6 @@ enum {
   BTIF_MEDIA_AUDIO_TX_STOP,
   BTIF_MEDIA_AUDIO_TX_FLUSH,
   BTIF_MEDIA_SOURCE_ENCODER_INIT,
-  BTIF_MEDIA_SOURCE_ENCODER_UPDATE,
   BTIF_MEDIA_AUDIO_FEEDING_INIT
 };
 
@@ -77,12 +76,6 @@ typedef struct {
   BT_HDR hdr;
   tA2DP_ENCODER_INIT_PARAMS init_params;
 } tBTIF_A2DP_SOURCE_ENCODER_INIT;
-
-/* tBTIF_A2DP_SOURCE_ENCODER_UPDATE msg structure */
-typedef struct {
-  BT_HDR hdr;
-  tA2DP_ENCODER_UPDATE_PARAMS update_params;
-} tBTIF_A2DP_SOURCE_ENCODER_UPDATE;
 
 typedef struct {
   // Counter for total updates
@@ -166,15 +159,12 @@ static void btif_a2dp_source_audio_tx_start_event(void);
 static void btif_a2dp_source_audio_tx_stop_event(void);
 static void btif_a2dp_source_audio_tx_flush_event(BT_HDR* p_msg);
 static void btif_a2dp_source_encoder_init_event(BT_HDR* p_msg);
-static void btif_a2dp_source_encoder_update_event(BT_HDR* p_msg);
 static void btif_a2dp_source_audio_feeding_init_event(BT_HDR* p_msg);
 static void btif_a2dp_source_encoder_init(void);
 static void btif_a2dp_source_feeding_init_req(
     tBTIF_A2DP_AUDIO_FEEDING_INIT* p_msg);
 static void btif_a2dp_source_encoder_init_req(
     tBTIF_A2DP_SOURCE_ENCODER_INIT* p_msg);
-static void btif_a2dp_source_encoder_update_req(
-    tBTIF_A2DP_SOURCE_ENCODER_UPDATE* p_msg);
 static bool btif_a2dp_source_audio_tx_flush_req(void);
 static void btif_a2dp_source_alarm_cb(void* context);
 static void btif_a2dp_source_audio_handle_timer(void* context);
@@ -191,7 +181,6 @@ UNUSED_ATTR static const char* dump_media_event(uint16_t event) {
     CASE_RETURN_STR(BTIF_MEDIA_AUDIO_TX_STOP)
     CASE_RETURN_STR(BTIF_MEDIA_AUDIO_TX_FLUSH)
     CASE_RETURN_STR(BTIF_MEDIA_SOURCE_ENCODER_INIT)
-    CASE_RETURN_STR(BTIF_MEDIA_SOURCE_ENCODER_UPDATE)
     CASE_RETURN_STR(BTIF_MEDIA_AUDIO_FEEDING_INIT)
     default:
       break;
@@ -308,9 +297,6 @@ static void btif_a2dp_source_command_ready(fixed_queue_t* queue,
     case BTIF_MEDIA_SOURCE_ENCODER_INIT:
       btif_a2dp_source_encoder_init_event(p_msg);
       break;
-    case BTIF_MEDIA_SOURCE_ENCODER_UPDATE:
-      btif_a2dp_source_encoder_update_event(p_msg);
-      break;
     case BTIF_MEDIA_AUDIO_FEEDING_INIT:
       btif_a2dp_source_audio_feeding_init_event(p_msg);
       break;
@@ -331,21 +317,19 @@ void btif_a2dp_source_setup_codec(void) {
   mutex_global_lock();
 
   /* for now hardcode 44.1 khz 16 bit stereo PCM format */
-  feeding_params.sampling_freq = BTIF_A2DP_SRC_SAMPLING_RATE;
-  feeding_params.bit_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
-  feeding_params.num_channel = BTIF_A2DP_SRC_NUM_CHANNELS;
+  feeding_params.sample_rate = BTIF_A2DP_SRC_SAMPLING_RATE;
+  feeding_params.channel_count = BTIF_A2DP_SRC_NUM_CHANNELS;
+  feeding_params.bits_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
 
-  if (bta_av_co_audio_set_codec(&feeding_params)) {
-    tBTIF_A2DP_AUDIO_FEEDING_INIT mfeed;
+  tBTIF_A2DP_AUDIO_FEEDING_INIT mfeed;
 
-    /* Init the encoding task */
-    btif_a2dp_source_encoder_init();
+  /* Init the encoding task */
+  btif_a2dp_source_encoder_init();
 
-    /* Build the media task configuration */
-    mfeed.feeding_params = feeding_params;
-    /* Send message to Media task to configure transcoding */
-    btif_a2dp_source_feeding_init_req(&mfeed);
-  }
+  /* Build the media task configuration */
+  mfeed.feeding_params = feeding_params;
+  /* Send message to Media task to configure transcoding */
+  btif_a2dp_source_feeding_init_req(&mfeed);
 
   mutex_global_unlock();
 }
@@ -389,15 +373,6 @@ static void btif_a2dp_source_encoder_init(void) {
   btif_a2dp_source_encoder_init_req(&msg);
 }
 
-void btif_a2dp_source_encoder_update(void) {
-  tBTIF_A2DP_SOURCE_ENCODER_UPDATE msg;
-
-  APPL_TRACE_DEBUG("%s", __func__);
-
-  bta_av_co_audio_encoder_update(&msg.update_params);
-  btif_a2dp_source_encoder_update_req(&msg);
-}
-
 static void btif_a2dp_source_encoder_init_req(
     tBTIF_A2DP_SOURCE_ENCODER_INIT* p_msg) {
   tBTIF_A2DP_SOURCE_ENCODER_INIT* p_buf =
@@ -406,17 +381,6 @@ static void btif_a2dp_source_encoder_init_req(
 
   memcpy(p_buf, p_msg, sizeof(tBTIF_A2DP_SOURCE_ENCODER_INIT));
   p_buf->hdr.event = BTIF_MEDIA_SOURCE_ENCODER_INIT;
-  fixed_queue_enqueue(btif_a2dp_source_cb.cmd_msg_queue, p_buf);
-}
-
-static void btif_a2dp_source_encoder_update_req(
-    tBTIF_A2DP_SOURCE_ENCODER_UPDATE* p_msg) {
-  tBTIF_A2DP_SOURCE_ENCODER_UPDATE* p_buf =
-      (tBTIF_A2DP_SOURCE_ENCODER_UPDATE*)osi_malloc(
-          sizeof(tBTIF_A2DP_SOURCE_ENCODER_UPDATE));
-
-  memcpy(p_buf, p_msg, sizeof(tBTIF_A2DP_SOURCE_ENCODER_UPDATE));
-  p_buf->hdr.event = BTIF_MEDIA_SOURCE_ENCODER_UPDATE;
   fixed_queue_enqueue(btif_a2dp_source_cb.cmd_msg_queue, p_buf);
 }
 
@@ -441,16 +405,6 @@ static void btif_a2dp_source_encoder_init_event(BT_HDR* p_msg) {
   // Save a local copy of the encoder_interval_ms
   btif_a2dp_source_cb.encoder_interval_ms =
       btif_a2dp_source_cb.encoder_interface->get_encoder_interval_ms();
-}
-
-static void btif_a2dp_source_encoder_update_event(BT_HDR* p_msg) {
-  tBTIF_A2DP_SOURCE_ENCODER_UPDATE* p_encoder_update =
-      (tBTIF_A2DP_SOURCE_ENCODER_UPDATE*)p_msg;
-
-  APPL_TRACE_DEBUG("%s", __func__);
-  assert(btif_a2dp_source_cb.encoder_interface != NULL);
-  btif_a2dp_source_cb.encoder_interface->encoder_update(
-      &p_encoder_update->update_params);
 }
 
 static void btif_a2dp_source_feeding_init_req(

@@ -77,9 +77,6 @@ void btif_a2dp_source_on_suspended(tBTA_AV_SUSPEND* p_av_suspend);
 // If |enable| is true, the discarding is enabled, otherwise is disabled.
 void btif_a2dp_source_set_tx_flush(bool enable);
 
-// Update any changed encoder paramenters of the A2DP Source codec.
-void btif_a2dp_source_encoder_update(void);
-
 // Get the next A2DP buffer to send.
 // Returns the next A2DP buffer to send if available, otherwise NULL.
 BT_HDR* btif_a2dp_source_audio_readbuf(void);

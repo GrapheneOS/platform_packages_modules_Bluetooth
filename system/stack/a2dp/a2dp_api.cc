@@ -459,24 +459,6 @@ bool A2DP_IsPeerSinkCodecValid(const uint8_t* p_codec_info) {
   return false;
 }
 
-bool A2DP_IsSourceCodecSupported(const uint8_t* p_codec_info) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_IsSourceCodecSupportedSbc(p_codec_info);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_IsVendorSourceCodecSupported(p_codec_info);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return false;
-}
-
 bool A2DP_IsSinkCodecSupported(const uint8_t* p_codec_info) {
   tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
 
@@ -517,25 +499,24 @@ void A2DP_InitDefaultCodec(uint8_t* p_codec_info) {
   A2DP_InitDefaultCodecSbc(p_codec_info);
 }
 
-bool A2DP_SetSourceCodec(tA2DP_CODEC_SEP_INDEX source_codec_sep_index,
-                         const tA2DP_FEEDING_PARAMS* p_feeding_params,
-                         uint8_t* p_codec_info) {
-  switch (source_codec_sep_index) {
-    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
-      return A2DP_SetSourceCodecSbc(p_feeding_params, p_codec_info);
-    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
-      return false;             // Not a source codec
+tA2DP_STATUS A2DP_InitSource2SinkCodec(const uint8_t* p_sink_caps,
+                                       uint8_t* p_result_codec_config) {
+  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_sink_caps);
+
+  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+  switch (codec_type) {
+    case A2DP_MEDIA_CT_SBC:
+      return A2DP_InitSource2SinkCodecSbc(p_sink_caps, p_result_codec_config);
+    case A2DP_MEDIA_CT_NON_A2DP:
+      return A2DP_VendorInitSource2SinkCodec(p_sink_caps,
+                                             p_result_codec_config);
     default:
       break;
   }
 
-  if (source_codec_sep_index < A2DP_CODEC_SEP_INDEX_MAX) {
-    return A2DP_VendorSetSourceCodec(source_codec_sep_index,
-                                     p_feeding_params,
-                                     p_codec_info);
-  }
-
-  return false;
+  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
+  return A2DP_NS_CODEC_TYPE;
 }
 
 tA2DP_STATUS A2DP_BuildSrc2SinkConfig(const uint8_t* p_src_cap,
@@ -557,30 +538,6 @@ tA2DP_STATUS A2DP_BuildSrc2SinkConfig(const uint8_t* p_src_cap,
   return A2DP_NS_CODEC_TYPE;
 }
 
-tA2DP_STATUS A2DP_BuildSinkConfig(const uint8_t* p_src_config,
-                                  const uint8_t* p_sink_cap,
-                                  uint8_t* p_result_sink_config) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_src_config);
-
-  if (codec_type != A2DP_GetCodecType(p_sink_cap)) return A2DP_FAIL;
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_BuildSinkConfigSbc(p_src_config, p_sink_cap,
-                                     p_result_sink_config);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorBuildSinkConfig(p_src_config, p_sink_cap,
-                                        p_result_sink_config);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return A2DP_NS_CODEC_TYPE;
-}
-
 bool A2DP_UsesRtpHeader(bool content_protection_enabled,
                         const uint8_t* p_codec_info) {
   tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
@@ -588,6 +545,24 @@ bool A2DP_UsesRtpHeader(bool content_protection_enabled,
   if (codec_type != A2DP_MEDIA_CT_NON_A2DP) return true;
 
   return A2DP_VendorUsesRtpHeader(content_protection_enabled, p_codec_info);
+}
+
+tA2DP_CODEC_SEP_INDEX A2DP_SourceCodecSepIndex(const uint8_t* p_codec_info) {
+  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
+
+  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
+
+  switch (codec_type) {
+    case A2DP_MEDIA_CT_SBC:
+      return A2DP_SourceCodecSepIndexSbc(p_codec_info);
+    case A2DP_MEDIA_CT_NON_A2DP:
+      return A2DP_VendorSourceCodecSepIndex(p_codec_info);
+    default:
+      break;
+  }
+
+  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
+  return A2DP_CODEC_SEP_INDEX_MAX;
 }
 
 const char* A2DP_CodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index) {
@@ -693,58 +668,16 @@ bool A2DP_CodecEquals(const uint8_t* p_codec_info_a,
   return false;
 }
 
-bool A2DP_CodecRequiresReconfig(const uint8_t* p_codec_info_a,
-                                const uint8_t* p_codec_info_b) {
-  tA2DP_CODEC_TYPE codec_type_a = A2DP_GetCodecType(p_codec_info_a);
-  tA2DP_CODEC_TYPE codec_type_b = A2DP_GetCodecType(p_codec_info_b);
-
-  if (codec_type_a != codec_type_b) return true;
-
-  switch (codec_type_a) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_CodecRequiresReconfigSbc(p_codec_info_a, p_codec_info_b);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorCodecRequiresReconfig(p_codec_info_a, p_codec_info_b);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type_a);
-  return true;
-}
-
-bool A2DP_CodecConfigMatchesCapabilities(const uint8_t* p_codec_config,
-                                         const uint8_t* p_codec_caps) {
-  tA2DP_CODEC_TYPE codec_type_a = A2DP_GetCodecType(p_codec_config);
-  tA2DP_CODEC_TYPE codec_type_b = A2DP_GetCodecType(p_codec_caps);
-
-  if (codec_type_a != codec_type_b) return false;
-
-  switch (codec_type_a) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_CodecConfigMatchesCapabilitiesSbc(p_codec_config,
-                                                    p_codec_caps);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorCodecConfigMatchesCapabilities(p_codec_config,
-                                                       p_codec_caps);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type_a);
-  return false;
-}
-
-int A2DP_GetTrackFrequency(const uint8_t* p_codec_info) {
+int A2DP_GetTrackSampleRate(const uint8_t* p_codec_info) {
   tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
 
   LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetTrackFrequencySbc(p_codec_info);
+      return A2DP_GetTrackSampleRateSbc(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetTrackFrequency(p_codec_info);
+      return A2DP_VendorGetTrackSampleRate(p_codec_info);
     default:
       break;
   }
@@ -771,124 +704,16 @@ int A2DP_GetTrackChannelCount(const uint8_t* p_codec_info) {
   return -1;
 }
 
-int A2DP_GetNumberOfSubbands(const uint8_t* p_codec_info) {
+int A2DP_GetTrackBitsPerSample(const uint8_t* p_codec_info) {
   tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
 
   LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
 
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetNumberOfSubbandsSbc(p_codec_info);
+      return A2DP_GetTrackBitsPerSampleSbc(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetNumberOfSubbands(p_codec_info);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return -1;
-}
-
-int A2DP_GetNumberOfBlocks(const uint8_t* p_codec_info) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetNumberOfBlocksSbc(p_codec_info);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetNumberOfBlocks(p_codec_info);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return -1;
-}
-
-int A2DP_GetAllocationMethodCode(const uint8_t* p_codec_info) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetAllocationMethodCodeSbc(p_codec_info);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetAllocationMethodCode(p_codec_info);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return -1;
-}
-
-int A2DP_GetChannelModeCode(const uint8_t* p_codec_info) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetChannelModeCodeSbc(p_codec_info);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetChannelModeCode(p_codec_info);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return -1;
-}
-
-int A2DP_GetSamplingFrequencyCode(const uint8_t* p_codec_info) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetSamplingFrequencyCodeSbc(p_codec_info);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetSamplingFrequencyCode(p_codec_info);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return -1;
-}
-
-int A2DP_GetMinBitpool(const uint8_t* p_codec_info) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetMinBitpoolSbc(p_codec_info);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetMinBitpool(p_codec_info);
-    default:
-      break;
-  }
-
-  LOG_ERROR(LOG_TAG, "%s: unsupported codec type 0x%x", __func__, codec_type);
-  return -1;
-}
-
-int A2DP_GetMaxBitpool(const uint8_t* p_codec_info) {
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_codec_info);
-
-  LOG_VERBOSE(LOG_TAG, "%s: codec_type = 0x%x", __func__, codec_type);
-
-  switch (codec_type) {
-    case A2DP_MEDIA_CT_SBC:
-      return A2DP_GetMaxBitpoolSbc(p_codec_info);
-    case A2DP_MEDIA_CT_NON_A2DP:
-      return A2DP_VendorGetMaxBitpool(p_codec_info);
+      return A2DP_VendorGetTrackBitsPerSample(p_codec_info);
     default:
       break;
   }
