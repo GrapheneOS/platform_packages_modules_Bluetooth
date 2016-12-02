@@ -23,7 +23,6 @@
 static const char* test_addr = "12:34:56:78:9a:bc";
 static const char* test_addr2 = "cb:a9:87:65:43:21";
 
-
 TEST(BdaddrTest, test_empty) {
   bt_bdaddr_t empty;
   string_to_bdaddr("00:00:00:00:00:00", &empty);

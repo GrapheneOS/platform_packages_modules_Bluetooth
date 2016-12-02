@@ -23,9 +23,9 @@
  ******************************************************************************/
 #include <string.h>
 
-#include "bt_common.h"
 #include "avrc_api.h"
 #include "avrc_int.h"
+#include "bt_common.h"
 
 /*****************************************************************************
  *  Global data
@@ -47,17 +47,16 @@ tAVRC_CB avrc_cb;
  * Returns          Nothing.
  *
  *****************************************************************************/
-static void avrc_sdp_cback(uint16_t status)
-{
-    AVRC_TRACE_API("%s status: %d", __func__, status);
+static void avrc_sdp_cback(uint16_t status) {
+  AVRC_TRACE_API("%s status: %d", __func__, status);
 
-    /* reset service_uuid, so can start another find service */
-    avrc_cb.service_uuid = 0;
+  /* reset service_uuid, so can start another find service */
+  avrc_cb.service_uuid = 0;
 
-    /* return info from sdp record in app callback function */
-    (*avrc_cb.p_cback) (status);
+  /* return info from sdp record in app callback function */
+  (*avrc_cb.p_cback)(status);
 
-    return;
+  return;
 }
 
 /******************************************************************************
@@ -100,52 +99,51 @@ static void avrc_sdp_cback(uint16_t status)
  *
  *****************************************************************************/
 uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
-                tAVRC_SDP_DB_PARAMS *p_db, tAVRC_FIND_CBACK *p_cback)
-{
-    tSDP_UUID   uuid_list;
-    bool        result = true;
-    uint16_t    a2dp_attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, /* update AVRC_NUM_ATTR, if changed */
-                                   ATTR_ID_PROTOCOL_DESC_LIST,
-                                   ATTR_ID_BT_PROFILE_DESC_LIST,
-                                   ATTR_ID_SERVICE_NAME,
-                                   ATTR_ID_SUPPORTED_FEATURES,
-                                   ATTR_ID_PROVIDER_NAME};
+                          tAVRC_SDP_DB_PARAMS* p_db,
+                          tAVRC_FIND_CBACK* p_cback) {
+  tSDP_UUID uuid_list;
+  bool result = true;
+  uint16_t a2dp_attr_list[] = {
+      ATTR_ID_SERVICE_CLASS_ID_LIST, /* update AVRC_NUM_ATTR, if changed */
+      ATTR_ID_PROTOCOL_DESC_LIST,    ATTR_ID_BT_PROFILE_DESC_LIST,
+      ATTR_ID_SERVICE_NAME,          ATTR_ID_SUPPORTED_FEATURES,
+      ATTR_ID_PROVIDER_NAME};
 
-    AVRC_TRACE_API("%s uuid: %x", __func__, service_uuid);
-    if( (service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET && service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL) ||
-        p_db == NULL || p_db->p_db == NULL || p_cback == NULL)
-        return AVRC_BAD_PARAM;
+  AVRC_TRACE_API("%s uuid: %x", __func__, service_uuid);
+  if ((service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET &&
+       service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL) ||
+      p_db == NULL || p_db->p_db == NULL || p_cback == NULL)
+    return AVRC_BAD_PARAM;
 
-    /* check if it is busy */
-    if( avrc_cb.service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET ||
-        avrc_cb.service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL)
-        return AVRC_NO_RESOURCES;
+  /* check if it is busy */
+  if (avrc_cb.service_uuid == UUID_SERVCLASS_AV_REM_CTRL_TARGET ||
+      avrc_cb.service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL)
+    return AVRC_NO_RESOURCES;
 
-    /* set up discovery database */
-    uuid_list.len = LEN_UUID_16;
-    uuid_list.uu.uuid16 = service_uuid;
+  /* set up discovery database */
+  uuid_list.len = LEN_UUID_16;
+  uuid_list.uu.uuid16 = service_uuid;
 
-    if(p_db->p_attrs == NULL || p_db->num_attr == 0)
-    {
-        p_db->p_attrs  = a2dp_attr_list;
-        p_db->num_attr = AVRC_NUM_ATTR;
-    }
+  if (p_db->p_attrs == NULL || p_db->num_attr == 0) {
+    p_db->p_attrs = a2dp_attr_list;
+    p_db->num_attr = AVRC_NUM_ATTR;
+  }
 
-    result = SDP_InitDiscoveryDb(p_db->p_db, p_db->db_len, 1, &uuid_list, p_db->num_attr,
-                                 p_db->p_attrs);
+  result = SDP_InitDiscoveryDb(p_db->p_db, p_db->db_len, 1, &uuid_list,
+                               p_db->num_attr, p_db->p_attrs);
 
-    if (result == true)
-    {
-        /* store service_uuid and discovery db pointer */
-        avrc_cb.p_db = p_db->p_db;
-        avrc_cb.service_uuid = service_uuid;
-        avrc_cb.p_cback = p_cback;
+  if (result == true) {
+    /* store service_uuid and discovery db pointer */
+    avrc_cb.p_db = p_db->p_db;
+    avrc_cb.service_uuid = service_uuid;
+    avrc_cb.p_cback = p_cback;
 
-        /* perform service search */
-        result = SDP_ServiceSearchAttributeRequest(bd_addr, p_db->p_db, avrc_sdp_cback);
-    }
+    /* perform service search */
+    result =
+        SDP_ServiceSearchAttributeRequest(bd_addr, p_db->p_db, avrc_sdp_cback);
+  }
 
-    return (result ? AVRC_SUCCESS : AVRC_FAIL);
+  return (result ? AVRC_SUCCESS : AVRC_FAIL);
 }
 
 /******************************************************************************
@@ -185,98 +183,95 @@ uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
  *                                    record.
  *
  *****************************************************************************/
-uint16_t AVRC_AddRecord(uint16_t service_uuid, const char *p_service_name,
-                        const char *p_provider_name, uint16_t categories,
+uint16_t AVRC_AddRecord(uint16_t service_uuid, const char* p_service_name,
+                        const char* p_provider_name, uint16_t categories,
                         uint32_t sdp_handle, bool browse_supported,
-                        uint16_t profile_version)
-{
-    uint16_t    browse_list[1];
-    bool        result = true;
-    uint8_t     temp[8];
-    uint8_t     *p;
-    uint16_t    count = 1;
-    uint8_t     index = 0;
-    uint16_t    class_list[2];
+                        uint16_t profile_version) {
+  uint16_t browse_list[1];
+  bool result = true;
+  uint8_t temp[8];
+  uint8_t* p;
+  uint16_t count = 1;
+  uint8_t index = 0;
+  uint16_t class_list[2];
 
+  AVRC_TRACE_API("%s uuid: %x", __func__, service_uuid);
 
-    AVRC_TRACE_API("%s uuid: %x", __func__, service_uuid);
+  if (service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET &&
+      service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL)
+    return AVRC_BAD_PARAM;
 
-    if( service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET && service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL )
-        return AVRC_BAD_PARAM;
+  /* add service class id list */
+  class_list[0] = service_uuid;
+  if ((service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL) &&
+      (profile_version > AVRC_REV_1_3)) {
+    class_list[1] = UUID_SERVCLASS_AV_REM_CTRL_CONTROL;
+    count = 2;
+  }
+  result &= SDP_AddServiceClassIdList(sdp_handle, count, class_list);
 
-    /* add service class id list */
-    class_list[0] = service_uuid;
-    if((service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL ) && (profile_version > AVRC_REV_1_3))
-    {
-        class_list[1] = UUID_SERVCLASS_AV_REM_CTRL_CONTROL;
-        count = 2;
-    }
-    result &= SDP_AddServiceClassIdList(sdp_handle, count, class_list);
+  /* add protocol descriptor list   */
+  tSDP_PROTOCOL_ELEM avrc_proto_desc_list[AVRC_NUM_PROTO_ELEMS];
+  avrc_proto_desc_list[0].num_params = 1;
+  avrc_proto_desc_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+  avrc_proto_desc_list[0].params[0] = AVCT_PSM;
+  avrc_proto_desc_list[0].params[1] = 0;
+  for (index = 1; index < AVRC_NUM_PROTO_ELEMS; index++) {
+    avrc_proto_desc_list[index].num_params = 1;
+    avrc_proto_desc_list[index].protocol_uuid = UUID_PROTOCOL_AVCTP;
+    avrc_proto_desc_list[index].params[0] = AVCT_REV_1_4;
+    avrc_proto_desc_list[index].params[1] = 0;
+  }
+  result &= SDP_AddProtocolList(sdp_handle, AVRC_NUM_PROTO_ELEMS,
+                                (tSDP_PROTOCOL_ELEM*)avrc_proto_desc_list);
 
-    /* add protocol descriptor list   */
-    tSDP_PROTOCOL_ELEM  avrc_proto_desc_list [AVRC_NUM_PROTO_ELEMS];
-    avrc_proto_desc_list[0].num_params = 1;
-    avrc_proto_desc_list[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
-    avrc_proto_desc_list[0].params[0] = AVCT_PSM;
-    avrc_proto_desc_list[0].params[1] = 0;
-    for (index = 1; index < AVRC_NUM_PROTO_ELEMS; index++)
-    {
-        avrc_proto_desc_list[index].num_params = 1;
-        avrc_proto_desc_list[index].protocol_uuid = UUID_PROTOCOL_AVCTP;
-        avrc_proto_desc_list[index].params[0] = AVCT_REV_1_4;
-        avrc_proto_desc_list[index].params[1] = 0;
-    }
-    result &= SDP_AddProtocolList(sdp_handle, AVRC_NUM_PROTO_ELEMS,
-                                                  (tSDP_PROTOCOL_ELEM *)avrc_proto_desc_list);
+  /* additional protocal descriptor, required only for version > 1.3    */
+  if ((profile_version > AVRC_REV_1_3) && (browse_supported)) {
+    tSDP_PROTO_LIST_ELEM avrc_add_proto_desc_list;
+    avrc_add_proto_desc_list.num_elems = 2;
+    avrc_add_proto_desc_list.list_elem[0].num_params = 1;
+    avrc_add_proto_desc_list.list_elem[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+    avrc_add_proto_desc_list.list_elem[0].params[0] = AVCT_BR_PSM;
+    avrc_add_proto_desc_list.list_elem[0].params[1] = 0;
+    avrc_add_proto_desc_list.list_elem[1].num_params = 1;
+    avrc_add_proto_desc_list.list_elem[1].protocol_uuid = UUID_PROTOCOL_AVCTP;
+    avrc_add_proto_desc_list.list_elem[1].params[0] = AVCT_REV_1_4;
+    avrc_add_proto_desc_list.list_elem[1].params[1] = 0;
 
-    /* additional protocal descriptor, required only for version > 1.3    */
-    if ((profile_version > AVRC_REV_1_3) && (browse_supported))
-    {
-        tSDP_PROTO_LIST_ELEM  avrc_add_proto_desc_list;
-        avrc_add_proto_desc_list.num_elems = 2;
-        avrc_add_proto_desc_list.list_elem[0].num_params = 1;
-        avrc_add_proto_desc_list.list_elem[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
-        avrc_add_proto_desc_list.list_elem[0].params[0] = AVCT_BR_PSM;
-        avrc_add_proto_desc_list.list_elem[0].params[1] = 0;
-        avrc_add_proto_desc_list.list_elem[1].num_params = 1;
-        avrc_add_proto_desc_list.list_elem[1].protocol_uuid = UUID_PROTOCOL_AVCTP;
-        avrc_add_proto_desc_list.list_elem[1].params[0] = AVCT_REV_1_4;
-        avrc_add_proto_desc_list.list_elem[1].params[1] = 0;
+    result &= SDP_AddAdditionProtoLists(
+        sdp_handle, 1, (tSDP_PROTO_LIST_ELEM*)&avrc_add_proto_desc_list);
+  }
+  /* add profile descriptor list   */
+  result &= SDP_AddProfileDescriptorList(
+      sdp_handle, UUID_SERVCLASS_AV_REMOTE_CONTROL, profile_version);
 
-        result &= SDP_AddAdditionProtoLists( sdp_handle, 1, (tSDP_PROTO_LIST_ELEM *)&avrc_add_proto_desc_list);
-    }
-    /* add profile descriptor list   */
-    result &= SDP_AddProfileDescriptorList(sdp_handle, UUID_SERVCLASS_AV_REMOTE_CONTROL, profile_version);
+  /* add supported categories */
+  p = temp;
+  UINT16_TO_BE_STREAM(p, categories);
+  result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES,
+                             UINT_DESC_TYPE, (uint32_t)2, (uint8_t*)temp);
 
-    /* add supported categories */
-    p = temp;
-    UINT16_TO_BE_STREAM(p, categories);
-    result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
-              (uint32_t)2, (uint8_t*)temp);
+  /* add provider name */
+  if (p_provider_name != NULL) {
+    result &= SDP_AddAttribute(
+        sdp_handle, ATTR_ID_PROVIDER_NAME, TEXT_STR_DESC_TYPE,
+        (uint32_t)(strlen(p_provider_name) + 1), (uint8_t*)p_provider_name);
+  }
 
-    /* add provider name */
-    if (p_provider_name != NULL)
-    {
-        result &= SDP_AddAttribute(sdp_handle, ATTR_ID_PROVIDER_NAME, TEXT_STR_DESC_TYPE,
-                    (uint32_t)(strlen(p_provider_name)+1), (uint8_t *) p_provider_name);
-    }
+  /* add service name */
+  if (p_service_name != NULL) {
+    result &= SDP_AddAttribute(
+        sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
+        (uint32_t)(strlen(p_service_name) + 1), (uint8_t*)p_service_name);
+  }
 
-    /* add service name */
-    if (p_service_name != NULL)
-    {
-        result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
-                    (uint32_t)(strlen(p_service_name)+1), (uint8_t *) p_service_name);
-    }
+  /* add browse group list */
+  browse_list[0] = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+  result &= SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1,
+                                browse_list);
 
-    /* add browse group list */
-    browse_list[0] = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    result &= SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, browse_list);
-
-
-    return (result ? AVRC_SUCCESS : AVRC_FAIL);
+  return (result ? AVRC_SUCCESS : AVRC_FAIL);
 }
-
-
 
 /******************************************************************************
  *
@@ -299,12 +294,10 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, const char *p_service_name,
  *                  the input parameter is 0xff.
  *
  *****************************************************************************/
-uint8_t AVRC_SetTraceLevel (uint8_t new_level)
-{
-    if (new_level != 0xFF)
-        avrc_cb.trace_level = new_level;
+uint8_t AVRC_SetTraceLevel(uint8_t new_level) {
+  if (new_level != 0xFF) avrc_cb.trace_level = new_level;
 
-    return (avrc_cb.trace_level);
+  return (avrc_cb.trace_level);
 }
 
 /*******************************************************************************
@@ -318,14 +311,12 @@ uint8_t AVRC_SetTraceLevel (uint8_t new_level)
  * Returns          void
  *
  ******************************************************************************/
-void AVRC_Init(void)
-{
-    memset(&avrc_cb, 0, sizeof(tAVRC_CB));
+void AVRC_Init(void) {
+  memset(&avrc_cb, 0, sizeof(tAVRC_CB));
 
 #if defined(AVRC_INITIAL_TRACE_LEVEL)
-    avrc_cb.trace_level  = AVRC_INITIAL_TRACE_LEVEL;
+  avrc_cb.trace_level = AVRC_INITIAL_TRACE_LEVEL;
 #else
-    avrc_cb.trace_level  = BT_TRACE_LEVEL_NONE;
+  avrc_cb.trace_level = BT_TRACE_LEVEL_NONE;
 #endif
 }
-

@@ -40,29 +40,29 @@
 // of audio realated tasks.
 #define BTU_TASK_THREAD_PRIORITY (-19)
 
-extern fixed_queue_t *btif_msg_queue;
+extern fixed_queue_t* btif_msg_queue;
 
 // Communication queue from bta thread to bt_workqueue.
-fixed_queue_t *btu_bta_msg_queue;
+fixed_queue_t* btu_bta_msg_queue;
 
 // Communication queue from hci thread to bt_workqueue.
-extern fixed_queue_t *btu_hci_msg_queue;
+extern fixed_queue_t* btu_hci_msg_queue;
 
 // General timer queue.
-fixed_queue_t *btu_general_alarm_queue;
+fixed_queue_t* btu_general_alarm_queue;
 
-thread_t *bt_workqueue_thread;
-static const char *BT_WORKQUEUE_NAME = "bt_workqueue";
+thread_t* bt_workqueue_thread;
+static const char* BT_WORKQUEUE_NAME = "bt_workqueue";
 
 extern void PLATFORM_DisableHciTransport(uint8_t bDisable);
 /*****************************************************************************
  *                          V A R I A B L E S                                *
  *****************************************************************************/
 // TODO(cmanton) Move this out of this file
-const BD_ADDR   BT_BD_ANY = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+const BD_ADDR BT_BD_ANY = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
-void btu_task_start_up(void *context);
-void btu_task_shut_down(void *context);
+void btu_task_start_up(void* context);
+void btu_task_shut_down(void* context);
 
 /*****************************************************************************
  *
@@ -74,20 +74,19 @@ void btu_task_shut_down(void *context);
  * Returns          void
  *
  *****************************************************************************/
-void btu_init_core(void)
-{
-    /* Initialize the mandatory core stack components */
-    btm_init();
+void btu_init_core(void) {
+  /* Initialize the mandatory core stack components */
+  btm_init();
 
-    l2c_init();
+  l2c_init();
 
-    sdp_init();
+  sdp_init();
 
-    gatt_init();
+  gatt_init();
 
-    SMP_Init();
+  SMP_Init();
 
-    btm_ble_init();
+  btm_ble_init();
 }
 
 /*****************************************************************************
@@ -100,12 +99,11 @@ void btu_init_core(void)
  * Returns          void
  *
  *****************************************************************************/
-void btu_free_core(void)
-{
-      /* Free the mandatory core stack components */
-      l2c_free();
+void btu_free_core(void) {
+  /* Free the mandatory core stack components */
+  l2c_free();
 
-      gatt_free();
+  gatt_free();
 }
 
 /*****************************************************************************
@@ -120,31 +118,28 @@ void btu_free_core(void)
  * Returns          void
  *
  *****************************************************************************/
-void BTU_StartUp(void)
-{
-    btu_trace_level = HCI_INITIAL_TRACE_LEVEL;
+void BTU_StartUp(void) {
+  btu_trace_level = HCI_INITIAL_TRACE_LEVEL;
 
-    btu_bta_msg_queue = fixed_queue_new(SIZE_MAX);
-    if (btu_bta_msg_queue == NULL)
-        goto error_exit;
+  btu_bta_msg_queue = fixed_queue_new(SIZE_MAX);
+  if (btu_bta_msg_queue == NULL) goto error_exit;
 
-    btu_general_alarm_queue = fixed_queue_new(SIZE_MAX);
-    if (btu_general_alarm_queue == NULL)
-        goto error_exit;
+  btu_general_alarm_queue = fixed_queue_new(SIZE_MAX);
+  if (btu_general_alarm_queue == NULL) goto error_exit;
 
-    bt_workqueue_thread = thread_new(BT_WORKQUEUE_NAME);
-    if (bt_workqueue_thread == NULL)
-        goto error_exit;
+  bt_workqueue_thread = thread_new(BT_WORKQUEUE_NAME);
+  if (bt_workqueue_thread == NULL) goto error_exit;
 
-    thread_set_priority(bt_workqueue_thread, BTU_TASK_THREAD_PRIORITY);
+  thread_set_priority(bt_workqueue_thread, BTU_TASK_THREAD_PRIORITY);
 
-    // Continue startup on bt workqueue thread.
-    thread_post(bt_workqueue_thread, btu_task_start_up, NULL);
-    return;
+  // Continue startup on bt workqueue thread.
+  thread_post(bt_workqueue_thread, btu_task_start_up, NULL);
+  return;
 
-  error_exit:;
-    LOG_ERROR(LOG_TAG, "%s Unable to allocate resources for bt_workqueue", __func__);
-    BTU_ShutDown();
+error_exit:;
+  LOG_ERROR(LOG_TAG, "%s Unable to allocate resources for bt_workqueue",
+            __func__);
+  BTU_ShutDown();
 }
 
 void BTU_ShutDown(void) {

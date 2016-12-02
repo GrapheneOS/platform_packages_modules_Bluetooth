@@ -27,25 +27,20 @@ namespace bluetooth {
 // ========================================================
 
 GattClient::GattClient(const UUID& uuid, int client_id)
-    : app_identifier_(uuid),
-      client_id_(client_id) {
-}
+    : app_identifier_(uuid), client_id_(client_id) {}
 
 GattClient::~GattClient() {
   // Automatically unregister the client.
   VLOG(1) << "GattClient unregistering client: " << client_id_;
 
-  hal::BluetoothGattInterface::Get()->GetClientHALInterface()->
-      unregister_client(client_id_);
+  hal::BluetoothGattInterface::Get()
+      ->GetClientHALInterface()
+      ->unregister_client(client_id_);
 }
 
-const UUID& GattClient::GetAppIdentifier() const {
-  return app_identifier_;
-}
+const UUID& GattClient::GetAppIdentifier() const { return app_identifier_; }
 
-int GattClient::GetInstanceId() const {
-  return client_id_;
-}
+int GattClient::GetInstanceId() const { return client_id_; }
 
 // GattClientFactory implementation
 // ========================================================
@@ -58,9 +53,8 @@ GattClientFactory::~GattClientFactory() {
   hal::BluetoothGattInterface::Get()->RemoveClientObserver(this);
 }
 
-bool GattClientFactory::RegisterInstance(
-    const UUID& uuid,
-    const RegisterCallback& callback) {
+bool GattClientFactory::RegisterInstance(const UUID& uuid,
+                                         const RegisterCallback& callback) {
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
   lock_guard<mutex> lock(pending_calls_lock_);
 
@@ -74,8 +68,7 @@ bool GattClientFactory::RegisterInstance(
       hal::BluetoothGattInterface::Get()->GetClientHALInterface();
   bt_uuid_t app_uuid = uuid.GetBlueDroid();
 
-  if (hal_iface->register_client(&app_uuid) != BT_STATUS_SUCCESS)
-    return false;
+  if (hal_iface->register_client(&app_uuid) != BT_STATUS_SUCCESS) return false;
 
   pending_calls_[uuid] = callback;
 
@@ -83,8 +76,7 @@ bool GattClientFactory::RegisterInstance(
 }
 
 void GattClientFactory::RegisterClientCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int status, int client_id,
+    hal::BluetoothGattInterface* /* gatt_iface */, int status, int client_id,
     const bt_uuid_t& app_uuid) {
   UUID uuid(app_uuid);
 
@@ -99,8 +91,7 @@ void GattClientFactory::RegisterClientCallback(
 
   // No need to construct a client if the call wasn't successful.
   std::unique_ptr<GattClient> client;
-  if (success)
-    client.reset(new GattClient(uuid, client_id));
+  if (success) client.reset(new GattClient(uuid, client_id));
 
   // Notify the result via the result callback.
   iter->second(result, uuid, std::move(client));

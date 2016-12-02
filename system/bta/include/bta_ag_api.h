@@ -50,8 +50,8 @@ extern "C" {
 #endif
 
 /* AG feature masks */
-#define BTA_AG_FEAT_3WAY 0x00000001 /* Three-way calling */
-#define BTA_AG_FEAT_ECNR 0x00000002 /* Echo cancellation/noise reduction */
+#define BTA_AG_FEAT_3WAY 0x00000001   /* Three-way calling */
+#define BTA_AG_FEAT_ECNR 0x00000002   /* Echo cancellation/noise reduction */
 #define BTA_AG_FEAT_VREC 0x00000004   /* Voice recognition */
 #define BTA_AG_FEAT_INBAND 0x00000008 /* In-band ring tone */
 #define BTA_AG_FEAT_VTAG 0x00000010   /* Attach a phone number to a voice tag */
@@ -69,8 +69,8 @@ extern "C" {
 #define BTA_AG_FEAT_ESCO 0x00000800   /* eSCO S4 (and T2) setting supported */
 
 /* Proprietary features: using 31 ~ 16 bits */
-#define BTA_AG_FEAT_BTRH 0x00010000 /* CCAP incoming call hold */
-#define BTA_AG_FEAT_UNAT 0x00020000 /* Pass unknown AT commands to app */
+#define BTA_AG_FEAT_BTRH 0x00010000    /* CCAP incoming call hold */
+#define BTA_AG_FEAT_UNAT 0x00020000    /* Pass unknown AT commands to app */
 #define BTA_AG_FEAT_NOSCO 0x00040000   /* No SCO control performed by BTA AG */
 #define BTA_AG_FEAT_NO_ESCO 0x00080000 /* Do not allow or use eSCO */
 #define BTA_AG_FEAT_VOIP 0x00100000    /* VoIP call */
@@ -148,7 +148,7 @@ typedef uint8_t tBTA_AG_STATUS;
 typedef uint8_t tBTA_AG_RES;
 
 /* HFP peer features */
-#define BTA_AG_PEER_FEAT_ECNR 0x0001 /* Echo cancellation/noise reduction */
+#define BTA_AG_PEER_FEAT_ECNR 0x0001   /* Echo cancellation/noise reduction */
 #define BTA_AG_PEER_FEAT_3WAY 0x0002   /* Call waiting and three-way calling */
 #define BTA_AG_PEER_FEAT_CLI 0x0004    /* Caller ID presentation capability */
 #define BTA_AG_PEER_FEAT_VREC 0x0008   /* Voice recognition activation */
@@ -405,9 +405,9 @@ typedef void(tBTA_AG_CBACK)(tBTA_AG_EVT event, tBTA_AG* p_data);
 #define BTA_AG_CALLSETUP_ALERTING 3
 
 /* service indicator values */
-#define BTA_AG_SERVICE_NONE 0 /* Neither CS nor VoIP service is available */
-#define BTA_AG_SERVICE_CS 1   /* Only CS service is available */
-#define BTA_AG_SERVICE_VOIP 2 /* Only VoIP service is available */
+#define BTA_AG_SERVICE_NONE 0    /* Neither CS nor VoIP service is available */
+#define BTA_AG_SERVICE_CS 1      /* Only CS service is available */
+#define BTA_AG_SERVICE_VOIP 2    /* Only VoIP service is available */
 #define BTA_AG_SERVICE_CS_VOIP 3 /* Both CS and VoIP services available */
 
 /* callheld indicator values */

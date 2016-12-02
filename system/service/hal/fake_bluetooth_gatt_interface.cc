@@ -24,46 +24,42 @@ namespace {
 // interface methods all have to be global and their signatures don't allow us
 // to pass in user_data.
 std::shared_ptr<BleAdvertiserInterface> g_advertiser_handler;
-std::shared_ptr<FakeBluetoothGattInterface::TestScannerHandler> g_scanner_handler;
+std::shared_ptr<FakeBluetoothGattInterface::TestScannerHandler>
+    g_scanner_handler;
 std::shared_ptr<FakeBluetoothGattInterface::TestClientHandler> g_client_handler;
 std::shared_ptr<FakeBluetoothGattInterface::TestServerHandler> g_server_handler;
 
 bt_status_t FakeRegisterClient(bt_uuid_t* app_uuid) {
-  if (g_client_handler)
-    return g_client_handler->RegisterClient(app_uuid);
+  if (g_client_handler) return g_client_handler->RegisterClient(app_uuid);
 
   return BT_STATUS_FAIL;
 }
 
 bt_status_t FakeUnregisterClient(int client_if) {
-  if (g_client_handler)
-    return g_client_handler->UnregisterClient(client_if);
+  if (g_client_handler) return g_client_handler->UnregisterClient(client_if);
 
   return BT_STATUS_FAIL;
 }
 
 bt_status_t FakeRegisterScanner(bt_uuid_t* app_uuid) {
-  if (g_scanner_handler)
-    return g_scanner_handler->RegisterScanner(app_uuid);
+  if (g_scanner_handler) return g_scanner_handler->RegisterScanner(app_uuid);
 
   return BT_STATUS_FAIL;
 }
 
 bt_status_t FakeUnregisterScanner(int client_if) {
-  if (g_scanner_handler)
-    return g_scanner_handler->UnregisterScanner(client_if);
+  if (g_scanner_handler) return g_scanner_handler->UnregisterScanner(client_if);
 
   return BT_STATUS_FAIL;
 }
 
 bt_status_t FakeScan(bool start) {
-  if (g_scanner_handler)
-    return g_scanner_handler->Scan(start);
+  if (g_scanner_handler) return g_scanner_handler->Scan(start);
 
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeConnect(int client_if, const bt_bdaddr_t *bd_addr,
+bt_status_t FakeConnect(int client_if, const bt_bdaddr_t* bd_addr,
                         bool is_direct, int transport) {
   if (g_client_handler)
     return g_client_handler->Connect(client_if, bd_addr, is_direct, transport);
@@ -71,7 +67,7 @@ bt_status_t FakeConnect(int client_if, const bt_bdaddr_t *bd_addr,
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeDisconnect(int client_if, const bt_bdaddr_t *bd_addr,
+bt_status_t FakeDisconnect(int client_if, const bt_bdaddr_t* bd_addr,
                            int conn_id) {
   if (g_client_handler)
     return g_client_handler->Disconnect(client_if, bd_addr, conn_id);
@@ -80,21 +76,18 @@ bt_status_t FakeDisconnect(int client_if, const bt_bdaddr_t *bd_addr,
 }
 
 bt_status_t FakeRegisterServer(bt_uuid_t* app_uuid) {
-  if (g_server_handler)
-    return g_server_handler->RegisterServer(app_uuid);
+  if (g_server_handler) return g_server_handler->RegisterServer(app_uuid);
 
   return BT_STATUS_FAIL;
 }
 
 bt_status_t FakeUnregisterServer(int server_if) {
-  if (g_server_handler)
-    return g_server_handler->UnregisterServer(server_if);
+  if (g_server_handler) return g_server_handler->UnregisterServer(server_if);
 
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeAddService(
-    int server_if, vector<btgatt_db_element_t> service) {
+bt_status_t FakeAddService(int server_if, vector<btgatt_db_element_t> service) {
   if (g_server_handler)
     return g_server_handler->AddService(server_if, std::move(service));
 
@@ -108,9 +101,8 @@ bt_status_t FakeDeleteService(int server_if, int srvc_handle) {
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeSendIndication(int server_if, int attribute_handle,
-                               int conn_id, int confirm,
-                               vector<uint8_t> value) {
+bt_status_t FakeSendIndication(int server_if, int attribute_handle, int conn_id,
+                               int confirm, vector<uint8_t> value) {
   if (g_server_handler)
     return g_server_handler->SendIndication(server_if, attribute_handle,
                                             conn_id, confirm, std::move(value));
@@ -127,52 +119,52 @@ bt_status_t FakeSendResponse(int conn_id, int trans_id, int status,
 }
 
 btgatt_scanner_interface_t fake_scanner_iface = {
-  FakeRegisterScanner,
-  FakeUnregisterScanner,
-  FakeScan,
-  nullptr,  // scan_filter_param_setup
-  nullptr,  // scan_filter_add_remove
-  nullptr,  // scan_filter_clear
-  nullptr,  // scan_filter_enable
-  nullptr,  // set_scan_parameters
-  nullptr,  // batchscan_cfg_storate
-  nullptr,  // batchscan_enb_batch_scan
-  nullptr,  // batchscan_dis_batch_scan
-  nullptr,  // batchscan_read_reports
+    FakeRegisterScanner,
+    FakeUnregisterScanner,
+    FakeScan,
+    nullptr,  // scan_filter_param_setup
+    nullptr,  // scan_filter_add_remove
+    nullptr,  // scan_filter_clear
+    nullptr,  // scan_filter_enable
+    nullptr,  // set_scan_parameters
+    nullptr,  // batchscan_cfg_storate
+    nullptr,  // batchscan_enb_batch_scan
+    nullptr,  // batchscan_dis_batch_scan
+    nullptr,  // batchscan_read_reports
 };
 
 btgatt_client_interface_t fake_btgattc_iface = {
-  FakeRegisterClient,
-  FakeUnregisterClient,
-  FakeConnect,
-  FakeDisconnect,
-  nullptr,  // refresh
-  nullptr,  // search_service
-  nullptr,  // read_characteristic
-  nullptr,  // write_characteristic
-  nullptr,  // read_descriptor
-  nullptr,  // write_descriptor
-  nullptr,  // execute_write
-  nullptr,  // register_for_notification
-  nullptr,  // deregister_for_notification
-  nullptr,  // read_remote_rssi
-  nullptr,  // get_device_type
-  nullptr,  // configure_mtu
-  nullptr,  // conn_parameter_update
-  nullptr,  // test_command
-  nullptr,  // get_gatt_db
+    FakeRegisterClient,
+    FakeUnregisterClient,
+    FakeConnect,
+    FakeDisconnect,
+    nullptr,  // refresh
+    nullptr,  // search_service
+    nullptr,  // read_characteristic
+    nullptr,  // write_characteristic
+    nullptr,  // read_descriptor
+    nullptr,  // write_descriptor
+    nullptr,  // execute_write
+    nullptr,  // register_for_notification
+    nullptr,  // deregister_for_notification
+    nullptr,  // read_remote_rssi
+    nullptr,  // get_device_type
+    nullptr,  // configure_mtu
+    nullptr,  // conn_parameter_update
+    nullptr,  // test_command
+    nullptr,  // get_gatt_db
 };
 
 btgatt_server_interface_t fake_btgatts_iface = {
-  FakeRegisterServer,
-  FakeUnregisterServer,
-  nullptr,  // connect
-  nullptr,  // disconnect
-  FakeAddService,
-  nullptr,  // stop_service
-  FakeDeleteService,
-  FakeSendIndication,
-  FakeSendResponse,
+    FakeRegisterServer,
+    FakeUnregisterServer,
+    nullptr,  // connect
+    nullptr,  // disconnect
+    FakeAddService,
+    nullptr,  // stop_service
+    FakeDeleteService,
+    FakeSendIndication,
+    FakeSendResponse,
 };
 
 }  // namespace
@@ -189,38 +181,29 @@ FakeBluetoothGattInterface::FakeBluetoothGattInterface(
   CHECK(!g_server_handler);
 
   // We allow passing NULL. In this case all calls we fail by default.
-  if (advertiser_handler)
-    g_advertiser_handler = advertiser_handler;
+  if (advertiser_handler) g_advertiser_handler = advertiser_handler;
 
-  if (scanner_handler)
-    g_scanner_handler = scanner_handler;
+  if (scanner_handler) g_scanner_handler = scanner_handler;
 
-  if (client_handler)
-    g_client_handler = client_handler;
+  if (client_handler) g_client_handler = client_handler;
 
-  if (server_handler)
-    g_server_handler = server_handler;
+  if (server_handler) g_server_handler = server_handler;
 }
 
 FakeBluetoothGattInterface::~FakeBluetoothGattInterface() {
-  if (g_advertiser_handler)
-    g_advertiser_handler = nullptr;
+  if (g_advertiser_handler) g_advertiser_handler = nullptr;
 
-  if (g_scanner_handler)
-    g_scanner_handler = nullptr;
+  if (g_scanner_handler) g_scanner_handler = nullptr;
 
-  if (g_client_handler)
-    g_client_handler = nullptr;
+  if (g_client_handler) g_client_handler = nullptr;
 
-  if (g_server_handler)
-    g_server_handler = nullptr;
+  if (g_server_handler) g_server_handler = nullptr;
 }
 
 // The methods below can be used to notify observers with certain events and
 // given parameters.
 void FakeBluetoothGattInterface::NotifyRegisterScannerCallback(
-    int status, int client_if,
-    const bt_uuid_t& app_uuid) {
+    int status, int client_if, const bt_uuid_t& app_uuid) {
   FOR_EACH_OBSERVER(ScannerObserver, scanner_observers_,
                     RegisterScannerCallback(this, status, client_if, app_uuid));
 }
@@ -232,14 +215,14 @@ void FakeBluetoothGattInterface::NotifyScanResultCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyRegisterClientCallback(
-    int status, int client_if,
-    const bt_uuid_t& app_uuid) {
+    int status, int client_if, const bt_uuid_t& app_uuid) {
   FOR_EACH_OBSERVER(ClientObserver, client_observers_,
                     RegisterClientCallback(this, status, client_if, app_uuid));
 }
 
-void FakeBluetoothGattInterface::NotifyConnectCallback(
-    int conn_id, int status, int client_if, const bt_bdaddr_t& bda) {
+void FakeBluetoothGattInterface::NotifyConnectCallback(int conn_id, int status,
+                                                       int client_if,
+                                                       const bt_bdaddr_t& bda) {
   FOR_EACH_OBSERVER(ClientObserver, client_observers_,
                     ConnectCallback(this, conn_id, status, client_if, bda));
 }
@@ -251,8 +234,7 @@ void FakeBluetoothGattInterface::NotifyDisconnectCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyRegisterServerCallback(
-    int status, int server_if,
-    const bt_uuid_t& app_uuid) {
+    int status, int server_if, const bt_uuid_t& app_uuid) {
   FOR_EACH_OBSERVER(ServerObserver, server_observers_,
                     RegisterServerCallback(this, status, server_if, app_uuid));
 }
@@ -265,11 +247,9 @@ void FakeBluetoothGattInterface::NotifyServerConnectionCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyServiceAddedCallback(
-    int status, int server_if,
-    vector<btgatt_db_element_t> service) {
-  FOR_EACH_OBSERVER(
-      ServerObserver, server_observers_,
-      ServiceAddedCallback(this, status, server_if, service));
+    int status, int server_if, vector<btgatt_db_element_t> service) {
+  FOR_EACH_OBSERVER(ServerObserver, server_observers_,
+                    ServiceAddedCallback(this, status, server_if, service));
 }
 
 void FakeBluetoothGattInterface::NotifyRequestReadCharacteristicCallback(
@@ -277,8 +257,8 @@ void FakeBluetoothGattInterface::NotifyRequestReadCharacteristicCallback(
     int offset, bool is_long) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
-      RequestReadCharacteristicCallback(
-          this, conn_id, trans_id, bda, attr_handle, offset, is_long));
+      RequestReadCharacteristicCallback(this, conn_id, trans_id, bda,
+                                        attr_handle, offset, is_long));
 }
 
 void FakeBluetoothGattInterface::NotifyRequestReadDescriptorCallback(
@@ -286,30 +266,26 @@ void FakeBluetoothGattInterface::NotifyRequestReadDescriptorCallback(
     int offset, bool is_long) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
-      RequestReadDescriptorCallback(
-          this, conn_id, trans_id, bda, attr_handle, offset, is_long));
+      RequestReadDescriptorCallback(this, conn_id, trans_id, bda, attr_handle,
+                                    offset, is_long));
 }
 
 void FakeBluetoothGattInterface::NotifyRequestWriteCharacteristicCallback(
     int conn_id, int trans_id, const bt_bdaddr_t& bda, int attr_handle,
     int offset, bool need_rsp, bool is_prep, vector<uint8_t> value) {
-  FOR_EACH_OBSERVER(
-      ServerObserver, server_observers_,
-      RequestWriteCharacteristicCallback(
-          this, conn_id, trans_id, bda, attr_handle, offset, need_rsp,
-          is_prep, value));
+  FOR_EACH_OBSERVER(ServerObserver, server_observers_,
+                    RequestWriteCharacteristicCallback(
+                        this, conn_id, trans_id, bda, attr_handle, offset,
+                        need_rsp, is_prep, value));
 }
 
 void FakeBluetoothGattInterface::NotifyRequestWriteDescriptorCallback(
-    int conn_id, int trans_id,
-    const bt_bdaddr_t& bda, int attr_handle,
-    int offset, bool need_rsp, bool is_prep,
-    vector<uint8_t> value) {
+    int conn_id, int trans_id, const bt_bdaddr_t& bda, int attr_handle,
+    int offset, bool need_rsp, bool is_prep, vector<uint8_t> value) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
-      RequestWriteDescriptorCallback(
-          this, conn_id, trans_id, bda, attr_handle, offset, need_rsp,
-          is_prep, value));
+      RequestWriteDescriptorCallback(this, conn_id, trans_id, bda, attr_handle,
+                                     offset, need_rsp, is_prep, value));
 }
 
 void FakeBluetoothGattInterface::NotifyRequestExecWriteCallback(
@@ -319,8 +295,8 @@ void FakeBluetoothGattInterface::NotifyRequestExecWriteCallback(
       RequestExecWriteCallback(this, conn_id, trans_id, bda, exec_write));
 }
 
-void FakeBluetoothGattInterface::NotifyIndicationSentCallback(
-    int conn_id, int status) {
+void FakeBluetoothGattInterface::NotifyIndicationSentCallback(int conn_id,
+                                                              int status) {
   FOR_EACH_OBSERVER(ServerObserver, server_observers_,
                     IndicationSentCallback(this, conn_id, status));
 }
@@ -367,7 +343,6 @@ const btgatt_scanner_interface_t*
 FakeBluetoothGattInterface::GetScannerHALInterface() const {
   return &fake_scanner_iface;
 }
-
 
 const btgatt_client_interface_t*
 FakeBluetoothGattInterface::GetClientHALInterface() const {

@@ -35,6 +35,7 @@
 
 #include <hardware/bluetooth.h>
 
+#include "bt_common.h"
 #include "bt_hci_bdroid.h"
 #include "bt_utils.h"
 #include "bta_api.h"
@@ -43,7 +44,6 @@
 #include "btif_common.h"
 #include "btsnoop.h"
 #include "btu.h"
-#include "bt_common.h"
 #include "device/include/interop.h"
 #include "hci_layer.h"
 #include "hcimsgs.h"
@@ -76,7 +76,7 @@
 /*******************************************************************************
  *  Static variables
  ******************************************************************************/
-static const hci_t *hci;
+static const hci_t* hci;
 
 /*******************************************************************************
  *  Static functions
@@ -85,7 +85,7 @@ static const hci_t *hci;
 /*******************************************************************************
  *  Externs
  ******************************************************************************/
-fixed_queue_t *btu_hci_msg_queue;
+fixed_queue_t* btu_hci_msg_queue;
 
 /******************************************************************************
  *
@@ -96,24 +96,23 @@ fixed_queue_t *btu_hci_msg_queue;
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_boot_entry(void)
-{
-    module_init(get_module(INTEROP_MODULE));
+void bte_main_boot_entry(void) {
+  module_init(get_module(INTEROP_MODULE));
 
-    hci = hci_layer_get_interface();
-    if (!hci)
-      LOG_ERROR(LOG_TAG, "%s could not get hci layer interface.", __func__);
+  hci = hci_layer_get_interface();
+  if (!hci)
+    LOG_ERROR(LOG_TAG, "%s could not get hci layer interface.", __func__);
 
-    btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
-    if (btu_hci_msg_queue == NULL) {
-      LOG_ERROR(LOG_TAG, "%s unable to allocate hci message queue.", __func__);
-      return;
-    }
+  btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
+  if (btu_hci_msg_queue == NULL) {
+    LOG_ERROR(LOG_TAG, "%s unable to allocate hci message queue.", __func__);
+    return;
+  }
 
-    data_dispatcher_register_default(hci->event_dispatcher, btu_hci_msg_queue);
-    hci->set_data_queue(btu_hci_msg_queue);
+  data_dispatcher_register_default(hci->event_dispatcher, btu_hci_msg_queue);
+  hci->set_data_queue(btu_hci_msg_queue);
 
-    module_init(get_module(STACK_CONFIG_MODULE));
+  module_init(get_module(STACK_CONFIG_MODULE));
 }
 
 /******************************************************************************
@@ -125,17 +124,17 @@ void bte_main_boot_entry(void)
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_cleanup()
-{
-    data_dispatcher_register_default(hci_layer_get_interface()->event_dispatcher, NULL);
-    hci->set_data_queue(NULL);
-    fixed_queue_free(btu_hci_msg_queue, NULL);
+void bte_main_cleanup() {
+  data_dispatcher_register_default(hci_layer_get_interface()->event_dispatcher,
+                                   NULL);
+  hci->set_data_queue(NULL);
+  fixed_queue_free(btu_hci_msg_queue, NULL);
 
-    btu_hci_msg_queue = NULL;
+  btu_hci_msg_queue = NULL;
 
-    module_clean_up(get_module(STACK_CONFIG_MODULE));
+  module_clean_up(get_module(STACK_CONFIG_MODULE));
 
-    module_clean_up(get_module(INTEROP_MODULE));
+  module_clean_up(get_module(INTEROP_MODULE));
 }
 
 /******************************************************************************
@@ -148,14 +147,13 @@ void bte_main_cleanup()
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_enable()
-{
-    APPL_TRACE_DEBUG("%s", __func__);
+void bte_main_enable() {
+  APPL_TRACE_DEBUG("%s", __func__);
 
-    module_start_up(get_module(BTSNOOP_MODULE));
-    module_start_up(get_module(HCI_MODULE));
+  module_start_up(get_module(BTSNOOP_MODULE));
+  module_start_up(get_module(HCI_MODULE));
 
-    BTU_StartUp();
+  BTU_StartUp();
 }
 
 /******************************************************************************
@@ -168,14 +166,13 @@ void bte_main_enable()
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_disable(void)
-{
-    APPL_TRACE_DEBUG("%s", __func__);
+void bte_main_disable(void) {
+  APPL_TRACE_DEBUG("%s", __func__);
 
-    module_shut_down(get_module(HCI_MODULE));
-    module_shut_down(get_module(BTSNOOP_MODULE));
+  module_shut_down(get_module(HCI_MODULE));
+  module_shut_down(get_module(BTSNOOP_MODULE));
 
-    BTU_ShutDown();
+  BTU_ShutDown();
 }
 
 /******************************************************************************
@@ -187,10 +184,7 @@ void bte_main_disable(void)
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_postload_cfg(void)
-{
-    hci->do_postload();
-}
+void bte_main_postload_cfg(void) { hci->do_postload(); }
 
 #if (HCILP_INCLUDED == TRUE)
 /******************************************************************************
@@ -202,9 +196,8 @@ void bte_main_postload_cfg(void)
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_enable_lpm(bool enable)
-{
-    hci->send_low_power_command(enable ? LPM_ENABLE : LPM_DISABLE);
+void bte_main_enable_lpm(bool enable) {
+  hci->send_low_power_command(enable ? LPM_ENABLE : LPM_DISABLE);
 }
 
 /******************************************************************************
@@ -216,9 +209,8 @@ void bte_main_enable_lpm(bool enable)
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_lpm_allow_bt_device_sleep()
-{
-    hci->send_low_power_command(LPM_WAKE_DEASSERT);
+void bte_main_lpm_allow_bt_device_sleep() {
+  hci->send_low_power_command(LPM_WAKE_DEASSERT);
 }
 
 /******************************************************************************
@@ -230,9 +222,8 @@ void bte_main_lpm_allow_bt_device_sleep()
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_lpm_wake_bt_device()
-{
-    hci->send_low_power_command(LPM_WAKE_ASSERT);
+void bte_main_lpm_wake_bt_device() {
+  hci->send_low_power_command(LPM_WAKE_ASSERT);
 }
 #endif  // HCILP_INCLUDED
 
@@ -248,21 +239,16 @@ void bte_main_lpm_wake_bt_device()
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_hci_send (BT_HDR *p_msg, uint16_t event)
-{
-    uint16_t sub_event = event & BT_SUB_EVT_MASK;  /* local controller ID */
+void bte_main_hci_send(BT_HDR* p_msg, uint16_t event) {
+  uint16_t sub_event = event & BT_SUB_EVT_MASK; /* local controller ID */
 
-    p_msg->event = event;
+  p_msg->event = event;
 
-
-    if((sub_event == LOCAL_BR_EDR_CONTROLLER_ID) || \
-       (sub_event == LOCAL_BLE_CONTROLLER_ID))
-    {
-        hci->transmit_downward(event, p_msg);
-    }
-    else
-    {
-        APPL_TRACE_ERROR("Invalid Controller ID. Discarding message.");
-        osi_free(p_msg);
-    }
+  if ((sub_event == LOCAL_BR_EDR_CONTROLLER_ID) ||
+      (sub_event == LOCAL_BLE_CONTROLLER_ID)) {
+    hci->transmit_downward(event, p_msg);
+  } else {
+    APPL_TRACE_ERROR("Invalid Controller ID. Discarding message.");
+    osi_free(p_msg);
+  }
 }

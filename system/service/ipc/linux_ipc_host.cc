@@ -33,8 +33,8 @@
 #include <base/strings/string_number_conversions.h>
 #include <base/strings/string_split.h>
 
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "service/adapter.h"
 
 using bluetooth::Adapter;
@@ -66,9 +66,7 @@ enum {
   kPossibleFds = 2,
 };
 
-bool TokenBool(const std::string& text) {
-  return text == "true";
-}
+bool TokenBool(const std::string& text) { return text == "true"; }
 
 }  // namespace
 
@@ -77,9 +75,7 @@ namespace ipc {
 LinuxIPCHost::LinuxIPCHost(int sockfd, Adapter* adapter)
     : adapter_(adapter), pfds_(1, {sockfd, POLLIN, 0}) {}
 
-LinuxIPCHost::~LinuxIPCHost() {
-  close(pfds_[0].fd);
-}
+LinuxIPCHost::~LinuxIPCHost() { close(pfds_[0].fd); }
 
 bool LinuxIPCHost::EventLoop() {
   while (true) {
@@ -94,8 +90,7 @@ bool LinuxIPCHost::EventLoop() {
       return false;
     }
 
-    if (pfds_.size() == kPossibleFds &&
-        pfds_[kFdGatt].revents &&
+    if (pfds_.size() == kPossibleFds && pfds_[kFdGatt].revents &&
         !OnGattWrite()) {
       return false;
     }
@@ -113,8 +108,8 @@ bool LinuxIPCHost::OnCreateService(const std::string& service_uuid) {
   gatt_servers_[service_uuid] = std::unique_ptr<Server>(new Server);
 
   int gattfd;
-  bool status = gatt_servers_[service_uuid]->Initialize(
-          UUID(service_uuid), &gattfd);
+  bool status =
+      gatt_servers_[service_uuid]->Initialize(UUID(service_uuid), &gattfd);
   if (!status) {
     LOG_ERROR(LOG_TAG, "Failed to initialize bluetooth");
     return false;
@@ -132,9 +127,9 @@ bool LinuxIPCHost::OnDestroyService(const std::string& service_uuid) {
 }
 
 bool LinuxIPCHost::OnAddCharacteristic(const std::string& service_uuid,
-                               const std::string& characteristic_uuid,
-                               const std::string& control_uuid,
-                               const std::string& options) {
+                                       const std::string& characteristic_uuid,
+                                       const std::string& control_uuid,
+                                       const std::string& options) {
   std::vector<std::string> option_tokens = base::SplitString(
       options, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
@@ -169,9 +164,9 @@ bool LinuxIPCHost::OnAddCharacteristic(const std::string& service_uuid,
   return true;
 }
 
-bool LinuxIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
-                                    const std::string& characteristic_uuid,
-                                    const std::string& value) {
+bool LinuxIPCHost::OnSetCharacteristicValue(
+    const std::string& service_uuid, const std::string& characteristic_uuid,
+    const std::string& value) {
   std::string decoded_data;
   base::Base64Decode(value, &decoded_data);
   std::vector<uint8_t> blob_data(decoded_data.begin(), decoded_data.end());
@@ -181,12 +176,13 @@ bool LinuxIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
 }
 
 bool LinuxIPCHost::OnSetAdvertisement(const std::string& service_uuid,
-                              const std::string& advertise_uuids,
-                              const std::string& advertise_data,
-                              const std::string& manufacturer_data,
-                              const std::string& transmit_name) {
-  LOG_INFO(LOG_TAG, "%s: service:%s uuids:%s data:%s", __func__, service_uuid.c_str(),
-           advertise_uuids.c_str(), advertise_data.c_str());
+                                      const std::string& advertise_uuids,
+                                      const std::string& advertise_data,
+                                      const std::string& manufacturer_data,
+                                      const std::string& transmit_name) {
+  LOG_INFO(LOG_TAG, "%s: service:%s uuids:%s data:%s", __func__,
+           service_uuid.c_str(), advertise_uuids.c_str(),
+           advertise_data.c_str());
 
   std::vector<std::string> advertise_uuid_tokens = base::SplitString(
       advertise_uuids, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
@@ -212,10 +208,10 @@ bool LinuxIPCHost::OnSetAdvertisement(const std::string& service_uuid,
 }
 
 bool LinuxIPCHost::OnSetScanResponse(const std::string& service_uuid,
-                             const std::string& scan_response_uuids,
-                             const std::string& scan_response_data,
-                             const std::string& manufacturer_data,
-                             const std::string& transmit_name) {
+                                     const std::string& scan_response_uuids,
+                                     const std::string& scan_response_data,
+                                     const std::string& manufacturer_data,
+                                     const std::string& transmit_name) {
   std::vector<std::string> scan_response_uuid_tokens = base::SplitString(
       scan_response_uuids, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
@@ -251,8 +247,8 @@ bool LinuxIPCHost::OnMessage() {
   std::string ipc_msg;
   ssize_t size;
 
-  OSI_NO_INTR(size = recv(pfds_[kFdIpc].fd, &ipc_msg[0], 0,
-                          MSG_PEEK | MSG_TRUNC));
+  OSI_NO_INTR(size =
+                  recv(pfds_[kFdIpc].fd, &ipc_msg[0], 0, MSG_PEEK | MSG_TRUNC));
   if (-1 == size) {
     LOG_ERROR(LOG_TAG, "Error reading datagram size: %s", strerror(errno));
     return false;
@@ -277,14 +273,11 @@ bool LinuxIPCHost::OnMessage() {
     case 2:
       if (tokens[0] == kSetAdapterNameCommand)
         return OnSetAdapterName(tokens[1]);
-      if (tokens[0] == kCreateServiceCommand)
-        return OnCreateService(tokens[1]);
+      if (tokens[0] == kCreateServiceCommand) return OnCreateService(tokens[1]);
       if (tokens[0] == kDestroyServiceCommand)
         return OnDestroyService(tokens[1]);
-      if (tokens[0] == kStartServiceCommand)
-        return OnStartService(tokens[1]);
-      if (tokens[0] == kStopServiceCommand)
-        return OnStopService(tokens[1]);
+      if (tokens[0] == kStartServiceCommand) return OnStartService(tokens[1]);
+      if (tokens[0] == kStopServiceCommand) return OnStopService(tokens[1]);
       break;
     case 4:
       if (tokens[0] == kSetCharacteristicValueCommand)
@@ -296,9 +289,11 @@ bool LinuxIPCHost::OnMessage() {
       break;
     case 6:
       if (tokens[0] == kSetAdvertisementCommand)
-        return OnSetAdvertisement(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
+        return OnSetAdvertisement(tokens[1], tokens[2], tokens[3], tokens[4],
+                                  tokens[5]);
       if (tokens[0] == kSetScanResponseCommand)
-        return OnSetScanResponse(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
+        return OnSetScanResponse(tokens[1], tokens[2], tokens[3], tokens[4],
+                                 tokens[5]);
       break;
     default:
       break;

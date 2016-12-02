@@ -41,9 +41,8 @@ namespace ipc {
 namespace binder {
 
 // Implements the server side of the IBluetoothLowEnergy interface.
-class BluetoothLeAdvertiserBinderServer
-    : public BnBluetoothLeAdvertiser,
-      public InterfaceWithInstancesBase {
+class BluetoothLeAdvertiserBinderServer : public BnBluetoothLeAdvertiser,
+                                          public InterfaceWithInstancesBase {
  public:
   explicit BluetoothLeAdvertiserBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothLeAdvertiserBinderServer() override;
@@ -55,7 +54,8 @@ class BluetoothLeAdvertiserBinderServer
   Status UnregisterAdvertiser(int advertiser_id) override;
   Status UnregisterAll() override;
   Status StartMultiAdvertising(
-      int advertiser_id, const android::bluetooth::AdvertiseData& advertise_data,
+      int advertiser_id,
+      const android::bluetooth::AdvertiseData& advertise_data,
       const android::bluetooth::AdvertiseData& scan_response,
       const android::bluetooth::AdvertiseSettings& settings,
       bool* _aidl_return) override;
@@ -68,7 +68,8 @@ class BluetoothLeAdvertiserBinderServer
 
   // Returns a pointer to the LowEnergyAdvertiser instance associated with
   // |advertiser_id|. Returns NULL if such a advertiser cannot be found.
-  std::shared_ptr<bluetooth::LowEnergyAdvertiser> GetLEAdvertiser(int advertiser_id);
+  std::shared_ptr<bluetooth::LowEnergyAdvertiser> GetLEAdvertiser(
+      int advertiser_id);
 
   // InterfaceWithInstancesBase override:
   void OnRegisterInstanceImpl(bluetooth::BLEStatus status,

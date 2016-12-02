@@ -19,8 +19,8 @@
 
 #include "async_manager.h"
 
-#include <condition_variable>
 #include <gtest/gtest.h>
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <thread>

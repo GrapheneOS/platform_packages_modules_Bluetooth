@@ -132,7 +132,8 @@ class Adapter {
   virtual LowEnergyScannerFactory* GetLeScannerFactory() const = 0;
 
   // Returns a pointer to the LowEnergyAdvertiserFactory. This can be used to
-  // register per-application LowEnergyAdvertiser instances to perform advertising.
+  // register per-application LowEnergyAdvertiser instances to perform
+  // advertising.
   virtual LowEnergyAdvertiserFactory* GetLeAdvertiserFactory() const = 0;
 
   // Returns a pointer to the GattClientFactory. This can be used to register

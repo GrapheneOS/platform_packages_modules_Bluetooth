@@ -37,31 +37,31 @@ const int num_adv_instances = 16;
  * whole stack. They will be removed, or changed into mocks one by one in the
  * future, as the refactoring progresses */
 bool BTM_BleLocalPrivacyEnabled() { return true; }
-uint16_t BTM_ReadDiscoverability(uint16_t *p_window, uint16_t *p_interval) {
+uint16_t BTM_ReadDiscoverability(uint16_t* p_window, uint16_t* p_interval) {
   return true;
 }
-bool SMP_Encrypt(uint8_t *key, uint8_t key_len, uint8_t *plain_text,
-                 uint8_t pt_len, tSMP_ENC *p_out) {
+bool SMP_Encrypt(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
+                 uint8_t pt_len, tSMP_ENC* p_out) {
   return true;
 }
 void BTM_GetDeviceIDRoot(BT_OCTET16 irk) {}
-void btm_ble_update_dmt_flag_bits(uint8_t *flag_value,
+void btm_ble_update_dmt_flag_bits(uint8_t* flag_value,
                                   const uint16_t connect_mode,
                                   const uint16_t disc_mode) {}
 void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address) {}
 
-void btm_gen_resolvable_private_addr(void *p_cmd_cplt_cback) {
+void btm_gen_resolvable_private_addr(void* p_cmd_cplt_cback) {
   // TODO(jpawlowski): should call p_cmd_cplt_cback();
 }
-void alarm_set_on_queue(alarm_t *alarm, period_ms_t interval_ms,
-                        alarm_callback_t cb, void *data, fixed_queue_t *queue) {
+void alarm_set_on_queue(alarm_t* alarm, period_ms_t interval_ms,
+                        alarm_callback_t cb, void* data, fixed_queue_t* queue) {
 }
-void alarm_cancel(alarm_t *alarm) {}
-alarm_t *alarm_new_periodic(const char *name) { return nullptr; }
-alarm_t *alarm_new(const char *name) { return nullptr; }
-void alarm_free(alarm_t *alarm) {}
-const controller_t *controller_get_interface() { return nullptr; }
-fixed_queue_t *btu_general_alarm_queue = nullptr;
+void alarm_cancel(alarm_t* alarm) {}
+alarm_t* alarm_new_periodic(const char* name) { return nullptr; }
+alarm_t* alarm_new(const char* name) { return nullptr; }
+void alarm_free(alarm_t* alarm) {}
+const controller_t* controller_get_interface() { return nullptr; }
+fixed_queue_t* btu_general_alarm_queue = nullptr;
 
 namespace {
 
@@ -70,12 +70,13 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
   AdvertiserHciMock() = default;
   ~AdvertiserHciMock() override = default;
 
-  MOCK_METHOD1(ReadInstanceCount, void(base::Callback<void(uint8_t /* inst_cnt*/)>));
-  MOCK_METHOD1(SetAdvertisingEventObserver, void(AdvertisingEventObserver *observer));
-  MOCK_METHOD4(SetAdvertisingData,
-               void(uint8_t, uint8_t *, uint8_t, status_cb));
+  MOCK_METHOD1(ReadInstanceCount,
+               void(base::Callback<void(uint8_t /* inst_cnt*/)>));
+  MOCK_METHOD1(SetAdvertisingEventObserver,
+               void(AdvertisingEventObserver* observer));
+  MOCK_METHOD4(SetAdvertisingData, void(uint8_t, uint8_t*, uint8_t, status_cb));
   MOCK_METHOD4(SetScanResponseData,
-               void(uint8_t, uint8_t *, uint8_t, status_cb));
+               void(uint8_t, uint8_t*, uint8_t, status_cb));
   MOCK_METHOD3(SetRandomAddress, void(BD_ADDR, uint8_t, status_cb));
   MOCK_METHOD3(Enable, void(uint8_t, uint8_t, status_cb));
 
@@ -117,8 +118,8 @@ class BleAdvertisingManagerTest : public testing::Test {
 
     base::Callback<void(uint8_t)> inst_cnt_Cb;
     EXPECT_CALL(*hci_mock, ReadInstanceCount(_))
-      .Times(Exactly(1))
-      .WillOnce(SaveArg<0>(&inst_cnt_Cb));
+        .Times(Exactly(1))
+        .WillOnce(SaveArg<0>(&inst_cnt_Cb));
 
     BleAdvertisingManager::Initialize(hci_mock.get());
 
@@ -337,10 +338,9 @@ TEST_F(BleAdvertisingManagerTest, test_reenabling) {
 
 /* Make sure that instance is not reenabled if it's already disabled */
 TEST_F(BleAdvertisingManagerTest, test_reenabling_disabled_instance) {
-  uint8_t advertiser_id = 1; // any unregistered value
+  uint8_t advertiser_id = 1;  // any unregistered value
 
-  EXPECT_CALL(*hci_mock, Enable(_, _, _))
-      .Times(Exactly(0));
+  EXPECT_CALL(*hci_mock, Enable(_, _, _)).Times(Exactly(0));
   BleAdvertisingManager::Get()->OnAdvertisingStateChanged(advertiser_id, 0, 5);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 }

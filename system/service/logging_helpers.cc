@@ -23,7 +23,7 @@
   case code:                   \
     return #code
 
-const char *BtAvConnectionStateText(const btav_connection_state_t state) {
+const char* BtAvConnectionStateText(const btav_connection_state_t state) {
   switch (state) {
     CASE_RETURN_TEXT(BTAV_CONNECTION_STATE_DISCONNECTED);
     CASE_RETURN_TEXT(BTAV_CONNECTION_STATE_CONNECTING);
@@ -34,7 +34,7 @@ const char *BtAvConnectionStateText(const btav_connection_state_t state) {
   }
 }
 
-const char *BtAvAudioStateText(const btav_audio_state_t state) {
+const char* BtAvAudioStateText(const btav_audio_state_t state) {
   switch (state) {
     CASE_RETURN_TEXT(BTAV_AUDIO_STATE_REMOTE_SUSPEND);
     CASE_RETURN_TEXT(BTAV_AUDIO_STATE_STOPPED);
@@ -44,8 +44,8 @@ const char *BtAvAudioStateText(const btav_audio_state_t state) {
   }
 }
 
-const char *BtTransportText(const btgatt_transport_t t) {
-  switch(t) {
+const char* BtTransportText(const btgatt_transport_t t) {
+  switch (t) {
     CASE_RETURN_TEXT(GATT_TRANSPORT_AUTO);
     CASE_RETURN_TEXT(GATT_TRANSPORT_BREDR);
     CASE_RETURN_TEXT(GATT_TRANSPORT_LE);
@@ -54,7 +54,7 @@ const char *BtTransportText(const btgatt_transport_t t) {
   }
 }
 
-const char *BtStateText(const bt_state_t state) {
+const char* BtStateText(const bt_state_t state) {
   switch (state) {
     CASE_RETURN_TEXT(BT_STATE_OFF);
     CASE_RETURN_TEXT(BT_STATE_ON);
@@ -63,7 +63,7 @@ const char *BtStateText(const bt_state_t state) {
   }
 }
 
-const char *BtDiscoveryStateText(const bt_discovery_state_t state) {
+const char* BtDiscoveryStateText(const bt_discovery_state_t state) {
   switch (state) {
     CASE_RETURN_TEXT(BT_DISCOVERY_STOPPED);
     CASE_RETURN_TEXT(BT_DISCOVERY_STARTED);
@@ -72,7 +72,7 @@ const char *BtDiscoveryStateText(const bt_discovery_state_t state) {
   }
 }
 
-const char *BtScanModeText(const bt_scan_mode_t mode) {
+const char* BtScanModeText(const bt_scan_mode_t mode) {
   switch (mode) {
     CASE_RETURN_TEXT(BT_SCAN_MODE_NONE);
     CASE_RETURN_TEXT(BT_SCAN_MODE_CONNECTABLE);
@@ -82,7 +82,7 @@ const char *BtScanModeText(const bt_scan_mode_t mode) {
   }
 }
 
-const char *BtStatusText(const bt_status_t status) {
+const char* BtStatusText(const bt_status_t status) {
   switch (status) {
     CASE_RETURN_TEXT(BT_STATUS_SUCCESS);
     CASE_RETURN_TEXT(BT_STATUS_FAIL);
@@ -101,7 +101,7 @@ const char *BtStatusText(const bt_status_t status) {
   }
 }
 
-const char *BtPropertyText(const bt_property_type_t prop) {
+const char* BtPropertyText(const bt_property_type_t prop) {
   switch (prop) {
     CASE_RETURN_TEXT(BT_PROPERTY_BDNAME);
     CASE_RETURN_TEXT(BT_PROPERTY_BDADDR);
@@ -122,7 +122,7 @@ const char *BtPropertyText(const bt_property_type_t prop) {
   }
 }
 
-const char *BtEventText(const bt_cb_thread_evt evt) {
+const char* BtEventText(const bt_cb_thread_evt evt) {
   switch (evt) {
     CASE_RETURN_TEXT(ASSOCIATE_JVM);
     CASE_RETURN_TEXT(DISASSOCIATE_JVM);
@@ -131,7 +131,7 @@ const char *BtEventText(const bt_cb_thread_evt evt) {
   }
 }
 
-const char *BtAclText(const bt_acl_state_t code) {
+const char* BtAclText(const bt_acl_state_t code) {
   switch (code) {
     CASE_RETURN_TEXT(BT_ACL_STATE_CONNECTED);
     CASE_RETURN_TEXT(BT_ACL_STATE_DISCONNECTED);
@@ -140,7 +140,7 @@ const char *BtAclText(const bt_acl_state_t code) {
   }
 }
 
-std::string BtAddrString(const bt_bdaddr_t *addr) {
+std::string BtAddrString(const bt_bdaddr_t* addr) {
   char buffer[20];
   snprintf(buffer, sizeof(buffer), "%02X:%02X:%02X:%02X:%02X:%02X",
            addr->address[0], addr->address[1], addr->address[2],

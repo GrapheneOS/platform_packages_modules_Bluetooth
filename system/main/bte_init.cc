@@ -23,8 +23,8 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
 #include <string.h>
+#include "bt_target.h"
 
 #ifndef BTA_INCLUDED
 #define BTA_INCLUDED FALSE
@@ -81,45 +81,40 @@
  * Returns          void
  *
  *****************************************************************************/
-void BTE_InitStack(void)
-{
-/* Initialize the optional stack components */
-    RFCOMM_Init();
+void BTE_InitStack(void) {
+  /* Initialize the optional stack components */
+  RFCOMM_Init();
 
 /**************************
  * BNEP and its profiles **
  **************************/
 #if (BNEP_INCLUDED == TRUE)
-    BNEP_Init();
+  BNEP_Init();
 
 #if (PAN_INCLUDED == TRUE)
-    PAN_Init();
-#endif  /* PAN */
-#endif  /* BNEP Included */
-
+  PAN_Init();
+#endif /* PAN */
+#endif /* BNEP Included */
 
 /**************************
  * AVDT and its profiles **
  **************************/
 #if (A2D_INCLUDED == TRUE)
-    A2DP_Init();
-#endif  /* AADP */
+  A2DP_Init();
+#endif /* AADP */
 
+  AVRC_Init();
 
-    AVRC_Init();
-
-
-/***********
- * Others **
- ***********/
-    GAP_Init();
+  /***********
+   * Others **
+   ***********/
+  GAP_Init();
 
 #if (HID_HOST_INCLUDED == TRUE)
-    HID_HostInit();
+  HID_HostInit();
 #endif
 
 #if (MCA_INCLUDED == TRUE)
-    MCA_Init();
+  MCA_Init();
 #endif
-
 }

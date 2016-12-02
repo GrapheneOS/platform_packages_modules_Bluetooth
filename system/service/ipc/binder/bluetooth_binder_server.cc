@@ -20,9 +20,9 @@
 
 #include "service/ipc/binder/bluetooth_gatt_client_binder_server.h"
 #include "service/ipc/binder/bluetooth_gatt_server_binder_server.h"
-#include "service/ipc/binder/bluetooth_low_energy_binder_server.h"
 #include "service/ipc/binder/bluetooth_le_advertiser_binder_server.h"
 #include "service/ipc/binder/bluetooth_le_scanner_binder_server.h"
+#include "service/ipc/binder/bluetooth_low_energy_binder_server.h"
 
 #include "service/hal/bluetooth_interface.h"
 
@@ -60,7 +60,8 @@ Status BluetoothBinderServer::GetState(int32_t* _aidl_return) {
   return Status::ok();
 }
 
-Status BluetoothBinderServer::Enable(bool start_restricted, bool* _aidl_return) {
+Status BluetoothBinderServer::Enable(bool start_restricted,
+                                     bool* _aidl_return) {
   VLOG(2) << __func__;
   *_aidl_return = adapter_->Enable(start_restricted);
   return Status::ok();
@@ -157,7 +158,8 @@ Status BluetoothBinderServer::GetLeAdvertiserInterface(
   VLOG(2) << __func__;
 
   if (!adapter_->IsEnabled()) {
-    LOG(ERROR) << "Cannot obtain IBluetoothLeAdvertiser interface while disabled";
+    LOG(ERROR)
+        << "Cannot obtain IBluetoothLeAdvertiser interface while disabled";
     *_aidl_return = NULL;
     return Status::ok();
   }

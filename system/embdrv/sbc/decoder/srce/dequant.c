@@ -25,7 +25,8 @@
 /**
  @file
 
- Dequantizer for SBC decoder; reconstructs quantized representation of subband samples.
+ Dequantizer for SBC decoder; reconstructs quantized representation of subband
+ samples.
 
  @ingroup codec_internal
  */
@@ -43,7 +44,8 @@
  dequant = 2^(scale_factor+1) * ((raw * 2.0 + 1.0) / ((2^bits) - 1) - 1)
 
  2 <= bits <= 16
- 0 <= raw < (2^bits)-1   (the -1 is because quantized values with all 1's are forbidden)
+ 0 <= raw < (2^bits)-1   (the -1 is because quantized values with all 1's are
+ forbidden)
 
  -65535 < dequant < 65535
  @endcode
@@ -58,7 +60,8 @@
  The helper array dequant_long is defined as follows:
 
  @code
- dequant_long_long[bits] = round(2^31 * 1/((2^bits - 1) / 1.38...)  for 2 <= bits <= 16
+ dequant_long_long[bits] = round(2^31 * 1/((2^bits - 1) / 1.38...)  for 2 <=
+ bits <= 16
  @endcode
 
 
@@ -75,8 +78,10 @@
 
  d' = d * dequant_long[bits]
 
-                  d * dequant_long_scaled[bits] <= (2^bits - 2) * (2^31 / (2^bits - 1))
-                  d * dequant_long_scaled[bits] <= 2^31 * (2^bits - 2)/(2^bits - 1) < 2^31
+                  d * dequant_long_scaled[bits] <= (2^bits - 2) * (2^31 /
+ (2^bits - 1))
+                  d * dequant_long_scaled[bits] <= 2^31 * (2^bits - 2)/(2^bits -
+ 1) < 2^31
  @endcode
 
  Therefore, d' doesn't overflow a signed 32-bit value.
@@ -85,13 +90,15 @@
 
  d' =~ 2^31 * (raw * 2.0 + 1.0) / (2^bits - 1) / 1.38...
 
- result = d' - 2^31/1.38... =~ 2^31 * ((raw * 2.0 + 1.0) / (2^bits - 1) - 1) / 1.38...
+ result = d' - 2^31/1.38... =~ 2^31 * ((raw * 2.0 + 1.0) / (2^bits - 1) - 1) /
+ 1.38...
 
  result is therefore a scaled approximation to dequant. It remains only to
  turn 2^31 into 2^(scale_factor+1). Since we're aiming for Q16.15 format,
  this is achieved by shifting right by (15-scale_factor):
 
-  (2^31 * x) >> (15-scale_factor) =~ 2^(31-15+scale_factor) * x = 2^15 * 2^(1+scale_factor) * x
+  (2^31 * x) >> (15-scale_factor) =~ 2^(31-15+scale_factor) * x = 2^15 *
+ 2^(1+scale_factor) * x
  @endcode
 
  */
@@ -116,62 +123,61 @@ const uint32_t dequant_long_unscaled[17];
 /** Scales x by y bits to the right, adding a rounding factor.
  */
 #ifndef SCALE
-#define SCALE(x, y) (((x) + (1 <<((y)-1))) >> (y))
+#define SCALE(x, y) (((x) + (1 << ((y)-1))) >> (y))
 #endif
 
 #ifdef DEBUG_DEQUANTIZATION
 
 #include <math.h>
 
-INLINE float dequant_float(uint32_t raw, OI_UINT scale_factor, OI_UINT bits)
-{
-    float result = (1 << (scale_factor+1)) * ((raw * 2.0f + 1.0f) / ((1 << bits) - 1.0f) - 1.0f);
+INLINE float dequant_float(uint32_t raw, OI_UINT scale_factor, OI_UINT bits) {
+  float result = (1 << (scale_factor + 1)) *
+                 ((raw * 2.0f + 1.0f) / ((1 << bits) - 1.0f) - 1.0f);
 
-    result /= SBC_DEQUANT_SCALING_FACTOR;
+  result /= SBC_DEQUANT_SCALING_FACTOR;
 
-    /* Unless the encoder screwed up, all correct dequantized values should
-     * satisfy this inequality. Non-compliant encoders which generate quantized
-     * values with all 1-bits set can, theoretically, trigger this assert. This
-     * is unlikely, however, and only an issue in debug mode.
-     */
-    OI_ASSERT(fabs(result) < 32768 * 1.6);
+  /* Unless the encoder screwed up, all correct dequantized values should
+   * satisfy this inequality. Non-compliant encoders which generate quantized
+   * values with all 1-bits set can, theoretically, trigger this assert. This
+   * is unlikely, however, and only an issue in debug mode.
+   */
+  OI_ASSERT(fabs(result) < 32768 * 1.6);
 
-    return result;
+  return result;
 }
 
 #endif
 
+INLINE int32_t OI_SBC_Dequant(uint32_t raw, OI_UINT scale_factor,
+                              OI_UINT bits) {
+  uint32_t d;
+  int32_t result;
 
-INLINE int32_t OI_SBC_Dequant(uint32_t raw, OI_UINT scale_factor, OI_UINT bits)
-{
-    uint32_t d;
-    int32_t result;
+  OI_ASSERT(scale_factor <= 15);
+  OI_ASSERT(bits <= 16);
 
-    OI_ASSERT(scale_factor <= 15);
-    OI_ASSERT(bits <= 16);
+  if (bits <= 1) {
+    return 0;
+  }
 
-    if (bits <= 1) {
-        return 0;
-    }
-
-    d = (raw * 2) + 1;
-    d *= dequant_long_scaled[bits];
-    result = d - SBC_DEQUANT_LONG_SCALED_OFFSET;
+  d = (raw * 2) + 1;
+  d *= dequant_long_scaled[bits];
+  result = d - SBC_DEQUANT_LONG_SCALED_OFFSET;
 
 #ifdef DEBUG_DEQUANTIZATION
-    {
-        int32_t integerized_float_result;
-        float float_result;
+  {
+    int32_t integerized_float_result;
+    float float_result;
 
-        float_result = dequant_float(raw, scale_factor, bits);
-        integerized_float_result = (int32_t)floor(0.5f+float_result * (1 << 15));
+    float_result = dequant_float(raw, scale_factor, bits);
+    integerized_float_result = (int32_t)floor(0.5f + float_result * (1 << 15));
 
-        /* This detects overflow */
-        OI_ASSERT(((result >= 0) && (integerized_float_result >= 0)) ||
-                  ((result <= 0) && (integerized_float_result <= 0)));
-    }
+    /* This detects overflow */
+    OI_ASSERT(((result >= 0) && (integerized_float_result >= 0)) ||
+              ((result <= 0) && (integerized_float_result <= 0)));
+  }
 #endif
-    return result >> (15 - scale_factor);
+  return result >> (15 - scale_factor);
 }
 
 /* This version of Dequant does not incorporate the scaling factor of 1.38. It
@@ -181,29 +187,27 @@ INLINE int32_t OI_SBC_Dequant(uint32_t raw, OI_UINT scale_factor, OI_UINT bits)
  * the encoder is conformant) the result will fit a 24 bit fixed point signed
  * value.*/
 
-INLINE int32_t OI_SBC_Dequant_Unscaled(uint32_t raw, OI_UINT scale_factor, OI_UINT bits)
-{
-    uint32_t d;
-    int32_t result;
+INLINE int32_t OI_SBC_Dequant_Unscaled(uint32_t raw, OI_UINT scale_factor,
+                                       OI_UINT bits) {
+  uint32_t d;
+  int32_t result;
 
-    OI_ASSERT(scale_factor <= 15);
-    OI_ASSERT(bits <= 16);
+  OI_ASSERT(scale_factor <= 15);
+  OI_ASSERT(bits <= 16);
 
-
-    if (bits <= 1) {
-        return 0;
-    }
-    if (bits == 16) {
-        result = (raw << 16) + raw - 0x7fff7fff;
-        return SCALE(result, 24 - scale_factor);
-    }
-
-
-    d = (raw * 2) + 1;
-    d *= dequant_long_unscaled[bits];
-    result = d - 0x80000000;
-
+  if (bits <= 1) {
+    return 0;
+  }
+  if (bits == 16) {
+    result = (raw << 16) + raw - 0x7fff7fff;
     return SCALE(result, 24 - scale_factor);
+  }
+
+  d = (raw * 2) + 1;
+  d *= dequant_long_unscaled[bits];
+  result = d - 0x80000000;
+
+  return SCALE(result, 24 - scale_factor);
 }
 
 /**

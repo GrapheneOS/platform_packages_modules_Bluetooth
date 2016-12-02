@@ -26,10 +26,10 @@
 
 namespace {
 
-static void create_random_uuid(bt_uuid_t *uuid, int seed) {
+static void create_random_uuid(bt_uuid_t* uuid, int seed) {
   srand(seed < 0 ? time(NULL) : seed);
   for (int i = 0; i < 16; ++i) {
-    uuid->uu[i] = (uint8_t) (rand() % 256);
+    uuid->uu[i] = (uint8_t)(rand() % 256);
   }
 }
 
@@ -44,7 +44,7 @@ TEST_F(GattTest, GattClientRegister) {
   gatt_client_interface()->register_client(&gatt_client_uuid);
   semaphore_wait(register_client_callback_sem_);
   EXPECT_TRUE(status() == BT_STATUS_SUCCESS)
-    << "Error registering GATT client app callback.";
+      << "Error registering GATT client app callback.";
 
   // Unregisters gatt client. No callback is expected.
   gatt_client_interface()->unregister_client(client_interface_id());
@@ -57,7 +57,7 @@ TEST_F(GattTest, GattServerRegister) {
   gatt_server_interface()->register_server(&gatt_server_uuid);
   semaphore_wait(register_server_callback_sem_);
   EXPECT_TRUE(status() == BT_STATUS_SUCCESS)
-    << "Error registering GATT server app callback.";
+      << "Error registering GATT server app callback.";
 
   // Unregisters gatt server. No callback is expected.
   gatt_server_interface()->unregister_server(server_interface_id());
@@ -70,7 +70,7 @@ TEST_F(GattTest, GattServerBuild) {
   gatt_server_interface()->register_server(&gatt_server_uuid);
   semaphore_wait(register_server_callback_sem_);
   EXPECT_TRUE(status() == BT_STATUS_SUCCESS)
-    << "Error registering GATT server app callback.";
+      << "Error registering GATT server app callback.";
 
   // Service UUID.
   bt_uuid_t srvc_uuid;
@@ -88,11 +88,12 @@ TEST_F(GattTest, GattServerBuild) {
   int server_if = server_interface_id();
 
   vector<btgatt_db_element_t> service = {
-    {.type = BTGATT_DB_PRIMARY_SERVICE, .uuid=srvc_uuid},
-    {.type = BTGATT_DB_CHARACTERISTIC, .uuid=char_uuid,
-     .properties = 0x10 /* notification */, .permissions = 0x01  /* read only */},
-    {.type = BTGATT_DB_DESCRIPTOR, .uuid=desc_uuid, .permissions = 0x01}
-  };
+      {.type = BTGATT_DB_PRIMARY_SERVICE, .uuid = srvc_uuid},
+      {.type = BTGATT_DB_CHARACTERISTIC,
+       .uuid = char_uuid,
+       .properties = 0x10 /* notification */,
+       .permissions = 0x01 /* read only */},
+      {.type = BTGATT_DB_DESCRIPTOR, .uuid = desc_uuid, .permissions = 0x01}};
 
   gatt_server_interface()->add_service(server_if, service);
   semaphore_wait(service_added_callback_sem_);

@@ -25,31 +25,30 @@
 #include <stddef.h>
 #include "bt_target.h"
 
+#include "bt_common.h"
 #include "osi/include/osi.h"
 #include "osi/include/time.h"
-#include "bt_common.h"
 
-#include "rfcdefs.h"
-#include "port_api.h"
-#include "port_int.h"
+#include "bt_utils.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
+#include "port_api.h"
+#include "port_int.h"
 #include "rfc_int.h"
-#include "bt_utils.h"
-
+#include "rfcdefs.h"
 
 /*
  * Define Callback functions to be called by L2CAP
 */
-static void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid, uint16_t psm, uint8_t id);
-static void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t err);
-static void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
-static void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg);
-static void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_clear);
-static void RFCOMM_QoSViolationInd (UNUSED_ATTR BD_ADDR bd_addr);
-static void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf);
-static void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested);
-
+static void RFCOMM_ConnectInd(BD_ADDR bd_addr, uint16_t lcid, uint16_t psm,
+                              uint8_t id);
+static void RFCOMM_ConnectCnf(uint16_t lcid, uint16_t err);
+static void RFCOMM_ConfigInd(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg);
+static void RFCOMM_ConfigCnf(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg);
+static void RFCOMM_DisconnectInd(uint16_t lcid, bool is_clear);
+static void RFCOMM_QoSViolationInd(UNUSED_ATTR BD_ADDR bd_addr);
+static void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf);
+static void RFCOMM_CongestionStatusInd(uint16_t lcid, bool is_congested);
 
 /*******************************************************************************
  *
@@ -59,26 +58,23 @@ static void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested);
  *                  to register interface functions with L2CAP.
  *
  ******************************************************************************/
-void rfcomm_l2cap_if_init (void)
-{
-    tL2CAP_APPL_INFO *p_l2c = &rfc_cb.rfc.reg_info;
+void rfcomm_l2cap_if_init(void) {
+  tL2CAP_APPL_INFO* p_l2c = &rfc_cb.rfc.reg_info;
 
-    p_l2c->pL2CA_ConnectInd_Cb       = RFCOMM_ConnectInd;
-    p_l2c->pL2CA_ConnectCfm_Cb       = RFCOMM_ConnectCnf;
-    p_l2c->pL2CA_ConnectPnd_Cb       = NULL;
-    p_l2c->pL2CA_ConfigInd_Cb        = RFCOMM_ConfigInd;
-    p_l2c->pL2CA_ConfigCfm_Cb        = RFCOMM_ConfigCnf;
-    p_l2c->pL2CA_DisconnectInd_Cb    = RFCOMM_DisconnectInd;
-    p_l2c->pL2CA_DisconnectCfm_Cb    = NULL;
-    p_l2c->pL2CA_QoSViolationInd_Cb  = RFCOMM_QoSViolationInd;
-    p_l2c->pL2CA_DataInd_Cb          = RFCOMM_BufDataInd;
-    p_l2c->pL2CA_CongestionStatus_Cb = RFCOMM_CongestionStatusInd;
-    p_l2c->pL2CA_TxComplete_Cb       = NULL;
+  p_l2c->pL2CA_ConnectInd_Cb = RFCOMM_ConnectInd;
+  p_l2c->pL2CA_ConnectCfm_Cb = RFCOMM_ConnectCnf;
+  p_l2c->pL2CA_ConnectPnd_Cb = NULL;
+  p_l2c->pL2CA_ConfigInd_Cb = RFCOMM_ConfigInd;
+  p_l2c->pL2CA_ConfigCfm_Cb = RFCOMM_ConfigCnf;
+  p_l2c->pL2CA_DisconnectInd_Cb = RFCOMM_DisconnectInd;
+  p_l2c->pL2CA_DisconnectCfm_Cb = NULL;
+  p_l2c->pL2CA_QoSViolationInd_Cb = RFCOMM_QoSViolationInd;
+  p_l2c->pL2CA_DataInd_Cb = RFCOMM_BufDataInd;
+  p_l2c->pL2CA_CongestionStatus_Cb = RFCOMM_CongestionStatusInd;
+  p_l2c->pL2CA_TxComplete_Cb = NULL;
 
-
-    L2CA_Register (BT_PSM_RFCOMM, p_l2c);
+  L2CA_Register(BT_PSM_RFCOMM, p_l2c);
 }
-
 
 /*******************************************************************************
  *
@@ -89,51 +85,46 @@ void rfcomm_l2cap_if_init (void)
  *                  block and dispatch the event to it.
  *
  ******************************************************************************/
-void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid,
-                        UNUSED_ATTR uint16_t psm, uint8_t id)
-{
-    tRFC_MCB *p_mcb = rfc_alloc_multiplexer_channel(bd_addr, false);
+void RFCOMM_ConnectInd(BD_ADDR bd_addr, uint16_t lcid, UNUSED_ATTR uint16_t psm,
+                       uint8_t id) {
+  tRFC_MCB* p_mcb = rfc_alloc_multiplexer_channel(bd_addr, false);
 
-    if ((p_mcb)&&(p_mcb->state != RFC_MX_STATE_IDLE))
-    {
-        /* if this is collision case */
-        if ((p_mcb->is_initiator)&&(p_mcb->state == RFC_MX_STATE_WAIT_CONN_CNF))
-        {
-            p_mcb->pending_lcid = lcid;
-            p_mcb->pending_id   = id;
+  if ((p_mcb) && (p_mcb->state != RFC_MX_STATE_IDLE)) {
+    /* if this is collision case */
+    if ((p_mcb->is_initiator) && (p_mcb->state == RFC_MX_STATE_WAIT_CONN_CNF)) {
+      p_mcb->pending_lcid = lcid;
+      p_mcb->pending_id = id;
 
-            /* wait random timeout (2 - 12) to resolve collision */
-            /* if peer gives up then local device rejects incoming connection and continues as initiator */
-            /* if timeout, local device disconnects outgoing connection and continues as acceptor */
-            RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectInd start timer for collision, initiator's LCID(0x%x), acceptor's LCID(0x%x)",
-                                  p_mcb->lcid, p_mcb->pending_lcid);
+      /* wait random timeout (2 - 12) to resolve collision */
+      /* if peer gives up then local device rejects incoming connection and
+       * continues as initiator */
+      /* if timeout, local device disconnects outgoing connection and continues
+       * as acceptor */
+      RFCOMM_TRACE_DEBUG(
+          "RFCOMM_ConnectInd start timer for collision, initiator's "
+          "LCID(0x%x), acceptor's LCID(0x%x)",
+          p_mcb->lcid, p_mcb->pending_lcid);
 
-            rfc_timer_start(p_mcb, (uint16_t)(time_get_os_boottime_ms() % 10 + 2));
-            return;
-        }
-        else
-        {
-            /* we cannot accept connection request from peer at this state */
-            /* don't update lcid */
-            p_mcb = NULL;
-        }
+      rfc_timer_start(p_mcb, (uint16_t)(time_get_os_boottime_ms() % 10 + 2));
+      return;
+    } else {
+      /* we cannot accept connection request from peer at this state */
+      /* don't update lcid */
+      p_mcb = NULL;
     }
-    else
-    {
-        /* store mcb even if null */
-        rfc_save_lcid_mcb (p_mcb, lcid);
-    }
+  } else {
+    /* store mcb even if null */
+    rfc_save_lcid_mcb(p_mcb, lcid);
+  }
 
-    if (p_mcb == NULL)
-    {
-        L2CA_ConnectRsp (bd_addr, id, lcid, L2CAP_CONN_NO_RESOURCES, 0);
-        return;
-    }
-    p_mcb->lcid     = lcid;
+  if (p_mcb == NULL) {
+    L2CA_ConnectRsp(bd_addr, id, lcid, L2CAP_CONN_NO_RESOURCES, 0);
+    return;
+  }
+  p_mcb->lcid = lcid;
 
-    rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_CONN_IND, &id);
+  rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_CONN_IND, &id);
 }
-
 
 /*******************************************************************************
  *
@@ -144,69 +135,67 @@ void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid,
  *                  event to the FSM.
  *
  ******************************************************************************/
-void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t result)
-{
-    tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
+void RFCOMM_ConnectCnf(uint16_t lcid, uint16_t result) {
+  tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
-    if (!p_mcb)
-    {
-        RFCOMM_TRACE_ERROR ("RFCOMM_ConnectCnf LCID:0x%x", lcid);
-        return;
-    }
+  if (!p_mcb) {
+    RFCOMM_TRACE_ERROR("RFCOMM_ConnectCnf LCID:0x%x", lcid);
+    return;
+  }
 
-    if (p_mcb->pending_lcid)
-    {
-        /* if peer rejects our connect request but peer's connect request is pending */
-        if (result != L2CAP_CONN_OK )
-        {
-            uint16_t i;
-            uint8_t idx;
+  if (p_mcb->pending_lcid) {
+    /* if peer rejects our connect request but peer's connect request is pending
+     */
+    if (result != L2CAP_CONN_OK) {
+      uint16_t i;
+      uint8_t idx;
 
-            RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectCnf retry as acceptor on pending LCID(0x%x)", p_mcb->pending_lcid);
+      RFCOMM_TRACE_DEBUG(
+          "RFCOMM_ConnectCnf retry as acceptor on pending LCID(0x%x)",
+          p_mcb->pending_lcid);
 
-            /* remove mcb from mapping table */
-            rfc_save_lcid_mcb (NULL, p_mcb->lcid);
+      /* remove mcb from mapping table */
+      rfc_save_lcid_mcb(NULL, p_mcb->lcid);
 
-            p_mcb->lcid         = p_mcb->pending_lcid;
-            p_mcb->is_initiator = false;
-            p_mcb->state        = RFC_MX_STATE_IDLE;
+      p_mcb->lcid = p_mcb->pending_lcid;
+      p_mcb->is_initiator = false;
+      p_mcb->state = RFC_MX_STATE_IDLE;
 
-            /* store mcb into mapping table */
-            rfc_save_lcid_mcb (p_mcb, p_mcb->lcid);
+      /* store mcb into mapping table */
+      rfc_save_lcid_mcb(p_mcb, p_mcb->lcid);
 
-            /* update direction bit */
-            for (i = 0; i < RFCOMM_MAX_DLCI; i += 2)
-            {
-                idx = p_mcb->port_inx[i];
-                if (idx != 0)
-                {
-                    p_mcb->port_inx[i] = 0;
-                    p_mcb->port_inx[i+1] = idx;
-                    rfc_cb.port.port[idx - 1].dlci += 1;
-                    RFCOMM_TRACE_DEBUG ("RFCOMM MX - DLCI:%d -> %d", i, rfc_cb.port.port[idx - 1].dlci);
-                }
-            }
-
-            rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_CONN_IND, &(p_mcb->pending_id));
-            return;
+      /* update direction bit */
+      for (i = 0; i < RFCOMM_MAX_DLCI; i += 2) {
+        idx = p_mcb->port_inx[i];
+        if (idx != 0) {
+          p_mcb->port_inx[i] = 0;
+          p_mcb->port_inx[i + 1] = idx;
+          rfc_cb.port.port[idx - 1].dlci += 1;
+          RFCOMM_TRACE_DEBUG("RFCOMM MX - DLCI:%d -> %d", i,
+                             rfc_cb.port.port[idx - 1].dlci);
         }
-        else
-        {
-            RFCOMM_TRACE_DEBUG ("RFCOMM_ConnectCnf peer gave up pending LCID(0x%x)", p_mcb->pending_lcid);
+      }
 
-            /* Peer gave up his connection request, make sure cleaning up L2CAP channel */
-            L2CA_ConnectRsp (p_mcb->bd_addr, p_mcb->pending_id, p_mcb->pending_lcid, L2CAP_CONN_NO_RESOURCES, 0);
+      rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_CONN_IND, &(p_mcb->pending_id));
+      return;
+    } else {
+      RFCOMM_TRACE_DEBUG("RFCOMM_ConnectCnf peer gave up pending LCID(0x%x)",
+                         p_mcb->pending_lcid);
 
-            p_mcb->pending_lcid = 0;
-        }
+      /* Peer gave up his connection request, make sure cleaning up L2CAP
+       * channel */
+      L2CA_ConnectRsp(p_mcb->bd_addr, p_mcb->pending_id, p_mcb->pending_lcid,
+                      L2CAP_CONN_NO_RESOURCES, 0);
+
+      p_mcb->pending_lcid = 0;
     }
+  }
 
-    /* Save LCID to be used in all consecutive calls to L2CAP */
-    p_mcb->lcid         = lcid;
+  /* Save LCID to be used in all consecutive calls to L2CAP */
+  p_mcb->lcid = lcid;
 
-    rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_CONN_CNF, &result);
+  rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_CONN_CNF, &result);
 }
-
 
 /*******************************************************************************
  *
@@ -217,19 +206,16 @@ void RFCOMM_ConnectCnf (uint16_t lcid, uint16_t result)
  *                  block and dispatch event to the FSM.
  *
  ******************************************************************************/
-void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
-{
-    tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
+void RFCOMM_ConfigInd(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
+  tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
-    if (!p_mcb)
-    {
-        RFCOMM_TRACE_ERROR ("RFCOMM_ConfigInd LCID:0x%x", lcid);
-        return;
-    }
+  if (!p_mcb) {
+    RFCOMM_TRACE_ERROR("RFCOMM_ConfigInd LCID:0x%x", lcid);
+    return;
+  }
 
-    rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_CONF_IND, (void *)p_cfg);
+  rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_CONF_IND, (void*)p_cfg);
 }
-
 
 /*******************************************************************************
  *
@@ -240,19 +226,16 @@ void RFCOMM_ConfigInd (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
  *                  event to the FSM.
  *
  ******************************************************************************/
-void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
-{
-    tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
+void RFCOMM_ConfigCnf(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
+  tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
-    if (!p_mcb)
-    {
-        RFCOMM_TRACE_ERROR ("RFCOMM_ConfigCnf no MCB LCID:0x%x", lcid);
-        return;
-    }
+  if (!p_mcb) {
+    RFCOMM_TRACE_ERROR("RFCOMM_ConfigCnf no MCB LCID:0x%x", lcid);
+    return;
+  }
 
-    rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_CONF_CNF, (void *)p_cfg);
+  rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_CONF_CNF, (void*)p_cfg);
 }
-
 
 /*******************************************************************************
  *
@@ -263,10 +246,7 @@ void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
  *                  FSM.
  *
  ******************************************************************************/
-void RFCOMM_QoSViolationInd (UNUSED_ATTR BD_ADDR bd_addr)
-{
-}
-
+void RFCOMM_QoSViolationInd(UNUSED_ATTR BD_ADDR bd_addr) {}
 
 /*******************************************************************************
  *
@@ -276,24 +256,20 @@ void RFCOMM_QoSViolationInd (UNUSED_ATTR BD_ADDR bd_addr)
  *                  L2CA_DisconnectInd received.  Dispatch event to the FSM.
  *
  ******************************************************************************/
-void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_conf_needed)
-{
-    tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
+void RFCOMM_DisconnectInd(uint16_t lcid, bool is_conf_needed) {
+  tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
-    if (is_conf_needed)
-    {
-        L2CA_DisconnectRsp (lcid);
-    }
+  if (is_conf_needed) {
+    L2CA_DisconnectRsp(lcid);
+  }
 
-    if (!p_mcb)
-    {
-        RFCOMM_TRACE_WARNING ("RFCOMM_DisconnectInd LCID:0x%x", lcid);
-        return;
-    }
+  if (!p_mcb) {
+    RFCOMM_TRACE_WARNING("RFCOMM_DisconnectInd LCID:0x%x", lcid);
+    return;
+  }
 
-    rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_DISC_IND, NULL);
+  rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_DISC_IND, NULL);
 }
-
 
 /*******************************************************************************
  *
@@ -305,84 +281,75 @@ void RFCOMM_DisconnectInd (uint16_t lcid, bool    is_conf_needed)
  *                  state machine depending on the frame destination.
  *
  ******************************************************************************/
-void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf)
-{
-    tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
-    tPORT    *p_port;
-    uint8_t  event;
+void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
+  tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
+  tPORT* p_port;
+  uint8_t event;
 
-
-    if (!p_mcb)
-    {
-        RFCOMM_TRACE_WARNING ("RFCOMM_BufDataInd LCID:0x%x", lcid);
-        osi_free(p_buf);
-        return;
-    }
-
-    event = rfc_parse_data (p_mcb, &rfc_cb.rfc.rx_frame, p_buf);
-
-    /* If the frame did not pass validation just ignore it */
-    if (event == RFC_EVENT_BAD_FRAME)
-    {
-        osi_free(p_buf);
-        return;
-    }
-
-    if (rfc_cb.rfc.rx_frame.dlci == RFCOMM_MX_DLCI)
-    {
-        /* Take special care of the Multiplexer Control Messages */
-        if (event == RFC_EVENT_UIH)
-        {
-            rfc_process_mx_message (p_mcb, p_buf);
-            return;
-        }
-
-        /* Other multiplexer events go to state machine */
-        rfc_mx_sm_execute (p_mcb, event, NULL);
-        osi_free(p_buf);
-        return;
-    }
-
-    /* The frame was received on the data channel DLCI, verify that DLC exists */
-    if (((p_port = port_find_mcb_dlci_port (p_mcb, rfc_cb.rfc.rx_frame.dlci)) == NULL)
-     || (!p_port->rfc.p_mcb))
-    {
-        /* If this is a SABME on the new port, check if any appl is waiting for it */
-        if (event != RFC_EVENT_SABME)
-        {
-            if (( p_mcb->is_initiator && !rfc_cb.rfc.rx_frame.cr)
-             || (!p_mcb->is_initiator &&  rfc_cb.rfc.rx_frame.cr))
-                rfc_send_dm (p_mcb, rfc_cb.rfc.rx_frame.dlci, rfc_cb.rfc.rx_frame.pf);
-            osi_free(p_buf);
-            return;
-        }
-
-        p_port = port_find_dlci_port(rfc_cb.rfc.rx_frame.dlci);
-        if (p_port == NULL)
-        {
-            rfc_send_dm (p_mcb, rfc_cb.rfc.rx_frame.dlci, true);
-            osi_free(p_buf);
-            return;
-        }
-        p_mcb->port_inx[rfc_cb.rfc.rx_frame.dlci] = p_port->inx;
-        p_port->rfc.p_mcb = p_mcb;
-    }
-
-    if (event == RFC_EVENT_UIH)
-    {
-
-        if (p_buf->len > 0)
-            rfc_port_sm_execute (p_port, event, p_buf);
-        else
-            osi_free(p_buf);
-
-        if (rfc_cb.rfc.rx_frame.credit != 0)
-            rfc_inc_credit (p_port, rfc_cb.rfc.rx_frame.credit);
-
-        return;
-    }
-    rfc_port_sm_execute (p_port, event,  NULL);
+  if (!p_mcb) {
+    RFCOMM_TRACE_WARNING("RFCOMM_BufDataInd LCID:0x%x", lcid);
     osi_free(p_buf);
+    return;
+  }
+
+  event = rfc_parse_data(p_mcb, &rfc_cb.rfc.rx_frame, p_buf);
+
+  /* If the frame did not pass validation just ignore it */
+  if (event == RFC_EVENT_BAD_FRAME) {
+    osi_free(p_buf);
+    return;
+  }
+
+  if (rfc_cb.rfc.rx_frame.dlci == RFCOMM_MX_DLCI) {
+    /* Take special care of the Multiplexer Control Messages */
+    if (event == RFC_EVENT_UIH) {
+      rfc_process_mx_message(p_mcb, p_buf);
+      return;
+    }
+
+    /* Other multiplexer events go to state machine */
+    rfc_mx_sm_execute(p_mcb, event, NULL);
+    osi_free(p_buf);
+    return;
+  }
+
+  /* The frame was received on the data channel DLCI, verify that DLC exists */
+  if (((p_port = port_find_mcb_dlci_port(p_mcb, rfc_cb.rfc.rx_frame.dlci)) ==
+       NULL) ||
+      (!p_port->rfc.p_mcb)) {
+    /* If this is a SABME on the new port, check if any appl is waiting for it
+     */
+    if (event != RFC_EVENT_SABME) {
+      if ((p_mcb->is_initiator && !rfc_cb.rfc.rx_frame.cr) ||
+          (!p_mcb->is_initiator && rfc_cb.rfc.rx_frame.cr))
+        rfc_send_dm(p_mcb, rfc_cb.rfc.rx_frame.dlci, rfc_cb.rfc.rx_frame.pf);
+      osi_free(p_buf);
+      return;
+    }
+
+    p_port = port_find_dlci_port(rfc_cb.rfc.rx_frame.dlci);
+    if (p_port == NULL) {
+      rfc_send_dm(p_mcb, rfc_cb.rfc.rx_frame.dlci, true);
+      osi_free(p_buf);
+      return;
+    }
+    p_mcb->port_inx[rfc_cb.rfc.rx_frame.dlci] = p_port->inx;
+    p_port->rfc.p_mcb = p_mcb;
+  }
+
+  if (event == RFC_EVENT_UIH) {
+    if (p_buf->len > 0)
+      rfc_port_sm_execute(p_port, event, p_buf);
+    else
+      osi_free(p_buf);
+
+    if (rfc_cb.rfc.rx_frame.credit != 0)
+      rfc_inc_credit(p_port, rfc_cb.rfc.rx_frame.credit);
+
+    return;
+  }
+  rfc_port_sm_execute(p_port, event, NULL);
+  osi_free(p_buf);
 }
 
 /*******************************************************************************
@@ -393,20 +360,16 @@ void RFCOMM_BufDataInd (uint16_t lcid, BT_HDR *p_buf)
  *                  data RFCOMM L2CAP congestion status changes
  *
  ******************************************************************************/
-void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested)
-{
-    tRFC_MCB *p_mcb = rfc_find_lcid_mcb (lcid);
+void RFCOMM_CongestionStatusInd(uint16_t lcid, bool is_congested) {
+  tRFC_MCB* p_mcb = rfc_find_lcid_mcb(lcid);
 
-    if (!p_mcb)
-    {
-        RFCOMM_TRACE_ERROR ("RFCOMM_CongestionStatusInd dropped LCID:0x%x", lcid);
-        return;
-    }
-    else
-    {
-        RFCOMM_TRACE_EVENT ("RFCOMM_CongestionStatusInd LCID:0x%x", lcid);
-    }
-    rfc_process_l2cap_congestion (p_mcb, is_congested);
+  if (!p_mcb) {
+    RFCOMM_TRACE_ERROR("RFCOMM_CongestionStatusInd dropped LCID:0x%x", lcid);
+    return;
+  } else {
+    RFCOMM_TRACE_EVENT("RFCOMM_CongestionStatusInd LCID:0x%x", lcid);
+  }
+  rfc_process_l2cap_congestion(p_mcb, is_congested);
 }
 
 /*******************************************************************************
@@ -416,30 +379,25 @@ void RFCOMM_CongestionStatusInd (uint16_t lcid, bool    is_congested)
  * Description      This function returns MCB block supporting local cid
  *
  ******************************************************************************/
-tRFC_MCB *rfc_find_lcid_mcb (uint16_t lcid)
-{
-    tRFC_MCB *p_mcb;
+tRFC_MCB* rfc_find_lcid_mcb(uint16_t lcid) {
+  tRFC_MCB* p_mcb;
 
-    if (lcid - L2CAP_BASE_APPL_CID >= MAX_L2CAP_CHANNELS)
-    {
-        RFCOMM_TRACE_ERROR ("rfc_find_lcid_mcb LCID:0x%x", lcid);
+  if (lcid - L2CAP_BASE_APPL_CID >= MAX_L2CAP_CHANNELS) {
+    RFCOMM_TRACE_ERROR("rfc_find_lcid_mcb LCID:0x%x", lcid);
+    return (NULL);
+  } else {
+    p_mcb = rfc_cb.rfc.p_rfc_lcid_mcb[lcid - L2CAP_BASE_APPL_CID];
+    if (p_mcb != NULL) {
+      if (p_mcb->lcid != lcid) {
+        RFCOMM_TRACE_WARNING(
+            "rfc_find_lcid_mcb LCID reused LCID:0x%x current:0x%x", lcid,
+            p_mcb->lcid);
         return (NULL);
+      }
     }
-    else
-    {
-        p_mcb = rfc_cb.rfc.p_rfc_lcid_mcb[lcid - L2CAP_BASE_APPL_CID];
-        if (p_mcb != NULL)
-        {
-            if (p_mcb->lcid != lcid)
-            {
-                RFCOMM_TRACE_WARNING ("rfc_find_lcid_mcb LCID reused LCID:0x%x current:0x%x", lcid, p_mcb->lcid);
-                return (NULL);
-            }
-        }
-    }
-    return (p_mcb);
+  }
+  return (p_mcb);
 }
-
 
 /*******************************************************************************
  *
@@ -448,9 +406,7 @@ tRFC_MCB *rfc_find_lcid_mcb (uint16_t lcid)
  * Description      This function returns MCB block supporting local cid
  *
  ******************************************************************************/
-void rfc_save_lcid_mcb(tRFC_MCB *p_mcb, uint16_t lcid)
-{
-    if (lcid < L2CAP_BASE_APPL_CID)
-        return;
-    rfc_cb.rfc.p_rfc_lcid_mcb[lcid - L2CAP_BASE_APPL_CID] = p_mcb;
+void rfc_save_lcid_mcb(tRFC_MCB* p_mcb, uint16_t lcid) {
+  if (lcid < L2CAP_BASE_APPL_CID) return;
+  rfc_cb.rfc.p_rfc_lcid_mcb[lcid - L2CAP_BASE_APPL_CID] = p_mcb;
 }

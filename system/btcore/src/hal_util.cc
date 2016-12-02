@@ -30,29 +30,29 @@
 
 // TODO(armansito): All logging macros should include __func__ by default (see
 // Bug: 22671731)
-#define HULOGERR(fmt, args...) \
-    LOG_ERROR(LOG_TAG, "[%s] failed to load the Bluetooth library: " fmt, \
-              __func__, ## args)
+#define HULOGERR(fmt, args...)                                          \
+  LOG_ERROR(LOG_TAG, "[%s] failed to load the Bluetooth library: " fmt, \
+            __func__, ##args)
 
 // TODO(armansito): It might be better to pass the library name in a more
 // generic manner as opposed to hard-coding it here.
 static const char kBluetoothLibraryName[] = "libbluetooth.default.so";
 
-static int load_bt_library(const struct hw_module_t **module) {
-  const char *id = BT_STACK_MODULE_ID;
-  const char *sym = HAL_MODULE_INFO_SYM_AS_STR;
-  struct hw_module_t *hmi = nullptr;
+static int load_bt_library(const struct hw_module_t** module) {
+  const char* id = BT_STACK_MODULE_ID;
+  const char* sym = HAL_MODULE_INFO_SYM_AS_STR;
+  struct hw_module_t* hmi = nullptr;
 
   // Always try to load the default Bluetooth stack on GN builds.
-  void *handle = dlopen(kBluetoothLibraryName, RTLD_NOW);
+  void* handle = dlopen(kBluetoothLibraryName, RTLD_NOW);
   if (!handle) {
-    char const *err_str = dlerror();
+    char const* err_str = dlerror();
     HULOGERR("%s", err_str ? err_str : "error unknown");
     goto error;
   }
 
   // Get the address of the struct hal_module_info.
-  hmi = (struct hw_module_t *)dlsym(handle, sym);
+  hmi = (struct hw_module_t*)dlsym(handle, sym);
   if (!hmi) {
     HULOGERR("%s", sym);
     goto error;
@@ -67,24 +67,22 @@ static int load_bt_library(const struct hw_module_t **module) {
   hmi->dso = handle;
 
   // Success.
-  LOG_INFO(
-      LOG_TAG, "[%s] loaded HAL id=%s path=%s hmi=%p handle=%p",
-      __func__, id, kBluetoothLibraryName, hmi, handle);
+  LOG_INFO(LOG_TAG, "[%s] loaded HAL id=%s path=%s hmi=%p handle=%p", __func__,
+           id, kBluetoothLibraryName, hmi, handle);
 
   *module = hmi;
   return 0;
 
 error:
   *module = NULL;
-  if (handle)
-    dlclose(handle);
+  if (handle) dlclose(handle);
 
   return -EINVAL;
 }
 
 #endif  // defined(OS_GENERIC)
 
-int hal_util_load_bt_library(const struct hw_module_t **module) {
+int hal_util_load_bt_library(const struct hw_module_t** module) {
 #if defined(OS_GENERIC)
   return load_bt_library(module);
 #else  // !defined(OS_GENERIC)

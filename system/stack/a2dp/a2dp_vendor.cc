@@ -35,13 +35,12 @@ tA2DP_CODEC_SEP_INDEX A2DP_VendorSourceCodecSepIndex(
   return A2DP_CODEC_SEP_INDEX_MAX;
 }
 
-const char* A2DP_VendorCodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index)
-{
+const char* A2DP_VendorCodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index) {
   // Add checks based on codec_sep_index
   switch (codec_sep_index) {
     case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
     case A2DP_CODEC_SEP_INDEX_SINK_SBC:
-      break;                    // This is not a vendor-specific codec
+      break;  // This is not a vendor-specific codec
     case A2DP_CODEC_SEP_INDEX_MAX:
       break;
   }
@@ -50,13 +49,12 @@ const char* A2DP_VendorCodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index)
 }
 
 bool A2DP_VendorInitCodecConfig(tA2DP_CODEC_SEP_INDEX codec_sep_index,
-                                UNUSED_ATTR tAVDT_CFG* p_cfg)
-{
+                                UNUSED_ATTR tAVDT_CFG* p_cfg) {
   // Add checks based on codec_sep_index
   switch (codec_sep_index) {
     case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
     case A2DP_CODEC_SEP_INDEX_SINK_SBC:
-      break;                    // This is not a vendor-specific codec
+      break;  // This is not a vendor-specific codec
     case A2DP_CODEC_SEP_INDEX_MAX:
       break;
   }

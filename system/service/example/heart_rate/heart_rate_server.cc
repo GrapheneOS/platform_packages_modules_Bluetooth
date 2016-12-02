@@ -39,13 +39,15 @@ namespace heart_rate {
 class CLIBluetoothLeAdvertiserCallback
     : public android::bluetooth::BnBluetoothLeAdvertiserCallback {
  public:
-  explicit CLIBluetoothLeAdvertiserCallback(android::sp<android::bluetooth::IBluetooth> bt)
+  explicit CLIBluetoothLeAdvertiserCallback(
+      android::sp<android::bluetooth::IBluetooth> bt)
       : bt_(bt) {}
 
   // IBluetoothLeAdvertiserCallback overrides:
   Status OnAdvertiserRegistered(int status, int advertiser_id) {
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
-      LOG(ERROR) << "Failed to register BLE advertiser, will not start advertising";
+      LOG(ERROR)
+          << "Failed to register BLE advertiser, will not start advertising";
       return Status::ok();
     }
 
@@ -56,9 +58,10 @@ class CLIBluetoothLeAdvertiserCallback
     std::string name(String8(name_param).string());
 
     /* Advertising data: 16-bit Service UUID: Heart Rate Service, Tx power*/
-    std::vector<uint8_t> data{
-      0x03, bluetooth::kEIRTypeComplete16BitUUIDs, 0x0D, 0x18,
-      0x02, bluetooth::kEIRTypeTxPower, 0x00};
+    std::vector<uint8_t> data{0x03, bluetooth::kEIRTypeComplete16BitUUIDs,
+                              0x0D, 0x18,
+                              0x02, bluetooth::kEIRTypeTxPower,
+                              0x00};
     data.push_back(name.length() + 1);
     data.push_back(bluetooth::kEIRTypeCompleteLocalName);
     data.insert(data.begin(), name.c_str(), name.c_str() + name.length());
@@ -91,7 +94,6 @@ class CLIBluetoothLeAdvertiserCallback
   android::sp<android::bluetooth::IBluetooth> bt_;
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLeAdvertiserCallback);
 };
-
 
 HeartRateServer::HeartRateServer(
     android::sp<android::bluetooth::IBluetooth> bluetooth,
@@ -239,16 +241,30 @@ Status HeartRateServer::OnServerRegistered(int status, int server_if) {
 
   LOG(INFO) << "Heart Rate server registered - server_if: " << server_if_;
 
-  bluetooth::Service hrService(0, true, kHRServiceUUID, {
-    {0, kHRMeasurementUUID, bluetooth::kCharacteristicPropertyNotify, 0,
-      { {0, kCCCDescriptorUUID, (bluetooth::kAttributePermissionRead | bluetooth::kAttributePermissionWrite)}} },
-    {0, kBodySensorLocationUUID, bluetooth::kCharacteristicPropertyRead, bluetooth::kAttributePermissionRead, {}},
-    {0, kHRControlPointUUID, bluetooth::kCharacteristicPropertyWrite, bluetooth::kAttributePermissionWrite, {}}
-    }, {});
+  bluetooth::Service hrService(
+      0, true, kHRServiceUUID,
+      {{0,
+        kHRMeasurementUUID,
+        bluetooth::kCharacteristicPropertyNotify,
+        0,
+        {{0, kCCCDescriptorUUID, (bluetooth::kAttributePermissionRead |
+                                  bluetooth::kAttributePermissionWrite)}}},
+       {0,
+        kBodySensorLocationUUID,
+        bluetooth::kCharacteristicPropertyRead,
+        bluetooth::kAttributePermissionRead,
+        {}},
+       {0,
+        kHRControlPointUUID,
+        bluetooth::kCharacteristicPropertyWrite,
+        bluetooth::kAttributePermissionWrite,
+        {}}},
+      {});
 
   bool op_status = true;
 
-  Status stat = gatt_->AddService(server_if_, (BluetoothGattService)hrService, &op_status);
+  Status stat = gatt_->AddService(server_if_, (BluetoothGattService)hrService,
+                                  &op_status);
   if (!stat.isOk()) {
     LOG(ERROR) << "Failed to add service, status is: " /*<< stat*/;
     pending_run_cb_(false);
@@ -289,7 +305,8 @@ Status HeartRateServer::OnServiceAdded(
     android::sp<IBluetoothLeAdvertiser> ble;
     bluetooth_->GetLeAdvertiserInterface(&ble);
     bool status;
-    ble->RegisterAdvertiser(new CLIBluetoothLeAdvertiserCallback(bluetooth_), &status);
+    ble->RegisterAdvertiser(new CLIBluetoothLeAdvertiserCallback(bluetooth_),
+                            &status);
   }
 
   return Status::ok();
@@ -298,7 +315,6 @@ Status HeartRateServer::OnServiceAdded(
 Status HeartRateServer::OnCharacteristicReadRequest(
     const String16& device_address, int request_id, int offset,
     bool /* is_long */, int handle) {
-
   std::lock_guard<std::mutex> lock(mutex_);
 
   // This is where we handle an incoming characteristic read. Only the body
@@ -318,9 +334,10 @@ Status HeartRateServer::OnCharacteristicReadRequest(
   return Status::ok();
 }
 
-Status HeartRateServer::OnDescriptorReadRequest(
-    const String16& device_address, int request_id, int offset,
-    bool /* is_long */, int handle) {
+Status HeartRateServer::OnDescriptorReadRequest(const String16& device_address,
+                                                int request_id, int offset,
+                                                bool /* is_long */,
+                                                int handle) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // This is where we handle an incoming characteristic descriptor read. There
@@ -472,7 +489,7 @@ Status HeartRateServer::OnNotificationSent(const String16& device_address,
 Status HeartRateServer::OnConnectionStateChanged(const String16& device_address,
                                                  bool connected) {
   LOG(INFO) << "Connection state changed - device: " << device_address
-            << " connected: " << (connected? "true" : "false");
+            << " connected: " << (connected ? "true" : "false");
   return Status::ok();
 }
 }  // namespace heart_rate

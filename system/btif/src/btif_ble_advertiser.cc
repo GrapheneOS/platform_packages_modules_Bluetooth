@@ -174,16 +174,15 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     p_params->tx_power = ble_map_adv_tx_power(params.tx_power);
 
     do_in_bta_thread(
-        FROM_HERE,
-        Bind(&BleAdvertisingManager::StartAdvertising,
-             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
-             base::Bind(
-                 [](Callback cb, uint8_t status) {
-                   do_in_jni_thread(Bind(cb, status));
-                 },
-                 cb),
-             base::Owned(p_params), std::move(advertise_data),
-             std::move(scan_response_data), timeout_s, timeout_cb));
+        FROM_HERE, Bind(&BleAdvertisingManager::StartAdvertising,
+                        base::Unretained(BleAdvertisingManager::Get()),
+                        advertiser_id, base::Bind(
+                                           [](Callback cb, uint8_t status) {
+                                             do_in_jni_thread(Bind(cb, status));
+                                           },
+                                           cb),
+                        base::Owned(p_params), std::move(advertise_data),
+                        std::move(scan_response_data), timeout_s, timeout_cb));
   }
 };
 

@@ -54,75 +54,86 @@ extern "C" {
  *  @{
  */
 
-#define OI_CPU_X86         1 /**< x86 processor family */
-#define OI_CPU_ARM         2 /**< ARM processor family.
-                                  @deprecated Use #OI_CPU_ARM7_LEND or
-                                  #OI_CPU_ARM7_BEND. */
-#define OI_CPU_ARC         3 /**< ARC processor family.
-                                  @deprecated Use #OI_CPU_ARC_LEND or
-                                  #OI_CPU_ARC_BEND. */
-#define OI_CPU_SH3         4 /**< Hitachi SH-3 processor family */
-#define OI_CPU_H8          5 /**< Hitachi H8 processor family */
-#define OI_CPU_MIPS        6 /**< MIPS processor family */
-#define OI_CPU_SPARC       7 /**< SPARC processor family */
-#define OI_CPU_M68000      8 /**< Motorola M68000 processor family */
-#define OI_CPU_PPC         9 /**< PowerPC (PPC) processor family */
-#define OI_CPU_SH4_7750   10 /**< Hitachi SH7750 series in SH-4 processor family */
-#define OI_CPU_SH2        11 /**< Hitachi SH-2 processor family */
-#define OI_CPU_ARM7_LEND  12 /**< ARM7, little-endian */
-#define OI_CPU_ARM7_BEND  13 /**< ARM7, big-endian */
-#define OI_CPU_GDM1202    14 /**< GCT GDM1202 */
-#define OI_CPU_ARC_LEND   15 /**< ARC processor family, little-endian */
-#define OI_CPU_ARC_BEND   16 /**< ARC processor family, big-endian */
-#define OI_CPU_M30833F    17 /**< Mitsubishi M308 processor family */
-#define OI_CPU_CR16C      18 /**< National Semiconductor 16 bit processor family */
-#define OI_CPU_M64111     19 /**< Renesas M64111 processor (M32R family) */
-#define OI_CPU_ARMV5_LEND 20 //*< ARM5, little-endian */
+#define OI_CPU_X86 1 /**< x86 processor family */
+#define OI_CPU_ARM                            \
+  2 /**< ARM processor family.                \
+         @deprecated Use #OI_CPU_ARM7_LEND or \
+         #OI_CPU_ARM7_BEND. */
+#define OI_CPU_ARC                                               \
+  3                     /**< ARC processor family.               \
+                             @deprecated Use #OI_CPU_ARC_LEND or \
+                             #OI_CPU_ARC_BEND. */
+#define OI_CPU_SH3 4    /**< Hitachi SH-3 processor family */
+#define OI_CPU_H8 5     /**< Hitachi H8 processor family */
+#define OI_CPU_MIPS 6   /**< MIPS processor family */
+#define OI_CPU_SPARC 7  /**< SPARC processor family */
+#define OI_CPU_M68000 8 /**< Motorola M68000 processor family */
+#define OI_CPU_PPC 9    /**< PowerPC (PPC) processor family */
+#define OI_CPU_SH4_7750 \
+  10                  /**< Hitachi SH7750 series in SH-4 processor family */
+#define OI_CPU_SH2 11 /**< Hitachi SH-2 processor family */
+#define OI_CPU_ARM7_LEND 12 /**< ARM7, little-endian */
+#define OI_CPU_ARM7_BEND 13 /**< ARM7, big-endian */
+#define OI_CPU_GDM1202 14   /**< GCT GDM1202 */
+#define OI_CPU_ARC_LEND 15  /**< ARC processor family, little-endian */
+#define OI_CPU_ARC_BEND 16  /**< ARC processor family, big-endian */
+#define OI_CPU_M30833F 17   /**< Mitsubishi M308 processor family */
+#define OI_CPU_CR16C 18  /**< National Semiconductor 16 bit processor family */
+#define OI_CPU_M64111 19 /**< Renesas M64111 processor (M32R family) */
+#define OI_CPU_ARMV5_LEND 20  //*< ARM5, little-endian */
 
 #define OI_CPU_TYPE 12
 
 #ifndef OI_CPU_TYPE
-    #error "OI_CPU_TYPE type not defined"
+#error "OI_CPU_TYPE type not defined"
 #endif
 
 /**@}*/
-
 
 /** @name Definitions indicating byte-wise endianness of target CPU
  *  @{
  */
 
-#define OI_BIG_ENDIAN_BYTE_ORDER    0  /**< Multiple-byte values are stored in memory beginning with the most significant byte at the lowest address.  */
-#define OI_LITTLE_ENDIAN_BYTE_ORDER 1  /**< Multiple-byte values are stored in memory beginning with the least significant byte at the lowest address. */
+#define OI_BIG_ENDIAN_BYTE_ORDER                                           \
+  0 /**< Multiple-byte values are stored in memory beginning with the most \
+       significant byte at the lowest address.  */
+#define OI_LITTLE_ENDIAN_BYTE_ORDER                                         \
+  1 /**< Multiple-byte values are stored in memory beginning with the least \
+       significant byte at the lowest address. */
 
 /**@}*/
-
 
 /** @name  CPU/compiler-independent primitive data type definitions
  *  @{
  */
 
-typedef int             OI_BOOL;  /**< Boolean values use native integer data type for target CPU. */
-typedef int             OI_INT;   /**< Integer values use native integer data type for target CPU. */
-typedef unsigned int    OI_UINT;  /**< Unsigned integer values use native unsigned integer data type for target CPU. */
-typedef unsigned char   OI_BYTE;  /**< Raw bytes type uses native character data type for target CPU. */
-typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to support all data types up to pointer width. */
+typedef int
+    OI_BOOL; /**< Boolean values use native integer data type for target CPU. */
+typedef int
+    OI_INT; /**< Integer values use native integer data type for target CPU. */
+typedef unsigned int OI_UINT;  /**< Unsigned integer values use native unsigned
+                                  integer data type for target CPU. */
+typedef unsigned char OI_BYTE; /**< Raw bytes type uses native character data
+                                  type for target CPU. */
+typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to
+                                      support all data types up to pointer
+                                      width. */
 
 /**@}*/
 
-
-
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_X86
+#if OI_CPU_TYPE == OI_CPU_X86
 
-#define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER  /**< x86 platform byte ordering is little-endian */
+#define OI_CPU_BYTE_ORDER                                                      \
+  OI_LITTLE_ENDIAN_BYTE_ORDER /**< x86 platform byte ordering is little-endian \
+                                 */
 
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_ARM
+#if OI_CPU_TYPE == OI_CPU_ARM
 /* This CPU type is deprecated (removed from use). Instead, use OI_CPU_ARM7_LEND
  * or OI_CPU_ARM7_BEND for little-endian or big-endian configurations of the
  * ARM7, respectively. */
@@ -140,125 +151,132 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_SH3
+#if OI_CPU_TYPE == OI_CPU_SH3
 /* The Hitachi SH C compiler defines _LIT or _BIG, depending on the endianness
     specified to the compiler on the command line. */
 #if defined(_LIT)
-    #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER  /**< If _LIT is defined, SH-3 platform byte ordering is little-endian. */
+#define OI_CPU_BYTE_ORDER                                                 \
+  OI_LITTLE_ENDIAN_BYTE_ORDER /**< If _LIT is defined, SH-3 platform byte \
+                                 ordering is little-endian. */
 #elif defined(_BIG)
-    #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER     /**< If _BIG is defined, SH-3 platform byte ordering is big-endian. */
+#define OI_CPU_BYTE_ORDER                                              \
+  OI_BIG_ENDIAN_BYTE_ORDER /**< If _BIG is defined, SH-3 platform byte \
+                              ordering is big-endian. */
 #else
-    #error SH compiler endianness undefined
+#error SH compiler endianness undefined
 #endif
 
 #endif
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_SH2
+#if OI_CPU_TYPE == OI_CPU_SH2
 
-#define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER /**< SH-2 platform byte ordering is big-endian. */
+#define OI_CPU_BYTE_ORDER \
+  OI_BIG_ENDIAN_BYTE_ORDER /**< SH-2 platform byte ordering is big-endian. */
 
 #endif
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_H8
+#if OI_CPU_TYPE == OI_CPU_H8
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #error basic types not defined
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_MIPS
+#if OI_CPU_TYPE == OI_CPU_MIPS
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_SPARC
+#if OI_CPU_TYPE == OI_CPU_SPARC
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #error basic types not defined
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_M68000
-#define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER  /**< M68000 platform byte ordering is big-endian. */
+#if OI_CPU_TYPE == OI_CPU_M68000
+#define OI_CPU_BYTE_ORDER                                                    \
+  OI_BIG_ENDIAN_BYTE_ORDER /**< M68000 platform byte ordering is big-endian. \
+                              */
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_PPC
+#if OI_CPU_TYPE == OI_CPU_PPC
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_SH4_7750
-#define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER  /**< SH7750 platform byte ordering is big-endian. */
+#if OI_CPU_TYPE == OI_CPU_SH4_7750
+#define OI_CPU_BYTE_ORDER                                                    \
+  OI_BIG_ENDIAN_BYTE_ORDER /**< SH7750 platform byte ordering is big-endian. \
+                              */
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_ARM7_LEND
+#if OI_CPU_TYPE == OI_CPU_ARM7_LEND
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_ARM7_BEND
+#if OI_CPU_TYPE == OI_CPU_ARM7_BEND
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_GDM1202
+#if OI_CPU_TYPE == OI_CPU_GDM1202
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_ARC_LEND
+#if OI_CPU_TYPE == OI_CPU_ARC_LEND
 
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_ARC_BEND
+#if OI_CPU_TYPE == OI_CPU_ARC_BEND
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_M30833F
+#if OI_CPU_TYPE == OI_CPU_M30833F
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_CR16C
+#if OI_CPU_TYPE == OI_CPU_CR16C
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_M64111
+#if OI_CPU_TYPE == OI_CPU_M64111
 #define OI_CPU_BYTE_ORDER OI_BIG_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_ARMV5_LEND
+#if OI_CPU_TYPE == OI_CPU_ARMV5_LEND
 #define OI_CPU_BYTE_ORDER OI_LITTLE_ENDIAN_BYTE_ORDER
 #endif
 
 /******************************************************************************/
-
 
 #ifndef OI_CPU_BYTE_ORDER
-    #error "Byte order (endian-ness) not defined"
+#error "Byte order (endian-ness) not defined"
 #endif
-
 
 /**@}*/
 

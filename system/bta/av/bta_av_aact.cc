@@ -451,18 +451,18 @@ static void bta_av_proc_stream_evt(uint8_t handle, BD_ADDR bd_addr,
         case AVDT_RECONFIG_CFM_EVT:
           if (p_msg->msg.hdr.err_code == 0) {
             APPL_TRACE_DEBUG(
-              "%s: reconfig cfm event codec info = 0x%06x-%06x-%06x-%02x",
-              __func__,
-              (p_msg->msg.reconfig_cfm.p_cfg->codec_info[0] << 16) +
-                  (p_msg->msg.reconfig_cfm.p_cfg->codec_info[1] << 8) +
-                  p_msg->msg.reconfig_cfm.p_cfg->codec_info[2],
-              (p_msg->msg.reconfig_cfm.p_cfg->codec_info[3] << 16) +
-                  (p_msg->msg.reconfig_cfm.p_cfg->codec_info[4] << 8) +
-                  p_msg->msg.reconfig_cfm.p_cfg->codec_info[5],
-              (p_msg->msg.reconfig_cfm.p_cfg->codec_info[6] << 16) +
-                  (p_msg->msg.reconfig_cfm.p_cfg->codec_info[7] << 8) +
-                  p_msg->msg.reconfig_cfm.p_cfg->codec_info[8],
-              p_msg->msg.reconfig_cfm.p_cfg->codec_info[9]);
+                "%s: reconfig cfm event codec info = 0x%06x-%06x-%06x-%02x",
+                __func__,
+                (p_msg->msg.reconfig_cfm.p_cfg->codec_info[0] << 16) +
+                    (p_msg->msg.reconfig_cfm.p_cfg->codec_info[1] << 8) +
+                    p_msg->msg.reconfig_cfm.p_cfg->codec_info[2],
+                (p_msg->msg.reconfig_cfm.p_cfg->codec_info[3] << 16) +
+                    (p_msg->msg.reconfig_cfm.p_cfg->codec_info[4] << 8) +
+                    p_msg->msg.reconfig_cfm.p_cfg->codec_info[5],
+                (p_msg->msg.reconfig_cfm.p_cfg->codec_info[6] << 16) +
+                    (p_msg->msg.reconfig_cfm.p_cfg->codec_info[7] << 8) +
+                    p_msg->msg.reconfig_cfm.p_cfg->codec_info[8],
+                p_msg->msg.reconfig_cfm.p_cfg->codec_info[9]);
           }
           break;
 

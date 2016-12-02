@@ -56,21 +56,23 @@ class HeartRateServer
   // ipc::binder::IBluetoothGattServerCallback override:
   Status OnServerRegistered(int status, int server_id) override;
   Status OnServiceAdded(
-      int status, const android::bluetooth::BluetoothGattService& service) override;
-  Status OnCharacteristicReadRequest(
-      const String16& device_address, int request_id, int offset, bool is_long,
-      int handle) override;
-  Status OnDescriptorReadRequest(
-      const String16& device_address, int request_id, int offset, bool is_long,
-      int handle) override;
-  Status OnCharacteristicWriteRequest(
-      const String16& device_address, int request_id, int offset,
-      bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value, int handle) override;
-  Status OnDescriptorWriteRequest(
-      const String16& device_address, int request_id, int offset,
-      bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value, int handle) override;
+      int status,
+      const android::bluetooth::BluetoothGattService& service) override;
+  Status OnCharacteristicReadRequest(const String16& device_address,
+                                     int request_id, int offset, bool is_long,
+                                     int handle) override;
+  Status OnDescriptorReadRequest(const String16& device_address, int request_id,
+                                 int offset, bool is_long, int handle) override;
+  Status OnCharacteristicWriteRequest(const String16& device_address,
+                                      int request_id, int offset,
+                                      bool is_prepare_write, bool need_response,
+                                      const std::vector<uint8_t>& value,
+                                      int handle) override;
+  Status OnDescriptorWriteRequest(const String16& device_address,
+                                  int request_id, int offset,
+                                  bool is_prepare_write, bool need_response,
+                                  const std::vector<uint8_t>& value,
+                                  int handle) override;
   Status OnExecuteWriteRequest(const String16& device_address, int request_id,
                                bool is_execute) override;
   Status OnNotificationSent(const String16& device_address,

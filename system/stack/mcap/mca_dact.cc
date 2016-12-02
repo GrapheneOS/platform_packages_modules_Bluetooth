@@ -24,9 +24,9 @@
  ******************************************************************************/
 
 #include <stddef.h>
+#include "bt_common.h"
 #include "bt_target.h"
 #include "bt_utils.h"
-#include "bt_common.h"
 #include "mca_api.h"
 #include "mca_int.h"
 #include "osi/include/osi.h"
@@ -40,14 +40,13 @@
  * Returns          void.
  *
  ******************************************************************************/
-void mca_dcb_report_cong (tMCA_DCB *p_dcb)
-{
-    tMCA_CTRL   evt_data;
+void mca_dcb_report_cong(tMCA_DCB* p_dcb) {
+  tMCA_CTRL evt_data;
 
-    evt_data.cong_chg.cong   = p_dcb->cong;
-    evt_data.cong_chg.mdl    = mca_dcb_to_hdl(p_dcb);
-    evt_data.cong_chg.mdl_id = p_dcb->mdl_id;
-    mca_ccb_report_event (p_dcb->p_ccb, MCA_CONG_CHG_EVT, &evt_data);
+  evt_data.cong_chg.cong = p_dcb->cong;
+  evt_data.cong_chg.mdl = mca_dcb_to_hdl(p_dcb);
+  evt_data.cong_chg.mdl_id = p_dcb->mdl_id;
+  mca_ccb_report_event(p_dcb->p_ccb, MCA_CONG_CHG_EVT, &evt_data);
 }
 
 /*******************************************************************************
@@ -61,20 +60,18 @@ void mca_dcb_report_cong (tMCA_DCB *p_dcb)
  * Returns          void.
  *
  ******************************************************************************/
-void mca_dcb_tc_open (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
-{
-    tMCA_CTRL   evt_data;
-    tMCA_CCB    *p_ccb = p_dcb->p_ccb;
-    uint8_t     event = MCA_OPEN_IND_EVT;
+void mca_dcb_tc_open(tMCA_DCB* p_dcb, tMCA_DCB_EVT* p_data) {
+  tMCA_CTRL evt_data;
+  tMCA_CCB* p_ccb = p_dcb->p_ccb;
+  uint8_t event = MCA_OPEN_IND_EVT;
 
-    if (p_data->open.param == MCA_INT)
-        event = MCA_OPEN_CFM_EVT;
-    p_dcb->cong  = false;
-    evt_data.open_cfm.mtu       = p_data->open.peer_mtu;
-    evt_data.open_cfm.mdl_id    = p_dcb->mdl_id;
-    evt_data.open_cfm.mdl       = mca_dcb_to_hdl(p_dcb);
-    mca_ccb_event (p_ccb, MCA_CCB_DL_OPEN_EVT, NULL);
-    mca_ccb_report_event (p_ccb, event, &evt_data);
+  if (p_data->open.param == MCA_INT) event = MCA_OPEN_CFM_EVT;
+  p_dcb->cong = false;
+  evt_data.open_cfm.mtu = p_data->open.peer_mtu;
+  evt_data.open_cfm.mdl_id = p_dcb->mdl_id;
+  evt_data.open_cfm.mdl = mca_dcb_to_hdl(p_dcb);
+  mca_ccb_event(p_ccb, MCA_CCB_DL_OPEN_EVT, NULL);
+  mca_ccb_report_event(p_ccb, event, &evt_data);
 }
 
 /*******************************************************************************
@@ -86,10 +83,9 @@ void mca_dcb_tc_open (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
  * Returns          void.
  *
  ******************************************************************************/
-void mca_dcb_cong (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
-{
-    p_dcb->cong  = p_data->llcong;
-    mca_dcb_report_cong(p_dcb);
+void mca_dcb_cong(tMCA_DCB* p_dcb, tMCA_DCB_EVT* p_data) {
+  p_dcb->cong = p_data->llcong;
+  mca_dcb_report_cong(p_dcb);
 }
 
 /*******************************************************************************
@@ -101,9 +97,8 @@ void mca_dcb_cong (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
  * Returns          void.
  *
  ******************************************************************************/
-void mca_dcb_free_data(UNUSED_ATTR tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
-{
-    osi_free(p_data);
+void mca_dcb_free_data(UNUSED_ATTR tMCA_DCB* p_dcb, tMCA_DCB_EVT* p_data) {
+  osi_free(p_data);
 }
 
 /*******************************************************************************
@@ -115,18 +110,15 @@ void mca_dcb_free_data(UNUSED_ATTR tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
  * Returns          void.
  *
  ******************************************************************************/
-void mca_dcb_do_disconn (tMCA_DCB *p_dcb,
-                         UNUSED_ATTR tMCA_DCB_EVT *p_data)
-{
-    tMCA_CLOSE  close;
+void mca_dcb_do_disconn(tMCA_DCB* p_dcb, UNUSED_ATTR tMCA_DCB_EVT* p_data) {
+  tMCA_CLOSE close;
 
-    if ((p_dcb->lcid == 0) || (L2CA_DisconnectReq(p_dcb->lcid) == false))
-    {
-        close.param  = MCA_INT;
-        close.reason = L2CAP_DISC_OK;
-        close.lcid   = 0;
-        mca_dcb_event(p_dcb, MCA_DCB_TC_CLOSE_EVT, (tMCA_DCB_EVT *) &close);
-    }
+  if ((p_dcb->lcid == 0) || (L2CA_DisconnectReq(p_dcb->lcid) == false)) {
+    close.param = MCA_INT;
+    close.reason = L2CAP_DISC_OK;
+    close.lcid = 0;
+    mca_dcb_event(p_dcb, MCA_DCB_TC_CLOSE_EVT, (tMCA_DCB_EVT*)&close);
+  }
 }
 
 /*******************************************************************************
@@ -138,17 +130,15 @@ void mca_dcb_do_disconn (tMCA_DCB *p_dcb,
  * Returns          void.
  *
  ******************************************************************************/
-void mca_dcb_snd_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
-{
-    uint8_t status;
+void mca_dcb_snd_data(tMCA_DCB* p_dcb, tMCA_DCB_EVT* p_data) {
+  uint8_t status;
 
-    /* do not need to check cong, because API already checked the status */
-    status = L2CA_DataWrite (p_dcb->lcid, p_data->p_pkt);
-    if (status == L2CAP_DW_CONGESTED)
-    {
-        p_dcb->cong = true;
-        mca_dcb_report_cong(p_dcb);
-    }
+  /* do not need to check cong, because API already checked the status */
+  status = L2CA_DataWrite(p_dcb->lcid, p_data->p_pkt);
+  if (status == L2CAP_DW_CONGESTED) {
+    p_dcb->cong = true;
+    mca_dcb_report_cong(p_dcb);
+  }
 }
 
 /*******************************************************************************
@@ -161,8 +151,6 @@ void mca_dcb_snd_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
  * Returns          void.
  *
  ******************************************************************************/
-void mca_dcb_hdl_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
-{
-    (*p_dcb->p_cs->p_data_cback) (mca_dcb_to_hdl(p_dcb), (BT_HDR *)p_data);
+void mca_dcb_hdl_data(tMCA_DCB* p_dcb, tMCA_DCB_EVT* p_data) {
+  (*p_dcb->p_cs->p_data_cback)(mca_dcb_to_hdl(p_dcb), (BT_HDR*)p_data);
 }
-

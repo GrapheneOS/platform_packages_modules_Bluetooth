@@ -24,10 +24,10 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "bt_types.h"
-#include "bt_target.h"
 #include "avct_api.h"
 #include "avct_int.h"
+#include "bt_target.h"
+#include "bt_types.h"
 
 /*******************************************************************************
  *
@@ -39,29 +39,25 @@
  * Returns          pointer to the ccb, or NULL if none could be allocated.
  *
  ******************************************************************************/
-tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc)
-{
-    tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
-    int         i;
+tAVCT_CCB* avct_ccb_alloc(tAVCT_CC* p_cc) {
+  tAVCT_CCB* p_ccb = &avct_cb.ccb[0];
+  int i;
 
-    for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++)
-    {
-        if (!p_ccb->allocated)
-        {
-            p_ccb->allocated = AVCT_ALOC_LCB;
-            memcpy(&p_ccb->cc, p_cc, sizeof(tAVCT_CC));
-            AVCT_TRACE_DEBUG("avct_ccb_alloc %d", i);
-            break;
-        }
+  for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++) {
+    if (!p_ccb->allocated) {
+      p_ccb->allocated = AVCT_ALOC_LCB;
+      memcpy(&p_ccb->cc, p_cc, sizeof(tAVCT_CC));
+      AVCT_TRACE_DEBUG("avct_ccb_alloc %d", i);
+      break;
     }
+  }
 
-    if (i == AVCT_NUM_CONN)
-    {
-        /* out of ccbs */
-        p_ccb = NULL;
-        AVCT_TRACE_WARNING("Out of ccbs");
-    }
-    return p_ccb;
+  if (i == AVCT_NUM_CONN) {
+    /* out of ccbs */
+    p_ccb = NULL;
+    AVCT_TRACE_WARNING("Out of ccbs");
+  }
+  return p_ccb;
 }
 
 /*******************************************************************************
@@ -75,27 +71,25 @@ tAVCT_CCB *avct_ccb_alloc(tAVCT_CC *p_cc)
  * Returns          void.
  *
  ******************************************************************************/
-void avct_ccb_dealloc(tAVCT_CCB *p_ccb, uint8_t event, uint16_t result, BD_ADDR bd_addr)
-{
-    tAVCT_CTRL_CBACK    *p_cback = p_ccb->cc.p_ctrl_cback;
+void avct_ccb_dealloc(tAVCT_CCB* p_ccb, uint8_t event, uint16_t result,
+                      BD_ADDR bd_addr) {
+  tAVCT_CTRL_CBACK* p_cback = p_ccb->cc.p_ctrl_cback;
 
-    AVCT_TRACE_DEBUG("avct_ccb_dealloc %d", avct_ccb_to_idx(p_ccb));
+  AVCT_TRACE_DEBUG("avct_ccb_dealloc %d", avct_ccb_to_idx(p_ccb));
 
-    if(p_ccb->p_bcb == NULL)
-    {
-        memset(p_ccb, 0, sizeof(tAVCT_CCB));
-    }
-    else
-    {
-        /* control channel is down, but the browsing channel is still connected 0 disconnect it now */
-        avct_bcb_event(p_ccb->p_bcb, AVCT_LCB_UL_UNBIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
-        p_ccb->p_lcb = NULL;
-    }
+  if (p_ccb->p_bcb == NULL) {
+    memset(p_ccb, 0, sizeof(tAVCT_CCB));
+  } else {
+    /* control channel is down, but the browsing channel is still connected 0
+     * disconnect it now */
+    avct_bcb_event(p_ccb->p_bcb, AVCT_LCB_UL_UNBIND_EVT,
+                   (tAVCT_LCB_EVT*)&p_ccb);
+    p_ccb->p_lcb = NULL;
+  }
 
-    if (event != AVCT_NO_EVT)
-    {
-        (*p_cback)(avct_ccb_to_idx(p_ccb), event, result, bd_addr);
-    }
+  if (event != AVCT_NO_EVT) {
+    (*p_cback)(avct_ccb_to_idx(p_ccb), event, result, bd_addr);
+  }
 }
 
 /*******************************************************************************
@@ -108,10 +102,9 @@ void avct_ccb_dealloc(tAVCT_CCB *p_ccb, uint8_t event, uint16_t result, BD_ADDR 
  * Returns          Index of ccb.
  *
  ******************************************************************************/
-uint8_t avct_ccb_to_idx(tAVCT_CCB *p_ccb)
-{
-    /* use array arithmetic to determine index */
-    return (uint8_t) (p_ccb - avct_cb.ccb);
+uint8_t avct_ccb_to_idx(tAVCT_CCB* p_ccb) {
+  /* use array arithmetic to determine index */
+  return (uint8_t)(p_ccb - avct_cb.ccb);
 }
 
 /*******************************************************************************
@@ -124,26 +117,21 @@ uint8_t avct_ccb_to_idx(tAVCT_CCB *p_ccb)
  * Returns          pointer to the ccb, or NULL if none found.
  *
  ******************************************************************************/
-tAVCT_CCB *avct_ccb_by_idx(uint8_t idx)
-{
-    tAVCT_CCB   *p_ccb;
+tAVCT_CCB* avct_ccb_by_idx(uint8_t idx) {
+  tAVCT_CCB* p_ccb;
 
-    /* verify index */
-    if (idx < AVCT_NUM_CONN)
-    {
-        p_ccb = &avct_cb.ccb[idx];
+  /* verify index */
+  if (idx < AVCT_NUM_CONN) {
+    p_ccb = &avct_cb.ccb[idx];
 
-        /* verify ccb is allocated */
-        if (!p_ccb->allocated)
-        {
-            p_ccb = NULL;
-            AVCT_TRACE_WARNING("ccb %d not allocated", idx);
-        }
+    /* verify ccb is allocated */
+    if (!p_ccb->allocated) {
+      p_ccb = NULL;
+      AVCT_TRACE_WARNING("ccb %d not allocated", idx);
     }
-    else
-    {
-        p_ccb = NULL;
-        AVCT_TRACE_WARNING("No ccb for idx %d", idx);
-    }
-    return p_ccb;
+  } else {
+    p_ccb = NULL;
+    AVCT_TRACE_WARNING("No ccb for idx %d", idx);
+  }
+  return p_ccb;
 }

@@ -57,7 +57,7 @@ extern void SMP_Init(void);
  * Returns          The new or current trace level
  *
  ******************************************************************************/
-extern uint8_t SMP_SetTraceLevel (uint8_t new_level);
+extern uint8_t SMP_SetTraceLevel(uint8_t new_level);
 
 /*******************************************************************************
  *
@@ -68,7 +68,7 @@ extern uint8_t SMP_SetTraceLevel (uint8_t new_level);
  * Returns          void
  *
  ******************************************************************************/
-extern bool    SMP_Register (tSMP_CALLBACK *p_cback);
+extern bool SMP_Register(tSMP_CALLBACK* p_cback);
 
 /*******************************************************************************
  *
@@ -79,7 +79,7 @@ extern bool    SMP_Register (tSMP_CALLBACK *p_cback);
  * Returns          SMP_STARTED if bond started, else otherwise exception.
  *
  ******************************************************************************/
-extern tSMP_STATUS SMP_Pair (BD_ADDR bd_addr);
+extern tSMP_STATUS SMP_Pair(BD_ADDR bd_addr);
 
 /*******************************************************************************
  *
@@ -91,7 +91,7 @@ extern tSMP_STATUS SMP_Pair (BD_ADDR bd_addr);
  *                  failure.
  *
  ******************************************************************************/
-extern tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr);
+extern tSMP_STATUS SMP_BR_PairWith(BD_ADDR bd_addr);
 
 /*******************************************************************************
  *
@@ -102,7 +102,7 @@ extern tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr);
  * Returns          true - pairing cancelled
  *
  ******************************************************************************/
-extern  bool    SMP_PairCancel (BD_ADDR bd_addr);
+extern bool SMP_PairCancel(BD_ADDR bd_addr);
 
 /*******************************************************************************
  *
@@ -134,7 +134,7 @@ extern void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res);
  *                             BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
  *
  ******************************************************************************/
-extern void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey);
+extern void SMP_PasskeyReply(BD_ADDR bd_addr, uint8_t res, uint32_t passkey);
 
 /*******************************************************************************
  *
@@ -148,7 +148,7 @@ extern void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey);
  *                  res          - comparison result SMP_SUCCESS if success
  *
  ******************************************************************************/
-extern void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res);
+extern void SMP_ConfirmReply(BD_ADDR bd_addr, uint8_t res);
 
 /*******************************************************************************
  *
@@ -163,7 +163,7 @@ extern void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res);
  *
  ******************************************************************************/
 extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len,
-                             uint8_t *p_data);
+                             uint8_t* p_data);
 
 /*******************************************************************************
  *
@@ -175,7 +175,7 @@ extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len,
  * Parameters:      p_data      - pointer to the data
  *
  ******************************************************************************/
-extern void SMP_SecureConnectionOobDataReply(uint8_t *p_data);
+extern void SMP_SecureConnectionOobDataReply(uint8_t* p_data);
 
 /*******************************************************************************
  *
@@ -192,9 +192,8 @@ extern void SMP_SecureConnectionOobDataReply(uint8_t *p_data);
  *
  *  Returns         Boolean - true: encryption is successful
  ******************************************************************************/
-extern bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
-                            uint8_t *plain_text, uint8_t pt_len,
-                            tSMP_ENC *p_out);
+extern bool SMP_Encrypt(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
+                        uint8_t pt_len, tSMP_ENC* p_out);
 
 /*******************************************************************************
  *
@@ -207,7 +206,7 @@ extern bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
  *                  value        - keypress notification parameter value
  *
  ******************************************************************************/
-extern void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value);
+extern void SMP_KeypressNotification(BD_ADDR bd_addr, uint8_t value);
 
 /*******************************************************************************
  *
@@ -221,7 +220,8 @@ extern void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value);
  *
  *  Returns         Boolean - true: creation of local SC OOB data set started.
  ******************************************************************************/
-extern bool SMP_CreateLocalSecureConnectionsOobData(tBLE_BD_ADDR *addr_to_send_to);
+extern bool SMP_CreateLocalSecureConnectionsOobData(
+    tBLE_BD_ADDR* addr_to_send_to);
 
 // Called when LTK request is received from controller.
 extern bool smp_proc_ltk_request(BD_ADDR bda);
@@ -239,8 +239,8 @@ extern void smp_link_encrypted(BD_ADDR bda, uint8_t encr_enable);
 // |p_signature| - data pointer to where signed data to be stored, tlen long.
 // Returns false if out of resources, true in other cases.
 //
-bool aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t length,
-                              uint16_t tlen, uint8_t *p_signature);
+bool aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t* input, uint16_t length,
+                              uint16_t tlen, uint8_t* p_signature);
 
 #ifdef __cplusplus
 }
