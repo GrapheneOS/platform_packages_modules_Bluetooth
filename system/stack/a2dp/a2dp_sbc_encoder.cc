@@ -166,6 +166,14 @@ static void a2dp_sbc_encoder_update(
   int min_bitpool = A2DP_GetMinBitpoolSbc(p_codec_info);
   int max_bitpool = A2DP_GetMaxBitpoolSbc(p_codec_info);
 
+  // The feeding parameters
+  a2dp_sbc_encoder_cb.feeding_params.sample_rate =
+      A2DP_GetTrackSampleRateSbc(p_codec_info);
+  a2dp_sbc_encoder_cb.feeding_params.channel_count =
+      A2DP_GetTrackChannelCountSbc(p_codec_info);
+  a2dp_sbc_encoder_cb.feeding_params.bits_per_sample =
+      A2DP_GetTrackBitsPerSampleSbc(p_codec_info);
+
   // The codec parameters
   p_encoder_params->s16ChannelMode = A2DP_GetChannelModeCodeSbc(p_codec_info);
   p_encoder_params->s16NumOfSubBands =
@@ -550,9 +558,8 @@ static void a2dp_sbc_encode_frames(uint8_t nb_frame) {
 
       /* Read PCM data and upsample them if needed */
       if (a2dp_sbc_read_feeding()) {
-
-        uint8_t *output = (uint8_t*)(p_buf + 1) + p_buf->offset + p_buf->len;
-        int16_t *input = a2dp_sbc_encoder_cb.pcmBuffer;
+        uint8_t* output = (uint8_t*)(p_buf + 1) + p_buf->offset + p_buf->len;
+        int16_t* input = a2dp_sbc_encoder_cb.pcmBuffer;
         uint16_t output_len = SBC_Encode(p_encoder_params, input, output);
         last_frame_len = output_len;
 
@@ -571,9 +578,9 @@ static void a2dp_sbc_encode_frames(uint8_t nb_frame) {
         /* no more pcm to read */
         nb_frame = 0;
       }
-    } while (((p_buf->len + last_frame_len) <
-              a2dp_sbc_encoder_cb.TxAaMtuSize) &&
-             (p_buf->layer_specific < 0x0F) && nb_frame);
+    } while (
+        ((p_buf->len + last_frame_len) < a2dp_sbc_encoder_cb.TxAaMtuSize) &&
+        (p_buf->layer_specific < 0x0F) && nb_frame);
 
     if (p_buf->len) {
       /*

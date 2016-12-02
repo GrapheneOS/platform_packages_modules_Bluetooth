@@ -53,10 +53,10 @@ bool btif_a2dp_sink_startup(void);
 void btif_a2dp_sink_shutdown(void);
 
 // Get the audio sample rate for the A2DP Sink module.
-uint32_t btif_a2dp_sink_get_sample_rate(void);
+tA2DP_SAMPLE_RATE btif_a2dp_sink_get_sample_rate(void);
 
 // Get the audio channel count for the A2DP Sink module.
-uint8_t btif_a2dp_sink_get_channel_count(void);
+tA2DP_CHANNEL_COUNT btif_a2dp_sink_get_channel_count(void);
 
 // Update the decoder for the A2DP Sink module.
 // |p_codec_info| contains the new codec information.

@@ -26,6 +26,7 @@
 
 #include <stddef.h>
 
+#include "audio_a2dp_hw/audio_a2dp_hw.h"
 #include "avdt_api.h"
 #include "osi/include/time.h"
 #include "sdp_api.h"
@@ -180,9 +181,9 @@ typedef enum {
  * Structure used to configure the A2DP feeding.
  */
 typedef struct {
-  uint32_t sample_rate;     // 44100, 48000, etc
-  uint8_t channel_count;    // 1 for mono or 2 for stereo
-  uint8_t bits_per_sample;  // 8, 16, 24, 32
+  tA2DP_SAMPLE_RATE sample_rate;          // 44100, 48000, etc
+  tA2DP_CHANNEL_COUNT channel_count;      // 1 for mono or 2 for stereo
+  tA2DP_BITS_PER_SAMPLE bits_per_sample;  // 8, 16, 24, 32
 } tA2DP_FEEDING_PARAMS;
 
 /**

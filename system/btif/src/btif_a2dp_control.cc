@@ -30,6 +30,7 @@
 #include "btif_a2dp_sink.h"
 #include "btif_a2dp_source.h"
 #include "btif_av.h"
+#include "btif_av_co.h"
 #include "btif_hf.h"
 #include "osi/include/osi.h"
 #include "uipc.h"
@@ -162,14 +163,33 @@ static void btif_a2dp_recv_ctrl_data(void) {
       btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
       break;
 
-    case A2DP_CTRL_GET_AUDIO_CONFIG: {
-      uint32_t sample_rate = btif_a2dp_sink_get_sample_rate();
-      uint8_t channel_count = btif_a2dp_sink_get_channel_count();
+    case A2DP_CTRL_GET_INPUT_AUDIO_CONFIG: {
+      tA2DP_SAMPLE_RATE sample_rate = btif_a2dp_sink_get_sample_rate();
+      tA2DP_CHANNEL_COUNT channel_count = btif_a2dp_sink_get_channel_count();
 
       btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
       UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, reinterpret_cast<uint8_t*>(&sample_rate),
-                sizeof(sample_rate));
-      UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &channel_count, sizeof(channel_count));
+                sizeof(tA2DP_SAMPLE_RATE));
+      UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &channel_count,
+                sizeof(tA2DP_CHANNEL_COUNT));
+      break;
+    }
+
+    case A2DP_CTRL_GET_OUTPUT_AUDIO_CONFIG: {
+      tA2DP_FEEDING_PARAMS feeding_params;
+
+      bta_av_co_get_encoder_feeding_parameters(&feeding_params);
+      tA2DP_SAMPLE_RATE sample_rate = feeding_params.sample_rate;
+      tA2DP_CHANNEL_COUNT channel_count = feeding_params.channel_count;
+      tA2DP_BITS_PER_SAMPLE bits_per_sample = feeding_params.bits_per_sample;
+
+      btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
+      UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, reinterpret_cast<uint8_t*>(&sample_rate),
+                sizeof(tA2DP_SAMPLE_RATE));
+      UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &channel_count,
+                sizeof(tA2DP_CHANNEL_COUNT));
+      UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &bits_per_sample,
+                sizeof(tA2DP_BITS_PER_SAMPLE));
       break;
     }
 

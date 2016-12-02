@@ -161,7 +161,7 @@ static void btif_a2dp_source_audio_tx_flush_event(BT_HDR* p_msg);
 static void btif_a2dp_source_encoder_init_event(BT_HDR* p_msg);
 static void btif_a2dp_source_audio_feeding_init_event(BT_HDR* p_msg);
 static void btif_a2dp_source_encoder_init(void);
-static void btif_a2dp_source_feeding_init_req(
+UNUSED_ATTR static void btif_a2dp_source_feeding_init_req(
     tBTIF_A2DP_AUDIO_FEEDING_INIT* p_msg);
 static void btif_a2dp_source_encoder_init_req(
     tBTIF_A2DP_SOURCE_ENCODER_INIT* p_msg);
@@ -310,26 +310,27 @@ static void btif_a2dp_source_command_ready(fixed_queue_t* queue,
 }
 
 void btif_a2dp_source_setup_codec(void) {
-  tA2DP_FEEDING_PARAMS feeding_params;
-
   APPL_TRACE_EVENT("## A2DP SOURCE SETUP CODEC ##");
 
   mutex_global_lock();
 
-  /* for now hardcode 44.1 khz 16 bit stereo PCM format */
-  feeding_params.sample_rate = BTIF_A2DP_SRC_SAMPLING_RATE;
-  feeding_params.channel_count = BTIF_A2DP_SRC_NUM_CHANNELS;
-  feeding_params.bits_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
-
-  tBTIF_A2DP_AUDIO_FEEDING_INIT mfeed;
-
   /* Init the encoding task */
   btif_a2dp_source_encoder_init();
 
-  /* Build the media task configuration */
+#if 0
+  // TODO: The feeding parameters setup mechanism below to-be reused for
+  // other purposes.
+  /* For now hardcode 44.1 khz 16 bit stereo PCM format */
+  tA2DP_FEEDING_PARAMS feeding_params;
+  tBTIF_A2DP_AUDIO_FEEDING_INIT mfeed;
+  feeding_params.sample_rate = BTIF_A2DP_SRC_SAMPLING_RATE;
+  feeding_params.channel_count = BTIF_A2DP_SRC_NUM_CHANNELS;
+  feeding_params.bits_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
   mfeed.feeding_params = feeding_params;
+
   /* Send message to Media task to configure transcoding */
   btif_a2dp_source_feeding_init_req(&mfeed);
+#endif
 
   mutex_global_unlock();
 }
