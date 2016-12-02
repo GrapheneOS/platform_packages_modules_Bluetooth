@@ -123,7 +123,8 @@ static void cmac_aes_cleanup(void)
  *
  * Function         cmac_aes_k_calculate
  *
- * Description      This function is the calculation of block cipher using AES-128.
+ * Description      This function is the calculation of block cipher using
+ *                  AES-128.
  *
  * Returns          void
  *
@@ -204,7 +205,8 @@ static void cmac_prepare_last_block (BT_OCTET16 k1, BT_OCTET16 k2)
  *
  * Function         cmac_subkey_cont
  *
- * Description      This is the callback function when CIPHk(0[128]) is completed.
+ * Description      This is the callback function when CIPHk(0[128]) is
+ *                  completed.
  *
  * Returns          void
  *
@@ -276,13 +278,16 @@ static bool    cmac_generate_subkey(BT_OCTET16 key)
  *
  * Function         aes_cipher_msg_auth_code
  *
- * Description      This is the AES-CMAC Generation Function with tlen implemented.
+ * Description      This is the AES-CMAC Generation Function with tlen
+ *                  implemented.
  *
- * Parameters       key - CMAC key in little endian order, expect SRK when used by SMP.
+ * Parameters       key - CMAC key in little endian order, expect SRK when used
+ *                        by SMP.
  *                  input - text to be signed in little endian byte order.
  *                  length - length of the input in byte.
  *                  tlen - lenth of mac desired
- *                  p_signature - data pointer to where signed data to be stored, tlen long.
+ *                  p_signature - data pointer to where signed data to be
+ *                                stored, tlen long.
  *
  * Returns          false if out of resources, true in other cases.
  *

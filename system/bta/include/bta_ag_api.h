@@ -51,8 +51,7 @@ extern "C" {
 
 /* AG feature masks */
 #define BTA_AG_FEAT_3WAY 0x00000001 /* Three-way calling */
-#define BTA_AG_FEAT_ECNR \
-  0x00000002 /* Echo cancellation and/or noise reduction */
+#define BTA_AG_FEAT_ECNR 0x00000002 /* Echo cancellation/noise reduction */
 #define BTA_AG_FEAT_VREC 0x00000004   /* Voice recognition */
 #define BTA_AG_FEAT_INBAND 0x00000008 /* In-band ring tone */
 #define BTA_AG_FEAT_VTAG 0x00000010   /* Attach a phone number to a voice tag */
@@ -62,8 +61,8 @@ extern "C" {
 #define BTA_AG_FEAT_EXTERR 0x00000100 /* Extended error codes */
 #define BTA_AG_FEAT_CODEC 0x00000200  /* Codec Negotiation */
 
-#define HFP_1_6_FEAT_MASK \
-  0x000003FF /* Valid feature bit mask for HFP 1.6 (and below) */
+/* Valid feature bit mask for HFP 1.6 (and below) */
+#define HFP_1_6_FEAT_MASK 0x000003FF
 
 /* HFP 1.7+ */
 #define BTA_AG_FEAT_HF_IND 0x00000400 /* HF Indicators */
@@ -71,8 +70,7 @@ extern "C" {
 
 /* Proprietary features: using 31 ~ 16 bits */
 #define BTA_AG_FEAT_BTRH 0x00010000 /* CCAP incoming call hold */
-#define BTA_AG_FEAT_UNAT \
-  0x00020000 /* Pass unknown AT commands to application */
+#define BTA_AG_FEAT_UNAT 0x00020000 /* Pass unknown AT commands to app */
 #define BTA_AG_FEAT_NOSCO 0x00040000   /* No SCO control performed by BTA AG */
 #define BTA_AG_FEAT_NO_ESCO 0x00080000 /* Do not allow or use eSCO */
 #define BTA_AG_FEAT_VOIP 0x00100000    /* VoIP call */
@@ -81,8 +79,9 @@ typedef uint32_t tBTA_AG_FEAT;
 
 /* AG parse mode */
 #define BTA_AG_PARSE 0 /* Perform AT command parsing in AG */
-#define BTA_AG_PASS_THROUGH \
-  1 /* Pass data directly to phone's AT command interpreter */
+
+/* Pass data directly to phone's AT command interpreter */
+#define BTA_AG_PASS_THROUGH 1
 
 typedef uint8_t tBTA_AG_PARSE_MODE;
 
@@ -90,7 +89,7 @@ typedef uint8_t tBTA_AG_PARSE_MODE;
 #define BTA_AG_SUCCESS 0        /* Connection successfully opened */
 #define BTA_AG_FAIL_SDP 1       /* Open failed due to SDP */
 #define BTA_AG_FAIL_RFCOMM 2    /* Open failed due to RFCOMM */
-#define BTA_AG_FAIL_RESOURCES 3 /* out of resources failure  */
+#define BTA_AG_FAIL_RESOURCES 3 /* out of resources failure */
 
 /* Status to disallow passing AT Events after BTIF */
 #define BTA_AG_DISALLOW_AT 5
@@ -133,11 +132,13 @@ typedef uint8_t tBTA_AG_STATUS;
 #define BTA_AG_IN_CALL_CONN_RES 12  /* Incoming phone call connected */
 #define BTA_AG_CALL_WAIT_RES 13     /* Call waiting notification */
 #define BTA_AG_OUT_CALL_ORIG_RES 14 /* Outgoing phone call origination */
-#define BTA_AG_OUT_CALL_ALERT_RES \
-  15 /* Outgoing phone call alerting remote party */
+
+/* Outgoing phone call alerting remote party */
+#define BTA_AG_OUT_CALL_ALERT_RES 15
 #define BTA_AG_OUT_CALL_CONN_RES 16 /* Outgoing phone call connected */
-#define BTA_AG_CALL_CANCEL_RES \
-  17 /* Incoming/outgoing 3-way canceled before connected */
+
+/* Incoming/outgoing 3-way canceled before connected */
+#define BTA_AG_CALL_CANCEL_RES 17
 #define BTA_AG_END_CALL_RES 18     /* End call */
 #define BTA_AG_IN_CALL_HELD_RES 19 /* Incoming call held */
 #define BTA_AG_UNAT_RES 20         /* Response to unknown AT command event */
@@ -147,8 +148,7 @@ typedef uint8_t tBTA_AG_STATUS;
 typedef uint8_t tBTA_AG_RES;
 
 /* HFP peer features */
-#define BTA_AG_PEER_FEAT_ECNR \
-  0x0001 /* Echo cancellation and/or noise reduction */
+#define BTA_AG_PEER_FEAT_ECNR 0x0001 /* Echo cancellation/noise reduction */
 #define BTA_AG_PEER_FEAT_3WAY 0x0002   /* Call waiting and three-way calling */
 #define BTA_AG_PEER_FEAT_CLI 0x0004    /* Caller ID presentation capability */
 #define BTA_AG_PEER_FEAT_VREC 0x0008   /* Voice recognition activation */
@@ -160,8 +160,9 @@ typedef uint8_t tBTA_AG_RES;
 #define BTA_AG_PEER_FEAT_ESCO 0x0200   /* eSCO S4 (and T2) setting supported */
 
 /* Proprietary features: using bits after 12 */
-#define BTA_AG_PEER_FEAT_UNAT \
-  0x1000 /* Pass unknown AT command responses to application */
+
+/* Pass unknown AT command responses to application */
+#define BTA_AG_PEER_FEAT_UNAT 0x1000
 #define BTA_AG_PEER_FEAT_VOIP 0x2000 /* VoIP call */
 
 typedef uint16_t tBTA_AG_PEER_FEAT;
@@ -197,10 +198,10 @@ typedef uint16_t tBTA_AG_PEER_CODEC;
 #define BTA_AG_ERR_INV_CHAR_IN_DSTR 27 /* Invalid characters in dial string */
 #define BTA_AG_ERR_NO_NETWORK_SERV 30  /* No network service */
 #define BTA_AG_ERR_NETWORK_TIME_OUT 31 /* Network timeout */
-#define BTA_AG_ERR_NO_NET_EMG_ONLY \
-  32 /* Network not allowed - emergency service only */
-#define BTA_AG_ERR_VOIP_CS_CALLS \
-  33 /* AG cannot create simultaneous VoIP and CS calls */
+/* Network not allowed - emergency service only */
+#define BTA_AG_ERR_NO_NET_EMG_ONLY 32
+/* AG cannot create simultaneous VoIP and CS calls */
+#define BTA_AG_ERR_VOIP_CS_CALLS 33
 #define BTA_AG_ERR_NOT_FOR_VOIP 34  /* Not supported on this call type(VoIP) */
 #define BTA_AG_ERR_SIP_RESP_CODE 35 /* SIP 3 digit response code */
 
@@ -213,35 +214,34 @@ typedef uint16_t tBTA_AG_PEER_CODEC;
 #define BTA_AG_ERR_NETWORK_TIMEOUT 31 /* Network timeout */
 #define BTA_AG_ERR_NET_PIN_REQ 40     /* Network personalization PIN required */
 #define BTA_AG_ERR_NET_PUK_REQ 41     /* Network personalization PUK required */
-#define BTA_AG_ERR_SUBSET_PIN_REQ \
-  42 /* Network subset personalization PIN required */
-#define BTA_AG_ERR_SUBSET_PUK_REQ \
-  43 /* Network subset personalization PUK required */
-#define BTA_AG_ERR_SERVPRO_PIN_REQ \
-  44 /* Service provider personalization PIN required */
-#define BTA_AG_ERR_SERVPRO_PUK_REQ \
-  45 /* Service provider personalization PUK required */
-#define BTA_AG_ERR_CORP_PIN_REQ                \
-  46 /* Corporate personalization PIN required \
-        */
-#define BTA_AG_ERR_CORP_PUK_REQ                                          \
-  47                           /* Corporate personalization PUK required \
-                                  */
+/* Network subset personalization PIN required */
+#define BTA_AG_ERR_SUBSET_PIN_REQ 42
+/* Network subset personalization PUK required */
+#define BTA_AG_ERR_SUBSET_PUK_REQ 43
+/* Service provider personalization PIN required */
+#define BTA_AG_ERR_SERVPRO_PIN_REQ 44
+/* Service provider personalization PUK required */
+#define BTA_AG_ERR_SERVPRO_PUK_REQ 45
+/* Corporate personalization PIN required */
+#define BTA_AG_ERR_CORP_PIN_REQ 46
+/* Corporate personalization PUK required */
+#define BTA_AG_ERR_CORP_PUK_REQ 47
 #define BTA_AG_ERR_UNKNOWN 100 /* Unknown error */
+
 /* GPRS-related errors */
 #define BTA_AG_ERR_ILL_MS 103  /* Illegal MS (#3) */
 #define BTA_AG_ERR_ILL_ME 106  /* Illegal ME (#6) */
 #define BTA_AG_ERR_GPRS_NOT_ALLOWED 107 /* GPRS services not allowed (#7) */
 #define BTA_AG_ERR_PLMN_NOT_ALLOWED 111 /* PLMN services not allowed (#11) */
 #define BTA_AG_ERR_LOC_NOT_ALLOWED 112  /* Location area not allowed (#12) */
-#define BTA_AG_ERR_ROAM_NOT_ALLOWED \
-  113                               /* Roaming not allowed in this location area (#13) */
+/* Roaming not allowed in this location area (#13) */
+#define BTA_AG_ERR_ROAM_NOT_ALLOWED 113
 /* Errors related to a failure to Activate a Context */
 #define BTA_AG_ERR_OPT_NOT_SUPP 132 /* Service option not supported (#32) */
-#define BTA_AG_ERR_OPT_NOT_SUBSCR \
-  133 /* Requested service option not subscribed (#33) */
-#define BTA_AG_ERR_OPT_OUT_OF_ORDER \
-  134 /* Service option temporarily out of order (#34) */
+/* Requested service option not subscribed (#33) */
+#define BTA_AG_ERR_OPT_NOT_SUBSCR 133
+/* Service option temporarily out of order (#34) */
+#define BTA_AG_ERR_OPT_OUT_OF_ORDER 134
 #define BTA_AG_ERR_PDP_AUTH_FAILURE 149 /* PDP authentication failure */
 /* Other GPRS errors */
 #define BTA_AG_ERR_INV_MOBILE_CLASS 150 /* Invalid mobile class */
@@ -295,7 +295,7 @@ typedef struct {
 #define BTA_AG_SPK_EVT 7         /* Speaker volume changed */
 #define BTA_AG_MIC_EVT 8         /* Microphone volume changed */
 #define BTA_AG_AT_CKPD_EVT 9     /* CKPD from the HS */
-#define BTA_AG_DISABLE_EVT 30    /* AG disabled       */
+#define BTA_AG_DISABLE_EVT 30    /* AG disabled */
 #if (BTM_WBS_INCLUDED == TRUE)
 #define BTA_AG_WBS_EVT 31 /* SCO codec info */
 #endif
@@ -401,15 +401,14 @@ typedef void(tBTA_AG_CBACK)(tBTA_AG_EVT event, tBTA_AG* p_data);
 #define BTA_AG_CALLSETUP_NONE 0     /* Not currently in call set up */
 #define BTA_AG_CALLSETUP_INCOMING 1 /* Incoming call process ongoing */
 #define BTA_AG_CALLSETUP_OUTGOING 2 /* Outgoing call set up is ongoing */
-#define BTA_AG_CALLSETUP_ALERTING \
-  3 /* Remote party being alerted in an outgoing call */
+/* Remote party being alerted in an outgoing call */
+#define BTA_AG_CALLSETUP_ALERTING 3
 
 /* service indicator values */
 #define BTA_AG_SERVICE_NONE 0 /* Neither CS nor VoIP service is available */
-#define BTA_AG_SERVICE_CS 1   /* Only CS service is available                 */
+#define BTA_AG_SERVICE_CS 1   /* Only CS service is available */
 #define BTA_AG_SERVICE_VOIP 2 /* Only VoIP service is available */
-#define BTA_AG_SERVICE_CS_VOIP \
-  3 /* Both CS and VoIP services available          */
+#define BTA_AG_SERVICE_CS_VOIP 3 /* Both CS and VoIP services available */
 
 /* callheld indicator values */
 #define BTA_AG_CALLHELD_INACTIVE 0 /* No held calls */

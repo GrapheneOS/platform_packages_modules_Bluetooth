@@ -181,7 +181,8 @@ bool    btm_add_dev_to_controller (bool    to_add, BD_ADDR bd_addr)
  *
  * Function         btm_execute_wl_dev_operation
  *
- * Description      execute the pending whitelist device operation(loading or removing)
+ * Description      execute the pending whitelist device operation (loading or
+ *                                                                  removing)
  ******************************************************************************/
 bool    btm_execute_wl_dev_operation(void)
 {
@@ -205,7 +206,8 @@ bool    btm_execute_wl_dev_operation(void)
  *
  * Function         btm_enq_wl_dev_operation
  *
- * Description      enqueue the pending whitelist device operation(loading or removing).
+ * Description      enqueue the pending whitelist device operation (loading or
+ *                                                                  removing).
  ******************************************************************************/
 void btm_enq_wl_dev_operation(bool    to_add, BD_ADDR bd_addr)
 {
@@ -427,7 +429,8 @@ bool    btm_ble_start_auto_conn(bool    start)
  *
  * Function         btm_ble_start_select_conn
  *
- * Description      This function is to start/stop selective connection procedure.
+ * Description      This function is to start/stop selective connection
+ *                  procedure.
  *
  * Parameters       start: true to start; false to stop.
  *                  p_select_cback: callback function to return application
@@ -514,7 +517,8 @@ bool    btm_ble_start_select_conn(bool    start, tBTM_BLE_SEL_CBACK *p_select_cb
  *
  * Function         btm_ble_initiate_select_conn
  *
- * Description      This function is to start/stop selective connection procedure.
+ * Description      This function is to start/stop selective connection
+ *                  procedure.
  *
  * Parameters       start: true to start; false to stop.
  *                  p_select_cback: callback function to return application
@@ -712,7 +716,8 @@ void btm_ble_dequeue_direct_conn_req(BD_ADDR rem_bda)
  *
  * Function         btm_send_pending_direct_conn
  *
- * Description      This function send the pending direct connection request in queue
+ * Description      This function send the pending direct connection request in
+ *                  queue
  *
  * Returns          true if started, false otherwise
  *

@@ -846,12 +846,12 @@ void l2c_link_adjust_allocation (void)
  *
  * Function         l2c_link_adjust_chnl_allocation
  *
- * Description      This function is called to calculate the amount of packets each
- *                  non-F&EC channel may have outstanding.
+ * Description      This function is called to calculate the amount of packets
+ *                  each non-F&EC channel may have outstanding.
  *
  *                  Currently, this is a simple allocation, dividing the number
- *                  of packets allocated to the link by the number of channels. In
- *                  the future, QOS configuration should be examined.
+ *                  of packets allocated to the link by the number of channels.
+ *                  In the future, QOS configuration should be examined.
  *
  * Returns          void
  *
@@ -903,10 +903,10 @@ void l2c_link_processs_num_bufs (uint16_t num_lm_acl_bufs)
  *
  * Function         l2c_link_pkts_rcvd
  *
- * Description      This function is called from the HCI transport when it is time
- *                  tto send a "Host ready for packets" command. This is only when
- *                  host to controller flow control is used. If fills in the arrays
- *                  of numbers of packets and handles.
+ * Description      This function is called from the HCI transport when it is
+ *                  time to send a "Host ready for packets" command. This is
+ *                  only when host to controller flow control is used. It fills
+ *                  in the arrays of numbers of packets and handles.
  *
  * Returns          count of number of entries filled in
  *
@@ -923,8 +923,9 @@ uint8_t l2c_link_pkts_rcvd (UNUSED_ATTR uint16_t *num_pkts,
  *
  * Function         l2c_link_role_changed
  *
- * Description      This function is called whan a link's master/slave role change
- *                  event is received. It simply updates the link control block.
+ * Description      This function is called whan a link's master/slave role
+ *                  change event is received. It simply updates the link control
+ *                  block.
  *
  * Returns          void
  *

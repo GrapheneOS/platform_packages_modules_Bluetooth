@@ -214,7 +214,8 @@ void btu_task_shut_down(UNUSED_ATTR void *context) {
  *
  * Function         btu_check_bt_sleep
  *
- * Description      This function is called to check if controller can go to sleep.
+ * Description      This function is called to check if controller can go to
+ *                  sleep.
  *
  * Returns          void
  *

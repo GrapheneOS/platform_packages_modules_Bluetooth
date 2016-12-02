@@ -104,7 +104,8 @@ bool    btm_ble_brcm_find_resolving_pending_entry(BD_ADDR pseudo_addr, uint8_t a
  *
  * Function         btm_ble_deq_resolving_pending
  *
- * Description      dequeue target address from resolving pending operation queue
+ * Description      dequeue target address from resolving pending operation
+ *                  queue
  *
  * Parameters       pseudo_addr: pseudo_addr device address
  *
@@ -378,7 +379,8 @@ void btm_ble_read_resolving_list_entry_complete(uint8_t *p, uint16_t evt_len)
         /* proprietary spec has extra bytes */
         if (evt_len > 8)
         {
-            p += (2 + 16 + 1 + 6); /* skip subcode, index, IRK value, address type, identity addr type */
+            /* skip subcode, index, IRK value, address type, identity addr type */
+            p += (2 + 16 + 1 + 6);
             STREAM_TO_BDADDR(rra, p);
 
             BTM_TRACE_ERROR("%s peer_addr: %02x:%02x:%02x:%02x:%02x:%02x",
@@ -553,9 +555,9 @@ tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
  *
  * Function         btm_ble_suspend_resolving_list_activity
  *
- * Description      This function suspends all resolving list activity, including
- *                  scan, initiating, and advertising, if resolving list is being
- *                  enabled.
+ * Description      This function suspends all resolving list activity,
+ *                  including scanning, initiating, and advertising, if
+ *                  resolving list is being enabled.
  *
  * Parameters
  *
@@ -732,7 +734,8 @@ bool    btm_ble_disable_resolving_list(uint8_t rl_mask, bool    to_resume )
  *
  * Function         btm_ble_resolving_list_load_dev
  *
- * Description      This function add a device which is using RPA into white list
+ * Description      This function adds a device which is using RPA into the
+ *                  white list.
  *
  * Parameters       pointer to device security record
  *

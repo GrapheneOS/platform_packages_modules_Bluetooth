@@ -162,9 +162,10 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
  *
  * Function        adjust_priority_a2dp
  *
- * Description     increase the a2dp consumer task priority temporarily when start
- *                 audio playing, to avoid overflow the audio packet queue, restore
- *                 the a2dp consumer task priority when stop audio playing.
+ * Description     Increase the a2dp consumer task priority temporarily when
+ *                 audio starts playing to avoid overflowing the audio packet
+ *                 queue. Restore the a2dp consumer task priority when audio
+ *                 is not playing.
  *
  * Returns         void
  *

@@ -279,7 +279,8 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
  *
  * Function         btm_ble_send_extended_scan_params
  *
- * Description      This function sends out the extended scan parameters command to the controller
+ * Description      This function sends out the extended scan parameters command
+ *                  to the controller
  *
  * Parameters       scan_type - Scan type
  *                  scan_int - Scan interval
@@ -511,7 +512,8 @@ extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
  *
  * Description      Reads BLE specific controller features
  *
- * Parameters:      tBTM_BLE_CTRL_FEATURES_CBACK : Callback to notify when features are read
+ * Parameters:      tBTM_BLE_CTRL_FEATURES_CBACK : Callback to notify when
+ *                  features are read
  *
  * Returns          void
  *
@@ -614,7 +616,8 @@ bool    BTM_BleConfigPrivacy(bool    privacy_mode)
  *
  * Function          BTM_BleMaxMultiAdvInstanceCount
  *
- * Description        Returns max number of multi adv instances supported by controller
+ * Description        Returns max number of multi adv instances supported by
+ *                  controller
  *
  * Returns          Max multi adv instance count
  *
@@ -695,9 +698,10 @@ bool    BTM_BleLocalPrivacyEnabled(void)
  * Description      This function is called to set BLE connectable mode for a
  *                  peripheral device.
  *
- * Parameters       bg_conn_type: it can be auto connection, or selective connection.
- *                  p_select_cback: callback function when selective connection procedure
- *                              is being used.
+ * Parameters       bg_conn_type: it can be auto connection, or selective
+ *                                connection.
+ *                  p_select_cback: callback function when selective
+ *                                  connection procedure is being used.
  *
  * Returns          void
  *
@@ -799,8 +803,9 @@ bool    BTM_BleUpdateBgConnDev(bool    add_remove, BD_ADDR   remote_bda)
  * Description      This function is called to set BLE connectable mode for a
  *                  peripheral device.
  *
- * Parameters       conn_mode:  directed connectable mode, or non-directed.It can
- *                              be BTM_BLE_CONNECT_EVT, BTM_BLE_CONNECT_DIR_EVT or
+ * Parameters       conn_mode:  directed connectable mode, or non-directed. It
+ *                              can be BTM_BLE_CONNECT_EVT,
+ *                              BTM_BLE_CONNECT_DIR_EVT or
  *                              BTM_BLE_CONNECT_LO_DUTY_DIR_EVT
  *
  * Returns          BTM_ILLEGAL_VALUE if controller does not support BLE.
@@ -835,8 +840,8 @@ static bool is_resolving_list_bit_set(void *data, void *context)
  *
  * Function         btm_set_conn_mode_adv_init_addr
  *
- * Description      set initator address type and local address type based on adv
- *                  mode.
+ * Description      set initator address type and local address type based on
+ *                  adv mode.
  *
  *
  ******************************************************************************/
@@ -1129,8 +1134,8 @@ uint8_t *BTM_CheckAdvData( uint8_t *p_adv, uint8_t type, uint8_t *p_length)
  *
  * Function         BTM__BLEReadDiscoverability
  *
- * Description      This function is called to read the current LE discoverability
- *                  mode of the device.
+ * Description      This function is called to read the current LE
+ *                  discoverability mode of the device.
  *
  * Returns          BTM_BLE_NON_DISCOVERABLE ,BTM_BLE_LIMITED_DISCOVERABLE or
  *                     BTM_BLE_GENRAL_DISCOVERABLE
@@ -1147,8 +1152,8 @@ uint16_t BTM_BleReadDiscoverability()
  *
  * Function         BTM__BLEReadConnectability
  *
- * Description      This function is called to read the current LE connectibility
- *                  mode of the device.
+ * Description      This function is called to read the current LE
+ *                  connectability mode of the device.
  *
  * Returns          BTM_BLE_NON_CONNECTABLE or BTM_BLE_CONNECTABLE
  *
@@ -1208,9 +1213,10 @@ void btm_ble_select_adv_interval(tBTM_BLE_INQ_CB *p_cb, uint8_t evt_type, uint16
  *
  * Function         btm_ble_update_dmt_flag_bits
  *
- * Description      Obtain updated adv flag value based on connect and discoverability mode.
- *                  Also, setup DMT support value in the flag based on whether the controller
- *                  supports both LE and BR/EDR.
+ * Description      Obtain updated adv flag value based on connect and
+ *                  discoverability mode. Also, setup DMT support value in the
+ *                  flag based on whether the controller supports both LE and
+ *                  BR/EDR.
  *
  * Parameters:      flag_value (Input / Output) - flag value
  *                  connect_mode (Input) - Connect mode value
@@ -1470,11 +1476,13 @@ tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode)
  * Function         btm_ble_start_inquiry
  *
  * Description      This function is called to start BLE inquiry procedure.
- *                  If the duration is zero, the periodic inquiry mode is cancelled.
+ *                  If the duration is zero, the periodic inquiry mode is
+ *                  cancelled.
  *
  * Parameters:      mode - GENERAL or LIMITED inquiry
  *                  p_inq_params - pointer to the BLE inquiry parameter.
- *                  p_results_cb - callback returning pointer to results (tBTM_INQ_RESULTS)
+ *                  p_results_cb - callback returning pointer to results
+ *                                 (tBTM_INQ_RESULTS)
  *                  p_cmpl_cb - callback indicating the end of an inquiry
  *
  *
@@ -1652,8 +1660,8 @@ bool    btm_ble_cancel_remote_name(BD_ADDR remote_bda)
  *
  * Function         btm_ble_update_adv_flag
  *
- * Description      This function update the limited discoverable flag in the adv
- *                  data.
+ * Description      This function update the limited discoverable flag in the
+ *                  adv data.
  *
  * Parameters:       None.
  *
@@ -2125,7 +2133,8 @@ void btm_send_sel_conn_callback(BD_ADDR remote_bda, uint8_t evt_type, uint8_t *p
  *
  * Description      This function is called when adv packet report events are
  *                  received from the device. It updates the inquiry database.
- *                  If the inquiry database is full, the oldest entry is discarded.
+ *                  If the inquiry database is full, the oldest entry is
+ *                  discarded.
  *
  * Parameters
  *
@@ -2585,8 +2594,8 @@ void btm_ble_refresh_raddr_timer_timeout(UNUSED_ATTR void *data)
  * Function         btm_ble_read_remote_features_complete
  *
  * Description      This function is called when the command complete message
- *                  is received from the HCI for the read LE remote feature supported
- *                  complete event.
+ *                  is received from the HCI for the read LE remote feature
+ *                  supported complete event.
  *
  * Returns          void
  *
@@ -2730,8 +2739,8 @@ void btm_ble_update_link_topology_mask(uint8_t link_role, bool    increase)
  *
  * Function         btm_ble_update_mode_operation
  *
- * Description      This function update the GAP role operation when a link status
- *                  is updated.
+ * Description      This function update the GAP role operation when a link
+ *                  status is updated.
  *
  * Returns          void
  *
@@ -2815,8 +2824,8 @@ void btm_ble_init(void)
  *
  * Function         btm_ble_topology_check
  *
- * Description      check to see requested state is supported. One state check at
- *                  a time is supported
+ * Description      check to see requested state is supported. One state check
+ *                  at a time is supported
  *
  * Returns          true is request is allowed, false otherwise.
  *

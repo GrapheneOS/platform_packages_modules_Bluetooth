@@ -35,7 +35,7 @@
 #include "osi/include/osi.h"
 
 /*******************************************************************************
- *              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
+ *             L O C A L    F U N C T I O N     P R O T O T Y P E S            *
  ******************************************************************************/
 static bool allocate_svc_db_buf(tGATT_SVC_DB *p_db);
 static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PERM perm);
@@ -51,7 +51,7 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, uint8_t op_cod
  *
  * Function         gatts_init_service_db
  *
- * Description      This function initialize a memory space to be a service database.
+ * Description      Initialize a memory space to be a service database.
  *
  * Parameter        p_db: database pointer.
  *                  len: size of the memory space.
@@ -84,7 +84,7 @@ bool    gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  bool   
  *
  * Function         gatts_init_service_db
  *
- * Description      This function initialize a memory space to be a service database.
+ * Description      Initialize a memory space to be a service database.
  *
  * Parameter        p_db: database pointer.
  *                  len: size of the memory space.
@@ -515,7 +515,7 @@ uint16_t gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
  *
  * Function         gatt_convertchar_descr_type
  *
- * Description      This function convert a char descript UUID into descriptor type.
+ * Description      Convert a char descript UUID into descriptor type.
  *
  * Returns          descriptor type.
  *
@@ -1017,8 +1017,8 @@ static bool    deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
  *
  * Function         copy_extra_byte_in_db
  *
- * Description      Utility function to allocate extra bytes memory in DB and copy
- *                  the value from a source place.
+ * Description      Utility function to allocate extra bytes memory in DB and
+ *                  copy the value from a source place.
  *
  *
  * Parameter        p_db: database pointer.
@@ -1055,7 +1055,8 @@ static bool    copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, uint16_t 
  *
  * Function         allocate_svc_db_buf
  *
- * Description      Utility function to allocate extra buffer for service database.
+ * Description      Utility function to allocate extra buffer for service
+ *                  database.
  *
  * Returns          true if allocation succeed, otherwise false.
  *

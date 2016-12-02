@@ -41,7 +41,7 @@
 #if (BTM_SCO_INCLUDED == TRUE)
 
 /******************************************************************************/
-/*                 L O C A L    D A T A    D E F I N I T I O N S                */
+/*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/
 
 #define SCO_ST_UNUSED           0
@@ -55,7 +55,7 @@
 #define SCO_ST_PEND_MODECHANGE  8
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 
 static const tBTM_ESCO_PARAMS btm_esco_defaults =
@@ -77,7 +77,8 @@ static const tBTM_ESCO_PARAMS btm_esco_defaults =
  *
  * Function         btm_sco_flush_sco_data
  *
- * Description      This function is called to flush the SCO data for this channel.
+ * Description      This function is called to flush the SCO data for this
+ *                  channel.
  *
  * Returns          void
  *
@@ -295,20 +296,20 @@ void  btm_route_sco_data(BT_HDR *p_msg)
  *
  * Function         BTM_WriteScoData
  *
- * Description      This function write SCO data to a specified instance. The data
- *                  to be written p_buf needs to carry an offset of
+ * Description      This function write SCO data to a specified instance. The
+ *                  data to be written p_buf needs to carry an offset of
  *                  HCI_SCO_PREAMBLE_SIZE bytes, and the data length can not
- *                  exceed BTM_SCO_DATA_SIZE_MAX bytes, whose default value is set
- *                  to 60 and is configurable. Data longer than the maximum bytes
- *                  will be truncated.
+ *                  exceed BTM_SCO_DATA_SIZE_MAX bytes, whose default value is
+ *                  set to 60 and is configurable. Data longer than the maximum
+ *                  bytes will be truncated.
  *
  * Returns          BTM_SUCCESS: data write is successful
  *                  BTM_ILLEGAL_VALUE: SCO data contains illegal offset value.
- *                  BTM_SCO_BAD_LENGTH: SCO data length exceeds the max SCO packet
- *                                      size.
+ *                  BTM_SCO_BAD_LENGTH: SCO data length exceeds the max SCO
+ *                                      packet size.
  *                  BTM_NO_RESOURCES: no resources.
- *                  BTM_UNKNOWN_ADDR: unknown SCO connection handle, or SCO is not
- *                                    routed via HCI.
+ *                  BTM_UNKNOWN_ADDR: unknown SCO connection handle, or SCO is
+ *                                    not routed via HCI.
  *
  *
  ******************************************************************************/
@@ -378,7 +379,8 @@ tBTM_STATUS BTM_WriteScoData(UNUSED_ATTR uint16_t sco_inx,
  *
  * Function         btm_send_connect_request
  *
- * Description      This function is called to respond to SCO connect indications
+ * Description      This function is called to respond to SCO connect
+ *                  indications
  *
  * Returns          void
  *
@@ -525,7 +527,8 @@ void btm_accept_sco_link(uint16_t sco_inx, tBTM_ESCO_PARAMS *p_setup,
  *
  * Function         btm_reject_sco_link
  *
- * Description      This function is called to respond to SCO connect indications
+ * Description      This function is called to respond to SCO connect
+ *                  indications
  *
  * Returns          void
  *
@@ -719,7 +722,8 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, bool    is_orig, uint16_t pkt_typ
  * Function         btm_sco_chk_pend_unpark
  *
  * Description      This function is called by BTIF when there is a mode change
- *                  event to see if there are SCO commands waiting for the unpark.
+ *                  event to see if there are SCO commands waiting for the
+ *                  unpark.
  *
  * Returns          void
  *
@@ -753,7 +757,8 @@ void btm_sco_chk_pend_unpark (uint8_t hci_status, uint16_t hci_handle)
  * Function         btm_sco_chk_pend_rolechange
  *
  * Description      This function is called by BTIF when there is a role change
- *                  event to see if there are SCO commands waiting for the role change.
+ *                  event to see if there are SCO commands waiting for the role
+ *                  change.
  *
  * Returns          void
  *
@@ -785,7 +790,8 @@ void btm_sco_chk_pend_rolechange (uint16_t hci_handle)
  * Function        btm_sco_disc_chk_pend_for_modechange
  *
  * Description     This function is called by btm when there is a mode change
- *                 event to see if there are SCO  disconnect commands waiting for the mode change.
+ *                 event to see if there are SCO  disconnect commands waiting
+ *                 for the mode change.
  *
  * Returns         void
  *
@@ -1011,8 +1017,8 @@ void btm_sco_connected (uint8_t hci_status, BD_ADDR bda, uint16_t hci_handle,
  *
  * Function         btm_find_scb_by_handle
  *
- * Description      Look through all active SCO connection for a match based on the
- *                  HCI handle.
+ * Description      Look through all active SCO connection for a match based on
+ *                  the HCI handle.
  *
  * Returns          index to matched SCO connection CB, or BTM_MAX_SCO_LINKS if
  *                  no match.
@@ -1090,7 +1096,8 @@ tBTM_STATUS BTM_RemoveSco (uint16_t sco_inx)
  *
  * Function         btm_remove_sco_links
  *
- * Description      This function is called to remove all sco links for an ACL link.
+ * Description      This function is called to remove all sco links for an ACL
+ *                  link.
  *
  * Returns          void
  *
@@ -1320,8 +1327,8 @@ uint16_t BTM_ReadDeviceScoPacketTypes (void)
  *
  * Function         BTM_ReadScoHandle
  *
- * Description      This function is used to read the HCI handle used for a specific
- *                  SCO connection,
+ * Description      This function is used to read the HCI handle used for a
+ *                  specific SCO connection,
  *
  * Returns          handle for the connection, or 0xFFFF if invalid SCO index.
  *
@@ -1371,11 +1378,13 @@ uint8_t *BTM_ReadScoBdAddr (uint16_t sco_inx)
  * Function         BTM_SetEScoMode
  *
  * Description      This function sets up the negotiated parameters for SCO or
- *                  eSCO, and sets as the default mode used for outgoing calls to
- *                  BTM_CreateSco.  It does not change any currently active (e)SCO links.
- *                  Note:  Incoming (e)SCO connections will always use packet types
- *                      supported by the controller.  If eSCO is not desired the
- *                      feature should be disabled in the controller's feature mask.
+ *                  eSCO, and sets as the default mode used for outgoing calls
+ *                  to BTM_CreateSco.  It does not change any currently active
+ *                  (e)SCO links.
+ *                  Note:  Incoming (e)SCO connections will always use packet
+ *                      types supported by the controller.  If eSCO is not
+ *                      desired the feature should be disabled in the
+ *                      controller's feature mask.
  *
  * Returns          BTM_SUCCESS if the successful.
  *                  BTM_BUSY if there are one or more active (e)SCO links.
@@ -1467,15 +1476,16 @@ tBTM_STATUS BTM_RegForEScoEvts (uint16_t sco_inx, tBTM_ESCO_CBACK *p_esco_cback)
  * Function         BTM_ReadEScoLinkParms
  *
  * Description      This function returns the current eSCO link parameters for
- *                  the specified handle.  This can be called anytime a connection
- *                  is active, but is typically called after receiving the SCO
- *                  opened callback.
+ *                  the specified handle.  This can be called anytime a
+ *                  connection is active, but is typically called after
+ *                  receiving the SCO opened callback.
  *
  *                  Note: If called over a 1.1 controller, only the packet types
  *                        field has meaning.
  *
  * Returns          BTM_SUCCESS if returned data is valid connection.
- *                  BTM_WRONG_MODE if no connection with a peer device or bad sco_inx.
+ *                  BTM_WRONG_MODE if no connection with a peer device or bad
+ *                                 sco_inx.
  *
  ******************************************************************************/
 tBTM_STATUS BTM_ReadEScoLinkParms (uint16_t sco_inx, tBTM_ESCO_DATA *p_parms)
@@ -1528,7 +1538,8 @@ tBTM_STATUS BTM_ReadEScoLinkParms (uint16_t sco_inx, tBTM_ESCO_DATA *p_parms)
  *
  * Returns          BTM_CMD_STARTED if command is successfully initiated.
  *                  BTM_NO_RESOURCES - not enough resources to initiate command.
- *                  BTM_WRONG_MODE if no connection with a peer device or bad sco_inx.
+ *                  BTM_WRONG_MODE if no connection with a peer device or bad
+ *                                 sco_inx.
  *
  ******************************************************************************/
 tBTM_STATUS BTM_ChangeEScoLinkParms (uint16_t sco_inx, tBTM_CHG_ESCO_PARAMS *p_parms)
@@ -1750,7 +1761,8 @@ uint8_t BTM_GetNumScoLinks (void)
  *
  * Function         btm_is_sco_active_by_bdaddr
  *
- * Description      This function is called to see if a SCO active to a bd address.
+ * Description      This function is called to see if a SCO connection is active
+ *                  for a bd address.
  *
  * Returns          bool
  *

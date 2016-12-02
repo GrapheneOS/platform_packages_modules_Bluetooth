@@ -411,8 +411,8 @@ BT_HDR *attp_build_sr_msg(tGATT_TCB *p_tcb, uint8_t op_code, tGATT_SR_MSG *p_msg
  *
  * Function         attp_send_sr_msg
  *
- * Description      This function sends the server response or indication message
- *                  to client.
+ * Description      This function sends the server response or indication
+ *                  message to client.
  *
  * Parameter        p_tcb: pointer to the connecton control block.
  *                  p_msg: pointer to message parameters structure.
@@ -488,8 +488,8 @@ tGATT_STATUS attp_cl_send_cmd(tGATT_TCB *p_tcb, uint16_t clcb_idx, uint8_t cmd_c
  *
  * Function         attp_send_cl_msg
  *
- * Description      This function sends the client request or confirmation message
- *                  to server.
+ * Description      This function sends the client request or confirmation
+ *                  message to server.
  *
  * Parameter        p_tcb: pointer to the connectino control block.
  *                  clcb_idx: clcb index

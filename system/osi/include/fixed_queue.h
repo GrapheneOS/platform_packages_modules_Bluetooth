@@ -126,12 +126,9 @@ int fixed_queue_get_enqueue_fd(const fixed_queue_t* queue);
 int fixed_queue_get_dequeue_fd(const fixed_queue_t* queue);
 
 // Registers |queue| with |reactor| for dequeue operations. When there is an
-// element
-// in the queue, ready_cb will be called. The |context| parameter is passed,
-// untouched,
-// to the callback routine. Neither |queue|, nor |reactor|, nor |read_cb| may be
-// NULL.
-// |context| may be NULL.
+// element in the queue, ready_cb will be called. The |context| parameter is
+// passed, untouched, to the callback routine. Neither |queue|, nor |reactor|,
+// nor |read_cb| may be NULL. |context| may be NULL.
 void fixed_queue_register_dequeue(fixed_queue_t* queue, reactor_t* reactor,
                                   fixed_queue_cb ready_cb, void* context);
 

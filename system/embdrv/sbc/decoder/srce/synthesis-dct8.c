@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -164,8 +165,8 @@ PRIVATE void float_dct2_8(float * RESTRICT out, int32_t const *RESTRICT in)
 /*
  * This function calculates the AAN DCT. Its inputs are in S16.15 format, as
  * returned by OI_SBC_Dequant. In practice, abs(in[x]) < 52429.0 / 1.38
- * (1244918057 integer). The function it computes is an approximation to the array defined
- * by:
+ * (1244918057 integer). The function it computes is an approximation to the
+ * array defined by:
  *
  * diag(aan_s) * AAN= C2
  *
@@ -186,12 +187,13 @@ PRIVATE void float_dct2_8(float * RESTRICT out, int32_t const *RESTRICT in)
  * Without loss of generality, assume the input vector X consists of elements
  * between -1 and 1. The maximum possible value of a given output element occurs
  * with some particular combination of input vector elements each of which is -1
- * or 1. Consider the computation of Y[i]. Y[i] = sum t=0..7 of AAN[t,i]*X[i]. Y is
- * maximized if the sign of X[i] matches the sign of AAN[t,i], ensuring a
+ * or 1. Consider the computation of Y[i]. Y[i] = sum t=0..7 of AAN[t,i]*X[i]. Y
+ * is maximized if the sign of X[i] matches the sign of AAN[t,i], ensuring a
  * positive contribution to the sum. Equivalently, one may simply sum
  * abs(AAN)[t,i] over t to get the maximum possible value of Y[i].
  *
- * This yields approximately [8.00  10.05   9.66   8.52   8.00   5.70   4.00   2.00]
+ * This yields approximately:
+ *  [8.00  10.05   9.66   8.52   8.00   5.70   4.00   2.00]
  *
  * Given the maximum magnitude sensible input value of +/-37992, this yields the
  * following vector of maximum output magnitudes:

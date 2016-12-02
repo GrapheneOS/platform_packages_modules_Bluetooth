@@ -85,8 +85,8 @@ void rfcomm_l2cap_if_init (void)
  * Function         RFCOMM_ConnectInd
  *
  * Description      This is a callback function called by L2CAP when
- *                  L2CA_ConnectInd received.  Allocate multiplexer control block
- *                  and dispatch the event to it.
+ *                  L2CA_ConnectInd received.  Allocate multiplexer control
+ *                  block and dispatch the event to it.
  *
  ******************************************************************************/
 void RFCOMM_ConnectInd (BD_ADDR bd_addr, uint16_t lcid,
@@ -259,7 +259,8 @@ void RFCOMM_ConfigCnf (uint16_t lcid, tL2CAP_CFG_INFO *p_cfg)
  * Function         RFCOMM_QoSViolationInd
  *
  * Description      This is a callback function called by L2CAP when
- *                  L2CA_QoSViolationIndInd received.  Dispatch event to the FSM.
+ *                  L2CA_QoSViolationIndInd received.  Dispatch event to the
+ *                  FSM.
  *
  ******************************************************************************/
 void RFCOMM_QoSViolationInd (UNUSED_ATTR BD_ADDR bd_addr)

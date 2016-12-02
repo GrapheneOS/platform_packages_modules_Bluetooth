@@ -133,7 +133,7 @@ void mca_dcb_do_disconn (tMCA_DCB *p_dcb,
  *
  * Function         mca_dcb_snd_data
  *
- * Description      This function sends the data from application to the peer device.
+ * Description      Send the data from application to the peer device.
  *
  * Returns          void.
  *

@@ -37,10 +37,11 @@
 #define AVRC_REV_1_5        0x0105
 #define AVRC_REV_1_6        0x0106
 
-#define AVRC_PACKET_LEN             512 /* Per the spec, you must support 512 byte RC packets */
+/* defines from the spec */
+#define AVRC_PACKET_LEN             512 /* You must support 512 byte RC packets */
 
-#define AVRC_MIN_CONTROL_MTU        48  /* Per the spec, minimum MTU for the control channel */
-#define AVRC_MIN_BROWSE_MTU         335 /* Per the spec, minimum MTU for the browsing channel */
+#define AVRC_MIN_CONTROL_MTU        48  /* Minimum MTU for the control channel */
+#define AVRC_MIN_BROWSE_MTU         335 /* Minimum MTU for the browsing channel */
 
 #define AVRC_META_PDU_OFFSET        4
 #define AVRC_SUB_TYPE_LEN           4
@@ -52,7 +53,7 @@
 #define AVRC_CMD_STATUS     1   /* Check a device's current status */
 #define AVRC_CMD_SPEC_INQ   2   /* Check whether a target supports a particular
                                    control command; all operands are included */
-#define AVRC_CMD_NOTIF      3   /* Used for receiving notification of a change in a device's state */
+#define AVRC_CMD_NOTIF      3   /* Notification of a change in a device's state */
 #define AVRC_CMD_GEN_INQ    4   /* Check whether a target supports a particular
                                    control command; operands are not included */
 
@@ -100,7 +101,7 @@
 #define AVRC_OP_SUB_INFO    0x31    /* Report subunit information */
 #define AVRC_OP_VENDOR      0x00    /* Vendor-dependent commands */
 #define AVRC_OP_PASS_THRU   0x7C    /* panel subunit opcode */
-/* opcodes 80-9F and E0-FF are not used by 1394ta.Sneak one for the browsing channel */
+/* opcodes 80-9F and E0-FF are not used by 1394ta.  Sneak one for browsing */
 #define AVRC_OP_BROWSE      0xFF    /* Browsing */
 #define AVRC_OP_INVALID     0xFE    /* invalid one */
 
@@ -214,7 +215,8 @@
 #define AVRC_PDU_CHANGE_PATH                    0x72
 #define AVRC_PDU_GET_ITEM_ATTRIBUTES            0x73
 #define AVRC_PDU_PLAY_ITEM                      0x74
-#define AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS         0x75        /* Added in post 1.5 */
+/* Added in post 1.5 */
+#define AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS         0x75
 #define AVRC_PDU_SEARCH                         0x80
 #define AVRC_PDU_ADD_TO_NOW_PLAYING             0x90
 #define AVRC_PDU_GENERAL_REJECT                 0xA0
@@ -223,35 +225,77 @@
 */
 #define AVRC_PDU_NEXT_GROUP                     0x00
 #define AVRC_PDU_PREV_GROUP                     0x01
-/* the only pass through vendor unique commands defined by AVRC is the group navigation commands
- * The len for vendor unique data is 5 */
+/* The only pass through vendor unique commands defined by AVRC are the group
+ *  navigation commands.
+ * The len for vendor unique data is 5
+ */
 #define AVRC_PASS_THRU_GROUP_LEN                5
 
 #define AVRC_PDU_INVALID                        0xff
 /* 6.15.3 error status code for general reject */
-#define AVRC_STS_BAD_CMD        0x00    /* Invalid command, sent if TG received a PDU that it did not understand. */
-#define AVRC_STS_BAD_PARAM      0x01    /* Invalid parameter, sent if the TG received a PDU with a parameter ID that it did not understand. Sent if there is only one parameter ID in the PDU. */
-#define AVRC_STS_NOT_FOUND      0x02    /* Specified parameter not found., sent if the parameter ID is understood, but content is wrong or corrupted. */
-#define AVRC_STS_INTERNAL_ERR   0x03    /* Internal Error, sent if there are error conditions not covered by a more specific error code. */
-#define AVRC_STS_NO_ERROR       0x04    /* Operation completed without error.  This is the status that should be returned if the operation was successful. */
-#define AVRC_STS_UID_CHANGED    0x05    /* UID Changed - The UIDs on the device have changed */
-/* #define AVRC_STS_GEN_ERROR      0x06    Unknown Error - this is changed to "reserved" */
-#define AVRC_STS_BAD_DIR        0x07    /* Invalid Direction - The Direction parameter is invalid - Change Path*/
-#define AVRC_STS_NOT_DIR        0x08    /* Not a Directory - The UID provided does not refer to a folder item  Change Path*/
-#define AVRC_STS_NOT_EXIST      0x09    /* Does Not Exist - The UID provided does not refer to any item    Change Path, PlayItem, AddToNowPlaying, GetItemAttributes*/
-#define AVRC_STS_BAD_SCOPE      0x0a    /* Invalid Scope - The scope parameter is invalid  GetFolderItems, PlayItem, AddToNowPlayer, GetItemAttributes, */
-#define AVRC_STS_BAD_RANGE      0x0b    /* Range Out of Bounds - The start of range provided is not valid  GetFolderItems*/
-#define AVRC_STS_UID_IS_DIR     0x0c    /* UID is a Directory - The UID provided refers to a directory, which cannot be handled by this media player   PlayItem, AddToNowPlaying */
-#define AVRC_STS_IN_USE         0x0d    /* Media in Use - The media is not able to be used for this operation at this time PlayItem, AddToNowPlaying */
-#define AVRC_STS_NOW_LIST_FULL  0x0e    /* Now Playing List Full - No more items can be added to the Now Playing List  AddToNowPlaying*/
-#define AVRC_STS_SEARCH_NOT_SUP 0x0f    /* Search Not Supported - The Browsed Media Player does not support search Search */
-#define AVRC_STS_SEARCH_BUSY    0x10    /* Search in Progress - A search operation is already in progress  Search*/
-#define AVRC_STS_BAD_PLAYER_ID  0x11    /* Invalid Player Id - The specified Player Id does not refer to a valid player    SetAddressedPlayer, SetBrowsedPlayer*/
-#define AVRC_STS_PLAYER_N_BR    0x12    /* Player Not Browsable - The Player Id supplied refers to a Media Player which does not support browsing. SetBrowsedPlayer */
-#define AVRC_STS_PLAYER_N_ADDR  0x13    /* Player Not Addressed.  The Player Id supplied refers to a player which is not currently addressed, and the command is not able to be performed if the player is not set as addressed.   Search, SetBrowsedPlayer*/
-#define AVRC_STS_BAD_SEARCH_RES 0x14    /* No valid Search Results - The Search result list does not contain valid entries, e.g. after being invalidated due to change of browsed player   GetFolderItems */
-#define AVRC_STS_NO_AVAL_PLAYER 0x15    /* No available players ALL */
-#define AVRC_STS_ADDR_PLAYER_CHG 0x16   /* Addressed Player Changed - Register Notification */
+/* Invalid command, sent if TG received a PDU that it did not understand. */
+#define AVRC_STS_BAD_CMD        0x00
+/* Invalid parameter, sent if the TG received a PDU with a parameter ID that it
+ * did not understand. Sent if there is only one parameter ID in the PDU. */
+#define AVRC_STS_BAD_PARAM      0x01
+/* Specified parameter not found., sent if the parameter ID is understood, but
+ * content is wrong or corrupted. */
+#define AVRC_STS_NOT_FOUND      0x02
+/* Internal Error, sent if there are error conditions not covered by a more
+ * specific error code. */
+#define AVRC_STS_INTERNAL_ERR   0x03
+/* Operation completed without error.  This is the status that should be
+ * returned if the operation was successful. */
+#define AVRC_STS_NO_ERROR       0x04
+/* UID Changed - The UIDs on the device have changed */
+#define AVRC_STS_UID_CHANGED    0x05
+/* #define AVRC_STS_GEN_ERROR   0x06    Unknown Error - now "reserved" */
+/* Invalid Direction - The Direction parameter is invalid - Change Path*/
+#define AVRC_STS_BAD_DIR        0x07
+/* Not a Directory - The UID provided does not refer to a folder item -
+ *      Change Path */
+#define AVRC_STS_NOT_DIR        0x08
+/* Does Not Exist - The UID provided does not refer to any item - Change Path,
+ *      PlayItem, AddToNowPlaying, GetItemAttributes */
+#define AVRC_STS_NOT_EXIST      0x09
+/* Invalid Scope - The scope parameter is invalid - GetFolderItems, PlayItem,
+ *      AddToNowPlayer, GetItemAttributes */
+#define AVRC_STS_BAD_SCOPE      0x0a
+/* Range Out of Bounds - The start of range provided is not valid
+ *      GetFolderItems*/
+#define AVRC_STS_BAD_RANGE      0x0b
+/* UID is a Directory - The UID provided refers to a directory, which cannot be
+ * handled by this media player -  PlayItem, AddToNowPlaying */
+#define AVRC_STS_UID_IS_DIR     0x0c
+/* Media in Use - The media is not able to be used for this operation at this
+ * time - PlayItem, AddToNowPlaying */
+#define AVRC_STS_IN_USE         0x0d
+/* Now Playing List Full - No more items can be added to the Now Playing List -
+ * AddToNowPlaying*/
+#define AVRC_STS_NOW_LIST_FULL  0x0e
+/* Search Not Supported - The Browsed Media Player does not support search -
+ * Search */
+#define AVRC_STS_SEARCH_NOT_SUP 0x0f
+/* Search in Progress - A search operation is already in progress - Search*/
+#define AVRC_STS_SEARCH_BUSY    0x10
+/* Invalid Player Id - The specified Player Id does not refer to a valid player
+ * - SetAddressedPlayer, SetBrowsedPlayer*/
+#define AVRC_STS_BAD_PLAYER_ID  0x11
+/* Player Not Browsable - The Player Id supplied refers to a Media Player which
+ * does not support browsing - SetBrowsedPlayer */
+#define AVRC_STS_PLAYER_N_BR    0x12
+/* Player Not Addressed.  The Player Id supplied refers to a player which is not
+ * currently addressed, and the command is not able to be performed if the
+ * player is not set as addressed - Search, SetBrowsedPlayer*/
+#define AVRC_STS_PLAYER_N_ADDR  0x13
+/* No valid Search Results - The Search result list does not contain valid
+ * entries, e.g. after being invalidated due to change of browsed player -
+ * GetFolderItems */
+#define AVRC_STS_BAD_SEARCH_RES 0x14
+/* No available players ALL */
+#define AVRC_STS_NO_AVAL_PLAYER 0x15
+/* Addressed Player Changed - Register Notification */
+#define AVRC_STS_ADDR_PLAYER_CHG 0x16
 typedef uint8_t tAVRC_STS;
 
 /* Define the Capability IDs
@@ -363,11 +407,14 @@ typedef uint8_t tAVRC_SYSTEMSTATE;
 #define AVRC_ITEM_FOLDER            0x02
 #define AVRC_ITEM_MEDIA             0x03
 
-#define AVRC_SCOPE_PLAYER_LIST      0x00  /* Media Player Item - Contains all available media players */
-#define AVRC_SCOPE_FILE_SYSTEM      0x01  /* Folder Item, Media Element Item
-                                             - The virtual filesystem containing the media content of the browsed player */
-#define AVRC_SCOPE_SEARCH           0x02  /* Media Element Item  The results of a search operation on the browsed player */
-#define AVRC_SCOPE_NOW_PLAYING      0x03  /* Media Element Item  The Now Playing list (or queue) of the addressed player */
+/* Media Player Item - Contains all available media players */
+#define AVRC_SCOPE_PLAYER_LIST      0x00
+/* Folder Item, Media Element Item - The virtual filesystem containing the media content of the browsed player */
+#define AVRC_SCOPE_FILE_SYSTEM      0x01
+/* Media Element Item  The results of a search operation on the browsed player */
+#define AVRC_SCOPE_SEARCH           0x02
+/* Media Element Item  The Now Playing list (or queue) of the addressed player */
+#define AVRC_SCOPE_NOW_PLAYING      0x03
 
 #define AVRC_FOLDER_ITEM_COUNT_NONE 0xFF
 
@@ -692,13 +739,15 @@ typedef uint8_t tAVRC_UID[AVRC_UID_SIZE];
 #define AVRC_PF_VENDOR_OFF              7
 #define AVRC_PF_VENDOR_SUPPORTED(x)     ((x)[AVRC_PF_VENDOR_OFF] & AVRC_PF_VENDOR_MASK)
 
-/* Basic Group Navigation.  This overrules the SDP entry as it is set per player.7 */
+/* Basic Group Navigation.  This overrules the SDP entry as it is set per
+ * player.7 */
 #define AVRC_PF_GROUP_NAVI_BIT_NO       57
 #define AVRC_PF_GROUP_NAVI_MASK         0x02
 #define AVRC_PF_GROUP_NAVI_OFF          7
 #define AVRC_PF_GROUP_NAVI_SUPPORTED(x) ((x)[AVRC_PF_GROUP_NAVI_OFF] & AVRC_PF_GROUP_NAVI_MASK)
 
-/* Advanced Control Player.  This bit is set if the player supports at least AVRCP 1.4. */
+/* Advanced Control Player.  This bit is set if the player supports at least
+ * AVRCP 1.4. */
 #define AVRC_PF_ADV_CTRL_BIT_NO         58
 #define AVRC_PF_ADV_CTRL_MASK           0x04
 #define AVRC_PF_ADV_CTRL_OFF            7
@@ -716,43 +765,50 @@ typedef uint8_t tAVRC_UID[AVRC_UID_SIZE];
 #define AVRC_PF_SEARCH_OFF              7
 #define AVRC_PF_SEARCH_SUPPORTED(x)     ((x)[AVRC_PF_SEARCH_OFF] & AVRC_PF_SEARCH_MASK)
 
-/* AddToNowPlaying.  This bit is set if the player supports the AddToNowPlaying command. */
+/* AddToNowPlaying.  This bit is set if the player supports the AddToNowPlaying
+ * command. */
 #define AVRC_PF_ADD2NOWPLAY_BIT_NO      61
 #define AVRC_PF_ADD2NOWPLAY_MASK        0x20
 #define AVRC_PF_ADD2NOWPLAY_OFF         7
 #define AVRC_PF_ADD2NOWPLAY_SUPPORTED(x) ((x)[AVRC_PF_ADD2NOWPLAY_OFF] & AVRC_PF_ADD2NOWPLAY_MASK)
 
-/* UIDs unique in player browse tree.  This bit is set if the player is able to maintain unique UIDs across the player browse tree. */
+/* UIDs unique in player browse tree.  This bit is set if the player is able to
+ * maintain unique UIDs across the player browse tree. */
 #define AVRC_PF_UID_UNIQUE_BIT_NO       62
 #define AVRC_PF_UID_UNIQUE_MASK         0x40
 #define AVRC_PF_UID_UNIQUE_OFF          7
 #define AVRC_PF_UID_UNIQUE_SUPPORTED(x) ((x)[AVRC_PF_UID_UNIQUE_OFF] & AVRC_PF_UID_UNIQUE_MASK)
 
-/* OnlyBrowsableWhenAddressed.  This bit is set if the player is only able to be browsed when it is set as the Addressed Player. */
+/* OnlyBrowsableWhenAddressed.  This bit is set if the player is only able to be
+ * browsed when it is set as the Addressed Player. */
 #define AVRC_PF_BR_WH_ADDR_BIT_NO       63
 #define AVRC_PF_BR_WH_ADDR_MASK         0x80
 #define AVRC_PF_BR_WH_ADDR_OFF          7
 #define AVRC_PF_BR_WH_ADDR_SUPPORTED(x) ((x)[AVRC_PF_BR_WH_ADDR_OFF] & AVRC_PF_BR_WH_ADDR_MASK)
 
-/* OnlySearchableWhenAddressed.  This bit is set if the player is only able to be searched when it is set as the Addressed player. */
+/* OnlySearchableWhenAddressed.  This bit is set if the player is only able to
+ * be searched when it is set as the Addressed player. */
 #define AVRC_PF_SEARCH_WH_ADDR_BIT_NO   64
 #define AVRC_PF_SEARCH_WH_ADDR_MASK     0x01
 #define AVRC_PF_SEARCH_WH_ADDR_OFF      8
 #define AVRC_PF_SEARCH_WH_ADDR_SUPPORTED(x) ((x)[AVRC_PF_SEARCH_WH_ADDR_OFF] & AVRC_PF_SEARCH_WH_ADDR_MASK)
 
-/* NowPlaying.  This bit is set if the player supports the NowPlaying folder.  Note that for all players that support browsing this bit shall be set */
+/* NowPlaying.  This bit is set if the player supports the NowPlaying folder.
+ * Note that for all players that support browsing this bit shall be set */
 #define AVRC_PF_NOW_PLAY_BIT_NO         65
 #define AVRC_PF_NOW_PLAY_MASK           0x02
 #define AVRC_PF_NOW_PLAY_OFF            8
 #define AVRC_PF_NOW_PLAY_SUPPORTED(x)   ((x)[AVRC_PF_NOW_PLAY_OFF] & AVRC_PF_NOW_PLAY_MASK)
 
-/* UIDPersistency.  This bit is set if the Player is able to persist UID values between AVRCP Browse Reconnect */
+/* UIDPersistency.  This bit is set if the Player is able to persist UID values
+ * between AVRCP Browse Reconnect */
 #define AVRC_PF_UID_PERSIST_BIT_NO      66
 #define AVRC_PF_UID_PERSIST_MASK        0x04
 #define AVRC_PF_UID_PERSIST_OFF         8
 #define AVRC_PF_UID_PERSIST_SUPPORTED(x) ((x)[AVRC_PF_UID_PERSIST_OFF] & AVRC_PF_UID_PERSIST_MASK)
 
-/* NumberOfItems. This bit is set if player supports the GetTotalNumberOfItems browsing command. */
+/* NumberOfItems. This bit is set if player supports the GetTotalNumberOfItems
+ * browsing command. */
 #define AVRC_PF_GET_NUM_OF_ITEMS_BIT_NO    67
 #define AVRC_PF_GET_NUM_OF_ITEMS_MASK      0x08
 #define AVRC_PF_GET_NUM_OF_ITEMS_OFF       8

@@ -117,54 +117,54 @@ const tAVCT_LCB_ACTION avct_lcb_action[] = {
 
 /* state table for idle state */
 const uint8_t avct_lcb_st_idle[][AVCT_LCB_NUM_COLS] = {
-/* Event                Action 1                    Action 2                    Next state */
-/* UL_BIND_EVT */       {AVCT_LCB_CHNL_OPEN,        AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
-/* UL_UNBIND_EVT */     {AVCT_LCB_UNBIND_DISC,      AVCT_LCB_IGNORE,            AVCT_LCB_IDLE_ST},
-/* UL_MSG_EVT */        {AVCT_LCB_DISCARD_MSG,      AVCT_LCB_IGNORE,            AVCT_LCB_IDLE_ST},
-/* INT_CLOSE_EVT */     {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_IDLE_ST},
-/* LL_OPEN_EVT */       {AVCT_LCB_OPEN_IND,         AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
-/* LL_CLOSE_EVT */      {AVCT_LCB_CLOSE_IND,        AVCT_LCB_DEALLOC,           AVCT_LCB_IDLE_ST},
-/* LL_MSG_EVT */        {AVCT_LCB_FREE_MSG_IND,     AVCT_LCB_IGNORE,            AVCT_LCB_IDLE_ST},
-/* LL_CONG_EVT */       {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_IDLE_ST}
+/* Event        Action 1                Action 2             Next state */
+/* UL_BIND */   {AVCT_LCB_CHNL_OPEN,    AVCT_LCB_IGNORE,  AVCT_LCB_OPENING_ST},
+/* UL_UNBIND */ {AVCT_LCB_UNBIND_DISC,  AVCT_LCB_IGNORE,  AVCT_LCB_IDLE_ST},
+/* UL_MSG */    {AVCT_LCB_DISCARD_MSG,  AVCT_LCB_IGNORE,  AVCT_LCB_IDLE_ST},
+/* INT_CLOSE */ {AVCT_LCB_IGNORE,       AVCT_LCB_IGNORE,  AVCT_LCB_IDLE_ST},
+/* LL_OPEN */   {AVCT_LCB_OPEN_IND,     AVCT_LCB_IGNORE,  AVCT_LCB_OPEN_ST},
+/* LL_CLOSE */  {AVCT_LCB_CLOSE_IND,    AVCT_LCB_DEALLOC, AVCT_LCB_IDLE_ST},
+/* LL_MSG */    {AVCT_LCB_FREE_MSG_IND, AVCT_LCB_IGNORE,  AVCT_LCB_IDLE_ST},
+/* LL_CONG */   {AVCT_LCB_IGNORE,       AVCT_LCB_IGNORE,  AVCT_LCB_IDLE_ST}
 };
 
 /* state table for opening state */
 const uint8_t avct_lcb_st_opening[][AVCT_LCB_NUM_COLS] = {
-/* Event                Action 1                    Action 2                    Next state */
-/* UL_BIND_EVT */       {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
-/* UL_UNBIND_EVT */     {AVCT_LCB_UNBIND_DISC,      AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
-/* UL_MSG_EVT */        {AVCT_LCB_DISCARD_MSG,      AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
-/* INT_CLOSE_EVT */     {AVCT_LCB_CHNL_DISC,        AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* LL_OPEN_EVT */       {AVCT_LCB_OPEN_IND,         AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
-/* LL_CLOSE_EVT */      {AVCT_LCB_OPEN_FAIL,        AVCT_LCB_DEALLOC,           AVCT_LCB_IDLE_ST},
-/* LL_MSG_EVT */        {AVCT_LCB_FREE_MSG_IND,     AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST},
-/* LL_CONG_EVT */       {AVCT_LCB_CONG_IND,         AVCT_LCB_IGNORE,            AVCT_LCB_OPENING_ST}
+/* Event        Action 1                Action 2             Next state */
+/* UL_BIND */   {AVCT_LCB_IGNORE,       AVCT_LCB_IGNORE,   AVCT_LCB_OPENING_ST},
+/* UL_UNBIND */ {AVCT_LCB_UNBIND_DISC,  AVCT_LCB_IGNORE,   AVCT_LCB_OPENING_ST},
+/* UL_MSG */    {AVCT_LCB_DISCARD_MSG,  AVCT_LCB_IGNORE,   AVCT_LCB_OPENING_ST},
+/* INT_CLOSE */ {AVCT_LCB_CHNL_DISC,    AVCT_LCB_IGNORE,   AVCT_LCB_CLOSING_ST},
+/* LL_OPEN */   {AVCT_LCB_OPEN_IND,     AVCT_LCB_IGNORE,   AVCT_LCB_OPEN_ST},
+/* LL_CLOSE */  {AVCT_LCB_OPEN_FAIL,    AVCT_LCB_DEALLOC,  AVCT_LCB_IDLE_ST},
+/* LL_MSG */    {AVCT_LCB_FREE_MSG_IND, AVCT_LCB_IGNORE,   AVCT_LCB_OPENING_ST},
+/* LL_CONG */   {AVCT_LCB_CONG_IND,     AVCT_LCB_IGNORE,   AVCT_LCB_OPENING_ST}
 };
 
 /* state table for open state */
 const uint8_t avct_lcb_st_open[][AVCT_LCB_NUM_COLS] = {
-/* Event                Action 1                    Action 2                    Next state */
-/* UL_BIND_EVT */       {AVCT_LCB_BIND_CONN,        AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
-/* UL_UNBIND_EVT */     {AVCT_LCB_CHK_DISC,         AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
-/* UL_MSG_EVT */        {AVCT_LCB_SEND_MSG,         AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
-/* INT_CLOSE_EVT */     {AVCT_LCB_CHNL_DISC,        AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* LL_OPEN_EVT */       {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
-/* LL_CLOSE_EVT */      {AVCT_LCB_CLOSE_IND,        AVCT_LCB_DEALLOC,           AVCT_LCB_IDLE_ST},
-/* LL_MSG_EVT */        {AVCT_LCB_MSG_IND,          AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST},
-/* LL_CONG_EVT */       {AVCT_LCB_CONG_IND,         AVCT_LCB_IGNORE,            AVCT_LCB_OPEN_ST}
+/* Event         Action 1             Action 2             Next state */
+/* UL_BIND */   {AVCT_LCB_BIND_CONN,  AVCT_LCB_IGNORE,     AVCT_LCB_OPEN_ST},
+/* UL_UNBIND */ {AVCT_LCB_CHK_DISC,   AVCT_LCB_IGNORE,     AVCT_LCB_OPEN_ST},
+/* UL_MSG */    {AVCT_LCB_SEND_MSG,   AVCT_LCB_IGNORE,     AVCT_LCB_OPEN_ST},
+/* INT_CLOSE */ {AVCT_LCB_CHNL_DISC,  AVCT_LCB_IGNORE,     AVCT_LCB_CLOSING_ST},
+/* LL_OPEN */   {AVCT_LCB_IGNORE,     AVCT_LCB_IGNORE,     AVCT_LCB_OPEN_ST},
+/* LL_CLOSE */  {AVCT_LCB_CLOSE_IND,  AVCT_LCB_DEALLOC,    AVCT_LCB_IDLE_ST},
+/* LL_MSG */    {AVCT_LCB_MSG_IND,    AVCT_LCB_IGNORE,     AVCT_LCB_OPEN_ST},
+/* LL_CONG */   {AVCT_LCB_CONG_IND,   AVCT_LCB_IGNORE,     AVCT_LCB_OPEN_ST}
 };
 
 /* state table for closing state */
 const uint8_t avct_lcb_st_closing[][AVCT_LCB_NUM_COLS] = {
-/* Event                Action 1                    Action 2                    Next state */
-/* UL_BIND_EVT */       {AVCT_LCB_BIND_FAIL,        AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* UL_UNBIND_EVT */     {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* UL_MSG_EVT */        {AVCT_LCB_DISCARD_MSG,      AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* INT_CLOSE_EVT */     {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* LL_OPEN_EVT */       {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* LL_CLOSE_EVT */      {AVCT_LCB_CLOSE_CFM,        AVCT_LCB_DEALLOC,           AVCT_LCB_IDLE_ST},
-/* LL_MSG_EVT */        {AVCT_LCB_FREE_MSG_IND,     AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST},
-/* LL_CONG_EVT */       {AVCT_LCB_IGNORE,           AVCT_LCB_IGNORE,            AVCT_LCB_CLOSING_ST}
+/* Event         Action 1               Action 2          Next state */
+/* UL_BIND */   {AVCT_LCB_BIND_FAIL,    AVCT_LCB_IGNORE,  AVCT_LCB_CLOSING_ST},
+/* UL_UNBIND */ {AVCT_LCB_IGNORE,       AVCT_LCB_IGNORE,  AVCT_LCB_CLOSING_ST},
+/* UL_MSG */    {AVCT_LCB_DISCARD_MSG,  AVCT_LCB_IGNORE,  AVCT_LCB_CLOSING_ST},
+/* INT_CLOSE */ {AVCT_LCB_IGNORE,       AVCT_LCB_IGNORE,  AVCT_LCB_CLOSING_ST},
+/* LL_OPEN */   {AVCT_LCB_IGNORE,       AVCT_LCB_IGNORE,  AVCT_LCB_CLOSING_ST},
+/* LL_CLOSE */  {AVCT_LCB_CLOSE_CFM,    AVCT_LCB_DEALLOC, AVCT_LCB_IDLE_ST},
+/* LL_MSG */    {AVCT_LCB_FREE_MSG_IND, AVCT_LCB_IGNORE,  AVCT_LCB_CLOSING_ST},
+/* LL_CONG */   {AVCT_LCB_IGNORE,       AVCT_LCB_IGNORE,  AVCT_LCB_CLOSING_ST}
 };
 
 /* type for state table */

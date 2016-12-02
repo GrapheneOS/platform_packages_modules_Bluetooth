@@ -38,8 +38,8 @@
 #define AVCT_L2C_CFG_CFM_DONE   (1<<1)
 
 /* AVCTP Browsing channel FCR Option:
- * Size of the transmission window when using enhanced retransmission mode. Not used
- * in basic and streaming modes. Range: 1 - 63
+ * Size of the transmission window when using enhanced retransmission mode. Not
+ * used in basic and streaming modes. Range: 1 - 63
  */
 #define AVCT_BR_FCR_OPT_TX_WINDOW_SIZE      10
 
@@ -55,14 +55,16 @@
 
 /* AVCTP Browsing channel FCR Option: Retransmission Timeout
  * The AVRCP specification set a value in the range of 300 - 2000 ms
- * Timeout (in msecs) to detect Lost I-Frames. Only used in Enhanced retransmission mode.
+ * Timeout (in msecs) to detect Lost I-Frames. Only used in Enhanced
+ * retransmission mode.
  * Range: Minimum 2000 (2 secs) when supporting PBF.
  */
 #define AVCT_BR_FCR_OPT_RETX_TOUT           2000
 
 /* AVCTP Browsing channel FCR Option: Monitor Timeout
  * The AVRCP specification set a value in the range of 300 - 2000 ms
- * Timeout (in msecs) to detect Lost S-Frames. Only used in Enhanced retransmission mode.
+ * Timeout (in msecs) to detect Lost S-Frames. Only used in Enhanced
+ * retransmission mode.
  * Range: Minimum 12000 (12 secs) when supporting PBF.
  */
 #define AVCT_BR_FCR_OPT_MONITOR_TOUT        12000

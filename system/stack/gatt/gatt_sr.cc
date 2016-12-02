@@ -76,7 +76,7 @@ uint32_t gatt_sr_enqueue_cmd (tGATT_TCB *p_tcb, uint8_t op_code, uint16_t handle
  *
  * Function         gatt_sr_cmd_empty
  *
- * Description      This function check the server command queue is empty or not.
+ * Description      This function checks if the server command queue is empty.
  *
  * Returns          true if empty, false if there is pending command.
  *
@@ -247,8 +247,8 @@ static bool    process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
  *
  * Function         gatt_sr_process_app_rsp
  *
- * Description      This function checks whether the response message from application
- *                  match any pending request or not.
+ * Description      This function checks whether the response message from
+ *                  application matches any pending request.
  *
  * Returns          void
  *
@@ -669,7 +669,8 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
  *
  * Function         gatts_internal_read_by_type_req
  *
- * Description      check to see if the ReadByType request can be handled internally.
+ * Description      Check to see if the ReadByType request can be handled
+ *                  internally.
  *
  * Returns          void
  *
@@ -732,8 +733,9 @@ static tGATT_STATUS gatts_validate_packet_format(uint8_t op_code, uint16_t *p_le
  *
  * Function         gatts_process_primary_service_req
  *
- * Description      process ReadByGroupType/ReadByTypeValue request, for discover
- *                  all primary services or discover primary service by UUID request.
+ * Description      Process ReadByGroupType/ReadByTypeValue request, for
+ *                  discovering all primary services or discover primary service
+ *                  by UUID request.
  *
  * Returns          void
  *
@@ -1197,8 +1199,8 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, uint8_
  *
  * Function         gatts_process_attribute_req
  *
- * Description      This function is called to process the per attribute handle request
- *                  from client.
+ * Description      This function is called to process the per attribute handle
+ *                  request from client.
  *
  * Returns          void
  *
@@ -1309,8 +1311,8 @@ static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
  *
  * Function         gatts_chk_pending_ind
  *
- * Description      This function check any pending indication needs to be sent if
- *                  there is a pending indication then sent the indication
+ * Description      This function check any pending indication needs to be sent
+ *                  if there is a pending indication then sent the indication
  *
  * Returns          void
  *
@@ -1335,10 +1337,10 @@ static void gatts_chk_pending_ind(tGATT_TCB *p_tcb )
  *
  * Function         gatts_proc_ind_ack
  *
- * Description      This function process the Indication ack
+ * Description      This function processes the Indication ack
  *
- * Returns          true continue to process the indication ack by the aaplication
- *                  if the ACk is not a Service Changed Indication Ack
+ * Returns          true continue to process the indication ack by the
+ *                  application if the ACK is not a Service Changed Indication
  *
  ******************************************************************************/
 static bool    gatts_proc_ind_ack(tGATT_TCB *p_tcb, uint16_t ack_handle)
@@ -1362,7 +1364,8 @@ static bool    gatts_proc_ind_ack(tGATT_TCB *p_tcb, uint16_t ack_handle)
  *
  * Function         gatts_process_value_conf
  *
- * Description      This function is called to process the handle value confirmation.
+ * Description      This function is called to process the handle value
+ *                  confirmation.
  *
  * Returns          void
  *

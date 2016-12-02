@@ -49,13 +49,11 @@ reactor_t* reactor_new(void);
 void reactor_free(reactor_t* reactor);
 
 // Starts the reactor. This function blocks the caller until |reactor_stop| is
-// called
-// from another thread or in a callback. |reactor| may not be NULL.
+// called from another thread or in a callback. |reactor| may not be NULL.
 reactor_status_t reactor_start(reactor_t* reactor);
 
 // Runs one iteration of the reactor. This function blocks until at least one
-// registered object
-// becomes ready. |reactor| may not be NULL.
+// registered object becomes ready. |reactor| may not be NULL.
 reactor_status_t reactor_run_once(reactor_t* reactor);
 
 // Immediately unblocks the reactor. This function is safe to call from any
@@ -64,42 +62,32 @@ reactor_status_t reactor_run_once(reactor_t* reactor);
 void reactor_stop(reactor_t* reactor);
 
 // Registers a file descriptor with the reactor. The file descriptor, |fd|, must
-// be valid
-// when this function is called and its ownership is not transferred to the
-// reactor. The
-// |context| variable is a user-defined opaque handle that is passed back to the
-// |read_ready|
-// and |write_ready| functions. It is not copied or even dereferenced by the
-// reactor so it
-// may contain any value including NULL. The |read_ready| and |write_ready|
-// arguments are
-// optional and may be NULL. This function returns an opaque object that
-// represents the
-// file descriptor's registration with the reactor. When the caller is no longer
-// interested
-// in events on the |fd|, it must free the returned object by calling
+// be valid when this function is called and its ownership is not transferred
+// to the reactor. The |context| variable is a user-defined opaque handle that
+// is passed back to the |read_ready| and |write_ready| functions. It is not
+// copied or even dereferenced by the reactor so it may contain any value
+// including NULL. The |read_ready| and |write_ready| arguments are optional and
+// may be NULL. This function returns an opaque object that represents the file
+// descriptor's registration with the reactor. When the caller is no longer
+// interested in events on the |fd|, it must free the returned object by calling
 // |reactor_unregister|.
 reactor_object_t* reactor_register(reactor_t* reactor, int fd, void* context,
                                    void (*read_ready)(void* context),
                                    void (*write_ready)(void* context));
 
 // Changes the subscription mode for the file descriptor represented by
-// |object|. If the
-// caller has already registered a file descriptor with a reactor, has a valid
-// |object|,
-// and decides to change the |read_ready| and/or |write_ready| callback
-// routines, they
-// can call this routine. Returns true if the subscription was changed, false
-// otherwise.
+// |object|. If the caller has already registered a file descriptor with a
+// reactor, has a valid |object|, and decides to change the |read_ready| and/or
+// |write_ready| callback routines, they can call this routine. Returns true if
+// the subscription was changed, false otherwise.
 // |object| may not be NULL, |read_ready| and |write_ready| may be NULL.
 bool reactor_change_registration(reactor_object_t* object,
                                  void (*read_ready)(void* context),
                                  void (*write_ready)(void* context));
 
 // Unregisters a previously registered file descriptor with its reactor. |obj|
-// may not be NULL.
-// |obj| is invalid after calling this function so the caller must drop all
-// references to it.
+// may not be NULL. |obj| is invalid after calling this function so the caller
+// must drop all references to it.
 void reactor_unregister(reactor_object_t* obj);
 
 #ifdef __cplusplus

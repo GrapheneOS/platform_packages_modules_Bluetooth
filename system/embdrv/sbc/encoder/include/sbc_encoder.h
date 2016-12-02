@@ -86,37 +86,51 @@
 #define SBC_ARM_ASM_OPT FALSE
 #endif
 
-/* green hill compiler option -> Used to distinguish the syntax for inline assembly code*/
+/* green hill compiler option -> Used to distinguish the syntax for inline
+ * assembly code
+ */
 #ifndef SBC_GHS_COMPILER
 #define SBC_GHS_COMPILER FALSE
 #endif
 
-/* ARM compiler option -> Used to distinguish the syntax for inline assembly code */
+/* ARM compiler option -> Used to distinguish the syntax for inline assembly
+ * code */
 #ifndef SBC_ARM_COMPILER
 #define SBC_ARM_COMPILER TRUE
 #endif
 
 /* Set SBC_IPAQ_OPT to TRUE in case the target is an ARM */
-/* 32 and 64 bit mult will be performed using int64_t ( usualy __int64 ) cast that usualy give optimal performance if supported */
+/* 32 and 64 bit mult will be performed using int64_t ( usualy __int64 ) cast
+ * that usualy give optimal performance if supported
+ */
 #ifndef SBC_IPAQ_OPT
 #define SBC_IPAQ_OPT TRUE
 #endif
 
-/* Debug only: set SBC_IS_64_MULT_IN_WINDOW_ACCU to TRUE to use 64 bit multiplication in the windowing */
+/* Debug only: set SBC_IS_64_MULT_IN_WINDOW_ACCU to TRUE to use 64 bit
+ * multiplication in the windowing
+ */
 /* -> not recomended, more MIPS for the same restitution.  */
 #ifndef SBC_IS_64_MULT_IN_WINDOW_ACCU
 #define SBC_IS_64_MULT_IN_WINDOW_ACCU  FALSE
 #endif /*SBC_IS_64_MULT_IN_WINDOW_ACCU */
 
-/* Set SBC_IS_64_MULT_IN_IDCT to TRUE to use 64 bits multiplication in the DCT of Matrixing */
-/* -> more MIPS required for a better audio quality. comparasion with the SIG utilities shows a division by 10 of the RMS */
+/* Set SBC_IS_64_MULT_IN_IDCT to TRUE to use 64 bits multiplication in the DCT
+ * of Matrixing
+ */
+/* -> more MIPS required for a better audio quality. comparasion with the SIG
+ * utilities shows a division by 10 of the RMS
+ */
 /* CAUTION: It only apply in the if SBC_FAST_DCT is set to TRUE */
 #ifndef SBC_IS_64_MULT_IN_IDCT
 #define SBC_IS_64_MULT_IN_IDCT  FALSE
 #endif /*SBC_IS_64_MULT_IN_IDCT */
 
-/* set SBC_IS_64_MULT_IN_QUANTIZER to TRUE to use 64 bits multiplication in the quantizer */
-/* setting this flag to FALSE add whistling noise at 5.5 and 11 KHz usualy not perceptible by human's hears. */
+/* set SBC_IS_64_MULT_IN_QUANTIZER to TRUE to use 64 bits multiplication in the
+ * quantizer
+ */
+/* setting this flag to FALSE adds a whistling noise at 5.5 and 11 KHz usualy
+ * not perceptible by human's hears. */
 #ifndef SBC_IS_64_MULT_IN_QUANTIZER
 #define SBC_IS_64_MULT_IN_QUANTIZER  TRUE
 #endif /*SBC_IS_64_MULT_IN_IDCT */
@@ -126,7 +140,8 @@
 #define SBC_FAST_DCT  TRUE
 #endif /*SBC_FAST_DCT */
 
-/* In case we do not use joint stereo mode the flag save some RAM and ROM in case it is set to FALSE */
+/* In case we do not use joint stereo mode the flag save some RAM and ROM in
+ * case it is set to FALSE */
 #ifndef SBC_JOINT_STE_INCLUDED
 #define SBC_JOINT_STE_INCLUDED TRUE
 #endif
@@ -180,8 +195,8 @@ typedef struct SBC_ENC_PARAMS_TAG
 extern "C" {
 #endif
 
-/* Encode the frame using SBC. The output is written into |output|. Return number of
- * bytes written. */
+/* Encode the frame using SBC. The output is written into |output|. Return
+ * number of bytes written. */
 extern uint32_t SBC_Encode(SBC_ENC_PARAMS *strEncParams, int16_t *input, uint8_t *output);
 extern void SBC_Encoder_Init(SBC_ENC_PARAMS *strEncParams);
 

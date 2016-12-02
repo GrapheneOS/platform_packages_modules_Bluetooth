@@ -43,13 +43,20 @@
 #define BT_SEC_MODE_LINK            BTM_SEC_MODE_LINK
 
 /* security mask definitions (tBT_SECURITY) */
-/* The following definitions are OR'd together to form the security requirements */
-#define BT_SEC_IN_AUTHORIZE         BTM_SEC_IN_AUTHORIZE         /* Inbound call requires authorization */
-#define BT_SEC_IN_AUTHENTICATE      BTM_SEC_IN_AUTHENTICATE      /* Inbound call requires authentication */
-#define BT_SEC_IN_ENCRYPT           BTM_SEC_IN_ENCRYPT           /* Inbound call requires encryption */
-#define BT_SEC_OUT_AUTHORIZE        BTM_SEC_OUT_AUTHORIZE        /* Outbound call requires authorization */
-#define BT_SEC_OUT_AUTHENTICATE     BTM_SEC_OUT_AUTHENTICATE     /* Outbound call requires authentication */
-#define BT_SEC_OUT_ENCRYPT          BTM_SEC_OUT_ENCRYPT          /* Outbound call requires encryption */
+/* The following definitions are OR'd together to form the security
+ * requirements */
+/* Inbound call requires authorization */
+#define BT_SEC_IN_AUTHORIZE         BTM_SEC_IN_AUTHORIZE
+/* Inbound call requires authentication */
+#define BT_SEC_IN_AUTHENTICATE      BTM_SEC_IN_AUTHENTICATE
+/* Inbound call requires encryption */
+#define BT_SEC_IN_ENCRYPT           BTM_SEC_IN_ENCRYPT
+/* Outbound call requires authorization */
+#define BT_SEC_OUT_AUTHORIZE        BTM_SEC_OUT_AUTHORIZE
+/* Outbound call requires authentication */
+#define BT_SEC_OUT_AUTHENTICATE     BTM_SEC_OUT_AUTHENTICATE
+/* Outbound call requires encryption */
+#define BT_SEC_OUT_ENCRYPT          BTM_SEC_OUT_ENCRYPT
 
 
 /*****************************************************************************

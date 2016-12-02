@@ -35,8 +35,8 @@
                (((_p_player)->play_status <= AVRC_PLAYSTATE_REV_SEEK) || \
                 ((_p_player)->play_status == AVRC_PLAYSTATE_ERROR)) )
 
-
-#define AVRC_MIN_LEN_GET_FOLDER_ITEMS_RSP   17 /* 17 = item_type(1) + item len(2) + min item (14) */
+ /* 17 = item_type(1) + item len(2) + min item (14) */
+#define AVRC_MIN_LEN_GET_FOLDER_ITEMS_RSP   17
 
 /*******************************************************************************
  *
@@ -221,8 +221,8 @@ static tAVRC_STS avrc_bld_list_app_settings_values_rsp (tAVRC_LIST_APP_VALUES_RS
  *
  * Function         avrc_bld_get_cur_app_setting_value_rsp
  *
- * Description      This function builds the Get Current Application Setting Value
- *                  response.
+ * Description      This function builds the Get Current Application Setting
+ *                  Value response.
  *
  * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
  *                  Otherwise, the error code.
@@ -299,8 +299,8 @@ static tAVRC_STS avrc_bld_set_app_setting_value_rsp (UNUSED_ATTR tAVRC_RSP *p_rs
  *
  * Function         avrc_bld_app_setting_text_rsp
  *
- * Description      This function builds the Get Application Settings Attribute Text
- *                  or Get Application Settings Value Text response.
+ * Description      This function builds the Get Application Settings Attribute
+ *                  Text or Get Application Settings Value Text response.
  *
  * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
  *                  Otherwise, the error code.
@@ -376,8 +376,8 @@ static tAVRC_STS avrc_bld_app_setting_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rs
  *
  * Function         avrc_bld_get_app_setting_attr_text_rsp
  *
- * Description      This function builds the Get Application Setting Attribute Text
- *                  response.
+ * Description      This function builds the Get Application Setting Attribute
+ *                  Text response.
  *
  * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
  *                  Otherwise, the error code.
@@ -701,8 +701,8 @@ static tAVRC_STS avrc_bld_notify_rsp (tAVRC_REG_NOTIF_RSP *p_rsp, BT_HDR *p_pkt)
         break;
 
     case AVRC_EVT_ADDR_PLAYER_CHANGE:       /* 0x0b */
-        UINT16_TO_BE_STREAM(p_data, p_rsp->param.addr_player.player_id); /* player_id */
-        UINT16_TO_BE_STREAM(p_data, p_rsp->param.addr_player.uid_counter); /* uid counter */
+        UINT16_TO_BE_STREAM(p_data, p_rsp->param.addr_player.player_id);
+        UINT16_TO_BE_STREAM(p_data, p_rsp->param.addr_player.uid_counter);
         len = 5;
         break;
 
@@ -961,7 +961,8 @@ static tAVRC_STS avrc_bld_set_browsed_player_rsp (tAVRC_SET_BR_PLAYER_RSP *p_rsp
  *                  This message goes through the Browsing channel
  *
  * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
- *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
+ *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have
+ *                  enough room
  *                  Otherwise, the error code.
  *
  ******************************************************************************/
@@ -1207,7 +1208,8 @@ static tAVRC_STS avrc_bld_change_path_rsp (tAVRC_CHG_PATH_RSP *p_rsp, BT_HDR *p_
  *                  Browsing channel (already specified in the |p_pkt|)
  *
  * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
- *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
+ *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have
+ *                  enough room
  *                  Otherwise, the error code.
  *
  ******************************************************************************/
@@ -1283,7 +1285,8 @@ static tAVRC_STS avrc_bld_get_item_attrs_rsp (tAVRC_GET_ATTRS_RSP *p_rsp,
  *                  This message goes through the Browsing channel
  *
  * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
- *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have enough room
+ *                  AVRC_STS_INTERNAL_ERR, if the given buffer does not have
+ *                  enough room
  *                  Otherwise, the error code.
  *
  ******************************************************************************/

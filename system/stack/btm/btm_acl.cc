@@ -78,15 +78,17 @@ void btm_acl_init (void)
 
 /*******************************************************************************
  *
- * Function         btm_bda_to_acl
+ * Function        btm_bda_to_acl
  *
- * Description      This function returns the FIRST acl_db entry for the passed BDA.
+ * Description     This function returns the FIRST acl_db entry for the passed
+ *                 BDA.
  *
  * Parameters      bda : BD address of the remote device
- *                 transport : Physical transport used for ACL connection (BR/EDR or LE)
+ *                 transport : Physical transport used for ACL connection
+ *                 (BR/EDR or LE)
  *
- * Returns          Returns pointer to the ACL DB for the requested BDA if found.
- *                  NULL if not found.
+ * Returns         Returns pointer to the ACL DB for the requested BDA if found.
+ *                 NULL if not found.
  *
  ******************************************************************************/
 tACL_CONN *btm_bda_to_acl (const BD_ADDR bda, tBT_TRANSPORT transport)
@@ -114,7 +116,8 @@ tACL_CONN *btm_bda_to_acl (const BD_ADDR bda, tBT_TRANSPORT transport)
  *
  * Function         btm_handle_to_acl_index
  *
- * Description      This function returns the FIRST acl_db entry for the passed hci_handle.
+ * Description      This function returns the FIRST acl_db entry for the passed
+ *                  hci_handle.
  *
  * Returns          index to the acl_db or MAX_L2CAP_LINKS.
  *
@@ -464,8 +467,8 @@ void btm_acl_device_down (void)
  *
  * Function         btm_acl_update_busy_level
  *
- * Description      This function is called to update the busy level of the system
- *                  .
+ * Description      This function is called to update the busy level of the
+ *                  system.
  *
  * Returns          void
  *
@@ -567,9 +570,11 @@ tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, uint8_t *p_role)
  *
  * Returns          BTM_SUCCESS if already in specified role.
  *                  BTM_CMD_STARTED if command issued to controller.
- *                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
+ *                  BTM_NO_RESOURCES if couldn't allocate memory to issue
+ *                                   command
  *                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
- *                  BTM_MODE_UNSUPPORTED if local device does not support role switching
+ *                  BTM_MODE_UNSUPPORTED if local device does not support role
+ *                                       switching
  *                  BTM_BUSY if the previous command is not completed
  *
  ******************************************************************************/
@@ -782,8 +787,8 @@ tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda, uint16_t *settings)
 {
     tACL_CONN   *p;
     uint8_t     *localFeatures = BTM_ReadLocalFeatures();
-    BTM_TRACE_DEBUG ("BTM_SetLinkPolicy");
-/*    BTM_TRACE_API ("BTM_SetLinkPolicy: requested settings: 0x%04x", *settings ); */
+    BTM_TRACE_DEBUG ("%s", __func__);
+/*  BTM_TRACE_API ("%s: requested settings: 0x%04x", __func__, *settings ); */
 
     /* First, check if hold mode is supported */
     if (*settings != HCI_DISABLE_ALL_LM_MODES)
@@ -1002,8 +1007,8 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, uint8_t num_read_page
  *
  * Function         btm_read_remote_features
  *
- * Description      Local function called to send a read remote supported features/
- *                  remote extended features page[0].
+ * Description      Local function called to send a read remote supported
+ *                  features/remote extended features page[0].
  *
  * Returns          void
  *
@@ -1036,7 +1041,8 @@ void btm_read_remote_features (uint16_t handle)
  *
  * Function         btm_read_remote_ext_features
  *
- * Description      Local function called to send a read remote extended features
+ * Description      Local function called to send a read remote extended
+ *                  features
  *
  * Returns          void
  *
@@ -1211,7 +1217,8 @@ void btm_read_remote_ext_features_failed (uint8_t status, uint16_t handle)
  * Function         btm_establish_continue
  *
  * Description      This function is called when the command complete message
- *                  is received from the HCI for the read local link policy request.
+ *                  is received from the HCI for the read local link policy
+ *                  request.
  *
  * Returns          void
  *
@@ -1255,7 +1262,8 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
  *
  * Function         BTM_SetDefaultLinkSuperTout
  *
- * Description      Set the default value for HCI "Write Link Supervision Timeout"
+ * Description      Set the default value for HCI "Write Link Supervision
+ *                                                 Timeout"
  *                  command to use when an ACL link is created.
  *
  * Returns          void
@@ -1397,8 +1405,8 @@ uint16_t btm_get_acl_disc_reason_code (void)
  *
  * Function         BTM_GetHCIConnHandle
  *
- * Description      This function is called to get the handle for an ACL connection
- *                  to a specific remote BD Address.
+ * Description      This function is called to get the handle for an ACL
+ *                  connection to a specific remote BD Address.
  *
  * Returns          the handle of the connection, or 0xFFFF if none.
  *
@@ -1443,10 +1451,10 @@ void btm_process_clk_off_comp_evt (uint16_t hci_handle, uint16_t clock_offset)
  *
  * Function         btm_acl_role_changed
  *
- * Description      This function is called whan a link's master/slave role change
- *                  event or command status event (with error) is received.
- *                  It updates the link control block, and calls
- *                  the registered callback with status and role (if registered).
+ * Description      This function is called whan a link's master/slave role
+ *                  change event or command status event (with error) is
+ *                  received. It updates the link control block, and calls the
+ *                  registered callback with status and role (if registered).
  *
  * Returns          void
  *
@@ -1958,7 +1966,8 @@ void btm_qos_setup_complete(uint8_t status, uint16_t handle, FLOW_SPEC *p_flow)
  * Function         BTM_ReadRSSI
  *
  * Description      This function is called to read the link policy settings.
- *                  The address of link policy results are returned in the callback.
+ *                  The address of link policy results are returned in the
+ *                  callback.
  *                  (tBTM_RSSI_RESULTS)
  *
  * Returns          BTM_CMD_STARTED if successfully initiated or error code
@@ -2316,7 +2325,8 @@ void btm_read_link_quality_complete(uint8_t *p)
  *
  * Description      This function is called to disconnect an ACL connection
  *
- * Returns          BTM_SUCCESS if successfully initiated, otherwise BTM_NO_RESOURCES.
+ * Returns          BTM_SUCCESS if successfully initiated, otherwise
+ *                  BTM_NO_RESOURCES.
  *
  ******************************************************************************/
 tBTM_STATUS btm_remove_acl (BD_ADDR bd_addr, tBT_TRANSPORT transport)
@@ -2452,7 +2462,8 @@ void btm_acl_resubmit_page (void)
  *
  * Function         btm_acl_reset_paging
  *
- * Description      set paging to false and free the page queue - called at hci_reset
+ * Description      set paging to false and free the page queue - called at
+ *                  hci_reset
  *
  ******************************************************************************/
 void  btm_acl_reset_paging (void)

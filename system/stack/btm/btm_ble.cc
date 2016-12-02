@@ -47,7 +47,7 @@ extern bool    aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t
                                                  uint16_t tlen, uint8_t *p_signature);
 
 /******************************************************************************/
-/* External Function to be called by other modules                             */
+/* External Function to be called by other modules                            */
 /******************************************************************************/
 /********************************************************
  *
@@ -58,7 +58,7 @@ extern bool    aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t *input, uint16_t
  *                  for a LE device stored in the NVRAM.
  *
  * Parameters:      bd_addr          - BD address of the peer
- *                  bd_name          - Name of the peer device.  NULL if unknown.
+ *                  bd_name          - Name of the peer device. NULL if unknown.
  *                  dev_type         - Remote device's device type.
  *                  addr_type        - LE device address type.
  *
@@ -165,10 +165,11 @@ bool    BTM_SecAddBleKey (BD_ADDR bd_addr, tBTM_LE_KEY_VALUE *p_le_key, tBTM_LE_
  *
  * Description      Local local identity key, encryption root or sign counter.
  *
- * Parameters:      key_type: type of key, can be BTM_BLE_KEY_TYPE_ID, BTM_BLE_KEY_TYPE_ER
- *                            or BTM_BLE_KEY_TYPE_COUNTER.
+ * Parameters:      key_type: type of key, can be BTM_BLE_KEY_TYPE_ID,
+ *                                                BTM_BLE_KEY_TYPE_ER
+ *                                             or BTM_BLE_KEY_TYPE_COUNTER.
  *                  p_key: pointer to the key.
-*
+ *
  * Returns          non2.
  *
  ******************************************************************************/
@@ -250,8 +251,8 @@ void BTM_GetDeviceDHK (BT_OCTET16 dhk)
  *
  * Function         BTM_ReadConnectionAddr
  *
- * Description      This function is called to get the local device address information
- *                  .
+ * Description      This function is called to get the local device address
+ *                  information.
  *
  * Returns          void
  *
@@ -300,15 +301,16 @@ bool    BTM_IsBleConnection (uint16_t conn_handle)
 
 /*******************************************************************************
  *
- * Function         BTM_ReadRemoteConnectionAddr
+ * Function       BTM_ReadRemoteConnectionAddr
  *
- * Description      This function is read the remote device address currently used
+ * Description    This function is read the remote device address currently used
  *
  * Parameters     pseudo_addr: pseudo random address available
  *                conn_addr:connection address used
- *                p_addr_type : BD Address type, Public or Random of the address used
+ *                p_addr_type : BD Address type, Public or Random of the address
+ *                              used
  *
- * Returns          bool    , true if connection to remote device exists, else false
+ * Returns        bool, true if connection to remote device exists, else false
  *
  ******************************************************************************/
 bool    BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr,
@@ -347,7 +349,8 @@ bool    BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr,
  *
  * Parameters       bd_addr - peer device bd address.
  *                  res     - result of the operation BTM_SUCCESS if success.
- *                            Otherwise, BTM_REPEATED_ATTEMPTS is too many attempts.
+ *                            Otherwise, BTM_REPEATED_ATTEMPTS if too many
+ *                            attempts.
  *
  * Returns          None
  *
@@ -366,11 +369,13 @@ void BTM_SecurityGrant(BD_ADDR bd_addr, uint8_t res)
  * Description      This function is called after Security Manager submitted
  *                  passkey request to the application.
  *
- * Parameters:      bd_addr      - Address of the device for which passkey was requested
- *                  res          - result of the operation BTM_SUCCESS if success
- *                  key_len      - length in bytes of the Passkey
- *                  p_passkey        - pointer to array with the passkey
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ * Parameters:      bd_addr - Address of the device for which passkey was
+ *                            requested
+ *                  res     - result of the operation BTM_SUCCESS if success
+ *                  key_len - length in bytes of the Passkey
+ *                  p_passkey    - pointer to array with the passkey
+ *                  trusted_mask - bitwise OR of trusted services (array of
+ *                                 uint32_t)
  *
  ******************************************************************************/
 void BTM_BlePasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey)
@@ -426,7 +431,8 @@ void BTM_BleConfirmReply (BD_ADDR bd_addr, uint8_t res)
  *
  * Parameters:      bd_addr     - Address of the peer device
  *                  res         - result of the operation SMP_SUCCESS if success
- *                  p_data      - oob data, depending on transport and capabilities.
+ *                  p_data      - oob data, depending on transport and
+ *                                capabilities.
  *                                Might be "Simple Pairing Randomizer", or
  *                                "Security Manager TK Value".
  *
@@ -666,10 +672,11 @@ void BTM_ReadDevInfo (const BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBL
  *
  * Function         BTM_ReadConnectedTransportAddress
  *
- * Description      This function is called to read the paired device/address type of other device paired
- *                  corresponding to the BD_address
+ * Description      This function is called to read the paired device/address
+ *                  type of other device paired corresponding to the BD_address
  *
- * Parameter        remote_bda: remote device address, carry out the transport address
+ * Parameter        remote_bda: remote device address, carry out the transport
+ *                              address
  *                  transport: active transport
  *
  * Return           true if an active link is identified; false otherwise
@@ -735,7 +742,8 @@ void BTM_BleReceiverTest(uint8_t rx_freq, tBTM_CMPL_CB *p_cmd_cmpl_cback)
  * Description      This function is called to start the LE Transmitter test
  *
  * Parameter       tx_freq - Frequency Range
- *                       test_data_len - Length in bytes of payload data in each packet
+ *                       test_data_len - Length in bytes of payload data in each
+ *                                       packet
  *                       packet_payload - Pattern to use in the payload
  *                       p_cmd_cmpl_cback - Command Complete callback
  *
@@ -751,7 +759,8 @@ void BTM_BleTransmitterTest(uint8_t tx_freq, uint8_t test_data_len,
  *
  * Function         BTM_BleTestEnd
  *
- * Description      This function is called to stop the in-progress TX or RX test
+ * Description      This function is called to stop the in-progress TX or RX
+ *                  test
  *
  * Parameter       p_cmd_cmpl_cback - Command complete callback
  *
@@ -782,7 +791,8 @@ void btm_ble_test_command_complete(uint8_t *p)
  *
  * Function         BTM_UseLeLink
  *
- * Description      This function is to select the underneath physical link to use.
+ * Description      This function is to select the underlying physical link to
+ *                  use.
  *
  * Returns          true to use LE, false use BR/EDR.
  *
@@ -956,7 +966,8 @@ tBTM_SEC_ACTION btm_ble_determine_security_act(bool    is_originator, BD_ADDR bd
  *                  p_callback : Pointer to the callback function.
  *                  p_ref_data : Pointer to be returned along with the callback.
  *
- * Returns          true if link already meets the required security; otherwise false.
+ * Returns          true if link already meets the required security; otherwise
+ *                  false.
  *
  ******************************************************************************/
 bool    btm_ble_start_sec_check(BD_ADDR bd_addr, uint16_t psm, bool    is_originator,
@@ -1052,10 +1063,12 @@ void btm_ble_rand_enc_complete (uint8_t *p, uint16_t op_code, tBTM_RAND_ENC_CB *
             else
                 params.param_len = BT_OCTET16_LEN;
 
-            memcpy(p_dest, p, params.param_len);  /* Fetch return info from HCI event message */
+            /* Fetch return info from HCI event message */
+            memcpy(p_dest, p, params.param_len);
         }
         if (p_enc_cplt_cback)
-            (*p_enc_cplt_cback)(&params);  /* Call the Encryption complete callback function */
+            /* Call the Encryption complete callback function */
+            (*p_enc_cplt_cback)(&params);
     }
 }
 
@@ -1091,8 +1104,8 @@ void btm_ble_increment_sign_ctr(BD_ADDR bd_addr, bool    is_local )
  *
  * Function         btm_ble_get_enc_key_type
  *
- * Description      This function is to get the BLE key type that has been exchanged
- *                  in betweem local device and peer device.
+ * Description      This function is to get the BLE key type that has been
+ *                  exchanged betweem the local device and the peer device.
  *
  * Returns          p_key_type: output parameter to carry the key type value.
  *
@@ -1150,7 +1163,8 @@ bool    btm_get_local_div (BD_ADDR bd_addr, uint16_t *p_div)
  * Description      This function is called by the SMP to update
  *                  an  BLE key.  SMP is internal, whereas all the keys shall
  *                  be sent to the application.  The function is also called
- *                  when application passes ble key stored in NVRAM to the btm_sec.
+ *                  when application passes ble key stored in NVRAM to the
+ *                  btm_sec.
  *                  pass_to_application parameter is false in this case.
  *
  * Returns          void
@@ -1397,7 +1411,8 @@ void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE
         }
         else
         {
-            *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_PAIR; /* start the pariring process to upgrade the keys*/
+            /* start the pariring process to upgrade the keys*/
+            *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_PAIR;
         }
     }
 
@@ -1575,7 +1590,8 @@ tBTM_STATUS btm_ble_start_encrypt(BD_ADDR bda, bool    use_stk, BT_OCTET16 stk)
  *
  * Function         btm_ble_link_encrypted
  *
- * Description      This function is called when LE link encrption status is changed.
+ * Description      This function is called when LE link encrption status is
+ *                  changed.
  *
  * Returns          void
  *
@@ -1619,7 +1635,8 @@ void btm_ble_link_encrypted(BD_ADDR bd_addr, uint8_t encr_enable)
  *
  * Function         btm_ble_ltk_request_reply
  *
- * Description      This function is called to send a LTK request reply on a slave
+ * Description      This function is called to send a LTK request reply on a
+ *                  slave
  *                  device.
  *
  * Returns          void
@@ -1658,7 +1675,8 @@ void btm_ble_ltk_request_reply(BD_ADDR bda,  bool    use_stk, BT_OCTET16 stk)
  *
  * Function         btm_ble_io_capabilities_req
  *
- * Description      This function is called to handle SMP get IO capability request.
+ * Description      This function is called to handle SMP get IO capability
+ *                  request.
  *
  * Returns          void
  *
@@ -1766,7 +1784,8 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_LE_IO_REQ *p_data)
  *
  * Function         btm_ble_resolve_random_addr_on_conn_cmpl
  *
- * Description      resolve random address complete on connection complete event.
+ * Description      resolve random address complete on connection complete
+ *                  event.
  *
  * Returns          void
  *
@@ -2306,7 +2325,8 @@ bool    BTM_GetLeSecurityState (BD_ADDR bd_addr, uint8_t *p_le_dev_sec_flags, ui
  * Description      This function indicates if LE security procedure is
  *                  currently running with the peer.
  *
- * Returns          bool    true if security procedure is running, false otherwise.
+ * Returns          bool    true if security procedure is running, false
+ *                  otherwise.
  *
  ******************************************************************************/
 bool    BTM_BleSecurityProcedureIsRunning(BD_ADDR bd_addr)
@@ -2548,7 +2568,8 @@ static void btm_ble_process_dhk(tSMP_ENC *p)
  *
  * Function         btm_ble_process_ir2
  *
- * Description      This function is called when IR is generated, proceed to calculate
+ * Description      This function is called when IR is generated, proceed to
+ *                  calculate
  *                  DHK = Eir({0x03, 0, 0 ...})
  *
  *
@@ -2584,7 +2605,8 @@ static void btm_ble_process_ir2(tBTM_RAND_ENC *p)
  *
  * Function         btm_ble_process_ir
  *
- * Description      This function is called when IR is generated, proceed to calculate
+ * Description      This function is called when IR is generated, proceed to
+ *                  calculate
  *                  DHK = Eir({0x02, 0, 0 ...})
  *
  *
@@ -2626,7 +2648,7 @@ void btm_ble_reset_id( void )
  *
  * Function         btm_ble_set_no_disc_if_pair_fail
  *
- * Description      This function indicates that whether no disconnect of the ACL
+ * Description      This function indicates whether no disconnect of the ACL
  *                  should be used if pairing failed
  *
  * Returns          void

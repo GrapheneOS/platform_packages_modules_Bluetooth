@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -147,16 +148,16 @@ typedef enum {
 } OI_MODULE;
 
 /**
- * This constant is the number of actual modules in the list.  ALL and UNKNOWN are
- * special values that are not actually modules.
+ * This constant is the number of actual modules in the list.  ALL and UNKNOWN
+ * are special values that are not actually modules.
  * Used for debug print and memmgr profiling
  */
 #define OI_NUM_MODULES  OI_MODULE_ALL
 
 
 /**
- * This constant is the number of profile and core components.  It is used to size
- * the initialization and configuration tables.
+ * This constant is the number of profile and core components.  It is used to
+ * size the initialization and configuration tables.
  */
 #define OI_NUM_STACK_MODULES    OI_MODULE_BHAPI
 

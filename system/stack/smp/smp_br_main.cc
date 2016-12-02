@@ -114,10 +114,13 @@ static const tSMP_ACT smp_br_sm_action[] =
 
 static const uint8_t smp_br_all_table[][SMP_BR_SM_NUM_COLS] =
 {
-/*                               Event                    Action           Next State */
-/* BR_PAIRING_FAILED        */  {SMP_PROC_PAIR_FAIL,  SMP_BR_PAIRING_COMPLETE, SMP_BR_STATE_IDLE},
-/* BR_AUTH_CMPL             */  {SMP_SEND_PAIR_FAIL,  SMP_BR_PAIRING_COMPLETE, SMP_BR_STATE_IDLE},
-/* BR_L2CAP_DISCONN         */  {SMP_PAIR_TERMINATE,  SMP_BR_SM_NO_ACTION, SMP_BR_STATE_IDLE}
+/* Event              Action                   Next State */
+/* BR_PAIRING_FAILED */
+{SMP_PROC_PAIR_FAIL, SMP_BR_PAIRING_COMPLETE, SMP_BR_STATE_IDLE},
+/* BR_AUTH_CMPL */
+{SMP_SEND_PAIR_FAIL, SMP_BR_PAIRING_COMPLETE, SMP_BR_STATE_IDLE},
+/* BR_L2CAP_DISCONN */
+{SMP_PAIR_TERMINATE, SMP_BR_SM_NO_ACTION,     SMP_BR_STATE_IDLE}
 };
 
 /************ SMP Master FSM State/Event Indirection Table **************/
@@ -154,30 +157,38 @@ static const uint8_t smp_br_master_entry_map[][SMP_BR_STATE_MAX] =
 
 static const uint8_t smp_br_master_idle_table[][SMP_BR_SM_NUM_COLS] =
 {
-/*                                Event               Action               Next State */
-/* BR_L2CAP_CONN        */  {SMP_SEND_APP_CBACK, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_WAIT_APP_RSP},
-/* BR_L2CAP_DISCONN   */  {SMP_IDLE_TERMINATE,  SMP_BR_SM_NO_ACTION, SMP_BR_STATE_IDLE}
+/* Event               Action               Next State */
+/* BR_L2CAP_CONN */
+{SMP_SEND_APP_CBACK, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_WAIT_APP_RSP},
+/* BR_L2CAP_DISCONN */
+{SMP_IDLE_TERMINATE,  SMP_BR_SM_NO_ACTION, SMP_BR_STATE_IDLE}
 };
 
 static const uint8_t smp_br_master_wait_appln_response_table[][SMP_BR_SM_NUM_COLS] =
 {
-/*                                Event               Action              Next State */
-/* BR_KEYS_RSP           */{SMP_SEND_PAIR_REQ, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_PAIR_REQ_RSP}
+/* Event               Action              Next State */
+/* BR_KEYS_RSP */
+{SMP_SEND_PAIR_REQ, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_PAIR_REQ_RSP}
 };
 
 static const uint8_t smp_br_master_pair_request_response_table [][SMP_BR_SM_NUM_COLS] =
 {
-/*                        Event               Action                  Next State */
-/* BR_PAIRING_RSP   */  {SMP_BR_PROC_PAIR_CMD, SMP_BR_CHECK_AUTH_REQ, SMP_BR_STATE_PAIR_REQ_RSP},
-/* BR_BOND_REQ      */  {SMP_BR_SM_NO_ACTION, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
+/* Event                Action                 Next State */
+/* BR_PAIRING_RSP */
+{SMP_BR_PROC_PAIR_CMD, SMP_BR_CHECK_AUTH_REQ, SMP_BR_STATE_PAIR_REQ_RSP},
+/* BR_BOND_REQ */
+{SMP_BR_SM_NO_ACTION,  SMP_BR_SM_NO_ACTION,   SMP_BR_STATE_BOND_PENDING}
 };
 
 static const uint8_t smp_br_master_bond_pending_table[][SMP_BR_SM_NUM_COLS] =
 {
-/*                                Event               Action              Next State */
-/* BR_ID_INFO               */{SMP_PROC_ID_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
-/* BR_ID_ADDR               */{SMP_PROC_ID_ADDR, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
-/* BR_SIGN_INFO             */{SMP_PROC_SRK_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
+/* Event            Action               Next State */
+/* BR_ID_INFO */
+{SMP_PROC_ID_INFO,  SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
+/* BR_ID_ADDR */
+{SMP_PROC_ID_ADDR,  SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
+/* BR_SIGN_INFO */
+{SMP_PROC_SRK_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
 };
 
 static const uint8_t smp_br_slave_entry_map[][SMP_BR_STATE_MAX] =
@@ -213,24 +224,31 @@ static const uint8_t smp_br_slave_entry_map[][SMP_BR_STATE_MAX] =
 
 static const uint8_t smp_br_slave_idle_table[][SMP_BR_SM_NUM_COLS] =
 {
-/*                               Event                Action              Next State */
-/* BR_PAIRING_REQ    */ {SMP_BR_PROC_PAIR_CMD, SMP_SEND_APP_CBACK, SMP_BR_STATE_WAIT_APP_RSP}
+/* Event                Action              Next State */
+/* BR_PAIRING_REQ */
+{SMP_BR_PROC_PAIR_CMD, SMP_SEND_APP_CBACK, SMP_BR_STATE_WAIT_APP_RSP}
 };
 
 static const uint8_t smp_br_slave_wait_appln_response_table [][SMP_BR_SM_NUM_COLS] =
 {
-/*                               Event                 Action             Next State */
-/* BR_API_SEC_GRANT */ {SMP_BR_PROC_SEC_GRANT, SMP_SEND_APP_CBACK, SMP_BR_STATE_WAIT_APP_RSP},
-/* BR_KEYS_RSP     */{SMP_BR_PROC_SL_KEYS_RSP, SMP_BR_CHECK_AUTH_REQ,SMP_BR_STATE_WAIT_APP_RSP},
-/* BR_BOND_REQ        */ {SMP_BR_KEY_DISTRIBUTION, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
+/* Event                 Action             Next State */
+/* BR_API_SEC_GRANT */
+{SMP_BR_PROC_SEC_GRANT, SMP_SEND_APP_CBACK, SMP_BR_STATE_WAIT_APP_RSP},
+/* BR_KEYS_RSP */
+{SMP_BR_PROC_SL_KEYS_RSP, SMP_BR_CHECK_AUTH_REQ,SMP_BR_STATE_WAIT_APP_RSP},
+/* BR_BOND_REQ */
+{SMP_BR_KEY_DISTRIBUTION, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
 };
 
 static const uint8_t smp_br_slave_bond_pending_table[][SMP_BR_SM_NUM_COLS] =
 {
-/*                                Event               Action               Next State */
-/* BR_ID_INFO               */  {SMP_PROC_ID_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
-/* BR_ID_ADDR               */  {SMP_PROC_ID_ADDR, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
-/* BR_SIGN_INFO             */  {SMP_PROC_SRK_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
+/* Event               Action               Next State */
+/* BR_ID_INFO */
+{SMP_PROC_ID_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
+/* BR_ID_ADDR */
+{SMP_PROC_ID_ADDR, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING},
+/* BR_SIGN_INFO */
+{SMP_PROC_SRK_INFO, SMP_BR_SM_NO_ACTION, SMP_BR_STATE_BOND_PENDING}
 };
 
 static const tSMP_BR_SM_TBL smp_br_state_table[][2] =
@@ -320,10 +338,10 @@ const char * smp_get_br_event_name(tSMP_BR_EVENT event)
  *
  * Description  Handle events to the state machine. It looks up the entry
  *              in the smp_br_entry_table array.
- *              If it is a valid entry, it gets the state table.Set the next state,
- *              if not NULL state. Execute the action function according to the
- *              state table. If the state returned by action function is not NULL
- *              state, adjust the new state to the returned state.
+ *              If it is a valid entry, it gets the state table. Set the next
+ *              state, if not NULL state. Execute the action function according
+ *              to the state table. If the state returned by action function is
+ *              not NULL state, adjust the new state to the returned state.
  *
  * Returns      void.
  *

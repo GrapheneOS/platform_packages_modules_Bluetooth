@@ -53,7 +53,7 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /******************************************************************************/
-/*                 L O C A L    D A T A    D E F I N I T I O N S                */
+/*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/
 static const LAP general_inq_lap = {0x9e,0x8b,0x33};
 static const LAP limited_inq_lap = {0x9e,0x8b,0x00};
@@ -132,7 +132,7 @@ const uint16_t BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES] =
 };
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void         btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq);
 static tBTM_STATUS  btm_set_inq_event_filter (uint8_t filter_cond_type, tBTM_INQ_FILT_COND *p_filt_cond);
@@ -150,8 +150,8 @@ static uint16_t     btm_convert_uuid_to_uuid16( uint8_t *p_uuid, uint8_t uuid_si
  *
  * Description      This function is called to set the device into or out of
  *                  discoverable mode. Discoverable mode means inquiry
- *                  scans are enabled.  If a value of '0' is entered for window or
- *                  interval, the default values are used.
+ *                  scans are enabled.  If a value of '0' is entered for window
+ *                  or interval, the default values are used.
  *
  * Returns          BTM_SUCCESS if successful
  *                  BTM_BUSY if a setting of the filter is already in progress
@@ -419,22 +419,31 @@ uint16_t BTM_ReadDiscoverability (uint16_t *p_window, uint16_t *p_interval)
  *
  * Function         BTM_SetPeriodicInquiryMode
  *
- * Description      This function is called to set the device periodic inquiry mode.
- *                  If the duration is zero, the periodic inquiry mode is cancelled.
+ * Description      This function is called to set the device periodic inquiry
+ *                  mode. If the duration is zero, the periodic inquiry mode is
+ *                  cancelled.
  *
- *                  Note: We currently do not allow concurrent inquiry and periodic inquiry.
+ *                  Note: We currently do not allow concurrent inquiry and
+ *                  periodic inquiry.
  *
  * Parameters:      p_inqparms - pointer to the inquiry information
  *                      mode - GENERAL or LIMITED inquiry
- *                      duration - length in 1.28 sec intervals (If '0', the inquiry is CANCELLED)
- *                      max_resps - maximum amount of devices to search for before ending the inquiry
- *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER, BTM_FILTER_COND_DEVICE_CLASS, or
+ *                      duration - length in 1.28 sec intervals (If '0', the
+ *                                 inquiry is CANCELLED)
+ *                      max_resps - maximum amount of devices to search for
+ *                                  before ending the inquiry
+ *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER,
+ *                                         BTM_FILTER_COND_DEVICE_CLASS, or
  *                                         BTM_FILTER_COND_BD_ADDR
- *                      filter_cond - value for the filter (based on filter_cond_type)
+ *                      filter_cond - value for the filter (based on
+ *                                                          filter_cond_type)
  *
- *                  max_delay - maximum amount of time between successive inquiries
- *                  min_delay - minimum amount of time between successive inquiries
- *                  p_results_cb - callback returning pointer to results (tBTM_INQ_RESULTS)
+ *                  max_delay - maximum amount of time between successive
+ *                              inquiries
+ *                  min_delay - minimum amount of time between successive
+ *                              inquiries
+ *                  p_results_cb - callback returning pointer to results
+ *                              (tBTM_INQ_RESULTS)
  *
  * Returns          BTM_CMD_STARTED if successfully started
  *                  BTM_ILLEGAL_VALUE if a bad parameter is detected
@@ -567,7 +576,8 @@ tBTM_STATUS BTM_CancelPeriodicInquiry(void)
  * Function         BTM_SetConnectability
  *
  * Description      This function is called to set the device into or out of
- *                  connectable mode. Discoverable mode means page scans enabled.
+ *                  connectable mode. Discoverable mode means page scans are
+ *                  enabled.
  *
  * Returns          BTM_SUCCESS if successful
  *                  BTM_ILLEGAL_VALUE if a bad parameter is detected
@@ -677,7 +687,8 @@ uint16_t BTM_ReadConnectability (uint16_t *p_window, uint16_t *p_interval)
  *
  * Function         BTM_IsInquiryActive
  *
- * Description      This function returns a bit mask of the current inquiry state
+ * Description      This function returns a bit mask of the current inquiry
+ *                  state
  *
  * Returns          BTM_INQUIRY_INACTIVE if inactive (0)
  *                  BTM_LIMITED_INQUIRY_ACTIVE if a limted inquiry is active
@@ -773,25 +784,33 @@ tBTM_STATUS BTM_CancelInquiry(void)
  * Description      This function is called to start an inquiry.
  *
  * Parameters:      p_inqparms - pointer to the inquiry information
- *                      mode - GENERAL or LIMITED inquiry, BR/LE bit mask seperately
- *                      duration - length in 1.28 sec intervals (If '0', the inquiry is CANCELLED)
- *                      max_resps - maximum amount of devices to search for before ending the inquiry
- *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER, BTM_FILTER_COND_DEVICE_CLASS, or
+ *                      mode - GENERAL or LIMITED inquiry, BR/LE bit mask
+ *                             seperately
+ *                      duration - length in 1.28 sec intervals (If '0', the
+ *                                 inquiry is CANCELLED)
+ *                      max_resps - maximum amount of devices to search for
+ *                                  before ending the inquiry
+ *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER,
+ *                                         BTM_FILTER_COND_DEVICE_CLASS, or
  *                                         BTM_FILTER_COND_BD_ADDR
- *                      filter_cond - value for the filter (based on filter_cond_type)
+ *                      filter_cond - value for the filter (based on
+ *                                                          filter_cond_type)
  *
- *                  p_results_cb   - Pointer to the callback routine which gets called
- *                                upon receipt of an inquiry result. If this field is
- *                                NULL, the application is not notified.
+ *                  p_results_cb   - Pointer to the callback routine which gets
+ *                                called upon receipt of an inquiry result. If
+ *                                this field is NULL, the application is not
+ *                                notified.
  *
- *                  p_cmpl_cb   - Pointer to the callback routine which gets called
- *                                upon completion.  If this field is NULL, the
- *                                application is not notified when completed.
+ *                  p_cmpl_cb   - Pointer to the callback routine which gets
+ *                                called upon completion.  If this field is
+ *                                NULL, the application is not notified when
+ *                                completed.
  * Returns          tBTM_STATUS
  *                  BTM_CMD_STARTED if successfully initiated
  *                  BTM_BUSY if already in progress
  *                  BTM_ILLEGAL_VALUE if parameter(s) are out of range
- *                  BTM_NO_RESOURCES if could not allocate resources to start the command
+ *                  BTM_NO_RESOURCES if could not allocate resources to start
+ *                                   the command
  *                  BTM_WRONG_MODE if the device is not up.
  *
  ******************************************************************************/
@@ -997,20 +1016,22 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
  * Function         BTM_ReadRemoteDeviceName
  *
  * Description      This function initiates a remote device HCI command to the
- *                  controller and calls the callback when the process has completed.
+ *                  controller and calls the callback when the process has
+ *                  completed.
  *
  * Input Params:    remote_bda      - device address of name to retrieve
- *                  p_cb            - callback function called when BTM_CMD_STARTED
- *                                    is returned.
- *                                    A pointer to tBTM_REMOTE_DEV_NAME is passed to the
- *                                    callback.
+ *                  p_cb            - callback function called when
+ *                                    BTM_CMD_STARTED is returned.
+ *                                    A pointer to tBTM_REMOTE_DEV_NAME is
+ *                                    passed to the callback.
  *
  * Returns
- *                  BTM_CMD_STARTED is returned if the request was successfully sent
- *                                  to HCI.
+ *                  BTM_CMD_STARTED is returned if the request was successfully
+ *                                  sent to HCI.
  *                  BTM_BUSY if already in progress
  *                  BTM_UNKNOWN_ADDR if device address is bad
- *                  BTM_NO_RESOURCES if could not allocate resources to start the command
+ *                  BTM_NO_RESOURCES if could not allocate resources to start
+ *                                   the command
  *                  BTM_WRONG_MODE if the device is not up.
  *
  ******************************************************************************/
@@ -1056,10 +1077,12 @@ tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb
  * Input Params:    None
  *
  * Returns
- *                  BTM_CMD_STARTED is returned if the request was successfully sent
- *                                  to HCI.
- *                  BTM_NO_RESOURCES if could not allocate resources to start the command
- *                  BTM_WRONG_MODE if there is not an active remote name request.
+ *                  BTM_CMD_STARTED is returned if the request was successfully
+ *                                  sent to HCI.
+ *                  BTM_NO_RESOURCES if could not allocate resources to start
+ *                                   the command
+ *                  BTM_WRONG_MODE if there is not an active remote name
+ *                                 request.
  *
  ******************************************************************************/
 tBTM_STATUS  BTM_CancelRemoteDeviceName (void)
@@ -1092,7 +1115,8 @@ tBTM_STATUS  BTM_CancelRemoteDeviceName (void)
  *
  * Description      This function looks through the inquiry database for a match
  *                  based on Bluetooth Device Address. This is the application's
- *                  interface to get the inquiry details of a specific BD address.
+ *                  interface to get the inquiry details of a specific BD
+ *                  address.
  *
  * Returns          pointer to entry, or NULL if not found
  *
@@ -1114,8 +1138,9 @@ tBTM_INQ_INFO *BTM_InqDbRead (const BD_ADDR p_bda)
  *
  * Function         BTM_InqDbFirst
  *
- * Description      This function looks through the inquiry database for the first
- *                  used entry, and returns that. This is used in conjunction with
+ * Description      This function looks through the inquiry database for the
+ *                  first used entry, and returns that. This is used in
+ *                  conjunction with
  *                  BTM_InqDbNext by applications as a way to walk through the
  *                  inquiry database.
  *
@@ -1142,9 +1167,9 @@ tBTM_INQ_INFO *BTM_InqDbFirst (void)
  *
  * Function         BTM_InqDbNext
  *
- * Description      This function looks through the inquiry database for the next
- *                  used entry, and returns that.  If the input parameter is NULL,
- *                  the first entry is returned.
+ * Description      This function looks through the inquiry database for the
+ *                  next used entry, and returns that.  If the input parameter
+ *                  is NULL, the first entry is returned.
  *
  * Returns          pointer to next in-use entry, or NULL if no more found.
  *
@@ -1206,8 +1231,8 @@ tBTM_STATUS BTM_ClearInqDb (BD_ADDR p_bda)
  * Function         BTM_ReadInquiryRspTxPower
  *
  * Description      This command will read the inquiry Transmit Power level used
- *                  to transmit the FHS and EIR data packets.
- *                  This can be used directly in the Tx Power Level EIR data type.
+ *                  to transmit the FHS and EIR data packets. This can be used
+ *                  directly in the Tx Power Level EIR data type.
  *
  * Returns          BTM_SUCCESS if successful
  *
@@ -1229,9 +1254,9 @@ tBTM_STATUS BTM_ReadInquiryRspTxPower (tBTM_CMPL_CB *p_cb)
 
 /*******************************************************************************
  *******************************************************************************
- *                                                                              **
- *                      BTM Internal Inquiry Functions                          **
- *                                                                              **
+ *                                                                            **
+ *                    BTM Internal Inquiry Functions                          **
+ *                                                                            **
  *******************************************************************************
  ******************************************************************************/
 /*******************************************************************************
@@ -1513,8 +1538,9 @@ tINQ_DB_ENT *btm_inq_db_find (const BD_ADDR p_bda)
  *
  * Function         btm_inq_db_new
  *
- * Description      This function looks through the inquiry database for an unused
- *                  entry. If no entry is free, it allocates the oldest entry.
+ * Description      This function looks through the inquiry database for an
+ *                  unused entry. If no entry is free, it allocates the oldest
+ *                  entry.
  *
  * Returns          pointer to entry
  *
@@ -1559,18 +1585,20 @@ tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda)
  * Function         btm_set_inq_event_filter
  *
  * Description      This function is called to set the inquiry event filter.
- *                  It is called by either internally, or by the external API function
- *                  (BTM_SetInqEventFilter).  It is used internally as part of the
- *                  inquiry processing.
+ *                  It is called by either internally, or by the external API
+ *                  function (BTM_SetInqEventFilter).  It is used internally as
+ *                  part of the inquiry processing.
  *
  * Input Params:
- *                  filter_cond_type - this is the type of inquiry filter to apply:
+ *                  filter_cond_type - this is the type of inquiry filter to
+ *                                     apply:
  *                          BTM_FILTER_COND_DEVICE_CLASS,
  *                          BTM_FILTER_COND_BD_ADDR, or
  *                          BTM_CLR_INQUIRY_FILTER
  *
- *                  p_filt_cond - this is either a BD_ADDR or DEV_CLASS depending on the
- *                          filter_cond_type  (See section 4.7.3 of Core Spec 1.0b).
+ *                  p_filt_cond - this is either a BD_ADDR or DEV_CLASS
+ *                                depending on the filter_cond_type
+ *                                (See section 4.7.3 of Core Spec 1.0b).
  *
  * Returns          BTM_CMD_STARTED if successfully initiated
  *                  BTM_NO_RESOURCES if couldn't get a memory pool buffer
@@ -1631,7 +1659,8 @@ static tBTM_STATUS btm_set_inq_event_filter (uint8_t filter_cond_type,
  *
  * Function         btm_event_filter_complete
  *
- * Description      This function is called when a set event filter has completed.
+ * Description      This function is called when a set event filter has
+ *                  completed.
  *                  Note: This routine currently only handles inquiry filters.
  *                      Connection filters are ignored for now.
  *
@@ -1726,18 +1755,25 @@ void btm_event_filter_complete (uint8_t *p)
  *
  * Function         btm_initiate_inquiry
  *
- * Description      This function is called to start an inquiry or periodic inquiry
- *                  upon completion of the setting and/or clearing of the inquiry filter.
+ * Description      This function is called to start an inquiry or periodic
+ *                  inquiry upon completion of the setting and/or clearing of
+ *                  the inquiry filter.
  *
- * Inputs:          p_inq (btm_cb.btm_inq_vars) - pointer to saved inquiry information
+ * Inputs:          p_inq (btm_cb.btm_inq_vars) - pointer to saved inquiry
+ *                                                information
  *                      mode - GENERAL or LIMITED inquiry
- *                      duration - length in 1.28 sec intervals (If '0', the inquiry is CANCELLED)
- *                      max_resps - maximum amount of devices to search for before ending the inquiry
- *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER, BTM_FILTER_COND_DEVICE_CLASS, or
+ *                      duration - length in 1.28 sec intervals
+ *                                 (If '0', the inquiry is CANCELLED)
+ *                      max_resps - maximum amount of devices to search for
+ *                                  before ending the inquiry
+ *                      filter_cond_type - BTM_CLR_INQUIRY_FILTER,
+ *                                         BTM_FILTER_COND_DEVICE_CLASS, or
  *                                         BTM_FILTER_COND_BD_ADDR
- *                      filter_cond - value for the filter (based on filter_cond_type)
+ *                      filter_cond - value for the filter
+ *                                   (based on filter_cond_type)
  *
- * Returns          If an error occurs the initiator's callback is called with the error status.
+ * Returns          If an error occurs the initiator's callback is called with
+ *                  the error status.
  *
  ******************************************************************************/
 static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
@@ -1785,9 +1821,9 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
  *
  * Function         btm_process_inq_results
  *
- * Description      This function is called when inquiry results are received from
- *                  the device. It updates the inquiry database. If the inquiry
- *                  database is full, the oldest entry is discarded.
+ * Description      This function is called when inquiry results are received
+ *                  from the device. It updates the inquiry database. If the
+ *                  inquiry database is full, the oldest entry is discarded.
  *
  * Parameters       inq_res_mode - BTM_INQ_RESULT_STANDARD
  *                                 BTM_INQ_RESULT_WITH_RSSI
@@ -2029,10 +2065,12 @@ void btm_sort_inq_result(void)
  * Function         btm_process_inq_complete
  *
  * Description      This function is called when inquiry complete is received
- *                  from the device.  Call the callback if not in periodic inquiry
- *                  mode AND it is not NULL (The caller wants the event).
+ *                  from the device.  Call the callback if not in periodic
+ *                  inquiry mode AND it is not NULL
+ *                  (The caller wants the event).
  *
- *                  The callback pass back the status and the number of responses
+ *                  The callback pass back the status and the number of
+ *                  responses
  *
  * Returns          void
  *
@@ -2138,10 +2176,10 @@ void btm_process_inq_complete (uint8_t status, uint8_t mode)
  *
  * Function         btm_process_cancel_complete
  *
- * Description      This function is called when inquiry cancel complete is received
- *                  from the device.This function will also call the btm_process_inq_complete
- *                  This function is needed to differentiate a cancel_cmpl_evt from the
- *                  inq_cmpl_evt
+ * Description      This function is called when inquiry cancel complete is
+ *                  received from the device. This function will also call the
+ *                  btm_process_inq_complete. This function is needed to
+ *                  differentiate a cancel_cmpl_evt from the inq_cmpl_evt.
  *
  * Returns          void
  *
@@ -2155,19 +2193,22 @@ void btm_process_cancel_complete(uint8_t status, uint8_t mode)
  *
  * Function         btm_initiate_rem_name
  *
- * Description      This function looks initiates a remote name request.  It is called
- *                  either by GAP or by the API call BTM_ReadRemoteDeviceName.
+ * Description      This function looks initiates a remote name request.  It is
+ *                  called either by GAP or by the API call
+ *                  BTM_ReadRemoteDeviceName.
  *
- * Input Params:    p_cur         - pointer to an inquiry result structure (NULL if nonexistent)
- *                  p_cb            - callback function called when BTM_CMD_STARTED
- *                                    is returned.
- *                                    A pointer to tBTM_REMOTE_DEV_NAME is passed to the
- *                                    callback.
+ * Input Params:    p_cur         - pointer to an inquiry result structure
+ *                                  (NULL if nonexistent)
+ *                  p_cb            - callback function called when
+ *                                    BTM_CMD_STARTED is returned.
+ *                                    A pointer to tBTM_REMOTE_DEV_NAME is
+ *                                    passed to the callback.
  *
  * Returns
  *                  BTM_CMD_STARTED is returned if the request was sent to HCI.
  *                  BTM_BUSY if already in progress
- *                  BTM_NO_RESOURCES if could not allocate resources to start the command
+ *                  BTM_NO_RESOURCES if could not allocate resources to start
+ *                                   the command
  *                  BTM_WRONG_MODE if the device is not up.
  *
  ******************************************************************************/
@@ -2235,8 +2276,8 @@ tBTM_STATUS  btm_initiate_rem_name (BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur,
  * Function         btm_process_remote_name
  *
  * Description      This function is called when a remote name is received from
- *                  the device. If remote names are cached, it updates the inquiry
- *                  database.
+ *                  the device. If remote names are cached, it updates the
+ *                  inquiry database.
  *
  * Returns          void
  *
@@ -2431,7 +2472,8 @@ tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
  *
  * Function         BTM_CheckEirData
  *
- * Description      This function is called to get EIR data from significant part.
+ * Description      This function is called to get EIR data from significant
+ *                  part.
  *
  * Parameters       p_eir - pointer of EIR significant part
  *                  type   - finding EIR data type
@@ -2519,7 +2561,8 @@ bool    BTM_HasEirService( uint32_t *p_eir_uuid, uint16_t uuid16 )
  *
  * Function         BTM_HasInquiryEirService
  *
- * Description      This function is called to know if UUID in bit map of UUID list.
+ * Description      This function is called to know if UUID in bit map of UUID
+ *                  list.
  *
  * Parameters       p_results - inquiry results
  *                  uuid16 - UUID 16-bit
@@ -2547,7 +2590,8 @@ tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService( tBTM_INQ_RESULTS *p_results, ui
  *
  * Function         BTM_AddEirService
  *
- * Description      This function is called to add a service in bit map of UUID list.
+ * Description      This function is called to add a service in bit map of UUID
+ *                  list.
  *
  * Parameters       p_eir_uuid - bit mask of UUID list for EIR
  *                  uuid16 - UUID 16-bit
@@ -2568,7 +2612,8 @@ void BTM_AddEirService( uint32_t *p_eir_uuid, uint16_t uuid16 )
  *
  * Function         BTM_RemoveEirService
  *
- * Description      This function is called to remove a service in bit map of UUID list.
+ * Description      This function is called to remove a service in bit map of
+ *                  UUID list.
  *
  * Parameters       p_eir_uuid - bit mask of UUID list for EIR
  *                  uuid16 - UUID 16-bit
@@ -2589,7 +2634,8 @@ void BTM_RemoveEirService( uint32_t *p_eir_uuid, uint16_t uuid16 )
  *
  * Function         BTM_GetEirSupportedServices
  *
- * Description      This function is called to get UUID list from bit map of UUID list.
+ * Description      This function is called to get UUID list from bit map of
+ *                  UUID list.
  *
  * Parameters       p_eir_uuid - bit mask of UUID list for EIR
  *                  p - reference of current pointer of EIR
@@ -2825,7 +2871,8 @@ static uint16_t btm_convert_uuid_to_uuid16( uint8_t *p_uuid, uint8_t uuid_size )
  *
  * Function         btm_set_eir_uuid
  *
- * Description      This function is called to store received UUID into inquiry result.
+ * Description      This function is called to store received UUID into inquiry
+ *                  result.
  *
  * Parameters       p_eir - pointer of EIR significant part
  *                  p_results - pointer of inquiry result

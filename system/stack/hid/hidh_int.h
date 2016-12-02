@@ -46,7 +46,7 @@ typedef struct per_device_ctb
     			                 0x04- sdp_disable; */
     uint8_t        state;  /* Device state if in HOST-KNOWN mode */
     uint8_t        conn_substate;
-    uint8_t        conn_tries; /* Remembers to the number of connection attempts while CONNECTING */
+    uint8_t        conn_tries; /* Remembers the number of connection attempts while CONNECTING */
 
     tHID_CONN      conn; /* L2CAP channel info */
 } tHID_HOST_DEV_CTB;

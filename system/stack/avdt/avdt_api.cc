@@ -128,7 +128,8 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
  * Description      This function is called to deregister use AVDTP protocol.
  *                  It is called when AVDTP is no longer being used by any
  *                  application in the system.  Before this function can be
- *                  called, all streams must be removed with AVDT_RemoveStream().
+ *                  called, all streams must be removed with
+ *                  AVDT_RemoveStream().
  *
  *
  * Returns          void
@@ -233,8 +234,8 @@ uint16_t AVDT_RemoveStream(uint8_t handle)
  *                  on the peer device, if not already present, and discovers
  *                  the stream endpoints on the peer device.  (Please note
  *                  that AVDTP discovery is unrelated to SDP discovery).
- *                  This function can be called at any time regardless of whether
- *                  there is an AVDTP connection to the peer device.
+ *                  This function can be called at any time regardless of
+ *                  whether there is an AVDTP connection to the peer device.
  *
  *                  When discovery is complete, an AVDT_DISCOVER_CFM_EVT
  *                  is sent to the application via its callback function.
@@ -452,7 +453,8 @@ uint16_t AVDT_DelayReport(uint8_t handle, uint8_t seid, uint16_t delay)
  *                  on the peer device, if not already present, and connects
  *                  to a stream endpoint on a peer device.  When the connection
  *                  is completed, an AVDT_OPEN_CFM_EVT is sent to the
- *                  application via the control callback function for this handle.
+ *                  application via the control callback function for this
+ *                  handle.
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
  *
@@ -563,7 +565,8 @@ uint16_t AVDT_ConfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uint8
  *                  transfer of media packets for the streams.  All stream
  *                  endpoints must previously be opened.  When the streams
  *                  are started, an AVDT_START_CFM_EVT is sent to the
- *                  application via the control callback function for each stream.
+ *                  application via the control callback function for each
+ *                  stream.
  *
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
@@ -713,7 +716,8 @@ uint16_t AVDT_CloseReq(uint8_t handle)
  *                  can only be called if the stream is opened but not started
  *                  or if the stream has been suspended.  When the procedure
  *                  is completed, an AVDT_RECONFIG_CFM_EVT is sent to the
- *                  application via the control callback function for this handle.
+ *                  application via the control callback function for this
+ *                  handle.
  *
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
@@ -786,8 +790,8 @@ uint16_t AVDT_ReconfigRsp(uint8_t handle, uint8_t label, uint8_t error_code, uin
  * Description      Send a security request to the peer device.  When the
  *                  security procedure is completed, an AVDT_SECURITY_CFM_EVT
  *                  is sent to the application via the control callback function
- *                  for this handle.  (Please note that AVDTP security procedures
- *                  are unrelated to Bluetooth link level security.)
+ *                  for this handle.  (Please note that AVDTP security
+ *                  procedures are unrelated to Bluetooth link level security.)
  *
  *
  * Returns          AVDT_SUCCESS if successful, otherwise error.
@@ -872,7 +876,8 @@ uint16_t AVDT_SecurityRsp(uint8_t handle, uint8_t label, uint8_t error_code,
  *                  to AVDT_WriteReq() after it receives an AVDT_START_CFM_EVT
  *                  or AVDT_START_IND_EVT.
  *
- *                  The application passes the packet using the BT_HDR structure.
+ *                  The application passes the packet using the BT_HDR
+ *                  structure.
  *                  This structure is described in section 2.1.  The offset
  *                  field must be equal to or greater than AVDT_MEDIA_OFFSET
  *                  (if NO_RTP is specified, L2CAP_MIN_OFFSET can be used).
@@ -932,7 +937,8 @@ uint16_t AVDT_WriteReqOpt(uint8_t handle, BT_HDR *p_pkt, uint32_t time_stamp, ui
  *                  to AVDT_WriteReq() after it receives an AVDT_START_CFM_EVT
  *                  or AVDT_START_IND_EVT.
  *
- *                  The application passes the packet using the BT_HDR structure.
+ *                  The application passes the packet using the BT_HDR
+ *                  structure.
  *                  This structure is described in section 2.1.  The offset
  *                  field must be equal to or greater than AVDT_MEDIA_OFFSET.
  *                  This allows enough space in the buffer for the L2CAP and
@@ -1069,7 +1075,8 @@ uint16_t AVDT_GetL2CapChannel(uint8_t handle)
  *
  * Function         AVDT_GetSignalChannel
  *
- * Description      Get the L2CAP CID used by the signal channel of the given handle.
+ * Description      Get the L2CAP CID used by the signal channel of the given
+ *                  handle.
  *
  * Returns          CID if successful, otherwise 0.
  *
