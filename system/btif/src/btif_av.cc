@@ -1119,7 +1119,7 @@ static void bte_av_sink_media_callback(tBTA_AV_EVT event,
       btif_a2dp_sink_update_decoder((uint8_t*)(p_data->avk_config.codec_info));
       /* Switch to BTIF context */
       config_req.sample_rate =
-          A2DP_GetTrackFrequency(p_data->avk_config.codec_info);
+          A2DP_GetTrackSampleRate(p_data->avk_config.codec_info);
       if (config_req.sample_rate == -1) {
         APPL_TRACE_ERROR("%s: cannot get the track frequency", __func__);
         break;
