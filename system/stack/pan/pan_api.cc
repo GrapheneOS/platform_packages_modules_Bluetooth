@@ -120,12 +120,13 @@ void PAN_Deregister (void)
  *                                      PAN_ROLE_GN_SERVER is for GN role
  *                                      PAN_ROLE_NAP_SERVER is for NAP role
  *                  sec_mask    - Security mask for different roles
- *                                      It is array of uint8_t. The byte represent the
- *                                      security for roles PANU, GN and NAP in order
+ *                                      It is array of uint8_t. The bytes
+ *                                      represent the security for roles PANU,
+ *                                      GN and NAP in order
  *                  p_user_name - Service name for PANU role
  *                  p_gn_name   - Service name for GN role
  *                  p_nap_name  - Service name for NAP role
- *                                      Can be NULL if user wants it to be default
+ *                                      Can be NULL if user wants the default
  *
  * Returns          PAN_SUCCESS     - if the role is set successfully
  *                  PAN_FAILURE     - if the role is not valid
@@ -274,12 +275,13 @@ tPAN_RESULT PAN_SetRole (uint8_t role,
  *                                      PAN_ROLE_NAP_SERVER is for NAP role
  *                  *handle     - Pointer for returning Handle to the connection
  *
- * Returns          PAN_SUCCESS      - if the connection is initiated successfully
+ * Returns          PAN_SUCCESS      - if the connection is initiated
+ *                                     successfully
  *                  PAN_NO_RESOURCES - resources are not sufficent
  *                  PAN_FAILURE      - if the connection cannot be initiated
- *                                           this can be because of the combination of
- *                                           src and dst roles may not be valid or
- *                                           allowed at that point of time
+ *                                     this can be because of the combination of
+ *                                     src and dst roles may not be valid or
+ *                                     allowed at that point of time
  *
  ******************************************************************************/
 tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, uint8_t src_role, uint8_t dst_role, uint16_t *handle)
@@ -474,7 +476,8 @@ tPAN_RESULT PAN_Disconnect (uint16_t handle)
  * Description      This sends data over the PAN connections. If this is called
  *                  on GN or NAP side and the packet is multicast or broadcast
  *                  it will be sent on all the links. Otherwise the correct link
- *                  is found based on the destination address and forwarded on it.
+ *                  is found based on the destination address and forwarded on
+ *                  it.
  *
  * Parameters:      handle   - handle for the connection
  *                  dst      - MAC or BD Addr of the destination device
@@ -525,9 +528,9 @@ tPAN_RESULT PAN_Write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protoc
  * Description      This sends data over the PAN connections. If this is called
  *                  on GN or NAP side and the packet is multicast or broadcast
  *                  it will be sent on all the links. Otherwise the correct link
- *                  is found based on the destination address and forwarded on it
- *                  If the return value is not PAN_SUCCESS the application should
- *                  take care of releasing the message buffer
+ *                  is found based on the destination address and forwarded on
+ *                  it. If the return value is not PAN_SUCCESS, the application
+ *                  should take care of releasing the message buffer.
  *
  * Parameters:      handle   - handle for the connection
  *                  dst      - MAC or BD Addr of the destination device
@@ -645,8 +648,8 @@ tPAN_RESULT PAN_WriteBuf (uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t pr
  *                  end         - array of ending protocol numbers
  *
  *
- * Returns          PAN_SUCCESS        if protocol filters are set successfully
- *                  PAN_FAILURE        if connection not found or error in setting
+ * Returns          PAN_SUCCESS    if protocol filters are set successfully
+ *                  PAN_FAILURE    if connection not found or error in setting
  *
  ******************************************************************************/
 tPAN_RESULT PAN_SetProtocolFilters (uint16_t handle,
@@ -690,8 +693,8 @@ tPAN_RESULT PAN_SetProtocolFilters (uint16_t handle,
  *                  end         - array of ending multicast filter addresses
  *
  *
- * Returns          PAN_SUCCESS        if multicast filters are set successfully
- *                  PAN_FAILURE        if connection not found or error in setting
+ * Returns          PAN_SUCCESS    if multicast filters are set successfully
+ *                  PAN_FAILURE    if connection not found or error in setting
  *
  ******************************************************************************/
 tBNEP_RESULT PAN_SetMulticastFilters (uint16_t handle,

@@ -43,7 +43,7 @@
 #define GATT_READ_BY_TYPE_RSP_MIN_LEN    1
 
 /*******************************************************************************
- *                       G L O B A L      G A T T       D A T A                 *
+ *                      G L O B A L      G A T T       D A T A                 *
  ******************************************************************************/
 void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb);
 
@@ -404,7 +404,7 @@ void gatt_send_prepare_write(tGATT_TCB  *p_tcb, tGATT_CLCB *p_clcb)
  *
  * Function         gatt_process_find_type_value_rsp
  *
- * Description      This function is called to handle find by type value response.
+ * Description      This function handles the find by type value response.
  *
  *
  * Returns          void
@@ -504,8 +504,8 @@ void gatt_process_read_info_rsp(UNUSED_ATTR tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb
  *
  * Function         gatt_proc_disc_error_rsp
  *
- * Description      This function process the read by type response and send another
- *                  request if needed.
+ * Description      Process the read by type response and send another request
+ *                  if needed.
  *
  * Returns          void.
  *
@@ -643,9 +643,7 @@ void gatt_process_prep_write_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint8_t 
  *
  * Function         gatt_process_notification
  *
- * Description      This function is called to handle the handle value indication
- *                  or handle value notification.
- *
+ * Description      Handle the handle value indication/notification.
  *
  * Returns          void
  *
@@ -1033,7 +1031,7 @@ void gatt_process_handle_rsp(tGATT_CLCB *p_clcb)
  *
  * Function         gatt_process_mtu_rsp
  *
- * Description      This function is called to process the configure MTU response.
+ * Description      Process the configure MTU response.
  *
  *
  * Returns          void
@@ -1064,7 +1062,7 @@ void gatt_process_mtu_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, uint16_t len, ui
  *
  * Function         gatt_cmd_to_rsp_code
  *
- * Description      The function convert a ATT command op code into the corresponding
+ * Description      Convert an ATT command op code into the corresponding
  *                  response code assume no error occurs.
  *
  * Returns          response code.

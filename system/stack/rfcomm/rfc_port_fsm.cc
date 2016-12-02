@@ -35,7 +35,7 @@
 #include "osi/include/osi.h"
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void rfc_port_sm_state_closed (tPORT *p_port, uint16_t event, void *p_data);
 static void rfc_port_sm_sabme_wait_ua (tPORT *p_port, uint16_t event, void *p_data);
@@ -840,8 +840,8 @@ void rfc_process_fcon (tRFC_MCB *p_mcb, bool    is_command)
  *
  * Function         rfc_process_fcoff
  *
- * Description      This function handles FCOFF frame.  The peer entity is unable
- *                  to receive new information
+ * Description      This function handles FCOFF frame.  The peer entity is
+ *                  unable to receive new information
  *
  ******************************************************************************/
 void rfc_process_fcoff (tRFC_MCB *p_mcb, bool    is_command)
@@ -887,7 +887,8 @@ void rfc_process_l2cap_congestion (tRFC_MCB *p_mcb, bool    is_congested)
  *
  * Function         rfc_set_port_pars
  *
- * Description      This function sets the tPORT_STATE structure given a p_frame.
+ * Description      This function sets the tPORT_STATE structure given a
+ *                  p_frame.
  *
  ******************************************************************************/
 

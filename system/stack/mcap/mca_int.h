@@ -56,7 +56,7 @@ typedef struct {
     tMCA_DL         dcb_idx;    /* For internal use only */
 } tMCA_CCB_MSG;
 
-/* This data structure is associated with the AVDT_OPEN_IND_EVT and AVDT_OPEN_CFM_EVT. */
+/* This data structure is for AVDT_OPEN_IND_EVT and AVDT_OPEN_CFM_EVT. */
 typedef struct {
     BT_HDR          hdr;                /* Event header */
     uint16_t        peer_mtu;           /* Transport channel L2CAP MTU of the peer */
@@ -115,6 +115,7 @@ typedef union {
     BT_HDR          *p_pkt;
     bool            llcong;
     uint16_t        mdl_id;     /* the MDL ID associated with this request/response */
+
     /* tMCA_HANDLE     rcb_idx;    For internal use only */
     /* tMCA_CL         ccb_idx;    For internal use only */
     /* tMCA_DL         dcb_idx;    For internal use only */
@@ -238,9 +239,12 @@ typedef uint8_t tMCA_DCB_STAT;
  * dcb[MCA_NUM_MDLS*2]...dcb[MCA_NUM_MDLS*3-1] -> ccb[2]
  *
  * the dcbs association with the rcbs
- * dcb[0]                             ...dcb[MCA_NUM_MDLS*1*MCA_NUM_LINKS*1-1] -> rcb[0]
- * dcb[MCA_NUM_MDLS*1*MCA_NUM_LINKS*1]...dcb[MCA_NUM_MDLS*2*MCA_NUM_LINKS*2-1] -> rcb[1]
- * dcb[MCA_NUM_MDLS*2*MCA_NUM_LINKS*2]...dcb[MCA_NUM_MDLS*3*MCA_NUM_LINKS*3-1] -> rcb[2]
+ * dcb[0]
+ *                    ...dcb[MCA_NUM_MDLS*1*MCA_NUM_LINKS*1-1] -> rcb[0]
+ * dcb[MCA_NUM_MDLS*1*MCA_NUM_LINKS*1]
+ *                    ...dcb[MCA_NUM_MDLS*2*MCA_NUM_LINKS*2-1] -> rcb[1]
+ * dcb[MCA_NUM_MDLS*2*MCA_NUM_LINKS*2]
+ *                    ...dcb[MCA_NUM_MDLS*3*MCA_NUM_LINKS*3-1] -> rcb[2]
  */
 typedef struct {
     tMCA_CCB            *p_ccb;         /* the associated control control block */

@@ -38,8 +38,8 @@ tBTM_CB  btm_cb;
  *
  * Description      This function is called at BTM startup to allocate the
  *                  control block (if using dynamic memory), and initializes the
- *                  tracing level.  It then initializes the various components of
- *                  btm.
+ *                  tracing level.  It then initializes the various components
+ *                  of btm.
  *
  * Returns          void
  *

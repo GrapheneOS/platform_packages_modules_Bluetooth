@@ -128,11 +128,14 @@ typedef void (tPORT_CALLBACK) (uint32_t code, uint16_t port_handle);
 #define PORT_EV_OVERRUN 0x00002000   /* receiver buffer overrun */
 #define PORT_EV_TXCHAR  0x00004000   /* Any character transmitted */
 
-#define PORT_EV_CONNECTED    0x00000200  /* RFCOMM connection established */
-#define PORT_EV_CONNECT_ERR  0x00008000  /* Was not able to establish connection */
-                                     /* or disconnected */
-#define PORT_EV_FC      0x00010000   /* data flow enabled flag changed by remote */
-#define PORT_EV_FCS     0x00020000   /* data flow enable status true = enabled */
+/* RFCOMM connection established */
+#define PORT_EV_CONNECTED    0x00000200
+/* Unable to establish connection  or disconnected */
+#define PORT_EV_CONNECT_ERR  0x00008000
+/* data flow enabled flag changed by remote */
+#define PORT_EV_FC      0x00010000
+/* data flow enable status true = enabled */
+#define PORT_EV_FCS     0x00020000
 
 /*
  * To register for events application should provide bitmask with
@@ -189,8 +192,8 @@ typedef void (tPORT_CALLBACK) (uint32_t code, uint16_t port_handle);
  *
  * Function         RFCOMM_CreateConnection
  *
- * Description      RFCOMM_CreateConnection function is used from the application
- *                  to establish serial port connection to the peer device,
+ * Description      RFCOMM_CreateConnection is used from the application to
+ *                  establish a serial port connection to the peer device,
  *                  or allow RFCOMM to accept a connection from the peer
  *                  application.
  *
@@ -265,8 +268,9 @@ extern int PORT_SetEventCallback (uint16_t port_handle,
  *
  * Function         PORT_ClearKeepHandleFlag
  *
- * Description      This function is called to clear the keep handle flag
- *                  which will cause not to keep the port handle open when closed
+ * Description      Called to clear the keep handle flag, which will cause
+ *                  not to keep the port handle open when closed
+ *
  * Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
  *
  ******************************************************************************/
@@ -444,7 +448,7 @@ extern int PORT_FlowControl_MaxCredit(uint16_t handle, bool enable);
 #define PORT_DCD_ON             0x08
 
 /*
- * Define default initial local modem signals state set after connection established
+ * Define default initial local modem signals state after connection established
 */
 #define PORT_OBEX_DEFAULT_SIGNAL_STATE  (PORT_DTRDSR_ON | PORT_CTSRTS_ON | PORT_DCD_ON)
 #define PORT_SPP_DEFAULT_SIGNAL_STATE   (PORT_DTRDSR_ON | PORT_CTSRTS_ON | PORT_DCD_ON)
@@ -644,7 +648,7 @@ extern void RFCOMM_Init (void);
  *
  * Function         PORT_SetTraceLevel
  *
- * Description      This function sets the trace level for RFCOMM. If called with
+ * Description      Set the trace level for RFCOMM. If called with
  *                  a value of 0xFF, it simply reads the current trace level.
  *
  * Returns          the new (current) trace level

@@ -25,7 +25,8 @@ extern "C" {
 #endif
 
 // Inquiry Access Code
-// [Bluetooth Baseband](https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
+// [Bluetooth Baseband]
+// (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
 typedef struct {
   uint8_t iac[3];
 } __attribute__((packed))bt_inquiry_access_code_t;

@@ -101,8 +101,8 @@ class BluetoothBinderServer : public BnBluetooth,
   // first call to GetLowEnergyInterface().
   android::sp<IBluetoothLowEnergy> low_energy_interface_;
 
-  // The IBluetoothLeAdvertiser interface handle. This is lazily initialized on the
-  // first call to GetLeAdvertiserInterface().
+  // The IBluetoothLeAdvertiser interface handle. This is lazily initialized on
+  // the first call to GetLeAdvertiserInterface().
   android::sp<IBluetoothLeAdvertiser> le_advertiser_interface_;
 
   // The IBluetoothLeScanner interface handle. This is lazily initialized on the

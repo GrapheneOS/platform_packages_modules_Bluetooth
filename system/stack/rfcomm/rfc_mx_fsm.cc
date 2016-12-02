@@ -39,7 +39,7 @@
 
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, uint16_t event, void *p_data);
 static void rfc_mx_sm_state_wait_conn_cnf (tRFC_MCB *p_mcb, uint16_t event, void *p_data);

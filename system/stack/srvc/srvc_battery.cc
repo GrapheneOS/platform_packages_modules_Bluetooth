@@ -26,7 +26,9 @@
 #include "osi/include/osi.h"
 
 #define BA_MAX_CHAR_NUM          1
-#define BA_MAX_ATTR_NUM          (BA_MAX_CHAR_NUM * 5 + 1) /* max 3 descriptors, 1 desclration and 1 value */
+
+/* max 3 descriptors, 1 desclration and 1 value */
+#define BA_MAX_ATTR_NUM          (BA_MAX_CHAR_NUM * 5 + 1)
 
 #ifndef BATTER_LEVEL_PROP
 #define BATTER_LEVEL_PROP           (GATT_CHAR_PROP_BIT_READ|GATT_CHAR_PROP_BIT_NOTIFY)

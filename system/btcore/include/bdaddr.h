@@ -48,16 +48,17 @@ bt_bdaddr_t *bdaddr_copy(bt_bdaddr_t *dest, const bt_bdaddr_t *src);
 
 // Makes a string representation of |addr| and places it into |string|. |size|
 // refers to the size of |string|'s buffer and must be >= 18. On success, this
-// function returns |string|, otherwise it returns NULL. Neither |addr| nor |string|
-// may be NULL.
+// function returns |string|, otherwise it returns NULL. Neither |addr| nor
+// |string| may be NULL.
 const char *bdaddr_to_string(const bt_bdaddr_t *addr, char *string, size_t size);
 
 // Returns true if |string| represents a Bluetooth address. |string| may not be NULL.
 bool string_is_bdaddr(const char *string);
 
-// Converts |string| to bt_bdaddr_t and places it in |addr|. If |string| does not
-// represent a Bluetooth address, |addr| is not modified and this function returns
-// false. Otherwise, it returns true. Neither |string| nor |addr| may be NULL.
+// Converts |string| to bt_bdaddr_t and places it in |addr|. If |string| does
+// not represent a Bluetooth address, |addr| is not modified and this function
+// returns false. Otherwise, it returns true. Neither |string| nor |addr| may be
+// NULL.
 bool string_to_bdaddr(const char *string, bt_bdaddr_t *addr);
 
 #ifdef __cplusplus

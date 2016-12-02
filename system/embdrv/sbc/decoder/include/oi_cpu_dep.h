@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,10 +31,10 @@
  * CPU families. The preprocessor symbol 'CPU' must be defined to be an
  * appropriate value or this header will generate a compile-time error.
  *
- * @note The documentation for this header file uses the x86 family of processors
- * as an illustrative example for CPU/compiler-dependent data type definitions.
- * Go to the source code of this header file to see the details of primitive type
- * definitions for each platform.
+ * @note The documentation for this header file uses the x86 family of
+ * processors as an illustrative example for CPU/compiler-dependent data type
+ * definitions. Go to the source code of this header file to see the details of
+ * primitive type definitions for each platform.
  *
  * Additional information is available in the @ref data_types_docpage section.
  */
@@ -122,16 +123,18 @@ typedef uint32_t OI_ELEMENT_UNION; /**< Type for first element of a union to sup
 /******************************************************************************/
 
 #if OI_CPU_TYPE==OI_CPU_ARM
-/* This CPU type is deprecated (removed from use). Instead, use OI_CPU_ARM7_LEND or OI_CPU_ARM7_BEND for
-   little-endian or big-endian configurations of the ARM7, respectively. */
+/* This CPU type is deprecated (removed from use). Instead, use OI_CPU_ARM7_LEND
+ * or OI_CPU_ARM7_BEND for little-endian or big-endian configurations of the
+ * ARM7, respectively. */
 #error OI_CPU_ARM is deprecated
 #endif
 
 /******************************************************************************/
 
-#if OI_CPU_TYPE==OI_CPU_ARC
-/* This CPU type is deprecated (removed from use). Instead, use OI_CPU_ARC_LEND or OI_CPU_ARC_BEND for
-   little-endian or big-endian configurations of the ARC, respectively. */
+#if OI_CPU_TYPE == OI_CPU_ARC
+/* This CPU type is deprecated (removed from use). Instead, use OI_CPU_ARC_LEND
+ * or OI_CPU_ARC_BEND for little-endian or big-endian configurations of the
+ * ARC, respectively. */
 #error OI_CPU_ARC is deprecated
 #endif
 

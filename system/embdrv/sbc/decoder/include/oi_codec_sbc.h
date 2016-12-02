@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -53,8 +54,10 @@ Declarations of codec functions, data types, and macros.
 #define SBC_MAX_CHANNELS 2
 #define SBC_MAX_BANDS 8
 #define SBC_MAX_BLOCKS 16
-#define SBC_MIN_BITPOOL 2   /**< Minimum size of the bit allocation pool used to encode the stream */
-#define SBC_MAX_BITPOOL 250 /**< Maximum size of the bit allocation pool used to encode the stream */
+/* Minimum size of the bit allocation pool used to encode the stream */
+#define SBC_MIN_BITPOOL 2
+/* Maximum size of the bit allocation pool used to encode the stream */
+#define SBC_MAX_BITPOOL 250
 #define SBC_MAX_ONE_CHANNEL_BPS 320000
 #define SBC_MAX_TWO_CHANNEL_BPS 512000
 
@@ -79,38 +82,54 @@ Declarations of codec functions, data types, and macros.
 
 /**@name Sampling frequencies */
 /**@{*/
-#define SBC_FREQ_16000 0 /**< The sampling frequency is 16 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_FREQ_32000 1 /**< The sampling frequency is 32 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_FREQ_44100 2 /**< The sampling frequency is 44.1 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_FREQ_48000 3 /**< The sampling frequency is 48 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
+/**< The sampling frequency is 16 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_FREQ_16000 0
+/**< The sampling frequency is 32 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_FREQ_32000 1
+/**< The sampling frequency is 44.1 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_FREQ_44100 2
+/**< The sampling frequency is 48 kHz. One possible value for the @a frequency parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_FREQ_48000 3
 /**@}*/
 
 /**@name Channel modes */
 /**@{*/
-#define SBC_MONO 0         /**< The mode of the encoded channel is mono. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_DUAL_CHANNEL 1 /**< The mode of the encoded channel is dual-channel. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_STEREO 2       /**< The mode of the encoded channel is stereo. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_JOINT_STEREO 3 /**< The mode of the encoded channel is joint stereo. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
+/**< The mode of the encoded channel is mono. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_MONO 0
+/**< The mode of the encoded channel is dual-channel. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_DUAL_CHANNEL 1
+/**< The mode of the encoded channel is stereo. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_STEREO 2
+/**< The mode of the encoded channel is joint stereo. One possible value for the @a mode parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_JOINT_STEREO 3
 /**@}*/
 
 /**@name Subbands */
 /**@{*/
-#define SBC_SUBBANDS_4  0 /**< The encoded stream has 4 subbands. One possible value for the @a subbands parameter of OI_CODEC_SBC_EncoderConfigure()*/
-#define SBC_SUBBANDS_8  1 /**< The encoded stream has 8 subbands. One possible value for the @a subbands parameter of OI_CODEC_SBC_EncoderConfigure() */
+/**< The encoded stream has 4 subbands. One possible value for the @a subbands parameter of OI_CODEC_SBC_EncoderConfigure()*/
+#define SBC_SUBBANDS_4  0
+/**< The encoded stream has 8 subbands. One possible value for the @a subbands parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_SUBBANDS_8  1
 /**@}*/
 
 /**@name Block lengths */
 /**@{*/
-#define SBC_BLOCKS_4    0 /**< A block size of 4 blocks was used to encode the stream. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_BLOCKS_8    1 /**< A block size of 8 blocks was used to encode the stream is. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_BLOCKS_12   2 /**< A block size of 12 blocks was used to encode the stream. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_BLOCKS_16   3 /**< A block size of 16 blocks was used to encode the stream. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
+/**< A block size of 4 blocks was used to encode the stream. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_BLOCKS_4    0
+/**< A block size of 8 blocks was used to encode the stream is. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_BLOCKS_8    1
+/**< A block size of 12 blocks was used to encode the stream. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_BLOCKS_12   2
+/**< A block size of 16 blocks was used to encode the stream. One possible value for the @a blocks parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_BLOCKS_16   3
 /**@}*/
 
 /**@name Bit allocation methods */
 /**@{*/
-#define SBC_LOUDNESS 0    /**< The bit allocation method. One possible value for the @a loudness parameter of OI_CODEC_SBC_EncoderConfigure() */
-#define SBC_SNR 1         /**< The bit allocation method. One possible value for the @a loudness parameter of OI_CODEC_SBC_EncoderConfigure() */
+/**< The bit allocation method. One possible value for the @a loudness parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_LOUDNESS 0
+/**< The bit allocation method. One possible value for the @a loudness parameter of OI_CODEC_SBC_EncoderConfigure() */
+#define SBC_SNR 1
 /**@}*/
 
 /**
@@ -174,8 +193,9 @@ typedef struct {
 
 
 /*
- * A smaller value reduces RAM usage at the expense of increased CPU usage. Values in the range
- * 27..50 are recommended, beyond 50 there is a diminishing return on reduced CPU usage.
+ * A smaller value reduces RAM usage at the expense of increased CPU usage.
+ * Values in the range 27..50 are recommended. Beyond 50 there is a diminishing
+ * return on reduced CPU usage.
  */
 #define SBC_CODEC_MIN_FILTER_BUFFERS 16
 #define SBC_CODEC_FAST_FILTER_BUFFERS 27
@@ -183,7 +203,8 @@ typedef struct {
 /* Expands to the number of uint32_ts needed to ensure enough memory to encode
  * or decode streams of numChannels channels, using numBuffers buffers.
  * Example:
- * uint32_t decoderData[CODEC_DATA_WORDS(SBC_MAX_CHANNELS, SBC_DECODER_FAST_SYNTHESIS_BUFFERS)];
+ * uint32_t decoderData[CODEC_DATA_WORDS(SBC_MAX_CHANNELS,
+ *                                       SBC_DECODER_FAST_SYNTHESIS_BUFFERS)];
  * */
 #define CODEC_DATA_WORDS(numChannels, numBuffers) \
     ((\
@@ -195,7 +216,8 @@ typedef struct {
 /** Opaque parameter to decoding functions; maintains decoder context. */
 typedef struct {
     OI_CODEC_SBC_COMMON_CONTEXT common;
-    uint8_t limitFrameFormat;              /* Boolean, set by OI_CODEC_SBC_DecoderLimit() */
+    /* Boolean, set by OI_CODEC_SBC_DecoderLimit() */
+    uint8_t limitFrameFormat;
     uint8_t restrictSubbands;
     uint8_t enhancedEnabled;
     uint8_t bufferedBlocks;
@@ -261,12 +283,12 @@ OI_STATUS OI_CODEC_SBC_DecoderLimit(OI_CODEC_SBC_DECODER_CONTEXT *context,
                                     uint8_t subbands);
 
 /**
- * This function sets the decoder parameters for a raw decode where the decoder parameters are not
- * available in the sbc data stream. OI_CODEC_SBC_DecoderReset must be called
- * prior to calling this function.
+ * This function sets the decoder parameters for a raw decode where the decoder
+ * parameters are not available in the sbc data stream.
+ * OI_CODEC_SBC_DecoderReset must be called prior to calling this function.
  *
- * @param context        Decoder context structure. This must be the context must be
- *                       used each time a frame is decoded.
+ * @param context        Decoder context structure. This must be the context
+ *                       must be used each time a frame is decoded.
  *
  * @param enhanced       Set to true to enable Qualcomm proprietary
  *                       quality enhancements.
@@ -296,22 +318,25 @@ OI_STATUS OI_CODEC_SBC_DecoderConfigureRaw(OI_CODEC_SBC_DECODER_CONTEXT *context
                                            uint8_t maxBitpool);
 
 /**
- * Decode one SBC frame. The frame has no header bytes. The context must have been previously
- * initialized by calling  OI_CODEC_SBC_DecoderConfigureRaw().
+ * Decode one SBC frame. The frame has no header bytes. The context must have
+ * been previously initialized by calling  OI_CODEC_SBC_DecoderConfigureRaw().
  *
  * @param context       Pointer to a decoder context structure. The same context
- *                      must be used each time when decoding from the same stream.
+ *                      must be used each time when decoding from the same
+ *                      stream.
  *
- * @param bitpool       The actual bitpool size for this frame. Must be <= the maxbitpool specified
- *                      in the call to OI_CODEC_SBC_DecoderConfigureRaw(),
+ * @param bitpool       The actual bitpool size for this frame. Must be <= the
+ *                      maxbitpool specified in the call to
+ *                      OI_CODEC_SBC_DecoderConfigureRaw().
  *
  * @param frameData     Address of a pointer to the SBC data to decode. This
  *                      value will be updated to point to the next frame after
  *                      successful decoding.
  *
  * @param frameBytes    Pointer to a uint32_t containing the number of available
- *                      bytes of frame data. This value will be updated to reflect
- *                      the number of bytes remaining after a decoding operation.
+ *                      bytes of frame data. This value will be updated to
+ *                      reflect the number of bytes remaining after a decoding
+ *                      operation.
  *
  * @param pcmData       Address of an array of int16_t pairs, which will be
  *                      populated with the decoded audio data. This address
@@ -334,15 +359,17 @@ OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT *context,
  * Decode one SBC frame.
  *
  * @param context       Pointer to a decoder context structure. The same context
- *                      must be used each time when decoding from the same stream.
+ *                      must be used each time when decoding from the same
+ *                      stream.
  *
  * @param frameData     Address of a pointer to the SBC data to decode. This
  *                      value will be updated to point to the next frame after
  *                      successful decoding.
  *
  * @param frameBytes    Pointer to a uint32_t containing the number of available
- *                      bytes of frame data. This value will be updated to reflect
- *                      the number of bytes remaining after a decoding operation.
+ *                      bytes of frame data. This value will be updated to
+ *                      reflect the number of bytes remaining after a decoding
+ *                      operation.
  *
  * @param pcmData       Address of an array of int16_t pairs, which will be
  *                      populated with the decoded audio data. This address
@@ -376,15 +403,17 @@ uint8_t OI_CODEC_SBC_FrameCount(OI_BYTE  *frameData,
  * Analyze an SBC frame but don't do the decode.
  *
  * @param context       Pointer to a decoder context structure. The same context
- *                      must be used each time when decoding from the same stream.
+ *                      must be used each time when decoding from the same
+ *                      stream.
  *
  * @param frameData     Address of a pointer to the SBC data to decode. This
  *                      value will be updated to point to the next frame after
  *                      successful decoding.
  *
  * @param frameBytes    Pointer to a uint32_t containing the number of available
- *                      bytes of frame data. This value will be updated to reflect
- *                      the number of bytes remaining after a decoding operation.
+ *                      bytes of frame data. This value will be updated to
+ *                      reflect the number of bytes remaining after a decoding
+ *                      operation.
  *
  */
 OI_STATUS OI_CODEC_SBC_SkipFrame(OI_CODEC_SBC_DECODER_CONTEXT *context,

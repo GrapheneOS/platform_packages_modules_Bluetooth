@@ -137,8 +137,8 @@ typedef union
  *
  * Function         srvc_eng_init
  *
- * Description      Initializa the GATT Service engine, register a GATT application
- *                  as for a central service management.
+ * Description      Initializa the GATT Service engine, register a GATT
+ *                  application as for a central service management.
  *
  ******************************************************************************/
 extern tGATT_STATUS srvc_eng_init (void);

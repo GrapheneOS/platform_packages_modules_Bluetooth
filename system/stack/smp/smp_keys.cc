@@ -241,9 +241,9 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
  *
  * Function         smp_generate_stk
  *
- * Description      This function is called to generate STK calculated by running
- *                  AES with the TK value as key and a concatenation of the random
- *                  values.
+ * Description      This function is called to generate STK calculated by
+ *                  running AES with the TK value as key and a concatenation of
+ *                  the random values.
  *
  * Returns          void
  *
@@ -299,8 +299,8 @@ void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb,
  *
  * Function         smp_generate_rand_cont
  *
- * Description      This function is called to generate another 64 bits random for
- *                  MRand or Srand.
+ * Description      This function is called to generate another 64 bits random
+ *                  for MRand or Srand.
  *
  * Returns          void
  *
@@ -321,10 +321,10 @@ void smp_generate_rand_cont(tSMP_CB *p_cb,
  * Description      This function is called:
  *                  - in legacy pairing - to calculate LTK, starting with DIV
  *                    generation;
- *                  - in LE Secure Connections pairing over LE transport - to process LTK
- *                    already generated to encrypt LE link;
- *                  - in LE Secure Connections pairing over BR/EDR transport - to start
- *                    BR/EDR Link Key processing.
+ *                  - in LE Secure Connections pairing over LE transport - to
+ *                    process LTK already generated to encrypt LE link;
+ *                  - in LE Secure Connections pairing over BR/EDR transport -
+ *                    to start BR/EDR Link Key processing.
  *
  * Returns          void
  *
@@ -670,8 +670,9 @@ static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
  *
  * Function         smp_generate_confirm
  *
- * Description      This function is called when a 48 bits random number is generated
- *                  as SRand or MRand, continue to calculate Sconfirm or MConfirm.
+ * Description      This function is called when a 48 bits random number is
+ *                  generated as SRand or MRand, continue to calculate Sconfirm
+ *                  or MConfirm.
  *
  * Returns          void
  *
@@ -689,9 +690,10 @@ static void smp_generate_confirm(tSMP_CB *p_cb,
  *
  * Function         smp_generate_compare
  *
- * Description      This function is called to generate SConfirm for Slave device,
- *                  or MSlave for Master device. This function can be also used for
- *                  generating Compare number for confirm value check.
+ * Description      This function is called to generate SConfirm for Slave
+ *                  device, or MSlave for Master device. This function can be
+ *                  also used for generating Compare number for confirm value
+ *                  check.
  *
  * Returns          void
  *
@@ -787,7 +789,7 @@ static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p)
  *
  * Function         smp_generate_ltk_cont
  *
- * Description      This function is to calculate LTK = d1(ER, DIV, 0)= e(ER, DIV)
+ * Description      Calculate LTK = d1(ER, DIV, 0)= e(ER, DIV)
  *
  * Returns          void
  *
@@ -856,8 +858,8 @@ static void smp_generate_y(tSMP_CB *p_cb,
  *
  * Function         smp_generate_rand_vector
  *
- * Description      This function is called when LTK is generated, send state machine
- *                  event to SMP.
+ * Description      This function is called when an LTK is generated, send state
+ *                  machine event to SMP.
  *
  * Returns          void
  *
@@ -943,8 +945,8 @@ bool    smp_calculate_legacy_short_term_key(tSMP_CB *p_cb, tSMP_ENC *output)
  *
  * Description      This function is called to create private key used to
  *                  calculate public key and DHKey.
- *                  The function starts private key creation requesting controller
- *                  to generate [0-7] octets of private key.
+ *                  The function starts private key creation requesting
+ *                  for the controller to generate [0-7] octets of private key.
  *
  * Returns          void
  *
@@ -961,8 +963,8 @@ void smp_create_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
  * Function         smp_use_oob_private_key
  *
  * Description      This function is called
- *                  - to save the secret key used to calculate the public key used
- *                    in calculations of commitment sent OOB to a peer
+ *                  - to save the secret key used to calculate the public key
+ *                    used in calculations of commitment sent OOB to a peer
  *                  - to use this secret key to recalculate the public key and
  *                    start the process of sending this public key to the peer
  *                  if secret/public keys have to be reused.
@@ -1276,8 +1278,8 @@ void smp_calculate_f4(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t z, uint8_t *c)
  *
  * Function         smp_calculate_numeric_comparison_display_number
  *
- * Description      The function calculates and saves number to display in numeric
- *                  comparison association mode.
+ * Description      The function calculates and saves number to display in
+ *                  numeric comparison association mode.
  *
  * Returns          void
  *
@@ -1330,7 +1332,8 @@ void smp_calculate_numeric_comparison_display_number(tSMP_CB *p_cb,
  *                          Y     is 128 bit,
  *
  * Returns          Vres.
- *                  Expected value has to be in the range [0 - 999999] i.e. [0 - 0xF423F].
+ *                  Expected value has to be in the range [0 - 999999] i.e.
+ *                        [0 - 0xF423F].
  *                  Vres = 1000000 means that the calculation fails.
  *
  * Note             The LSB is the first octet, the MSB is the last octet of
@@ -1408,9 +1411,10 @@ uint32_t smp_calculate_g2(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t *y)
  *
  * Function         smp_calculate_f5
  *
- * Description      The function provides two AES-CMAC that are supposed to be used as
- *                  - MacKey (MacKey is used in pairing DHKey check calculation);
- *                  - LTK (LTK is used to ecrypt the link after completion of Phase 2
+ * Description      The function provides two AES-CMAC that are supposed to be
+ *                    used as
+ *                  - MacKey (used in pairing DHKey check calculation);
+ *                  - LTK (used to ecrypt the link after completion of Phase 2
  *                    and on reconnection, to derive BR/EDR LK).
  *                  The function inputs are W, N1, N2, A1, A2.
  *                  F5 rules:
@@ -1419,22 +1423,26 @@ uint32_t smp_calculate_g2(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t *y)
  *                    The formula is:
  *                          T = AES-CMAC    (W)
  *                                      salt
- *                    where salt is internal parameter of smp_calculate_f5_key(...).
- *                  - MacKey and LTK are calculated as AES-MAC values received with the
- *                    key T calculated in the previous step and the plaintext message
- *                    built from the external parameters N1, N2, A1, A2 and the internal
- *                    parameters counter, keyID, length.
- *                    The function smp_calculate_f5_mackey_or_long_term_key(...) is used in the
- *                    calculations.
- *                    The same formula is used in calculation of MacKey and LTK and the
- *                    same parameter values except the value of the internal parameter
- *                    counter:
+ *                    where salt is internal parameter of
+ *                    smp_calculate_f5_key(...).
+ *                  - MacKey and LTK are calculated as AES-MAC values received
+ *                    with the key T calculated in the previous step and the
+ *                    plaintext message built from the external parameters N1,
+ *                    N2, A1, A2 and the internal parameters counter, keyID,
+ *                    length.
+ *                    The function smp_calculate_f5_mackey_or_long_term_key(...)
+ *                    is used in the calculations.
+ *                    The same formula is used in calculation of MacKey and LTK
+ *                    and the same parameter values except the value of the
+ *                    internal parameter counter:
  *                    - in MacKey calculations the value is 0;
  *                    - in LTK calculations the value is 1.
- *                      MacKey  = AES-CMAC (Counter=0||keyID||N1||N2||A1||A2||Length=256)
- *                                        T
- *                      LTK     = AES-CMAC (Counter=1||keyID||N1||N2||A1||A2||Length=256)
- *                                        T
+ *                      MacKey  =
+ *                       AES-CMAC (Counter=0||keyID||N1||N2||A1||A2||Length=256)
+ *                               T
+ *                      LTK     =
+ *                       AES-CMAC (Counter=1||keyID||N1||N2||A1||A2||Length=256)
+ *                               T
  *                  The parameters are
  *                  input:
  *                          W       is 256 bits,
@@ -1537,8 +1545,8 @@ bool    smp_calculate_f5(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *a1, uint
  *
  * Function         smp_calculate_f5_mackey_or_long_term_key
  *
- * Description      The function calculates the value of MacKey or LTK by the rules
- *                  defined for f5 function.
+ * Description      The function calculates the value of MacKey or LTK by the
+ *                  rules defined for f5 function.
  *                  At the moment exactly the same formula is used to calculate
  *                  LTK and MacKey.
  *                  The difference is the value of input parameter Counter:
@@ -1716,7 +1724,8 @@ bool    smp_calculate_f5_key(uint8_t *w, uint8_t *t)
  *
  * Description      The function calculates and saves local device DHKey check
  *                  value in CB.
- *                  Before doing this it calls smp_calculate_f5_mackey_and_long_term_key(...).
+ *                  Before doing this it calls
+ *                  smp_calculate_f5_mackey_and_long_term_key(...).
  *                  to calculate MacKey and LTK.
  *                  MacKey is used in dhkey calculation.
  *
@@ -1790,8 +1799,9 @@ void smp_calculate_peer_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
  * Function         smp_calculate_f6
  *
  * Description      The function calculates
- *                  C = f6(W, N1, N2, R, IOcap, A1, A2) = AES-CMAC (N1||N2||R||IOcap||A1||A2)
- *                                                                W
+ *                  C = f6(W, N1, N2, R, IOcap, A1, A2) =
+ *                      AES-CMAC (N1||N2||R||IOcap||A1||A2)
+ *                              W
  *                  where
  *                  input:  W is 128 bit,
  *                          N1 is 128 bit,
@@ -1881,8 +1891,8 @@ bool    smp_calculate_f6(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *r, uint8
  *
  * Function         smp_calculate_link_key_from_long_term_key
  *
- * Description      The function calculates and saves BR/EDR link key derived from
- *                  LE SC LTK.
+ * Description      The function calculates and saves BR/EDR link key derived
+ *                  from LE SC LTK.
  *
  * Returns          false if out of resources, true in other cases.
  *

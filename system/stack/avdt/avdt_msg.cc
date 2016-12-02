@@ -675,8 +675,8 @@ static uint8_t avdt_msg_prs_cfg(tAVDT_CFG *p_cfg, uint8_t *p, uint16_t len, uint
  *
  * Function         avdt_msg_prs_none
  *
- * Description      This message parsing function parses a message with no parameters.
-
+ * Description      This message parsing function parses a message with no
+ *                  parameters.
  *
  *
  * Returns          Error code or zero if no error.
@@ -1538,8 +1538,8 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, uint8_t sig_id, tAVDT_MSG *p_params)
  *
  * Function         avdt_msg_send_grej
  *
- * Description      This function is called to send a general reject message.  The
- *                  sig_id parameter indicates the message type.  It gets
+ * Description      This function is called to send a general reject message.
+ *                  The sig_id parameter indicates the message type.  It gets
  *                  a buffer from the AVDTP command pool and builds the
  *                  message based on the message type and the error code.
  *                  It then queues the message in the response queue for

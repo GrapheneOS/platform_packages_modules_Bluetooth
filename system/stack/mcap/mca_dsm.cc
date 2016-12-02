@@ -275,7 +275,7 @@ void mca_dcb_dealloc(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
  *
  * Function         mca_dcb_to_hdl
  *
- * Description      This function converts a pointer to an DCB to a handle (tMCA_DL).
+ * Description      Convert a pointer to a DCB to a handle (tMCA_DL).
  *                  It returns the handle.
  *
  * Returns          tMCA_DL.

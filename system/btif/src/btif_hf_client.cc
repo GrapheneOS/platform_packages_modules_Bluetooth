@@ -770,7 +770,8 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
 
       HAL_CBACK(bt_hf_client_callbacks, connection_state_cb,
                 &btif_hf_client_cb.connected_bda,
-                btif_hf_client_cb.state, 0  /* peer feat */, 0  /* AT+CHLD feat */);
+                btif_hf_client_cb.state, 0, /* peer feat */
+                0  /* AT+CHLD feat */);
 
       if (btif_hf_client_cb.state == BTHF_CLIENT_CONNECTION_STATE_DISCONNECTED)
         bdsetany(btif_hf_client_cb.connected_bda.address);

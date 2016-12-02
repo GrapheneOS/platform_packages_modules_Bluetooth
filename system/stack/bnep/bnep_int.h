@@ -81,10 +81,11 @@ extern "C" {
 /* 802.1p protocol packet will have actual protocol field in side the payload */
 #define BNEP_802_1_P_PROTOCOL           0x8100
 
-/* Timeout definitions.
-*/
-#define BNEP_CONN_TIMEOUT_MS        (20 * 1000)      /* Connection related timeout */
-#define BNEP_HOST_TIMEOUT_MS        (200 * 1000)     /* host responce timeout */
+/* Timeout definitions.  */
+/* Connection related timeout */
+#define BNEP_CONN_TIMEOUT_MS        (20 * 1000)
+/* host response timeout */
+#define BNEP_HOST_TIMEOUT_MS        (200 * 1000)
 #define BNEP_FILTER_SET_TIMEOUT_MS  (10 * 1000)
 
 /* Define the Out-Flow default values. */

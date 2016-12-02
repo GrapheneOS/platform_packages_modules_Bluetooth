@@ -116,7 +116,8 @@ tGAP_CLCB *gap_ble_find_clcb_by_conn_id(uint16_t conn_id)
  *
  * Description      The function allocates a GAP  connection link control block
  *
- * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ * Returns          NULL if not found. Otherwise pointer to the connection link
+ *                  block.
  *
  ******************************************************************************/
 tGAP_CLCB *gap_clcb_alloc (BD_ADDR bda)
@@ -488,7 +489,8 @@ void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
  *
  * Function         gap_ble_send_cl_read_request
  *
- * Description      utility function to send a read request for a GAP charactersitic
+ * Description      utility function to send a read request for a GAP
+ *                  charactersitic
  *
  * Returns          true if read started, else false if GAP is busy
  *
@@ -726,7 +728,8 @@ bool    GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
  *
  * Function         GAP_BleReadPeerDevName
  *
- * Description      Start a process to read a connected peripheral's device name.
+ * Description      Start a process to read a connected peripheral's device
+ *                  name.
  *
  * Returns          true if request accepted
  *

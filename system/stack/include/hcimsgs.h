@@ -640,7 +640,8 @@ extern void btsnd_hcic_vendor_spec_cmd (void *buffer, uint16_t opcode,
 
 /*******************************************************************************
  * BLE Commands
- *      Note: "local_controller_id" is for transport, not counted in HCI message size
+ *      Note: "local_controller_id" is for transport, not counted in HCI
+ *             message size
  ******************************************************************************/
 #define HCIC_BLE_RAND_DI_SIZE                   8
 #define HCIC_BLE_ENCRYT_KEY_SIZE                16

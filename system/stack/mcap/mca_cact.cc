@@ -441,9 +441,9 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
  *
  * Function         mca_ccb_hdl_rsp
  *
- * Description      This function is called when a MCAP response is received from
- *                  the peer.  It calls the application callback function with
- *                  the results.
+ * Description      This function is called when a MCAP response is received
+ *                  from the peer.  It calls the application callback function
+ *                  with the results.
  *
  * Returns          void.
  *
@@ -562,8 +562,8 @@ void mca_ccb_ll_open (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
  *
  * Function         mca_ccb_dl_open
  *
- * Description      This function is called when data channel is open.
- *                  It clears p_tx_req to allow other message exchage on this CL.
+ * Description      This function is called when data channel is open. It clears
+ *                  p_tx_req to allow other message exchage on this CL.
  *
  * Returns          void.
  *

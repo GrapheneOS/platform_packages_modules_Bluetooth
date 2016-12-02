@@ -32,15 +32,23 @@
 #define GATT_UUID_PRI_SERVICE           0x2800
 #define GATT_UUID_SEC_SERVICE           0x2801
 #define GATT_UUID_INCLUDE_SERVICE       0x2802
-#define GATT_UUID_CHAR_DECLARE          0x2803      /*  Characteristic Declaration*/
+/*  Characteristic Declaration*/
+#define GATT_UUID_CHAR_DECLARE          0x2803
 
-#define GATT_UUID_CHAR_EXT_PROP         0x2900      /*	Characteristic Extended Properties */
-#define GATT_UUID_CHAR_DESCRIPTION      0x2901      /*  Characteristic User Description*/
-#define GATT_UUID_CHAR_CLIENT_CONFIG    0x2902      /*  Client Characteristic Configuration */
-#define GATT_UUID_CHAR_SRVR_CONFIG      0x2903      /*  Server Characteristic Configuration */
-#define GATT_UUID_CHAR_PRESENT_FORMAT   0x2904      /*  Characteristic Presentation Format*/
-#define GATT_UUID_CHAR_AGG_FORMAT       0x2905      /*  Characteristic Aggregate Format*/
-#define GATT_UUID_CHAR_VALID_RANGE       0x2906      /*  Characteristic Valid Range */
+/*	Characteristic Extended Properties */
+#define GATT_UUID_CHAR_EXT_PROP         0x2900
+/*  Characteristic User Description*/
+#define GATT_UUID_CHAR_DESCRIPTION      0x2901
+/*  Client Characteristic Configuration */
+#define GATT_UUID_CHAR_CLIENT_CONFIG    0x2902
+/*  Server Characteristic Configuration */
+#define GATT_UUID_CHAR_SRVR_CONFIG      0x2903
+/*  Characteristic Presentation Format*/
+#define GATT_UUID_CHAR_PRESENT_FORMAT   0x2904
+/*  Characteristic Aggregate Format*/
+#define GATT_UUID_CHAR_AGG_FORMAT       0x2905
+/*  Characteristic Valid Range */
+#define GATT_UUID_CHAR_VALID_RANGE       0x2906
 #define GATT_UUID_EXT_RPT_REF_DESCR     0x2907
 #define GATT_UUID_RPT_REF_DESCR         0x2908
 

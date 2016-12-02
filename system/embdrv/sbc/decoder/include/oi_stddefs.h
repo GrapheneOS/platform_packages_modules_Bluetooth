@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2002 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -91,7 +92,9 @@ typedef struct {
 #define OI_UINT64_MIN { (uint32_t)0x00000000, (uint32_t)0x00000000 }
 #define OI_UINT64_MAX { (uint32_t)0XFFFFFFFF, (uint32_t)0XFFFFFFFF }
 
-/** signed 64-bit integer as a structure of one unsigned 32-bit integer and one signed 32-bit integer */
+/* signed 64-bit integer as a structure of one unsigned 32-bit integer and one
+ * signed 32-bit integer
+ */
 typedef struct {
     int32_t  I1; /**< most significant 32 bits  as a signed integer */
     uint32_t I2; /**< least significant 32 bits as an unsigned integer */
@@ -111,7 +114,8 @@ typedef struct {
 #define OI_UINT128_MIN { (uint32_t)0x00000000, (uint32_t)0x00000000,  (uint32_t)0x00000000, (uint32_t)0x00000000 }
 #define OI_UINT128_MAX { (uint32_t)0XFFFFFFFF, (uint32_t)0XFFFFFFFF,  (uint32_t)0XFFFFFFFF, (uint32_t)0XFFFFFFFF }
 
-/** signed 128-bit integer as a structure of three unsigned 32-bit integers and one signed 32-bit integer */
+/* signed 128-bit integer as a structure of three unsigned 32-bit integers and
+ * one signed 32-bit integer */
 typedef struct {
     int32_t  I1;  /**< most significant 32 bits as a signed integer */
     uint32_t I2;  /**< second-most significant 32 bits as an unsigned integer */
@@ -148,14 +152,17 @@ typedef uint32_t OI_UTF32;
 /**
  * @name Single-bit operation macros
  * @{
- * In these macros, x is the data item for which a bit is to be tested or set and y specifies which bit
- * is to be tested or set.
+ * In these macros, x is the data item for which a bit is to be tested or set
+ * and y specifies which bit is to be tested or set.
  */
 
-/** This macro's value is true if the bit specified by y is set in data item x. */
+/* This macro's value is true if the bit specified by y is set in data item x.
+ */
 #define OI_BIT_TEST(x,y)   ((x) & (y))
 
-/** This macro's value is true if the bit specified by y is not set in data item x. */
+/* This macro's value is true if the bit specified by y is not set in data item
+ * x.
+ */
 #define OI_BIT_CLEAR_TEST(x,y)  (((x) & (y)) == 0)
 
 /** This macro sets the bit specified by y in data item x. */

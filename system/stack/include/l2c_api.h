@@ -99,7 +99,8 @@ typedef uint8_t tL2CAP_CHNL_DATA_RATE;
 #define L2CAP_MULTI_AV_PADDING_LEN  2
 
 /* length of the HCI header block with padding for FCR */
-/* HCI header(4) + SNK count(1) + FCR bits(1) + AV data length(2) + padding(2) */
+/* HCI header(4) + SNK count(1) + FCR bits(1) + AV data length(2) + padding(2)
+ */
 #define L2CAP_MULTI_AV_HCI_HDR_LEN_WITH_PADDING	10
 
 /* length of the L2CAP header block */
@@ -109,8 +110,10 @@ typedef uint8_t tL2CAP_CHNL_DATA_RATE;
 /* definition used for L2CA_SetDesireRole */
 #define L2CAP_ROLE_SLAVE            HCI_ROLE_SLAVE
 #define L2CAP_ROLE_MASTER           HCI_ROLE_MASTER
-#define L2CAP_ROLE_ALLOW_SWITCH     0x80    /* set this bit to allow switch at create conn */
-#define L2CAP_ROLE_DISALLOW_SWITCH  0x40    /* set this bit to disallow switch at create conn */
+/* set this bit to allow switch at create conn */
+#define L2CAP_ROLE_ALLOW_SWITCH     0x80
+/* set this bit to disallow switch at create conn */
+#define L2CAP_ROLE_DISALLOW_SWITCH  0x40
 #define L2CAP_ROLE_CHECK_SWITCH     0xC0
 
 
@@ -172,8 +175,8 @@ typedef struct
     uint16_t    flags;                  /* bit 0: 0-no continuation, 1-continuation */
 } tL2CAP_CFG_INFO;
 
-/* Define a structure to hold the configuration parameter for LE L2CAP connection
- * oriented channels.
+/* Define a structure to hold the configuration parameter for LE L2CAP
+ * connection oriented channels.
 */
 typedef struct
 {
@@ -384,8 +387,8 @@ extern void L2CA_Deregister (uint16_t psm);
  *
  * Function         L2CA_AllocatePSM
  *
- * Description      Other layers call this function to find an unused PSM for L2CAP
- *                  services.
+ * Description      Other layers call this function to find an unused PSM for
+ *                  L2CAP services.
  *
  * Returns          PSM to use.
  *
@@ -396,9 +399,10 @@ extern uint16_t L2CA_AllocatePSM(void);
  *
  * Function         L2CA_ConnectReq
  *
- * Description      Higher layers call this function to create an L2CAP connection.
- *                  Note that the connection is not established at this time, but
- *                  connection establishment gets started. The callback function
+ * Description      Higher layers call this function to create an L2CAP
+ *                  connection.
+ *                  Note that the connection is not established at this time,
+ *                  but connection establishment gets started. The callback
  *                  will be invoked when connection establishes or fails.
  *
  * Returns          the CID of the connection, or 0 if it failed to start
@@ -424,10 +428,10 @@ extern bool    L2CA_ConnectRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lcid,
  *
  * Function         L2CA_ErtmConnectReq
  *
- * Description      Higher layers call this function to create an L2CAP connection
- *                  that needs to use Enhanced Retransmission Mode.
- *                  Note that the connection is not established at this time, but
- *                  connection establishment gets started. The callback function
+ * Description      Higher layers call this function to create an L2CAP
+ *                  connection that needs to use Enhanced Retransmission Mode.
+ *                  Note that the connection is not established at this time,
+ *                  but connection establishment gets started. The callback
  *                  will be invoked when connection establishes or fails.
  *
  * Returns          the CID of the connection, or 0 if it failed to start
@@ -469,8 +473,8 @@ extern void L2CA_DeregisterLECoc (uint16_t psm);
  * Function         L2CA_ConnectLECocReq
  *
  * Description      Higher layers call this function to create an L2CAP LE COC.
- *                  Note that the connection is not established at this time, but
- *                  connection establishment gets started. The callback function
+ *                  Note that the connection is not established at this time,
+ *                  but connection establishment gets started. The callback
  *                  will be invoked when connection establishes or fails.
  *
  * Returns          the CID of the connection, or 0 if it failed to start
@@ -483,7 +487,7 @@ extern uint16_t L2CA_ConnectLECocReq (uint16_t psm, BD_ADDR p_bd_addr, tL2CAP_LE
  * Function         L2CA_ConnectLECocRsp
  *
  * Description      Higher layers call this function to accept an incoming
- *                  L2CAP LE COC connection, for which they had gotten an connect
+ *                  L2CAP LE COC connection, for which they had gotten a connect
  *                  indication callback.
  *
  * Returns          true for success, false for failure
@@ -503,11 +507,11 @@ extern bool    L2CA_ConnectLECocRsp (BD_ADDR p_bd_addr, uint8_t id, uint16_t lci
  ******************************************************************************/
 extern bool    L2CA_GetPeerLECocConfig (uint16_t lcid, tL2CAP_LE_CFG_INFO* peer_cfg);
 
-// This function sets the callback routines for the L2CAP connection referred to by
-// |local_cid|. The callback routines can only be modified for outgoing connections
-// established by |L2CA_ConnectReq| or accepted incoming connections. |callbacks|
-// must not be NULL. This function returns true if the callbacks could be updated,
-// false if not (e.g. |local_cid| was not found).
+// This function sets the callback routines for the L2CAP connection referred to
+// by |local_cid|. The callback routines can only be modified for outgoing
+// connections established by |L2CA_ConnectReq| or accepted incoming
+// connections. |callbacks| must not be NULL. This function returns true if the
+// callbacks could be updated, false if not (e.g. |local_cid| was not found).
 bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *callbacks);
 
 /*******************************************************************************
@@ -579,7 +583,8 @@ extern bool    L2CA_DisconnectRsp (uint16_t cid);
  * Description      Higher layers call this function to write data.
  *
  * Returns          L2CAP_DW_SUCCESS, if data accepted, else false
- *                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
+ *                  L2CAP_DW_CONGESTED, if data accepted and the channel is
+ *                                      congested
  *                  L2CAP_DW_FAILED, if error
  *
  ******************************************************************************/
@@ -608,10 +613,11 @@ extern bool    L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_cb);
  ******************************************************************************/
 extern bool     L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_callback);
 
-// Given a local channel identifier, |lcid|, this function returns the bound remote
-// channel identifier, |rcid|, and the ACL link handle, |handle|. If |lcid| is not
-// known or is invalid, this function returns false and does not modify the values
-// pointed at by |rcid| and |handle|. |rcid| and |handle| may be NULL.
+// Given a local channel identifier, |lcid|, this function returns the bound
+// remote channel identifier, |rcid|, and the ACL link handle, |handle|. If
+// |lcid| is not known or is invalid, this function returns false and does not
+// modify the values pointed at by |rcid| and |handle|. |rcid| and |handle| may
+// be NULL.
 bool L2CA_GetIdentifiers(uint16_t lcid, uint16_t *rcid, uint16_t *handle);
 
 /*******************************************************************************
@@ -619,12 +625,12 @@ bool L2CA_GetIdentifiers(uint16_t lcid, uint16_t *rcid, uint16_t *handle);
  * Function         L2CA_SetIdleTimeout
  *
  * Description      Higher layers call this function to set the idle timeout for
- *                  a connection, or for all future connections. The "idle timeout"
- *                  is the amount of time that a connection can remain up with
- *                  no L2CAP channels on it. A timeout of zero means that the
- *                  connection will be torn down immediately when the last channel
- *                  is removed. A timeout of 0xFFFF means no timeout. Values are
- *                  in seconds.
+ *                  a connection, or for all future connections. The "idle
+ *                  timeout" is the amount of time that a connection can remain
+ *                  up with no L2CAP channels on it. A timeout of zero means
+ *                  that the connection will be torn down immediately when the
+ *                  last channel is removed. A timeout of 0xFFFF means no
+ *                  timeout. Values are in seconds.
  *
  * Returns          true if command succeeded, false if failed
  *
@@ -673,11 +679,12 @@ extern uint8_t L2CA_SetTraceLevel (uint8_t trace_level);
  * Description  This function sets the desire role for L2CAP.
  *              If the new role is L2CAP_ROLE_ALLOW_SWITCH, allow switch on
  *              HciCreateConnection.
- *              If the new role is L2CAP_ROLE_DISALLOW_SWITCH, do not allow switch on
- *              HciCreateConnection.
+ *              If the new role is L2CAP_ROLE_DISALLOW_SWITCH, do not allow
+ *              switch on HciCreateConnection.
  *
- *              If the new role is a valid role (HCI_ROLE_MASTER or HCI_ROLE_SLAVE),
- *              the desire role is set to the new value. Otherwise, it is not changed.
+ *              If the new role is a valid role (HCI_ROLE_MASTER or
+ *              HCI_ROLE_SLAVE), the desire role is set to the new value.
+ *              Otherwise, it is not changed.
  *
  * Returns      the new (current) role
  *
@@ -794,20 +801,23 @@ typedef void (tL2CA_RESERVE_CMPL_CBACK) (void);
  *
  * Description      This function set the automatic flush time out in Baseband
  *                  for ACL-U packets.
- *                  BdAddr : the remote BD address of ACL link. If it is BT_DB_ANY
- *                           then the flush time out will be applied to all ACL link.
+ *                  BdAddr : the remote BD address of ACL link. If it is
+ *                           BT_DB_ANY then the flush time out will be applied
+ *                           to all ACL link.
  *                  FlushTimeout: flush time out in ms
  *                           0x0000 : No automatic flush
  *                           L2CAP_NO_RETRANSMISSION : No retransmission
- *                           0x0002 - 0xFFFE : flush time out, if (flush_tout*8)+3/5)
- *                                    <= HCI_MAX_AUTO_FLUSH_TOUT (in 625us slot).
+ *                           0x0002 - 0xFFFE : flush time out, if
+ *                                             (flush_tout * 8) + 3 / 5)
+ *                                               <= HCI_MAX_AUTO_FLUSH_TOUT
+ *                                             (in 625us slot).
  *                                    Otherwise, return false.
  *                           L2CAP_NO_AUTOMATIC_FLUSH : No automatic flush
  *
  * Returns          true if command succeeded, false if failed
  *
- * NOTE             This flush timeout applies to all logical channels active on the
- *                  ACL link.
+ * NOTE             This flush timeout applies to all logical channels active on
+ *                  the ACL link.
  ******************************************************************************/
 extern bool    L2CA_SetFlushTimeout (BD_ADDR bd_addr, uint16_t flush_tout);
 
@@ -822,7 +832,8 @@ extern bool    L2CA_SetFlushTimeout (BD_ADDR bd_addr, uint16_t flush_tout);
  *                          L2CAP_NON_FLUSHABLE_PKT
  *
  * Returns          L2CAP_DW_SUCCESS, if data accepted, else false
- *                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
+ *                  L2CAP_DW_CONGESTED, if data accepted and the channel is
+ *                                      congested
  *                  L2CAP_DW_FAILED, if error
  *
  ******************************************************************************/
@@ -1118,9 +1129,9 @@ extern bool    L2CA_RemoveFixedChnl (uint16_t fixed_cid, BD_ADDR rem_bda);
  * Function         L2CA_SetFixedChannelTout
  *
  * Description      Higher layers call this function to set the idle timeout for
- *                  a fixed channel. The "idle timeout" is the amount of time that
- *                  a connection can remain up with no L2CAP channels on it.
- *                  A timeout of zero means that the connection will be torn
+ *                  a fixed channel. The "idle timeout" is the amount of time
+ *                  that a connection can remain up with no L2CAP channels on
+ *                  it. A timeout of zero means that the connection will be torn
  *                  down immediately when the last channel is removed.
  *                  A timeout of 0xFFFF means no timeout. Values are in seconds.
  *                  A bd_addr is the remote BD address. If bd_addr = BT_BD_ANY,
@@ -1222,7 +1233,7 @@ extern uint8_t L2CA_GetBleConnRole (BD_ADDR bd_addr);
  * Description      This function returns the disconnect reason code.
  *
  *  Parameters:     BD Address of remote
- *                         Physical transport for the L2CAP connection (BR/EDR or LE)
+ *                  Physical transport for the L2CAP connection (BR/EDR or LE)
  *
  * Returns          disconnect reason
  *

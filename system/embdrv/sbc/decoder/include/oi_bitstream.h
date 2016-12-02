@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -61,7 +62,8 @@ PRIVATE void OI_BITSTREAM_WriteUINT8Aligned(OI_BITSTREAM *bs,
                                             uint8_t datum);
 
 /*
- * Use knowledge that the bitstream is aligned to optimize the write pair of nibbles
+ * Use knowledge that the bitstream is aligned to optimize the writing of a
+ * pair of nibbles.
  */
 PRIVATE void OI_BITSTREAM_Write2xUINT4Aligned(OI_BITSTREAM *bs,
                                               uint8_t datum1,
