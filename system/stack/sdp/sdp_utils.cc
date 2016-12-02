@@ -702,18 +702,6 @@ bool sdpu_compare_uuid_with_attr(tBT_UUID* p_btuuid, tSDP_DISC_ATTR* p_attr) {
     return (bool)(p_btuuid->uu.uuid16 == p_attr->attr_value.v.u16);
   else if (p_btuuid->len == 4)
     return (bool)(p_btuuid->uu.uuid32 == p_attr->attr_value.v.u32);
-  /* coverity[overrun-buffer-arg] */
-  /*
-     Event overrun-buffer-arg: Overrun of static array
-     "&p_attr->attr_value.v.array" of size 4 bytes by passing it to a function
-     which indexes it with argument "16U" at byte position 15
-     false-POSITIVE error from Coverity test tool. Please do NOT remove
-     following comment.
-     False-positive: SDP uses scratch buffer to hold the attribute value.
-     The actual size of tSDP_DISC_ATVAL does not matter.
-     If the array size in tSDP_DISC_ATVAL is increase, we would increase the
-     system RAM usage unnecessarily
-  */
   else if (!memcmp(p_btuuid->uu.uuid128, (void*)p_attr->attr_value.v.array,
                    MAX_UUID_SIZE))
     return (true);

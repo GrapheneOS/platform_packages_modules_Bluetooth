@@ -881,17 +881,6 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
               p += MAX_UUID_SIZE - 4;
             }
           } else {
-            /* coverity[overrun-local] */
-            /*
-               Event overrun-local: Overrun of static array
-               "p_attr->attr_value.v.array" of size 4 at position 15 with index
-               variable "ijk"
-               False-positive: SDP uses scratch buffer to hold the attribute
-               value.
-               The actual size of tSDP_DISC_ATVAL does not matter.
-               If the array size in tSDP_DISC_ATVAL is increase, we would
-               increase the system RAM usage unnecessarily
-           */
             BE_STREAM_TO_ARRAY(p, p_attr->attr_value.v.array,
                                (int32_t)attr_len);
           }

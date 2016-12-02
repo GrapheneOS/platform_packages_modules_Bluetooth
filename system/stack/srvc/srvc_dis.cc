@@ -413,14 +413,6 @@ tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR* p_info) {
     while (dis_attr_bit && i < (DIS_MAX_CHAR_NUM - 1)) {
       if (dis_attr_bit & (uint16_t)(1 << i)) {
         osi_free(dis_cb.dis_value.data_string[i - 1]);
-        /* coverity[OVERRUN-STATIC] False-positive :
-         * when i = 8, (1 << i) == DIS_ATTR_PNP_ID_BIT,
-         * and it will never come down here
-         * CID 49902: Out-of-bounds read (OVERRUN_STATIC)
-         * Overrunning static array "dis_cb.dis_value.data_string", with 7
-         * elements, at
-         * position 7 with index variable "i".
-         */
         dis_cb.dis_value.data_string[i - 1] =
             (uint8_t*)osi_malloc(p_info->data_str.len + 1);
         memcpy(dis_cb.dis_value.data_string[i - 1], p_info->data_str.p_data,
