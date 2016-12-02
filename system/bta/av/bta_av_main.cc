@@ -183,9 +183,7 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] = {
 /* AV control block */
 tBTA_AV_CB bta_av_cb;
 
-#if (BTA_AV_DEBUG == TRUE)
 static const char* bta_av_st_code(uint8_t state);
-#endif
 
 /*******************************************************************************
  *
@@ -341,12 +339,12 @@ void bta_av_conn_cback(UNUSED_ATTR uint8_t handle, BD_ADDR bd_addr,
 #endif
   {
     evt = BTA_AV_SIG_CHG_EVT;
-    if (AVDT_DISCONNECT_IND_EVT == event) p_scb = bta_av_addr_to_scb(bd_addr);
-#if (BTA_AV_DEBUG == TRUE)
-    else if (AVDT_CONNECT_IND_EVT == event) {
-      APPL_TRACE_DEBUG("CONN_IND is ACP:%d", p_data->hdr.err_param);
+    if (event == AVDT_DISCONNECT_IND_EVT) {
+      p_scb = bta_av_addr_to_scb(bd_addr);
+    } else if (event == AVDT_CONNECT_IND_EVT) {
+      APPL_TRACE_DEBUG("%s: CONN_IND is ACP:%d", __func__,
+                       p_data->hdr.err_param);
     }
-#endif
 
     tBTA_AV_STR_MSG* p_msg =
         (tBTA_AV_STR_MSG*)osi_malloc(sizeof(tBTA_AV_STR_MSG));
@@ -354,11 +352,9 @@ void bta_av_conn_cback(UNUSED_ATTR uint8_t handle, BD_ADDR bd_addr,
     p_msg->hdr.layer_specific = event;
     p_msg->hdr.offset = p_data->hdr.err_param;
     bdcpy(p_msg->bd_addr, bd_addr);
-#if (BTA_AV_DEBUG == TRUE)
     if (p_scb) {
       APPL_TRACE_DEBUG("scb hndl x%x, role x%x", p_scb->hndl, p_scb->role);
     }
-#endif
     APPL_TRACE_DEBUG("conn_cback bd_addr:%02x-%02x-%02x-%02x-%02x-%02x",
                      bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4],
                      bd_addr[5]);
@@ -546,7 +542,7 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
 
       /* keep the configuration in the stream control block */
       memcpy(&p_scb->cfg, &cs.cfg, sizeof(tAVDT_CFG));
-      for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
+      for (int i = codec_sep_index_min; i < codec_sep_index_max; i++) {
         tA2DP_CODEC_SEP_INDEX codec_sep_index =
             static_cast<tA2DP_CODEC_SEP_INDEX>(i);
         if (!(*bta_av_a2dp_cos.init)(codec_sep_index, &cs.cfg)) {
@@ -1102,13 +1098,9 @@ void bta_av_sm_execute(tBTA_AV_CB* p_cb, uint16_t event, tBTA_AV_DATA* p_data) {
   tBTA_AV_ST_TBL state_table;
   uint8_t action;
 
-#if (BTA_AV_DEBUG == TRUE)
-  APPL_TRACE_EVENT("AV event=0x%x(%s) state=%d(%s)", event,
+  APPL_TRACE_EVENT("%s: AV event=0x%x(%s) state=%d(%s)", __func__, event,
                    bta_av_evt_code(event), p_cb->state,
                    bta_av_st_code(p_cb->state));
-#else
-  APPL_TRACE_EVENT("AV event=0x%x state=%d", event, p_cb->state);
-#endif
 
   /* look up the state table for the current state */
   state_table = bta_av_st_tbl[p_cb->state];
@@ -1142,23 +1134,15 @@ bool bta_av_hdl_event(BT_HDR* p_msg) {
     return true; /* to free p_msg */
   }
   if (p_msg->event >= BTA_AV_FIRST_NSM_EVT) {
-#if (BTA_AV_DEBUG == TRUE)
-    APPL_TRACE_VERBOSE("AV nsm event=0x%x(%s)", p_msg->event,
+    APPL_TRACE_VERBOSE("%s: AV nsm event=0x%x(%s)", __func__, p_msg->event,
                        bta_av_evt_code(p_msg->event));
-#else
-    APPL_TRACE_VERBOSE("AV nsm event=0x%x", p_msg->event);
-#endif
     /* non state machine events */
     (*bta_av_nsm_act[p_msg->event - BTA_AV_FIRST_NSM_EVT])(
         (tBTA_AV_DATA*) p_msg);
   } else if (p_msg->event >= BTA_AV_FIRST_SM_EVT
       && p_msg->event <= BTA_AV_LAST_SM_EVT) {
-#if (BTA_AV_DEBUG == TRUE)
-    APPL_TRACE_VERBOSE("AV sm event=0x%x(%s)", p_msg->event,
+    APPL_TRACE_VERBOSE("%s: AV sm event=0x%x(%s)", __func__, p_msg->event,
                        bta_av_evt_code(p_msg->event));
-#else
-    APPL_TRACE_VERBOSE("AV sm event=0x%x", p_msg->event);
-#endif
     /* state machine events */
     bta_av_sm_execute(&bta_av_cb, p_msg->event, (tBTA_AV_DATA*) p_msg);
   } else {
@@ -1173,7 +1157,6 @@ bool bta_av_hdl_event(BT_HDR* p_msg) {
 /*****************************************************************************
  *  Debug Functions
  ****************************************************************************/
-#if (BTA_AV_DEBUG == TRUE)
 /*******************************************************************************
  *
  * Function         bta_av_st_code
@@ -1330,4 +1313,3 @@ const char* bta_av_evt_code(uint16_t evt_code) {
       return "unknown";
   }
 }
-#endif /* BTA_AV_DEBUG */

@@ -227,9 +227,6 @@ static void btif_a2dp_data_cb(UNUSED_ATTR tUIPC_CH_ID ch_id,
       if (btif_av_get_peer_sep() == AVDT_TSEP_SNK) {
         /* Start the media task to encode the audio */
         btif_a2dp_source_start_audio_req();
-
-        /* Make sure we update any changed encoder params */
-        btif_a2dp_source_encoder_update();
       }
 
       /* ACK back when media task is fully started */

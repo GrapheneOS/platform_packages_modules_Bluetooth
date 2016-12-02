@@ -34,30 +34,10 @@ extern "C" {
  *  Functions
  ******************************************************************************/
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_audio_set_codec
- **
- ** Description      Set the current codec configuration from the feeding
- **                  information.
- **                  This function is starting to modify the configuration, it
- **                  should be protected.
- **
- ** Returns          true if successful, false otherwise
- **
- ******************************************************************************/
-bool bta_av_co_audio_set_codec(const tA2DP_FEEDING_PARAMS* p_feeding_params);
-
 // Prepares a message to initialize the encoder. The prepared message is
 // stored in |p_init_params|.
 // |p_init_params| cannot be null.
 void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS* p_init_params);
-
-// Prepares a message to update the encoder. The prepared message is
-// stored in |p_update_params|.
-// |p_update_params| cannot be null.
-void bta_av_co_audio_encoder_update(
-    tA2DP_ENCODER_UPDATE_PARAMS* p_update_params);
 
 // Gets the current A2DP encoder interface that can be used to encode and
 // prepare A2DP packets for transmission - see |tA2DP_ENCODER_INTERFACE|.
