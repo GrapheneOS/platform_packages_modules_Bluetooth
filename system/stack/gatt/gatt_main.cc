@@ -41,7 +41,7 @@
 #define GATT_MIN_BR_MTU_SIZE       48
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void gatt_le_connect_cback (uint16_t chan, BD_ADDR bd_addr, bool    connected,
         uint16_t reason, tBT_TRANSPORT transport);
@@ -180,7 +180,8 @@ void gatt_free(void)
  *
  * Function         gatt_connect
  *
- * Description      This function is called to initiate a connection to a peer device.
+ * Description      This function is called to initiate a connection to a peer
+ *                  device.
  *
  * Parameter        rem_bda: remote device address to connect to.
  *
@@ -297,8 +298,9 @@ bool    gatt_update_app_hold_link_status(tGATT_IF gatt_if, tGATT_TCB *p_tcb, boo
  *
  * Function         gatt_update_app_use_link_flag
  *
- * Description      Update the application use link flag and optional to check the acl link
- *                  if the link is up then set the idle time out accordingly
+ * Description      Update the application use link flag and optional to check
+ *                  the acl link if the link is up then set the idle time out
+ *                  accordingly
  *
  * Returns          void.
  *
@@ -311,8 +313,8 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB *p_tcb, bool    i
     if (!p_tcb)
         return;
 
-    // If we make no modification, i.e. kill app that was never connected to a device,
-    // skip updating the device state.
+    // If we make no modification, i.e. kill app that was never connected to a
+    // device, skip updating the device state.
     if (!gatt_update_app_hold_link_status(gatt_if, p_tcb, is_add))
         return;
 
@@ -554,7 +556,8 @@ static void gatt_le_cong_cback(BD_ADDR remote_bda, bool    congested)
  *
  * Description      This function is called when data is received from L2CAP.
  *                  if we are the originator of the connection, we are the ATT
- *                  client, and the received message is queued up for the client.
+ *                  client, and the received message is queued up for the
+ *                  client.
  *
  *                  If we are the destination of the connection, we are the ATT
  *                  server, so the message is passed to the server processing
@@ -981,7 +984,8 @@ static void gatt_send_conn_cback(tGATT_TCB *p_tcb)
  *
  * Description      This function is called when data is received from L2CAP.
  *                  if we are the originator of the connection, we are the ATT
- *                  client, and the received message is queued up for the client.
+ *                  client, and the received message is queued up for the
+ *                  client.
  *
  *                  If we are the destination of the connection, we are the ATT
  *                  server, so the message is passed to the server processing
@@ -1061,8 +1065,8 @@ void gatt_add_a_bonded_dev_for_srv_chg (BD_ADDR bda)
  *
  * Function         gatt_send_srv_chg_ind
  *
- * Description      This function is called to send a service chnaged indication to
- *                  the specified bd address
+ * Description      This function is called to send a service chnaged indication
+ *                  to the specified bd address
  *
  * Returns          void
  *

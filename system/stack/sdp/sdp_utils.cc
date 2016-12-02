@@ -164,8 +164,8 @@ void sdpu_release_ccb (tCONN_CB *p_ccb)
  * Function         sdpu_build_attrib_seq
  *
  * Description      This function builds an attribute sequence from the list of
- *                  passed attributes. It is also passed the address of the output
- *                  buffer.
+ *                  passed attributes. It is also passed the address of the
+ *                  output buffer.
  *
  * Returns          Pointer to next byte in the output buffer.
  *
@@ -218,8 +218,8 @@ uint8_t *sdpu_build_attrib_seq (uint8_t *p_out, uint16_t *p_attr, uint16_t num_a
  * Function         sdpu_build_attrib_entry
  *
  * Description      This function builds an attribute entry from the passed
- *                  attribute record. It is also passed the address of the output
- *                  buffer.
+ *                  attribute record. It is also passed the address of the
+ *                  output buffer.
  *
  * Returns          Pointer to next byte in the output buffer.
  *
@@ -645,8 +645,8 @@ bool    sdpu_is_base_uuid (uint8_t *p_uuid)
  *
  * Function         sdpu_compare_uuid_arrays
  *
- * Description      This function compares 2 BE UUIDs. If needed, they are expanded
- *                  to 128-bit UUIDs, then compared.
+ * Description      This function compares 2 BE UUIDs. If needed, they are
+ *                  expanded to 128-bit UUIDs, then compared.
  *
  * NOTE             it is assumed that the arrays are in Big Endian format
  *
@@ -757,9 +757,9 @@ bool    sdpu_compare_bt_uuids (tBT_UUID *p_uuid1, tBT_UUID *p_uuid2)
  *
  * Function         sdpu_compare_uuid_with_attr
  *
- * Description      This function compares a BT UUID structure with the UUID in an
- *                  SDP attribute record. If needed, they are expanded to 128-bit
- *                  UUIDs, then compared.
+ * Description      This function compares a BT UUID structure with the UUID in
+ *                  an SDP attribute record. If needed, they are expanded to
+ *                  128-bit UUIDs, then compared.
  *
  * NOTE           - it is assumed that BT UUID structures are compressed to the
  *                  smallest possible UUIDs (by removing the base SDP UUID).
@@ -991,7 +991,8 @@ uint16_t sdpu_get_attrib_entry_len(tSDP_ATTRIBUTE *p_attr)
  *                  p_out: output buffer
  *                  p_attr: attribute to be copied partially into p_out
  *                  rem_len: num bytes to copy into p_out
- *                  offset: current start offset within the attr that needs to be copied
+ *                  offset: current start offset within the attr that needs to
+ *                          be copied
  *
  * Returns          Pointer to next byte in the output buffer.
  *                  offset is also updated
@@ -1024,7 +1025,8 @@ uint8_t *sdpu_build_partial_attrib_entry (uint8_t *p_out, tSDP_ATTRIBUTE *p_attr
  *
  * Function         sdpu_uuid16_to_uuid128
  *
- * Description      This function converts UUID-16 to UUID-128 by including the base UUID
+ * Description      This function converts UUID-16 to UUID-128 by including the
+ *                  base UUID
  *
  *                  uuid16: 2-byte UUID
  *                  p_uuid128: Expanded 128-bit UUID

@@ -44,12 +44,12 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len);
 
 /******************************************************************************/
-/*                 G L O B A L      L 2 C A P       D A T A                     */
+/*               G L O B A L      L 2 C A P       D A T A                     */
 /******************************************************************************/
 tL2C_CB l2cb;
 
@@ -753,9 +753,9 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, uint8_t *p, uint16_t pkt_len)
  *
  * Function         l2c_process_held_packets
  *
- * Description      This function processes any L2CAP packets that arrived before
- *                  the HCI connection complete arrived. It is a work around for
- *                  badly behaved controllers.
+ * Description      This function processes any L2CAP packets that arrived
+ *                  before the HCI connection complete arrived. It is a work
+ *                  around for badly behaved controllers.
  *
  * Returns          void
  *
@@ -895,7 +895,8 @@ void l2c_lcb_timer_timeout(void *data)
  * Description      API functions call this function to write data.
  *
  * Returns          L2CAP_DW_SUCCESS, if data accepted, else false
- *                  L2CAP_DW_CONGESTED, if data accepted and the channel is congested
+ *                  L2CAP_DW_CONGESTED, if data accepted and the channel is
+ *                                      congested
  *                  L2CAP_DW_FAILED, if error
  *
  ******************************************************************************/

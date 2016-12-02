@@ -34,7 +34,8 @@ extern fixed_queue_t *btu_general_alarm_queue;
  * Function         BNEP_Init
  *
  * Description      This function initializes the BNEP unit. It should be called
- *                  before accessing any other APIs to initialize the control block
+ *                  before accessing any other APIs to initialize the control
+ *                  block.
  *
  * Returns          void
  *
@@ -125,7 +126,8 @@ void BNEP_Deregister (void)
  * Parameters:      p_rem_addr  - BD_ADDR of the peer
  *                  src_uuid    - source uuid for the connection
  *                  dst_uuid    - destination uuid for the connection
- *                  p_handle    - pointer to return the handle for the connection
+ *                  p_handle    - pointer to return the handle for the
+ *                                connection
  *
  * Returns          BNEP_SUCCESS                if connection started
  *                  BNEP_NO_RESOURCES           if no resources
@@ -344,12 +346,14 @@ tBNEP_RESULT BNEP_Disconnect (uint16_t handle)
  *                  p_dest_addr  - BD_ADDR/Ethernet addr of the destination
  *                  p_buf        - pointer to address of buffer with data
  *                  protocol     - protocol type of the packet
- *                  p_src_addr   - (optional) BD_ADDR/ethernet address of the source
+ *                  p_src_addr   - (optional) BD_ADDR/ethernet address of the
+ *                                 source
  *                                 (should be NULL if it is local BD Addr)
  *                  fw_ext_present - forwarded extensions present
  *
  * Returns:         BNEP_WRONG_HANDLE       - if passed handle is not valid
- *                  BNEP_MTU_EXCEDED        - If the data length is greater than MTU
+ *                  BNEP_MTU_EXCEDED        - If the data length is greater than
+ *                                            the MTU
  *                  BNEP_IGNORE_CMD         - If the packet is filtered out
  *                  BNEP_Q_SIZE_EXCEEDED    - If the Tx Q is full
  *                  BNEP_SUCCESS            - If written successfully
@@ -455,12 +459,14 @@ tBNEP_RESULT BNEP_WriteBuf (uint16_t handle,
  *                  p_dest_addr  - BD_ADDR/Ethernet addr of the destination
  *                  p_data       - pointer to data start
  *                  protocol     - protocol type of the packet
- *                  p_src_addr   - (optional) BD_ADDR/ethernet address of the source
+ *                  p_src_addr   - (optional) BD_ADDR/ethernet address of the
+ *                                 source
  *                                 (should be NULL if it is local BD Addr)
  *                  fw_ext_present - forwarded extensions present
  *
  * Returns:         BNEP_WRONG_HANDLE       - if passed handle is not valid
- *                  BNEP_MTU_EXCEDED        - If the data length is greater than MTU
+ *                  BNEP_MTU_EXCEDED        - If the data length is greater than
+ *                                            the MTU
  *                  BNEP_IGNORE_CMD         - If the packet is filtered out
  *                  BNEP_Q_SIZE_EXCEEDED    - If the Tx Q is full
  *                  BNEP_NO_RESOURCES       - If not able to allocate a buffer
@@ -567,8 +573,10 @@ tBNEP_RESULT  BNEP_Write (uint16_t handle,
  *                  p_start_array - Array of beginings of all protocol ranges
  *                  p_end_array   - Array of ends of all protocol ranges
  *
- * Returns          BNEP_WRONG_HANDLE           - if the connection handle is not valid
- *                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong state
+ * Returns          BNEP_WRONG_HANDLE           - if the connection handle is
+ *                                                not valid
+ *                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong
+ *                                                state
  *                  BNEP_TOO_MANY_FILTERS       - if too many filters
  *                  BNEP_SUCCESS                - if request sent successfully
  *
@@ -617,7 +625,8 @@ tBNEP_RESULT BNEP_SetProtocolFilters (uint16_t handle,
  *
  * Function         BNEP_SetMulticastFilters
  *
- * Description      This function sets the filters for multicast addresses for BNEP.
+ * Description      This function sets the filters for multicast addresses for
+ *                  BNEP.
  *
  * Parameters:      handle        - Handle for the connection
  *                  num_filters   - total number of filter ranges
@@ -626,8 +635,10 @@ tBNEP_RESULT BNEP_SetProtocolFilters (uint16_t handle,
  *                  p_end_array   - Pointer to sequence of ends of all
  *                                         multicast address ranges
  *
- * Returns          BNEP_WRONG_HANDLE           - if the connection handle is not valid
- *                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong state
+ * Returns          BNEP_WRONG_HANDLE           - if the connection handle is
+ *                                                not valid
+ *                  BNEP_SET_FILTER_FAIL        - if the connection is in wrong
+ *                                                state
  *                  BNEP_TOO_MANY_FILTERS       - if too many filters
  *                  BNEP_SUCCESS                - if request sent successfully
  *
@@ -697,10 +708,12 @@ uint8_t BNEP_SetTraceLevel (uint8_t new_level)
  *
  * Function         BNEP_GetStatus
  *
- * Description      This function gets the status information for BNEP connection
+ * Description      This function gets the status information for BNEP
+ *                  connection
  *
  * Returns          BNEP_SUCCESS            - if the status is available
- *                  BNEP_NO_RESOURCES       - if no structure is passed for output
+ *                  BNEP_NO_RESOURCES       - if no structure is passed for
+ *                                            output
  *                  BNEP_WRONG_HANDLE       - if the handle is invalid
  *                  BNEP_WRONG_STATE        - if not in connected state
  *

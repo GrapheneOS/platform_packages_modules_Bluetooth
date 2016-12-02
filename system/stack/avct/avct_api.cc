@@ -121,7 +121,8 @@ void AVCT_Deregister(void)
  *                  create an initiator connection, an AVCTP connection to
  *                  the peer device is initiated if one does not already exist.
  *                  If an acceptor connection is created, the connection waits
- *                  passively for an incoming AVCTP connection from a peer device.
+ *                  passively for an incoming AVCTP connection from a peer
+ *                  device.
  *
  *
  * Returns          AVCT_SUCCESS if successful, otherwise error.
@@ -229,7 +230,8 @@ uint16_t AVCT_RemoveConn(uint8_t handle)
  *                  create an initiator connection, the Browse channel to
  *                  the peer device is initiated if one does not already exist.
  *                  If an acceptor connection is created, the connection waits
- *                  passively for an incoming AVCTP connection from a peer device.
+ *                  passively for an incoming AVCTP connection from a peer
+ *                  device.
  *
  *
  * Returns          AVCT_SUCCESS if successful, otherwise error.
@@ -299,10 +301,10 @@ uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
  *
  * Function         AVCT_RemoveBrowse
  *
- * Description      Remove an AVCTP Browse channel.  This function is called when
- *                  the application is no longer using a connection.  If this
- *                  is the last connection to a peer the L2CAP channel for AVCTP
- *                  will be closed.
+ * Description      Remove an AVCTP Browse channel.  This function is called
+ *                  when the application is no longer using a connection.  If
+ *                  this is the last connection to a peer the L2CAP channel for
+ *                  AVCTP will be closed.
  *
  *
  * Returns          AVCT_SUCCESS if successful, otherwise error.
@@ -393,8 +395,9 @@ uint16_t AVCT_GetPeerMtu (uint8_t handle)
  *                  application calls AVCT_MsgReq() when AVCTP is congested
  *                  the message may be discarded.  The application may make its
  *                  first call to AVCT_MsgReq() after it receives an
- *                  AVCT_CONNECT_CFM_EVT or AVCT_CONNECT_IND_EVT on control channel or
- *                  AVCT_BROWSE_CONN_CFM_EVT or AVCT_BROWSE_CONN_IND_EVT on browsing channel.
+ *                  AVCT_CONNECT_CFM_EVT or AVCT_CONNECT_IND_EVT on control
+ *                  channel or AVCT_BROWSE_CONN_CFM_EVT or
+ *                  AVCT_BROWSE_CONN_IND_EVT on browsing channel.
  *
  *                  p_msg->layer_specific must be set to
  *                  AVCT_DATA_CTRL for control channel traffic;

@@ -46,40 +46,58 @@ extern "C" {
 #define BTM_BLE_DUPLICATE_ENABLE        1
 #define BTM_BLE_DUPLICATE_DISABLE       0
 
-#define BTM_BLE_GAP_DISC_SCAN_INT      18         /* Interval(scan_int) = 11.25 ms= 0x0010 * 0.625 ms */
-#define BTM_BLE_GAP_DISC_SCAN_WIN      18         /* scan_window = 11.25 ms= 0x0010 * 0.625 ms */
-#define BTM_BLE_GAP_ADV_INT            512        /* Tgap(gen_disc) = 1.28 s= 512 * 0.625 ms */
-#define BTM_BLE_GAP_LIM_TIMEOUT_MS     (180 * 1000) /* Tgap(lim_timeout) = 180s max */
-#define BTM_BLE_LOW_LATENCY_SCAN_INT   8000       /* Interval(scan_int) = 5s= 8000 * 0.625 ms */
-#define BTM_BLE_LOW_LATENCY_SCAN_WIN   8000       /* scan_window = 5s= 8000 * 0.625 ms */
+/* Interval(scan_int) = 11.25 ms= 0x0010 * 0.625 ms */
+#define BTM_BLE_GAP_DISC_SCAN_INT      18
+/* scan_window = 11.25 ms= 0x0010 * 0.625 ms */
+#define BTM_BLE_GAP_DISC_SCAN_WIN      18
+/* Tgap(gen_disc) = 1.28 s= 512 * 0.625 ms */
+#define BTM_BLE_GAP_ADV_INT            512
+/* Tgap(lim_timeout) = 180s max */
+#define BTM_BLE_GAP_LIM_TIMEOUT_MS     (180 * 1000)
+/* Interval(scan_int) = 5s= 8000 * 0.625 ms */
+#define BTM_BLE_LOW_LATENCY_SCAN_INT   8000
+/* scan_window = 5s= 8000 * 0.625 ms */
+#define BTM_BLE_LOW_LATENCY_SCAN_WIN   8000
 
 
-#define BTM_BLE_GAP_ADV_FAST_INT_1         48         /* TGAP(adv_fast_interval1) = 30(used) ~ 60 ms  = 48 *0.625 */
-#define BTM_BLE_GAP_ADV_FAST_INT_2         160         /* TGAP(adv_fast_interval2) = 100(used) ~ 150 ms = 160 * 0.625 ms */
-#define BTM_BLE_GAP_ADV_SLOW_INT           2048         /* Tgap(adv_slow_interval) = 1.28 s= 512 * 0.625 ms */
-#define BTM_BLE_GAP_ADV_DIR_MAX_INT        800         /* Tgap(dir_conn_adv_int_max) = 500 ms = 800 * 0.625 ms */
-#define BTM_BLE_GAP_ADV_DIR_MIN_INT        400         /* Tgap(dir_conn_adv_int_min) = 250 ms = 400 * 0.625 ms */
+/* TGAP(adv_fast_interval1) = 30(used) ~ 60 ms  = 48 *0.625 */
+#define BTM_BLE_GAP_ADV_FAST_INT_1         48
+/* TGAP(adv_fast_interval2) = 100(used) ~ 150 ms = 160 * 0.625 ms */
+#define BTM_BLE_GAP_ADV_FAST_INT_2         160
+/* Tgap(adv_slow_interval) = 1.28 s= 512 * 0.625 ms */
+#define BTM_BLE_GAP_ADV_SLOW_INT           2048
+/* Tgap(dir_conn_adv_int_max) = 500 ms = 800 * 0.625 ms */
+#define BTM_BLE_GAP_ADV_DIR_MAX_INT        800
+/* Tgap(dir_conn_adv_int_min) = 250 ms = 400 * 0.625 ms */
+#define BTM_BLE_GAP_ADV_DIR_MIN_INT        400
 
 #define BTM_BLE_GAP_FAST_ADV_TIMEOUT_MS    (30 * 1000)
 
 #define BTM_BLE_SEC_REQ_ACT_NONE           0
-#define BTM_BLE_SEC_REQ_ACT_ENCRYPT        1 /* encrypt the link using current key or key refresh */
+/* encrypt the link using current key or key refresh */
+#define BTM_BLE_SEC_REQ_ACT_ENCRYPT        1
 #define BTM_BLE_SEC_REQ_ACT_PAIR           2
-#define BTM_BLE_SEC_REQ_ACT_DISCARD        3 /* discard the sec request while encryption is started but not completed */
+/* discard the sec request while encryption is started but not completed */
+#define BTM_BLE_SEC_REQ_ACT_DISCARD        3
 typedef uint8_t tBTM_BLE_SEC_REQ_ACT;
 
 #define BLE_STATIC_PRIVATE_MSB_MASK          0x3f
-#define BLE_RESOLVE_ADDR_MSB                 0x40   /*  most significant bit, bit7, bit6 is 01 to be resolvable random */
-#define BLE_RESOLVE_ADDR_MASK                0xc0   /* bit 6, and bit7 */
+/*  most significant bit, bit7, bit6 is 01 to be resolvable random */
+#define BLE_RESOLVE_ADDR_MSB                 0x40
+/* bit 6, and bit7 */
+#define BLE_RESOLVE_ADDR_MASK                0xc0
 #define BTM_BLE_IS_RESOLVE_BDA(x)           (((x)[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
 #define BLE_PUBLIC_ADDR_MSB_MASK            0xC0
-#define BLE_PUBLIC_ADDR_MSB                 0x80   /*  most significant bit, bit7, bit6 is 10 to be public address*/
+/*  most significant bit, bit7, bit6 is 10 to be public address*/
+#define BLE_PUBLIC_ADDR_MSB                 0x80
 #define BTM_IS_PUBLIC_BDA(x)               (((x)[0]  & BLE_PUBLIC_ADDR_MSB_MASK) == BLE_PUBLIC_ADDR_MSB)
 
 /* LE scan activity bit mask, continue with LE inquiry bits */
-#define BTM_LE_SELECT_CONN_ACTIVE      0x40     /* selection connection is in progress */
-#define BTM_LE_OBSERVE_ACTIVE          0x80     /* observe is in progress */
+/* selection connection is in progress */
+#define BTM_LE_SELECT_CONN_ACTIVE      0x40
+/* observe is in progress */
+#define BTM_LE_OBSERVE_ACTIVE          0x80
 
 /* BLE scan activity mask checking */
 #define BTM_BLE_IS_SCAN_ACTIVE(x)   ((x) & BTM_BLE_SCAN_ACTIVE_MASK)
@@ -103,10 +121,10 @@ typedef struct
 
 typedef struct
 {
-    uint32_t        inq_count;          /* Used for determining if a response has already been      */
-                                        /* received for the current inquiry operation. (We do not   */
-                                        /* want to flood the caller with multiple responses from    */
-                                        /* the same device.                                         */
+    /* Used for determining if a response has already been received for the
+     * current inquiry operation. (We do not want to flood the caller with
+     * multiple responses from the same device. */
+    uint32_t        inq_count;
     bool            scan_rsp;
     tBLE_BD_ADDR    le_bda;
 } tINQ_LE_BDADDR;

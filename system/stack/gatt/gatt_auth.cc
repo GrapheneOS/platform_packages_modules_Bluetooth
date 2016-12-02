@@ -222,8 +222,8 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport,
  *
  * Function         gatt_notify_enc_cmpl
  *
- * Description      link encryption complete notification for all encryption process
- *                  initiated outside GATT.
+ * Description      link encryption complete notification for all encryption
+ *                  process initiated outside GATT.
  *
  * Returns
  *
@@ -307,8 +307,8 @@ tGATT_SEC_ACTION gatt_get_sec_act(tGATT_TCB *p_tcb)
  *
  * Function         gatt_determine_sec_act
  *
- * Description      This routine determine the security action based on auth_request and
- *                  current link status
+ * Description      This routine determine the security action based on
+ *                  auth_request and current link status
  *
  * Returns          tGATT_SEC_ACTION security action
  *
@@ -438,9 +438,10 @@ tGATT_STATUS gatt_get_link_encrypt_status(tGATT_TCB *p_tcb)
 
 /*******************************************************************************
  *
- * Function          gatt_convert_sec_action
+ * Function         gatt_convert_sec_action
  *
- * Description      Convert GATT security action enum into equivalent BTM BLE security action enum
+ * Description      Convert GATT security action enum into equivalent
+ *                  BTM BLE security action enum
  *
  * Returns          bool    true - conversation is successful
  *

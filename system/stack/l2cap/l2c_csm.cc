@@ -40,7 +40,7 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void l2c_csm_closed (tL2C_CCB *p_ccb, uint16_t event, void *p_data);
 static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, uint16_t event, void *p_data);

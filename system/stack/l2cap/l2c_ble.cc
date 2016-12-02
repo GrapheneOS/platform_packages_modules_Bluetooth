@@ -347,7 +347,8 @@ void l2cble_scanner_conn_comp (uint16_t handle, BD_ADDR bda, tBLE_ADDR_TYPE type
  * Function         l2cble_advertiser_conn_comp
  *
  * Description      This function is called when an HCI Connection Complete
- *                  event is received while we are an advertiser (so we are slave).
+ *                  event is received while we are an advertiser (so we are
+ *                  slave).
  *
  * Returns          void
  *
@@ -449,7 +450,8 @@ void l2cble_conn_comp(uint16_t handle, uint8_t role, BD_ADDR bda, tBLE_ADDR_TYPE
  *
  *  Function        l2cble_start_conn_update
  *
- *  Description     start BLE connection parameter update process based on status
+ *  Description     Start the BLE connection parameter update process based on
+ *                  status.
  *
  *  Parameters:     lcb : l2cap link control block
  *
@@ -534,8 +536,9 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
  *
  * Function         l2cble_process_conn_update_evt
  *
- * Description      This function enables the connection update request from remote
- *                  after a successful connection update response is received.
+ * Description      This function enables the connection update request from
+ *                  remote after a successful connection update response is
+ *                  received.
  *
  * Returns          void
  *
@@ -1212,7 +1215,8 @@ void l2cble_process_data_length_change_event(uint16_t handle, uint16_t tx_data_l
  *
  * Function         l2cble_set_fixed_channel_tx_data_length
  *
- * Description      This function update max fixed channel tx data length if applicable
+ * Description      This function update max fixed channel tx data length if
+ *                  applicable
  *
  * Returns          void
  *
@@ -1351,8 +1355,8 @@ void l2cble_send_peer_disc_req(tL2C_CCB *p_ccb)
  *
  * Function         l2cble_sec_comp
  *
- * Description      This function is called when security procedure for an LE COC
- *                  link is done
+ * Description      This function is called when security procedure for an LE
+ *                  COC link is done
  *
  * Returns          void
  *

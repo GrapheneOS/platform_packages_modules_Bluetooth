@@ -30,7 +30,7 @@
 #include "btm_int.h"
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void gap_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, uint16_t psm, uint8_t l2cap_id);
 static void gap_connect_cfm (uint16_t l2cap_cid, uint16_t result);
@@ -51,7 +51,8 @@ static void      gap_checks_con_flags (tGAP_CCB *p_ccb);
  *
  * Function         gap_conn_init
  *
- * Description      This function is called to initialize GAP connection management
+ * Description      This function is called to initialize GAP connection
+ *                  management
  *
  * Returns          void
  *
@@ -116,12 +117,14 @@ void gap_conn_init (void)
  *                                be used.
  *
  *                  security    - security flags
- *                  chan_mode_mask - (GAP_FCR_CHAN_OPT_BASIC, GAP_FCR_CHAN_OPT_ERTM,
+ *                  chan_mode_mask - (GAP_FCR_CHAN_OPT_BASIC,
+ *                                    GAP_FCR_CHAN_OPT_ERTM,
  *                                    GAP_FCR_CHAN_OPT_STREAM)
  *
  *                  p_cb        - Pointer to callback function for events.
  *
- * Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
+ * Returns          handle of the connection if successful, else
+ *                            GAP_INVALID_HANDLE
  *
  ******************************************************************************/
 uint16_t GAP_ConnOpen(const char *p_serv_name, uint8_t service_id, bool is_server,
@@ -298,7 +301,7 @@ uint16_t GAP_ConnOpen(const char *p_serv_name, uint8_t service_id, bool is_serve
  *
  * Description      This function is called to close a connection.
  *
- * Parameters:      handle      - Handle of the connection returned by GAP_ConnOpen
+ * Parameters:      handle - Handle of the connection returned by GAP_ConnOpen
  *
  * Returns          BT_PASS             - closed OK
  *                  GAP_ERR_BAD_HANDLE  - invalid handle
@@ -434,8 +437,8 @@ int GAP_GetRxQueueCnt (uint16_t handle, uint32_t *p_rx_queue_count)
  *
  * Function         GAP_ConnBTRead
  *
- * Description      Bluetooth aware applications will call this function after receiving
- *                  GAP_EVT_RXDATA event.
+ * Description      Bluetooth-aware applications will call this function after
+ *                  receiving GAP_EVT_RXDATA event.
  *
  * Parameters:      handle      - Handle of the connection returned in the Open
  *                  pp_buf      - pointer to address of buffer with data,
@@ -549,7 +552,8 @@ uint16_t GAP_ConnWriteData (uint16_t gap_handle, uint8_t *p_data, uint16_t max_l
  *
  * Function         GAP_ConnReconfig
  *
- * Description      Applications can call this function to reconfigure the connection.
+ * Description      Applications can call this function to reconfigure the
+ *                  connection.
  *
  * Parameters:      handle      - Handle of the connection
  *                  p_cfg       - Pointer to new configuration
@@ -580,16 +584,17 @@ uint16_t GAP_ConnReconfig (uint16_t gap_handle, tL2CAP_CFG_INFO *p_cfg)
  * Function         GAP_ConnSetIdleTimeout
  *
  * Description      Higher layers call this function to set the idle timeout for
- *                  a connection, or for all future connections. The "idle timeout"
- *                  is the amount of time that a connection can remain up with
- *                  no L2CAP channels on it. A timeout of zero means that the
- *                  connection will be torn down immediately when the last channel
- *                  is removed. A timeout of 0xFFFF means no timeout. Values are
- *                  in seconds.
+ *                  a connection, or for all future connections. The "idle
+ *                  timeout" is the amount of time that a connection can remain
+ *                  up with no L2CAP channels on it. A timeout of zero means
+ *                  that the connection will be torn down immediately when the
+ *                  last channel is removed. A timeout of 0xFFFF means no
+ *                  timeout. Values are in seconds.
  *
  * Parameters:      handle      - Handle of the connection
  *                  timeout     - in secs
- *                                0 = immediate disconnect when last channel is removed
+ *                                0 = immediate disconnect when last channel is
+ *                                    removed
  *                                0xFFFF = no idle timeout
  *
  * Returns          BT_PASS                 - config process started
@@ -619,7 +624,7 @@ uint16_t GAP_ConnSetIdleTimeout (uint16_t gap_handle, uint16_t timeout)
  * Description      This function is called to get the remote BD address
  *                  of a connection.
  *
- * Parameters:      handle      - Handle of the connection returned by GAP_ConnOpen
+ * Parameters:      handle - Handle of the connection returned by GAP_ConnOpen
  *
  * Returns          BT_PASS             - closed OK
  *                  GAP_ERR_BAD_HANDLE  - invalid handle
@@ -654,7 +659,8 @@ uint8_t *GAP_ConnGetRemoteAddr (uint16_t gap_handle)
  *
  * Parameters:      handle      - Handle of the connection
  *
- * Returns          uint16_t    - maximum size buffer that can be transmitted to the peer
+ * Returns          uint16_t    - maximum size buffer that can be transmitted to
+ *                                the peer
  *
  ******************************************************************************/
 uint16_t GAP_ConnGetRemMtuSize (uint16_t gap_handle)

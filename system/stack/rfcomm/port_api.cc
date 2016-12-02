@@ -82,9 +82,9 @@ static const char *result_code_strings[] = {
  *
  * Function         RFCOMM_CreateConnection
  *
- * Description      RFCOMM_CreateConnection function is used from the application
- *                  to establish serial port connection to the peer device,
- *                  or allow RFCOMM to accept a connection from the peer
+ * Description      RFCOMM_CreateConnection function is used from the
+ *                  application to establish serial port connection to the peer
+ *                  device, or allow RFCOMM to accept a connection from the peer
  *                  application.
  *
  * Parameters:      scn          - Service Channel Number as registered with
@@ -353,8 +353,8 @@ int PORT_SetEventCallback (uint16_t port_handle, tPORT_CALLBACK *p_port_cb)
  *
  * Function         PORT_ClearKeepHandleFlag
  *
- * Description      This function is called to clear the keep handle flag
- *                  which will cause not to keep the port handle open when closed
+ * Description      Clear the keep handle flag, which will cause not to keep the
+ *                  port handle open when closed
  * Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
  *
  ******************************************************************************/
@@ -1837,8 +1837,8 @@ void RFCOMM_Init (void)
  *
  * Function         PORT_SetTraceLevel
  *
- * Description      This function sets the trace level for RFCOMM. If called with
- *                  a value of 0xFF, it simply reads the current trace level.
+ * Description      Set the trace level for RFCOMM. If called with 0xFF, it
+ *                  simply reads the current trace level.
  *
  * Returns          the new (current) trace level
  *

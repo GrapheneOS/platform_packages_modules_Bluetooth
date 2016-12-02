@@ -52,7 +52,8 @@
  * Parameters:      p_db        - (input) address of an area of memory where the
  *                                        discovery database is managed.
  *                  len         - (input) size (in bytes) of the memory
- *                                  NOTE: This must be larger than sizeof(tSDP_DISCOVERY_DB)
+ *                                 NOTE: This must be larger than
+ *                                       sizeof(tSDP_DISCOVERY_DB)
  *                  num_uuid    - (input) number of UUID filters applied
  *                  p_uuid_list - (input) list of UUID filters
  *                  num_attr    - (input) number of attribute filters applied
@@ -111,7 +112,8 @@ bool    SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, uint32_t len, uint16_t num
  *
  * Description      This function cancels an active query to an SDP server.
  *
- * Returns          true if discovery cancelled, false if a matching activity is not found.
+ * Returns          true if discovery cancelled, false if a matching activity is
+ *                  not found.
  *
  ******************************************************************************/
 bool    SDP_CancelServiceSearch (tSDP_DISCOVERY_DB *p_db)
@@ -248,10 +250,10 @@ void SDP_SetIdleTimeout (UNUSED_ATTR BD_ADDR addr,
  *
  * Function         SDP_FindAttributeInDb
  *
- * Description      This function queries an SDP database for a specific attribute.
- *                  If the p_start_rec pointer is NULL, it looks from the beginning
- *                  of the database, else it continues from the next record after
- *                  p_start_rec.
+ * Description      This function queries an SDP database for a specific
+ *                  attribute. If the p_start_rec pointer is NULL, it looks from
+ *                  the beginning of the database, else it continues from the
+ *                  next record after p_start_rec.
  *
  * Returns          Pointer to matching record, or NULL
  *
@@ -295,8 +297,8 @@ tSDP_DISC_REC *SDP_FindAttributeInDb (tSDP_DISCOVERY_DB *p_db, uint16_t attr_id,
  *
  * Function         SDP_FindAttributeInRec
  *
- * Description      This function searches an SDP discovery record for a specific
- *                  attribute.
+ * Description      This function searches an SDP discovery record for a
+ *                  specific attribute.
  *
  * Returns          Pointer to matching attribute entry, or NULL
  *
@@ -323,8 +325,8 @@ tSDP_DISC_ATTR *SDP_FindAttributeInRec (tSDP_DISC_REC *p_rec, uint16_t attr_id)
  *
  * Function         SDP_FindServiceUUIDInRec
  *
- * Description      This function is called to read the service UUID within a record
- *                  if there is any.
+ * Description      This function is called to read the service UUID within a
+ *                  record if there is any.
  *
  * Parameters:      p_rec      - pointer to a SDP record.
  *                  p_uuid     - output parameter to save the UUID found.
@@ -415,8 +417,8 @@ bool    SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
  *
  * Function         SDP_FindServiceUUIDInRec_128bit
  *
- * Description      This function is called to read the 128-bit service UUID within a record
- *                  if there is any.
+ * Description      This function is called to read the 128-bit service UUID
+ *                  within a record if there is any.
  *
  * Parameters:      p_rec      - pointer to a SDP record.
  *                  p_uuid     - output parameter to save the UUID found.
@@ -474,10 +476,10 @@ bool    SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
  *
  * Function         SDP_FindServiceInDb
  *
- * Description      This function queries an SDP database for a specific service.
- *                  If the p_start_rec pointer is NULL, it looks from the beginning
- *                  of the database, else it continues from the next record after
- *                  p_start_rec.
+ * Description      This function queries an SDP database for a specific
+ *                  service. If the p_start_rec pointer is NULL, it looks from
+ *                  the beginning of the database, else it continues from the
+ *                  next record after p_start_rec.
  *
  * Returns          Pointer to record containing service class, or NULL
  *
@@ -579,13 +581,13 @@ tSDP_DISC_REC *SDP_FindServiceInDb (tSDP_DISCOVERY_DB *p_db, uint16_t service_uu
  *
  * Function         SDP_FindServiceInDb_128bit
  *
- * Description      This function queries an SDP database for a specific service.
- *                  If the p_start_rec pointer is NULL, it looks from the beginning
- *                  of the database, else it continues from the next record after
+ * Description      Query an SDP database for a specific service. If the
+ *                  p_start_rec pointer is NULL, it looks from the beginning of
+ *                  the database, else it continues from the next record after
  *                  p_start_rec.
  *
- *                  This function is kept separate from SDP_FindServiceInDb since
- *                  that API is expected to return only 16-bit UUIDs
+ *                  This function is kept separate from SDP_FindServiceInDb
+ *                  since that API is expected to return only 16-bit UUIDs
  *
  * Returns          Pointer to record containing service class, or NULL
  *
@@ -645,13 +647,14 @@ tSDP_DISC_REC *SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC
  *
  * Function         SDP_FindServiceUUIDInDb
  *
- * Description      This function queries an SDP database for a specific service.
- *                  If the p_start_rec pointer is NULL, it looks from the beginning
- *                  of the database, else it continues from the next record after
+ * Description      Query an SDP database for a specific service. If the
+ *                  p_start_rec pointer is NULL, it looks from the beginning of
+ *                  the database, else it continues from the next record after
  *                  p_start_rec.
  *
- * NOTE             the only difference between this function and the previous function
- *                  "SDP_FindServiceInDb()" is that this function takes a tBT_UUID input
+ * NOTE             the only difference between this function and the previous
+ *                  function "SDP_FindServiceInDb()" is that this function takes
+ *                  a tBT_UUID input
  *
  * Returns          Pointer to record containing service class, or NULL
  *
@@ -772,8 +775,8 @@ static bool    sdp_fill_proto_elem( tSDP_DISC_ATTR  *p_attr, uint16_t layer_uuid
  *
  * Function         SDP_FindProtocolListElemInRec
  *
- * Description      This function looks at a specific discovery record for a protocol
- *                  list element.
+ * Description      This function looks at a specific discovery record for a
+ *                  protocol list element.
  *
  * Returns          true if found, false if not
  *                  If found, the passed protocol list element is filled in.
@@ -805,8 +808,8 @@ bool    SDP_FindProtocolListElemInRec (tSDP_DISC_REC *p_rec, uint16_t layer_uuid
  *
  * Function         SDP_FindAddProtoListsElemInRec
  *
- * Description      This function looks at a specific discovery record for a protocol
- *                  list element.
+ * Description      This function looks at a specific discovery record for a
+ *                  protocol list element.
  *
  * Returns          true if found, false if not
  *                  If found, the passed protocol list element is filled in.
@@ -855,8 +858,8 @@ bool    SDP_FindAddProtoListsElemInRec (tSDP_DISC_REC *p_rec, uint16_t layer_uui
  *                  an 8-bit minor version.
  *
  * Returns          true if found, false if not
- *                  If found, the major and minor version numbers that were passed
- *                  in are filled in.
+ *                  If found, the major and minor version numbers that were
+ *                  passed in are filled in.
  *
  ******************************************************************************/
 bool    SDP_FindProfileVersionInRec (tSDP_DISC_REC *p_rec, uint16_t profile_uuid, uint16_t *p_version)
@@ -982,7 +985,8 @@ uint8_t SDP_GetNumDiRecords( tSDP_DISCOVERY_DB *p_db )
  *
  * Function         SDP_AttrStringCopy
  *
- * Description      This function copy given attribute to specified buffer as a string
+ * Description      This function copy given attribute to specified buffer as a
+ *                  string
  *
  * Returns          none
  *

@@ -364,7 +364,8 @@ void avdt_ccb_hdl_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
  * Description      This function is called when a suspend response or reject
  *                  is received from the peer.  Using the SEIDs stored in the
  *                  current command message, it sends a suspend response or
- *                  suspend reject event to each SCB associated with the command.
+ *                  suspend reject event to each SCB associated with the
+ *                  command.
  *
  *
  *

@@ -377,8 +377,8 @@ void smp_rsp_timeout(UNUSED_ATTR void *data)
  *
  * Function         smp_delayed_auth_complete_timeout
  *
- * Description      Called when no pairing failed command received within timeout
- *                  period.
+ * Description      Called when no pairing failed command received within
+ *                  timeout period.
  *
  * Returns          void
  *
@@ -884,8 +884,8 @@ void smp_remove_fixed_channel(tSMP_CB *p_cb)
  *
  * Function         smp_reset_control_value
  *
- * Description      This function is called to reset the control block value when
- *                  pairing procedure finished.
+ * Description      This function is called to reset the control block value
+ *                  when the pairing procedure finished.
  *
  *
  * Returns          void
@@ -954,9 +954,9 @@ void smp_proc_pairing_cmpl(tSMP_CB *p_cb)
  *
  * Function         smp_command_has_invalid_parameters
  *
- * Description      Checks if the received SMP command has invalid parameters i.e.
- *                  if the command length is valid and the command parameters are
- *                  inside specified range.
+ * Description      Checks if the received SMP command has invalid parameters
+ *                  i.e. if the command length is valid and the command
+ *                  parameters are inside specified range.
  *                  It returns true if the command has invalid parameters.
  *
  * Returns          true if the command has invalid parameters, false otherwise.
@@ -1023,7 +1023,8 @@ bool    smp_command_has_valid_fixed_length(tSMP_CB *p_cb)
  *                  OOB data flag,
  *                  Bonding_flags in AuthReq
  *                  Maximum encryption key size.
- *                  Returns false if at least one of these parameters is out of range.
+ *                  Returns false if at least one of these parameters is out of
+ *                  range.
  *
  ******************************************************************************/
 bool    smp_pairing_request_response_parameters_are_valid(tSMP_CB *p_cb)
@@ -1074,8 +1075,8 @@ bool    smp_pairing_request_response_parameters_are_valid(tSMP_CB *p_cb)
  *
  * Function         smp_pairing_keypress_notification_is_valid
  *
- * Description      Validates Notification Type parameter range in the received SMP command
- *                  pairing keypress notification.
+ * Description      Validates Notification Type parameter range in the received
+ *                  SMP command pairing keypress notification.
  *                  Returns false if this parameter is out of range.
  *
  ******************************************************************************/
@@ -1156,9 +1157,10 @@ void smp_reject_unexpected_pairing_command(BD_ADDR bd_addr)
  *                  oob data flag and authentication request.
  *
  * Note             If Secure Connections Only mode is required locally then we
- *                  come to this point only if both sides support Secure Connections
- *                  mode, i.e. if p_cb->secure_connections_only_mode_required = true then we come
- *                  to this point only if
+ *                  come to this point only if both sides support Secure
+ *                  Connections mode, i.e.
+ *                  if p_cb->secure_connections_only_mode_required = true
+ *                  then we come to this point only if
  *                      (p_cb->peer_auth_req & SMP_SC_SUPPORT_BIT) ==
  *                      (p_cb->loc_auth_req & SMP_SC_SUPPORT_BIT) ==
  *                      SMP_SC_SUPPORT_BIT
@@ -1201,8 +1203,8 @@ tSMP_ASSO_MODEL smp_select_association_model(tSMP_CB *p_cb)
 /*******************************************************************************
  * Function         smp_select_legacy_association_model
  *
- * Description      This function is called to select association mode if at least
- *                  one side doesn't support secure connections.
+ * Description      This function is called to select association mode if at
+ *                  least one side doesn't support secure connections.
  *
  ******************************************************************************/
 tSMP_ASSO_MODEL smp_select_legacy_association_model(tSMP_CB *p_cb)
@@ -1297,8 +1299,8 @@ void smp_reverse_array(uint8_t *arr, uint8_t len)
 /*******************************************************************************
  * Function         smp_calculate_random_input
  *
- * Description      This function returns random input value to be used in commitment
- *                  calculation for SC passkey entry association mode
+ * Description      This function returns random input value to be used in
+ *                  commitment calculation for SC passkey entry association mode
  *                  (if bit["round"] in "random" array == 1 then returns 0x81
  *                   else returns 0x80).
  *
@@ -1356,7 +1358,7 @@ void smp_collect_peer_io_capabilities(uint8_t *iocap, tSMP_CB *p_cb)
 /*******************************************************************************
  * Function         smp_collect_local_ble_address
  *
- * Description      This function puts into le_addr array local device le address:
+ * Description      Put the the local device LE address into the le_addr array:
  *                  le_addr[0-5] = local BD ADDR,
  *                  le_addr[6] = local le address type (PUBLIC/RANDOM).
  *
@@ -1379,7 +1381,7 @@ void smp_collect_local_ble_address(uint8_t *le_addr, tSMP_CB *p_cb)
 /*******************************************************************************
  * Function         smp_collect_peer_ble_address
  *
- * Description      This function puts into le_addr array peer device le address:
+ * Description      Put the peer device LE addr into the le_addr array:
  *                  le_addr[0-5] = peer BD ADDR,
  *                  le_addr[6] = peer le address type (PUBLIC/RANDOM).
  *

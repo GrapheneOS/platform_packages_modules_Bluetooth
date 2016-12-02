@@ -87,7 +87,8 @@ extern tSMP_STATUS SMP_Pair (BD_ADDR bd_addr);
  *
  * Description      This function is called to start a SMP pairing over BR/EDR.
  *
- * Returns          SMP_STARTED if pairing started, otherwise reason for failure.
+ * Returns          SMP_STARTED if pairing started, otherwise the reason for the
+ *                  failure.
  *
  ******************************************************************************/
 extern tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr);
@@ -111,7 +112,8 @@ extern  bool    SMP_PairCancel (BD_ADDR bd_addr);
  *
  * Parameters       bd_addr - peer device bd address.
  *                  res     - result of the operation SMP_SUCCESS if success.
- *                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
+ *                            Otherwise, SMP_REPEATED_ATTEMPTS is too many
+ *                            attempts.
  *
  * Returns          None
  *
@@ -125,10 +127,11 @@ extern void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res);
  * Description      This function is called after Security Manager submitted
  *                  Passkey request to the application.
  *
- * Parameters:      bd_addr      - Address of the device for which PIN was requested
- *                  res          - result of the operation SMP_SUCCESS if success
- *                  passkey      - numeric value in the range of
- *                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
+ * Parameters:      bd_addr  - Address of the device for which PIN was requested
+ *                  res      - result of the operation SMP_SUCCESS if success
+ *                  passkey  - numeric value in the range of
+ *                             BTM_MIN_PASSKEY_VAL(0) -
+ *                             BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
  *
  ******************************************************************************/
 extern void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey);
@@ -178,8 +181,7 @@ extern void SMP_SecureConnectionOobDataReply(uint8_t *p_data);
  *
  * Function         SMP_Encrypt
  *
- * Description      This function is called to encrypt the data with the specified
- *                  key
+ * Description      Encrypt the data with the specified key.
  *
  * Parameters:      key                 - Pointer to key key[0] conatins the MSB
  *                  key_len             - key length
@@ -198,7 +200,7 @@ extern bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
  *
  * Function         SMP_KeypressNotification
  *
- * Description      This function is called to notify SM about Keypress Notification.
+ * Description      Notify SM about Keypress Notification.
  *
  * Parameters:      bd_addr      - Address of the device to send keypress
  *                                 notification to

@@ -745,8 +745,8 @@ uint32_t UIPC_Read(tUIPC_CH_ID ch_id,
         return 0;
     }
 
-    //BTIF_TRACE_DEBUG("UIPC_Read : ch_id %d, len %d, fd %d, polltmo %d", ch_id, len,
-    //        fd, uipc_main.ch[ch_id].read_poll_tmo_ms);
+    //BTIF_TRACE_DEBUG("UIPC_Read : ch_id %d, len %d, fd %d, polltmo %d",
+    //                 ch_id, len, fd, uipc_main.ch[ch_id].read_poll_tmo_ms);
 
     while (n_read < (int)len)
     {

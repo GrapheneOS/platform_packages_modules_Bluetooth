@@ -160,8 +160,8 @@ void btm_ble_batchscan_enq_op_q(uint8_t opcode, tBTM_BLE_BATCH_SCAN_STATE cur_st
  *
  * Function         btm_ble_batchscan_enq_rep_q
  *
- * Description      enqueue a batchscan report operation in q to check command complete
- *                  status
+ * Description      enqueue a batchscan report operation in q to check command
+ *                  complete status
  *
  * Returns          void
  *
@@ -311,7 +311,8 @@ void btm_ble_batchscan_deq_op_q(uint8_t *p_opcode,tBTM_BLE_BATCH_SCAN_STATE *cur
  *
  * Description      This function reads the reports from controller
  *
- * Parameters       scan_mode - The mode for which the reports are to be read out from the controller
+ * Parameters       scan_mode - The mode for which the reports are to be read
+ *                              out from the controller
  *                  ref_value - Reference value
  *
  ******************************************************************************/
@@ -474,9 +475,12 @@ void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
  *
  * Description      This function writes the storage configuration in controller
  *
- * Parameters       batch_scan_full_max -Max storage space (in %) allocated to full scanning
- *                  batch_scan_trunc_max -Max storage space (in %) allocated to truncated scanning
- *                  batch_scan_notify_threshold - Setup notification level based on total space
+ * Parameters       batch_scan_full_max - Max storage space (in %) allocated to
+ *                                        full scanning
+ *                  batch_scan_trunc_max - Max storage space (in %) allocated to
+ *                                         truncated scanning
+ *                  batch_scan_notify_threshold - Set up notification level
+ *                                                based on total space
  *
  ******************************************************************************/
 void btm_ble_set_storage_config(uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
@@ -539,7 +543,8 @@ void btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
  *
  * Function         btm_ble_enable_disable_batchscan
  *
- * Description      This function enables the customer specific feature in controller
+ * Description      This function enables the customer specific feature in
+ *                  controller
  *
  * Parameters       enable_disable: true - enable, false - disable
  *
@@ -581,9 +586,12 @@ void btm_ble_enable_disable_batchscan(bool    should_enable)
  *
  * Description      This function is called to write storage config params.
  *
- * Parameters:      batch_scan_full_max - Max storage space (in %) allocated to full style
- *                  batch_scan_trunc_max - Max storage space (in %) allocated to trunc style
- *                  batch_scan_notify_threshold - Setup notification level based on total space
+ * Parameters:      batch_scan_full_max - Max storage space (in %) allocated to
+ *                                        full style
+ *                  batch_scan_trunc_max - Max storage space (in %) allocated to
+ *                                         trunc style
+ *                  batch_scan_notify_threshold - Setup notification level based
+ *                                                on total space
  *                  p_setup_cback - Setup callback pointer
  *                  p_thres_cback - Threshold callback pointer
  *                  p_rep_cback - Reports callback pointer
@@ -653,7 +661,8 @@ tBTM_STATUS BTM_BleSetStorageConfig(uint8_t batch_scan_full_max, uint8_t batch_s
  *
  * Function         BTM_BleEnableBatchScan
  *
- * Description      This function is called to configure and enable batch scanning
+ * Description      This function is called to configure and enable batch
+ *                  scanning
  *
  * Parameters:      scan_mode -Batch scan mode
  *                  scan_interval - Scan interval value
@@ -820,7 +829,8 @@ tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
  *
  * Function         BTM_BleTrackAdvertiser
  *
- * Description      This function is called to setup the callback for tracking advertisers
+ * Description      This function is called to setup the callback for tracking
+ *                  advertisers
  *
  * Parameters:      p_track_cback - Tracking callback pointer
  *                  ref_value - Reference value

@@ -117,10 +117,14 @@
 #define AVDT_LEN_GEN_REJ            2
 
 /* recovery service capabilities information elements */
-#define AVDT_RECOV_MRWS_MIN         0x01    /* min value for maximum recovery window */
-#define AVDT_RECOV_MRWS_MAX         0x18    /* max value for maximum recovery window */
-#define AVDT_RECOV_MNMP_MIN         0x01    /* min value for maximum number of media packets */
-#define AVDT_RECOV_MNMP_MAX         0x18    /* max value for maximum number of media packets */
+/* min value for maximum recovery window */
+#define AVDT_RECOV_MRWS_MIN         0x01
+/* max value for maximum recovery window */
+#define AVDT_RECOV_MRWS_MAX         0x18
+/* min value for maximum number of media packets */
+#define AVDT_RECOV_MNMP_MIN         0x01
+/* max value for maximum number of media packets */
+#define AVDT_RECOV_MNMP_MAX         0x18
 
 /* SEID value range */
 #define AVDT_SEID_MIN               0x01
@@ -130,13 +134,19 @@
 #define AVDT_MEDIA_OCTET1           0x80
 
 /* for adaptation layer header */
-#define AVDT_ALH_LCODE_MASK     0x03    /* coding of length field */
-#define AVDT_ALH_LCODE_NONE     0x00    /* No length field present. Take length from l2cap */
-#define AVDT_ALH_LCODE_16BIT    0x01    /* 16bit length field */
-#define AVDT_ALH_LCODE_9BITM0   0x02    /* 9 bit length field, MSB = 0, 8 LSBs in 1 octet following */
-#define AVDT_ALH_LCODE_9BITM1   0x03    /* 9 bit length field, MSB = 1, 8 LSBs in 1 octet following */
+/* coding of length field */
+#define AVDT_ALH_LCODE_MASK     0x03
+/* No length field present. Take length from l2cap */
+#define AVDT_ALH_LCODE_NONE     0x00
+/* 16bit length field */
+#define AVDT_ALH_LCODE_16BIT    0x01
+/* 9 bit length field, MSB = 0, 8 LSBs in 1 octet following */
+#define AVDT_ALH_LCODE_9BITM0   0x02
+/* 9 bit length field, MSB = 1, 8 LSBs in 1 octet following */
+#define AVDT_ALH_LCODE_9BITM1   0x03
 
-#define AVDT_ALH_FRAG_MASK      0x04    /* set this for continuation packet */
+/* set this for continuation packet */
+#define AVDT_ALH_FRAG_MASK      0x04
 
 /*****************************************************************************
  * message parsing and building macros

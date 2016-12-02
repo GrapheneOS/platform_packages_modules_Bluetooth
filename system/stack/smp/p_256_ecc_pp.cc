@@ -16,11 +16,12 @@
  *
  ******************************************************************************/
 
- /******************************************************************************
-  *
-  *  This file contains simple pairing algorithms using Elliptic Curve Cryptography for private public key
-  *
-  ******************************************************************************/
+/*******************************************************************************
+ *
+ *  This file contains simple pairing algorithms using Elliptic Curve
+ *  Cryptography for private public key
+ *
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

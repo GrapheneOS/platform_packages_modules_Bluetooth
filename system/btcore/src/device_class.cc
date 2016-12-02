@@ -37,7 +37,8 @@ typedef struct _bt_device_class_t {
 // have equal size.
 COMPILE_ASSERT(sizeof(_bt_device_class_t) == sizeof(bt_device_class_t));
 
-// [Major Service Classes](https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
+// [Major Service Classes]
+// (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
 enum {
   DC_LIMITED_DISCOVERABLE_MODE = 0x0001,
   DC_RESERVED14 = 0x0002,

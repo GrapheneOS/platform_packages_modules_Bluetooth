@@ -127,8 +127,8 @@ bool    SMP_Register (tSMP_CALLBACK *p_cback)
  *
  * Function         SMP_Pair
  *
- * Description      This function call to perform a SMP pairing with peer device.
- *                  Device support one SMP pairing at one time.
+ * Description      This function call to perform a SMP pairing with peer
+ *                  device. Device support one SMP pairing at one time.
  *
  * Parameters       bd_addr - peer device bd address.
  *
@@ -174,7 +174,8 @@ tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
  *
  * Parameters       bd_addr - peer device bd address.
  *
- * Returns          SMP_STARTED if pairing started, otherwise reason for failure.
+ * Returns          SMP_STARTED if pairing started, otherwise the reason for
+ *                  failure.
  *
  ******************************************************************************/
 tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr)
@@ -252,7 +253,8 @@ bool    SMP_PairCancel (BD_ADDR bd_addr)
  *
  * Parameters       bd_addr - peer device bd address.
  *                  res     - result of the operation SMP_SUCCESS if success.
- *                            Otherwise, SMP_REPEATED_ATTEMPTS is too many attempts.
+ *                            Otherwise, SMP_REPEATED_ATTEMPTS if too many
+ *                            attempts.
  *
  * Returns          None
  *
@@ -294,10 +296,12 @@ void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res)
  * Description      This function is called after Security Manager submitted
  *                  passkey request to the application.
  *
- * Parameters:      bd_addr      - Address of the device for which passkey was requested
- *                  res          - result of the operation SMP_SUCCESS if success
+ * Parameters:      bd_addr - Address of the device for which passkey was
+ *                            requested
+ *                  res     - result of the operation SMP_SUCCESS if success
  *                  passkey - numeric value in the range of
- *                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
+ *                            BTM_MIN_PASSKEY_VAL(0) -
+ *                            BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
  *
  ******************************************************************************/
 void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey)
@@ -505,8 +509,8 @@ void SMP_SecureConnectionOobDataReply(uint8_t *p_data)
  *
  * Function         SMP_Encrypt
  *
- * Description      This function is called to encrypt the data with the specified
- *                  key
+ * Description      This function is called to encrypt the data with the
+ *                  specified key
  *
  * Parameters:      key                 - Pointer to key key[0] conatins the MSB
  *                  key_len             - key length
@@ -531,9 +535,11 @@ bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
  *
  * Function         SMP_KeypressNotification
  *
- * Description      This function is called to notify Security Manager about Keypress Notification.
+ * Description      This function is called to notify Security Manager about
+ *                  Keypress Notification.
  *
- * Parameters:     bd_addr      Address of the device to send keypress notification to
+ * Parameters:     bd_addr      Address of the device to send keypress
+ *                              notification to
  *                 value        Keypress notification parameter value
  *
  ******************************************************************************/
@@ -555,8 +561,7 @@ void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value)
         return;
     }
 
-    /* Keypress Notification is used by a device with KeyboardOnly IO capabilities */
-    /* during the passkey entry protocol */
+    /* Keypress Notification is used by a device with KeyboardOnly IO capabilities during the passkey entry protocol */
     if (p_cb->local_io_capability != SMP_IO_CAP_IN)
     {
         SMP_TRACE_ERROR ("%s() - wrong local IO capabilities %d",
@@ -581,7 +586,7 @@ void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value)
  * Description      This function is called to start creation of local SC OOB
  *                  data set (tSMP_LOC_OOB_DATA).
  *
- * Parameters:      bd_addr      - Address of the device to send OOB data block to
+ * Parameters:      bd_addr - Address of the device to send OOB data block to
  *
  *  Returns         Boolean - true: creation of local SC OOB data set started.
  ******************************************************************************/

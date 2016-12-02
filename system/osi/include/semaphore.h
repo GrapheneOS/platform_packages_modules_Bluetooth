@@ -42,8 +42,7 @@ void semaphore_wait(semaphore_t* semaphore);
 
 // Tries to decrement the value of |semaphore|. Returns true if the value was
 // decremented, false if the value was 0. This function never blocks.
-// |semaphore|
-// may not be NULL.
+// |semaphore| may not be NULL.
 bool semaphore_try_wait(semaphore_t* semaphore);
 
 // Increments the value of |semaphore|. |semaphore| may not be NULL.

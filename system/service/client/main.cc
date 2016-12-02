@@ -98,8 +98,8 @@ std::atomic_bool showing_prompt(false);
 std::atomic_bool ble_registering(false);
 std::atomic_int ble_client_id(0);
 
-// The registered IBluetoothLeAdvertiser handle. If |ble_advertiser_registering| is
-// true then an operation to register the advertiser is in progress.
+// The registered IBluetoothLeAdvertiser handle. If |ble_advertiser_registering|
+// is true then an operation to register the advertiser is in progress.
 std::atomic_bool ble_advertiser_registering(false);
 std::atomic_int ble_advertiser_id(0);
 

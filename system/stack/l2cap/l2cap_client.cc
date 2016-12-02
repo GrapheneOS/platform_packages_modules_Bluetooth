@@ -214,8 +214,8 @@ static void config_request_cb(uint16_t local_channel_id, tL2CAP_CFG_INFO *reques
   response.result = L2CAP_CFG_OK;
 
   if (requested_parameters->mtu_present) {
-    // Make sure the peer chose an MTU at least as large as the minimum L2CAP MTU defined
-    // by the Bluetooth Core spec.
+    // Make sure the peer chose an MTU at least as large as the minimum L2CAP
+    // MTU defined by the Bluetooth Core spec.
     if (requested_parameters->mtu < L2CAP_MTU_MINIMUM) {
       response.mtu = L2CAP_MTU_MINIMUM;
       response.mtu_present = true;

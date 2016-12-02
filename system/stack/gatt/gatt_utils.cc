@@ -195,7 +195,8 @@ void gatt_set_srv_chg(void)
  *
  * Description  Add a pending indication
  *
- * Returns    Pointer to the current pending indication buffer, NULL no buffer available
+ * Returns    Pointer to the current pending indication buffer, NULL no buffer
+ *            available
  *
  ******************************************************************************/
 tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
@@ -217,7 +218,8 @@ tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
  *
  * Description  Add a service chnage client to the service change client queue
  *
- * Returns    Pointer to the service change client buffer; Null no buffer available
+ * Returns    Pointer to the service change client buffer; Null no buffer
+ *            available
  *
  ******************************************************************************/
 tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
@@ -292,7 +294,8 @@ tGATT_HDL_LIST_ELEM *gatt_find_hdl_buffer_by_handle(uint16_t handle)
  *
  * Function     gatt_find_hdl_buffer_by_app_id
  *
- * Description  Find handle range buffer by app ID, service and service instance ID.
+ * Description  Find handle range buffer by app ID, service and service instance
+ *              ID.
  *
  * Returns    Pointer to the buffer, NULL no buffer available
  *
@@ -343,8 +346,8 @@ void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
  *
  * Function         gatt_free_srvc_db_buffer_app_id
  *
- * Description      free the service attribute database buffers by the owner of the
- *                  service app ID.
+ * Description      free the service attribute database buffers by the owner of
+ *                  the service app ID.
  *
  * Returns       None
  *
@@ -370,11 +373,11 @@ void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
 }
 /*******************************************************************************
  *
- * Function         gatt_is_last_attribute
+ * Function        gatt_is_last_attribute
  *
- * Description     Check this is the last attribute of the specified value or not
+ * Description     Check if this is the last attribute of the specified value
  *
- * Returns       true - yes this is the last attribute
+ * Returns         true - yes this is the last attribute
  *
  ******************************************************************************/
 bool    gatt_is_last_attribute(tGATT_SRV_LIST_INFO *p_list, tGATT_SRV_LIST_ELEM *p_start, tBT_UUID value)
@@ -697,8 +700,8 @@ bool    gatt_find_the_connected_bda(uint8_t start_idx, BD_ADDR bda, uint8_t *p_f
  *
  * Function         gatt_is_srv_chg_ind_pending
  *
- * Description      Check whether a service chnaged is in the indication pending queue
- *                  or waiting for an Ack already
+ * Description      Check whether a service chnaged is in the indication pending
+ *                  queue or waiting for an Ack already
  *
  * Returns         bool
  *
@@ -738,7 +741,8 @@ bool    gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
  *
  * Function         gatt_is_bda_in_the_srv_chg_clt_list
  *
- * Description      This function check the specified bda is in the srv chg clinet list or not
+ * Description      This function check the specified bda is in the srv chg
+ *                  client list or not
  *
  * Returns         pointer to the found elemenet otherwise NULL
  *
@@ -774,7 +778,7 @@ tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
  *
  * Description
  *
- * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ * Returns          GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
  *
  ******************************************************************************/
 bool    gatt_is_bda_connected(BD_ADDR bda)
@@ -798,9 +802,9 @@ bool    gatt_is_bda_connected(BD_ADDR bda)
  *
  * Function         gatt_find_i_tcb_by_addr
  *
- * Description      The function searches for an empty tcb entry, and return the index.
+ * Description      Search for an empty tcb entry, and return the index.
  *
- * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ * Returns          GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
  *
  ******************************************************************************/
 uint8_t gatt_find_i_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
@@ -842,9 +846,9 @@ tGATT_TCB * gatt_get_tcb_by_idx(uint8_t tcb_idx)
  *
  * Function         gatt_find_tcb_by_addr
  *
- * Description      The function searches for an empty tcb entry, and return pointer.
+ * Description      Search for an empty tcb entry, and return pointer.
  *
- * Returns           NULL if not found. Otherwise index to the tcb.
+ * Returns          NULL if not found. Otherwise index to the tcb.
  *
  ******************************************************************************/
 tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
@@ -862,9 +866,9 @@ tGATT_TCB * gatt_find_tcb_by_addr(BD_ADDR bda, tBT_TRANSPORT transport)
  *
  * Function         gatt_find_i_tcb_free
  *
- * Description      The function searches for an empty tcb entry, and return the index.
+ * Description      Search for an empty tcb entry, and return the index.
  *
- * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ * Returns          GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
  *
  ******************************************************************************/
 uint8_t gatt_find_i_tcb_free(void)
@@ -885,9 +889,9 @@ uint8_t gatt_find_i_tcb_free(void)
  *
  * Function         gatt_allocate_tcb_by_bdaddr
  *
- * Description      The function locate or allocate new tcb entry for matching bda.
+ * Description      Locate or allocate a new tcb entry for matching bda.
  *
- * Returns           GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
+ * Returns          GATT_INDEX_INVALID if not found. Otherwise index to the tcb.
  *
  ******************************************************************************/
 tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
@@ -1274,9 +1278,10 @@ void gatt_ind_ack_timeout(void *data)
  *
  * Function         gatt_sr_find_i_rcb_by_handle
  *
- * Description      The function searches for a service that owns a specific handle.
+ * Description      Search for a service that owns a specific handle.
  *
- * Returns          GATT_MAX_SR_PROFILES if not found. Otherwise index of th eservice.
+ * Returns          GATT_MAX_SR_PROFILES if not found. Otherwise the index of
+ *                  the service.
  *
  ******************************************************************************/
 uint8_t gatt_sr_find_i_rcb_by_handle(uint16_t handle)
@@ -1299,7 +1304,8 @@ uint8_t gatt_sr_find_i_rcb_by_handle(uint16_t handle)
  *
  * Function         gatt_sr_find_i_rcb_by_handle
  *
- * Description      The function searches for a service that owns a specific handle.
+ * Description      The function searches for a service that owns a specific
+ *                  handle.
  *
  * Returns          0 if not found. Otherwise index of th eservice.
  *
@@ -1334,7 +1340,8 @@ uint8_t gatt_sr_find_i_rcb_by_app_id(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uu
  *
  * Function         gatt_sr_find_i_rcb_by_handle
  *
- * Description      The function searches for a service that owns a specific handle.
+ * Description      The function searches for a service that owns a specific
+ *                  handle.
  *
  * Returns          0 if not found. Otherwise index of th eservice.
  *
@@ -1611,7 +1618,8 @@ bool    gatt_is_clcb_allocated (uint16_t conn_id)
  *
  * Description      The function allocates a GATT  connection link control block
  *
- * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ * Returns          NULL if not found. Otherwise pointer to the connection link
+ *                  block.
  *
  ******************************************************************************/
 tGATT_CLCB *gatt_clcb_alloc (uint16_t conn_id)
@@ -1644,7 +1652,8 @@ tGATT_CLCB *gatt_clcb_alloc (uint16_t conn_id)
  *
  * Function         gatt_clcb_dealloc
  *
- * Description      The function de allocates a GATT  connection link control block
+ * Description      The function de-allocates a GATT connection link control
+ *                  block
  *
  * Returns         None
  *
@@ -1691,7 +1700,8 @@ tGATT_TCB * gatt_find_tcb_by_cid (uint16_t lcid)
  *
  * Function         gatt_num_apps_hold_link
  *
- * Description      The function find the number of applcaitions is holding the link
+ * Description      The function find the number of applcaitions is holding the
+ *                  link
  *
  * Returns          total number of applications holding this acl link.
  *
@@ -2186,8 +2196,8 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
  *
  * Function         gatt_cleanup_upon_disc
  *
- * Description      This function cleans up the control blocks when L2CAP channel
- *                  disconnect.
+ * Description      This function cleans up the control blocks when L2CAP
+ *                  channel disconnect.
  *
  * Returns          16 bits uuid.
  *
@@ -2324,9 +2334,9 @@ void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
  *
  * Function         gatt_is_bg_dev_for_app
  *
- * Description      find is this one of the background devices for the application
+ * Description      Is this one of the background devices for the application
  *
- * Returns          true this is one of the background devices for the  application
+ * Returns          true if it is, otherwise false
  *
  ******************************************************************************/
 bool    gatt_is_bg_dev_for_app(tGATT_BG_CONN_DEV *p_dev, tGATT_IF gatt_if)
@@ -2396,7 +2406,7 @@ tGATT_BG_CONN_DEV * gatt_alloc_bg_dev(BD_ADDR remote_bda)
  *
  * Function         gatt_add_bg_dev_list
  *
- * Description      add/remove device from the back ground connection device list
+ * Description      Add/remove a device from the background connection list
  *
  * Returns          true if device added to the list; false failed
  *
@@ -2446,7 +2456,8 @@ bool    gatt_add_bg_dev_list(tGATT_REG *p_reg,  BD_ADDR bd_addr)
  *
  * Function         gatt_remove_bg_dev_for_app
  *
- * Description      Remove the application interface for the specified background device
+ * Description      Remove the application interface for the specified
+ *                  background device
  *
  * Returns          Boolean
  *
@@ -2467,7 +2478,8 @@ bool    gatt_remove_bg_dev_for_app(tGATT_IF gatt_if, BD_ADDR bd_addr)
  *
  * Function         gatt_get_num_apps_for_bg_dev
  *
- * Description      Gte the number of applciations for the specified background device
+ * Description      Get the number of applciations for the specified background
+ *                  device
  *
  * Returns          uint8_t total number fo applications
  *
@@ -2494,7 +2506,8 @@ uint8_t gatt_get_num_apps_for_bg_dev(BD_ADDR bd_addr)
  *
  * Function         gatt_find_app_for_bg_dev
  *
- * Description      find the application interface for the specified background device
+ * Description      Find the application interface for the specified background
+ *                  device
  *
  * Returns          Boolean
  *
@@ -2528,8 +2541,8 @@ bool    gatt_find_app_for_bg_dev(BD_ADDR bd_addr, tGATT_IF *p_gatt_if)
  *
  * Function         gatt_remove_bg_dev_from_list
  *
- * Description      add/remove device from the back ground connection device list or
- *                  listening to advertising list.
+ * Description      add/remove device from the back ground connection device
+ *                  list or listening to advertising list.
  *
  * Returns          pointer to the device record
  *
@@ -2628,14 +2641,14 @@ void gatt_reset_bgdev_list(void)
  *
  * Function         gatt_update_auto_connect_dev
  *
- * Description      This function add or remove a device for background connection
- *                  procedure.
+ * Description      This function add or remove a device for background
+ *                  connection procedure.
  *
  * Parameters       gatt_if: Application ID.
  *                  add: add peer device
  *                  bd_addr: peer device address.
  *
- * Returns          true if connection started; false if connection start failure.
+ * Returns          true if connection started; false otherwise.
  *
  ******************************************************************************/
 bool    gatt_update_auto_connect_dev (tGATT_IF gatt_if, bool    add, BD_ADDR bd_addr)

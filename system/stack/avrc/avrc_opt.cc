@@ -203,7 +203,8 @@ uint16_t AVRC_VendorCmd(uint8_t handle, uint8_t label, tAVRC_MSG_VENDOR *p_msg)
  *                      handle: Handle of this connection.
  *
  *                      label: Transaction label.  Must be the same value as
- *                      passed with the command message in the callback function.
+ *                      passed with the command message in the callback
+ *                      function.
  *
  *                      p_msg: Pointer to VENDOR DEPENDENT message structure.
  *

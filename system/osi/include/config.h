@@ -123,19 +123,14 @@ bool config_remove_key(config_t* config, const char* section, const char* key);
 // The returned pointer must be treated as an opaque handle and must not be
 // freed.
 // The iterator is invalidated on any config mutating operation. |config| may
-// not
-// be NULL.
+// not be NULL.
 const config_section_node_t* config_section_begin(const config_t* config);
 
 // Returns an iterator to one past the last section in the config file. It does
-// not
-// represent a valid section, but can be used to determine if all sections have
-// been
-// iterated over. The returned pointer must be treated as an opaque handle and
-// must
-// not be freed and must not be iterated on (must not call |config_section_next|
-// on
-// it). |config| may not be NULL.
+// not represent a valid section, but can be used to determine if all sections
+// have been iterated over. The returned pointer must be treated as an opaque
+// handle and must not be freed and must not be iterated on (must not call
+// |config_section_next| on it). |config| may not be NULL.
 const config_section_node_t* config_section_end(const config_t* config);
 
 // Moves |iter| to the next section. If there are no more sections, |iter| will
@@ -145,24 +140,17 @@ const config_section_node_t* config_section_next(
     const config_section_node_t* iter);
 
 // Returns the name of the section referred to by |iter|. The returned pointer
-// is
-// owned by the config module and must not be freed by the caller. The pointer
-// will
-// remain valid until |config_free| is called. |iter| may not be NULL and must
-// not
-// equal the value returned by |config_section_end|.
+// is owned by the config module and must not be freed by the caller. The
+// pointer will remain valid until |config_free| is called. |iter| may not be
+// NULL and must not equal the value returned by |config_section_end|.
 const char* config_section_name(const config_section_node_t* iter);
 
 // Saves |config| to a file given by |filename|. Note that this could be a
-// destructive
-// operation: if |filename| already exists, it will be overwritten. The config
-// module does not preserve comments or formatting so if a config file was
-// opened
-// with |config_new| and subsequently overwritten with |config_save|, all
-// comments
-// and special formatting in the original file will be lost. Neither |config|
-// nor
-// |filename| may be NULL.
+// destructive operation: if |filename| already exists, it will be overwritten.
+// The config module does not preserve comments or formatting so if a config
+// file was opened with |config_new| and subsequently overwritten with
+// |config_save|, all comments and special formatting in the original file will
+// be lost. Neither |config| nor |filename| may be NULL.
 bool config_save(const config_t* config, const char* filename);
 
 #ifdef __cplusplus

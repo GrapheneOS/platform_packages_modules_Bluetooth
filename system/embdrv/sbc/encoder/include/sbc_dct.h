@@ -40,7 +40,9 @@
 #define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow = SBC_Multiply_32_16_Simplified((int32_t)s16In2,s32In1);
 #else
 #if (SBC_IPAQ_OPT == TRUE)
-/*#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(int32_t)((int32_t)(s16In2)*(int32_t)(s32In1>>15)); */
+/*
+#define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(int32_t)((int32_t)(s16In2)*(int32_t)(s32In1>>15));
+*/
 #define SBC_MULT_32_16_SIMPLIFIED(s16In2, s32In1 , s32OutLow) s32OutLow=(int32_t)(((int64_t)(s16In2)*(int64_t)(s32In1))>>15);
 #if (SBC_IS_64_MULT_IN_IDCT == TRUE)
 #define SBC_MULT_32_32(s32In2, s32In1, s32OutLow)                           \

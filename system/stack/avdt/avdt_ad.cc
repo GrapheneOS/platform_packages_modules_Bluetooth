@@ -502,8 +502,9 @@ void avdt_ad_tc_data_ind(tAVDT_TC_TBL *p_tbl, BT_HDR *p_buf)
  *                  passes the data to L2CA_DataWrite().
  *
  *
- * Returns          AVDT_AD_SUCCESS, if data accepted, else false
- *                  AVDT_AD_CONGESTED, if data accepted and the channel is congested
+ * Returns          AVDT_AD_SUCCESS, if data accepted
+ *                  AVDT_AD_CONGESTED, if data accepted and the channel is
+ *                                     congested
  *                  AVDT_AD_FAILED, if error
  *
  ******************************************************************************/

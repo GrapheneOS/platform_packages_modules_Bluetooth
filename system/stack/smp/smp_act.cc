@@ -123,7 +123,8 @@ static void smp_update_key_mask (tSMP_CB *p_cb, uint8_t key_type, bool    recv)
 
 /*******************************************************************************
  * Function     smp_send_app_cback
- * Description  notifies application about the events the application is interested in
+ * Description  notifies application about the events the application is
+ *              interested in
  ******************************************************************************/
 void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1463,7 +1464,8 @@ void smp_br_process_slave_keys_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function     smp_br_send_pair_response
- * Description  actions related to sending pairing response over BR/EDR transport.
+ * Description  actions related to sending pairing response over BR/EDR
+ *              transport.
  ******************************************************************************/
 void smp_br_send_pair_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1477,8 +1479,8 @@ void smp_br_send_pair_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function         smp_pairing_cmpl
- * Description      This function is called to send the pairing complete callback
- *                  and remove the connection if needed.
+ * Description      This function is called to send the pairing complete
+ *                  callback and remove the connection if needed.
  ******************************************************************************/
 void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1491,8 +1493,8 @@ void smp_pairing_cmpl(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function         smp_pair_terminate
- * Description      This function is called to send the pairing complete callback
- *                  and remove the connection if needed.
+ * Description      This function is called to send the pairing complete
+ *                  callback and remove the connection if needed.
  ******************************************************************************/
 void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1503,8 +1505,8 @@ void smp_pair_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function         smp_idle_terminate
- * Description      This function calledin idle state to determine to send authentication
- *                  complete or not.
+ * Description      This function calledin idle state to determine to send
+ *                  authentication complete or not.
  ******************************************************************************/
 void smp_idle_terminate(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1554,9 +1556,10 @@ void smp_both_have_public_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function     smp_start_secure_connection_phase1
- * Description  The function starts Secure Connection phase1 i.e. invokes initialization of Secure Connection
- *              phase 1 parameters and starts building/sending to the peer
- *              messages appropriate for the role and association model.
+ * Description  Start Secure Connection phase1 i.e. invokes initialization of
+ *              Secure Connection phase 1 parameters and starts building/sending
+ *              to the peer messages appropriate for the role and association
+ *              model.
  ******************************************************************************/
 void smp_start_secure_connection_phase1(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1672,8 +1675,9 @@ void smp_process_local_nonce(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function     smp_process_peer_nonce
- * Description  The function processes newly received and saved in CB peer nonce.
- *              The actions depend on the selected association model and the role.
+ * Description  The function processes newly received and saved in CB peer
+ *              nonce. The actions depend on the selected association model and
+ *              the role.
  *
  * Note         It is supposed to be called in SC phase1.
  ******************************************************************************/
@@ -1816,10 +1820,12 @@ void smp_move_to_secure_connections_phase2(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function     smp_phase_2_dhkey_checks_are_present
- * Description  generates event if dhkey check from the peer is already received.
+ * Description  generates event if dhkey check from the peer is already
+ *              received.
  *
  * Note         It is supposed to be used on slave to prevent race condition.
- *              It is supposed to be called after slave dhkey check is calculated.
+ *              It is supposed to be called after slave dhkey check is
+ *              calculated.
  ******************************************************************************/
 void smp_phase_2_dhkey_checks_are_present(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1831,8 +1837,8 @@ void smp_phase_2_dhkey_checks_are_present(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function     smp_wait_for_both_public_keys
- * Description  generates SMP_BOTH_PUBL_KEYS_RCVD_EVT event when both local and master
- *              public keys are available.
+ * Description  generates SMP_BOTH_PUBL_KEYS_RCVD_EVT event when both local and
+ *              master public keys are available.
  *
  * Note         on the slave it is used to prevent race condition.
  *
@@ -1929,8 +1935,8 @@ void smp_process_secure_connection_oob_data(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
 
 /*******************************************************************************
  * Function     smp_set_local_oob_keys
- * Description  Saves calculated private/public keys in sc_oob_data.loc_oob_data,
- *              starts nonce generation
+ * Description  Saves calculated private/public keys in
+ *              sc_oob_data.loc_oob_data, starts nonce generation
  *              (to be saved in sc_oob_data.loc_oob_data.randomizer).
  ******************************************************************************/
 void smp_set_local_oob_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
@@ -1945,8 +1951,9 @@ void smp_set_local_oob_keys(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function     smp_set_local_oob_random_commitment
- * Description  Saves calculated randomizer and commitment in sc_oob_data.loc_oob_data,
- *              passes sc_oob_data.loc_oob_data up for safekeeping.
+ * Description  Saves calculated randomizer and commitment in
+ *              sc_oob_data.loc_oob_data, passes sc_oob_data.loc_oob_data up
+ *              for safekeeping.
  ******************************************************************************/
 void smp_set_local_oob_random_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
@@ -1994,9 +2001,9 @@ void smp_set_local_oob_random_commitment(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
  *
  * Function         smp_link_encrypted
  *
- * Description      This function is called when link is encrypted and notified to
- *                  slave device. Proceed to to send LTK, DIV and ER to master if
- *                  bonding the devices.
+ * Description      This function is called when link is encrypted and notified
+ *                  to the slave device. Proceed to to send LTK, DIV and ER to
+ *                  master if bonding the devices.
  *
  *
  * Returns          void
@@ -2172,8 +2179,8 @@ void smp_key_distribution_by_transport(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
 /*******************************************************************************
  * Function         smp_br_pairing_complete
- * Description      This function is called to send the pairing complete callback
- *                  and remove the connection if needed.
+ * Description      This function is called to send the pairing complete
+ *                  callback and remove the connection if needed.
  ******************************************************************************/
 void smp_br_pairing_complete(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
