@@ -34,11 +34,10 @@
  ******************************************************************************/
 
 #include "oi_bt_spec.h"
-#include "oi_stddefs.h"
-#include "oi_status.h"
-#include "oi_time.h"
 #include "oi_osinterface.h"
-
+#include "oi_status.h"
+#include "oi_stddefs.h"
+#include "oi_time.h"
 
 /*****************************************************************************/
 #endif /* _OI_COMMON_H */

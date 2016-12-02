@@ -30,28 +30,24 @@
  * Returns          Pointer to the control block or NULL if not found
  *
  ******************************************************************************/
-tGAP_INFO *gap_allocate_cb (void)
-{
-    tGAP_INFO     *p_cb = &gap_cb.blk[0];
-    uint8_t      x;
+tGAP_INFO* gap_allocate_cb(void) {
+  tGAP_INFO* p_cb = &gap_cb.blk[0];
+  uint8_t x;
 
-    for (x = 0; x < GAP_MAX_BLOCKS; x++, p_cb++)
-    {
-        if (!p_cb->in_use)
-        {
-            memset (p_cb, 0, sizeof (tGAP_INFO));
+  for (x = 0; x < GAP_MAX_BLOCKS; x++, p_cb++) {
+    if (!p_cb->in_use) {
+      memset(p_cb, 0, sizeof(tGAP_INFO));
 
-            p_cb->in_use = true;
-            p_cb->index = x;
-            p_cb->p_data = (void *)NULL;
-            return (p_cb);
-        }
+      p_cb->in_use = true;
+      p_cb->index = x;
+      p_cb->p_data = (void*)NULL;
+      return (p_cb);
     }
+  }
 
-    /* If here, no free control blocks found */
-    return (NULL);
+  /* If here, no free control blocks found */
+  return (NULL);
 }
-
 
 /*******************************************************************************
  *
@@ -62,15 +58,12 @@ tGAP_INFO *gap_allocate_cb (void)
  * Returns          Pointer to the control block or NULL if not found
  *
  ******************************************************************************/
-void gap_free_cb (tGAP_INFO *p_cb)
-{
-    if (p_cb)
-    {
-        p_cb->gap_cback = NULL;
-        p_cb->in_use = false;
-    }
+void gap_free_cb(tGAP_INFO* p_cb) {
+  if (p_cb) {
+    p_cb->gap_cback = NULL;
+    p_cb->in_use = false;
+  }
 }
-
 
 /*******************************************************************************
  *
@@ -84,21 +77,17 @@ void gap_free_cb (tGAP_INFO *p_cb)
  *                  false if not busy
  *
  ******************************************************************************/
-bool    gap_is_service_busy (uint16_t request)
-{
-    tGAP_INFO   *p_cb = &gap_cb.blk[0];
-    uint8_t      x;
+bool gap_is_service_busy(uint16_t request) {
+  tGAP_INFO* p_cb = &gap_cb.blk[0];
+  uint8_t x;
 
-    for (x = 0; x < GAP_MAX_BLOCKS; x++, p_cb++)
-    {
-        if (p_cb->in_use && p_cb->event == request)
-            return (true);
-    }
+  for (x = 0; x < GAP_MAX_BLOCKS; x++, p_cb++) {
+    if (p_cb->in_use && p_cb->event == request) return (true);
+  }
 
-    /* If here, service is not busy */
-    return (false);
+  /* If here, service is not busy */
+  return (false);
 }
-
 
 /*******************************************************************************
  *
@@ -110,33 +99,31 @@ bool    gap_is_service_busy (uint16_t request)
  * Returns          GAP_UNKNOWN_BTM_STATUS is returned if not recognized
  *
  ******************************************************************************/
-uint16_t gap_convert_btm_status (tBTM_STATUS btm_status)
-{
-    switch (btm_status)
-    {
+uint16_t gap_convert_btm_status(tBTM_STATUS btm_status) {
+  switch (btm_status) {
     case BTM_SUCCESS:
-        return (BT_PASS);
+      return (BT_PASS);
 
     case BTM_CMD_STARTED:
-        return (GAP_CMD_INITIATED);
+      return (GAP_CMD_INITIATED);
 
     case BTM_BUSY:
-        return (GAP_ERR_BUSY);
+      return (GAP_ERR_BUSY);
 
     case BTM_MODE_UNSUPPORTED:
     case BTM_ILLEGAL_VALUE:
-        return (GAP_ERR_ILL_PARM);
+      return (GAP_ERR_ILL_PARM);
 
     case BTM_WRONG_MODE:
-        return (GAP_DEVICE_NOT_UP);
+      return (GAP_DEVICE_NOT_UP);
 
     case BTM_UNKNOWN_ADDR:
-        return (GAP_BAD_BD_ADDR);
+      return (GAP_BAD_BD_ADDR);
 
     case BTM_DEVICE_TIMEOUT:
-        return (GAP_ERR_TIMEOUT);
+      return (GAP_ERR_TIMEOUT);
 
     default:
-        return (GAP_ERR_PROCESSING);
-    }
+      return (GAP_ERR_PROCESSING);
+  }
 }

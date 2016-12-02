@@ -84,10 +84,9 @@ class LowEnergyScanner : private hal::BluetoothGattInterface::ScannerObserver,
   const UUID& GetAppIdentifier() const override;
   int GetInstanceId() const override;
 
-  void ScanResultCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      const bt_bdaddr_t& bda, int rssi,
-      vector<uint8_t> adv_data) override;
+  void ScanResultCallback(hal::BluetoothGattInterface* gatt_iface,
+                          const bt_bdaddr_t& bda, int rssi,
+                          vector<uint8_t> adv_data) override;
 
  private:
   friend class LowEnergyScannerFactory;
@@ -138,14 +137,16 @@ class LowEnergyScannerFactory
   ~LowEnergyScannerFactory() override;
 
   // BluetoothInstanceFactory override:
-  bool RegisterInstance(const UUID& app_uuid, const RegisterCallback& callback) override;
+  bool RegisterInstance(const UUID& app_uuid,
+                        const RegisterCallback& callback) override;
 
  private:
   friend class LowEnergyScanner;
 
   // BluetoothGattInterface::ScannerObserver overrides:
-  void RegisterScannerCallback(hal::BluetoothGattInterface* gatt_iface, int status,
-                               int scanner_id, const bt_uuid_t& app_uuid);
+  void RegisterScannerCallback(hal::BluetoothGattInterface* gatt_iface,
+                               int status, int scanner_id,
+                               const bt_uuid_t& app_uuid);
 
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;

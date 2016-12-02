@@ -34,9 +34,9 @@
 namespace bluetooth {
 
 struct ConnComparator {
-    bool operator()(const bt_bdaddr_t& a, const bt_bdaddr_t& b) const {
-        return memcmp(&a, &b, sizeof(bt_bdaddr_t)) < 0;
-    }
+  bool operator()(const bt_bdaddr_t& a, const bt_bdaddr_t& b) const {
+    return memcmp(&a, &b, sizeof(bt_bdaddr_t)) < 0;
+  }
 };
 
 class Adapter;
@@ -59,8 +59,8 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
                                    const char* address, bool connected) = 0;
 
     // Called asynchronously to notify the delegate of mtu change
-    virtual void OnMtuChanged(LowEnergyClient* client, int status, const char* address,
-                              int mtu) = 0;
+    virtual void OnMtuChanged(LowEnergyClient* client, int status,
+                              const char* address, int mtu) = 0;
 
    private:
     DISALLOW_COPY_AND_ASSIGN(Delegate);
@@ -102,15 +102,14 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   LowEnergyClient(Adapter& adapter, const UUID& uuid, int client_id);
 
   // BluetoothGattInterface::ClientObserver overrides:
-  void ConnectCallback(
-      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
-      int client_id, const bt_bdaddr_t& bda) override;
-  void DisconnectCallback(
-      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
-      int client_id, const bt_bdaddr_t& bda) override;
-  void MtuChangedCallback(
-      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
-      int mtu) override;
+  void ConnectCallback(hal::BluetoothGattInterface* gatt_iface, int conn_id,
+                       int status, int client_id,
+                       const bt_bdaddr_t& bda) override;
+  void DisconnectCallback(hal::BluetoothGattInterface* gatt_iface, int conn_id,
+                          int status, int client_id,
+                          const bt_bdaddr_t& bda) override;
+  void MtuChangedCallback(hal::BluetoothGattInterface* gatt_iface, int conn_id,
+                          int status, int mtu) override;
 
   // Calls and clears the pending callbacks.
   void InvokeAndClearStartCallback(BLEStatus status);
@@ -132,7 +131,7 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   std::mutex connection_fields_lock_;
 
   // Maps bluetooth address to connection id
-  //TODO(jpawlowski): change type to bimap
+  // TODO(jpawlowski): change type to bimap
   std::map<const bt_bdaddr_t, int, ConnComparator> connection_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClient);
@@ -159,10 +158,9 @@ class LowEnergyClientFactory
   friend class LowEnergyClient;
 
   // BluetoothGattInterface::ClientObserver overrides:
-  void RegisterClientCallback(
-      hal::BluetoothGattInterface* gatt_iface,
-      int status, int client_id,
-      const bt_uuid_t& app_uuid) override;
+  void RegisterClientCallback(hal::BluetoothGattInterface* gatt_iface,
+                              int status, int client_id,
+                              const bt_uuid_t& app_uuid) override;
 
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;

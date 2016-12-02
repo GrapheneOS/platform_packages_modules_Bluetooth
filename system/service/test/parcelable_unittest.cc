@@ -50,7 +50,7 @@ bool TestData(IN& in) {
   parcel.setDataPosition(0);
   OUT out;
   parcel.readParcelable(&out);
-  //in case of error this display nice log message
+  // in case of error this display nice log message
   EXPECT_EQ(out, in);
   return in == out;
 }
@@ -58,7 +58,8 @@ bool TestData(IN& in) {
 TEST(ParcelableTest, NonEmptyAdvertiseData) {
   std::vector<uint8_t> data{0x02, 0x02, 0x00};
   AdvertiseData adv0(data);
-  bool result = TestData<AdvertiseData, android::bluetooth::AdvertiseData>(adv0);
+  bool result =
+      TestData<AdvertiseData, android::bluetooth::AdvertiseData>(adv0);
   EXPECT_TRUE(result);
 }
 
@@ -145,46 +146,57 @@ TEST(ParcelableTest, ScanResult) {
 }
 
 TEST(ParcelableTest, GattDescriptor) {
-  Descriptor s = Descriptor(0x0000, UUID::GetRandom(), bluetooth::kAttributePermissionRead);
-  Descriptor s2 = Descriptor(0xFFFE, UUID::GetRandom(), bluetooth::kAttributePermissionWrite);
+  Descriptor s = Descriptor(0x0000, UUID::GetRandom(),
+                            bluetooth::kAttributePermissionRead);
+  Descriptor s2 = Descriptor(0xFFFE, UUID::GetRandom(),
+                             bluetooth::kAttributePermissionWrite);
   Descriptor s3 = Descriptor(0x003D, UUID::GetRandom(),
-      bluetooth::kAttributePermissionReadEncryptedMITM | bluetooth::kAttributePermissionRead);
+                             bluetooth::kAttributePermissionReadEncryptedMITM |
+                                 bluetooth::kAttributePermissionRead);
 
-  bool result = TestData<Descriptor, android::bluetooth::BluetoothGattDescriptor>(s);
+  bool result =
+      TestData<Descriptor, android::bluetooth::BluetoothGattDescriptor>(s);
   EXPECT_TRUE(result);
 
-  result = TestData<Descriptor, android::bluetooth::BluetoothGattDescriptor>(s2);
+  result =
+      TestData<Descriptor, android::bluetooth::BluetoothGattDescriptor>(s2);
   EXPECT_TRUE(result);
 
-  result = TestData<Descriptor, android::bluetooth::BluetoothGattDescriptor>(s3);
+  result =
+      TestData<Descriptor, android::bluetooth::BluetoothGattDescriptor>(s3);
   EXPECT_TRUE(result);
 }
 
 TEST(ParcelableTest, GattCharacteristic) {
   Characteristic c = Characteristic(0x0004, UUID::GetRandom(), 0, 0,
-    {Descriptor(0x0005, UUID::GetRandom(), 0),
-     Descriptor(0x0007, UUID::GetRandom(), 0),
-     Descriptor(0x00A1, UUID::GetRandom(), 0)});
+                                    {Descriptor(0x0005, UUID::GetRandom(), 0),
+                                     Descriptor(0x0007, UUID::GetRandom(), 0),
+                                     Descriptor(0x00A1, UUID::GetRandom(), 0)});
 
-  bool result = TestData<Characteristic, android::bluetooth::BluetoothGattCharacteristic>(c);
+  bool result =
+      TestData<Characteristic, android::bluetooth::BluetoothGattCharacteristic>(
+          c);
   EXPECT_TRUE(result);
 }
 
 TEST(ParcelableTest, GattService) {
-  Service s = Service(0x0001, true, UUID("CAFE"),
-    {Characteristic(0x0004, UUID::GetRandom(),bluetooth::kCharacteristicPropertyNotify,
-                                              bluetooth::kAttributePermissionRead,
-      {Descriptor(0x0005, UUID::GetRandom(), 0),
-       Descriptor(0x0007, UUID::GetRandom(), 0),
-       Descriptor(0x0009, UUID::GetRandom(), 0)}),
-     Characteristic(0x000D, UUID::GetRandom(), bluetooth::kCharacteristicPropertyWrite,
-                                               bluetooth::kAttributePermissionWrite,
-      {Descriptor(0x0010, UUID::GetRandom(), 0),
-       Descriptor(0x0012, UUID::GetRandom(), 0)}),
-     Characteristic(0x0015, UUID::GetRandom(), 0, 0, {})
-       }, {});
+  Service s =
+      Service(0x0001, true, UUID("CAFE"),
+              {Characteristic(0x0004, UUID::GetRandom(),
+                              bluetooth::kCharacteristicPropertyNotify,
+                              bluetooth::kAttributePermissionRead,
+                              {Descriptor(0x0005, UUID::GetRandom(), 0),
+                               Descriptor(0x0007, UUID::GetRandom(), 0),
+                               Descriptor(0x0009, UUID::GetRandom(), 0)}),
+               Characteristic(0x000D, UUID::GetRandom(),
+                              bluetooth::kCharacteristicPropertyWrite,
+                              bluetooth::kAttributePermissionWrite,
+                              {Descriptor(0x0010, UUID::GetRandom(), 0),
+                               Descriptor(0x0012, UUID::GetRandom(), 0)}),
+               Characteristic(0x0015, UUID::GetRandom(), 0, 0, {})},
+              {});
 
- Parcel parcel;
+  Parcel parcel;
 
   parcel.writeParcelable((android::bluetooth::BluetoothGattService)s);
   parcel.setDataPosition(0);

@@ -773,8 +773,8 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV* p_data,
 
     case BTA_JV_L2CAP_WRITE_EVT:
       APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_EVT: id: %u", l2cap_socket_id);
-      on_l2cap_write_done(p_data->l2c_write.p_data,
-                          p_data->l2c_write.len, l2cap_socket_id);
+      on_l2cap_write_done(p_data->l2c_write.p_data, p_data->l2c_write.len,
+                          l2cap_socket_id);
       break;
 
     case BTA_JV_L2CAP_WRITE_FIXED_EVT:
@@ -788,7 +788,8 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV* p_data,
       break;
 
     default:
-      APPL_TRACE_ERROR("unhandled event %d, slot id: %u", event, l2cap_socket_id);
+      APPL_TRACE_ERROR("unhandled event %d, slot id: %u", event,
+                       l2cap_socket_id);
       break;
   }
 }
@@ -853,12 +854,12 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket* sock) {
      * else we request a PSM and start the server after we receive a PSM. */
     if (sock->channel < 0) {
       if (sock->is_le_coc) {
-        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP_LE, sock->id,
-                               0) != BTA_JV_SUCCESS)
+        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP_LE, sock->id, 0) !=
+            BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       } else {
-        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, sock->id,
-                               0) != BTA_JV_SUCCESS)
+        if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, sock->id, 0) !=
+            BTA_JV_SUCCESS)
           stat = BT_STATUS_FAIL;
       }
     } else {
@@ -933,8 +934,7 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char* name,
     if (fixed_chan) {
       if (BTA_JvL2capConnectLE(sock->security, 0, NULL, channel,
                                L2CAP_DEFAULT_MTU, NULL, sock->addr.address,
-                               btsock_l2cap_cbk,
-                               sock->id) != BTA_JV_SUCCESS)
+                               btsock_l2cap_cbk, sock->id) != BTA_JV_SUCCESS)
         stat = BT_STATUS_FAIL;
 
     } else {
@@ -1059,8 +1059,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id) {
         if (sock->fixed_chan) {
           if (BTA_JvL2capWriteFixed(sock->channel, (BD_ADDR*)&sock->addr,
                                     PTR_TO_UINT(buffer), btsock_l2cap_cbk,
-                                    buffer, count,
-                                    user_id) != BTA_JV_SUCCESS) {
+                                    buffer, count, user_id) != BTA_JV_SUCCESS) {
             // On fail, free the buffer
             on_l2cap_write_fixed_done(buffer, count, user_id);
           }

@@ -23,61 +23,54 @@
 
 namespace ipc {
 
-IPCManager::IPCManager(bluetooth::Adapter* adapter)
-    : adapter_(adapter) {
+IPCManager::IPCManager(bluetooth::Adapter* adapter) : adapter_(adapter) {
   CHECK(adapter_);
 }
 
 IPCManager::~IPCManager() {
   // Don't rely on the handlers getting destroyed since another thread might be
   // holding a reference to them. Instead, explicitly stop them here.
-  if (BinderStarted())
-    binder_handler_->Stop();
-  if (LinuxStarted())
-    linux_handler_->Stop();
+  if (BinderStarted()) binder_handler_->Stop();
+  if (LinuxStarted()) linux_handler_->Stop();
 }
 
 bool IPCManager::Start(Type type, Delegate* delegate) {
   switch (type) {
-  case TYPE_LINUX:
-    if (LinuxStarted()) {
-      LOG(ERROR) << "IPCManagerLinux already started.";
-      return false;
-    }
+    case TYPE_LINUX:
+      if (LinuxStarted()) {
+        LOG(ERROR) << "IPCManagerLinux already started.";
+        return false;
+      }
 
-    linux_handler_ = new IPCHandlerLinux(adapter_, delegate);
-    if (!linux_handler_->Run()) {
-      linux_handler_ = nullptr;
-      return false;
-    }
-    return true;
+      linux_handler_ = new IPCHandlerLinux(adapter_, delegate);
+      if (!linux_handler_->Run()) {
+        linux_handler_ = nullptr;
+        return false;
+      }
+      return true;
 #if !defined(OS_GENERIC)
-  case TYPE_BINDER:
-    if (BinderStarted()) {
-      LOG(ERROR) << "IPCManagerBinder already started.";
-      return false;
-    }
+    case TYPE_BINDER:
+      if (BinderStarted()) {
+        LOG(ERROR) << "IPCManagerBinder already started.";
+        return false;
+      }
 
-    binder_handler_ = new IPCHandlerBinder(adapter_, delegate);
-    if (!binder_handler_->Run()) {
-      binder_handler_ = nullptr;
-      return false;
-    }
-    return true;
+      binder_handler_ = new IPCHandlerBinder(adapter_, delegate);
+      if (!binder_handler_->Run()) {
+        binder_handler_ = nullptr;
+        return false;
+      }
+      return true;
 #endif  // !defined(OS_GENERIC)
-  default:
-    LOG(ERROR) << "Unsupported IPC type given: " << type;
+    default:
+      LOG(ERROR) << "Unsupported IPC type given: " << type;
   }
 
   return false;
 }
 
-bool IPCManager::BinderStarted() const {
-  return binder_handler_.get();
-}
+bool IPCManager::BinderStarted() const { return binder_handler_.get(); }
 
-bool IPCManager::LinuxStarted() const {
-  return linux_handler_.get();
-}
+bool IPCManager::LinuxStarted() const { return linux_handler_.get(); }
 
 }  // namespace ipc

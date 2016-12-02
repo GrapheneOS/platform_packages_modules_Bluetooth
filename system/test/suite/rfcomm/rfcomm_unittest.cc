@@ -36,28 +36,30 @@ TEST_F(RFCommTest, RfcommConnectPairedDevice) {
   size_t len = 0;
 
   error = socket_interface()->connect(&bt_remote_bdaddr_, BTSOCK_RFCOMM,
-                                      (const uint8_t *)&HFP_UUID, 0, &fd, 0, getuid());
-  EXPECT_TRUE(error == BT_STATUS_SUCCESS)
-    << "Error creating RFCOMM socket: " << error;
+                                      (const uint8_t*)&HFP_UUID, 0, &fd, 0,
+                                      getuid());
+  EXPECT_TRUE(error == BT_STATUS_SUCCESS) << "Error creating RFCOMM socket: "
+                                          << error;
   EXPECT_TRUE(fd != -1) << "Error creating RFCOMM socket: invalid fd";
 
   int channel;
   sock_connect_signal_t signal;
   len = read(fd, &channel, sizeof(channel));
   EXPECT_TRUE(len == sizeof(channel))
-    << "Channel not read from RFCOMM socket. Bytes read: " << len;
+      << "Channel not read from RFCOMM socket. Bytes read: " << len;
   len = read(fd, &signal, sizeof(signal));
   EXPECT_TRUE(len == sizeof(signal))
-    << "Connection signal not read from RFCOMM socket. Bytes read: " << len;
+      << "Connection signal not read from RFCOMM socket. Bytes read: " << len;
 
   EXPECT_TRUE(!memcmp(&signal.bd_addr, &bt_remote_bdaddr_, sizeof(bt_bdaddr_t)))
-    << "Connected to a different bdaddr than expected.";
-  EXPECT_TRUE(channel == signal.channel) << "Inconsistent channels returned: "
-    << channel << " and " << signal.channel;
+      << "Connected to a different bdaddr than expected.";
+  EXPECT_TRUE(channel == signal.channel)
+      << "Inconsistent channels returned: " << channel << " and "
+      << signal.channel;
 
   len = write(fd, HANDSHAKE_COMMAND, sizeof(HANDSHAKE_COMMAND));
-  EXPECT_TRUE( len == sizeof(HANDSHAKE_COMMAND))
-    << "Unable to send HFP handshake. Bytes written: " << len;
+  EXPECT_TRUE(len == sizeof(HANDSHAKE_COMMAND))
+      << "Unable to send HFP handshake. Bytes written: " << len;
 
   char response[1024];
   len = read(fd, response, sizeof(response));
@@ -71,59 +73,61 @@ TEST_F(RFCommTest, RfcommRepeatedConnectPairedDevice) {
   int channel_fail = 0, signal_fail = 0, handshake_fail = 0, read_fail = 0;
 
   for (int i = 0; i < max_iterations; ++i) {
-      int fd = -1;
-      int error = 0;
-      size_t len = 0;
+    int fd = -1;
+    int error = 0;
+    size_t len = 0;
 
-      error = socket_interface()->connect(&bt_remote_bdaddr_, BTSOCK_RFCOMM,
-                                        (const uint8_t *)&HFP_UUID, 0,
-                                        &fd, 0, getuid());
-      ASSERT_TRUE(error == BT_STATUS_SUCCESS)
-        << "Error creating RFCOMM socket: " << error;
-      ASSERT_TRUE(fd != -1) << "Error creating RFCOMM socket: invalid fd";
+    error = socket_interface()->connect(&bt_remote_bdaddr_, BTSOCK_RFCOMM,
+                                        (const uint8_t*)&HFP_UUID, 0, &fd, 0,
+                                        getuid());
+    ASSERT_TRUE(error == BT_STATUS_SUCCESS) << "Error creating RFCOMM socket: "
+                                            << error;
+    ASSERT_TRUE(fd != -1) << "Error creating RFCOMM socket: invalid fd";
 
-      int channel;
-      sock_connect_signal_t signal;
-      if ((len = read(fd, &channel, sizeof(channel))) != sizeof(channel)) {
-        ADD_FAILURE() << "Channel not read from RFCOMM socket. Bytes read: " << len
-                      << ", Sizeof channel: " << sizeof(channel);
-        channel_fail++;
-      }
+    int channel;
+    sock_connect_signal_t signal;
+    if ((len = read(fd, &channel, sizeof(channel))) != sizeof(channel)) {
+      ADD_FAILURE() << "Channel not read from RFCOMM socket. Bytes read: "
+                    << len << ", Sizeof channel: " << sizeof(channel);
+      channel_fail++;
+    }
 
-      if ((len = read(fd, &signal, sizeof(signal))) != sizeof(signal)) {
-        ADD_FAILURE() << "Connection signal not read from RFCOMM socket. Bytes read: "
-                      << len;
-        signal_fail++;
-      }
+    if ((len = read(fd, &signal, sizeof(signal))) != sizeof(signal)) {
+      ADD_FAILURE()
+          << "Connection signal not read from RFCOMM socket. Bytes read: "
+          << len;
+      signal_fail++;
+    }
 
-      EXPECT_TRUE(!memcmp(&signal.bd_addr, &bt_remote_bdaddr_,
-                  sizeof(bt_bdaddr_t)))
+    EXPECT_TRUE(
+        !memcmp(&signal.bd_addr, &bt_remote_bdaddr_, sizeof(bt_bdaddr_t)))
         << "Connected to a different bdaddr than expected.";
-      EXPECT_TRUE(channel == signal.channel)
+    EXPECT_TRUE(channel == signal.channel)
         << "Inconsistent channels returned: " << channel << " and "
         << signal.channel;
 
-      if ((len = write(fd, HANDSHAKE_COMMAND, sizeof(HANDSHAKE_COMMAND))) !=
-          sizeof(HANDSHAKE_COMMAND)) {
-        ADD_FAILURE() << "Unable to send HFP handshake. Bytes written: " << len;
-        handshake_fail++;
-      }
+    if ((len = write(fd, HANDSHAKE_COMMAND, sizeof(HANDSHAKE_COMMAND))) !=
+        sizeof(HANDSHAKE_COMMAND)) {
+      ADD_FAILURE() << "Unable to send HFP handshake. Bytes written: " << len;
+      handshake_fail++;
+    }
 
-      char response[1024];
-      if ((len = read(fd, response, sizeof(response))) <= 0) {
-          ADD_FAILURE() << "Read " << len << " bytes";
-          read_fail++;
-      }
+    char response[1024];
+    if ((len = read(fd, response, sizeof(response))) <= 0) {
+      ADD_FAILURE() << "Read " << len << " bytes";
+      read_fail++;
+    }
 
-      close(fd);
+    close(fd);
   }
 
-  if (channel_fail > 0 || signal_fail > 0 ||
-      handshake_fail > 0 || read_fail > 0) {
-      ADD_FAILURE() << "Number of channel read fails: " << channel_fail << "\n"
-                    << "Number of signal read fails: " << signal_fail << "\n"
-                    << "Number of handshake send fails: " << handshake_fail << "\n"
-                    << "Number of read response fails: " << read_fail;
+  if (channel_fail > 0 || signal_fail > 0 || handshake_fail > 0 ||
+      read_fail > 0) {
+    ADD_FAILURE() << "Number of channel read fails: " << channel_fail << "\n"
+                  << "Number of signal read fails: " << signal_fail << "\n"
+                  << "Number of handshake send fails: " << handshake_fail
+                  << "\n"
+                  << "Number of read response fails: " << read_fail;
   }
 }
 

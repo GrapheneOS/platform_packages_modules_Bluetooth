@@ -162,8 +162,8 @@ Status BluetoothGattServerBinderServer::SendNotification(
   };
 
   if (!gatt_server->SendNotification(
-          std::string(String8(device_address).string()), handle,
-          confirm, value, callback)) {
+          std::string(String8(device_address).string()), handle, confirm, value,
+          callback)) {
     LOG(ERROR) << "Failed to send notification";
     *_aidl_return = false;
     return Status::ok();
@@ -290,7 +290,8 @@ void BluetoothGattServerBinderServer::OnExecuteWriteRequest(
 }
 
 void BluetoothGattServerBinderServer::OnConnectionStateChanged(
-    bluetooth::GattServer* gatt_server, const std::string& device_address, bool connected) {
+    bluetooth::GattServer* gatt_server, const std::string& device_address,
+    bool connected) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 

@@ -18,22 +18,23 @@
 
 #include "audio_a2dp_hw.h"
 
-#define CASE_RETURN_STR(const) case const: return #const;
+#define CASE_RETURN_STR(const) \
+  case const:                  \
+    return #const;
 
-const char* audio_a2dp_hw_dump_ctrl_event(tA2DP_CTRL_CMD event)
-{
-    switch (event) {
-        CASE_RETURN_STR(A2DP_CTRL_CMD_NONE)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_CHECK_READY)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_START)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_STOP)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_SUSPEND)
-        CASE_RETURN_STR(A2DP_CTRL_GET_INPUT_AUDIO_CONFIG)
-        CASE_RETURN_STR(A2DP_CTRL_GET_OUTPUT_AUDIO_CONFIG)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_OFFLOAD_START)
+const char* audio_a2dp_hw_dump_ctrl_event(tA2DP_CTRL_CMD event) {
+  switch (event) {
+    CASE_RETURN_STR(A2DP_CTRL_CMD_NONE)
+    CASE_RETURN_STR(A2DP_CTRL_CMD_CHECK_READY)
+    CASE_RETURN_STR(A2DP_CTRL_CMD_START)
+    CASE_RETURN_STR(A2DP_CTRL_CMD_STOP)
+    CASE_RETURN_STR(A2DP_CTRL_CMD_SUSPEND)
+    CASE_RETURN_STR(A2DP_CTRL_GET_INPUT_AUDIO_CONFIG)
+    CASE_RETURN_STR(A2DP_CTRL_GET_OUTPUT_AUDIO_CONFIG)
+    CASE_RETURN_STR(A2DP_CTRL_CMD_OFFLOAD_START)
     default:
-        break;
-    }
+      break;
+  }
 
-    return "UNKNOWN A2DP_CTRL_CMD";
+  return "UNKNOWN A2DP_CTRL_CMD";
 }

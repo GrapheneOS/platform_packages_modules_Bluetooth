@@ -392,7 +392,7 @@ int btpan_tap_open() {
   strncpy(ifr.ifr_name, TAP_IF_NAME, IFNAMSIZ);
 
   /* try to create the device */
-  err = ioctl(fd, TUNSETIFF, (void *)&ifr);
+  err = ioctl(fd, TUNSETIFF, (void*)&ifr);
   if (err < 0) {
     BTIF_TRACE_DEBUG("ioctl error:%d, errno:%s", err, strerror(errno));
     close(fd);

@@ -26,12 +26,14 @@ class Characteristic {
  public:
   Characteristic() = default;
   Characteristic(const Characteristic& other);
-  Characteristic(uint16_t handle, const UUID& uuid,
-                 uint8_t properties, uint16_t permissions,
+  Characteristic(uint16_t handle, const UUID& uuid, uint8_t properties,
+                 uint16_t permissions,
                  const std::vector<Descriptor>& descriptors)
-      : handle_(handle), uuid_(uuid),
-        properties_(properties), permissions_(permissions),
-        descriptors_(descriptors) {};
+      : handle_(handle),
+        uuid_(uuid),
+        properties_(properties),
+        permissions_(permissions),
+        descriptors_(descriptors){};
   Characteristic& operator=(const Characteristic& other);
   ~Characteristic() = default;
 

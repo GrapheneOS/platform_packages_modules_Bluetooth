@@ -24,7 +24,7 @@
 
 #include <gtest/gtest.h>
 
-GTEST_API_ int main(int argc, char **argv) {
+GTEST_API_ int main(int argc, char** argv) {
   base::AtExitManager exit_manager;
   base::CommandLine::Init(argc, argv);
   logging::LoggingSettings log_settings;

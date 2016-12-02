@@ -22,17 +22,11 @@ extern "C" {
  *  Resolvable private address offload VSC specific definitions
  *****************************************************************************/
 
-enum
-{
-    BTM_BLE_PRIVACY_ENABLE,
-    BTM_BLE_PRIVACY_DISABLE
-};
-
+enum { BTM_BLE_PRIVACY_ENABLE, BTM_BLE_PRIVACY_DISABLE };
 
 /****************************************************************************
  *  Advertising packet filter VSC specific definitions
  *****************************************************************************/
-
 
 /*****************************************************************************
  *              VENDOR SPECIFIC BLE FEATURE FUNCTIONS

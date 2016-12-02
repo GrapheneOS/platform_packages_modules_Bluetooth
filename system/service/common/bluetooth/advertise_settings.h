@@ -61,10 +61,8 @@ class AdvertiseSettings {
     TX_POWER_LEVEL_HIGH = 0x03,
   };
 
-  AdvertiseSettings(Mode mode,
-                    base::TimeDelta timeout,
-                    TxPowerLevel tx_power_level,
-                    bool connectable);
+  AdvertiseSettings(Mode mode, base::TimeDelta timeout,
+                    TxPowerLevel tx_power_level, bool connectable);
 
   // The default constructor sets all fields to defaults:
   //   mode: MODE_LOW_POWER

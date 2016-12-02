@@ -42,7 +42,6 @@ class Adapter;
 // should be obtained through the factory.
 class LowEnergyAdvertiser : public BluetoothInstance {
  public:
-
   // The destructor automatically unregisters this client instance from the
   // stack.
   ~LowEnergyAdvertiser() override;
@@ -87,12 +86,9 @@ class LowEnergyAdvertiser : public BluetoothInstance {
   LowEnergyAdvertiser(const UUID& uuid, int advertiser_id);
 
   // BluetoothGattInterface::AdvertiserObserver overrides:
-  void SetDataCallback(
-      uint8_t advertiser_id, uint8_t status);
-  void SetParamsCallback(
-      uint8_t advertiser_id, uint8_t status);
-  void EnableCallback(
-      bool enable, uint8_t advertiser_id, uint8_t status);
+  void SetDataCallback(uint8_t advertiser_id, uint8_t status);
+  void SetParamsCallback(uint8_t advertiser_id, uint8_t status);
+  void EnableCallback(bool enable, uint8_t advertiser_id, uint8_t status);
 
   // Calls and clears the pending callbacks.
   void InvokeAndClearStartCallback(BLEStatus status);
@@ -108,7 +104,6 @@ class LowEnergyAdvertiser : public BluetoothInstance {
   // Latest advertising settings.
   AdvertiseSettings advertise_settings_;
 
-
   std::atomic_bool adv_started_;
   std::unique_ptr<StatusCallback> adv_start_callback_;
   std::unique_ptr<StatusCallback> adv_stop_callback_;
@@ -117,11 +112,11 @@ class LowEnergyAdvertiser : public BluetoothInstance {
 };
 
 // LowEnergyAdvertiserFactory is used to register and obtain a per-application
-// LowEnergyAdvertiser instance. Users should call RegisterInstance to obtain their
+// LowEnergyAdvertiser instance. Users should call RegisterInstance to obtain
+// their
 // own unique LowEnergyAdvertiser instance that has been registered with the
 // Bluetooth stack.
-class LowEnergyAdvertiserFactory
-    : public BluetoothInstanceFactory {
+class LowEnergyAdvertiserFactory : public BluetoothInstanceFactory {
  public:
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
@@ -129,7 +124,8 @@ class LowEnergyAdvertiserFactory
   ~LowEnergyAdvertiserFactory() override;
 
   // BluetoothInstanceFactory override:
-  bool RegisterInstance(const UUID& app_uuid, const RegisterCallback& callback) override;
+  bool RegisterInstance(const UUID& app_uuid,
+                        const RegisterCallback& callback) override;
 
  private:
   friend class LowEnergyAdvertiser;

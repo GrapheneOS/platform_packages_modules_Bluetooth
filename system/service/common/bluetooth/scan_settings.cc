@@ -22,42 +22,32 @@ ScanSettings::ScanSettings()
     : mode_(MODE_LOW_POWER),
       callback_type_(CALLBACK_TYPE_ALL_MATCHES),
       result_type_(RESULT_TYPE_FULL),
-      match_count_per_filter_(MATCH_COUNT_MAX_ADVERTISEMENTS) {
-}
+      match_count_per_filter_(MATCH_COUNT_MAX_ADVERTISEMENTS) {}
 
-ScanSettings::ScanSettings(
-    Mode mode,
-    CallbackTypeBitField callback_type,
-    ResultType result_type,
-    base::TimeDelta report_delay_ms,
-    MatchMode match_mode,
-    MatchCount match_count_per_filter)
+ScanSettings::ScanSettings(Mode mode, CallbackTypeBitField callback_type,
+                           ResultType result_type,
+                           base::TimeDelta report_delay_ms,
+                           MatchMode match_mode,
+                           MatchCount match_count_per_filter)
     : mode_(mode),
       callback_type_(callback_type),
       result_type_(result_type),
       report_delay_ms_(report_delay_ms),
       match_mode_(match_mode),
-      match_count_per_filter_(match_count_per_filter) {
-}
+      match_count_per_filter_(match_count_per_filter) {}
 
 bool ScanSettings::operator==(const ScanSettings& rhs) const {
-  if (mode_ != rhs.mode_)
-    return false;
+  if (mode_ != rhs.mode_) return false;
 
-  if (callback_type_ != rhs.callback_type_)
-    return false;
+  if (callback_type_ != rhs.callback_type_) return false;
 
-  if (result_type_ != rhs.result_type_)
-    return false;
+  if (result_type_ != rhs.result_type_) return false;
 
-  if (report_delay_ms_ != rhs.report_delay_ms_)
-    return false;
+  if (report_delay_ms_ != rhs.report_delay_ms_) return false;
 
-  if (match_mode_ != rhs.match_mode_)
-    return false;
+  if (match_mode_ != rhs.match_mode_) return false;
 
-  if (match_count_per_filter_ != rhs.match_count_per_filter_)
-    return false;
+  if (match_count_per_filter_ != rhs.match_count_per_filter_) return false;
 
   return true;
 }

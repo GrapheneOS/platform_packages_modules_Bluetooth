@@ -35,7 +35,7 @@ const char kDisableProperty[] = "persist.bluetooth.disable";
 
 }  // namespace
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   base::AtExitManager exit_manager;
   base::CommandLine::Init(argc, argv);
 

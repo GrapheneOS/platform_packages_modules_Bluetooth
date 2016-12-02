@@ -22,16 +22,16 @@
  *
  ******************************************************************************/
 
+#include "avct_api.h"
 #include <string.h>
-#include "bt_types.h"
-#include "bt_target.h"
-#include "bt_utils.h"
+#include "avct_int.h"
 #include "bt_common.h"
+#include "bt_target.h"
+#include "bt_types.h"
+#include "bt_utils.h"
+#include "btm_api.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "btm_api.h"
-#include "avct_api.h"
-#include "avct_int.h"
 #include "osi/include/osi.h"
 
 /* Control block for AVCT */
@@ -51,42 +51,44 @@ tAVCT_CB avct_cb;
  * Returns          void
  *
  ******************************************************************************/
-void AVCT_Register(uint16_t mtu,
-                   UNUSED_ATTR uint16_t mtu_br, uint8_t sec_mask)
-{
-    AVCT_TRACE_API("AVCT_Register");
+void AVCT_Register(uint16_t mtu, UNUSED_ATTR uint16_t mtu_br,
+                   uint8_t sec_mask) {
+  AVCT_TRACE_API("AVCT_Register");
 
-    /* register PSM with L2CAP */
-    L2CA_Register(AVCT_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_appl);
+  /* register PSM with L2CAP */
+  L2CA_Register(AVCT_PSM, (tL2CAP_APPL_INFO*)&avct_l2c_appl);
 
-    /* set security level */
-    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
-    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0, 0);
+  /* set security level */
+  BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0,
+                       0);
+  BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_PSM, 0,
+                       0);
 
-    /* initialize AVCTP data structures */
-    memset(&avct_cb, 0, sizeof(tAVCT_CB));
+  /* initialize AVCTP data structures */
+  memset(&avct_cb, 0, sizeof(tAVCT_CB));
 
-    /* Include the browsing channel which uses eFCR */
-    L2CA_Register(AVCT_BR_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_br_appl);
+  /* Include the browsing channel which uses eFCR */
+  L2CA_Register(AVCT_BR_PSM, (tL2CAP_APPL_INFO*)&avct_l2c_br_appl);
 
-    /* AVCTP browsing channel uses the same security service as AVCTP control channel */
-    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM, 0, 0);
-    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM, 0, 0);
+  /* AVCTP browsing channel uses the same security service as AVCTP control
+   * channel */
+  BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM,
+                       0, 0);
+  BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM,
+                       0, 0);
 
-    if (mtu_br < AVCT_MIN_BROWSE_MTU)
-        mtu_br = AVCT_MIN_BROWSE_MTU;
-    avct_cb.mtu_br = mtu_br;
+  if (mtu_br < AVCT_MIN_BROWSE_MTU) mtu_br = AVCT_MIN_BROWSE_MTU;
+  avct_cb.mtu_br = mtu_br;
 
 #if defined(AVCT_INITIAL_TRACE_LEVEL)
-    avct_cb.trace_level = AVCT_INITIAL_TRACE_LEVEL;
+  avct_cb.trace_level = AVCT_INITIAL_TRACE_LEVEL;
 #else
-    avct_cb.trace_level = BT_TRACE_LEVEL_NONE;
+  avct_cb.trace_level = BT_TRACE_LEVEL_NONE;
 #endif
 
-    if (mtu < AVCT_MIN_CONTROL_MTU)
-        mtu = AVCT_MIN_CONTROL_MTU;
-    /* store mtu */
-    avct_cb.mtu = mtu;
+  if (mtu < AVCT_MIN_CONTROL_MTU) mtu = AVCT_MIN_CONTROL_MTU;
+  /* store mtu */
+  avct_cb.mtu = mtu;
 }
 
 /*******************************************************************************
@@ -103,12 +105,11 @@ void AVCT_Register(uint16_t mtu,
  * Returns          void
  *
  ******************************************************************************/
-void AVCT_Deregister(void)
-{
-    AVCT_TRACE_API("AVCT_Deregister");
+void AVCT_Deregister(void) {
+  AVCT_TRACE_API("AVCT_Deregister");
 
-    /* deregister PSM with L2CAP */
-    L2CA_Deregister(AVCT_PSM);
+  /* deregister PSM with L2CAP */
+  L2CA_Deregister(AVCT_PSM);
 }
 
 /*******************************************************************************
@@ -128,57 +129,48 @@ void AVCT_Deregister(void)
  * Returns          AVCT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVCT_CreateConn(uint8_t *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
-{
-    uint16_t    result = AVCT_SUCCESS;
-    tAVCT_CCB   *p_ccb;
-    tAVCT_LCB   *p_lcb;
+uint16_t AVCT_CreateConn(uint8_t* p_handle, tAVCT_CC* p_cc, BD_ADDR peer_addr) {
+  uint16_t result = AVCT_SUCCESS;
+  tAVCT_CCB* p_ccb;
+  tAVCT_LCB* p_lcb;
 
-    AVCT_TRACE_API("AVCT_CreateConn: %d, control:%d", p_cc->role, p_cc->control);
+  AVCT_TRACE_API("AVCT_CreateConn: %d, control:%d", p_cc->role, p_cc->control);
 
-    /* Allocate ccb; if no ccbs, return failure */
-    p_ccb = avct_ccb_alloc(p_cc);
-    if (p_ccb == NULL)
-    {
-        result = AVCT_NO_RESOURCES;
-    }
-    else
-    {
-        /* get handle */
-        *p_handle = avct_ccb_to_idx(p_ccb);
+  /* Allocate ccb; if no ccbs, return failure */
+  p_ccb = avct_ccb_alloc(p_cc);
+  if (p_ccb == NULL) {
+    result = AVCT_NO_RESOURCES;
+  } else {
+    /* get handle */
+    *p_handle = avct_ccb_to_idx(p_ccb);
 
-        /* if initiator connection */
-        if (p_cc->role == AVCT_INT)
-        {
-            /* find link; if none allocate a new one */
-            p_lcb = avct_lcb_by_bd(peer_addr);
-            if (p_lcb == NULL)
-            {
-                p_lcb = avct_lcb_alloc(peer_addr);
-                if (p_lcb == NULL)
-                {
-                    /* no link resources; free ccb as well */
-                    avct_ccb_dealloc(p_ccb, AVCT_NO_EVT, 0, NULL);
-                    result = AVCT_NO_RESOURCES;
-                }
-            }
-            /* check if PID already in use */
-            else if (avct_lcb_has_pid(p_lcb, p_cc->pid))
-            {
-                avct_ccb_dealloc(p_ccb, AVCT_NO_EVT, 0, NULL);
-                result = AVCT_PID_IN_USE;
-            }
-
-            if (result == AVCT_SUCCESS)
-            {
-                /* bind lcb to ccb */
-                p_ccb->p_lcb = p_lcb;
-                AVCT_TRACE_DEBUG("ch_state: %d", p_lcb->ch_state);
-                avct_lcb_event(p_lcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
-            }
+    /* if initiator connection */
+    if (p_cc->role == AVCT_INT) {
+      /* find link; if none allocate a new one */
+      p_lcb = avct_lcb_by_bd(peer_addr);
+      if (p_lcb == NULL) {
+        p_lcb = avct_lcb_alloc(peer_addr);
+        if (p_lcb == NULL) {
+          /* no link resources; free ccb as well */
+          avct_ccb_dealloc(p_ccb, AVCT_NO_EVT, 0, NULL);
+          result = AVCT_NO_RESOURCES;
         }
+      }
+      /* check if PID already in use */
+      else if (avct_lcb_has_pid(p_lcb, p_cc->pid)) {
+        avct_ccb_dealloc(p_ccb, AVCT_NO_EVT, 0, NULL);
+        result = AVCT_PID_IN_USE;
+      }
+
+      if (result == AVCT_SUCCESS) {
+        /* bind lcb to ccb */
+        p_ccb->p_lcb = p_lcb;
+        AVCT_TRACE_DEBUG("ch_state: %d", p_lcb->ch_state);
+        avct_lcb_event(p_lcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT*)&p_ccb);
+      }
     }
-    return result;
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -194,30 +186,27 @@ uint16_t AVCT_CreateConn(uint8_t *p_handle, tAVCT_CC *p_cc, BD_ADDR peer_addr)
  * Returns          AVCT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVCT_RemoveConn(uint8_t handle)
-{
-    uint16_t            result = AVCT_SUCCESS;
-    tAVCT_CCB           *p_ccb;
+uint16_t AVCT_RemoveConn(uint8_t handle) {
+  uint16_t result = AVCT_SUCCESS;
+  tAVCT_CCB* p_ccb;
 
-    AVCT_TRACE_API("AVCT_RemoveConn");
+  AVCT_TRACE_API("AVCT_RemoveConn");
 
-    /* map handle to ccb */
-    p_ccb = avct_ccb_by_idx(handle);
-    if (p_ccb == NULL)
-    {
-        result = AVCT_BAD_HANDLE;
-    }
-    /* if connection not bound to lcb, dealloc */
-    else if (p_ccb->p_lcb == NULL)
-    {
-        avct_ccb_dealloc(p_ccb, AVCT_NO_EVT, 0, NULL);
-    }
-    /* send unbind event to lcb */
-    else
-    {
-        avct_lcb_event(p_ccb->p_lcb, AVCT_LCB_UL_UNBIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
-    }
-    return result;
+  /* map handle to ccb */
+  p_ccb = avct_ccb_by_idx(handle);
+  if (p_ccb == NULL) {
+    result = AVCT_BAD_HANDLE;
+  }
+  /* if connection not bound to lcb, dealloc */
+  else if (p_ccb->p_lcb == NULL) {
+    avct_ccb_dealloc(p_ccb, AVCT_NO_EVT, 0, NULL);
+  }
+  /* send unbind event to lcb */
+  else {
+    avct_lcb_event(p_ccb->p_lcb, AVCT_LCB_UL_UNBIND_EVT,
+                   (tAVCT_LCB_EVT*)&p_ccb);
+  }
+  return result;
 }
 
 /*******************************************************************************
@@ -237,64 +226,52 @@ uint16_t AVCT_RemoveConn(uint8_t handle)
  * Returns          AVCT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
-{
-    uint16_t    result = AVCT_SUCCESS;
-    tAVCT_CCB   *p_ccb;
-    tAVCT_BCB   *p_bcb;
-    int         index;
+uint16_t AVCT_CreateBrowse(uint8_t handle, uint8_t role) {
+  uint16_t result = AVCT_SUCCESS;
+  tAVCT_CCB* p_ccb;
+  tAVCT_BCB* p_bcb;
+  int index;
 
-    AVCT_TRACE_API("AVCT_CreateBrowse: %d", role);
+  AVCT_TRACE_API("AVCT_CreateBrowse: %d", role);
 
-    /* map handle to ccb */
-    p_ccb = avct_ccb_by_idx(handle);
-    if (p_ccb == NULL)
-    {
-        return AVCT_BAD_HANDLE;
+  /* map handle to ccb */
+  p_ccb = avct_ccb_by_idx(handle);
+  if (p_ccb == NULL) {
+    return AVCT_BAD_HANDLE;
+  } else {
+    /* mark this CCB as supporting browsing channel */
+    if ((p_ccb->allocated & AVCT_ALOC_BCB) == 0) {
+      p_ccb->allocated |= AVCT_ALOC_BCB;
     }
-    else
-    {
-        /* mark this CCB as supporting browsing channel */
-        if ((p_ccb->allocated & AVCT_ALOC_BCB) == 0)
-        {
-            p_ccb->allocated |= AVCT_ALOC_BCB;
-        }
-    }
+  }
 
-    /* if initiator connection */
-    if (role == AVCT_INT)
-    {
-        /* the link control block must exist before this function is called as INT. */
-        if ((p_ccb->p_lcb == NULL) || (p_ccb->p_lcb->allocated == 0))
-        {
-            result = AVCT_NOT_OPEN;
-        }
-        else
-        {
-            /* find link; if none allocate a new one */
-            index = p_ccb->p_lcb->allocated;
-            if (index > AVCT_NUM_LINKS)
-            {
-                result = AVCT_BAD_HANDLE;
-            }
-            else
-            {
-                p_bcb = &avct_cb.bcb[index - 1];
-                p_bcb->allocated = index;
-            }
-        }
-
-        if (result == AVCT_SUCCESS)
-        {
-            /* bind bcb to ccb */
-            p_ccb->p_bcb = p_bcb;
-            memcpy(p_bcb->peer_addr, p_ccb->p_lcb->peer_addr, BD_ADDR_LEN);
-            AVCT_TRACE_DEBUG("ch_state: %d", p_bcb->ch_state);
-            avct_bcb_event(p_bcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
-        }
+  /* if initiator connection */
+  if (role == AVCT_INT) {
+    /* the link control block must exist before this function is called as INT.
+     */
+    if ((p_ccb->p_lcb == NULL) || (p_ccb->p_lcb->allocated == 0)) {
+      result = AVCT_NOT_OPEN;
+    } else {
+      /* find link; if none allocate a new one */
+      index = p_ccb->p_lcb->allocated;
+      if (index > AVCT_NUM_LINKS) {
+        result = AVCT_BAD_HANDLE;
+      } else {
+        p_bcb = &avct_cb.bcb[index - 1];
+        p_bcb->allocated = index;
+      }
     }
 
-    return result;
+    if (result == AVCT_SUCCESS) {
+      /* bind bcb to ccb */
+      p_ccb->p_bcb = p_bcb;
+      memcpy(p_bcb->peer_addr, p_ccb->p_lcb->peer_addr, BD_ADDR_LEN);
+      AVCT_TRACE_DEBUG("ch_state: %d", p_bcb->ch_state);
+      avct_bcb_event(p_bcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT*)&p_ccb);
+    }
+  }
+
+  return result;
 }
 
 /*******************************************************************************
@@ -310,26 +287,24 @@ uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
  * Returns          AVCT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVCT_RemoveBrowse (uint8_t handle)
-{
-    uint16_t            result = AVCT_SUCCESS;
-    tAVCT_CCB           *p_ccb;
+uint16_t AVCT_RemoveBrowse(uint8_t handle) {
+  uint16_t result = AVCT_SUCCESS;
+  tAVCT_CCB* p_ccb;
 
-    AVCT_TRACE_API("AVCT_RemoveBrowse");
+  AVCT_TRACE_API("AVCT_RemoveBrowse");
 
-    /* map handle to ccb */
-    p_ccb = avct_ccb_by_idx(handle);
-    if (p_ccb == NULL)
-    {
-        result = AVCT_BAD_HANDLE;
-    }
-    else if (p_ccb->p_bcb != NULL)
-    /* send unbind event to bcb */
-    {
-        avct_bcb_event(p_ccb->p_bcb, AVCT_LCB_UL_UNBIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
-    }
+  /* map handle to ccb */
+  p_ccb = avct_ccb_by_idx(handle);
+  if (p_ccb == NULL) {
+    result = AVCT_BAD_HANDLE;
+  } else if (p_ccb->p_bcb != NULL)
+  /* send unbind event to bcb */
+  {
+    avct_bcb_event(p_ccb->p_bcb, AVCT_LCB_UL_UNBIND_EVT,
+                   (tAVCT_LCB_EVT*)&p_ccb);
+  }
 
-    return result;
+  return result;
 }
 
 /*******************************************************************************
@@ -342,18 +317,16 @@ uint16_t AVCT_RemoveBrowse (uint8_t handle)
  * Returns          the peer browsing channel MTU.
  *
  ******************************************************************************/
-uint16_t AVCT_GetBrowseMtu (uint8_t handle)
-{
-    uint16_t peer_mtu = AVCT_MIN_BROWSE_MTU;
+uint16_t AVCT_GetBrowseMtu(uint8_t handle) {
+  uint16_t peer_mtu = AVCT_MIN_BROWSE_MTU;
 
-    tAVCT_CCB           *p_ccb;
+  tAVCT_CCB* p_ccb;
 
-    if ((p_ccb = avct_ccb_by_idx(handle)) != NULL && p_ccb->p_bcb != NULL)
-    {
-        peer_mtu = p_ccb->p_bcb->peer_mtu;
-    }
+  if ((p_ccb = avct_ccb_by_idx(handle)) != NULL && p_ccb->p_bcb != NULL) {
+    peer_mtu = p_ccb->p_bcb->peer_mtu;
+  }
 
-    return peer_mtu;
+  return peer_mtu;
 }
 
 /*******************************************************************************
@@ -366,22 +339,19 @@ uint16_t AVCT_GetBrowseMtu (uint8_t handle)
  * Returns          the peer MTU size.
  *
  ******************************************************************************/
-uint16_t AVCT_GetPeerMtu (uint8_t handle)
-{
-    uint16_t    peer_mtu = L2CAP_DEFAULT_MTU;
-    tAVCT_CCB   *p_ccb;
+uint16_t AVCT_GetPeerMtu(uint8_t handle) {
+  uint16_t peer_mtu = L2CAP_DEFAULT_MTU;
+  tAVCT_CCB* p_ccb;
 
-    /* map handle to ccb */
-    p_ccb = avct_ccb_by_idx(handle);
-    if (p_ccb != NULL)
-    {
-        if (p_ccb->p_lcb)
-        {
-            peer_mtu = p_ccb->p_lcb->peer_mtu;
-        }
+  /* map handle to ccb */
+  p_ccb = avct_ccb_by_idx(handle);
+  if (p_ccb != NULL) {
+    if (p_ccb->p_lcb) {
+      peer_mtu = p_ccb->p_lcb->peer_mtu;
     }
+  }
 
-    return peer_mtu;
+  return peer_mtu;
 }
 
 /*******************************************************************************
@@ -406,63 +376,55 @@ uint16_t AVCT_GetPeerMtu (uint8_t handle)
  * Returns          AVCT_SUCCESS if successful, otherwise error.
  *
  ******************************************************************************/
-uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg)
-{
-    uint16_t        result = AVCT_SUCCESS;
-    tAVCT_CCB       *p_ccb;
-    tAVCT_UL_MSG    ul_msg;
+uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR* p_msg) {
+  uint16_t result = AVCT_SUCCESS;
+  tAVCT_CCB* p_ccb;
+  tAVCT_UL_MSG ul_msg;
 
-    AVCT_TRACE_API("%s", __func__);
+  AVCT_TRACE_API("%s", __func__);
 
-    /* verify p_msg parameter */
-    if (p_msg == NULL)
-    {
-        return AVCT_NO_RESOURCES;
-    }
-    AVCT_TRACE_API("%s len: %d layer_specific: %d", __func__, p_msg->len, p_msg->layer_specific);
+  /* verify p_msg parameter */
+  if (p_msg == NULL) {
+    return AVCT_NO_RESOURCES;
+  }
+  AVCT_TRACE_API("%s len: %d layer_specific: %d", __func__, p_msg->len,
+                 p_msg->layer_specific);
 
-    /* map handle to ccb */
-    p_ccb = avct_ccb_by_idx(handle);
-    if (p_ccb == NULL)
-    {
+  /* map handle to ccb */
+  p_ccb = avct_ccb_by_idx(handle);
+  if (p_ccb == NULL) {
+    result = AVCT_BAD_HANDLE;
+    osi_free(p_msg);
+  }
+  /* verify channel is bound to link */
+  else if (p_ccb->p_lcb == NULL) {
+    result = AVCT_NOT_OPEN;
+    osi_free(p_msg);
+  }
+
+  if (result == AVCT_SUCCESS) {
+    ul_msg.p_buf = p_msg;
+    ul_msg.p_ccb = p_ccb;
+    ul_msg.label = label;
+    ul_msg.cr = cr;
+
+    /* send msg event to bcb */
+    if (p_msg->layer_specific == AVCT_DATA_BROWSE) {
+      if (p_ccb->p_bcb == NULL && (p_ccb->allocated & AVCT_ALOC_BCB) == 0) {
+        /* BCB channel is not open and not allocated */
         result = AVCT_BAD_HANDLE;
         osi_free(p_msg);
+      } else {
+        p_ccb->p_bcb = avct_bcb_by_lcb(p_ccb->p_lcb);
+        avct_bcb_event(p_ccb->p_bcb, AVCT_LCB_UL_MSG_EVT,
+                       (tAVCT_LCB_EVT*)&ul_msg);
+      }
     }
-    /* verify channel is bound to link */
-    else if (p_ccb->p_lcb == NULL)
-    {
-        result = AVCT_NOT_OPEN;
-        osi_free(p_msg);
+    /* send msg event to lcb */
+    else {
+      avct_lcb_event(p_ccb->p_lcb, AVCT_LCB_UL_MSG_EVT,
+                     (tAVCT_LCB_EVT*)&ul_msg);
     }
-
-    if (result == AVCT_SUCCESS)
-    {
-        ul_msg.p_buf = p_msg;
-        ul_msg.p_ccb = p_ccb;
-        ul_msg.label = label;
-        ul_msg.cr = cr;
-
-        /* send msg event to bcb */
-        if (p_msg->layer_specific == AVCT_DATA_BROWSE)
-        {
-            if (p_ccb->p_bcb == NULL && (p_ccb->allocated & AVCT_ALOC_BCB) == 0)
-            {
-                /* BCB channel is not open and not allocated */
-                result = AVCT_BAD_HANDLE;
-                osi_free(p_msg);
-            }
-            else
-            {
-                p_ccb->p_bcb = avct_bcb_by_lcb(p_ccb->p_lcb);
-                avct_bcb_event(p_ccb->p_bcb, AVCT_LCB_UL_MSG_EVT, (tAVCT_LCB_EVT *) &ul_msg);
-            }
-        }
-        /* send msg event to lcb */
-        else
-        {
-            avct_lcb_event(p_ccb->p_lcb, AVCT_LCB_UL_MSG_EVT, (tAVCT_LCB_EVT *) &ul_msg);
-        }
-    }
-    return result;
+  }
+  return result;
 }
-

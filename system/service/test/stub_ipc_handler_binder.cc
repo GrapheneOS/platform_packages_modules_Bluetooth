@@ -22,9 +22,8 @@
 
 namespace ipc {
 
-IPCHandlerBinder::IPCHandlerBinder(
-    bluetooth::Adapter* adapter,
-    IPCManager::Delegate* delegate)
+IPCHandlerBinder::IPCHandlerBinder(bluetooth::Adapter* adapter,
+                                   IPCManager::Delegate* delegate)
     : IPCHandler(adapter, delegate) {
   // Stub
 }

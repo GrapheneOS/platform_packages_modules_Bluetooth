@@ -33,7 +33,6 @@
 #include "service/settings.h"
 #include "service/test/mock_daemon.h"
 
-
 namespace {
 
 using testing::Return;
@@ -59,7 +58,8 @@ class IPCLinuxTest : public ::testing::Test {
     bluetooth::hal::BluetoothInterface::InitializeForTesting(
         new bluetooth::hal::FakeBluetoothInterface());
     bluetooth::hal::BluetoothGattInterface::InitializeForTesting(
-        new bluetooth::hal::FakeBluetoothGattInterface(nullptr, nullptr, nullptr, nullptr));
+        new bluetooth::hal::FakeBluetoothGattInterface(nullptr, nullptr,
+                                                       nullptr, nullptr));
 
     adapter_ = bluetooth::Adapter::Create();
     ipc_manager_.reset(new ipc::IPCManager(adapter_.get()));
@@ -79,7 +79,7 @@ class IPCLinuxTest : public ::testing::Test {
     std::string ipc_socket_arg =
         base::StringPrintf("--create-ipc-socket=%s", kTestSocketPath);
     const base::CommandLine::CharType* argv[] = {
-      "program", ipc_socket_arg.c_str(),
+        "program", ipc_socket_arg.c_str(),
     };
     base::CommandLine::Init(arraysize(argv), argv);
   }
@@ -93,8 +93,8 @@ class IPCLinuxTest : public ::testing::Test {
     address.sun_family = AF_UNIX;
     strncpy(address.sun_path, kTestSocketPath, sizeof(address.sun_path) - 1);
 
-    int status = connect(client_fd_.get(), (struct sockaddr *)&address,
-                         sizeof(address));
+    int status =
+        connect(client_fd_.get(), (struct sockaddr*)&address, sizeof(address));
     EXPECT_EQ(0, status);
   }
 
@@ -117,7 +117,7 @@ class IPCLinuxTestDisabled : public IPCLinuxTest {
 
   void SetUpCommandLine() override {
     // Set up with no --ipc-socket-path
-    const base::CommandLine::CharType* argv[] = { "program" };
+    const base::CommandLine::CharType* argv[] = {"program"};
     base::CommandLine::Init(arraysize(argv), argv);
   }
 
@@ -128,8 +128,7 @@ class IPCLinuxTestDisabled : public IPCLinuxTest {
 class TestDelegate : public ipc::IPCManager::Delegate,
                      public base::SupportsWeakPtr<TestDelegate> {
  public:
-  TestDelegate() : started_count_(0), stopped_count_(0) {
-  }
+  TestDelegate() : started_count_(0), stopped_count_(0) {}
 
   void OnIPCHandlerStarted(ipc::IPCManager::Type type) override {
     ASSERT_EQ(ipc::IPCManager::TYPE_LINUX, type);
