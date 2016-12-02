@@ -31,6 +31,13 @@
 extern "C" {
 #endif
 
+// Loads the A2DP SBC encoder.
+// Return true on success, otherwise false.
+bool A2DP_LoadEncoderSbc(void);
+
+// Unloads the A2DP SBC encoder.
+void A2DP_UnloadEncoderSbc(void);
+
 // Initialize the A2DP SBC encoder.
 // If |is_peer_edr| is true, the A2DP peer device supports EDR.
 // If |peer_supports_3mbps| is true, the A2DP peer device supports 3Mbps EDR.
@@ -40,11 +47,6 @@ void a2dp_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
                            const tA2DP_ENCODER_INIT_PARAMS* p_init_params,
                            a2dp_source_read_callback_t read_callback,
                            a2dp_source_enqueue_callback_t enqueue_callback);
-
-// Update the A2DP SBC encoder.
-// The encoder update parameters are in |p_update_params|.
-void a2dp_sbc_encoder_update(
-    const tA2DP_ENCODER_UPDATE_PARAMS* p_update_params);
 
 // Cleanup the A2DP SBC encoder.
 void a2dp_sbc_encoder_cleanup(void);

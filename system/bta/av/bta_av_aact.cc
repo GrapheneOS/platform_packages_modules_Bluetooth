@@ -1081,7 +1081,7 @@ void bta_av_free_sdb(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_config_ind(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
+void bta_av_config_ind(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   tBTA_AV_CI_SETCONFIG setconfig;
   tAVDT_SEP_INFO* p_info;
   tAVDT_CFG* p_evt_cfg = &p_data->str_msg.cfg;
@@ -1337,7 +1337,7 @@ void bta_av_str_opened(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   memset(&p_scb->q_info, 0, sizeof(tBTA_AV_Q_INFO));
 
   p_scb->l2c_bufs = 0;
-  p_scb->p_cos->open(p_scb->hndl, p_scb->cfg.codec_info, mtu);
+  p_scb->p_cos->open(p_scb->hndl, mtu);
 
   {
     /* TODO check if other audio channel is open.
@@ -1674,7 +1674,7 @@ void bta_av_cco_close(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
 
   mtu = bta_av_chk_mtu(p_scb, BTA_AV_MAX_A2DP_MTU);
 
-  p_scb->p_cos->close(p_scb->hndl, mtu);
+  p_scb->p_cos->close(p_scb->hndl);
 }
 
 /*******************************************************************************
@@ -2339,7 +2339,6 @@ void bta_av_start_failed(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
 void bta_av_str_closed(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   tBTA_AV data;
   tBTA_AV_EVT event;
-  uint16_t mtu;
   uint8_t policy = HCI_ENABLE_SNIFF_MODE;
 
   if ((bta_av_cb.features & BTA_AV_FEAT_MASTER) == 0 ||
@@ -2375,11 +2374,8 @@ void bta_av_str_closed(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
       bta_av_str_stopped(p_scb, NULL);
     }
 
-    /* Update common mtu shared by remaining connectons */
-    mtu = bta_av_chk_mtu(p_scb, BTA_AV_MAX_A2DP_MTU);
-
     {
-      p_scb->p_cos->close(p_scb->hndl, mtu);
+      p_scb->p_cos->close(p_scb->hndl);
       data.close.chnl = p_scb->chnl;
       data.close.hndl = p_scb->hndl;
       event = BTA_AV_CLOSE_EVT;

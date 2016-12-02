@@ -98,8 +98,8 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  ******************************************************************************/
 void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
                                uint8_t seid, BD_ADDR addr, uint8_t num_protect,
-                               uint8_t* p_protect_info, uint8_t t_local_sep,
-                               uint8_t avdt_handle);
+                               const uint8_t* p_protect_info,
+                               uint8_t t_local_sep, uint8_t avdt_handle);
 
 /*******************************************************************************
  *
@@ -114,8 +114,7 @@ void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, const uint8_t* p_codec_info,
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
-                          uint16_t mtu);
+void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint16_t mtu);
 
 /*******************************************************************************
  *
@@ -131,7 +130,7 @@ void bta_av_co_audio_open(tBTA_AV_HNDL hndl, uint8_t* p_codec_info,
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_co_audio_close(tBTA_AV_HNDL hndl, uint16_t mtu);
+void bta_av_co_audio_close(tBTA_AV_HNDL hndl);
 
 /*******************************************************************************
  *
