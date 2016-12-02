@@ -201,20 +201,7 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, uint16_t event, void* p_data) {
           tBTM_PM_PWR_MD settings;
           memset((void*)&settings, 0, sizeof(settings));
           settings.mode = BTM_PM_MD_ACTIVE;
-          /* COVERITY
-          Event uninit_use_in_call: Using uninitialized value "settings" (field
-          "settings".timeout uninitialized) in call to function
-          "BTM_SetPowerMode" [details]
-          Event uninit_use_in_call: Using uninitialized value "settings.max" in
-          call to function "BTM_SetPowerMode" [details]
-          Event uninit_use_in_call: Using uninitialized value "settings.min" in
-          call to function "BTM_SetPowerMode"
-          // false-POSITIVE error from Coverity test-tool. Please do NOT remove
-          following comment.
-          // coverity[uninit_use_in_call] False-positive: setting the mode to
-          BTM_PM_MD_ACTIVE only uses settings.mode the other data members of
-          tBTM_PM_PWR_MD are ignored
-          */
+
           BTM_SetPowerMode(BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr,
                            &settings);
         }
@@ -272,20 +259,7 @@ static void l2c_csm_closed(tL2C_CCB* p_ccb, uint16_t event, void* p_data) {
           tBTM_PM_PWR_MD settings;
           memset((void*)&settings, 0, sizeof(settings));
           settings.mode = BTM_PM_MD_ACTIVE;
-          /* COVERITY
-          Event uninit_use_in_call: Using uninitialized value "settings" (field
-          "settings".timeout uninitialized) in call to function
-          "BTM_SetPowerMode" [details]
-          Event uninit_use_in_call: Using uninitialized value "settings.max" in
-          call to function "BTM_SetPowerMode" [details]
-          Event uninit_use_in_call: Using uninitialized value "settings.min" in
-          call to function "BTM_SetPowerMode"
-          // false-POSITIVE error from Coverity test-tool. Please do NOT remove
-          following comment.
-          // coverity[uninit_use_in_call] False-positive: setting the mode to
-          BTM_PM_MD_ACTIVE only uses settings.mode the other data members of
-          tBTM_PM_PWR_MD are ignored
-          */
+
           BTM_SetPowerMode(BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr,
                            &settings);
         }

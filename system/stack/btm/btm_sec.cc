@@ -3357,12 +3357,6 @@ void btm_io_capabilities_req(uint8_t* p) {
   }
 
   if (err_code != 0) {
-    /* coverity[uninit_use_in_call]
-    Event uninit_use_in_call: Using uninitialized element of array
-    "evt_data.bd_addr" in call to function "memcmp"
-    False-positive: evt_data.bd_addr is set at the beginning with:
-    STREAM_TO_BDADDR (evt_data.bd_addr, p);
-    */
     btsnd_hcic_io_cap_req_neg_reply(evt_data.bd_addr, err_code);
     return;
   }
@@ -3391,12 +3385,6 @@ void btm_io_capabilities_req(uint8_t* p) {
 
   memcpy(btm_cb.pairing_bda, evt_data.bd_addr, BD_ADDR_LEN);
 
-  /* coverity[uninit_use_in_call]
-  Event uninit_use_in_call: Using uninitialized element of array
-  "evt_data.bd_addr" in call to function "memcmp"
-  False-positive: False-positive: evt_data.bd_addr is set at the beginning with:
-  STREAM_TO_BDADDR (evt_data.bd_addr, p);
-  */
   if (!memcmp(evt_data.bd_addr, btm_cb.connecting_bda, BD_ADDR_LEN))
     memcpy(p_dev_rec->dev_class, btm_cb.connecting_dc, DEV_CLASS_LEN);
 
@@ -3486,12 +3474,6 @@ void btm_io_capabilities_rsp(uint8_t* p) {
 
   /* We must have a device record here.
    * Use the connecting device's CoD for the connection */
-  /* coverity[uninit_use_in_call]
-  Event uninit_use_in_call: Using uninitialized element of array
-  "evt_data.bd_addr" in call to function "memcmp"
-  FALSE-POSITIVE error from Coverity test-tool. evt_data.bd_addr is set at the
-  beginning with:     STREAM_TO_BDADDR (evt_data.bd_addr, p);
-  */
   if (!memcmp(evt_data.bd_addr, btm_cb.connecting_bda, BD_ADDR_LEN))
     memcpy(p_dev_rec->dev_class, btm_cb.connecting_dc, DEV_CLASS_LEN);
 
@@ -4879,12 +4861,6 @@ static void btm_sec_pairing_timeout(UNUSED_ATTR void* data) {
 #endif
   uint8_t name[2];
 
-  /* Coverity: FALSE-POSITIVE error from Coverity tool. Please do NOT remove
-   * the following comment.
-   */
-  /* coverity[UNUSED_VALUE] pointer p_dev_rec is actually used several times...
-   * This is a Coverity false-positive, i.e. a fake issue.
-   */
   p_dev_rec = btm_find_dev(p_cb->pairing_bda);
 
   BTM_TRACE_EVENT("%s  State: %s   Flags: %u", __func__,
