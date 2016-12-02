@@ -29,18 +29,16 @@
 namespace ipc {
 
 IPCHandlerLinux::IPCHandlerLinux(bluetooth::Adapter* adapter,
-                               IPCManager::Delegate* delegate)
+                                 IPCManager::Delegate* delegate)
     : IPCHandler(adapter, delegate),
       running_(false),
       thread_("IPCHandlerLinux"),
-      keep_running_(true) {
-}
+      keep_running_(true) {}
 
 IPCHandlerLinux::~IPCHandlerLinux() {
   // This will only be set if the Settings::create_ipc_socket_path() was
   // originally provided.
-  if (!socket_path_.empty())
-    unlink(socket_path_.value().c_str());
+  if (!socket_path_.empty()) unlink(socket_path_.value().c_str());
 }
 
 bool IPCHandlerLinux::Run() {
@@ -112,8 +110,7 @@ bool IPCHandlerLinux::Run() {
   }
 
   thread_.task_runner()->PostTask(
-      FROM_HERE,
-      base::Bind(&IPCHandlerLinux::StartListeningOnThread, this));
+      FROM_HERE, base::Bind(&IPCHandlerLinux::StartListeningOnThread, this));
 
   return true;
 }
@@ -146,8 +143,7 @@ void IPCHandlerLinux::StartListeningOnThread() {
   if (status < 0) {
     LOG(ERROR) << "Failed to listen on domain socket: " << strerror(errno);
     origin_task_runner_->PostTask(
-        FROM_HERE,
-        base::Bind(&IPCHandlerLinux::ShutDownOnOriginThread, this));
+        FROM_HERE, base::Bind(&IPCHandlerLinux::ShutDownOnOriginThread, this));
     return;
   }
 
@@ -185,8 +181,7 @@ void IPCHandlerLinux::ShutDownOnOriginThread() {
 }
 
 void IPCHandlerLinux::NotifyStartedOnOriginThread() {
-  if (!delegate())
-    return;
+  if (!delegate()) return;
 
   origin_task_runner_->PostTask(
       FROM_HERE,
@@ -194,13 +189,11 @@ void IPCHandlerLinux::NotifyStartedOnOriginThread() {
 }
 
 void IPCHandlerLinux::NotifyStartedOnCurrentThread() {
-  if (delegate())
-    delegate()->OnIPCHandlerStarted(IPCManager::TYPE_LINUX);
+  if (delegate()) delegate()->OnIPCHandlerStarted(IPCManager::TYPE_LINUX);
 }
 
 void IPCHandlerLinux::NotifyStoppedOnOriginThread() {
-  if (!delegate())
-    return;
+  if (!delegate()) return;
 
   origin_task_runner_->PostTask(
       FROM_HERE,
@@ -208,8 +201,7 @@ void IPCHandlerLinux::NotifyStoppedOnOriginThread() {
 }
 
 void IPCHandlerLinux::NotifyStoppedOnCurrentThread() {
-  if (delegate())
-    delegate()->OnIPCHandlerStopped(IPCManager::TYPE_LINUX);
+  if (delegate()) delegate()->OnIPCHandlerStopped(IPCManager::TYPE_LINUX);
 }
 
 }  // namespace ipc

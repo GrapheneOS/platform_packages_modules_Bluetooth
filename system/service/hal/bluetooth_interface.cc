@@ -46,7 +46,7 @@ BluetoothInterface* g_bluetooth_interface = nullptr;
 
 // Mutex used by callbacks to access |g_interface|. If we initialize or clean it
 // use unique_lock. If only accessing |g_interface| use shared lock.
-//TODO(jpawlowski): this should be just shared_mutex, as we currently don't use
+// TODO(jpawlowski): this should be just shared_mutex, as we currently don't use
 // timed methods. Change to shared_mutex when we upgrade to C++14
 shared_mutex_impl g_instance_lock;
 
@@ -57,12 +57,12 @@ base::ObserverList<BluetoothInterface::Observer>* GetObservers();
 #define FOR_EACH_BLUETOOTH_OBSERVER(func) \
   FOR_EACH_OBSERVER(BluetoothInterface::Observer, *GetObservers(), func)
 
-#define VERIFY_INTERFACE_OR_RETURN() \
-  do { \
-    if (!g_bluetooth_interface) { \
+#define VERIFY_INTERFACE_OR_RETURN()                                   \
+  do {                                                                 \
+    if (!g_bluetooth_interface) {                                      \
       LOG(WARNING) << "Callback received while |g_interface| is NULL"; \
-      return; \
-    } \
+      return;                                                          \
+    }                                                                  \
   } while (0)
 
 void AdapterStateChangedCallback(bt_state_t state) {
@@ -72,8 +72,7 @@ void AdapterStateChangedCallback(bt_state_t state) {
   FOR_EACH_BLUETOOTH_OBSERVER(AdapterStateChangedCallback(state));
 }
 
-void AdapterPropertiesCallback(bt_status_t status,
-                               int num_properties,
+void AdapterPropertiesCallback(bt_status_t status, int num_properties,
                                bt_property_t* properties) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
@@ -84,17 +83,17 @@ void AdapterPropertiesCallback(bt_status_t status,
 }
 
 void RemoteDevicePropertiesCallback(bt_status_t status,
-                               bt_bdaddr_t *remote_bd_addr,
-                               int num_properties,
-                               bt_property_t* properties) {
+                                    bt_bdaddr_t* remote_bd_addr,
+                                    int num_properties,
+                                    bt_property_t* properties) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
-  VLOG(1) << " Remote device properties changed - status: " << BtStatusText(status)
+  VLOG(1) << " Remote device properties changed - status: "
+          << BtStatusText(status)
           << " - BD_ADDR: " << BtAddrString(remote_bd_addr)
           << ", num_properties: " << num_properties;
-  FOR_EACH_BLUETOOTH_OBSERVER(
-      RemoteDevicePropertiesCallback(status, remote_bd_addr, num_properties,
-                                     properties));
+  FOR_EACH_BLUETOOTH_OBSERVER(RemoteDevicePropertiesCallback(
+      status, remote_bd_addr, num_properties, properties));
 }
 
 void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
@@ -104,54 +103,47 @@ void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
   FOR_EACH_BLUETOOTH_OBSERVER(DiscoveryStateChangedCallback(state));
 }
 
-void PinRequestCallback(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *bd_name,
-    uint32_t cod, bool min_16_digit) {
+void PinRequestCallback(bt_bdaddr_t* remote_bd_addr, bt_bdname_t* bd_name,
+                        uint32_t cod, bool min_16_digit) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
-  VLOG(2) << __func__
-          << " - remote_bd_addr: " << remote_bd_addr
-          << " - bd_name: " << bd_name
-          << " - cod: " << cod
+  VLOG(2) << __func__ << " - remote_bd_addr: " << remote_bd_addr
+          << " - bd_name: " << bd_name << " - cod: " << cod
           << " - min_16_digit: " << min_16_digit;
-  FOR_EACH_BLUETOOTH_OBSERVER(PinRequestCallback(remote_bd_addr, bd_name, cod, min_16_digit));
+  FOR_EACH_BLUETOOTH_OBSERVER(
+      PinRequestCallback(remote_bd_addr, bd_name, cod, min_16_digit));
 }
 
-void SSPRequestCallback(bt_bdaddr_t *remote_bd_addr,
-    bt_bdname_t *bd_name, uint32_t cod, bt_ssp_variant_t pairing_variant, uint32_t pass_key) {
+void SSPRequestCallback(bt_bdaddr_t* remote_bd_addr, bt_bdname_t* bd_name,
+                        uint32_t cod, bt_ssp_variant_t pairing_variant,
+                        uint32_t pass_key) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
-  VLOG(2) << __func__
-          << " - remote_bd_addr: " << remote_bd_addr
-          << " - bd_name: " << bd_name
-          << " - cod: " << cod
+  VLOG(2) << __func__ << " - remote_bd_addr: " << remote_bd_addr
+          << " - bd_name: " << bd_name << " - cod: " << cod
           << " - pairing_variant: " << pairing_variant;
   FOR_EACH_BLUETOOTH_OBSERVER(SSPRequestCallback(remote_bd_addr, bd_name, cod,
-      pairing_variant, pass_key));
+                                                 pairing_variant, pass_key));
 }
 
-void BondStateChangedCallback(
-    bt_status_t status,
-    bt_bdaddr_t *remote_bd_addr,
-    bt_bond_state_t state) {
+void BondStateChangedCallback(bt_status_t status, bt_bdaddr_t* remote_bd_addr,
+                              bt_bond_state_t state) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
-  VLOG(2) << __func__
-          << " - remote_bd_addr: " << BtAddrString(remote_bd_addr)
-          << " - status: " << status
-          << " - state: " << state;
-  FOR_EACH_BLUETOOTH_OBSERVER(BondStateChangedCallback(status, remote_bd_addr, state));
+  VLOG(2) << __func__ << " - remote_bd_addr: " << BtAddrString(remote_bd_addr)
+          << " - status: " << status << " - state: " << state;
+  FOR_EACH_BLUETOOTH_OBSERVER(
+      BondStateChangedCallback(status, remote_bd_addr, state));
 }
 
-void AclStateChangedCallback(bt_status_t status,
-                             bt_bdaddr_t *remote_bd_addr,
+void AclStateChangedCallback(bt_status_t status, bt_bdaddr_t* remote_bd_addr,
                              bt_acl_state_t state) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(remote_bd_addr);
   VLOG(1) << "Remote device ACL state changed - status: "
           << BtStatusText(status)
-          << " - BD_ADDR: " << BtAddrString(remote_bd_addr)
-          << " - state: "
+          << " - BD_ADDR: " << BtAddrString(remote_bd_addr) << " - state: "
           << ((state == BT_ACL_STATE_CONNECTED) ? "CONNECTED" : "DISCONNECTED");
   FOR_EACH_BLUETOOTH_OBSERVER(
       AclStateChangedCallback(status, *remote_bd_addr, state));
@@ -164,10 +156,8 @@ void ThreadEventCallback(bt_cb_thread_evt evt) {
   // out if this is not set. Consider making this optional.
 }
 
-bool SetWakeAlarmCallout(uint64_t /* delay_millis */,
-                         bool /* should_wake */,
-                         alarm_cb /* cb */,
-                         void* /* data */) {
+bool SetWakeAlarmCallout(uint64_t /* delay_millis */, bool /* should_wake */,
+                         alarm_cb /* cb */, void* /* data */) {
   // TODO(armansito): According to sharvil@, this interface doesn't even need to
   // exist and can be done entirely from within osi by interfacing directly with
   // the kernel. Remove these stubs once that's fixed. (See http://b/23390297)
@@ -194,42 +184,35 @@ int ReleaseWakeLockCallout(const char* /* lock_name */) {
 
 // The HAL Bluetooth DM callbacks.
 bt_callbacks_t bt_callbacks = {
-  sizeof(bt_callbacks_t),
-  AdapterStateChangedCallback,
-  AdapterPropertiesCallback,
-  RemoteDevicePropertiesCallback,
-  nullptr, /* device_found_cb */
-  DiscoveryStateChangedCallback,
-  PinRequestCallback,
-  SSPRequestCallback,
-  BondStateChangedCallback,
-  AclStateChangedCallback,
-  ThreadEventCallback,
-  nullptr, /* dut_mode_recv_cb */
-  nullptr, /* le_test_mode_cb */
-  nullptr  /* energy_info_cb */
+    sizeof(bt_callbacks_t),
+    AdapterStateChangedCallback,
+    AdapterPropertiesCallback,
+    RemoteDevicePropertiesCallback,
+    nullptr, /* device_found_cb */
+    DiscoveryStateChangedCallback,
+    PinRequestCallback,
+    SSPRequestCallback,
+    BondStateChangedCallback,
+    AclStateChangedCallback,
+    ThreadEventCallback,
+    nullptr, /* dut_mode_recv_cb */
+    nullptr, /* le_test_mode_cb */
+    nullptr  /* energy_info_cb */
 };
 
-bt_os_callouts_t bt_os_callouts = {
-  sizeof(bt_os_callouts_t),
-  SetWakeAlarmCallout,
-  AcquireWakeLockCallout,
-  ReleaseWakeLockCallout
-};
+bt_os_callouts_t bt_os_callouts = {sizeof(bt_os_callouts_t),
+                                   SetWakeAlarmCallout, AcquireWakeLockCallout,
+                                   ReleaseWakeLockCallout};
 
 }  // namespace
 
 // BluetoothInterface implementation for production.
 class BluetoothInterfaceImpl : public BluetoothInterface {
  public:
-  BluetoothInterfaceImpl()
-      : hal_iface_(nullptr),
-        hal_adapter_(nullptr) {
-  }
+  BluetoothInterfaceImpl() : hal_iface_(nullptr), hal_adapter_(nullptr) {}
 
   ~BluetoothInterfaceImpl() override {
-    if (hal_iface_)
-        hal_iface_->cleanup();
+    if (hal_iface_) hal_iface_->cleanup();
   }
 
   // BluetoothInterface overrides.
@@ -243,9 +226,7 @@ class BluetoothInterfaceImpl : public BluetoothInterface {
     observers_.RemoveObserver(observer);
   }
 
-  const bt_interface_t* GetHALInterface() const override {
-    return hal_iface_;
-  }
+  const bt_interface_t* GetHALInterface() const override { return hal_iface_; }
 
   const bluetooth_device_t* GetHALAdapter() const override {
     return hal_adapter_;
@@ -317,8 +298,8 @@ namespace {
 // function is NOT thread safe.
 base::ObserverList<BluetoothInterface::Observer>* GetObservers() {
   CHECK(g_bluetooth_interface);
-  return static_cast<BluetoothInterfaceImpl*>(
-      g_bluetooth_interface)->observers();
+  return static_cast<BluetoothInterfaceImpl*>(g_bluetooth_interface)
+      ->observers();
 }
 
 }  // namespace
@@ -331,17 +312,14 @@ void BluetoothInterface::Observer::AdapterStateChangedCallback(
 }
 
 void BluetoothInterface::Observer::AdapterPropertiesCallback(
-    bt_status_t /* status */,
-    int /* num_properties */,
+    bt_status_t /* status */, int /* num_properties */,
     bt_property_t* /* properties */) {
   // Do nothing.
 }
 
 void BluetoothInterface::Observer::RemoteDevicePropertiesCallback(
-    bt_status_t /* status */,
-    bt_bdaddr_t* /* remote_bd_addr */,
-    int /* num_properties */,
-    bt_property_t* /* properties */) {
+    bt_status_t /* status */, bt_bdaddr_t* /* remote_bd_addr */,
+    int /* num_properties */, bt_property_t* /* properties */) {
   // Do nothing.
 }
 
@@ -351,32 +329,24 @@ void BluetoothInterface::Observer::DiscoveryStateChangedCallback(
 }
 
 void BluetoothInterface::Observer::PinRequestCallback(
-    bt_bdaddr_t *remote_bd_addr,
-    bt_bdname_t *bd_name,
-    uint32_t cod,
+    bt_bdaddr_t* remote_bd_addr, bt_bdname_t* bd_name, uint32_t cod,
     bool min_16_digit) {
   // Do nothing.
 }
 
 void BluetoothInterface::Observer::SSPRequestCallback(
-    bt_bdaddr_t *remote_bd_addr,
-    bt_bdname_t *bd_name,
-    uint32_t cod,
-    bt_ssp_variant_t pairing_variant,
-    uint32_t pass_key) {
+    bt_bdaddr_t* remote_bd_addr, bt_bdname_t* bd_name, uint32_t cod,
+    bt_ssp_variant_t pairing_variant, uint32_t pass_key) {
   // Do nothing.
 }
 
 void BluetoothInterface::Observer::BondStateChangedCallback(
-    bt_status_t status,
-    bt_bdaddr_t *remote_bd_addr,
-    bt_bond_state_t state) {
+    bt_status_t status, bt_bdaddr_t* remote_bd_addr, bt_bond_state_t state) {
   // Do nothing.
 }
 
 void BluetoothInterface::Observer::AclStateChangedCallback(
-    bt_status_t /* status */,
-    const bt_bdaddr_t& /* remote_bdaddr */,
+    bt_status_t /* status */, const bt_bdaddr_t& /* remote_bdaddr */,
     bt_acl_state_t /* state */) {
   // Do nothing.
 }

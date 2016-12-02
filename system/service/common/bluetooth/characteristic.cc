@@ -39,7 +39,8 @@ Characteristic& Characteristic::operator=(const Characteristic& other) {
 
 bool Characteristic::Equals(const Characteristic& other) const {
   return handle_ == other.handle_ && uuid_ == other.uuid_ &&
-         properties_ == other.properties_ && permissions_ == other.permissions_ &&
+         properties_ == other.properties_ &&
+         permissions_ == other.permissions_ &&
          descriptors_ == other.descriptors_;
 }
 

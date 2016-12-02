@@ -68,16 +68,13 @@ void BluetoothTest::TearDown() {
 }
 
 void BluetoothTest::ClearSemaphore(semaphore_t* sem) {
-  while (semaphore_try_wait(sem));
+  while (semaphore_try_wait(sem))
+    ;
 }
 
-const bt_interface_t* BluetoothTest::bt_interface() {
-  return bt_interface_;
-}
+const bt_interface_t* BluetoothTest::bt_interface() { return bt_interface_; }
 
-bt_state_t BluetoothTest::GetState() {
-  return state_;
-}
+bt_state_t BluetoothTest::GetState() { return state_; }
 
 int BluetoothTest::GetPropertiesChangedCount() {
   return properties_changed_count_;
@@ -94,8 +91,7 @@ bt_property_t* BluetoothTest::GetProperty(bt_property_type_t type) {
 
 bt_property_t* BluetoothTest::GetRemoteDeviceProperty(const bt_bdaddr_t* addr,
                                                       bt_property_type_t type) {
-  if (!bdaddr_equals(&curr_remote_device_, addr))
-    return nullptr;
+  if (!bdaddr_equals(&curr_remote_device_, addr)) return nullptr;
 
   for (int i = 0; i < remote_device_properties_changed_count_; i++) {
     if (remote_device_last_changed_properties_[i].type == type) {
@@ -109,14 +105,10 @@ bt_discovery_state_t BluetoothTest::GetDiscoveryState() {
   return discovery_state_;
 }
 
-bt_acl_state_t BluetoothTest::GetAclState() {
-  return acl_state_;
-}
+bt_acl_state_t BluetoothTest::GetAclState() { return acl_state_; }
 
 // Returns the device bond state.
-bt_bond_state_t BluetoothTest::GetBondState() {
-  return bond_state_;
-}
+bt_bond_state_t BluetoothTest::GetBondState() { return bond_state_; }
 
 // callback
 void BluetoothTest::AdapterStateChangedCallback(bt_state_t new_state) {
@@ -125,27 +117,26 @@ void BluetoothTest::AdapterStateChangedCallback(bt_state_t new_state) {
 }
 
 // callback
-void BluetoothTest::AdapterPropertiesCallback(
-    bt_status_t status,
-    int num_properties,
-    bt_property_t* new_properties) {
+void BluetoothTest::AdapterPropertiesCallback(bt_status_t status,
+                                              int num_properties,
+                                              bt_property_t* new_properties) {
   property_free_array(last_changed_properties_, properties_changed_count_);
-  last_changed_properties_ = property_copy_array(new_properties, num_properties);
+  last_changed_properties_ =
+      property_copy_array(new_properties, num_properties);
   properties_changed_count_ = num_properties;
   semaphore_post(adapter_properties_callback_sem_);
 }
 
-//callback
-void BluetoothTest::RemoteDevicePropertiesCallback(
-    bt_status_t status,
-    bt_bdaddr_t *remote_bd_addr,
-    int num_properties,
-    bt_property_t *properties) {
+// callback
+void BluetoothTest::RemoteDevicePropertiesCallback(bt_status_t status,
+                                                   bt_bdaddr_t* remote_bd_addr,
+                                                   int num_properties,
+                                                   bt_property_t* properties) {
   bdaddr_copy(&curr_remote_device_, remote_bd_addr);
   property_free_array(remote_device_last_changed_properties_,
                       remote_device_properties_changed_count_);
-  remote_device_last_changed_properties_ = property_copy_array(properties,
-                                                               num_properties);
+  remote_device_last_changed_properties_ =
+      property_copy_array(properties, num_properties);
   remote_device_properties_changed_count_ = num_properties;
   semaphore_post(remote_device_properties_callback_sem_);
 }
@@ -156,4 +147,4 @@ void BluetoothTest::DiscoveryStateChangedCallback(bt_discovery_state_t state) {
   semaphore_post(discovery_state_changed_callback_sem_);
 }
 
-} // bttest
+}  // bttest

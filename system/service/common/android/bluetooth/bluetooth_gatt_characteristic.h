@@ -28,10 +28,12 @@ using android::status_t;
 namespace android {
 namespace bluetooth {
 
-class BluetoothGattCharacteristic : public Parcelable, public ::bluetooth::Characteristic {
+class BluetoothGattCharacteristic : public Parcelable,
+                                    public ::bluetooth::Characteristic {
  public:
   BluetoothGattCharacteristic() = default;
-  BluetoothGattCharacteristic(const ::bluetooth::Characteristic& characteristic)  // NOLINT(implicit)
+  BluetoothGattCharacteristic(
+      const ::bluetooth::Characteristic& characteristic)  // NOLINT(implicit)
       : ::bluetooth::Characteristic(characteristic){};
   ~BluetoothGattCharacteristic() = default;
 

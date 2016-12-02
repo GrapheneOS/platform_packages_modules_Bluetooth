@@ -20,55 +20,52 @@
 #define SRVC_BATTERY_INT_H
 
 #include "bt_target.h"
-#include "srvc_api.h"
 #include "gatt_api.h"
+#include "srvc_api.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef BA_MAX_INT_NUM
-#define BA_MAX_INT_NUM     4
+#define BA_MAX_INT_NUM 4
 #endif
 
-#define BATTERY_LEVEL_SIZE      1
+#define BATTERY_LEVEL_SIZE 1
 
+typedef struct {
+  uint8_t app_id;
+  uint16_t ba_level_hdl;
+  uint16_t clt_cfg_hdl;
+  uint16_t rpt_ref_hdl;
+  uint16_t pres_fmt_hdl;
 
-typedef struct
-{
-    uint8_t         app_id;
-    uint16_t        ba_level_hdl;
-    uint16_t        clt_cfg_hdl;
-    uint16_t        rpt_ref_hdl;
-    uint16_t        pres_fmt_hdl;
+  tBA_CBACK* p_cback;
 
-    tBA_CBACK       *p_cback;
+  uint16_t pending_handle;
+  uint8_t pending_clcb_idx;
+  uint8_t pending_evt;
 
-    uint16_t        pending_handle;
-    uint8_t         pending_clcb_idx;
-    uint8_t         pending_evt;
+} tBA_INST;
 
-}tBA_INST;
+typedef struct {
+  tBA_INST battery_inst[BA_MAX_INT_NUM];
+  uint8_t inst_id;
+  bool enabled;
 
-typedef struct
-{
-    tBA_INST                battery_inst[BA_MAX_INT_NUM];
-    uint8_t                 inst_id;
-    bool                    enabled;
-
-}tBATTERY_CB;
+} tBATTERY_CB;
 
 /* Global GATT data */
 extern tBATTERY_CB battery_cb;
 
+extern bool battery_valid_handle_range(uint16_t handle);
 
-extern bool    battery_valid_handle_range(uint16_t handle);
-
-extern uint8_t battery_s_write_attr_value(uint8_t clcb_idx, tGATT_WRITE_REQ * p_value,
-                                 tGATT_STATUS *p_status);
-extern uint8_t battery_s_read_attr_value (uint8_t clcb_idx, uint16_t handle, tGATT_VALUE *p_value, bool    is_long, tGATT_STATUS* p_status);
-
-
+extern uint8_t battery_s_write_attr_value(uint8_t clcb_idx,
+                                          tGATT_WRITE_REQ* p_value,
+                                          tGATT_STATUS* p_status);
+extern uint8_t battery_s_read_attr_value(uint8_t clcb_idx, uint16_t handle,
+                                         tGATT_VALUE* p_value, bool is_long,
+                                         tGATT_STATUS* p_status);
 
 #ifdef __cplusplus
 }

@@ -91,8 +91,8 @@ const btgatt_server_interface_t* GattTest::gatt_server_interface() {
 }
 
 void GattTest::RegisterClientCallback(
-    bluetooth::hal::BluetoothGattInterface* /* unused */,
-    int status, int clientIf, const bt_uuid_t& app_uuid) {
+    bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+    int clientIf, const bt_uuid_t& app_uuid) {
   status_ = status;
   client_interface_id_ = clientIf;
   semaphore_post(register_client_callback_sem_);
@@ -106,16 +106,16 @@ void GattTest::ScanResultCallback(
 
 // GATT server callbacks
 void GattTest::RegisterServerCallback(
-    bluetooth::hal::BluetoothGattInterface* /* unused */,
-    int status, int server_if, const bt_uuid_t& uuid) {
+    bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+    int server_if, const bt_uuid_t& uuid) {
   status_ = status;
   server_interface_id_ = server_if;
   semaphore_post(register_server_callback_sem_);
 }
 
 void GattTest::ServiceAddedCallback(
-    bluetooth::hal::BluetoothGattInterface* /* unused */,
-    int status, int server_if, vector<btgatt_db_element_t> service) {
+    bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+    int server_if, vector<btgatt_db_element_t> service) {
   status_ = status;
   server_interface_id_ = server_if;
   service_handle_ = service[0].attribute_handle;
@@ -123,8 +123,8 @@ void GattTest::ServiceAddedCallback(
 }
 
 void GattTest::ServiceStoppedCallback(
-    bluetooth::hal::BluetoothGattInterface* /* unused */,
-    int status, int server_if, int srvc_handle) {
+    bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+    int server_if, int srvc_handle) {
   status_ = status;
   server_interface_id_ = server_if;
   service_handle_ = srvc_handle;
@@ -132,8 +132,8 @@ void GattTest::ServiceStoppedCallback(
 }
 
 void GattTest::ServiceDeletedCallback(
-    bluetooth::hal::BluetoothGattInterface* /* unused */,
-    int status, int server_if, int srvc_handle) {
+    bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
+    int server_if, int srvc_handle) {
   status_ = status;
   server_interface_id_ = server_if;
   service_handle_ = srvc_handle;

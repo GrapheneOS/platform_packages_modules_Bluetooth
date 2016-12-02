@@ -32,17 +32,17 @@
 #include <binder/IServiceManager.h>
 #include <binder/ProcessState.h>
 
-#include <bluetooth/adapter_state.h>
 #include <android/bluetooth/BnBluetoothCallback.h>
 #include <android/bluetooth/BnBluetoothGattClientCallback.h>
-#include <android/bluetooth/BnBluetoothLowEnergyCallback.h>
 #include <android/bluetooth/BnBluetoothLeAdvertiserCallback.h>
 #include <android/bluetooth/BnBluetoothLeScannerCallback.h>
+#include <android/bluetooth/BnBluetoothLowEnergyCallback.h>
 #include <android/bluetooth/IBluetooth.h>
 #include <android/bluetooth/IBluetoothGattClient.h>
 #include <android/bluetooth/IBluetoothLeAdvertiser.h>
 #include <android/bluetooth/IBluetoothLeScanner.h>
 #include <android/bluetooth/IBluetoothLowEnergy.h>
+#include <bluetooth/adapter_state.h>
 #include <bluetooth/low_energy_constants.h>
 #include <bluetooth/scan_filter.h>
 #include <bluetooth/scan_settings.h>
@@ -435,7 +435,8 @@ void HandleSupportsMultiAdv(IBluetooth* bt_iface, const vector<string>& args) {
   PrintFieldAndBoolValue("Multi-advertisement support", multi_adv);
 }
 
-void HandleRegisterBLEAdvertiser(IBluetooth* bt_iface, const vector<string>& args) {
+void HandleRegisterBLEAdvertiser(IBluetooth* bt_iface,
+                                 const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
   if (ble_advertiser_registering.load()) {
@@ -456,12 +457,14 @@ void HandleRegisterBLEAdvertiser(IBluetooth* bt_iface, const vector<string>& arg
   }
 
   bool status;
-  ble_advertiser_iface->RegisterAdvertiser(new CLIBluetoothLeAdvertiserCallback(), &status);
+  ble_advertiser_iface->RegisterAdvertiser(
+      new CLIBluetoothLeAdvertiserCallback(), &status);
   ble_advertiser_registering = status;
   PrintCommandStatus(status);
 }
 
-void HandleUnregisterBLEAdvertiser(IBluetooth* bt_iface, const vector<string>& args) {
+void HandleUnregisterBLEAdvertiser(IBluetooth* bt_iface,
+                                   const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
   if (!ble_advertiser_id.load()) {
@@ -705,8 +708,8 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
   bluetooth::AdvertiseData scan_rsp;
 
   bool status;
-  ble_advertiser_iface->StartMultiAdvertising(ble_advertiser_id.load(), adv_data, scan_rsp,
-                                   settings, &status);
+  ble_advertiser_iface->StartMultiAdvertising(
+      ble_advertiser_id.load(), adv_data, scan_rsp, settings, &status);
   PrintCommandStatus(status);
 }
 
@@ -821,8 +824,8 @@ void HandleSetMtu(IBluetooth* bt_iface, const vector<string>& args) {
   PrintCommandStatus(status);
 }
 
-
-void HandleRegisterBLEScanner(IBluetooth* bt_iface, const vector<string>& args) {
+void HandleRegisterBLEScanner(IBluetooth* bt_iface,
+                              const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
   if (ble_scanner_registering.load()) {
@@ -843,12 +846,14 @@ void HandleRegisterBLEScanner(IBluetooth* bt_iface, const vector<string>& args) 
   }
 
   bool status;
-  ble_scanner_iface->RegisterScanner(new CLIBluetoothLeScannerCallback(), &status);
+  ble_scanner_iface->RegisterScanner(new CLIBluetoothLeScannerCallback(),
+                                     &status);
   ble_scanner_registering = status;
   PrintCommandStatus(status);
 }
 
-void HandleUnregisterBLEScanner(IBluetooth* bt_iface, const vector<string>& args) {
+void HandleUnregisterBLEScanner(IBluetooth* bt_iface,
+                                const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
   if (!ble_scanner_id.load()) {
@@ -900,7 +905,8 @@ void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
   std::vector<android::bluetooth::ScanFilter> filters;
 
   bool status;
-  ble_scanner_iface->StartScan(ble_scanner_id.load(), settings, filters, &status);
+  ble_scanner_iface->StartScan(ble_scanner_id.load(), settings, filters,
+                               &status);
   PrintCommandStatus(status);
 }
 
@@ -981,13 +987,11 @@ void HandleHelp(IBluetooth* /* bt_iface */, const vector<string>& /* args */) {
 const char kExecuteLong[] = "exec";
 const char kExecuteShort[] = "e";
 
-bool ExecuteCommand(const sp<IBluetooth>& bt_iface, std::string &command) {
-  vector<string> args =
-      base::SplitString(command, " ", base::TRIM_WHITESPACE,
-                        base::SPLIT_WANT_ALL);
+bool ExecuteCommand(const sp<IBluetooth>& bt_iface, std::string& command) {
+  vector<string> args = base::SplitString(command, " ", base::TRIM_WHITESPACE,
+                                          base::SPLIT_WANT_ALL);
 
-  if (args.empty())
-    return true;
+  if (args.empty()) return true;
 
   // The first argument is the command while the remaining are what we pass to
   // the handler functions.
@@ -1026,7 +1030,6 @@ class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
  private:
   DISALLOW_COPY_AND_ASSIGN(BluetoothDeathRecipient);
 };
-
 
 int main(int argc, char* argv[]) {
   base::AtExitManager exit_manager;
@@ -1076,18 +1079,15 @@ int main(int argc, char* argv[]) {
   }
 
   if (command_line->HasSwitch(kExecuteShort)) {
-    if (!command.empty())
-      command += " ; ";
+    if (!command.empty()) command += " ; ";
     command += command_line->GetSwitchValueASCII(kExecuteShort);
   }
 
   while (true) {
-    vector<string> commands = base::SplitString(command, ";",
-                                                base::TRIM_WHITESPACE,
-                                                base::SPLIT_WANT_ALL);
+    vector<string> commands = base::SplitString(
+        command, ";", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
     for (string command : commands) {
-      if (!ExecuteCommand(bt_iface, command))
-        break;
+      if (!ExecuteCommand(bt_iface, command)) break;
     }
 
     commands.clear();

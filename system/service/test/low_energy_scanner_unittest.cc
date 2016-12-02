@@ -38,8 +38,7 @@ class MockGattHandler
     : public hal::FakeBluetoothGattInterface::TestScannerHandler {
  public:
   MockGattHandler() {
-    ON_CALL(*this, Scan(false))
-        .WillByDefault(Return(BT_STATUS_SUCCESS));
+    ON_CALL(*this, Scan(false)).WillByDefault(Return(BT_STATUS_SUCCESS));
   }
   ~MockGattHandler() override = default;
 
@@ -53,8 +52,7 @@ class MockGattHandler
 
 class TestDelegate : public LowEnergyScanner::Delegate {
  public:
-  TestDelegate() : scan_result_count_(0) {
-  }
+  TestDelegate() : scan_result_count_(0) {}
 
   ~TestDelegate() override = default;
 
@@ -81,14 +79,12 @@ class LowEnergyScannerTest : public ::testing::Test {
 
   void SetUp() override {
     // Only set |mock_handler_| if a test hasn't set it.
-    if (!mock_handler_)
-        mock_handler_.reset(new MockGattHandler());
+    if (!mock_handler_) mock_handler_.reset(new MockGattHandler());
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
         nullptr,
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestScannerHandler>(mock_handler_),
-        nullptr,
-        nullptr);
+        nullptr, nullptr);
     hal::BluetoothGattInterface::InitializeForTesting(fake_hal_gatt_iface_);
     ble_factory_.reset(new LowEnergyScannerFactory(mock_adapter_));
   }
@@ -111,8 +107,7 @@ class LowEnergyScannerTest : public ::testing::Test {
 // Used for tests that operate on a pre-registered scanner.
 class LowEnergyScannerPostRegisterTest : public LowEnergyScannerTest {
  public:
-  LowEnergyScannerPostRegisterTest() : next_scanner_id_(0) {
-  }
+  LowEnergyScannerPostRegisterTest() : next_scanner_id_(0) {}
   ~LowEnergyScannerPostRegisterTest() override = default;
 
   void SetUp() override {
@@ -136,7 +131,7 @@ class LowEnergyScannerPostRegisterTest : public LowEnergyScannerTest {
           callback) {
     UUID uuid = UUID::GetRandom();
     auto api_callback = [&](BLEStatus status, const UUID& in_uuid,
-                        std::unique_ptr<BluetoothInstance> in_scanner) {
+                            std::unique_ptr<BluetoothInstance> in_scanner) {
       CHECK(in_uuid == uuid);
       CHECK(in_scanner.get());
       CHECK(status == BLE_STATUS_SUCCESS);
@@ -152,8 +147,8 @@ class LowEnergyScannerPostRegisterTest : public LowEnergyScannerTest {
     ble_factory_->RegisterInstance(uuid, api_callback);
 
     bt_uuid_t hal_uuid = uuid.GetBlueDroid();
-    fake_hal_gatt_iface_->NotifyRegisterScannerCallback(
-        0, next_scanner_id_++, hal_uuid);
+    fake_hal_gatt_iface_->NotifyRegisterScannerCallback(0, next_scanner_id_++,
+                                                        hal_uuid);
     ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
   }
 
@@ -181,12 +176,12 @@ TEST_F(LowEnergyScannerTest, RegisterInstance) {
 
   auto callback = [&](BLEStatus in_status, const UUID& uuid,
                       std::unique_ptr<BluetoothInstance> in_scanner) {
-        status = in_status;
-        cb_uuid = uuid;
-        scanner = std::unique_ptr<LowEnergyScanner>(
-            static_cast<LowEnergyScanner*>(in_scanner.release()));
-        callback_count++;
-      };
+    status = in_status;
+    cb_uuid = uuid;
+    scanner = std::unique_ptr<LowEnergyScanner>(
+        static_cast<LowEnergyScanner*>(in_scanner.release()));
+    callback_count++;
+  };
 
   UUID uuid0 = UUID::GetRandom();
 
@@ -220,11 +215,12 @@ TEST_F(LowEnergyScannerTest, RegisterInstance) {
   // |uuid0| succeeds.
   int scanner_if0 = 2;  // Pick something that's not 0.
   hal_uuid = uuid0.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterScannerCallback(
-      BT_STATUS_SUCCESS, scanner_if0, hal_uuid);
+  fake_hal_gatt_iface_->NotifyRegisterScannerCallback(BT_STATUS_SUCCESS,
+                                                      scanner_if0, hal_uuid);
 
   EXPECT_EQ(1, callback_count);
-  ASSERT_TRUE(scanner.get() != nullptr);  // Assert to terminate in case of error
+  ASSERT_TRUE(scanner.get() !=
+              nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_SUCCESS, status);
   EXPECT_EQ(scanner_if0, scanner->GetInstanceId());
   EXPECT_EQ(uuid0, scanner->GetAppIdentifier());
@@ -240,11 +236,12 @@ TEST_F(LowEnergyScannerTest, RegisterInstance) {
   // |uuid1| fails.
   int scanner_if1 = 3;
   hal_uuid = uuid1.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterScannerCallback(
-      BT_STATUS_FAIL, scanner_if1, hal_uuid);
+  fake_hal_gatt_iface_->NotifyRegisterScannerCallback(BT_STATUS_FAIL,
+                                                      scanner_if1, hal_uuid);
 
   EXPECT_EQ(2, callback_count);
-  ASSERT_TRUE(scanner.get() == nullptr);  // Assert to terminate in case of error
+  ASSERT_TRUE(scanner.get() ==
+              nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_FAILURE, status);
   EXPECT_EQ(uuid1, cb_uuid);
 }
@@ -284,31 +281,26 @@ TEST_F(LowEnergyScannerPostRegisterTest, ScanRecord) {
 
   EXPECT_EQ(0, delegate.scan_result_count());
 
-  vector<uint8_t> kTestRecord0({ 0x02, 0x01, 0x00, 0x00 });
-  vector<uint8_t> kTestRecord1({ 0x00 });
-  vector<uint8_t> kTestRecord2({
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
-    0x01, 0x00
-  });
-  const bt_bdaddr_t kTestAddress = {
-    { 0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C }
-  };
+  vector<uint8_t> kTestRecord0({0x02, 0x01, 0x00, 0x00});
+  vector<uint8_t> kTestRecord1({0x00});
+  vector<uint8_t> kTestRecord2(
+      {0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01,
+       0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+       0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01,
+       0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+       0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01,
+       0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00});
+  const bt_bdaddr_t kTestAddress = {{0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C}};
   const char kTestAddressStr[] = "01:02:03:0A:0B:0C";
   const int kTestRssi = 64;
 
   // Scan wasn't started. Result should be ignored.
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord0);
+  fake_hal_gatt_iface_->NotifyScanResultCallback(kTestAddress, kTestRssi,
+                                                 kTestRecord0);
   EXPECT_EQ(0, delegate.scan_result_count());
 
   // Start a scan session for |le_scanner_|.
-  EXPECT_CALL(mock_adapter_, IsEnabled())
-      .Times(1)
-      .WillOnce(Return(true));
+  EXPECT_CALL(mock_adapter_, IsEnabled()).Times(1).WillOnce(Return(true));
   EXPECT_CALL(*mock_handler_, Scan(_))
       .Times(2)
       .WillOnce(Return(BT_STATUS_SUCCESS))
@@ -317,22 +309,22 @@ TEST_F(LowEnergyScannerPostRegisterTest, ScanRecord) {
   std::vector<ScanFilter> filters;
   ASSERT_TRUE(le_scanner_->StartScan(settings, filters));
 
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord0);
+  fake_hal_gatt_iface_->NotifyScanResultCallback(kTestAddress, kTestRssi,
+                                                 kTestRecord0);
   EXPECT_EQ(1, delegate.scan_result_count());
   EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
   EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
   EXPECT_EQ(3U, delegate.last_scan_result().scan_record().size());
 
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord1);
+  fake_hal_gatt_iface_->NotifyScanResultCallback(kTestAddress, kTestRssi,
+                                                 kTestRecord1);
   EXPECT_EQ(2, delegate.scan_result_count());
   EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
   EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
   EXPECT_TRUE(delegate.last_scan_result().scan_record().empty());
 
-  fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, kTestRecord2);
+  fake_hal_gatt_iface_->NotifyScanResultCallback(kTestAddress, kTestRssi,
+                                                 kTestRecord2);
   EXPECT_EQ(3, delegate.scan_result_count());
   EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
   EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
@@ -340,7 +332,6 @@ TEST_F(LowEnergyScannerPostRegisterTest, ScanRecord) {
 
   le_scanner_->SetDelegate(nullptr);
 }
-
 
 }  // namespace
 }  // namespace bluetooth

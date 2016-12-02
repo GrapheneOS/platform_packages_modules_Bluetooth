@@ -20,24 +20,24 @@ namespace bluetooth {
 
 std::string AdapterStateToString(AdapterState state) {
   switch (state) {
-  case ADAPTER_STATE_DISCONNECTED:
-    return "ADAPTER_STATE_DISCONNECTED";
-  case ADAPTER_STATE_CONNECTING:
-    return "ADAPTER_STATE_CONNECTING";
-  case ADAPTER_STATE_CONNECTED:
-    return "ADAPTER_STATE_CONNECTED";
-  case ADAPTER_STATE_DISCONNECTING:
-    return "ADAPTER_STATE_DISCONNECTING";
-  case ADAPTER_STATE_OFF:
-    return "ADAPTER_STATE_OFF";
-  case ADAPTER_STATE_TURNING_ON:
-    return "ADAPTER_STATE_TURNING_ON";
-  case ADAPTER_STATE_ON:
-    return "ADAPTER_STATE_ON";
-  case ADAPTER_STATE_TURNING_OFF:
-    return "ADAPTER_STATE_TURNING_OFF";
-  default:
-    return "unknown state";
+    case ADAPTER_STATE_DISCONNECTED:
+      return "ADAPTER_STATE_DISCONNECTED";
+    case ADAPTER_STATE_CONNECTING:
+      return "ADAPTER_STATE_CONNECTING";
+    case ADAPTER_STATE_CONNECTED:
+      return "ADAPTER_STATE_CONNECTED";
+    case ADAPTER_STATE_DISCONNECTING:
+      return "ADAPTER_STATE_DISCONNECTING";
+    case ADAPTER_STATE_OFF:
+      return "ADAPTER_STATE_OFF";
+    case ADAPTER_STATE_TURNING_ON:
+      return "ADAPTER_STATE_TURNING_ON";
+    case ADAPTER_STATE_ON:
+      return "ADAPTER_STATE_ON";
+    case ADAPTER_STATE_TURNING_OFF:
+      return "ADAPTER_STATE_TURNING_OFF";
+    default:
+      return "unknown state";
   }
 }
 

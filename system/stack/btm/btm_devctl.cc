@@ -24,46 +24,49 @@
  ******************************************************************************/
 
 #include <assert.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <stddef.h>
 
 #include "bt_types.h"
 #include "bt_utils.h"
+#include "btcore/include/module.h"
 #include "btm_int.h"
 #include "btu.h"
 #include "device/include/controller.h"
 #include "hci_layer.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-#include "btcore/include/module.h"
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
 
 #include "gatt_int.h"
 
-extern fixed_queue_t *btu_general_alarm_queue;
-extern thread_t *bt_workqueue_thread;
+extern fixed_queue_t* btu_general_alarm_queue;
+extern thread_t* bt_workqueue_thread;
 
 /******************************************************************************/
 /*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/
 
 #ifndef BTM_DEV_RESET_TIMEOUT
-#define BTM_DEV_RESET_TIMEOUT   4
+#define BTM_DEV_RESET_TIMEOUT 4
 #endif
 
 // TODO: Reevaluate this value in the context of timers with ms granularity
-#define BTM_DEV_NAME_REPLY_TIMEOUT_MS (2 * 1000) /* 2 seconds for name reply */
+#define BTM_DEV_NAME_REPLY_TIMEOUT_MS    \
+  (2 * 1000) /* 2 seconds for name reply \
+                */
 
-#define BTM_INFO_TIMEOUT        5   /* 5 seconds for info response */
+#define BTM_INFO_TIMEOUT 5 /* 5 seconds for info response */
 
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 
-static void btm_decode_ext_features_page (uint8_t page_number, const BD_FEATURES p_features);
+static void btm_decode_ext_features_page(uint8_t page_number,
+                                         const BD_FEATURES p_features);
 
 /*******************************************************************************
  *
@@ -74,33 +77,29 @@ static void btm_decode_ext_features_page (uint8_t page_number, const BD_FEATURES
  * Returns          void
  *
  ******************************************************************************/
-void btm_dev_init (void)
-{
-    /* Initialize nonzero defaults */
-    memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
+void btm_dev_init(void) {
+  /* Initialize nonzero defaults */
+  memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
 
-    btm_cb.devcb.read_local_name_timer =
-        alarm_new("btm.read_local_name_timer");
-    btm_cb.devcb.read_rssi_timer = alarm_new("btm.read_rssi_timer");
-    btm_cb.devcb.read_link_quality_timer =
-        alarm_new("btm.read_link_quality_timer");
-    btm_cb.devcb.read_inq_tx_power_timer =
-        alarm_new("btm.read_inq_tx_power_timer");
-    btm_cb.devcb.qos_setup_timer = alarm_new("btm.qos_setup_timer");
-    btm_cb.devcb.read_tx_power_timer = alarm_new("btm.read_tx_power_timer");
+  btm_cb.devcb.read_local_name_timer = alarm_new("btm.read_local_name_timer");
+  btm_cb.devcb.read_rssi_timer = alarm_new("btm.read_rssi_timer");
+  btm_cb.devcb.read_link_quality_timer =
+      alarm_new("btm.read_link_quality_timer");
+  btm_cb.devcb.read_inq_tx_power_timer =
+      alarm_new("btm.read_inq_tx_power_timer");
+  btm_cb.devcb.qos_setup_timer = alarm_new("btm.qos_setup_timer");
+  btm_cb.devcb.read_tx_power_timer = alarm_new("btm.read_tx_power_timer");
 
-    btm_cb.btm_acl_pkt_types_supported = BTM_ACL_PKT_TYPES_MASK_DH1 + BTM_ACL_PKT_TYPES_MASK_DM1 +
-                                         BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3 +
-                                         BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5;
+  btm_cb.btm_acl_pkt_types_supported =
+      BTM_ACL_PKT_TYPES_MASK_DH1 + BTM_ACL_PKT_TYPES_MASK_DM1 +
+      BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3 +
+      BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5;
 
-    btm_cb.btm_sco_pkt_types_supported = BTM_SCO_PKT_TYPES_MASK_HV1 +
-                                         BTM_SCO_PKT_TYPES_MASK_HV2 +
-                                         BTM_SCO_PKT_TYPES_MASK_HV3 +
-                                         BTM_SCO_PKT_TYPES_MASK_EV3 +
-                                         BTM_SCO_PKT_TYPES_MASK_EV4 +
-                                         BTM_SCO_PKT_TYPES_MASK_EV5;
+  btm_cb.btm_sco_pkt_types_supported =
+      BTM_SCO_PKT_TYPES_MASK_HV1 + BTM_SCO_PKT_TYPES_MASK_HV2 +
+      BTM_SCO_PKT_TYPES_MASK_HV3 + BTM_SCO_PKT_TYPES_MASK_EV3 +
+      BTM_SCO_PKT_TYPES_MASK_EV4 + BTM_SCO_PKT_TYPES_MASK_EV5;
 }
-
 
 /*******************************************************************************
  *
@@ -113,58 +112,52 @@ void btm_dev_init (void)
  * Returns          void
  *
  ******************************************************************************/
-static void btm_db_reset (void)
-{
-    tBTM_CMPL_CB    *p_cb;
-    tBTM_STATUS      status = BTM_DEV_RESET;
+static void btm_db_reset(void) {
+  tBTM_CMPL_CB* p_cb;
+  tBTM_STATUS status = BTM_DEV_RESET;
 
-    btm_inq_db_reset();
+  btm_inq_db_reset();
 
-    if (btm_cb.devcb.p_rln_cmpl_cb)
-    {
-        p_cb = btm_cb.devcb.p_rln_cmpl_cb;
-        btm_cb.devcb.p_rln_cmpl_cb = NULL;
+  if (btm_cb.devcb.p_rln_cmpl_cb) {
+    p_cb = btm_cb.devcb.p_rln_cmpl_cb;
+    btm_cb.devcb.p_rln_cmpl_cb = NULL;
 
-        if (p_cb)
-            (*p_cb)((void *) NULL);
-    }
+    if (p_cb) (*p_cb)((void*)NULL);
+  }
 
-    if (btm_cb.devcb.p_rssi_cmpl_cb)
-    {
-        p_cb = btm_cb.devcb.p_rssi_cmpl_cb;
-        btm_cb.devcb.p_rssi_cmpl_cb = NULL;
+  if (btm_cb.devcb.p_rssi_cmpl_cb) {
+    p_cb = btm_cb.devcb.p_rssi_cmpl_cb;
+    btm_cb.devcb.p_rssi_cmpl_cb = NULL;
 
-        if (p_cb)
-            (*p_cb)((tBTM_RSSI_RESULTS *) &status);
-    }
+    if (p_cb) (*p_cb)((tBTM_RSSI_RESULTS*)&status);
+  }
 }
 
-bool set_sec_state_idle(void *data, void *context)
-{
-    tBTM_SEC_DEV_REC *p_dev_rec = static_cast<tBTM_SEC_DEV_REC *>(data);
-    p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
-    return true;
+bool set_sec_state_idle(void* data, void* context) {
+  tBTM_SEC_DEV_REC* p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(data);
+  p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
+  return true;
 }
 
-static void reset_complete(void *result) {
+static void reset_complete(void* result) {
   assert(result == FUTURE_SUCCESS);
-  const controller_t *controller = controller_get_interface();
+  const controller_t* controller = controller_get_interface();
 
   /* Tell L2CAP that all connections are gone */
-  l2cu_device_reset ();
+  l2cu_device_reset();
 
   /* Clear current security state */
   list_foreach(btm_cb.sec_dev_rec, set_sec_state_idle, NULL);
 
   /* After the reset controller should restore all parameters to defaults. */
-  btm_cb.btm_inq_vars.inq_counter       = 1;
-  btm_cb.btm_inq_vars.inq_scan_window   = HCI_DEF_INQUIRYSCAN_WINDOW;
-  btm_cb.btm_inq_vars.inq_scan_period   = HCI_DEF_INQUIRYSCAN_INTERVAL;
-  btm_cb.btm_inq_vars.inq_scan_type     = HCI_DEF_SCAN_TYPE;
+  btm_cb.btm_inq_vars.inq_counter = 1;
+  btm_cb.btm_inq_vars.inq_scan_window = HCI_DEF_INQUIRYSCAN_WINDOW;
+  btm_cb.btm_inq_vars.inq_scan_period = HCI_DEF_INQUIRYSCAN_INTERVAL;
+  btm_cb.btm_inq_vars.inq_scan_type = HCI_DEF_SCAN_TYPE;
 
-  btm_cb.btm_inq_vars.page_scan_window  = HCI_DEF_PAGESCAN_WINDOW;
-  btm_cb.btm_inq_vars.page_scan_period  = HCI_DEF_PAGESCAN_INTERVAL;
-  btm_cb.btm_inq_vars.page_scan_type    = HCI_DEF_SCAN_TYPE;
+  btm_cb.btm_inq_vars.page_scan_window = HCI_DEF_PAGESCAN_WINDOW;
+  btm_cb.btm_inq_vars.page_scan_period = HCI_DEF_PAGESCAN_INTERVAL;
+  btm_cb.btm_inq_vars.page_scan_type = HCI_DEF_SCAN_TYPE;
 
   btm_cb.ble_ctr_cb.conn_state = BLE_CONN_IDLE;
   btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
@@ -179,9 +172,10 @@ static void reset_complete(void *result) {
   /* Set up the BLE privacy settings */
   if (controller->supports_ble() && controller->supports_ble_privacy() &&
       controller->get_ble_resolving_list_max_size() > 0) {
-      btm_ble_resolving_list_init(controller->get_ble_resolving_list_max_size());
-      /* set the default random private address timeout */
-      btsnd_hcic_ble_set_rand_priv_addr_timeout(BTM_BLE_PRIVATE_ADDR_INT_MS / 1000);
+    btm_ble_resolving_list_init(controller->get_ble_resolving_list_max_size());
+    /* set the default random private address timeout */
+    btsnd_hcic_ble_set_rand_priv_addr_timeout(BTM_BLE_PRIVATE_ADDR_INT_MS /
+                                              1000);
   }
 #endif
 
@@ -190,28 +184,27 @@ static void reset_complete(void *result) {
     l2c_link_processs_ble_num_bufs(controller->get_acl_buffer_count_ble());
   }
 
-  BTM_SetPinType (btm_cb.cfg.pin_type, btm_cb.cfg.pin_code, btm_cb.cfg.pin_code_len);
+  BTM_SetPinType(btm_cb.cfg.pin_type, btm_cb.cfg.pin_code,
+                 btm_cb.cfg.pin_code_len);
 
   for (int i = 0; i <= controller->get_last_features_classic_index(); i++) {
-    btm_decode_ext_features_page(i, controller->get_features_classic(i)->as_array);
+    btm_decode_ext_features_page(i,
+                                 controller->get_features_classic(i)->as_array);
   }
 
   btm_report_device_status(BTM_DEV_STATUS_UP);
 }
 
 // TODO(zachoverflow): remove this function
-void BTM_DeviceReset (UNUSED_ATTR tBTM_CMPL_CB *p_cb) {
+void BTM_DeviceReset(UNUSED_ATTR tBTM_CMPL_CB* p_cb) {
   /* Flush all ACL connections */
   btm_acl_device_down();
 
   /* Clear the callback, so application would not hang on reset */
   btm_db_reset();
 
-  module_start_up_callbacked_wrapper(
-    get_module(CONTROLLER_MODULE),
-    bt_workqueue_thread,
-    reset_complete
-  );
+  module_start_up_callbacked_wrapper(get_module(CONTROLLER_MODULE),
+                                     bt_workqueue_thread, reset_complete);
 }
 
 /*******************************************************************************
@@ -223,10 +216,7 @@ void BTM_DeviceReset (UNUSED_ATTR tBTM_CMPL_CB *p_cb) {
  * Returns          true if device is up, else false
  *
  ******************************************************************************/
-bool    BTM_IsDeviceUp (void)
-{
-    return controller_get_interface()->get_is_ready();
-}
+bool BTM_IsDeviceUp(void) { return controller_get_interface()->get_is_ready(); }
 
 /*******************************************************************************
  *
@@ -237,12 +227,10 @@ bool    BTM_IsDeviceUp (void)
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_local_name_timeout(UNUSED_ATTR void *data)
-{
-    tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
-    btm_cb.devcb.p_rln_cmpl_cb = NULL;
-    if (p_cb)
-        (*p_cb)((void *) NULL);
+void btm_read_local_name_timeout(UNUSED_ATTR void* data) {
+  tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_rln_cmpl_cb;
+  btm_cb.devcb.p_rln_cmpl_cb = NULL;
+  if (p_cb) (*p_cb)((void*)NULL);
 }
 
 /*******************************************************************************
@@ -254,170 +242,164 @@ void btm_read_local_name_timeout(UNUSED_ATTR void *data)
  * Returns          void
  *
  ******************************************************************************/
-static void btm_decode_ext_features_page (uint8_t page_number, const uint8_t *p_features)
-{
-    BTM_TRACE_DEBUG ("btm_decode_ext_features_page page: %d", page_number);
-    switch (page_number)
-    {
+static void btm_decode_ext_features_page(uint8_t page_number,
+                                         const uint8_t* p_features) {
+  BTM_TRACE_DEBUG("btm_decode_ext_features_page page: %d", page_number);
+  switch (page_number) {
     /* Extended (Legacy) Page 0 */
     case HCI_EXT_FEATURES_PAGE_0:
 
-        /* Create ACL supported packet types mask */
-        btm_cb.btm_acl_pkt_types_supported = (BTM_ACL_PKT_TYPES_MASK_DH1 +
-                                              BTM_ACL_PKT_TYPES_MASK_DM1);
+      /* Create ACL supported packet types mask */
+      btm_cb.btm_acl_pkt_types_supported =
+          (BTM_ACL_PKT_TYPES_MASK_DH1 + BTM_ACL_PKT_TYPES_MASK_DM1);
 
-        if (HCI_3_SLOT_PACKETS_SUPPORTED(p_features))
-            btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_DH3 +
-                                                   BTM_ACL_PKT_TYPES_MASK_DM3);
+      if (HCI_3_SLOT_PACKETS_SUPPORTED(p_features))
+        btm_cb.btm_acl_pkt_types_supported |=
+            (BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3);
 
-        if (HCI_5_SLOT_PACKETS_SUPPORTED(p_features))
-            btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_DH5 +
-                                                   BTM_ACL_PKT_TYPES_MASK_DM5);
+      if (HCI_5_SLOT_PACKETS_SUPPORTED(p_features))
+        btm_cb.btm_acl_pkt_types_supported |=
+            (BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5);
 
-        /* Add in EDR related ACL types */
-        if (!HCI_EDR_ACL_2MPS_SUPPORTED(p_features))
-        {
-            btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH1 +
-                                                   BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 +
-                                                   BTM_ACL_PKT_TYPES_MASK_NO_2_DH5);
-        }
+      /* Add in EDR related ACL types */
+      if (!HCI_EDR_ACL_2MPS_SUPPORTED(p_features)) {
+        btm_cb.btm_acl_pkt_types_supported |=
+            (BTM_ACL_PKT_TYPES_MASK_NO_2_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 +
+             BTM_ACL_PKT_TYPES_MASK_NO_2_DH5);
+      }
 
-        if (!HCI_EDR_ACL_3MPS_SUPPORTED(p_features))
-        {
-            btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_NO_3_DH1 +
-                                                   BTM_ACL_PKT_TYPES_MASK_NO_3_DH3 +
-                                                   BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
-        }
+      if (!HCI_EDR_ACL_3MPS_SUPPORTED(p_features)) {
+        btm_cb.btm_acl_pkt_types_supported |=
+            (BTM_ACL_PKT_TYPES_MASK_NO_3_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3 +
+             BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
+      }
 
-        /* Check to see if 3 and 5 slot packets are available */
-        if (HCI_EDR_ACL_2MPS_SUPPORTED(p_features) ||
-            HCI_EDR_ACL_3MPS_SUPPORTED(p_features))
-        {
-            if (!HCI_3_SLOT_EDR_ACL_SUPPORTED(p_features))
-                btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 +
-                                                       BTM_ACL_PKT_TYPES_MASK_NO_3_DH3);
+      /* Check to see if 3 and 5 slot packets are available */
+      if (HCI_EDR_ACL_2MPS_SUPPORTED(p_features) ||
+          HCI_EDR_ACL_3MPS_SUPPORTED(p_features)) {
+        if (!HCI_3_SLOT_EDR_ACL_SUPPORTED(p_features))
+          btm_cb.btm_acl_pkt_types_supported |=
+              (BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 +
+               BTM_ACL_PKT_TYPES_MASK_NO_3_DH3);
 
-            if (!HCI_5_SLOT_EDR_ACL_SUPPORTED(p_features))
-                btm_cb.btm_acl_pkt_types_supported |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH5 +
-                                                       BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
-        }
+        if (!HCI_5_SLOT_EDR_ACL_SUPPORTED(p_features))
+          btm_cb.btm_acl_pkt_types_supported |=
+              (BTM_ACL_PKT_TYPES_MASK_NO_2_DH5 +
+               BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
+      }
 
-        BTM_TRACE_DEBUG("Local supported ACL packet types: 0x%04x",
-                         btm_cb.btm_acl_pkt_types_supported);
+      BTM_TRACE_DEBUG("Local supported ACL packet types: 0x%04x",
+                      btm_cb.btm_acl_pkt_types_supported);
 
-        /* Create (e)SCO supported packet types mask */
-        btm_cb.btm_sco_pkt_types_supported = 0;
+      /* Create (e)SCO supported packet types mask */
+      btm_cb.btm_sco_pkt_types_supported = 0;
 #if (BTM_SCO_INCLUDED == TRUE)
-        btm_cb.sco_cb.esco_supported = false;
+      btm_cb.sco_cb.esco_supported = false;
 #endif
-        if (HCI_SCO_LINK_SUPPORTED(p_features))
-        {
-            btm_cb.btm_sco_pkt_types_supported = BTM_SCO_PKT_TYPES_MASK_HV1;
+      if (HCI_SCO_LINK_SUPPORTED(p_features)) {
+        btm_cb.btm_sco_pkt_types_supported = BTM_SCO_PKT_TYPES_MASK_HV1;
 
-            if (HCI_HV2_PACKETS_SUPPORTED(p_features))
-                btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_HV2;
+        if (HCI_HV2_PACKETS_SUPPORTED(p_features))
+          btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_HV2;
 
-            if (HCI_HV3_PACKETS_SUPPORTED(p_features))
-                btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_HV3;
-        }
+        if (HCI_HV3_PACKETS_SUPPORTED(p_features))
+          btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_HV3;
+      }
 
-        if (HCI_ESCO_EV3_SUPPORTED(p_features))
-            btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV3;
+      if (HCI_ESCO_EV3_SUPPORTED(p_features))
+        btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV3;
 
-        if (HCI_ESCO_EV4_SUPPORTED(p_features))
-            btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV4;
+      if (HCI_ESCO_EV4_SUPPORTED(p_features))
+        btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV4;
 
-        if (HCI_ESCO_EV5_SUPPORTED(p_features))
-            btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV5;
+      if (HCI_ESCO_EV5_SUPPORTED(p_features))
+        btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV5;
 #if (BTM_SCO_INCLUDED == TRUE)
-        if (btm_cb.btm_sco_pkt_types_supported & BTM_ESCO_LINK_ONLY_MASK)
-        {
-            btm_cb.sco_cb.esco_supported = true;
+      if (btm_cb.btm_sco_pkt_types_supported & BTM_ESCO_LINK_ONLY_MASK) {
+        btm_cb.sco_cb.esco_supported = true;
 
-            /* Add in EDR related eSCO types */
-            if (HCI_EDR_ESCO_2MPS_SUPPORTED(p_features))
-            {
-                if (!HCI_3_SLOT_EDR_ESCO_SUPPORTED(p_features))
-                    btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_NO_2_EV5;
-            }
-            else
-            {
-                btm_cb.btm_sco_pkt_types_supported |= (BTM_SCO_PKT_TYPES_MASK_NO_2_EV3 +
-                                                       BTM_SCO_PKT_TYPES_MASK_NO_2_EV5);
-            }
-
-            if (HCI_EDR_ESCO_3MPS_SUPPORTED(p_features))
-            {
-                if (!HCI_3_SLOT_EDR_ESCO_SUPPORTED(p_features))
-                    btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_NO_3_EV5;
-            }
-            else
-            {
-                btm_cb.btm_sco_pkt_types_supported |= (BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 +
-                                                       BTM_SCO_PKT_TYPES_MASK_NO_3_EV5);
-            }
+        /* Add in EDR related eSCO types */
+        if (HCI_EDR_ESCO_2MPS_SUPPORTED(p_features)) {
+          if (!HCI_3_SLOT_EDR_ESCO_SUPPORTED(p_features))
+            btm_cb.btm_sco_pkt_types_supported |=
+                BTM_SCO_PKT_TYPES_MASK_NO_2_EV5;
+        } else {
+          btm_cb.btm_sco_pkt_types_supported |=
+              (BTM_SCO_PKT_TYPES_MASK_NO_2_EV3 +
+               BTM_SCO_PKT_TYPES_MASK_NO_2_EV5);
         }
+
+        if (HCI_EDR_ESCO_3MPS_SUPPORTED(p_features)) {
+          if (!HCI_3_SLOT_EDR_ESCO_SUPPORTED(p_features))
+            btm_cb.btm_sco_pkt_types_supported |=
+                BTM_SCO_PKT_TYPES_MASK_NO_3_EV5;
+        } else {
+          btm_cb.btm_sco_pkt_types_supported |=
+              (BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 +
+               BTM_SCO_PKT_TYPES_MASK_NO_3_EV5);
+        }
+      }
 #endif
 
-        BTM_TRACE_DEBUG("Local supported SCO packet types: 0x%04x",
-                         btm_cb.btm_sco_pkt_types_supported);
+      BTM_TRACE_DEBUG("Local supported SCO packet types: 0x%04x",
+                      btm_cb.btm_sco_pkt_types_supported);
 
-        /* Create Default Policy Settings */
-        if (HCI_SWITCH_SUPPORTED(p_features))
-            btm_cb.btm_def_link_policy |= HCI_ENABLE_MASTER_SLAVE_SWITCH;
+      /* Create Default Policy Settings */
+      if (HCI_SWITCH_SUPPORTED(p_features))
+        btm_cb.btm_def_link_policy |= HCI_ENABLE_MASTER_SLAVE_SWITCH;
+      else
+        btm_cb.btm_def_link_policy &= ~HCI_ENABLE_MASTER_SLAVE_SWITCH;
+
+      if (HCI_HOLD_MODE_SUPPORTED(p_features))
+        btm_cb.btm_def_link_policy |= HCI_ENABLE_HOLD_MODE;
+      else
+        btm_cb.btm_def_link_policy &= ~HCI_ENABLE_HOLD_MODE;
+
+      if (HCI_SNIFF_MODE_SUPPORTED(p_features))
+        btm_cb.btm_def_link_policy |= HCI_ENABLE_SNIFF_MODE;
+      else
+        btm_cb.btm_def_link_policy &= ~HCI_ENABLE_SNIFF_MODE;
+
+      if (HCI_PARK_MODE_SUPPORTED(p_features))
+        btm_cb.btm_def_link_policy |= HCI_ENABLE_PARK_MODE;
+      else
+        btm_cb.btm_def_link_policy &= ~HCI_ENABLE_PARK_MODE;
+
+      btm_sec_dev_reset();
+
+      if (HCI_LMP_INQ_RSSI_SUPPORTED(p_features)) {
+        if (HCI_EXT_INQ_RSP_SUPPORTED(p_features))
+          BTM_SetInquiryMode(BTM_INQ_RESULT_EXTENDED);
         else
-            btm_cb.btm_def_link_policy &= ~HCI_ENABLE_MASTER_SLAVE_SWITCH;
-
-        if (HCI_HOLD_MODE_SUPPORTED(p_features))
-            btm_cb.btm_def_link_policy |= HCI_ENABLE_HOLD_MODE;
-        else
-            btm_cb.btm_def_link_policy &= ~HCI_ENABLE_HOLD_MODE;
-
-        if (HCI_SNIFF_MODE_SUPPORTED(p_features))
-            btm_cb.btm_def_link_policy |= HCI_ENABLE_SNIFF_MODE;
-        else
-            btm_cb.btm_def_link_policy &= ~HCI_ENABLE_SNIFF_MODE;
-
-        if (HCI_PARK_MODE_SUPPORTED(p_features))
-            btm_cb.btm_def_link_policy |= HCI_ENABLE_PARK_MODE;
-        else
-            btm_cb.btm_def_link_policy &= ~HCI_ENABLE_PARK_MODE;
-
-        btm_sec_dev_reset ();
-
-        if (HCI_LMP_INQ_RSSI_SUPPORTED(p_features))
-        {
-            if (HCI_EXT_INQ_RSP_SUPPORTED(p_features))
-                BTM_SetInquiryMode (BTM_INQ_RESULT_EXTENDED);
-            else
-                BTM_SetInquiryMode (BTM_INQ_RESULT_WITH_RSSI);
-        }
+          BTM_SetInquiryMode(BTM_INQ_RESULT_WITH_RSSI);
+      }
 
 #if (L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE)
-        if( HCI_NON_FLUSHABLE_PB_SUPPORTED(p_features))
-            l2cu_set_non_flushable_pbf(true);
-        else
-            l2cu_set_non_flushable_pbf(false);
+      if (HCI_NON_FLUSHABLE_PB_SUPPORTED(p_features))
+        l2cu_set_non_flushable_pbf(true);
+      else
+        l2cu_set_non_flushable_pbf(false);
 #endif
-        BTM_SetPageScanType (BTM_DEFAULT_SCAN_TYPE);
-        BTM_SetInquiryScanType (BTM_DEFAULT_SCAN_TYPE);
+      BTM_SetPageScanType(BTM_DEFAULT_SCAN_TYPE);
+      BTM_SetInquiryScanType(BTM_DEFAULT_SCAN_TYPE);
 
-        break;
+      break;
 
     /* Extended Page 1 */
     case HCI_EXT_FEATURES_PAGE_1:
-        /* Nothing to do for page 1 */
-        break;
+      /* Nothing to do for page 1 */
+      break;
 
     /* Extended Page 2 */
     case HCI_EXT_FEATURES_PAGE_2:
-        /* Nothing to do for page 2 */
-        break;
+      /* Nothing to do for page 2 */
+      break;
 
     default:
-        BTM_TRACE_ERROR("btm_decode_ext_features_page page=%d unknown", page_number);
-        break;
-    }
+      BTM_TRACE_ERROR("btm_decode_ext_features_page page=%d unknown",
+                      page_number);
+      break;
+  }
 }
 
 /*******************************************************************************
@@ -429,25 +411,21 @@ static void btm_decode_ext_features_page (uint8_t page_number, const uint8_t *p_
  * Returns          status of the operation
  *
  ******************************************************************************/
-tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
-{
-    uint8_t  *p;
+tBTM_STATUS BTM_SetLocalDeviceName(char* p_name) {
+  uint8_t* p;
 
-    if (!p_name || !p_name[0] || (strlen ((char *)p_name) > BD_NAME_LEN))
-        return (BTM_ILLEGAL_VALUE);
+  if (!p_name || !p_name[0] || (strlen((char*)p_name) > BD_NAME_LEN))
+    return (BTM_ILLEGAL_VALUE);
 
-    if (!controller_get_interface()->get_is_ready())
-        return (BTM_DEV_RESET);
-    /* Save the device name if local storage is enabled */
-    p = (uint8_t *)btm_cb.cfg.bd_name;
-    if (p != (uint8_t *)p_name)
-        strlcpy(btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN);
+  if (!controller_get_interface()->get_is_ready()) return (BTM_DEV_RESET);
+  /* Save the device name if local storage is enabled */
+  p = (uint8_t*)btm_cb.cfg.bd_name;
+  if (p != (uint8_t*)p_name)
+    strlcpy(btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN);
 
-    btsnd_hcic_change_name(p);
-    return (BTM_CMD_STARTED);
+  btsnd_hcic_change_name(p);
+  return (BTM_CMD_STARTED);
 }
-
-
 
 /*******************************************************************************
  *
@@ -462,12 +440,10 @@ tBTM_STATUS BTM_SetLocalDeviceName (char *p_name)
  *                              is returned and p_name is set to NULL
  *
  ******************************************************************************/
-tBTM_STATUS BTM_ReadLocalDeviceName (char **p_name)
-{
-    *p_name = btm_cb.cfg.bd_name;
-    return(BTM_SUCCESS);
+tBTM_STATUS BTM_ReadLocalDeviceName(char** p_name) {
+  *p_name = btm_cb.cfg.bd_name;
+  return (BTM_SUCCESS);
 }
-
 
 /*******************************************************************************
  *
@@ -479,22 +455,20 @@ tBTM_STATUS BTM_ReadLocalDeviceName (char **p_name)
  * Returns          BTM_CMD_STARTED if successful, otherwise an error
  *
  ******************************************************************************/
-tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cback)
-{
-    /* Check if rln already in progress */
-    if (btm_cb.devcb.p_rln_cmpl_cb)
-        return(BTM_NO_RESOURCES);
+tBTM_STATUS BTM_ReadLocalDeviceNameFromController(
+    tBTM_CMPL_CB* p_rln_cmpl_cback) {
+  /* Check if rln already in progress */
+  if (btm_cb.devcb.p_rln_cmpl_cb) return (BTM_NO_RESOURCES);
 
-    /* Save callback */
-    btm_cb.devcb.p_rln_cmpl_cb = p_rln_cmpl_cback;
+  /* Save callback */
+  btm_cb.devcb.p_rln_cmpl_cb = p_rln_cmpl_cback;
 
-    btsnd_hcic_read_name();
-    alarm_set_on_queue(btm_cb.devcb.read_local_name_timer,
-                       BTM_DEV_NAME_REPLY_TIMEOUT_MS,
-                       btm_read_local_name_timeout, NULL,
-                       btu_general_alarm_queue);
+  btsnd_hcic_read_name();
+  alarm_set_on_queue(btm_cb.devcb.read_local_name_timer,
+                     BTM_DEV_NAME_REPLY_TIMEOUT_MS, btm_read_local_name_timeout,
+                     NULL, btu_general_alarm_queue);
 
-    return BTM_CMD_STARTED;
+  return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -507,26 +481,23 @@ tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cbac
  * Returns          void
  *
  ******************************************************************************/
-void btm_read_local_name_complete (uint8_t *p,
-                                   UNUSED_ATTR uint16_t evt_len)
-{
-    tBTM_CMPL_CB   *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
-    uint8_t         status;
+void btm_read_local_name_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len) {
+  tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_rln_cmpl_cb;
+  uint8_t status;
 
-    alarm_cancel(btm_cb.devcb.read_local_name_timer);
+  alarm_cancel(btm_cb.devcb.read_local_name_timer);
 
-    /* If there was a callback address for read local name, call it */
-    btm_cb.devcb.p_rln_cmpl_cb = NULL;
+  /* If there was a callback address for read local name, call it */
+  btm_cb.devcb.p_rln_cmpl_cb = NULL;
 
-    if (p_cb)
-    {
-        STREAM_TO_UINT8  (status, p);
+  if (p_cb) {
+    STREAM_TO_UINT8(status, p);
 
-        if (status == HCI_SUCCESS)
-            (*p_cb)(p);
-        else
-            (*p_cb)(NULL);
-    }
+    if (status == HCI_SUCCESS)
+      (*p_cb)(p);
+    else
+      (*p_cb)(NULL);
+  }
 }
 
 /*******************************************************************************
@@ -538,21 +509,18 @@ void btm_read_local_name_complete (uint8_t *p,
  * Returns          status of the operation
  *
  ******************************************************************************/
-tBTM_STATUS BTM_SetDeviceClass (DEV_CLASS dev_class)
-{
-    if(!memcmp (btm_cb.devcb.dev_class, dev_class, DEV_CLASS_LEN))
-        return(BTM_SUCCESS);
-
-    memcpy (btm_cb.devcb.dev_class, dev_class, DEV_CLASS_LEN);
-
-    if (!controller_get_interface()->get_is_ready())
-        return (BTM_DEV_RESET);
-
-    btsnd_hcic_write_dev_class(dev_class);
-
+tBTM_STATUS BTM_SetDeviceClass(DEV_CLASS dev_class) {
+  if (!memcmp(btm_cb.devcb.dev_class, dev_class, DEV_CLASS_LEN))
     return (BTM_SUCCESS);
-}
 
+  memcpy(btm_cb.devcb.dev_class, dev_class, DEV_CLASS_LEN);
+
+  if (!controller_get_interface()->get_is_ready()) return (BTM_DEV_RESET);
+
+  btsnd_hcic_write_dev_class(dev_class);
+
+  return (BTM_SUCCESS);
+}
 
 /*******************************************************************************
  *
@@ -563,11 +531,9 @@ tBTM_STATUS BTM_SetDeviceClass (DEV_CLASS dev_class)
  * Returns          pointer to the device class
  *
  ******************************************************************************/
-uint8_t *BTM_ReadDeviceClass (void)
-{
-    return ((uint8_t *)btm_cb.devcb.dev_class);
+uint8_t* BTM_ReadDeviceClass(void) {
+  return ((uint8_t*)btm_cb.devcb.dev_class);
 }
-
 
 /*******************************************************************************
  *
@@ -579,10 +545,11 @@ uint8_t *BTM_ReadDeviceClass (void)
  *
  ******************************************************************************/
 // TODO(zachoverflow): get rid of this function
-uint8_t *BTM_ReadLocalFeatures (void)
-{
-    // Discarding const modifier for now, until this function dies
-    return (uint8_t *)controller_get_interface()->get_features_classic(0)->as_array;
+uint8_t* BTM_ReadLocalFeatures(void) {
+  // Discarding const modifier for now, until this function dies
+  return (uint8_t*)controller_get_interface()
+      ->get_features_classic(0)
+      ->as_array;
 }
 
 /*******************************************************************************
@@ -599,12 +566,11 @@ uint8_t *BTM_ReadLocalFeatures (void)
  * Returns          status of the operation
  *
  ******************************************************************************/
-tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
-{
-    tBTM_DEV_STATUS_CB *p_prev = btm_cb.devcb.p_dev_status_cb;
+tBTM_DEV_STATUS_CB* BTM_RegisterForDeviceStatusNotif(tBTM_DEV_STATUS_CB* p_cb) {
+  tBTM_DEV_STATUS_CB* p_prev = btm_cb.devcb.p_dev_status_cb;
 
-    btm_cb.devcb.p_dev_status_cb = p_cb;
-    return (p_prev);
+  btm_cb.devcb.p_dev_status_cb = p_cb;
+  return (p_prev);
 }
 
 /*******************************************************************************
@@ -618,19 +584,18 @@ tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
  *
  ******************************************************************************/
 void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
-                                      uint8_t *p_param_buf, tBTM_VSC_CMPL_CB *p_cb)
-{
-    /* Allocate a buffer to hold HCI command plus the callback function */
-    void *p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB *) +
-                             param_len + HCIC_PREAMBLE_SIZE);
+                               uint8_t* p_param_buf, tBTM_VSC_CMPL_CB* p_cb) {
+  /* Allocate a buffer to hold HCI command plus the callback function */
+  void* p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB*) + param_len +
+                           HCIC_PREAMBLE_SIZE);
 
-    BTM_TRACE_EVENT("BTM: %s: Opcode: 0x%04X, ParamLen: %i.", __func__,
-                    opcode, param_len);
+  BTM_TRACE_EVENT("BTM: %s: Opcode: 0x%04X, ParamLen: %i.", __func__, opcode,
+                  param_len);
 
-    /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
-    btsnd_hcic_vendor_spec_cmd(p_buf, opcode, param_len, p_param_buf, (void *)p_cb);
+  /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
+  btsnd_hcic_vendor_spec_cmd(p_buf, opcode, param_len, p_param_buf,
+                             (void*)p_cb);
 }
-
 
 /*******************************************************************************
  *
@@ -642,20 +607,19 @@ void BTM_VendorSpecificCommand(uint16_t opcode, uint8_t param_len,
  * Returns          void
  *
  ******************************************************************************/
-void btm_vsc_complete (uint8_t *p, uint16_t opcode, uint16_t evt_len,
-                       tBTM_CMPL_CB *p_vsc_cplt_cback)
-{
-    tBTM_VSC_CMPL   vcs_cplt_params;
+void btm_vsc_complete(uint8_t* p, uint16_t opcode, uint16_t evt_len,
+                      tBTM_CMPL_CB* p_vsc_cplt_cback) {
+  tBTM_VSC_CMPL vcs_cplt_params;
 
-    /* If there was a callback address for vcs complete, call it */
-    if (p_vsc_cplt_cback)
-    {
-        /* Pass paramters to the callback function */
-        vcs_cplt_params.opcode = opcode;        /* Number of bytes in return info */
-        vcs_cplt_params.param_len = evt_len;    /* Number of bytes in return info */
-        vcs_cplt_params.p_param_buf = p;
-        (*p_vsc_cplt_cback)(&vcs_cplt_params);  /* Call the VSC complete callback function */
-    }
+  /* If there was a callback address for vcs complete, call it */
+  if (p_vsc_cplt_cback) {
+    /* Pass paramters to the callback function */
+    vcs_cplt_params.opcode = opcode;     /* Number of bytes in return info */
+    vcs_cplt_params.param_len = evt_len; /* Number of bytes in return info */
+    vcs_cplt_params.p_param_buf = p;
+    (*p_vsc_cplt_cback)(
+        &vcs_cplt_params); /* Call the VSC complete callback function */
+  }
 }
 
 /*******************************************************************************
@@ -673,49 +637,39 @@ void btm_vsc_complete (uint8_t *p, uint16_t opcode, uint16_t evt_len,
  *                           registered.
  *
  ******************************************************************************/
-tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, bool    is_register)
-{
-    tBTM_STATUS retval = BTM_SUCCESS;
-    uint8_t i, free_idx = BTM_MAX_VSE_CALLBACKS;
+tBTM_STATUS BTM_RegisterForVSEvents(tBTM_VS_EVT_CB* p_cb, bool is_register) {
+  tBTM_STATUS retval = BTM_SUCCESS;
+  uint8_t i, free_idx = BTM_MAX_VSE_CALLBACKS;
 
-    /* See if callback is already registered */
-    for (i=0; i<BTM_MAX_VSE_CALLBACKS; i++)
-    {
-        if (btm_cb.devcb.p_vend_spec_cb[i] == NULL)
-        {
-            /* Found a free slot. Store index */
-            free_idx = i;
-        }
-        else if (btm_cb.devcb.p_vend_spec_cb[i] == p_cb)
-        {
-            /* Found callback in lookup table. If deregistering, clear the entry. */
-            if (is_register == false)
-            {
-                btm_cb.devcb.p_vend_spec_cb[i] = NULL;
-                BTM_TRACE_EVENT("BTM Deregister For VSEvents is successfully");
-            }
-            return (BTM_SUCCESS);
-        }
+  /* See if callback is already registered */
+  for (i = 0; i < BTM_MAX_VSE_CALLBACKS; i++) {
+    if (btm_cb.devcb.p_vend_spec_cb[i] == NULL) {
+      /* Found a free slot. Store index */
+      free_idx = i;
+    } else if (btm_cb.devcb.p_vend_spec_cb[i] == p_cb) {
+      /* Found callback in lookup table. If deregistering, clear the entry. */
+      if (is_register == false) {
+        btm_cb.devcb.p_vend_spec_cb[i] = NULL;
+        BTM_TRACE_EVENT("BTM Deregister For VSEvents is successfully");
+      }
+      return (BTM_SUCCESS);
     }
+  }
 
-    /* Didn't find callback. Add callback to free slot if registering */
-    if (is_register)
-    {
-        if (free_idx < BTM_MAX_VSE_CALLBACKS)
-        {
-            btm_cb.devcb.p_vend_spec_cb[free_idx] = p_cb;
-            BTM_TRACE_EVENT("BTM Register For VSEvents is successfully");
-        }
-        else
-        {
-            /* No free entries available */
-            BTM_TRACE_ERROR ("BTM_RegisterForVSEvents: too many callbacks registered");
+  /* Didn't find callback. Add callback to free slot if registering */
+  if (is_register) {
+    if (free_idx < BTM_MAX_VSE_CALLBACKS) {
+      btm_cb.devcb.p_vend_spec_cb[free_idx] = p_cb;
+      BTM_TRACE_EVENT("BTM Register For VSEvents is successfully");
+    } else {
+      /* No free entries available */
+      BTM_TRACE_ERROR("BTM_RegisterForVSEvents: too many callbacks registered");
 
-            retval = BTM_NO_RESOURCES;
-        }
+      retval = BTM_NO_RESOURCES;
     }
+  }
 
-    return (retval);
+  return (retval);
 }
 
 /*******************************************************************************
@@ -730,19 +684,16 @@ tBTM_STATUS BTM_RegisterForVSEvents (tBTM_VS_EVT_CB *p_cb, bool    is_register)
  * Returns          void
  *
  ******************************************************************************/
-void btm_vendor_specific_evt (uint8_t *p, uint8_t evt_len)
-{
-    uint8_t i;
+void btm_vendor_specific_evt(uint8_t* p, uint8_t evt_len) {
+  uint8_t i;
 
-    BTM_TRACE_DEBUG ("BTM Event: Vendor Specific event from controller");
+  BTM_TRACE_DEBUG("BTM Event: Vendor Specific event from controller");
 
-    for (i=0; i<BTM_MAX_VSE_CALLBACKS; i++)
-    {
-        if (btm_cb.devcb.p_vend_spec_cb[i])
-            (*btm_cb.devcb.p_vend_spec_cb[i])(evt_len, p);
-    }
+  for (i = 0; i < BTM_MAX_VSE_CALLBACKS; i++) {
+    if (btm_cb.devcb.p_vend_spec_cb[i])
+      (*btm_cb.devcb.p_vend_spec_cb[i])(evt_len, p);
+  }
 }
-
 
 /*******************************************************************************
  *
@@ -751,12 +702,11 @@ void btm_vendor_specific_evt (uint8_t *p, uint8_t evt_len)
  * Description      Send HCI Write Page Timeout.
  *
  ******************************************************************************/
-void BTM_WritePageTimeout(uint16_t timeout)
-{
-    BTM_TRACE_EVENT ("BTM: BTM_WritePageTimeout: Timeout: %d.", timeout);
+void BTM_WritePageTimeout(uint16_t timeout) {
+  BTM_TRACE_EVENT("BTM: BTM_WritePageTimeout: Timeout: %d.", timeout);
 
-    /* Send the HCI command */
-    btsnd_hcic_write_page_tout(timeout);
+  /* Send the HCI command */
+  btsnd_hcic_write_page_tout(timeout);
 }
 
 /*******************************************************************************
@@ -767,12 +717,11 @@ void BTM_WritePageTimeout(uint16_t timeout)
  *                  See hcidefs.h for settings bitmask values.
  *
  ******************************************************************************/
-void BTM_WriteVoiceSettings(uint16_t settings)
-{
-    BTM_TRACE_EVENT ("BTM: BTM_WriteVoiceSettings: Settings: 0x%04x.", settings);
+void BTM_WriteVoiceSettings(uint16_t settings) {
+  BTM_TRACE_EVENT("BTM: BTM_WriteVoiceSettings: Settings: 0x%04x.", settings);
 
-    /* Send the HCI command */
-    btsnd_hcic_write_voice_settings((uint16_t)(settings & 0x03ff));
+  /* Send the HCI command */
+  btsnd_hcic_write_voice_settings((uint16_t)(settings & 0x03ff));
 }
 
 /*******************************************************************************
@@ -790,42 +739,38 @@ void BTM_WriteVoiceSettings(uint16_t settings)
  *
  *
  ******************************************************************************/
-tBTM_STATUS BTM_EnableTestMode(void)
-{
-    uint8_t cond;
+tBTM_STATUS BTM_EnableTestMode(void) {
+  uint8_t cond;
 
-    BTM_TRACE_EVENT ("BTM: BTM_EnableTestMode");
+  BTM_TRACE_EVENT("BTM: BTM_EnableTestMode");
 
-    /* set auto accept connection as this is needed during test mode */
-    /* Allocate a buffer to hold HCI command */
-    cond = HCI_DO_AUTO_ACCEPT_CONNECT;
-    btsnd_hcic_set_event_filter(HCI_FILTER_CONNECTION_SETUP,
-                                HCI_FILTER_COND_NEW_DEVICE,
-                                &cond, sizeof(cond));
+  /* set auto accept connection as this is needed during test mode */
+  /* Allocate a buffer to hold HCI command */
+  cond = HCI_DO_AUTO_ACCEPT_CONNECT;
+  btsnd_hcic_set_event_filter(HCI_FILTER_CONNECTION_SETUP,
+                              HCI_FILTER_COND_NEW_DEVICE, &cond, sizeof(cond));
 
-    /* put device to connectable mode */
-    if (BTM_SetConnectability(BTM_CONNECTABLE, BTM_DEFAULT_CONN_WINDOW,
-                              BTM_DEFAULT_CONN_INTERVAL) != BTM_SUCCESS) {
-        return BTM_NO_RESOURCES;
-    }
+  /* put device to connectable mode */
+  if (BTM_SetConnectability(BTM_CONNECTABLE, BTM_DEFAULT_CONN_WINDOW,
+                            BTM_DEFAULT_CONN_INTERVAL) != BTM_SUCCESS) {
+    return BTM_NO_RESOURCES;
+  }
 
-    /* put device to discoverable mode */
-    if (BTM_SetDiscoverability(BTM_GENERAL_DISCOVERABLE,
-                               BTM_DEFAULT_DISC_WINDOW,
-                               BTM_DEFAULT_DISC_INTERVAL) != BTM_SUCCESS) {
-        return BTM_NO_RESOURCES;
-    }
+  /* put device to discoverable mode */
+  if (BTM_SetDiscoverability(BTM_GENERAL_DISCOVERABLE, BTM_DEFAULT_DISC_WINDOW,
+                             BTM_DEFAULT_DISC_INTERVAL) != BTM_SUCCESS) {
+    return BTM_NO_RESOURCES;
+  }
 
-    /* mask off all of event from controller */
-    hci_layer_get_interface()->transmit_command(
-      hci_packet_factory_get_interface()->make_set_event_mask((const bt_event_mask_t *)("\x00\x00\x00\x00\x00\x00\x00\x00")),
-      NULL,
-      NULL,
-      NULL);
+  /* mask off all of event from controller */
+  hci_layer_get_interface()->transmit_command(
+      hci_packet_factory_get_interface()->make_set_event_mask(
+          (const bt_event_mask_t*)("\x00\x00\x00\x00\x00\x00\x00\x00")),
+      NULL, NULL, NULL);
 
-    /* Send the HCI command */
-    btsnd_hcic_enable_test_mode();
-    return (BTM_SUCCESS);
+  /* Send the HCI command */
+  btsnd_hcic_enable_test_mode();
+  return (BTM_SUCCESS);
 }
 
 /*******************************************************************************
@@ -841,31 +786,28 @@ tBTM_STATUS BTM_EnableTestMode(void)
  *                                 the results
  *
  ******************************************************************************/
-tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
-{
-    BD_ADDR local_bd_addr;
-    bool    delete_all_flag = false;
+tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB* p_cb) {
+  BD_ADDR local_bd_addr;
+  bool delete_all_flag = false;
 
-    /* Check if the previous command is completed */
-    if (btm_cb.devcb.p_stored_link_key_cmpl_cb)
-        return (BTM_BUSY);
+  /* Check if the previous command is completed */
+  if (btm_cb.devcb.p_stored_link_key_cmpl_cb) return (BTM_BUSY);
 
-    if (!bd_addr)
-    {
-        /* This is to delete all link keys */
-        delete_all_flag = true;
+  if (!bd_addr) {
+    /* This is to delete all link keys */
+    delete_all_flag = true;
 
-        /* We don't care the BD address. Just pass a non zero pointer */
-        bd_addr = local_bd_addr;
-    }
+    /* We don't care the BD address. Just pass a non zero pointer */
+    bd_addr = local_bd_addr;
+  }
 
-    BTM_TRACE_EVENT ("BTM: BTM_DeleteStoredLinkKey: delete_all_flag: %s",
-                        delete_all_flag ? "true" : "false");
+  BTM_TRACE_EVENT("BTM: BTM_DeleteStoredLinkKey: delete_all_flag: %s",
+                  delete_all_flag ? "true" : "false");
 
-    /* Send the HCI command */
-    btm_cb.devcb.p_stored_link_key_cmpl_cb = p_cb;
-    btsnd_hcic_delete_stored_key(bd_addr, delete_all_flag);
-    return (BTM_SUCCESS);
+  /* Send the HCI command */
+  btm_cb.devcb.p_stored_link_key_cmpl_cb = p_cb;
+  btsnd_hcic_delete_stored_key(bd_addr, delete_all_flag);
+  return (BTM_SUCCESS);
 }
 
 /*******************************************************************************
@@ -879,26 +821,24 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
  * Returns          void
  *
  ******************************************************************************/
-void btm_delete_stored_link_key_complete (uint8_t *p)
-{
-    tBTM_CMPL_CB         *p_cb = btm_cb.devcb.p_stored_link_key_cmpl_cb;
-    tBTM_DELETE_STORED_LINK_KEY_COMPLETE  result;
+void btm_delete_stored_link_key_complete(uint8_t* p) {
+  tBTM_CMPL_CB* p_cb = btm_cb.devcb.p_stored_link_key_cmpl_cb;
+  tBTM_DELETE_STORED_LINK_KEY_COMPLETE result;
 
-    /* If there was a callback registered for read stored link key, call it */
-    btm_cb.devcb.p_stored_link_key_cmpl_cb = NULL;
+  /* If there was a callback registered for read stored link key, call it */
+  btm_cb.devcb.p_stored_link_key_cmpl_cb = NULL;
 
-    if (p_cb)
-    {
-        /* Set the call back event to indicate command complete */
-        result.event = BTM_CB_EVT_DELETE_STORED_LINK_KEYS;
+  if (p_cb) {
+    /* Set the call back event to indicate command complete */
+    result.event = BTM_CB_EVT_DELETE_STORED_LINK_KEYS;
 
-        /* Extract the result fields from the HCI event */
-        STREAM_TO_UINT8  (result.status, p);
-        STREAM_TO_UINT16 (result.num_keys, p);
+    /* Extract the result fields from the HCI event */
+    STREAM_TO_UINT8(result.status, p);
+    STREAM_TO_UINT16(result.num_keys, p);
 
-        /* Call the call back and pass the result */
-        (*p_cb)(&result);
-    }
+    /* Call the call back and pass the result */
+    (*p_cb)(&result);
+  }
 }
 
 /*******************************************************************************
@@ -912,13 +852,9 @@ void btm_delete_stored_link_key_complete (uint8_t *p)
  * Returns          void
  *
  ******************************************************************************/
-void btm_report_device_status (tBTM_DEV_STATUS status)
-{
-    tBTM_DEV_STATUS_CB *p_cb = btm_cb.devcb.p_dev_status_cb;
+void btm_report_device_status(tBTM_DEV_STATUS status) {
+  tBTM_DEV_STATUS_CB* p_cb = btm_cb.devcb.p_dev_status_cb;
 
-    /* Call the call back to pass the device status to application */
-    if (p_cb)
-        (*p_cb)(status);
+  /* Call the call back to pass the device status to application */
+  if (p_cb) (*p_cb)(status);
 }
-
-

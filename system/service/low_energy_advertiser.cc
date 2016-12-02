@@ -33,8 +33,7 @@ namespace bluetooth {
 namespace {
 
 BLEStatus GetBLEStatus(int status) {
-  if (status == BT_STATUS_FAIL)
-    return BLE_STATUS_FAILURE;
+  if (status == BT_STATUS_FAIL) return BLE_STATUS_FAILURE;
 
   return static_cast<BLEStatus>(status);
 }
@@ -48,17 +47,17 @@ int GetAdvertisingIntervalUnit(AdvertiseSettings::Mode mode) {
   int ms;
 
   switch (mode) {
-  case AdvertiseSettings::MODE_BALANCED:
-    ms = kAdvertisingIntervalMediumMs;
-    break;
-  case AdvertiseSettings::MODE_LOW_LATENCY:
-    ms = kAdvertisingIntervalLowMs;
-    break;
-  case AdvertiseSettings::MODE_LOW_POWER:
+    case AdvertiseSettings::MODE_BALANCED:
+      ms = kAdvertisingIntervalMediumMs;
+      break;
+    case AdvertiseSettings::MODE_LOW_LATENCY:
+      ms = kAdvertisingIntervalLowMs;
+      break;
+    case AdvertiseSettings::MODE_LOW_POWER:
     // Fall through
-  default:
-    ms = kAdvertisingIntervalHighMs;
-    break;
+    default:
+      ms = kAdvertisingIntervalHighMs;
+      break;
   }
 
   // Convert milliseconds to Bluetooth units.
@@ -90,29 +89,28 @@ void DoNothing(uint8_t status) {}
 // LowEnergyAdvertiser implementation
 // ========================================================
 
-LowEnergyAdvertiser::LowEnergyAdvertiser(const UUID& uuid, int advertiser_id) :
-      app_identifier_(uuid),
+LowEnergyAdvertiser::LowEnergyAdvertiser(const UUID& uuid, int advertiser_id)
+    : app_identifier_(uuid),
       advertiser_id_(advertiser_id),
       adv_started_(false),
       adv_start_callback_(nullptr),
-      adv_stop_callback_(nullptr) {
-}
+      adv_stop_callback_(nullptr) {}
 
 LowEnergyAdvertiser::~LowEnergyAdvertiser() {
   // Automatically unregister the advertiser.
   VLOG(1) << "LowEnergyAdvertiser unregistering advertiser: " << advertiser_id_;
 
   // Stop advertising and ignore the result.
-  hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->Enable(advertiser_id_, false, base::Bind(&DoNothing), 0, base::Bind(&DoNothing));
-  hal::BluetoothGattInterface::Get()->
-      GetAdvertiserHALInterface()->Unregister(advertiser_id_);
+  hal::BluetoothGattInterface::Get()->GetAdvertiserHALInterface()->Enable(
+      advertiser_id_, false, base::Bind(&DoNothing), 0, base::Bind(&DoNothing));
+  hal::BluetoothGattInterface::Get()->GetAdvertiserHALInterface()->Unregister(
+      advertiser_id_);
 }
 
 bool LowEnergyAdvertiser::StartAdvertising(const AdvertiseSettings& settings,
-                                       const AdvertiseData& advertise_data,
-                                       const AdvertiseData& scan_response,
-                                       const StatusCallback& callback) {
+                                           const AdvertiseData& advertise_data,
+                                           const AdvertiseData& scan_response,
+                                           const StatusCallback& callback) {
   VLOG(2) << __func__;
   lock_guard<mutex> lock(adv_fields_lock_);
 
@@ -171,14 +169,12 @@ bool LowEnergyAdvertiser::StopAdvertising(const StatusCallback& callback) {
     return false;
   }
 
-  hal::BluetoothGattInterface::Get()
-      ->GetAdvertiserHALInterface()
-      ->Enable(
-          advertiser_id_, false,
-          base::Bind(&LowEnergyAdvertiser::EnableCallback,
-                     base::Unretained(this), false, advertiser_id_),
-          0, base::Bind(&LowEnergyAdvertiser::EnableCallback,
-                        base::Unretained(this), false, advertiser_id_));
+  hal::BluetoothGattInterface::Get()->GetAdvertiserHALInterface()->Enable(
+      advertiser_id_, false,
+      base::Bind(&LowEnergyAdvertiser::EnableCallback, base::Unretained(this),
+                 false, advertiser_id_),
+      0, base::Bind(&LowEnergyAdvertiser::EnableCallback,
+                    base::Unretained(this), false, advertiser_id_));
 
   // OK to set this at the end since we're still holding |adv_fields_lock_|.
   adv_stop_callback_.reset(new StatusCallback(callback));
@@ -202,20 +198,16 @@ const UUID& LowEnergyAdvertiser::GetAppIdentifier() const {
   return app_identifier_;
 }
 
-int LowEnergyAdvertiser::GetInstanceId() const {
-  return advertiser_id_;
-}
+int LowEnergyAdvertiser::GetInstanceId() const { return advertiser_id_; }
 
-void LowEnergyAdvertiser::EnableCallback(
-    bool enable, uint8_t advertiser_id, uint8_t status) {
-  if (advertiser_id != advertiser_id_)
-    return;
+void LowEnergyAdvertiser::EnableCallback(bool enable, uint8_t advertiser_id,
+                                         uint8_t status) {
+  if (advertiser_id != advertiser_id_) return;
 
   lock_guard<mutex> lock(adv_fields_lock_);
 
   VLOG(1) << __func__ << "advertiser_id: " << advertiser_id
-          << " status: " << status
-          << " enable: " << enable;
+          << " status: " << status << " enable: " << enable;
 
   if (enable) {
     CHECK(adv_start_callback_);
@@ -237,7 +229,8 @@ void LowEnergyAdvertiser::EnableCallback(
     CHECK(adv_stop_callback_);
 
     if (status == BT_STATUS_SUCCESS) {
-      VLOG(1) << "Multi-advertising stopped for advertiser_id: " << advertiser_id;
+      VLOG(1) << "Multi-advertising stopped for advertiser_id: "
+              << advertiser_id;
       adv_started_ = false;
     } else {
       LOG(ERROR) << "Failed to stop multi-advertising";
@@ -249,16 +242,14 @@ void LowEnergyAdvertiser::EnableCallback(
 
 void LowEnergyAdvertiser::InvokeAndClearStartCallback(BLEStatus status) {
   // We allow NULL callbacks.
-  if (*adv_start_callback_)
-    (*adv_start_callback_)(status);
+  if (*adv_start_callback_) (*adv_start_callback_)(status);
 
   adv_start_callback_ = nullptr;
 }
 
 void LowEnergyAdvertiser::InvokeAndClearStopCallback(BLEStatus status) {
   // We allow NULL callbacks.
-  if (*adv_stop_callback_)
-    (*adv_stop_callback_)(status);
+  if (*adv_stop_callback_) (*adv_stop_callback_)(status);
 
   adv_stop_callback_ = nullptr;
 }
@@ -266,11 +257,9 @@ void LowEnergyAdvertiser::InvokeAndClearStopCallback(BLEStatus status) {
 // LowEnergyAdvertiserFactory implementation
 // ========================================================
 
-LowEnergyAdvertiserFactory::LowEnergyAdvertiserFactory() {
-}
+LowEnergyAdvertiserFactory::LowEnergyAdvertiserFactory() {}
 
-LowEnergyAdvertiserFactory::~LowEnergyAdvertiserFactory() {
-}
+LowEnergyAdvertiserFactory::~LowEnergyAdvertiserFactory() {}
 
 bool LowEnergyAdvertiserFactory::RegisterInstance(
     const UUID& app_uuid, const RegisterCallback& callback) {

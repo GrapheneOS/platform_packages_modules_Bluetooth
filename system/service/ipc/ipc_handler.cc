@@ -22,12 +22,10 @@ namespace ipc {
 
 IPCHandler::IPCHandler(bluetooth::Adapter* adapter,
                        IPCManager::Delegate* delegate)
-    : adapter_(adapter),
-      delegate_(delegate) {
+    : adapter_(adapter), delegate_(delegate) {
   CHECK(adapter_);
 }
 
-IPCHandler::~IPCHandler() {
-}
+IPCHandler::~IPCHandler() {}
 
 }  // namespace ipc

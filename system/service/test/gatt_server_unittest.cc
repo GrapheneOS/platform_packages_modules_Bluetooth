@@ -40,7 +40,8 @@ class MockGattHandler
   MOCK_METHOD4(AddDescriptor, bt_status_t(int, int, bt_uuid_t*, int));
   MOCK_METHOD3(StartService, bt_status_t(int, int, int));
   MOCK_METHOD2(DeleteService, bt_status_t(int, int));
-  MOCK_METHOD5(SendIndication, bt_status_t(int, int, int, int, vector<uint8_t>));
+  MOCK_METHOD5(SendIndication,
+               bt_status_t(int, int, int, int, vector<uint8_t>));
   MOCK_METHOD4(SendResponse, bt_status_t(int, int, int, btgatt_response_t*));
 
  private:
@@ -53,9 +54,15 @@ class TestDelegate : public GattServer::Delegate {
   ~TestDelegate() override = default;
 
   struct RequestData {
-    RequestData() : id(-1), offset(-1), is_long(false), is_prep(false),
-                    need_rsp(false), is_exec(false), count(0),
-                    connected(false) {}
+    RequestData()
+        : id(-1),
+          offset(-1),
+          is_long(false),
+          is_prep(false),
+          need_rsp(false),
+          is_exec(false),
+          count(0),
+          connected(false) {}
     ~RequestData() = default;
 
     std::string device_address;
@@ -71,10 +78,10 @@ class TestDelegate : public GattServer::Delegate {
     bool connected;
   };
 
-  void OnCharacteristicReadRequest(
-      GattServer* gatt_server,
-      const std::string& device_address,
-      int request_id, int offset, bool is_long, uint16_t handle) override {
+  void OnCharacteristicReadRequest(GattServer* gatt_server,
+                                   const std::string& device_address,
+                                   int request_id, int offset, bool is_long,
+                                   uint16_t handle) override {
     ASSERT_TRUE(gatt_server);
     char_read_req_.device_address = device_address;
     char_read_req_.id = request_id;
@@ -84,10 +91,10 @@ class TestDelegate : public GattServer::Delegate {
     char_read_req_.count++;
   }
 
-  void OnDescriptorReadRequest(
-      GattServer* gatt_server,
-      const std::string& device_address,
-      int request_id, int offset, bool is_long, uint16_t handle) override {
+  void OnDescriptorReadRequest(GattServer* gatt_server,
+                               const std::string& device_address,
+                               int request_id, int offset, bool is_long,
+                               uint16_t handle) override {
     ASSERT_TRUE(gatt_server);
     desc_read_req_.device_address = device_address;
     desc_read_req_.id = request_id;
@@ -97,11 +104,12 @@ class TestDelegate : public GattServer::Delegate {
     desc_read_req_.count++;
   }
 
-  void OnCharacteristicWriteRequest(
-      GattServer* gatt_server,
-      const std::string& device_address,
-      int request_id, int offset, bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value, uint16_t handle) override {
+  void OnCharacteristicWriteRequest(GattServer* gatt_server,
+                                    const std::string& device_address,
+                                    int request_id, int offset,
+                                    bool is_prepare_write, bool need_response,
+                                    const std::vector<uint8_t>& value,
+                                    uint16_t handle) override {
     ASSERT_TRUE(gatt_server);
     char_write_req_.device_address = device_address;
     char_write_req_.id = request_id;
@@ -113,11 +121,12 @@ class TestDelegate : public GattServer::Delegate {
     char_write_req_.write_value = value;
   }
 
-  void OnDescriptorWriteRequest(
-      GattServer* gatt_server,
-      const std::string& device_address,
-      int request_id, int offset, bool is_prepare_write, bool need_response,
-      const std::vector<uint8_t>& value, uint16_t handle) override {
+  void OnDescriptorWriteRequest(GattServer* gatt_server,
+                                const std::string& device_address,
+                                int request_id, int offset,
+                                bool is_prepare_write, bool need_response,
+                                const std::vector<uint8_t>& value,
+                                uint16_t handle) override {
     ASSERT_TRUE(gatt_server);
     desc_write_req_.device_address = device_address;
     desc_write_req_.id = request_id;
@@ -129,10 +138,9 @@ class TestDelegate : public GattServer::Delegate {
     desc_write_req_.write_value = value;
   }
 
-  void OnExecuteWriteRequest(
-      GattServer* gatt_server,
-      const std::string& device_address,
-      int request_id, bool is_execute) override {
+  void OnExecuteWriteRequest(GattServer* gatt_server,
+                             const std::string& device_address, int request_id,
+                             bool is_execute) override {
     ASSERT_TRUE(gatt_server);
     exec_req_.device_address = device_address;
     exec_req_.id = request_id;
@@ -140,10 +148,9 @@ class TestDelegate : public GattServer::Delegate {
     exec_req_.count++;
   }
 
-  void OnConnectionStateChanged(
-      GattServer* gatt_server,
-      const std::string& device_address,
-      bool connected) override {
+  void OnConnectionStateChanged(GattServer* gatt_server,
+                                const std::string& device_address,
+                                bool connected) override {
     ASSERT_TRUE(gatt_server);
     conn_state_changed_.device_address = device_address;
     conn_state_changed_.connected = connected;
@@ -173,9 +180,7 @@ class GattServerTest : public ::testing::Test {
   void SetUp() override {
     mock_handler_.reset(new MockGattHandler());
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
-        nullptr,
-        nullptr,
-        nullptr,
+        nullptr, nullptr, nullptr,
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestServerHandler>(mock_handler_));
 
@@ -225,9 +230,7 @@ class GattServerPostRegisterTest : public GattServerTest {
 
     bt_uuid_t hal_uuid = uuid.GetBlueDroid();
     fake_hal_gatt_iface_->NotifyRegisterServerCallback(
-        BT_STATUS_SUCCESS,
-        kDefaultServerId,
-        hal_uuid);
+        BT_STATUS_SUCCESS, kDefaultServerId, hal_uuid);
   }
 
   void TearDown() override {
@@ -249,24 +252,30 @@ class GattServerPostRegisterTest : public GattServerTest {
 
     bool register_success = false;
 
-    Service service(0, true, uuid0, {}, {} );
+    Service service(0, true, uuid0, {}, {});
 
-    ASSERT_TRUE(gatt_server_->AddService(service, [&](
-        BLEStatus status, const Service& added_service) {
-      ASSERT_EQ(BLE_STATUS_SUCCESS, status);
-      ASSERT_TRUE(UUID(added_service.uuid()) == UUID(service.uuid()));
-      ASSERT_TRUE(added_service.handle() == 0x0001);
-      register_success = true;
-    }));
+    ASSERT_TRUE(gatt_server_->AddService(
+        service, [&](BLEStatus status, const Service& added_service) {
+          ASSERT_EQ(BLE_STATUS_SUCCESS, status);
+          ASSERT_TRUE(UUID(added_service.uuid()) == UUID(service.uuid()));
+          ASSERT_TRUE(added_service.handle() == 0x0001);
+          register_success = true;
+        }));
 
     srvc_handle_ = 0x0001;
     char_handle_ = 0x0002;
     desc_handle_ = 0x0004;
 
     vector<btgatt_db_element_t> service_with_handles = {
-      {.type = BTGATT_DB_PRIMARY_SERVICE, .uuid = uuid0.GetBlueDroid(), .attribute_handle = srvc_handle_},
-      {.type = BTGATT_DB_CHARACTERISTIC, .uuid = uuid1.GetBlueDroid(), .attribute_handle = char_handle_},
-      {.type = BTGATT_DB_DESCRIPTOR, .uuid = uuid2.GetBlueDroid(), .attribute_handle = desc_handle_},
+        {.type = BTGATT_DB_PRIMARY_SERVICE,
+         .uuid = uuid0.GetBlueDroid(),
+         .attribute_handle = srvc_handle_},
+        {.type = BTGATT_DB_CHARACTERISTIC,
+         .uuid = uuid1.GetBlueDroid(),
+         .attribute_handle = char_handle_},
+        {.type = BTGATT_DB_DESCRIPTOR,
+         .uuid = uuid2.GetBlueDroid(),
+         .attribute_handle = desc_handle_},
     };
 
     fake_hal_gatt_iface_->NotifyServiceAddedCallback(
@@ -342,8 +351,8 @@ TEST_F(GattServerTest, RegisterServer) {
   // |uuid0| succeeds.
   int server_if0 = 2;  // Pick something that's not 0.
   hal_uuid = uuid0.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterServerCallback(
-      BT_STATUS_SUCCESS, server_if0, hal_uuid);
+  fake_hal_gatt_iface_->NotifyRegisterServerCallback(BT_STATUS_SUCCESS,
+                                                     server_if0, hal_uuid);
 
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(server.get() != nullptr);  // Assert to terminate in case of error
@@ -363,8 +372,8 @@ TEST_F(GattServerTest, RegisterServer) {
   // |uuid1| fails.
   int server_if1 = 3;
   hal_uuid = uuid1.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterServerCallback(
-      BT_STATUS_FAIL, server_if1, hal_uuid);
+  fake_hal_gatt_iface_->NotifyRegisterServerCallback(BT_STATUS_FAIL, server_if1,
+                                                     hal_uuid);
 
   EXPECT_EQ(2, callback_count);
   ASSERT_TRUE(server.get() == nullptr);  // Assert to terminate in case of error
@@ -378,7 +387,7 @@ TEST_F(GattServerPostRegisterTest, RequestRead) {
   TestDelegate test_delegate;
   gatt_server_->SetDelegate(&test_delegate);
 
-  const std::vector<uint8_t> kTestValue = { 0x01, 0x02, 0x03 };
+  const std::vector<uint8_t> kTestValue = {0x01, 0x02, 0x03};
   const std::vector<uint8_t> kTestValueTooLarge(BTGATT_MAX_ATTR_LEN + 1, 0);
   const std::string kTestAddress0 = "01:23:45:67:89:AB";
   const std::string kTestAddress1 = "CD:EF:01:23:45:67";
@@ -387,9 +396,8 @@ TEST_F(GattServerPostRegisterTest, RequestRead) {
   const int kConnId0 = 1;
 
   // No pending request.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   bt_bdaddr_t hal_addr0, hal_addr1;
   ASSERT_TRUE(util::BdAddrFromString(kTestAddress0, &hal_addr0));
@@ -443,50 +451,43 @@ TEST_F(GattServerPostRegisterTest, RequestRead) {
   EXPECT_EQ(1, test_delegate.desc_read_req().count);
 
   // Send response for wrong device address.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress1, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress1, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   // Send response for a value that's too large.
   EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValueTooLarge));
+      kTestAddress0, kReqId0, GATT_ERROR_NONE, 0, kTestValueTooLarge));
 
-  EXPECT_CALL(*mock_handler_, SendResponse(kConnId0, kReqId0,
-                                           BT_STATUS_SUCCESS, _))
+  EXPECT_CALL(*mock_handler_,
+              SendResponse(kConnId0, kReqId0, BT_STATUS_SUCCESS, _))
       .Times(2)
       .WillOnce(Return(BT_STATUS_FAIL))
       .WillOnce(Return(BT_STATUS_SUCCESS));
 
   // Stack call fails.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   // Successful send response for characteristic.
-  EXPECT_TRUE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_TRUE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                         GATT_ERROR_NONE, 0, kTestValue));
 
   // Characteristic request ID no longer pending.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
-  EXPECT_CALL(*mock_handler_, SendResponse(kConnId0, kReqId1,
-                                           BT_STATUS_SUCCESS, _))
+  EXPECT_CALL(*mock_handler_,
+              SendResponse(kConnId0, kReqId1, BT_STATUS_SUCCESS, _))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
 
   // Successful send response for descriptor.
-  EXPECT_TRUE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId1,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_TRUE(gatt_server_->SendResponse(kTestAddress0, kReqId1,
+                                         GATT_ERROR_NONE, 0, kTestValue));
 
   // Descriptor request ID no longer pending.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId1,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId1,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   gatt_server_->SetDelegate(nullptr);
 }
@@ -497,7 +498,7 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
   TestDelegate test_delegate;
   gatt_server_->SetDelegate(&test_delegate);
 
-  const std::vector<uint8_t> kTestValue = { 0x01, 0x02, 0x03 };
+  const std::vector<uint8_t> kTestValue = {0x01, 0x02, 0x03};
   const std::string kTestAddress0 = "01:23:45:67:89:AB";
   const std::string kTestAddress1 = "CD:EF:01:23:45:67";
   const int kReqId0 = 0;
@@ -505,9 +506,8 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
   const int kConnId0 = 1;
 
   // No pending request.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   bt_bdaddr_t hal_addr0, hal_addr1;
   ASSERT_TRUE(util::BdAddrFromString(kTestAddress0, &hal_addr0));
@@ -521,22 +521,20 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
 
   // Unknown connection ID shouldn't trigger anything.
   fake_hal_gatt_iface_->NotifyRequestWriteCharacteristicCallback(
-      kConnId0 + 1, kReqId0, hal_addr0, char_handle_, 0,
-      true, false, kTestValue);
+      kConnId0 + 1, kReqId0, hal_addr0, char_handle_, 0, true, false,
+      kTestValue);
   EXPECT_EQ(0, test_delegate.char_write_req().count);
   EXPECT_EQ(0, test_delegate.desc_write_req().count);
 
   // Unknown device address shouldn't trigger anything.
   fake_hal_gatt_iface_->NotifyRequestWriteCharacteristicCallback(
-      kConnId0, kReqId0, hal_addr1, char_handle_, 0,
-      true, false, kTestValue);
+      kConnId0, kReqId0, hal_addr1, char_handle_, 0, true, false, kTestValue);
   EXPECT_EQ(0, test_delegate.char_write_req().count);
   EXPECT_EQ(0, test_delegate.desc_write_req().count);
 
   // Characteristic and descriptor handles should trigger correct callbacks.
   fake_hal_gatt_iface_->NotifyRequestWriteCharacteristicCallback(
-      kConnId0, kReqId0, hal_addr0, char_handle_, 0,
-      true, false, kTestValue);
+      kConnId0, kReqId0, hal_addr0, char_handle_, 0, true, false, kTestValue);
   EXPECT_EQ(1, test_delegate.char_write_req().count);
   EXPECT_EQ(kTestAddress0, test_delegate.char_write_req().device_address);
   EXPECT_EQ(kReqId0, test_delegate.char_write_req().id);
@@ -548,8 +546,7 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
   EXPECT_EQ(0, test_delegate.desc_write_req().count);
 
   fake_hal_gatt_iface_->NotifyRequestWriteDescriptorCallback(
-      kConnId0, kReqId1, hal_addr0, desc_handle_, 2,
-      true, false, kTestValue);
+      kConnId0, kReqId1, hal_addr0, desc_handle_, 2, true, false, kTestValue);
   EXPECT_EQ(1, test_delegate.char_write_req().count);
   EXPECT_EQ(1, test_delegate.desc_write_req().count);
   EXPECT_EQ(kTestAddress0, test_delegate.desc_write_req().device_address);
@@ -562,63 +559,53 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
 
   // Callback with a pending request ID will be ignored.
   fake_hal_gatt_iface_->NotifyRequestWriteCharacteristicCallback(
-      kConnId0, kReqId0, hal_addr0, char_handle_, 0,
-      true, false, kTestValue);
+      kConnId0, kReqId0, hal_addr0, char_handle_, 0, true, false, kTestValue);
   fake_hal_gatt_iface_->NotifyRequestWriteCharacteristicCallback(
-      kConnId0, kReqId1, hal_addr0, char_handle_, 0,
-      true, false, kTestValue);
+      kConnId0, kReqId1, hal_addr0, char_handle_, 0, true, false, kTestValue);
   EXPECT_EQ(1, test_delegate.char_write_req().count);
   EXPECT_EQ(1, test_delegate.desc_write_req().count);
 
   // Send response for wrong device address.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress1, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress1, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
-  EXPECT_CALL(*mock_handler_, SendResponse(kConnId0, kReqId0,
-                                           BT_STATUS_SUCCESS, _))
+  EXPECT_CALL(*mock_handler_,
+              SendResponse(kConnId0, kReqId0, BT_STATUS_SUCCESS, _))
       .Times(2)
       .WillOnce(Return(BT_STATUS_FAIL))
       .WillOnce(Return(BT_STATUS_SUCCESS));
 
   // Stack call fails.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   // Successful send response for characteristic.
-  EXPECT_TRUE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_TRUE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                         GATT_ERROR_NONE, 0, kTestValue));
 
   // Characteristic request ID no longer pending.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
-  EXPECT_CALL(*mock_handler_, SendResponse(kConnId0, kReqId1,
-                                           BT_STATUS_SUCCESS, _))
+  EXPECT_CALL(*mock_handler_,
+              SendResponse(kConnId0, kReqId1, BT_STATUS_SUCCESS, _))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
 
   // Successful send response for descriptor.
-  EXPECT_TRUE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId1,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_TRUE(gatt_server_->SendResponse(kTestAddress0, kReqId1,
+                                         GATT_ERROR_NONE, 0, kTestValue));
 
   // Descriptor request ID no longer pending.
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId1,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId1,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   // SendResponse should fail for a "Write Without Response".
   fake_hal_gatt_iface_->NotifyRequestWriteCharacteristicCallback(
-      kConnId0, kReqId0, hal_addr0, char_handle_, 0,
-      false, false, kTestValue);
+      kConnId0, kReqId0, hal_addr0, char_handle_, 0, false, false, kTestValue);
   EXPECT_EQ(false, test_delegate.char_write_req().need_rsp);
-  EXPECT_FALSE(gatt_server_->SendResponse(
-      kTestAddress0, kReqId0,
-      GATT_ERROR_NONE, 0, kTestValue));
+  EXPECT_FALSE(gatt_server_->SendResponse(kTestAddress0, kReqId0,
+                                          GATT_ERROR_NONE, 0, kTestValue));
 
   gatt_server_->SetDelegate(nullptr);
 }
@@ -650,104 +637,91 @@ TEST_F(GattServerPostRegisterTest, SendNotification) {
   };
 
   // Bad device address.
-  EXPECT_FALSE(gatt_server_->SendNotification(
-      kInvalidAddress,
-      char_handle_, false, value, callback));
+  EXPECT_FALSE(gatt_server_->SendNotification(kInvalidAddress, char_handle_,
+                                              false, value, callback));
 
   // Bad connection.
-  EXPECT_FALSE(gatt_server_->SendNotification(
-      kTestAddress1,
-      char_handle_, false, value, callback));
+  EXPECT_FALSE(gatt_server_->SendNotification(kTestAddress1, char_handle_,
+                                              false, value, callback));
 
   // We should get a HAL call for each connection for this address. The calls
   // fail.
-  EXPECT_CALL(*mock_handler_,
-              SendIndication(kDefaultServerId, char_handle_, kConnId0,
-                             0, value))
+  EXPECT_CALL(*mock_handler_, SendIndication(kDefaultServerId, char_handle_,
+                                             kConnId0, 0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_FAIL));
-  EXPECT_CALL(*mock_handler_,
-              SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             0, value))
+  EXPECT_CALL(*mock_handler_, SendIndication(kDefaultServerId, char_handle_,
+                                             kConnId1, 0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_FAIL));
-  EXPECT_FALSE(gatt_server_->SendNotification(
-      kTestAddress0,
-      char_handle_, false, value, callback));
+  EXPECT_FALSE(gatt_server_->SendNotification(kTestAddress0, char_handle_,
+                                              false, value, callback));
 
   // One of the calls succeeds.
-  EXPECT_CALL(*mock_handler_,
-              SendIndication(kDefaultServerId, char_handle_, kConnId0,
-                             0, value))
+  EXPECT_CALL(*mock_handler_, SendIndication(kDefaultServerId, char_handle_,
+                                             kConnId0, 0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_CALL(*mock_handler_,
-              SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             0, value))
+  EXPECT_CALL(*mock_handler_, SendIndication(kDefaultServerId, char_handle_,
+                                             kConnId1, 0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_FAIL));
-  EXPECT_TRUE(gatt_server_->SendNotification(
-      kTestAddress0,
-      char_handle_, false, value, callback));
+  EXPECT_TRUE(gatt_server_->SendNotification(kTestAddress0, char_handle_, false,
+                                             value, callback));
 
   // One of the connections is already pending so there should be only one call.
   // This one we send with confirm=true.
-  EXPECT_CALL(*mock_handler_,
-              SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             1, value))
+  EXPECT_CALL(*mock_handler_, SendIndication(kDefaultServerId, char_handle_,
+                                             kConnId1, 1, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(gatt_server_->SendNotification(
-      kTestAddress0,
-      char_handle_, true, value, callback));
+  EXPECT_TRUE(gatt_server_->SendNotification(kTestAddress0, char_handle_, true,
+                                             value, callback));
 
   // Calls are already pending.
-  EXPECT_FALSE(gatt_server_->SendNotification(
-      kTestAddress0, char_handle_, true, value, callback));
+  EXPECT_FALSE(gatt_server_->SendNotification(kTestAddress0, char_handle_, true,
+                                              value, callback));
 
   // Trigger one confirmation callback. We should get calls for two callbacks
   // since we have two separate calls pending.
-  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
-      kConnId0, BT_STATUS_SUCCESS);
-  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
-      kConnId1, BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(kConnId0,
+                                                     BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(kConnId1,
+                                                     BT_STATUS_SUCCESS);
   EXPECT_EQ(2, callback_count);
   EXPECT_EQ(GATT_ERROR_NONE, gatt_error);
 
   callback_count = 0;
 
   // Restart. Both calls succeed now.
-  EXPECT_CALL(*mock_handler_,
-              SendIndication(kDefaultServerId, char_handle_, kConnId0,
-                             0, value))
+  EXPECT_CALL(*mock_handler_, SendIndication(kDefaultServerId, char_handle_,
+                                             kConnId0, 0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_CALL(*mock_handler_,
-              SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             0, value))
+  EXPECT_CALL(*mock_handler_, SendIndication(kDefaultServerId, char_handle_,
+                                             kConnId1, 0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(gatt_server_->SendNotification(
-      kTestAddress0,
-      char_handle_, false, value, callback));
+  EXPECT_TRUE(gatt_server_->SendNotification(kTestAddress0, char_handle_, false,
+                                             value, callback));
 
   // Trigger one confirmation callback. The callback we passed should still be
   // pending. The first callback is for the wrong connection ID.
-  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
-      kConnId0 + 50, BT_STATUS_FAIL);
-  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
-      kConnId0, BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(kConnId0 + 50,
+                                                     BT_STATUS_FAIL);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(kConnId0,
+                                                     BT_STATUS_SUCCESS);
   EXPECT_EQ(0, callback_count);
 
   // This should be ignored since |kConnId0| was already processed.
-  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
-      kConnId0, BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(kConnId0,
+                                                     BT_STATUS_SUCCESS);
   EXPECT_EQ(0, callback_count);
 
   // Run the callback with failure. Since the previous callback reported
   // success, we should report success.
-  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
-      kConnId1, BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(kConnId1,
+                                                     BT_STATUS_SUCCESS);
   EXPECT_EQ(1, callback_count);
   EXPECT_EQ(GATT_ERROR_NONE, gatt_error);
 }

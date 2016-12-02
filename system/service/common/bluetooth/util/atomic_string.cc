@@ -18,9 +18,7 @@
 
 namespace util {
 
-AtomicString::AtomicString(const std::string& str)
-    : str_(str) {
-}
+AtomicString::AtomicString(const std::string& str) : str_(str) {}
 
 std::string AtomicString::Get() const {
   std::mutex* mutex = const_cast<std::mutex*>(&lock_);

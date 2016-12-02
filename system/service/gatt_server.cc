@@ -40,10 +40,7 @@ bool operator!=(const bt_bdaddr_t& lhs, const bt_bdaddr_t& rhs) {
 // ========================================================
 
 GattServer::GattServer(const UUID& uuid, int server_id)
-    : app_identifier_(uuid),
-      server_id_(server_id),
-      delegate_(nullptr) {
-}
+    : app_identifier_(uuid), server_id_(server_id), delegate_(nullptr) {}
 
 GattServer::~GattServer() {
   // Automatically unregister the server.
@@ -55,8 +52,9 @@ GattServer::~GattServer() {
   // Unregister this server, stop all services, and ignore the result.
   // TODO(armansito): stop and remove all services here? unregister_server
   // should really take care of that.
-  hal::BluetoothGattInterface::Get()->
-      GetServerHALInterface()->unregister_server(server_id_);
+  hal::BluetoothGattInterface::Get()
+      ->GetServerHALInterface()
+      ->unregister_server(server_id_);
 }
 
 void GattServer::SetDelegate(Delegate* delegate) {
@@ -64,16 +62,12 @@ void GattServer::SetDelegate(Delegate* delegate) {
   delegate_ = delegate;
 }
 
-const UUID& GattServer::GetAppIdentifier() const {
-  return app_identifier_;
-}
+const UUID& GattServer::GetAppIdentifier() const { return app_identifier_; }
 
-int GattServer::GetInstanceId() const {
-  return server_id_;
-}
+int GattServer::GetInstanceId() const { return server_id_; }
 
-bool GattServer::AddService(
-    const bluetooth::Service& service, const ResultCallback& callback) {
+bool GattServer::AddService(const bluetooth::Service& service,
+                            const ResultCallback& callback) {
   VLOG(1) << __func__ << " server_id: " << server_id_;
   lock_guard<mutex> lock(mutex_);
 
@@ -84,30 +78,30 @@ bool GattServer::AddService(
 
   std::vector<btgatt_db_element_t> svc;
 
-  svc.push_back({.type = (service.primary() ? BTGATT_DB_PRIMARY_SERVICE : BTGATT_DB_SECONDARY_SERVICE),
-           .uuid = service.uuid().GetBlueDroid()});
+  svc.push_back({.type = (service.primary() ? BTGATT_DB_PRIMARY_SERVICE
+                                            : BTGATT_DB_SECONDARY_SERVICE),
+                 .uuid = service.uuid().GetBlueDroid()});
 
-  for (const auto &  characteristic : service.characteristics()) {
+  for (const auto& characteristic : service.characteristics()) {
     svc.push_back({.type = BTGATT_DB_CHARACTERISTIC,
-             .uuid = characteristic.uuid().GetBlueDroid(),
-             .properties = characteristic.properties(),
-             .permissions = characteristic.permissions()
-           });
-    for (const auto &  descriptor : characteristic.descriptors())
+                   .uuid = characteristic.uuid().GetBlueDroid(),
+                   .properties = characteristic.properties(),
+                   .permissions = characteristic.permissions()});
+    for (const auto& descriptor : characteristic.descriptors())
       svc.push_back({.type = BTGATT_DB_DESCRIPTOR,
-               .uuid = descriptor.uuid().GetBlueDroid(),
-               .permissions = descriptor.permissions()
-             });
+                     .uuid = descriptor.uuid().GetBlueDroid(),
+                     .permissions = descriptor.permissions()});
   }
 
-  for (const auto &  incl_svc : service.included_services())
+  for (const auto& incl_svc : service.included_services())
     svc.push_back({.type = BTGATT_DB_INCLUDED_SERVICE,
-             .attribute_handle = incl_svc.handle() });
+                   .attribute_handle = incl_svc.handle()});
 
   pending_end_decl_cb_ = callback;
 
-  bt_status_t status = hal::BluetoothGattInterface::Get()->
-      GetServerHALInterface()->add_service(server_id_, svc);
+  bt_status_t status =
+      hal::BluetoothGattInterface::Get()->GetServerHALInterface()->add_service(
+          server_id_, svc);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to initiate call to populate GATT service";
     CleanUpPendingData();
@@ -117,14 +111,12 @@ bool GattServer::AddService(
   return true;
 }
 
-bool GattServer::SendResponse(
-    const std::string& device_address, int request_id,
-    GATTError error, int offset,
-    const std::vector<uint8_t>& value) {
+bool GattServer::SendResponse(const std::string& device_address, int request_id,
+                              GATTError error, int offset,
+                              const std::vector<uint8_t>& value) {
   VLOG(1) << __func__ << " - server_id: " << server_id_
           << " device_address: " << device_address
-          << " request_id: " << request_id
-          << " error: " << error
+          << " request_id: " << request_id << " error: " << error
           << " offset: " << offset;
   lock_guard<mutex> lock(mutex_);
 
@@ -175,9 +167,10 @@ bool GattServer::SendResponse(
     response.attr_value.len = value.size();
   }
 
-  bt_status_t result = hal::BluetoothGattInterface::Get()->
-      GetServerHALInterface()->send_response(
-          connection->conn_id, request_id, error, &response);
+  bt_status_t result =
+      hal::BluetoothGattInterface::Get()
+          ->GetServerHALInterface()
+          ->send_response(connection->conn_id, request_id, error, &response);
   if (result != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to initiate call to send GATT response";
     return false;
@@ -188,15 +181,12 @@ bool GattServer::SendResponse(
   return true;
 }
 
-bool GattServer::SendNotification(
-    const std::string& device_address,
-    const uint16_t handle,
-    bool confirm,
-    const std::vector<uint8_t>& value,
-    const GattCallback& callback) {
+bool GattServer::SendNotification(const std::string& device_address,
+                                  const uint16_t handle, bool confirm,
+                                  const std::vector<uint8_t>& value,
+                                  const GattCallback& callback) {
   VLOG(1) << " - server_id: " << server_id_
-          << " device_address: " << device_address
-          << " confirm: " << confirm;
+          << " device_address: " << device_address << " confirm: " << confirm;
   lock_guard<mutex> lock(mutex_);
 
   bt_bdaddr_t addr;
@@ -230,21 +220,17 @@ bool GattServer::SendNotification(
     // The HAL API takes char* rather const char* for |value|, so we have to
     // cast away the const.
     // TODO(armansito): Make HAL accept const char*.
-    bt_status_t status = hal::BluetoothGattInterface::Get()->
-        GetServerHALInterface()->send_indication(
-            server_id_,
-            handle,
-            conn->conn_id,
-            confirm,
-            value);
+    bt_status_t status = hal::BluetoothGattInterface::Get()
+                             ->GetServerHALInterface()
+                             ->send_indication(server_id_, handle,
+                                               conn->conn_id, confirm, value);
 
     // Increment the send count if this was successful. We don't immediately
     // fail if the HAL returned an error. It's better to report success as long
     // as we sent out at least one notification to this device as
     // multi-transport GATT connections from the same BD_ADDR will be rare
     // enough already.
-    if (status != BT_STATUS_SUCCESS)
-      continue;
+    if (status != BT_STATUS_SUCCESS) continue;
 
     send_count++;
     pending_indications_[conn->conn_id] = pending_ind;
@@ -260,14 +246,11 @@ bool GattServer::SendNotification(
 }
 
 void GattServer::ConnectionCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int conn_id, int server_id,
-    int connected,
-    const bt_bdaddr_t& bda) {
+    hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int server_id,
+    int connected, const bt_bdaddr_t& bda) {
   lock_guard<mutex> lock(mutex_);
 
-  if (server_id != server_id_)
-    return;
+  if (server_id != server_id_) return;
 
   std::string device_address = BtAddrString(&bda);
 
@@ -279,14 +262,12 @@ void GattServer::ConnectionCallback(
     VLOG(1) << "No longer connected: " << device_address;
     conn_id_map_.erase(conn_id);
     auto iter = conn_addr_map_.find(device_address);
-    if (iter == conn_addr_map_.end())
-      return;
+    if (iter == conn_addr_map_.end()) return;
 
     // Remove the appropriate connection objects in the address.
     for (auto conn_iter = iter->second.begin(); conn_iter != iter->second.end();
          ++conn_iter) {
-      if ((*conn_iter)->conn_id != conn_id)
-        continue;
+      if ((*conn_iter)->conn_id != conn_id) continue;
 
       iter->second.erase(conn_iter);
       break;
@@ -314,30 +295,33 @@ void GattServer::ConnectionCallback(
     delegate_->OnConnectionStateChanged(this, device_address, true);
 }
 
-void GattServer::ServiceAddedCallback(
-    hal::BluetoothGattInterface* gatt_iface,
-    int status, int server_id,
-    vector<btgatt_db_element_t> svc) {
+void GattServer::ServiceAddedCallback(hal::BluetoothGattInterface* gatt_iface,
+                                      int status, int server_id,
+                                      vector<btgatt_db_element_t> svc) {
   lock_guard<mutex> lock(mutex_);
 
-  if (server_id != server_id_)
-    return;
+  if (server_id != server_id_) return;
 
-  VLOG(1) << __func__ << " - status: " << status
-          << " server_id: " << server_id
+  VLOG(1) << __func__ << " - status: " << status << " server_id: " << server_id
           << " first handle: " << svc[0].attribute_handle
           << " service UUID: " << UUID(svc[0].uuid).ToString()
           << " count: " << svc.size();
 
   Service service(svc[0].attribute_handle, true, UUID(svc[0].uuid), {}, {});
 
-  for (size_t i=1; i<svc.size(); i++) {
-    const btgatt_db_element_t &curr = svc[i];
-    VLOG(1) << " - processing item no: " << i << " handle: " << curr.attribute_handle;
+  for (size_t i = 1; i < svc.size(); i++) {
+    const btgatt_db_element_t& curr = svc[i];
+    VLOG(1) << " - processing item no: " << i
+            << " handle: " << curr.attribute_handle;
     if (curr.type == BTGATT_DB_CHARACTERISTIC) {
-      service.characteristics().push_back({curr.attribute_handle, UUID(curr.uuid), curr.properties, curr.permissions, {}});
+      service.characteristics().push_back({curr.attribute_handle,
+                                           UUID(curr.uuid),
+                                           curr.properties,
+                                           curr.permissions,
+                                           {}});
     } else if (curr.type == BTGATT_DB_DESCRIPTOR) {
-      service.characteristics().back().descriptors().push_back({curr.attribute_handle, UUID(curr.uuid), curr.permissions});
+      service.characteristics().back().descriptors().push_back(
+          {curr.attribute_handle, UUID(curr.uuid), curr.permissions});
     } else if (svc[i].type == BTGATT_DB_INCLUDED_SERVICE) {
     }
   }
@@ -345,30 +329,23 @@ void GattServer::ServiceAddedCallback(
   pending_end_decl_cb_((bluetooth::BLEStatus)status, service);
 
   CleanUpPendingData();
-
 }
 
 void GattServer::ServiceStoppedCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int /* status */,
-    int /* server_id */,
-    int /* service_handle */) {
+    hal::BluetoothGattInterface* /* gatt_iface */, int /* status */,
+    int /* server_id */, int /* service_handle */) {
   // TODO(armansito): Support stopping a service.
 }
 
 void GattServer::RequestReadCharacteristicCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int conn_id, int trans_id,
-    const bt_bdaddr_t& bda,
-    int attribute_handle, int offset,
-    bool is_long) {
+    hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int trans_id,
+    const bt_bdaddr_t& bda, int attribute_handle, int offset, bool is_long) {
   lock_guard<mutex> lock(mutex_);
 
   // Check to see if we know about this connection. Otherwise ignore the
   // request.
   auto conn = GetConnection(conn_id, bda, trans_id);
-  if (!conn)
-    return;
+  if (!conn) return;
 
   std::string device_address = BtAddrString(&bda);
 
@@ -390,22 +367,18 @@ void GattServer::RequestReadCharacteristicCallback(
     return;
   }
 
-  delegate_->OnCharacteristicReadRequest(
-      this, device_address, trans_id, offset, is_long, attribute_handle);
+  delegate_->OnCharacteristicReadRequest(this, device_address, trans_id, offset,
+                                         is_long, attribute_handle);
 }
 void GattServer::RequestReadDescriptorCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int conn_id, int trans_id,
-    const bt_bdaddr_t& bda,
-    int attribute_handle, int offset,
-    bool is_long) {
+    hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int trans_id,
+    const bt_bdaddr_t& bda, int attribute_handle, int offset, bool is_long) {
   lock_guard<mutex> lock(mutex_);
 
   // Check to see if we know about this connection. Otherwise ignore the
   // request.
   auto conn = GetConnection(conn_id, bda, trans_id);
-  if (!conn)
-    return;
+  if (!conn) return;
 
   std::string device_address = BtAddrString(&bda);
 
@@ -427,38 +400,32 @@ void GattServer::RequestReadDescriptorCallback(
     return;
   }
 
-  delegate_->OnDescriptorReadRequest(
-      this, device_address, trans_id, offset, is_long, attribute_handle);
+  delegate_->OnDescriptorReadRequest(this, device_address, trans_id, offset,
+                                     is_long, attribute_handle);
 }
 
 void GattServer::RequestWriteCharacteristicCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int conn_id, int trans_id,
-    const bt_bdaddr_t& bda,
-    int attr_handle, int offset,
-    bool need_rsp, bool is_prep,
-    vector<uint8_t> value) {
+    hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int trans_id,
+    const bt_bdaddr_t& bda, int attr_handle, int offset, bool need_rsp,
+    bool is_prep, vector<uint8_t> value) {
   lock_guard<mutex> lock(mutex_);
 
   // Check to see if we know about this connection. Otherwise ignore the
   // request.
   auto conn = GetConnection(conn_id, bda, trans_id);
-  if (!conn)
-    return;
+  if (!conn) return;
 
   std::string device_address = BtAddrString(&bda);
 
   VLOG(1) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
-          << " BD_ADDR: " << device_address
-          << " attr_handle: " << attr_handle << " offset: " << offset
-          << " length: " << value.size() << " need_rsp: " << need_rsp
-          << " is_prep: " << is_prep;
+          << " BD_ADDR: " << device_address << " attr_handle: " << attr_handle
+          << " offset: " << offset << " length: " << value.size()
+          << " need_rsp: " << need_rsp << " is_prep: " << is_prep;
 
   // Store the request ID only if this is not a write-without-response. If
   // another request occurs after this with the same request ID, then we'll
   // simply process it normally, though that shouldn't ever happen.
-  if (need_rsp)
-    conn->request_id_to_handle[trans_id] = attr_handle;
+  if (need_rsp) conn->request_id_to_handle[trans_id] = attr_handle;
 
   // If there is no delegate then there is nobody to handle request. The request
   // will eventually timeout and we should get a connection update that
@@ -471,39 +438,33 @@ void GattServer::RequestWriteCharacteristicCallback(
     return;
   }
 
-  delegate_->OnCharacteristicWriteRequest(
-      this, device_address, trans_id, offset, is_prep, need_rsp,
-      std::move(value), attr_handle);
+  delegate_->OnCharacteristicWriteRequest(this, device_address, trans_id,
+                                          offset, is_prep, need_rsp,
+                                          std::move(value), attr_handle);
 }
 
 void GattServer::RequestWriteDescriptorCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int conn_id, int trans_id,
-    const bt_bdaddr_t& bda,
-    int attr_handle, int offset,
-    bool need_rsp, bool is_prep,
-    vector<uint8_t> value) {
+    hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int trans_id,
+    const bt_bdaddr_t& bda, int attr_handle, int offset, bool need_rsp,
+    bool is_prep, vector<uint8_t> value) {
   lock_guard<mutex> lock(mutex_);
 
   // Check to see if we know about this connection. Otherwise ignore the
   // request.
   auto conn = GetConnection(conn_id, bda, trans_id);
-  if (!conn)
-    return;
+  if (!conn) return;
 
   std::string device_address = BtAddrString(&bda);
 
   VLOG(1) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
-          << " BD_ADDR: " << device_address
-          << " attr_handle: " << attr_handle << " offset: " << offset
-          << " length: " << value.size() << " need_rsp: " << need_rsp
-          << " is_prep: " << is_prep;
+          << " BD_ADDR: " << device_address << " attr_handle: " << attr_handle
+          << " offset: " << offset << " length: " << value.size()
+          << " need_rsp: " << need_rsp << " is_prep: " << is_prep;
 
   // Store the request ID only if this is not a write-without-response. If
   // another request occurs after this with the same request ID, then we'll
   // simply process it normally, though that shouldn't ever happen.
-  if (need_rsp)
-    conn->request_id_to_handle[trans_id] = attr_handle;
+  if (need_rsp) conn->request_id_to_handle[trans_id] = attr_handle;
 
   // If there is no delegate then there is nobody to handle request. The request
   // will eventually timeout and we should get a connection update that
@@ -516,22 +477,20 @@ void GattServer::RequestWriteDescriptorCallback(
     return;
   }
 
-  delegate_->OnDescriptorWriteRequest(
-      this, device_address, trans_id, offset, is_prep, need_rsp,
-      std::move(value), attr_handle);
+  delegate_->OnDescriptorWriteRequest(this, device_address, trans_id, offset,
+                                      is_prep, need_rsp, std::move(value),
+                                      attr_handle);
 }
 
 void GattServer::RequestExecWriteCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int conn_id, int trans_id,
+    hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int trans_id,
     const bt_bdaddr_t& bda, int exec_write) {
   lock_guard<mutex> lock(mutex_);
 
   // Check to see if we know about this connection. Otherwise ignore the
   // request.
   auto conn = GetConnection(conn_id, bda, trans_id);
-  if (!conn)
-    return;
+  if (!conn) return;
 
   std::string device_address = BtAddrString(&bda);
 
@@ -557,8 +516,7 @@ void GattServer::RequestExecWriteCallback(
 }
 
 void GattServer::IndicationSentCallback(
-    hal::BluetoothGattInterface* /* gatt_iface */,
-    int conn_id, int status) {
+    hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int status) {
   VLOG(1) << __func__ << " conn_id: " << conn_id << " status: " << status;
   lock_guard<mutex> lock(mutex_);
 
@@ -571,14 +529,13 @@ void GattServer::IndicationSentCallback(
   std::shared_ptr<PendingIndication> pending_ind = pending_ind_iter->second;
   pending_indications_.erase(pending_ind_iter);
 
-  if (status == BT_STATUS_SUCCESS)
-    pending_ind->has_success = true;
+  if (status == BT_STATUS_SUCCESS) pending_ind->has_success = true;
 
   // Invoke it if this was the last reference to the confirmation callback.
   if (pending_ind.unique() && pending_ind->callback) {
-    pending_ind->callback(
-        pending_ind->has_success ?
-        GATT_ERROR_NONE : static_cast<GATTError>(status));
+    pending_ind->callback(pending_ind->has_success
+                              ? GATT_ERROR_NONE
+                              : static_cast<GATTError>(status));
   }
 }
 
@@ -622,9 +579,8 @@ GattServerFactory::~GattServerFactory() {
   hal::BluetoothGattInterface::Get()->RemoveServerObserver(this);
 }
 
-bool GattServerFactory::RegisterInstance(
-    const UUID& uuid,
-    const RegisterCallback& callback) {
+bool GattServerFactory::RegisterInstance(const UUID& uuid,
+                                         const RegisterCallback& callback) {
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
   lock_guard<mutex> lock(pending_calls_lock_);
 
@@ -638,8 +594,7 @@ bool GattServerFactory::RegisterInstance(
       hal::BluetoothGattInterface::Get()->GetServerHALInterface();
   bt_uuid_t app_uuid = uuid.GetBlueDroid();
 
-  if (hal_iface->register_server(&app_uuid) != BT_STATUS_SUCCESS)
-    return false;
+  if (hal_iface->register_server(&app_uuid) != BT_STATUS_SUCCESS) return false;
 
   pending_calls_[uuid] = callback;
 
@@ -647,8 +602,7 @@ bool GattServerFactory::RegisterInstance(
 }
 
 void GattServerFactory::RegisterServerCallback(
-    hal::BluetoothGattInterface* gatt_iface,
-    int status, int server_id,
+    hal::BluetoothGattInterface* gatt_iface, int status, int server_id,
     const bt_uuid_t& app_uuid) {
   UUID uuid(app_uuid);
 

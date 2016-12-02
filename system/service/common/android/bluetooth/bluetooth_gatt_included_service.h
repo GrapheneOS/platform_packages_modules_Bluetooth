@@ -33,9 +33,11 @@ namespace bluetooth {
 class BluetoothGattIncludedService : public Parcelable {
  public:
   BluetoothGattIncludedService() = default;
-  BluetoothGattIncludedService(const ::bluetooth::Service& service)  // NOLINT(implicit)
-    : handle_(service.handle()), uuid_(service.uuid()),
-      primary_(service.primary()) {};
+  BluetoothGattIncludedService(
+      const ::bluetooth::Service& service)  // NOLINT(implicit)
+      : handle_(service.handle()),
+        uuid_(service.uuid()),
+        primary_(service.primary()){};
   ~BluetoothGattIncludedService() = default;
 
   // Write |this| parcelable to the given |parcel|.  Keep in mind that
@@ -56,7 +58,7 @@ class BluetoothGattIncludedService : public Parcelable {
   bool primary() const { return primary_; }
   UUID uuid() const { return uuid_; }
 
-protected:
+ protected:
   uint16_t handle_;
   UUID uuid_;
   bool primary_;

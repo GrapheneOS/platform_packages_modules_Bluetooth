@@ -30,8 +30,8 @@
 #include "service/hal/bluetooth_interface.h"
 #include "service/logging_helpers.h"
 #include "service/low_energy_advertiser.h"
-#include "service/low_energy_scanner.h"
 #include "service/low_energy_client.h"
+#include "service/low_energy_scanner.h"
 
 using std::lock_guard;
 using std::mutex;
@@ -70,13 +70,12 @@ void Adapter::Observer::OnDeviceConnectionStateChanged(
 }
 
 // The real Adapter implementation used in production.
-class AdapterImpl : public Adapter,
-                    public hal::BluetoothInterface::Observer {
+class AdapterImpl : public Adapter, public hal::BluetoothInterface::Observer {
  public:
   AdapterImpl()
-    : state_(ADAPTER_STATE_OFF),
-      address_(kDefaultAddress),
-      name_(kDefaultName) {
+      : state_(ADAPTER_STATE_OFF),
+        address_(kDefaultAddress),
+        name_(kDefaultName) {
     memset(&local_le_features_, 0, sizeof(local_le_features_));
     hal::BluetoothInterface::Get()->AddObserver(this);
     ble_client_factory_.reset(new LowEnergyClientFactory(*this));
@@ -101,13 +100,9 @@ class AdapterImpl : public Adapter,
     observers_.RemoveObserver(observer);
   }
 
-  AdapterState GetState() const override {
-    return state_.load();
-  }
+  AdapterState GetState() const override { return state_.load(); }
 
-  bool IsEnabled() const override {
-    return state_.load() == ADAPTER_STATE_ON;
-  }
+  bool IsEnabled() const override { return state_.load() == ADAPTER_STATE_ON; }
 
   bool Enable(bool start_restricted) override {
     AdapterState current_state = GetState();
@@ -122,7 +117,8 @@ class AdapterImpl : public Adapter,
     state_ = ADAPTER_STATE_TURNING_ON;
     NotifyAdapterStateChanged(current_state, state_);
 
-    int status = hal::BluetoothInterface::Get()->GetHALInterface()->enable(start_restricted);
+    int status = hal::BluetoothInterface::Get()->GetHALInterface()->enable(
+        start_restricted);
     if (status != BT_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to enable Bluetooth - status: "
                  << BtStatusText((const bt_status_t)status);
@@ -159,9 +155,7 @@ class AdapterImpl : public Adapter,
     return true;
   }
 
-  std::string GetName() const override {
-    return name_.Get();
-  }
+  std::string GetName() const override { return name_.Get(); }
 
   bool SetName(const std::string& name) override {
     bt_bdname_t hal_name;
@@ -187,9 +181,7 @@ class AdapterImpl : public Adapter,
     return true;
   }
 
-  std::string GetAddress() const override {
-    return address_.Get();
-  }
+  std::string GetAddress() const override { return address_.Get(); }
 
   bool IsMultiAdvertisementSupported() override {
     lock_guard<mutex> lock(local_le_features_lock_);
@@ -214,7 +206,7 @@ class AdapterImpl : public Adapter,
   bool IsOffloadedScanBatchingSupported() override {
     lock_guard<mutex> lock(local_le_features_lock_);
     return local_le_features_.scan_result_storage_size >=
-        kMinOffloadedScanStorageBytes;
+           kMinOffloadedScanStorageBytes;
   }
 
   LowEnergyClientFactory* GetLowEnergyClientFactory() const override {
@@ -244,23 +236,22 @@ class AdapterImpl : public Adapter,
     AdapterState prev_state = GetState();
 
     switch (state) {
-    case BT_STATE_OFF:
-      state_ = ADAPTER_STATE_OFF;
-      break;
+      case BT_STATE_OFF:
+        state_ = ADAPTER_STATE_OFF;
+        break;
 
-    case BT_STATE_ON:
-      state_ = ADAPTER_STATE_ON;
-      break;
+      case BT_STATE_ON:
+        state_ = ADAPTER_STATE_ON;
+        break;
 
-    default:
-      NOTREACHED();
+      default:
+        NOTREACHED();
     }
 
     NotifyAdapterStateChanged(prev_state, GetState());
   }
 
-  void AdapterPropertiesCallback(bt_status_t status,
-                                 int num_properties,
+  void AdapterPropertiesCallback(bt_status_t status, int num_properties,
                                  bt_property_t* properties) override {
     LOG(INFO) << "Adapter properties changed";
 
@@ -273,8 +264,8 @@ class AdapterImpl : public Adapter,
       bt_property_t* property = properties + i;
       switch (property->type) {
         case BT_PROPERTY_BDADDR: {
-          std::string address = BtAddrString(reinterpret_cast<bt_bdaddr_t*>(
-              property->val));
+          std::string address =
+              BtAddrString(reinterpret_cast<bt_bdaddr_t*>(property->val));
           LOG(INFO) << "Adapter address changed: " << address;
           address_.Set(address);
           break;
@@ -314,8 +305,8 @@ class AdapterImpl : public Adapter,
                                bt_acl_state_t state) override {
     std::string device_address = BtAddrString(&remote_bdaddr);
     bool connected = (state == BT_ACL_STATE_CONNECTED);
-    LOG(INFO) << "ACL state changed: " << device_address << " - connected: "
-              << (connected ? "true" : "false");
+    LOG(INFO) << "ACL state changed: " << device_address
+              << " - connected: " << (connected ? "true" : "false");
 
     // If this is reported with an error status, I suppose the best thing we can
     // do is to log it and ignore the event.
@@ -349,8 +340,9 @@ class AdapterImpl : public Adapter,
     property.val = value;
     property.type = type;
 
-    int status = hal::BluetoothInterface::Get()->GetHALInterface()->
-        set_adapter_property(&property);
+    int status =
+        hal::BluetoothInterface::Get()->GetHALInterface()->set_adapter_property(
+            &property);
     if (status != BT_STATUS_SUCCESS) {
       VLOG(1) << "Failed to set property";
       return false;
@@ -362,8 +354,7 @@ class AdapterImpl : public Adapter,
   // Helper for invoking the AdapterStateChanged observer method.
   void NotifyAdapterStateChanged(AdapterState prev_state,
                                  AdapterState new_state) {
-    if (prev_state == new_state)
-      return;
+    if (prev_state == new_state) return;
 
     lock_guard<mutex> lock(observers_lock_);
     FOR_EACH_OBSERVER(Adapter::Observer, observers_,

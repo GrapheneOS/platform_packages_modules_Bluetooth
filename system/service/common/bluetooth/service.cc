@@ -37,10 +37,8 @@ Service& Service::operator=(const Service& other) {
 }
 
 bool Service::Equals(const Service& other) const {
-  return handle_ == other.handle_ &&
-         primary_ == other.primary_ &&
-         uuid_ == other.uuid_ &&
-         characteristics_ == other.characteristics_ &&
+  return handle_ == other.handle_ && primary_ == other.primary_ &&
+         uuid_ == other.uuid_ && characteristics_ == other.characteristics_ &&
          included_services_ == other.included_services_;
 }
 

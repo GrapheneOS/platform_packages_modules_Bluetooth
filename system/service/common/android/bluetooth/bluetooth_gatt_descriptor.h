@@ -28,10 +28,12 @@ using android::status_t;
 namespace android {
 namespace bluetooth {
 
-class BluetoothGattDescriptor : public Parcelable, public ::bluetooth::Descriptor {
+class BluetoothGattDescriptor : public Parcelable,
+                                public ::bluetooth::Descriptor {
  public:
   BluetoothGattDescriptor() = default;
-  BluetoothGattDescriptor(const ::bluetooth::Descriptor& characteristic)  // NOLINT(implicit)
+  BluetoothGattDescriptor(
+      const ::bluetooth::Descriptor& characteristic)  // NOLINT(implicit)
       : ::bluetooth::Descriptor(characteristic){};
   ~BluetoothGattDescriptor() = default;
 

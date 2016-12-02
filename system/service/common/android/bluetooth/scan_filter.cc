@@ -39,7 +39,7 @@ status_t ScanFilter::writeToParcel(Parcel* parcel) const {
   status = parcel->writeString16(String16(String8(device_address_.c_str())));
   if (status != OK) return status;
 
-  //TODO(jpawlowski) make type casting nicer
+  // TODO(jpawlowski) make type casting nicer
   // uuid won't really keep ownership, it's just for type casting
   std::unique_ptr<UUID> uuid;
   UUID tmp;

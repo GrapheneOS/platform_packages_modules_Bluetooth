@@ -40,8 +40,8 @@ extern "C" {
  * extension headers, but may in the future, so allow
  * space for them
 */
-#define BNEP_MINIMUM_OFFSET        (15 + L2CAP_MIN_OFFSET)
-#define BNEP_INVALID_HANDLE         0xFFFF
+#define BNEP_MINIMUM_OFFSET (15 + L2CAP_MIN_OFFSET)
+#define BNEP_INVALID_HANDLE 0xFFFF
 
 /*****************************************************************************
  *  Type Definitions
@@ -49,30 +49,29 @@ extern "C" {
 
 /* Define the result codes from BNEP
 */
-enum
-{
-    BNEP_SUCCESS,                       /* Success                           */
-    BNEP_CONN_DISCONNECTED,             /* Connection terminated   */
-    BNEP_NO_RESOURCES,                  /* No resources                      */
-    BNEP_MTU_EXCEDED,                   /* Attempt to write long data        */
-    BNEP_INVALID_OFFSET,                /* Insufficient offset in GKI buffer */
-    BNEP_CONN_FAILED,                   /* Connection failed                 */
-    BNEP_CONN_FAILED_CFG,               /* Connection failed cos of config   */
-    BNEP_CONN_FAILED_SRC_UUID,          /* Connection failed wrong source UUID   */
-    BNEP_CONN_FAILED_DST_UUID,          /* Connection failed wrong destination UUID   */
-    BNEP_CONN_FAILED_UUID_SIZE,         /* Connection failed wrong size UUID   */
-    BNEP_Q_SIZE_EXCEEDED,               /* Too many buffers to dest          */
-    BNEP_TOO_MANY_FILTERS,              /* Too many local filters specified  */
-    BNEP_SET_FILTER_FAIL,               /* Set Filter failed  */
-    BNEP_WRONG_HANDLE,                  /* Wrong handle for the connection  */
-    BNEP_WRONG_STATE,                   /* Connection is in wrong state */
-    BNEP_SECURITY_FAIL,                 /* Failed because of security */
-    BNEP_IGNORE_CMD,                    /* To ignore the rcvd command */
-    BNEP_TX_FLOW_ON,                    /* tx data flow enabled */
-    BNEP_TX_FLOW_OFF                    /* tx data flow disabled */
+enum {
+  BNEP_SUCCESS,               /* Success                           */
+  BNEP_CONN_DISCONNECTED,     /* Connection terminated   */
+  BNEP_NO_RESOURCES,          /* No resources                      */
+  BNEP_MTU_EXCEDED,           /* Attempt to write long data        */
+  BNEP_INVALID_OFFSET,        /* Insufficient offset in GKI buffer */
+  BNEP_CONN_FAILED,           /* Connection failed                 */
+  BNEP_CONN_FAILED_CFG,       /* Connection failed cos of config   */
+  BNEP_CONN_FAILED_SRC_UUID,  /* Connection failed wrong source UUID   */
+  BNEP_CONN_FAILED_DST_UUID,  /* Connection failed wrong destination UUID   */
+  BNEP_CONN_FAILED_UUID_SIZE, /* Connection failed wrong size UUID   */
+  BNEP_Q_SIZE_EXCEEDED,       /* Too many buffers to dest          */
+  BNEP_TOO_MANY_FILTERS,      /* Too many local filters specified  */
+  BNEP_SET_FILTER_FAIL,       /* Set Filter failed  */
+  BNEP_WRONG_HANDLE,          /* Wrong handle for the connection  */
+  BNEP_WRONG_STATE,           /* Connection is in wrong state */
+  BNEP_SECURITY_FAIL,         /* Failed because of security */
+  BNEP_IGNORE_CMD,            /* To ignore the rcvd command */
+  BNEP_TX_FLOW_ON,            /* tx data flow enabled */
+  BNEP_TX_FLOW_OFF            /* tx data flow disabled */
 
-}; typedef uint8_t tBNEP_RESULT;
-
+};
+typedef uint8_t tBNEP_RESULT;
 
 /***************************
  *  Callback Functions
@@ -86,13 +85,8 @@ enum
  *                  All values are used to indicate the reason for failure
  *              Flag to indicate if it is just a role change
 */
-typedef void (tBNEP_CONN_STATE_CB) (uint16_t handle,
-                                    BD_ADDR rem_bda,
-                                    tBNEP_RESULT result,
-                                    bool    is_role_change);
-
-
-
+typedef void(tBNEP_CONN_STATE_CB)(uint16_t handle, BD_ADDR rem_bda,
+                                  tBNEP_RESULT result, bool is_role_change);
 
 /* Connection indication callback prototype. Parameters are
  *              BD Address of remote, remote UUID and local UUID
@@ -100,13 +94,9 @@ typedef void (tBNEP_CONN_STATE_CB) (uint16_t handle,
  *              When BNEP calls this function profile should
  *              use BNEP_ConnectResp call to accept or reject the request
 */
-typedef void (tBNEP_CONNECT_IND_CB) (uint16_t handle,
-                                     BD_ADDR bd_addr,
-                                     tBT_UUID *remote_uuid,
-                                     tBT_UUID *local_uuid,
-                                     bool    is_role_change);
-
-
+typedef void(tBNEP_CONNECT_IND_CB)(uint16_t handle, BD_ADDR bd_addr,
+                                   tBT_UUID* remote_uuid, tBT_UUID* local_uuid,
+                                   bool is_role_change);
 
 /* Data buffer received indication callback prototype. Parameters are
  *              Handle to the connection
@@ -117,13 +107,9 @@ typedef void (tBNEP_CONNECT_IND_CB) (uint16_t handle,
  *              Flag to indicate whether extension headers to be forwarded are
  *                present
  */
-typedef void (tBNEP_DATA_BUF_CB) (uint16_t handle,
-                                  uint8_t *src,
-                                  uint8_t *dst,
-                                  uint16_t protocol,
-                                  BT_HDR *p_buf,
-                                  bool    fw_ext_present);
-
+typedef void(tBNEP_DATA_BUF_CB)(uint16_t handle, uint8_t* src, uint8_t* dst,
+                                uint16_t protocol, BT_HDR* p_buf,
+                                bool fw_ext_present);
 
 /* Data received indication callback prototype. Parameters are
  *              Handle to the connection
@@ -135,20 +121,15 @@ typedef void (tBNEP_DATA_BUF_CB) (uint16_t handle,
  *              Flag to indicate whether extension headers to be forwarded are
  *                present
  */
-typedef void (tBNEP_DATA_IND_CB) (uint16_t handle,
-                                  uint8_t *src,
-                                  uint8_t *dst,
-                                  uint16_t protocol,
-                                  uint8_t *p_data,
-                                  uint16_t len,
-                                  bool    fw_ext_present);
+typedef void(tBNEP_DATA_IND_CB)(uint16_t handle, uint8_t* src, uint8_t* dst,
+                                uint16_t protocol, uint8_t* p_data,
+                                uint16_t len, bool fw_ext_present);
 
 /* Flow control callback for TX data. Parameters are
  *              Handle to the connection
  *              Event  flow status
 */
-typedef void (tBNEP_TX_DATA_FLOW_CB) (uint16_t handle,
-                                      tBNEP_RESULT  event);
+typedef void(tBNEP_TX_DATA_FLOW_CB)(uint16_t handle, tBNEP_RESULT event);
 
 /* Filters received indication callback prototype. Parameters are
  *              Handle to the connection
@@ -163,13 +144,9 @@ typedef void (tBNEP_TX_DATA_FLOW_CB) (uint16_t handle,
  *                      two bytes will be starting of the first range and
  *                      next two bytes will be ending of the range.
 */
-typedef void (tBNEP_FILTER_IND_CB) (uint16_t handle,
-                                    bool    indication,
-                                    tBNEP_RESULT result,
-                                    uint16_t num_filters,
-                                    uint8_t *p_filters);
-
-
+typedef void(tBNEP_FILTER_IND_CB)(uint16_t handle, bool indication,
+                                  tBNEP_RESULT result, uint16_t num_filters,
+                                  uint8_t* p_filters);
 
 /* Multicast Filters received indication callback prototype. Parameters are
  *              Handle to the connection
@@ -183,49 +160,43 @@ typedef void (tBNEP_FILTER_IND_CB) (uint16_t handle,
  *                      First six bytes will be starting of the first range and
  *                      next six bytes will be ending of the range.
 */
-typedef void (tBNEP_MFILTER_IND_CB) (uint16_t handle,
-                                     bool    indication,
-                                     tBNEP_RESULT result,
-                                     uint16_t num_mfilters,
-                                     uint8_t *p_mfilters);
+typedef void(tBNEP_MFILTER_IND_CB)(uint16_t handle, bool indication,
+                                   tBNEP_RESULT result, uint16_t num_mfilters,
+                                   uint8_t* p_mfilters);
 
 /* This is the structure used by profile to register with BNEP */
-typedef struct
-{
-    tBNEP_CONNECT_IND_CB    *p_conn_ind_cb;     /* To indicate the conn request */
-    tBNEP_CONN_STATE_CB     *p_conn_state_cb;   /* To indicate conn state change */
-    tBNEP_DATA_IND_CB       *p_data_ind_cb;     /* To pass the data received */
-    tBNEP_DATA_BUF_CB       *p_data_buf_cb;     /* To pass the data buffer received */
-    tBNEP_TX_DATA_FLOW_CB   *p_tx_data_flow_cb; /* data flow callback */
-    tBNEP_FILTER_IND_CB     *p_filter_ind_cb;   /* To indicate that peer set protocol filters */
-    tBNEP_MFILTER_IND_CB    *p_mfilter_ind_cb;  /* To indicate that peer set mcast filters */
+typedef struct {
+  tBNEP_CONNECT_IND_CB* p_conn_ind_cb;  /* To indicate the conn request */
+  tBNEP_CONN_STATE_CB* p_conn_state_cb; /* To indicate conn state change */
+  tBNEP_DATA_IND_CB* p_data_ind_cb;     /* To pass the data received */
+  tBNEP_DATA_BUF_CB* p_data_buf_cb;     /* To pass the data buffer received */
+  tBNEP_TX_DATA_FLOW_CB* p_tx_data_flow_cb; /* data flow callback */
+  tBNEP_FILTER_IND_CB*
+      p_filter_ind_cb; /* To indicate that peer set protocol filters */
+  tBNEP_MFILTER_IND_CB*
+      p_mfilter_ind_cb; /* To indicate that peer set mcast filters */
 
 } tBNEP_REGISTER;
 
-
-
 /* This is the structure used by profile to get the status of BNEP */
-typedef struct
-{
-#define BNEP_STATUS_FAILE            0
-#define BNEP_STATUS_CONNECTED        1
-    uint8_t           con_status;
+typedef struct {
+#define BNEP_STATUS_FAILE 0
+#define BNEP_STATUS_CONNECTED 1
+  uint8_t con_status;
 
-    uint16_t          l2cap_cid;
-    BD_ADDR           rem_bda;
-    uint16_t          rem_mtu_size;
-    uint16_t          xmit_q_depth;
+  uint16_t l2cap_cid;
+  BD_ADDR rem_bda;
+  uint16_t rem_mtu_size;
+  uint16_t xmit_q_depth;
 
-    uint16_t          sent_num_filters;
-    uint16_t          sent_mcast_filters;
-    uint16_t          rcvd_num_filters;
-    uint16_t          rcvd_mcast_filters;
-    tBT_UUID          src_uuid;
-    tBT_UUID          dst_uuid;
+  uint16_t sent_num_filters;
+  uint16_t sent_mcast_filters;
+  uint16_t rcvd_num_filters;
+  uint16_t rcvd_mcast_filters;
+  tBT_UUID src_uuid;
+  tBT_UUID dst_uuid;
 
 } tBNEP_STATUS;
-
-
 
 /*****************************************************************************
  *  External Function Declarations
@@ -244,7 +215,7 @@ typedef struct
  *                  BNEP_FAILURE        if connection state callback is missing
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info);
+extern tBNEP_RESULT BNEP_Register(tBNEP_REGISTER* p_reg_info);
 
 /*******************************************************************************
  *
@@ -259,8 +230,7 @@ extern tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info);
  * Returns          void
  *
  ******************************************************************************/
-extern void BNEP_Deregister (void);
-
+extern void BNEP_Deregister(void);
 
 /*******************************************************************************
  *
@@ -278,10 +248,8 @@ extern void BNEP_Deregister (void);
  *                  BNEP_NO_RESOURCES           if no resources
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
-                                  tBT_UUID *src_uuid,
-                                  tBT_UUID *dst_uuid,
-                                  uint16_t *p_handle);
+extern tBNEP_RESULT BNEP_Connect(BD_ADDR p_rem_bda, tBT_UUID* src_uuid,
+                                 tBT_UUID* dst_uuid, uint16_t* p_handle);
 
 /*******************************************************************************
  *
@@ -298,7 +266,7 @@ extern tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
  *                  BNEP_WRONG_STATE            if the responce is not expected
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_ConnectResp (uint16_t handle, tBNEP_RESULT resp);
+extern tBNEP_RESULT BNEP_ConnectResp(uint16_t handle, tBNEP_RESULT resp);
 
 /*******************************************************************************
  *
@@ -312,7 +280,7 @@ extern tBNEP_RESULT BNEP_ConnectResp (uint16_t handle, tBNEP_RESULT resp);
  *                  BNEP_WRONG_HANDLE           if no connection is not found
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_Disconnect (uint16_t handle);
+extern tBNEP_RESULT BNEP_Disconnect(uint16_t handle);
 
 /*******************************************************************************
  *
@@ -337,12 +305,9 @@ extern tBNEP_RESULT BNEP_Disconnect (uint16_t handle);
  *                  BNEP_SUCCESS            - If written successfully
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_WriteBuf (uint16_t handle,
-                                   uint8_t *p_dest_addr,
-                                   BT_HDR *p_buf,
-                                   uint16_t protocol,
-                                   uint8_t *p_src_addr,
-                                   bool    fw_ext_present);
+extern tBNEP_RESULT BNEP_WriteBuf(uint16_t handle, uint8_t* p_dest_addr,
+                                  BT_HDR* p_buf, uint16_t protocol,
+                                  uint8_t* p_src_addr, bool fw_ext_present);
 
 /*******************************************************************************
  *
@@ -368,13 +333,9 @@ extern tBNEP_RESULT BNEP_WriteBuf (uint16_t handle,
  *                  BNEP_SUCCESS            - If written successfully
  *
  ******************************************************************************/
-extern tBNEP_RESULT  BNEP_Write (uint16_t handle,
-                                 uint8_t *p_dest_addr,
-                                 uint8_t *p_data,
-                                 uint16_t len,
-                                 uint16_t protocol,
-                                 uint8_t *p_src_addr,
-                                 bool    fw_ext_present);
+extern tBNEP_RESULT BNEP_Write(uint16_t handle, uint8_t* p_dest_addr,
+                               uint8_t* p_data, uint16_t len, uint16_t protocol,
+                               uint8_t* p_src_addr, bool fw_ext_present);
 
 /*******************************************************************************
  *
@@ -395,10 +356,10 @@ extern tBNEP_RESULT  BNEP_Write (uint16_t handle,
  *                  BNEP_SUCCESS                - if request sent successfully
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_SetProtocolFilters (uint16_t handle,
-                                             uint16_t num_filters,
-                                             uint16_t *p_start_array,
-                                             uint16_t *p_end_array);
+extern tBNEP_RESULT BNEP_SetProtocolFilters(uint16_t handle,
+                                            uint16_t num_filters,
+                                            uint16_t* p_start_array,
+                                            uint16_t* p_end_array);
 
 /*******************************************************************************
  *
@@ -422,10 +383,10 @@ extern tBNEP_RESULT BNEP_SetProtocolFilters (uint16_t handle,
  *                  BNEP_SUCCESS                - if request sent successfully
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_SetMulticastFilters (uint16_t handle,
-                                              uint16_t num_filters,
-                                              uint8_t *p_start_array,
-                                              uint8_t *p_end_array);
+extern tBNEP_RESULT BNEP_SetMulticastFilters(uint16_t handle,
+                                             uint16_t num_filters,
+                                             uint8_t* p_start_array,
+                                             uint8_t* p_end_array);
 
 /*******************************************************************************
  *
@@ -437,7 +398,7 @@ extern tBNEP_RESULT BNEP_SetMulticastFilters (uint16_t handle,
  * Returns          the new (current) trace level
  *
  ******************************************************************************/
-extern uint8_t BNEP_SetTraceLevel (uint8_t new_level);
+extern uint8_t BNEP_SetTraceLevel(uint8_t new_level);
 
 /*******************************************************************************
  *
@@ -450,7 +411,7 @@ extern uint8_t BNEP_SetTraceLevel (uint8_t new_level);
  * Returns          void
  *
  ******************************************************************************/
-extern void BNEP_Init (void);
+extern void BNEP_Init(void);
 
 /*******************************************************************************
  *
@@ -466,13 +427,10 @@ extern void BNEP_Init (void);
  *                  BNEP_WRONG_STATE        - if not in connected state
  *
  ******************************************************************************/
-extern tBNEP_RESULT BNEP_GetStatus (uint16_t handle, tBNEP_STATUS *p_status);
-
-
+extern tBNEP_RESULT BNEP_GetStatus(uint16_t handle, tBNEP_STATUS* p_status);
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

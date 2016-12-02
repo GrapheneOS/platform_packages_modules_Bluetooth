@@ -18,36 +18,28 @@
 
 namespace bluetooth {
 
-AdvertiseSettings::AdvertiseSettings(
-    Mode mode,
-    base::TimeDelta timeout,
-    TxPowerLevel tx_power_level,
-    bool connectable)
+AdvertiseSettings::AdvertiseSettings(Mode mode, base::TimeDelta timeout,
+                                     TxPowerLevel tx_power_level,
+                                     bool connectable)
     : mode_(mode),
       timeout_(timeout),
       tx_power_level_(tx_power_level),
-      connectable_(connectable) {
-}
+      connectable_(connectable) {}
 
 // Default values are taken from the AdvertiseSettings.java
 AdvertiseSettings::AdvertiseSettings()
     : mode_(MODE_LOW_POWER),
       tx_power_level_(TX_POWER_LEVEL_MEDIUM),
-      connectable_(true) {
-}
+      connectable_(true) {}
 
 bool AdvertiseSettings::operator==(const AdvertiseSettings& rhs) const {
-  if (mode_ != rhs.mode_)
-    return false;
+  if (mode_ != rhs.mode_) return false;
 
-  if (timeout_ != rhs.timeout_)
-    return false;
+  if (timeout_ != rhs.timeout_) return false;
 
-  if (tx_power_level_ != rhs.tx_power_level_)
-    return false;
+  if (tx_power_level_ != rhs.tx_power_level_) return false;
 
-  if (connectable_ != rhs.connectable_)
-    return false;
+  if (connectable_ != rhs.connectable_) return false;
 
   return true;
 }
