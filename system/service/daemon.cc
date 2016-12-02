@@ -35,23 +35,17 @@ Daemon* g_daemon = nullptr;
 
 class DaemonImpl : public Daemon {
  public:
-  DaemonImpl() : initialized_(false) {
-  }
+  DaemonImpl() : initialized_(false) {}
 
   ~DaemonImpl() override {
-    if (!initialized_)
-      return;
+    if (!initialized_) return;
 
     CleanUpBluetoothStack();
   }
 
-  void StartMainLoop() override {
-    message_loop_->Run();
-  }
+  void StartMainLoop() override { message_loop_->Run(); }
 
-  Settings* GetSettings() const override {
-    return settings_.get();
-  }
+  Settings* GetSettings() const override { return settings_.get(); }
 
   base::MessageLoop* GetMessageLoop() const override {
     return message_loop_.get();
@@ -59,11 +53,9 @@ class DaemonImpl : public Daemon {
 
  private:
   bool StartUpBluetoothInterfaces() {
-    if (!hal::BluetoothInterface::Initialize())
-      goto failed;
+    if (!hal::BluetoothInterface::Initialize()) goto failed;
 
-    if (!hal::BluetoothGattInterface::Initialize())
-      goto failed;
+    if (!hal::BluetoothGattInterface::Initialize()) goto failed;
 
     return true;
 
@@ -147,8 +139,7 @@ bool Daemon::Initialize() {
   CHECK(!g_daemon);
 
   g_daemon = new DaemonImpl();
-  if (g_daemon->Init())
-    return true;
+  if (g_daemon->Init()) return true;
 
   LOG(ERROR) << "Failed to initialize the Daemon object";
 

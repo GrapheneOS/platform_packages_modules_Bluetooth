@@ -23,14 +23,14 @@ extern "C" {
 #endif
 
 typedef int SOCKET;
-#define INVALID_SOCKET  (SOCKET)(-1)
-#define SOCKET_ERROR            (-1)
+#define INVALID_SOCKET (SOCKET)(-1)
+#define SOCKET_ERROR (-1)
 
 /* tcp/ip socket configuration */
 typedef struct {
-    char            *p_address;
-    unsigned int    port;
-} tUIPC_LINUX_CFG_TCP ;
+  char* p_address;
+  unsigned int port;
+} tUIPC_LINUX_CFG_TCP;
 
 /* Socket configuration for GLGPS interface */
 extern tUIPC_LINUX_CFG_TCP uipc_linux_cfg_glgps;

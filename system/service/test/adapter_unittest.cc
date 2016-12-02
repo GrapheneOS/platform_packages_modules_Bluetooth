@@ -37,7 +37,8 @@ class AdapterTest : public ::testing::Test {
 
     // Initialize GATT interface with default handlers.
     hal::BluetoothGattInterface::InitializeForTesting(
-        new hal::FakeBluetoothGattInterface(nullptr, nullptr, nullptr, nullptr));
+        new hal::FakeBluetoothGattInterface(nullptr, nullptr, nullptr,
+                                            nullptr));
 
     adapter_ = Adapter::Create();
   }
@@ -68,9 +69,7 @@ class TestObserver final : public bluetooth::Adapter::Observer {
     adapter_->AddObserver(this);
   }
 
-  ~TestObserver() override {
-    adapter_->RemoveObserver(this);
-  }
+  ~TestObserver() override { adapter_->RemoveObserver(this); }
 
   bluetooth::AdapterState prev_state() const { return prev_state_; }
   bluetooth::AdapterState cur_state() const { return cur_state_; }
@@ -92,10 +91,9 @@ class TestObserver final : public bluetooth::Adapter::Observer {
     cur_state_ = new_state;
   }
 
-  void OnDeviceConnectionStateChanged(
-      Adapter* adapter,
-      const std::string& device_address,
-      bool connected) override {
+  void OnDeviceConnectionStateChanged(Adapter* adapter,
+                                      const std::string& device_address,
+                                      bool connected) override {
     ASSERT_EQ(adapter_, adapter);
     last_connection_state_address_ = device_address;
     last_device_connected_state_ = connected;
@@ -229,9 +227,7 @@ TEST_F(AdapterTest, SetName) {
 TEST_F(AdapterTest, GetAddress) {
   EXPECT_EQ(bluetooth::Adapter::kDefaultAddress, adapter_->GetAddress());
 
-  const bt_bdaddr_t kTestAdapterInput = {
-    { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc }
-  };
+  const bt_bdaddr_t kTestAdapterInput = {{0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc}};
   const char kTestAdapterAddressOutput[] = "12:34:56:78:9A:BC";
 
   fake_hal_iface_->NotifyAdapterAddressPropertyChanged(&kTestAdapterInput);
@@ -263,22 +259,22 @@ TEST_F(AdapterTest, IsDeviceConnected) {
   ASSERT_TRUE(util::BdAddrFromString(kDeviceAddr, &hal_addr));
 
   // status != BT_STATUS_SUCCESS should be ignored
-  fake_hal_iface_->NotifyAclStateChangedCallback(
-      BT_STATUS_FAIL, hal_addr, BT_ACL_STATE_CONNECTED);
+  fake_hal_iface_->NotifyAclStateChangedCallback(BT_STATUS_FAIL, hal_addr,
+                                                 BT_ACL_STATE_CONNECTED);
   EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_TRUE(observer.last_connection_state_address().empty());
   EXPECT_FALSE(observer.last_device_connected_state());
 
   // Connected
-  fake_hal_iface_->NotifyAclStateChangedCallback(
-      BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_CONNECTED);
+  fake_hal_iface_->NotifyAclStateChangedCallback(BT_STATUS_SUCCESS, hal_addr,
+                                                 BT_ACL_STATE_CONNECTED);
   EXPECT_TRUE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
   EXPECT_TRUE(observer.last_device_connected_state());
 
   // Disconnected
-  fake_hal_iface_->NotifyAclStateChangedCallback(
-      BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_DISCONNECTED);
+  fake_hal_iface_->NotifyAclStateChangedCallback(BT_STATUS_SUCCESS, hal_addr,
+                                                 BT_ACL_STATE_DISCONNECTED);
   EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
   EXPECT_FALSE(observer.last_device_connected_state());

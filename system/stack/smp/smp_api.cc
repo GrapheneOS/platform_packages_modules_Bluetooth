@@ -28,12 +28,12 @@
 #include "bt_utils.h"
 #include "stack_config.h"
 
-#include "smp_int.h"
-#include "smp_api.h"
-#include "l2cdefs.h"
-#include "l2c_int.h"
 #include "btm_int.h"
 #include "hcimsgs.h"
+#include "l2c_int.h"
+#include "l2cdefs.h"
+#include "smp_api.h"
+#include "smp_int.h"
 
 #include "btu.h"
 #include "p_256_ecc_pp.h"
@@ -47,29 +47,29 @@
  * Returns          void
  *
  ******************************************************************************/
-void SMP_Init(void)
-{
-    memset(&smp_cb, 0, sizeof(tSMP_CB));
-    smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
-    smp_cb.delayed_auth_timer_ent = alarm_new("smp.delayed_auth_timer_ent");
+void SMP_Init(void) {
+  memset(&smp_cb, 0, sizeof(tSMP_CB));
+  smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
+  smp_cb.delayed_auth_timer_ent = alarm_new("smp.delayed_auth_timer_ent");
 
 #if defined(SMP_INITIAL_TRACE_LEVEL)
-    smp_cb.trace_level = SMP_INITIAL_TRACE_LEVEL;
+  smp_cb.trace_level = SMP_INITIAL_TRACE_LEVEL;
 #else
-    smp_cb.trace_level = BT_TRACE_LEVEL_NONE;    /* No traces */
+  smp_cb.trace_level = BT_TRACE_LEVEL_NONE; /* No traces */
 #endif
-    SMP_TRACE_EVENT ("%s", __func__);
+  SMP_TRACE_EVENT("%s", __func__);
 
-    smp_l2cap_if_init();
-    /* initialization of P-256 parameters */
-    p_256_init_curve(KEY_LENGTH_DWORDS_P256);
+  smp_l2cap_if_init();
+  /* initialization of P-256 parameters */
+  p_256_init_curve(KEY_LENGTH_DWORDS_P256);
 
-    /* Initialize failure case for certification */
-    smp_cb.cert_failure = stack_config_get_interface()->get_pts_smp_failure_case();
-    if (smp_cb.cert_failure)
-        SMP_TRACE_ERROR ("%s PTS FAILURE MODE IN EFFECT (CASE %d)", __func__, smp_cb.cert_failure);
+  /* Initialize failure case for certification */
+  smp_cb.cert_failure =
+      stack_config_get_interface()->get_pts_smp_failure_case();
+  if (smp_cb.cert_failure)
+    SMP_TRACE_ERROR("%s PTS FAILURE MODE IN EFFECT (CASE %d)", __func__,
+                    smp_cb.cert_failure);
 }
-
 
 /*******************************************************************************
  *
@@ -91,14 +91,11 @@ void SMP_Init(void)
  * Returns          The new or current trace level
  *
  ******************************************************************************/
-extern uint8_t SMP_SetTraceLevel (uint8_t new_level)
-{
-    if (new_level != 0xFF)
-        smp_cb.trace_level = new_level;
+extern uint8_t SMP_SetTraceLevel(uint8_t new_level) {
+  if (new_level != 0xFF) smp_cb.trace_level = new_level;
 
-    return(smp_cb.trace_level);
+  return (smp_cb.trace_level);
 }
-
 
 /*******************************************************************************
  *
@@ -109,18 +106,15 @@ extern uint8_t SMP_SetTraceLevel (uint8_t new_level)
  * Returns          void
  *
  ******************************************************************************/
-bool    SMP_Register (tSMP_CALLBACK *p_cback)
-{
-    SMP_TRACE_EVENT ("SMP_Register state=%d", smp_cb.state);
+bool SMP_Register(tSMP_CALLBACK* p_cback) {
+  SMP_TRACE_EVENT("SMP_Register state=%d", smp_cb.state);
 
-    if (smp_cb.p_callback != NULL)
-    {
-        SMP_TRACE_ERROR ("SMP_Register: duplicate registration, overwrite it");
-    }
-    smp_cb.p_callback = p_cback;
+  if (smp_cb.p_callback != NULL) {
+    SMP_TRACE_ERROR("SMP_Register: duplicate registration, overwrite it");
+  }
+  smp_cb.p_callback = p_cback;
 
-    return(true);
-
+  return (true);
 }
 
 /*******************************************************************************
@@ -135,34 +129,29 @@ bool    SMP_Register (tSMP_CALLBACK *p_cback)
  * Returns          None
  *
  ******************************************************************************/
-tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
-{
-    tSMP_CB   *p_cb = &smp_cb;
-    uint8_t   status = SMP_PAIR_INTERNAL_ERR;
+tSMP_STATUS SMP_Pair(BD_ADDR bd_addr) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t status = SMP_PAIR_INTERNAL_ERR;
 
-    SMP_TRACE_EVENT ("%s state=%d br_state=%d flag=0x%x ",
-                      __func__, p_cb->state, p_cb->br_state, p_cb->flags);
-    if (p_cb->state != SMP_STATE_IDLE || p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD ||
-        p_cb->smp_over_br)
-    {
-        /* pending security on going, reject this one */
-        return SMP_BUSY;
+  SMP_TRACE_EVENT("%s state=%d br_state=%d flag=0x%x ", __func__, p_cb->state,
+                  p_cb->br_state, p_cb->flags);
+  if (p_cb->state != SMP_STATE_IDLE ||
+      p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD || p_cb->smp_over_br) {
+    /* pending security on going, reject this one */
+    return SMP_BUSY;
+  } else {
+    p_cb->flags = SMP_PAIR_FLAGS_WE_STARTED_DD;
+
+    memcpy(p_cb->pairing_bda, bd_addr, BD_ADDR_LEN);
+
+    if (!L2CA_ConnectFixedChnl(L2CAP_SMP_CID, bd_addr)) {
+      SMP_TRACE_ERROR("%s: L2C connect fixed channel failed.", __func__);
+      smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+      return status;
     }
-    else
-    {
-        p_cb->flags = SMP_PAIR_FLAGS_WE_STARTED_DD;
 
-        memcpy (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN);
-
-        if (!L2CA_ConnectFixedChnl (L2CAP_SMP_CID, bd_addr))
-        {
-            SMP_TRACE_ERROR("%s: L2C connect fixed channel failed.", __func__);
-            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-            return status;
-        }
-
-        return SMP_STARTED;
-    }
+    return SMP_STARTED;
+  }
 }
 
 /*******************************************************************************
@@ -178,36 +167,32 @@ tSMP_STATUS SMP_Pair (BD_ADDR bd_addr)
  *                  failure.
  *
  ******************************************************************************/
-tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr)
-{
-    tSMP_CB   *p_cb = &smp_cb;
-    uint8_t   status = SMP_PAIR_INTERNAL_ERR;
+tSMP_STATUS SMP_BR_PairWith(BD_ADDR bd_addr) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t status = SMP_PAIR_INTERNAL_ERR;
 
-    SMP_TRACE_EVENT ("%s state=%d br_state=%d flag=0x%x ",
-                      __func__, p_cb->state, p_cb->br_state, p_cb->flags);
+  SMP_TRACE_EVENT("%s state=%d br_state=%d flag=0x%x ", __func__, p_cb->state,
+                  p_cb->br_state, p_cb->flags);
 
-    if (p_cb->state != SMP_STATE_IDLE ||
-        p_cb->smp_over_br ||
-        p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD)
-    {
-        /* pending security on going, reject this one */
-        return SMP_BUSY;
-    }
+  if (p_cb->state != SMP_STATE_IDLE || p_cb->smp_over_br ||
+      p_cb->flags & SMP_PAIR_FLAGS_WE_STARTED_DD) {
+    /* pending security on going, reject this one */
+    return SMP_BUSY;
+  }
 
-    p_cb->role = HCI_ROLE_MASTER;
-    p_cb->flags = SMP_PAIR_FLAGS_WE_STARTED_DD;
-    p_cb->smp_over_br = true;
+  p_cb->role = HCI_ROLE_MASTER;
+  p_cb->flags = SMP_PAIR_FLAGS_WE_STARTED_DD;
+  p_cb->smp_over_br = true;
 
-    memcpy (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN);
+  memcpy(p_cb->pairing_bda, bd_addr, BD_ADDR_LEN);
 
-    if (!L2CA_ConnectFixedChnl (L2CAP_SMP_BR_CID, bd_addr))
-    {
-        SMP_TRACE_ERROR("%s: L2C connect fixed channel failed.",__func__);
-        smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &status);
-        return status;
-    }
+  if (!L2CA_ConnectFixedChnl(L2CAP_SMP_BR_CID, bd_addr)) {
+    SMP_TRACE_ERROR("%s: L2C connect fixed channel failed.", __func__);
+    smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &status);
+    return status;
+  }
 
-    return SMP_STARTED;
+  return SMP_STARTED;
 }
 
 /*******************************************************************************
@@ -221,29 +206,28 @@ tSMP_STATUS SMP_BR_PairWith (BD_ADDR bd_addr)
  * Returns          true - Pairining is cancelled
  *
  ******************************************************************************/
-bool    SMP_PairCancel (BD_ADDR bd_addr)
-{
-    tSMP_CB   *p_cb = &smp_cb;
-    uint8_t   err_code = SMP_PAIR_FAIL_UNKNOWN;
-    bool      status = false;
+bool SMP_PairCancel(BD_ADDR bd_addr) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t err_code = SMP_PAIR_FAIL_UNKNOWN;
+  bool status = false;
 
-    // PTS SMP failure test cases
-    if (p_cb->cert_failure == 7)
-        err_code = SMP_PASSKEY_ENTRY_FAIL;
-    else if (p_cb->cert_failure == 8)
-        err_code = SMP_NUMERIC_COMPAR_FAIL;
+  // PTS SMP failure test cases
+  if (p_cb->cert_failure == 7)
+    err_code = SMP_PASSKEY_ENTRY_FAIL;
+  else if (p_cb->cert_failure == 8)
+    err_code = SMP_NUMERIC_COMPAR_FAIL;
 
-    BTM_TRACE_EVENT ("SMP_CancelPair state=%d flag=0x%x ", p_cb->state, p_cb->flags);
-    if ( (p_cb->state != SMP_STATE_IDLE)  &&
-         (!memcmp (p_cb->pairing_bda, bd_addr, BD_ADDR_LEN)) )
-    {
-        p_cb->is_pair_cancel = true;
-        SMP_TRACE_DEBUG("Cancel Pairing: set fail reason Unknown");
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &err_code);
-        status = true;
-    }
+  BTM_TRACE_EVENT("SMP_CancelPair state=%d flag=0x%x ", p_cb->state,
+                  p_cb->flags);
+  if ((p_cb->state != SMP_STATE_IDLE) &&
+      (!memcmp(p_cb->pairing_bda, bd_addr, BD_ADDR_LEN))) {
+    p_cb->is_pair_cancel = true;
+    SMP_TRACE_DEBUG("Cancel Pairing: set fail reason Unknown");
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &err_code);
+    status = true;
+  }
 
-    return status;
+  return status;
 }
 /*******************************************************************************
  *
@@ -259,34 +243,31 @@ bool    SMP_PairCancel (BD_ADDR bd_addr)
  * Returns          None
  *
  ******************************************************************************/
-void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res)
-{
-    SMP_TRACE_EVENT ("SMP_SecurityGrant ");
+void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res) {
+  SMP_TRACE_EVENT("SMP_SecurityGrant ");
 
-    if (smp_cb.smp_over_br)
-    {
-        if (smp_cb.br_state != SMP_BR_STATE_WAIT_APP_RSP ||
-            smp_cb.cb_evt != SMP_SEC_REQUEST_EVT ||
-            memcmp (smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN))
-        {
-            return;
-        }
-
-        /* clear the SMP_SEC_REQUEST_EVT event after get grant */
-        /* avoid generating duplicate pair request */
-        smp_cb.cb_evt = 0;
-        smp_br_state_machine_event(&smp_cb, SMP_BR_API_SEC_GRANT_EVT, &res);
-        return;
+  if (smp_cb.smp_over_br) {
+    if (smp_cb.br_state != SMP_BR_STATE_WAIT_APP_RSP ||
+        smp_cb.cb_evt != SMP_SEC_REQUEST_EVT ||
+        memcmp(smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN)) {
+      return;
     }
 
-    if (smp_cb.state != SMP_STATE_WAIT_APP_RSP ||
-        smp_cb.cb_evt != SMP_SEC_REQUEST_EVT ||
-        memcmp (smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN))
-        return;
     /* clear the SMP_SEC_REQUEST_EVT event after get grant */
-    /* avoid generate duplicate pair request */
+    /* avoid generating duplicate pair request */
     smp_cb.cb_evt = 0;
-    smp_sm_event(&smp_cb, SMP_API_SEC_GRANT_EVT, &res);
+    smp_br_state_machine_event(&smp_cb, SMP_BR_API_SEC_GRANT_EVT, &res);
+    return;
+  }
+
+  if (smp_cb.state != SMP_STATE_WAIT_APP_RSP ||
+      smp_cb.cb_evt != SMP_SEC_REQUEST_EVT ||
+      memcmp(smp_cb.pairing_bda, bd_addr, BD_ADDR_LEN))
+    return;
+  /* clear the SMP_SEC_REQUEST_EVT event after get grant */
+  /* avoid generate duplicate pair request */
+  smp_cb.cb_evt = 0;
+  smp_sm_event(&smp_cb, SMP_API_SEC_GRANT_EVT, &res);
 }
 
 /*******************************************************************************
@@ -304,50 +285,43 @@ void SMP_SecurityGrant(BD_ADDR bd_addr, uint8_t res)
  *                            BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
  *
  ******************************************************************************/
-void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey)
-{
-    tSMP_CB *p_cb = & smp_cb;
-    uint8_t failure = SMP_PASSKEY_ENTRY_FAIL;
+void SMP_PasskeyReply(BD_ADDR bd_addr, uint8_t res, uint32_t passkey) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t failure = SMP_PASSKEY_ENTRY_FAIL;
 
-    SMP_TRACE_EVENT ("SMP_PasskeyReply: Key: %d  Result:%d",
-                      passkey, res);
+  SMP_TRACE_EVENT("SMP_PasskeyReply: Key: %d  Result:%d", passkey, res);
 
-    /* If timeout already expired or has been canceled, ignore the reply */
-    if (p_cb->cb_evt != SMP_PASSKEY_REQ_EVT)
-    {
-        SMP_TRACE_WARNING ("SMP_PasskeyReply() - Wrong State: %d", p_cb->state);
-        return;
-    }
-
-    if (memcmp (bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) != 0)
-    {
-        SMP_TRACE_ERROR ("SMP_PasskeyReply() - Wrong BD Addr");
-        return;
-    }
-
-    if (btm_find_dev (bd_addr) == NULL)
-    {
-        SMP_TRACE_ERROR ("SMP_PasskeyReply() - no dev CB");
-        return;
-    }
-
-    if (passkey > BTM_MAX_PASSKEY_VAL || res != SMP_SUCCESS)
-    {
-        SMP_TRACE_WARNING ("SMP_PasskeyReply() - Wrong key len: %d or passkey entry fail", passkey);
-        /* send pairing failure */
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
-
-    }
-    else if (p_cb->selected_association_model == SMP_MODEL_SEC_CONN_PASSKEY_ENT)
-    {
-        smp_sm_event(&smp_cb, SMP_SC_KEY_READY_EVT, &passkey);
-    }
-    else
-    {
-        smp_convert_string_to_tk(p_cb->tk, passkey);
-    }
-
+  /* If timeout already expired or has been canceled, ignore the reply */
+  if (p_cb->cb_evt != SMP_PASSKEY_REQ_EVT) {
+    SMP_TRACE_WARNING("SMP_PasskeyReply() - Wrong State: %d", p_cb->state);
     return;
+  }
+
+  if (memcmp(bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) != 0) {
+    SMP_TRACE_ERROR("SMP_PasskeyReply() - Wrong BD Addr");
+    return;
+  }
+
+  if (btm_find_dev(bd_addr) == NULL) {
+    SMP_TRACE_ERROR("SMP_PasskeyReply() - no dev CB");
+    return;
+  }
+
+  if (passkey > BTM_MAX_PASSKEY_VAL || res != SMP_SUCCESS) {
+    SMP_TRACE_WARNING(
+        "SMP_PasskeyReply() - Wrong key len: %d or passkey entry fail",
+        passkey);
+    /* send pairing failure */
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
+
+  } else if (p_cb->selected_association_model ==
+             SMP_MODEL_SEC_CONN_PASSKEY_ENT) {
+    smp_sm_event(&smp_cb, SMP_SC_KEY_READY_EVT, &passkey);
+  } else {
+    smp_convert_string_to_tk(p_cb->tk, passkey);
+  }
+
+  return;
 }
 
 /*******************************************************************************
@@ -362,42 +336,35 @@ void SMP_PasskeyReply (BD_ADDR bd_addr, uint8_t res, uint32_t passkey)
  *                  res          - comparison result SMP_SUCCESS if success
  *
  ******************************************************************************/
-void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res)
-{
-    tSMP_CB *p_cb = & smp_cb;
-    uint8_t failure = SMP_NUMERIC_COMPAR_FAIL;
+void SMP_ConfirmReply(BD_ADDR bd_addr, uint8_t res) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t failure = SMP_NUMERIC_COMPAR_FAIL;
 
-    SMP_TRACE_EVENT ("%s: Result:%d", __func__, res);
+  SMP_TRACE_EVENT("%s: Result:%d", __func__, res);
 
-    /* If timeout already expired or has been canceled, ignore the reply */
-    if (p_cb->cb_evt != SMP_NC_REQ_EVT)
-    {
-        SMP_TRACE_WARNING ("%s() - Wrong State: %d", __func__,p_cb->state);
-        return;
-    }
+  /* If timeout already expired or has been canceled, ignore the reply */
+  if (p_cb->cb_evt != SMP_NC_REQ_EVT) {
+    SMP_TRACE_WARNING("%s() - Wrong State: %d", __func__, p_cb->state);
+    return;
+  }
 
-    if (memcmp (bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) != 0)
-    {
-        SMP_TRACE_ERROR ("%s() - Wrong BD Addr",__func__);
-        return;
-    }
+  if (memcmp(bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) != 0) {
+    SMP_TRACE_ERROR("%s() - Wrong BD Addr", __func__);
+    return;
+  }
 
-    if (btm_find_dev (bd_addr) == NULL)
-    {
-        SMP_TRACE_ERROR ("%s() - no dev CB",__func__);
-        return;
-    }
+  if (btm_find_dev(bd_addr) == NULL) {
+    SMP_TRACE_ERROR("%s() - no dev CB", __func__);
+    return;
+  }
 
-    if (res != SMP_SUCCESS)
-    {
-        SMP_TRACE_WARNING ("%s() - Numeric Comparison fails",__func__);
-        /* send pairing failure */
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
-    }
-    else
-    {
-        smp_sm_event(p_cb, SMP_SC_NC_OK_EVT, NULL);
-    }
+  if (res != SMP_SUCCESS) {
+    SMP_TRACE_WARNING("%s() - Numeric Comparison fails", __func__);
+    /* send pairing failure */
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
+  } else {
+    smp_sm_event(p_cb, SMP_SC_NC_OK_EVT, NULL);
+  }
 }
 
 /*******************************************************************************
@@ -412,34 +379,30 @@ void SMP_ConfirmReply (BD_ADDR bd_addr, uint8_t res)
  *                  p_data      - simple pairing Randomizer  C.
  *
  ******************************************************************************/
-void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len, uint8_t *p_data)
-{
-    tSMP_CB *p_cb = & smp_cb;
-    uint8_t failure = SMP_OOB_FAIL;
-    tSMP_KEY        key;
+void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len,
+                      uint8_t* p_data) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t failure = SMP_OOB_FAIL;
+  tSMP_KEY key;
 
-    SMP_TRACE_EVENT ("%s State: %d  res:%d", __func__, smp_cb.state, res);
+  SMP_TRACE_EVENT("%s State: %d  res:%d", __func__, smp_cb.state, res);
 
-    /* If timeout already expired or has been canceled, ignore the reply */
-    if (p_cb->state != SMP_STATE_WAIT_APP_RSP || p_cb->cb_evt != SMP_OOB_REQ_EVT)
-        return;
+  /* If timeout already expired or has been canceled, ignore the reply */
+  if (p_cb->state != SMP_STATE_WAIT_APP_RSP || p_cb->cb_evt != SMP_OOB_REQ_EVT)
+    return;
 
-    if (res != SMP_SUCCESS || len == 0 || !p_data)
-    {
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
-    }
-    else
-    {
-        if (len > BT_OCTET16_LEN)
-            len = BT_OCTET16_LEN;
+  if (res != SMP_SUCCESS || len == 0 || !p_data) {
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
+  } else {
+    if (len > BT_OCTET16_LEN) len = BT_OCTET16_LEN;
 
-        memcpy(p_cb->tk, p_data, len);
+    memcpy(p_cb->tk, p_data, len);
 
-        key.key_type    = SMP_KEY_TYPE_TK;
-        key.p_data      = p_cb->tk;
+    key.key_type = SMP_KEY_TYPE_TK;
+    key.p_data = p_cb->tk;
 
-        smp_sm_event(&smp_cb, SMP_KEY_READY_EVT, &key);
-    }
+    smp_sm_event(&smp_cb, SMP_KEY_READY_EVT, &key);
+  }
 }
 
 /*******************************************************************************
@@ -452,57 +415,53 @@ void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, uint8_t len, uint8_t *p_
  * Parameters:      p_data      - pointer to the data
  *
  ******************************************************************************/
-void SMP_SecureConnectionOobDataReply(uint8_t *p_data)
-{
-    tSMP_CB  *p_cb = &smp_cb;
+void SMP_SecureConnectionOobDataReply(uint8_t* p_data) {
+  tSMP_CB* p_cb = &smp_cb;
 
-    uint8_t failure = SMP_OOB_FAIL;
-    tSMP_SC_OOB_DATA  *p_oob = (tSMP_SC_OOB_DATA *) p_data;
-    if (!p_oob)
-    {
-        SMP_TRACE_ERROR("%s received no data",__func__);
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
-        return;
-    }
+  uint8_t failure = SMP_OOB_FAIL;
+  tSMP_SC_OOB_DATA* p_oob = (tSMP_SC_OOB_DATA*)p_data;
+  if (!p_oob) {
+    SMP_TRACE_ERROR("%s received no data", __func__);
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
+    return;
+  }
 
-    SMP_TRACE_EVENT ("%s req_oob_type: %d, loc_oob_data.present: %d, "
-                       "peer_oob_data.present: %d",
-                       __func__, p_cb->req_oob_type, p_oob->loc_oob_data.present,
-                       p_oob->peer_oob_data.present);
+  SMP_TRACE_EVENT(
+      "%s req_oob_type: %d, loc_oob_data.present: %d, "
+      "peer_oob_data.present: %d",
+      __func__, p_cb->req_oob_type, p_oob->loc_oob_data.present,
+      p_oob->peer_oob_data.present);
 
-    if (p_cb->state != SMP_STATE_WAIT_APP_RSP || p_cb->cb_evt != SMP_SC_OOB_REQ_EVT)
-        return;
+  if (p_cb->state != SMP_STATE_WAIT_APP_RSP ||
+      p_cb->cb_evt != SMP_SC_OOB_REQ_EVT)
+    return;
 
-    bool     data_missing = false;
-    switch (p_cb->req_oob_type)
-    {
-        case SMP_OOB_PEER:
-            if (!p_oob->peer_oob_data.present)
-                data_missing = true;
-            break;
-        case SMP_OOB_LOCAL:
-            if (!p_oob->loc_oob_data.present)
-                data_missing = true;
-            break;
-        case SMP_OOB_BOTH:
-            if (!p_oob->loc_oob_data.present || !p_oob->peer_oob_data.present)
-                data_missing = true;
-            break;
-        default:
-            SMP_TRACE_EVENT ("Unexpected OOB data type requested. Fail OOB");
-            data_missing = true;
-            break;
-    }
+  bool data_missing = false;
+  switch (p_cb->req_oob_type) {
+    case SMP_OOB_PEER:
+      if (!p_oob->peer_oob_data.present) data_missing = true;
+      break;
+    case SMP_OOB_LOCAL:
+      if (!p_oob->loc_oob_data.present) data_missing = true;
+      break;
+    case SMP_OOB_BOTH:
+      if (!p_oob->loc_oob_data.present || !p_oob->peer_oob_data.present)
+        data_missing = true;
+      break;
+    default:
+      SMP_TRACE_EVENT("Unexpected OOB data type requested. Fail OOB");
+      data_missing = true;
+      break;
+  }
 
-    if (data_missing)
-    {
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
-        return;
-    }
+  if (data_missing) {
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
+    return;
+  }
 
-    p_cb->sc_oob_data = *p_oob;
+  p_cb->sc_oob_data = *p_oob;
 
-    smp_sm_event(&smp_cb, SMP_SC_OOB_DATA_EVT, p_data);
+  smp_sm_event(&smp_cb, SMP_SC_OOB_DATA_EVT, p_data);
 }
 
 /*******************************************************************************
@@ -521,14 +480,13 @@ void SMP_SecureConnectionOobDataReply(uint8_t *p_data)
  *
  *  Returns         Boolean - request is successful
  ******************************************************************************/
-bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
-                     uint8_t *plain_text, uint8_t pt_len,
-                     tSMP_ENC *p_out)
+bool SMP_Encrypt(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
+                 uint8_t pt_len, tSMP_ENC* p_out)
 
 {
-    bool    status=false;
-    status = smp_encrypt_data(key, key_len, plain_text, pt_len, p_out);
-    return status;
+  bool status = false;
+  status = smp_encrypt_data(key, key_len, plain_text, pt_len, p_out);
+  return status;
 }
 
 /*******************************************************************************
@@ -543,40 +501,36 @@ bool    SMP_Encrypt (uint8_t *key, uint8_t key_len,
  *                 value        Keypress notification parameter value
  *
  ******************************************************************************/
-void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value)
-{
-    tSMP_CB   *p_cb = &smp_cb;
+void SMP_KeypressNotification(BD_ADDR bd_addr, uint8_t value) {
+  tSMP_CB* p_cb = &smp_cb;
 
-    SMP_TRACE_EVENT ("%s: Value: %d", __func__,value);
+  SMP_TRACE_EVENT("%s: Value: %d", __func__, value);
 
-    if (memcmp (bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) != 0)
-    {
-        SMP_TRACE_ERROR ("%s() - Wrong BD Addr",__func__);
-        return;
-    }
+  if (memcmp(bd_addr, p_cb->pairing_bda, BD_ADDR_LEN) != 0) {
+    SMP_TRACE_ERROR("%s() - Wrong BD Addr", __func__);
+    return;
+  }
 
-    if (btm_find_dev (bd_addr) == NULL)
-    {
-        SMP_TRACE_ERROR ("%s() - no dev CB",__func__);
-        return;
-    }
+  if (btm_find_dev(bd_addr) == NULL) {
+    SMP_TRACE_ERROR("%s() - no dev CB", __func__);
+    return;
+  }
 
-    /* Keypress Notification is used by a device with KeyboardOnly IO capabilities during the passkey entry protocol */
-    if (p_cb->local_io_capability != SMP_IO_CAP_IN)
-    {
-        SMP_TRACE_ERROR ("%s() - wrong local IO capabilities %d",
-                          __func__, p_cb->local_io_capability);
-        return;
-    }
+  /* Keypress Notification is used by a device with KeyboardOnly IO capabilities
+   * during the passkey entry protocol */
+  if (p_cb->local_io_capability != SMP_IO_CAP_IN) {
+    SMP_TRACE_ERROR("%s() - wrong local IO capabilities %d", __func__,
+                    p_cb->local_io_capability);
+    return;
+  }
 
-    if (p_cb->selected_association_model != SMP_MODEL_SEC_CONN_PASSKEY_ENT)
-    {
-        SMP_TRACE_ERROR ("%s() - wrong protocol %d", __func__,
-                         p_cb->selected_association_model);
-        return;
-    }
+  if (p_cb->selected_association_model != SMP_MODEL_SEC_CONN_PASSKEY_ENT) {
+    SMP_TRACE_ERROR("%s() - wrong protocol %d", __func__,
+                    p_cb->selected_association_model);
+    return;
+  }
 
-    smp_sm_event(p_cb, SMP_KEYPRESS_NOTIFICATION_EVENT, &value);
+  smp_sm_event(p_cb, SMP_KEYPRESS_NOTIFICATION_EVENT, &value);
 }
 
 /*******************************************************************************
@@ -590,35 +544,33 @@ void SMP_KeypressNotification (BD_ADDR bd_addr, uint8_t value)
  *
  *  Returns         Boolean - true: creation of local SC OOB data set started.
  ******************************************************************************/
-bool    SMP_CreateLocalSecureConnectionsOobData (tBLE_BD_ADDR *addr_to_send_to)
-{
-    tSMP_CB *p_cb = &smp_cb;
-    uint8_t *bd_addr;
+bool SMP_CreateLocalSecureConnectionsOobData(tBLE_BD_ADDR* addr_to_send_to) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t* bd_addr;
 
-    if (addr_to_send_to == NULL)
-    {
-        SMP_TRACE_ERROR ("%s addr_to_send_to is not provided",__func__);
-        return false;
-    }
+  if (addr_to_send_to == NULL) {
+    SMP_TRACE_ERROR("%s addr_to_send_to is not provided", __func__);
+    return false;
+  }
 
-    bd_addr = addr_to_send_to->bda;
+  bd_addr = addr_to_send_to->bda;
 
-    SMP_TRACE_EVENT ("%s addr type: %u,  BDA: %08x%04x,  state: %u, br_state: %u",
-                      __func__, addr_to_send_to->type,
-                      (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8) + bd_addr[3],
-                      (bd_addr[4]<<8)+bd_addr[5],
-                      p_cb->state,
-                      p_cb->br_state);
+  SMP_TRACE_EVENT(
+      "%s addr type: %u,  BDA: %08x%04x,  state: %u, br_state: %u", __func__,
+      addr_to_send_to->type,
+      (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
+      (bd_addr[4] << 8) + bd_addr[5], p_cb->state, p_cb->br_state);
 
-    if ((p_cb->state != SMP_STATE_IDLE) || (p_cb->smp_over_br))
-    {
-        SMP_TRACE_WARNING ("%s creation of local OOB data set "\
-            "starts only in IDLE state",__func__);
-        return false;
-    }
+  if ((p_cb->state != SMP_STATE_IDLE) || (p_cb->smp_over_br)) {
+    SMP_TRACE_WARNING(
+        "%s creation of local OOB data set "
+        "starts only in IDLE state",
+        __func__);
+    return false;
+  }
 
-    p_cb->sc_oob_data.loc_oob_data.addr_sent_to = *addr_to_send_to;
-    smp_sm_event(p_cb, SMP_CR_LOC_SC_OOB_DATA_EVT, NULL);
+  p_cb->sc_oob_data.loc_oob_data.addr_sent_to = *addr_to_send_to;
+  smp_sm_event(p_cb, SMP_CR_LOC_SC_OOB_DATA_EVT, NULL);
 
-    return true;
+  return true;
 }

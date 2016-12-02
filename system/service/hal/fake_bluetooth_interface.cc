@@ -31,50 +31,48 @@ int FakeHALDisable() {
   return g_hal_manager.disable_succeed ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
-int FakeHALGetAdapterProperties() {
-  return BT_STATUS_SUCCESS;
-}
+int FakeHALGetAdapterProperties() { return BT_STATUS_SUCCESS; }
 
 int FakeHALSetAdapterProperty(const bt_property_t* /* property */) {
   LOG(INFO) << __func__;
-  return (g_hal_manager.set_property_succeed ? BT_STATUS_SUCCESS :
-          BT_STATUS_FAIL);
+  return (g_hal_manager.set_property_succeed ? BT_STATUS_SUCCESS
+                                             : BT_STATUS_FAIL);
 }
 
 bt_interface_t fake_bt_iface = {
-  sizeof(bt_interface_t),
-  nullptr, /* init */
-  FakeHALEnable,
-  FakeHALDisable,
-  nullptr, /* cleanup */
-  FakeHALGetAdapterProperties,
-  nullptr, /* get_adapter_property */
-  FakeHALSetAdapterProperty,
-  nullptr, /* get_remote_device_properties */
-  nullptr, /* get_remote_device_property */
-  nullptr, /* set_remote_device_property */
-  nullptr, /* get_remote_service_record */
-  nullptr, /* get_remote_services */
-  nullptr, /* start_discovery */
-  nullptr, /* cancel_discovery */
-  nullptr, /* create_bond */
-  nullptr, /* create_bond_out_of_band */
-  nullptr, /* remove_bond */
-  nullptr, /* cancel_bond */
-  nullptr, /* get_connection_state */
-  nullptr, /* pin_reply */
-  nullptr, /* ssp_reply */
-  nullptr, /* get_profile_interface */
-  nullptr, /* dut_mode_configure */
-  nullptr, /* dut_more_send */
-  nullptr, /* le_test_mode */
-  nullptr, /* config_hci_snoop_log */
-  nullptr, /* set_os_callouts */
-  nullptr, /* read_energy_info */
-  nullptr, /* dump */
-  nullptr, /* config clear */
-  nullptr, /* interop_database_clear */
-  nullptr  /* interop_database_add */
+    sizeof(bt_interface_t),
+    nullptr, /* init */
+    FakeHALEnable,
+    FakeHALDisable,
+    nullptr, /* cleanup */
+    FakeHALGetAdapterProperties,
+    nullptr, /* get_adapter_property */
+    FakeHALSetAdapterProperty,
+    nullptr, /* get_remote_device_properties */
+    nullptr, /* get_remote_device_property */
+    nullptr, /* set_remote_device_property */
+    nullptr, /* get_remote_service_record */
+    nullptr, /* get_remote_services */
+    nullptr, /* start_discovery */
+    nullptr, /* cancel_discovery */
+    nullptr, /* create_bond */
+    nullptr, /* create_bond_out_of_band */
+    nullptr, /* remove_bond */
+    nullptr, /* cancel_bond */
+    nullptr, /* get_connection_state */
+    nullptr, /* pin_reply */
+    nullptr, /* ssp_reply */
+    nullptr, /* get_profile_interface */
+    nullptr, /* dut_mode_configure */
+    nullptr, /* dut_more_send */
+    nullptr, /* le_test_mode */
+    nullptr, /* config_hci_snoop_log */
+    nullptr, /* set_os_callouts */
+    nullptr, /* read_energy_info */
+    nullptr, /* dump */
+    nullptr, /* config clear */
+    nullptr, /* interop_database_clear */
+    nullptr  /* interop_database_add */
 };
 
 }  // namespace
@@ -87,16 +85,14 @@ FakeBluetoothInterface::Manager* FakeBluetoothInterface::GetManager() {
 FakeBluetoothInterface::Manager::Manager()
     : enable_succeed(false),
       disable_succeed(false),
-      set_property_succeed(false) {
-}
+      set_property_succeed(false) {}
 
 void FakeBluetoothInterface::NotifyAdapterStateChanged(bt_state_t state) {
   FOR_EACH_OBSERVER(Observer, observers_, AdapterStateChangedCallback(state));
 }
 
 void FakeBluetoothInterface::NotifyAdapterPropertiesChanged(
-    int num_properties,
-    bt_property_t* properties) {
+    int num_properties, bt_property_t* properties) {
   FOR_EACH_OBSERVER(
       Observer, observers_,
       AdapterPropertiesCallback(BT_STATUS_SUCCESS, num_properties, properties));
@@ -105,9 +101,8 @@ void FakeBluetoothInterface::NotifyAdapterPropertiesChanged(
 void FakeBluetoothInterface::NotifyAdapterNamePropertyChanged(
     const std::string& name) {
   bt_bdname_t hal_name;
-  strncpy(reinterpret_cast<char*>(hal_name.name),
-          name.c_str(),
-          std::min(sizeof(hal_name)-1, name.length()));
+  strncpy(reinterpret_cast<char*>(hal_name.name), name.c_str(),
+          std::min(sizeof(hal_name) - 1, name.length()));
   reinterpret_cast<char*>(hal_name.name)[name.length()] = '\0';
 
   bt_property_t property;
@@ -129,7 +124,7 @@ void FakeBluetoothInterface::NotifyAdapterAddressPropertyChanged(
 }
 
 void FakeBluetoothInterface::NotifyAdapterLocalLeFeaturesPropertyChanged(
-      const bt_local_le_features_t* features) {
+    const bt_local_le_features_t* features) {
   bt_property_t property;
   property.len = sizeof(*features);
   property.val = (void*)features;
@@ -139,12 +134,10 @@ void FakeBluetoothInterface::NotifyAdapterLocalLeFeaturesPropertyChanged(
 }
 
 void FakeBluetoothInterface::NotifyAclStateChangedCallback(
-    bt_status_t status,
-    const bt_bdaddr_t& remote_bdaddr,
+    bt_status_t status, const bt_bdaddr_t& remote_bdaddr,
     bt_acl_state_t state) {
-  FOR_EACH_OBSERVER(
-      Observer, observers_,
-      AclStateChangedCallback(status, remote_bdaddr, state));
+  FOR_EACH_OBSERVER(Observer, observers_,
+                    AclStateChangedCallback(status, remote_bdaddr, state));
 }
 
 void FakeBluetoothInterface::AddObserver(Observer* observer) {

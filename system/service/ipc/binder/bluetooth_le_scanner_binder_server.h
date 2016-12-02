@@ -63,6 +63,7 @@ class BluetoothLeScannerBinderServer
 
   void OnScanResult(bluetooth::LowEnergyScanner* scanner,
                     const bluetooth::ScanResult& result) override;
+
  private:
   // Returns a pointer to the IBluetoothLowEnergyCallback instance associated
   // with |scanner_id|. Returns NULL if such a callback cannot be found.

@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include "bluetooth/service.h"
 #include "android/bluetooth/bluetooth_gatt_included_service.h"
+#include "bluetooth/service.h"
 
 #include <binder/Parcel.h>
 #include <binder/Parcelable.h>
@@ -32,10 +32,13 @@ namespace bluetooth {
 class BluetoothGattService : public Parcelable, public ::bluetooth::Service {
  public:
   BluetoothGattService() = default;
-  BluetoothGattService(const ::bluetooth::Service& service) : ::bluetooth::Service(service){};  // NOLINT(implicit)
-  BluetoothGattService(const BluetoothGattIncludedService& includedService)  // NOLINT(implicit)
-    : ::bluetooth::Service(includedService.handle(), includedService.primary(),
-                           includedService.uuid(), {}, {}) {};
+  BluetoothGattService(const ::bluetooth::Service& service)
+      : ::bluetooth::Service(service){};  // NOLINT(implicit)
+  BluetoothGattService(
+      const BluetoothGattIncludedService& includedService)  // NOLINT(implicit)
+      : ::bluetooth::Service(includedService.handle(),
+                             includedService.primary(), includedService.uuid(),
+                             {}, {}){};
   ~BluetoothGattService() = default;
 
   // Write |this| parcelable to the given |parcel|.  Keep in mind that

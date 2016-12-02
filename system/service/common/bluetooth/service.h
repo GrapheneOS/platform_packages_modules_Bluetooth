@@ -29,9 +29,11 @@ class Service {
   Service(uint16_t handle, bool primary, const UUID& uuid,
           const std::vector<Characteristic>& characteristics,
           const std::vector<Service>& included_services)
-      : handle_(handle), primary_(primary), uuid_(uuid),
+      : handle_(handle),
+        primary_(primary),
+        uuid_(uuid),
         characteristics_(characteristics),
-        included_services_(included_services) {};
+        included_services_(included_services){};
   Service& operator=(const Service& other);
   ~Service() = default;
 
@@ -46,9 +48,7 @@ class Service {
   const std::vector<Characteristic>& characteristics() const {
     return characteristics_;
   }
-  std::vector<Characteristic>& characteristics() {
-    return characteristics_;
-  }
+  std::vector<Characteristic>& characteristics() { return characteristics_; }
   const std::vector<Service>& included_services() const {
     return included_services_;
   }

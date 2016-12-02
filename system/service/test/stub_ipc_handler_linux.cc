@@ -22,9 +22,8 @@
 
 namespace ipc {
 
-IPCHandlerLinux::IPCHandlerLinux(
-    bluetooth::Adapter* adapter,
-    IPCManager::Delegate* delegate)
+IPCHandlerLinux::IPCHandlerLinux(bluetooth::Adapter* adapter,
+                                 IPCManager::Delegate* delegate)
     : IPCHandler(adapter, delegate),
       running_(false),
       thread_("IPCHandlerLinux"),

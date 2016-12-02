@@ -18,8 +18,8 @@
 
 #define LOG_TAG "bt_osi_module"
 
-#include "btcore/include/module.h"
 #include "btcore/include/osi_module.h"
+#include "btcore/include/module.h"
 #include "osi/include/alarm.h"
 #include "osi/include/future.h"
 #include "osi/include/log.h"
@@ -27,23 +27,21 @@
 #include "osi/include/osi.h"
 #include "osi/include/wakelock.h"
 
-future_t *osi_init(void) {
+future_t* osi_init(void) {
   mutex_init();
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
-future_t *osi_clean_up(void) {
+future_t* osi_clean_up(void) {
   alarm_cleanup();
   wakelock_cleanup();
   mutex_cleanup();
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
-EXPORT_SYMBOL extern const module_t osi_module = {
-  .name = OSI_MODULE,
-  .init = osi_init,
-  .start_up = NULL,
-  .shut_down = NULL,
-  .clean_up = osi_clean_up,
-  .dependencies = {NULL}
-};
+EXPORT_SYMBOL extern const module_t osi_module = {.name = OSI_MODULE,
+                                                  .init = osi_init,
+                                                  .start_up = NULL,
+                                                  .shut_down = NULL,
+                                                  .clean_up = osi_clean_up,
+                                                  .dependencies = {NULL}};

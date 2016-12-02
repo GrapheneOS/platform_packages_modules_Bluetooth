@@ -78,9 +78,7 @@ class UUID {
 
   bool operator<(const UUID& rhs) const;
   bool operator==(const UUID& rhs) const;
-  inline bool operator!=(const UUID& rhs) const {
-    return !(*this == rhs);
-  }
+  inline bool operator!=(const UUID& rhs) const { return !(*this == rhs); }
 
  protected:
   void InitializeDefault();
@@ -98,12 +96,12 @@ class UUID {
 // in std::unordered_map.
 namespace std {
 
-template<>
+template <>
 struct hash<bluetooth::UUID> {
   std::size_t operator()(const bluetooth::UUID& key) const {
     const auto& uuid_bytes = key.GetFullBigEndian();
     std::hash<std::string> hash_fn;
-    return hash_fn(std::string((char *)uuid_bytes.data(), uuid_bytes.size()));
+    return hash_fn(std::string((char*)uuid_bytes.data(), uuid_bytes.size()));
   }
 };
 

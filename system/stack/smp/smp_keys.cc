@@ -24,87 +24,86 @@
 #include "bt_target.h"
 
 #if (SMP_DEBUG == TRUE)
-    #include <stdio.h>
+#include <stdio.h>
 #endif
 #include <string.h>
+#include "aes.h"
 #include "bt_utils.h"
 #include "btm_ble_api.h"
-#include "smp_int.h"
-#include "btm_int.h"
 #include "btm_ble_int.h"
-#include "hcimsgs.h"
-#include "aes.h"
-#include "p_256_ecc_pp.h"
+#include "btm_int.h"
 #include "device/include/controller.h"
+#include "hcimsgs.h"
 #include "osi/include/osi.h"
+#include "p_256_ecc_pp.h"
+#include "smp_int.h"
 
 #ifndef SMP_MAX_ENC_REPEAT
-  #define SMP_MAX_ENC_REPEAT  3
+#define SMP_MAX_ENC_REPEAT 3
 #endif
 
-static void smp_rand_back(tBTM_RAND_ENC *p);
-static void smp_generate_confirm(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
-static void smp_generate_ltk_cont(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
-static void smp_generate_y(tSMP_CB *p_cb, tSMP_INT_DATA *p);
-static void smp_generate_rand_vector (tSMP_CB *p_cb, tSMP_INT_DATA *p);
-static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p);
-static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p);
-static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p);
-static void smp_process_compare(tSMP_CB *p_cb, tSMP_ENC *p);
-static void smp_process_ediv(tSMP_CB *p_cb, tSMP_ENC *p);
-static bool    smp_calculate_legacy_short_term_key(tSMP_CB *p_cb, tSMP_ENC *output);
-static void smp_continue_private_key_creation(tSMP_CB *p_cb, tBTM_RAND_ENC *p);
-static void smp_process_private_key(tSMP_CB *p_cb);
-static void smp_finish_nonce_generation(tSMP_CB *p_cb);
-static void smp_process_new_nonce(tSMP_CB *p_cb);
+static void smp_rand_back(tBTM_RAND_ENC* p);
+static void smp_generate_confirm(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
+static void smp_generate_ltk_cont(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
+static void smp_generate_y(tSMP_CB* p_cb, tSMP_INT_DATA* p);
+static void smp_generate_rand_vector(tSMP_CB* p_cb, tSMP_INT_DATA* p);
+static void smp_process_stk(tSMP_CB* p_cb, tSMP_ENC* p);
+static void smp_calculate_comfirm_cont(tSMP_CB* p_cb, tSMP_ENC* p);
+static void smp_process_confirm(tSMP_CB* p_cb, tSMP_ENC* p);
+static void smp_process_compare(tSMP_CB* p_cb, tSMP_ENC* p);
+static void smp_process_ediv(tSMP_CB* p_cb, tSMP_ENC* p);
+static bool smp_calculate_legacy_short_term_key(tSMP_CB* p_cb,
+                                                tSMP_ENC* output);
+static void smp_continue_private_key_creation(tSMP_CB* p_cb, tBTM_RAND_ENC* p);
+static void smp_process_private_key(tSMP_CB* p_cb);
+static void smp_finish_nonce_generation(tSMP_CB* p_cb);
+static void smp_process_new_nonce(tSMP_CB* p_cb);
 
-#define SMP_PASSKEY_MASK    0xfff00000
+#define SMP_PASSKEY_MASK 0xfff00000
 
-void smp_debug_print_nbyte_little_endian(uint8_t *p, const uint8_t *key_name, uint8_t len)
-{
+void smp_debug_print_nbyte_little_endian(uint8_t* p, const uint8_t* key_name,
+                                         uint8_t len) {
 #if (SMP_DEBUG == TRUE)
-    int     ind;
-    int     col_count = 32;
-    int     row_count;
-    uint8_t p_buf[512];
+  int ind;
+  int col_count = 32;
+  int row_count;
+  uint8_t p_buf[512];
 
-    SMP_TRACE_WARNING("%s(LSB ~ MSB):", key_name);
-    memset(p_buf, 0, sizeof(p_buf));
-    row_count = len % col_count ? len / col_count + 1: len / col_count;
+  SMP_TRACE_WARNING("%s(LSB ~ MSB):", key_name);
+  memset(p_buf, 0, sizeof(p_buf));
+  row_count = len % col_count ? len / col_count + 1 : len / col_count;
 
-    ind = 0;
-    for (int row = 0; row <  row_count; row++)
-    {
-        for (int column = 0, x = 0; (ind < len) && (column < col_count); column++, ind++)
-        {
-            x += snprintf((char *)&p_buf[x], sizeof(p_buf) - x, "%02x ", p[ind]);
-        }
-        SMP_TRACE_WARNING("  [%03d]: %s", row * col_count, p_buf);
+  ind = 0;
+  for (int row = 0; row < row_count; row++) {
+    for (int column = 0, x = 0; (ind < len) && (column < col_count);
+         column++, ind++) {
+      x += snprintf((char*)&p_buf[x], sizeof(p_buf) - x, "%02x ", p[ind]);
     }
+    SMP_TRACE_WARNING("  [%03d]: %s", row * col_count, p_buf);
+  }
 #endif
 }
 
-void smp_debug_print_nbyte_big_endian (uint8_t *p, const uint8_t *key_name, uint8_t len)
-{
+void smp_debug_print_nbyte_big_endian(uint8_t* p, const uint8_t* key_name,
+                                      uint8_t len) {
 #if (SMP_DEBUG == TRUE)
-    uint8_t p_buf[512];
+  uint8_t p_buf[512];
 
-    SMP_TRACE_WARNING("%s(MSB ~ LSB):", key_name);
-    memset(p_buf, 0, sizeof(p_buf));
+  SMP_TRACE_WARNING("%s(MSB ~ LSB):", key_name);
+  memset(p_buf, 0, sizeof(p_buf));
 
-    int ind = 0;
-    int  ncols = 32; /* num entries in one line */
-    int  nrows;      /* num lines */
+  int ind = 0;
+  int ncols = 32; /* num entries in one line */
+  int nrows;      /* num lines */
 
-    nrows = len % ncols ? len / ncols + 1: len / ncols;
-    for (int row = 0; row <  nrows; row++)
-    {
-        for (int col = 0, x = 0; (ind < len) && (col < ncols); col++, ind++)
-        {
-            x += snprintf ((char *)&p_buf[len-x-1], sizeof(p_buf) - (len-x-1), "%02x ", p[ind]);
-        }
-        SMP_TRACE_WARNING("[%03d]: %s", row * ncols, p_buf);
+  nrows = len % ncols ? len / ncols + 1 : len / ncols;
+  for (int row = 0; row < nrows; row++) {
+    for (int col = 0, x = 0; (ind < len) && (col < ncols); col++, ind++) {
+      x += snprintf((char*)&p_buf[len - x - 1], sizeof(p_buf) - (len - x - 1),
+                    "%02x ", p[ind]);
     }
+    SMP_TRACE_WARNING("[%03d]: %s", row * ncols, p_buf);
+  }
 #endif
 }
 
@@ -119,57 +118,57 @@ void smp_debug_print_nbyte_big_endian (uint8_t *p, const uint8_t *key_name, uint
  * Returns          void
  *
  ******************************************************************************/
-bool    smp_encrypt_data (uint8_t *key, uint8_t key_len,
-                          uint8_t *plain_text, uint8_t pt_len,
-                          tSMP_ENC *p_out)
-{
-    aes_context ctx;
-    uint8_t *p_start = NULL;
-    uint8_t *p = NULL;
-    uint8_t *p_rev_data = NULL;    /* input data in big endilan format */
-    uint8_t *p_rev_key = NULL;     /* input key in big endilan format */
-    uint8_t *p_rev_output = NULL;  /* encrypted output in big endilan format */
+bool smp_encrypt_data(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
+                      uint8_t pt_len, tSMP_ENC* p_out) {
+  aes_context ctx;
+  uint8_t* p_start = NULL;
+  uint8_t* p = NULL;
+  uint8_t* p_rev_data = NULL;   /* input data in big endilan format */
+  uint8_t* p_rev_key = NULL;    /* input key in big endilan format */
+  uint8_t* p_rev_output = NULL; /* encrypted output in big endilan format */
 
-    SMP_TRACE_DEBUG ("%s", __func__);
-    if ( (p_out == NULL ) || (key_len != SMP_ENCRYT_KEY_SIZE) )
-    {
-        SMP_TRACE_ERROR ("%s failed", __func__);
-        return false;
-    }
+  SMP_TRACE_DEBUG("%s", __func__);
+  if ((p_out == NULL) || (key_len != SMP_ENCRYT_KEY_SIZE)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    return false;
+  }
 
-    p_start = (uint8_t *)osi_calloc(SMP_ENCRYT_DATA_SIZE * 4);
+  p_start = (uint8_t*)osi_calloc(SMP_ENCRYT_DATA_SIZE * 4);
 
-    if (pt_len > SMP_ENCRYT_DATA_SIZE)
-        pt_len = SMP_ENCRYT_DATA_SIZE;
+  if (pt_len > SMP_ENCRYT_DATA_SIZE) pt_len = SMP_ENCRYT_DATA_SIZE;
 
-    p = p_start;
-    ARRAY_TO_STREAM (p, plain_text, pt_len); /* byte 0 to byte 15 */
-    p_rev_data = p = p_start + SMP_ENCRYT_DATA_SIZE; /* start at byte 16 */
-    REVERSE_ARRAY_TO_STREAM (p, p_start, SMP_ENCRYT_DATA_SIZE);  /* byte 16 to byte 31 */
-    p_rev_key = p; /* start at byte 32 */
-    REVERSE_ARRAY_TO_STREAM (p, key, SMP_ENCRYT_KEY_SIZE); /* byte 32 to byte 47 */
+  p = p_start;
+  ARRAY_TO_STREAM(p, plain_text, pt_len);          /* byte 0 to byte 15 */
+  p_rev_data = p = p_start + SMP_ENCRYT_DATA_SIZE; /* start at byte 16 */
+  REVERSE_ARRAY_TO_STREAM(p, p_start,
+                          SMP_ENCRYT_DATA_SIZE);        /* byte 16 to byte 31 */
+  p_rev_key = p;                                        /* start at byte 32 */
+  REVERSE_ARRAY_TO_STREAM(p, key, SMP_ENCRYT_KEY_SIZE); /* byte 32 to byte 47 */
 
 #if (SMP_DEBUG == TRUE && SMP_DEBUG_VERBOSE == TRUE)
-    smp_debug_print_nbyte_little_endian(key, (const uint8_t *)"Key", SMP_ENCRYT_KEY_SIZE);
-    smp_debug_print_nbyte_little_endian(p_start, (const uint8_t *)"Plain text", SMP_ENCRYT_DATA_SIZE);
+  smp_debug_print_nbyte_little_endian(key, (const uint8_t*)"Key",
+                                      SMP_ENCRYT_KEY_SIZE);
+  smp_debug_print_nbyte_little_endian(p_start, (const uint8_t*)"Plain text",
+                                      SMP_ENCRYT_DATA_SIZE);
 #endif
-    p_rev_output = p;
-    aes_set_key(p_rev_key, SMP_ENCRYT_KEY_SIZE, &ctx);
-    aes_encrypt(p_rev_data, p, &ctx);  /* outputs in byte 48 to byte 63 */
+  p_rev_output = p;
+  aes_set_key(p_rev_key, SMP_ENCRYT_KEY_SIZE, &ctx);
+  aes_encrypt(p_rev_data, p, &ctx); /* outputs in byte 48 to byte 63 */
 
-    p = p_out->param_buf;
-    REVERSE_ARRAY_TO_STREAM (p, p_rev_output, SMP_ENCRYT_DATA_SIZE);
+  p = p_out->param_buf;
+  REVERSE_ARRAY_TO_STREAM(p, p_rev_output, SMP_ENCRYT_DATA_SIZE);
 #if (SMP_DEBUG == TRUE && SMP_DEBUG_VERBOSE == TRUE)
-    smp_debug_print_nbyte_little_endian(p_out->param_buf, (const uint8_t *)"Encrypted text", SMP_ENCRYT_KEY_SIZE);
+  smp_debug_print_nbyte_little_endian(
+      p_out->param_buf, (const uint8_t*)"Encrypted text", SMP_ENCRYT_KEY_SIZE);
 #endif
 
-    p_out->param_len = SMP_ENCRYT_KEY_SIZE;
-    p_out->status = HCI_SUCCESS;
-    p_out->opcode =  HCI_BLE_ENCRYPT;
+  p_out->param_len = SMP_ENCRYT_KEY_SIZE;
+  p_out->status = HCI_SUCCESS;
+  p_out->opcode = HCI_BLE_ENCRYPT;
 
-    osi_free(p_start);
+  osi_free(p_start);
 
-    return true;
+  return true;
 }
 
 /*******************************************************************************
@@ -181,14 +180,12 @@ bool    smp_encrypt_data (uint8_t *key, uint8_t key_len,
  * Returns          void
  *
  ******************************************************************************/
-void smp_generate_passkey(tSMP_CB *p_cb,
-                          UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("%s", __func__);
-    p_cb->rand_enc_proc_state = SMP_GEN_TK;
+void smp_generate_passkey(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  p_cb->rand_enc_proc_state = SMP_GEN_TK;
 
-    /* generate MRand or SRand */
-    btsnd_hcic_ble_rand((void *)smp_rand_back);
+  /* generate MRand or SRand */
+  btsnd_hcic_ble_rand((void*)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -200,41 +197,36 @@ void smp_generate_passkey(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
-{
-    uint8_t *tt = p_cb->tk;
-    tSMP_KEY    key;
-    uint32_t passkey; /* 19655 test number; */
-    uint8_t *pp = p->param_buf;
+void smp_proc_passkey(tSMP_CB* p_cb, tBTM_RAND_ENC* p) {
+  uint8_t* tt = p_cb->tk;
+  tSMP_KEY key;
+  uint32_t passkey; /* 19655 test number; */
+  uint8_t* pp = p->param_buf;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
-    STREAM_TO_UINT32(passkey, pp);
-    passkey &= ~SMP_PASSKEY_MASK;
+  SMP_TRACE_DEBUG("%s", __func__);
+  STREAM_TO_UINT32(passkey, pp);
+  passkey &= ~SMP_PASSKEY_MASK;
 
-    /* truncate by maximum value */
-    while (passkey > BTM_MAX_PASSKEY_VAL)
-        passkey >>= 1;
+  /* truncate by maximum value */
+  while (passkey > BTM_MAX_PASSKEY_VAL) passkey >>= 1;
 
-    /* save the TK */
-    memset(p_cb->tk, 0, BT_OCTET16_LEN);
-    UINT32_TO_STREAM(tt, passkey);
+  /* save the TK */
+  memset(p_cb->tk, 0, BT_OCTET16_LEN);
+  UINT32_TO_STREAM(tt, passkey);
 
-    key.key_type = SMP_KEY_TYPE_TK;
-    key.p_data  = p_cb->tk;
+  key.key_type = SMP_KEY_TYPE_TK;
+  key.p_data = p_cb->tk;
 
-    if (p_cb->p_callback)
-    {
-        (*p_cb->p_callback)(SMP_PASSKEY_NOTIF_EVT, p_cb->pairing_bda, (tSMP_EVT_DATA *)&passkey);
-    }
+  if (p_cb->p_callback) {
+    (*p_cb->p_callback)(SMP_PASSKEY_NOTIF_EVT, p_cb->pairing_bda,
+                        (tSMP_EVT_DATA*)&passkey);
+  }
 
-    if (p_cb->selected_association_model == SMP_MODEL_SEC_CONN_PASSKEY_DISP)
-    {
-        smp_sm_event(&smp_cb, SMP_KEY_READY_EVT, &passkey);
-    }
-    else
-    {
-        smp_sm_event(p_cb, SMP_KEY_READY_EVT, (tSMP_INT_DATA *)&key);
-    }
+  if (p_cb->selected_association_model == SMP_MODEL_SEC_CONN_PASSKEY_DISP) {
+    smp_sm_event(&smp_cb, SMP_KEY_READY_EVT, &passkey);
+  } else {
+    smp_sm_event(p_cb, SMP_KEY_READY_EVT, (tSMP_INT_DATA*)&key);
+  }
 }
 
 /*******************************************************************************
@@ -248,31 +240,25 @@ void smp_proc_passkey(tSMP_CB *p_cb , tBTM_RAND_ENC *p)
  * Returns          void
  *
  ******************************************************************************/
-void smp_generate_stk(tSMP_CB *p_cb,
-                      UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
+void smp_generate_stk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  tSMP_ENC output;
+  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
 
-    tSMP_ENC output;
-    tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  if (p_cb->le_secure_connections_mode_is_used) {
+    SMP_TRACE_WARNING("FOR LE SC LTK IS USED INSTEAD OF STK");
+    output.param_len = SMP_ENCRYT_KEY_SIZE;
+    output.status = HCI_SUCCESS;
+    output.opcode = HCI_BLE_ENCRYPT;
+    memcpy(output.param_buf, p_cb->ltk, SMP_ENCRYT_DATA_SIZE);
+  } else if (!smp_calculate_legacy_short_term_key(p_cb, &output)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+    return;
+  }
 
-    if (p_cb->le_secure_connections_mode_is_used)
-    {
-        SMP_TRACE_WARNING ("FOR LE SC LTK IS USED INSTEAD OF STK");
-        output.param_len = SMP_ENCRYT_KEY_SIZE;
-        output.status = HCI_SUCCESS;
-        output.opcode =  HCI_BLE_ENCRYPT;
-        memcpy(output.param_buf, p_cb->ltk, SMP_ENCRYT_DATA_SIZE);
-    }
-    else if (!smp_calculate_legacy_short_term_key(p_cb, &output))
-    {
-        SMP_TRACE_ERROR("%s failed", __func__);
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-        return;
-    }
-
-    smp_process_stk(p_cb, &output);
+  smp_process_stk(p_cb, &output);
 }
 
 /*******************************************************************************
@@ -286,13 +272,12 @@ void smp_generate_stk(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb,
-                                      UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("%s", __func__);
-    p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND;
-    /* generate MRand or SRand */
-    btsnd_hcic_ble_rand((void *)smp_rand_back);
+void smp_generate_srand_mrand_confirm(tSMP_CB* p_cb,
+                                      UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND;
+  /* generate MRand or SRand */
+  btsnd_hcic_ble_rand((void*)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -305,13 +290,11 @@ void smp_generate_srand_mrand_confirm(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-void smp_generate_rand_cont(tSMP_CB *p_cb,
-                            UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("%s", __func__);
-    p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND_CONT;
-    /* generate 64 MSB of MRand or SRand */
-    btsnd_hcic_ble_rand((void *)smp_rand_back);
+void smp_generate_rand_cont(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND_CONT;
+  /* generate 64 MSB of MRand or SRand */
+  btsnd_hcic_ble_rand((void*)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -329,36 +312,27 @@ void smp_generate_rand_cont(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-void smp_generate_ltk(tSMP_CB *p_cb,
-                      UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
+void smp_generate_ltk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  bool div_status;
+  SMP_TRACE_DEBUG("%s", __func__);
+  if (smp_get_br_state() == SMP_BR_STATE_BOND_PENDING) {
+    smp_br_process_link_key(p_cb, NULL);
+    return;
+  } else if (p_cb->le_secure_connections_mode_is_used) {
+    smp_process_secure_connection_long_term_key();
+    return;
+  }
 
-    bool    div_status;
-    SMP_TRACE_DEBUG ("%s", __func__);
-    if (smp_get_br_state() == SMP_BR_STATE_BOND_PENDING)
-    {
-        smp_br_process_link_key(p_cb, NULL);
-        return;
-    }
-    else if (p_cb->le_secure_connections_mode_is_used)
-    {
-        smp_process_secure_connection_long_term_key();
-        return;
-    }
+  div_status = btm_get_local_div(p_cb->pairing_bda, &p_cb->div);
 
-    div_status = btm_get_local_div(p_cb->pairing_bda, &p_cb->div);
-
-    if (div_status)
-    {
-        smp_generate_ltk_cont(p_cb, NULL);
-    }
-    else
-    {
-        SMP_TRACE_DEBUG ("Generate DIV for LTK");
-        p_cb->rand_enc_proc_state = SMP_GEN_DIV_LTK;
-        /* generate MRand or SRand */
-        btsnd_hcic_ble_rand((void *)smp_rand_back);
-    }
+  if (div_status) {
+    smp_generate_ltk_cont(p_cb, NULL);
+  } else {
+    SMP_TRACE_DEBUG("Generate DIV for LTK");
+    p_cb->rand_enc_proc_state = SMP_GEN_DIV_LTK;
+    /* generate MRand or SRand */
+    btsnd_hcic_ble_rand((void*)smp_rand_back);
+  }
 }
 
 /*******************************************************************************
@@ -371,40 +345,31 @@ void smp_generate_ltk(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-void smp_compute_csrk(tSMP_CB *p_cb,
-                      UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
+void smp_compute_csrk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  BT_OCTET16 er;
+  uint8_t buffer[4]; /* for (r || DIV)  r=1*/
+  uint16_t r = 1;
+  uint8_t* p = buffer;
+  tSMP_ENC output;
+  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
 
-    BT_OCTET16  er;
-    uint8_t     buffer[4]; /* for (r || DIV)  r=1*/
-    uint16_t    r=1;
-    uint8_t     *p=buffer;
-    tSMP_ENC    output;
-    tSMP_STATUS   status = SMP_PAIR_FAIL_UNKNOWN;
+  SMP_TRACE_DEBUG("smp_compute_csrk div=%x", p_cb->div);
+  BTM_GetDeviceEncRoot(er);
+  /* CSRK = d1(ER, DIV, 1) */
+  UINT16_TO_STREAM(p, p_cb->div);
+  UINT16_TO_STREAM(p, r);
 
-    SMP_TRACE_DEBUG ("smp_compute_csrk div=%x", p_cb->div);
-    BTM_GetDeviceEncRoot(er);
-    /* CSRK = d1(ER, DIV, 1) */
-    UINT16_TO_STREAM(p, p_cb->div);
-    UINT16_TO_STREAM(p, r);
-
-    if (!SMP_Encrypt(er, BT_OCTET16_LEN, buffer, 4, &output))
-    {
-        SMP_TRACE_ERROR("smp_generate_csrk failed");
-        if (p_cb->smp_over_br)
-        {
-            smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &status);
-        }
-        else
-        {
-            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-        }
+  if (!SMP_Encrypt(er, BT_OCTET16_LEN, buffer, 4, &output)) {
+    SMP_TRACE_ERROR("smp_generate_csrk failed");
+    if (p_cb->smp_over_br) {
+      smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &status);
+    } else {
+      smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
     }
-    else
-    {
-        memcpy((void *)p_cb->csrk, output.param_buf, BT_OCTET16_LEN);
-        smp_send_csrk_info(p_cb, NULL);
-    }
+  } else {
+    memcpy((void*)p_cb->csrk, output.param_buf, BT_OCTET16_LEN);
+    smp_send_csrk_info(p_cb, NULL);
+  }
 }
 
 /*******************************************************************************
@@ -418,65 +383,57 @@ void smp_compute_csrk(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-void smp_generate_csrk(tSMP_CB *p_cb,
-                       UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
+void smp_generate_csrk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  bool div_status;
 
-    bool        div_status;
+  SMP_TRACE_DEBUG("smp_generate_csrk");
 
-    SMP_TRACE_DEBUG ("smp_generate_csrk");
-
-    div_status = btm_get_local_div(p_cb->pairing_bda, &p_cb->div);
-    if (div_status)
-    {
-        smp_compute_csrk(p_cb, NULL);
-    }
-    else
-    {
-        SMP_TRACE_DEBUG ("Generate DIV for CSRK");
-        p_cb->rand_enc_proc_state = SMP_GEN_DIV_CSRK;
-        btsnd_hcic_ble_rand((void *)smp_rand_back);
-    }
+  div_status = btm_get_local_div(p_cb->pairing_bda, &p_cb->div);
+  if (div_status) {
+    smp_compute_csrk(p_cb, NULL);
+  } else {
+    SMP_TRACE_DEBUG("Generate DIV for CSRK");
+    p_cb->rand_enc_proc_state = SMP_GEN_DIV_CSRK;
+    btsnd_hcic_ble_rand((void*)smp_rand_back);
+  }
 }
 
 /*******************************************************************************
  * Function         smp_concatenate_peer
  *                  add pairing command sent from local device into p1.
  ******************************************************************************/
-void smp_concatenate_local( tSMP_CB *p_cb, uint8_t **p_data, uint8_t op_code)
-{
-    uint8_t *p = *p_data;
+void smp_concatenate_local(tSMP_CB* p_cb, uint8_t** p_data, uint8_t op_code) {
+  uint8_t* p = *p_data;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
-    UINT8_TO_STREAM(p, op_code);
-    UINT8_TO_STREAM(p, p_cb->local_io_capability);
-    UINT8_TO_STREAM(p, p_cb->loc_oob_flag);
-    UINT8_TO_STREAM(p, p_cb->loc_auth_req);
-    UINT8_TO_STREAM(p, p_cb->loc_enc_size);
-    UINT8_TO_STREAM(p, p_cb->local_i_key);
-    UINT8_TO_STREAM(p, p_cb->local_r_key);
+  SMP_TRACE_DEBUG("%s", __func__);
+  UINT8_TO_STREAM(p, op_code);
+  UINT8_TO_STREAM(p, p_cb->local_io_capability);
+  UINT8_TO_STREAM(p, p_cb->loc_oob_flag);
+  UINT8_TO_STREAM(p, p_cb->loc_auth_req);
+  UINT8_TO_STREAM(p, p_cb->loc_enc_size);
+  UINT8_TO_STREAM(p, p_cb->local_i_key);
+  UINT8_TO_STREAM(p, p_cb->local_r_key);
 
-    *p_data = p;
+  *p_data = p;
 }
 
 /*******************************************************************************
  * Function         smp_concatenate_peer
  *                  add pairing command received from peer device into p1.
  ******************************************************************************/
-void smp_concatenate_peer( tSMP_CB *p_cb, uint8_t **p_data, uint8_t op_code)
-{
-    uint8_t *p = *p_data;
+void smp_concatenate_peer(tSMP_CB* p_cb, uint8_t** p_data, uint8_t op_code) {
+  uint8_t* p = *p_data;
 
-    SMP_TRACE_DEBUG ("smp_concatenate_peer ");
-    UINT8_TO_STREAM(p, op_code);
-    UINT8_TO_STREAM(p, p_cb->peer_io_caps);
-    UINT8_TO_STREAM(p, p_cb->peer_oob_flag);
-    UINT8_TO_STREAM(p, p_cb->peer_auth_req);
-    UINT8_TO_STREAM(p, p_cb->peer_enc_size);
-    UINT8_TO_STREAM(p, p_cb->peer_i_key);
-    UINT8_TO_STREAM(p, p_cb->peer_r_key);
+  SMP_TRACE_DEBUG("smp_concatenate_peer ");
+  UINT8_TO_STREAM(p, op_code);
+  UINT8_TO_STREAM(p, p_cb->peer_io_caps);
+  UINT8_TO_STREAM(p, p_cb->peer_oob_flag);
+  UINT8_TO_STREAM(p, p_cb->peer_auth_req);
+  UINT8_TO_STREAM(p, p_cb->peer_enc_size);
+  UINT8_TO_STREAM(p, p_cb->peer_i_key);
+  UINT8_TO_STREAM(p, p_cb->peer_r_key);
 
-    *p_data = p;
+  *p_data = p;
 }
 
 /*******************************************************************************
@@ -489,47 +446,43 @@ void smp_concatenate_peer( tSMP_CB *p_cb, uint8_t **p_data, uint8_t op_code)
  * Returns          void
  *
  ******************************************************************************/
-void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
-{
-    uint8_t *p = (uint8_t *)p1;
-    tBLE_ADDR_TYPE    addr_type = 0;
-    BD_ADDR           remote_bda;
+void smp_gen_p1_4_confirm(tSMP_CB* p_cb, BT_OCTET16 p1) {
+  uint8_t* p = (uint8_t*)p1;
+  tBLE_ADDR_TYPE addr_type = 0;
+  BD_ADDR remote_bda;
 
-    SMP_TRACE_DEBUG ("smp_gen_p1_4_confirm");
+  SMP_TRACE_DEBUG("smp_gen_p1_4_confirm");
 
-    if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda, &addr_type))
-    {
-        SMP_TRACE_ERROR("can not generate confirm for unknown device");
-        return;
-    }
+  if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda,
+                                    &addr_type)) {
+    SMP_TRACE_ERROR("can not generate confirm for unknown device");
+    return;
+  }
 
-    BTM_ReadConnectionAddr( p_cb->pairing_bda, p_cb->local_bda, &p_cb->addr_type);
+  BTM_ReadConnectionAddr(p_cb->pairing_bda, p_cb->local_bda, &p_cb->addr_type);
 
-    if (p_cb->role == HCI_ROLE_MASTER)
-    {
-        /* LSB : rat': initiator's(local) address type */
-        UINT8_TO_STREAM(p, p_cb->addr_type);
-        /* LSB : iat': responder's address type */
-        UINT8_TO_STREAM(p, addr_type);
-        /* concatinate preq */
-        smp_concatenate_local(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
-        /* concatinate pres */
-        smp_concatenate_peer(p_cb, &p, SMP_OPCODE_PAIRING_RSP);
-    }
-    else
-    {
-        /* LSB : iat': initiator's address type */
-        UINT8_TO_STREAM(p, addr_type);
-        /* LSB : rat': responder's(local) address type */
-        UINT8_TO_STREAM(p, p_cb->addr_type);
-        /* concatinate preq */
-        smp_concatenate_peer(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
-        /* concatinate pres */
-        smp_concatenate_local(p_cb, &p, SMP_OPCODE_PAIRING_RSP);
-    }
+  if (p_cb->role == HCI_ROLE_MASTER) {
+    /* LSB : rat': initiator's(local) address type */
+    UINT8_TO_STREAM(p, p_cb->addr_type);
+    /* LSB : iat': responder's address type */
+    UINT8_TO_STREAM(p, addr_type);
+    /* concatinate preq */
+    smp_concatenate_local(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
+    /* concatinate pres */
+    smp_concatenate_peer(p_cb, &p, SMP_OPCODE_PAIRING_RSP);
+  } else {
+    /* LSB : iat': initiator's address type */
+    UINT8_TO_STREAM(p, addr_type);
+    /* LSB : rat': responder's(local) address type */
+    UINT8_TO_STREAM(p, p_cb->addr_type);
+    /* concatinate preq */
+    smp_concatenate_peer(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
+    /* concatinate pres */
+    smp_concatenate_local(p_cb, &p, SMP_OPCODE_PAIRING_RSP);
+  }
 #if (SMP_DEBUG == TRUE)
-    SMP_TRACE_DEBUG("p1 = pres || preq || rat' || iat'");
-    smp_debug_print_nbyte_little_endian ((uint8_t *)p1, (const uint8_t *)"P1", 16);
+  SMP_TRACE_DEBUG("p1 = pres || preq || rat' || iat'");
+  smp_debug_print_nbyte_little_endian((uint8_t*)p1, (const uint8_t*)"P1", 16);
 #endif
 }
 
@@ -543,39 +496,35 @@ void smp_gen_p1_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p1)
  * Returns          void
  *
  ******************************************************************************/
-void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
-{
-    uint8_t     *p = (uint8_t *)p2;
-    BD_ADDR     remote_bda;
-    tBLE_ADDR_TYPE  addr_type = 0;
+void smp_gen_p2_4_confirm(tSMP_CB* p_cb, BT_OCTET16 p2) {
+  uint8_t* p = (uint8_t*)p2;
+  BD_ADDR remote_bda;
+  tBLE_ADDR_TYPE addr_type = 0;
 
-    if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda, &addr_type))
-    {
-        SMP_TRACE_ERROR("can not generate confirm p2 for unknown device");
-        return;
-    }
+  if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda,
+                                    &addr_type)) {
+    SMP_TRACE_ERROR("can not generate confirm p2 for unknown device");
+    return;
+  }
 
-    SMP_TRACE_DEBUG ("smp_gen_p2_4_confirm");
+  SMP_TRACE_DEBUG("smp_gen_p2_4_confirm");
 
-    memset(p, 0, sizeof(BT_OCTET16));
+  memset(p, 0, sizeof(BT_OCTET16));
 
-    if (p_cb->role == HCI_ROLE_MASTER)
-    {
-        /* LSB ra */
-        BDADDR_TO_STREAM(p, remote_bda);
-        /* ia */
-        BDADDR_TO_STREAM(p, p_cb->local_bda);
-    }
-    else
-    {
-        /* LSB ra */
-        BDADDR_TO_STREAM(p, p_cb->local_bda);
-        /* ia */
-        BDADDR_TO_STREAM(p, remote_bda);
-    }
+  if (p_cb->role == HCI_ROLE_MASTER) {
+    /* LSB ra */
+    BDADDR_TO_STREAM(p, remote_bda);
+    /* ia */
+    BDADDR_TO_STREAM(p, p_cb->local_bda);
+  } else {
+    /* LSB ra */
+    BDADDR_TO_STREAM(p, p_cb->local_bda);
+    /* ia */
+    BDADDR_TO_STREAM(p, remote_bda);
+  }
 #if (SMP_DEBUG == TRUE)
-    SMP_TRACE_DEBUG("p2 = padding || ia || ra");
-    smp_debug_print_nbyte_little_endian(p2, (const uint8_t *)"p2", 16);
+  SMP_TRACE_DEBUG("p2 = padding || ia || ra");
+  smp_debug_print_nbyte_little_endian(p2, (const uint8_t*)"p2", 16);
 #endif
 }
 
@@ -588,33 +537,29 @@ void smp_gen_p2_4_confirm( tSMP_CB *p_cb, BT_OCTET16 p2)
  * Returns          void
  *
  ******************************************************************************/
-void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand,
-                            UNUSED_ATTR BD_ADDR bda)
-{
+void smp_calculate_comfirm(tSMP_CB* p_cb, BT_OCTET16 rand,
+                           UNUSED_ATTR BD_ADDR bda) {
+  BT_OCTET16 p1;
+  tSMP_ENC output;
+  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
 
-    BT_OCTET16      p1;
-    tSMP_ENC       output;
-    tSMP_STATUS     status = SMP_PAIR_FAIL_UNKNOWN;
+  SMP_TRACE_DEBUG("smp_calculate_comfirm ");
+  /* generate p1 = pres || preq || rat' || iat' */
+  smp_gen_p1_4_confirm(p_cb, p1);
 
-    SMP_TRACE_DEBUG ("smp_calculate_comfirm ");
-    /* generate p1 = pres || preq || rat' || iat' */
-    smp_gen_p1_4_confirm(p_cb, p1);
+  /* p1 = rand XOR p1 */
+  smp_xor_128(p1, rand);
 
-    /* p1 = rand XOR p1 */
-    smp_xor_128(p1, rand);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p1,
+                                      (const uint8_t*)"P1' = r XOR p1", 16);
 
-    smp_debug_print_nbyte_little_endian ((uint8_t *)p1, (const uint8_t *)"P1' = r XOR p1", 16);
-
-    /* calculate e(k, r XOR p1), where k = TK */
-    if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p1, BT_OCTET16_LEN, &output))
-    {
-        SMP_TRACE_ERROR("smp_generate_csrk failed");
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-    }
-    else
-    {
-        smp_calculate_comfirm_cont(p_cb, &output);
-    }
+  /* calculate e(k, r XOR p1), where k = TK */
+  if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p1, BT_OCTET16_LEN, &output)) {
+    SMP_TRACE_ERROR("smp_generate_csrk failed");
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+  } else {
+    smp_calculate_comfirm_cont(p_cb, &output);
+  }
 }
 
 /*******************************************************************************
@@ -627,43 +572,39 @@ void smp_calculate_comfirm (tSMP_CB *p_cb, BT_OCTET16 rand,
  * Returns          void
  *
  ******************************************************************************/
-static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
-{
-    BT_OCTET16    p2;
-    tSMP_ENC      output;
-    tSMP_STATUS     status = SMP_PAIR_FAIL_UNKNOWN;
+static void smp_calculate_comfirm_cont(tSMP_CB* p_cb, tSMP_ENC* p) {
+  BT_OCTET16 p2;
+  tSMP_ENC output;
+  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
 
-    SMP_TRACE_DEBUG ("smp_calculate_comfirm_cont ");
+  SMP_TRACE_DEBUG("smp_calculate_comfirm_cont ");
 #if (SMP_DEBUG == TRUE)
-    SMP_TRACE_DEBUG("Confirm step 1 p1' = e(k, r XOR p1)  Generated");
-    smp_debug_print_nbyte_little_endian (p->param_buf, (const uint8_t *)"C1", 16);
+  SMP_TRACE_DEBUG("Confirm step 1 p1' = e(k, r XOR p1)  Generated");
+  smp_debug_print_nbyte_little_endian(p->param_buf, (const uint8_t*)"C1", 16);
 #endif
 
-    smp_gen_p2_4_confirm(p_cb, p2);
+  smp_gen_p2_4_confirm(p_cb, p2);
 
-    /* calculate p2 = (p1' XOR p2) */
-    smp_xor_128(p2, p->param_buf);
-    smp_debug_print_nbyte_little_endian ((uint8_t *)p2, (const uint8_t *)"p2' = C1 xor p2", 16);
+  /* calculate p2 = (p1' XOR p2) */
+  smp_xor_128(p2, p->param_buf);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p2,
+                                      (const uint8_t*)"p2' = C1 xor p2", 16);
 
-    /* calculate: Confirm = E(k, p1' XOR p2) */
-    if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p2, BT_OCTET16_LEN, &output))
-    {
-        SMP_TRACE_ERROR("smp_calculate_comfirm_cont failed");
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+  /* calculate: Confirm = E(k, p1' XOR p2) */
+  if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p2, BT_OCTET16_LEN, &output)) {
+    SMP_TRACE_ERROR("smp_calculate_comfirm_cont failed");
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+  } else {
+    switch (p_cb->rand_enc_proc_state) {
+      case SMP_GEN_CONFIRM:
+        smp_process_confirm(p_cb, &output);
+        break;
+
+      case SMP_GEN_COMPARE:
+        smp_process_compare(p_cb, &output);
+        break;
     }
-    else
-    {
-        switch (p_cb->rand_enc_proc_state)
-        {
-            case SMP_GEN_CONFIRM:
-                smp_process_confirm(p_cb, &output);
-                break;
-
-            case SMP_GEN_COMPARE:
-                smp_process_compare(p_cb, &output);
-                break;
-        }
-    }
+  }
 }
 
 /*******************************************************************************
@@ -677,13 +618,13 @@ static void smp_calculate_comfirm_cont(tSMP_CB *p_cb, tSMP_ENC *p)
  * Returns          void
  *
  ******************************************************************************/
-static void smp_generate_confirm(tSMP_CB *p_cb,
-                                 UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("%s", __func__);
-    p_cb->rand_enc_proc_state = SMP_GEN_CONFIRM;
-    smp_debug_print_nbyte_little_endian ((uint8_t *)p_cb->rand,  (const uint8_t *)"local rand", 16);
-    smp_calculate_comfirm(p_cb, p_cb->rand, p_cb->pairing_bda);
+static void smp_generate_confirm(tSMP_CB* p_cb,
+                                 UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  p_cb->rand_enc_proc_state = SMP_GEN_CONFIRM;
+  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rand,
+                                      (const uint8_t*)"local rand", 16);
+  smp_calculate_comfirm(p_cb, p_cb->rand, p_cb->pairing_bda);
 }
 
 /*******************************************************************************
@@ -698,13 +639,12 @@ static void smp_generate_confirm(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-void smp_generate_compare (tSMP_CB *p_cb,
-                           UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("smp_generate_compare ");
-    p_cb->rand_enc_proc_state = SMP_GEN_COMPARE;
-    smp_debug_print_nbyte_little_endian ((uint8_t *)p_cb->rrand,  (const uint8_t *)"peer rand", 16);
-    smp_calculate_comfirm(p_cb, p_cb->rrand, p_cb->local_bda);
+void smp_generate_compare(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("smp_generate_compare ");
+  p_cb->rand_enc_proc_state = SMP_GEN_COMPARE;
+  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rrand,
+                                      (const uint8_t*)"peer rand", 16);
+  smp_calculate_comfirm(p_cb, p_cb->rrand, p_cb->local_bda);
 }
 
 /*******************************************************************************
@@ -717,21 +657,21 @@ void smp_generate_compare (tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p)
-{
-    tSMP_KEY    key;
+static void smp_process_confirm(tSMP_CB* p_cb, tSMP_ENC* p) {
+  tSMP_KEY key;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
-    memcpy(p_cb->confirm, p->param_buf, BT_OCTET16_LEN);
+  SMP_TRACE_DEBUG("%s", __func__);
+  memcpy(p_cb->confirm, p->param_buf, BT_OCTET16_LEN);
 
 #if (SMP_DEBUG == TRUE)
-    SMP_TRACE_DEBUG("Confirm  Generated");
-    smp_debug_print_nbyte_little_endian ((uint8_t *)p_cb->confirm,  (const uint8_t *)"Confirm", 16);
+  SMP_TRACE_DEBUG("Confirm  Generated");
+  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->confirm,
+                                      (const uint8_t*)"Confirm", 16);
 #endif
 
-    key.key_type = SMP_KEY_TYPE_CFM;
-    key.p_data = p->param_buf;
-    smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
+  key.key_type = SMP_KEY_TYPE_CFM;
+  key.p_data = p->param_buf;
+  smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
 }
 
 /*******************************************************************************
@@ -744,19 +684,19 @@ static void smp_process_confirm(tSMP_CB *p_cb, tSMP_ENC *p)
  * Returns          void
  *
  ******************************************************************************/
-static void smp_process_compare(tSMP_CB *p_cb, tSMP_ENC *p)
-{
-    tSMP_KEY    key;
+static void smp_process_compare(tSMP_CB* p_cb, tSMP_ENC* p) {
+  tSMP_KEY key;
 
-    SMP_TRACE_DEBUG ("smp_process_compare ");
+  SMP_TRACE_DEBUG("smp_process_compare ");
 #if (SMP_DEBUG == TRUE)
-    SMP_TRACE_DEBUG("Compare Generated");
-    smp_debug_print_nbyte_little_endian (p->param_buf,  (const uint8_t *)"Compare", 16);
+  SMP_TRACE_DEBUG("Compare Generated");
+  smp_debug_print_nbyte_little_endian(p->param_buf, (const uint8_t*)"Compare",
+                                      16);
 #endif
-    key.key_type = SMP_KEY_TYPE_CMP;
-    key.p_data   = p->param_buf;
+  key.key_type = SMP_KEY_TYPE_CMP;
+  key.p_data = p->param_buf;
 
-    smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
+  smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
 }
 
 /*******************************************************************************
@@ -769,20 +709,19 @@ static void smp_process_compare(tSMP_CB *p_cb, tSMP_ENC *p)
  * Returns          void
  *
  ******************************************************************************/
-static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p)
-{
-    tSMP_KEY    key;
+static void smp_process_stk(tSMP_CB* p_cb, tSMP_ENC* p) {
+  tSMP_KEY key;
 
-    SMP_TRACE_DEBUG ("smp_process_stk ");
+  SMP_TRACE_DEBUG("smp_process_stk ");
 #if (SMP_DEBUG == TRUE)
-    SMP_TRACE_ERROR("STK Generated");
+  SMP_TRACE_ERROR("STK Generated");
 #endif
-    smp_mask_enc_key(p_cb->loc_enc_size, p->param_buf);
+  smp_mask_enc_key(p_cb->loc_enc_size, p->param_buf);
 
-    key.key_type = SMP_KEY_TYPE_STK;
-    key.p_data   = p->param_buf;
+  key.key_type = SMP_KEY_TYPE_STK;
+  key.p_data = p->param_buf;
 
-    smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
+  smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
 }
 
 /*******************************************************************************
@@ -794,31 +733,26 @@ static void smp_process_stk(tSMP_CB *p_cb, tSMP_ENC *p)
  * Returns          void
  *
  ******************************************************************************/
-static void smp_generate_ltk_cont(tSMP_CB *p_cb,
-                                  UNUSED_ATTR tSMP_INT_DATA *p_data)
-{
+static void smp_generate_ltk_cont(tSMP_CB* p_cb,
+                                  UNUSED_ATTR tSMP_INT_DATA* p_data) {
+  BT_OCTET16 er;
+  tSMP_ENC output;
+  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
 
-    BT_OCTET16  er;
-    tSMP_ENC    output;
-    tSMP_STATUS     status = SMP_PAIR_FAIL_UNKNOWN;
+  SMP_TRACE_DEBUG("%s", __func__);
+  BTM_GetDeviceEncRoot(er);
 
-    SMP_TRACE_DEBUG ("%s", __func__);
-    BTM_GetDeviceEncRoot(er);
-
-    /* LTK = d1(ER, DIV, 0)= e(ER, DIV)*/
-    if (!SMP_Encrypt(er, BT_OCTET16_LEN, (uint8_t *)&p_cb->div,
-                     sizeof(uint16_t), &output))
-    {
-        SMP_TRACE_ERROR("%s failed", __func__);
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-    }
-    else
-    {
-        /* mask the LTK */
-        smp_mask_enc_key(p_cb->loc_enc_size, output.param_buf);
-        memcpy((void *)p_cb->ltk, output.param_buf, BT_OCTET16_LEN);
-        smp_generate_rand_vector(p_cb, NULL);
-    }
+  /* LTK = d1(ER, DIV, 0)= e(ER, DIV)*/
+  if (!SMP_Encrypt(er, BT_OCTET16_LEN, (uint8_t*)&p_cb->div, sizeof(uint16_t),
+                   &output)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+  } else {
+    /* mask the LTK */
+    smp_mask_enc_key(p_cb->loc_enc_size, output.param_buf);
+    memcpy((void*)p_cb->ltk, output.param_buf, BT_OCTET16_LEN);
+    smp_generate_rand_vector(p_cb, NULL);
+  }
 }
 
 /*******************************************************************************
@@ -830,28 +764,21 @@ static void smp_generate_ltk_cont(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-static void smp_generate_y(tSMP_CB *p_cb,
-                           UNUSED_ATTR tSMP_INT_DATA *p)
-{
+static void smp_generate_y(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p) {
+  BT_OCTET16 dhk;
+  tSMP_ENC output;
+  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
 
-    BT_OCTET16  dhk;
-    tSMP_ENC   output;
-    tSMP_STATUS     status = SMP_PAIR_FAIL_UNKNOWN;
+  SMP_TRACE_DEBUG("smp_generate_y ");
+  BTM_GetDeviceDHK(dhk);
 
-
-    SMP_TRACE_DEBUG ("smp_generate_y ");
-    BTM_GetDeviceDHK(dhk);
-
-    if (!SMP_Encrypt(dhk, BT_OCTET16_LEN, p_cb->enc_rand,
-                     BT_OCTET8_LEN, &output))
-    {
-        SMP_TRACE_ERROR("smp_generate_y failed");
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-    }
-    else
-    {
-        smp_process_ediv(p_cb, &output);
-    }
+  if (!SMP_Encrypt(dhk, BT_OCTET16_LEN, p_cb->enc_rand, BT_OCTET8_LEN,
+                   &output)) {
+    SMP_TRACE_ERROR("smp_generate_y failed");
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+  } else {
+    smp_process_ediv(p_cb, &output);
+  }
 }
 
 /*******************************************************************************
@@ -864,14 +791,13 @@ static void smp_generate_y(tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-static void smp_generate_rand_vector (tSMP_CB *p_cb,
-                                      UNUSED_ATTR tSMP_INT_DATA *p)
-{
-    /* generate EDIV and rand now */
-    /* generate random vector */
-    SMP_TRACE_DEBUG ("smp_generate_rand_vector ");
-    p_cb->rand_enc_proc_state = SMP_GEN_RAND_V;
-    btsnd_hcic_ble_rand((void *)smp_rand_back);
+static void smp_generate_rand_vector(tSMP_CB* p_cb,
+                                     UNUSED_ATTR tSMP_INT_DATA* p) {
+  /* generate EDIV and rand now */
+  /* generate random vector */
+  SMP_TRACE_DEBUG("smp_generate_rand_vector ");
+  p_cb->rand_enc_proc_state = SMP_GEN_RAND_V;
+  btsnd_hcic_ble_rand((void*)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -883,23 +809,22 @@ static void smp_generate_rand_vector (tSMP_CB *p_cb,
  * Returns          void
  *
  ******************************************************************************/
-static void smp_process_ediv(tSMP_CB *p_cb, tSMP_ENC *p)
-{
-    tSMP_KEY    key;
-    uint8_t *pp= p->param_buf;
-    uint16_t y;
+static void smp_process_ediv(tSMP_CB* p_cb, tSMP_ENC* p) {
+  tSMP_KEY key;
+  uint8_t* pp = p->param_buf;
+  uint16_t y;
 
-    SMP_TRACE_DEBUG ("smp_process_ediv ");
-    STREAM_TO_UINT16(y, pp);
+  SMP_TRACE_DEBUG("smp_process_ediv ");
+  STREAM_TO_UINT16(y, pp);
 
-    /* EDIV = Y xor DIV */
-    p_cb->ediv = p_cb->div ^ y;
-    /* send LTK ready */
-    SMP_TRACE_ERROR("LTK ready");
-    key.key_type = SMP_KEY_TYPE_LTK;
-    key.p_data   = p->param_buf;
+  /* EDIV = Y xor DIV */
+  p_cb->ediv = p_cb->div ^ y;
+  /* send LTK ready */
+  SMP_TRACE_ERROR("LTK ready");
+  key.key_type = SMP_KEY_TYPE_LTK;
+  key.p_data = p->param_buf;
 
-    smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
+  smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
 }
 
 /*******************************************************************************
@@ -911,32 +836,28 @@ static void smp_process_ediv(tSMP_CB *p_cb, tSMP_ENC *p)
  * Returns          false if out of resources, true in other cases.
  *
  ******************************************************************************/
-bool    smp_calculate_legacy_short_term_key(tSMP_CB *p_cb, tSMP_ENC *output)
-{
-    BT_OCTET16 ptext;
-    uint8_t *p = ptext;
+bool smp_calculate_legacy_short_term_key(tSMP_CB* p_cb, tSMP_ENC* output) {
+  BT_OCTET16 ptext;
+  uint8_t* p = ptext;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
-    memset(p, 0, BT_OCTET16_LEN);
-    if (p_cb->role == HCI_ROLE_MASTER)
-    {
-        memcpy(p, p_cb->rand, BT_OCTET8_LEN);
-        memcpy(&p[BT_OCTET8_LEN], p_cb->rrand, BT_OCTET8_LEN);
-    }
-    else
-    {
-        memcpy(p, p_cb->rrand, BT_OCTET8_LEN);
-        memcpy(&p[BT_OCTET8_LEN], p_cb->rand, BT_OCTET8_LEN);
-    }
+  SMP_TRACE_DEBUG("%s", __func__);
+  memset(p, 0, BT_OCTET16_LEN);
+  if (p_cb->role == HCI_ROLE_MASTER) {
+    memcpy(p, p_cb->rand, BT_OCTET8_LEN);
+    memcpy(&p[BT_OCTET8_LEN], p_cb->rrand, BT_OCTET8_LEN);
+  } else {
+    memcpy(p, p_cb->rrand, BT_OCTET8_LEN);
+    memcpy(&p[BT_OCTET8_LEN], p_cb->rand, BT_OCTET8_LEN);
+  }
 
-    bool    encrypted;
-    /* generate STK = Etk(rand|rrand)*/
-    encrypted = SMP_Encrypt( p_cb->tk, BT_OCTET16_LEN, ptext, BT_OCTET16_LEN, output);
-    if (!encrypted)
-    {
-        SMP_TRACE_ERROR("%s failed", __func__);
-    }
-    return encrypted;
+  bool encrypted;
+  /* generate STK = Etk(rand|rrand)*/
+  encrypted =
+      SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, ptext, BT_OCTET16_LEN, output);
+  if (!encrypted) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+  }
+  return encrypted;
 }
 
 /*******************************************************************************
@@ -951,11 +872,10 @@ bool    smp_calculate_legacy_short_term_key(tSMP_CB *p_cb, tSMP_ENC *output)
  * Returns          void
  *
  ******************************************************************************/
-void smp_create_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("%s",__func__);
-    p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_0_7;
-    btsnd_hcic_ble_rand((void *)smp_rand_back);
+void smp_create_private_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_0_7;
+  btsnd_hcic_ble_rand((void*)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -974,25 +894,24 @@ void smp_create_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
  * Returns          void
  *
  ******************************************************************************/
-void smp_use_oob_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("%s req_oob_type: %d, role: %d",
-                      __func__, p_cb->req_oob_type, p_cb->role);
+void smp_use_oob_private_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("%s req_oob_type: %d, role: %d", __func__, p_cb->req_oob_type,
+                  p_cb->role);
 
-    switch (p_cb->req_oob_type)
-    {
-        case SMP_OOB_BOTH:
-        case SMP_OOB_LOCAL:
-            SMP_TRACE_DEBUG("%s restore secret key", __func__)
-            memcpy(p_cb->private_key, p_cb->sc_oob_data.loc_oob_data.private_key_used, BT_OCTET32_LEN);
-            smp_process_private_key(p_cb);
-            break;
-        default:
-            SMP_TRACE_DEBUG("%s create secret key anew", __func__);
-            smp_set_state(SMP_STATE_PAIR_REQ_RSP);
-            smp_decide_association_model(p_cb, NULL);
-            break;
-    }
+  switch (p_cb->req_oob_type) {
+    case SMP_OOB_BOTH:
+    case SMP_OOB_LOCAL:
+      SMP_TRACE_DEBUG("%s restore secret key", __func__)
+      memcpy(p_cb->private_key, p_cb->sc_oob_data.loc_oob_data.private_key_used,
+             BT_OCTET32_LEN);
+      smp_process_private_key(p_cb);
+      break;
+    default:
+      SMP_TRACE_DEBUG("%s create secret key anew", __func__);
+      smp_set_state(SMP_STATE_PAIR_REQ_RSP);
+      smp_decide_association_model(p_cb, NULL);
+      break;
+  }
 }
 
 /*******************************************************************************
@@ -1004,41 +923,39 @@ void smp_use_oob_private_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
  * Returns          void
  *
  ******************************************************************************/
-void smp_continue_private_key_creation (tSMP_CB *p_cb, tBTM_RAND_ENC *p)
-{
-    uint8_t state = p_cb->rand_enc_proc_state & ~0x80;
-    SMP_TRACE_DEBUG ("%s state=0x%x", __func__, state);
+void smp_continue_private_key_creation(tSMP_CB* p_cb, tBTM_RAND_ENC* p) {
+  uint8_t state = p_cb->rand_enc_proc_state & ~0x80;
+  SMP_TRACE_DEBUG("%s state=0x%x", __func__, state);
 
-    switch (state)
-    {
-        case SMP_GENERATE_PRIVATE_KEY_0_7:
-            memcpy((void *)p_cb->private_key, p->param_buf, p->param_len);
-            p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_8_15;
-            btsnd_hcic_ble_rand((void *)smp_rand_back);
-            break;
+  switch (state) {
+    case SMP_GENERATE_PRIVATE_KEY_0_7:
+      memcpy((void*)p_cb->private_key, p->param_buf, p->param_len);
+      p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_8_15;
+      btsnd_hcic_ble_rand((void*)smp_rand_back);
+      break;
 
-        case SMP_GENERATE_PRIVATE_KEY_8_15:
-            memcpy((void *)&p_cb->private_key[8], p->param_buf, p->param_len);
-            p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_16_23;
-            btsnd_hcic_ble_rand((void *)smp_rand_back);
-            break;
+    case SMP_GENERATE_PRIVATE_KEY_8_15:
+      memcpy((void*)&p_cb->private_key[8], p->param_buf, p->param_len);
+      p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_16_23;
+      btsnd_hcic_ble_rand((void*)smp_rand_back);
+      break;
 
-        case SMP_GENERATE_PRIVATE_KEY_16_23:
-            memcpy((void *)&p_cb->private_key[16], p->param_buf, p->param_len);
-            p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_24_31;
-            btsnd_hcic_ble_rand((void *)smp_rand_back);
-            break;
+    case SMP_GENERATE_PRIVATE_KEY_16_23:
+      memcpy((void*)&p_cb->private_key[16], p->param_buf, p->param_len);
+      p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_24_31;
+      btsnd_hcic_ble_rand((void*)smp_rand_back);
+      break;
 
-        case SMP_GENERATE_PRIVATE_KEY_24_31:
-            memcpy((void *)&p_cb->private_key[24], p->param_buf, p->param_len);
-            smp_process_private_key (p_cb);
-            break;
+    case SMP_GENERATE_PRIVATE_KEY_24_31:
+      memcpy((void*)&p_cb->private_key[24], p->param_buf, p->param_len);
+      smp_process_private_key(p_cb);
+      break;
 
-        default:
-            break;
-    }
+    default:
+      break;
+  }
 
-    return;
+  return;
 }
 
 /*******************************************************************************
@@ -1052,26 +969,26 @@ void smp_continue_private_key_creation (tSMP_CB *p_cb, tBTM_RAND_ENC *p)
  * Returns          void
  *
  ******************************************************************************/
-void smp_process_private_key(tSMP_CB *p_cb)
-{
-    Point       public_key;
-    BT_OCTET32  private_key;
+void smp_process_private_key(tSMP_CB* p_cb) {
+  Point public_key;
+  BT_OCTET32 private_key;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    memcpy(private_key, p_cb->private_key, BT_OCTET32_LEN);
-    ECC_PointMult(&public_key, &(curve_p256.G), (uint32_t*) private_key, KEY_LENGTH_DWORDS_P256);
-    memcpy(p_cb->loc_publ_key.x, public_key.x, BT_OCTET32_LEN);
-    memcpy(p_cb->loc_publ_key.y, public_key.y, BT_OCTET32_LEN);
+  memcpy(private_key, p_cb->private_key, BT_OCTET32_LEN);
+  ECC_PointMult(&public_key, &(curve_p256.G), (uint32_t*)private_key,
+                KEY_LENGTH_DWORDS_P256);
+  memcpy(p_cb->loc_publ_key.x, public_key.x, BT_OCTET32_LEN);
+  memcpy(p_cb->loc_publ_key.y, public_key.y, BT_OCTET32_LEN);
 
-    smp_debug_print_nbyte_little_endian (p_cb->private_key, (const uint8_t *)"private",
-                                         BT_OCTET32_LEN);
-    smp_debug_print_nbyte_little_endian (p_cb->loc_publ_key.x, (const uint8_t *)"local public(x)",
-                                         BT_OCTET32_LEN);
-    smp_debug_print_nbyte_little_endian (p_cb->loc_publ_key.y, (const uint8_t *)"local public(y)",
-                                         BT_OCTET32_LEN);
-    p_cb->flags |= SMP_PAIR_FLAG_HAVE_LOCAL_PUBL_KEY;
-    smp_sm_event(p_cb, SMP_LOC_PUBL_KEY_CRTD_EVT, NULL);
+  smp_debug_print_nbyte_little_endian(
+      p_cb->private_key, (const uint8_t*)"private", BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(
+      p_cb->loc_publ_key.x, (const uint8_t*)"local public(x)", BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(
+      p_cb->loc_publ_key.y, (const uint8_t*)"local public(y)", BT_OCTET32_LEN);
+  p_cb->flags |= SMP_PAIR_FLAG_HAVE_LOCAL_PUBL_KEY;
+  smp_sm_event(p_cb, SMP_LOC_PUBL_KEY_CRTD_EVT, NULL);
 }
 
 /*******************************************************************************
@@ -1086,32 +1003,32 @@ void smp_process_private_key(tSMP_CB *p_cb)
  * Returns          void
  *
  ******************************************************************************/
-void smp_compute_dhkey (tSMP_CB *p_cb)
-{
-    Point       peer_publ_key, new_publ_key;
-    BT_OCTET32  private_key;
+void smp_compute_dhkey(tSMP_CB* p_cb) {
+  Point peer_publ_key, new_publ_key;
+  BT_OCTET32 private_key;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    memcpy(private_key, p_cb->private_key, BT_OCTET32_LEN);
-    memcpy(peer_publ_key.x, p_cb->peer_publ_key.x, BT_OCTET32_LEN);
-    memcpy(peer_publ_key.y, p_cb->peer_publ_key.y, BT_OCTET32_LEN);
+  memcpy(private_key, p_cb->private_key, BT_OCTET32_LEN);
+  memcpy(peer_publ_key.x, p_cb->peer_publ_key.x, BT_OCTET32_LEN);
+  memcpy(peer_publ_key.y, p_cb->peer_publ_key.y, BT_OCTET32_LEN);
 
-    ECC_PointMult(&new_publ_key, &peer_publ_key, (uint32_t*) private_key, KEY_LENGTH_DWORDS_P256);
+  ECC_PointMult(&new_publ_key, &peer_publ_key, (uint32_t*)private_key,
+                KEY_LENGTH_DWORDS_P256);
 
-    memcpy(p_cb->dhkey, new_publ_key.x, BT_OCTET32_LEN);
+  memcpy(p_cb->dhkey, new_publ_key.x, BT_OCTET32_LEN);
 
-    smp_debug_print_nbyte_little_endian (p_cb->dhkey, (const uint8_t *)"Old DHKey",
-                                         BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->dhkey, (const uint8_t*)"Old DHKey",
+                                      BT_OCTET32_LEN);
 
-    smp_debug_print_nbyte_little_endian (p_cb->private_key, (const uint8_t *)"private",
-                                         BT_OCTET32_LEN);
-    smp_debug_print_nbyte_little_endian (p_cb->peer_publ_key.x, (const uint8_t *)"rem public(x)",
-                                         BT_OCTET32_LEN);
-    smp_debug_print_nbyte_little_endian (p_cb->peer_publ_key.y, (const uint8_t *)"rem public(y)",
-                                         BT_OCTET32_LEN);
-    smp_debug_print_nbyte_little_endian (p_cb->dhkey, (const uint8_t *)"Reverted DHKey",
-                                         BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(
+      p_cb->private_key, (const uint8_t*)"private", BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(
+      p_cb->peer_publ_key.x, (const uint8_t*)"rem public(x)", BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(
+      p_cb->peer_publ_key.y, (const uint8_t*)"rem public(y)", BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(
+      p_cb->dhkey, (const uint8_t*)"Reverted DHKey", BT_OCTET32_LEN);
 }
 
 /*******************************************************************************
@@ -1123,40 +1040,41 @@ void smp_compute_dhkey (tSMP_CB *p_cb)
  * Returns          void
  *
  ******************************************************************************/
-void smp_calculate_local_commitment(tSMP_CB *p_cb)
-{
-    uint8_t random_input;
+void smp_calculate_local_commitment(tSMP_CB* p_cb) {
+  uint8_t random_input;
 
-    SMP_TRACE_DEBUG("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    switch (p_cb->selected_association_model)
-    {
-        case SMP_MODEL_SEC_CONN_JUSTWORKS:
-        case SMP_MODEL_SEC_CONN_NUM_COMP:
-            if (p_cb->role  == HCI_ROLE_MASTER)
-                SMP_TRACE_WARNING ("local commitment calc on master is not expected \
+  switch (p_cb->selected_association_model) {
+    case SMP_MODEL_SEC_CONN_JUSTWORKS:
+    case SMP_MODEL_SEC_CONN_NUM_COMP:
+      if (p_cb->role == HCI_ROLE_MASTER)
+        SMP_TRACE_WARNING(
+            "local commitment calc on master is not expected \
                                     for Just Works/Numeric Comparison models");
-            smp_calculate_f4(p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, p_cb->rand, 0,
-                             p_cb->commitment);
-            break;
-        case SMP_MODEL_SEC_CONN_PASSKEY_ENT:
-        case SMP_MODEL_SEC_CONN_PASSKEY_DISP:
-            random_input = smp_calculate_random_input(p_cb->local_random, p_cb->round);
-            smp_calculate_f4(p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, p_cb->rand,
-                             random_input, p_cb->commitment);
-            break;
-        case SMP_MODEL_SEC_CONN_OOB:
-            SMP_TRACE_WARNING ("local commitment calc is expected for OOB model BEFORE pairing");
-            smp_calculate_f4(p_cb->loc_publ_key.x, p_cb->loc_publ_key.x, p_cb->local_random, 0,
-                             p_cb->commitment);
-            break;
-        default:
-            SMP_TRACE_ERROR("Association Model = %d is not used in LE SC",
-                             p_cb->selected_association_model);
-            return;
-    }
+      smp_calculate_f4(p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, p_cb->rand,
+                       0, p_cb->commitment);
+      break;
+    case SMP_MODEL_SEC_CONN_PASSKEY_ENT:
+    case SMP_MODEL_SEC_CONN_PASSKEY_DISP:
+      random_input =
+          smp_calculate_random_input(p_cb->local_random, p_cb->round);
+      smp_calculate_f4(p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, p_cb->rand,
+                       random_input, p_cb->commitment);
+      break;
+    case SMP_MODEL_SEC_CONN_OOB:
+      SMP_TRACE_WARNING(
+          "local commitment calc is expected for OOB model BEFORE pairing");
+      smp_calculate_f4(p_cb->loc_publ_key.x, p_cb->loc_publ_key.x,
+                       p_cb->local_random, 0, p_cb->commitment);
+      break;
+    default:
+      SMP_TRACE_ERROR("Association Model = %d is not used in LE SC",
+                      p_cb->selected_association_model);
+      return;
+  }
 
-    SMP_TRACE_EVENT ("local commitment calculation is completed");
+  SMP_TRACE_EVENT("local commitment calculation is completed");
 }
 
 /*******************************************************************************
@@ -1169,39 +1087,38 @@ void smp_calculate_local_commitment(tSMP_CB *p_cb)
  * Returns          void
  *
  ******************************************************************************/
-void smp_calculate_peer_commitment(tSMP_CB *p_cb, BT_OCTET16 output_buf)
-{
-    uint8_t ri;
+void smp_calculate_peer_commitment(tSMP_CB* p_cb, BT_OCTET16 output_buf) {
+  uint8_t ri;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    switch (p_cb->selected_association_model)
-    {
-        case SMP_MODEL_SEC_CONN_JUSTWORKS:
-        case SMP_MODEL_SEC_CONN_NUM_COMP:
-            if (p_cb->role  == HCI_ROLE_SLAVE)
-                SMP_TRACE_WARNING ("peer commitment calc on slave is not expected \
+  switch (p_cb->selected_association_model) {
+    case SMP_MODEL_SEC_CONN_JUSTWORKS:
+    case SMP_MODEL_SEC_CONN_NUM_COMP:
+      if (p_cb->role == HCI_ROLE_SLAVE)
+        SMP_TRACE_WARNING(
+            "peer commitment calc on slave is not expected \
                 for Just Works/Numeric Comparison models");
-            smp_calculate_f4(p_cb->peer_publ_key.x, p_cb->loc_publ_key.x, p_cb->rrand, 0,
-                             output_buf);
-            break;
-        case SMP_MODEL_SEC_CONN_PASSKEY_ENT:
-        case SMP_MODEL_SEC_CONN_PASSKEY_DISP:
-            ri = smp_calculate_random_input(p_cb->peer_random, p_cb->round);
-            smp_calculate_f4(p_cb->peer_publ_key.x, p_cb->loc_publ_key.x, p_cb->rrand, ri,
-                             output_buf);
-            break;
-        case SMP_MODEL_SEC_CONN_OOB:
-            smp_calculate_f4(p_cb->peer_publ_key.x, p_cb->peer_publ_key.x, p_cb->peer_random, 0,
-                             output_buf);
-            break;
-        default:
-            SMP_TRACE_ERROR("Association Model = %d is not used in LE SC",
-                             p_cb->selected_association_model);
-            return;
-    }
+      smp_calculate_f4(p_cb->peer_publ_key.x, p_cb->loc_publ_key.x, p_cb->rrand,
+                       0, output_buf);
+      break;
+    case SMP_MODEL_SEC_CONN_PASSKEY_ENT:
+    case SMP_MODEL_SEC_CONN_PASSKEY_DISP:
+      ri = smp_calculate_random_input(p_cb->peer_random, p_cb->round);
+      smp_calculate_f4(p_cb->peer_publ_key.x, p_cb->loc_publ_key.x, p_cb->rrand,
+                       ri, output_buf);
+      break;
+    case SMP_MODEL_SEC_CONN_OOB:
+      smp_calculate_f4(p_cb->peer_publ_key.x, p_cb->peer_publ_key.x,
+                       p_cb->peer_random, 0, output_buf);
+      break;
+    default:
+      SMP_TRACE_ERROR("Association Model = %d is not used in LE SC",
+                      p_cb->selected_association_model);
+      return;
+  }
 
-    SMP_TRACE_EVENT ("peer commitment calculation is completed");
+  SMP_TRACE_EVENT("peer commitment calculation is completed");
 }
 
 /*******************************************************************************
@@ -1224,54 +1141,60 @@ void smp_calculate_peer_commitment(tSMP_CB *p_cb, BT_OCTET16 output_buf)
  *                  the AES-CMAC input/output stream.
  *
  ******************************************************************************/
-void smp_calculate_f4(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t z, uint8_t *c)
-{
-    uint8_t msg_len = BT_OCTET32_LEN /* U size */ + BT_OCTET32_LEN /* V size */ + 1 /* Z size */;
-    uint8_t msg[BT_OCTET32_LEN + BT_OCTET32_LEN + 1];
-    uint8_t key[BT_OCTET16_LEN];
-    uint8_t cmac[BT_OCTET16_LEN];
-    uint8_t *p = NULL;
+void smp_calculate_f4(uint8_t* u, uint8_t* v, uint8_t* x, uint8_t z,
+                      uint8_t* c) {
+  uint8_t msg_len = BT_OCTET32_LEN /* U size */ + BT_OCTET32_LEN /* V size */ +
+                    1 /* Z size */;
+  uint8_t msg[BT_OCTET32_LEN + BT_OCTET32_LEN + 1];
+  uint8_t key[BT_OCTET16_LEN];
+  uint8_t cmac[BT_OCTET16_LEN];
+  uint8_t* p = NULL;
 #if (SMP_DEBUG == TRUE)
-    uint8_t *p_prnt = NULL;
+  uint8_t* p_prnt = NULL;
 #endif
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
 #if (SMP_DEBUG == TRUE)
-    p_prnt = u;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"U", BT_OCTET32_LEN);
-    p_prnt = v;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"V", BT_OCTET32_LEN);
-    p_prnt = x;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"X", BT_OCTET16_LEN);
-    p_prnt = &z;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"Z", 1);
+  p_prnt = u;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"U",
+                                      BT_OCTET32_LEN);
+  p_prnt = v;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"V",
+                                      BT_OCTET32_LEN);
+  p_prnt = x;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"X",
+                                      BT_OCTET16_LEN);
+  p_prnt = &z;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Z", 1);
 #endif
 
-    p = msg;
-    UINT8_TO_STREAM(p, z);
-    ARRAY_TO_STREAM(p, v, BT_OCTET32_LEN);
-    ARRAY_TO_STREAM(p, u, BT_OCTET32_LEN);
+  p = msg;
+  UINT8_TO_STREAM(p, z);
+  ARRAY_TO_STREAM(p, v, BT_OCTET32_LEN);
+  ARRAY_TO_STREAM(p, u, BT_OCTET32_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = msg;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"M", msg_len);
+  p_prnt = msg;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"M", msg_len);
 #endif
 
-    p = key;
-    ARRAY_TO_STREAM(p, x, BT_OCTET16_LEN);
+  p = key;
+  ARRAY_TO_STREAM(p, x, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = key;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"K", BT_OCTET16_LEN);
+  p_prnt = key;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
+                                      BT_OCTET16_LEN);
 #endif
 
-    aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac);
+  aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = cmac;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"AES_CMAC", BT_OCTET16_LEN);
+  p_prnt = cmac;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES_CMAC",
+                                      BT_OCTET16_LEN);
 #endif
 
-    p = c;
-    ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
+  p = c;
+  ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
 }
 
 /*******************************************************************************
@@ -1284,36 +1207,30 @@ void smp_calculate_f4(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t z, uint8_t *c)
  * Returns          void
  *
  ******************************************************************************/
-void smp_calculate_numeric_comparison_display_number(tSMP_CB *p_cb,
-                                                     tSMP_INT_DATA *p_data)
-{
-    SMP_TRACE_DEBUG ("%s", __func__);
+void smp_calculate_numeric_comparison_display_number(tSMP_CB* p_cb,
+                                                     tSMP_INT_DATA* p_data) {
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    if (p_cb->role == HCI_ROLE_MASTER)
-    {
-        p_cb->number_to_display =
-            smp_calculate_g2(p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, p_cb->rand,
-                             p_cb->rrand);
-    }
-    else
-    {
-        p_cb->number_to_display =
-            smp_calculate_g2(p_cb->peer_publ_key.x, p_cb->loc_publ_key.x, p_cb->rrand,
-                             p_cb->rand);
-    }
+  if (p_cb->role == HCI_ROLE_MASTER) {
+    p_cb->number_to_display = smp_calculate_g2(
+        p_cb->loc_publ_key.x, p_cb->peer_publ_key.x, p_cb->rand, p_cb->rrand);
+  } else {
+    p_cb->number_to_display = smp_calculate_g2(
+        p_cb->peer_publ_key.x, p_cb->loc_publ_key.x, p_cb->rrand, p_cb->rand);
+  }
 
-    if (p_cb->number_to_display >= (BTM_MAX_PASSKEY_VAL + 1))
-    {
-        uint8_t reason;
-        reason = p_cb->failure = SMP_PAIR_FAIL_UNKNOWN;
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
-        return;
-    }
-
-    SMP_TRACE_EVENT("Number to display in numeric comparison = %d", p_cb->number_to_display);
-    p_cb->cb_evt = SMP_NC_REQ_EVT;
-    smp_sm_event(p_cb, SMP_SC_DSPL_NC_EVT, &p_cb->number_to_display);
+  if (p_cb->number_to_display >= (BTM_MAX_PASSKEY_VAL + 1)) {
+    uint8_t reason;
+    reason = p_cb->failure = SMP_PAIR_FAIL_UNKNOWN;
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
     return;
+  }
+
+  SMP_TRACE_EVENT("Number to display in numeric comparison = %d",
+                  p_cb->number_to_display);
+  p_cb->cb_evt = SMP_NC_REQ_EVT;
+  smp_sm_event(p_cb, SMP_SC_DSPL_NC_EVT, &p_cb->number_to_display);
+  return;
 }
 
 /*******************************************************************************
@@ -1340,71 +1257,76 @@ void smp_calculate_numeric_comparison_display_number(tSMP_CB *p_cb,
  *                  the AES-CMAC input/output stream.
  *
  ******************************************************************************/
-uint32_t smp_calculate_g2(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t *y)
-{
-    uint8_t msg_len = BT_OCTET32_LEN /* U size */ + BT_OCTET32_LEN /* V size */
-                      + BT_OCTET16_LEN /* Y size */;
-    uint8_t msg[BT_OCTET32_LEN + BT_OCTET32_LEN + BT_OCTET16_LEN];
-    uint8_t key[BT_OCTET16_LEN];
-    uint8_t cmac[BT_OCTET16_LEN];
-    uint8_t *p = NULL;
-    uint32_t vres;
+uint32_t smp_calculate_g2(uint8_t* u, uint8_t* v, uint8_t* x, uint8_t* y) {
+  uint8_t msg_len = BT_OCTET32_LEN /* U size */ + BT_OCTET32_LEN /* V size */
+                    + BT_OCTET16_LEN /* Y size */;
+  uint8_t msg[BT_OCTET32_LEN + BT_OCTET32_LEN + BT_OCTET16_LEN];
+  uint8_t key[BT_OCTET16_LEN];
+  uint8_t cmac[BT_OCTET16_LEN];
+  uint8_t* p = NULL;
+  uint32_t vres;
 #if (SMP_DEBUG == TRUE)
-    uint8_t *p_prnt = NULL;
+  uint8_t* p_prnt = NULL;
 #endif
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    p = msg;
-    ARRAY_TO_STREAM(p, y, BT_OCTET16_LEN);
-    ARRAY_TO_STREAM(p, v, BT_OCTET32_LEN);
-    ARRAY_TO_STREAM(p, u, BT_OCTET32_LEN);
+  p = msg;
+  ARRAY_TO_STREAM(p, y, BT_OCTET16_LEN);
+  ARRAY_TO_STREAM(p, v, BT_OCTET32_LEN);
+  ARRAY_TO_STREAM(p, u, BT_OCTET32_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = u;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"U", BT_OCTET32_LEN);
-    p_prnt = v;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"V", BT_OCTET32_LEN);
-    p_prnt = x;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"X", BT_OCTET16_LEN);
-    p_prnt = y;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"Y", BT_OCTET16_LEN);
+  p_prnt = u;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"U",
+                                      BT_OCTET32_LEN);
+  p_prnt = v;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"V",
+                                      BT_OCTET32_LEN);
+  p_prnt = x;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"X",
+                                      BT_OCTET16_LEN);
+  p_prnt = y;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Y",
+                                      BT_OCTET16_LEN);
 #endif
 
-    p = key;
-    ARRAY_TO_STREAM(p, x, BT_OCTET16_LEN);
+  p = key;
+  ARRAY_TO_STREAM(p, x, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = key;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"K", BT_OCTET16_LEN);
+  p_prnt = key;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
+                                      BT_OCTET16_LEN);
 #endif
 
-    if(!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac))
-    {
-        SMP_TRACE_ERROR("%s failed",__func__);
-        return (BTM_MAX_PASSKEY_VAL + 1);
-    }
+  if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    return (BTM_MAX_PASSKEY_VAL + 1);
+  }
 
 #if (SMP_DEBUG == TRUE)
-    p_prnt = cmac;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"AES-CMAC", BT_OCTET16_LEN);
+  p_prnt = cmac;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES-CMAC",
+                                      BT_OCTET16_LEN);
 #endif
 
-    /* vres = cmac mod 2**32 mod 10**6 */
-    p = &cmac[0];
-    STREAM_TO_UINT32(vres, p);
+  /* vres = cmac mod 2**32 mod 10**6 */
+  p = &cmac[0];
+  STREAM_TO_UINT32(vres, p);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = (uint8_t *) &vres;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"cmac mod 2**32", 4);
+  p_prnt = (uint8_t*)&vres;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"cmac mod 2**32",
+                                      4);
 #endif
 
-    while (vres > BTM_MAX_PASSKEY_VAL)
-        vres -= (BTM_MAX_PASSKEY_VAL + 1);
+  while (vres > BTM_MAX_PASSKEY_VAL) vres -= (BTM_MAX_PASSKEY_VAL + 1);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = (uint8_t *) &vres;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"cmac mod 2**32 mod 10**6", 4);
+  p_prnt = (uint8_t*)&vres;
+  smp_debug_print_nbyte_little_endian(
+      p_prnt, (const uint8_t*)"cmac mod 2**32 mod 10**6", 4);
 #endif
 
-    SMP_TRACE_ERROR("Value for numeric comparison = %d", vres);
-    return vres;
+  SMP_TRACE_ERROR("Value for numeric comparison = %d", vres);
+  return vres;
 }
 
 /*******************************************************************************
@@ -1467,78 +1389,80 @@ uint32_t smp_calculate_g2(uint8_t *u, uint8_t *v, uint8_t *x, uint8_t *y)
  *                  the AES-CMAC input/output stream.
  *
  ******************************************************************************/
-bool    smp_calculate_f5(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *a1, uint8_t *a2,
-                         uint8_t *mac_key, uint8_t *ltk)
-{
-    BT_OCTET16  t;    /* AES-CMAC output in smp_calculate_f5_key(...), key in */
-                      /* smp_calculate_f5_mackey_or_long_term_key(...) */
+bool smp_calculate_f5(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* a1,
+                      uint8_t* a2, uint8_t* mac_key, uint8_t* ltk) {
+  BT_OCTET16 t; /* AES-CMAC output in smp_calculate_f5_key(...), key in */
+                /* smp_calculate_f5_mackey_or_long_term_key(...) */
 #if (SMP_DEBUG == TRUE)
-    uint8_t *p_prnt = NULL;
+  uint8_t* p_prnt = NULL;
 #endif
-    /* internal parameters: */
+  /* internal parameters: */
 
-    /*
-        counter is 0 for MacKey,
-                is 1 for LTK
-    */
-    uint8_t counter_mac_key[1]  = {0};
-    uint8_t counter_ltk[1]      = {1};
-    /*
-        keyID   62746c65
-    */
-    uint8_t key_id[4] = {0x65, 0x6c, 0x74, 0x62};
-    /*
-        length  0100
-    */
-    uint8_t length[2] = {0x00, 0x01};
+  /*
+      counter is 0 for MacKey,
+              is 1 for LTK
+  */
+  uint8_t counter_mac_key[1] = {0};
+  uint8_t counter_ltk[1] = {1};
+  /*
+      keyID   62746c65
+  */
+  uint8_t key_id[4] = {0x65, 0x6c, 0x74, 0x62};
+  /*
+      length  0100
+  */
+  uint8_t length[2] = {0x00, 0x01};
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = w;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"W", BT_OCTET32_LEN);
-    p_prnt = n1;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"N1", BT_OCTET16_LEN);
-    p_prnt = n2;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"N2", BT_OCTET16_LEN);
-    p_prnt = a1;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"A1", 7);
-    p_prnt = a2;
-    smp_debug_print_nbyte_little_endian (p_prnt,(const uint8_t *) "A2", 7);
-#endif
-
-    if (!smp_calculate_f5_key(w, t))
-    {
-        SMP_TRACE_ERROR("%s failed to calc T",__func__);
-        return false;
-    }
-#if (SMP_DEBUG == TRUE)
-    p_prnt = t;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"T", BT_OCTET16_LEN);
+  p_prnt = w;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"W",
+                                      BT_OCTET32_LEN);
+  p_prnt = n1;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N1",
+                                      BT_OCTET16_LEN);
+  p_prnt = n2;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N2",
+                                      BT_OCTET16_LEN);
+  p_prnt = a1;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A1", 7);
+  p_prnt = a2;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A2", 7);
 #endif
 
-    if (!smp_calculate_f5_mackey_or_long_term_key(t, counter_mac_key, key_id, n1, n2, a1, a2,
-                                                  length, mac_key))
-    {
-        SMP_TRACE_ERROR("%s failed to calc MacKey", __func__);
-        return false;
-    }
+  if (!smp_calculate_f5_key(w, t)) {
+    SMP_TRACE_ERROR("%s failed to calc T", __func__);
+    return false;
+  }
 #if (SMP_DEBUG == TRUE)
-    p_prnt = mac_key;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"MacKey", BT_OCTET16_LEN);
+  p_prnt = t;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"T",
+                                      BT_OCTET16_LEN);
 #endif
 
-    if (!smp_calculate_f5_mackey_or_long_term_key(t, counter_ltk, key_id, n1, n2, a1, a2,
-                                                  length, ltk))
-    {
-        SMP_TRACE_ERROR("%s failed to calc LTK",__func__);
-        return false;
-    }
+  if (!smp_calculate_f5_mackey_or_long_term_key(t, counter_mac_key, key_id, n1,
+                                                n2, a1, a2, length, mac_key)) {
+    SMP_TRACE_ERROR("%s failed to calc MacKey", __func__);
+    return false;
+  }
 #if (SMP_DEBUG == TRUE)
-    p_prnt = ltk;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"LTK", BT_OCTET16_LEN);
+  p_prnt = mac_key;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"MacKey",
+                                      BT_OCTET16_LEN);
 #endif
 
-    return true;
+  if (!smp_calculate_f5_mackey_or_long_term_key(t, counter_ltk, key_id, n1, n2,
+                                                a1, a2, length, ltk)) {
+    SMP_TRACE_ERROR("%s failed to calc LTK", __func__);
+    return false;
+  }
+#if (SMP_DEBUG == TRUE)
+  p_prnt = ltk;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"LTK",
+                                      BT_OCTET16_LEN);
+#endif
+
+  return true;
 }
 
 /*******************************************************************************
@@ -1573,75 +1497,81 @@ bool    smp_calculate_f5(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *a1, uint
  *                  the AES-CMAC input/output stream.
  *
  ******************************************************************************/
-bool    smp_calculate_f5_mackey_or_long_term_key(uint8_t *t, uint8_t *counter,
-                                  uint8_t *key_id, uint8_t *n1, uint8_t *n2, uint8_t *a1, uint8_t *a2,
-                                  uint8_t *length, uint8_t *mac)
-{
-    uint8_t *p = NULL;
-    uint8_t cmac[BT_OCTET16_LEN];
-    uint8_t key[BT_OCTET16_LEN];
-    uint8_t msg_len = 1 /* Counter size */ + 4 /* keyID size */ +
-            BT_OCTET16_LEN /* N1 size */ + BT_OCTET16_LEN /* N2 size */ +
-            7 /* A1 size*/ + 7 /* A2 size*/ + 2 /* Length size */;
-    uint8_t msg[1 + 4 + BT_OCTET16_LEN + BT_OCTET16_LEN + 7 + 7 + 2];
-    bool    ret = true;
+bool smp_calculate_f5_mackey_or_long_term_key(uint8_t* t, uint8_t* counter,
+                                              uint8_t* key_id, uint8_t* n1,
+                                              uint8_t* n2, uint8_t* a1,
+                                              uint8_t* a2, uint8_t* length,
+                                              uint8_t* mac) {
+  uint8_t* p = NULL;
+  uint8_t cmac[BT_OCTET16_LEN];
+  uint8_t key[BT_OCTET16_LEN];
+  uint8_t msg_len = 1 /* Counter size */ + 4 /* keyID size */ +
+                    BT_OCTET16_LEN /* N1 size */ +
+                    BT_OCTET16_LEN /* N2 size */ + 7 /* A1 size*/ +
+                    7 /* A2 size*/ + 2 /* Length size */;
+  uint8_t msg[1 + 4 + BT_OCTET16_LEN + BT_OCTET16_LEN + 7 + 7 + 2];
+  bool ret = true;
 #if (SMP_DEBUG == TRUE)
-    uint8_t *p_prnt = NULL;
+  uint8_t* p_prnt = NULL;
 #endif
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = t;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"T", BT_OCTET16_LEN);
-    p_prnt = counter;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"Counter", 1);
-    p_prnt = key_id;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"KeyID", 4);
-    p_prnt = n1;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"N1", BT_OCTET16_LEN);
-    p_prnt = n2;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"N2", BT_OCTET16_LEN);
-    p_prnt = a1;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"A1", 7);
-    p_prnt = a2;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"A2", 7);
-    p_prnt = length;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"Length", 2);
+  p_prnt = t;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"T",
+                                      BT_OCTET16_LEN);
+  p_prnt = counter;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Counter", 1);
+  p_prnt = key_id;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"KeyID", 4);
+  p_prnt = n1;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N1",
+                                      BT_OCTET16_LEN);
+  p_prnt = n2;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N2",
+                                      BT_OCTET16_LEN);
+  p_prnt = a1;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A1", 7);
+  p_prnt = a2;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A2", 7);
+  p_prnt = length;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Length", 2);
 #endif
 
-    p = key;
-    ARRAY_TO_STREAM(p, t, BT_OCTET16_LEN);
+  p = key;
+  ARRAY_TO_STREAM(p, t, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = key;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"K", BT_OCTET16_LEN);
+  p_prnt = key;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
+                                      BT_OCTET16_LEN);
 #endif
-    p = msg;
-    ARRAY_TO_STREAM(p, length, 2);
-    ARRAY_TO_STREAM(p, a2, 7);
-    ARRAY_TO_STREAM(p, a1, 7);
-    ARRAY_TO_STREAM(p, n2, BT_OCTET16_LEN);
-    ARRAY_TO_STREAM(p, n1, BT_OCTET16_LEN);
-    ARRAY_TO_STREAM(p, key_id, 4);
-    ARRAY_TO_STREAM(p, counter, 1);
+  p = msg;
+  ARRAY_TO_STREAM(p, length, 2);
+  ARRAY_TO_STREAM(p, a2, 7);
+  ARRAY_TO_STREAM(p, a1, 7);
+  ARRAY_TO_STREAM(p, n2, BT_OCTET16_LEN);
+  ARRAY_TO_STREAM(p, n1, BT_OCTET16_LEN);
+  ARRAY_TO_STREAM(p, key_id, 4);
+  ARRAY_TO_STREAM(p, counter, 1);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = msg;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"M", msg_len);
-#endif
-
-    if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac))
-    {
-        SMP_TRACE_ERROR("%s failed", __func__);
-        ret = false;
-    }
-
-#if (SMP_DEBUG == TRUE)
-    p_prnt = cmac;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"AES-CMAC", BT_OCTET16_LEN);
+  p_prnt = msg;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"M", msg_len);
 #endif
 
-    p = mac;
-    ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
-    return ret;
+  if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    ret = false;
+  }
+
+#if (SMP_DEBUG == TRUE)
+  p_prnt = cmac;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES-CMAC",
+                                      BT_OCTET16_LEN);
+#endif
+
+  p = mac;
+  ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
+  return ret;
 }
 
 /*******************************************************************************
@@ -1663,59 +1593,61 @@ bool    smp_calculate_f5_mackey_or_long_term_key(uint8_t *t, uint8_t *counter,
  *                  the AES-CMAC input/output stream.
  *
  ******************************************************************************/
-bool    smp_calculate_f5_key(uint8_t *w, uint8_t *t)
-{
-    uint8_t *p = NULL;
-    /* Please see 2.2.7 LE Secure Connections Key Generation Function f5 */
-    /*
-        salt:   6C88 8391 AAF5 A538 6037 0BDB 5A60 83BE
-    */
-    BT_OCTET16  salt = {
-        0xBE, 0x83, 0x60, 0x5A, 0xDB, 0x0B, 0x37, 0x60,
-        0x38, 0xA5, 0xF5, 0xAA, 0x91, 0x83, 0x88, 0x6C
-    };
+bool smp_calculate_f5_key(uint8_t* w, uint8_t* t) {
+  uint8_t* p = NULL;
+  /* Please see 2.2.7 LE Secure Connections Key Generation Function f5 */
+  /*
+      salt:   6C88 8391 AAF5 A538 6037 0BDB 5A60 83BE
+  */
+  BT_OCTET16 salt = {0xBE, 0x83, 0x60, 0x5A, 0xDB, 0x0B, 0x37, 0x60,
+                     0x38, 0xA5, 0xF5, 0xAA, 0x91, 0x83, 0x88, 0x6C};
 #if (SMP_DEBUG == TRUE)
-    uint8_t *p_prnt = NULL;
+  uint8_t* p_prnt = NULL;
 #endif
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = salt;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"salt", BT_OCTET16_LEN);
-    p_prnt = w;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"W", BT_OCTET32_LEN);
+  p_prnt = salt;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"salt",
+                                      BT_OCTET16_LEN);
+  p_prnt = w;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"W",
+                                      BT_OCTET32_LEN);
 #endif
 
-    BT_OCTET16 key;
-    BT_OCTET32 msg;
+  BT_OCTET16 key;
+  BT_OCTET32 msg;
 
-    p = key;
-    ARRAY_TO_STREAM(p, salt, BT_OCTET16_LEN);
-    p = msg;
-    ARRAY_TO_STREAM(p, w, BT_OCTET32_LEN);
+  p = key;
+  ARRAY_TO_STREAM(p, salt, BT_OCTET16_LEN);
+  p = msg;
+  ARRAY_TO_STREAM(p, w, BT_OCTET32_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_prnt = key;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"K", BT_OCTET16_LEN);
-    p_prnt = msg;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"M", BT_OCTET32_LEN);
+  p_prnt = key;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
+                                      BT_OCTET16_LEN);
+  p_prnt = msg;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"M",
+                                      BT_OCTET32_LEN);
 #endif
 
-    BT_OCTET16 cmac;
-    bool    ret = true;
-    if (!aes_cipher_msg_auth_code(key, msg, BT_OCTET32_LEN, BT_OCTET16_LEN, cmac))
-    {
-        SMP_TRACE_ERROR("%s failed", __func__);
-        ret = false;
-    }
+  BT_OCTET16 cmac;
+  bool ret = true;
+  if (!aes_cipher_msg_auth_code(key, msg, BT_OCTET32_LEN, BT_OCTET16_LEN,
+                                cmac)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    ret = false;
+  }
 
 #if (SMP_DEBUG == TRUE)
-    p_prnt = cmac;
-    smp_debug_print_nbyte_little_endian (p_prnt, (const uint8_t *)"AES-CMAC", BT_OCTET16_LEN);
+  p_prnt = cmac;
+  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES-CMAC",
+                                      BT_OCTET16_LEN);
 #endif
 
-    p = t;
-    ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
-    return ret;
+  p = t;
+  ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
+  return ret;
 }
 
 /*******************************************************************************
@@ -1732,22 +1664,21 @@ bool    smp_calculate_f5_key(uint8_t *w, uint8_t *t)
  * Returns          void
  *
  ******************************************************************************/
-void smp_calculate_local_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
-{
-    uint8_t iocap[3], a[7], b[7];
+void smp_calculate_local_dhkey_check(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
+  uint8_t iocap[3], a[7], b[7];
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    smp_calculate_f5_mackey_and_long_term_key(p_cb);
+  smp_calculate_f5_mackey_and_long_term_key(p_cb);
 
-    smp_collect_local_io_capabilities(iocap, p_cb);
+  smp_collect_local_io_capabilities(iocap, p_cb);
 
-    smp_collect_local_ble_address(a, p_cb);
-    smp_collect_peer_ble_address(b, p_cb);
-    smp_calculate_f6(p_cb->mac_key, p_cb->rand, p_cb->rrand, p_cb->peer_random, iocap, a, b,
-                     p_cb->dhkey_check);
+  smp_collect_local_ble_address(a, p_cb);
+  smp_collect_peer_ble_address(b, p_cb);
+  smp_calculate_f6(p_cb->mac_key, p_cb->rand, p_cb->rrand, p_cb->peer_random,
+                   iocap, a, b, p_cb->dhkey_check);
 
-    SMP_TRACE_EVENT ("local DHKey check calculation is completed");
+  SMP_TRACE_EVENT("local DHKey check calculation is completed");
 }
 
 /*******************************************************************************
@@ -1759,39 +1690,35 @@ void smp_calculate_local_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
  * Returns          void
  *
  ******************************************************************************/
-void smp_calculate_peer_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
-{
-    uint8_t     iocap[3], a[7], b[7];
-    BT_OCTET16  param_buf;
-    bool        ret;
-    tSMP_KEY    key;
-    tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
+void smp_calculate_peer_dhkey_check(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
+  uint8_t iocap[3], a[7], b[7];
+  BT_OCTET16 param_buf;
+  bool ret;
+  tSMP_KEY key;
+  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    smp_collect_peer_io_capabilities(iocap, p_cb);
+  smp_collect_peer_io_capabilities(iocap, p_cb);
 
-    smp_collect_local_ble_address(a, p_cb);
-    smp_collect_peer_ble_address(b, p_cb);
-    ret = smp_calculate_f6(p_cb->mac_key, p_cb->rrand, p_cb->rand, p_cb->local_random, iocap,
-                           b, a, param_buf);
+  smp_collect_local_ble_address(a, p_cb);
+  smp_collect_peer_ble_address(b, p_cb);
+  ret = smp_calculate_f6(p_cb->mac_key, p_cb->rrand, p_cb->rand,
+                         p_cb->local_random, iocap, b, a, param_buf);
 
-    if (ret)
-    {
-        SMP_TRACE_EVENT ("peer DHKey check calculation is completed");
+  if (ret) {
+    SMP_TRACE_EVENT("peer DHKey check calculation is completed");
 #if (SMP_DEBUG == TRUE)
-        smp_debug_print_nbyte_little_endian (param_buf, (const uint8_t *)"peer DHKey check",
-                                             BT_OCTET16_LEN);
+    smp_debug_print_nbyte_little_endian(
+        param_buf, (const uint8_t*)"peer DHKey check", BT_OCTET16_LEN);
 #endif
-        key.key_type = SMP_KEY_TYPE_PEER_DHK_CHCK;
-        key.p_data   = param_buf;
-        smp_sm_event(p_cb, SMP_SC_KEY_READY_EVT, &key);
-    }
-    else
-    {
-        SMP_TRACE_EVENT ("peer DHKey check calculation failed");
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-    }
+    key.key_type = SMP_KEY_TYPE_PEER_DHK_CHCK;
+    key.p_data = param_buf;
+    smp_sm_event(p_cb, SMP_SC_KEY_READY_EVT, &key);
+  } else {
+    SMP_TRACE_EVENT("peer DHKey check calculation failed");
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+  }
 }
 
 /*******************************************************************************
@@ -1818,73 +1745,78 @@ void smp_calculate_peer_dhkey_check(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
  *                  the AES-CMAC input/output stream.
  *
  ******************************************************************************/
-bool    smp_calculate_f6(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *r, uint8_t *iocap, uint8_t *a1,
-                         uint8_t *a2, uint8_t *c)
-{
-    uint8_t *p = NULL;
-    uint8_t msg_len = BT_OCTET16_LEN /* N1 size */ + BT_OCTET16_LEN /* N2 size */ +
-                      BT_OCTET16_LEN /* R size */ + 3 /* IOcap size */ + 7 /* A1 size*/
-                      + 7 /* A2 size*/;
-    uint8_t msg[BT_OCTET16_LEN + BT_OCTET16_LEN + BT_OCTET16_LEN + 3 + 7 + 7];
+bool smp_calculate_f6(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* r,
+                      uint8_t* iocap, uint8_t* a1, uint8_t* a2, uint8_t* c) {
+  uint8_t* p = NULL;
+  uint8_t msg_len = BT_OCTET16_LEN /* N1 size */ +
+                    BT_OCTET16_LEN /* N2 size */ + BT_OCTET16_LEN /* R size */ +
+                    3 /* IOcap size */ + 7 /* A1 size*/
+                    + 7 /* A2 size*/;
+  uint8_t msg[BT_OCTET16_LEN + BT_OCTET16_LEN + BT_OCTET16_LEN + 3 + 7 + 7];
 #if (SMP_DEBUG == TRUE)
-    uint8_t *p_print = NULL;
+  uint8_t* p_print = NULL;
 #endif
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
-    p_print = w;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"W", BT_OCTET16_LEN);
-    p_print = n1;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"N1", BT_OCTET16_LEN);
-    p_print = n2;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"N2", BT_OCTET16_LEN);
-    p_print = r;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"R", BT_OCTET16_LEN);
-    p_print = iocap;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"IOcap", 3);
-    p_print = a1;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"A1", 7);
-    p_print = a2;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"A2", 7);
+  p_print = w;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"W",
+                                      BT_OCTET16_LEN);
+  p_print = n1;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"N1",
+                                      BT_OCTET16_LEN);
+  p_print = n2;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"N2",
+                                      BT_OCTET16_LEN);
+  p_print = r;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"R",
+                                      BT_OCTET16_LEN);
+  p_print = iocap;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"IOcap", 3);
+  p_print = a1;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"A1", 7);
+  p_print = a2;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"A2", 7);
 #endif
 
-    uint8_t cmac[BT_OCTET16_LEN];
-    uint8_t key[BT_OCTET16_LEN];
+  uint8_t cmac[BT_OCTET16_LEN];
+  uint8_t key[BT_OCTET16_LEN];
 
-    p = key;
-    ARRAY_TO_STREAM(p, w, BT_OCTET16_LEN);
+  p = key;
+  ARRAY_TO_STREAM(p, w, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_print = key;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"K", BT_OCTET16_LEN);
+  p_print = key;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"K",
+                                      BT_OCTET16_LEN);
 #endif
 
-    p = msg;
-    ARRAY_TO_STREAM(p, a2, 7);
-    ARRAY_TO_STREAM(p, a1, 7);
-    ARRAY_TO_STREAM(p, iocap, 3);
-    ARRAY_TO_STREAM(p, r, BT_OCTET16_LEN);
-    ARRAY_TO_STREAM(p, n2, BT_OCTET16_LEN);
-    ARRAY_TO_STREAM(p, n1, BT_OCTET16_LEN);
+  p = msg;
+  ARRAY_TO_STREAM(p, a2, 7);
+  ARRAY_TO_STREAM(p, a1, 7);
+  ARRAY_TO_STREAM(p, iocap, 3);
+  ARRAY_TO_STREAM(p, r, BT_OCTET16_LEN);
+  ARRAY_TO_STREAM(p, n2, BT_OCTET16_LEN);
+  ARRAY_TO_STREAM(p, n1, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
-    p_print = msg;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"M", msg_len);
+  p_print = msg;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"M", msg_len);
 #endif
 
-    bool    ret = true;
-    if(!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac))
-    {
-        SMP_TRACE_ERROR("%s failed", __func__);
-        ret = false;
-    }
+  bool ret = true;
+  if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    ret = false;
+  }
 
 #if (SMP_DEBUG == TRUE)
-    p_print = cmac;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"AES-CMAC", BT_OCTET16_LEN);
+  p_print = cmac;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"AES-CMAC",
+                                      BT_OCTET16_LEN);
 #endif
 
-    p = c;
-    ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
-    return ret;
+  p = c;
+  ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
+  return ret;
 }
 
 /*******************************************************************************
@@ -1897,97 +1829,84 @@ bool    smp_calculate_f6(uint8_t *w, uint8_t *n1, uint8_t *n2, uint8_t *r, uint8
  * Returns          false if out of resources, true in other cases.
  *
  ******************************************************************************/
-bool    smp_calculate_link_key_from_long_term_key(tSMP_CB *p_cb)
-{
-    tBTM_SEC_DEV_REC *p_dev_rec;
-    BD_ADDR bda_for_lk;
-    tBLE_ADDR_TYPE conn_addr_type;
+bool smp_calculate_link_key_from_long_term_key(tSMP_CB* p_cb) {
+  tBTM_SEC_DEV_REC* p_dev_rec;
+  BD_ADDR bda_for_lk;
+  tBLE_ADDR_TYPE conn_addr_type;
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    if (p_cb->id_addr_rcvd && p_cb->id_addr_type == BLE_ADDR_PUBLIC)
-    {
-        SMP_TRACE_DEBUG ("Use rcvd identity address as BD_ADDR of LK rcvd identity address");
-        memcpy(bda_for_lk, p_cb->id_addr, BD_ADDR_LEN);
-    }
-    else if ((BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, bda_for_lk, &conn_addr_type)) &&
-              conn_addr_type == BLE_ADDR_PUBLIC)
-    {
-        SMP_TRACE_DEBUG ("Use rcvd connection address as BD_ADDR of LK");
-    }
-    else
-    {
-        SMP_TRACE_WARNING ("Don't have peer public address to associate with LK");
-        return false;
-    }
+  if (p_cb->id_addr_rcvd && p_cb->id_addr_type == BLE_ADDR_PUBLIC) {
+    SMP_TRACE_DEBUG(
+        "Use rcvd identity address as BD_ADDR of LK rcvd identity address");
+    memcpy(bda_for_lk, p_cb->id_addr, BD_ADDR_LEN);
+  } else if ((BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, bda_for_lk,
+                                           &conn_addr_type)) &&
+             conn_addr_type == BLE_ADDR_PUBLIC) {
+    SMP_TRACE_DEBUG("Use rcvd connection address as BD_ADDR of LK");
+  } else {
+    SMP_TRACE_WARNING("Don't have peer public address to associate with LK");
+    return false;
+  }
 
-    p_dev_rec = btm_find_dev(p_cb->pairing_bda);
-    if (p_dev_rec == NULL)
-    {
-        SMP_TRACE_ERROR("%s failed to find Security Record", __func__);
-        return false;
-    }
+  p_dev_rec = btm_find_dev(p_cb->pairing_bda);
+  if (p_dev_rec == NULL) {
+    SMP_TRACE_ERROR("%s failed to find Security Record", __func__);
+    return false;
+  }
 
-    BT_OCTET16 intermediate_link_key;
-    bool    ret = true;
+  BT_OCTET16 intermediate_link_key;
+  bool ret = true;
 
-    ret = smp_calculate_h6(p_cb->ltk, (uint8_t *)"1pmt" /* reversed "tmp1" */,intermediate_link_key);
-    if (!ret)
-    {
-        SMP_TRACE_ERROR("%s failed to derive intermediate_link_key", __func__);
-        return ret;
-    }
-
-    BT_OCTET16 link_key;
-    ret = smp_calculate_h6(intermediate_link_key, (uint8_t *) "rbel" /* reversed "lebr" */, link_key);
-    if (!ret)
-    {
-        SMP_TRACE_ERROR("%s failed", __func__);
-    }
-    else
-    {
-        uint8_t link_key_type;
-        if (btm_cb.security_mode == BTM_SEC_MODE_SC)
-        {
-            /* Secure Connections Only Mode */
-            link_key_type = BTM_LKEY_TYPE_AUTH_COMB_P_256;
-        }
-        else if (controller_get_interface()->supports_secure_connections())
-        {
-            /* both transports are SC capable */
-            if (p_cb->sec_level == SMP_SEC_AUTHENTICATED)
-                link_key_type = BTM_LKEY_TYPE_AUTH_COMB_P_256;
-            else
-                link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
-        }
-        else if (btm_cb.security_mode == BTM_SEC_MODE_SP)
-        {
-            /* BR/EDR transport is SSP capable */
-            if (p_cb->sec_level == SMP_SEC_AUTHENTICATED)
-                link_key_type = BTM_LKEY_TYPE_AUTH_COMB;
-            else
-                link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB;
-        }
-        else
-        {
-            SMP_TRACE_ERROR ("%s failed to update link_key. Sec Mode = %d, sm4 = 0x%02x",
-                 __func__, btm_cb.security_mode, p_dev_rec->sm4);
-            return false;
-        }
-
-        link_key_type += BTM_LTK_DERIVED_LKEY_OFFSET;
-
-        uint8_t *p;
-        BT_OCTET16 notif_link_key;
-        p = notif_link_key;
-        ARRAY16_TO_STREAM(p, link_key);
-
-        btm_sec_link_key_notification (bda_for_lk, notif_link_key, link_key_type);
-
-        SMP_TRACE_EVENT ("%s is completed", __func__);
-    }
-
+  ret = smp_calculate_h6(p_cb->ltk, (uint8_t*)"1pmt" /* reversed "tmp1" */,
+                         intermediate_link_key);
+  if (!ret) {
+    SMP_TRACE_ERROR("%s failed to derive intermediate_link_key", __func__);
     return ret;
+  }
+
+  BT_OCTET16 link_key;
+  ret = smp_calculate_h6(intermediate_link_key,
+                         (uint8_t*)"rbel" /* reversed "lebr" */, link_key);
+  if (!ret) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+  } else {
+    uint8_t link_key_type;
+    if (btm_cb.security_mode == BTM_SEC_MODE_SC) {
+      /* Secure Connections Only Mode */
+      link_key_type = BTM_LKEY_TYPE_AUTH_COMB_P_256;
+    } else if (controller_get_interface()->supports_secure_connections()) {
+      /* both transports are SC capable */
+      if (p_cb->sec_level == SMP_SEC_AUTHENTICATED)
+        link_key_type = BTM_LKEY_TYPE_AUTH_COMB_P_256;
+      else
+        link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB_P_256;
+    } else if (btm_cb.security_mode == BTM_SEC_MODE_SP) {
+      /* BR/EDR transport is SSP capable */
+      if (p_cb->sec_level == SMP_SEC_AUTHENTICATED)
+        link_key_type = BTM_LKEY_TYPE_AUTH_COMB;
+      else
+        link_key_type = BTM_LKEY_TYPE_UNAUTH_COMB;
+    } else {
+      SMP_TRACE_ERROR(
+          "%s failed to update link_key. Sec Mode = %d, sm4 = 0x%02x", __func__,
+          btm_cb.security_mode, p_dev_rec->sm4);
+      return false;
+    }
+
+    link_key_type += BTM_LTK_DERIVED_LKEY_OFFSET;
+
+    uint8_t* p;
+    BT_OCTET16 notif_link_key;
+    p = notif_link_key;
+    ARRAY16_TO_STREAM(p, link_key);
+
+    btm_sec_link_key_notification(bda_for_lk, notif_link_key, link_key_type);
+
+    SMP_TRACE_EVENT("%s is completed", __func__);
+  }
+
+  return ret;
 }
 
 /*******************************************************************************
@@ -2000,70 +1919,63 @@ bool    smp_calculate_link_key_from_long_term_key(tSMP_CB *p_cb)
  * Returns          false if out of resources, true in other cases.
  *
  ******************************************************************************/
-bool    smp_calculate_long_term_key_from_link_key(tSMP_CB *p_cb)
-{
-    bool    ret = true;
-    tBTM_SEC_DEV_REC *p_dev_rec;
-    uint8_t rev_link_key[16];
+bool smp_calculate_long_term_key_from_link_key(tSMP_CB* p_cb) {
+  bool ret = true;
+  tBTM_SEC_DEV_REC* p_dev_rec;
+  uint8_t rev_link_key[16];
 
-    SMP_TRACE_DEBUG ("%s", __func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 
-    p_dev_rec = btm_find_dev(p_cb->pairing_bda);
-    if (p_dev_rec == NULL)
-    {
-        SMP_TRACE_ERROR("%s failed to find Security Record",__func__);
-        return false;
-    }
+  p_dev_rec = btm_find_dev(p_cb->pairing_bda);
+  if (p_dev_rec == NULL) {
+    SMP_TRACE_ERROR("%s failed to find Security Record", __func__);
+    return false;
+  }
 
-    uint8_t br_link_key_type;
-    br_link_key_type = BTM_SecGetDeviceLinkKeyType(p_cb->pairing_bda);
-    if (br_link_key_type == BTM_LKEY_TYPE_IGNORE)
-    {
-        SMP_TRACE_ERROR("%s failed to retrieve BR link type",__func__);
-        return false;
-    }
+  uint8_t br_link_key_type;
+  br_link_key_type = BTM_SecGetDeviceLinkKeyType(p_cb->pairing_bda);
+  if (br_link_key_type == BTM_LKEY_TYPE_IGNORE) {
+    SMP_TRACE_ERROR("%s failed to retrieve BR link type", __func__);
+    return false;
+  }
 
-    if ((br_link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256) &&
-        (br_link_key_type != BTM_LKEY_TYPE_UNAUTH_COMB_P_256))
-    {
-        SMP_TRACE_ERROR("%s LE SC LTK can't be derived from LK %d",
-                         __func__, br_link_key_type);
-        return false;
-    }
+  if ((br_link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256) &&
+      (br_link_key_type != BTM_LKEY_TYPE_UNAUTH_COMB_P_256)) {
+    SMP_TRACE_ERROR("%s LE SC LTK can't be derived from LK %d", __func__,
+                    br_link_key_type);
+    return false;
+  }
 
-    uint8_t *p1;
-    uint8_t *p2;
-    p1 = rev_link_key;
-    p2 = p_dev_rec->link_key;
-    REVERSE_ARRAY_TO_STREAM(p1, p2, 16);
+  uint8_t* p1;
+  uint8_t* p2;
+  p1 = rev_link_key;
+  p2 = p_dev_rec->link_key;
+  REVERSE_ARRAY_TO_STREAM(p1, p2, 16);
 
-    BT_OCTET16 intermediate_long_term_key;
-    /* "tmp2" obtained from the spec */
-    ret = smp_calculate_h6(rev_link_key, (uint8_t *) "2pmt" /* reversed "tmp2" */,
-                           intermediate_long_term_key);
+  BT_OCTET16 intermediate_long_term_key;
+  /* "tmp2" obtained from the spec */
+  ret = smp_calculate_h6(rev_link_key, (uint8_t*)"2pmt" /* reversed "tmp2" */,
+                         intermediate_long_term_key);
 
-    if (!ret)
-    {
-        SMP_TRACE_ERROR("%s failed to derive intermediate_long_term_key",__func__);
-        return ret;
-    }
-
-    /* "brle" obtained from the spec */
-    ret = smp_calculate_h6(intermediate_long_term_key, (uint8_t *) "elrb" /* reversed "brle" */,
-                           p_cb->ltk);
-
-    if (!ret)
-    {
-        SMP_TRACE_ERROR("%s failed",__func__);
-    }
-    else
-    {
-        p_cb->sec_level = (br_link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256)
-                           ? SMP_SEC_AUTHENTICATED : SMP_SEC_UNAUTHENTICATE;
-        SMP_TRACE_EVENT ("%s is completed",__func__);
-    }
-
+  if (!ret) {
+    SMP_TRACE_ERROR("%s failed to derive intermediate_long_term_key", __func__);
     return ret;
+  }
+
+  /* "brle" obtained from the spec */
+  ret = smp_calculate_h6(intermediate_long_term_key,
+                         (uint8_t*)"elrb" /* reversed "brle" */, p_cb->ltk);
+
+  if (!ret) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+  } else {
+    p_cb->sec_level = (br_link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256)
+                          ? SMP_SEC_AUTHENTICATED
+                          : SMP_SEC_UNAUTHENTICATE;
+    SMP_TRACE_EVENT("%s is completed", __func__);
+  }
+
+  return ret;
 }
 
 /*******************************************************************************
@@ -2084,58 +1996,59 @@ bool    smp_calculate_long_term_key_from_link_key(tSMP_CB *p_cb)
  *                  the AES-CMAC input/output stream.
  *
  ******************************************************************************/
-bool    smp_calculate_h6(uint8_t *w, uint8_t *keyid, uint8_t *c)
-{
+bool smp_calculate_h6(uint8_t* w, uint8_t* keyid, uint8_t* c) {
 #if (SMP_DEBUG == TRUE)
-    uint8_t *p_print = NULL;
+  uint8_t* p_print = NULL;
 #endif
 
-    SMP_TRACE_DEBUG ("%s",__func__);
+  SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
-    p_print = w;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"W", BT_OCTET16_LEN);
-    p_print = keyid;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"keyID", 4);
+  p_print = w;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"W",
+                                      BT_OCTET16_LEN);
+  p_print = keyid;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"keyID", 4);
 #endif
 
-    uint8_t *p = NULL;
-    uint8_t key[BT_OCTET16_LEN];
+  uint8_t* p = NULL;
+  uint8_t key[BT_OCTET16_LEN];
 
-    p = key;
-    ARRAY_TO_STREAM(p, w, BT_OCTET16_LEN);
-
-#if (SMP_DEBUG == TRUE)
-    p_print = key;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"K", BT_OCTET16_LEN);
-#endif
-
-    uint8_t msg_len = 4 /* KeyID size */;
-    uint8_t msg[4];
-
-    p = msg;
-    ARRAY_TO_STREAM(p, keyid, 4);
+  p = key;
+  ARRAY_TO_STREAM(p, w, BT_OCTET16_LEN);
 
 #if (SMP_DEBUG == TRUE)
-    p_print = msg;
-    smp_debug_print_nbyte_little_endian (p_print,(const uint8_t *) "M", msg_len);
+  p_print = key;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"K",
+                                      BT_OCTET16_LEN);
 #endif
 
-    bool    ret = true;
-    uint8_t cmac[BT_OCTET16_LEN];
-    if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac))
-    {
-        SMP_TRACE_ERROR("%s failed",__func__);
-        ret = false;
-    }
+  uint8_t msg_len = 4 /* KeyID size */;
+  uint8_t msg[4];
+
+  p = msg;
+  ARRAY_TO_STREAM(p, keyid, 4);
 
 #if (SMP_DEBUG == TRUE)
-    p_print = cmac;
-    smp_debug_print_nbyte_little_endian (p_print, (const uint8_t *)"AES-CMAC", BT_OCTET16_LEN);
+  p_print = msg;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"M", msg_len);
 #endif
 
-    p = c;
-    ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
-    return ret;
+  bool ret = true;
+  uint8_t cmac[BT_OCTET16_LEN];
+  if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac)) {
+    SMP_TRACE_ERROR("%s failed", __func__);
+    ret = false;
+  }
+
+#if (SMP_DEBUG == TRUE)
+  p_print = cmac;
+  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"AES-CMAC",
+                                      BT_OCTET16_LEN);
+#endif
+
+  p = c;
+  ARRAY_TO_STREAM(p, cmac, BT_OCTET16_LEN);
+  return ret;
 }
 
 /*******************************************************************************
@@ -2147,11 +2060,10 @@ bool    smp_calculate_h6(uint8_t *w, uint8_t *keyid, uint8_t *c)
  * Returns          void
  *
  ******************************************************************************/
-void smp_start_nonce_generation(tSMP_CB *p_cb)
-{
-    SMP_TRACE_DEBUG("%s", __func__);
-    p_cb->rand_enc_proc_state = SMP_GEN_NONCE_0_7;
-    btsnd_hcic_ble_rand((void *)smp_rand_back);
+void smp_start_nonce_generation(tSMP_CB* p_cb) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  p_cb->rand_enc_proc_state = SMP_GEN_NONCE_0_7;
+  btsnd_hcic_ble_rand((void*)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -2163,11 +2075,10 @@ void smp_start_nonce_generation(tSMP_CB *p_cb)
  * Returns          void
  *
  ******************************************************************************/
-void smp_finish_nonce_generation(tSMP_CB *p_cb)
-{
-    SMP_TRACE_DEBUG("%s", __func__);
-    p_cb->rand_enc_proc_state = SMP_GEN_NONCE_8_15;
-    btsnd_hcic_ble_rand((void *)smp_rand_back);
+void smp_finish_nonce_generation(tSMP_CB* p_cb) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  p_cb->rand_enc_proc_state = SMP_GEN_NONCE_8_15;
+  btsnd_hcic_ble_rand((void*)smp_rand_back);
 }
 
 /*******************************************************************************
@@ -2179,10 +2090,9 @@ void smp_finish_nonce_generation(tSMP_CB *p_cb)
  * Returns          void
  *
  ******************************************************************************/
-void smp_process_new_nonce(tSMP_CB *p_cb)
-{
-    SMP_TRACE_DEBUG ("%s round %d", __func__, p_cb->round);
-    smp_sm_event(p_cb, SMP_HAVE_LOC_NONCE_EVT, NULL);
+void smp_process_new_nonce(tSMP_CB* p_cb) {
+  SMP_TRACE_DEBUG("%s round %d", __func__, p_cb->round);
+  smp_sm_event(p_cb, SMP_HAVE_LOC_NONCE_EVT, NULL);
 }
 
 /*******************************************************************************
@@ -2195,68 +2105,66 @@ void smp_process_new_nonce(tSMP_CB *p_cb)
  * Returns          void
  *
  ******************************************************************************/
-static void smp_rand_back(tBTM_RAND_ENC *p)
-{
-    tSMP_CB *p_cb = &smp_cb;
-    uint8_t *pp = p->param_buf;
-    uint8_t failure = SMP_PAIR_FAIL_UNKNOWN;
-    uint8_t state = p_cb->rand_enc_proc_state & ~0x80;
+static void smp_rand_back(tBTM_RAND_ENC* p) {
+  tSMP_CB* p_cb = &smp_cb;
+  uint8_t* pp = p->param_buf;
+  uint8_t failure = SMP_PAIR_FAIL_UNKNOWN;
+  uint8_t state = p_cb->rand_enc_proc_state & ~0x80;
 
-    SMP_TRACE_DEBUG ("%s state=0x%x", __func__, state);
-    if (p && p->status == HCI_SUCCESS)
-    {
-        switch (state)
-        {
-            case SMP_GEN_SRAND_MRAND:
-                memcpy((void *)p_cb->rand, p->param_buf, p->param_len);
-                smp_generate_rand_cont(p_cb, NULL);
-                break;
+  SMP_TRACE_DEBUG("%s state=0x%x", __func__, state);
+  if (p && p->status == HCI_SUCCESS) {
+    switch (state) {
+      case SMP_GEN_SRAND_MRAND:
+        memcpy((void*)p_cb->rand, p->param_buf, p->param_len);
+        smp_generate_rand_cont(p_cb, NULL);
+        break;
 
-            case SMP_GEN_SRAND_MRAND_CONT:
-                memcpy((void *)&p_cb->rand[8], p->param_buf, p->param_len);
-                smp_generate_confirm(p_cb, NULL);
-                break;
+      case SMP_GEN_SRAND_MRAND_CONT:
+        memcpy((void*)&p_cb->rand[8], p->param_buf, p->param_len);
+        smp_generate_confirm(p_cb, NULL);
+        break;
 
-            case SMP_GEN_DIV_LTK:
-                STREAM_TO_UINT16(p_cb->div, pp);
-                smp_generate_ltk_cont(p_cb, NULL);
-                break;
+      case SMP_GEN_DIV_LTK:
+        STREAM_TO_UINT16(p_cb->div, pp);
+        smp_generate_ltk_cont(p_cb, NULL);
+        break;
 
-            case SMP_GEN_DIV_CSRK:
-                STREAM_TO_UINT16(p_cb->div, pp);
-                smp_compute_csrk(p_cb, NULL);
-                break;
+      case SMP_GEN_DIV_CSRK:
+        STREAM_TO_UINT16(p_cb->div, pp);
+        smp_compute_csrk(p_cb, NULL);
+        break;
 
-            case SMP_GEN_TK:
-                smp_proc_passkey(p_cb, p);
-                break;
+      case SMP_GEN_TK:
+        smp_proc_passkey(p_cb, p);
+        break;
 
-            case SMP_GEN_RAND_V:
-                memcpy(p_cb->enc_rand, p->param_buf, BT_OCTET8_LEN);
-                smp_generate_y(p_cb, NULL);
-                break;
+      case SMP_GEN_RAND_V:
+        memcpy(p_cb->enc_rand, p->param_buf, BT_OCTET8_LEN);
+        smp_generate_y(p_cb, NULL);
+        break;
 
-            case SMP_GENERATE_PRIVATE_KEY_0_7:
-            case SMP_GENERATE_PRIVATE_KEY_8_15:
-            case SMP_GENERATE_PRIVATE_KEY_16_23:
-            case SMP_GENERATE_PRIVATE_KEY_24_31:
-                smp_continue_private_key_creation(p_cb, p);
-                break;
+      case SMP_GENERATE_PRIVATE_KEY_0_7:
+      case SMP_GENERATE_PRIVATE_KEY_8_15:
+      case SMP_GENERATE_PRIVATE_KEY_16_23:
+      case SMP_GENERATE_PRIVATE_KEY_24_31:
+        smp_continue_private_key_creation(p_cb, p);
+        break;
 
-            case SMP_GEN_NONCE_0_7:
-                memcpy((void *)p_cb->rand, p->param_buf, p->param_len);
-                smp_finish_nonce_generation(p_cb);
-                break;
+      case SMP_GEN_NONCE_0_7:
+        memcpy((void*)p_cb->rand, p->param_buf, p->param_len);
+        smp_finish_nonce_generation(p_cb);
+        break;
 
-            case SMP_GEN_NONCE_8_15:
-                memcpy((void *)&p_cb->rand[8], p->param_buf, p->param_len);
-                smp_process_new_nonce(p_cb);
-                break;
-        }
-
-        return;
+      case SMP_GEN_NONCE_8_15:
+        memcpy((void*)&p_cb->rand[8], p->param_buf, p->param_len);
+        smp_process_new_nonce(p_cb);
+        break;
     }
 
-    SMP_TRACE_ERROR("%s key generation failed: (%d)", __func__, p_cb->rand_enc_proc_state);
-    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
+    return;
+  }
+
+  SMP_TRACE_ERROR("%s key generation failed: (%d)", __func__,
+                  p_cb->rand_enc_proc_state);
+  smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
 }

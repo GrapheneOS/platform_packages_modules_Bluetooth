@@ -39,8 +39,7 @@ status_t BluetoothGattService::writeToParcel(Parcel* parcel) const {
   if (status != OK) return status;
 
   std::vector<BluetoothGattCharacteristic> characteristics;
-  for (const auto& chrc : characteristics_)
-    characteristics.push_back(chrc);
+  for (const auto& chrc : characteristics_) characteristics.push_back(chrc);
 
   status = parcel->writeParcelableVector(characteristics);
 
@@ -71,8 +70,7 @@ status_t BluetoothGattService::readFromParcel(const Parcel* parcel) {
   status = parcel->readParcelableVector(&characteristics);
   if (status != OK) return status;
 
-  for (const auto& chrc : characteristics)
-    characteristics_.push_back(chrc);
+  for (const auto& chrc : characteristics) characteristics_.push_back(chrc);
 
   std::vector<BluetoothGattIncludedService> includedServices;
   status = parcel->readParcelableVector(&includedServices);

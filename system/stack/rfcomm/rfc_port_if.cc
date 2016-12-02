@@ -24,15 +24,15 @@
  *****************************************************************************/
 
 #include <string.h>
-#include "bt_target.h"
 #include "bt_common.h"
-#include "rfcdefs.h"
-#include "port_api.h"
+#include "bt_target.h"
+#include "bt_utils.h"
 #include "l2c_api.h"
+#include "osi/include/osi.h"
+#include "port_api.h"
 #include "port_int.h"
 #include "rfc_int.h"
-#include "bt_utils.h"
-#include "osi/include/osi.h"
+#include "rfcdefs.h"
 
 tRFC_CB rfc_cb;
 
@@ -46,11 +46,9 @@ tRFC_CB rfc_cb;
  *                  start event to the state machine.
  *
  ******************************************************************************/
-void RFCOMM_StartReq (tRFC_MCB *p_mcb)
-{
-    rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_START_REQ, NULL);
+void RFCOMM_StartReq(tRFC_MCB* p_mcb) {
+  rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_START_REQ, NULL);
 }
-
 
 /*******************************************************************************
  *
@@ -61,11 +59,9 @@ void RFCOMM_StartReq (tRFC_MCB *p_mcb)
  *                  in the control block and dispatch event to the FSM.
  *
  ******************************************************************************/
-void RFCOMM_StartRsp (tRFC_MCB *p_mcb, uint16_t result)
-{
-    rfc_mx_sm_execute (p_mcb, RFC_MX_EVENT_START_RSP, &result);
+void RFCOMM_StartRsp(tRFC_MCB* p_mcb, uint16_t result) {
+  rfc_mx_sm_execute(p_mcb, RFC_MX_EVENT_START_RSP, &result);
 }
-
 
 /*******************************************************************************
  *
@@ -78,25 +74,21 @@ void RFCOMM_StartRsp (tRFC_MCB *p_mcb, uint16_t result)
  *                  machine.
  *
  ******************************************************************************/
-void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci,
-                             UNUSED_ATTR uint16_t mtu)
-{
-    if (p_mcb->state != RFC_MX_STATE_CONNECTED)
-    {
-        PORT_DlcEstablishCnf (p_mcb, dlci, 0, RFCOMM_ERROR);
-        return;
-    }
+void RFCOMM_DlcEstablishReq(tRFC_MCB* p_mcb, uint8_t dlci,
+                            UNUSED_ATTR uint16_t mtu) {
+  if (p_mcb->state != RFC_MX_STATE_CONNECTED) {
+    PORT_DlcEstablishCnf(p_mcb, dlci, 0, RFCOMM_ERROR);
+    return;
+  }
 
-    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
-    if (p_port == NULL) {
-        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
-                dlci);
-        return;
-    }
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (p_port == NULL) {
+    RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
+    return;
+  }
 
-    rfc_port_sm_execute(p_port, RFC_EVENT_OPEN, NULL);
+  rfc_port_sm_execute(p_port, RFC_EVENT_OPEN, NULL);
 }
-
 
 /*******************************************************************************
  *
@@ -106,24 +98,20 @@ void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, uint8_t dlci,
  *                  acks Establish Indication.
  *
  ******************************************************************************/
-void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, uint8_t dlci,
-                             UNUSED_ATTR uint16_t mtu, uint16_t result)
-{
-    if ((p_mcb->state != RFC_MX_STATE_CONNECTED) && (result == RFCOMM_SUCCESS))
-    {
-        PORT_DlcReleaseInd (p_mcb, dlci);
-        return;
-    }
+void RFCOMM_DlcEstablishRsp(tRFC_MCB* p_mcb, uint8_t dlci,
+                            UNUSED_ATTR uint16_t mtu, uint16_t result) {
+  if ((p_mcb->state != RFC_MX_STATE_CONNECTED) && (result == RFCOMM_SUCCESS)) {
+    PORT_DlcReleaseInd(p_mcb, dlci);
+    return;
+  }
 
-    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-    if (p_port == NULL) {
-        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
-                dlci);
-        return;
-    }
-    rfc_port_sm_execute(p_port, RFC_EVENT_ESTABLISH_RSP, &result);
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (p_port == NULL) {
+    RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
+    return;
+  }
+  rfc_port_sm_execute(p_port, RFC_EVENT_ESTABLISH_RSP, &result);
 }
-
 
 /*******************************************************************************
  *
@@ -136,51 +124,45 @@ void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, uint8_t dlci,
  *                  block.
  *
  ******************************************************************************/
-void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
-{
-    uint8_t flow;
-    uint8_t cl;
-    uint8_t k;
+void RFCOMM_ParNegReq(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu) {
+  uint8_t flow;
+  uint8_t cl;
+  uint8_t k;
 
-    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
-    if (p_port == NULL) {
-        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
-                dlci);
-        return;
-    }
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (p_port == NULL) {
+    RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
+    return;
+  }
 
-    if (p_mcb->state != RFC_MX_STATE_CONNECTED)
-    {
-        p_port->error = PORT_PAR_NEG_FAILED;
-        return;
-    }
+  if (p_mcb->state != RFC_MX_STATE_CONNECTED) {
+    p_port->error = PORT_PAR_NEG_FAILED;
+    return;
+  }
 
-    /* Negotiate the flow control mechanism.  If flow control mechanism for */
-    /* mux has not been set yet, use our default value.  If it has been set, */
-    /* use that value. */
-    flow = (p_mcb->flow == PORT_FC_UNDEFINED) ? PORT_FC_DEFAULT : p_mcb->flow;
+  /* Negotiate the flow control mechanism.  If flow control mechanism for */
+  /* mux has not been set yet, use our default value.  If it has been set, */
+  /* use that value. */
+  flow = (p_mcb->flow == PORT_FC_UNDEFINED) ? PORT_FC_DEFAULT : p_mcb->flow;
 
-    /* Set convergence layer and number of credits (k) */
-    if (flow == PORT_FC_CREDIT)
-    {
-        cl = RFCOMM_PN_CONV_LAYER_CBFC_I;
-        k = (p_port->credit_rx_max < RFCOMM_K_MAX) ? p_port->credit_rx_max : RFCOMM_K_MAX;
-        p_port->credit_rx = k;
-    }
-    else
-    {
-        cl = RFCOMM_PN_CONV_LAYER_TYPE_1;
-        k = 0;
-    }
+  /* Set convergence layer and number of credits (k) */
+  if (flow == PORT_FC_CREDIT) {
+    cl = RFCOMM_PN_CONV_LAYER_CBFC_I;
+    k = (p_port->credit_rx_max < RFCOMM_K_MAX) ? p_port->credit_rx_max
+                                               : RFCOMM_K_MAX;
+    p_port->credit_rx = k;
+  } else {
+    cl = RFCOMM_PN_CONV_LAYER_TYPE_1;
+    k = 0;
+  }
 
-    /* Send Parameter Negotiation Command UIH frame */
-    p_port->rfc.expected_rsp |= RFC_RSP_PN;
+  /* Send Parameter Negotiation Command UIH frame */
+  p_port->rfc.expected_rsp |= RFC_RSP_PN;
 
-    rfc_send_pn (p_mcb, dlci, true, mtu, cl, k);
+  rfc_send_pn(p_mcb, dlci, true, mtu, cl, k);
 
-    rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
+  rfc_port_timer_start(p_port, RFC_T2_TIMEOUT);
 }
-
 
 /*******************************************************************************
  *
@@ -190,15 +172,13 @@ void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu)
  *                  DLC parameter negotiation.
  *
  ******************************************************************************/
-void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, uint8_t k)
-{
-    if (p_mcb->state != RFC_MX_STATE_CONNECTED)
-        return;
+void RFCOMM_ParNegRsp(tRFC_MCB* p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl,
+                      uint8_t k) {
+  if (p_mcb->state != RFC_MX_STATE_CONNECTED) return;
 
-    /* Send Parameter Negotiation Response UIH frame */
-    rfc_send_pn (p_mcb, dlci, false, mtu, cl, k);
+  /* Send Parameter Negotiation Response UIH frame */
+  rfc_send_pn(p_mcb, dlci, false, mtu, cl, k);
 }
-
 
 /*******************************************************************************
  *
@@ -211,32 +191,27 @@ void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, uint16_t mtu, uint8_t cl, 
  *                  control block.
  *
  ******************************************************************************/
-void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars)
-{
-    if (p_mcb->state != RFC_MX_STATE_CONNECTED)
-    {
-        PORT_PortNegCnf (p_mcb, dlci, NULL, RFCOMM_ERROR);
-        return;
-    }
+void RFCOMM_PortNegReq(tRFC_MCB* p_mcb, uint8_t dlci, tPORT_STATE* p_pars) {
+  if (p_mcb->state != RFC_MX_STATE_CONNECTED) {
+    PORT_PortNegCnf(p_mcb, dlci, NULL, RFCOMM_ERROR);
+    return;
+  }
 
-    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
-    if (p_port == NULL) {
-        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
-                dlci);
-        return;
-    }
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (p_port == NULL) {
+    RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
+    return;
+  }
 
-    /* Send Parameter Negotiation Command UIH frame */
-    if (!p_pars)
-        p_port->rfc.expected_rsp |= RFC_RSP_RPN_REPLY;
-    else
-        p_port->rfc.expected_rsp |= RFC_RSP_RPN;
+  /* Send Parameter Negotiation Command UIH frame */
+  if (!p_pars)
+    p_port->rfc.expected_rsp |= RFC_RSP_RPN_REPLY;
+  else
+    p_port->rfc.expected_rsp |= RFC_RSP_RPN;
 
-    rfc_send_rpn (p_mcb, dlci, true, p_pars, RFCOMM_RPN_PM_MASK);
-    rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
-
+  rfc_send_rpn(p_mcb, dlci, true, p_pars, RFCOMM_RPN_PM_MASK);
+  rfc_port_timer_start(p_port, RFC_T2_TIMEOUT);
 }
-
 
 /*******************************************************************************
  *
@@ -246,15 +221,12 @@ void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars)
  *                  Port parameters negotiation.
  *
  ******************************************************************************/
-void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
-                        uint16_t param_mask)
-{
-    if (p_mcb->state != RFC_MX_STATE_CONNECTED)
-        return;
+void RFCOMM_PortNegRsp(tRFC_MCB* p_mcb, uint8_t dlci, tPORT_STATE* p_pars,
+                       uint16_t param_mask) {
+  if (p_mcb->state != RFC_MX_STATE_CONNECTED) return;
 
-   rfc_send_rpn (p_mcb, dlci, false, p_pars, param_mask);
+  rfc_send_rpn(p_mcb, dlci, false, p_pars, param_mask);
 }
-
 
 /*******************************************************************************
  *
@@ -264,28 +236,24 @@ void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_STATE *p_pars,
  *                  parameters to remote port emulation entity.
  *
  ******************************************************************************/
-void RFCOMM_ControlReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
-{
-    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
-    if (p_port == NULL) {
-        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
-                dlci);
-        return;
-    }
+void RFCOMM_ControlReq(tRFC_MCB* p_mcb, uint8_t dlci, tPORT_CTRL* p_pars) {
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (p_port == NULL) {
+    RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
+    return;
+  }
 
-    if ((p_port->state != PORT_STATE_OPENED)
-     || (p_port->rfc.state  != RFC_STATE_OPENED))
-        return;
+  if ((p_port->state != PORT_STATE_OPENED) ||
+      (p_port->rfc.state != RFC_STATE_OPENED))
+    return;
 
-    p_port->port_ctrl |= PORT_CTRL_REQ_SENT;
+  p_port->port_ctrl |= PORT_CTRL_REQ_SENT;
 
-    p_port->rfc.expected_rsp |= RFC_RSP_MSC;
+  p_port->rfc.expected_rsp |= RFC_RSP_MSC;
 
-    rfc_send_msc (p_mcb, dlci, true, p_pars);
-    rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
-
+  rfc_send_msc(p_mcb, dlci, true, p_pars);
+  rfc_port_timer_start(p_port, RFC_T2_TIMEOUT);
 }
-
 
 /*******************************************************************************
  *
@@ -296,28 +264,24 @@ void RFCOMM_ControlReq (tRFC_MCB *p_mcb, uint8_t dlci, tPORT_CTRL *p_pars)
  *                  port can accept more data.
  *
  ******************************************************************************/
-void RFCOMM_FlowReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t enable)
-{
-    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
-    if (p_port == NULL) {
-        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
-                dlci);
-        return;
-    }
+void RFCOMM_FlowReq(tRFC_MCB* p_mcb, uint8_t dlci, uint8_t enable) {
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (p_port == NULL) {
+    RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
+    return;
+  }
 
-    if ((p_port->state != PORT_STATE_OPENED)
-     || (p_port->rfc.state  != RFC_STATE_OPENED))
-        return;
+  if ((p_port->state != PORT_STATE_OPENED) ||
+      (p_port->rfc.state != RFC_STATE_OPENED))
+    return;
 
-    p_port->local_ctrl.fc = !enable;
+  p_port->local_ctrl.fc = !enable;
 
-    p_port->rfc.expected_rsp |= RFC_RSP_MSC;
+  p_port->rfc.expected_rsp |= RFC_RSP_MSC;
 
-    rfc_send_msc (p_mcb, dlci, true, &p_port->local_ctrl);
-    rfc_port_timer_start (p_port, RFC_T2_TIMEOUT) ;
-
+  rfc_send_msc(p_mcb, dlci, true, &p_port->local_ctrl);
+  rfc_port_timer_start(p_port, RFC_T2_TIMEOUT);
 }
-
 
 /*******************************************************************************
  *
@@ -327,25 +291,22 @@ void RFCOMM_FlowReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t enable)
  *                  status should be delivered to the peer.
  *
  ******************************************************************************/
-void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t status)
-{
-    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
-    if (p_port == NULL) {
-        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
-                dlci);
-        return;
-    }
+void RFCOMM_LineStatusReq(tRFC_MCB* p_mcb, uint8_t dlci, uint8_t status) {
+  tPORT* p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+  if (p_port == NULL) {
+    RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
+    return;
+  }
 
-    if ((p_port->state != PORT_STATE_OPENED)
-     || (p_port->rfc.state  != RFC_STATE_OPENED))
-        return;
+  if ((p_port->state != PORT_STATE_OPENED) ||
+      (p_port->rfc.state != RFC_STATE_OPENED))
+    return;
 
-    p_port->rfc.expected_rsp |= RFC_RSP_RLS;
+  p_port->rfc.expected_rsp |= RFC_RSP_RLS;
 
-    rfc_send_rls (p_mcb, dlci, true, status);
-    rfc_port_timer_start (p_port, RFC_T2_TIMEOUT);
+  rfc_send_rls(p_mcb, dlci, true, status);
+  rfc_port_timer_start(p_port, RFC_T2_TIMEOUT);
 }
-
 
 /*******************************************************************************
  *
@@ -354,11 +315,9 @@ void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, uint8_t dlci, uint8_t status)
  * Description      This function is called by the PORT unit to close DLC
  *
  ******************************************************************************/
-void RFCOMM_DlcReleaseReq (tRFC_MCB *p_mcb, uint8_t dlci)
-{
-    rfc_port_sm_execute(port_find_mcb_dlci_port (p_mcb, dlci), RFC_EVENT_CLOSE, 0);
+void RFCOMM_DlcReleaseReq(tRFC_MCB* p_mcb, uint8_t dlci) {
+  rfc_port_sm_execute(port_find_mcb_dlci_port(p_mcb, dlci), RFC_EVENT_CLOSE, 0);
 }
-
 
 /*******************************************************************************
  *
@@ -367,9 +326,7 @@ void RFCOMM_DlcReleaseReq (tRFC_MCB *p_mcb, uint8_t dlci)
  * Description      This function is called by the user app to send data buffer
  *
  ******************************************************************************/
-void RFCOMM_DataReq (tRFC_MCB *p_mcb, uint8_t dlci, BT_HDR *p_buf)
-{
-    rfc_port_sm_execute(port_find_mcb_dlci_port (p_mcb, dlci), RFC_EVENT_DATA, p_buf);
+void RFCOMM_DataReq(tRFC_MCB* p_mcb, uint8_t dlci, BT_HDR* p_buf) {
+  rfc_port_sm_execute(port_find_mcb_dlci_port(p_mcb, dlci), RFC_EVENT_DATA,
+                      p_buf);
 }
-
-

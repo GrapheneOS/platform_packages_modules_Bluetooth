@@ -1138,18 +1138,18 @@ bool bta_av_hdl_event(BT_HDR* p_msg) {
                        bta_av_evt_code(p_msg->event));
     /* non state machine events */
     (*bta_av_nsm_act[p_msg->event - BTA_AV_FIRST_NSM_EVT])(
-        (tBTA_AV_DATA*) p_msg);
-  } else if (p_msg->event >= BTA_AV_FIRST_SM_EVT
-      && p_msg->event <= BTA_AV_LAST_SM_EVT) {
+        (tBTA_AV_DATA*)p_msg);
+  } else if (p_msg->event >= BTA_AV_FIRST_SM_EVT &&
+             p_msg->event <= BTA_AV_LAST_SM_EVT) {
     APPL_TRACE_VERBOSE("%s: AV sm event=0x%x(%s)", __func__, p_msg->event,
                        bta_av_evt_code(p_msg->event));
     /* state machine events */
-    bta_av_sm_execute(&bta_av_cb, p_msg->event, (tBTA_AV_DATA*) p_msg);
+    bta_av_sm_execute(&bta_av_cb, p_msg->event, (tBTA_AV_DATA*)p_msg);
   } else {
     APPL_TRACE_VERBOSE("handle=0x%x", p_msg->layer_specific);
     /* stream state machine events */
     bta_av_ssm_execute(bta_av_hndl_to_scb(p_msg->layer_specific), p_msg->event,
-                       (tBTA_AV_DATA*) p_msg);
+                       (tBTA_AV_DATA*)p_msg);
   }
   return true;
 }

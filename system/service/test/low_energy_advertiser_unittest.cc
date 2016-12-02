@@ -56,9 +56,9 @@ class MockAdvertiserHandler : public BleAdvertiserInterface {
                              vector<uint8_t> data, Callback cb));
   MOCK_METHOD5(Enable, void(uint8_t advertiser_id, bool enable, Callback cb,
                             int timeout_s, Callback timeout_cb));
-  MOCK_METHOD7(StartAdvertising, void(uint8_t advertiser_id, Callback cb,
-                                      AdvertiseParameters, std::vector<uint8_t>,
-                                      std::vector<uint8_t>, int, Callback));
+  MOCK_METHOD7(StartAdvertising,
+               void(uint8_t advertiser_id, Callback cb, AdvertiseParameters,
+                    std::vector<uint8_t>, std::vector<uint8_t>, int, Callback));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockAdvertiserHandler);
@@ -118,7 +118,7 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
           callback) {
     UUID uuid = UUID::GetRandom();
     auto api_callback = [&](BLEStatus status, const UUID& in_uuid,
-                        std::unique_ptr<BluetoothInstance> in_client) {
+                            std::unique_ptr<BluetoothInstance> in_client) {
       CHECK(in_uuid == uuid);
       CHECK(in_client.get());
       CHECK(status == BLE_STATUS_SUCCESS);
@@ -162,13 +162,15 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
     ASSERT_FALSE(le_advertiser_->IsStoppingAdvertising());
   }
 
-  void AdvertiseDataTestHelper(AdvertiseData data, std::function<void(BLEStatus)> callback, status_cb *set_data_cb) {
+  void AdvertiseDataTestHelper(AdvertiseData data,
+                               std::function<void(BLEStatus)> callback,
+                               status_cb* set_data_cb) {
     AdvertiseSettings settings;
 
     LOG_ASSERT(set_data_cb) << "set_data_cb must be set";
 
-    EXPECT_TRUE(le_advertiser_->StartAdvertising(
-        settings, data, AdvertiseData(), callback));
+    EXPECT_TRUE(le_advertiser_->StartAdvertising(settings, data,
+                                                 AdvertiseData(), callback));
 
     set_data_cb->Run(BT_STATUS_SUCCESS);
 
@@ -177,7 +179,8 @@ class LowEnergyAdvertiserPostRegisterTest : public LowEnergyAdvertiserTest {
         .Times(1)
         .WillOnce(SaveArg<2>(&disable_cb));
 
-    EXPECT_TRUE(le_advertiser_->StopAdvertising(LowEnergyAdvertiser::StatusCallback()));
+    EXPECT_TRUE(
+        le_advertiser_->StopAdvertising(LowEnergyAdvertiser::StatusCallback()));
     disable_cb.Run(BT_STATUS_SUCCESS);
   }
 
@@ -200,12 +203,12 @@ TEST_F(LowEnergyAdvertiserTest, RegisterInstance) {
 
   auto callback = [&](BLEStatus in_status, const UUID& uuid,
                       std::unique_ptr<BluetoothInstance> in_client) {
-        status = in_status;
-        cb_uuid = uuid;
-        advertiser = std::unique_ptr<LowEnergyAdvertiser>(
-            static_cast<LowEnergyAdvertiser*>(in_client.release()));
-        callback_count++;
-      };
+    status = in_status;
+    cb_uuid = uuid;
+    advertiser = std::unique_ptr<LowEnergyAdvertiser>(
+        static_cast<LowEnergyAdvertiser*>(in_client.release()));
+    callback_count++;
+  };
 
   UUID uuid0 = UUID::GetRandom();
 
@@ -237,17 +240,16 @@ TEST_F(LowEnergyAdvertiserTest, RegisterInstance) {
   reg_adv1_cb.Run(client_if0, BT_STATUS_SUCCESS);
 
   EXPECT_EQ(1, callback_count);
-  ASSERT_TRUE(advertiser.get() != nullptr);  // Assert to terminate in case of error
+  ASSERT_TRUE(advertiser.get() !=
+              nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_SUCCESS, status);
   EXPECT_EQ(client_if0, advertiser->GetInstanceId());
   EXPECT_EQ(uuid0, advertiser->GetAppIdentifier());
   EXPECT_EQ(uuid0, cb_uuid);
 
   // The advertiser should unregister itself when deleted.
-  EXPECT_CALL(*mock_handler_, Enable(client_if0, false, _, _, _))
-      .Times(1);
-  EXPECT_CALL(*mock_handler_, Unregister(client_if0))
-      .Times(1);
+  EXPECT_CALL(*mock_handler_, Enable(client_if0, false, _, _, _)).Times(1);
+  EXPECT_CALL(*mock_handler_, Unregister(client_if0)).Times(1);
   advertiser.reset();
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
@@ -256,7 +258,8 @@ TEST_F(LowEnergyAdvertiserTest, RegisterInstance) {
   reg_adv2_cb.Run(client_if1, BT_STATUS_FAIL);
 
   EXPECT_EQ(2, callback_count);
-  ASSERT_TRUE(advertiser.get() == nullptr);  // Assert to terminate in case of error
+  ASSERT_TRUE(advertiser.get() ==
+              nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_FAILURE, status);
   EXPECT_EQ(uuid1, cb_uuid);
 }
@@ -282,8 +285,8 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
       .WillRepeatedly(SaveArg<1>(&start_advertising_cb));
 
   // Stack call returns success.
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(
-      settings, adv_data, scan_rsp, callback));
+  EXPECT_TRUE(
+      le_advertiser_->StartAdvertising(settings, adv_data, scan_rsp, callback));
 
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_TRUE(le_advertiser_->IsStartingAdvertising());
@@ -291,8 +294,8 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
   EXPECT_EQ(0, callback_count);
 
   // Already starting.
-  EXPECT_FALSE(le_advertiser_->StartAdvertising(
-      settings, adv_data, scan_rsp, callback));
+  EXPECT_FALSE(
+      le_advertiser_->StartAdvertising(settings, adv_data, scan_rsp, callback));
 
   // Notify failure.
   start_advertising_cb.Run(BT_STATUS_FAIL);
@@ -304,8 +307,8 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
 
   // Try again.
-  EXPECT_TRUE(le_advertiser_->StartAdvertising(
-      settings, adv_data, scan_rsp, callback));
+  EXPECT_TRUE(
+      le_advertiser_->StartAdvertising(settings, adv_data, scan_rsp, callback));
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
   EXPECT_TRUE(le_advertiser_->IsStartingAdvertising());
   EXPECT_FALSE(le_advertiser_->IsStoppingAdvertising());
@@ -320,8 +323,8 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StartAdvertisingBasic) {
   EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
 
   // Already started.
-  EXPECT_FALSE(le_advertiser_->StartAdvertising(
-      settings, adv_data, scan_rsp, callback));
+  EXPECT_FALSE(
+      le_advertiser_->StartAdvertising(settings, adv_data, scan_rsp, callback));
 }
 
 TEST_F(LowEnergyAdvertiserPostRegisterTest, StopAdvertisingBasic) {
@@ -329,7 +332,8 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StopAdvertisingBasic) {
 
   // Not enabled.
   EXPECT_FALSE(le_advertiser_->IsAdvertisingStarted());
-  EXPECT_FALSE(le_advertiser_->StopAdvertising(LowEnergyAdvertiser::StatusCallback()));
+  EXPECT_FALSE(
+      le_advertiser_->StopAdvertising(LowEnergyAdvertiser::StatusCallback()));
 
   // Start advertising for testing.
   StartAdvertising();
@@ -388,10 +392,9 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, StopAdvertisingBasic) {
 }
 
 TEST_F(LowEnergyAdvertiserPostRegisterTest, InvalidAdvertiseData) {
-  const std::vector<uint8_t> data0{ 0x02, HCI_EIR_FLAGS_TYPE, 0x00 };
-  const std::vector<uint8_t> data1{
-      0x04, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE, 0x01, 0x02, 0x00
-  };
+  const std::vector<uint8_t> data0{0x02, HCI_EIR_FLAGS_TYPE, 0x00};
+  const std::vector<uint8_t> data1{0x04, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE,
+                                   0x01, 0x02, 0x00};
   AdvertiseData invalid_adv(data0);
   AdvertiseData valid_adv(data1);
 
@@ -404,67 +407,98 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, InvalidAdvertiseData) {
 
   // Manufacturer data not correctly formatted according to spec. We let the
   // stack handle this case.
-  const std::vector<uint8_t> data2{ 0x01, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE };
+  const std::vector<uint8_t> data2{0x01, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE};
   AdvertiseData invalid_mfc(data2);
 
-  EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-      .Times(1);
+  EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _)).Times(1);
   EXPECT_TRUE(le_advertiser_->StartAdvertising(
       settings, invalid_mfc, valid_adv, LowEnergyAdvertiser::StatusCallback()));
 }
 
 TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
   const std::vector<uint8_t> kUUID16BitData{
-    0x03, HCI_EIR_COMPLETE_16BITS_UUID_TYPE, 0xDE, 0xAD,
+      0x03, HCI_EIR_COMPLETE_16BITS_UUID_TYPE, 0xDE, 0xAD,
   };
 
   const std::vector<uint8_t> kUUID32BitData{
-    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02
-  };
+      0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02};
 
   const std::vector<uint8_t> kUUID128BitData{
-    0x11, HCI_EIR_COMPLETE_128BITS_UUID_TYPE,
-    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E
-  };
+      0x11, HCI_EIR_COMPLETE_128BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0x03, 0x04,
+      0x05, 0x06,
+      0x07, 0x08,
+      0x09, 0x0A,
+      0x0B, 0x0C,
+      0x0D, 0x0E};
 
   const std::vector<uint8_t> kMultiUUIDData{
-    0x11, HCI_EIR_COMPLETE_128BITS_UUID_TYPE,
-    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
-    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0xBE, 0xEF
-  };
+      0x11, HCI_EIR_COMPLETE_128BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0x03, 0x04,
+      0x05, 0x06,
+      0x07, 0x08,
+      0x09, 0x0A,
+      0x0B, 0x0C,
+      0x0D, 0x0E,
+      0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0xBE, 0xEF};
 
   const std::vector<uint8_t> kServiceData16Bit{
-    0x05, HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE, 0xDE, 0xAD, 0xBE, 0xEF
-  };
+      0x05, HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE, 0xDE, 0xAD, 0xBE, 0xEF};
 
   const std::vector<uint8_t> kServiceData32Bit{
-    0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02, 0xBE, 0xEF
-  };
+      0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02, 0xBE,
+      0xEF};
 
   const std::vector<uint8_t> kServiceData128Bit{
-    0x13, HCI_EIR_SERVICE_DATA_128BITS_UUID_TYPE,
-    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0xBE, 0xEF
-  };
+      0x13, HCI_EIR_SERVICE_DATA_128BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0x03, 0x04,
+      0x05, 0x06,
+      0x07, 0x08,
+      0x09, 0x0A,
+      0x0B, 0x0C,
+      0x0D, 0x0E,
+      0xBE, 0xEF};
 
   const std::vector<uint8_t> kMultiServiceData{
-    0x13, HCI_EIR_SERVICE_DATA_128BITS_UUID_TYPE,
-    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0xBE, 0xEF,
-    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-    0x05, HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE, 0xDE, 0xAD, 0xBE, 0xEF
-  };
+      0x13, HCI_EIR_SERVICE_DATA_128BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0x03, 0x04,
+      0x05, 0x06,
+      0xBE, 0xEF,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0x03, 0x04,
+      0x05, 0x06,
+      0x05, HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0xBE, 0xEF};
 
   const std::vector<uint8_t> kServiceUUIDMatch{
-    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02,
-    0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02, 0xBE, 0xEF
-  };
+      0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0xBE, 0xEF};
 
   const std::vector<uint8_t> kServiceUUIDMismatch{
-    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x01,
-    0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02, 0xBE, 0xEF
-  };
+      0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x01,
+      0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE,
+      0xDE, 0xAD,
+      0x01, 0x02,
+      0xBE, 0xEF};
 
   AdvertiseData uuid_16bit_adv(kUUID16BitData);
   AdvertiseData uuid_32bit_adv(kUUID32BitData);
@@ -491,7 +525,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
   status_cb start_advertising_cb;
   // Multiple UUID test
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(multi_uuid_adv, callback, &start_advertising_cb);
   EXPECT_EQ(1, callback_count);
@@ -499,7 +533,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
 
   // Multiple Service Data test
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(multi_service_adv, callback, &start_advertising_cb);
   EXPECT_EQ(2, callback_count);
@@ -511,7 +545,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
       0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80,
       0x00, 0x10, 0x00, 0x00, 0xDE, 0xAD, 0x00, 0x00};
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(uuid_16bit_adv, callback, &start_advertising_cb);
   EXPECT_EQ(3, callback_count);
@@ -519,23 +553,21 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
 
   // 32bit uuid test, should succeed with correctly parsed uuid
   const std::vector<uint8_t> uuid_32bit_canonical{
-    0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00,
-    0xDE, 0xAD, 0x01, 0x02
-  };
+      0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80,
+      0x00, 0x10, 0x00, 0x00, 0xDE, 0xAD, 0x01, 0x02};
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(uuid_32bit_adv, callback, &start_advertising_cb);
   EXPECT_EQ(4, callback_count);
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // 128bit uuid test, should succeed with correctly parsed uuid
-  const std::vector<uint8_t> uuid_128bit{
-    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E
-  };
+  const std::vector<uint8_t> uuid_128bit{0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04,
+                                         0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,
+                                         0x0B, 0x0C, 0x0D, 0x0E};
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(uuid_128bit_adv, callback, &start_advertising_cb);
   EXPECT_EQ(5, callback_count);
@@ -546,7 +578,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
   // Service data with 16bit uuid included, should succeed with
   // uuid and service data parsed out
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(service_16bit_adv, callback, &start_advertising_cb);
   EXPECT_EQ(6, callback_count);
@@ -555,7 +587,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
   // Service data with 32bit uuid included, should succeed with
   // uuid and service data parsed out
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(service_32bit_adv, callback, &start_advertising_cb);
   EXPECT_EQ(7, callback_count);
@@ -564,7 +596,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
   // Service data with 128bit uuid included, should succeed with
   // uuid and service data parsed out
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(service_128bit_adv, callback, &start_advertising_cb);
   EXPECT_EQ(8, callback_count);
@@ -572,7 +604,7 @@ TEST_F(LowEnergyAdvertiserPostRegisterTest, AdvertiseDataParsing) {
 
   // Service data and UUID where the UUID for both match, should succeed.
   EXPECT_CALL(*mock_handler_, StartAdvertising(_, _, _, _, _, _, _))
-            .Times(1)
+      .Times(1)
       .WillOnce(SaveArg<1>(&start_advertising_cb));
   AdvertiseDataTestHelper(service_uuid_match, callback, &start_advertising_cb);
   EXPECT_EQ(9, callback_count);
@@ -592,7 +624,6 @@ MATCHER_P(BitEq, x, std::string(negation ? "isn't" : "is") +
   static_assert(sizeof(x) == sizeof(arg), "Size mismatch");
   return std::memcmp(&arg, &x, sizeof(x)) == 0;
 }
-
 
 }  // namespace
 }  // namespace bluetooth

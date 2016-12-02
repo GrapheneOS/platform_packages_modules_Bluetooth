@@ -50,7 +50,8 @@ Status BluetoothLeAdvertiserBinderServer::RegisterAdvertiser(
   return Status::ok();
 }
 
-Status BluetoothLeAdvertiserBinderServer::UnregisterAdvertiser(int advertiser_id) {
+Status BluetoothLeAdvertiserBinderServer::UnregisterAdvertiser(
+    int advertiser_id) {
   VLOG(2) << __func__;
   UnregisterInstanceBase(advertiser_id);
   return Status::ok();
@@ -99,7 +100,7 @@ Status BluetoothLeAdvertiserBinderServer::StartMultiAdvertising(
   };
 
   if (!advertiser->StartAdvertising(settings, advertise_data, scan_response,
-                                callback)) {
+                                    callback)) {
     LOG(ERROR) << "Failed to initiate call to start advertising";
     *_aidl_return = false;
     return Status::ok();
@@ -134,7 +135,8 @@ Status BluetoothLeAdvertiserBinderServer::StopMultiAdvertising(
 
     auto cb = GetLECallback(advertiser_id);
     if (!cb.get()) {
-      VLOG(2) << "Advertiser was unregistered - advertiser_id: " << advertiser_id;
+      VLOG(2) << "Advertiser was unregistered - advertiser_id: "
+              << advertiser_id;
       return;
     }
 
@@ -174,8 +176,8 @@ void BluetoothLeAdvertiserBinderServer::OnRegisterInstanceImpl(
   android::sp<IBluetoothLeAdvertiserCallback> cb(
       static_cast<IBluetoothLeAdvertiserCallback*>(callback.get()));
   cb->OnAdvertiserRegistered(status, (status == bluetooth::BLE_STATUS_SUCCESS)
-                                     ? instance->GetInstanceId()
-                                     : kInvalidInstanceId);
+                                         ? instance->GetInstanceId()
+                                         : kInvalidInstanceId);
 }
 
 }  // namespace binder

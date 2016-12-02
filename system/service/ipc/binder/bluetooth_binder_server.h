@@ -27,9 +27,9 @@
 #include <android/bluetooth/IBluetoothCallback.h>
 #include <android/bluetooth/IBluetoothGattClient.h>
 #include <android/bluetooth/IBluetoothGattServer.h>
-#include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <android/bluetooth/IBluetoothLeAdvertiser.h>
 #include <android/bluetooth/IBluetoothLeScanner.h>
+#include <android/bluetooth/IBluetoothLowEnergy.h>
 
 #include "service/adapter.h"
 #include "service/common/bluetooth/uuid.h"

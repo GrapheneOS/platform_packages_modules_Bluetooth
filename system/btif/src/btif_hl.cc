@@ -3986,7 +3986,9 @@ bool btif_hl_save_mdl_cfg(uint8_t mdep_id, uint8_t item_idx,
         evt_param.update_mdl.app_idx = app_idx;
         len = sizeof(btif_hl_update_mdl_t);
         BTIF_TRACE_DEBUG("send BTIF_HL_UPDATE_MDL event app_idx=%d  ", app_idx);
-        bt_status = btif_transfer_context(btif_hl_proc_cb_evt, BTIF_HL_UPDATE_MDL, (char *)&evt_param, len, NULL);
+        bt_status =
+            btif_transfer_context(btif_hl_proc_cb_evt, BTIF_HL_UPDATE_MDL,
+                                  (char*)&evt_param, len, NULL);
         if (bt_status == BT_STATUS_SUCCESS) {
           success = true;
         }
@@ -4023,7 +4025,8 @@ bool btif_hl_delete_mdl_cfg(uint8_t mdep_id, uint8_t item_idx) {
       evt_param.update_mdl.app_idx = app_idx;
       len = sizeof(btif_hl_update_mdl_t);
       BTIF_TRACE_DEBUG("send BTIF_HL_UPDATE_MDL event app_idx=%d  ", app_idx);
-      bt_status = btif_transfer_context(btif_hl_proc_cb_evt, BTIF_HL_UPDATE_MDL, (char *)&evt_param, len, NULL);
+      bt_status = btif_transfer_context(btif_hl_proc_cb_evt, BTIF_HL_UPDATE_MDL,
+                                        (char*)&evt_param, len, NULL);
       if (bt_status == BT_STATUS_SUCCESS) {
         success = true;
       }

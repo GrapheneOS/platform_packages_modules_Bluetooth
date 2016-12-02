@@ -14,9 +14,9 @@
 //  limitations under the License.
 //
 
+#include <stdint.h>
 #include <algorithm>
 #include <array>
-#include <stdint.h>
 
 #include <gtest/gtest.h>
 
@@ -26,10 +26,10 @@ using namespace bluetooth;
 
 namespace {
 
-const std::array<uint8_t, UUID::kNumBytes128> kBtSigBaseUUID = {
-    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
-      0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb, }
-};
+const std::array<uint8_t, UUID::kNumBytes128> kBtSigBaseUUID = {{
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80,
+    0x5f, 0x9b, 0x34, 0xfb,
+}};
 
 }  // namespace
 
@@ -47,7 +47,7 @@ TEST(UUIDTest, Init16Bit) {
   auto my_uuid_16 = kBtSigBaseUUID;
   my_uuid_16[2] = 0xde;
   my_uuid_16[3] = 0xad;
-  UUID uuid(UUID::UUID16Bit({{ 0xde, 0xad }}));
+  UUID uuid(UUID::UUID16Bit({{0xde, 0xad}}));
   ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_16);
   ASSERT_TRUE(UUID::kNumBytes16 == uuid.GetShortestRepresentationSize());
@@ -70,7 +70,6 @@ TEST(UUIDTest, Init16BitString) {
   ASSERT_TRUE(UUID::kNumBytes16 == uuid.GetShortestRepresentationSize());
 }
 
-
 // Verify that we initialize a 32-bit UUID in a
 // way consistent with how we read it.
 TEST(UUIDTest, Init32Bit) {
@@ -79,7 +78,7 @@ TEST(UUIDTest, Init32Bit) {
   my_uuid_32[1] = 0xad;
   my_uuid_32[2] = 0xbe;
   my_uuid_32[3] = 0xef;
-  UUID uuid(UUID::UUID32Bit({{ 0xde, 0xad, 0xbe, 0xef }}));
+  UUID uuid(UUID::UUID32Bit({{0xde, 0xad, 0xbe, 0xef}}));
   ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_32);
   ASSERT_TRUE(UUID::kNumBytes32 == uuid.GetShortestRepresentationSize());
@@ -130,8 +129,7 @@ TEST(UUIDTest, Init128BitLittleEndian) {
 // way consistent with how we read it.
 TEST(UUIDTest, Init128BitString) {
   UUID::UUID128Bit my_uuid{
-    { 7, 1, 6, 8, 14, 255, 16, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
-  };
+      {7, 1, 6, 8, 14, 255, 16, 2, 3, 4, 5, 6, 7, 8, 9, 10}};
   std::string my_uuid_string("07010608-0eff-1002-0304-05060708090a");
 
   UUID uuid0(my_uuid);
@@ -155,7 +153,7 @@ TEST(UUIDTest, InitInvalid) {
 }
 
 TEST(UUIDTest, ToString) {
-  const UUID::UUID16Bit data{{ 0x18, 0x0d }};
+  const UUID::UUID16Bit data{{0x18, 0x0d}};
   UUID uuid(data);
   std::string uuid_string = uuid.ToString();
   EXPECT_EQ("0000180d-0000-1000-8000-00805f9b34fb", uuid_string);

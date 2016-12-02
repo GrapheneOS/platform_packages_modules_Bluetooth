@@ -23,19 +23,19 @@
 #include <base/command_line.h>
 #include "main_int.h"
 
-void init_cpp_logging(config_t *config) {
+void init_cpp_logging(config_t* config) {
   // Command line and log level might be also configured in service/main.cpp
   // when running the bluetoothtbd daemon. If it's already configured, skip
   // configuring.
   if (base::CommandLine::InitializedForCurrentProcess()) return;
 
-  const char *loggingV =
+  const char* loggingV =
       config_get_string(config, CONFIG_DEFAULT_SECTION, "LoggingV", NULL);
-  const char *loggingVModule =
+  const char* loggingVModule =
       config_get_string(config, CONFIG_DEFAULT_SECTION, "LoggingVModule", NULL);
 
   int argc = 1;
-  const char *argv[] = {"bt_stack", NULL, NULL};
+  const char* argv[] = {"bt_stack", NULL, NULL};
 
   if (loggingV != NULL) {
     argv[argc] = loggingV;

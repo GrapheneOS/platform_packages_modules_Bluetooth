@@ -27,52 +27,48 @@
 extern "C" {
 #endif
 
-#define SRVC_MAX_APPS                  GATT_CL_MAX_LCB
+#define SRVC_MAX_APPS GATT_CL_MAX_LCB
 
-#define SRVC_ID_NONE            0
-#define SRVC_ID_DIS             1
-#define SRVC_ID_MAX             SRVC_ID_DIS
+#define SRVC_ID_NONE 0
+#define SRVC_ID_DIS 1
+#define SRVC_ID_MAX SRVC_ID_DIS
 
-#define SRVC_ACT_IGNORE     0
-#define SRVC_ACT_RSP        1
-#define SRVC_ACT_PENDING    2
+#define SRVC_ACT_IGNORE 0
+#define SRVC_ACT_RSP 1
+#define SRVC_ACT_PENDING 2
 
-typedef struct
-{
-    bool            in_use;
-    uint16_t        conn_id;
-    bool            connected;
-    BD_ADDR         bda;
-    uint32_t        trans_id;
-    uint8_t         cur_srvc_id;
+typedef struct {
+  bool in_use;
+  uint16_t conn_id;
+  bool connected;
+  BD_ADDR bda;
+  uint32_t trans_id;
+  uint8_t cur_srvc_id;
 
-    tDIS_VALUE      dis_value;
+  tDIS_VALUE dis_value;
 
-}tSRVC_CLCB;
-
+} tSRVC_CLCB;
 
 /* service engine control block */
-typedef struct
-{
-    tSRVC_CLCB              clcb[SRVC_MAX_APPS]; /* connection link*/
-    tGATT_IF                gatt_if;
-    bool                    enabled;
+typedef struct {
+  tSRVC_CLCB clcb[SRVC_MAX_APPS]; /* connection link*/
+  tGATT_IF gatt_if;
+  bool enabled;
 
-}tSRVC_ENG_CB;
+} tSRVC_ENG_CB;
 
 /* Global GATT data */
 extern tSRVC_ENG_CB srvc_eng_cb;
 
-extern tSRVC_CLCB *srvc_eng_find_clcb_by_conn_id(uint16_t conn_id);
-extern tSRVC_CLCB *srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda);
+extern tSRVC_CLCB* srvc_eng_find_clcb_by_conn_id(uint16_t conn_id);
+extern tSRVC_CLCB* srvc_eng_find_clcb_by_bd_addr(BD_ADDR bda);
 extern uint16_t srvc_eng_find_conn_id_by_bd_addr(BD_ADDR bda);
 
-
-extern void srvc_eng_release_channel (uint16_t conn_id) ;
-extern bool    srvc_eng_request_channel (BD_ADDR remote_bda, uint8_t srvc_id );
-extern void srvc_sr_rsp(uint8_t clcb_idx, tGATT_STATUS st, tGATTS_RSP *p_rsp);
-extern void srvc_sr_notify(BD_ADDR remote_bda, uint16_t handle, uint16_t len, uint8_t *p_value);
-
+extern void srvc_eng_release_channel(uint16_t conn_id);
+extern bool srvc_eng_request_channel(BD_ADDR remote_bda, uint8_t srvc_id);
+extern void srvc_sr_rsp(uint8_t clcb_idx, tGATT_STATUS st, tGATTS_RSP* p_rsp);
+extern void srvc_sr_notify(BD_ADDR remote_bda, uint16_t handle, uint16_t len,
+                           uint8_t* p_value);
 
 #ifdef __cplusplus
 }

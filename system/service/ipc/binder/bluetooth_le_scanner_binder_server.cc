@@ -140,8 +140,8 @@ void BluetoothLeScannerBinderServer::OnRegisterInstanceImpl(
   android::sp<IBluetoothLeScannerCallback> cb(
       static_cast<IBluetoothLeScannerCallback*>(callback.get()));
   cb->OnScannerRegistered(status, (status == bluetooth::BLE_STATUS_SUCCESS)
-                                     ? instance->GetInstanceId()
-                                     : kInvalidInstanceId);
+                                      ? instance->GetInstanceId()
+                                      : kInvalidInstanceId);
 }
 
 }  // namespace binder

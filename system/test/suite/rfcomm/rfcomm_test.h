@@ -26,8 +26,9 @@ class RFCommTest : public BluetoothTest {
   virtual ~RFCommTest() = default;
 
   // Getter for the RFCOMM socket
-  const btsock_interface_t* socket_interface() const
-    { return socket_interface_; }
+  const btsock_interface_t* socket_interface() const {
+    return socket_interface_;
+  }
 
   // SetUp initializes the Bluetooth interfaces and the RFCOMM interface
   virtual void SetUp();
@@ -40,7 +41,7 @@ class RFCommTest : public BluetoothTest {
   static const bt_uuid_t HFP_UUID;
 
  private:
-  const btsock_interface_t *socket_interface_;
+  const btsock_interface_t* socket_interface_;
 };
 
 }  // bttest

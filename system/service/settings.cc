@@ -24,12 +24,9 @@
 
 namespace bluetooth {
 
-Settings::Settings()
-    : initialized_(false) {
-}
+Settings::Settings() : initialized_(false) {}
 
-Settings::~Settings() {
-}
+Settings::~Settings() {}
 
 bool Settings::Init() {
   CHECK(!initialized_);
@@ -67,8 +64,7 @@ bool Settings::Init() {
   }
 
   // Two IPC methods/paths were provided.
-  if (!android_ipc_socket_suffix_.empty() &&
-      !create_ipc_socket_path_.empty()) {
+  if (!android_ipc_socket_suffix_.empty() && !create_ipc_socket_path_.empty()) {
     LOG(ERROR) << "Too many IPC methods provided";
     return false;
   }
