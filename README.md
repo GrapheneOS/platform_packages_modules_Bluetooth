@@ -8,53 +8,19 @@ Just build AOSP - Fluoride is there by default.
 Instructions for Ubuntu, tested on 14.04 with Clang 3.5.0 and 16.10 with Clang
  3.8.0
 
-### Install required libraries
-
-```sh
-sudo apt-get install libevent-dev libc++-dev libc++abi-dev
-```
-
-### Install build tools
-
-  - Install [ninja](https://ninja-build.org/) build system
-
-```sh
-sudo apt-get install ninja-build
-```
-
-or download binary from https://github.com/ninja-build/ninja/releases
-
-  - Install [gn](https://chromium.googlesource.com/chromium/src/tools/gn/) -
- meta-build system that generates NinjaBuild files.
-
-Get sha1 of current version from [here](
-https://chromium.googlesource.com/chromium/buildtools/+/master/linux64/gn.sha1)
- and then download corresponding executable:
-
-```sh
-wget -O gn http://storage.googleapis.com/chromium-gn/<gn.sha1>
-```
-
-i.e. if sha1 is "3491f6687bd9f19946035700eb84ce3eed18c5fa" (value from 24 Feb
- 2016) do
-
-```sh
-wget -O gn http://storage.googleapis.com/chromium-gn/3491f6687bd9f19946035700eb84ce3eed18c5fa
-```
-
-Then make binary executable and put it on your PATH, i.e.:
-
-```sh
-chmod a+x ./gn
-sudo mv ./gn /usr/bin
-```
-
 ### Download source
 
 ```sh
 mkdir ~/fluoride
 cd ~/fluoride
 git clone https://android.googlesource.com/platform/packages/modules/Bluetooth/system
+```
+
+Install dependencies (require sudo access):
+
+```sh
+cd ~/fluoride/bt
+build/install_deps.sh
 ```
 
 Then fetch third party dependencies:
