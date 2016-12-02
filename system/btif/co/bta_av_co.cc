@@ -961,6 +961,38 @@ void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS* p_init_params) {
   mutex_global_unlock();
 }
 
+void bta_av_co_get_encoder_feeding_parameters(
+    tA2DP_FEEDING_PARAMS* p_feeding_params) {
+  /* Protect access to bta_av_co_cb.codec_config */
+  mutex_global_lock();
+
+  const uint8_t* p_codec_info = bta_av_co_cb.codec_config;
+  int sample_rate = A2DP_GetTrackSampleRate(p_codec_info);
+  if (sample_rate > 0) {
+    p_feeding_params->sample_rate = sample_rate;
+  } else {
+    APPL_TRACE_ERROR("%s: invalid sample rate for codec %s: %d", __func__,
+                     A2DP_CodecName(p_codec_info), sample_rate);
+  }
+  int channel_count = A2DP_GetTrackChannelCount(p_codec_info);
+  if (channel_count > 0) {
+    p_feeding_params->channel_count = channel_count;
+  } else {
+    APPL_TRACE_ERROR("%s: invalid channel count for codec %s: %d", __func__,
+                     A2DP_CodecName(p_codec_info), channel_count);
+  }
+  int bits_per_sample = A2DP_GetTrackBitsPerSample(p_codec_info);
+  if (bits_per_sample > 0) {
+    p_feeding_params->bits_per_sample = bits_per_sample;
+  } else {
+    APPL_TRACE_ERROR("%s: invalid bits per sample for codec %s: %d", __func__,
+                     A2DP_CodecName(p_codec_info), bits_per_sample);
+  }
+
+  /* Protect access to bta_av_co_cb.codec_config */
+  mutex_global_unlock();
+}
+
 const tA2DP_ENCODER_INTERFACE* bta_av_co_get_encoder_interface(void) {
   /* Protect access to bta_av_co_cb.codec_config */
   mutex_global_lock();
