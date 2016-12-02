@@ -1,7 +1,8 @@
 /******************************************************************************
  *
  *  Copyright (C) 2014 The Android Open Source Project
- *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights reserved.
+ *  Copyright 2003 - 2004 Open Interface North America, Inc. All rights
+ *                        reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -96,15 +97,18 @@ INLINE uint16_t OI_SBC_CalculateFrameAndHeaderlen(OI_CODEC_SBC_FRAME_INFO *frame
 
 
 /*
- * Computes the bit need for each sample and as also returns a counts of bit needs that are greater
- * than one. This count is used in the first phase of bit allocation.
+ * Computes the bit need for each sample and as also returns a counts of bit
+ * needs that are greater than one. This count is used in the first phase of bit
+ * allocation.
  *
- * We also compute a preferred bitpool value that this is the minimum bitpool needed to guarantee
- * lossless representation of the audio data. The preferred bitpool may be larger than the bits
- * actually required but the only input we have are the scale factors. For example, it takes 2 bits
- * to represent values in the range -1 .. +1 but the scale factor is 0. To guarantee lossless
- * representation we add 2 to each scale factor and sum them to come up with the preferred bitpool.
- * This is not ideal because 0 requires 0 bits but we currently have no way of knowing this.
+ * We also compute a preferred bitpool value that this is the minimum bitpool
+ * needed to guarantee lossless representation of the audio data. The preferred
+ * bitpool may be larger than the bits actually required but the only input we
+ * have are the scale factors. For example, it takes 2 bits to represent values
+ * in the range -1 .. +1 but the scale factor is 0. To guarantee lossless
+ * representation we add 2 to each scale factor and sum them to come up with the
+ * preferred bitpool. This is not ideal because 0 requires 0 bits but we
+ * currently have no way of knowing this.
  *
  * @param bitneed       Array to return bitneeds for each subband
  *
@@ -231,11 +235,13 @@ OI_UINT computeBitneed(OI_CODEC_SBC_COMMON_CONTEXT *common,
  *
  * @param bitpool   The bitpool we have to work within
  *
- * @param bitneeds  An array of bit needs (more acturately allocation prioritities) for each
- *                  subband across all blocks in the SBC frame
+ * @param bitneeds  An array of bit needs (more acturately allocation
+ *                  prioritities) for each subband across all blocks in the SBC
+ *                  frame
  *
- * @param subbands  The number of subbands over which the adkustment is calculated. For mono and
- *                  dual mode this is 4 or 8, for stereo or joint stereo this is 8 or 16.
+ * @param subbands  The number of subbands over which the adkustment is
+ *                  calculated. For mono and dual mode this is 4 or 8, for
+ *                  stereo or joint stereo this is 8 or 16.
  *
  * @param bitcount  A starting point for the adjustment
  *
@@ -298,8 +304,9 @@ OI_INT adjustToFitBitpool(const OI_UINT bitpool,
 
 
 /*
- * The bit allocator trys to avoid single bit allocations except as a last resort. So in the case
- * where a bitneed of 1 was passed over during the adsjustment phase 2 bits are now allocated.
+ * The bit allocator trys to avoid single bit allocations except as a last
+ * resort. So in the case where a bitneed of 1 was passed over during the
+ * adsjustment phase 2 bits are now allocated.
  */
 INLINE OI_INT allocAdjustedBits(uint8_t *dest,
                                 OI_INT bits,

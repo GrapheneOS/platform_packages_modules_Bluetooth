@@ -68,10 +68,14 @@ extern "C" {
 #define  GATT_NOT_ENCRYPTED                  0x8e
 #define  GATT_CONGESTED                      0x8f
 
-                                             /* 0xE0 ~ 0xFC reserved for future use */
-#define  GATT_CCC_CFG_ERR                    0xFD /* Client Characteristic Configuration Descriptor Improperly Configured */
-#define  GATT_PRC_IN_PROGRESS                0xFE /* Procedure Already in progress */
-#define  GATT_OUT_OF_RANGE                   0xFF /* Attribute value out of range */
+/* 0xE0 ~ 0xFC reserved for future use */
+
+/* Client Characteristic Configuration Descriptor Improperly Configured */
+#define  GATT_CCC_CFG_ERR                    0xFD
+/* Procedure Already in progress */
+#define  GATT_PRC_IN_PROGRESS                0xFE
+/* Attribute value out of range */
+#define  GATT_OUT_OF_RANGE                   0xFF
 typedef uint8_t tGATT_STATUS;
 
 
@@ -92,9 +96,11 @@ typedef uint8_t tGATT_STATUS;
 #define  GATT_RSP_READ_MULTI                 0x0F
 #define  GATT_REQ_READ_BY_GRP_TYPE           0x10
 #define  GATT_RSP_READ_BY_GRP_TYPE           0x11
-#define  GATT_REQ_WRITE                      0x12 /*                 0001-0010 (write)*/
+/*                 0001-0010 (write)*/
+#define  GATT_REQ_WRITE                      0x12
 #define  GATT_RSP_WRITE                      0x13
-#define  GATT_CMD_WRITE                      0x52 /* changed in V4.0 01001-0010(write cmd)*/
+/* changed in V4.0 01001-0010(write cmd)*/
+#define  GATT_CMD_WRITE                      0x52
 #define  GATT_REQ_PREPARE_WRITE              0x16
 #define  GATT_RSP_PREPARE_WRITE              0x17
 #define  GATT_REQ_EXEC_WRITE                 0x18
@@ -102,20 +108,29 @@ typedef uint8_t tGATT_STATUS;
 #define  GATT_HANDLE_VALUE_NOTIF             0x1B
 #define  GATT_HANDLE_VALUE_IND               0x1D
 #define  GATT_HANDLE_VALUE_CONF              0x1E
-#define  GATT_SIGN_CMD_WRITE                 0xD2 /* changed in V4.0 1101-0010 (signed write)  see write cmd above*/
-#define  GATT_OP_CODE_MAX                    (GATT_HANDLE_VALUE_CONF + 1) /* 0x1E = 30 + 1 = 31*/
+/* changed in V4.0 1101-0010 (signed write)  see write cmd above*/
+#define  GATT_SIGN_CMD_WRITE                 0xD2
+/* 0x1E = 30 + 1 = 31*/
+#define  GATT_OP_CODE_MAX                    (GATT_HANDLE_VALUE_CONF + 1)
 
 
 #define  GATT_HANDLE_IS_VALID(x) ((x) != 0)
 
 #define GATT_CONN_UNKNOWN                   0
-#define GATT_CONN_L2C_FAILURE               1                               /* general L2cap failure  */
-#define GATT_CONN_TIMEOUT                   HCI_ERR_CONNECTION_TOUT         /* 0x08 connection timeout  */
-#define GATT_CONN_TERMINATE_PEER_USER       HCI_ERR_PEER_USER               /* 0x13 connection terminate by peer user  */
-#define GATT_CONN_TERMINATE_LOCAL_HOST      HCI_ERR_CONN_CAUSE_LOCAL_HOST   /* 0x16 connectionterminated by local host  */
-#define GATT_CONN_FAIL_ESTABLISH            HCI_ERR_CONN_FAILED_ESTABLISHMENT/* 0x03E connection fail to establish  */
-#define GATT_CONN_LMP_TIMEOUT               HCI_ERR_LMP_RESPONSE_TIMEOUT     /* 0x22 connection fail for LMP response tout */
-#define GATT_CONN_CANCEL                    L2CAP_CONN_CANCEL                /* 0x0100 L2CAP connection cancelled  */
+/* general L2cap failure  */
+#define GATT_CONN_L2C_FAILURE               1
+/* 0x08 connection timeout  */
+#define GATT_CONN_TIMEOUT                   HCI_ERR_CONNECTION_TOUT
+/* 0x13 connection terminate by peer user  */
+#define GATT_CONN_TERMINATE_PEER_USER       HCI_ERR_PEER_USER
+/* 0x16 connectionterminated by local host  */
+#define GATT_CONN_TERMINATE_LOCAL_HOST      HCI_ERR_CONN_CAUSE_LOCAL_HOST
+/* 0x03E connection fail to establish  */
+#define GATT_CONN_FAIL_ESTABLISH            HCI_ERR_CONN_FAILED_ESTABLISHMENT
+/* 0x22 connection fail for LMP response tout */
+#define GATT_CONN_LMP_TIMEOUT               HCI_ERR_LMP_RESPONSE_TIMEOUT
+/* 0x0100 L2CAP connection cancelled  */
+#define GATT_CONN_CANCEL                    L2CAP_CONN_CANCEL
 typedef uint16_t tGATT_DISCONN_REASON;
 
 /* MAX GATT MTU size
@@ -169,7 +184,8 @@ typedef uint16_t tGATT_DISCONN_REASON;
 #define GATT_PERM_WRITE_SIGNED_MITM (1 << 8) /* bit 8 */
 typedef uint16_t tGATT_PERM;
 
-#define GATT_ENCRYPT_KEY_SIZE_MASK  (0xF000) /* the MS nibble of tGATT_PERM; key size 7=0; size 16=9 */
+/* the MS nibble of tGATT_PERM; key size 7=0; size 16=9 */
+#define GATT_ENCRYPT_KEY_SIZE_MASK  (0xF000)
 
 #define GATT_READ_ALLOWED           (GATT_PERM_READ | GATT_PERM_READ_ENCRYPTED | GATT_PERM_READ_ENC_MITM)
 #define GATT_READ_AUTH_REQUIRED     (GATT_PERM_READ_ENCRYPTED)
@@ -278,8 +294,10 @@ typedef struct
 
 /* Characteristic descriptor: Extended Properties value
 */
-#define GATT_CHAR_BIT_REL_WRITE    0x0001       /* permits reliable writes of the Characteristic Value */
-#define GATT_CHAR_BIT_WRITE_AUX    0x0002       /* permits writes to the characteristic descriptor */
+/* permits reliable writes of the Characteristic Value */
+#define GATT_CHAR_BIT_REL_WRITE    0x0001
+/* permits writes to the characteristic descriptor */
+#define GATT_CHAR_BIT_WRITE_AUX    0x0002
 
 
 /* characteristic descriptor: client configuration value
@@ -298,8 +316,10 @@ typedef uint16_t tGATT_SVR_CHAR_CONFIG;
 
 /* Characteristic descriptor: Extended Properties value
 */
-#define GATT_CHAR_BIT_REL_WRITE    0x0001       /* permits reliable writes of the Characteristic Value */
-#define GATT_CHAR_BIT_WRITE_AUX    0x0002       /* permits writes to the characteristic descriptor */
+/* permits reliable writes of the Characteristic Value */
+#define GATT_CHAR_BIT_REL_WRITE    0x0001
+/* permits writes to the characteristic descriptor */
+#define GATT_CHAR_BIT_WRITE_AUX    0x0002
 
 /* authentication requirement
 */
@@ -322,7 +342,8 @@ typedef struct
     uint8_t         value[GATT_MAX_ATTR_LEN];  /* the actual attribute value */
 } tGATT_VALUE;
 
-/* Union of the event data which is used in the server respond API to carry the server response information
+/* Union of the event data which is used in the server respond API to carry the
+ * server response information
 */
 typedef union
 {
@@ -570,7 +591,8 @@ typedef void (tGATT_DISC_RES_CB) (uint16_t conn_id, tGATT_DISC_TYPE disc_type,
 /* discover complete callback function */
 typedef void (tGATT_DISC_CMPL_CB) (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_STATUS status);
 
-/* Define a callback function for when read/write/disc/config operation is completed. */
+/* Define a callback function for when read/write/disc/config operation is
+ * completed. */
 typedef void (tGATT_CMPL_CBACK) (uint16_t conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
                 tGATT_CL_COMPLETE *p_data);
 
@@ -604,9 +626,7 @@ typedef struct
     tGATT_CONGESTION_CBACK          *p_congestion_cb;
 } tGATT_CBACK;
 
-/***********************  Start Handle Management Definitions   **********************
-*/
-
+/*****************  Start Handle Management Definitions   *********************/
 
 typedef struct
 {
@@ -657,12 +677,11 @@ typedef struct
     tGATTS_NV_SRV_CHG_CBACK    *p_srv_chg_callback;
 } tGATT_APPL_INFO;
 
-/*
- **********************  End Handle Management Definitions   **********************/
+/********************  End Handle Management Definitions   ********************/
 
-/*****************************************************************************
+/*******************************************************************************
  *  External Function Declarations
- ****************************************************************************/
+ ******************************************************************************/
 
 /*******************************************************************************
  *
@@ -686,8 +705,9 @@ extern uint8_t GATT_SetTraceLevel (uint8_t new_level);
  *
  * Function         GATTS_AddHandleRange
  *
- * Description      This function add the allocated handles range for the specifed
- *                  application UUID, service UUID and service instance
+ * Description      This function add the allocated handles range for the
+ *                  specified application UUID, service UUID and service
+ *                  instance
  *
  * Parameter        p_hndl_range:   pointer to allocated handles information
  *
@@ -743,9 +763,10 @@ extern uint16_t GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service,
  *
  * Parameter        gatt_if       : application interface
  *                  p_svc_uuid    : service UUID
- *                  svc_inst      : instance of the service inside the application
+ *                  svc_inst      : instance of the service inside the
+ *                                  application
  *
- * Returns          true if operation succeed, false if handle block was not found.
+ * Returns          true if operation succeed, else false
  *
  ******************************************************************************/
 extern bool GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, uint16_t svc_inst);
@@ -772,11 +793,13 @@ extern void GATTS_StopService (uint16_t service_handle);
  * Description      This function sends a handle value indication to a client.
  *
  * Parameter        conn_id: connection identifier.
- *                  attr_handle: Attribute handle of this handle value indication.
+ *                  attr_handle: Attribute handle of this handle value
+ *                               indication.
  *                  val_len: Length of the indicated attribute value.
  *                  p_val: Pointer to the indicated attribute value data.
  *
- * Returns          GATT_SUCCESS if sucessfully sent or queued; otherwise error code.
+ * Returns          GATT_SUCCESS if sucessfully sent or queued; otherwise error
+ *                               code.
  *
  ******************************************************************************/
 extern  tGATT_STATUS GATTS_HandleValueIndication (uint16_t conn_id,
@@ -790,7 +813,8 @@ extern  tGATT_STATUS GATTS_HandleValueIndication (uint16_t conn_id,
  * Description      This function sends a handle value notification to a client.
  *
  * Parameter       conn_id: connection identifier.
- *                  attr_handle: Attribute handle of this handle value indication.
+ *                  attr_handle: Attribute handle of this handle value
+ *                               indication.
  *                  val_len: Length of the indicated attribute value.
  *                  p_val: Pointer to the indicated attribute value data.
  *
@@ -842,7 +866,8 @@ extern tGATT_STATUS GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu);
  *
  * Function         GATTC_Discover
  *
- * Description      This function is called to do a discovery procedure on ATT server.
+ * Description      This function is called to do a discovery procedure on ATT
+ *                  server.
  *
  * Parameters       conn_id: connection identifier.
  *                  disc_type:discovery type.
@@ -858,8 +883,8 @@ extern tGATT_STATUS GATTC_Discover (uint16_t conn_id,
  *
  * Function         GATTC_Read
  *
- * Description      This function is called to read the value of an attribute from
- *                  the server.
+ * Description      This function is called to read the value of an attribute
+ *                  from the server.
  *
  * Parameters       conn_id: connection identifier.
  *                  type    - attribute read type.
@@ -875,8 +900,8 @@ extern tGATT_STATUS GATTC_Read (uint16_t conn_id, tGATT_READ_TYPE type,
  *
  * Function         GATTC_Write
  *
- * Description      This function is called to read the value of an attribute from
- *                  the server.
+ * Description      This function is called to read the value of an attribute
+ *                  from the server.
  *
  * Parameters       conn_id: connection identifier.
  *                  type    - attribute write type.
@@ -897,7 +922,8 @@ extern tGATT_STATUS GATTC_Write (uint16_t conn_id, tGATT_WRITE_TYPE type,
  *                  the server.
  *
  * Parameters       conn_id: connection identifier.
- *                  is_execute - to execute or cancel the prepare write requet(s)
+ *                  is_execute - to execute or cancel the prepare write
+ *                               request(s)
  *
  * Returns          GATT_SUCCESS if command started successfully.
  *
@@ -924,8 +950,8 @@ extern tGATT_STATUS GATTC_SendHandleValueConfirm (uint16_t conn_id, uint16_t han
  *
  * Function         GATT_SetIdleTimeout
  *
- * Description      This function (common to both client and server) sets the idle
- *                  timeout for a tansport connection
+ * Description      This function (common to both client and server) sets the
+ *                  idle timeout for a tansport connection
  *
  * Parameter        bd_addr:   target device bd address.
  *                  idle_tout: timeout value in seconds.
@@ -948,7 +974,8 @@ extern void GATT_SetIdleTimeout (BD_ADDR bd_addr, uint16_t idle_tout,
  * Parameter        p_app_uuid128: Application UUID
  *                  p_cb_info: callback functions.
  *
- * Returns          0 for error, otherwise the index of the client registered with GATT
+ * Returns          0 for error, otherwise the index of the client registered
+ *                  with GATT
  *
  ******************************************************************************/
 extern  tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info);
@@ -970,9 +997,9 @@ extern void GATT_Deregister (tGATT_IF gatt_if);
  *
  * Function         GATT_StartIf
  *
- * Description      This function is called after registration to start receiving
- *                  callbacks for registered interface.  Function may call back
- *                  with connection status and queued notifications
+ * Description      This function is called after registration to start
+ *                  receiving callbacks for registered interface.  Function may
+ *                  call back with connection status and queued notifications
  *
  * Parameter        gatt_if: applicaiton interface.
  *
@@ -985,18 +1012,20 @@ extern  void GATT_StartIf (tGATT_IF gatt_if);
  *
  * Function         GATT_Connect
  *
- * Description      This function initiate a connecttion to a remote device on GATT
- *                  channel.
+ * Description      This function initiate a connecttion to a remote device on
+ *                  GATT channel.
  *
  * Parameters       gatt_if: applicaiton interface
  *                  bd_addr: peer device address.
- *                  is_direct: is a direct connection or a background auto connection
- *                  transport : Physical transport for GATT connection (BR/EDR or LE)
+ *                  is_direct: is a direct connection or a background auto
+ *                             connection
+ *                  transport : Physical transport for GATT connection
+ *                              (BR/EDR or LE)
  *                  opportunistic: will not keep device connected if other apps
  *                      disconnect, will not update connected apps counter, when
  *                      disconnected won't cause physical disconnection.
  *
- * Returns          true if connection started; false if connection start failure.
+ * Returns          true if connection started; else false
  *
  ******************************************************************************/
 extern bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr,
@@ -1008,15 +1037,17 @@ extern bool GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr,
  *
  * Function         GATT_CancelConnect
  *
- * Description      This function terminate the connection initaition to a remote
- *                  device on GATT channel.
+ * Description      Terminate the connection initiation to a remote device on a
+ *                  GATT channel.
  *
- * Parameters       gatt_if: client interface. If 0 used as unconditionally disconnect,
- *                          typically used for direct connection cancellation.
+ * Parameters       gatt_if: client interface. If 0 used as unconditionally
+ *                           disconnect, typically used for direct connection
+ *                           cancellation.
  *                  bd_addr: peer device address.
- *                  is_direct: is a direct conenection or a background auto connection
+ *                  is_direct: is a direct conenection or a background auto
+ *                             connection
  *
- * Returns          true if connection started; false if connection start failure.
+ * Returns          true if connection started; else false
  *
  ******************************************************************************/
 extern bool    GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr,
@@ -1026,8 +1057,7 @@ extern bool    GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr,
  *
  * Function         GATT_Disconnect
  *
- * Description      This function disconnect the GATT channel for this registered
- *                  application.
+ * Description      Disconnect the GATT channel for this registered application.
  *
  * Parameters       conn_id: connection identifier.
  *
@@ -1042,13 +1072,14 @@ extern tGATT_STATUS GATT_Disconnect (uint16_t conn_id);
  *
  * Function         GATT_GetConnectionInfor
  *
- * Description      This function use conn_id to find its associated BD address and applciation
- *                  interface
+ * Description      Use conn_id to find its associated BD address and
+ *                  application interface
  *
  * Parameters        conn_id: connection id  (input)
  *                   p_gatt_if: applicaiton interface (output)
  *                   bd_addr: peer device address. (output)
- *                   transport :  physical transport of the GATT connection (BR/EDR or LE)
+ *                   transport : physical transport of the GATT connection
+ *                                (BR/EDR or LE)
  *
  * Returns          true the ligical link information is found for conn_id
  *
@@ -1061,13 +1092,14 @@ extern bool    GATT_GetConnectionInfor(uint16_t conn_id, tGATT_IF *p_gatt_if,
  *
  * Function         GATT_GetConnIdIfConnected
  *
- * Description      This function find the conn_id if the logical link for BD address
- *                  and applciation interface is connected
+ * Description      Find the conn_id if the logical link for a BD address
+ *                  and application interface is connected
  *
  * Parameters        gatt_if: applicaiton interface (input)
  *                   bd_addr: peer device address. (input)
  *                   p_conn_id: connection id  (output)
- *                   transport :  physical transport of the GATT connection (BR/EDR or LE)
+ *                   transport :  physical transport of the GATT connection
+ *                               (BR/EDR or LE)
  *
  * Returns          true the ligical link is connected
  *

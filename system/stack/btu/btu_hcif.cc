@@ -53,7 +53,7 @@ extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);
 extern void btm_ble_test_command_complete(uint8_t *p);
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void btu_hcif_inquiry_comp_evt (uint8_t *p);
 static void btu_hcif_inquiry_result_evt (uint8_t *p);
@@ -336,7 +336,8 @@ void btu_hcif_process_event (UNUSED_ATTR uint8_t controller_id, BT_HDR *p_msg)
  *
  * Function         btu_hcif_send_cmd
  *
- * Description      This function is called to send commands to the Host Controller.
+ * Description      This function is called to send commands to the Host
+ *                  Controller.
  *
  * Returns          void
  *

@@ -51,7 +51,7 @@ extern fixed_queue_t *btu_general_alarm_queue;
 #define SDP_MAX_ATTR_RSPHDR_LEN         10
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
                                     uint16_t param_len, uint8_t *p_req,
@@ -67,10 +67,10 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num
 
 
 /******************************************************************************/
-/*                  E R R O R   T E X T   S T R I N G S                         */
-/*                                                                              */
-/* The default is to have no text string, but we allow the strings to be        */
-/* configured in target.h if people want them.                                  */
+/*                E R R O R   T E X T   S T R I N G S                         */
+/*                                                                            */
+/* The default is to have no text string, but we allow the strings to be      */
+/* configured in target.h if people want them.                                */
 /******************************************************************************/
 #ifndef SDP_TEXT_BAD_HEADER
 #define SDP_TEXT_BAD_HEADER     NULL
@@ -168,8 +168,8 @@ void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
  * Function         process_service_search
  *
  * Description      This function handles a service search request from the
- *                  client. It builds a reply message with info from the database,
- *                  and sends the reply back to the client.
+ *                  client. It builds a reply message with info from the
+ *                  database, and sends the reply back to the client.
  *
  * Returns          void
  *
@@ -274,7 +274,7 @@ static void process_service_search (tCONN_CB *p_ccb, uint16_t trans_num,
     UINT16_TO_BE_STREAM (p_rsp, num_rsp_handles);
     UINT16_TO_BE_STREAM (p_rsp, cur_handles);
 
-/*    SDP_TRACE_DEBUG("SDP Service Rsp: tothdl %d, curhdlr %d, start %d, end %d, cont %d",
+/*  SDP_TRACE_DEBUG("SDP Service Rsp: tothdl %d, curhdlr %d, start %d, end %d, cont %d",
                      num_rsp_handles, cur_handles, cont_offset,
                      cont_offset + cur_handles-1, is_cont); */
     for (xx = cont_offset; xx < cont_offset + cur_handles; xx++)
@@ -534,9 +534,10 @@ static void process_service_attr_req (tCONN_CB *p_ccb, uint16_t trans_num,
  *
  * Function         process_service_search_attr_req
  *
- * Description      This function handles a combined service search and attribute
- *                  read request from the client. It builds a reply message with
- *                  info from the database, and sends the reply back to the client.
+ * Description      This function handles a combined service search and
+ *                  attribute read request from the client. It builds a reply
+ *                  message with info from the database, and sends the reply
+ *                  back to the client.
  *
  * Returns          void
  *
@@ -736,20 +737,25 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, uint16_t trans_num
     len_to_send = (uint16_t) (p_rsp - &p_ccb->rsp_list[0]);
     cont_offset = 0;
 
-    // The current SDP server design has a critical flaw where it can run into an infinite
-    // request/response loop with the client. Here's the scenario:
+    // The current SDP server design has a critical flaw where it can run into
+    // an infinite request/response loop with the client. Here's the scenario:
     // - client makes SDP request
-    // - server returns the first fragment of the response with a continuation token
+    // - server returns the first fragment of the response with a continuation
+    //   token
     // - an SDP record is deleted from the server
     // - client issues another request with previous continuation token
-    // - server has nothing to send back because the record is unavailable but in the
-    //   first fragment, it had specified more response bytes than are now available
-    // - server sends back no additional response bytes and returns the same continuation token
-    // - client issues another request with the continuation token, and the process repeats
+    // - server has nothing to send back because the record is unavailable but
+    //   in the first fragment, it had specified more response bytes than are
+    //   now available
+    // - server sends back no additional response bytes and returns the same
+    //   continuation token
+    // - client issues another request with the continuation token, and the
+    //   process repeats
     //
-    // We work around this design flaw here by checking if we will make forward progress
-    // (i.e. we will send > 0 response bytes) on a continued request. If not, we must have
-    // run into the above situation and we tell the peer an error occurred.
+    // We work around this design flaw here by checking if we will make forward
+    // progress (i.e. we will send > 0 response bytes) on a continued request.
+    // If not, we must have run into the above situation and we tell the peer an
+    // error occurred.
     //
     // TODO(sharvil): rewrite SDP server.
     if (is_cont && len_to_send == 0) {

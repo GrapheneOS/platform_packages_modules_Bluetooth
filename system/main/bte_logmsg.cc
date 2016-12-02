@@ -186,7 +186,8 @@ void LogMsg(uint32_t trace_set_mask, const char *fmt_str, ...) {
       LOG_DEBUG(bt_layer_tags[trace_layer], "%s", buffer);
       break;
     default:
-      LOG_ERROR(bt_layer_tags[trace_layer], "%s", buffer);      /* we should never get this */
+      /* we should never get this */
+      LOG_ERROR(bt_layer_tags[trace_layer], "%s", buffer);
       break;
   }
 }

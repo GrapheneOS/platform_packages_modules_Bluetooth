@@ -130,9 +130,11 @@ static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda, tBT_TR
  *
  * Function         gatt_profile_clcb_alloc
  *
- * Description      The function allocates a GATT profile  connection link control block
+ * Description      The function allocates a GATT profile connection link
+ *                  control block
  *
- * Returns           NULL if not found. Otherwise pointer to the connection link block.
+ * Returns          NULL if not found. Otherwise pointer to the connection link
+ *                  block.
  *
  ******************************************************************************/
 tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (uint16_t conn_id, BD_ADDR bda, tBT_TRANSPORT tranport)
@@ -162,7 +164,8 @@ tGATT_PROFILE_CLCB *gatt_profile_clcb_alloc (uint16_t conn_id, BD_ADDR bda, tBT_
  *
  * Function         gatt_profile_clcb_dealloc
  *
- * Description      The function deallocates a GATT profile  connection link control block
+ * Description      The function deallocates a GATT profile connection link
+ *                  control block
  *
  * Returns          void
  *

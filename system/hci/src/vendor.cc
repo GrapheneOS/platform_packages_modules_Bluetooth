@@ -217,8 +217,7 @@ static void epilog_cb(bt_vendor_op_result_t result) {
 }
 
 // Called back from vendor library when the a2dp offload machine has to report
-// status of
-// an a2dp offload command.
+// status of an a2dp offload command.
 static void a2dp_offload_cb(bt_vendor_op_result_t result, bt_vendor_opcode_t op,
                             uint8_t bta_av_handle) {
   tBTA_AV_STATUS status = (result == BT_VND_OP_RESULT_SUCCESS)

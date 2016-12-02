@@ -303,7 +303,7 @@ tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda, tBTM_PM_MODE *p_mode)
  *
  * Input Param      remote_bda - device address of desired ACL connection
  *
- * Output Param     pmState - address where the current  pm state is copied into.
+ * Output Param     pmState - address where the current pm state is copied.
  *                          BTM_PM_ST_ACTIVE
  *                          BTM_PM_ST_HOLD
  *                          BTM_PM_ST_SNIFF
@@ -531,8 +531,10 @@ static tBTM_PM_PWR_MD * btm_pm_compare_modes(tBTM_PM_PWR_MD *p_md1, tBTM_PM_PWR_
 /*******************************************************************************
  *
  * Function     btm_pm_get_set_mode
- * Description  get the resulting mode from the registered parties, then compare it
- *              with the requested mode, if the command is from an unregistered party.
+ * Description  get the resulting mode from the registered parties, then compare
+ *              it with the requested mode, if the command is from an
+ *              unregistered party.
+ *
  * Returns      void
  *
  ******************************************************************************/
@@ -710,9 +712,9 @@ static tBTM_STATUS btm_pm_snd_md_req(uint8_t pm_id, int link_ind, tBTM_PM_PWR_MD
  *
  * Function         btm_pm_check_stored
  *
- * Description      This function is called when an HCI command status event occurs
- *                  to check if there's any PM command issued while waiting for
- *                  HCI command status.
+ * Description      This function is called when an HCI command status event
+ *                  occurs to check if there's any PM command issued while
+ *                  waiting for HCI command status.
  *
  * Returns          none.
  *
@@ -736,8 +738,8 @@ static void btm_pm_check_stored(void)
  *
  * Function         btm_pm_proc_cmd_status
  *
- * Description      This function is called when an HCI command status event occurs
- *                  for power manager related commands.
+ * Description      This function is called when an HCI command status event
+ *                  occurs for power manager related commands.
  *
  * Input Parms      status - status of the event (HCI_SUCCESS if no errors)
  *
@@ -788,12 +790,15 @@ void btm_pm_proc_cmd_status(uint8_t status)
  *
  * Function         btm_process_mode_change
  *
- * Description      This function is called when an HCI mode change event occurs.
+ * Description      This function is called when an HCI mode change event
+ *                  occurs.
  *
  * Input Parms      hci_status - status of the event (HCI_SUCCESS if no errors)
  *                  hci_handle - connection handle associated with the change
- *                  mode - HCI_MODE_ACTIVE, HCI_MODE_HOLD, HCI_MODE_SNIFF, or HCI_MODE_PARK
- *                  interval - number of baseband slots (meaning depends on mode)
+ *                  mode - HCI_MODE_ACTIVE, HCI_MODE_HOLD, HCI_MODE_SNIFF, or
+ *                         HCI_MODE_PARK
+ *                  interval - number of baseband slots (meaning depends on
+ *                                                       mode)
  *
  * Returns          none.
  *
@@ -886,7 +891,8 @@ void btm_pm_proc_mode_change (uint8_t hci_status, uint16_t hci_handle, uint8_t m
  *
  * Function         btm_pm_proc_ssr_evt
  *
- * Description      This function is called when an HCI sniff subrating event occurs.
+ * Description      This function is called when an HCI sniff subrating event
+ *                  occurs.
  *
  * Returns          none.
  *
@@ -970,7 +976,8 @@ bool    btm_pm_device_in_active_or_sniff_mode(void)
  *
  * Function         btm_pm_device_in_scan_state
  *
- * Description      This function is called to check if in paging, inquiry or connecting mode
+ * Description      This function is called to check if in paging, inquiry or
+ *                  connecting mode
  *
  * Returns          true, if in paging, inquiry or connecting mode
  *
@@ -1003,7 +1010,8 @@ bool    btm_pm_device_in_scan_state(void)
  *
  * Description      This function is called to obtain the controller state
  *
- * Returns          Controller State-BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and BTM_CONTRL_IDLE
+ * Returns          Controller State-BTM_CONTRL_ACTIVE, BTM_CONTRL_SCAN, and
+ *                  BTM_CONTRL_IDLE
  *
  ******************************************************************************/
 tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void)

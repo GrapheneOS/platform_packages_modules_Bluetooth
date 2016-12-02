@@ -154,7 +154,7 @@ static void l2c_ucd_congestion_status_cback (BD_ADDR rem_bda, bool    is_congest
  *
  * Function         l2c_ucd_disconnect_ind_cback
  *
- * Description      UCD disconnect callback (This prevent to access null pointer)
+ * Description      UCD disconnect callback (Prevent to access null pointer)
  *
  * Returns          void
  *
@@ -949,11 +949,12 @@ bool    l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
  *
  *  Function        l2c_ucd_process_event
  *
- *  Description     This is called from main state machine when LCID is connectionless
- *                  Process the event if it is for UCD.
+ *  Description     This is called from main state machine when LCID is
+ *                  connectionless. Process the event if it is for UCD.
  *
  *  Return          true if the event is consumed by UCD
- *                  false if the event needs to be processed by main state machine
+ *                  false if the event needs to be processed by the main state
+ *                        machine
  *
  ******************************************************************************/
 bool    l2c_ucd_process_event(tL2C_CCB *p_ccb, uint16_t event, void *p_data)

@@ -194,10 +194,14 @@
 #define UUID_SERVCLASS_CORDLESS_TELEPHONY       0X1109
 #define UUID_SERVCLASS_AUDIO_SOURCE             0X110A
 #define UUID_SERVCLASS_AUDIO_SINK               0X110B
-#define UUID_SERVCLASS_AV_REM_CTRL_TARGET       0X110C  /* Audio/Video Control profile */
-#define UUID_SERVCLASS_ADV_AUDIO_DISTRIBUTION   0X110D  /* Advanced Audio Distribution profile */
-#define UUID_SERVCLASS_AV_REMOTE_CONTROL        0X110E  /* Audio/Video Control profile */
-#define UUID_SERVCLASS_AV_REM_CTRL_CONTROL      0X110F  /* Audio/Video Control profile */
+/* Audio/Video Control profile */
+#define UUID_SERVCLASS_AV_REM_CTRL_TARGET       0X110C
+/* Advanced Audio Distribution profile */
+#define UUID_SERVCLASS_ADV_AUDIO_DISTRIBUTION   0X110D
+/* Audio/Video Control profile */
+#define UUID_SERVCLASS_AV_REMOTE_CONTROL        0X110E
+/* Audio/Video Control profile */
+#define UUID_SERVCLASS_AV_REM_CTRL_CONTROL      0X110F
 #define UUID_SERVCLASS_INTERCOM                 0X1110
 #define UUID_SERVCLASS_FAX                      0X1111
 #define UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY    0X1112
@@ -222,10 +226,14 @@
 #define UUID_SERVCLASS_CABLE_REPLACEMENT        0X1125  /* HCRP profile */
 #define UUID_SERVCLASS_HCRP_PRINT               0X1126  /* HCRP profile */
 #define UUID_SERVCLASS_HCRP_SCAN                0X1127  /* HCRP profile */
-#define UUID_SERVCLASS_COMMON_ISDN_ACCESS       0X1128  /* CAPI Message Transport Protocol*/
-#define UUID_SERVCLASS_VIDEO_CONFERENCING_GW    0X1129  /* Video Conferencing profile */
-#define UUID_SERVCLASS_UDI_MT                   0X112A  /* Unrestricted Digital Information profile */
-#define UUID_SERVCLASS_UDI_TA                   0X112B  /* Unrestricted Digital Information profile */
+/* CAPI Message Transport Protocol*/
+#define UUID_SERVCLASS_COMMON_ISDN_ACCESS       0X1128
+/* Video Conferencing profile */
+#define UUID_SERVCLASS_VIDEO_CONFERENCING_GW    0X1129
+/* Unrestricted Digital Information profile */
+#define UUID_SERVCLASS_UDI_MT                   0X112A
+/* Unrestricted Digital Information profile */
+#define UUID_SERVCLASS_UDI_TA                   0X112B
 #define UUID_SERVCLASS_VCP                      0X112C  /* Video Conferencing profile */
 #define UUID_SERVCLASS_SAP                      0X112D  /* SIM Access profile */
 #define UUID_SERVCLASS_PBAP_PCE                 0X112E  /* Phonebook Access - PCE */
@@ -242,15 +250,18 @@
 #define UUID_SERVCLASS_ESDP_UPNP_IP_PAN         0X1300  /* UPNP_IP_PAN [ESDP] */
 #define UUID_SERVCLASS_ESDP_UPNP_IP_LAP         0X1301  /* UPNP_IP_LAP [ESDP] */
 #define UUID_SERVCLASS_ESDP_UPNP_IP_L2CAP       0X1302  /* UPNP_L2CAP [ESDP] */
-#define UUID_SERVCLASS_VIDEO_SOURCE             0X1303  /* Video Distribution Profile (VDP) */
-#define UUID_SERVCLASS_VIDEO_SINK               0X1304  /* Video Distribution Profile (VDP) */
-#define UUID_SERVCLASS_VIDEO_DISTRIBUTION       0X1305  /* Video Distribution Profile (VDP) */
+
+/* Video Distribution Profile (VDP) */
+#define UUID_SERVCLASS_VIDEO_SOURCE             0X1303
+#define UUID_SERVCLASS_VIDEO_SINK               0X1304
+#define UUID_SERVCLASS_VIDEO_DISTRIBUTION       0X1305
+
 #define UUID_SERVCLASS_HDP_PROFILE              0X1400  /* Health Device profile (HDP) */
 #define UUID_SERVCLASS_HDP_SOURCE               0X1401  /* Health Device profile (HDP) */
 #define UUID_SERVCLASS_HDP_SINK                 0X1402  /* Health Device profile (HDP) */
-#define UUID_SERVCLASS_MAP_PROFILE              0X1134  /* MAP profile UUID */
-#define UUID_SERVCLASS_MESSAGE_ACCESS           0X1132  /* Message Access Service UUID */
-#define UUID_SERVCLASS_MESSAGE_NOTIFICATION     0X1133  /* Message Notification Service UUID */
+#define UUID_SERVCLASS_MAP_PROFILE              0X1134  /* MAP profile */
+#define UUID_SERVCLASS_MESSAGE_ACCESS           0X1132  /* Message Access Service */
+#define UUID_SERVCLASS_MESSAGE_NOTIFICATION     0X1133  /* Message Notification Service */
 
 #define UUID_SERVCLASS_GAP_SERVER               0x1800
 #define UUID_SERVCLASS_GATT_SERVER              0x1801
@@ -267,7 +278,7 @@
 #define UUID_SERVCLASS_PHALERT                  0x180E      /* phone alert service */
 #define UUID_SERVCLASS_BATTERY                  0x180F     /* battery service */
 #define UUID_SERVCLASS_BPM                      0x1810      /*  blood pressure service */
-#define UUID_SERVCLASS_ALERT_NOTIFICATION       0x1811      /* alert notification service */
+#define UUID_SERVCLASS_ALERT_NOTIFICATION       0x1811
 #define UUID_SERVCLASS_LE_HID                   0x1812     /*  HID over LE */
 #define UUID_SERVCLASS_SCAN_PARAM               0x1813      /* Scan Parameter service */
 #define UUID_SERVCLASS_GLUCOSE                  0x1808      /* Glucose Meter Service */
@@ -281,8 +292,8 @@
 #define UUID_CODEC_MSBC                         0x0002   /* mSBC */
 #endif
 
-#define UUID_HF_IND_ENHANCED_DRIVER_SAFETY      0x0001   /* Assigned number for Enhanced Safety */
-#define UUID_HF_IND_BATTERY_LEVEL_STATUS        0x0002   /* Assigned number for Battery Status */
+#define UUID_HF_IND_ENHANCED_DRIVER_SAFETY      0x0001   /* Enhanced Safety */
+#define UUID_HF_IND_BATTERY_LEVEL_STATUS        0x0002   /* Battery Status */
 
 /* Define all the 'Descriptor Type' values.
 */
@@ -311,7 +322,8 @@
 #define LANG_ID_CODE_ENGLISH            ((uint16_t) 0x656e)   /* "en" */
 #define LANG_ID_CHAR_ENCODE_UTF8        ((uint16_t) 0x006a)   /* UTF-8 */
 
-/* Constants used for display purposes only.  These define ovelapping attribute values */
+/* Constants used for display purposes only.  These define overlapping attribute
+ * values */
 #define  ATTR_ID_VERS_OR_GRP_OR_DRELNUM_OR_IPSUB_OR_SPECID  0x0200
 #define  ATTR_ID_VEND_ID_OR_SERVICE_DB_STATE_OR_PARSE_VER   0x0201
 #define  ATTR_ID_PROD_ID_OR_HID_DEV_SUBCLASS                0x0202

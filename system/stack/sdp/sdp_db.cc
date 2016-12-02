@@ -39,7 +39,7 @@
 
 #if (SDP_SERVER_ENABLED == TRUE)
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static bool    find_uuid_in_seq (uint8_t *p , uint32_t seq_len, uint8_t *p_his_uuid,
                                  uint16_t his_len, int nest_level);
@@ -384,8 +384,8 @@ bool    SDP_DeleteRecord (uint32_t handle)
  *
  * Description      This function is called to add an attribute to a record.
  *                  This would be through the SDP database maintenance API.
- *                  If the attribute already exists in the record, it is replaced
- *                  with the new value.
+ *                  If the attribute already exists in the record, it is
+ *                  replaced with the new value.
  *
  * NOTE             Attribute values must be passed as a Big Endian stream.
  *
@@ -638,9 +638,9 @@ bool    SDP_AddUuidSequence (uint32_t handle,  uint16_t attr_id, uint16_t num_uu
  * Function         SDP_AddProtocolList
  *
  * Description      This function is called to add a protocol descriptor list to
- *                  a record. This would be through the SDP database maintenance API.
- *                  If the protocol list already exists in the record, it is replaced
- *                  with the new list.
+ *                  a record. This would be through the SDP database
+ *                  maintenance API. If the protocol list already exists in the
+ *                  record, it is replaced with the new list.
  *
  * Returns          true if added OK, else false
  *
@@ -668,9 +668,9 @@ bool    SDP_AddProtocolList (uint32_t handle, uint16_t num_elem,
  * Function         SDP_AddAdditionProtoLists
  *
  * Description      This function is called to add a protocol descriptor list to
- *                  a record. This would be through the SDP database maintenance API.
- *                  If the protocol list already exists in the record, it is replaced
- *                  with the new list.
+ *                  a record. This would be through the SDP database maintenance
+ *                  API. If the protocol list already exists in the record, it
+ *                  is replaced with the new list.
  *
  * Returns          true if added OK, else false
  *
@@ -715,9 +715,9 @@ bool    SDP_AddAdditionProtoLists (uint32_t handle, uint16_t num_elem,
  * Function         SDP_AddProfileDescriptorList
  *
  * Description      This function is called to add a profile descriptor list to
- *                  a record. This would be through the SDP database maintenance API.
- *                  If the version already exists in the record, it is replaced
- *                  with the new one.
+ *                  a record. This would be through the SDP database maintenance
+ *                  API. If the version already exists in the record, it is
+ *                  replaced with the new one.
  *
  * Returns          true if added OK, else false
  *
@@ -759,9 +759,9 @@ bool    SDP_AddProfileDescriptorList (uint32_t handle, uint16_t profile_uuid,
  * Function         SDP_AddLanguageBaseAttrIDList
  *
  * Description      This function is called to add a language base attr list to
- *                  a record. This would be through the SDP database maintenance API.
- *                  If the version already exists in the record, it is replaced
- *                  with the new one.
+ *                  a record. This would be through the SDP database maintenance
+ *                  API. If the version already exists in the record, it is
+ *                  replaced with the new one.
  *
  * Returns          true if added OK, else false
  *
@@ -803,8 +803,8 @@ bool    SDP_AddLanguageBaseAttrIDList (uint32_t handle, uint16_t lang,
  *
  * Description      This function is called to add a service list to a record.
  *                  This would be through the SDP database maintenance API.
- *                  If the service list already exists in the record, it is replaced
- *                  with the new list.
+ *                  If the service list already exists in the record, it is
+ *                  replaced with the new list.
  *
  * Returns          true if added OK, else false
  *
@@ -840,8 +840,9 @@ bool    SDP_AddServiceClassIdList (uint32_t handle, uint16_t num_services,
  *
  * Function         SDP_DeleteAttribute
  *
- * Description      This function is called to delete an attribute from a record.
- *                  This would be through the SDP database maintenance API.
+ * Description      This function is called to delete an attribute from a
+ *                  record. This would be through the SDP database maintenance
+ *                  API.
  *
  * Returns          true if deleted OK, else false if not found
  *

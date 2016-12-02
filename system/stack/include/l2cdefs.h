@@ -46,33 +46,57 @@
 
 /* Define some packet and header lengths
 */
-#define L2CAP_PKT_OVERHEAD      4           /* Length and CID                       */
-#define L2CAP_CMD_OVERHEAD      4           /* Cmd code, Id and length              */
-#define L2CAP_CMD_REJECT_LEN    2           /* Reason (data is optional)            */
-#define L2CAP_CONN_REQ_LEN      4           /* PSM and source CID                   */
-#define L2CAP_CONN_RSP_LEN      8           /* Dest CID, source CID, reason, status */
-#define L2CAP_CONFIG_REQ_LEN    4           /* Dest CID, flags (data is optional)   */
-#define L2CAP_CONFIG_RSP_LEN    6           /* Dest CID, flags, result,data optional*/
-#define L2CAP_DISC_REQ_LEN      4           /* Dest CID, source CID                 */
-#define L2CAP_DISC_RSP_LEN      4           /* Dest CID, source CID                 */
-#define L2CAP_ECHO_REQ_LEN      0           /* Data is optional                     */
-#define L2CAP_ECHO_RSP_LEN      0           /* Data is optional                     */
-#define L2CAP_INFO_REQ_LEN      2           /* Info type                            */
-#define L2CAP_INFO_RSP_LEN      4           /* Info type, result (data is optional) */
-#define L2CAP_UCD_OVERHEAD      2           /* Additional connectionless packet overhead */
+/* Length and CID                       */
+#define L2CAP_PKT_OVERHEAD      4
+/* Cmd code, Id and length              */
+#define L2CAP_CMD_OVERHEAD      4
+/* Reason (data is optional)            */
+#define L2CAP_CMD_REJECT_LEN    2
+/* PSM and source CID                   */
+#define L2CAP_CONN_REQ_LEN      4
+/* Dest CID, source CID, reason, status */
+#define L2CAP_CONN_RSP_LEN      8
+/* Dest CID, flags (data is optional)   */
+#define L2CAP_CONFIG_REQ_LEN    4
+/* Dest CID, flags, result,data optional*/
+#define L2CAP_CONFIG_RSP_LEN    6
+/* Dest CID, source CID                 */
+#define L2CAP_DISC_REQ_LEN      4
+/* Dest CID, source CID                 */
+#define L2CAP_DISC_RSP_LEN      4
+/* Data is optional                     */
+#define L2CAP_ECHO_REQ_LEN      0
+/* Data is optional                     */
+#define L2CAP_ECHO_RSP_LEN      0
+/* Info type                            */
+#define L2CAP_INFO_REQ_LEN      2
+/* Info type, result (data is optional) */
+#define L2CAP_INFO_RSP_LEN      4
+/* Additional connectionless packet overhead */
+#define L2CAP_UCD_OVERHEAD      2
 
-#define L2CAP_AMP_CONN_REQ_LEN  5           /* PSM, CID, and remote controller ID   */
-#define L2CAP_AMP_MOVE_REQ_LEN  3           /* CID and remote controller ID         */
-#define L2CAP_AMP_MOVE_RSP_LEN  4           /* CID and result                       */
-#define L2CAP_AMP_MOVE_CFM_LEN  4           /* CID and result                       */
-#define L2CAP_AMP_MOVE_CFM_RSP_LEN  2       /* CID                                  */
+/* PSM, CID, and remote controller ID   */
+#define L2CAP_AMP_CONN_REQ_LEN  5
+/* CID and remote controller ID         */
+#define L2CAP_AMP_MOVE_REQ_LEN  3
+/* CID and result                       */
+#define L2CAP_AMP_MOVE_RSP_LEN  4
+/* CID and result                       */
+#define L2CAP_AMP_MOVE_CFM_LEN  4
+/* CID                                  */
+#define L2CAP_AMP_MOVE_CFM_RSP_LEN  2
 
-#define L2CAP_CMD_BLE_UPD_REQ_LEN   8       /* Min and max interval, latency, tout  */
-#define L2CAP_CMD_BLE_UPD_RSP_LEN   2       /* Result                               */
+/* Min and max interval, latency, tout  */
+#define L2CAP_CMD_BLE_UPD_REQ_LEN   8
+/* Result                               */
+#define L2CAP_CMD_BLE_UPD_RSP_LEN   2
 
-#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_REQ_LEN 10 /* LE_PSM, SCID, MTU, MPS, Init Credit */
-#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_RES_LEN 10 /* DCID, MTU, MPS, Init credit, Result */
-#define L2CAP_CMD_BLE_FLOW_CTRL_CREDIT_LEN      4  /* CID, Credit */
+/* LE_PSM, SCID, MTU, MPS, Init Credit */
+#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_REQ_LEN 10
+/* DCID, MTU, MPS, Init credit, Result */
+#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_RES_LEN 10
+/* CID, Credit */
+#define L2CAP_CMD_BLE_FLOW_CTRL_CREDIT_LEN      4
 
 /* Define the packet boundary flags
 */
@@ -80,7 +104,7 @@
 #define L2CAP_PKT_START_FLUSHABLE       2
 #define L2CAP_PKT_START_NON_FLUSHABLE   0
 #endif
-#define L2CAP_COMPLETE_AMP_PKT          3       /* complete L2CAP packet on AMP HCI */
+#define L2CAP_COMPLETE_AMP_PKT          3 /* complete L2CAP packet on AMP HCI */
 #define L2CAP_PKT_START                 2
 #define L2CAP_PKT_CONTINUE              1
 #define L2CAP_MASK_FLAG            0x0FFF
@@ -98,7 +122,8 @@
 #define L2CAP_CONN_BAD_CTLR_ID       5              /* AMP related */
 #define L2CAP_CONN_TIMEOUT           0xEEEE
 #define L2CAP_CONN_AMP_FAILED        254
-#define L2CAP_CONN_NO_LINK           255        /* Add a couple of our own for internal use */
+/* Add a couple of our own for internal use */
+#define L2CAP_CONN_NO_LINK           255
 #define L2CAP_CONN_CANCEL            256        /* L2CAP connection cancelled */
 
 /* Define the LE L2CAP connection result codes
@@ -110,7 +135,8 @@
 #define L2CAP_LE_INSUFFICIENT_AUTHORIZATION     6
 #define L2CAP_LE_INSUFFICIENT_ENCRYP_KEY_SIZE   7
 #define L2CAP_LE_INSUFFICIENT_ENCRYP            8
-#define L2CAP_LE_INVALID_SOURCE_CID             9   /* We don't like peer device response */
+/* We don't like peer device response */
+#define L2CAP_LE_INVALID_SOURCE_CID             9
 
 /* Define L2CAP Move Channel Response result codes
 */
@@ -241,32 +267,48 @@
 /* Define the info-type fields of information request & response
 */
 #define L2CAP_CONNLESS_MTU_INFO_TYPE      0x0001
-#define L2CAP_EXTENDED_FEATURES_INFO_TYPE 0x0002    /* Used in Information Req/Response */
-#define L2CAP_FIXED_CHANNELS_INFO_TYPE    0x0003    /* Used in AMP                      */
+/* Used in Information Req/Response */
+#define L2CAP_EXTENDED_FEATURES_INFO_TYPE 0x0002
+/* Used in AMP                      */
+#define L2CAP_FIXED_CHANNELS_INFO_TYPE    0x0003
 
-#define L2CAP_CONNLESS_MTU_INFO_SIZE           2    /* Connectionless MTU size          */
-#define L2CAP_EXTENDED_FEATURES_ARRAY_SIZE     4    /* Extended features array size     */
-#define L2CAP_FIXED_CHNL_ARRAY_SIZE            8    /* Fixed channel array size         */
+/* Connectionless MTU size          */
+#define L2CAP_CONNLESS_MTU_INFO_SIZE           2
+/* Extended features array size     */
+#define L2CAP_EXTENDED_FEATURES_ARRAY_SIZE     4
+/* Fixed channel array size         */
+#define L2CAP_FIXED_CHNL_ARRAY_SIZE            8
 
 /* Extended features mask bits
 */
-#define L2CAP_EXTFEA_RTRANS         0x00000001    /* Retransmission Mode (Not Supported)    */
-#define L2CAP_EXTFEA_FC             0x00000002    /* Flow Control Mode   (Not Supported)    */
+/* Retransmission Mode (Not Supported)    */
+#define L2CAP_EXTFEA_RTRANS         0x00000001
+/* Flow Control Mode   (Not Supported)    */
+#define L2CAP_EXTFEA_FC             0x00000002
 #define L2CAP_EXTFEA_QOS            0x00000004
-#define L2CAP_EXTFEA_ENH_RETRANS    0x00000008    /* Enhanced retransmission mode           */
-#define L2CAP_EXTFEA_STREAM_MODE    0x00000010    /* Streaming Mode                         */
-#define L2CAP_EXTFEA_NO_CRC         0x00000020    /* Optional FCS (if set No FCS desired)   */
-#define L2CAP_EXTFEA_EXT_FLOW_SPEC  0x00000040    /* Extended flow spec                     */
-#define L2CAP_EXTFEA_FIXED_CHNLS    0x00000080    /* Fixed channels                         */
-#define L2CAP_EXTFEA_EXT_WINDOW     0x00000100    /* Extended Window Size                   */
-#define L2CAP_EXTFEA_UCD_RECEPTION  0x00000200    /* Unicast Connectionless Data Reception  */
+/* Enhanced retransmission mode           */
+#define L2CAP_EXTFEA_ENH_RETRANS    0x00000008
+/* Streaming Mode                         */
+#define L2CAP_EXTFEA_STREAM_MODE    0x00000010
+/* Optional FCS (if set No FCS desired)   */
+#define L2CAP_EXTFEA_NO_CRC         0x00000020
+/* Extended flow spec                     */
+#define L2CAP_EXTFEA_EXT_FLOW_SPEC  0x00000040
+/* Fixed channels                         */
+#define L2CAP_EXTFEA_FIXED_CHNLS    0x00000080
+/* Extended Window Size                   */
+#define L2CAP_EXTFEA_EXT_WINDOW     0x00000100
+/* Unicast Connectionless Data Reception  */
+#define L2CAP_EXTFEA_UCD_RECEPTION  0x00000200
 
-/* Mask for locally supported features used in Information Response (default to none) */
+/* Mask for locally supported features used in Information Response
+ * (default to none) */
 #ifndef L2CAP_EXTFEA_SUPPORTED_MASK
 #define L2CAP_EXTFEA_SUPPORTED_MASK 0
 #endif
 
-/* Mask for LE supported features used in Information Response (default to none) */
+/* Mask for LE supported features used in Information Response
+ * (default to none) */
 #ifndef L2CAP_BLE_EXTFEA_MASK
 #define L2CAP_BLE_EXTFEA_MASK 0
 #endif
@@ -281,11 +323,12 @@
 #define L2CAP_SDU_LEN_OVERHEAD     2   /* SDU length field is 2 bytes */
 #define L2CAP_SDU_LEN_OFFSET       2   /* SDU length offset is 2 bytes */
 #define L2CAP_EXT_CONTROL_OVERHEAD 4   /* Extended Control Field       */
+/* length(2), channel(2), control(4), SDU length(2) FCS(2) */
 #define L2CAP_MAX_HEADER_FCS       (L2CAP_PKT_OVERHEAD + L2CAP_EXT_CONTROL_OVERHEAD + L2CAP_SDU_LEN_OVERHEAD + L2CAP_FCS_LEN)
-                                   /* length(2), channel(2), control(4), SDU length(2) FCS(2) */
 
-/* To optimize this, it must be a multiplum of the L2CAP PDU length AND match the 3DH5 air
- * including the l2cap headers in each packet - to match the latter - the -5 is added
+/* To optimize this, it must be a multiple of the L2CAP PDU length AND match
+ * the 3DH5 air including the l2cap headers in each packet. To match the latter,
+ * the -5 is added.
  * Changed it to  8087 to have same value between BTIF and L2cap layers
  */
 #define L2CAP_MAX_SDU_LENGTH     (8080 + 26 - (L2CAP_MIN_OFFSET + 6))
@@ -297,38 +340,59 @@
 
 /* SAR bits in the control word
 */
-#define L2CAP_FCR_UNSEG_SDU    0x0000   /* Control word to begin with for unsegmented PDU*/
-#define L2CAP_FCR_START_SDU    0x4000   /* ...for Starting PDU of a semented SDU */
-#define L2CAP_FCR_END_SDU      0x8000   /* ...for ending PDU of a segmented SDU */
-#define L2CAP_FCR_CONT_SDU     0xc000   /* ...for continuation PDU of a segmented SDU */
+/* Control word to begin with for unsegmented PDU*/
+#define L2CAP_FCR_UNSEG_SDU    0x0000
+/* ...for Starting PDU of a semented SDU */
+#define L2CAP_FCR_START_SDU    0x4000
+/* ...for ending PDU of a segmented SDU */
+#define L2CAP_FCR_END_SDU      0x8000
+/* ...for continuation PDU of a segmented SDU */
+#define L2CAP_FCR_CONT_SDU     0xc000
 
-/* Supervisory frame types
-*/
-#define L2CAP_FCR_SUP_RR        0x0000   /* Supervisory frame - RR                          */
-#define L2CAP_FCR_SUP_REJ       0x0001   /* Supervisory frame - REJ                         */
-#define L2CAP_FCR_SUP_RNR       0x0002   /* Supervisory frame - RNR                         */
-#define L2CAP_FCR_SUP_SREJ      0x0003   /* Supervisory frame - SREJ                        */
+/* Supervisory frame types */
+/* Supervisory frame - RR                          */
+#define L2CAP_FCR_SUP_RR        0x0000
+/* Supervisory frame - REJ                         */
+#define L2CAP_FCR_SUP_REJ       0x0001
+/* Supervisory frame - RNR                         */
+#define L2CAP_FCR_SUP_RNR       0x0002
+/* Supervisory frame - SREJ                        */
+#define L2CAP_FCR_SUP_SREJ      0x0003
 
-#define L2CAP_FCR_SAR_BITS           0xC000    /* Mask to get the SAR bits from control word */
-#define L2CAP_FCR_SAR_BITS_SHIFT     14        /* Bits to shift right to get the SAR bits from ctrl-word */
+/* Mask to get the SAR bits from control word */
+#define L2CAP_FCR_SAR_BITS           0xC000
+/* Bits to shift right to get the SAR bits from ctrl-word */
+#define L2CAP_FCR_SAR_BITS_SHIFT     14
 
-#define L2CAP_FCR_S_FRAME_BIT         0x0001   /* Mask to check if a PDU is S-frame */
-#define L2CAP_FCR_REQ_SEQ_BITS        0x3F00   /* Mask to get the req-seq from control word */
-#define L2CAP_FCR_REQ_SEQ_BITS_SHIFT  8        /* Bits to shift right to get the req-seq from ctrl-word */
-#define L2CAP_FCR_TX_SEQ_BITS         0x007E   /* Mask on get the tx-seq from control word */
-#define L2CAP_FCR_TX_SEQ_BITS_SHIFT   1        /* Bits to shift right to get the tx-seq from ctrl-word */
+/* Mask to check if a PDU is S-frame */
+#define L2CAP_FCR_S_FRAME_BIT         0x0001
+/* Mask to get the req-seq from control word */
+#define L2CAP_FCR_REQ_SEQ_BITS        0x3F00
+/* Bits to shift right to get the req-seq from ctrl-word */
+#define L2CAP_FCR_REQ_SEQ_BITS_SHIFT  8
+/* Mask on get the tx-seq from control word */
+#define L2CAP_FCR_TX_SEQ_BITS         0x007E
+/* Bits to shift right to get the tx-seq from ctrl-word */
+#define L2CAP_FCR_TX_SEQ_BITS_SHIFT   1
 
-#define L2CAP_FCR_F_BIT               0x0080   /* F-bit in the control word (Sup and I frames)  */
-#define L2CAP_FCR_P_BIT               0x0010   /* P-bit in the control word (Sup frames only)   */
+/* F-bit in the control word (Sup and I frames)  */
+#define L2CAP_FCR_F_BIT               0x0080
+/* P-bit in the control word (Sup frames only)   */
+#define L2CAP_FCR_P_BIT               0x0010
 
 #define L2CAP_FCR_F_BIT_SHIFT         7
 #define L2CAP_FCR_P_BIT_SHIFT         4
 
-#define L2CAP_FCR_SEG_BITS            0xC000   /* Mask to get the segmentation bits from ctrl-word */
-#define L2CAP_FCR_SUP_SHIFT           2        /* Bits to shift right to get the S-bits from ctrl-word */
-#define L2CAP_FCR_SUP_BITS            0x000C   /* Mask to get the supervisory bits from ctrl-word */
+/* Mask to get the segmentation bits from ctrl-word */
+#define L2CAP_FCR_SEG_BITS            0xC000
+/* Bits to shift right to get the S-bits from ctrl-word */
+#define L2CAP_FCR_SUP_SHIFT           2
+/* Mask to get the supervisory bits from ctrl-word */
+#define L2CAP_FCR_SUP_BITS            0x000C
 
-#define L2CAP_FCR_INIT_CRC            0   /* Initial state of the CRC register */
-#define L2CAP_FCR_SEQ_MODULO          0x3F     /* Mask for sequence numbers (range 0 - 63) */
+/* Initial state of the CRC register */
+#define L2CAP_FCR_INIT_CRC            0
+/* Mask for sequence numbers (range 0 - 63) */
+#define L2CAP_FCR_SEQ_MODULO          0x3F
 
 #endif

@@ -207,12 +207,17 @@ typedef struct
 #define RFC_EVENT_DATA                  14
 #define RFC_EVENT_SEC_COMPLETE          15
 
-#define RFC_T1_TIMEOUT                  20   /* seconds to wait for reply with Poll bit */
-#define RFC_PORT_T1_TIMEOUT             60   /* seconds to wait for reply with Poll bit other than MX */
-#define RFC_T2_TIMEOUT                  20   /* timeout to wait for Mx UIH */
-#define RFC_DISC_TIMEOUT                3    /* If something goes wrong and we send DISC we should not wait for min */
+/* seconds to wait for reply with Poll bit */
+#define RFC_T1_TIMEOUT                  20
+/* seconds to wait for reply with Poll bit other than MX */
+#define RFC_PORT_T1_TIMEOUT             60
+/* timeout to wait for Mx UIH */
+#define RFC_T2_TIMEOUT                  20
+/* If something goes wrong and we send DISC we should not wait for min */
+#define RFC_DISC_TIMEOUT                3
 #define RFC_CLOSE_TIMEOUT               10
-#define RFCOMM_CONN_TIMEOUT            120   /* first connection to be established on Mx */
+/* first connection to be established on Mx */
+#define RFCOMM_CONN_TIMEOUT            120
 
 
 /* Define RFComm control block
@@ -221,7 +226,9 @@ typedef struct
 {
     MX_FRAME  rx_frame;
     tL2CAP_APPL_INFO  reg_info;              /* L2CAP Registration info */
-    tRFC_MCB *p_rfc_lcid_mcb[MAX_L2CAP_CHANNELS];     /* MCB based on the L2CAP's lcid */
+
+    /* MCB based on the L2CAP's lcid */
+    tRFC_MCB *p_rfc_lcid_mcb[MAX_L2CAP_CHANNELS];
     bool      peer_rx_disabled;              /* If true peer sent FCOFF */
     uint8_t   last_mux;                      /* Last mux allocated */
     uint8_t   last_port;                     /* Last port allocated */
@@ -238,7 +245,7 @@ typedef struct
 
 extern tRFC_CB rfc_cb;
 
-/* Timer running on the multiplexor channel while no DLCI connection is opened */
+/* Timer running on the multiplexor channel while no DLCI connection is open */
 #define RFC_MCB_INIT_INACT_TIMER    60  /* in seconds */
 
 /* Timer running on the multiplexor channel after last DLCI is released */

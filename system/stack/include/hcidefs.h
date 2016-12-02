@@ -220,7 +220,8 @@
 #define HCI_WRITE_FLOW_CONTROL_MODE           (0x0067 | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_READ_BE_FLUSH_TOUT                (0x0069 | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_WRITE_BE_FLUSH_TOUT               (0x006A | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
-#define HCI_SHORT_RANGE_MODE                  (0x006B | HCI_GRP_HOST_CONT_BASEBAND_CMDS) /* 802.11 only */
+/* 802.11 only */
+#define HCI_SHORT_RANGE_MODE                  (0x006B | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_READ_LE_HOST_SUPPORT              (0x006C | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_WRITE_LE_HOST_SUPPORT             (0x006D | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 
@@ -328,7 +329,7 @@
 #define HCI_BLE_LTK_REQ_REPLY           (0x001A | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_LTK_REQ_NEG_REPLY       (0x001B | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_READ_SUPPORTED_STATES   (0x001C | HCI_GRP_BLE_CMDS)
-                            /*0x001D, 0x001E and 0x001F are reserved*/
+                            /* 0x001D, 0x001E and 0x001F are reserved */
 #define HCI_BLE_RECEIVER_TEST           (0x001D | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_TRANSMITTER_TEST        (0x001E | HCI_GRP_BLE_CMDS)
 /* BLE TEST COMMANDS */
@@ -381,7 +382,8 @@
 #define BTM_BLE_MULTI_ADV_ENB                           0x05
 
 /* multi adv VSE subcode */
-#define HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG       0x55 /* multi adv instance state change */
+/* multi adv instance state change */
+#define HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG       0x55
 
 /* subcode for batch scan feature */
 #define BTM_BLE_BATCH_SCAN_ENB_DISAB_CUST_FEATURE      0x01
@@ -415,7 +417,7 @@
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_OFF           0
 #define HCI_LE_STATES_NON_CONN_ADV_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_NON_CONN_ADV_OFF] & HCI_SUPP_LE_STATES_NON_CONN_ADV_MASK)
 
-/*Scanneable Connectable Adv state  is supported. 0x0000000000000002 */
+/* Scanneable Connectable Adv state  is supported. 0x0000000000000002 */
 #define HCI_SUPP_LE_STATES_SCAN_ADV_MASK          0x02
 #define HCI_SUPP_LE_STATESSCAN_ADV_OFF           0
 #define HCI_LE_STATES_SCAN_ADV_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATESSCAN_ADV_OFF] & HCI_SUPP_LE_STATES_SCAN_ADV_MASK)
@@ -440,149 +442,170 @@
 #define HCI_SUPP_LE_STATES_ACTIVE_SCAN_OFF           0
 #define HCI_LE_STATES_ACTIVE_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_ACTIVE_SCAN_OFF] & HCI_SUPP_LE_STATES_ACTIVE_SCAN_MASK)
 
-/* Initiating state is supported. 0x0000000000000040 (or connection state in master role is also supported) */
+/* Initiating state is supported. 0x0000000000000040 (or connection state in
+ * master role is also supported) */
 #define HCI_SUPP_LE_STATES_INIT_MASK          0x40
 #define HCI_SUPP_LE_STATES_INIT_OFF           0
 #define HCI_LE_STATES_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_INIT_OFF] & HCI_SUPP_LE_STATES_INIT_MASK)
 
-/*connection state in slave  role is also supported. 0x0000000000000080 */
+/* connection state in slave  role is also supported. 0x0000000000000080 */
 #define HCI_SUPP_LE_STATES_SLAVE_MASK          0x80
 #define HCI_SUPP_LE_STATES_SLAVE_OFF           0
 #define HCI_LE_STATES_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_SLAVE_OFF] & HCI_SUPP_LE_STATES_SLAVE_MASK)
 
-/* Non Connectable Adv state and Passive Scanning State combination is supported. 0x0000000000000100 */
+/* Non Connectable Adv state and Passive Scanning State combination is
+ * supported. 0x0000000000000100 */
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_PASS_SCAN_MASK          0x01
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_PASS_SCAN_OFF           1
 #define HCI_LE_STATES_NON_CONN_ADV_PASS_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_NON_CONN_ADV_PASS_SCAN_OFF] & HCI_SUPP_LE_STATES_NON_CONN_ADV_PASS_SCAN_MASK)
 
-/*Scannable Adv state and Passive Scanning State combination is supported. 0x0000000000000200 */
+/* Scannable Adv state and Passive Scanning State combination is supported.
+ * 0x0000000000000200 */
 #define HCI_SUPP_LE_STATES_SCAN_ADV_PASS_SCAN_MASK          0x02
 #define HCI_SUPP_LE_STATES_SCAN_ADV_PASS_SCAN_OFF           1
 #define HCI_LE_STATES_SCAN_ADV_PASS_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_SCAN_ADV_PASS_SCAN_OFF] & HCI_SUPP_LE_STATES_SCAN_ADV_PASS_SCAN_MASK)
 
-/*Connectable Adv state and Passive Scanning State combination is supported. 0x0000000000000400 */
+/* Connectable Adv state and Passive Scanning State combination is supported.
+ * 0x0000000000000400 */
 #define HCI_SUPP_LE_STATES_CONN_ADV_PASS_SCAN_MASK          0x04
 #define HCI_SUPP_LE_STATES_CONN_ADV_PASS_SCAN_OFF           1
 #define HCI_LE_STATES_CONN_ADV_PASS_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_CONN_ADV_PASS_SCAN_OFF] & HCI_SUPP_LE_STATES_CONN_ADV_PASS_SCAN_MASK)
 
-/*High Duty Cycl Directed ADv and Passive Scanning State combination is supported. 0x0000000000000800 */
+/* High Duty Cycl Directed ADv and Passive Scanning State combination is
+ * supported. 0x0000000000000800 */
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_PASS_SCAN_MASK          0x08
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_PASS_SCAN_OFF           1
 #define HCI_LE_STATES_HI_DUTY_DIR_ADV_PASS_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_PASS_SCAN_MASK] & HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_PASS_SCAN_OFF)
 
-/*Non Connectable Adv state and Passive Scanning State combination is supported. 0x0000000000001000 */
+/* Non Connectable Adv state and Passive Scanning State combination is
+ * supported. 0x0000000000001000 */
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_ACTIVE_SCAN_MASK          0x10
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_ACTIVE_SCAN_OFF           1
 #define HCI_LE_STATES_NON_CONN_ADV_ACTIVE_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_NON_CONN_ADV_ACTIVE_SCAN_OFF] & HCI_SUPP_LE_STATES_NON_CONN_ADV_ACTIVE_SCAN_MASK)
 
-/*Scannable Adv state and Active Scanning State combination is supported. 0x0000000000002000 */
+/* Scannable Adv state and Active Scanning State combination is supported.
+ * 0x0000000000002000 */
 #define HCI_SUPP_LE_STATES_SCAN_ADV_ACTIVE_SCAN_MASK          0x20
 #define HCI_SUPP_LE_STATES_SCAN_ADV_ACTIVE_SCAN_OFF           1
 #define HCI_LE_STATES_SCAN_ADV_ACTIVE_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_SCAN_ADV_ACTIVE_SCAN_OFF] & HCI_SUPP_LE_STATES_SCAN_ADV_ACTIVE_SCAN_MASK)
 
-/*Connectable Adv state and Active Scanning State combination is supported. 0x0000000000004000 */
+/* Connectable Adv state and Active Scanning State combination is supported.
+ * 0x0000000000004000 */
 #define HCI_SUPP_LE_STATES_CONN_ADV_ACTIVE_SCAN_MASK          0x40
 #define HCI_SUPP_LE_STATES_CONN_ADV_ACTIVE_SCAN_OFF           1
 #define HCI_LE_STATES_CONN_ADV_ACTIVE_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_CONN_ADV_ACTIVE_SCAN_OFF] & HCI_SUPP_LE_STATES_CONN_ADV_ACTIVE_SCAN_MASK)
 
-/*High Duty Cycl Directed ADv and ACtive Scanning State combination is supported. 0x0000000000008000 */
+/* High Duty Cycl Directed ADv and ACtive Scanning State combination is
+ * supported. 0x0000000000008000 */
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_ACTIVE_SCAN_MASK          0x80
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_ACTIVE_SCAN_OFF           1
 #define HCI_LE_STATES_HI_DUTY_DIR_ADV_ACTIVE_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_ACTIVE_SCAN_MASK] & HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_ACTIVE_SCAN_OFF)
 
-/*Non-Connectable Adv state and Initiating State combination is supported. 0x0000000000010000 */
+/* Non-Connectable Adv state and Initiating State combination is supported.
+ * 0x0000000000010000 */
 #define HCI_SUPP_LE_STATES_NON_CONN_INIT_MASK          0x01
 #define HCI_SUPP_LE_STATES_NON_CONN_INIT_OFF           2
 #define HCI_LE_STATES_NON_CONN_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_NON_CONN_INIT_OFF] & HCI_SUPP_LE_STATES_NON_CONN_INIT_MASK)
 
-/* Scannable Adv state and Initiating State combination is supported. 0x0000000000020000 */
+/* Scannable Adv state and Initiating State combination is supported.
+ * 0x0000000000020000 */
 #define HCI_SUPP_LE_STATES_SCAN_ADV_INIT_MASK          0x02
 #define HCI_SUPP_LE_STATES_SCAN_ADV_INIT_OFF           2
 #define HCI_LE_STATES_SCAN_ADV_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_SCAN_ADV_INIT_OFF] & HCI_SUPP_LE_STATES_SCAN_ADV_INIT_MASK)
 
-/* Non-Connectable Adv state and Master Role combination is supported. 0x0000000000040000 */
+/* Non-Connectable Adv state and Master Role combination is supported.
+ * 0x0000000000040000 */
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_MASTER_MASK          0x04
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_MASTER_OFF           2
 #define HCI_LE_STATES_NON_CONN_ADV_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_NON_CONN_ADV_MASTER_OFF] & HCI_SUPP_LE_STATES_NON_CONN_ADV_MASTER_MASK)
 
-/*Scannable Adv state and Master Role combination is supported. 0x0000000000040000 */
+/* Scannable Adv state and Master Role combination is supported.
+ * 0x0000000000040000 */
 #define HCI_SUPP_LE_STATES_SCAN_ADV_MASTER_MASK          0x08
 #define HCI_SUPP_LE_STATES_SCAN_ADV_MASTER_OFF           2
 #define HCI_LE_STATES_SCAN_ADV_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_SCAN_ADV_MASTER_OFF] & HCI_SUPP_LE_STATES_SCAN_ADV_MASTER_MASK)
 
-/* Non-Connectable Adv and Slave Role combination is supported. 0x000000000100000 */
+/* Non-Connectable Adv and Slave Role combination is supported.
+ * 0x000000000100000 */
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_SLAVE_MASK          0x10
 #define HCI_SUPP_LE_STATES_NON_CONN_ADV_SLAVE_OFF           2
 #define HCI_LE_STATES_NON_CONN_ADV_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_NON_CONN_ADV_SLAVE_OFF] & HCI_SUPP_LE_STATES_NON_CONN_ADV_SLAVE_MASK)
 
-/*Scannable Adv and Slave Role combination is supported. 0x000000000200000 */
+/* Scannable Adv and Slave Role combination is supported. 0x000000000200000 */
 #define HCI_SUPP_LE_STATES_SCAN_ADV_SLAVE_MASK          0x20
 #define HCI_SUPP_LE_STATES_SCAN_ADV_SLAVE_OFF           2
 #define HCI_LE_STATES_SCAN_ADV_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_SCAN_ADV_SLAVE_OFF] & HCI_SUPP_LE_STATES_SCAN_ADV_SLAVE_MASK)
 
-/*Passive Scan and Initiating State combination is supported. 0x000000000400000 */
+/* Passive Scan and Initiating State combination is supported.
+ * 0x000000000400000 */
 #define HCI_SUPP_LE_STATES_PASS_SCAN_INIT_MASK          0x40
 #define HCI_SUPP_LE_STATES_PASS_SCAN_INIT_OFF           2
 #define HCI_LE_STATES_PASS_SCAN_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_PASS_SCAN_INIT_OFF] & HCI_SUPP_LE_STATES_PASS_SCAN_INIT_MASK)
 
-/*Active Scan and Initiating State combination is supported. 0x000000000800000 */
+/* Active Scan and Initiating State combination is supported.
+ * 0x000000000800000 */
 #define HCI_SUPP_LE_STATES_ACTIVE_SCAN_INIT_MASK          0x80
 #define HCI_SUPP_LE_STATES_ACTIVE_SCAN_INIT_OFF           2
 #define HCI_LE_STATES_ACTIVE_SCAN_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_ACTIVE_SCAN_INIT_OFF] & HCI_SUPP_LE_STATES_ACTIVE_SCAN_INIT_MASK)
 
-/*Passive Scan and Master Role combination is supported. 0x000000001000000 */
+/* Passive Scan and Master Role combination is supported. 0x000000001000000 */
 #define HCI_SUPP_LE_STATES_PASS_SCAN_MASTER_MASK          0x01
 #define HCI_SUPP_LE_STATES_PASS_SCAN_MASTER_OFF           3
 #define HCI_LE_STATES_PASS_SCAN_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_PASS_SCAN_MASTER_OFF] & HCI_SUPP_LE_STATES_PASS_SCAN_MASTER_MASK)
 
-/*Active Scan and Master Role combination is supported. 0x000000002000000 */
+/* Active Scan and Master Role combination is supported. 0x000000002000000 */
 #define HCI_SUPP_LE_STATES_ACTIVE_SCAN_MASTER_MASK          0x02
 #define HCI_SUPP_LE_STATES_ACTIVE_SCAN_MASTER_OFF           3
 #define HCI_LE_STATES_ACTIVE_SCAN_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_ACTIVE_SCAN_MASTER_OFF] & HCI_SUPP_LE_STATES_ACTIVE_SCAN_MASTER_MASK)
 
-/*Passive Scan and Slave Role combination is supported. 0x000000004000000 */
+/* Passive Scan and Slave Role combination is supported. 0x000000004000000 */
 #define HCI_SUPP_LE_STATES_PASS_SCAN_SLAVE_MASK          0x04
 #define HCI_SUPP_LE_STATES_PASS_SCAN_SLAVE_OFF           3
 #define HCI_LE_STATES_PASS_SCAN_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_PASS_SCAN_SLAVE_OFF] & HCI_SUPP_LE_STATES_PASS_SCAN_SLAVE_MASK)
 
-/*Active Scan and Slave Role combination is supported. 0x000000008000000 */
+/* Active Scan and Slave Role combination is supported. 0x000000008000000 */
 #define HCI_SUPP_LE_STATES_ACTIVE_SCAN_SLAVE_MASK          0x08
 #define HCI_SUPP_LE_STATES_ACTIVE_SCAN_SLAVE_OFF           3
 #define HCI_LE_STATES_ACTIVE_SCAN_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_ACTIVE_SCAN_SLAVE_OFF] & HCI_SUPP_LE_STATES_ACTIVE_SCAN_SLAVE_MASK)
 
-/*Link Layer Topology Added States Combo */
-/*Initiating State and Master Role combination supported.
+/* Link Layer Topology Added States Combo */
+/* Initiating State and Master Role combination supported.
   Master Role and Master Role combination is also supported. 0x0000000010000000 */
 #define HCI_SUPP_LE_STATES_INIT_MASTER_MASK          0x10
 #define HCI_SUPP_LE_STATES_INIT_MASTER_OFF           3
 #define HCI_LE_STATES_INIT_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_INIT_MASTER_OFF] & HCI_SUPP_LE_STATES_INIT_MASTER_MASK)
 
-/*Low Duty Cycle Directed Advertising State . 0x0000000020000000 */
+/* Low Duty Cycle Directed Advertising State . 0x0000000020000000 */
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_MASK          0x20
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_OFF           3
 #define HCI_LE_STATES_LOW_DUTY_DIR_ADV_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LOW_DUTY_DIR_ADV_OFF] & HCI_SUPP_LE_STATES_LOW_DUTY_DIR_ADV_MASK)
 
-/*Low Duty Cycle Directed Advertising State and Passive scan combination. 0x0000000040000000 */
+/* Low Duty Cycle Directed Advertising State and Passive scan combination.
+ * 0x0000000040000000 */
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_MASK          0x40
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_OFF           3
 #define HCI_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_OFF] & HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_MASK)
 
-/*Low Duty Cycle Directed Advertising State and Active scan combination . 0x0000000080000000 */
+/* Low Duty Cycle Directed Advertising State and Active scan combination.
+ * 0x0000000080000000 */
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_MASK          0x80
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_OFF           3
 #define HCI_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_OFF] & HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_MASK)
 
-/* Connectable Advertising State and Initiating State combination supported. 0x0000000100000000 */
+/* Connectable Advertising State and Initiating State combination supported.
+ * 0x0000000100000000 */
 #define HCI_SUPP_LE_STATES_CONN_ADV_INIT_MASK          0x01
 #define HCI_SUPP_LE_STATES_CONN_ADV_INIT_OFF           4
 #define HCI_LE_STATES_CONN_ADV_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_CONN_ADV_INIT_OFF] & HCI_SUPP_LE_STATES_CONN_ADV_INIT_MASK)
 
-/* High Duty Cycle Directed Advertising State and Initiating State combination supported. */
+/* High Duty Cycle Directed Advertising State and Initiating State combination
+ * supported. */
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_INIT_MASK          0x02
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_INIT_OFF           4
 #define HCI_LE_STATES_HI_DUTY_DIR_ADV_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_INIT_OFF] & HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_INIT_MASK)
 
-/* Low Duty Cycle Directed Advertising State and Initiating State combination supported.*/
+/* Low Duty Cycle Directed Advertising State and Initiating State combination
+ * supported.*/
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_INIT_MASK          0x04
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_INIT_OFF           4
 #define HCI_LE_STATES_LO_DUTY_DIR_ADV_INIT_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_INIT_OFF] & HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_INIT_MASK)
@@ -592,12 +615,14 @@
 #define HCI_SUPP_LE_STATES_CONN_ADV_MASTER_OFF           4
 #define HCI_LE_STATES_CONN_ADV_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_CONN_ADV_MASTER_OFF] & HCI_SUPP_LE_STATES_CONN_ADV_MASTER_MASK)
 
-/* High Duty Cycle Directed Advertising State and Master Role combination supported.*/
+/* High Duty Cycle Directed Advertising State and Master Role combination
+ * supported.*/
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_MASTER_MASK          0x10
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_MASTER_OFF           4
 #define HCI_LE_STATES_HI_DUTY_DIR_ADV_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_MASTER_OFF] & HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_MASTER_MASK)
 
-/* Low Duty Cycle Directed Advertising State and Master Role combination supported.*/
+/* Low Duty Cycle Directed Advertising State and Master Role combination
+ * supported.*/
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_MASTER_MASK          0x20
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_MASTER_OFF           4
 #define HCI_LE_STATES_LO_DUTY_DIR_ADV_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_MASTER_OFF] & HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_MASTER_MASK)
@@ -607,12 +632,14 @@
 #define HCI_SUPP_LE_STATES_CONN_ADV_SLAVE_OFF           4
 #define HCI_LE_STATES_CONN_ADV_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_CONN_ADV_SLAVE_OFF] & HCI_SUPP_LE_STATES_CONN_ADV_SLAVE_MASK)
 
-/* High Duty Cycle Directed Advertising State and slave Role combination supported.*/
+/* High Duty Cycle Directed Advertising State and slave Role combination
+ * supported.*/
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_SLAVE_MASK          0x80
 #define HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_SLAVE_OFF           4
 #define HCI_LE_STATES_HI_DUTY_DIR_ADV_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_SLAVE_OFF] & HCI_SUPP_LE_STATES_HI_DUTY_DIR_ADV_SLAVE_MASK)
 
-/* Low Duty Cycle Directed Advertising State and slave Role combination supported.*/
+/* Low Duty Cycle Directed Advertising State and slave Role combination
+ * supported.*/
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_SLAVE_MASK          0x01
 #define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_SLAVE_OFF           5
 #define HCI_LE_STATES_LO_DUTY_DIR_ADV_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_SLAVE_OFF] & HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_SLAVE_MASK)
@@ -962,11 +989,12 @@
 #define HCI_ESCO_PKT_TYPES_MASK_NO_2_EV5    0x0100
 #define HCI_ESCO_PKT_TYPES_MASK_NO_3_EV5    0x0200
 
-/* Packet type should be one of valid but at least one should be specified for 1.2 */
+/* Packet type should be one of valid but at least one should be specified for
+ * 1.2 */
 #define HCI_VALID_ESCO_PKT_TYPE(t) (((((t) & ~(HCI_ESCO_PKT_TYPES_MASK_EV3       \
                                            |   HCI_ESCO_PKT_TYPES_MASK_EV4       \
                                            |   HCI_ESCO_PKT_TYPES_MASK_EV5)) == 0)) \
-                                    && ((t) != 0))/* Packet type should be one of valid but at least one should be specified */
+                                    && ((t) != 0))
 
 #define HCI_VALID_ESCO_SCOPKT_TYPE(t) (((((t) & ~(HCI_ESCO_PKT_TYPES_MASK_HV1       \
                                            |      HCI_ESCO_PKT_TYPES_MASK_HV2       \
@@ -1142,8 +1170,10 @@
 #define HCI_FILTER_COND_BD_ADDR         0x02
 
 #define HCI_DO_NOT_AUTO_ACCEPT_CONNECT  1
-#define HCI_DO_AUTO_ACCEPT_CONNECT      2   /* role switch disabled */
-#define HCI_DO_AUTO_ACCEPT_CONNECT_RS   3   /* role switch enabled (1.1 errata 1115) */
+/* role switch disabled */
+#define HCI_DO_AUTO_ACCEPT_CONNECT      2
+/* role switch enabled (1.1 errata 1115) */
+#define HCI_DO_AUTO_ACCEPT_CONNECT_RS   3
 
 /* Auto accept flags */
 #define HCI_AUTO_ACCEPT_OFF             0x00
@@ -1669,7 +1699,8 @@ typedef struct
 #define HCI_FEATURE_NON_FLUSHABLE_PB_MASK      0x40
 #define HCI_FEATURE_NON_FLUSHABLE_PB_OFF       6
 
-/* This feature is causing frequent link drops when doing call switch with certain av/hfp headsets */
+/* This feature is causing frequent link drops when doing call switch with
+ * certain av/hfp headsets */
 #define HCI_NON_FLUSHABLE_PB_SUPPORTED(x)      (0)//((x)[HCI_FEATURE_NON_FLUSHABLE_PB_OFF] & HCI_FEATURE_NON_FLUSHABLE_PB_MASK)
 
 #define HCI_FEATURE_LINK_SUP_TO_EVT_MASK 0x01

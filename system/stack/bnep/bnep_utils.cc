@@ -37,7 +37,7 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static uint8_t *bnepu_init_hdr (BT_HDR *p_buf, uint16_t hdr_len, uint8_t pkt_type);
 
@@ -1349,9 +1349,9 @@ tBNEP_RESULT bnep_is_packet_allowed (tBNEP_CONN *p_bcb,
  *
  * Function         bnep_get_uuid32
  *
- * Description      This function returns the 32 bit equivalent of the given UUID
+ * Description      This function returns the 32-bit equivalent of the UUID
  *
- * Returns          uint32_t        - 32 bit equivalent of the UUID
+ * Returns          uint32_t - 32-bit equivalent of the UUID
  *
  ******************************************************************************/
 uint32_t bnep_get_uuid32 (tBT_UUID *src_uuid)

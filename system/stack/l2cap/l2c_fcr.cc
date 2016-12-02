@@ -41,7 +41,8 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-/* Flag passed to retransmit_i_frames() when all packets should be retransmitted */
+/* Flag passed to retransmit_i_frames() when all packets should be retransmitted
+ */
 #define L2C_FCR_RETX_ALL_PKTS   0xFF
 
 /* this is the minimal offset required by OBX to process incoming packets */
@@ -212,7 +213,8 @@ void l2c_fcr_stop_timer (tL2C_CCB *p_ccb)
  *
  * Function         l2c_fcr_cleanup
  *
- * Description      This function cleans up the variable used for flow-control/retrans.
+ * Description      This function cleans up the variable used for
+ *                  flow-control/retrans.
  *
  * Returns          -
  *
@@ -316,8 +318,8 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
  *
  * Function         l2c_fcr_clone_buf
  *
- * Description      This function allocates and copies requested part of a buffer
- *                  at a new-offset.
+ * Description      This function allocates and copies requested part of a
+ *                  buffer at a new-offset.
  *
  * Returns          pointer to new buffer
  *
@@ -581,7 +583,8 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, uint16_t function_code, uint16_t pf_
  * Function         l2c_fcr_proc_pdu
  *
  * Description      This function is the entry point for processing of a
- *                  received PDU when in flow control and/or retransmission modes.
+ *                  received PDU when in flow control and/or retransmission
+ *                  modes.
  *
  * Returns          -
  *
@@ -1829,7 +1832,8 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_leng
  *
  * Function         l2c_lcc_get_next_xmit_sdu_seg
  *
- * Description      Get the next SDU segment to transmit for LE connection oriented channel
+ * Description      Get the next SDU segment to transmit for LE connection
+ *                  oriented channel
  *
  * Returns          pointer to buffer with segment or NULL
  *
@@ -1941,7 +1945,8 @@ BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, uint16_t max_packet_leng
  *                  Note: This assumes peer EXT Features have been received.
  *                      Basic mode is used if FCR Options have not been received
  *
- * Returns          uint8_t - nonzero if can continue, '0' if no compatible channels
+ * Returns          uint8_t - nonzero if can continue, '0' if no compatible
+ *                            channels
  *
  ******************************************************************************/
 uint8_t l2c_fcr_chk_chan_modes (tL2C_CCB *p_ccb)

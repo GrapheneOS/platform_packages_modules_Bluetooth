@@ -76,15 +76,17 @@ void pan_register_with_bnep (void)
  *
  * Function         pan_conn_ind_cb
  *
- * Description      This function is registered with BNEP as connection indication
- *                  callback. BNEP will call this when there is connection
- *                  request from the peer. PAN should call BNEP_ConnectResp to
- *                  indicate whether to accept the connection or reject
+ * Description      This function is registered with BNEP as connection
+ *                  indication callback. BNEP will call this when there is
+ *                  connection request from the peer. PAN should call
+ *                  BNEP_ConnectResp to indicate whether to accept the
+ *                  connection or reject
  *
- * Parameters:      handle          - handle for the connection
- *                  p_bda           - BD Addr of the peer requesting the connection
+ * Parameters:      handle      - handle for the connection
+ *                  p_bda       - BD Addr of the peer requesting the connection
  *                  remote_uuid     - UUID of the source role (peer device role)
- *                  local_uuid      - UUID of the destination role (local device role)
+ *                  local_uuid      - UUID of the destination role (local device
+ *                                                                  role)
  *                  is_role_change  - Flag to indicate that it is a role change
  *
  * Returns          none
@@ -316,12 +318,12 @@ void pan_conn_ind_cb (uint16_t handle,
  *                  change callback. BNEP will call this when the connection
  *                  is established successfully or terminated
  *
- * Parameters:      handle      - handle for the connection given in the connection
- *                                      indication callback
- *                  rem_bda     - remote device bd addr
- *                  result      - indicates whether the connection is up or down
- *                                      BNEP_SUCCESS if the connection is up
- *                                      all other values indicates appropriate errors
+ * Parameters:      handle  - handle for the connection given in the connection
+ *                            indication callback
+ *                  rem_bda - remote device bd addr
+ *                  result  - indicates whether the connection is up or down
+ *                            BNEP_SUCCESS if the connection is up all other
+ *                            values indicate appropriate errors.
  *                  is_role_change - flag to indicate that it is a role change
  *
  * Returns          none
@@ -520,9 +522,10 @@ void pan_data_ind_cb (uint16_t handle,
  *
  * Function         pan_data_buf_ind_cb
  *
- * Description      This function is registered with BNEP as data buffer indication
- *                  callback. BNEP will call this when the peer sends any data
- *                  on this connection. PAN is responsible to release the buffer
+ * Description      This function is registered with BNEP as data buffer
+ *                  indication callback. BNEP will call this when the peer sends
+ *                  any data on this connection. PAN is responsible to release
+ *                  the buffer
  *
  * Parameters:      handle      - handle for the connection
  *                  src         - source BD Addr
@@ -660,16 +663,17 @@ void pan_tx_data_flow_cb (uint16_t handle,
  *
  * Function         pan_proto_filt_ind_cb
  *
- * Description      This function is registered with BNEP as proto filter indication
- *                  callback. BNEP will call this when the peer sends any protocol
- *                  filter set for the connection or to indicate the result of the
- *                  protocol filter set by the local device
+ * Description      This function is registered with BNEP as proto filter
+ *                  indication callback. BNEP will call this when the peer sends
+ *                  any protocol filter set for the connection or to indicate
+ *                  the result of the protocol filter set by the local device
  *
  * Parameters:      handle      - handle for the connection
  *                  indication  - true if this is indication
- *                                false if it is called to give the result of local
- *                                      device protocol filter set
- *                  result      - This gives the result of the filter set operation
+ *                                false if it is called to give the result of
+ *                                      local device protocol filter set
+ *                  result      - This gives the result of the filter set
+ *                                      operation
  *                  num_filters - number of filters set by the peer device
  *                  p_filters   - pointer to the filters set by the peer device
  *
@@ -694,16 +698,17 @@ void pan_proto_filt_ind_cb (uint16_t handle,
  *
  * Function         pan_mcast_filt_ind_cb
  *
- * Description      This function is registered with BNEP as mcast filter indication
- *                  callback. BNEP will call this when the peer sends any multicast
- *                  filter set for the connection or to indicate the result of the
- *                  multicast filter set by the local device
+ * Description      This function is registered with BNEP as mcast filter
+ *                  indication callback. BNEP will call this when the peer sends
+ *                  any multicast filter set for the connection or to indicate
+ *                  the result of the multicast filter set by the local device
  *
  * Parameters:      handle      - handle for the connection
  *                  indication  - true if this is indication
- *                                false if it is called to give the result of local
- *                                      device multicast filter set
- *                  result      - This gives the result of the filter set operation
+ *                                false if it is called to give the result of
+ *                                      local device multicast filter set
+ *                  result      - This gives the result of the filter set
+ *                                operation
  *                  num_filters - number of filters set by the peer device
  *                  p_filters   - pointer to the filters set by the peer device
  *

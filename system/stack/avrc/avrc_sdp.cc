@@ -64,23 +64,24 @@ static void avrc_sdp_cback(uint16_t status)
  *
  * Function         AVRC_FindService
  *
- * Description      This function is called by the application to perform service
- *                  discovery and retrieve AVRCP SDP record information from a
- *                  peer device.  Information is returned for the first service
- *                  record found on the server that matches the service UUID.
- *                  The callback function will be executed when service discovery
- *                  is complete.  There can only be one outstanding call to
- *                  AVRC_FindService() at a time; the application must wait for
- *                  the callback before it makes another call to the function.
- *                  The application is responsible for allocating memory for the
- *                  discovery database.  It is recommended that the size of the
- *                  discovery database be at least 300 bytes.  The application
- *                  can deallocate the memory after the callback function has
- *                  executed.
+ * Description      This function is called by the application to perform
+ *                  service discovery and retrieve AVRCP SDP record information
+ *                  from a peer device.  Information is returned for the first
+ *                  service record found on the server that matches the service
+ *                  UUID. The callback function will be executed when service
+ *                  discovery is complete.  There can only be one outstanding
+ *                  call to AVRC_FindService() at a time; the application must
+ *                  wait for the callback before it makes another call to the
+ *                  function.  The application is responsible for allocating
+ *                  memory for the discovery database.  It is recommended that
+ *                  the size of the discovery database be at least 300 bytes.
+ *                  The application can deallocate the memory after the
+ *                  callback function has executed.
  *
  *                  Input Parameters:
- *                      service_uuid: Indicates TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
- *                                           or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
+ *                      service_uuid: Indicates
+ *                                       TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
+ *                                     r CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
  *
  *                      bd_addr:  BD address of the peer device.
  *
@@ -92,7 +93,8 @@ static void avrc_sdp_cback(uint16_t status)
  *                      None.
  *
  * Returns          AVRC_SUCCESS if successful.
- *                  AVRC_BAD_PARAMS if discovery database parameters are invalid.
+ *                  AVRC_BAD_PARAMS if discovery database parameters are
+ *                  invalid.
  *                  AVRC_NO_RESOURCES if there are not enough resources to
  *                                    perform the service search.
  *
@@ -155,8 +157,9 @@ uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
  *                  call SDP_CreateRecord() to create an SDP record.
  *
  *                  Input Parameters:
- *                      service_uuid:  Indicates TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
- *                                            or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
+ *                      service_uuid:  Indicates
+ *                                        TG(UUID_SERVCLASS_AV_REM_CTRL_TARGET)
+ *                                     or CT(UUID_SERVCLASS_AV_REMOTE_CONTROL)
  *
  *                      p_service_name:  Pointer to a null-terminated character
  *                      string containing the service name.
@@ -178,7 +181,8 @@ uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
  *                      None.
  *
  * Returns          AVRC_SUCCESS if successful.
- *                  AVRC_NO_RESOURCES if not enough resources to build the SDP record.
+ *                  AVRC_NO_RESOURCES if not enough resources to build the SDP
+ *                                    record.
  *
  *****************************************************************************/
 uint16_t AVRC_AddRecord(uint16_t service_uuid, const char *p_service_name,

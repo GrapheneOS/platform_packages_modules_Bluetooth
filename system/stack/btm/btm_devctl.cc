@@ -47,7 +47,7 @@ extern fixed_queue_t *btu_general_alarm_queue;
 extern thread_t *bt_workqueue_thread;
 
 /******************************************************************************/
-/*                 L O C A L    D A T A    D E F I N I T I O N S                */
+/*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/
 
 #ifndef BTM_DEV_RESET_TIMEOUT
@@ -60,7 +60,7 @@ extern thread_t *bt_workqueue_thread;
 #define BTM_INFO_TIMEOUT        5   /* 5 seconds for info response */
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 
 static void btm_decode_ext_features_page (uint8_t page_number, const BD_FEATURES p_features);
@@ -106,9 +106,9 @@ void btm_dev_init (void)
  *
  * Function         btm_db_reset
  *
- * Description      This function is called by BTM_DeviceReset and clears out any
- *                  pending callbacks for inquiries, discoveries, other pending
- *                  functions that may be in progress.
+ * Description      This function is called by BTM_DeviceReset and clears out
+ *                  any pending callbacks for inquiries, discoveries, other
+ *                  pending functions that may be in progress.
  *
  * Returns          void
  *
@@ -666,7 +666,7 @@ void btm_vsc_complete (uint8_t *p, uint16_t opcode, uint16_t evt_len,
  *                  specific HCI events.
  *
  *                  If is_register=true, then the function will be registered;
- *                  if is_register=false, then the function will be deregistered.
+ *                  otherwise, the the function will be deregistered.
  *
  * Returns          BTM_SUCCESS if successful,
  *                  BTM_BUSY if maximum number of callbacks have already been
@@ -833,8 +833,8 @@ tBTM_STATUS BTM_EnableTestMode(void)
  * Function         BTM_DeleteStoredLinkKey
  *
  * Description      This function is called to delete link key for the specified
- *                  device addresses from the NVRAM storage attached to the Bluetooth
- *                  controller.
+ *                  device addresses from the NVRAM storage attached to the
+ *                  Bluetooth controller.
  *
  * Parameters:      bd_addr      - Addresses of the devices
  *                  p_cb         - Call back function to be called to return
@@ -873,7 +873,8 @@ tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB *p_cb)
  * Function         btm_delete_stored_link_key_complete
  *
  * Description      This function is called when the command complete message
- *                  is received from the HCI for the delete stored link key command.
+ *                  is received from the HCI for the delete stored link key
+ *                  command.
  *
  * Returns          void
  *

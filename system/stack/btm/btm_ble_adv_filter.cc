@@ -101,8 +101,8 @@ tBTM_STATUS btm_ble_obtain_vsc_details()
  *
  * Function         btm_ble_advfilt_enq_op_q
  *
- * Description      enqueue an adv filter operation in q to check command complete
- *                  status
+ * Description      enqueue an adv filter operation in the q to check command
+ *                  complete status
  *
  * Returns          void
  *
@@ -246,7 +246,8 @@ uint8_t btm_ble_ocf_to_condtype(uint8_t ocf)
  *
  * Function         btm_ble_scan_pf_cmpl_cback
  *
- * Description      the BTM BLE customer feature VSC complete callback for ADV PF filtering
+ * Description      the BTM BLE customer feature VSC complete callback for ADV
+ *                  PF filtering
  *
  * Returns          pointer to the counter if found; NULL otherwise.
  *
@@ -359,7 +360,8 @@ void btm_ble_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
  *
  * Function         btm_ble_find_addr_filter_counter
  *
- * Description      find the per bd address ADV payload filter counter by BD_ADDR.
+ * Description      find the per bd address ADV payload filter counter by
+ *                  BD_ADDR.
  *
  * Returns          pointer to the counter if found; NULL otherwise.
  *
@@ -389,7 +391,8 @@ tBTM_BLE_PF_COUNT* btm_ble_find_addr_filter_counter(tBLE_BD_ADDR *p_le_bda)
  *
  * Description      allocate the per device adv payload filter counter.
  *
- * Returns          pointer to the counter if allocation succeed; NULL otherwise.
+ * Returns          pointer to the counter if allocation succeed; NULL
+ *                  otherwise.
  *
  ******************************************************************************/
 tBTM_BLE_PF_COUNT * btm_ble_alloc_addr_filter_counter(BD_ADDR bd_addr)
@@ -445,7 +448,8 @@ bool    btm_ble_dealloc_addr_filter_counter(tBLE_BD_ADDR *p_bd_addr, uint8_t fil
  *
  * Function         btm_ble_update_pf_local_name
  *
- * Description      this function update(add,delete or clear) the adv lcoal name filtering condition.
+ * Description      this function update(add,delete or clear) the adv local
+ *                  name filtering condition.
  *
  *
  * Returns          BTM_SUCCESS if sucessful,
@@ -520,8 +524,8 @@ tBTM_STATUS btm_ble_update_srvc_data_change(tBTM_BLE_SCAN_COND_OP action,
  *
  * Function         btm_ble_update_pf_manu_data
  *
- * Description      this function update(add,delete or clear) the adv manufacturer
- *                  data filtering condition.
+ * Description      this function update(add,delete or clear) the adv
+ *                  manufacturer data filtering condition.
  *
  *
  * Returns          BTM_SUCCESS if sucessful,
@@ -635,7 +639,8 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
  *
  * Function         btm_ble_cs_update_pf_counter
  *
- * Description      this function is to update the adv data payload filter counter
+ * Description      this function is to update the adv data payload filter
+ *                  counter
  *
  * Returns          current number of the counter; BTM_BLE_INVALID_COUNTER if
  *                  counter update failed.
@@ -703,7 +708,8 @@ uint8_t btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
  *
  * Function         btm_ble_update_addr_filter
  *
- * Description      this function update(add,delete or clear) the address filter of adv.
+ * Description      this function updates(adds, deletes or clears) the address
+ *                  filter of adv.
  *
  *
  * Returns          BTM_CMD_STARTED if sucessful,
@@ -748,7 +754,8 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
  *
  * Function         btm_ble_update_uuid_filter
  *
- * Description      this function update(add,delete or clear) service UUID filter.
+ * Description      this function updates(adds, deletes or clears) the service
+ *                  UUID filter.
  *
  *
  * Returns          BTM_CMD_STARTED if sucessful,
@@ -887,7 +894,8 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
  *
  * Function         btm_ble_clear_scan_pf_filter
  *
- * Description      clear all adv payload filter by de-select all the adv pf feature bits
+ * Description      clear all adv payload filter by de-selecting all the adv pf
+ *                  feature bits
  *
  *
  * Returns          BTM_CMD_STARTED if sucessful,
@@ -1158,8 +1166,8 @@ tBTM_STATUS BTM_BleEnableDisableFilterFeature(uint8_t enable,
  *
  * Function         BTM_BleCfgFilterCondition
  *
- * Description      This function is called to configure the adv data payload filter
- *                  condition.
+ * Description      This function is called to configure the adv data payload
+ *                  filter condition.
  *
  * Parameters       action: to read/write/clear
  *                  cond_type: filter condition type.

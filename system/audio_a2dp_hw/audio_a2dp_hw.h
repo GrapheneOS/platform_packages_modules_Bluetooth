@@ -45,32 +45,32 @@
 // sample rate rather than being constant.
 //
 // FIXME: The BT HAL should consume data at a constant rate.
-// AudioFlinger assumes that the HAL draws data at a constant rate, which is true
-// for most audio devices; however, the BT engine reads data at a variable rate
-// (over the short term), which confuses both AudioFlinger as well as applications
-// which deliver data at a (generally) fixed rate.
+// AudioFlinger assumes that the HAL draws data at a constant rate, which is
+// true for most audio devices; however, the BT engine reads data at a variable
+// rate (over the short term), which confuses both AudioFlinger as well as
+// applications which deliver data at a (generally) fixed rate.
 //
-// 20 * 512 is not sufficient size to smooth the variability for some BT devices,
+// 20 * 512 is not sufficient to smooth the variability for some BT devices,
 // resulting in mixer sleep and throttling. We increase this to 28 * 512 to help
 // reduce the effect of variable data consumption.
 #define AUDIO_STREAM_OUTPUT_BUFFER_SZ      (28*512)
 
 // AUDIO_STREAM_OUTPUT_BUFFER_PERIODS controls how the socket buffer is divided
-// for AudioFlinger data delivery. The AudioFlinger mixer delivers data in chunks
-// of AUDIO_STREAM_OUTPUT_BUFFER_SZ / AUDIO_STREAM_OUTPUT_BUFFER_PERIODS. If
-// the number of periods is 2, the socket buffer represents "double buffering"
-// of the AudioFlinger mixer buffer.
+// for AudioFlinger data delivery. The AudioFlinger mixer delivers data in
+// chunks of AUDIO_STREAM_OUTPUT_BUFFER_SZ / AUDIO_STREAM_OUTPUT_BUFFER_PERIODS.
+// If the number of periods is 2, the socket buffer represents "double
+// buffering" of the AudioFlinger mixer buffer.
 //
-// In general, AUDIO_STREAM_OUTPUT_BUFFER_PERIODS * 16 * 4 should be a divisor of
-// AUDIO_STREAM_OUTPUT_BUFFER_SZ.
+// In general, AUDIO_STREAM_OUTPUT_BUFFER_PERIODS * 16 * 4 should be a divisor
+// of AUDIO_STREAM_OUTPUT_BUFFER_SZ.
 //
 // These values should be chosen such that
 //
 // AUDIO_STREAM_BUFFER_SIZE * 1000 / (AUDIO_STREAM_OUTPUT_BUFFER_PERIODS
 //         * AUDIO_STREAM_DEFAULT_RATE * 4) > 20 (ms)
 //
-// to avoid introducing the FastMixer in AudioFlinger. Using the FastMixer results in
-// unnecessary latency and CPU overhead for Bluetooth.
+// to avoid introducing the FastMixer in AudioFlinger. Using the FastMixer
+// results in unnecessary latency and CPU overhead for Bluetooth.
 #define AUDIO_STREAM_OUTPUT_BUFFER_PERIODS 4
 
 #define AUDIO_SKT_DISCONNECTED             (-1)

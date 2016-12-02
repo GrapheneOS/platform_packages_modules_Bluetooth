@@ -291,8 +291,8 @@ tL2C_LCB  *l2cu_find_lcb_by_bd_addr (BD_ADDR p_bd_addr, tBT_TRANSPORT transport)
  *
  * Description      Determine the desired role (master or slave) of a link.
  *                  If already got a slave link, this one must be a master. If
- *                  already got at least 1 link where we are the master, make this
- *                  also a master.
+ *                  already got at least 1 link where we are the master, make
+ *                  this also a master.
  *
  * Returns          HCI_ROLE_MASTER or HCI_ROLE_SLAVE
  *
@@ -308,7 +308,8 @@ uint8_t l2cu_get_conn_role (tL2C_LCB *p_this_lcb)
  *
  * Description      Checks if cmd_code is command or response
  *                  If a command it will be rejected per spec.
- *                  This function is used when a illegal packet length is detected
+ *                  This function is used when a illegal packet length is
+ *                  detected.
  *
  * Returns          bool    - true if cmd_code is a command and it is rejected,
  *                            false if response code. (command not rejected)
@@ -1610,8 +1611,8 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, uint16_t cid)
  *                  This timer can be longer than the normal link inactivity
  *                  timer for some platforms.
  *
- * Returns          bool     - true if idle timer started or disconnect initiated
- *                             false if there's one or more pending CCB's exist
+ * Returns          bool  - true if idle timer started or disconnect initiated
+ *                          false if there's one or more pending CCB's exist
  *
  ******************************************************************************/
 bool    l2cu_start_post_bond_timer (uint16_t handle)
@@ -1652,8 +1653,8 @@ bool    l2cu_start_post_bond_timer (uint16_t handle)
  * Function         l2cu_release_ccb
  *
  * Description      This function releases a Channel Control Block. The timer
- *                  is stopped, any attached buffers freed, and the CCB is removed
- *                  from the link control block.
+ *                  is stopped, any attached buffers freed, and the CCB is
+ *                  removed from the link control block.
  *
  * Returns          void
  *
@@ -1856,7 +1857,8 @@ void l2cu_release_rcb (tL2C_RCB *p_rcb)
  * Function         l2cu_disconnect_chnl
  *
  * Description      Disconnect a channel. Typically, this is due to either
- *                  receiving a bad configuration,  bad packet or max_retries expiring.
+ *                  receiving a bad configuration,  bad packet or max_retries
+ *                  expiring.
  *
  ******************************************************************************/
 void l2cu_disconnect_chnl (tL2C_CCB *p_ccb)
@@ -1937,19 +1939,21 @@ tL2C_RCB *l2cu_find_ble_rcb_by_psm (uint16_t psm)
  *
  * Function         l2cu_process_peer_cfg_req
  *
- * Description      This function is called when the peer sends us a "config request"
- *                  message. It extracts the configuration of interest and saves
- *                  it in the CCB.
+ * Description      This function is called when the peer sends us a "config
+ *                  request" message. It extracts the configuration of interest
+ *                  and saves it in the CCB.
  *
- *                  Note:  Negotiation of the FCR channel type is handled internally,
- *                         all others are passed to the upper layer.
+ *                  Note:  Negotiation of the FCR channel type is handled
+ *                         internally, all others are passed to the upper layer.
  *
  * Returns          uint8_t - L2CAP_PEER_CFG_OK if passed to upper layer,
- *                          L2CAP_PEER_CFG_UNACCEPTABLE if automatically responded to
- *                              because parameters are unnacceptable from a specification
- *                              point of view.
- *                          L2CAP_PEER_CFG_DISCONNECT if no compatible channel modes
- *                              between the two devices, and shall be closed.
+ *                            L2CAP_PEER_CFG_UNACCEPTABLE if automatically
+ *                                      responded to because parameters are
+ *                                      unnacceptable from a specification point
+ *                                      of view.
+ *                            L2CAP_PEER_CFG_DISCONNECT if no compatible channel
+ *                                      modes between the two devices, and shall
+ *                                      be closed.
  *
  ******************************************************************************/
 uint8_t l2cu_process_peer_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
@@ -2079,9 +2083,9 @@ uint8_t l2cu_process_peer_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
  *
  * Function         l2cu_process_peer_cfg_rsp
  *
- * Description      This function is called when the peer sends us a "config response"
- *                  message. It extracts the configuration of interest and saves
- *                  it in the CCB.
+ * Description      This function is called when the peer sends us a "config
+ *                  response" message. It extracts the configuration of interest
+ *                  and saves it in the CCB.
  *
  * Returns          void
  *
@@ -2209,9 +2213,9 @@ void l2cu_process_our_cfg_req (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
  *
  * Function         l2cu_process_our_cfg_rsp
  *
- * Description      This function is called when we send the peer a "config response"
- *                  message. It extracts the configuration of interest and saves
- *                  it in the CCB.
+ * Description      This function is called when we send the peer a "config
+ *                  response" message. It extracts the configuration of interest
+ *                  and saves it in the CCB.
  *
  * Returns          void
  *
@@ -2776,9 +2780,10 @@ bool    l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, uint16_t fixed_cid, tL2CAP_F
  *
  * Function         l2cu_no_dynamic_ccbs
  *
- * Description      Handles the case when there are no more dynamic CCBs. If there
- *                  are any fixed CCBs, start the longest of the fixed CCB timeouts,
- *                  otherwise start the default link idle timeout or disconnect.
+ * Description      Handles the case when there are no more dynamic CCBs. If
+ *                  there are any fixed CCBs, start the longest of the fixed CCB
+ *                  timeouts, otherwise start the default link idle timeout or
+ *                  disconnect.
  *
  * Returns          void
  *
@@ -2909,8 +2914,8 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
  *
  * Function         l2cu_process_fixed_disc_cback
  *
- * Description      send l2cap fixed channel disconnection callback to application
- *
+ * Description      send l2cap fixed channel disconnection callback to the
+ *                  application
  *
  * Returns          void
  *
@@ -3020,8 +3025,8 @@ void l2cu_send_peer_ble_par_rsp (tL2C_LCB *p_lcb, uint16_t reason, uint8_t rem_i
  *
  * Function         l2cu_send_peer_ble_credit_based_conn_req
  *
- * Description      Build and send a BLE packet to establish LE connection oriented
- *                  L2CAP channel.
+ * Description      Build and send a BLE packet to establish LE connection
+ *                  oriented L2CAP channel.
  *
  * Returns          void
  *
@@ -3076,8 +3081,9 @@ void l2cu_send_peer_ble_credit_based_conn_req (tL2C_CCB *p_ccb)
  *
  * Function         l2cu_reject_ble_connection
  *
- * Description      Build and send an L2CAP "Credit based connection res" message
- *                  to the peer. This function is called for non-success cases.
+ * Description      Build and send an L2CAP "Credit based connection res"
+ *                  message to the peer. This function is called for non-success
+ *                  cases.
  *
  * Returns          void
  *
@@ -3110,8 +3116,9 @@ void l2cu_reject_ble_connection (tL2C_LCB *p_lcb, uint8_t rem_id, uint16_t resul
  *
  * Function         l2cu_send_peer_ble_credit_based_conn_res
  *
- * Description      Build and send an L2CAP "Credit based connection res" message
- *                  to the peer. This function is called in case of success.
+ * Description      Build and send an L2CAP "Credit based connection res"
+ *                  message to the peer. This function is called in case of
+ *                  success.
  *
  * Returns          void
  *
@@ -3187,8 +3194,8 @@ void l2cu_send_peer_ble_flow_control_credit(tL2C_CCB *p_ccb, uint16_t credit_val
  *
  * Function         l2cu_send_peer_ble_credit_based_conn_req
  *
- * Description      Build and send a BLE packet to disconnect LE connection oriented
- *                  L2CAP channel.
+ * Description      Build and send a BLE packet to disconnect LE connection
+ *                  oriented L2CAP channel.
  *
  * Returns          void
  *

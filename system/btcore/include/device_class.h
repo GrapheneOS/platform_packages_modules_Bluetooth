@@ -22,7 +22,8 @@
 #include <stdint.h>
 
 // Provides Class Of Device primitive as specified in the bluetooth spec.
-// [Class Of Device](https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
+// [Class Of Device]
+// (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
 
 #ifdef __cplusplus
 extern "C" {

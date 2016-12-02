@@ -127,18 +127,20 @@ typedef void (tBTM_VS_EVT_CB) (uint8_t len, uint8_t *p);
 
 
 /* General callback function for notifying an application that a synchronous
- * BTM function is complete. The pointer contains the address of any returned data.
-*/
+ * BTM function is complete. The pointer contains the address of any returned
+ * data.
+ */
 typedef void (tBTM_CMPL_CB) (void *p1);
 
 /* VSC callback function for notifying an application that a synchronous
- * BTM function is complete. The pointer contains the address of any returned data.
-*/
+ * BTM function is complete. The pointer contains the address of any returned
+ * data.
+ */
 typedef void (tBTM_VSC_CMPL_CB) (tBTM_VSC_CMPL *p1);
 
 /* Callback for apps to check connection and inquiry filters.
- * Parameters are the BD Address of remote and the Dev Class of remote.
- * If the app returns none zero, the connection or inquiry result will be dropped.
+ * Parameters are the BD Address of remote and the Dev Class of remote. If the
+ * app returns none zero, the connection or inquiry result will be dropped.
 */
 typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 
@@ -172,7 +174,8 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_BLE_CONNECTABLE_MASK    (BTM_BLE_NON_CONNECTABLE | BTM_BLE_CONNECTABLE)
 
 /* Inquiry modes
- * Note: These modes are associated with the inquiry active values (BTM_*ACTIVE) */
+ * Note: These modes are associated with the inquiry active values (BTM_*ACTIVE)
+ */
 #define BTM_INQUIRY_NONE            0
 #define BTM_GENERAL_INQUIRY         0x01
 #define BTM_LIMITED_INQUIRY         0x02
@@ -185,20 +188,32 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_BLE_INQUIRY_MASK         (BTM_BLE_GENERAL_INQUIRY|BTM_BLE_LIMITED_INQUIRY)
 
 /* BTM_IsInquiryActive return values (Bit Mask)
- * Note: These bit masks are associated with the inquiry modes (BTM_*_INQUIRY) */
-#define BTM_INQUIRY_INACTIVE        0x0     /* no inquiry in progress */
-#define BTM_GENERAL_INQUIRY_ACTIVE  BTM_GENERAL_INQUIRY     /* a general inquiry is in progress */
-#define BTM_LIMITED_INQUIRY_ACTIVE  BTM_LIMITED_INQUIRY     /* a limited inquiry is in progress */
-#define BTM_PERIODIC_INQUIRY_ACTIVE 0x8     /* a periodic inquiry is active */
-#define BTM_SSP_INQUIRY_ACTIVE      0x4     /* SSP is active, so inquiry is disallowed (work around for FW bug) */
-#define BTM_LE_GENERAL_INQUIRY_ACTIVE  BTM_BLE_GENERAL_INQUIRY     /* a general inquiry is in progress */
-#define BTM_LE_LIMITED_INQUIRY_ACTIVE  BTM_BLE_LIMITED_INQUIRY      /* a limited inquiry is in progress */
+ * Note: These bit masks are associated with the inquiry modes (BTM_*_INQUIRY)
+ */
+/* no inquiry in progress */
+#define BTM_INQUIRY_INACTIVE        0x0
+/* a general inquiry is in progress */
+#define BTM_GENERAL_INQUIRY_ACTIVE  BTM_GENERAL_INQUIRY
+/* a limited inquiry is in progress */
+#define BTM_LIMITED_INQUIRY_ACTIVE  BTM_LIMITED_INQUIRY
+/* a periodic inquiry is active */
+#define BTM_PERIODIC_INQUIRY_ACTIVE 0x8
+/* SSP is active, so inquiry is disallowed (work around for FW bug) */
+#define BTM_SSP_INQUIRY_ACTIVE      0x4
+/* a general inquiry is in progress */
+#define BTM_LE_GENERAL_INQUIRY_ACTIVE  BTM_BLE_GENERAL_INQUIRY
+/* a limited inquiry is in progress */
+#define BTM_LE_LIMITED_INQUIRY_ACTIVE  BTM_BLE_LIMITED_INQUIRY
 
 /* inquiry activity mask */
-#define BTM_BR_INQ_ACTIVE_MASK        (BTM_GENERAL_INQUIRY_ACTIVE|BTM_LIMITED_INQUIRY_ACTIVE|BTM_PERIODIC_INQUIRY_ACTIVE) /* BR/EDR inquiry activity mask */
-#define BTM_BLE_SCAN_ACTIVE_MASK      0xF0     /* LE scan activity mask */
-#define BTM_BLE_INQ_ACTIVE_MASK       (BTM_LE_GENERAL_INQUIRY_ACTIVE|BTM_LE_LIMITED_INQUIRY_ACTIVE) /* LE inquiry activity mask*/
-#define BTM_INQUIRY_ACTIVE_MASK       (BTM_BR_INQ_ACTIVE_MASK | BTM_BLE_INQ_ACTIVE_MASK) /* inquiry activity mask */
+/* BR/EDR inquiry activity mask */
+#define BTM_BR_INQ_ACTIVE_MASK        (BTM_GENERAL_INQUIRY_ACTIVE|BTM_LIMITED_INQUIRY_ACTIVE|BTM_PERIODIC_INQUIRY_ACTIVE)
+/* LE scan activity mask */
+#define BTM_BLE_SCAN_ACTIVE_MASK      0xF0
+/* LE inquiry activity mask*/
+#define BTM_BLE_INQ_ACTIVE_MASK       (BTM_LE_GENERAL_INQUIRY_ACTIVE|BTM_LE_LIMITED_INQUIRY_ACTIVE)
+/* inquiry activity mask */
+#define BTM_INQUIRY_ACTIVE_MASK       (BTM_BR_INQ_ACTIVE_MASK | BTM_BLE_INQ_ACTIVE_MASK)
 
 /* Define scan types */
 #define BTM_SCAN_TYPE_STANDARD      0
@@ -208,13 +223,16 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_INQ_RESULT_STANDARD     0
 #define BTM_INQ_RESULT_WITH_RSSI    1
 #define BTM_INQ_RESULT_EXTENDED     2
-
-#define BTM_INQ_RES_IGNORE_RSSI     0x7f    /* RSSI value not supplied (ignore it) */
+/* RSSI value not supplied (ignore it) */
+#define BTM_INQ_RES_IGNORE_RSSI     0x7f
 
 /* Inquiry Filter Condition types (see tBTM_INQ_PARMS) */
-#define BTM_CLR_INQUIRY_FILTER          0                   /* Inquiry Filtering is turned off */
-#define BTM_FILTER_COND_DEVICE_CLASS    HCI_FILTER_COND_DEVICE_CLASS /* Filter on device class */
-#define BTM_FILTER_COND_BD_ADDR         HCI_FILTER_COND_BD_ADDR /* Filter on device addr */
+/* Inquiry Filtering is turned off */
+#define BTM_CLR_INQUIRY_FILTER          0
+/* Filter on device class */
+#define BTM_FILTER_COND_DEVICE_CLASS    HCI_FILTER_COND_DEVICE_CLASS
+/* Filter on device addr */
+#define BTM_FILTER_COND_BD_ADDR         HCI_FILTER_COND_BD_ADDR
 
 /* State of the remote name retrieval during inquiry operations.
  * Used in the tBTM_INQ_INFO structure, and returned in the
@@ -252,7 +270,8 @@ typedef uint8_t (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_COD_MINOR_CELLULAR              0x04
 #define BTM_COD_MINOR_CORDLESS              0x08
 #define BTM_COD_MINOR_SMART_PHONE           0x0C
-#define BTM_COD_MINOR_WIRED_MDM_V_GTWY      0x10 /* wired modem or voice gatway */
+/* wired modem or voice gatway */
+#define BTM_COD_MINOR_WIRED_MDM_V_GTWY      0x10
 #define BTM_COD_MINOR_ISDN_ACCESS           0x14
 
 /* minor device class field for LAN Access Point Major Class */
@@ -480,25 +499,41 @@ enum
 
 typedef uint8_t tBTM_EIR_SEARCH_RESULT;
 
-#define BTM_EIR_FLAGS_TYPE                  HCI_EIR_FLAGS_TYPE                  /* 0x01 */
-#define BTM_EIR_MORE_16BITS_UUID_TYPE       HCI_EIR_MORE_16BITS_UUID_TYPE       /* 0x02 */
-#define BTM_EIR_COMPLETE_16BITS_UUID_TYPE   HCI_EIR_COMPLETE_16BITS_UUID_TYPE   /* 0x03 */
-#define BTM_EIR_MORE_32BITS_UUID_TYPE       HCI_EIR_MORE_32BITS_UUID_TYPE       /* 0x04 */
-#define BTM_EIR_COMPLETE_32BITS_UUID_TYPE   HCI_EIR_COMPLETE_32BITS_UUID_TYPE   /* 0x05 */
-#define BTM_EIR_MORE_128BITS_UUID_TYPE      HCI_EIR_MORE_128BITS_UUID_TYPE      /* 0x06 */
-#define BTM_EIR_COMPLETE_128BITS_UUID_TYPE  HCI_EIR_COMPLETE_128BITS_UUID_TYPE  /* 0x07 */
-#define BTM_EIR_SHORTENED_LOCAL_NAME_TYPE   HCI_EIR_SHORTENED_LOCAL_NAME_TYPE   /* 0x08 */
-#define BTM_EIR_COMPLETE_LOCAL_NAME_TYPE    HCI_EIR_COMPLETE_LOCAL_NAME_TYPE    /* 0x09 */
-#define BTM_EIR_TX_POWER_LEVEL_TYPE         HCI_EIR_TX_POWER_LEVEL_TYPE         /* 0x0A */
-#define BTM_EIR_MANUFACTURER_SPECIFIC_TYPE  HCI_EIR_MANUFACTURER_SPECIFIC_TYPE  /* 0xFF */
+/* 0x01 */
+#define BTM_EIR_FLAGS_TYPE                  HCI_EIR_FLAGS_TYPE
+/* 0x02 */
+#define BTM_EIR_MORE_16BITS_UUID_TYPE       HCI_EIR_MORE_16BITS_UUID_TYPE
+/* 0x03 */
+#define BTM_EIR_COMPLETE_16BITS_UUID_TYPE   HCI_EIR_COMPLETE_16BITS_UUID_TYPE
+/* 0x04 */
+#define BTM_EIR_MORE_32BITS_UUID_TYPE       HCI_EIR_MORE_32BITS_UUID_TYPE
+/* 0x05 */
+#define BTM_EIR_COMPLETE_32BITS_UUID_TYPE   HCI_EIR_COMPLETE_32BITS_UUID_TYPE
+/* 0x06 */
+#define BTM_EIR_MORE_128BITS_UUID_TYPE      HCI_EIR_MORE_128BITS_UUID_TYPE
+/* 0x07 */
+#define BTM_EIR_COMPLETE_128BITS_UUID_TYPE  HCI_EIR_COMPLETE_128BITS_UUID_TYPE
+/* 0x08 */
+#define BTM_EIR_SHORTENED_LOCAL_NAME_TYPE   HCI_EIR_SHORTENED_LOCAL_NAME_TYPE
+/* 0x09 */
+#define BTM_EIR_COMPLETE_LOCAL_NAME_TYPE    HCI_EIR_COMPLETE_LOCAL_NAME_TYPE
+/* 0x0A */
+#define BTM_EIR_TX_POWER_LEVEL_TYPE         HCI_EIR_TX_POWER_LEVEL_TYPE
+/* 0xFF */
+#define BTM_EIR_MANUFACTURER_SPECIFIC_TYPE  HCI_EIR_MANUFACTURER_SPECIFIC_TYPE
 
 /* the following EIR tags are defined to OOB, not regular EIR data */
-#define BTM_EIR_OOB_BD_ADDR_TYPE            HCI_EIR_OOB_BD_ADDR_TYPE    /* 6 bytes */
-#define BTM_EIR_OOB_COD_TYPE                HCI_EIR_OOB_COD_TYPE        /* 3 bytes */
-#define BTM_EIR_OOB_SSP_HASH_C_TYPE         HCI_EIR_OOB_SSP_HASH_C_TYPE /* 16 bytes */
-#define BTM_EIR_OOB_SSP_RAND_R_TYPE         HCI_EIR_OOB_SSP_RAND_R_TYPE /* 16 bytes */
+/* 6 bytes */
+#define BTM_EIR_OOB_BD_ADDR_TYPE            HCI_EIR_OOB_BD_ADDR_TYPE
+/* 3 bytes */
+#define BTM_EIR_OOB_COD_TYPE                HCI_EIR_OOB_COD_TYPE
+/* 16 bytes */
+#define BTM_EIR_OOB_SSP_HASH_C_TYPE         HCI_EIR_OOB_SSP_HASH_C_TYPE
+/* 16 bytes */
+#define BTM_EIR_OOB_SSP_RAND_R_TYPE         HCI_EIR_OOB_SSP_RAND_R_TYPE
 
-#define BTM_OOB_MANDATORY_SIZE      8   /* include 2 bytes length & 6 bytes bd_addr */
+/* include 2 bytes length & 6 bytes bd_addr */
+#define BTM_OOB_MANDATORY_SIZE      8
 #define BTM_OOB_DATA_LEN_SIZE       2
 #define BTM_OOB_BD_ADDR_SIZE        6
 #define BTM_OOB_COD_SIZE            BT_OOB_COD_SIZE
@@ -506,7 +541,8 @@ typedef uint8_t tBTM_EIR_SEARCH_RESULT;
 #define BTM_OOB_RAND_R_SIZE         BT_OOB_RAND_R_SIZE
 
 #define BTM_BLE_SEC_NONE                0
-#define BTM_BLE_SEC_ENCRYPT             1 /* encrypt the link using current key */
+/* encrypt the link using current key */
+#define BTM_BLE_SEC_ENCRYPT             1
 #define BTM_BLE_SEC_ENCRYPT_NO_MITM     2
 #define BTM_BLE_SEC_ENCRYPT_MITM        3
 typedef uint8_t tBTM_BLE_SEC_ACT;
@@ -532,7 +568,8 @@ typedef uint8_t tBTM_BLE_SEC_ACT;
 #define BTM_EIR_HAS_SERVICE(p, service)  ((((uint32_t *)(p))[(((uint32_t)(service)) / BTM_EIR_ARRAY_BITS)] &  \
                                     ((uint32_t)1 << (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS))) >> (((uint32_t)(service)) % BTM_EIR_ARRAY_BITS))
 
-/* start of EIR in HCI buffer, 4 bytes = HCI Command(2) + Length(1) + FEC_Req(1) */
+/* start of EIR in HCI buffer, 4 bytes = HCI Command(2) + Length(1) + FEC_Req(1)
+ */
 #define BTM_HCI_EIR_OFFSET          (BT_HDR_SIZE + 4)
 
 /***************************
@@ -600,8 +637,9 @@ typedef struct
 } tBTM_INQ_RESULTS;
 
 
-/* This is the inquiry response information held in its database by BTM, and available
- * to applications via BTM_InqDbRead, BTM_InqDbFirst, and BTM_InqDbNext.
+/* This is the inquiry response information held in its database by BTM, and
+ * available to applications via BTM_InqDbRead, BTM_InqDbFirst, and
+ * BTM_InqDbNext.
 */
 typedef struct
 {
@@ -695,8 +733,8 @@ typedef void (tBTM_INQ_RESULTS_CB) (tBTM_INQ_RESULTS *p_inq_results, uint8_t *p_
  *  ACL Types
  ***************/
 
-/* Structure returned with Role Switch information (in tBTM_CMPL_CB callback function)
- * in response to BTM_SwitchRole call.
+/* Structure returned with Role Switch information (in tBTM_CMPL_CB callback
+ * function) in response to BTM_SwitchRole call.
 */
 typedef struct
 {
@@ -727,8 +765,8 @@ typedef struct
     BD_ADDR     rem_bda;
 } tBTM_RSSI_RESULTS;
 
-/* Structure returned with read current TX power event (in tBTM_CMPL_CB callback function)
- * in response to BTM_ReadTxPower call.
+/* Structure returned with read current TX power event (in tBTM_CMPL_CB callback
+ * function) in response to BTM_ReadTxPower call.
 */
 typedef struct
 {
@@ -738,8 +776,8 @@ typedef struct
     BD_ADDR     rem_bda;
 } tBTM_TX_POWER_RESULTS;
 
-/* Structure returned with read link quality event (in tBTM_CMPL_CB callback function)
- * in response to BTM_ReadLinkQuality call.
+/* Structure returned with read link quality event (in tBTM_CMPL_CB callback
+ * function) in response to BTM_ReadLinkQuality call.
 */
 typedef struct
 {
@@ -749,8 +787,8 @@ typedef struct
     BD_ADDR     rem_bda;
 } tBTM_LINK_QUALITY_RESULTS;
 
-/* Structure returned with read inq tx power quality event (in tBTM_CMPL_CB callback function)
- * in response to BTM_ReadInquiryRspTxPower call.
+/* Structure returned with read inq tx power quality event (in tBTM_CMPL_CB
+ * callback function) in response to BTM_ReadInquiryRspTxPower call.
 */
 typedef struct
 {
@@ -1069,21 +1107,36 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 /* Security Service Levels [bit mask] (BTM_SetSecurityLevel)
  * Encryption should not be used without authentication
 */
-#define BTM_SEC_NONE               0x0000 /* Nothing required */
-#define BTM_SEC_IN_AUTHORIZE       0x0001 /* Inbound call requires authorization */
-#define BTM_SEC_IN_AUTHENTICATE    0x0002 /* Inbound call requires authentication */
-#define BTM_SEC_IN_ENCRYPT         0x0004 /* Inbound call requires encryption */
-#define BTM_SEC_OUT_AUTHORIZE      0x0008 /* Outbound call requires authorization */
-#define BTM_SEC_OUT_AUTHENTICATE   0x0010 /* Outbound call requires authentication */
-#define BTM_SEC_OUT_ENCRYPT        0x0020 /* Outbound call requires encryption */
-#define BTM_SEC_MODE4_LEVEL4       0x0040 /* Secure Connections Only Mode */
-#define BTM_SEC_FORCE_MASTER       0x0100 /* Need to switch connection to be master */
-#define BTM_SEC_ATTEMPT_MASTER     0x0200 /* Try to switch connection to be master */
-#define BTM_SEC_FORCE_SLAVE        0x0400 /* Need to switch connection to be master */
-#define BTM_SEC_ATTEMPT_SLAVE      0x0800 /* Try to switch connection to be slave */
-#define BTM_SEC_IN_MITM            0x1000 /* inbound Do man in the middle protection */
-#define BTM_SEC_OUT_MITM           0x2000 /* outbound Do man in the middle protection */
-#define BTM_SEC_IN_MIN_16_DIGIT_PIN 0x4000 /* enforce a minimum of 16 digit for sec mode 2 */
+/* Nothing required */
+#define BTM_SEC_NONE               0x0000
+/* Inbound call requires authorization */
+#define BTM_SEC_IN_AUTHORIZE       0x0001
+/* Inbound call requires authentication */
+#define BTM_SEC_IN_AUTHENTICATE    0x0002
+/* Inbound call requires encryption */
+#define BTM_SEC_IN_ENCRYPT         0x0004
+/* Outbound call requires authorization */
+#define BTM_SEC_OUT_AUTHORIZE      0x0008
+/* Outbound call requires authentication */
+#define BTM_SEC_OUT_AUTHENTICATE   0x0010
+/* Outbound call requires encryption */
+#define BTM_SEC_OUT_ENCRYPT        0x0020
+/* Secure Connections Only Mode */
+#define BTM_SEC_MODE4_LEVEL4       0x0040
+/* Need to switch connection to be master */
+#define BTM_SEC_FORCE_MASTER       0x0100
+/* Try to switch connection to be master */
+#define BTM_SEC_ATTEMPT_MASTER     0x0200
+/* Need to switch connection to be master */
+#define BTM_SEC_FORCE_SLAVE        0x0400
+/* Try to switch connection to be slave */
+#define BTM_SEC_ATTEMPT_SLAVE      0x0800
+/* inbound Do man in the middle protection */
+#define BTM_SEC_IN_MITM            0x1000
+/* outbound Do man in the middle protection */
+#define BTM_SEC_OUT_MITM           0x2000
+/* enforce a minimum of 16 digit for sec mode 2 */
+#define BTM_SEC_IN_MIN_16_DIGIT_PIN 0x4000
 
 /* Security Flags [bit mask] (BTM_GetSecurityFlags)
 */
@@ -1111,7 +1164,8 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_LKEY_TYPE_UNAUTH_COMB_P_256 HCI_LKEY_TYPE_UNAUTH_COMB_P_256
 #define BTM_LKEY_TYPE_AUTH_COMB_P_256   HCI_LKEY_TYPE_AUTH_COMB_P_256
 
-#define BTM_LTK_DERIVED_LKEY_OFFSET 0x20    /* "easy" requirements for LK derived from LTK */
+/* "easy" requirements for LK derived from LTK */
+#define BTM_LTK_DERIVED_LKEY_OFFSET 0x20
 #define BTM_LKEY_TYPE_IGNORE        0xff    /* used when event is response from
                                                hci return link keys request */
 
@@ -1129,7 +1183,7 @@ typedef uint8_t tBTM_LINK_KEY_TYPE;
 #define BTM_SEC_PROTO_MCA           8
 
 /* Determine the number of uint32_t's necessary for security services */
-#define BTM_SEC_ARRAY_BITS          32          /* Number of bits in each array element */
+#define BTM_SEC_ARRAY_BITS         32 /* Number of bits in each array element */
 #define BTM_SEC_SERVICE_ARRAY_SIZE  (((uint32_t)BTM_SEC_MAX_SERVICES / BTM_SEC_ARRAY_BITS) + \
                                     (((uint32_t)BTM_SEC_MAX_SERVICES % BTM_SEC_ARRAY_BITS) ? 1 : 0))
 
@@ -1197,7 +1251,8 @@ typedef uint8_t tBTM_LINK_KEY_TYPE;
 #endif
 
 /*******************************************************************************
- * Security Services MACROS handle array of uint32_t bits for more than 32 trusted services
+ * Security Services MACROS handle array of uint32_t bits for more than 32
+ * trusted services
  ******************************************************************************/
 /* MACRO to set the security service bit mask in a bit stream */
 #define BTM_SEC_SET_SERVICE(p, service)  (((uint32_t *)(p))[(((uint32_t)(service)) / BTM_SEC_ARRAY_BITS)] |=  \
@@ -1208,7 +1263,8 @@ typedef uint8_t tBTM_LINK_KEY_TYPE;
 #define BTM_SEC_CLR_SERVICE(p, service)  (((uint32_t *)(p))[(((uint32_t)(service)) / BTM_SEC_ARRAY_BITS)] &=  \
                                     ~((uint32_t)1 << (((uint32_t)(service)) % BTM_SEC_ARRAY_BITS)))
 
-/* MACRO to check the security service bit mask in a bit stream (Returns true or false) */
+/* MACRO to check the security service bit mask in a bit stream (Returns true or
+ * false) */
 #define BTM_SEC_IS_SERVICE_TRUSTED(p, service)    (((((uint32_t *)(p))[(((uint32_t)(service)) / BTM_SEC_ARRAY_BITS)]) &   \
                                         (uint32_t)(((uint32_t)1 << (((uint32_t)(service)) % BTM_SEC_ARRAY_BITS)))) ? true : false)
 
@@ -1357,19 +1413,27 @@ typedef uint8_t tBTM_IO_CAP;
 #define BTM_MAX_PASSKEY_VAL (999999)
 #define BTM_MIN_PASSKEY_VAL (0)
 
-#define BTM_AUTH_SP_NO      0   /* MITM Protection Not Required - Single Profile/non-bonding
-                                Numeric comparison with automatic accept allowed */
-#define BTM_AUTH_SP_YES     1   /* MITM Protection Required - Single Profile/non-bonding
-                                Use IO Capabilities to determine authentication procedure */
-#define BTM_AUTH_AP_NO      2   /* MITM Protection Not Required - All Profiles/dedicated bonding
-                                Numeric comparison with automatic accept allowed */
-#define BTM_AUTH_AP_YES     3   /* MITM Protection Required - All Profiles/dedicated bonding
-                                Use IO Capabilities to determine authentication procedure */
-#define BTM_AUTH_SPGB_NO    4   /* MITM Protection Not Required - Single Profiles/general bonding
-                                Numeric comparison with automatic accept allowed */
-#define BTM_AUTH_SPGB_YES   5   /* MITM Protection Required - Single Profiles/general bonding
-                                Use IO Capabilities to determine authentication procedure */
-#define BTM_AUTH_DD_BOND    2   /* this bit is ORed to the BTM_AUTH_SP_* when IO exchange for dedicated bonding */
+/* MITM Protection Not Required - Single Profile/non-bonding Numeric comparison
+ * with automatic accept allowed */
+#define BTM_AUTH_SP_NO      0
+/* MITM Protection Required - Single Profile/non-bonding. Use IO Capabilities to
+ * determine authentication procedure */
+#define BTM_AUTH_SP_YES     1
+/* MITM Protection Not Required - All Profiles/dedicated bonding Numeric
+ * comparison with automatic accept allowed */
+#define BTM_AUTH_AP_NO      2
+/* MITM Protection Required - All Profiles/dedicated bonding Use IO Capabilities
+ * to determine authentication procedure */
+#define BTM_AUTH_AP_YES     3
+/* MITM Protection Not Required - Single Profiles/general bonding Numeric
+ * comparison with automatic accept allowed */
+#define BTM_AUTH_SPGB_NO    4
+/* MITM Protection Required - Single Profiles/general bonding Use IO
+ * Capabilities to determine authentication procedure */
+#define BTM_AUTH_SPGB_YES   5
+
+/* this bit is ORed with BTM_AUTH_SP_* when IO exchange for dedicated bonding */
+#define BTM_AUTH_DD_BOND    2
 #define BTM_AUTH_GB_BIT     4   /* the genernal bonding bit */
 #define BTM_AUTH_BONDS      6   /* the general/dedicated bonding bits  */
 #define BTM_AUTH_YN_BIT     1   /* this is the Yes or No bit  */
@@ -1511,7 +1575,8 @@ typedef uint8_t (tBTM_SP_CALLBACK) (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 
 typedef void (tBTM_MKEY_CALLBACK) (BD_ADDR bd_addr, uint8_t status, uint8_t key_flag) ;
 
-/* Encryption enabled/disabled complete: Optionally passed with BTM_SetEncryption.
+/* Encryption enabled/disabled complete: Optionally passed with
+ * BTM_SetEncryption.
  * Parameters are
  *              BD Address of remote
  *              optional data passed in by BTM_SetEncryption
@@ -1526,34 +1591,50 @@ typedef void (tBTM_SEC_CBACK) (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
 */
 typedef void (tBTM_BOND_CANCEL_CMPL_CALLBACK) (tBTM_STATUS result);
 
-/* LE related event and data structure
-*/
-#define BTM_LE_IO_REQ_EVT       SMP_IO_CAP_REQ_EVT     /* received IO_CAPABILITY_REQUEST event */
-#define BTM_LE_SEC_REQUEST_EVT  SMP_SEC_REQUEST_EVT    /* security request event */
-#define BTM_LE_KEY_NOTIF_EVT    SMP_PASSKEY_NOTIF_EVT  /* received USER_PASSKEY_NOTIFY event */
-#define BTM_LE_KEY_REQ_EVT      SMP_PASSKEY_REQ_EVT    /* received USER_PASSKEY_REQUEST event */
-#define BTM_LE_OOB_REQ_EVT      SMP_OOB_REQ_EVT        /* OOB data request event */
-#define BTM_LE_NC_REQ_EVT       SMP_NC_REQ_EVT          /* Numeric Comparison request event */
-#define BTM_LE_PR_KEYPR_NOT_EVT SMP_PEER_KEYPR_NOT_EVT /* Peer keypress notification recd event */
-/* SC OOB request event (both local and peer OOB data) can be expected in response */
+/* LE related event and data structure */
+/* received IO_CAPABILITY_REQUEST event */
+#define BTM_LE_IO_REQ_EVT       SMP_IO_CAP_REQ_EVT
+/* security request event */
+#define BTM_LE_SEC_REQUEST_EVT  SMP_SEC_REQUEST_EVT
+/* received USER_PASSKEY_NOTIFY event */
+#define BTM_LE_KEY_NOTIF_EVT    SMP_PASSKEY_NOTIF_EVT
+/* received USER_PASSKEY_REQUEST event */
+#define BTM_LE_KEY_REQ_EVT      SMP_PASSKEY_REQ_EVT
+/* OOB data request event */
+#define BTM_LE_OOB_REQ_EVT      SMP_OOB_REQ_EVT
+/* Numeric Comparison request event */
+#define BTM_LE_NC_REQ_EVT       SMP_NC_REQ_EVT
+/* Peer keypress notification recd event */
+#define BTM_LE_PR_KEYPR_NOT_EVT SMP_PEER_KEYPR_NOT_EVT
+/* SC OOB request event (both local and peer OOB data) can be expected in
+ * response */
 #define BTM_LE_SC_OOB_REQ_EVT   SMP_SC_OOB_REQ_EVT
 /* SC OOB local data set is created (as result of SMP_CrLocScOobData(...)) */
 #define BTM_LE_SC_LOC_OOB_EVT   SMP_SC_LOC_OOB_DATA_UP_EVT
-#define BTM_LE_BR_KEYS_REQ_EVT  SMP_BR_KEYS_REQ_EVT     /* SMP over BR keys request event */
-#define BTM_LE_COMPLT_EVT       SMP_COMPLT_EVT         /* SMP complete event */
+/* SMP over BR keys request event */
+#define BTM_LE_BR_KEYS_REQ_EVT  SMP_BR_KEYS_REQ_EVT
+/* SMP complete event */
+#define BTM_LE_COMPLT_EVT       SMP_COMPLT_EVT
 #define BTM_LE_LAST_FROM_SMP    BTM_LE_BR_KEYS_REQ_EVT
-#define BTM_LE_KEY_EVT          (BTM_LE_LAST_FROM_SMP + 1) /* KEY update event */
+/* KEY update event */
+#define BTM_LE_KEY_EVT          (BTM_LE_LAST_FROM_SMP + 1)
 typedef uint8_t tBTM_LE_EVT;
 
 #define BTM_LE_KEY_NONE           0
-#define BTM_LE_KEY_PENC      SMP_SEC_KEY_TYPE_ENC        /* encryption information of peer device */
-#define BTM_LE_KEY_PID       SMP_SEC_KEY_TYPE_ID         /* identity key of the peer device */
-#define BTM_LE_KEY_PCSRK     SMP_SEC_KEY_TYPE_CSRK      /* peer SRK */
+/* encryption information of peer device */
+#define BTM_LE_KEY_PENC      SMP_SEC_KEY_TYPE_ENC
+/* identity key of the peer device */
+#define BTM_LE_KEY_PID       SMP_SEC_KEY_TYPE_ID
+/* peer SRK */
+#define BTM_LE_KEY_PCSRK     SMP_SEC_KEY_TYPE_CSRK
 #define BTM_LE_KEY_PLK       SMP_SEC_KEY_TYPE_LK
 #define BTM_LE_KEY_LLK       (SMP_SEC_KEY_TYPE_LK << 4)
-#define BTM_LE_KEY_LENC      (SMP_SEC_KEY_TYPE_ENC << 4)  /* master role security information:div */
-#define BTM_LE_KEY_LID       (SMP_SEC_KEY_TYPE_ID << 4)   /* master device ID key */
-#define BTM_LE_KEY_LCSRK     (SMP_SEC_KEY_TYPE_CSRK << 4) /* local CSRK has been deliver to peer */
+/* master role security information:div */
+#define BTM_LE_KEY_LENC      (SMP_SEC_KEY_TYPE_ENC << 4)
+/* master device ID key */
+#define BTM_LE_KEY_LID       (SMP_SEC_KEY_TYPE_ID << 4)
+/* local CSRK has been deliver to peer */
+#define BTM_LE_KEY_LCSRK     (SMP_SEC_KEY_TYPE_CSRK << 4)
 typedef uint8_t tBTM_LE_KEY_TYPE;
 
 #define BTM_LE_AUTH_REQ_NO_BOND SMP_AUTH_NO_BOND   /* 0 */
@@ -1578,9 +1659,13 @@ typedef uint8_t tBTM_LE_SEC;
 
 typedef struct
 {
-    tBTM_IO_CAP         io_cap;         /* local IO capabilities */
-    uint8_t             oob_data;       /* OOB data present (locally) for the peer device */
-    tBTM_LE_AUTH_REQ    auth_req;       /* Authentication request (for local device) contain bonding and MITM info */
+    /* local IO capabilities */
+    tBTM_IO_CAP         io_cap;
+    /* OOB data present (locally) for the peer device */
+    uint8_t             oob_data;
+    /* Authentication request (for local device) containing bonding and MITM
+     * info */
+    tBTM_LE_AUTH_REQ    auth_req;
     uint8_t             max_key_size;   /* max encryption key size */
     tBTM_LE_KEY_TYPE    init_keys;      /* keys to be distributed, bit mask */
     tBTM_LE_KEY_TYPE    resp_keys;      /* keys to be distributed, bit mask */
@@ -1643,7 +1728,8 @@ typedef union
     tBTM_LE_PENC_KEYS   penc_key;       /* received peer encryption key */
     tBTM_LE_PCSRK_KEYS  pcsrk_key;      /* received peer device SRK */
     tBTM_LE_PID_KEYS    pid_key;        /* peer device ID key */
-    tBTM_LE_LENC_KEYS   lenc_key;       /* local encryption reproduction keys LTK = = d1(ER,DIV,0)*/
+    tBTM_LE_LENC_KEYS   lenc_key;       /* local encryption reproduction keys
+                                         * LTK = = d1(ER,DIV,0) */
     tBTM_LE_LCSRK_KEYS   lcsrk_key;     /* local device CSRK = d1(ER,DIV,1)*/
 }tBTM_LE_KEY_VALUE;
 
@@ -1658,8 +1744,9 @@ typedef union
     tBTM_LE_IO_REQ      io_req;     /* BTM_LE_IO_REQ_EVT      */
     uint32_t            key_notif;  /* BTM_LE_KEY_NOTIF_EVT   */
                                     /* BTM_LE_NC_REQ_EVT */
-                                    /* no callback data for BTM_LE_KEY_REQ_EVT */
-                                    /* and BTM_LE_OOB_REQ_EVT  */
+                                    /* no callback data for
+                                     * BTM_LE_KEY_REQ_EVT
+                                     * and BTM_LE_OOB_REQ_EVT  */
     tBTM_LE_COMPLT      complt;     /* BTM_LE_COMPLT_EVT      */
     tSMP_OOB_DATA_TYPE  req_oob_type;
     tBTM_LE_KEY         key;
@@ -1728,7 +1815,7 @@ enum
     BTM_PM_STS_HOLD   = HCI_MODE_HOLD,
     BTM_PM_STS_SNIFF  = HCI_MODE_SNIFF,
     BTM_PM_STS_PARK   = HCI_MODE_PARK,
-    BTM_PM_STS_SSR,     /* report the SSR parameters in HCI_SNIFF_SUB_RATE_EVT */
+    BTM_PM_STS_SSR,   /* report the SSR parameters in HCI_SNIFF_SUB_RATE_EVT */
     BTM_PM_STS_PENDING,   /* when waiting for status from controller */
     BTM_PM_STS_ERROR   /* when HCI command status returns error */
 };
@@ -1748,9 +1835,12 @@ typedef uint8_t tBTM_PM_MODE;
 #define BTM_PM_SET_ONLY_ID  0x80
 
 /* Operation codes */
-#define BTM_PM_REG_SET      1 /* The module wants to set the desired power mode */
-#define BTM_PM_REG_NOTIF    2 /* The module wants to receive mode change event */
-#define BTM_PM_DEREG        4 /* The module does not want to involve with PM anymore */
+/* The module wants to set the desired power mode */
+#define BTM_PM_REG_SET      1
+/* The module wants to receive mode change event */
+#define BTM_PM_REG_NOTIF    2
+/* The module does not want to involve with PM anymore */
+#define BTM_PM_DEREG        4
 
 /************************
  *  Power Manager Types
@@ -1822,13 +1912,13 @@ typedef struct
 {
     tBTM_MIP_EVT    event;
     BD_ADDR         bd_addr;
-    uint8_t         data[11];       /* data[0] shows Vender-specific device type */
+    uint8_t         data[11];   /* data[0] shows Vender-specific device type */
 } tBTM_MIP_EIR_HANDSHAKE;
 
 typedef struct
 {
     tBTM_MIP_EVT    event;
-    uint16_t        num_sent;       /* Number of packets completed at the controller */
+    uint16_t        num_sent; /* Completed packet count at the controller */
 } tBTM_MIP_PKTS_COMPL;
 
 typedef union
@@ -1847,9 +1937,12 @@ typedef void (tBTM_MIP_EVENTS_CB) (tBTM_MIP_EVT event, tBTM_MIP_EVENT_DATA data)
 /* MIP Device query callback function  */
 typedef bool    (tBTM_MIP_QUERY_CB) (BD_ADDR dev_addr, uint8_t *p_mode, LINK_KEY link_key);
 
-#define BTM_CONTRL_ACTIVE  1       /* ACL link on, SCO link ongoing, sniff mode */
-#define BTM_CONTRL_SCAN    2       /* Scan state - paging/inquiry/trying to connect*/
-#define BTM_CONTRL_IDLE    3       /* Idle state - page scan, LE advt, inquiry scan */
+/* ACL link on, SCO link ongoing, sniff mode */
+#define BTM_CONTRL_ACTIVE  1
+/* Scan state - paging/inquiry/trying to connect*/
+#define BTM_CONTRL_SCAN    2
+/* Idle state - page scan, LE advt, inquiry scan */
+#define BTM_CONTRL_IDLE    3
 
 typedef uint8_t tBTM_CONTRL_STATE;
 

@@ -51,7 +51,7 @@ bool    (APPL_AUTH_WRITE_EXCEPTION)(BD_ADDR bd_addr);
 #endif
 
 /*******************************************************************************
- *              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
+ *             L O C A L    F U N C T I O N     P R O T O T Y P E S            *
  ******************************************************************************/
 tBTM_SEC_SERV_REC *btm_sec_find_first_serv (bool    is_originator, uint16_t psm);
 static tBTM_SEC_SERV_REC *btm_sec_find_next_serv (tBTM_SEC_SERV_REC *p_cur);
@@ -216,8 +216,9 @@ static bool    btm_serv_trusted(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_SEC_SERV_REC *
  * Function         BTM_SecRegister
  *
  * Description      Application manager calls this function to register for
- *                  security services.  There can be one and only one application
- *                  saving link keys.  BTM allows only first registration.
+ *                  security services.  There can be one and only one
+ *                  application saving link keys.  BTM allows only first
+ *                  registration.
  *
  * Returns          true if registered OK, else false
  *
@@ -422,13 +423,14 @@ void BTM_SetPairableMode (bool    allow_pairing, bool    connect_only_paired)
  *
  * Function         BTM_SetSecureConnectionsOnly
  *
- * Description      Enable or disable default treatment for Mode 4 Level 0 services
+ * Description      Enable or disable default treatment for Mode 4 Level 0
+ *                  services
  *
- * Parameter        secure_connections_only_mode - (true or false) whether or not the device
- *                  true means that the device should treat Mode 4 Level 0 services as
- *                  services of other levels. (Secure_connections_only_mode)
- *                  false means that the device should provide default treatment for
- *                  Mode 4 Level 0 services.
+ * Parameter        secure_connections_only_mode -
+ *                  true means that the device should treat Mode 4 Level 0
+ *                       services as services of other levels.
+ *                  false means that the device should provide default
+ *                        treatment for Mode 4 Level 0 services.
  *
  * Returns          void
  *
@@ -449,11 +451,12 @@ void BTM_SetSecureConnectionsOnly (bool    secure_connections_only_mode)
  *
  * Description      Register service security level with Security Manager
  *
- * Parameters:      is_originator - true if originating the connection, false if not
+ * Parameters:      is_originator - true if originating the connection
  *                  p_name      - Name of the service relevant only if
- *                                authorization will show this name to user. ignored
- *                                if BTM_SEC_SERVICE_NAME_LEN is 0.
- *                  service_id  - service ID for the service passed to authorization callback
+ *                                authorization will show this name to user.
+ *                                Ignored if BTM_SEC_SERVICE_NAME_LEN is 0.
+ *                  service_id  - service ID for the service passed to
+ *                                authorization callback
  *                  sec_level   - bit mask of the security features
  *                  psm         - L2CAP PSM
  *                  mx_proto_id - protocol ID of multiplexing proto below
@@ -488,11 +491,12 @@ bool    BTM_SetSecurityLevel (bool    is_originator, const char *p_name, uint8_t
  *
  * Description      Register service security level with Security Manager
  *
- * Parameters:      conn_type   - true if originating the connection, false if not
+ * Parameters:      conn_type   - true if originating the connection
  *                  p_name      - Name of the service relevant only if
- *                                authorization will show this name to user. ignored
- *                                if BTM_SEC_SERVICE_NAME_LEN is 0.
- *                  service_id  - service ID for the service passed to authorization callback
+ *                                authorization will show this name to user.
+ *                                Ignored if BTM_SEC_SERVICE_NAME_LEN is 0.
+ *                  service_id  - service ID for the service passed to
+ *                                authorization callback
  *                  sec_level   - bit mask of the security features
  *                  psm         - L2CAP PSM
  *                  mx_proto_id - protocol ID of multiplexing proto below
@@ -716,16 +720,16 @@ static bool    btm_sec_set_security_level (CONNECTION_TYPE conn_type, const char
  *
  * Function         BTM_SecClrService
  *
- * Description      Removes specified service record(s) from the security database.
- *                  All service records with the specified name are removed.
- *                  Typically used only by devices with limited RAM so that it can
- *                  reuse an old security service record.
+ * Description      Removes specified service record(s) from the security
+ *                  database. All service records with the specified name are
+ *                  removed. Typically used only by devices with limited RAM so
+ *                  that it can reuse an old security service record.
  *
- *                  Note: Unpredictable results may occur if a service is cleared
- *                      that is still in use by an application/profile.
+ *                  Note: Unpredictable results may occur if a service is
+ *                      cleared that is still in use by an application/profile.
  *
- * Parameters       Service ID - Id of the service to remove. ('0' removes all service
- *                          records (except SDP).
+ * Parameters       Service ID - Id of the service to remove. '0' removes all
+ *                          service records (except SDP).
  *
  * Returns          Number of records that were freed.
  *
@@ -764,8 +768,8 @@ uint8_t BTM_SecClrService (uint8_t service_id)
  *                  by dynamic PSM clients when the channel is closed.
  *                  The given psm must be a virtual psm.
  *
- * Parameters       Service ID - Id of the service to remove. ('0' removes all service
- *                          records (except SDP).
+ * Parameters       Service ID - Id of the service to remove. '0' removes all
+ *                          service records (except SDP).
  *
  * Returns          Number of records that were freed.
  *
@@ -831,11 +835,14 @@ void btm_sec_clr_temp_auth_service (BD_ADDR bda)
  * Description      This function is called after Security Manager submitted
  *                  PIN code request to the UI.
  *
- * Parameters:      bd_addr      - Address of the device for which PIN was requested
- *                  res          - result of the operation BTM_SUCCESS if success
+ * Parameters:      bd_addr      - Address of the device for which PIN was
+ *                                 requested
+ *                  res          - result of the operation BTM_SUCCESS
+ *                                 if success
  *                  pin_len      - length in bytes of the PIN Code
  *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *                  trusted_mask - bitwise OR of trusted services
+ *                                 (array of uint32_t)
  *
  ******************************************************************************/
 void BTM_PINCodeReply (BD_ADDR bd_addr, uint8_t res, uint8_t pin_len, uint8_t *p_pin, uint32_t trusted_mask[])
@@ -954,7 +961,8 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, uint8_t res, uint8_t pin_len, uint8_t *p
  * Parameters:      bd_addr      - Address of the device to bond
  *                  pin_len      - length in bytes of the PIN Code
  *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *                  trusted_mask - bitwise OR of trusted services
+ *                                 (array of uint32_t)
  *
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
@@ -1139,7 +1147,8 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
  *                  transport    - doing SSP over BR/EDR or SMP over LE
  *                  pin_len      - length in bytes of the PIN Code
  *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *                  trusted_mask - bitwise OR of trusted services
+ *                                 (array of uint32_t)
  *
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
@@ -1170,7 +1179,8 @@ tBTM_STATUS BTM_SecBondByTransport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
  * Parameters:      bd_addr      - Address of the device to bond
  *                  pin_len      - length in bytes of the PIN Code
  *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services (array of uint32_t)
+ *                  trusted_mask - bitwise OR of trusted services
+ *                                 (array of uint32_t)
  *
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
@@ -1189,7 +1199,7 @@ tBTM_STATUS BTM_SecBond (BD_ADDR bd_addr, uint8_t pin_len, uint8_t *p_pin, uint3
  *                  with peer device.
  *
  * Parameters:      bd_addr      - Address of the peer device
- *                         transport    - false for BR/EDR link; true for LE link
+ *                  transport    - false for BR/EDR link; true for LE link
  *
  ******************************************************************************/
 tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr)
@@ -1330,11 +1340,11 @@ tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr)
  *                  transport     - Link transport
  *                  p_callback    - Pointer to callback function called if
  *                                  this function returns PENDING after required
- *                                  procedures are completed.  Can be set to NULL
- *                                  if status is not desired.
- *                  p_ref_data    - pointer to any data the caller wishes to receive
- *                                  in the callback function upon completion.
- *                                  can be set to NULL if not used.
+ *                                  procedures are completed.  Can be set to
+ *                                  NULL if status is not desired.
+ *                  p_ref_data    - pointer to any data the caller wishes to
+ *                                  receive in the callback function upon
+ *                                  completion. can be set to NULL if not used.
  *                  sec_act       - LE security action, unused for BR/EDR
  *
  * Returns          BTM_SUCCESS   - already encrypted
@@ -1491,7 +1501,8 @@ static tBTM_STATUS btm_sec_send_hci_disconnect (tBTM_SEC_DEV_REC *p_dev_rec, uin
  * Description      This function is called to confirm the numeric value for
  *                  Simple Pairing in response to BTM_SP_CFM_REQ_EVT
  *
- * Parameters:      res           - result of the operation BTM_SUCCESS if success
+ * Parameters:      res           - result of the operation BTM_SUCCESS if
+ *                                  success
  *                  bd_addr       - Address of the peer device
  *
  ******************************************************************************/
@@ -1542,7 +1553,8 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, BD_ADDR bd_addr)
  * Parameters:      res     - result of the operation BTM_SUCCESS if success
  *                  bd_addr - Address of the peer device
  *                  passkey - numeric value in the range of
- *                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
+ *                  BTM_MIN_PASSKEY_VAL(0) -
+ *                  BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
  *
  ******************************************************************************/
 #if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
@@ -1603,8 +1615,8 @@ void BTM_PasskeyReqReply(tBTM_STATUS res, BD_ADDR bd_addr, uint32_t passkey)
  * Description      This function is used during the passkey entry model
  *                  by a device with KeyboardOnly IO capabilities
  *                  (very likely to be a HID Device).
- *                  It is called by a HID Device to inform the remote device when
- *                  a key has been entered or erased.
+ *                  It is called by a HID Device to inform the remote device
+ *                  when a key has been entered or erased.
  *
  * Parameters:      bd_addr - Address of the peer device
  *                  type - notification type
@@ -1624,9 +1636,9 @@ void BTM_SendKeypressNotif(BD_ADDR bd_addr, tBTM_SP_KEY_TYPE type)
  * Function         BTM_IoCapRsp
  *
  * Description      This function is called in response to BTM_SP_IO_REQ_EVT
- *                  When the event data io_req.oob_data is set to BTM_OOB_UNKNOWN
- *                  by the tBTM_SP_CALLBACK implementation, this function is
- *                  called to provide the actual response
+ *                  When the event data io_req.oob_data is set to
+ *                  BTM_OOB_UNKNOWN by the tBTM_SP_CALLBACK implementation,
+ *                  this function is called to provide the actual response
  *
  * Parameters:      bd_addr - Address of the peer device
  *                  io_cap  - The IO capability of local device.
@@ -1797,14 +1809,14 @@ uint16_t BTM_BuildOobData(uint8_t *p_data, uint16_t max_len, BT_OCTET16 c,
  *
  * Function         BTM_BothEndsSupportSecureConnections
  *
- * Description      This function is called to check if both the local device and the peer device
- *                  specified by bd_addr support BR/EDR Secure Connections.
+ * Description      This function is called to check if both the local device
+ *                  and the peer device specified by bd_addr support BR/EDR
+ *                  Secure Connections.
  *
  * Parameters:      bd_addr - address of the peer
  *
- * Returns          true if BR/EDR Secure Connections are supported by both local
- *                  and the remote device.
- *                  else false.
+ * Returns          true if BR/EDR Secure Connections are supported by both
+ *                  local and the remote device, else false.
  *
  ******************************************************************************/
 bool    BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr)
@@ -2821,7 +2833,8 @@ void btm_create_conn_cancel_complete (uint8_t *p)
  * Function         btm_sec_check_pending_reqs
  *
  * Description      This function is called at the end of the security procedure
- *                  to let L2CAP and RFCOMM know to re-submit any pending requests
+ *                  to let L2CAP and RFCOMM know to re-submit any pending
+ *                  requests
  *
  * Returns          void
  *
@@ -4312,8 +4325,8 @@ void btm_sec_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
  *
  * Function         btm_sec_connect_after_reject_timeout
  *
- * Description      Connection for bonding could not start because of the collision
- *                  Initiate outgoing connection
+ * Description      Connection for bonding could not start because of the
+ *                  collision. Initiate outgoing connection
  *
  * Returns          Pointer to the TLE struct
  *
@@ -4985,9 +4998,12 @@ static void btm_sec_pairing_timeout(UNUSED_ATTR void *data)
 #endif
     uint8_t name[2];
 
-/* Coverity: FALSE-POSITIVE error from Coverity tool. Please do NOT remove following comment. */
-/* coverity[UNUSED_VALUE] pointer p_dev_rec is actually used several times... This is a Coverity false-positive, i.e. a fake issue.
-*/
+/* Coverity: FALSE-POSITIVE error from Coverity tool. Please do NOT remove
+ * the following comment.
+ */
+/* coverity[UNUSED_VALUE] pointer p_dev_rec is actually used several times...
+ * This is a Coverity false-positive, i.e. a fake issue.
+ */
     p_dev_rec = btm_find_dev (p_cb->pairing_bda);
 
     BTM_TRACE_EVENT ("%s  State: %s   Flags: %u", __func__,
@@ -6055,8 +6071,8 @@ void btm_sec_set_peer_sec_caps(tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec)
  *
  * Function         btm_sec_is_serv_level0
  *
- * Description      This function is called to check if the service corresponding
- *                  to PSM is security mode 4 level 0 service.
+ * Description      This function is called to check if the service
+ *                  corresponding to PSM is security mode 4 level 0 service.
  *
  * Returns          true if the service is security mode 4 level 0 service
  *
@@ -6075,8 +6091,8 @@ static bool    btm_sec_is_serv_level0(uint16_t psm)
  *
  * Function         btm_sec_check_pending_enc_req
  *
- * Description      This function is called to send pending encryption callback if
- *                  waiting
+ * Description      This function is called to send pending encryption callback
+ *                  if waiting
  *
  * Returns          void
  *
@@ -6114,7 +6130,8 @@ static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRA
  *
  * Function         btm_sec_set_serv_level4_flags
  *
- * Description      This function is called to set security mode 4 level 4 flags.
+ * Description      This function is called to set security mode 4 level 4
+ *                  flags.
  *
  * Returns          service security requirements updated to include secure
  *                  connections only mode.

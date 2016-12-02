@@ -42,7 +42,7 @@
 #endif
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 #if (SDP_CLIENT_ENABLED == TRUE)
 static void          process_service_search_rsp (tCONN_CB *p_ccb, uint8_t *p_reply);
@@ -389,8 +389,8 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, bool    offset)
  *
  * Function         process_service_attr_rsp
  *
- * Description      This function is called when there is a attribute response from
- *                  the server.
+ * Description      This function is called when there is a attribute response
+ *                  from the server.
  *
  * Returns          void
  *

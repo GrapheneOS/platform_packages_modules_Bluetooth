@@ -47,12 +47,12 @@
 extern fixed_queue_t *btu_general_alarm_queue;
 
 /******************************************************************************/
-/*                       G L O B A L      S D P       D A T A                   */
+/*                     G L O B A L      S D P       D A T A                   */
 /******************************************************************************/
 tSDP_CB  sdp_cb;
 
 /******************************************************************************/
-/*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
+/*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
 static void sdp_connect_ind (BD_ADDR  bd_addr, uint16_t l2cap_cid, UNUSED_ATTR uint16_t psm,
                              uint8_t l2cap_id);
@@ -501,7 +501,7 @@ static void sdp_disconnect_ind (uint16_t l2cap_cid, bool    ack_needed)
  *
  * Description      This function is called when data is received from L2CAP.
  *                  if we are the originator of the connection, we are the SDP
- *                  client, and the received message is queued up for the client.
+ *                  client, and the received message is queued for the client.
  *
  *                  If we are the destination of the connection, we are the SDP
  *                  server, so the message is passed to the server processing

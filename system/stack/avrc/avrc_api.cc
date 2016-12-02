@@ -59,8 +59,10 @@ static const uint8_t avrc_ctrl_event_map[] =
     AVRC_BROWSE_UNCONG_IND_EVT /* AVCT_BROWSE_UNCONG_IND_EVT  */
 };
 
-#define AVRC_OP_DROP        0xFE    /* use this unused opcode to indication no need to call the callback function */
-#define AVRC_OP_DROP_N_FREE 0xFD    /* use this unused opcode to indication no need to call the callback function & free buffer */
+/* use this unused opcode to indication no need to call the callback function */
+#define AVRC_OP_DROP        0xFE
+/* use this unused opcode to indication no need to call the callback function & free buffer */
+#define AVRC_OP_DROP_N_FREE 0xFD
 
 #define AVRC_OP_UNIT_INFO_RSP_LEN       8
 #define AVRC_OP_SUB_UNIT_INFO_RSP_LEN   8
@@ -1045,8 +1047,8 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
  * Description      This function is called to open a connection to AVCTP.
  *                  The connection can be either an initiator or acceptor, as
  *                  determined by the p_ccb->stream parameter.
- *                  The connection can be a target, a controller or for both role,
- *                  as determined by the p_ccb->control parameter.
+ *                  The connection can be a target, a controller or for both
+ *                  role, as determined by the p_ccb->control parameter.
  *                  By definition, a target connection is an acceptor connection
  *                  that waits for an incoming AVCTP connection from the peer.
  *                  The connection remains available to the application until
@@ -1057,9 +1059,11 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
  *                  Input Parameters:
  *                      p_ccb->company_id: Company Identifier.
  *
- *                      p_ccb->p_ctrl_cback:  Pointer to control callback function.
+ *                      p_ccb->p_ctrl_cback:  Pointer to control callback
+ *                                            function.
  *
- *                      p_ccb->p_msg_cback:  Pointer to message callback function.
+ *                      p_ccb->p_msg_cback:  Pointer to message callback
+ *                                            function.
  *
  *                      p_ccb->conn: AVCTP connection role.  This is set to
  *                      AVCTP_INT for initiator connections and AVCTP_ACP
@@ -1067,7 +1071,8 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
  *
  *                      p_ccb->control: Control role.  This is set to
  *                      AVRC_CT_TARGET for target connections, AVRC_CT_CONTROL
- *                      for control connections or (AVRC_CT_TARGET|AVRC_CT_CONTROL)
+ *                      for control connections or
+ *                      (AVRC_CT_TARGET|AVRC_CT_CONTROL)
  *                      for connections that support both roles.
  *
  *                      peer_addr: BD address of peer device.  This value is
@@ -1140,9 +1145,9 @@ uint16_t AVRC_Close(uint8_t handle)
  *
  * Function         AVRC_OpenBrowse
  *
- * Description      This function is called to open a browsing connection to AVCTP.
- *                  The connection can be either an initiator or acceptor, as
- *                  determined by the p_conn_role.
+ * Description      This function is called to open a browsing connection to
+ *                  AVCTP. The connection can be either an initiator or
+ *                  acceptor, as determined by the p_conn_role.
  *                  The handle is returned by a previous call to AVRC_Open.
  *
  * Returns          AVRC_SUCCESS if successful.
@@ -1179,10 +1184,13 @@ uint16_t AVRC_CloseBrowse(uint8_t handle)
  * Description      This function is used to send the AVRCP byte stream in p_pkt
  *                  down to AVCTP.
  *
- *                  It is expected that p_pkt->offset is at least AVCT_MSG_OFFSET
+ *                  It is expected that p_pkt->offset is at least
+ *                  AVCT_MSG_OFFSET
  *                  p_pkt->layer_specific is AVCT_DATA_CTRL or AVCT_DATA_BROWSE
- *                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or AVRC_OP_BROWSE
- *                  The above BT_HDR settings are set by the AVRC_Bld* functions.
+ *                  p_pkt->event is AVRC_OP_VENDOR, AVRC_OP_PASS_THRU or
+ *                  AVRC_OP_BROWSE
+ *                  The above BT_HDR settings are set by the AVRC_Bld*
+ *                  functions.
  *
  * Returns          AVRC_SUCCESS if successful.
  *                  AVRC_BAD_HANDLE if handle is invalid.
@@ -1421,7 +1429,8 @@ uint16_t AVRC_PassCmd(uint8_t handle, uint8_t label, tAVRC_MSG_PASS *p_msg)
  *                      handle: Handle of this connection.
  *
  *                      label: Transaction label.  Must be the same value as
- *                      passed with the command message in the callback function.
+ *                      passed with the command message in the callback
+ *                      function.
  *
  *                      p_msg: Pointer to PASS THROUGH message structure.
  *
