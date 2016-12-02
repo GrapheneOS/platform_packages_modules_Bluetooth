@@ -13,8 +13,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-clang = "clang"
-clangxx = "clang++"
+clang_suffix = exec_script("get_clang_suffix.py", [], "list lines")
+clang_suffix = clang_suffix[0]
+assert(clang_suffix != "None",
+      "Cannot find clang, please install clang 3.5 or above")
+if (clang_suffix != "") {
+  clang_suffix = "-" + clang_suffix
+}
+clang = "clang$clang_suffix"
+clangxx = "clang++$clang_suffix"
 
 config("clang_config") {
   include_dirs = [
