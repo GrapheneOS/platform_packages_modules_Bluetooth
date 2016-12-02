@@ -4383,6 +4383,11 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
             bta_dm_cb.p_sec_cback(BTA_DM_BLE_NC_REQ_EVT, &sec_event);
             break;
 
+        case BTM_LE_SC_OOB_REQ_EVT:
+            bdcpy(sec_event.ble_req.bd_addr, bda);
+            bta_dm_cb.p_sec_cback(BTA_DM_BLE_SC_OOB_REQ_EVT, &sec_event);
+            break;
+
         case BTM_LE_KEY_EVT:
             bdcpy(sec_event.ble_key.bd_addr, bda);
             sec_event.ble_key.key_type = p_data->key.key_type;
