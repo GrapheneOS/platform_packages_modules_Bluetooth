@@ -1556,8 +1556,6 @@ void bta_jv_rfcomm_connect(tBTA_JV_MSG* p_data) {
 
       port_state.fc_type = (PORT_FC_CTS_ON_INPUT | PORT_FC_CTS_ON_OUTPUT);
 
-      /* coverity[uninit_use_in_call]
-         false-POSITIVE: port_state is initialized at PORT_GetState() */
       PORT_SetState(handle, &port_state);
 
       evt_data.handle = p_cb->handle;

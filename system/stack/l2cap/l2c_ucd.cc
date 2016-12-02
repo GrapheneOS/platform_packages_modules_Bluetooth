@@ -1081,7 +1081,6 @@ bool l2c_ucd_process_event(tL2C_CCB* p_ccb, uint16_t event, void* p_data) {
 
           l2c_ucd_enqueue_pending_out_sec_q(p_ccb, p_data);
 
-          /* coverity[check_return] */ /* coverity[unchecked_value] */
           /* success changes state, failure stays in current state */
           l2c_ucd_check_pending_out_sec_q(p_ccb);
           break;
