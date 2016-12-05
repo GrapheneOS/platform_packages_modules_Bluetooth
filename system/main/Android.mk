@@ -81,10 +81,10 @@ LOCAL_SHARED_LIBRARIES := \
     libprotobuf-cpp-lite \
     libaudioclient \
     libutils \
-    libchrome
+    libchrome \
+    libtinyxml2
 
 LOCAL_STATIC_LIBRARIES := \
-    libtinyxml2 \
     libbt-qcom_sbc_decoder
 
 LOCAL_WHOLE_STATIC_LIBRARIES := \
