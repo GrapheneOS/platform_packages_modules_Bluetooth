@@ -1364,20 +1364,23 @@ static void registerAdvertiserNative(JNIEnv* env, jobject object,
       base::Bind(&ble_advertiser_register_cb, uuid));
 }
 
-static void startAdvertiserNative(JNIEnv* env, jobject object,
-                                  jint advertiser_id, jint min_interval,
-                                  jint max_interval, jint adv_type,
-                                  jint chnl_map, jint tx_power,
-                                  jbyteArray adv_data, jbyteArray scan_resp,
-                                  jint timeout_s) {
+static void startAdvertiserNative(
+    JNIEnv* env, jobject object, jint advertiser_id,
+    jint advertising_event_properties, jint min_interval, jint max_interval,
+    jint chnl_map, jint tx_power, jint primary_advertising_phy,
+    jint secondary_advertising_phy, jint scan_request_notification_enable,
+    jbyteArray adv_data, jbyteArray scan_resp, jint timeout_s) {
   if (!sGattIf) return;
 
   AdvertiseParameters params;
+  params.advertising_event_properties = advertising_event_properties;
   params.min_interval = min_interval;
   params.max_interval = max_interval;
-  params.adv_type = adv_type;
   params.channel_map = chnl_map;
   params.tx_power = tx_power;
+  params.primary_advertising_phy = primary_advertising_phy;
+  params.secondary_advertising_phy = secondary_advertising_phy;
+  params.scan_request_notification_enable = scan_request_notification_enable;
 
   jbyte* adv_data_data = env->GetByteArrayElements(adv_data, NULL);
   uint16_t adv_data_len = (uint16_t)env->GetArrayLength(adv_data);
@@ -1395,6 +1398,7 @@ static void startAdvertiserNative(JNIEnv* env, jobject object,
       params, data_vec, scan_resp_vec, timeout_s,
       base::Bind(&ble_advertiser_enable_cb, false, advertiser_id));
 }
+
 static void unregisterAdvertiserNative(JNIEnv* env, jobject object,
                                        jint advertiser_id) {
   if (!sGattIf) return;
@@ -1651,7 +1655,8 @@ static JNINativeMethod sAdvertiseMethods[] = {
     {"registerAdvertiserNative", "(JJ)V", (void*)registerAdvertiserNative},
     {"unregisterAdvertiserNative", "(I)V", (void*)unregisterAdvertiserNative},
     {"gattClientEnableAdvNative", "(IZI)V", (void*)gattClientEnableAdvNative},
-    {"startAdvertiserNative", "(IIIIII[B[BI)V", (void*)startAdvertiserNative},
+    {"startAdvertiserNative", "(IIIIIIIII[B[BI)V",
+     (void*)startAdvertiserNative},
 };
 
 // JNI functions defined in ScanManager class.
