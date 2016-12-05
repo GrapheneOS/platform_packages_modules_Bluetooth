@@ -510,10 +510,10 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
       cs.media_type = AVDT_MEDIA_TYPE_AUDIO;
       cs.mtu = p_bta_av_cfg->audio_mtu;
       cs.flush_to = L2CAP_DEFAULT_FLUSH_TO;
-      tA2DP_CODEC_SEP_INDEX codec_sep_index_min =
-          A2DP_CODEC_SEP_INDEX_SOURCE_MIN;
-      tA2DP_CODEC_SEP_INDEX codec_sep_index_max =
-          A2DP_CODEC_SEP_INDEX_SOURCE_MAX;
+      btav_a2dp_codec_index_t codec_index_min =
+          BTAV_A2DP_CODEC_INDEX_SOURCE_MIN;
+      btav_a2dp_codec_index_t codec_index_max =
+          BTAV_A2DP_CODEC_INDEX_SOURCE_MAX;
 
 #if (AVDT_REPORTING == TRUE)
       if (bta_av_cb.features & BTA_AV_FEAT_REPORT) {
@@ -526,44 +526,44 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
 
       if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE) {
         cs.tsep = AVDT_TSEP_SRC;
-        codec_sep_index_min = A2DP_CODEC_SEP_INDEX_SOURCE_MIN;
-        codec_sep_index_max = A2DP_CODEC_SEP_INDEX_SOURCE_MAX;
+        codec_index_min = BTAV_A2DP_CODEC_INDEX_SOURCE_MIN;
+        codec_index_max = BTAV_A2DP_CODEC_INDEX_SOURCE_MAX;
       } else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK) {
         cs.tsep = AVDT_TSEP_SNK;
         cs.p_sink_data_cback = bta_av_sink_data_cback;
-        codec_sep_index_min = A2DP_CODEC_SEP_INDEX_SINK_MIN;
-        codec_sep_index_max = A2DP_CODEC_SEP_INDEX_SINK_MAX;
+        codec_index_min = BTAV_A2DP_CODEC_INDEX_SINK_MIN;
+        codec_index_max = BTAV_A2DP_CODEC_INDEX_SINK_MAX;
       }
 
       /* Initialize handles to zero */
-      for (int xx = 0; xx < A2DP_CODEC_SEP_INDEX_MAX; xx++) {
+      for (int xx = 0; xx < BTAV_A2DP_CODEC_INDEX_MAX; xx++) {
         p_scb->seps[xx].av_handle = 0;
       }
 
       /* keep the configuration in the stream control block */
       memcpy(&p_scb->cfg, &cs.cfg, sizeof(tAVDT_CFG));
-      for (int i = codec_sep_index_min; i < codec_sep_index_max; i++) {
-        tA2DP_CODEC_SEP_INDEX codec_sep_index =
-            static_cast<tA2DP_CODEC_SEP_INDEX>(i);
-        if (!(*bta_av_a2dp_cos.init)(codec_sep_index, &cs.cfg)) {
+      for (int i = codec_index_min; i < codec_index_max; i++) {
+        btav_a2dp_codec_index_t codec_index =
+            static_cast<btav_a2dp_codec_index_t>(i);
+        if (!(*bta_av_a2dp_cos.init)(codec_index, &cs.cfg)) {
           continue;
         }
-        if (AVDT_CreateStream(&p_scb->seps[codec_sep_index].av_handle, &cs) !=
+        if (AVDT_CreateStream(&p_scb->seps[codec_index].av_handle, &cs) !=
             AVDT_SUCCESS) {
           continue;
         }
         /* Save a copy of the codec */
-        memcpy(p_scb->seps[codec_sep_index].codec_info, cs.cfg.codec_info,
+        memcpy(p_scb->seps[codec_index].codec_info, cs.cfg.codec_info,
                AVDT_CODEC_SIZE);
-        p_scb->seps[codec_sep_index].tsep = cs.tsep;
+        p_scb->seps[codec_index].tsep = cs.tsep;
         if (cs.tsep == AVDT_TSEP_SNK) {
-          p_scb->seps[codec_sep_index].p_app_sink_data_cback =
+          p_scb->seps[codec_index].p_app_sink_data_cback =
               p_data->api_reg.p_app_sink_data_cback;
         } else {
           /* In case of A2DP SOURCE we don't need a callback to
            * handle media packets.
            */
-          p_scb->seps[codec_sep_index].p_app_sink_data_cback = NULL;
+          p_scb->seps[codec_index].p_app_sink_data_cback = NULL;
         }
       }
 
@@ -900,6 +900,7 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
         p_scb->sco_suspend = true;
         stop.flush = false;
         stop.suspend = true;
+        stop.reconfig_stop = false;
         bta_av_ssm_execute(p_scb, BTA_AV_AP_STOP_EVT, (tBTA_AV_DATA*)&stop);
       }
     }

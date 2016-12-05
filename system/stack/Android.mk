@@ -34,6 +34,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := \
     ./a2dp/a2dp_api.cc \
+    ./a2dp/a2dp_codec_config.cc \
     ./a2dp/a2dp_sbc.cc \
     ./a2dp/a2dp_sbc_encoder.cc \
     ./a2dp/a2dp_sbc_up_sample.cc \
@@ -156,7 +157,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libbt-stack
 LOCAL_STATIC_LIBRARIES := libbt-hci
-LOCAL_SHARED_LIBRARIES := libcutils libchrome
+LOCAL_SHARED_LIBRARIES := libcutils liblog libchrome
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
@@ -177,8 +178,8 @@ LOCAL_C_INCLUDES := \
                    $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := test/stack_a2dp_test.cc
-LOCAL_SHARED_LIBRARIES :=
-LOCAL_STATIC_LIBRARIES := libbt-stack liblog
+LOCAL_SHARED_LIBRARIES := libc liblog libchrome
+LOCAL_STATIC_LIBRARIES := libbt-stack libbt-sbc-encoder libosi
 LOCAL_MODULE_TAGS := tests
 LOCAL_MODULE := net_test_stack
 
