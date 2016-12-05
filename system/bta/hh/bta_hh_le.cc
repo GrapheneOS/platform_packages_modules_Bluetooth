@@ -2270,7 +2270,6 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id) {
   uint8_t index = BTA_HH_IDX_INVALID;
 
   index = bta_hh_find_cb(bd_addr);
-  index = bta_hh_find_cb(bd_addr);
   if (index == BTA_HH_IDX_INVALID) {
     APPL_TRACE_ERROR("%s: unknown device", __func__);
     return;
