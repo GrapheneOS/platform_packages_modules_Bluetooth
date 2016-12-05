@@ -65,9 +65,9 @@ btsdp_callbacks_t sBluetoothSdpCallbacks = {
 static jobject sCallbacksObj = NULL;
 
 static void initializeNative(JNIEnv *env, jobject object) {
-    const bt_interface_t* btInf;
+    const bt_interface_t* btInf = getBluetoothInterface();
 
-    if ( (btInf = getBluetoothInterface()) == NULL) {
+    if (btInf == NULL) {
         ALOGE("Bluetooth module is not loaded");
         return;
     }
@@ -76,10 +76,12 @@ static void initializeNative(JNIEnv *env, jobject object) {
          sBluetoothSdpInterface->deinit();
          sBluetoothSdpInterface = NULL;
     }
-    if ( (sBluetoothSdpInterface = (btsdp_interface_t *)
-            btInf->get_profile_interface(BT_PROFILE_SDP_CLIENT_ID)) == NULL) {
+
+    sBluetoothSdpInterface = (btsdp_interface_t *)
+            btInf->get_profile_interface(BT_PROFILE_SDP_CLIENT_ID);
+    if (sBluetoothSdpInterface == NULL) {
             ALOGE("Error getting SDP client interface");
-    }else{
+    } else {
         sBluetoothSdpInterface->init(&sBluetoothSdpCallbacks);
     }
 
@@ -117,72 +119,66 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 }
 
 static jboolean sdpSearchNative(JNIEnv *env, jobject obj, jbyteArray address, jbyteArray uuidObj) {
-    ALOGD("%s:",__FUNCTION__);
+    ALOGD("%s",__func__);
 
-    jbyte *addr = NULL, *uuid = NULL;
-    jboolean result = JNI_FALSE;
-    int ret;
     if (!sBluetoothSdpInterface)
-        goto Fail;
+        return JNI_FALSE;
 
-    addr = env->GetByteArrayElements(address, NULL);
+    jbyte *addr = env->GetByteArrayElements(address, NULL);
     if (addr == NULL) {
         jniThrowIOException(env, EINVAL);
-        goto Fail;
+        return JNI_FALSE;
     }
-    uuid = env->GetByteArrayElements(uuidObj, NULL);
+
+    jbyte *uuid = env->GetByteArrayElements(uuidObj, NULL);
     if (!uuid) {
         ALOGE("failed to get uuid");
-        goto Fail;
+        env->ReleaseByteArrayElements(address, addr, 0);
+        return JNI_FALSE;
     }
-    ALOGD("%s UUID %.*s",__FUNCTION__,16, (uint8_t*)uuid);
+    ALOGD("%s UUID %.*s",__func__,16, (uint8_t*)uuid);
 
-
-    if ((ret = sBluetoothSdpInterface->sdp_search((bt_bdaddr_t *)addr,
-                    (const uint8_t*)uuid)) != BT_STATUS_SUCCESS) {
+    int ret = sBluetoothSdpInterface->sdp_search((bt_bdaddr_t *)addr,
+                    (const uint8_t*)uuid);
+    if (ret != BT_STATUS_SUCCESS) {
         ALOGE("SDP Search initialization failed: %d", ret);
-        goto Fail;
     }
 
-    result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
-
-    Fail:
     if (addr) env->ReleaseByteArrayElements(address, addr, 0);
     if (uuid) env->ReleaseByteArrayElements(uuidObj, uuid, 0);
-    return result;
+    return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
 static void sdp_search_callback(bt_status_t status, bt_bdaddr_t *bd_addr, uint8_t* uuid_in,
         int count, bluetooth_sdp_record* records)
 {
-
-    jbyteArray addr = NULL;
-    jbyteArray uuid = NULL;
-    jstring service_name = NULL;
-    int i = 0;
-    bluetooth_sdp_record* record;
-
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
 
-    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-    if (addr == NULL) goto clean;
+    jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+    if (addr == NULL) {
+        return;
+    }
 
-    uuid = sCallbackEnv->NewByteArray(sizeof(bt_uuid_t));
-    if (uuid == NULL) goto clean;
+    jbyteArray uuid = sCallbackEnv->NewByteArray(sizeof(bt_uuid_t));
+    if (uuid == NULL) {
+        sCallbackEnv->DeleteLocalRef(addr);
+        return;
+    }
 
     sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t), (jbyte*)bd_addr);
     sCallbackEnv->SetByteArrayRegion(uuid, 0, sizeof(bt_uuid_t), (jbyte*)uuid_in);
 
-    ALOGD("%s: Status is: %d, Record count: %d", __FUNCTION__, status, count);
+    ALOGD("%s: Status is: %d, Record count: %d", __func__, status, count);
 
-    // Ensure we run the loop at least once, to also signal errors if they occure
-    for(i = 0; i < count || i==0; i++) {
-        bool more_results = (i<(count-1))?true:false;
-        record = &records[i];
+    jstring service_name = NULL;
+    // Ensure we run the loop at least once, to also signal errors if they occur
+    for (int i = 0; i < count || i == 0; i++) {
+        bool more_results = (i<(count-1)) ? true : false;
+        bluetooth_sdp_record* record = &records[i];
         service_name = NULL;
         if (record->hdr.service_name_length > 0) {
-            ALOGD("%s, ServiceName:  %s", __FUNCTION__, record->mas.hdr.service_name);
+            ALOGD("%s, ServiceName:  %s", __func__, record->mas.hdr.service_name);
             service_name = (jstring)sCallbackEnv->NewStringUTF(record->mas.hdr.service_name);
         }
 
@@ -284,23 +280,20 @@ static void sdp_search_callback(bt_status_t status, bt_bdaddr_t *bd_addr, uint8_
     clean:
     if (service_name != NULL)
         sCallbackEnv->DeleteLocalRef(service_name);
-    if (addr != NULL) sCallbackEnv->DeleteLocalRef(addr);
-    if (uuid != NULL) sCallbackEnv->DeleteLocalRef(uuid);
+    sCallbackEnv->DeleteLocalRef(addr);
+    sCallbackEnv->DeleteLocalRef(uuid);
 }
 
 static jint sdpCreateMapMasRecordNative(JNIEnv *env, jobject obj, jstring name_str, jint mas_id,
                                          jint scn, jint l2cap_psm, jint version,
                                          jint msg_types, jint features) {
-    ALOGD("%s:", __FUNCTION__);
+    ALOGD("%s", __func__);
+    if (!sBluetoothSdpInterface) return -1;
 
-    const char* service_name = NULL;
     bluetooth_sdp_record record = {}; // Must be zero initialized
-    int handle=-1;
-    int ret = 0;
-    if (!sBluetoothSdpInterface) return handle;
-
     record.mas.hdr.type = SDP_TYPE_MAP_MAS;
 
+    const char* service_name = NULL;
     if (name_str != NULL) {
         service_name = env->GetStringUTFChars(name_str, NULL);
         record.mas.hdr.service_name = (char *) service_name;
@@ -317,15 +310,14 @@ static jint sdpCreateMapMasRecordNative(JNIEnv *env, jobject obj, jstring name_s
     record.mas.supported_features = features;
     record.mas.supported_message_types = msg_types;
 
-    if ( (ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle))
-            != BT_STATUS_SUCCESS) {
+    int handle = -1;
+    int ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle);
+    if (ret != BT_STATUS_SUCCESS) {
         ALOGE("SDP Create record failed: %d", ret);
-        goto Fail;
+    } else {
+        ALOGD("SDP Create record success - handle: %d", handle);
     }
 
-    ALOGD("SDP Create record success - handle: %d", handle);
-
-    Fail:
     if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
     return handle;
 }
@@ -333,16 +325,13 @@ static jint sdpCreateMapMasRecordNative(JNIEnv *env, jobject obj, jstring name_s
 static jint sdpCreateMapMnsRecordNative(JNIEnv *env, jobject obj, jstring name_str,
                                          jint scn, jint l2cap_psm, jint version,
                                          jint features) {
-    ALOGD("%s:",__FUNCTION__);
+    ALOGD("%s",__func__);
+    if (!sBluetoothSdpInterface) return -1;
 
-    const char* service_name = NULL;
     bluetooth_sdp_record record = {}; // Must be zero initialized
-    int handle=-1;
-    int ret = 0;
-    if (!sBluetoothSdpInterface) return handle;
-
     record.mns.hdr.type = SDP_TYPE_MAP_MNS;
 
+    const char* service_name = NULL;
     if (name_str != NULL) {
         service_name = env->GetStringUTFChars(name_str, NULL);
         record.mns.hdr.service_name = (char *) service_name;
@@ -357,15 +346,14 @@ static jint sdpCreateMapMnsRecordNative(JNIEnv *env, jobject obj, jstring name_s
 
     record.mns.supported_features = features;
 
-    if ( (ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle))
-            != BT_STATUS_SUCCESS) {
+    int handle = -1;
+    int ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle);
+    if (ret != BT_STATUS_SUCCESS) {
         ALOGE("SDP Create record failed: %d", ret);
-        goto Fail;
+    } else {
+        ALOGD("SDP Create record success - handle: %d", handle);
     }
 
-    ALOGD("SDP Create record success - handle: %d", handle);
-
-    Fail:
     if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
     return handle;
 }
@@ -373,16 +361,13 @@ static jint sdpCreateMapMnsRecordNative(JNIEnv *env, jobject obj, jstring name_s
 static jint sdpCreatePbapPseRecordNative(JNIEnv *env, jobject obj, jstring name_str,
                                          jint scn, jint l2cap_psm, jint version,
                                          jint supported_repositories, jint features) {
-    ALOGD("%s:",__FUNCTION__);
+    ALOGD("%s",__func__);
+    if (!sBluetoothSdpInterface) return -1;
 
-    const char* service_name = NULL;
     bluetooth_sdp_record record = {}; // Must be zero initialized
-    int handle=-1;
-    int ret = 0;
-    if (!sBluetoothSdpInterface) return handle;
-
     record.pse.hdr.type = SDP_TYPE_PBAP_PSE;
 
+    const char* service_name = NULL;
     if (name_str != NULL) {
         service_name = env->GetStringUTFChars(name_str, NULL);
         record.pse.hdr.service_name = (char *) service_name;
@@ -398,15 +383,14 @@ static jint sdpCreatePbapPseRecordNative(JNIEnv *env, jobject obj, jstring name_
     record.pse.supported_features = features;
     record.pse.supported_repositories = supported_repositories;
 
-    if ( (ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle))
-            != BT_STATUS_SUCCESS) {
+    int handle = -1;
+    int ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle);
+    if (ret != BT_STATUS_SUCCESS) {
         ALOGE("SDP Create record failed: %d", ret);
-        goto Fail;
+    } else {
+        ALOGD("SDP Create record success - handle: %d", handle);
     }
 
-    ALOGD("SDP Create record success - handle: %d", handle);
-
-    Fail:
     if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
     return handle;
 }
@@ -414,18 +398,13 @@ static jint sdpCreatePbapPseRecordNative(JNIEnv *env, jobject obj, jstring name_
 static jint sdpCreateOppOpsRecordNative(JNIEnv *env, jobject obj, jstring name_str,
                                          jint scn, jint l2cap_psm, jint version,
                                          jbyteArray supported_formats_list) {
-    ALOGD("%s:",__FUNCTION__);
+    ALOGD("%s",__func__);
+    if (!sBluetoothSdpInterface) return -1;
 
-    const char* service_name = NULL;
     bluetooth_sdp_record record = {}; // Must be zero initialized
-    jbyte* formats_list;
-    int formats_list_len = 0;
-    int handle=-1;
-    int ret = 0;
-    if (!sBluetoothSdpInterface) return handle;
-
     record.ops.hdr.type = SDP_TYPE_OPP_SERVER;
 
+    const char* service_name = NULL;
     if (name_str != NULL) {
         service_name = env->GetStringUTFChars(name_str, NULL);
         record.ops.hdr.service_name = (char *) service_name;
@@ -438,7 +417,8 @@ static jint sdpCreateOppOpsRecordNative(JNIEnv *env, jobject obj, jstring name_s
     record.ops.hdr.l2cap_psm = l2cap_psm;
     record.ops.hdr.profile_version = version;
 
-    formats_list = env->GetByteArrayElements(supported_formats_list, NULL);
+    int formats_list_len = 0;
+    jbyte* formats_list = env->GetByteArrayElements(supported_formats_list, NULL);
     if (formats_list != NULL) {
         formats_list_len = env->GetArrayLength(supported_formats_list);
         if (formats_list_len > SDP_OPP_SUPPORTED_FORMATS_MAX_LENGTH) {
@@ -449,15 +429,14 @@ static jint sdpCreateOppOpsRecordNative(JNIEnv *env, jobject obj, jstring name_s
 
     record.ops.supported_formats_list_len = formats_list_len;
 
-    if ( (ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle))
-            != BT_STATUS_SUCCESS) {
+    int handle = -1;
+    int ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle);
+    if (ret != BT_STATUS_SUCCESS) {
         ALOGE("SDP Create record failed: %d", ret);
-        goto Fail;
+    } else {
+        ALOGD("SDP Create record success - handle: %d", handle);
     }
 
-    ALOGD("SDP Create record success - handle: %d", handle);
-
-    Fail:
     if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
     if (formats_list) env->ReleaseByteArrayElements(supported_formats_list, formats_list, 0);
     return handle;
@@ -465,16 +444,13 @@ static jint sdpCreateOppOpsRecordNative(JNIEnv *env, jobject obj, jstring name_s
 
 static jint sdpCreateSapsRecordNative(JNIEnv *env, jobject obj, jstring name_str,
                                          jint scn, jint version) {
-    ALOGD("%s:",__FUNCTION__);
+    ALOGD("%s",__func__);
+    if (!sBluetoothSdpInterface) return -1;
 
-    const char* service_name = NULL;
     bluetooth_sdp_record record = {}; // Must be zero initialized
-    int handle = -1;
-    int ret = 0;
-    if (!sBluetoothSdpInterface) return handle;
-
     record.sap.hdr.type = SDP_TYPE_SAP_SERVER;
 
+    const char* service_name = NULL;
     if (name_str != NULL) {
         service_name = env->GetStringUTFChars(name_str, NULL);
         record.mas.hdr.service_name = (char *) service_name;
@@ -486,27 +462,24 @@ static jint sdpCreateSapsRecordNative(JNIEnv *env, jobject obj, jstring name_str
     record.mas.hdr.rfcomm_channel_number = scn;
     record.mas.hdr.profile_version = version;
 
-    if ( (ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle))
-            != BT_STATUS_SUCCESS) {
+    int handle = -1;
+    int ret = sBluetoothSdpInterface->create_sdp_record(&record, &handle);
+    if (ret != BT_STATUS_SUCCESS) {
         ALOGE("SDP Create record failed: %d", ret);
-        goto Fail;
+    } else {
+        ALOGD("SDP Create record success - handle: %d", handle);
     }
 
-    ALOGD("SDP Create record success - handle: %d", handle);
-
-    Fail:
     if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
     return handle;
 }
 
 static jboolean sdpRemoveSdpRecordNative(JNIEnv *env, jobject obj, jint record_id) {
-    ALOGD("%s:",__FUNCTION__);
-
-    int ret = 0;
+    ALOGD("%s",__func__);
     if (!sBluetoothSdpInterface) return false;
 
-    if ( (ret = sBluetoothSdpInterface->remove_sdp_record(record_id))
-            != BT_STATUS_SUCCESS) {
+    int ret = sBluetoothSdpInterface->remove_sdp_record(record_id);
+    if (ret != BT_STATUS_SUCCESS) {
         ALOGE("SDP Remove record failed: %d", ret);
         return false;
     }
@@ -517,9 +490,9 @@ static jboolean sdpRemoveSdpRecordNative(JNIEnv *env, jobject obj, jint record_i
 
 
 static void cleanupNative(JNIEnv *env, jobject object) {
-    const bt_interface_t* btInf;
+    const bt_interface_t* btInf = getBluetoothInterface();
 
-    if ( (btInf = getBluetoothInterface()) == NULL) {
+    if (btInf == NULL) {
         ALOGE("Bluetooth module is not loaded");
         return;
     }
