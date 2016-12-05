@@ -28,11 +28,11 @@
 #include <string.h>
 
 #include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s(L%d): " fmt,__FUNCTION__, __LINE__,  ## __VA_ARGS__)
-#define warn(fmt, ...) ALOGW ("WARNING: %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("ERROR: %s(L%d): " fmt "##",__FUNCTION__, __LINE__, ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("%s(L%d): ASSERT %s failed! ##",__FUNCTION__, __LINE__, #s)
+#define info(fmt, ...)  ALOGI ("%s(L%d): " fmt,__func__, __LINE__,  ## __VA_ARGS__)
+#define debug(fmt, ...) ALOGD ("%s(L%d): " fmt,__func__, __LINE__,  ## __VA_ARGS__)
+#define warn(fmt, ...) ALOGW ("WARNING: %s(L%d): " fmt "##",__func__, __LINE__, ## __VA_ARGS__)
+#define error(fmt, ...) ALOGE ("ERROR: %s(L%d): " fmt "##",__func__, __LINE__, ## __VA_ARGS__)
+#define asrt(s) if(!(s)) ALOGE ("%s(L%d): ASSERT %s failed! ##",__func__, __LINE__, #s)
 
 #define BD_ADDR_LEN 6
 
@@ -51,9 +51,8 @@ static void set_uuid(uint8_t* uuid, jlong uuid_msb, jlong uuid_lsb)
 static uint64_t uuid_lsb(const bt_uuid_t* uuid)
 {
     uint64_t  lsb = 0;
-    int i;
 
-    for (i = 7; i >= 0; i--)
+    for (int i = 7; i >= 0; i--)
     {
         lsb <<= 8;
         lsb |= uuid->uu[i];
@@ -65,9 +64,8 @@ static uint64_t uuid_lsb(const bt_uuid_t* uuid)
 static uint64_t uuid_msb(const bt_uuid_t* uuid)
 {
     uint64_t msb = 0;
-    int i;
 
-    for (i = 15; i >= 8; i--)
+    for (int i = 15; i >= 8; i--)
     {
         msb <<= 8;
         msb |= uuid->uu[i];
@@ -221,8 +219,8 @@ void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data
     jbyteArray jb = sCallbackEnv->NewByteArray(62);
     sCallbackEnv->SetByteArrayRegion(jb, 0, 62, (jbyte *) adv_data.data());
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult
-        , address, rssi, jb);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult,
+                                 address, rssi, jb);
 
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(jb);
@@ -277,8 +275,8 @@ void btgattc_notify_cb(int conn_id, btgatt_notify_params_t *p_data)
     jbyteArray jb = sCallbackEnv->NewByteArray(p_data->len);
     sCallbackEnv->SetByteArrayRegion(jb, 0, p_data->len, (jbyte *) p_data->value);
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNotify
-        , conn_id, address, p_data->handle, p_data->is_notify, jb);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNotify,
+                                 conn_id, address, p_data->handle, p_data->is_notify, jb);
 
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(jb);
@@ -290,8 +288,7 @@ void btgattc_read_characteristic_cb(int conn_id, int status, btgatt_read_params_
     if (!sCallbackEnv.valid()) return;
 
     jbyteArray jb;
-    if ( status == 0 )      //successful
-    {
+    if (status == 0) { // Success
         jb = sCallbackEnv->NewByteArray(p_data->value.len);
         sCallbackEnv->SetByteArrayRegion(jb, 0, p_data->value.len,
             (jbyte *) p_data->value.value);
@@ -311,8 +308,8 @@ void btgattc_write_characteristic_cb(int conn_id, int status, uint16_t handle)
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteCharacteristic
-        , conn_id, status, handle);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteCharacteristic,
+                                 conn_id, status, handle);
 }
 
 void btgattc_execute_write_cb(int conn_id, int status)
@@ -320,8 +317,8 @@ void btgattc_execute_write_cb(int conn_id, int status)
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onExecuteCompleted
-        , conn_id, status);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onExecuteCompleted,
+                                 conn_id, status);
 }
 
 void btgattc_read_descriptor_cb(int conn_id, int status, btgatt_read_params_t *p_data)
@@ -350,8 +347,8 @@ void btgattc_write_descriptor_cb(int conn_id, int status, uint16_t handle)
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
 
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteDescriptor
-        , conn_id, status, handle);
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWriteDescriptor,
+                                 conn_id, status, handle);
 }
 
 void btgattc_remote_rssi_cb(int client_if,bt_bdaddr_t* bda, int rssi, int status)
@@ -445,7 +442,7 @@ void btgattc_track_adv_event_cb(btgatt_track_adv_info_t *p_adv_track_info)
 {
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
-    jobject trackadv_obj = NULL;
+
 
     jstring address = bdaddr2newjstr(sCallbackEnv.get(), &p_adv_track_info->bd_addr);
 
@@ -458,7 +455,7 @@ void btgattc_track_adv_event_cb(btgatt_track_adv_info_t *p_adv_track_info)
     sCallbackEnv->SetByteArrayRegion(jb_scan_rsp, 0, p_adv_track_info->scan_rsp_len,
                                      (jbyte *) p_adv_track_info->p_scan_rsp_data);
 
-    trackadv_obj = sCallbackEnv->CallObjectMethod(mCallbacksObj, method_CreateonTrackAdvFoundLostObject,
+    jobject trackadv_obj = sCallbackEnv->CallObjectMethod(mCallbacksObj, method_CreateonTrackAdvFoundLostObject,
                     p_adv_track_info->client_if, p_adv_track_info->adv_pkt_len, jb_adv_pkt,
                     p_adv_track_info->scan_rsp_len, jb_scan_rsp, p_adv_track_info->filt_index,
                     p_adv_track_info->advertiser_state, p_adv_track_info->advertiser_info_present,
@@ -550,7 +547,6 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t *db, int count)
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetGattDb, conn_id, array);
     sCallbackEnv->DeleteLocalRef(array);
-
 }
 
 static const btgatt_scanner_callbacks_t sGattScannerCallbacks = {
@@ -621,8 +617,8 @@ void btgatts_register_app_cb(int status, int server_if, bt_uuid_t *uuid)
 {
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerRegistered
-        , status, server_if, UUID_PARAMS(uuid));
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerRegistered,
+                                 status, server_if, UUID_PARAMS(uuid));
 }
 
 void btgatts_connection_cb(int conn_id, int server_if, int connected, bt_bdaddr_t *bda)
@@ -864,10 +860,11 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 static const bt_interface_t* btIf;
 
 static void initializeNative(JNIEnv *env, jobject object) {
-    if(btIf)
+    if (btIf)
         return;
 
-    if ( (btIf = getBluetoothInterface()) == NULL) {
+    btIf = getBluetoothInterface();
+    if (btIf == NULL) {
         error("Bluetooth module is not loaded");
         return;
     }
@@ -884,14 +881,14 @@ static void initializeNative(JNIEnv *env, jobject object) {
          mCallbacksObj = NULL;
     }
 
-    if ( (sGattIf = (btgatt_interface_t *)
-          btIf->get_profile_interface(BT_PROFILE_GATT_ID)) == NULL) {
+    sGattIf = (btgatt_interface_t *) btIf->get_profile_interface(BT_PROFILE_GATT_ID);
+    if (sGattIf == NULL) {
         error("Failed to get Bluetooth GATT Interface");
         return;
     }
 
-    bt_status_t status;
-    if ( (status = sGattIf->init(&sGattCallbacks)) != BT_STATUS_SUCCESS) {
+    bt_status_t status = sGattIf->init(&sGattCallbacks);
+    if (status != BT_STATUS_SUCCESS) {
         error("Failed to initialize Bluetooth GATT, status: %d", status);
         sGattIf = NULL;
         return;
@@ -1332,10 +1329,9 @@ static void gattConnectionParameterUpdateNative(JNIEnv *env, jobject object, jin
 static void registerAdvertiserNative(JNIEnv* env, jobject object,
                                      jlong app_uuid_lsb, jlong app_uuid_msb)
 {
-    bt_uuid_t uuid;
-
     if (!sGattIf) return;
 
+    bt_uuid_t uuid;
     set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
     sGattIf->advertiser->RegisterAdvertiser(base::Bind(&ble_advertiser_register_cb, uuid));
 }
