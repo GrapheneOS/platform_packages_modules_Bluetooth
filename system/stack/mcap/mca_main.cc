@@ -190,7 +190,7 @@ tMCA_TC_TBL* mca_tc_tbl_dalloc(tMCA_DCB* p_dcb) {
 tMCA_TC_TBL* mca_tc_tbl_by_lcid(uint16_t lcid) {
   uint8_t idx;
 
-  if (lcid) {
+  if (lcid >= L2CAP_BASE_APPL_CID) {
     idx = mca_cb.tc.lcid_tbl[lcid - L2CAP_BASE_APPL_CID];
 
     if (idx < MCA_NUM_TC_TBL) {
@@ -213,7 +213,7 @@ tMCA_TC_TBL* mca_tc_tbl_by_lcid(uint16_t lcid) {
 void mca_free_tc_tbl_by_lcid(uint16_t lcid) {
   uint8_t idx;
 
-  if (lcid) {
+  if (lcid >= L2CAP_BASE_APPL_CID) {
     idx = mca_cb.tc.lcid_tbl[lcid - L2CAP_BASE_APPL_CID];
 
     if (idx < MCA_NUM_TC_TBL) {
