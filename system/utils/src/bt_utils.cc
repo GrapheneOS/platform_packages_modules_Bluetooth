@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <sys/resource.h>
 #include <unistd.h>
+#include <mutex>
 
 #ifdef OS_GENERIC
 #define ANDROID_PRIORITY_AUDIO -16
@@ -55,14 +56,13 @@
  ******************************************************************************/
 static pthread_once_t g_DoSchedulingGroupOnce[TASK_HIGH_MAX];
 static bool g_DoSchedulingGroup[TASK_HIGH_MAX];
-static pthread_mutex_t gIdxLock;
+static std::mutex gIdxLock;
 static int g_TaskIdx;
 static int g_TaskIDs[TASK_HIGH_MAX];
 #define INVALID_TASK_ID (-1)
 
 static future_t* init(void) {
   int i;
-  pthread_mutexattr_t lock_attr;
 
   for (i = 0; i < TASK_HIGH_MAX; i++) {
     g_DoSchedulingGroupOnce[i] = PTHREAD_ONCE_INIT;
@@ -70,13 +70,10 @@ static future_t* init(void) {
     g_TaskIDs[i] = INVALID_TASK_ID;
   }
 
-  pthread_mutexattr_init(&lock_attr);
-  pthread_mutex_init(&gIdxLock, &lock_attr);
   return NULL;
 }
 
 static future_t* clean_up(void) {
-  pthread_mutex_destroy(&gIdxLock);
   return NULL;
 }
 
@@ -121,23 +118,25 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
   int tid = gettid();
   int priority = ANDROID_PRIORITY_AUDIO;
 
-  pthread_mutex_lock(&gIdxLock);
-  g_TaskIdx = high_task;
+  {
+    std::lock_guard<std::mutex> lock(gIdxLock);
+    g_TaskIdx = high_task;
 
 // TODO(armansito): Remove this conditional check once we find a solution
 // for system/core on non-Android platforms.
 #if defined(OS_GENERIC)
-  rc = -1;
+    rc = -1;
 #else   // !defined(OS_GENERIC)
-  pthread_once(&g_DoSchedulingGroupOnce[g_TaskIdx], check_do_scheduling_group);
-  if (g_DoSchedulingGroup[g_TaskIdx]) {
-    // set_sched_policy does not support tid == 0
-    rc = set_sched_policy(tid, SP_AUDIO_SYS);
-  }
+    pthread_once(&g_DoSchedulingGroupOnce[g_TaskIdx],
+                 check_do_scheduling_group);
+    if (g_DoSchedulingGroup[g_TaskIdx]) {
+      // set_sched_policy does not support tid == 0
+      rc = set_sched_policy(tid, SP_AUDIO_SYS);
+    }
 #endif  // defined(OS_GENERIC)
 
-  g_TaskIDs[high_task] = tid;
-  pthread_mutex_unlock(&gIdxLock);
+    g_TaskIDs[high_task] = tid;
+  }
 
   if (rc) {
     LOG_WARN(LOG_TAG, "failed to change sched policy, tid %d, err: %d", tid,
