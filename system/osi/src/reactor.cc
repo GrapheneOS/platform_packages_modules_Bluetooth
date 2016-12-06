@@ -29,6 +29,8 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 
+#include <mutex>
+
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
@@ -40,7 +42,7 @@
 struct reactor_t {
   int epoll_fd;
   int event_fd;
-  pthread_mutex_t list_lock;  // protects invalidation_list.
+  std::mutex* list_mutex;
   list_t* invalidation_list;  // reactor objects that have been unregistered.
   pthread_t run_thread;       // the pthread on which reactor_run is executing.
   bool is_running;            // indicates whether |run_thread| is valid.
@@ -51,8 +53,7 @@ struct reactor_object_t {
   int fd;              // the file descriptor to monitor for events.
   void* context;       // a context that's passed back to the *_ready functions.
   reactor_t* reactor;  // the reactor instance this object is registered with.
-  pthread_mutex_t
-      lock;  // protects the lifetime of this object and all variables.
+  std::mutex* mutex;  // protects the lifetime of this object and all variables.
 
   void (*read_ready)(void* context);   // function to call when the file
                                        // descriptor becomes readable.
@@ -85,7 +86,7 @@ reactor_t* reactor_new(void) {
     goto error;
   }
 
-  pthread_mutex_init(&ret->list_lock, NULL);
+  ret->list_mutex = new std::mutex;
   ret->invalidation_list = list_new(NULL);
   if (!ret->invalidation_list) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate object invalidation list.",
@@ -149,7 +150,7 @@ reactor_object_t* reactor_register(reactor_t* reactor, int fd, void* context,
   object->context = context;
   object->read_ready = read_ready;
   object->write_ready = write_ready;
-  pthread_mutex_init(&object->lock, NULL);
+  object->mutex = new std::mutex;
 
   struct epoll_event event;
   memset(&event, 0, sizeof(event));
@@ -160,7 +161,7 @@ reactor_object_t* reactor_register(reactor_t* reactor, int fd, void* context,
   if (epoll_ctl(reactor->epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1) {
     LOG_ERROR(LOG_TAG, "%s unable to register fd %d to epoll set: %s", __func__,
               fd, strerror(errno));
-    pthread_mutex_destroy(&object->lock);
+    delete object->mutex;
     osi_free(object);
     return NULL;
   }
@@ -186,10 +187,9 @@ bool reactor_change_registration(reactor_object_t* object,
     return false;
   }
 
-  pthread_mutex_lock(&object->lock);
+  std::lock_guard<std::mutex> lock(*object->mutex);
   object->read_ready = read_ready;
   object->write_ready = write_ready;
-  pthread_mutex_unlock(&object->lock);
 
   return true;
 }
@@ -209,9 +209,10 @@ void reactor_unregister(reactor_object_t* obj) {
     return;
   }
 
-  pthread_mutex_lock(&reactor->list_lock);
-  list_append(reactor->invalidation_list, obj);
-  pthread_mutex_unlock(&reactor->list_lock);
+  {
+    std::unique_lock<std::mutex> lock(*reactor->list_mutex);
+    list_append(reactor->invalidation_list, obj);
+  }
 
   // Taking the object lock here makes sure a callback for |obj| isn't
   // currently executing. The reactor thread must then either be before
@@ -221,9 +222,9 @@ void reactor_unregister(reactor_object_t* obj) {
   // invalidation_list and find it in there. So by taking this lock, we
   // are waiting until the reactor thread drops all references to |obj|.
   // One the wait completes, we can unlock and destroy |obj| safely.
-  pthread_mutex_lock(&obj->lock);
-  pthread_mutex_unlock(&obj->lock);
-  pthread_mutex_destroy(&obj->lock);
+  obj->mutex->lock();
+  obj->mutex->unlock();
+  delete obj->mutex;
   osi_free(obj);
 }
 
@@ -238,9 +239,10 @@ static reactor_status_t run_reactor(reactor_t* reactor, int iterations) {
 
   struct epoll_event events[MAX_EVENTS];
   for (int i = 0; iterations == 0 || i < iterations; ++i) {
-    pthread_mutex_lock(&reactor->list_lock);
-    list_clear(reactor->invalidation_list);
-    pthread_mutex_unlock(&reactor->list_lock);
+    {
+      std::lock_guard<std::mutex> lock(*reactor->list_mutex);
+      list_clear(reactor->invalidation_list);
+    }
 
     int ret;
     OSI_NO_INTR(ret = epoll_wait(reactor->epoll_fd, events, MAX_EVENTS, -1));
@@ -264,27 +266,27 @@ static reactor_status_t run_reactor(reactor_t* reactor, int iterations) {
 
       reactor_object_t* object = (reactor_object_t*)events[j].data.ptr;
 
-      pthread_mutex_lock(&reactor->list_lock);
+      std::unique_lock<std::mutex> lock(*reactor->list_mutex);
       if (list_contains(reactor->invalidation_list, object)) {
-        pthread_mutex_unlock(&reactor->list_lock);
         continue;
       }
 
       // Downgrade the list lock to an object lock.
-      pthread_mutex_lock(&object->lock);
-      pthread_mutex_unlock(&reactor->list_lock);
+      {
+        std::lock_guard<std::mutex> obj_lock(*object->mutex);
+        lock.unlock();
 
-      reactor->object_removed = false;
-      if (events[j].events & (EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR) &&
-          object->read_ready)
-        object->read_ready(object->context);
-      if (!reactor->object_removed && events[j].events & EPOLLOUT &&
-          object->write_ready)
-        object->write_ready(object->context);
-      pthread_mutex_unlock(&object->lock);
+        reactor->object_removed = false;
+        if (events[j].events & (EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR) &&
+            object->read_ready)
+          object->read_ready(object->context);
+        if (!reactor->object_removed && events[j].events & EPOLLOUT &&
+            object->write_ready)
+          object->write_ready(object->context);
+      }
 
       if (reactor->object_removed) {
-        pthread_mutex_destroy(&object->lock);
+        delete object->mutex;
         osi_free(object);
       }
     }
