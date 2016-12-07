@@ -1773,7 +1773,6 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
   STREAM_TO_BDADDR(bda, p);
 
   if (status == 0) {
-#if (BLE_PRIVACY_SPT == TRUE)
     peer_addr_type = bda_type;
     match = btm_identity_addr_to_random_pseudo(bda, &bda_type, true);
 
@@ -1787,6 +1786,7 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
     STREAM_TO_UINT16(conn_timeout, p);
     handle = HCID_GET_HANDLE(handle);
 
+#if (BLE_PRIVACY_SPT == TRUE)
     /* possiblly receive connection complete with resolvable random while
        the device has been paired */
     if (!match && BTM_BLE_IS_RESOLVE_BDA(bda)) {
