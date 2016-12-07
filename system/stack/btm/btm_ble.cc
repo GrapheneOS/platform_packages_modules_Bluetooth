@@ -1758,8 +1758,8 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
                            bool enhanced) {
 #if (BLE_PRIVACY_SPT == TRUE)
   uint8_t peer_addr_type;
-  BD_ADDR local_rpa, peer_rpa;
 #endif
+  BD_ADDR local_rpa, peer_rpa;
   uint8_t role, status, bda_type;
   uint16_t handle;
   BD_ADDR bda;
@@ -1773,9 +1773,6 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
   STREAM_TO_BDADDR(bda, p);
 
   if (status == 0) {
-    peer_addr_type = bda_type;
-    match = btm_identity_addr_to_random_pseudo(bda, &bda_type, true);
-
     if (enhanced) {
       STREAM_TO_BDADDR(local_rpa, p);
       STREAM_TO_BDADDR(peer_rpa, p);
@@ -1787,6 +1784,9 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
     handle = HCID_GET_HANDLE(handle);
 
 #if (BLE_PRIVACY_SPT == TRUE)
+    peer_addr_type = bda_type;
+    match = btm_identity_addr_to_random_pseudo(bda, &bda_type, true);
+
     /* possiblly receive connection complete with resolvable random while
        the device has been paired */
     if (!match && BTM_BLE_IS_RESOLVE_BDA(bda)) {
