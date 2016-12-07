@@ -77,6 +77,7 @@ void BTA_HfClientDisable(void) { bta_hf_client_api_disable(); }
  *
  ******************************************************************************/
 void BTA_HfClientOpen(BD_ADDR bd_addr, tBTA_SEC sec_mask, uint16_t* p_handle) {
+  APPL_TRACE_DEBUG("%s", __func__);
   tBTA_HF_CLIENT_API_OPEN* p_buf =
       (tBTA_HF_CLIENT_API_OPEN*)osi_malloc(sizeof(tBTA_HF_CLIENT_API_OPEN));
 
@@ -184,3 +185,15 @@ void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
 
   bta_sys_sendmsg(p_buf);
 }
+
+/*******************************************************************************
+ *
+ * Function         BTA_HfClientDumpStatistics
+ *
+ * Description      Dump statistics about the various control blocks
+ *                  and other relevant connection statistics
+ *
+ * Returns          Void
+ *
+ ******************************************************************************/
+void BTA_HfClientDumpStatistics(int fd) { bta_hf_client_dump_statistics(fd); }
