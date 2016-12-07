@@ -65,7 +65,6 @@ LOCAL_SRC_FILES:= \
     ./hf_client/bta_hf_client_act.cc \
     ./hf_client/bta_hf_client_api.cc \
     ./hf_client/bta_hf_client_at.cc \
-    ./hf_client/bta_hf_client_cmd.cc \
     ./hf_client/bta_hf_client_main.cc \
     ./hf_client/bta_hf_client_rfc.cc \
     ./hf_client/bta_hf_client_sco.cc \
