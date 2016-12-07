@@ -56,7 +56,7 @@ static void bta_hf_client_port_cback(UNUSED_ATTR uint32_t code,
   tBTA_HF_CLIENT_RFC* p_buf =
       (tBTA_HF_CLIENT_RFC*)osi_malloc(sizeof(tBTA_HF_CLIENT_RFC));
   p_buf->hdr.event = BTA_HF_CLIENT_RFC_DATA_EVT;
-  p_buf->hdr.layer_specific = client_cb->scb.handle;
+  p_buf->hdr.layer_specific = client_cb->handle;
   bta_sys_sendmsg(p_buf);
 }
 
@@ -71,53 +71,63 @@ static void bta_hf_client_port_cback(UNUSED_ATTR uint32_t code,
  *
  ******************************************************************************/
 static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle) {
-  uint16_t event;
-
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_rfc_handle(port_handle);
-  if (client_cb == NULL) {
-    APPL_TRACE_ERROR("%s: cb not found for handle %d", __func__, port_handle);
-    return;
-  }
 
-  APPL_TRACE_DEBUG(
-      "%s: code = %d, port_handle = %d, conn_handle = "
-      "%d, serv_handle = %d",
-      __func__, code, port_handle, client_cb->scb.conn_handle,
-      client_cb->scb.serv_handle);
+  APPL_TRACE_DEBUG("%s: code = %d, port_handle = %d", __func__, code,
+                   port_handle);
 
   /* ignore close event for port handles other than connected handle */
-  if ((code != PORT_SUCCESS) && (port_handle != client_cb->scb.conn_handle)) {
+  if (code != PORT_SUCCESS && client_cb != NULL &&
+      port_handle != client_cb->conn_handle) {
     APPL_TRACE_DEBUG("bta_hf_client_mgmt_cback ignoring handle:%d",
                      port_handle);
     return;
   }
 
+  tBTA_HF_CLIENT_RFC* p_buf =
+      (tBTA_HF_CLIENT_RFC*)osi_malloc(sizeof(tBTA_HF_CLIENT_RFC));
+
   if (code == PORT_SUCCESS) {
-    if ((client_cb->scb.conn_handle &&
-         (port_handle ==
-          client_cb->scb.conn_handle)) ||            /* outgoing connection */
-        (port_handle == client_cb->scb.serv_handle)) /* incoming connection */
-    {
-      event = BTA_HF_CLIENT_RFC_OPEN_EVT;
+    if (client_cb && port_handle == client_cb->conn_handle) { /* out conn */
+      p_buf->hdr.event = BTA_HF_CLIENT_RFC_OPEN_EVT;
+    } else if (port_handle == bta_hf_client_cb_arr.serv_handle) {
+      p_buf->hdr.event = BTA_HF_CLIENT_RFC_OPEN_EVT;
+
+      APPL_TRACE_DEBUG("%s: allocating a new CB for incoming connection",
+                       __func__);
+      // Since we accepted a remote request we should allocate a handle first.
+      uint16_t tmp_handle = -1;
+      bta_hf_client_allocate_handle(&tmp_handle);
+      client_cb = bta_hf_client_find_cb_by_handle(tmp_handle);
+
+      // If allocation fails then we abort.
+      if (client_cb == NULL) {
+        APPL_TRACE_ERROR("%s: error allocating a new handle", __func__);
+        p_buf->hdr.event = BTA_HF_CLIENT_RFC_CLOSE_EVT;
+      } else {
+        // Set the connection fields for this new CB
+        client_cb->conn_handle = port_handle;
+
+        // Since we have accepted an incoming RFCOMM connection:
+        // a) Release the current server from it duties
+        // b) Start a new server for more new incoming connection
+        bta_hf_client_cb_arr.serv_handle = 0;
+        bta_hf_client_start_server();
+      }
     } else {
       APPL_TRACE_ERROR(
           "bta_hf_client_mgmt_cback: PORT_SUCCESS, ignoring handle = %d",
           port_handle);
       return;
     }
-  }
-  /* distinguish server close events */
-  else if (port_handle == client_cb->scb.conn_handle) {
-    event = BTA_HF_CLIENT_RFC_CLOSE_EVT;
-  } else {
-    event = BTA_HF_CLIENT_RFC_SRV_CLOSE_EVT;
+  } else if (client_cb != NULL &&
+             port_handle == client_cb->conn_handle) { /* code != PORT_SUC */
+    RFCOMM_RemoveServer(port_handle);
+    p_buf->hdr.event = BTA_HF_CLIENT_RFC_CLOSE_EVT;
   }
 
-  tBTA_HF_CLIENT_RFC* p_buf =
-      (tBTA_HF_CLIENT_RFC*)osi_malloc(sizeof(tBTA_HF_CLIENT_RFC));
-  p_buf->hdr.event = event;
-  p_buf->hdr.layer_specific = client_cb->scb.handle;
+  p_buf->hdr.layer_specific = client_cb != NULL ? client_cb->handle : 0;
   bta_sys_sendmsg(p_buf);
 }
 
@@ -146,28 +156,29 @@ void bta_hf_client_setup_port(uint16_t handle) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_hf_client_start_server(tBTA_HF_CLIENT_CB* client_cb) {
+void bta_hf_client_start_server() {
   int port_status;
 
-  if (client_cb->scb.serv_handle > 0) {
+  if (bta_hf_client_cb_arr.serv_handle > 0) {
     APPL_TRACE_DEBUG("%s: already started, handle: %d", __func__,
-                     client_cb->scb.serv_handle);
+                     bta_hf_client_cb_arr.serv_handle);
     return;
   }
 
   BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_HF_HANDSFREE,
-                       client_cb->scb.serv_sec_mask, BT_PSM_RFCOMM,
-                       BTM_SEC_PROTO_RFCOMM, client_cb->scn);
+                       bta_hf_client_cb_arr.serv_sec_mask, BT_PSM_RFCOMM,
+                       BTM_SEC_PROTO_RFCOMM, bta_hf_client_cb_arr.scn);
 
   port_status = RFCOMM_CreateConnection(
-      UUID_SERVCLASS_HF_HANDSFREE, client_cb->scn, true, BTA_HF_CLIENT_MTU,
-      (uint8_t*)bd_addr_any, &(client_cb->scb.serv_handle),
-      bta_hf_client_mgmt_cback);
+      UUID_SERVCLASS_HF_HANDSFREE, bta_hf_client_cb_arr.scn, true,
+      BTA_HF_CLIENT_MTU, (uint8_t*)bd_addr_any,
+      &(bta_hf_client_cb_arr.serv_handle), bta_hf_client_mgmt_cback);
+
   APPL_TRACE_DEBUG("%s: started rfcomm server with handle %d", __func__,
-                   client_cb->scb.serv_handle);
+                   bta_hf_client_cb_arr.serv_handle);
 
   if (port_status == PORT_SUCCESS) {
-    bta_hf_client_setup_port(client_cb->scb.serv_handle);
+    bta_hf_client_setup_port(bta_hf_client_cb_arr.serv_handle);
   } else {
     APPL_TRACE_DEBUG("%s: RFCOMM_CreateConnection returned error:%d", __func__,
                      port_status);
@@ -184,16 +195,16 @@ void bta_hf_client_start_server(tBTA_HF_CLIENT_CB* client_cb) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_hf_client_close_server(tBTA_HF_CLIENT_CB* client_cb) {
-  APPL_TRACE_DEBUG("%s: %d", __func__, client_cb->scb.serv_handle);
+void bta_hf_client_close_server() {
+  APPL_TRACE_DEBUG("%s: %d", __func__, bta_hf_client_cb_arr.serv_handle);
 
-  if (client_cb->scb.serv_handle == 0) {
+  if (bta_hf_client_cb_arr.serv_handle == 0) {
     APPL_TRACE_DEBUG("%s: already stopped", __func__);
     return;
   }
 
-  RFCOMM_RemoveServer(client_cb->scb.serv_handle);
-  client_cb->scb.serv_handle = 0;
+  RFCOMM_RemoveServer(bta_hf_client_cb_arr.serv_handle);
+  bta_hf_client_cb_arr.serv_handle = 0;
 }
 
 /*******************************************************************************
@@ -216,16 +227,15 @@ void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA* p_data) {
   }
 
   BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_HF_HANDSFREE,
-                       client_cb->scb.cli_sec_mask, BT_PSM_RFCOMM,
-                       BTM_SEC_PROTO_RFCOMM, client_cb->scb.peer_scn);
-  if (RFCOMM_CreateConnection(UUID_SERVCLASS_HF_HANDSFREE,
-                              client_cb->scb.peer_scn, false, BTA_HF_CLIENT_MTU,
-                              client_cb->scb.peer_addr,
-                              &(client_cb->scb.conn_handle),
+                       client_cb->cli_sec_mask, BT_PSM_RFCOMM,
+                       BTM_SEC_PROTO_RFCOMM, client_cb->peer_scn);
+  if (RFCOMM_CreateConnection(UUID_SERVCLASS_HF_HANDSFREE, client_cb->peer_scn,
+                              false, BTA_HF_CLIENT_MTU, client_cb->peer_addr,
+                              &(client_cb->conn_handle),
                               bta_hf_client_mgmt_cback) == PORT_SUCCESS) {
-    bta_hf_client_setup_port(client_cb->scb.conn_handle);
+    bta_hf_client_setup_port(client_cb->conn_handle);
     APPL_TRACE_DEBUG("bta_hf_client_rfc_do_open : conn_handle = %d",
-                     client_cb->scb.conn_handle);
+                     client_cb->conn_handle);
   }
   /* RFCOMM create connection failed; send ourselves RFCOMM close event */
   else {
@@ -252,8 +262,8 @@ void bta_hf_client_rfc_do_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA* p_data) {
     return;
   }
 
-  if (client_cb->scb.conn_handle) {
-    RFCOMM_RemoveConnection(client_cb->scb.conn_handle);
+  if (client_cb->conn_handle) {
+    RFCOMM_RemoveConnection(client_cb->conn_handle);
   } else {
     /* Close API was called while HF Client is in Opening state.        */
     /* Need to trigger the state machine to send callback to the app    */
@@ -264,8 +274,8 @@ void bta_hf_client_rfc_do_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA* p_data) {
     bta_sys_sendmsg(p_buf);
 
     /* Cancel SDP if it had been started. */
-    if (client_cb->scb.p_disc_db) {
-      (void)SDP_CancelServiceSearch(client_cb->scb.p_disc_db);
+    if (client_cb->p_disc_db) {
+      (void)SDP_CancelServiceSearch(client_cb->p_disc_db);
       bta_hf_client_free_db(NULL);
     }
   }

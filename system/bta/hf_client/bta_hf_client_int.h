@@ -41,6 +41,9 @@
 #define BTA_HF_CLIENT_COLLISION_TIMER_MS 2411
 #endif
 
+/* Maximum number of HF devices supported simultaneously */
+#define HF_CLIENT_MAX_DEVICES 10
+
 enum {
   /* these events are handled by the state machine */
   BTA_HF_CLIENT_API_OPEN_EVT = BTA_SYS_EVT_START(BTA_ID_HS),
@@ -142,36 +145,6 @@ typedef union {
 /* First handle for the control block */
 #define BTA_HF_CLIENT_CB_FIRST_HANDLE 1
 
-/* type for each service device control block */
-typedef struct {
-  uint8_t handle;               /* Handle of the control block to be
-                                   used by upper layer */
-  uint16_t serv_handle;         /* RFCOMM server handle */
-  BD_ADDR peer_addr;            /* peer bd address */
-  tSDP_DISCOVERY_DB* p_disc_db; /* pointer to discovery database */
-  uint16_t conn_handle;         /* RFCOMM handle of connected service */
-  tBTA_SEC serv_sec_mask;       /* server security mask */
-  tBTA_SEC cli_sec_mask;        /* client security mask */
-  tBTA_HF_CLIENT_FEAT features; /* features registered by application */
-  tBTA_HF_CLIENT_PEER_FEAT peer_features; /* peer device features */
-  tBTA_HF_CLIENT_CHLD_FEAT chld_features; /* call handling features */
-  uint16_t peer_version;                  /* profile version of peer device */
-  uint8_t peer_scn;                       /* peer scn */
-  uint8_t role;                           /* initiator/acceptor role */
-  uint16_t sco_idx;                       /* SCO handle */
-  uint8_t sco_state;                      /* SCO state variable */
-  bool sco_close_rfc; /* true if also close RFCOMM after SCO */
-  bool retry_with_sco_only;
-  bool deregister;    /* true if service shutting down */
-  bool svc_conn;      /* set to true when service level connection is up */
-  bool send_at_reply; /* set to true to notify framework about AT results */
-  tBTA_HF_CLIENT_AT_CB at_cb;           /* AT Parser control block */
-  uint8_t state;                        /* state machine state */
-  bool is_allocated; /* if the control block is already allocated */
-  tBTM_SCO_CODEC_TYPE negotiated_codec; /* negotiated codec */
-  alarm_t* collision_timer;             /* Collision timer */
-} tBTA_HF_CLIENT_SCB;
-
 /* sco states */
 enum {
   BTA_HF_CLIENT_SCO_SHUTDOWN_ST, /* no listening, no connection */
@@ -184,14 +157,48 @@ enum {
   BTA_HF_CLIENT_SCO_SHUTTING_ST  /* sco shutting down */
 };
 
-/* type for AG control block */
+/* type for HF control block */
 typedef struct {
-  tBTA_HF_CLIENT_SCB scb; /* service control block */
+  // Fields useful for particular control block.
+  uint8_t handle;               /* Handle of the control block to be
+                                   used by upper layer */
+  BD_ADDR peer_addr;            /* peer bd address */
+  tSDP_DISCOVERY_DB* p_disc_db; /* pointer to discovery database */
+  uint16_t conn_handle;         /* RFCOMM handle of connected service */
+  tBTA_SEC cli_sec_mask;        /* client security mask */
+  tBTA_HF_CLIENT_PEER_FEAT peer_features; /* peer device features */
+  tBTA_HF_CLIENT_CHLD_FEAT chld_features; /* call handling features */
+  uint16_t peer_version;                  /* profile version of peer device */
+  uint8_t peer_scn;                       /* peer scn */
+  uint8_t role;                           /* initiator/acceptor role */
+  uint16_t sco_idx;                       /* SCO handle */
+  uint8_t sco_state;                      /* SCO state variable */
+  bool sco_close_rfc; /* true if also close RFCOMM after SCO */
+  bool retry_with_sco_only;
+  tBTM_SCO_CODEC_TYPE negotiated_codec; /* negotiated codec */
+  bool svc_conn;      /* set to true when service level connection is up */
+  bool send_at_reply; /* set to true to notify framework about AT results */
+  tBTA_HF_CLIENT_AT_CB at_cb;           /* AT Parser control block */
+  uint8_t state;                        /* state machine state */
+  bool is_allocated; /* if the control block is already allocated */
+  alarm_t* collision_timer;             /* Collision timer */
+} tBTA_HF_CLIENT_CB;
+
+typedef struct {
+  // Common fields, should be taken out.
   uint32_t sdp_handle;
   uint8_t scn;
   tBTA_HF_CLIENT_CBACK* p_cback; /* application callback */
-  bool msbc_enabled;
-} tBTA_HF_CLIENT_CB;
+  tBTA_HF_CLIENT_FEAT features;  /* features registered by application */
+  tBTA_SEC serv_sec_mask;        /* server security mask */
+  uint16_t serv_handle;          /* RFCOMM server handle */
+  bool deregister;               /* true if service shutting down */
+
+  // Maximum number of control blocks supported by the BTA layer.
+  tBTA_HF_CLIENT_CB cb[HF_CLIENT_MAX_DEVICES];
+} tBTA_HF_CLIENT_CB_ARR;
+
+extern tBTA_HF_CLIENT_CB_ARR bta_hf_client_cb_arr;
 
 /*****************************************************************************
  *  Function prototypes
@@ -199,40 +206,42 @@ typedef struct {
 
 /* main functions */
 extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_handle(uint16_t handle);
+extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(BD_ADDR bd_addr);
 extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_rfc_handle(uint16_t handle);
 extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle);
-extern void bta_hf_client_scb_init(void);
 extern bool bta_hf_client_hdl_event(BT_HDR* p_msg);
 extern void bta_hf_client_sm_execute(uint16_t event,
                                      tBTA_HF_CLIENT_DATA* p_data);
 extern void bta_hf_client_slc_seq(tBTA_HF_CLIENT_CB* client_cb, bool error);
 extern bool bta_hf_client_allocate_handle(uint16_t* handle);
+extern void bta_hf_client_app_callback(uint16_t event, tBTA_HF_CLIENT* data);
 extern void bta_hf_client_collision_cback(tBTA_SYS_CONN_STATUS status,
                                           uint8_t id, uint8_t app_id,
                                           BD_ADDR peer_addr);
-extern void bta_hf_client_resume_open();
+extern void bta_hf_client_resume_open(tBTA_HF_CLIENT_CB* client_cb);
 extern tBTA_STATUS bta_hf_client_api_enable(tBTA_HF_CLIENT_CBACK* p_cback,
                                             tBTA_SEC sec_mask,
                                             tBTA_HF_CLIENT_FEAT features,
                                             const char* p_service_name);
 
 extern void bta_hf_client_api_disable(void);
+extern void bta_hf_client_dump_statistics(int fd);
 
 /* SDP functions */
 extern bool bta_hf_client_add_record(char* p_service_name, uint8_t scn,
                                      tBTA_HF_CLIENT_FEAT features,
                                      uint32_t sdp_handle);
-extern void bta_hf_client_create_record(tBTA_HF_CLIENT_CB* client_cb,
+extern void bta_hf_client_create_record(tBTA_HF_CLIENT_CB_ARR* client_cb,
                                         const char* p_data);
-extern void bta_hf_client_del_record(tBTA_HF_CLIENT_CB* client_cb);
+extern void bta_hf_client_del_record(tBTA_HF_CLIENT_CB_ARR* client_cb);
 extern bool bta_hf_client_sdp_find_attr(tBTA_HF_CLIENT_CB* client_cb);
 extern void bta_hf_client_do_disc(tBTA_HF_CLIENT_CB* client_cb);
 extern void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA* p_data);
 
 /* RFCOMM functions */
 extern void bta_hf_client_setup_port(uint16_t handle);
-extern void bta_hf_client_start_server(tBTA_HF_CLIENT_CB* client_cb);
-extern void bta_hf_client_close_server(tBTA_HF_CLIENT_CB* client_cb);
+extern void bta_hf_client_start_server();
+extern void bta_hf_client_close_server();
 extern void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA* p_data);
 extern void bta_hf_client_rfc_do_close(tBTA_HF_CLIENT_DATA* p_data);
 
@@ -249,7 +258,8 @@ extern void bta_hf_client_cback_sco(tBTA_HF_CLIENT_CB* client_cb,
 /* AT command functions */
 extern void bta_hf_client_at_parse(tBTA_HF_CLIENT_CB* client_cb, char* buf,
                                    unsigned int len);
-extern void bta_hf_client_send_at_brsf(tBTA_HF_CLIENT_CB* client_cb);
+extern void bta_hf_client_send_at_brsf(tBTA_HF_CLIENT_CB* client_cb,
+                                       tBTA_HF_CLIENT_FEAT features);
 extern void bta_hf_client_send_at_bac(tBTA_HF_CLIENT_CB* client_cb);
 extern void bta_hf_client_send_at_cind(tBTA_HF_CLIENT_CB* client_cb,
                                        bool status);
