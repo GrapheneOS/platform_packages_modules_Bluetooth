@@ -63,12 +63,12 @@ void bta_hf_client_start_close(tBTA_HF_CLIENT_DATA* p_data) {
   }
 
   /* Take the link out of sniff and set L2C idle time to 0 */
-  bta_dm_pm_active(client_cb->scb.peer_addr);
-  L2CA_SetIdleTimeoutByBdAddr(client_cb->scb.peer_addr, 0, BT_TRANSPORT_BR_EDR);
+  bta_dm_pm_active(client_cb->peer_addr);
+  L2CA_SetIdleTimeoutByBdAddr(client_cb->peer_addr, 0, BT_TRANSPORT_BR_EDR);
 
   /* if SCO is open close SCO and wait on RFCOMM close */
-  if (client_cb->scb.sco_state == BTA_HF_CLIENT_SCO_OPEN_ST) {
-    client_cb->scb.sco_close_rfc = true;
+  if (client_cb->sco_state == BTA_HF_CLIENT_SCO_OPEN_ST) {
+    client_cb->sco_close_rfc = true;
   } else {
     bta_hf_client_rfc_do_close(p_data);
   }
@@ -98,8 +98,8 @@ void bta_hf_client_start_open(tBTA_HF_CLIENT_DATA* p_data) {
 
   /* store parameters */
   if (p_data) {
-    bdcpy(client_cb->scb.peer_addr, p_data->api_open.bd_addr);
-    client_cb->scb.cli_sec_mask = p_data->api_open.sec_mask;
+    bdcpy(client_cb->peer_addr, p_data->api_open.bd_addr);
+    client_cb->cli_sec_mask = p_data->api_open.sec_mask;
   }
 
   /* Check if RFCOMM has any incoming connection to avoid collision. */
@@ -108,15 +108,12 @@ void bta_hf_client_start_open(tBTA_HF_CLIENT_DATA* p_data) {
     /* Let the incoming connection goes through.                        */
     /* Issue collision for now.                                         */
     /* We will decide what to do when we find incoming connection later.*/
-    bta_hf_client_collision_cback(0, BTA_ID_HS, 0, client_cb->scb.peer_addr);
+    bta_hf_client_collision_cback(0, BTA_ID_HS, 0, client_cb->peer_addr);
     return;
   }
 
-  /* close server */
-  bta_hf_client_close_server(client_cb);
-
   /* set role */
-  client_cb->scb.role = BTA_HF_CLIENT_INT;
+  client_cb->role = BTA_HF_CLIENT_INT;
 
   /* do service search */
   bta_hf_client_do_disc(client_cb);
@@ -140,8 +137,8 @@ static void bta_hf_client_cback_open(tBTA_HF_CLIENT_CB* client_cb,
 
   /* call app callback with open event */
   evt.open.status = status;
-  bdcpy(evt.open.bd_addr, client_cb->scb.peer_addr);
-  (*client_cb->p_cback)(BTA_HF_CLIENT_OPEN_EVT, &evt);
+  bdcpy(evt.open.bd_addr, client_cb->peer_addr);
+  bta_hf_client_app_callback(BTA_HF_CLIENT_OPEN_EVT, &evt);
 }
 
 /*******************************************************************************
@@ -164,7 +161,7 @@ void bta_hf_client_rfc_open(tBTA_HF_CLIENT_DATA* p_data) {
     return;
   }
 
-  bta_sys_conn_open(BTA_ID_HS, 1, client_cb->scb.peer_addr);
+  bta_sys_conn_open(BTA_ID_HS, 1, client_cb->peer_addr);
 
   bta_hf_client_cback_open(client_cb, BTA_HF_CLIENT_SUCCESS);
 
@@ -197,32 +194,32 @@ void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA* p_data) {
   int status;
 
   /* set role */
-  client_cb->scb.role = BTA_HF_CLIENT_ACP;
+  client_cb->role = BTA_HF_CLIENT_ACP;
 
-  APPL_TRACE_DEBUG("%s: serv_handle %d", __func__, client_cb->scb.serv_handle);
+  APPL_TRACE_DEBUG("%s: conn_handle %d", __func__, client_cb->conn_handle);
 
   /* get bd addr of peer */
-  if (PORT_SUCCESS != (status = PORT_CheckConnection(client_cb->scb.serv_handle,
+  if (PORT_SUCCESS != (status = PORT_CheckConnection(client_cb->conn_handle,
                                                      dev_addr, &lcid))) {
     APPL_TRACE_DEBUG("%s: error PORT_CheckConnection returned status %d",
                      __func__, status);
   }
 
   /* Collision Handling */
-  if (alarm_is_scheduled(client_cb->scb.collision_timer)) {
-    alarm_cancel(client_cb->scb.collision_timer);
+  if (alarm_is_scheduled(client_cb->collision_timer)) {
+    alarm_cancel(client_cb->collision_timer);
 
-    if (bdcmp(dev_addr, client_cb->scb.peer_addr) == 0) {
+    if (bdcmp(dev_addr, client_cb->peer_addr) == 0) {
       /* If incoming and outgoing device are same, nothing more to do. */
       /* Outgoing conn will be aborted because we have successful incoming conn.
        */
     } else {
       /* Resume outgoing connection. */
-      bta_hf_client_resume_open();
+      bta_hf_client_resume_open(client_cb);
     }
   }
 
-  bdcpy(client_cb->scb.peer_addr, dev_addr);
+  bdcpy(client_cb->peer_addr, dev_addr);
 
   /* do service discovery to get features */
   bta_hf_client_do_disc(client_cb);
@@ -251,18 +248,14 @@ void bta_hf_client_rfc_fail(tBTA_HF_CLIENT_DATA* p_data) {
   }
 
   /* reinitialize stuff */
-  // client_cb->scb.conn_handle = 0;
-  client_cb->scb.peer_features = 0;
-  client_cb->scb.chld_features = 0;
-  client_cb->scb.role = BTA_HF_CLIENT_ACP;
-  client_cb->scb.svc_conn = false;
-  client_cb->scb.send_at_reply = false;
-  client_cb->scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
+  client_cb->peer_features = 0;
+  client_cb->chld_features = 0;
+  client_cb->role = BTA_HF_CLIENT_ACP;
+  client_cb->svc_conn = false;
+  client_cb->send_at_reply = false;
+  client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
 
   bta_hf_client_at_reset(client_cb);
-
-  /* reopen server */
-  bta_hf_client_start_server(client_cb);
 
   /* call open cback w. failure */
   bta_hf_client_cback_open(client_cb, BTA_HF_CLIENT_FAIL_RFCOMM);
@@ -286,11 +279,6 @@ void bta_hf_client_disc_fail(tBTA_HF_CLIENT_DATA* p_data) {
                      p_data->hdr.layer_specific);
     return;
   }
-
-  /* reopen server */
-  bta_hf_client_start_server(client_cb);
-
-  /* reinitialize stuff */
 
   /* call open cback w. failure */
   bta_hf_client_cback_open(client_cb, BTA_HF_CLIENT_FAIL_SDP);
@@ -339,38 +327,39 @@ void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA* p_data) {
   }
 
   /* reinitialize stuff */
-  client_cb->scb.peer_features = 0;
-  client_cb->scb.chld_features = 0;
-  client_cb->scb.role = BTA_HF_CLIENT_ACP;
-  client_cb->scb.svc_conn = false;
-  client_cb->scb.send_at_reply = false;
-  client_cb->scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
+  client_cb->peer_features = 0;
+  client_cb->chld_features = 0;
+  client_cb->role = BTA_HF_CLIENT_ACP;
+  client_cb->svc_conn = false;
+  client_cb->send_at_reply = false;
+  client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
 
   bta_hf_client_at_reset(client_cb);
 
-  bta_sys_conn_close(BTA_ID_HS, 1, client_cb->scb.peer_addr);
+  bta_sys_conn_close(BTA_ID_HS, 1, client_cb->peer_addr);
 
   /* call close cback */
-  (*client_cb->p_cback)(BTA_HF_CLIENT_CLOSE_EVT, NULL);
+  tBTA_HF_CLIENT evt;
+  memset(&evt, 0, sizeof(evt));
+  bdcpy(evt.conn.bd_addr, client_cb->peer_addr);
+  bta_hf_client_app_callback(BTA_HF_CLIENT_CLOSE_EVT, &evt);
 
   /* if not deregistering reopen server */
-  if (client_cb->scb.deregister == false) {
+  if (bta_hf_client_cb_arr.deregister == false) {
     /* Clear peer bd_addr so instance can be reused */
-    bdcpy(client_cb->scb.peer_addr, bd_addr_null);
-
-    /* start server as it might got closed on open*/
-    bta_hf_client_start_server(client_cb);
+    bdcpy(client_cb->peer_addr, bd_addr_null);
 
     /* Make sure SCO is shutdown */
     bta_hf_client_sco_shutdown(client_cb);
 
-    bta_sys_sco_unuse(BTA_ID_HS, 1, client_cb->scb.peer_addr);
+    bta_sys_sco_unuse(BTA_ID_HS, 1, client_cb->peer_addr);
   }
   /* else close port and deallocate scb */
   else {
-    bta_hf_client_close_server(client_cb);
-    bta_hf_client_scb_init();
-    (*client_cb->p_cback)(BTA_HF_CLIENT_DISABLE_EVT, NULL);
+    tBTA_HF_CLIENT evt;
+    memset(&evt, 0, sizeof(evt));
+    bdcpy(evt.reg.bd_addr, client_cb->peer_addr);
+    bta_hf_client_app_callback(BTA_HF_CLIENT_DISABLE_EVT, &evt);
   }
 }
 
@@ -465,8 +454,8 @@ void bta_hf_client_rfc_data(tBTA_HF_CLIENT_DATA* p_data) {
   char buf[BTA_HF_CLIENT_RFC_READ_MAX];
   memset(buf, 0, sizeof(buf));
   /* read data from rfcomm; if bad status, we're done */
-  while (PORT_ReadData(client_cb->scb.conn_handle, buf,
-                       BTA_HF_CLIENT_RFC_READ_MAX, &len) == PORT_SUCCESS) {
+  while (PORT_ReadData(client_cb->conn_handle, buf, BTA_HF_CLIENT_RFC_READ_MAX,
+                       &len) == PORT_SUCCESS) {
     /* if no data, we're done */
     if (len == 0) {
       break;
@@ -504,14 +493,15 @@ void bta_hf_client_svc_conn_open(tBTA_HF_CLIENT_DATA* p_data) {
 
   memset(&evt, 0, sizeof(evt));
 
-  if (!client_cb->scb.svc_conn) {
+  if (!client_cb->svc_conn) {
     /* set state variable */
-    client_cb->scb.svc_conn = true;
+    client_cb->svc_conn = true;
 
     /* call callback */
-    evt.conn.peer_feat = client_cb->scb.peer_features;
-    evt.conn.chld_feat = client_cb->scb.chld_features;
+    bdcpy(evt.conn.bd_addr, client_cb->peer_addr);
+    evt.conn.peer_feat = client_cb->peer_features;
+    evt.conn.chld_feat = client_cb->chld_features;
 
-    (*client_cb->p_cback)(BTA_HF_CLIENT_CONN_EVT, &evt);
+    bta_hf_client_app_callback(BTA_HF_CLIENT_CONN_EVT, &evt);
   }
 }

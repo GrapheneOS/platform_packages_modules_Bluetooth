@@ -46,6 +46,7 @@
 #include <hardware/bt_sock.h>
 
 #include "bt_utils.h"
+#include "bta/include/bta_hf_client_api.h"
 #include "btif/include/btif_debug_btsnoop.h"
 #include "btif/include/btif_debug_conn.h"
 #include "btif_a2dp.h"
@@ -303,6 +304,7 @@ static void dump(int fd, const char** arguments) {
   btif_debug_bond_event_dump(fd);
   btif_debug_a2dp_dump(fd);
   btif_debug_config_dump(fd);
+  BTA_HfClientDumpStatistics(fd);
   wakelock_debug_dump(fd);
   alarm_debug_dump(fd);
 #if (BTSNOOP_MEM == TRUE)
