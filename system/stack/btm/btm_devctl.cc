@@ -161,7 +161,6 @@ static void reset_complete(void* result) {
 
   btm_cb.ble_ctr_cb.conn_state = BLE_CONN_IDLE;
   btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
-  btm_cb.ble_ctr_cb.p_select_cback = NULL;
   gatt_reset_bgdev_list();
 
   btm_pm_reset();
