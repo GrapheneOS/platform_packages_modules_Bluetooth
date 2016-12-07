@@ -182,7 +182,6 @@ typedef struct {
   tBLE_ADDR_TYPE own_addr_type; /* local device LE address type */
   BD_ADDR private_addr;
   BD_ADDR random_bda;
-  bool busy;
   tBTM_BLE_ADDR_CBACK* p_generate_cback;
   void* p;
   alarm_t* refresh_raddr_timer;

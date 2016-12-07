@@ -1680,66 +1680,6 @@ uint8_t btm_ble_br_keys_req(tBTM_SEC_DEV_REC* p_dev_rec,
   return callback_rc;
 }
 
-#if (BLE_PRIVACY_SPT == TRUE)
-/*******************************************************************************
- *
- * Function         btm_ble_resolve_random_addr_on_conn_cmpl
- *
- * Description      resolve random address complete on connection complete
- *                  event.
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btm_ble_resolve_random_addr_on_conn_cmpl(void* p_rec,
-                                                     void* p_data) {
-  uint8_t* p = (uint8_t*)p_data;
-  tBTM_SEC_DEV_REC* match_rec = (tBTM_SEC_DEV_REC*)p_rec;
-  uint8_t role, bda_type;
-  uint16_t handle;
-  BD_ADDR bda;
-  uint16_t conn_interval, conn_latency, conn_timeout;
-  bool match = false;
-
-  ++p;
-  STREAM_TO_UINT16(handle, p);
-  STREAM_TO_UINT8(role, p);
-  STREAM_TO_UINT8(bda_type, p);
-  STREAM_TO_BDADDR(bda, p);
-  STREAM_TO_UINT16(conn_interval, p);
-  STREAM_TO_UINT16(conn_latency, p);
-  STREAM_TO_UINT16(conn_timeout, p);
-
-  handle = HCID_GET_HANDLE(handle);
-
-  BTM_TRACE_EVENT("%s", __func__);
-
-  if (match_rec) {
-    LOG_INFO(LOG_TAG, "%s matched and resolved random address", __func__);
-    match = true;
-    match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
-    memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
-    if (!btm_ble_init_pseudo_addr(match_rec, bda)) {
-      /* assign the original address to be the current report address */
-      memcpy(bda, match_rec->ble.pseudo_addr, BD_ADDR_LEN);
-    } else {
-      memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
-    }
-  } else {
-    LOG_INFO(LOG_TAG, "%s unable to match and resolve random address",
-             __func__);
-  }
-
-  btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type,
-                    match);
-
-  l2cble_conn_comp(handle, role, bda, bda_type, conn_interval, conn_latency,
-                   conn_timeout);
-
-  return;
-}
-#endif
-
 /*******************************************************************************
  *
  * Function         btm_ble_connected
@@ -1817,7 +1757,7 @@ void btm_ble_connected(uint8_t* bda, uint16_t handle, uint8_t enc_mode,
 void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
                            bool enhanced) {
 #if (BLE_PRIVACY_SPT == TRUE)
-  uint8_t *p_data = p, peer_addr_type;
+  uint8_t peer_addr_type;
   BD_ADDR local_rpa, peer_rpa;
 #endif
   uint8_t role, status, bda_type;
@@ -1842,35 +1782,48 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
       STREAM_TO_BDADDR(peer_rpa, p);
     }
 
+    STREAM_TO_UINT16(conn_interval, p);
+    STREAM_TO_UINT16(conn_latency, p);
+    STREAM_TO_UINT16(conn_timeout, p);
+    handle = HCID_GET_HANDLE(handle);
+
     /* possiblly receive connection complete with resolvable random while
        the device has been paired */
     if (!match && BTM_BLE_IS_RESOLVE_BDA(bda)) {
-      btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_conn_cmpl,
-                                  p_data);
-    } else
+      tBTM_SEC_DEV_REC* match_rec = btm_ble_resolve_random_addr(bda);
+      if (match_rec) {
+        LOG_INFO(LOG_TAG, "%s matched and resolved random address", __func__);
+        match = true;
+        match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
+        memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
+        if (!btm_ble_init_pseudo_addr(match_rec, bda)) {
+          /* assign the original address to be the current report address */
+          memcpy(bda, match_rec->ble.pseudo_addr, BD_ADDR_LEN);
+        } else {
+          memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
+        }
+      } else {
+        LOG_INFO(LOG_TAG, "%s unable to match and resolve random address",
+                 __func__);
+      }
+    }
 #endif
-    {
-      STREAM_TO_UINT16(conn_interval, p);
-      STREAM_TO_UINT16(conn_latency, p);
-      STREAM_TO_UINT16(conn_timeout, p);
-      handle = HCID_GET_HANDLE(handle);
 
-      btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type,
-                        match);
+    btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type,
+                      match);
 
-      l2cble_conn_comp(handle, role, bda, bda_type, conn_interval, conn_latency,
-                       conn_timeout);
+    l2cble_conn_comp(handle, role, bda, bda_type, conn_interval, conn_latency,
+                     conn_timeout);
 
 #if (BLE_PRIVACY_SPT == TRUE)
-      if (enhanced) {
-        btm_ble_refresh_local_resolvable_private_addr(bda, local_rpa);
+    if (enhanced) {
+      btm_ble_refresh_local_resolvable_private_addr(bda, local_rpa);
 
-        if (peer_addr_type & BLE_ADDR_TYPE_ID_BIT)
-          btm_ble_refresh_peer_resolvable_private_addr(bda, peer_rpa,
-                                                       BLE_ADDR_RANDOM);
-      }
-#endif
+      if (peer_addr_type & BLE_ADDR_TYPE_ID_BIT)
+        btm_ble_refresh_peer_resolvable_private_addr(bda, peer_rpa,
+                                                     BLE_ADDR_RANDOM);
     }
+#endif
   } else {
     role = HCI_ROLE_UNKNOWN;
     if (status != HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT) {

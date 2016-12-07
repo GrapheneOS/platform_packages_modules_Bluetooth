@@ -282,13 +282,13 @@ bool btm_ble_addr_resolvable(BD_ADDR rpa, tBTM_SEC_DEV_REC* p_dev_rec) {
  *
  ******************************************************************************/
 static bool btm_ble_match_random_bda(void* data, void* context) {
+  uint8_t* random_bda = (uint8_t*)context;
   /* use the 3 MSB of bd address as prand */
 
-  tBTM_LE_RANDOM_CB* p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
   uint8_t rand[3];
-  rand[0] = p_mgnt_cb->random_bda[2];
-  rand[1] = p_mgnt_cb->random_bda[1];
-  rand[2] = p_mgnt_cb->random_bda[0];
+  rand[0] = random_bda[2];
+  rand[1] = random_bda[1];
+  rand[2] = random_bda[0];
 
   BTM_TRACE_EVENT("%s next iteration", __func__);
 
@@ -318,31 +318,20 @@ static bool btm_ble_match_random_bda(void* data, void* context) {
  *                  address is matched to.
  *
  ******************************************************************************/
-void btm_ble_resolve_random_addr(BD_ADDR random_bda,
-                                 tBTM_BLE_RESOLVE_CBACK* p_cback, void* p) {
-  tBTM_LE_RANDOM_CB* p_mgnt_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-
+tBTM_SEC_DEV_REC* btm_ble_resolve_random_addr(BD_ADDR random_bda) {
   BTM_TRACE_EVENT("%s", __func__);
-  if (!p_mgnt_cb->busy) {
-    p_mgnt_cb->p = p;
-    p_mgnt_cb->busy = true;
-    memcpy(p_mgnt_cb->random_bda, random_bda, BD_ADDR_LEN);
-    /* start to resolve random address */
-    /* check for next security record */
 
-    list_node_t* n =
-        list_foreach(btm_cb.sec_dev_rec, btm_ble_match_random_bda, NULL);
-    tBTM_SEC_DEV_REC* p_dev_rec = NULL;
-    if (n != NULL) p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
+  /* start to resolve random address */
+  /* check for next security record */
 
-    BTM_TRACE_EVENT("%s:  %sresolved", __func__,
-                    (p_dev_rec == NULL ? "not " : ""));
-    p_mgnt_cb->busy = false;
+  list_node_t* n =
+      list_foreach(btm_cb.sec_dev_rec, btm_ble_match_random_bda, random_bda);
+  tBTM_SEC_DEV_REC* p_dev_rec = nullptr;
+  if (n != nullptr) p_dev_rec = static_cast<tBTM_SEC_DEV_REC*>(list_node(n));
 
-    (*p_cback)(p_dev_rec, p);
-  } else {
-    (*p_cback)(NULL, p);
-  }
+  BTM_TRACE_EVENT("%s:  %sresolved", __func__,
+                  (p_dev_rec == nullptr ? "not " : ""));
+  return p_dev_rec;
 }
 
 /*******************************************************************************
