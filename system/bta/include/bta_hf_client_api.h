@@ -239,6 +239,8 @@ typedef struct {
 
 /* union of data associated with AG callback */
 typedef union {
+  // Common BD ADDR field for all tyepdefs
+  BD_ADDR bd_addr;
   tBTA_HF_CLIENT_REGISTER reg;
   tBTA_HF_CLIENT_OPEN open;
   tBTA_HF_CLIENT_CONN conn;
@@ -357,6 +359,18 @@ void BTA_HfClientAudioClose(uint16_t handle);
  ******************************************************************************/
 void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
                         uint32_t val1, uint32_t val2, const char* str);
+
+/*******************************************************************************
+ *
+ * Function         BTA_HfClientDumpStatistics
+ *
+ * Description      Dump statistics about the various control blocks
+ *                  and other relevant connection statistics
+ *
+ * Returns          Void
+ *
+ ******************************************************************************/
+void BTA_HfClientDumpStatistics(int fd);
 
 #ifdef __cplusplus
 }
