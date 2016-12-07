@@ -31,12 +31,6 @@
 #include "osi/include/compat.h"
 
 /*****************************************************************************
- *  Constants and data types
- ****************************************************************************/
-static const tBTA_SYS_REG bta_hf_client_reg = {bta_hf_client_hdl_event,
-                                               BTA_HfClientDisable};
-
-/*****************************************************************************
  *  External Function Declarations
  ****************************************************************************/
 
@@ -44,32 +38,21 @@ static const tBTA_SYS_REG bta_hf_client_reg = {bta_hf_client_hdl_event,
  *
  * Function         BTA_HfClientEnable
  *
- * Description      Enable the HF CLient service. When the enable
- *                  operation is complete the callback function will be
- *                  called with a BTA_HF_CLIENT_ENABLE_EVT. This function must
- *                  be called before other function in the HF CLient API are
- *                  called.
+ * Description      Enable the HF CLient service. It does the following:
+ *                  1. Sets the state to initialized (control blocks)
+ *                  2. Starts the SDP for the client role (HF)
+ *                  3. Starts the RFCOMM server to accept incoming connections
+ *                  The function is synchronous and returns with an error code
+ *                  if anything went wrong. This should be the first call to the
+ *                  API before doing an BTA_HfClientOpen
  *
  * Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
  *
  ******************************************************************************/
-tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback) {
-  if (bta_sys_is_register(BTA_ID_HS)) {
-    APPL_TRACE_ERROR("BTA HF Client is already enabled, ignoring ...");
-    return BTA_FAILURE;
-  }
-
-  /* register with BTA system manager */
-  bta_sys_register(BTA_ID_HS, &bta_hf_client_reg);
-
-  tBTA_HF_CLIENT_API_ENABLE* p_buf =
-      (tBTA_HF_CLIENT_API_ENABLE*)osi_malloc(sizeof(tBTA_HF_CLIENT_API_ENABLE));
-  p_buf->hdr.event = BTA_HF_CLIENT_API_ENABLE_EVT;
-  p_buf->p_cback = p_cback;
-
-  bta_sys_sendmsg(p_buf);
-
-  return BTA_SUCCESS;
+tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback, tBTA_SEC sec_mask,
+                               tBTA_HF_CLIENT_FEAT features,
+                               const char* p_service_name) {
+  return bta_hf_client_api_enable(p_cback, sec_mask, features, p_service_name);
 }
 
 /*******************************************************************************
@@ -78,82 +61,32 @@ tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK* p_cback) {
  *
  * Description      Disable the HF Client service
  *
- *
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientDisable(void) {
-  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
-
-  p_buf->event = BTA_HF_CLIENT_API_DISABLE_EVT;
-
-  bta_sys_sendmsg(p_buf);
-}
-
-/*******************************************************************************
- *
- * Function         BTA_HfClientRegister
- *
- * Description      Register an HF Client service.
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
-                          const char* p_service_name) {
-  tBTA_HF_CLIENT_API_REGISTER* p_buf = (tBTA_HF_CLIENT_API_REGISTER*)osi_malloc(
-      sizeof(tBTA_HF_CLIENT_API_REGISTER));
-
-  p_buf->hdr.event = BTA_HF_CLIENT_API_REGISTER_EVT;
-  p_buf->features = features;
-  p_buf->sec_mask = sec_mask;
-  if (p_service_name)
-    strlcpy(p_buf->name, p_service_name, BTA_SERVICE_NAME_LEN);
-  else
-    p_buf->name[0] = 0;
-
-  bta_sys_sendmsg(p_buf);
-}
-
-/*******************************************************************************
- *
- * Function         BTA_HfClientDeregister
- *
- * Description      Deregister an HF Client service.
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTA_HfClientDeregister(uint16_t handle) {
-  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
-
-  p_buf->event = BTA_HF_CLIENT_API_DEREGISTER_EVT;
-  p_buf->layer_specific = handle;
-
-  bta_sys_sendmsg(p_buf);
-}
+void BTA_HfClientDisable(void) { bta_hf_client_api_disable(); }
 
 /*******************************************************************************
  *
  * Function         BTA_HfClientOpen
  *
- * Description      Opens a connection to an audio gateway.
- *                  When connection is open callback function is called
- *                  with a BTA_AG_OPEN_EVT. Only the data connection is
- *                  opened. The audio connection is not opened.
- *
+ * Description      Opens up a RF connection to the remote device and
+ *                  subsequently set it up for a HF SLC
  *
  * Returns          void
  *
  ******************************************************************************/
-void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask) {
+void BTA_HfClientOpen(BD_ADDR bd_addr, tBTA_SEC sec_mask, uint16_t* p_handle) {
   tBTA_HF_CLIENT_API_OPEN* p_buf =
       (tBTA_HF_CLIENT_API_OPEN*)osi_malloc(sizeof(tBTA_HF_CLIENT_API_OPEN));
 
+  if (!bta_hf_client_allocate_handle(p_handle)) {
+    APPL_TRACE_ERROR("%s: could not allocate handle", __func__);
+    return;
+  }
+
   p_buf->hdr.event = BTA_HF_CLIENT_API_OPEN_EVT;
-  p_buf->hdr.layer_specific = handle;
+  p_buf->hdr.layer_specific = *p_handle;
   bdcpy(p_buf->bd_addr, bd_addr);
   p_buf->sec_mask = sec_mask;
 

@@ -70,7 +70,6 @@
  *  Static variables
  ******************************************************************************/
 static bthf_client_callbacks_t* bt_hf_client_callbacks = NULL;
-static uint32_t btif_hf_client_features = 0;
 
 char btif_hf_client_version[PROPERTY_VALUE_MAX];
 
@@ -137,7 +136,7 @@ static void btif_in_hf_client_generic_evt(uint16_t event,
                 (bthf_client_audio_state_t)BTHF_AUDIO_STATE_CONNECTING);
     } break;
     default: {
-      BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __func__, event);
+      BTIF_TRACE_WARNING("%s: : Unknown event 0x%x", __func__, event);
     } break;
   }
 }
@@ -210,9 +209,12 @@ static bt_status_t connect_int(bt_bdaddr_t* bd_addr, uint16_t uuid) {
   btif_hf_client_cb.state = BTHF_CLIENT_CONNECTION_STATE_CONNECTING;
   bdcpy(btif_hf_client_cb.connected_bda.address, bd_addr->address);
 
-  BTA_HfClientOpen(btif_hf_client_cb.handle,
-                   btif_hf_client_cb.connected_bda.address,
-                   BTIF_HF_CLIENT_SECURITY);
+  /* Open HF connection to remote device and get the relevant handle.
+   * The handle is valid until we have called BTA_HfClientClose or the LL
+   * has notified us of channel close due to remote closing, error etc.
+   */
+  BTA_HfClientOpen(btif_hf_client_cb.connected_bda.address,
+                   BTIF_HF_CLIENT_SECURITY, &btif_hf_client_cb.handle);
 
   return BT_STATUS_SUCCESS;
 }
@@ -644,7 +646,7 @@ static void cleanup(void) {
 static bt_status_t send_at_cmd(UNUSED_ATTR const bt_bdaddr_t* bd_addr, int cmd,
                                int val1, int val2, const char* arg) {
   CHECK_BTHF_CLIENT_SLC_CONNECTED();
-  BTIF_TRACE_EVENT("%s Cmd %d val1 %d val2 %d arg %s", __func__, cmd, val1,
+  BTIF_TRACE_EVENT("%s: Cmd %d val1 %d val2 %d arg %s", __func__, cmd, val1,
                    val2, (arg != NULL) ? arg : "<null>");
   BTA_HfClientSendAT(btif_hf_client_cb.handle, cmd, val1, val2, arg);
 
@@ -736,14 +738,6 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
                    event);
 
   switch (event) {
-    case BTA_HF_CLIENT_ENABLE_EVT:
-    case BTA_HF_CLIENT_DISABLE_EVT:
-      break;
-
-    case BTA_HF_CLIENT_REGISTER_EVT:
-      btif_hf_client_cb.handle = p_data->reg.handle;
-      break;
-
     case BTA_HF_CLIENT_OPEN_EVT:
       if (p_data->open.status == BTA_HF_CLIENT_SUCCESS) {
         bdcpy(btif_hf_client_cb.connected_bda.address, p_data->open.bd_addr);
@@ -930,15 +924,15 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
 
 /*******************************************************************************
  *
- * Function         bte_hf_client_evt
+ * Function         bta_hf_client_evt
  *
- * Description      Switches context from BTE to BTIF for all HF Client events
+ * Description      Switches context from BTA to BTIF for all HF Client events
  *
  * Returns          void
  *
  ******************************************************************************/
 
-static void bte_hf_client_evt(tBTA_HF_CLIENT_EVT event,
+static void bta_hf_client_evt(tBTA_HF_CLIENT_EVT event,
                               tBTA_HF_CLIENT* p_data) {
   bt_status_t status;
 
@@ -961,30 +955,15 @@ static void bte_hf_client_evt(tBTA_HF_CLIENT_EVT event,
  *
  ******************************************************************************/
 bt_status_t btif_hf_client_execute_service(bool b_enable) {
-  BTIF_TRACE_EVENT("%s enable:%d", __func__, b_enable);
-
-  osi_property_get("ro.bluetooth.hfp.ver", btif_hf_client_version, "1.5");
+  BTIF_TRACE_EVENT("%s: enable:%d", __func__, b_enable);
 
   if (b_enable) {
     /* Enable and register with BTA-HFClient */
-    BTA_HfClientEnable(bte_hf_client_evt);
-    if (strcmp(btif_hf_client_version, "1.6") == 0) {
-      BTIF_TRACE_EVENT("Support Codec Nego. %d ", BTIF_HF_CLIENT_FEATURES);
-      BTA_HfClientRegister(BTIF_HF_CLIENT_SECURITY, BTIF_HF_CLIENT_FEATURES,
-                           BTIF_HF_CLIENT_SERVICE_NAME);
-    } else {
-      BTIF_TRACE_EVENT("No Codec Nego Supported");
-      btif_hf_client_features = BTIF_HF_CLIENT_FEATURES;
-      btif_hf_client_features =
-          btif_hf_client_features & (~BTA_HF_CLIENT_FEAT_CODEC);
-      BTIF_TRACE_EVENT("btif_hf_client_features is   %d",
-                       btif_hf_client_features);
-      BTA_HfClientRegister(BTIF_HF_CLIENT_SECURITY, btif_hf_client_features,
-                           BTIF_HF_CLIENT_SERVICE_NAME);
-    }
-
+    BTIF_TRACE_EVENT("%s: support codec negotiation %d", __func__,
+                     BTIF_HF_CLIENT_FEATURES);
+    BTA_HfClientEnable(bta_hf_client_evt, BTIF_HF_CLIENT_SECURITY,
+                       BTIF_HF_CLIENT_FEATURES, BTIF_HF_CLIENT_SERVICE_NAME);
   } else {
-    BTA_HfClientDeregister(btif_hf_client_cb.handle);
     BTA_HfClientDisable();
   }
   return BT_STATUS_SUCCESS;

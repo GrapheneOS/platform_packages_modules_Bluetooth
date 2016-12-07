@@ -24,52 +24,6 @@
 /* ASCII character string of arguments to the AT command */
 #define BTA_HF_CLIENT_AT_MAX_LEN 512
 
-/* AT command table element */
-typedef struct {
-  const char* p_cmd; /* AT command string */
-  uint8_t arg_type;  /* allowable argument type syntax */
-  uint8_t fmt;       /* whether arg is int or string */
-  uint8_t min;       /* minimum value for int arg */
-  int16_t max;       /* maximum value for int arg */
-} tBTA_AG_AT_CMD;
-
-/* callback function executed when command is parsed */
-typedef void(tBTA_AG_AT_CMD_CBACK)(void* p_user, uint16_t cmd, uint8_t arg_type,
-                                   char* p_arg, int16_t int_arg);
-
-/* callback function executed to send "ERROR" result code */
-typedef void(tBTA_AG_AT_ERR_CBACK)(void* p_user, bool unknown, char* p_arg);
-
-enum {
-  BTA_HF_CLIENT_AT_NONE,
-  BTA_HF_CLIENT_AT_BRSF,
-  BTA_HF_CLIENT_AT_BAC,
-  BTA_HF_CLIENT_AT_CIND,
-  BTA_HF_CLIENT_AT_CIND_STATUS,
-  BTA_HF_CLIENT_AT_CMER,
-  BTA_HF_CLIENT_AT_CHLD,
-  BTA_HF_CLIENT_AT_CMEE,
-  BTA_HF_CLIENT_AT_BIA,
-  BTA_HF_CLIENT_AT_CLIP,
-  BTA_HF_CLIENT_AT_CCWA,
-  BTA_HF_CLIENT_AT_COPS,
-  BTA_HF_CLIENT_AT_CLCC,
-  BTA_HF_CLIENT_AT_BVRA,
-  BTA_HF_CLIENT_AT_VGS,
-  BTA_HF_CLIENT_AT_VGM,
-  BTA_HF_CLIENT_AT_ATD,
-  BTA_HF_CLIENT_AT_BLDN,
-  BTA_HF_CLIENT_AT_ATA,
-  BTA_HF_CLIENT_AT_CHUP,
-  BTA_HF_CLIENT_AT_BTRH,
-  BTA_HF_CLIENT_AT_VTS,
-  BTA_HF_CLIENT_AT_BCC,
-  BTA_HF_CLIENT_AT_BCS,
-  BTA_HF_CLIENT_AT_CNUM,
-  BTA_HF_CLIENT_AT_NREC,
-  BTA_HF_CLIENT_AT_BINP,
-};
-
 typedef uint8_t tBTA_HF_CLIENT_AT_CMD;
 
 /* Maximum combined buffer for received AT events string */
@@ -104,10 +58,3 @@ typedef struct {
   int indicator_lookup[BTA_HF_CLIENT_AT_INDICATOR_COUNT];
 
 } tBTA_HF_CLIENT_AT_CB;
-
-/*****************************************************************************
- *  Functions
- ****************************************************************************/
-
-void bta_hf_client_at_init(void);
-void bta_hf_client_at_reset(void);
