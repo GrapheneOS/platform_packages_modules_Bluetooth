@@ -1327,7 +1327,7 @@ public class GattService extends ProfileService {
         scanClient.legacyForegroundApp = Utils.isLegacyForegroundApp(this, callingPackage);
 
         AppScanStats app = null;
-        app = mClientMap.getAppScanStatsById(scannerId);
+        app = mScannerMap.getAppScanStatsById(scannerId);
 
         if (app != null) {
             if (app.isScanningTooFrequently() &&
@@ -2171,7 +2171,10 @@ public class GattService extends ProfileService {
 
         println(sb, "mMaxScanFilters: " + mMaxScanFilters);
 
-        sb.append("\nGATT Client Map\n");
+        sb.append("\nGATT Scanner Map\n");
+        mScannerMap.dump(sb);
+
+        sb.append("GATT Client Map\n");
         mClientMap.dump(sb);
 
         sb.append("GATT Server Map\n");
