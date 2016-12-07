@@ -514,7 +514,7 @@ typedef struct {
   uint16_t e_handle;
   list_t* characteristics; /* list of tBTA_GATTC_CHARACTERISTIC */
   list_t* included_svc;    /* list of tBTA_GATTC_INCLUDED_SVC */
-} __attribute__((packed)) tBTA_GATTC_SERVICE;
+} __attribute__((packed, aligned(alignof(tBT_UUID)))) tBTA_GATTC_SERVICE;
 
 typedef struct {
   tBT_UUID uuid;
@@ -522,7 +522,7 @@ typedef struct {
   tBTA_GATT_CHAR_PROP properties;
   tBTA_GATTC_SERVICE* service; /* owning service*/
   list_t* descriptors;         /* list of tBTA_GATTC_DESCRIPTOR */
-} __attribute__((packed)) tBTA_GATTC_CHARACTERISTIC;
+} __attribute__((packed, aligned(alignof(tBT_UUID)))) tBTA_GATTC_CHARACTERISTIC;
 
 typedef struct {
   tBT_UUID uuid;
