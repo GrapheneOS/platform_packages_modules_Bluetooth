@@ -375,8 +375,8 @@ typedef union {
 typedef void(tBTA_JV_DM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id);
 
 /* JAVA RFCOMM interface callback */
-typedef void*(tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
-                                    void* user_data);
+typedef uint32_t(tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
+                                       uint32_t rfcomm_slot_id);
 
 /* JAVA L2CAP interface callback */
 typedef void(tBTA_JV_L2CAP_CBACK)(tBTA_JV_EVT event, tBTA_JV* p_data,
@@ -493,7 +493,7 @@ tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, uint16_t num_uuid,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvCreateRecordByUser(void* user_data);
+tBTA_JV_STATUS BTA_JvCreateRecordByUser(uint32_t rfcomm_slot_id);
 
 /*******************************************************************************
  *
@@ -733,7 +733,7 @@ tBTA_JV_STATUS BTA_JvL2capWriteFixed(uint16_t channel, BD_ADDR* addr,
 tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                    uint8_t remote_scn, BD_ADDR peer_bd_addr,
                                    tBTA_JV_RFCOMM_CBACK* p_cback,
-                                   void* user_data);
+                                   uint32_t rfcomm_slot_id);
 
 /*******************************************************************************
  *
@@ -745,7 +745,7 @@ tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvRfcommClose(uint32_t handle, void* user_data);
+tBTA_JV_STATUS BTA_JvRfcommClose(uint32_t handle, uint32_t rfcomm_slot_id);
 
 /*******************************************************************************
  *
@@ -765,7 +765,7 @@ tBTA_JV_STATUS BTA_JvRfcommClose(uint32_t handle, void* user_data);
 tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                        uint8_t local_scn, uint8_t max_session,
                                        tBTA_JV_RFCOMM_CBACK* p_cback,
-                                       void* user_data);
+                                       uint32_t rfcomm_slot_id);
 
 /*******************************************************************************
  *
@@ -778,7 +778,7 @@ tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvRfcommStopServer(uint32_t handle, void* user_data);
+tBTA_JV_STATUS BTA_JvRfcommStopServer(uint32_t handle, uint32_t rfcomm_slot_id);
 
 /*******************************************************************************
  *
