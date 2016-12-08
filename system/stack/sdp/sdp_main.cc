@@ -59,13 +59,8 @@ static void sdp_config_cfm(uint16_t l2cap_cid, tL2CAP_CFG_INFO* p_cfg);
 static void sdp_disconnect_ind(uint16_t l2cap_cid, bool ack_needed);
 static void sdp_data_ind(uint16_t l2cap_cid, BT_HDR* p_msg);
 
-#if (SDP_CLIENT_ENABLED == TRUE)
 static void sdp_connect_cfm(uint16_t l2cap_cid, uint16_t result);
 static void sdp_disconnect_cfm(uint16_t l2cap_cid, uint16_t result);
-#else
-#define sdp_connect_cfm NULL
-#define sdp_disconnect_cfm NULL
-#endif
 
 /*******************************************************************************
  *
@@ -98,14 +93,12 @@ void sdp_init(void) {
   }
 #endif
 
-#if (SDP_CLIENT_ENABLED == TRUE)
   /* Register with Security Manager for the specific security level */
   if (!BTM_SetSecurityLevel(true, SDP_SERVICE_NAME, BTM_SEC_SERVICE_SDP_SERVER,
                             SDP_SECURITY_LEVEL, SDP_PSM, 0, 0)) {
     SDP_TRACE_ERROR("Security Registration for Client failed");
     return;
   }
-#endif
 
 #if defined(SDP_INITIAL_TRACE_LEVEL)
   sdp_cb.trace_level = SDP_INITIAL_TRACE_LEVEL;
@@ -208,7 +201,6 @@ static void sdp_connect_ind(BD_ADDR bd_addr, uint16_t l2cap_cid,
 #endif
 }
 
-#if (SDP_CLIENT_ENABLED == TRUE)
 /*******************************************************************************
  *
  * Function         sdp_connect_cfm
@@ -281,7 +273,6 @@ static void sdp_connect_cfm(uint16_t l2cap_cid, uint16_t result) {
     sdpu_release_ccb(p_ccb);
   }
 }
-#endif /* SDP_CLIENT_ENABLED == TRUE */
 
 /*******************************************************************************
  *
@@ -425,9 +416,7 @@ static void sdp_config_cfm(uint16_t l2cap_cid, tL2CAP_CFG_INFO* p_cfg) {
       return;
     }
 
-#if (SDP_CLIENT_ENABLED == TRUE)
     sdp_disconnect(p_ccb, SDP_CFG_FAILED);
-#endif
   }
 }
 
@@ -454,7 +443,6 @@ static void sdp_disconnect_ind(uint16_t l2cap_cid, bool ack_needed) {
   if (ack_needed) L2CA_DisconnectRsp(l2cap_cid);
 
   SDP_TRACE_EVENT("SDP - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
-#if (SDP_CLIENT_ENABLED == TRUE)
   /* Tell the user if he has a callback */
   if (p_ccb->p_cb)
     (*p_ccb->p_cb)((uint16_t)((p_ccb->con_state == SDP_STATE_CONNECTED)
@@ -466,7 +454,6 @@ static void sdp_disconnect_ind(uint16_t l2cap_cid, bool ack_needed) {
                                                              : SDP_CONN_FAILED),
         p_ccb->user_data);
 
-#endif
   sdpu_release_ccb(p_ccb);
 }
 
@@ -508,7 +495,6 @@ static void sdp_data_ind(uint16_t l2cap_cid, BT_HDR* p_msg) {
   osi_free(p_msg);
 }
 
-#if (SDP_CLIENT_ENABLED == TRUE)
 /*******************************************************************************
  *
  * Function         sdp_conn_originate
@@ -658,7 +644,6 @@ static void sdp_disconnect_cfm(uint16_t l2cap_cid,
   sdpu_release_ccb(p_ccb);
 }
 
-#endif /* SDP_CLIENT_ENABLED == TRUE */
 
 /*******************************************************************************
  *
@@ -677,12 +662,10 @@ void sdp_conn_timer_timeout(void* data) {
                   p_ccb->connection_id);
 
   L2CA_DisconnectReq(p_ccb->connection_id);
-#if (SDP_CLIENT_ENABLED == TRUE)
   /* Tell the user if he has a callback */
   if (p_ccb->p_cb)
     (*p_ccb->p_cb)(SDP_CONN_FAILED);
   else if (p_ccb->p_cb2)
     (*p_ccb->p_cb2)(SDP_CONN_FAILED, p_ccb->user_data);
-#endif
   sdpu_release_ccb(p_ccb);
 }
