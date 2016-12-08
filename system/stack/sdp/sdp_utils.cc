@@ -78,7 +78,6 @@ tCONN_CB* sdpu_find_ccb_by_cid(uint16_t cid) {
  *
  ******************************************************************************/
 tCONN_CB* sdpu_find_ccb_by_db(tSDP_DISCOVERY_DB* p_db) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   uint16_t xx;
   tCONN_CB* p_ccb;
 
@@ -89,7 +88,6 @@ tCONN_CB* sdpu_find_ccb_by_db(tSDP_DISCOVERY_DB* p_db) {
         return (p_ccb);
     }
   }
-#endif
   /* If here, not found */
   return (NULL);
 }
@@ -136,9 +134,7 @@ void sdpu_release_ccb(tCONN_CB* p_ccb) {
 
   /* Drop any response pointer we may be holding */
   p_ccb->con_state = SDP_STATE_IDLE;
-#if (SDP_CLIENT_ENABLED == TRUE)
   p_ccb->is_attr_search = false;
-#endif
 
   /* Free the response buffer */
   if (p_ccb->rsp_list) SDP_TRACE_DEBUG("releasing SDP rsp_list");
