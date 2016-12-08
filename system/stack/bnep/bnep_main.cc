@@ -31,7 +31,6 @@
 #include "bt_types.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
-#include "l2cdefs.h"
 
 #include "l2c_api.h"
 #include "l2cdefs.h"
