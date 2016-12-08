@@ -13,9 +13,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
-
-#include "service/example/heart_rate/heart_rate_server.h"
-
 #include <base/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
@@ -25,7 +22,8 @@
 #include <android/bluetooth/IBluetoothLeAdvertiser.h>
 #include <bluetooth/low_energy_constants.h>
 
-#include "service/example/heart_rate/constants.h"
+#include "constants.h"
+#include "heart_rate_server.h"
 
 using android::binder::Status;
 using android::String8;
