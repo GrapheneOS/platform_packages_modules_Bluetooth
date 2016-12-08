@@ -830,11 +830,6 @@
 #define SDP_MAX_UUID_FILTERS 3
 #endif
 
-/* This is set to enable SDP client functionality. */
-#ifndef SDP_CLIENT_ENABLED
-#define SDP_CLIENT_ENABLED TRUE
-#endif
-
 /* The maximum number of record handles retrieved in a search. */
 #ifndef SDP_MAX_DISC_SERVER_RECS
 #define SDP_MAX_DISC_SERVER_RECS 21
