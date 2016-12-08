@@ -35,7 +35,6 @@
 #include "btcore/include/module.h"
 #include "btif_api.h"
 #include "btif_common.h"
-#include "btif_config.h"
 #include "btif_config_transcode.h"
 #include "btif_util.h"
 #include "osi/include/alarm.h"
