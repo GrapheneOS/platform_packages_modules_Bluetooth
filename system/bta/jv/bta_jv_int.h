@@ -131,11 +131,11 @@ typedef struct {
 
 /* port control block */
 typedef struct {
-  uint32_t handle;        /* the rfcomm session handle at jv */
-  uint16_t port_handle;   /* port handle */
-  tBTA_JV_STATE state;    /* the state of this control block */
-  uint8_t max_sess;       /* max sessions */
-  void* user_data;        /* piggyback caller's private data*/
+  uint32_t handle;      /* the rfcomm session handle at jv */
+  uint16_t port_handle; /* port handle */
+  tBTA_JV_STATE state;  /* the state of this control block */
+  uint8_t max_sess;     /* max sessions */
+  uint32_t rfcomm_slot_id;
   bool cong;              /* true, if congested */
   tBTA_JV_PM_CB* p_pm_cb; /* ptr to pm control block, NULL: unused */
 } tBTA_JV_PCB;
@@ -240,7 +240,7 @@ typedef struct {
   uint8_t remote_scn;
   BD_ADDR peer_bd_addr;
   tBTA_JV_RFCOMM_CBACK* p_cback;
-  void* user_data;
+  uint32_t rfcomm_slot_id;
 } tBTA_JV_API_RFCOMM_CONNECT;
 
 /* data type for BTA_JV_API_RFCOMM_SERVER_EVT */
@@ -252,7 +252,7 @@ typedef struct {
   uint8_t max_session;
   uint32_t handle;
   tBTA_JV_RFCOMM_CBACK* p_cback;
-  void* user_data;
+  uint32_t rfcomm_slot_id;
 } tBTA_JV_API_RFCOMM_SERVER;
 
 /* data type for BTA_JV_API_SET_PM_PROFILE_EVT */
@@ -287,13 +287,13 @@ typedef struct {
   uint32_t handle;
   tBTA_JV_RFC_CB* p_cb;
   tBTA_JV_PCB* p_pcb;
-  void* user_data;
+  uint32_t rfcomm_slot_id;
 } tBTA_JV_API_RFCOMM_CLOSE;
 
 /* data type for BTA_JV_API_CREATE_RECORD_EVT */
 typedef struct {
   BT_HDR hdr;
-  void* user_data;
+  uint32_t rfcomm_slot_id;
 } tBTA_JV_API_CREATE_RECORD;
 
 /* data type for BTA_JV_API_ADD_ATTRIBUTE_EVT */
