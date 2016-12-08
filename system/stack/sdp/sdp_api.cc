@@ -68,7 +68,6 @@
 bool SDP_InitDiscoveryDb(tSDP_DISCOVERY_DB* p_db, uint32_t len,
                          uint16_t num_uuid, tSDP_UUID* p_uuid_list,
                          uint16_t num_attr, uint16_t* p_attr_list) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   uint16_t xx;
 
   /* verify the parameters */
@@ -99,7 +98,6 @@ bool SDP_InitDiscoveryDb(tSDP_DISCOVERY_DB* p_db, uint32_t len,
   sdpu_sort_attr_list(num_attr, p_db);
 
   p_db->num_attr_filters = num_attr;
-#endif
   return (true);
 }
 
@@ -114,13 +112,11 @@ bool SDP_InitDiscoveryDb(tSDP_DISCOVERY_DB* p_db, uint32_t len,
  *
  ******************************************************************************/
 bool SDP_CancelServiceSearch(tSDP_DISCOVERY_DB* p_db) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tCONN_CB* p_ccb = sdpu_find_ccb_by_db(p_db);
   if (!p_ccb) return (false);
 
   sdp_disconnect(p_ccb, SDP_CANCEL);
   p_ccb->disc_state = SDP_DISC_WAIT_CANCEL;
-#endif
   return (true);
 }
 
@@ -135,7 +131,6 @@ bool SDP_CancelServiceSearch(tSDP_DISCOVERY_DB* p_db) {
  ******************************************************************************/
 bool SDP_ServiceSearchRequest(uint8_t* p_bd_addr, tSDP_DISCOVERY_DB* p_db,
                               tSDP_DISC_CMPL_CB* p_cb) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tCONN_CB* p_ccb;
 
   /* Specific BD address */
@@ -148,9 +143,6 @@ bool SDP_ServiceSearchRequest(uint8_t* p_bd_addr, tSDP_DISCOVERY_DB* p_db,
   p_ccb->p_cb = p_cb;
 
   return (true);
-#else
-  return (false);
-#endif
 }
 
 /*******************************************************************************
@@ -170,7 +162,6 @@ bool SDP_ServiceSearchRequest(uint8_t* p_bd_addr, tSDP_DISCOVERY_DB* p_db,
 bool SDP_ServiceSearchAttributeRequest(uint8_t* p_bd_addr,
                                        tSDP_DISCOVERY_DB* p_db,
                                        tSDP_DISC_CMPL_CB* p_cb) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tCONN_CB* p_ccb;
 
   /* Specific BD address */
@@ -185,9 +176,6 @@ bool SDP_ServiceSearchAttributeRequest(uint8_t* p_bd_addr,
   p_ccb->is_attr_search = true;
 
   return (true);
-#else
-  return (false);
-#endif
 }
 /*******************************************************************************
  *
@@ -207,7 +195,6 @@ bool SDP_ServiceSearchAttributeRequest2(uint8_t* p_bd_addr,
                                         tSDP_DISCOVERY_DB* p_db,
                                         tSDP_DISC_CMPL_CB2* p_cb2,
                                         void* user_data) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tCONN_CB* p_ccb;
 
   /* Specific BD address */
@@ -223,15 +210,10 @@ bool SDP_ServiceSearchAttributeRequest2(uint8_t* p_bd_addr,
   p_ccb->user_data = user_data;
 
   return (true);
-#else
-  return (false);
-#endif
 }
 
-#if (SDP_CLIENT_ENABLED == TRUE)
 void SDP_SetIdleTimeout(UNUSED_ATTR BD_ADDR addr,
                         UNUSED_ATTR uint16_t timeout) {}
-#endif
 
 /*******************************************************************************
  *
@@ -247,7 +229,6 @@ void SDP_SetIdleTimeout(UNUSED_ATTR BD_ADDR addr,
  ******************************************************************************/
 tSDP_DISC_REC* SDP_FindAttributeInDb(tSDP_DISCOVERY_DB* p_db, uint16_t attr_id,
                                      tSDP_DISC_REC* p_start_rec) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_REC* p_rec;
   tSDP_DISC_ATTR* p_attr;
 
@@ -269,7 +250,6 @@ tSDP_DISC_REC* SDP_FindAttributeInDb(tSDP_DISCOVERY_DB* p_db, uint16_t attr_id,
 
     p_rec = p_rec->p_next_rec;
   }
-#endif
   /* If here, no matching attribute found */
   return (NULL);
 }
@@ -285,7 +265,6 @@ tSDP_DISC_REC* SDP_FindAttributeInDb(tSDP_DISCOVERY_DB* p_db, uint16_t attr_id,
  *
  ******************************************************************************/
 tSDP_DISC_ATTR* SDP_FindAttributeInRec(tSDP_DISC_REC* p_rec, uint16_t attr_id) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_ATTR* p_attr;
 
   p_attr = p_rec->p_first_attr;
@@ -294,7 +273,7 @@ tSDP_DISC_ATTR* SDP_FindAttributeInRec(tSDP_DISC_REC* p_rec, uint16_t attr_id) {
 
     p_attr = p_attr->p_next_attr;
   }
-#endif
+
   /* If here, no matching attribute found */
   return (NULL);
 }
@@ -313,7 +292,6 @@ tSDP_DISC_ATTR* SDP_FindAttributeInRec(tSDP_DISC_REC* p_rec, uint16_t attr_id) {
  *
  ******************************************************************************/
 bool SDP_FindServiceUUIDInRec(tSDP_DISC_REC* p_rec, tBT_UUID* p_uuid) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_ATTR *p_attr, *p_sattr, *p_extra_sattr;
 
   p_attr = p_rec->p_first_attr;
@@ -377,7 +355,6 @@ bool SDP_FindServiceUUIDInRec(tSDP_DISC_REC* p_rec, tBT_UUID* p_uuid) {
     p_attr = p_attr->p_next_attr;
   }
   return false;
-#endif
 }
 
 /*******************************************************************************
@@ -394,7 +371,6 @@ bool SDP_FindServiceUUIDInRec(tSDP_DISC_REC* p_rec, tBT_UUID* p_uuid) {
  *
  ******************************************************************************/
 bool SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC* p_rec, tBT_UUID* p_uuid) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_ATTR* p_attr = p_rec->p_first_attr;
   while (p_attr) {
     if ((p_attr->attr_id == ATTR_ID_SERVICE_CLASS_ID_LIST) &&
@@ -429,7 +405,6 @@ bool SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC* p_rec, tBT_UUID* p_uuid) {
     p_attr = p_attr->p_next_attr;
   }
   return false;
-#endif
 }
 
 /*******************************************************************************
@@ -447,7 +422,6 @@ bool SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC* p_rec, tBT_UUID* p_uuid) {
 tSDP_DISC_REC* SDP_FindServiceInDb(tSDP_DISCOVERY_DB* p_db,
                                    uint16_t service_uuid,
                                    tSDP_DISC_REC* p_start_rec) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_REC* p_rec;
   tSDP_DISC_ATTR *p_attr, *p_sattr, *p_extra_sattr;
 
@@ -529,7 +503,6 @@ tSDP_DISC_REC* SDP_FindServiceInDb(tSDP_DISCOVERY_DB* p_db,
 
     p_rec = p_rec->p_next_rec;
   }
-#endif
   /* If here, no matching UUID found */
   return (NULL);
 }
@@ -551,7 +524,6 @@ tSDP_DISC_REC* SDP_FindServiceInDb(tSDP_DISCOVERY_DB* p_db,
  ******************************************************************************/
 tSDP_DISC_REC* SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB* p_db,
                                           tSDP_DISC_REC* p_start_rec) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_REC* p_rec;
   tSDP_DISC_ATTR *p_attr, *p_sattr;
 
@@ -588,7 +560,6 @@ tSDP_DISC_REC* SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB* p_db,
 
     p_rec = p_rec->p_next_rec;
   }
-#endif
   /* If here, no matching UUID found */
   return (NULL);
 }
@@ -612,7 +583,6 @@ tSDP_DISC_REC* SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB* p_db,
 tSDP_DISC_REC* SDP_FindServiceUUIDInDb(tSDP_DISCOVERY_DB* p_db,
                                        tBT_UUID* p_uuid,
                                        tSDP_DISC_REC* p_start_rec) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_REC* p_rec;
   tSDP_DISC_ATTR *p_attr, *p_sattr;
 
@@ -648,12 +618,10 @@ tSDP_DISC_REC* SDP_FindServiceUUIDInDb(tSDP_DISCOVERY_DB* p_db,
 
     p_rec = p_rec->p_next_rec;
   }
-#endif /* CLIENT_ENABLED == TRUE */
   /* If here, no matching UUID found */
   return (NULL);
 }
 
-#if (SDP_CLIENT_ENABLED == TRUE)
 /*******************************************************************************
  *
  * Function         sdp_fill_proto_elem
@@ -708,7 +676,6 @@ static bool sdp_fill_proto_elem(tSDP_DISC_ATTR* p_attr, uint16_t layer_uuid,
 
   return (false);
 }
-#endif /* CLIENT_ENABLED == TRUE */
 
 /*******************************************************************************
  *
@@ -723,7 +690,6 @@ static bool sdp_fill_proto_elem(tSDP_DISC_ATTR* p_attr, uint16_t layer_uuid,
  ******************************************************************************/
 bool SDP_FindProtocolListElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
                                    tSDP_PROTOCOL_ELEM* p_elem) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_ATTR* p_attr;
 
   p_attr = p_rec->p_first_attr;
@@ -735,7 +701,6 @@ bool SDP_FindProtocolListElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
     }
     p_attr = p_attr->p_next_attr;
   }
-#endif
   /* If here, no match found */
   return (false);
 }
@@ -753,7 +718,6 @@ bool SDP_FindProtocolListElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
  ******************************************************************************/
 bool SDP_FindAddProtoListsElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
                                     tSDP_PROTOCOL_ELEM* p_elem) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_ATTR *p_attr, *p_sattr;
   bool ret = false;
 
@@ -775,7 +739,6 @@ bool SDP_FindAddProtoListsElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
     }
     p_attr = p_attr->p_next_attr;
   }
-#endif
   /* If here, no match found */
   return (false);
 }
@@ -796,7 +759,6 @@ bool SDP_FindAddProtoListsElemInRec(tSDP_DISC_REC* p_rec, uint16_t layer_uuid,
  ******************************************************************************/
 bool SDP_FindProfileVersionInRec(tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
                                  uint16_t* p_version) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_ATTR *p_attr, *p_sattr;
 
   p_attr = p_rec->p_first_attr;
@@ -843,7 +805,6 @@ bool SDP_FindProfileVersionInRec(tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
     }
     p_attr = p_attr->p_next_attr;
   }
-#endif /* CLIENT_ENABLED == TRUE */
 
   /* If here, no match found */
   return (false);
@@ -864,7 +825,6 @@ bool SDP_FindProfileVersionInRec(tSDP_DISC_REC* p_rec, uint16_t profile_uuid,
  ******************************************************************************/
 uint16_t SDP_DiDiscover(BD_ADDR remote_device, tSDP_DISCOVERY_DB* p_db,
                         uint32_t len, tSDP_DISC_CMPL_CB* p_cb) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   uint16_t result = SDP_DI_DISC_FAILED;
   uint16_t num_uuids = 1;
   uint16_t di_uuid = UUID_SERVCLASS_PNP_INFORMATION;
@@ -879,9 +839,6 @@ uint16_t SDP_DiDiscover(BD_ADDR remote_device, tSDP_DISCOVERY_DB* p_db,
       result = SDP_SUCCESS;
 
   return result;
-#else
-  return SDP_DI_DISC_FAILED;
-#endif
 }
 
 /*******************************************************************************
@@ -894,7 +851,6 @@ uint16_t SDP_DiDiscover(BD_ADDR remote_device, tSDP_DISCOVERY_DB* p_db,
  *
  ******************************************************************************/
 uint8_t SDP_GetNumDiRecords(tSDP_DISCOVERY_DB* p_db) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   uint8_t num_records = 0;
   tSDP_DISC_REC* p_curr_record = NULL;
 
@@ -905,9 +861,6 @@ uint8_t SDP_GetNumDiRecords(tSDP_DISCOVERY_DB* p_db) {
   } while (p_curr_record);
 
   return num_records;
-#else
-  return 0;
-#endif
 }
 
 /*******************************************************************************
@@ -948,7 +901,6 @@ static void SDP_AttrStringCopy(char* dst, tSDP_DISC_ATTR* p_attr,
 uint16_t SDP_GetDiRecord(uint8_t get_record_index,
                          tSDP_DI_GET_RECORD* p_device_info,
                          tSDP_DISCOVERY_DB* p_db) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   uint16_t result = SDP_NO_DI_RECORD_FOUND;
   uint8_t curr_record_index = 1;
 
@@ -1028,9 +980,6 @@ uint16_t SDP_GetDiRecord(uint8_t get_record_index,
   }
 
   return result;
-#else /* SDP_CLIENT_ENABLED is FALSE */
-  return SDP_NO_DI_RECORD_FOUND;
-#endif
 }
 
 /*******************************************************************************

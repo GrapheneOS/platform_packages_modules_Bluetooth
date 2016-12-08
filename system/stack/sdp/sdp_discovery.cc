@@ -43,7 +43,6 @@
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
-#if (SDP_CLIENT_ENABLED == TRUE)
 static void process_service_search_rsp(tCONN_CB* p_ccb, uint8_t* p_reply);
 static void process_service_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply);
 static void process_service_search_attr_rsp(tCONN_CB* p_ccb, uint8_t* p_reply);
@@ -971,5 +970,3 @@ static uint8_t* add_attr(uint8_t* p, tSDP_DISCOVERY_DB* p_db,
 
   return (p);
 }
-
-#endif /* CLIENT_ENABLED == TRUE */
