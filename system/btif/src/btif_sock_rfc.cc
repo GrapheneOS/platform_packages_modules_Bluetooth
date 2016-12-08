@@ -106,7 +106,8 @@ static uid_set_t* uid_set = NULL;
 static rfc_slot_t* find_free_slot(void);
 static void cleanup_rfc_slot(rfc_slot_t* rs);
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id);
-static void* rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data);
+static uint32_t rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data,
+                             uint32_t rfcomm_slot_id);
 static bool send_app_scn(rfc_slot_t* rs);
 
 static bool is_init_done(void) { return pth != -1; }
@@ -351,9 +352,9 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t* bd_addr,
   }
 
   if (is_uuid_empty(service_uuid)) {
-    tBTA_JV_STATUS ret = BTA_JvRfcommConnect(
-        slot->security, slot->role, slot->scn, slot->addr.address, rfcomm_cback,
-        (void*)(uintptr_t)slot->id);
+    tBTA_JV_STATUS ret =
+        BTA_JvRfcommConnect(slot->security, slot->role, slot->scn,
+                            slot->addr.address, rfcomm_cback, slot->id);
     if (ret != BTA_JV_SUCCESS) {
       LOG_ERROR(LOG_TAG, "%s unable to initiate RFCOMM connection: %d",
                 __func__, ret);
@@ -403,7 +404,7 @@ static void free_rfc_slot_scn(rfc_slot_t* slot) {
   if (slot->scn <= 0) return;
 
   if (slot->f.server && !slot->f.closing && slot->rfc_handle) {
-    BTA_JvRfcommStopServer(slot->rfc_handle, (void*)(uintptr_t)slot->id);
+    BTA_JvRfcommStopServer(slot->rfc_handle, slot->id);
     slot->rfc_handle = 0;
   }
 
@@ -429,7 +430,7 @@ static void cleanup_rfc_slot(rfc_slot_t* slot) {
   }
 
   if (slot->rfc_handle && !slot->f.closing && !slot->f.server) {
-    BTA_JvRfcommClose(slot->rfc_handle, (void*)(uintptr_t)slot->id);
+    BTA_JvRfcommClose(slot->rfc_handle, slot->id);
     slot->rfc_handle = 0;
   }
 
@@ -581,43 +582,43 @@ static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG* p, uint32_t id) {
   }
 }
 
-static void* rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data) {
-  void* new_user_data = NULL;
+static uint32_t rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data,
+                             uint32_t rfcomm_slot_id) {
+  uint32_t id = 0;
 
   switch (event) {
     case BTA_JV_RFCOMM_START_EVT:
-      on_srv_rfc_listen_started(&p_data->rfc_start, (uintptr_t)user_data);
+      on_srv_rfc_listen_started(&p_data->rfc_start, rfcomm_slot_id);
       break;
 
     case BTA_JV_RFCOMM_CL_INIT_EVT:
-      on_cl_rfc_init(&p_data->rfc_cl_init, (uintptr_t)user_data);
+      on_cl_rfc_init(&p_data->rfc_cl_init, rfcomm_slot_id);
       break;
 
     case BTA_JV_RFCOMM_OPEN_EVT:
       BTA_JvSetPmProfile(p_data->rfc_open.handle, BTA_JV_PM_ID_1,
                          BTA_JV_CONN_OPEN);
-      on_cli_rfc_connect(&p_data->rfc_open, (uintptr_t)user_data);
+      on_cli_rfc_connect(&p_data->rfc_open, rfcomm_slot_id);
       break;
 
     case BTA_JV_RFCOMM_SRV_OPEN_EVT:
       BTA_JvSetPmProfile(p_data->rfc_srv_open.handle, BTA_JV_PM_ALL,
                          BTA_JV_CONN_OPEN);
-      new_user_data = (void*)(uintptr_t)on_srv_rfc_connect(
-          &p_data->rfc_srv_open, (uintptr_t)user_data);
+      id = on_srv_rfc_connect(&p_data->rfc_srv_open, rfcomm_slot_id);
       break;
 
     case BTA_JV_RFCOMM_CLOSE_EVT:
-      APPL_TRACE_DEBUG("BTA_JV_RFCOMM_CLOSE_EVT: user_data:%d",
-                       (uintptr_t)user_data);
-      on_rfc_close(&p_data->rfc_close, (uintptr_t)user_data);
+      APPL_TRACE_DEBUG("BTA_JV_RFCOMM_CLOSE_EVT: rfcomm_slot_id:%d",
+                       rfcomm_slot_id);
+      on_rfc_close(&p_data->rfc_close, rfcomm_slot_id);
       break;
 
     case BTA_JV_RFCOMM_WRITE_EVT:
-      on_rfc_write_done(&p_data->rfc_write, (uintptr_t)user_data);
+      on_rfc_write_done(&p_data->rfc_write, rfcomm_slot_id);
       break;
 
     case BTA_JV_RFCOMM_CONG_EVT:
-      on_rfc_outgoing_congest(&p_data->rfc_cong, (uintptr_t)user_data);
+      on_rfc_outgoing_congest(&p_data->rfc_cong, rfcomm_slot_id);
       break;
 
     case BTA_JV_RFCOMM_DATA_IND_EVT:
@@ -626,10 +627,10 @@ static void* rfcomm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, void* user_data) {
 
     default:
       LOG_ERROR(LOG_TAG, "%s unhandled event %d, slot id: %zi", __func__, event,
-                (uintptr_t)user_data);
+                rfcomm_slot_id);
       break;
   }
-  return new_user_data;
+  return id;
 }
 
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id) {
@@ -661,7 +662,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id) {
           if (rs->is_service_uuid_valid == true) {
             // We already have data for SDP record, create it (RFC-only
             // profiles)
-            BTA_JvCreateRecordByUser(UINT_TO_PTR(rs->id));
+            BTA_JvCreateRecordByUser(rs->id);
           } else {
             APPL_TRACE_DEBUG(
                 "is_service_uuid_valid==false - don't set SDP-record, "
@@ -669,8 +670,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id) {
                 rs->id);
             // now start the rfcomm server after sdp & channel # assigned
             BTA_JvRfcommStartServer(rs->security, rs->role, rs->scn,
-                                    MAX_RFC_SESSION, rfcomm_cback,
-                                    UINT_TO_PTR(rs->id));
+                                    MAX_RFC_SESSION, rfcomm_cback, rs->id);
           }
         }
       } else if (rs) {
@@ -693,8 +693,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id) {
       if (slot && create_server_sdp_record(slot)) {
         // Start the rfcomm server after sdp & channel # assigned.
         BTA_JvRfcommStartServer(slot->security, slot->role, slot->scn,
-                                MAX_RFC_SESSION, rfcomm_cback,
-                                (void*)(uintptr_t)slot->id);
+                                MAX_RFC_SESSION, rfcomm_cback, slot->id);
       } else if (slot) {
         APPL_TRACE_ERROR("jv_dm_cback: cannot start server, slot found:%p",
                          slot);
@@ -712,8 +711,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV* p_data, uint32_t id) {
           // number to connect to.
           if (BTA_JvRfcommConnect(slot->security, slot->role,
                                   p_data->disc_comp.scn, slot->addr.address,
-                                  rfcomm_cback, (void*)(uintptr_t)slot->id) ==
-              BTA_JV_SUCCESS) {
+                                  rfcomm_cback, slot->id) == BTA_JV_SUCCESS) {
             slot->scn = p_data->disc_comp.scn;
             slot->f.doing_sdp_request = false;
             if (!send_app_scn(slot)) cleanup_rfc_slot(slot);
@@ -856,11 +854,10 @@ void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
   }
 }
 
-int bta_co_rfc_data_incoming(void* user_data, BT_HDR* p_buf) {
+int bta_co_rfc_data_incoming(uint32_t id, BT_HDR* p_buf) {
   int app_uid = -1;
   uint64_t bytes_rx = 0;
   int ret = 0;
-  uint32_t id = (uintptr_t)user_data;
   std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t* slot = find_rfc_slot_by_id(id);
   if (!slot) return 0;
@@ -896,8 +893,7 @@ int bta_co_rfc_data_incoming(void* user_data, BT_HDR* p_buf) {
   return ret;  // Return 0 to disable data flow.
 }
 
-int bta_co_rfc_data_outgoing_size(void* user_data, int* size) {
-  uint32_t id = (uintptr_t)user_data;
+int bta_co_rfc_data_outgoing_size(uint32_t id, int* size) {
   *size = 0;
   std::unique_lock<std::recursive_mutex> lock(slot_lock);
   rfc_slot_t* slot = find_rfc_slot_by_id(id);
@@ -914,9 +910,8 @@ int bta_co_rfc_data_outgoing_size(void* user_data, int* size) {
   return true;
 }
 
-int bta_co_rfc_data_outgoing(void* user_data, uint8_t* buf, uint16_t size) {
+int bta_co_rfc_data_outgoing(uint32_t id, uint8_t* buf, uint16_t size) {
   std::unique_lock<std::recursive_mutex> lock(slot_lock);
-  uint32_t id = (uintptr_t)user_data;
   rfc_slot_t* slot = find_rfc_slot_by_id(id);
   if (!slot) return false;
 
