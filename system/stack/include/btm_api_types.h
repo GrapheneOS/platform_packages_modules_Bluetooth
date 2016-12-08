@@ -1402,6 +1402,7 @@ typedef uint8_t tBTM_SP_EVT;
 #define BTM_IO_CAP_NONE 3   /* NoInputNoOutput */
 #define BTM_IO_CAP_KBDISP 4 /* Keyboard display */
 #define BTM_IO_CAP_MAX 5
+#define BTM_IO_CAP_UNKNOWN 0xFF /* Unknown value */
 
 typedef uint8_t tBTM_IO_CAP;
 
