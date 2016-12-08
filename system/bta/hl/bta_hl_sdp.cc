@@ -528,7 +528,6 @@ tBTA_HL_STATUS bta_hl_sdp_register(uint8_t app_idx) {
  ******************************************************************************/
 tSDP_DISC_REC* bta_hl_find_sink_or_src_srv_class_in_db(
     const tSDP_DISCOVERY_DB* p_db, const tSDP_DISC_REC* p_start_rec) {
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISC_REC* p_rec;
   tSDP_DISC_ATTR *p_attr, *p_sattr;
 
@@ -564,7 +563,6 @@ tSDP_DISC_REC* bta_hl_find_sink_or_src_srv_class_in_db(
 
     p_rec = p_rec->p_next_rec;
   }
-#endif
 /* If here, no matching UUID found */
 
 #if (BTA_HL_DEBUG == TRUE)

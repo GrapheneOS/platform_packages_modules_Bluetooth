@@ -176,7 +176,6 @@ typedef struct {
   uint16_t list_len; /* length of the response in the GKI buffer */
   uint8_t* rsp_list; /* pointer to GKI buffer holding response */
 
-#if (SDP_CLIENT_ENABLED == TRUE)
   tSDP_DISCOVERY_DB* p_db; /* Database to save info into   */
   tSDP_DISC_CMPL_CB* p_cb; /* Callback for discovery done  */
   tSDP_DISC_CMPL_CB2*
@@ -200,7 +199,6 @@ typedef struct {
 
   uint8_t disc_state;
   uint8_t is_attr_search;
-#endif /* SDP_CLIENT_ENABLED == TRUE */
 
 #if (SDP_SERVER_ENABLED == TRUE)
   uint16_t cont_offset;     /* Continuation state data in the server response */
@@ -305,13 +303,8 @@ extern void sdp_server_handle_client_req(tCONN_CB* p_ccb, BT_HDR* p_msg);
 
 /* Functions provided by sdp_discovery.cc
 */
-#if (SDP_CLIENT_ENABLED == TRUE)
 extern void sdp_disc_connected(tCONN_CB* p_ccb);
 extern void sdp_disc_server_rsp(tCONN_CB* p_ccb, BT_HDR* p_msg);
-#else
-#define sdp_disc_connected(p_ccb)
-#define sdp_disc_server_rsp(p_ccb, p_msg)
-#endif
 
 #ifdef __cplusplus
 }
