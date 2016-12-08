@@ -46,7 +46,6 @@
 #include "osi/include/osi.h"
 
 // TODO(zachoverflow): remove this horrible hack
-#include "btu.h"
 extern fixed_queue_t* btu_hci_msg_queue;
 
 extern void btm_process_cancel_complete(uint8_t status, uint8_t mode);

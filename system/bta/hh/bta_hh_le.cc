@@ -31,7 +31,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bta_hh_co.h"
 #include "btm_api.h"
