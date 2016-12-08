@@ -3539,18 +3539,28 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
 
         /* The device record must be allocated in the "IO cap exchange" step */
         STREAM_TO_UINT32(evt_data.cfm_req.num_val, p);
+        BTM_TRACE_DEBUG("BTM_SP_CFM_REQ_EVT:  num_val: %u",
+                        evt_data.cfm_req.num_val);
 
         evt_data.cfm_req.just_works = true;
 
 /* process user confirm req in association with the auth_req param */
 #if (BTM_LOCAL_IO_CAPS == BTM_IO_CAP_IO)
+        if (p_dev_rec->rmt_io_caps == BTM_IO_CAP_UNKNOWN) {
+          BTM_TRACE_ERROR(
+              "%s did not receive IO cap response prior"
+              " to BTM_SP_CFM_REQ_EVT, failing pairing request",
+              __func__);
+          status = BTM_WRONG_MODE;
+          BTM_ConfirmReqReply(status, p_bda);
+          return;
+        }
         if ((p_dev_rec->rmt_io_caps == BTM_IO_CAP_IO) &&
             (btm_cb.devcb.loc_io_caps == BTM_IO_CAP_IO) &&
             ((p_dev_rec->rmt_auth_req & BTM_AUTH_SP_YES) ||
              (btm_cb.devcb.loc_auth_req & BTM_AUTH_SP_YES))) {
           /* Both devices are DisplayYesNo and one or both devices want to
-             authenticate
-             -> use authenticated link key */
+             authenticate -> use authenticated link key */
           evt_data.cfm_req.just_works = false;
         }
 #endif
@@ -3570,7 +3580,6 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
       case BTM_SP_KEY_NOTIF_EVT:
         /* Passkey notification (other side is a keyboard) */
         STREAM_TO_UINT32(evt_data.key_notif.passkey, p);
-
         BTM_TRACE_DEBUG("BTM_SP_KEY_NOTIF_EVT:  passkey: %u",
                         evt_data.key_notif.passkey);
 
