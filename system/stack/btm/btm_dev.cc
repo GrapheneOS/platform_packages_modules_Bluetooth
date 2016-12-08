@@ -530,6 +530,7 @@ tBTM_SEC_DEV_REC* btm_sec_allocate_dev_rec(void) {
   p_dev_rec->sec_flags = BTM_SEC_IN_USE;
   p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
   p_dev_rec->timestamp = btm_cb.dev_rec_count++;
+  p_dev_rec->rmt_io_caps = BTM_IO_CAP_UNKNOWN;
 
   return p_dev_rec;
 }
