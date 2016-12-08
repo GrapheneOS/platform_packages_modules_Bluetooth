@@ -245,14 +245,14 @@ tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, uint16_t num_uuid,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvCreateRecordByUser(void* user_data) {
+tBTA_JV_STATUS BTA_JvCreateRecordByUser(uint32_t rfcomm_slot_id) {
   tBTA_JV_API_CREATE_RECORD* p_msg =
       (tBTA_JV_API_CREATE_RECORD*)osi_malloc(sizeof(tBTA_JV_API_CREATE_RECORD));
 
   APPL_TRACE_API("%s", __func__);
 
   p_msg->hdr.event = BTA_JV_API_CREATE_RECORD_EVT;
-  p_msg->user_data = user_data;
+  p_msg->rfcomm_slot_id = rfcomm_slot_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -765,7 +765,7 @@ tBTA_JV_STATUS BTA_JvL2capWriteFixed(uint16_t channel, BD_ADDR* addr,
 tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                    uint8_t remote_scn, BD_ADDR peer_bd_addr,
                                    tBTA_JV_RFCOMM_CBACK* p_cback,
-                                   void* user_data) {
+                                   uint32_t rfcomm_slot_id) {
   APPL_TRACE_API("%s", __func__);
 
   if (p_cback == NULL) return BTA_JV_FAILURE; /* Nothing to do */
@@ -778,7 +778,7 @@ tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
   p_msg->remote_scn = remote_scn;
   memcpy(p_msg->peer_bd_addr, peer_bd_addr, sizeof(BD_ADDR));
   p_msg->p_cback = p_cback;
-  p_msg->user_data = user_data;
+  p_msg->rfcomm_slot_id = rfcomm_slot_id;
 
   bta_sys_sendmsg(p_msg);
 
@@ -795,7 +795,7 @@ tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvRfcommClose(uint32_t handle, void* user_data) {
+tBTA_JV_STATUS BTA_JvRfcommClose(uint32_t handle, uint32_t rfcomm_slot_id) {
   tBTA_JV_STATUS status = BTA_JV_FAILURE;
   uint32_t hi = ((handle & BTA_JV_RFC_HDL_MASK) & ~BTA_JV_RFCOMM_MASK) - 1;
   uint32_t si = BTA_JV_RFC_HDL_TO_SIDX(handle);
@@ -810,7 +810,7 @@ tBTA_JV_STATUS BTA_JvRfcommClose(uint32_t handle, void* user_data) {
     p_msg->handle = handle;
     p_msg->p_cb = &bta_jv_cb.rfc_cb[hi];
     p_msg->p_pcb = &bta_jv_cb.port_cb[p_msg->p_cb->rfc_hdl[si] - 1];
-    p_msg->user_data = user_data;
+    p_msg->rfcomm_slot_id = rfcomm_slot_id;
 
     bta_sys_sendmsg(p_msg);
 
@@ -838,7 +838,7 @@ tBTA_JV_STATUS BTA_JvRfcommClose(uint32_t handle, void* user_data) {
 tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                                        uint8_t local_scn, uint8_t max_session,
                                        tBTA_JV_RFCOMM_CBACK* p_cback,
-                                       void* user_data) {
+                                       uint32_t rfcomm_slot_id) {
   APPL_TRACE_API("%s", __func__);
 
   if (p_cback == NULL) return BTA_JV_FAILURE; /* Nothing to do */
@@ -857,7 +857,7 @@ tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
   p_msg->local_scn = local_scn;
   p_msg->max_session = max_session;
   p_msg->p_cback = p_cback;
-  p_msg->user_data = user_data;  // caller's private data
+  p_msg->rfcomm_slot_id = rfcomm_slot_id;  // caller's private data
 
   bta_sys_sendmsg(p_msg);
 
@@ -875,7 +875,8 @@ tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
  *                  BTA_JV_FAILURE, otherwise.
  *
  ******************************************************************************/
-tBTA_JV_STATUS BTA_JvRfcommStopServer(uint32_t handle, void* user_data) {
+tBTA_JV_STATUS BTA_JvRfcommStopServer(uint32_t handle,
+                                      uint32_t rfcomm_slot_id) {
   tBTA_JV_API_RFCOMM_SERVER* p_msg =
       (tBTA_JV_API_RFCOMM_SERVER*)osi_malloc(sizeof(tBTA_JV_API_RFCOMM_SERVER));
 
@@ -883,7 +884,7 @@ tBTA_JV_STATUS BTA_JvRfcommStopServer(uint32_t handle, void* user_data) {
 
   p_msg->hdr.event = BTA_JV_API_RFCOMM_STOP_SERVER_EVT;
   p_msg->handle = handle;
-  p_msg->user_data = user_data;  // caller's private data
+  p_msg->rfcomm_slot_id = rfcomm_slot_id;  // caller's private data
 
   bta_sys_sendmsg(p_msg);
 
