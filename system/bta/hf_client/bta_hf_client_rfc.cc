@@ -96,9 +96,14 @@ static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle) {
 
       APPL_TRACE_DEBUG("%s: allocating a new CB for incoming connection",
                        __func__);
+      // Find the BDADDR of the peer device
+      BD_ADDR peer_addr;
+      uint16_t lcid;
+      PORT_CheckConnection(port_handle, peer_addr, &lcid);
+
       // Since we accepted a remote request we should allocate a handle first.
       uint16_t tmp_handle = -1;
-      bta_hf_client_allocate_handle(&tmp_handle);
+      bta_hf_client_allocate_handle(peer_addr, &tmp_handle);
       client_cb = bta_hf_client_find_cb_by_handle(tmp_handle);
 
       // If allocation fails then we abort.
@@ -108,6 +113,9 @@ static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle) {
       } else {
         // Set the connection fields for this new CB
         client_cb->conn_handle = port_handle;
+
+        // Copy the BDADDR
+        bdcpy(client_cb->peer_addr, peer_addr);
 
         // Since we have accepted an incoming RFCOMM connection:
         // a) Release the current server from it duties
