@@ -265,6 +265,27 @@ static const tBTA_SYS_REG bta_hf_client_reg = {bta_hf_client_hdl_event,
 
 /*******************************************************************************
 *
+* Function         bta_hf_client_cb_arr_init
+*
+* Description      Initialize entire control block array set
+*
+*
+* Returns          void
+*
+******************************************************************************/
+void bta_hf_client_cb_arr_init() {
+  memset(&bta_hf_client_cb_arr, 0, sizeof(tBTA_HF_CLIENT_CB_ARR));
+
+  // reset the handles and make the CBs non-allocated
+  for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
+    // Allocate the handles in increasing order of indices
+    bta_hf_client_cb_arr.cb[i].handle = BTA_HF_CLIENT_CB_FIRST_HANDLE + i;
+    bta_hf_client_cb_arr.cb[i].is_allocated = false;
+  }
+}
+
+/*******************************************************************************
+*
 * Function         bta_hf_client_cb_init
 *
 * Description      Initialize an HF_Client service control block.
@@ -390,18 +411,12 @@ tBTA_STATUS bta_hf_client_api_enable(tBTA_HF_CLIENT_CBACK* p_cback,
   /* register with BTA system manager */
   bta_sys_register(BTA_ID_HS, &bta_hf_client_reg);
 
-  memset(&bta_hf_client_cb_arr, 0, sizeof(tBTA_HF_CLIENT_CB_ARR));
+  /* reset the control blocks */
+  bta_hf_client_cb_arr_init();
 
   bta_hf_client_cb_arr.p_cback = p_cback;
   bta_hf_client_cb_arr.serv_sec_mask = sec_mask;
   bta_hf_client_cb_arr.features = features;
-
-  // reset the handles and make the CBs non-allocated
-  for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
-    // Allocate the handles in increasing order of indices
-    bta_hf_client_cb_arr.cb[i].handle = BTA_HF_CLIENT_CB_FIRST_HANDLE + i;
-    bta_hf_client_cb_arr.cb[i].is_allocated = false;
-  }
 
   /* create SDP records */
   bta_hf_client_create_record(&bta_hf_client_cb_arr, p_service_name);
@@ -465,11 +480,11 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_handle(uint16_t handle) {
 *                  none exists
 *
 ******************************************************************************/
-tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(BD_ADDR peer_addr) {
+tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(const BD_ADDR peer_addr) {
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     // Check if the associated index is allocated and that BD ADDR matches
     tBTA_HF_CLIENT_CB* client_cb = &bta_hf_client_cb_arr.cb[i];
-    if (client_cb->is_allocated && bdcmp(peer_addr, client_cb->peer_addr)) {
+    if (client_cb->is_allocated && !bdcmp(peer_addr, client_cb->peer_addr)) {
       return client_cb;
     } else {
       APPL_TRACE_WARNING("%s: bdaddr mismatch for handle %d alloc %d", __func__,
@@ -546,6 +561,8 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle) {
 *                  channel for HF connection. If the channel cannot be created
 *                  for a reason then false is returned
 *
+*                  bd_addr: Address of the device for which this block is
+*                  being created. Single device can only have one block.
 *                  p_handle: OUT variable to store the outcome of allocate. If
 *                  allocate failed then value is not valid
 *
@@ -553,7 +570,13 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle) {
 * Returns          true if the creation of p_handle succeeded, false otherwise
 *
 ******************************************************************************/
-bool bta_hf_client_allocate_handle(uint16_t* p_handle) {
+bool bta_hf_client_allocate_handle(const BD_ADDR bd_addr, uint16_t* p_handle) {
+  tBTA_HF_CLIENT_CB* existing_cb;
+  if ((existing_cb = bta_hf_client_find_cb_by_bda(bd_addr)) != NULL) {
+    BTIF_TRACE_ERROR("%s: cannot allocate handle since BDADDR already exists",
+                     __func__);
+    return false;
+  }
   /* Check that we do not have a request to for same device in the control
    * blocks */
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
@@ -566,6 +589,7 @@ bool bta_hf_client_allocate_handle(uint16_t* p_handle) {
 
     *p_handle = client_cb->handle;
     client_cb->is_allocated = true;
+    bdcpy(client_cb->peer_addr, bd_addr);
 
     // Reset the handle for use (i.e. reset timers etc)
     bta_hf_client_cb_init(client_cb);

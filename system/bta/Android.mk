@@ -2,7 +2,8 @@ LOCAL_PATH:= $(call my-dir)
 
 # Tests
 btaTestSrc := \
-  test/bta_closure_test.cc
+  test/bta_closure_test.cc \
+  test/bta_hf_client_test.cc
 
 btaCommonIncludes := \
                    $(LOCAL_PATH)/../ \
@@ -122,8 +123,8 @@ LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_C_INCLUDES := $(btaCommonIncludes)
 LOCAL_SRC_FILES := $(btaTestSrc)
-LOCAL_SHARED_LIBRARIES := libcutils libc libchrome libhardware liblog
-LOCAL_STATIC_LIBRARIES := libbtcore libbt-bta libosi
+LOCAL_SHARED_LIBRARIES := libcutils libc libchrome libhardware liblog libprotobuf-cpp-lite
+LOCAL_STATIC_LIBRARIES := libbtcore libbt-bta libosi libbt-protos
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_bta
 

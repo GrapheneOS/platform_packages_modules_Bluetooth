@@ -206,14 +206,15 @@ extern tBTA_HF_CLIENT_CB_ARR bta_hf_client_cb_arr;
 
 /* main functions */
 extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_handle(uint16_t handle);
-extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(BD_ADDR bd_addr);
+extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(const BD_ADDR bd_addr);
 extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_rfc_handle(uint16_t handle);
 extern tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle);
 extern bool bta_hf_client_hdl_event(BT_HDR* p_msg);
 extern void bta_hf_client_sm_execute(uint16_t event,
                                      tBTA_HF_CLIENT_DATA* p_data);
 extern void bta_hf_client_slc_seq(tBTA_HF_CLIENT_CB* client_cb, bool error);
-extern bool bta_hf_client_allocate_handle(uint16_t* handle);
+extern bool bta_hf_client_allocate_handle(const BD_ADDR bd_addr,
+                                          uint16_t* p_handle);
 extern void bta_hf_client_app_callback(uint16_t event, tBTA_HF_CLIENT* data);
 extern void bta_hf_client_collision_cback(tBTA_SYS_CONN_STATUS status,
                                           uint8_t id, uint8_t app_id,
@@ -226,6 +227,7 @@ extern tBTA_STATUS bta_hf_client_api_enable(tBTA_HF_CLIENT_CBACK* p_cback,
 
 extern void bta_hf_client_api_disable(void);
 extern void bta_hf_client_dump_statistics(int fd);
+extern void bta_hf_client_cb_arr_init(void);
 
 /* SDP functions */
 extern bool bta_hf_client_add_record(char* p_service_name, uint8_t scn,
