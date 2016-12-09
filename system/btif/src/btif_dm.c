@@ -3571,7 +3571,7 @@ static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
     uint32_t cod = get_cod(bd_addr);
     uint64_t ts = event->timestamp.tv_sec * 1000 +
                   event->timestamp.tv_nsec / 1000000;
-    metrics_pair_event(0, ts, cod, device_type);
+    metrics_log_pair_event(0, ts, cod, device_type);
 
     pthread_mutex_unlock(&bond_event_lock);
 }
