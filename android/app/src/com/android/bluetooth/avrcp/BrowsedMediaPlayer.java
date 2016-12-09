@@ -254,15 +254,15 @@ class BrowsedMediaPlayer {
         /* Bind to MediaBrowseService of MediaPlayer */
         mMediaBrowser = new MediaBrowser(mContext, new ComponentName(mPackageName, mClassName),
                 browseMediaConnectionCallback, null);
-        connectToPlayer();
+        mMediaBrowser.connect();
     }
 
     /* called when connection to media player is closed */
     public void cleanup() {
-        if (DEBUG)
-            Log.d(TAG, "cleanup");
+        if (DEBUG) Log.d(TAG, "cleanup");
+
         if (mConnState != DISCONNECTED) {
-            disconnectFromPlayer();
+            mMediaBrowser.disconnect();
         }
 
         mHmap = null;
@@ -270,23 +270,13 @@ class BrowsedMediaPlayer {
         mMediaBrowser = null;
     }
 
-    private void connectToPlayer() {
-        if (DEBUG) Log.d(TAG, "connectToPlayer");
-        mMediaBrowser.connect();
-    }
-
-    public void disconnectFromPlayer() {
-        if (DEBUG) Log.d(TAG, "disconnectFromPlayer");
-        mMediaBrowser.disconnect();
-    }
-
     public boolean isPlayerConnected() {
-        if (mMediaBrowser != null) {
-            return mMediaBrowser.isConnected();
-        } else {
+        if (mMediaBrowser == null) {
             if (DEBUG) Log.d(TAG, "isPlayerConnected: mMediaBrowser = null!");
             return false;
         }
+
+        return mMediaBrowser.isConnected();
     }
 
     /* returns number of items in new path as reponse */
@@ -295,13 +285,13 @@ class BrowsedMediaPlayer {
         String newPath = "";
 
         if (isPlayerConnected() == false) {
-            Log.w(TAG, "changePath:disconnected from player service, sending internal error");
+            Log.w(TAG, "changePath: disconnected from player service, sending internal error");
             mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, 0);
             return;
         }
 
         if (mMediaBrowser == null) {
-            Log.e(TAG, "mediaController is null, sending internal error");
+            Log.e(TAG, "Media browser is null, sending internal error");
             mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, 0);
             return;
         }
