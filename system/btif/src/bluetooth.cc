@@ -298,8 +298,8 @@ static int read_energy_info() {
 static void dump(int fd, const char** arguments) {
   if (arguments != NULL && arguments[0] != NULL) {
     if (strncmp(arguments[0], "--proto-bin", 11) == 0) {
-      btif_update_a2dp_metrics();
-      metrics_write(fd, true);
+      system_bt_osi::BluetoothMetricsLogger::GetInstance()->WriteBase64(fd,
+                                                                        true);
       return;
     }
   }

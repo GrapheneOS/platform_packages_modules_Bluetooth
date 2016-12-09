@@ -41,6 +41,8 @@
 #include "osi/include/thread.h"
 #include "osi/include/wakelock.h"
 
+using system_bt_osi::BluetoothMetricsLogger;
+
 static bt_os_callouts_t* wakelock_os_callouts = NULL;
 static bool is_native = true;
 
@@ -275,7 +277,8 @@ static void update_wakelock_acquired_stats(bt_status_t acquired_status) {
   wakelock_stats.acquired_count++;
   wakelock_stats.last_acquired_timestamp_ms = now_ms;
 
-  metrics_wake_event(WAKE_EVENT_ACQUIRED, NULL, WAKE_LOCK_ID, now_ms);
+  BluetoothMetricsLogger::GetInstance()->LogWakeEvent(
+      system_bt_osi::WAKE_EVENT_ACQUIRED, "", WAKE_LOCK_ID, now_ms);
 }
 
 //
@@ -316,7 +319,8 @@ static void update_wakelock_released_stats(bt_status_t released_status) {
   wakelock_stats.last_acquired_interval_ms = delta_ms;
   wakelock_stats.total_acquired_interval_ms += delta_ms;
 
-  metrics_wake_event(WAKE_EVENT_RELEASED, NULL, WAKE_LOCK_ID, now_ms);
+  BluetoothMetricsLogger::GetInstance()->LogWakeEvent(
+      system_bt_osi::WAKE_EVENT_RELEASED, "", WAKE_LOCK_ID, now_ms);
 }
 
 void wakelock_debug_dump(int fd) {

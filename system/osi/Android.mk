@@ -66,6 +66,7 @@ btosiCommonTestSrc := \
     ./test/hash_map_utils_test.cc \
     ./test/leaky_bonded_queue_test.cc \
     ./test/list_test.cc \
+    ./test/metrics_test.cc \
     ./test/properties_test.cc \
     ./test/rand_test.cc \
     ./test/reactor_test.cc \
@@ -77,6 +78,7 @@ btosiCommonTestSrc := \
 
 btosiCommonIncludes := \
     $(LOCAL_PATH)/.. \
+    $(LOCAL_PATH)/../include \
     $(LOCAL_PATH)/../utils/include \
     $(LOCAL_PATH)/../stack/include \
     $(bluetooth_C_INCLUDES)
