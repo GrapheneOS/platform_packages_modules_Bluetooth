@@ -87,7 +87,8 @@ bt_status_t FakeUnregisterServer(int server_if) {
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeAddService(int server_if, vector<btgatt_db_element_t> service) {
+bt_status_t FakeAddService(int server_if,
+                           std::vector<btgatt_db_element_t> service) {
   if (g_server_handler)
     return g_server_handler->AddService(server_if, std::move(service));
 
@@ -102,7 +103,7 @@ bt_status_t FakeDeleteService(int server_if, int srvc_handle) {
 }
 
 bt_status_t FakeSendIndication(int server_if, int attribute_handle, int conn_id,
-                               int confirm, vector<uint8_t> value) {
+                               int confirm, std::vector<uint8_t> value) {
   if (g_server_handler)
     return g_server_handler->SendIndication(server_if, attribute_handle,
                                             conn_id, confirm, std::move(value));
@@ -209,7 +210,7 @@ void FakeBluetoothGattInterface::NotifyRegisterScannerCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyScanResultCallback(
-    const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
+    const bt_bdaddr_t& bda, int rssi, std::vector<uint8_t> adv_data) {
   FOR_EACH_OBSERVER(ScannerObserver, scanner_observers_,
                     ScanResultCallback(this, bda, rssi, adv_data));
 }
@@ -247,7 +248,7 @@ void FakeBluetoothGattInterface::NotifyServerConnectionCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyServiceAddedCallback(
-    int status, int server_if, vector<btgatt_db_element_t> service) {
+    int status, int server_if, std::vector<btgatt_db_element_t> service) {
   FOR_EACH_OBSERVER(ServerObserver, server_observers_,
                     ServiceAddedCallback(this, status, server_if, service));
 }
@@ -272,7 +273,7 @@ void FakeBluetoothGattInterface::NotifyRequestReadDescriptorCallback(
 
 void FakeBluetoothGattInterface::NotifyRequestWriteCharacteristicCallback(
     int conn_id, int trans_id, const bt_bdaddr_t& bda, int attr_handle,
-    int offset, bool need_rsp, bool is_prep, vector<uint8_t> value) {
+    int offset, bool need_rsp, bool is_prep, std::vector<uint8_t> value) {
   FOR_EACH_OBSERVER(ServerObserver, server_observers_,
                     RequestWriteCharacteristicCallback(
                         this, conn_id, trans_id, bda, attr_handle, offset,
@@ -281,7 +282,7 @@ void FakeBluetoothGattInterface::NotifyRequestWriteCharacteristicCallback(
 
 void FakeBluetoothGattInterface::NotifyRequestWriteDescriptorCallback(
     int conn_id, int trans_id, const bt_bdaddr_t& bda, int attr_handle,
-    int offset, bool need_rsp, bool is_prep, vector<uint8_t> value) {
+    int offset, bool need_rsp, bool is_prep, std::vector<uint8_t> value) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       RequestWriteDescriptorCallback(this, conn_id, trans_id, bda, attr_handle,

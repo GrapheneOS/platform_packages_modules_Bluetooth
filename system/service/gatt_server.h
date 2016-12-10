@@ -196,7 +196,7 @@ class GattServer : public BluetoothInstance,
                           const bt_bdaddr_t& bda) override;
   void ServiceAddedCallback(hal::BluetoothGattInterface* gatt_iface, int status,
                             int server_if,
-                            vector<btgatt_db_element_t>) override;
+                            std::vector<btgatt_db_element_t>) override;
   void ServiceStoppedCallback(hal::BluetoothGattInterface* gatt_iface,
                               int status, int server_id,
                               int service_handle) override;
@@ -212,12 +212,12 @@ class GattServer : public BluetoothInstance,
   void RequestWriteCharacteristicCallback(
       hal::BluetoothGattInterface* gatt_iface, int conn_id, int trans_id,
       const bt_bdaddr_t& bda, int attr_handle, int offset, bool need_rsp,
-      bool is_prep, vector<uint8_t> value) override;
+      bool is_prep, std::vector<uint8_t> value) override;
   void RequestWriteDescriptorCallback(hal::BluetoothGattInterface* gatt_iface,
                                       int conn_id, int trans_id,
                                       const bt_bdaddr_t& bda, int attr_handle,
                                       int offset, bool need_rsp, bool is_prep,
-                                      vector<uint8_t> value) override;
+                                      std::vector<uint8_t> value) override;
   void RequestExecWriteCallback(hal::BluetoothGattInterface* gatt_iface,
                                 int conn_id, int trans_id,
                                 const bt_bdaddr_t& bda,
