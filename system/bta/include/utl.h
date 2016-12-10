@@ -27,10 +27,6 @@
 #include "bt_types.h"
 #include "bt_utils.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -165,9 +161,5 @@ extern bool utl_isdialchar(const char d);
  *
  ******************************************************************************/
 extern bool utl_isdialstr(const char* p_s);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* UTL_H */

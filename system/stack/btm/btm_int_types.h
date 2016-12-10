@@ -26,10 +26,6 @@
 #include "osi/include/list.h"
 #include "rfcdefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
 
 #define BTM_ACL_IS_CONNECTED(bda) \
@@ -882,9 +878,5 @@ typedef struct {
 #define BTM_SEC_ENC_PENDING 5     /* wait for link encryption pending */
 
 typedef uint8_t tBTM_SEC_ACTION;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // BTM_INT_TYPES_H

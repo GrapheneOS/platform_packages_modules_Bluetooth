@@ -30,10 +30,6 @@
 #include "hcidefs.h"
 #include "l2cdefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -1236,9 +1232,5 @@ extern uint8_t L2CA_GetBleConnRole(BD_ADDR bd_addr);
  ******************************************************************************/
 extern uint16_t L2CA_GetDisconnectReason(BD_ADDR remote_bda,
                                          tBT_TRANSPORT transport);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* L2C_API_H */

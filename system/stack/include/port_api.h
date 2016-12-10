@@ -26,10 +26,6 @@
 
 #include "bt_target.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and Types
  ****************************************************************************/
@@ -652,9 +648,5 @@ extern uint8_t PORT_SetTraceLevel(uint8_t new_level);
  *
  ******************************************************************************/
 extern const char* PORT_GetResultString(const uint8_t result_code);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* PORT_API_H */

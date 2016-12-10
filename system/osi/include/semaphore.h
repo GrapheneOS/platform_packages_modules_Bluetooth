@@ -20,10 +20,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct semaphore_t;
 typedef struct semaphore_t semaphore_t;
 
@@ -59,7 +55,3 @@ void semaphore_post(semaphore_t* semaphore);
 // The caller must not close the returned file descriptor. |semaphore| may not
 // be NULL.
 int semaphore_get_fd(const semaphore_t* semaphore);
-
-#ifdef __cplusplus
-}
-#endif

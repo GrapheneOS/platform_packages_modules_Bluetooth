@@ -21,10 +21,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define UNUSED_ATTR __attribute__((unused))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define INVALID_FD (-1)
@@ -69,7 +65,3 @@ int osi_rand(void);
 #define OSI_NO_INTR(fn) \
   do {                  \
   } while ((fn) == -1 && errno == EINTR)
-
-#ifdef __cplusplus
-}
-#endif

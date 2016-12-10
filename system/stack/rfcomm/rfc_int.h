@@ -28,10 +28,6 @@
 #include "l2c_api.h"
 #include "port_int.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * Define RFCOMM result codes
 */
@@ -378,9 +374,5 @@ extern void PORT_ControlCnf(tRFC_MCB* p_mcb, uint8_t dlci, tPORT_CTRL* p_pars);
 
 extern void PORT_LineStatusInd(tRFC_MCB* p_mcb, uint8_t dlci,
                                uint8_t line_status);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

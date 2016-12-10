@@ -35,10 +35,6 @@
 #include "hcidefs.h"
 #include "smp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern void btm_ble_refresh_raddr_timer_timeout(void* data);
 extern void btm_ble_process_adv_pkt(uint8_t* p);
 extern void btm_ble_proc_scan_rsp_rpt(uint8_t* p);
@@ -195,10 +191,6 @@ extern void btm_ble_set_test_local_sign_cntr_value(
     bool enable, uint32_t test_local_sign_cntr);
 extern void btm_set_random_address(BD_ADDR random_bda);
 extern void btm_ble_set_keep_rfu_in_auth_req(bool keep_rfu);
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

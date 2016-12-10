@@ -22,10 +22,6 @@
 #include "btm_ble_api.h"
 #include "gattdefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -1092,9 +1088,5 @@ extern void gatt_notify_enc_cmpl(BD_ADDR bd_addr);
 
 // Reset bg device list.
 extern void gatt_reset_bgdev_list(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* GATT_API_H */

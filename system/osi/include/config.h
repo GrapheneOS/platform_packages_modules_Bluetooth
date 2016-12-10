@@ -18,10 +18,6 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // The default section name to use if a key/value pair is not defined within
 // a section.
 #define CONFIG_DEFAULT_SECTION "Global"
@@ -152,7 +148,3 @@ const char* config_section_name(const config_section_node_t* iter);
 // |config_save|, all comments and special formatting in the original file will
 // be lost. Neither |config| nor |filename| may be NULL.
 bool config_save(const config_t* config, const char* filename);
-
-#ifdef __cplusplus
-}
-#endif

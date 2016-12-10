@@ -28,10 +28,6 @@
 #include "bt_target.h"
 #include "osi/include/alarm.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -277,9 +273,5 @@ extern void bta_sys_set_policy(uint8_t id, uint8_t policy, BD_ADDR peer_addr);
 extern void bta_sys_clear_policy(uint8_t id, uint8_t policy, BD_ADDR peer_addr);
 extern void bta_sys_set_default_policy(uint8_t id, uint8_t policy);
 extern void bta_sys_clear_default_policy(uint8_t id, uint8_t policy);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_SYS_H */

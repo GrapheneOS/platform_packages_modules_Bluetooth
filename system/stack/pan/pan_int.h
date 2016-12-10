@@ -27,10 +27,6 @@
 
 #include "pan_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * This role is used to shutdown the profile. Used internally
  * Applications should call PAN_Deregister to shutdown the profile
@@ -128,9 +124,5 @@ extern void pan_release_pcb(tPAN_CONN* p_pcb);
 extern void pan_dump_status(void);
 
 /******************************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

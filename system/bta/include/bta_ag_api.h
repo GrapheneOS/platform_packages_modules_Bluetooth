@@ -27,10 +27,6 @@
 
 #include "bta_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -589,9 +585,5 @@ void BTA_AgResult(uint16_t handle, tBTA_AG_RES result,
  *
  ******************************************************************************/
 void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AG_API_H */

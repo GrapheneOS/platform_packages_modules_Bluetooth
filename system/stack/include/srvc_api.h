@@ -23,10 +23,6 @@
 #include "gatt_api.h"
 #include "gattdefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define DIS_SUCCESS GATT_SUCCESS
 #define DIS_ILLEGAL_PARAM GATT_ILLEGAL_PARAMETER
 #define DIS_NO_RESOURCES GATT_NO_RESOURCES
@@ -199,9 +195,5 @@ extern void Battery_Rsp(uint8_t app_id, tGATT_STATUS st, uint8_t event,
  ******************************************************************************/
 extern void Battery_Notify(uint8_t app_id, BD_ADDR remote_bda,
                            uint8_t battery_level);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -16,10 +16,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define FILESYSTEM_SOCKET_PREFIX "/tmp/"
 #define ANDROID_RESERVED_SOCKET_PREFIX "/dev/socket/"
 
@@ -38,7 +34,3 @@ extern "C" {
  */
 int osi_socket_make_sockaddr_un(const char* name, int namespaceId,
                                 struct sockaddr_un* p_addr, socklen_t* alen);
-
-#ifdef __cplusplus
-}
-#endif

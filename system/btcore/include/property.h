@@ -24,10 +24,6 @@
 
 #include "btcore/include/device_class.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Copies an array of consecutive properties of |count| to a newly
 // allocated array. |properties| must not be NULL.
 bt_property_t* property_copy_array(const bt_property_t* properties,
@@ -82,7 +78,3 @@ int8_t property_as_rssi(const bt_property_t* property);
 bt_scan_mode_t property_as_scan_mode(const bt_property_t* property);
 const bt_uuid_t* property_as_uuids(const bt_property_t* property,
                                    size_t* count);
-
-#ifdef __cplusplus
-}
-#endif

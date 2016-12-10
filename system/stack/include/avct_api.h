@@ -28,10 +28,6 @@
 #include "bt_target.h"
 #include "bt_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -276,9 +272,5 @@ extern uint16_t AVCT_GetPeerMtu(uint8_t handle);
  ******************************************************************************/
 extern uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr,
                             BT_HDR* p_msg);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AVCT_API_H */

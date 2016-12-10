@@ -26,10 +26,6 @@
 
 #include "bnep_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -423,9 +419,5 @@ extern uint8_t PAN_SetTraceLevel(uint8_t new_level);
  *
  ******************************************************************************/
 extern void PAN_Init(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* PAN_API_H */
