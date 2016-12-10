@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.radio.V1_0.ISap;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.HandlerThread;
@@ -20,7 +21,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.android.bluetooth.R;
-import com.google.protobuf.micro.CodedOutputStreamMicro;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -58,8 +58,6 @@ public class SapServer extends Thread implements Callback {
     /* RFCOMM socket I/O streams */
     private BufferedOutputStream mRfcommOut = null;
     private BufferedInputStream mRfcommIn = null;
-    /* The RIL output stream - the input stream is owned by the SapRilReceiver object */
-    private CodedOutputStreamMicro mRilBtOutStream = null;
     /* References to the SapRilReceiver object */
     private SapRilReceiver mRilBtReceiver = null;
     private Thread mRilBtReceiverThread = null;
@@ -313,9 +311,12 @@ public class SapServer extends Thread implements Callback {
             while (!done) {
                 if(VERBOSE) Log.i(TAG, "Waiting for incomming RFCOMM message...");
                 int requestType = mRfcommIn.read();
+                if (VERBOSE) Log.i(TAG, "RFCOMM message read...");
                 if(requestType == -1) {
+                    if (VERBOSE) Log.i(TAG, "requestType == -1");
                     done = true; // EOF reached
                 } else {
+                    if (VERBOSE) Log.i(TAG, "requestType != -1");
                     SapMessage msg = SapMessage.readMessage(requestType, mRfcommIn);
                     /* notify about an incoming message from the BT Client */
                     SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -582,7 +583,6 @@ public class SapServer extends Thread implements Callback {
         }
     }
 
-
     /*************************************************************************
      * SAP Server Message Handler Thread Functions
      *************************************************************************/
@@ -609,7 +609,6 @@ public class SapServer extends Thread implements Callback {
         case SAP_MSG_RIL_CONNECT:
             /* The connection to rild-bt have been established. Store the outStream handle
              * and send the connect request. */
-            mRilBtOutStream = mRilBtReceiver.getRilBtOutStream();
             if(mTestMode != SapMessage.INVALID_VALUE) {
                 SapMessage rilTestModeReq = new SapMessage(SapMessage.ID_RIL_SIM_ACCESS_TEST_REQ);
                 rilTestModeReq.setTestMode(mTestMode);
@@ -845,17 +844,24 @@ public class SapServer extends Thread implements Callback {
     private void sendRilMessage(SapMessage sapMsg) {
         if(VERBOSE) Log.i(TAG_HANDLER, "sendRilMessage() - "
                 + SapMessage.getMsgTypeName(sapMsg.getMsgType()));
-        try {
-            if(mRilBtOutStream != null) {
-                sapMsg.writeReqToStream(mRilBtOutStream);
-            } /* Else SAP was enabled on a build that did not support SAP, which we will not
-               * handle. */
-        } catch (IOException e) {
-            Log.e(TAG_HANDLER, "Unable to send message to RIL", e);
+
+        Log.d(TAG_HANDLER, "sendRilMessage: calling getSapProxy");
+        ISap sapProxy = mRilBtReceiver.getSapProxy();
+        if (sapProxy == null) {
+            Log.e(TAG_HANDLER, "sendRilMessage: Unable to send message to RIL; sapProxy is null");
             SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);
             sendClientMessage(errorReply);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG_HANDLER, "Unable encode message", e);
+            return;
+        }
+
+        try {
+            sapMsg.send(sapProxy);
+            if (VERBOSE) {
+                Log.d(TAG_HANDLER, "sendRilMessage: sapMsg.callISapReq called "
+                                + "successfully");
+            }
+        } catch (Exception e) {
+            Log.e(TAG_HANDLER, "sendRilMessage: Unable to send message to RIL", e);
             SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);
             sendClientMessage(errorReply);
         }
