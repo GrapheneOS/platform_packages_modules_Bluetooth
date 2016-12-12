@@ -2662,6 +2662,7 @@ void btm_ble_update_mode_operation(uint8_t link_role, BD_ADDR bd_addr,
      now in order */
   if (btm_ble_get_conn_st() == BLE_CONN_IDLE &&
       status != HCI_ERR_HOST_REJECT_RESOURCES &&
+      status != HCI_ERR_MAX_NUM_OF_CONNECTIONS &&
       !btm_send_pending_direct_conn()) {
     btm_ble_resume_bg_conn();
   }
