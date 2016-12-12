@@ -36,7 +36,7 @@
 #include "smp_api.h"
 
 extern void btm_ble_refresh_raddr_timer_timeout(void* data);
-extern void btm_ble_process_adv_pkt(uint8_t* p);
+extern void btm_ble_process_adv_pkt(uint8_t len, uint8_t* p);
 extern void btm_ble_proc_scan_rsp_rpt(uint8_t* p);
 extern tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda,
                                             tBTM_INQ_INFO* p_cur,

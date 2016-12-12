@@ -333,6 +333,11 @@ typedef struct {
     for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t)(a)[(len)-1 - ijk]; \
   }
 
+#define STREAM_TO_INT8(u8, p) \
+  {                           \
+    (u8) = (*((int8_t*)p));   \
+    (p) += 1;                 \
+  }
 #define STREAM_TO_UINT8(u8, p) \
   {                            \
     (u8) = (uint8_t)(*(p));    \
