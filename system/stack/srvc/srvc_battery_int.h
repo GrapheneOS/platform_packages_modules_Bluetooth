@@ -23,10 +23,6 @@
 #include "gatt_api.h"
 #include "srvc_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef BA_MAX_INT_NUM
 #define BA_MAX_INT_NUM 4
 #endif
@@ -67,7 +63,4 @@ extern uint8_t battery_s_read_attr_value(uint8_t clcb_idx, uint16_t handle,
                                          tGATT_VALUE* p_value, bool is_long,
                                          tGATT_STATUS* p_status);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

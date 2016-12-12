@@ -32,10 +32,6 @@
 #include "port_api.h"
 #include "rfcdefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Local events passed when application event is sent from the api to PORT */
 /* ???*/
 #define PORT_EVENT_OPEN (1 | BT_EVT_TO_BTU_SP_EVT)
@@ -241,9 +237,5 @@ extern void port_start_par_neg(tPORT* p_port);
 extern void port_start_control(tPORT* p_port);
 extern void port_start_close(tPORT* p_port);
 extern void port_rfc_closed(tPORT* p_port, uint8_t res);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

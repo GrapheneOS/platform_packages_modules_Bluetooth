@@ -23,10 +23,6 @@
 #include "gatt_api.h"
 #include "srvc_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define SRVC_MAX_APPS GATT_CL_MAX_LCB
 
 #define SRVC_ID_NONE 0
@@ -70,7 +66,4 @@ extern void srvc_sr_rsp(uint8_t clcb_idx, tGATT_STATUS st, tGATTS_RSP* p_rsp);
 extern void srvc_sr_notify(BD_ADDR remote_bda, uint16_t handle, uint16_t len,
                            uint8_t* p_value);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

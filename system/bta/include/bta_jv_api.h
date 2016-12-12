@@ -30,10 +30,6 @@
 #include "btm_api.h"
 #include "l2c_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -832,9 +828,5 @@ tBTA_JV_STATUS BTA_JvSetPmProfile(uint32_t handle, tBTA_JV_PM_ID app_id,
  *
  ******************************************************************************/
 uint16_t BTA_JvRfcommGetPortHdl(uint32_t handle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_JV_API_H */

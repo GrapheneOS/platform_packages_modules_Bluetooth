@@ -21,10 +21,6 @@
 
 #include <hardware/bt_common_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define CHNL_MAP_LEN 5
 typedef uint8_t tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
@@ -696,9 +692,5 @@ typedef void(tBTM_BLE_SCAN_REQ_CBACK)(BD_ADDR remote_bda,
                                       uint8_t adv_evt);
 typedef void (*tBLE_SCAN_PARAM_SETUP_CBACK)(tGATT_IF client_if,
                                             tBTM_STATUS status);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // BTM_BLE_API_TYPES_H

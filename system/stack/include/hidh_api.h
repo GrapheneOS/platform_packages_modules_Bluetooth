@@ -21,10 +21,6 @@
 #include "hiddefs.h"
 #include "sdp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -231,9 +227,5 @@ bool hid_known_hid_device(BD_ADDR bd_addr);
  *
  ******************************************************************************/
 extern uint8_t HID_HostSetTraceLevel(uint8_t new_level);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* HIDH_API_H */

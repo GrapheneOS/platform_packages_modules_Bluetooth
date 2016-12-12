@@ -22,10 +22,6 @@
 #include <stdint.h>
 #include "osi/include/time.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct alarm_t alarm_t;
 typedef struct fixed_queue_t fixed_queue_t;
 typedef struct thread_t thread_t;
@@ -121,7 +117,3 @@ void alarm_cleanup(void);
 // Dump alarm-related statistics and debug info to the |fd| file descriptor.
 // The information is in user-readable text format. The |fd| must be valid.
 void alarm_debug_dump(int fd);
-
-#ifdef __cplusplus
-}
-#endif

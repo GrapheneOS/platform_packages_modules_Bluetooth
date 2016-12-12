@@ -29,10 +29,6 @@
 #include "bta_api.h"
 #include "bta_sys.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -413,9 +409,5 @@ extern void bta_ag_ci_sco_data(tBTA_AG_SCB* p_scb, tBTA_AG_DATA* p_data);
 extern void bta_ag_set_esco_param(bool set_reset, tBTM_ESCO_PARAMS* param);
 extern void bta_ag_ci_rx_data(tBTA_AG_SCB* p_scb, tBTA_AG_DATA* p_data);
 extern void bta_ag_rcvd_slc_ready(tBTA_AG_SCB* p_scb, tBTA_AG_DATA* p_data);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AG_INT_H */

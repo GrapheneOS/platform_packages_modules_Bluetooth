@@ -21,16 +21,8 @@
 
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Check whether there is a Hands-Free call in progress.
 // Returns true if no call is in progress.
 bool btif_hf_is_call_idle(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTIF_HF_H */

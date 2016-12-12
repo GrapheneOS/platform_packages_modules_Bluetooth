@@ -27,10 +27,6 @@
 #include "bta_ag_api.h"
 #include "hci/include/hci_audio.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
  *
  * Function         bta_ag_co_init
@@ -116,9 +112,5 @@ extern void bta_ag_co_data_close(uint16_t handle);
  *
  ******************************************************************************/
 extern void bta_ag_co_tx_write(uint16_t handle, uint8_t* p_data, uint16_t len);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AG_CO_H */

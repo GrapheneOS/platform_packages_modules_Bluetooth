@@ -25,18 +25,10 @@
 #include "bta_api.h"
 #include "include/bt_trace.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Accept bta_sys_register, and bta_sys_sendmsg. Those parameters can be used to
  * override system methods for tests.
  */
 void bta_closure_init(tBTA_SYS_REGISTER registerer, tBTA_SYS_SENDMSG sender);
 bool bta_closure_execute(BT_HDR* p_msg);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_CLOSURE_INT_H */

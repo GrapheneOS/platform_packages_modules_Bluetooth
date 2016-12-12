@@ -31,10 +31,6 @@
 #include "btm_ble_api_types.h"
 #include "osi/include/alarm.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 tBTM_BLE_SCAN_SETUP_CBACK bta_ble_scan_setup_cb;
 
 /*****************************************************************************
@@ -913,9 +909,5 @@ extern tBTM_STATUS BTM_SetBleDataLength(BD_ADDR bd_addr,
                                         uint16_t tx_pdu_length);
 
 extern void btm_ble_multi_adv_cleanup(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

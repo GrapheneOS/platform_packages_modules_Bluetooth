@@ -23,10 +23,6 @@
 
 #include "osi/include/fixed_queue.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define DISPATCHER_NAME_MAX 16
 
 typedef struct data_dispatcher_t data_dispatcher_t;
@@ -62,7 +58,3 @@ void data_dispatcher_register_default(data_dispatcher_t* dispatcher,
 // Returns true if data dispatch was successful.
 bool data_dispatcher_dispatch(data_dispatcher_t* dispatcher,
                               data_dispatcher_type_t type, void* data);
-
-#ifdef __cplusplus
-}
-#endif

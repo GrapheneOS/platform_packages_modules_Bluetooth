@@ -31,10 +31,6 @@
 #include "avrc_api.h"
 #include "bta_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -792,9 +788,5 @@ void BTA_AvOffloadStart(tBTA_AV_HNDL hndl);
  *
  ******************************************************************************/
 void BTA_AvOffloadStartRsp(tBTA_AV_HNDL hndl, tBTA_AV_STATUS status);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AV_API_H */

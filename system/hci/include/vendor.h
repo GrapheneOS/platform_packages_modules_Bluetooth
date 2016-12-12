@@ -26,10 +26,6 @@
 #include "hci_internals.h"
 #include "hci_layer.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
   VENDOR_CHIP_POWER_CONTROL = BT_VND_OP_POWER_CTRL,
   VENDOR_OPEN_USERIAL = BT_VND_OP_USERIAL_OPEN,
@@ -72,7 +68,3 @@ typedef struct vendor_t {
 } vendor_t;
 
 const vendor_t* vendor_get_interface();
-
-#ifdef __cplusplus
-}
-#endif

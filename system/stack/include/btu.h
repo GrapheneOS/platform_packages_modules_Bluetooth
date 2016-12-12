@@ -31,10 +31,6 @@
 #include "bt_target.h"
 #include "osi/include/alarm.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // HACK(zachoverflow): temporary dark magic
 #define BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK \
   0x1700  // didn't look used in bt_types...here goes nothing
@@ -80,9 +76,5 @@ extern void btu_free_core(void);
 
 void BTU_StartUp(void);
 void BTU_ShutDown(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

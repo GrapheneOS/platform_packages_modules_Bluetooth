@@ -33,10 +33,6 @@
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef AVDT_DEBUG
 #define AVDT_DEBUG false
 #endif
@@ -715,8 +711,5 @@ extern const tL2CAP_APPL_INFO avdt_l2c_appl;
 
 /* reject message event lookup table */
 extern const uint8_t avdt_msg_rej_2_evt[];
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AVDT_INT_H */

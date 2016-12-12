@@ -29,10 +29,6 @@
 
 #include "avdt_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* start AVDTC events here to distinguish from AVDT events */
 #define AVDTC_EVT_BEGIN 0x80
 
@@ -236,9 +232,5 @@ extern void AVDTC_AbortRsp(uint8_t handle, uint8_t label);
  ******************************************************************************/
 extern void AVDTC_Rej(uint8_t handle, BD_ADDR bd_addr, uint8_t cmd,
                       uint8_t label, uint8_t err_code, uint8_t err_param);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AVDT_CAPI_H */

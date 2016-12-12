@@ -27,10 +27,6 @@
 #include "mca_api.h"
 #include "osi/include/alarm.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  * constants
  ****************************************************************************/
@@ -370,9 +366,5 @@ extern tMCA_CB mca_cb;
 extern const tL2CAP_APPL_INFO mca_l2c_int_appl;
 extern const tL2CAP_FCR_OPTS mca_l2c_fcr_opts_def;
 extern const uint8_t mca_std_msg_len[];
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* MCA_INT_H */

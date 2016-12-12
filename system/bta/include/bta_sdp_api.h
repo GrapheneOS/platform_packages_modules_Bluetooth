@@ -31,10 +31,6 @@
 #include "bta_api.h"
 #include "btm_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* status values */
 #define BTA_SDP_SUCCESS 0 /* Successful operation. */
 #define BTA_SDP_FAILURE 1 /* Generic failure. */
@@ -136,9 +132,5 @@ extern tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data);
  *
  ******************************************************************************/
 extern tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_SDP_API_H */

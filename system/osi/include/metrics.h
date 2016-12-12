@@ -20,10 +20,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
   DEVICE_TYPE_UNKNOWN,
   DEVICE_TYPE_BREDR,
@@ -91,7 +87,3 @@ void metrics_a2dp_session(
 // Writes the metrics, in packed protobuf format, into the descriptor |fd|.
 // If |clear| is true, metrics events are cleared afterwards.
 void metrics_write(int fd, bool clear);
-
-#ifdef __cplusplus
-}
-#endif
