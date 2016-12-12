@@ -22,3 +22,11 @@
 BasedOnStyle: Google
 CommentPragmas: NOLINT:.*
 DerivePointerAlignment: false
+
+---
+Language: Java
+BasedOnStyle: Google
+IndentWidth: 4
+ContinuationIndentWidth: 8
+ColumnLimit: 100
+AllowShortIfStatementsOnASingleLine: true
