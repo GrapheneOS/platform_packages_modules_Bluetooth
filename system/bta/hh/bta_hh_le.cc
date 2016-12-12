@@ -1584,7 +1584,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB* p_dev_cb,
     tBTA_GATTC_CHARACTERISTIC* p_char =
         (tBTA_GATTC_CHARACTERISTIC*)list_node(cn);
 
-    if (p_char->uuid.len != LEN_UUID_16 &&
+    if (p_char->uuid.len == LEN_UUID_16 &&
         p_char->uuid.uu.uuid16 == GATT_UUID_HID_PROTO_MODE) {
       p_dev_cb->hid_srvc.proto_mode_handle = p_char->handle;
       bta_hh_le_set_protocol_mode(p_dev_cb, p_dev_cb->mode);
