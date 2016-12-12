@@ -25,18 +25,26 @@ using AsyncTaskId = uint16_t;
 constexpr uint16_t kInvalidTaskId = 0;
 
 // Manages tasks that should be done in the future. It can watch file
-// descriptors to call a given callback when it is certain that a block will not
-// occur or can call a callback at a specific time (aproximately) and
-// (optionally) repeat the call periodically. The class itself is thread safe in
-// the sense that all its member functions can be called simultaneously from
-// different concurrent thread. However, no asumption should be made about
-// callback execution. The safest approach is to assume that any two callbacks
-// could be executed concurrently in different threads, so code provided in
-// callbacks need to actively deal with race conditions, deadlocks, etc. While
-// not required, it is strongly recommended to use the Synchronize(const
-// CriticalCallback&) member function to execute code inside critical sections.
-// Callbacks passed to this method on the same AsyncManager object from
-// different threads are granted to *NOT* run concurrently.
+// descriptors to call a given callback when it is certain that a non-blocking
+// read is possible or can call a callback at a specific time (aproximately) and
+// (optionally) repeat the call periodically.
+// The class is thread safe in the sense that all its member functions can be
+// called simultaneously from different concurrent threads. The exception to
+// this rule is the class destructor, which is unsafe to call concurrently with
+// calls to other class member functions. This exception also has its own
+// exception: it is safe to destroy the object even if some of its callbacks may
+// call its member functions, because the destructor will make sure all callback
+// calling threads are stopped before actually destroying anything. Callbacks
+// that wait for file descriptor always run on the same thread, so there is no
+// need of additional synchronization between them. The same applies to task
+// callbacks since they also run on a thread of their own, however it is
+// possible for a read callback and a task callback to execute at the same time
+// (they are garanteed to run in different threads) so synchronization is needed
+// to access common state (other than the internal state of the AsyncManager
+// class). While not required, it is strongly recommended to use the
+// Synchronize(const CriticalCallback&) member function to execute code inside
+// critical sections. Callbacks passed to this method on the same AsyncManager
+// object from different threads are granted to *NOT* run concurrently.
 class AsyncManager {
  public:
   // Starts watching a file descriptor in a separate thread. The
