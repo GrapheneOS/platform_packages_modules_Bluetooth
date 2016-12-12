@@ -448,24 +448,10 @@ extern bool BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr, BD_ADDR conn_addr,
  ******************************************************************************/
 extern void BTM_BleLoadLocalKeys(uint8_t key_type, tBTM_BLE_LOCAL_KEYS* p_key);
 
-/*******************************************************************************
- *
- * Function         BTM_BleSetBgConnType
- *
- * Description      This function is called to set BLE background connection
- *                  procedure type. It can be auto connection, or selective
- *                  connection.
- *
- * Parameters       conn_type: it can be auto connection, or selective
- *                             connection.
- *                  p_select_cback: callback function when selective connection
- *                                  procedure is being used.
- *
- * Returns          void
- *
- ******************************************************************************/
-extern bool BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE conn_type,
-                                 tBTM_BLE_SEL_CBACK* p_select_cback);
+/**
+ * Set BLE connectable mode to auto connect
+ */
+extern void BTM_BleStartAutoConn();
 
 /*******************************************************************************
  *
