@@ -2125,7 +2125,7 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb, bool check_bond) {
     BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr, false, BTA_GATT_TRANSPORT_LE);
     p_cb->in_bg_conn = true;
 
-    BTA_DmBleSetBgConnType(BTA_DM_BLE_CONN_AUTO, NULL);
+    BTA_DmBleStartAutoConn();
   }
   return;
 }

@@ -263,7 +263,7 @@ void btif_gattc_open_impl(int client_if, BD_ADDR address, bool is_direct,
         return;
       }
     }
-    BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
+    BTA_DmBleStartAutoConn();
   }
 
   // Determine transport

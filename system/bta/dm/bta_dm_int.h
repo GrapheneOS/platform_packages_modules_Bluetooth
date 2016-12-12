@@ -362,12 +362,6 @@ typedef struct {
   tBTA_DM_BLE_SEC_GRANT res;
 } tBTA_DM_API_BLE_SEC_GRANT;
 
-typedef struct {
-  BT_HDR hdr;
-  tBTA_DM_BLE_CONN_TYPE bg_conn_type;
-  tBTA_DM_BLE_SEL_CBACK* p_select_cback;
-} tBTA_DM_API_BLE_SET_BG_CONN_TYPE;
-
 /* set prefered BLE connection parameters for a device */
 typedef struct {
   BT_HDR hdr;
@@ -580,7 +574,6 @@ typedef union {
   tBTA_DM_API_ADD_BLE_DEVICE add_ble_device;
   tBTA_DM_API_PASSKEY_REPLY ble_passkey_reply;
   tBTA_DM_API_BLE_SEC_GRANT ble_sec_grant;
-  tBTA_DM_API_BLE_SET_BG_CONN_TYPE ble_set_bd_conn_type;
   tBTA_DM_API_BLE_CONN_PARAMS ble_set_conn_params;
   tBTA_DM_API_BLE_CONN_SCAN_PARAMS ble_set_conn_scan_params;
   tBTA_DM_API_BLE_SCAN_PARAMS ble_set_scan_params;

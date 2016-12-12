@@ -91,8 +91,6 @@ typedef uint8_t tBTM_BLE_SEC_REQ_ACT;
   (((x)[0] & BLE_PUBLIC_ADDR_MSB_MASK) == BLE_PUBLIC_ADDR_MSB)
 
 /* LE scan activity bit mask, continue with LE inquiry bits */
-/* selection connection is in progress */
-#define BTM_LE_SELECT_CONN_ACTIVE 0x40
 /* observe is in progress */
 #define BTM_LE_OBSERVE_ACTIVE 0x80
 
@@ -100,7 +98,6 @@ typedef uint8_t tBTM_BLE_SEC_REQ_ACT;
 #define BTM_BLE_IS_SCAN_ACTIVE(x) ((x)&BTM_BLE_SCAN_ACTIVE_MASK)
 #define BTM_BLE_IS_INQ_ACTIVE(x) ((x)&BTM_BLE_INQUIRY_MASK)
 #define BTM_BLE_IS_OBS_ACTIVE(x) ((x)&BTM_LE_OBSERVE_ACTIVE)
-#define BTM_BLE_IS_SEL_CONN_ACTIVE(x) ((x)&BTM_LE_SELECT_CONN_ACTIVE)
 
 /* BLE ADDR type ID bit */
 #define BLE_ADDR_TYPE_ID_BIT 0x02
@@ -203,7 +200,6 @@ typedef struct {
 /* white list using state as a bit mask */
 #define BTM_BLE_WL_IDLE 0
 #define BTM_BLE_WL_INIT 1
-#define BTM_BLE_WL_SCAN 2
 #define BTM_BLE_WL_ADV 4
 typedef uint8_t tBTM_BLE_WL_STATE;
 
@@ -308,7 +304,6 @@ typedef struct {
   tBTM_BLE_CONN_TYPE bg_conn_type;
   uint32_t scan_int;
   uint32_t scan_win;
-  tBTM_BLE_SEL_CBACK* p_select_cback;
 
   /* white list information */
   uint8_t white_list_avail_size;
