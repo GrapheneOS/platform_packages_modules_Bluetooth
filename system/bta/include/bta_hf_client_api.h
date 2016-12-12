@@ -27,10 +27,6 @@
 
 #include "bta_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -371,9 +367,5 @@ void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at,
  *
  ******************************************************************************/
 void BTA_HfClientDumpStatistics(int fd);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_HF_CLIENT_API_H */

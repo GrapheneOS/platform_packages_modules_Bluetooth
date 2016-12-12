@@ -26,10 +26,6 @@
 
 #include "a2dp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -65,9 +61,5 @@ extern tA2DP_CB a2dp_cb;
 
 /* Used only for conformance testing */
 extern void a2dp_set_avdt_sdp_ver(uint16_t avdt_sdp_ver);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* A2DP_INT_H */

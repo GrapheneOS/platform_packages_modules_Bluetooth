@@ -22,10 +22,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Note: the string representation of a bdaddr is expected to have the format
 // xx:xx:xx:xx:xx:xx
 // where each 'x' is a hex digit. The API presented in this header will accept
@@ -62,7 +58,3 @@ bool string_is_bdaddr(const char* string);
 // returns false. Otherwise, it returns true. Neither |string| nor |addr| may be
 // NULL.
 bool string_to_bdaddr(const char* string, bt_bdaddr_t* addr);
-
-#ifdef __cplusplus
-}
-#endif

@@ -26,10 +26,6 @@
 
 #include "bta_jv_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Function Declarations
  ****************************************************************************/
@@ -54,9 +50,5 @@ extern int bta_co_l2cap_data_incoming(void* user_data, BT_HDR* p_buf);
 extern int bta_co_l2cap_data_outgoing_size(void* user_data, int* size);
 extern int bta_co_l2cap_data_outgoing(void* user_data, uint8_t* buf,
                                       uint16_t size);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_DG_CO_H */

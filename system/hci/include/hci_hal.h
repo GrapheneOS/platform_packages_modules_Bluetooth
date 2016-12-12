@@ -24,10 +24,6 @@
 #include "osi/include/thread.h"
 #include "vendor.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
   DATA_TYPE_UNKNOWN = 0,
   DATA_TYPE_COMMAND = 1,
@@ -94,7 +90,3 @@ const hci_hal_t* hci_hal_h4_get_test_interface(vendor_t* vendor_interface);
 
 const hci_hal_t* hci_hal_mct_get_interface(void);
 const hci_hal_t* hci_hal_mct_get_test_interface(vendor_t* vendor_interface);
-
-#ifdef __cplusplus
-}
-#endif

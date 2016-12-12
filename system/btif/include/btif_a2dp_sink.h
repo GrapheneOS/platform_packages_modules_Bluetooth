@@ -26,10 +26,6 @@
 #include "bt_types.h"
 #include "bta_av_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 //
 // Audio focus state for audio track.
 //
@@ -104,9 +100,5 @@ void btif_a2dp_sink_set_focus_state_req(btif_a2dp_sink_focus_state_t state);
 // Set the audio track gain for the audio track.
 // |gain| is the audio track gain value to use.
 void btif_a2dp_sink_set_audio_track_gain(float gain);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTIF_A2DP_SINK_H */

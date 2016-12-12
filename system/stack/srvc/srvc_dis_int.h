@@ -24,10 +24,6 @@
 #include "srvc_api.h"
 #include "srvc_eng_int.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define DIS_MAX_CHAR_NUM 9
 
 typedef struct {
@@ -67,7 +63,4 @@ extern uint8_t dis_write_attr_value(tGATT_WRITE_REQ* p_data,
 extern void dis_c_cmpl_cback(tSRVC_CLCB* p_clcb, tGATTC_OPTYPE op,
                              tGATT_STATUS status, tGATT_CL_COMPLETE* p_data);
 
-#ifdef __cplusplus
-}
-#endif
 #endif

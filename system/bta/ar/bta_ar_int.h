@@ -27,10 +27,6 @@
 
 #include "bta_av_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef BTA_AR_DEBUG
 #define BTA_AR_DEBUG TRUE
 #endif
@@ -58,9 +54,5 @@ typedef struct {
 
 /* control block declaration */
 extern tBTA_AR_CB bta_ar_cb;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AR_INT_H */

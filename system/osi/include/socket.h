@@ -23,10 +23,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct reactor_t reactor_t;
 typedef struct socket_t socket_t;
 typedef uint16_t port_t;
@@ -111,7 +107,3 @@ void socket_register(socket_t* socket, reactor_t* reactor, void* context,
 // Unregisters |socket| from whichever reactor it is registered with, if any.
 // This function is idempotent.
 void socket_unregister(socket_t* socket);
-
-#ifdef __cplusplus
-}
-#endif

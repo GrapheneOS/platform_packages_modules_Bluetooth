@@ -22,10 +22,6 @@
 #include "hci_layer.h"
 #include "osi/include/allocator.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef void (*transmit_finished_cb)(BT_HDR* packet, bool all_fragments_sent);
 typedef void (*packet_reassembled_cb)(BT_HDR* packet);
 typedef void (*packet_fragmented_cb)(BT_HDR* packet,
@@ -66,7 +62,3 @@ const packet_fragmenter_t* packet_fragmenter_get_interface();
 const packet_fragmenter_t* packet_fragmenter_get_test_interface(
     const controller_t* controller_interface,
     const allocator_t* buffer_allocator_interface);
-
-#ifdef __cplusplus
-}
-#endif

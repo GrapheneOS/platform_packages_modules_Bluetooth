@@ -27,10 +27,6 @@
 #include "bta_av_api.h"
 #include "l2c_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -200,9 +196,5 @@ void bta_av_co_audio_drop(tBTA_AV_HNDL hndl);
  *
  ******************************************************************************/
 void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AV_CO_H */

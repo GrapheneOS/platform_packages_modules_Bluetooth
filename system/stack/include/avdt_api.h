@@ -28,10 +28,6 @@
 #include "bt_target.h"
 #include "bt_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -924,9 +920,5 @@ extern uint16_t AVDT_SendReport(uint8_t handle, AVDT_REPORT_TYPE type,
  *
  *****************************************************************************/
 extern uint8_t AVDT_SetTraceLevel(uint8_t new_level);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AVDT_API_H */

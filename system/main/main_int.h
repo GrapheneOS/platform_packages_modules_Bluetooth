@@ -21,15 +21,7 @@
 
 #include "osi/include/config.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Initiates the logging for C++ */
 void init_cpp_logging(config_t* config);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // MAIN_INT_H

@@ -31,10 +31,6 @@
 #include "bta_sys.h"
 #include "l2cdefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef uint16_t(tBTA_HL_ALLOCATE_PSM)(void);
 
 /*****************************************************************************
@@ -853,7 +849,5 @@ extern void bta_hl_build_sdp_query_cfm(tBTA_HL* p_evt_data, uint8_t app_id,
 extern const char* bta_hl_status_code(tBTA_HL_STATUS status);
 extern const char* bta_hl_evt_code(tBTA_HL_INT_EVT evt_code);
 #endif
-#ifdef __cplusplus
-}
-#endif
+
 #endif /* BTA_MSE_INT_H */

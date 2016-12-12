@@ -21,10 +21,6 @@
 #include "bt_target.h"
 #include "sdpdefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -645,9 +641,5 @@ bool SDP_FindServiceUUIDInRec(tSDP_DISC_REC* p_rec, tBT_UUID* p_uuid);
 // |uuid16| is the 2-byte UUID to convert.
 // The result with the expanded 128-bit UUID is stored in |p_uuid128|.
 void sdpu_uuid16_to_uuid128(uint16_t uuid16, uint8_t* p_uuid128);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* SDP_API_H */

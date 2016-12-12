@@ -34,10 +34,6 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define L2CAP_MIN_MTU 48 /* Minimum acceptable MTU is 48 bytes */
 
 /* LE credit based L2CAP connection parameters */
@@ -827,9 +823,5 @@ extern void l2cble_process_data_length_change_event(uint16_t handle,
                                                     uint16_t rx_data_len);
 
 extern void l2cu_process_fixed_disc_cback(tL2C_LCB* p_lcb);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

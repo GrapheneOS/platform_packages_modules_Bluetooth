@@ -30,10 +30,6 @@
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*      DEBUG FLAGS
  *
  * #define META_DEBUG_ENABLED
@@ -176,9 +172,5 @@ extern bool avrc_is_valid_opcode(uint8_t opcode);
 extern void avrc_flush_cmd_q(uint8_t handle);
 void avrc_start_cmd_timer(uint8_t handle, uint8_t label, uint8_t msg_mask);
 void avrc_send_next_vendor_cmd(uint8_t handle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AVRC_INT_H */

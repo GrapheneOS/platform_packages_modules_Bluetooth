@@ -29,10 +29,6 @@
 #include <signal.h>
 #include "bt_target.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* By default on shutdown, the baud rate is reset to 115kbits. This should NOT
  * be needed for platforms that kill the BTE driver and remove/reset BT chip.
  */
@@ -131,9 +127,5 @@ typedef struct tBAUD_REG_tag {
 } tBAUD_REG;
 
 extern const tBAUD_REG baud_rate_regs[];
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTE_H */

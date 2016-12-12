@@ -25,10 +25,6 @@
 #include "osi/include/allocator.h"
 #include "osi/include/thread.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct eager_reader_t eager_reader_t;
 typedef struct reactor_t reactor_t;
 
@@ -70,7 +66,3 @@ size_t eager_reader_read(eager_reader_t* reader, uint8_t* buffer,
 // Returns the inbound read thread for a given |reader| or NULL if the thread
 // is not running.
 thread_t* eager_reader_get_read_thread(const eager_reader_t* reader);
-
-#ifdef __cplusplus
-}
-#endif

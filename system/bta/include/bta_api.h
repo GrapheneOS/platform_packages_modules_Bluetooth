@@ -30,10 +30,6 @@
 #include "btm_api.h"
 #include "btm_ble_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -2137,9 +2133,5 @@ extern void BTA_VendorInit(void);
  *
  ******************************************************************************/
 extern void BTA_VendorCleanup(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_API_H */

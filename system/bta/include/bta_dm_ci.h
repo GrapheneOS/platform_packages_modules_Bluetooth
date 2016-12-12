@@ -29,10 +29,6 @@
 /*****************************************************************************
  *  Function Declarations
  ****************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
  *
  * Function         bta_dm_ci_io_req
@@ -71,9 +67,5 @@ extern void bta_dm_ci_rmt_oob(bool accept, BD_ADDR bd_addr, BT_OCTET16 c,
  *
  ******************************************************************************/
 extern void bta_dm_sco_ci_data_ready(uint16_t event, uint16_t sco_handle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -20,10 +20,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
   uint8_t hci_version;
   uint16_t hci_revision;
@@ -31,7 +27,3 @@ typedef struct {
   uint16_t manufacturer;
   uint16_t lmp_subversion;
 } bt_version_t;
-
-#ifdef __cplusplus
-}
-#endif

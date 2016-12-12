@@ -28,10 +28,6 @@
 #include "bt_target.h"
 #include "sdp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  constants
  ****************************************************************************/
@@ -707,9 +703,5 @@ extern bool AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type);
  *
  ******************************************************************************/
 extern bool AVRC_IsValidPlayerAttr(uint8_t attr);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AVRC_API_H */

@@ -31,10 +31,6 @@
 #include "btm_int.h"
 #include "btu.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* BNEP frame types
 */
 #define BNEP_FRAME_GENERAL_ETHERNET 0x00
@@ -234,9 +230,5 @@ extern tBNEP_RESULT bnep_is_packet_allowed(tBNEP_CONN* p_bcb,
                                            bool fw_ext_present,
                                            uint8_t* p_data);
 extern uint32_t bnep_get_uuid32(tBT_UUID* src_uuid);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
