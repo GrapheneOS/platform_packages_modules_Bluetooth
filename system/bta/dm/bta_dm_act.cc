@@ -4226,8 +4226,7 @@ void bta_dm_security_grant(tBTA_DM_MSG* p_data) {
  *
  ******************************************************************************/
 void bta_dm_ble_set_bg_conn_type(tBTA_DM_MSG* p_data) {
-  BTM_BleSetBgConnType(p_data->ble_set_bd_conn_type.bg_conn_type,
-                       p_data->ble_set_bd_conn_type.p_select_cback);
+  BTM_BleStartAutoConn();
 }
 
 /*******************************************************************************

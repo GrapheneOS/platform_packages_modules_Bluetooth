@@ -1003,31 +1003,14 @@ extern void BTA_DmBleTrackAdvertiser(
  *                      BLE ADV data management API
  ******************************************************************************/
 
-/*******************************************************************************
- *
- * Function         BTA_DmBleSetBgConnType
- *
- * Description      This function is called to set BLE connectable mode for a
- *                  peripheral device.
- *
- * Parameters       bg_conn_type: it can be auto connection, or selective
- *                                connection.
- *                  p_select_cback: callback function when selective connection
- *                                  procedure is being used.
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type,
-                            tBTA_DM_BLE_SEL_CBACK* p_select_cback) {
-  tBTA_DM_API_BLE_SET_BG_CONN_TYPE* p_msg =
-      (tBTA_DM_API_BLE_SET_BG_CONN_TYPE*)osi_calloc(
-          sizeof(tBTA_DM_API_BLE_SET_BG_CONN_TYPE));
+/**
+ * Set BLE connectable mode to auto connect
+ */
+void BTA_DmBleStartAutoConn() {
+  tBTA_DM_API_SET_NAME* p_msg =
+      (tBTA_DM_API_SET_NAME*)osi_calloc(sizeof(tBTA_DM_API_SET_NAME));
 
   p_msg->hdr.event = BTA_DM_API_BLE_SET_BG_CONN_TYPE;
-  p_msg->bg_conn_type = bg_conn_type;
-  p_msg->p_select_cback = p_select_cback;
-
   bta_sys_sendmsg(p_msg);
 }
 

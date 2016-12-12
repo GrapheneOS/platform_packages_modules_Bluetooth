@@ -594,13 +594,6 @@ typedef struct {
 #define BTA_DM_SEC_REP_ATTEMPTS BTA_DM_AUTH_SMP_REPEATED_ATTEMPT
 typedef uint8_t tBTA_DM_BLE_SEC_GRANT;
 
-#define BTA_DM_BLE_ONN_NONE BTM_BLE_CONN_NONE
-#define BTA_DM_BLE_CONN_AUTO BTM_BLE_CONN_AUTO
-#define BTA_DM_BLE_CONN_SELECTIVE BTM_BLE_CONN_SELECTIVE
-typedef uint8_t tBTA_DM_BLE_CONN_TYPE;
-
-typedef bool(tBTA_DM_BLE_SEL_CBACK)(BD_ADDR random_bda, uint8_t* p_remote_name);
-
 /* Structure associated with BTA_DM_BLE_SEC_REQ_EVT */
 typedef struct {
   BD_ADDR bd_addr; /* peer address */
@@ -1600,23 +1593,10 @@ extern int32_t BTA_DmPcmResample(void* p_src, uint32_t in_bytes, void* p_dst);
  ******************************************************************************/
 extern void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res);
 
-/*******************************************************************************
- *
- * Function         BTA_DmBleSetBgConnType
- *
- * Description      This function is called to set BLE connectable mode for a
- *                  peripheral device.
- *
- * Parameters       bg_conn_type: it can be auto connection, or selective
- *                                connection.
- *                  p_select_cback: callback function when selective connection
- *                                  procedure is being used.
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type,
-                                   tBTA_DM_BLE_SEL_CBACK* p_select_cback);
+/**
+ * Set BLE connectable mode to auto connect
+ */
+extern void BTA_DmBleStartAutoConn();
 
 /*******************************************************************************
  *

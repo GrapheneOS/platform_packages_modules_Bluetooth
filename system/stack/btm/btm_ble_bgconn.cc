@@ -403,108 +403,6 @@ bool btm_ble_start_auto_conn(bool start) {
 
 /*******************************************************************************
  *
- * Function         btm_ble_start_select_conn
- *
- * Description      This function is to start/stop selective connection
- *                  procedure.
- *
- * Parameters       start: true to start; false to stop.
- *                  p_select_cback: callback function to return application
- *                                  selection.
- *
- * Returns          bool   : selective connectino procedure is started.
- *
- ******************************************************************************/
-bool btm_ble_start_select_conn(bool start, tBTM_BLE_SEL_CBACK* p_select_cback) {
-  tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
-  uint32_t scan_int = p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF
-                          ? BTM_BLE_SCAN_FAST_INT
-                          : p_cb->scan_int;
-  uint32_t scan_win = p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF
-                          ? BTM_BLE_SCAN_FAST_WIN
-                          : p_cb->scan_win;
-
-  BTM_TRACE_EVENT("%s", __func__);
-
-  if (start) {
-    if (!BTM_BLE_IS_SCAN_ACTIVE(p_cb->scan_activity)) {
-      if (p_select_cback != NULL)
-        btm_cb.ble_ctr_cb.p_select_cback = p_select_cback;
-
-      btm_execute_wl_dev_operation();
-
-      btm_update_scanner_filter_policy(SP_ADV_WL);
-      btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_PASS;
-
-      /* Process advertising packets only from devices in the white list */
-      if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0) {
-        /* use passive scan by default */
-        btsnd_hcic_ble_set_scan_params(
-            BTM_BLE_SCAN_MODE_PASS, scan_int, scan_win,
-            p_cb->addr_mgnt_cb.own_addr_type, SP_ADV_WL);
-      } else {
-        btm_ble_send_extended_scan_params(
-            BTM_BLE_SCAN_MODE_PASS, scan_int, scan_win,
-            p_cb->addr_mgnt_cb.own_addr_type, SP_ADV_WL);
-      }
-
-      if (!btm_ble_topology_check(BTM_BLE_STATE_PASSIVE_SCAN)) {
-        BTM_TRACE_ERROR(
-            "peripheral device cannot initiate passive scan for a selective "
-            "connection");
-        return false;
-      } else if (background_connections_pending()) {
-#if (BLE_PRIVACY_SPT == TRUE)
-        btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
-#endif
-        btsnd_hcic_ble_set_scan_enable(true,
-                                       true); /* duplicate filtering enabled */
-
-        /* mark up inquiry status flag */
-        p_cb->scan_activity |= BTM_LE_SELECT_CONN_ACTIVE;
-        p_cb->wl_state |= BTM_BLE_WL_SCAN;
-      }
-    } else {
-      BTM_TRACE_ERROR(
-          "scan active, can not start selective connection procedure");
-      return false;
-    }
-  } else /* disable selective connection mode */
-  {
-    p_cb->scan_activity &= ~BTM_LE_SELECT_CONN_ACTIVE;
-    p_cb->p_select_cback = NULL;
-    p_cb->wl_state &= ~BTM_BLE_WL_SCAN;
-
-    /* stop scanning */
-    if (!BTM_BLE_IS_SCAN_ACTIVE(p_cb->scan_activity))
-      btm_ble_stop_scan(); /* duplicate filtering enabled */
-  }
-  return true;
-}
-/*******************************************************************************
- *
- * Function         btm_ble_initiate_select_conn
- *
- * Description      This function is to start/stop selective connection
- *                  procedure.
- *
- * Parameters       start: true to start; false to stop.
- *                  p_select_cback: callback function to return application
- *                                  selection.
- *
- * Returns          bool   : selective connectino procedure is started.
- *
- ******************************************************************************/
-void btm_ble_initiate_select_conn(BD_ADDR bda) {
-  BTM_TRACE_EVENT("btm_ble_initiate_select_conn");
-
-  /* use direct connection procedure to initiate connection */
-  if (!L2CA_ConnectFixedChnl(L2CAP_ATT_CID, bda)) {
-    BTM_TRACE_ERROR("btm_ble_initiate_select_conn failed");
-  }
-}
-/*******************************************************************************
- *
  * Function         btm_ble_suspend_bg_conn
  *
  * Description      This function is to suspend an active background connection
@@ -520,8 +418,6 @@ bool btm_ble_suspend_bg_conn(void) {
 
   if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_AUTO)
     return btm_ble_start_auto_conn(false);
-  else if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE)
-    return btm_ble_start_select_conn(false, NULL);
 
   return false;
 }
@@ -537,9 +433,6 @@ bool btm_ble_suspend_bg_conn(void) {
 static void btm_suspend_wl_activity(tBTM_BLE_WL_STATE wl_state) {
   if (wl_state & BTM_BLE_WL_INIT) {
     btm_ble_start_auto_conn(false);
-  }
-  if (wl_state & BTM_BLE_WL_SCAN) {
-    btm_ble_start_select_conn(false, NULL);
   }
   if (wl_state & BTM_BLE_WL_ADV) {
     btm_ble_stop_adv();
@@ -575,17 +468,11 @@ static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state) {
  ******************************************************************************/
 bool btm_ble_resume_bg_conn(void) {
   tBTM_BLE_CB* p_cb = &btm_cb.ble_ctr_cb;
-  bool ret = false;
-
-  if (p_cb->bg_conn_type != BTM_BLE_CONN_NONE) {
-    if (p_cb->bg_conn_type == BTM_BLE_CONN_AUTO)
-      ret = btm_ble_start_auto_conn(true);
-
-    if (p_cb->bg_conn_type == BTM_BLE_CONN_SELECTIVE)
-      ret = btm_ble_start_select_conn(true, btm_cb.ble_ctr_cb.p_select_cback);
+  if (p_cb->bg_conn_type == BTM_BLE_CONN_AUTO) {
+    return btm_ble_start_auto_conn(true);
   }
 
-  return ret;
+  return false;
 }
 /*******************************************************************************
  *

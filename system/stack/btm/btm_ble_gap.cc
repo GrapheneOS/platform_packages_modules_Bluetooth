@@ -80,7 +80,6 @@ static void btm_ble_observer_timer_timeout(void* data);
 
 #define BTM_BLE_INQ_RESULT 0x01
 #define BTM_BLE_OBS_RESULT 0x02
-#define BTM_BLE_SEL_CONN_RESULT 0x04
 
 /* LE states combo bit to check */
 const uint8_t btm_le_state_combo_tbl[BTM_BLE_STATE_MAX][BTM_BLE_STATE_MAX][2] =
@@ -711,59 +710,17 @@ bool BTM_BleLocalPrivacyEnabled(void) {
 #endif
 }
 
-/*******************************************************************************
- *
- * Function         BTM_BleSetBgConnType
- *
- * Description      This function is called to set BLE connectable mode for a
- *                  peripheral device.
- *
- * Parameters       bg_conn_type: it can be auto connection, or selective
- *                                connection.
- *                  p_select_cback: callback function when selective
- *                                  connection procedure is being used.
- *
- * Returns          void
- *
- ******************************************************************************/
-bool BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE bg_conn_type,
-                          tBTM_BLE_SEL_CBACK* p_select_cback) {
-  bool started = true;
+/**
+ * Set BLE connectable mode to auto connect
+ */
+void BTM_BleStartAutoConn() {
+  BTM_TRACE_EVENT("%s", __func__);
+  if (!controller_get_interface()->supports_ble()) return;
 
-  BTM_TRACE_EVENT("BTM_BleSetBgConnType ");
-  if (!controller_get_interface()->supports_ble()) return false;
-
-  if (btm_cb.ble_ctr_cb.bg_conn_type != bg_conn_type) {
-    switch (bg_conn_type) {
-      case BTM_BLE_CONN_AUTO:
-        btm_ble_start_auto_conn(true);
-        break;
-
-      case BTM_BLE_CONN_SELECTIVE:
-        if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_AUTO) {
-          btm_ble_start_auto_conn(false);
-        }
-        btm_ble_start_select_conn(true, p_select_cback);
-        break;
-
-      case BTM_BLE_CONN_NONE:
-        if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_AUTO) {
-          btm_ble_start_auto_conn(false);
-        } else if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE) {
-          btm_ble_start_select_conn(false, NULL);
-        }
-        started = true;
-        break;
-
-      default:
-        BTM_TRACE_ERROR("invalid bg connection type : %d ", bg_conn_type);
-        started = false;
-        break;
-    }
-
-    if (started) btm_cb.ble_ctr_cb.bg_conn_type = bg_conn_type;
+  if (btm_cb.ble_ctr_cb.bg_conn_type != BTM_BLE_CONN_AUTO) {
+    btm_ble_start_auto_conn(true);
+    btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_AUTO;
   }
-  return started;
 }
 
 /*******************************************************************************
@@ -1464,8 +1421,7 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t mode, uint8_t duration) {
 
   /* if selective connection is active, or inquiry is already active, reject it
    */
-  if (BTM_BLE_IS_INQ_ACTIVE(p_ble_cb->scan_activity) ||
-      BTM_BLE_IS_SEL_CONN_ACTIVE(p_ble_cb->scan_activity)) {
+  if (BTM_BLE_IS_INQ_ACTIVE(p_ble_cb->scan_activity)) {
     BTM_TRACE_ERROR("LE Inquiry is active, can not start inquiry");
     return (BTM_BUSY);
   }
@@ -1715,10 +1671,6 @@ uint8_t btm_ble_is_discoverable(BD_ADDR bda, uint8_t evt_type) {
   /* for observer, always "discoverable */
   if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
     rt |= BTM_BLE_OBS_RESULT;
-
-  if (BTM_BLE_IS_SEL_CONN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity) &&
-      (evt_type == BTM_BLE_CONNECT_EVT || evt_type == BTM_BLE_CONNECT_DIR_EVT))
-    rt |= BTM_BLE_SEL_CONN_RESULT;
 
   /* does not match filter condition */
   if (p_cond->filter_cond_type == BTM_FILTER_COND_BD_ADDR &&
@@ -2006,45 +1958,6 @@ void btm_clear_all_pending_le_entry(void) {
 
 /*******************************************************************************
  *
- * Function         btm_send_sel_conn_callback
- *
- * Description      send selection connection request callback.
- *
- * Parameters
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_send_sel_conn_callback(BD_ADDR remote_bda, uint8_t evt_type,
-                                uint8_t data_len, uint8_t* data,
-                                UNUSED_ATTR uint8_t addr_type) {
-  uint8_t len;
-  uint8_t *p_dev_name, remname[31] = {0};
-
-  if (btm_cb.ble_ctr_cb.p_select_cback == NULL ||
-      /* non-connectable device */
-      (evt_type != BTM_BLE_EVT_CONN_ADV &&
-       evt_type != BTM_BLE_EVT_CONN_DIR_ADV))
-    return;
-
-  /* get the device name if exist in ADV data */
-  if (data_len != 0) {
-    p_dev_name = BTM_CheckAdvData(data, BTM_BLE_AD_TYPE_NAME_CMPL, &len);
-
-    if (p_dev_name == NULL)
-      p_dev_name = BTM_CheckAdvData(data, BTM_BLE_AD_TYPE_NAME_SHORT, &len);
-
-    if (p_dev_name) memcpy(remname, p_dev_name, len);
-  }
-  /* allow connection */
-  if ((*btm_cb.ble_ctr_cb.p_select_cback)(remote_bda, remname)) {
-    /* terminate selective connection, initiate connection */
-    btm_ble_initiate_select_conn(remote_bda);
-  }
-}
-
-/*******************************************************************************
- *
  * Function         btm_ble_process_adv_pkt
  *
  * Description      This function is called when adv packet report events are
@@ -2209,22 +2122,14 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
       btm_acl_update_busy_level(BTM_BLI_INQ_DONE_EVT);
     }
   }
-  /* background connection in selective connection mode */
-  if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE) {
-    if (result & BTM_BLE_SEL_CONN_RESULT)
-      btm_send_sel_conn_callback(bda, evt_type, data_len, data, addr_type);
-    else {
-      BTM_TRACE_DEBUG("None LE device, can not initiate selective connection");
-    }
-  } else {
-    if (p_inq_results_cb && (result & BTM_BLE_INQ_RESULT)) {
-      (p_inq_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
-                         p_le_inq_cb->adv_data_cache);
-    }
-    if (p_obs_results_cb && (result & BTM_BLE_OBS_RESULT)) {
-      (p_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
-                         p_le_inq_cb->adv_data_cache);
-    }
+
+  if (p_inq_results_cb && (result & BTM_BLE_INQ_RESULT)) {
+    (p_inq_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+                       p_le_inq_cb->adv_data_cache);
+  }
+  if (p_obs_results_cb && (result & BTM_BLE_OBS_RESULT)) {
+    (p_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+                       p_le_inq_cb->adv_data_cache);
   }
 }
 
@@ -2272,8 +2177,6 @@ void btm_ble_stop_scan(void) {
                                  BTM_BLE_DUPLICATE_ENABLE);
 
   btm_update_scanner_filter_policy(SP_ADV_ALL);
-
-  btm_cb.ble_ctr_cb.wl_state &= ~BTM_BLE_WL_SCAN;
 }
 /*******************************************************************************
  *
