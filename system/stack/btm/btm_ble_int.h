@@ -121,10 +121,8 @@ extern void btm_ble_white_list_init(uint8_t white_list_size);
 /* background connection function */
 extern bool btm_ble_suspend_bg_conn(void);
 extern bool btm_ble_resume_bg_conn(void);
-extern void btm_ble_initiate_select_conn(BD_ADDR bda);
 extern bool btm_ble_start_auto_conn(bool start);
-extern bool btm_ble_start_select_conn(bool start,
-                                      tBTM_BLE_SEL_CBACK* p_select_cback);
+extern bool btm_ble_start_select_conn(bool start);
 extern bool btm_ble_renew_bg_conn_params(bool add, BD_ADDR bd_addr);
 extern void btm_write_dir_conn_wl(BD_ADDR target_addr);
 extern void btm_ble_update_mode_operation(uint8_t link_role, BD_ADDR bda,

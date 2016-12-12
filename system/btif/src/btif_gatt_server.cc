@@ -296,7 +296,7 @@ static void btif_gatts_open_impl(int server_if, BD_ADDR address, bool is_direct,
   }
 
   // Mark background connections
-  if (!is_direct) BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
+  if (!is_direct) BTA_DmBleStartAutoConn();
 
   // Determine transport
   if (transport_param != GATT_TRANSPORT_AUTO) {
