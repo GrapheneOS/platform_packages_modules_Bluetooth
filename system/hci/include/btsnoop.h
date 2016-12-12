@@ -22,10 +22,6 @@
 
 #include "bt_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static const char BTSNOOP_MODULE[] = "btsnoop_module";
 
 typedef struct btsnoop_t {
@@ -41,7 +37,3 @@ typedef struct btsnoop_t {
 } btsnoop_t;
 
 const btsnoop_t* btsnoop_get_interface(void);
-
-#ifdef __cplusplus
-}
-#endif

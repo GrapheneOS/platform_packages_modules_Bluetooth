@@ -30,10 +30,6 @@
 #include "osi/include/alarm.h"
 #include "sdp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Continuation length - we use a 2-byte offset */
 #define SDP_CONTINUATION_LEN 2
 #define SDP_MAX_CONTINUATION_LEN 16 /* As per the spec */
@@ -305,9 +301,5 @@ extern void sdp_server_handle_client_req(tCONN_CB* p_ccb, BT_HDR* p_msg);
 */
 extern void sdp_disc_connected(tCONN_CB* p_ccb);
 extern void sdp_disc_server_rsp(tCONN_CB* p_ccb, BT_HDR* p_msg);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

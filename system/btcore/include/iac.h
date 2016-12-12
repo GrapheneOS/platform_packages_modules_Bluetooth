@@ -20,17 +20,9 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Inquiry Access Code
 // [Bluetooth Baseband]
 // (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
 typedef struct {
   uint8_t iac[3];
 } __attribute__((packed)) bt_inquiry_access_code_t;
-
-#ifdef __cplusplus
-}
-#endif

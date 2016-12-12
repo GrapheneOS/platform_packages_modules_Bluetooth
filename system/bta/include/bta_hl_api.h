@@ -30,10 +30,6 @@
 #include "btm_api.h"
 #include "mca_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -824,9 +820,5 @@ extern void BTA_HlSdpQuery(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
  ******************************************************************************/
 extern void BTA_HlDchCreateRsp(tBTA_HL_MCL_HANDLE mcl_handle,
                                tBTA_HL_DCH_CREATE_RSP_PARAM* p_rsp_param);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_HL_API_H */

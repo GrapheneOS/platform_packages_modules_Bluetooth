@@ -23,10 +23,6 @@
 #include "l2c_api.h"
 #include "profiles_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -399,9 +395,5 @@ extern bool GAP_BleReadPeerAddressResolutionCap(BD_ADDR peer_bda,
  *
  ******************************************************************************/
 extern bool GAP_BleCancelReadPeerDevName(BD_ADDR peer_bda);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* GAP_API_H */

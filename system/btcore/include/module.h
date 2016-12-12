@@ -23,10 +23,6 @@
 #include "osi/include/future.h"
 #include "osi/include/thread.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef future_t* (*module_lifecycle_fn)(void);
 
 #define BTCORE_MAX_MODULE_DEPENDENCIES 10
@@ -70,7 +66,3 @@ void module_clean_up(const module_t* module);
 void module_start_up_callbacked_wrapper(const module_t* module,
                                         thread_t* callback_thread,
                                         thread_fn callback);
-
-#ifdef __cplusplus
-}
-#endif

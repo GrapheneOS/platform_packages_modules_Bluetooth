@@ -26,15 +26,7 @@
 
 #include "stack/include/bt_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Brings connection to active mode
 void bta_dm_pm_active(BD_ADDR peer_addr);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_DM_API_H */

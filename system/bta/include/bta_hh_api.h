@@ -25,10 +25,6 @@
 #include "gatt_api.h"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and Type Definitions
  ****************************************************************************/
@@ -514,9 +510,5 @@ extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT* p_data, uint8_t* p_report,
 
 /* test commands */
 extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_HH_API_H */

@@ -29,10 +29,6 @@
 /*****************************************************************************
  *  Function Declarations
  ****************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
  *
  * Function         bta_pan_ci_tx_ready
@@ -142,9 +138,5 @@ extern void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters,
 extern void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters,
                                     uint8_t* p_start_array,
                                     uint8_t* p_end_array);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_PAN_CI_H */

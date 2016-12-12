@@ -22,10 +22,6 @@
 
 #include "btcore/include/bdaddr.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 static const char INTEROP_MODULE[] = "interop_module";
 
 // NOTE:
@@ -98,7 +94,3 @@ void interop_database_add(const uint16_t feature, const bt_bdaddr_t* addr,
 
 // Clear the dynamic portion of the interoperability workaround database.
 void interop_database_clear(void);
-
-#ifdef __cplusplus
-}
-#endif

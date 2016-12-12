@@ -22,10 +22,6 @@
 
 #include "audio_a2dp_hw/audio_a2dp_hw.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Initialize the A2DP control module. It should be called during the
 // startup stage of A2DP streaming.
 void btif_a2dp_control_init(void);
@@ -37,9 +33,5 @@ void btif_a2dp_control_cleanup(void);
 // Acknowledge A2DP command to the origin of audio streaming.
 // |status| is the acknowledement status - see |tA2DP_CTRL_ACK|.
 void btif_a2dp_command_ack(tA2DP_CTRL_ACK status);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTIF_A2DP_CONTROL_H */

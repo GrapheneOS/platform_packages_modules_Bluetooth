@@ -21,10 +21,6 @@
 #include "bt_types.h"
 #include "event_mask.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
   BT_HDR* (*make_reset)(void);
   BT_HDR* (*make_read_buffer_size)(void);
@@ -50,7 +46,3 @@ typedef struct {
 } hci_packet_factory_t;
 
 const hci_packet_factory_t* hci_packet_factory_get_interface();
-
-#ifdef __cplusplus
-}
-#endif

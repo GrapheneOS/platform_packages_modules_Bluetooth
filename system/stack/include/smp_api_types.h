@@ -21,10 +21,6 @@
 
 #include "bt_target.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define SMP_PIN_CODE_LEN_MAX PIN_CODE_LEN
 #define SMP_PIN_CODE_LEN_MIN 6
 
@@ -278,9 +274,5 @@ typedef uint8_t(tSMP_CALLBACK)(tSMP_EVT event, BD_ADDR bd_addr,
 */
 typedef void(tCMAC_CMPL_CBACK)(uint8_t* p_mac, uint16_t tlen,
                                uint32_t sign_counter);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // SMP_API_TYPES_H

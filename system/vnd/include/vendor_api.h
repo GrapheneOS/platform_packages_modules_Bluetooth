@@ -14,10 +14,6 @@
 #include "bt_types.h"
 #include "btm_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /****************************************************************************
  *  Resolvable private address offload VSC specific definitions
  *****************************************************************************/
@@ -33,10 +29,6 @@ enum { BTM_BLE_PRIVACY_ENABLE, BTM_BLE_PRIVACY_DISABLE };
  *****************************************************************************/
 #if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

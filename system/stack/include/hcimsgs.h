@@ -23,10 +23,6 @@
 #include "bt_types.h"
 #include "hcidefs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
 void bte_main_lpm_allow_bt_device_sleep(void);
 
@@ -827,9 +823,5 @@ extern void btsnd_hcic_write_authenticated_payload_tout(uint16_t handle,
 
 #define HCI__WRITE_AUTHENT_PAYLOAD_TOUT_HANDLE_OFF 0
 #define HCI__WRITE_AUTHENT_PAYLOAD_TOUT_TOUT_OFF 2
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

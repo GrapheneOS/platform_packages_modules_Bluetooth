@@ -23,10 +23,6 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** Struct types */
 
 /** Typedefs and defines */
@@ -411,9 +407,5 @@ typedef struct {
  *      dlsym call.
  */
 extern const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BT_VENDOR_LIB_H */

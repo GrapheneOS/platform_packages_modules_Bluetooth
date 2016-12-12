@@ -27,10 +27,6 @@
 
 #include "l2c_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -428,9 +424,5 @@ extern void BNEP_Init(void);
  *
  ******************************************************************************/
 extern tBNEP_RESULT BNEP_GetStatus(uint16_t handle, tBNEP_STATUS* p_status);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
