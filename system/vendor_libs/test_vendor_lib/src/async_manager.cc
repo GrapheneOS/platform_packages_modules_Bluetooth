@@ -122,7 +122,30 @@ class AsyncManager::AsyncFdWatcher {
 
   AsyncFdWatcher() = default;
 
-  ~AsyncFdWatcher() { stopThread(); }
+  ~AsyncFdWatcher() = default;
+
+  int stopThread() {
+    if (!std::atomic_exchange(&running_, false)) {
+      return 0;  // if not running already
+    }
+
+    notifyThread();
+
+    if (std::this_thread::get_id() != thread_.get_id()) {
+      thread_.join();
+    } else {
+      LOG_WARN(LOG_TAG,
+               "%s: Starting thread stop from inside the reading thread itself",
+               __FUNCTION__);
+    }
+
+    {
+      std::unique_lock<std::mutex> guard(internal_mutex_);
+      watched_shared_fds_.clear();
+    }
+
+    return 0;
+  }
 
  private:
   AsyncFdWatcher(const AsyncFdWatcher&) = delete;
@@ -153,29 +176,6 @@ class AsyncManager::AsyncFdWatcher {
       LOG_ERROR(LOG_TAG, "%s: Unable to start reading thread", __FUNCTION__);
       return -1;
     }
-    return 0;
-  }
-
-  int stopThread() {
-    if (!std::atomic_exchange(&running_, false)) {
-      return 0;  // if not running already
-    }
-
-    notifyThread();
-
-    if (std::this_thread::get_id() != thread_.get_id()) {
-      thread_.join();
-    } else {
-      LOG_WARN(LOG_TAG,
-               "%s: Starting thread stop from inside the reading thread itself",
-               __FUNCTION__);
-    }
-
-    {
-      std::unique_lock<std::mutex> guard(internal_mutex_);
-      watched_shared_fds_.clear();
-    }
-
     return 0;
   }
 
@@ -303,7 +303,29 @@ class AsyncManager::AsyncTaskManager {
 
   AsyncTaskManager() = default;
 
-  ~AsyncTaskManager() { stopThread(); }
+  ~AsyncTaskManager() = default;
+
+  int stopThread() {
+    {
+      std::unique_lock<std::mutex> guard(internal_mutex_);
+      tasks_by_id.clear();
+      task_queue_.clear();
+      if (!running_) {
+        return 0;
+      }
+      running_ = false;
+      // notify the thread
+      internal_cond_var_.notify_one();
+    }  // release the lock before joining a thread that is likely waiting for it
+    if (std::this_thread::get_id() != thread_.get_id()) {
+      thread_.join();
+    } else {
+      LOG_WARN(LOG_TAG,
+               "%s: Starting thread stop from inside the task thread itself",
+               __FUNCTION__);
+    }
+    return 0;
+  }
 
  private:
   // Holds the data for each task
@@ -399,28 +421,6 @@ class AsyncManager::AsyncTaskManager {
     return -1;
   }
 
-  int stopThread() {
-    {
-      std::unique_lock<std::mutex> guard(internal_mutex_);
-      tasks_by_id.clear();
-      task_queue_.clear();
-      if (!running_) {
-        return 0;
-      }
-      running_ = false;
-      // notify the thread
-      internal_cond_var_.notify_one();
-    }  // release the lock before joining a thread that is likely waiting for it
-    if (std::this_thread::get_id() != thread_.get_id()) {
-      thread_.join();
-    } else {
-      LOG_WARN(LOG_TAG,
-               "%s: Starting thread stop from inside the task thread itself",
-               __FUNCTION__);
-    }
-    return 0;
-  }
-
   void ThreadRoutine() {
     while (1) {
       TaskCallback callback;
@@ -477,8 +477,14 @@ AsyncManager::AsyncManager()
       taskManager_p_(new AsyncTaskManager()) {}
 
 AsyncManager::~AsyncManager() {
-  fdWatcher_p_.reset();    // make sure the threads are stopped
-  taskManager_p_.reset();  // before destroying the mutex
+  // Make sure the threads are stopped before destroying the object.
+  // The threads need to be stopped here and not in each internal class'
+  // destructor because unique_ptr's reset() first assigns nullptr to the
+  // pointer and only then calls the destructor, so any callback running
+  // on these threads would dereference a null pointer if they called a member
+  // function of this class.
+  fdWatcher_p_->stopThread();
+  taskManager_p_->stopThread();
 }
 
 int AsyncManager::WatchFdForNonBlockingReads(
