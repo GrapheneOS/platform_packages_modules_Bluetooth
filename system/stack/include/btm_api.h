@@ -33,10 +33,6 @@
 
 #include "btm_api_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  DEVICE CONTROL and COMMON
  ****************************************************************************/
@@ -2091,9 +2087,5 @@ extern void BTM_PCM2Setup_Write(bool clk_master, tBTM_VSC_CMPL_CB* p_arc_cb);
  *
  ******************************************************************************/
 extern tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTM_API_H */

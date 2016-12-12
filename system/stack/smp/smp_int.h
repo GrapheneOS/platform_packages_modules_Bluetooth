@@ -29,10 +29,6 @@
 #include "btu.h"
 #include "smp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Legacy mode */
 #define SMP_MODEL_ENCRYPTION_ONLY 0 /* Just Works model */
 #define SMP_MODEL_PASSKEY 1         /* Passkey Entry model, input the key */
@@ -359,10 +355,6 @@ typedef struct {
 typedef void (*tSMP_ACT)(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 
 extern tSMP_CB smp_cb;
-
-#ifdef __cplusplus
-}
-#endif
 
 /* Functions provided by att_main.cc */
 extern void smp_init(void);

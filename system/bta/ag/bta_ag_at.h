@@ -24,10 +24,6 @@
 #ifndef BTA_AG_AT_H
 #define BTA_AG_AT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants
  ****************************************************************************/
@@ -120,9 +116,5 @@ extern void bta_ag_at_reinit(tBTA_AG_AT_CB* p_cb);
  *
  ****************************************************************************/
 extern void bta_ag_at_parse(tBTA_AG_AT_CB* p_cb, char* p_buf, uint16_t len);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AG_AT_H */

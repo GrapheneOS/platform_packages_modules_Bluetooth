@@ -29,10 +29,6 @@
 #include "bta_api.h"
 #include "pan_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -179,9 +175,5 @@ void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE local_role,
  *
  ******************************************************************************/
 extern void BTA_PanClose(uint16_t handle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_PAN_API_H */

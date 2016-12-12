@@ -20,10 +20,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef uint64_t period_ms_t;
 
 // Get the OS boot time in milliseconds.
@@ -41,7 +37,3 @@ uint32_t time_get_os_boottime_ms(void);
 
 // Get the OS boot time in microseconds.
 uint64_t time_get_os_boottime_us(void);
-
-#ifdef __cplusplus
-}
-#endif

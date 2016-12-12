@@ -29,10 +29,6 @@
 /*****************************************************************************
  *  Function Declarations
  ****************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
  *
  * Function         bta_ag_ci_rx_write
@@ -70,9 +66,5 @@ extern void bta_ag_ci_slc_ready(uint16_t handle);
  *
  *****************************************************************************/
 extern void bta_ag_ci_wbs_command(uint16_t handle, char* p_data, uint16_t len);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AG_CI_H */

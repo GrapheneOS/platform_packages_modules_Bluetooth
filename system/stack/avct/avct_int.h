@@ -30,10 +30,6 @@
 #include "l2c_api.h"
 #include "osi/include/fixed_queue.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  * constants
  ****************************************************************************/
@@ -223,9 +219,5 @@ extern tAVCT_CB avct_cb;
 /* L2CAP callback registration structure */
 extern const tL2CAP_APPL_INFO avct_l2c_appl;
 extern const tL2CAP_APPL_INFO avct_l2c_br_appl;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* AVCT_INT_H */

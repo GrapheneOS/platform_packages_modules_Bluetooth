@@ -18,10 +18,6 @@
 #ifndef UIPC_H
 #define UIPC_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define UIPC_CH_ID_AV_CTRL 0
 #define UIPC_CH_ID_AV_AUDIO 1
 #define UIPC_CH_NUM 2
@@ -126,9 +122,5 @@ uint32_t UIPC_Read(tUIPC_CH_ID ch_id, uint16_t* p_msg_evt, uint8_t* p_buf,
  *
  ******************************************************************************/
 bool UIPC_Ioctl(tUIPC_CH_ID ch_id, uint32_t request, void* param);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* UIPC_H */

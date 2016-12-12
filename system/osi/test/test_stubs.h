@@ -18,10 +18,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Helper macros for stubbing out functions and modules for testing.
 
 // Stub out a function, with call counting and mode awareness
@@ -103,7 +99,3 @@ extern "C" {
 #define CURRENT_TEST_MODE _current_mode
 
 #define TEST_MODES_T _test_modes_t
-
-#ifdef __cplusplus
-}
-#endif

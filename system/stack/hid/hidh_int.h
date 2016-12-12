@@ -29,10 +29,6 @@
 #include "hidh_api.h"
 #include "l2c_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum { HID_DEV_NO_CONN, HID_DEV_CONNECTED };
 
 typedef struct per_device_ctb {
@@ -78,9 +74,5 @@ extern void hidh_try_repage(uint8_t dhandle);
  * Main Control Block
  ******************************************************************************/
 extern tHID_HOST_CTB hh_cb;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

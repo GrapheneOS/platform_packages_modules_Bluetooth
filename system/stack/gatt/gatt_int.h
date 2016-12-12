@@ -29,10 +29,6 @@
 
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define GATT_CREATE_CONN_ID(tcb_idx, gatt_if) \
   ((uint16_t)((((uint8_t)(tcb_idx)) << 8) | ((uint8_t)(gatt_if))))
 #define GATT_GET_TCB_IDX(conn_id) ((uint8_t)(((uint16_t)(conn_id)) >> 8))
@@ -447,10 +443,6 @@ extern tGATT_CB gatt_cb;
 #if (GATT_CONFORMANCE_TESTING == TRUE)
 extern void gatt_set_err_rsp(bool enable, uint8_t req_op_code,
                              uint8_t err_status);
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 /* from gatt_main.cc */

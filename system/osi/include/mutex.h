@@ -20,16 +20,8 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Lock the global mutex
 void mutex_global_lock(void);
 
 // Unlock the global mutex
 void mutex_global_unlock(void);
-
-#ifdef __cplusplus
-}
-#endif

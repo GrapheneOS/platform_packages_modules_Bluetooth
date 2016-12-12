@@ -52,7 +52,7 @@ bool fake_bta_sys_sendmsg_execute() { return closure_handler((BT_HDR*)msg); }
 
 // TODO(jpawlowski): there is some weird dependency issue in tests, and the
 // tests here fail to compile without this definition.
-extern "C" void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
+void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {}
 
 TEST(ClosureTest, test_post_task) {
   msg_send_counter = 0;

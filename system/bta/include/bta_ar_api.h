@@ -33,10 +33,6 @@
 #include "bta_sys.h"
 #include "sdp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -140,9 +136,5 @@ extern void bta_ar_reg_avrc(uint16_t service_uuid, const char* p_service_name,
  *
  *****************************************************************************/
 extern void bta_ar_dereg_avrc(uint16_t service_uuid, tBTA_SYS_ID sys_id);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_AR_API_H */

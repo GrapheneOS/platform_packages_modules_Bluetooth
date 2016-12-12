@@ -24,10 +24,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
   USERIAL_PORT_1,
   USERIAL_PORT_2,
@@ -73,7 +69,3 @@ uint16_t userial_read(uint16_t msg_id, uint8_t* p_buffer, uint16_t len);
 // This function returns the number of bytes actually written, which may be
 // less than |len|. This function may block.
 uint16_t userial_write(uint16_t msg_id, const uint8_t* p_data, uint16_t len);
-
-#ifdef __cplusplus
-}
-#endif

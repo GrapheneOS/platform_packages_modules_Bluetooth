@@ -28,10 +28,6 @@
 #include "bt_target.h"
 #include "l2c_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* move the following to bt_target.h or other place later */
 #define MCA_NUM_TC_TBL ((MCA_NUM_REGS) * (MCA_NUM_LINKS) * (MCA_NUM_MDLS + 1))
 /* Number of control channel control blocks	*/
@@ -514,9 +510,5 @@ extern tMCA_RESULT MCA_WriteReq(tMCA_DL mdl, BT_HDR* p_pkt);
  *
  ******************************************************************************/
 extern uint16_t MCA_GetL2CapChannel(tMCA_DL mdl);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* MCA_API_H */

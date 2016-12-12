@@ -39,10 +39,6 @@
 #include "btm_int_types.h"
 #include "smp_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern tBTM_CB btm_cb;
 
 /* Internal functions provided by btm_main.cc
@@ -275,9 +271,5 @@ extern void btm_acl_reset_paging(void);
 extern void btm_acl_paging(BT_HDR* p, BD_ADDR dest);
 extern uint8_t btm_sec_clr_service_by_psm(uint16_t psm);
 extern void btm_sec_clr_temp_auth_service(BD_ADDR bda);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

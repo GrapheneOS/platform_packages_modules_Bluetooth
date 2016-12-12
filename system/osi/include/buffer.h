@@ -21,10 +21,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct buffer_t buffer_t;
 
 // Returns a new buffer of |size| bytes. Returns NULL if a buffer could not be
@@ -58,7 +54,3 @@ void* buffer_ptr(const buffer_t* buf);
 // Returns the length of the writeable memory region referred to by |buf|.
 // |buf| must not be NULL.
 size_t buffer_length(const buffer_t* buf);
-
-#ifdef __cplusplus
-}
-#endif

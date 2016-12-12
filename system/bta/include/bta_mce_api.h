@@ -30,10 +30,6 @@
 #include "bta_api.h"
 #include "btm_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  Constants and data types
  ****************************************************************************/
@@ -121,9 +117,5 @@ extern tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK* p_cback);
  *
  ******************************************************************************/
 extern tBTA_MCE_STATUS BTA_MceGetRemoteMasInstances(BD_ADDR bd_addr);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_MCE_API_H */

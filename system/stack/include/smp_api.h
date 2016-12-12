@@ -27,10 +27,6 @@
 #include "bt_target.h"
 #include "smp_api_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
  *  External Function Declarations
  ****************************************************************************/
@@ -242,7 +238,4 @@ extern void smp_link_encrypted(BD_ADDR bda, uint8_t encr_enable);
 bool aes_cipher_msg_auth_code(BT_OCTET16 key, uint8_t* input, uint16_t length,
                               uint16_t tlen, uint8_t* p_signature);
 
-#ifdef __cplusplus
-}
-#endif
 #endif /* SMP_API_H */

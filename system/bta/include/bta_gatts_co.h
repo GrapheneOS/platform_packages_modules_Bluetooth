@@ -26,10 +26,6 @@
 
 #include "bta_gatt_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
  *
  * Function         bta_gatts_co_update_handle_range
@@ -82,9 +78,5 @@ extern bool bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
  ******************************************************************************/
 extern bool bta_gatts_co_load_handle_range(uint8_t index,
                                            tBTA_GATTS_HNDL_RANGE* p_handle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_GATTS_CO_H */
