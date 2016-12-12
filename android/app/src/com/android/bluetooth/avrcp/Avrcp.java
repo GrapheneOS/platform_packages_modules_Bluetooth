@@ -256,8 +256,10 @@ public final class Avrcp {
         mAvrcpMediaRsp = new AvrcpMediaRsp();
         mMediaPlayerInfoList = new ArrayList<MediaPlayerInfo>();
         mBrowsePlayerInfoList = new ArrayList<BrowsePlayerInfo>();
-        mMediaSessionManager.addOnActiveSessionsChangedListener(mActiveSessionListener, null,
-                mHandler);
+        if (mMediaSessionManager != null) {
+            mMediaSessionManager.addOnActiveSessionsChangedListener(mActiveSessionListener, null,
+                    mHandler);
+        }
         mPackageManager = mContext.getApplicationContext().getPackageManager();
 
         /* create object to communicate with addressed player */
@@ -1784,26 +1786,25 @@ public final class Avrcp {
 
     /* initializing media player info list and prepare media player response object */
     private void buildMediaPlayersList() {
-
         initMediaPlayersInfoList();
         mMPLObj = prepareMediaPlayerRspObj();
 
         if (mMPLObj.mNumItems > 0) {
-            // Setting player which is on the Top (id=1) of the list as an Addressed player
+            /* Set the first one as the Addressed Player */
             updateCurrentController(1, -1);
         } else {
             Log.i(TAG, "No players available in the media players list");
-            /* If there are no players available in the media players list, meaning none of the
-             * players are yet open, so no active players are in the list. But in this case none
-             * of the AVRCP player related commands can be satisfied. So, launching first available
-             * browsable player service to avail atleast one player to do AVRCP operations. */
-            /* Starting media player service */
+            /* No players have browsing started. Start one so we can handle commands. */
             if ((mBrowsePlayerInfoList != null) && (mBrowsePlayerInfoList.size()!=0)) {
                 BrowsePlayerInfo player = mBrowsePlayerInfoList.get(0);
                 Intent intent = new Intent();
                 intent.setComponent(new ComponentName(player.packageName, player.serviceClass));
                 Log.i(TAG, "Starting service:" + player.packageName + ", " + player.serviceClass);
-                mContext.startService(intent);
+                try {
+                    mContext.startService(intent);
+                } catch (SecurityException ex) {
+                    Log.e(TAG, "Can't start " + player.serviceClass + ": " + ex.getMessage());
+                }
             } else {
                 Log.e(TAG, "Opening player to support AVRCP operations failed, " +
                         "No browsable players available!");
@@ -1832,7 +1833,9 @@ public final class Avrcp {
     private List<android.media.session.MediaController> getActiveControllersList() {
         List<android.media.session.MediaController> controllersList =
             new ArrayList<android.media.session.MediaController>();
-        controllersList = mMediaSessionManager.getActiveSessions(null);
+        if (mMediaSessionManager != null) {
+            controllersList = mMediaSessionManager.getActiveSessions(null);
+        }
         Log.i(TAG, "getActiveControllersList: " + controllersList.size() + " controllers");
         return controllersList;
     }
