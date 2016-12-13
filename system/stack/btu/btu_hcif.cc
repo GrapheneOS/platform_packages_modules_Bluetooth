@@ -327,6 +327,11 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
           btu_ble_data_length_change_evt(p, hci_evt_len);
           break;
 
+        case HCI_LE_EXTENDED_ADVERTISING_REPORT_EVT:
+          HCI_TRACE_EVENT("HCI_LE_EXTENDED_ADVERTISING_REPORT_EVT");
+          btm_ble_process_ext_adv_pkt(hci_evt_len, p);
+          break;
+
         case HCI_LE_ADVERTISING_SET_TERMINATED_EVT:
           btm_le_on_advertising_set_terminated(p, hci_evt_len);
           break;
