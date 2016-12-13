@@ -100,7 +100,7 @@ void GattTest::RegisterClientCallback(
 
 void GattTest::ScanResultCallback(
     bluetooth::hal::BluetoothGattInterface* /* unused */,
-    const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
+    const bt_bdaddr_t& bda, int rssi, std::vector<uint8_t> adv_data) {
   semaphore_post(scan_result_callback_sem_);
 }
 
@@ -115,7 +115,7 @@ void GattTest::RegisterServerCallback(
 
 void GattTest::ServiceAddedCallback(
     bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
-    int server_if, vector<btgatt_db_element_t> service) {
+    int server_if, std::vector<btgatt_db_element_t> service) {
   status_ = status;
   server_interface_id_ = server_if;
   service_handle_ = service[0].attribute_handle;

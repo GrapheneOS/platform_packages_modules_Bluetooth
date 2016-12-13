@@ -297,7 +297,7 @@ void GattServer::ConnectionCallback(
 
 void GattServer::ServiceAddedCallback(hal::BluetoothGattInterface* gatt_iface,
                                       int status, int server_id,
-                                      vector<btgatt_db_element_t> svc) {
+                                      std::vector<btgatt_db_element_t> svc) {
   lock_guard<mutex> lock(mutex_);
 
   if (server_id != server_id_) return;
@@ -407,7 +407,7 @@ void GattServer::RequestReadDescriptorCallback(
 void GattServer::RequestWriteCharacteristicCallback(
     hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int trans_id,
     const bt_bdaddr_t& bda, int attr_handle, int offset, bool need_rsp,
-    bool is_prep, vector<uint8_t> value) {
+    bool is_prep, std::vector<uint8_t> value) {
   lock_guard<mutex> lock(mutex_);
 
   // Check to see if we know about this connection. Otherwise ignore the
@@ -446,7 +446,7 @@ void GattServer::RequestWriteCharacteristicCallback(
 void GattServer::RequestWriteDescriptorCallback(
     hal::BluetoothGattInterface* /* gatt_iface */, int conn_id, int trans_id,
     const bt_bdaddr_t& bda, int attr_handle, int offset, bool need_rsp,
-    bool is_prep, vector<uint8_t> value) {
+    bool is_prep, std::vector<uint8_t> value) {
   lock_guard<mutex> lock(mutex_);
 
   // Check to see if we know about this connection. Otherwise ignore the

@@ -35,13 +35,13 @@ class MockGattHandler
 
   MOCK_METHOD1(RegisterServer, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterServer, bt_status_t(int));
-  MOCK_METHOD2(AddService, bt_status_t(int, vector<btgatt_db_element_t>));
+  MOCK_METHOD2(AddService, bt_status_t(int, std::vector<btgatt_db_element_t>));
   MOCK_METHOD5(AddCharacteristic, bt_status_t(int, int, bt_uuid_t*, int, int));
   MOCK_METHOD4(AddDescriptor, bt_status_t(int, int, bt_uuid_t*, int));
   MOCK_METHOD3(StartService, bt_status_t(int, int, int));
   MOCK_METHOD2(DeleteService, bt_status_t(int, int));
   MOCK_METHOD5(SendIndication,
-               bt_status_t(int, int, int, int, vector<uint8_t>));
+               bt_status_t(int, int, int, int, std::vector<uint8_t>));
   MOCK_METHOD4(SendResponse, bt_status_t(int, int, int, btgatt_response_t*));
 
  private:
@@ -266,7 +266,7 @@ class GattServerPostRegisterTest : public GattServerTest {
     char_handle_ = 0x0002;
     desc_handle_ = 0x0004;
 
-    vector<btgatt_db_element_t> service_with_handles = {
+    std::vector<btgatt_db_element_t> service_with_handles = {
         {.type = BTGATT_DB_PRIMARY_SERVICE,
          .uuid = uuid0.GetBlueDroid(),
          .attribute_handle = srvc_handle_},
