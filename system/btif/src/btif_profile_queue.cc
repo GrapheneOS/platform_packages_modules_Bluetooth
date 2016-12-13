@@ -28,7 +28,7 @@
 
 #include "btif_profile_queue.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_common.h"
@@ -68,11 +68,11 @@ static const size_t MAX_REASONABLE_REQUESTS = 10;
 static void queue_int_add(connect_node_t* p_param) {
   if (!connect_queue) {
     connect_queue = list_new(osi_free);
-    assert(connect_queue != NULL);
+    CHECK(connect_queue != NULL);
   }
 
   // Sanity check to make sure we're not leaking connection requests
-  assert(list_length(connect_queue) < MAX_REASONABLE_REQUESTS);
+  CHECK(list_length(connect_queue) < MAX_REASONABLE_REQUESTS);
 
   for (const list_node_t* node = list_begin(connect_queue);
        node != list_end(connect_queue); node = list_next(node)) {

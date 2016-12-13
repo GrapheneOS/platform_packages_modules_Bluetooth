@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_btif_sock"
 
-#include <assert.h>
+#include <base/logging.h>
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
@@ -55,8 +55,8 @@ btsock_interface_t* btif_sock_get_interface(void) {
 }
 
 bt_status_t btif_sock_init(uid_set_t* uid_set) {
-  assert(thread_handle == -1);
-  assert(thread == NULL);
+  CHECK(thread_handle == -1);
+  CHECK(thread == NULL);
 
   bt_status_t status;
   btsock_thread_init();
@@ -124,8 +124,8 @@ static bt_status_t btsock_listen(btsock_type_t type, const char* service_name,
                                  const uint8_t* service_uuid, int channel,
                                  int* sock_fd, int flags, int app_uid) {
   if ((flags & BTSOCK_FLAG_NO_SDP) == 0) {
-    assert(service_uuid != NULL || channel > 0);
-    assert(sock_fd != NULL);
+    CHECK(service_uuid != NULL || channel > 0);
+    CHECK(sock_fd != NULL);
   }
 
   *sock_fd = INVALID_FD;
@@ -158,9 +158,9 @@ static bt_status_t btsock_connect(const bt_bdaddr_t* bd_addr,
                                   btsock_type_t type, const uint8_t* uuid,
                                   int channel, int* sock_fd, int flags,
                                   int app_uid) {
-  assert(uuid != NULL || channel > 0);
-  assert(bd_addr != NULL);
-  assert(sock_fd != NULL);
+  CHECK(uuid != NULL || channel > 0);
+  CHECK(bd_addr != NULL);
+  CHECK(sock_fd != NULL);
 
   *sock_fd = INVALID_FD;
   bt_status_t status = BT_STATUS_FAIL;
@@ -197,7 +197,7 @@ static void btsock_signaled(int fd, int type, int flags, uint32_t user_id) {
       btsock_l2cap_signaled(fd, flags, user_id);
       break;
     default:
-      assert(false && "Invalid socket type");
+      CHECK(false && "Invalid socket type");
       break;
   }
 }

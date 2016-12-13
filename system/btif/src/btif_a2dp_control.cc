@@ -19,7 +19,7 @@
 
 #define LOG_TAG "bt_btif_a2dp_control"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdbool.h>
 #include <stdint.h>
 

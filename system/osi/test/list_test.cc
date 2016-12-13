@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <base/logging.h>
+
 #include "AllocationTestHarness.h"
 
 #include "osi/include/list.h"
@@ -143,8 +145,8 @@ TEST_F(ListTest, test_list_next) {
 }
 
 static bool list_callback_sum(void* data, void* context) {
-  assert(data);
-  assert(context);
+  CHECK(data);
+  CHECK(context);
   int* sum = (int*)context;
   int* value = (int*)data;
   *sum += *value;
@@ -152,8 +154,8 @@ static bool list_callback_sum(void* data, void* context) {
 }
 
 static bool list_callback_find_int(void* data, void* context) {
-  assert(data);
-  assert(context);
+  CHECK(data);
+  CHECK(context);
   return (*(int*)data != *(int*)context);
 }
 

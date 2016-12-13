@@ -38,7 +38,6 @@ bluetooth_CFLAGS += \
   -Wno-gnu-variable-sized-type-not-at-end \
   -Wno-typedef-redefinition \
   -Wno-unused-parameter \
-  -UNDEBUG \
   -DLOG_NDEBUG=1
 
 bluetooth_CONLYFLAGS += -std=c99

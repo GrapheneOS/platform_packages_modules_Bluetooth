@@ -29,7 +29,7 @@
 
 #include "btif_hh.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -410,7 +410,7 @@ void btif_hh_start_vup_timer(bt_bdaddr_t* bd_addr) {
   BTIF_TRACE_DEBUG("%s", __func__);
 
   btif_hh_device_t* p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
-  assert(p_dev != NULL);
+  CHECK(p_dev != NULL);
 
   alarm_free(p_dev->vup_timer);
   p_dev->vup_timer = alarm_new("btif_hh.vup_timer");

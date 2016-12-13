@@ -23,7 +23,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -168,7 +168,7 @@ static uint16_t l2c_fcr_rx_get_fcs(BT_HDR* p_buf) {
  *
  ******************************************************************************/
 void l2c_fcr_start_timer(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   uint32_t tout;
 
   /* The timers which are in milliseconds */
@@ -195,7 +195,7 @@ void l2c_fcr_start_timer(tL2C_CCB* p_ccb) {
  *
  ******************************************************************************/
 void l2c_fcr_stop_timer(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   alarm_cancel(p_ccb->fcrb.mon_retrans_timer);
 }
 
@@ -210,7 +210,7 @@ void l2c_fcr_stop_timer(tL2C_CCB* p_ccb) {
  *
  ******************************************************************************/
 void l2c_fcr_cleanup(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   tL2C_FCRB* p_fcrb = &p_ccb->fcrb;
 
   alarm_free(p_fcrb->mon_retrans_timer);
@@ -341,7 +341,7 @@ void l2c_fcr_cleanup(tL2C_CCB* p_ccb) {
  ******************************************************************************/
 BT_HDR* l2c_fcr_clone_buf(BT_HDR* p_buf, uint16_t new_offset,
                           uint16_t no_of_bytes) {
-  assert(p_buf != NULL);
+  CHECK(p_buf != NULL);
   /*
    * NOTE: We allocate extra L2CAP_FCS_LEN octets, in case we need to put
    * the FCS (Frame Check Sequence) at the end of the buffer.
@@ -374,7 +374,7 @@ BT_HDR* l2c_fcr_clone_buf(BT_HDR* p_buf, uint16_t new_offset,
  *
  ******************************************************************************/
 bool l2c_fcr_is_flow_controlled(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) {
     /* Check if remote side flowed us off or the transmit window is full */
     if ((p_ccb->fcrb.remote_busy == true) ||
@@ -408,8 +408,8 @@ bool l2c_fcr_is_flow_controlled(tL2C_CCB* p_ccb) {
  ******************************************************************************/
 static void prepare_I_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf,
                             bool is_retransmission) {
-  assert(p_ccb != NULL);
-  assert(p_buf != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_buf != NULL);
   tL2C_FCRB* p_fcrb = &p_ccb->fcrb;
   uint8_t* p;
   uint16_t fcs;
@@ -506,7 +506,7 @@ static void prepare_I_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf,
  ******************************************************************************/
 void l2c_fcr_send_S_frame(tL2C_CCB* p_ccb, uint16_t function_code,
                           uint16_t pf_bit) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   uint8_t* p;
   uint16_t ctrl_word;
   uint16_t fcs;
@@ -599,8 +599,8 @@ void l2c_fcr_send_S_frame(tL2C_CCB* p_ccb, uint16_t function_code,
  *
  ******************************************************************************/
 void l2c_fcr_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
-  assert(p_ccb != NULL);
-  assert(p_buf != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_buf != NULL);
   uint8_t* p;
   uint16_t fcs;
   uint16_t min_pdu_len;
@@ -822,8 +822,8 @@ void l2c_fcr_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
  *
  ******************************************************************************/
 void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
-  assert(p_ccb != NULL);
-  assert(p_buf != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_buf != NULL);
   uint8_t* p = (uint8_t*)(p_buf + 1) + p_buf->offset;
   uint16_t sdu_length;
   BT_HDR* p_data = NULL;
@@ -891,7 +891,7 @@ void l2c_lcc_proc_pdu(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
  *
  ******************************************************************************/
 void l2c_fcr_proc_tout(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   L2CAP_TRACE_DEBUG(
       "l2c_fcr_proc_tout:  CID: 0x%04x  num_tries: %u (max: %u)  wait_ack: %u  "
       "ack_q_count: %u",
@@ -925,7 +925,7 @@ void l2c_fcr_proc_tout(tL2C_CCB* p_ccb) {
  *
  ******************************************************************************/
 void l2c_fcr_proc_ack_tout(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   L2CAP_TRACE_DEBUG(
       "l2c_fcr_proc_ack_tout:  CID: 0x%04x State: %u  Wack:%u  Rq:%d  Acked:%d",
       p_ccb->local_cid, p_ccb->chnl_state, p_ccb->fcrb.wait_ack,
@@ -953,7 +953,7 @@ void l2c_fcr_proc_ack_tout(tL2C_CCB* p_ccb) {
  *
  ******************************************************************************/
 static bool process_reqseq(tL2C_CCB* p_ccb, uint16_t ctrl_word) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
   tL2C_FCRB* p_fcrb = &p_ccb->fcrb;
   uint8_t req_seq, num_bufs_acked, xx;
   uint16_t ls;
@@ -1048,8 +1048,8 @@ static bool process_reqseq(tL2C_CCB* p_ccb, uint16_t ctrl_word) {
  ******************************************************************************/
 static void process_s_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf,
                             uint16_t ctrl_word) {
-  assert(p_ccb != NULL);
-  assert(p_buf != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_buf != NULL);
 
   tL2C_FCRB* p_fcrb = &p_ccb->fcrb;
   uint16_t s_frame_type =
@@ -1131,8 +1131,8 @@ static void process_s_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf,
  ******************************************************************************/
 static void process_i_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf, uint16_t ctrl_word,
                             bool delay_ack) {
-  assert(p_ccb != NULL);
-  assert(p_buf != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_buf != NULL);
 
   tL2C_FCRB* p_fcrb = &p_ccb->fcrb;
   uint8_t tx_seq, num_lost, num_to_ack, next_srej;
@@ -1326,8 +1326,8 @@ static void process_i_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf, uint16_t ctrl_word,
  *
  ******************************************************************************/
 static void process_stream_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
-  assert(p_ccb != NULL);
-  assert(p_buf != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_buf != NULL);
 
   uint16_t ctrl_word;
   uint16_t fcs;
@@ -1411,8 +1411,8 @@ static void process_stream_frame(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
  ******************************************************************************/
 static bool do_sar_reassembly(tL2C_CCB* p_ccb, BT_HDR* p_buf,
                               uint16_t ctrl_word) {
-  assert(p_ccb != NULL);
-  assert(p_buf != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_buf != NULL);
 
   tL2C_FCRB* p_fcrb = &p_ccb->fcrb;
   uint16_t sar_type = ctrl_word & L2CAP_FCR_SEG_BITS;
@@ -1523,7 +1523,7 @@ static bool do_sar_reassembly(tL2C_CCB* p_ccb, BT_HDR* p_buf,
  *
  ******************************************************************************/
 static bool retransmit_i_frames(tL2C_CCB* p_ccb, uint8_t tx_seq) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
 
   BT_HDR* p_buf = NULL;
   uint8_t* p;
@@ -1639,7 +1639,7 @@ static bool retransmit_i_frames(tL2C_CCB* p_ccb, uint8_t tx_seq) {
  ******************************************************************************/
 BT_HDR* l2c_fcr_get_next_xmit_sdu_seg(tL2C_CCB* p_ccb,
                                       uint16_t max_packet_length) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
 
   bool first_seg = false, /* The segment is the first part of data  */
       mid_seg = false,    /* The segment is the middle part of data */
@@ -1904,7 +1904,7 @@ BT_HDR* l2c_lcc_get_next_xmit_sdu_seg(tL2C_CCB* p_ccb,
  *
  ******************************************************************************/
 uint8_t l2c_fcr_chk_chan_modes(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
 
   /* Remove nonbasic options that the peer does not support */
   if (!(p_ccb->p_lcb->peer_ext_fea & L2CAP_EXTFEA_ENH_RETRANS))
@@ -1933,8 +1933,8 @@ uint8_t l2c_fcr_chk_chan_modes(tL2C_CCB* p_ccb) {
  *
  ******************************************************************************/
 bool l2c_fcr_adj_our_req_options(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
-  assert(p_ccb != NULL);
-  assert(p_cfg != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_cfg != NULL);
 
   tL2CAP_FCR_OPTS* p_fcr = &p_cfg->fcr;
 
@@ -2054,7 +2054,7 @@ bool l2c_fcr_adj_our_req_options(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
  *
  ******************************************************************************/
 void l2c_fcr_adj_monitor_retran_timeout(tL2C_CCB* p_ccb) {
-  assert(p_ccb != NULL);
+  CHECK(p_ccb != NULL);
 
   /* adjust our monitor/retran timeout */
   if (p_ccb->out_cfg_fcr_present) {
@@ -2090,8 +2090,8 @@ void l2c_fcr_adj_monitor_retran_timeout(tL2C_CCB* p_ccb) {
  *
  ******************************************************************************/
 void l2c_fcr_adj_our_rsp_options(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
-  assert(p_ccb != NULL);
-  assert(p_cfg != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_cfg != NULL);
 
   /* adjust our monitor/retran timeout */
   l2c_fcr_adj_monitor_retran_timeout(p_ccb);
@@ -2132,8 +2132,8 @@ void l2c_fcr_adj_our_rsp_options(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
  *
  ******************************************************************************/
 bool l2c_fcr_renegotiate_chan(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
-  assert(p_ccb != NULL);
-  assert(p_cfg != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_cfg != NULL);
 
   uint8_t peer_mode = p_ccb->our_cfg.fcr.mode;
   bool can_renegotiate;
@@ -2228,8 +2228,8 @@ bool l2c_fcr_renegotiate_chan(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
  *
  ******************************************************************************/
 uint8_t l2c_fcr_process_peer_cfg_req(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
-  assert(p_ccb != NULL);
-  assert(p_cfg != NULL);
+  CHECK(p_ccb != NULL);
+  CHECK(p_cfg != NULL);
 
   uint16_t max_retrans_size;
   uint8_t fcr_ok = L2CAP_PEER_CFG_OK;

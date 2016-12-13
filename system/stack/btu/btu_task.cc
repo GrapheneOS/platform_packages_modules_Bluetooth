@@ -18,7 +18,6 @@
 
 #define LOG_TAG "bt_btu_task"
 
-#include <assert.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>

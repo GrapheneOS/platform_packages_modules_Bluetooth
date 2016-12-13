@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -77,7 +77,7 @@ static int uhid_write(int fd, const struct uhid_event* ev) {
 
 /* Internal function to parse the events received from UHID driver*/
 static int uhid_read_event(btif_hh_device_t* p_dev) {
-  assert(p_dev);
+  CHECK(p_dev);
 
   struct uhid_event ev;
   memset(&ev, 0, sizeof(ev));

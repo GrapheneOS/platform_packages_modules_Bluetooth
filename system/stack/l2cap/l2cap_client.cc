@@ -20,7 +20,7 @@
 
 #include "stack/include/l2cap_client.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "btcore/include/bdaddr.h"
@@ -89,11 +89,11 @@ buffer_t* l2cap_buffer_new(size_t size) {
 
 l2cap_client_t* l2cap_client_new(const l2cap_client_callbacks_t* callbacks,
                                  void* context) {
-  assert(callbacks != NULL);
-  assert(callbacks->connected != NULL);
-  assert(callbacks->disconnected != NULL);
-  assert(callbacks->read_ready != NULL);
-  assert(callbacks->write_ready != NULL);
+  CHECK(callbacks != NULL);
+  CHECK(callbacks->connected != NULL);
+  CHECK(callbacks->disconnected != NULL);
+  CHECK(callbacks->read_ready != NULL);
+  CHECK(callbacks->write_ready != NULL);
 
   if (!l2cap_clients) {
     l2cap_clients = list_new(NULL);
@@ -128,14 +128,14 @@ void l2cap_client_free(l2cap_client_t* client) {
 
 bool l2cap_client_connect(l2cap_client_t* client,
                           const bt_bdaddr_t* remote_bdaddr, uint16_t psm) {
-  assert(client != NULL);
-  assert(remote_bdaddr != NULL);
-  assert(psm != 0);
-  assert(!bdaddr_is_empty(remote_bdaddr));
-  assert(client->local_channel_id == 0);
-  assert(!client->configured_self);
-  assert(!client->configured_peer);
-  assert(!L2C_INVALID_PSM(psm));
+  CHECK(client != NULL);
+  CHECK(remote_bdaddr != NULL);
+  CHECK(psm != 0);
+  CHECK(!bdaddr_is_empty(remote_bdaddr));
+  CHECK(client->local_channel_id == 0);
+  CHECK(!client->configured_self);
+  CHECK(!client->configured_peer);
+  CHECK(!L2C_INVALID_PSM(psm));
 
   client->local_channel_id = L2CA_ConnectReq(psm, (uint8_t*)remote_bdaddr);
   if (!client->local_channel_id) {
@@ -148,7 +148,7 @@ bool l2cap_client_connect(l2cap_client_t* client,
 }
 
 void l2cap_client_disconnect(l2cap_client_t* client) {
-  assert(client != NULL);
+  CHECK(client != NULL);
 
   if (client->local_channel_id && !L2CA_DisconnectReq(client->local_channel_id))
     LOG_ERROR(LOG_TAG, "%s unable to send disconnect message for LCID 0x%04x.",
@@ -168,16 +168,16 @@ void l2cap_client_disconnect(l2cap_client_t* client) {
 }
 
 bool l2cap_client_is_connected(const l2cap_client_t* client) {
-  assert(client != NULL);
+  CHECK(client != NULL);
 
   return client->local_channel_id != 0 && client->configured_self &&
          client->configured_peer;
 }
 
 bool l2cap_client_write(l2cap_client_t* client, buffer_t* packet) {
-  assert(client != NULL);
-  assert(packet != NULL);
-  assert(l2cap_client_is_connected(client));
+  CHECK(client != NULL);
+  CHECK(packet != NULL);
+  CHECK(l2cap_client_is_connected(client));
 
   if (client->is_congested) return false;
 
@@ -188,7 +188,7 @@ bool l2cap_client_write(l2cap_client_t* client, buffer_t* packet) {
 
 static void connect_completed_cb(uint16_t local_channel_id,
                                  uint16_t error_code) {
-  assert(local_channel_id != 0);
+  CHECK(local_channel_id != 0);
 
   l2cap_client_t* client = find(local_channel_id);
   if (!client) {
@@ -324,7 +324,7 @@ static void disconnect_request_cb(uint16_t local_channel_id,
 
 static void disconnect_completed_cb(uint16_t local_channel_id,
                                     UNUSED_ATTR uint16_t error_code) {
-  assert(local_channel_id != 0);
+  CHECK(local_channel_id != 0);
 
   l2cap_client_t* client = find(local_channel_id);
   if (!client) {
@@ -340,7 +340,7 @@ static void disconnect_completed_cb(uint16_t local_channel_id,
 }
 
 static void congestion_cb(uint16_t local_channel_id, bool is_congested) {
-  assert(local_channel_id != 0);
+  CHECK(local_channel_id != 0);
 
   l2cap_client_t* client = find(local_channel_id);
   if (!client) {
@@ -362,7 +362,7 @@ static void congestion_cb(uint16_t local_channel_id, bool is_congested) {
 }
 
 static void read_ready_cb(uint16_t local_channel_id, BT_HDR* packet) {
-  assert(local_channel_id != 0);
+  CHECK(local_channel_id != 0);
 
   l2cap_client_t* client = find(local_channel_id);
   if (!client) {
@@ -388,8 +388,8 @@ static void write_completed_cb(UNUSED_ATTR uint16_t local_channel_id,
 }
 
 static void fragment_packet(l2cap_client_t* client, buffer_t* packet) {
-  assert(client != NULL);
-  assert(packet != NULL);
+  CHECK(client != NULL);
+  CHECK(packet != NULL);
 
   // TODO(sharvil): eliminate copy into BT_HDR.
   BT_HDR* bt_packet = static_cast<BT_HDR*>(
@@ -423,8 +423,8 @@ static void fragment_packet(l2cap_client_t* client, buffer_t* packet) {
 }
 
 static void dispatch_fragments(l2cap_client_t* client) {
-  assert(client != NULL);
-  assert(!client->is_congested);
+  CHECK(client != NULL);
+  CHECK(!client->is_congested);
 
   while (!list_is_empty(client->outbound_fragments)) {
     BT_HDR* packet = (BT_HDR*)list_front(client->outbound_fragments);
@@ -450,7 +450,7 @@ static void dispatch_fragments(l2cap_client_t* client) {
 }
 
 static l2cap_client_t* find(uint16_t local_channel_id) {
-  assert(local_channel_id != 0);
+  CHECK(local_channel_id != 0);
 
   for (const list_node_t* node = list_begin(l2cap_clients);
        node != list_end(l2cap_clients); node = list_next(node)) {

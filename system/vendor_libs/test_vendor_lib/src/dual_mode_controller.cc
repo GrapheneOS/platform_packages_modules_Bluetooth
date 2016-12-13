@@ -20,9 +20,9 @@
 
 #include <memory>
 
+#include <base/logging.h>
 #include "base/files/file_util.h"
 #include "base/json/json_reader.h"
-#include "base/logging.h"
 #include "base/values.h"
 #include "event_packet.h"
 #include "hci_transport.h"

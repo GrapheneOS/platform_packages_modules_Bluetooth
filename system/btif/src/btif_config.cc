@@ -20,7 +20,7 @@
 
 #include "btif_config.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -244,27 +244,27 @@ EXPORT_SYMBOL module_t btif_config_module = {.name = BTIF_CONFIG_MODULE,
                                              .clean_up = clean_up};
 
 bool btif_config_has_section(const char* section) {
-  assert(config != NULL);
-  assert(section != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   return config_has_section(config, section);
 }
 
 bool btif_config_exist(const char* section, const char* key) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   return config_has_key(config, section, key);
 }
 
 bool btif_config_get_int(const char* section, const char* key, int* value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
-  assert(value != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
+  CHECK(value != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   bool ret = config_has_key(config, section, key);
@@ -274,9 +274,9 @@ bool btif_config_get_int(const char* section, const char* key, int* value) {
 }
 
 bool btif_config_set_int(const char* section, const char* key, int value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   config_set_int(config, section, key, value);
@@ -286,11 +286,11 @@ bool btif_config_set_int(const char* section, const char* key, int value) {
 
 bool btif_config_get_str(const char* section, const char* key, char* value,
                          int* size_bytes) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
-  assert(value != NULL);
-  assert(size_bytes != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
+  CHECK(value != NULL);
+  CHECK(size_bytes != NULL);
 
   {
     std::unique_lock<std::mutex> lock(config_lock);
@@ -305,10 +305,10 @@ bool btif_config_get_str(const char* section, const char* key, char* value,
 
 bool btif_config_set_str(const char* section, const char* key,
                          const char* value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
-  assert(value != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
+  CHECK(value != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   config_set_string(config, section, key, value);
@@ -317,11 +317,11 @@ bool btif_config_set_str(const char* section, const char* key,
 
 bool btif_config_get_bin(const char* section, const char* key, uint8_t* value,
                          size_t* length) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
-  assert(value != NULL);
-  assert(length != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
+  CHECK(value != NULL);
+  CHECK(length != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   const char* value_str = config_get_string(config, section, key, NULL);
@@ -341,9 +341,9 @@ bool btif_config_get_bin(const char* section, const char* key, uint8_t* value,
 }
 
 size_t btif_config_get_bin_length(const char* section, const char* key) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   const char* value_str = config_get_string(config, section, key, NULL);
@@ -357,11 +357,11 @@ bool btif_config_set_bin(const char* section, const char* key,
                          const uint8_t* value, size_t length) {
   const char* lookup = "0123456789abcdef";
 
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
-  if (length > 0) assert(value != NULL);
+  if (length > 0) CHECK(value != NULL);
 
   char* str = (char*)osi_calloc(length * 2 + 1);
 
@@ -380,57 +380,57 @@ bool btif_config_set_bin(const char* section, const char* key,
 }
 
 const btif_config_section_iter_t* btif_config_section_begin(void) {
-  assert(config != NULL);
+  CHECK(config != NULL);
   return (const btif_config_section_iter_t*)config_section_begin(config);
 }
 
 const btif_config_section_iter_t* btif_config_section_end(void) {
-  assert(config != NULL);
+  CHECK(config != NULL);
   return (const btif_config_section_iter_t*)config_section_end(config);
 }
 
 const btif_config_section_iter_t* btif_config_section_next(
     const btif_config_section_iter_t* section) {
-  assert(config != NULL);
-  assert(section != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
   return (const btif_config_section_iter_t*)config_section_next(
       (const config_section_node_t*)section);
 }
 
 const char* btif_config_section_name(
     const btif_config_section_iter_t* section) {
-  assert(config != NULL);
-  assert(section != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
   return config_section_name((const config_section_node_t*)section);
 }
 
 bool btif_config_remove(const char* section, const char* key) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   return config_remove_key(config, section, key);
 }
 
 void btif_config_save(void) {
-  assert(config != NULL);
-  assert(config_timer != NULL);
+  CHECK(config != NULL);
+  CHECK(config_timer != NULL);
 
   alarm_set(config_timer, CONFIG_SETTLE_PERIOD_MS, timer_config_save_cb, NULL);
 }
 
 void btif_config_flush(void) {
-  assert(config != NULL);
-  assert(config_timer != NULL);
+  CHECK(config != NULL);
+  CHECK(config_timer != NULL);
 
   alarm_cancel(config_timer);
   btif_config_write(0, NULL);
 }
 
 bool btif_config_clear(void) {
-  assert(config != NULL);
-  assert(config_timer != NULL);
+  CHECK(config != NULL);
+  CHECK(config_timer != NULL);
 
   alarm_cancel(config_timer);
 
@@ -454,8 +454,8 @@ static void timer_config_save_cb(UNUSED_ATTR void* data) {
 
 static void btif_config_write(UNUSED_ATTR uint16_t event,
                               UNUSED_ATTR char* p_param) {
-  assert(config != NULL);
-  assert(config_timer != NULL);
+  CHECK(config != NULL);
+  CHECK(config_timer != NULL);
 
   std::unique_lock<std::mutex> lock(config_lock);
   rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
@@ -466,7 +466,7 @@ static void btif_config_write(UNUSED_ATTR uint16_t event,
 }
 
 static void btif_config_remove_unpaired(config_t* conf) {
-  assert(conf != NULL);
+  CHECK(conf != NULL);
   int paired_devices = 0;
 
   // The paired config used to carry information about
@@ -528,7 +528,7 @@ void btif_debug_config_dump(int fd) {
 }
 
 static void btif_config_remove_restricted(config_t* config) {
-  assert(config != NULL);
+  CHECK(config != NULL);
 
   const config_section_node_t* snode = config_section_begin(config);
   while (snode != config_section_end(config)) {

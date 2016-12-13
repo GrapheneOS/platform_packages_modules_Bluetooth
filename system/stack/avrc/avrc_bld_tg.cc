@@ -15,7 +15,7 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "avrc_api.h"
@@ -418,7 +418,7 @@ static void avrc_build_attribute_entries(int num_attrs,
   for (int index = 0; index < num_attrs; index++) {
     AVRC_TRACE_DEBUG("%s attr id[%d]: %d", __func__, index,
                      p_attrs[index].attr_id);
-    assert(AVRC_IS_VALID_MEDIA_ATTRIBUTE(p_attrs[index].attr_id));
+    CHECK(AVRC_IS_VALID_MEDIA_ATTRIBUTE(p_attrs[index].attr_id));
     if (!p_attrs[index].name.p_str) {
       p_attrs[index].name.str_len = 0;
     }

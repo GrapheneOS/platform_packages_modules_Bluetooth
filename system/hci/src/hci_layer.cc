@@ -20,7 +20,7 @@
 
 #include "hci_layer.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/types.h>
@@ -740,8 +740,8 @@ intercepted:
 // Callback for the fragmenter to dispatch up a completely reassembled packet
 static void dispatch_reassembled(BT_HDR* packet) {
   // Events should already have been dispatched before this point
-  assert((packet->event & MSG_EVT_MASK) != MSG_HC_TO_STACK_HCI_EVT);
-  assert(upwards_data_queue != NULL);
+  CHECK((packet->event & MSG_EVT_MASK) != MSG_HC_TO_STACK_HCI_EVT);
+  CHECK(upwards_data_queue != NULL);
 
   if (upwards_data_queue) {
     fixed_queue_enqueue(upwards_data_queue, packet);

@@ -16,13 +16,13 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 
 #include "bt_common.h"
 #include "buffer_allocator.h"
 
 static void* buffer_alloc(size_t size) {
-  assert(size <= BT_DEFAULT_BUFFER_SIZE);
+  CHECK(size <= BT_DEFAULT_BUFFER_SIZE);
   return osi_malloc(size);
 }
 

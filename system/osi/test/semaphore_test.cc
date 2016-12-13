@@ -2,6 +2,7 @@
 
 #include "AllocationTestHarness.h"
 
+#include <base/logging.h>
 #include <sys/select.h>
 #include <unistd.h>
 
@@ -19,8 +20,8 @@ namespace {
 void sleep_then_increment_counter(void* context) {
   SemaphoreTestSequenceHelper* helper =
       reinterpret_cast<SemaphoreTestSequenceHelper*>(context);
-  assert(helper);
-  assert(helper->semaphore);
+  CHECK(helper);
+  CHECK(helper->semaphore);
   sleep(1);
   ++helper->counter;
   semaphore_post(helper->semaphore);

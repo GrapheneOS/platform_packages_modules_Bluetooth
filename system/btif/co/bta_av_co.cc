@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include "bta_av_co.h"
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 #include "a2dp_api.h"
 #include "bt_target.h"
@@ -941,7 +941,7 @@ void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS* p_init_params) {
   uint16_t min_mtu = 0xFFFF;
 
   APPL_TRACE_DEBUG("%s", __func__);
-  assert(p_init_params != nullptr);
+  CHECK(p_init_params != nullptr);
 
   /* Protect access to bta_av_co_cb.codec_config */
   mutex_global_lock();

@@ -20,7 +20,7 @@
 
 #include "hci_inject.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <string.h>
 
@@ -69,10 +69,10 @@ static bool hci_inject_open(const hci_t* hci_interface) {
   return true;  // Disable using network sockets for security reasons
 #endif
 
-  assert(listen_socket == NULL);
-  assert(thread == NULL);
-  assert(clients == NULL);
-  assert(hci_interface != NULL);
+  CHECK(listen_socket == NULL);
+  CHECK(thread == NULL);
+  CHECK(clients == NULL);
+  CHECK(hci_interface != NULL);
 
   hci = hci_interface;
 
@@ -125,8 +125,8 @@ static int hci_packet_to_event(hci_packet_t packet) {
 }
 
 static void accept_ready(socket_t* socket, UNUSED_ATTR void* context) {
-  assert(socket != NULL);
-  assert(socket == listen_socket);
+  CHECK(socket != NULL);
+  CHECK(socket == listen_socket);
 
   socket = socket_accept(socket);
   if (!socket) return;
@@ -145,8 +145,8 @@ static void accept_ready(socket_t* socket, UNUSED_ATTR void* context) {
 }
 
 static void read_ready(UNUSED_ATTR socket_t* socket, void* context) {
-  assert(socket != NULL);
-  assert(context != NULL);
+  CHECK(socket != NULL);
+  CHECK(context != NULL);
 
   client_t* client = (client_t*)context;
 
