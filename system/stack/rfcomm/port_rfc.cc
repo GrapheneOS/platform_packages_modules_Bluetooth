@@ -771,38 +771,32 @@ void PORT_DataInd(tRFC_MCB* p_mcb, uint8_t dlci, BT_HDR* p_buf) {
    * receive data */
   if (p_port->p_data_co_callback) {
     /* Another packet is delivered to user.  Send credits to peer if required */
-
     if (p_port->p_data_co_callback(p_port->inx, (uint8_t*)p_buf, -1,
-                                   DATA_CO_CALLBACK_TYPE_INCOMING))
+                                   DATA_CO_CALLBACK_TYPE_INCOMING)) {
       port_flow_control_peer(p_port, true, 1);
-    else
+    } else {
       port_flow_control_peer(p_port, false, 0);
+    }
     // osi_free(p_buf);
     return;
-  } else
-    RFCOMM_TRACE_ERROR("PORT_DataInd, p_port:%p, p_data_co_callback is null",
-                       p_port);
+  }
   /* If client registered callback we can just deliver receive data */
   if (p_port->p_data_callback) {
     /* Another packet is delivered to user.  Send credits to peer if required */
     port_flow_control_peer(p_port, true, 1);
-
     p_port->p_data_callback(p_port->inx, (uint8_t*)(p_buf + 1) + p_buf->offset,
                             p_buf->len);
     osi_free(p_buf);
     return;
   }
-
   /* Check if rx queue exceeds the limit */
   if ((p_port->rx.queue_size + p_buf->len > PORT_RX_CRITICAL_WM) ||
       (fixed_queue_length(p_port->rx.queue) + 1 > p_port->rx_buf_critical)) {
     RFCOMM_TRACE_EVENT("PORT_DataInd. Buffer over run. Dropping the buffer");
     osi_free(p_buf);
-
     RFCOMM_LineStatusReq(p_mcb, dlci, LINE_STATUS_OVERRUN);
     return;
   }
-
   /* If user registered to receive notification when a particular byte is */
   /* received we mast check all received bytes */
   if (((rx_char1 = p_port->user_port_pars.rx_char1) != 0) &&
@@ -828,8 +822,9 @@ void PORT_DataInd(tRFC_MCB* p_mcb, uint8_t dlci, BT_HDR* p_buf) {
 
   /* If user indicated flow control can not deliver any notifications to him */
   if (p_port->rx.user_fc) {
-    if (events & PORT_EV_RXFLAG) p_port->rx_flag_ev_pending = true;
-
+    if (events & PORT_EV_RXFLAG) {
+      p_port->rx_flag_ev_pending = true;
+    }
     return;
   }
 
